@@ -1,0 +1,217 @@
+{
+  "daemons": [
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": true,
+      "mid_work_reason": "4 process(es) in the cgroup, so a job is in flight",
+      "modules": [
+        "background/boot_sha.py",
+        "background/gap_ledger_reconciler.py",
+        "background/head_red_register.py",
+        "tools/couple_value_based_pricing.py",
+        "tools/generate_proof_data.py"
+      ],
+      "modules_behind": 5,
+      "running_age_s": 596.5,
+      "session": "background-worker",
+      "session_hosting": false,
+      "stale": true,
+      "unit": "background-worker.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [
+        "background/boot_sha.py",
+        "background/gap_ledger_reconciler.py",
+        "background/head_red_register.py",
+        "tools/couple_value_based_pricing.py",
+        "tools/generate_proof_data.py"
+      ],
+      "modules_behind": 5,
+      "running_age_s": 596.4,
+      "session": "deadmans-switch",
+      "session_hosting": false,
+      "stale": true,
+      "unit": "deadmans-switch.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [],
+      "modules_behind": 0,
+      "running_age_s": 596.3,
+      "session": "dispatcher",
+      "session_hosting": false,
+      "stale": false,
+      "unit": "dispatcher.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [
+        "background/boot_sha.py",
+        "background/gap_ledger_reconciler.py",
+        "background/head_red_register.py",
+        "tools/couple_value_based_pricing.py",
+        "tools/generate_proof_data.py"
+      ],
+      "modules_behind": 5,
+      "running_age_s": 596.2,
+      "session": "naive-organ",
+      "session_hosting": false,
+      "stale": true,
+      "unit": "naive-organ.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [],
+      "modules_behind": 0,
+      "running_age_s": 596.2,
+      "session": "ntfy-responder",
+      "session_hosting": false,
+      "stale": false,
+      "unit": "ntfy-responder.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [],
+      "modules_behind": 0,
+      "running_age_s": 596.2,
+      "session": "sanity-daemon",
+      "session_hosting": false,
+      "stale": false,
+      "unit": "sanity-daemon.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": true,
+      "mid_work_reason": "2 process(es) in the cgroup, so a job is in flight",
+      "modules": [
+        "background/boot_sha.py",
+        "background/gap_ledger_reconciler.py",
+        "background/head_red_register.py",
+        "tools/couple_value_based_pricing.py",
+        "tools/generate_proof_data.py"
+      ],
+      "modules_behind": 5,
+      "running_age_s": 596.1,
+      "session": "sim-runner",
+      "session_hosting": false,
+      "stale": true,
+      "unit": "sim-runner.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [
+        "background/head_red_register.py"
+      ],
+      "modules_behind": 1,
+      "running_age_s": 596.1,
+      "session": "staging-watcher",
+      "session_hosting": false,
+      "stale": true,
+      "unit": "staging-watcher.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 350.0,
+      "boot_sha": "fbd2970c6c24a3c19f21cc59c1be5779291836bf",
+      "loaded_code_age_s": 856.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [
+        "background/gap_ledger_reconciler.py",
+        "background/head_red_register.py"
+      ],
+      "modules_behind": 2,
+      "running_age_s": 595.7,
+      "session": "supervisor",
+      "session_hosting": false,
+      "stale": true,
+      "unit": "supervisor.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 921860.0,
+      "boot_sha": "cf7ae97be0301f2b76f2b8ce8b2d822ebbf8b8d0",
+      "loaded_code_age_s": 922366.9,
+      "mid_work": false,
+      "mid_work_reason": null,
+      "modules": [],
+      "modules_behind": 0,
+      "running_age_s": 921675.0,
+      "session": "token-proxy",
+      "session_hosting": false,
+      "stale": false,
+      "unit": "token-proxy.service",
+      "unresolved": null
+    },
+    {
+      "behind_s": 921860.0,
+      "boot_sha": "cf7ae97be0301f2b76f2b8ce8b2d822ebbf8b8d0",
+      "loaded_code_age_s": 922366.9,
+      "mid_work": true,
+      "mid_work_reason": "2 process(es) in the cgroup, so a job is in flight",
+      "modules": [
+        "background/secrets_location.py"
+      ],
+      "modules_behind": 1,
+      "running_age_s": 921675.0,
+      "session": "worker-seat-manager",
+      "session_hosting": true,
+      "stale": true,
+      "unit": "worker-seat-manager.service",
+      "unresolved": null
+    }
+  ],
+  "generated_at_s": 1788502678.9,
+  "head": "8b6c12e5afe3540acba6945cb2451b92437f26cf",
+  "head_commit_epoch": 1788502172.0,
+  "session_hosting_units": [
+    "seat-executor.service",
+    "worker-seat-manager.service",
+    "worker-tick.service"
+  ],
+  "session_hosting_unresolved": null,
+  "summary": {
+    "mid_work": 3,
+    "observed": 11,
+    "session_hosting": 1,
+    "stale": 7,
+    "unresolved": 0
+  },
+  "vacuous": false
+}

@@ -65,6 +65,31 @@ systemd_units:
       timer fires the reconcile every 5 min so drift is loud within minutes, not at the next boot.
       active:true because an un-armed timer is a control that never runs.
 
+  - name: deploy-restart.service
+    unit_file: background/deploy-restart.service
+    enabled: false           # timer-triggered, not boot-enabled itself (static)
+    active: false            # Type=oneshot — performs one deployment pass and EXITS
+    reason: >-
+      G-D2, the ACT half of deployment, unbuilt from the operational layer's design until
+      2026-09-04. G-D1/G-D3 (boot-SHA stamping, import-closure drift, the reconcile-watch report)
+      were built and correct, and reported for days that ten of eleven daemons held changed
+      modules — sim-runner 145 of them — with nothing acting on it. Deliberately NOT folded into
+      reconcile-watch, which is report-only by design and pinned there by
+      test_the_drift_check_never_restarts_anything: reporting and acting are different guarantees.
+      Restarts only daemons that host no interactive session; session hosts are DEFERRED to an
+      observed turn boundary, never restarted mid-work.
+
+  - name: deploy-restart.timer
+    unit_file: background/deploy-restart.timer
+    enabled: true            # boot-start (WantedBy=timers.target)
+    active: true             # an un-armed deployment step is the gap it exists to close
+    reason: >-
+      The schedule that makes G-D2 real rather than a thing a seat remembers to run. 10 min rather
+      than the reconcile's 5: this one ACTS, and a wider gap keeps a landing and its restart from
+      racing a gate mid-run. Standing authority, director 2026-09-04 — "restart any daemon that
+      does not host the interactive session whenever its loaded code is behind disk ... and build
+      that as a mechanism rather than remembering it."
+
   # ── Scheduled bounded invocations — the continuity transport (SCHEDULED_BOUNDED_INVOCATIONS_DESIGN.md)
   # DARK until the director-run cutover (background/cutover_to_scheduled.sh --apply). Declared here so
   # reconcile SEES them; enabled/active:false = installed-not-armed, which matches reality pre-cutover.

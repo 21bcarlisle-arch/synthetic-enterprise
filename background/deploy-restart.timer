@@ -1,0 +1,14 @@
+[Unit]
+Description=Synthetic Enterprise deployment step timer — close the code-landed/code-running gap
+
+[Timer]
+# Ten minutes, not five: this one ACTS, and acting wants a wider gap than reporting so a landing
+# and its restart never race a gate mid-run. First pass 5 min after boot — long enough for the
+# daemons the boot itself started to stamp their SHA, so the first run is not a stampede against
+# unstamped records it would (correctly) refuse to act on.
+OnBootSec=5min
+OnUnitActiveSec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

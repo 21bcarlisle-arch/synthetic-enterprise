@@ -1,0 +1,15 @@
+[Unit]
+Description=Synthetic Enterprise deployment step (G-D2) — restart daemons holding changed code
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/rich/synthetic-enterprise
+EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.ntfy
+# THE ACT HALF of deployment, and it is deliberately NOT in reconcile-watch: that unit is
+# report-only by design and `test_the_drift_check_never_restarts_anything` pins it there.
+# Reporting (G-D3) and acting (G-D2) are different guarantees and get different units.
+#
+# Runs OUTSIDE every session-hosting unit, which is what lets it defer them safely: its own unit is
+# deploy-restart.service, so the self-guard never swallows a daemon it should have restarted.
+ExecStart=/usr/bin/python3 -m background.deploy_restart --apply
