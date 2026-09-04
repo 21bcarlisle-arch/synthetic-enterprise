@@ -4515,6 +4515,36 @@ def _divergence_refusal():
 #: also running a gate; bounded because it sits inside a publish cycle that has to finish.
 FORK_ADVANCE_TIMEOUT_SECONDS = 300
 
+#: How many times the publish path may fast-forward and re-read before it drops the cycle. Three,
+#: for `surgical_land.DEFAULT_ATTEMPTS`'s reason and by the same arithmetic run on this loop's own
+#: numbers.
+#:
+#: MEASURED 2026-09-04, delivery seat, n as stated -- not estimated, and it REFUTED the prediction
+#: filed before it (`SEAT_PREREGISTRATION_HOW_WIDE_THE_PUBLISHERS_LOST_RACE_WINDOW_ACTUALLY_IS
+#: _2026-09-04.md`, which predicted W > 1.0s and P(loss) of 0.7-2.6%):
+#:
+#:   * **W = 0.873s** -- the exposed window, median of n=5: the advance's `git fetch` (GitHub over
+#:     HTTPS), `commits_ahead`, the `--ff-only` merge (0.006s, n=3), then the re-read's `git fetch`
+#:     and `rev-list`. The 1s in `_advance_to_origin_or_say_why`'s docstring was RIGHT and my
+#:     prediction that two network round trips must cost more than that was wrong.
+#:   * **292s** -- median gap between commits on `origin/main`, n=57 over 6h.
+#:   * So **P(one attempt loses) = 0.873/292 = 0.30%**, and the residual after three is ~2.7e-8.
+#:
+#: WHY THREE ATTEMPTS SURVIVES THAT, when "buys a fraction of a percent" was the argument against a
+#: second one and the frequency is indeed tiny: the cost is not paid where that argument put it.
+#: Attempt 2 runs ONLY when attempt 1 fast-forwarded and was overtaken anyway -- in the 99.7% of
+#: cycles that clear on the first pass, the loop body runs exactly once and this constant costs
+#: nothing at all. So it is not 0.87s against 0.30%; it is 0.87s against the 672s of completed
+#: simulation and gate that the losing 0.30% otherwise throws away at the door, a ratio of ~770.
+#: The pre-registration's own decision rule (*"the retry is only justified if prediction 1 holds"*)
+#: was mis-specified for exactly this reason -- it assumed the round trip was spent every cycle --
+#: and is recorded as wrong beside the result rather than quietly dropped.
+#:
+#: NOT A DIAL ON THE REFUSAL. Raising this cannot turn a real fork into a publishable one: the loop
+#: breaks on the first non-advance, so `ahead > 0`, a git refusal and an unreadable origin each
+#: still refuse on attempt 1, exactly as before.
+PUBLISH_ADVANCE_ATTEMPTS = 3
+
 
 def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
     """Close a fork the publish path just found, when closing it is MECHANICAL. Never raises.
@@ -4544,11 +4574,20 @@ def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
     the answer is wanted, after a full simulation and a 672s gate have already been spent on work
     that is otherwise thrown away at the door.
 
-    ONE ATTEMPT, DELIBERATELY. `surgical_land`'s lost-the-race retry re-gates because its subject
-    is a tree it builds; this one's subject is a ref, and the move is ~1s against a 3.8-minute
-    median arrival. A second attempt would buy a fraction of a percent and cost a second network
-    round trip inside a cycle that must finish. Losing the race in that ~1s window is a real
-    refusal and is reported as one by the caller's re-read.
+    ONE ATTEMPT PER CALL, and the CALLER bounds the loop -- `PUBLISH_ADVANCE_ATTEMPTS`, which
+    carries the arithmetic. This function stays single-shot on purpose: it reads a state, acts once
+    where acting is mechanical, and reports; deciding how many times that is worth doing needs the
+    671s of thrown-away work on the other side of the scale, and only the caller can see it.
+
+    CORRECTING WHAT THIS PARAGRAPH SAID (2026-09-04, same day it was written). It argued a second
+    attempt "would buy a fraction of a percent and cost a second network round trip inside a cycle
+    that must finish", and both halves of that are measurements this seat then took: the window is
+    0.873s (n=5) against a 292s median arrival (n=57), so the fraction of a percent is real -- 0.30%
+    -- and the round trip is 0.87s. What the argument got wrong is WHERE the round trip is spent. A
+    retry that only fires on a LOST race costs nothing in the 99.7% of cycles that clear first time,
+    so the comparison was never 0.87s against 0.30%; it was 0.87s against the cycle the 0.30% throws
+    away. Kept here rather than rewritten away, because a wrong argument beside its refutation is
+    the only evidence the numbers were taken afterwards and not chosen to fit.
     """
     project = Path(project) if project is not None else PROJECT_DIR
 
@@ -4892,21 +4931,48 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # `_advance_to_origin_or_say_why` breaks that stand-off ONLY where it is mechanical -- a
     # fast-forward, no commit, nothing of ours to land, git's own refusal as the guard. Its
     # docstring carries why that is not the merge this refusal argues against.
+    #
+    # AND THE ADVANCE IS BOUNDED-RETRIED, ON THE LOST RACE AND ON NOTHING ELSE (2026-09-04, later
+    # the same day). `surgical_land.land` is the shape and it is copied deliberately rather than
+    # reinvented: loop only over the retryable refusal, propagate every other one on the FIRST
+    # attempt, and name each lost attempt in the final refusal. See `PUBLISH_ADVANCE_ATTEMPTS`
+    # for the arithmetic that decided the bound, and for the prediction it refuted.
     _advance = None
+    _lost = []
     if _behind is not None:
-        _advance = _advance_to_origin_or_say_why()
-        log("Publish path is behind origin ({}). Advance attempt: {}".format(
-            _behind, _advance["reason"]))
-        if _advance["advanced"]:
+        for _attempt in range(1, PUBLISH_ADVANCE_ATTEMPTS + 1):
+            _advance = _advance_to_origin_or_say_why()
+            log("Publish path is behind origin ({}). Advance attempt {}/{}: {}".format(
+                _behind, _attempt, PUBLISH_ADVANCE_ATTEMPTS, _advance["reason"]))
+            if not _advance["advanced"]:
+                # TERMINAL ON THE FIRST ATTEMPT, and the asymmetry is the whole safety argument --
+                # `land()`'s, inherited. A refusal to advance means the fork is REAL (we hold
+                # commits of our own), or git refused the fast-forward, or origin is unreadable.
+                # Every one of those is a state, not a moment: re-running it is the 2026-09-01
+                # retry that was the mechanism of the incident, one round trip at a time. Only a
+                # race that was LOST may be re-run, because only then was the verdict about a tree
+                # that no longer exists.
+                break
             # RE-READ THE SUBJECT AFTER ACTING, never assume the act had its effect -- the rule
-            # `origin_reconcile` paid 29 empty merges to learn. A commit landing on origin during
-            # the ~1s advance leaves us behind again, and that is a real refusal.
+            # `origin_reconcile` paid 29 empty merges to learn. The fast-forward moved HEAD onto
+            # origin/main AS OF ITS OWN FETCH, so a refusal surviving this re-read can only mean a
+            # commit arrived in between: that, and only that, is the retryable case.
             _behind = _divergence_refusal()
             if _behind is None:
-                log("Fork closed by fast-forward; this cycle's completed work is publishable "
-                    "after all and continues to the commit.")
+                log("Fork closed by fast-forward on attempt {}; this cycle's completed work is "
+                    "publishable after all and continues to the commit.".format(_attempt))
+                break
+            _lost.append(_attempt)
     if _behind is not None:
         _why_not = _advance["reason"] if _advance else "the advance was never attempted"
+        if _lost:
+            # SAY WHICH OF THE TWO IT WAS. Three lost races means origin is hotter than this
+            # measurement expected and the bound is the thing to revisit; one refusal means the
+            # fork is real and no number of attempts would have closed it. A reader who cannot
+            # tell them apart tunes the wrong one.
+            _why_not = ("the fast-forward SUCCEEDED and origin moved again anyway on {} of {} "
+                        "attempt(s) -- the last one reported: {}".format(
+                            len(_lost), PUBLISH_ADVANCE_ATTEMPTS, _advance["reason"]))
         log("Publish commit REFUSED before staging: {}.".format(_behind))
         from background.notify import notify
         notify(
