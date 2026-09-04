@@ -86,6 +86,24 @@ entered the candidate tree and `finding_classes --check` refused TWO ROOMS on a 
 working copy passed. A deletion needs `--content-remove REPOPATH`, **and** that path must still
 appear in the positionals — a content override is still a landed change.)
 
+### WHERE THE REPAIR IS — do not rebuild it
+
+**It is sitting in the shared working tree, finished.** Look before you write anything:
+
+* `background/process_run_complete.py` — uncommitted, 8 hunks, all this seat's. Re-applied
+  three-way onto `6fa525ecb` after that merge brought in the other lane's `cause_evidence` work,
+  so it is already rebased on the current base and does **not** revert their 30 lines
+  (verified: their `cause_evidence` parameters survive, and both lanes' suites pass together —
+  52 tests across `test_an_episode_held_open_...`, `test_a_publish_failure_names_which_of_the_three_it_was`
+  and `test_publish_gate_alert`).
+* `tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py` —
+  **untracked.** These two go together or not at all: landing the module without this file lands
+  the behaviour with none of its controls, which is the half-landed shape this project keeps
+  paying for.
+
+The only thing standing between it and the tree is the deadline red. When that is resolved, land
+both paths in one commit; nothing else needs writing.
+
 ## The repair as authored
 
 * `.publish_gate_state.json` gains `episode_clean_publishes` and `last_clean_publish`.
