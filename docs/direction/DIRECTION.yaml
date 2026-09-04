@@ -44,32 +44,41 @@ stretch_reviewed:
 focus:
   - id: departure-level-emerges-from-the-household-not-the-solver
     what: >-
-      Read §4 of
+      RE-AIMED 2026-09-04 at `d76262701`, and the previous instruction is REFUTED rather than
+      finished — read §8 of
       `docs/staging/SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED_2026-09-03.md`
-      and take its owed item 1, which is a knowledge question: establish from the published record
-      the HOUSEHOLD-level amplitude of switching response — how much more likely one GB household
-      is to leave in a high-switching year than a low one — starting at the two sources that
-      finding already names (Ofgem Retail Market Indicators switching series read per fuel from the
-      table, and the Ofgem Consumer Survey's switching by engagement segment) rather than in a
-      fresh search. Then branch on what you find. If it establishes a household-level dispersion,
-      wire it into the individual hazard, re-run the one-constant sweep in §3, and re-measure
-      `docs/reports/departure_level_rung1_verdict.json` at `NO_LEVEL_CORRECTION`. If it establishes
-      only a segment-level one, say that on the artefact in as many words and do not convert it
-      into a household figure. If nothing establishes it, file the gap against the two places that
-      already declare it half-blind (`docs/institutional/knowledge_map.md`'s customer-lifetime row
-      and `docs/market_research/continuous_behavioural_engagement_w2_14.md` §3a item 6) and put the
-      question to the director on NTFY with your recommendation attached — he is the third side of
-      the knowledge rule and this is exactly its shape. Do not pick a constant, do not move the
+      BEFORE anything else. Owed item 1 (the household-level amplitude of switching response) was
+      worked to a gap on 2026-09-03, and on 2026-09-04
+      `tools/fit_year_level_anchor.route_amplitude_attribution` established that the leg that
+      amplitude reaches carries NONE of the record's year-to-year movement: the renewal route's
+      relative slope is -0.08 with a 95% interval of [-0.45, +0.31] that EXCLUDES 1.0, while the
+      SVT route's is +0.99 with an interval containing it and carries 70.5-87.2% of the level.
+      Driving both opportunity hazards to `WORLD_MAX_CHURN_PROBABILITY` — the most that leg can
+      ever do — leaves the relative slope at +0.09 and 0 of 7 years in band. So do NOT go back to
+      the household-amplitude question; it is real, it is with the director, and it cannot repair
+      rung 1 whatever its answer. THE WORK NOW: the SVT route delivers 41-56% of the record's
+      departures per year with the right year-to-year shape, and nobody has measured which of the
+      three things under that is short — the hazard per SVT decision, the size of the SVT
+      population, or the assignment that decides who reaches which route. Measure that first, on
+      the committed capture, at `NO_LEVEL_CORRECTION`, and land the reading as an artefact the way
+      the attribution and the rung-1 verdict already are. THEN take the composition question, and
+      note that it is THE SAME QUESTION as focus item
+      `the-arms-reach-is-a-missing-world-product-not-a-company-choice` below: what share of the GB
+      domestic book sat on a standard-variable or default tariff each year 2016-2025. Those two
+      items converged on 2026-09-04 and whichever is drawn first should do the sourcing once and
+      say so on the other. Unchanged and still binding: do not pick a constant, do not move the
       solver's aim point, and do not edit `YEAR_LEVEL_ANCHOR` to make a number look better.
     why: >-
-      The tree's only BLOCKING finding, and the surface every arm comparison in this company stands
-      on. At anchor 1.0 the world produces 3.3pp to 9.0pp less departure than the record in six of
-      seven fitted years, so a per-year scalar is silently supplying the difference and the band
-      cannot press back. Fidelity is the precondition, not the backdrop: a world fitted to its own
-      check cannot distinguish value created from value transferred, which is the whole point of
-      the comparison. Finished when the emergent level moves because a household attribute changed
-      and the rung-1 verdict is re-measured against the band — including, and especially, if it
-      still fails.
+      The tree's only BLOCKING finding in this lane, and the surface every arm comparison in this
+      company stands on. At anchor 1.0 the world produces 3.3pp to 9.0pp less departure than the
+      record in six of seven fitted years, so a per-year scalar is silently supplying the
+      difference and the band cannot press back. Fidelity is the precondition, not the backdrop: a
+      world fitted to its own check cannot distinguish value created from value transferred, which
+      is the whole point of the comparison. The 2026-09-04 attribution did not close this — it
+      moved the repair off a leg that could not carry it and onto one that can, which is why the
+      item keeps its id and its claim rather than being retired. Finished when the emergent level
+      moves because a WORLD attribute changed and the rung-1 verdict is re-measured against the
+      band — including, and especially, if it still fails.
   - id: orientation-grades-the-branch-work-lands-to
     what: >-
       Read `background/delivery_seat.py` yourself first: check what `grep -n origin` returns over
