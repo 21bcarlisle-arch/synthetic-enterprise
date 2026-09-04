@@ -116,6 +116,7 @@ import json
 import time
 from pathlib import Path
 
+from background.episode_monotonic import recorded_instant_seconds
 from background.live_ledger_guard import guard_live_ledger_write
 
 #: The publish COMMIT was refused by the pre-commit hook chain AND the hook chain named at least
@@ -208,7 +209,15 @@ def read_cause(path, git_hash, *, now=None, max_age=DEFAULT_MAX_AGE_SECONDS):
     if not isinstance(rec, dict):
         return UNATTRIBUTED, "the publisher's cause record is malformed (not an object)"
     ts = rec.get("ts")
-    if not isinstance(ts, (int, float)) or now - float(ts) > max_age:
+    # The SAME screen as every other timestamp reader here (2026-09-04, the wedge-detector sweep).
+    # `isinstance(ts, (int, float))` alone let three shapes past, and the fail direction differed
+    # for each: `0`/`False` read as ancient and fell into the stale branch by luck, but `NaN` fails
+    # `now - NaN > max_age`, so an unaged record would have been cited as attribution for EVERY
+    # cycle forever -- the carried-forward-blocking-list defect this whole function exists to stop,
+    # arriving through the age bound instead of the hash check. `recorded_instant_seconds` refuses
+    # all three, and an unstamped record is UNATTRIBUTED, which is this module's stated direction.
+    recorded = recorded_instant_seconds(ts)
+    if recorded is None or now - recorded > max_age:
         return UNATTRIBUTED, ("the publisher's cause record is older than this alarm's bound, "
                               "so it describes a different cycle")
     cause = rec.get("cause")

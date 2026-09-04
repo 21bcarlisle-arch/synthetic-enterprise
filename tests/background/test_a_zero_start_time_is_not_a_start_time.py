@@ -53,6 +53,7 @@ other. Pre-registered before the measurement, with what would refute it:
 from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 
 import pytest
 
@@ -290,3 +291,59 @@ def test_the_alarm_text_reports_the_open_episodes_real_age_not_a_fresh_one():
         "the alarm reported a FRESH episode inside a seven-hour-old one -- the writer restamped "
         f"the local start the phrase is built from: {msg}")
     assert "0h00m" not in msg, msg
+
+
+# ───────────── ...AND NEITHER IS `True`, WHICH THIS FILE'S OWN FIX MISSED (2026-09-04) ─────────
+#
+# The repair above screened `wedge_since <= 0` and stopped there, and the two hand-rolled copies in
+# `process_run_complete.py` then disagreed about the SAME question: `_is_episode_start` refused
+# `bool` explicitly and `_episode_phrase` did not, because `isinstance(True, (int, float))` is True
+# and `True <= 0` is False. So the published absurdity this file is named after was still reachable
+# through the other door, and read WORSE than the original -- `499999h59m` rather than `0h00m`.
+#
+# Both now delegate to `episode_monotonic.recorded_instant_seconds` rather than re-implementing.
+# These controls are keyed to the PROPERTY (does an unrecordable value render as a reading?), not
+# to today's list of unrecordable values, so a new representation is covered by construction.
+
+_NOT_A_START = [True, False, 0, 0.0, -1.0, float("nan"), float("inf"), float("-inf"),
+                None, "nope", "", [], {}]
+
+
+@pytest.mark.parametrize("value", _NOT_A_START, ids=repr)
+def test_no_unrecordable_value_renders_as_an_established_episode(value):
+    """THE WHOLE PARTITION, not the one value that was in the incident. Every one of these must
+    reach the SAME degraded sentence `None` reaches -- the reader must not be able to tell a value
+    we never recorded from one we did, which is this file's founding argument."""
+    phrase = prc._episode_phrase(value, 5, REAL_WEDGE)
+    assert phrase == "EPISODE: start time unrecorded (this alarm cannot bound the episode)."
+    assert prc._is_episode_start(value) is False
+
+
+def test_the_two_copies_in_this_file_now_give_one_answer(tmp_path):
+    """THE DEFECT WAS THE DISAGREEMENT, not either answer on its own.
+
+    `_is_episode_start` gates ADOPTION of a persisted start; `_episode_phrase` RENDERS it. When
+    they disagree, a value is refused by one side and published by the other -- which is exactly
+    what `True` did. Asserted over the partition AND over honest values, so this cannot be
+    satisfied by both sides refusing everything."""
+    honest = [REAL_WEDGE - 7 * 3600, 1.0,
+              datetime.fromtimestamp(REAL_WEDGE - 7 * 3600, timezone.utc).isoformat()]
+    for value in _NOT_A_START + honest:
+        renders = "unrecorded" not in prc._episode_phrase(value, 5, REAL_WEDGE)
+        assert renders == prc._is_episode_start(value), (
+            f"{value!r}: the adoption side says {prc._is_episode_start(value)} and the render side "
+            "says the opposite -- one question, two answers, which is how `True` got published")
+    assert any(prc._is_episode_start(v) for v in honest), (
+        "REACHABILITY: every control above is a refusal, and a screen that refused EVERYTHING "
+        "would pass them all")
+
+
+def test_an_iso_start_is_a_start_on_both_sides(tmp_path):
+    """A WIDENING, stated as a decision. `guard_episode` returns a low-water winner in ITS OWN
+    representation, so an ISO-8601 `wedge_since` is a value both sides can legitimately be handed
+    -- and both numeric hand-rolls dropped it, degrading a REAL seven-hour episode to "unrecorded"
+    on the adoption side and restamping it to `now`. Under-reporting an episode is the failure the
+    monotonic guard exists to cure, so a screen that caused it would be the cure's own defect."""
+    iso = datetime.fromtimestamp(REAL_WEDGE - 7 * 3600, timezone.utc).isoformat()
+    assert prc._is_episode_start(iso) is True
+    assert "7h00m" in prc._episode_phrase(iso, 5, REAL_WEDGE)

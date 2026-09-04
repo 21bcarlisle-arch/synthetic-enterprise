@@ -67,7 +67,8 @@ import math
 from datetime import datetime, timezone
 from typing import Any, Iterable, Mapping
 
-__all__ = ["guard_episode", "episode_age_seconds", "EpisodeFieldTypeError"]
+__all__ = ["guard_episode", "episode_age_seconds", "recorded_instant_seconds",
+           "EpisodeFieldTypeError"]
 
 
 class EpisodeFieldTypeError(TypeError):
@@ -130,6 +131,54 @@ def _is_start_to_remember(key: tuple[str, float] | None) -> bool:
     only value it declines to remember is one that dates the episode to before anything here ran.
     """
     return key is not None and key[1] > 0
+
+
+def recorded_instant_seconds(v: Any) -> float | None:
+    """Seconds since the epoch for a value that names an instant SOMETHING HERE ACTUALLY RECORDED,
+    else None. Accepts an epoch number or an ISO-8601 string, the two representations this module
+    orders everywhere else.
+
+    THE VALUE-LEVEL DOOR (2026-09-04). `episode_age_seconds` answers this question for a named
+    field of a state mapping. Its callers were not the only ones asking it: `supervisor
+    ._publish_gate_wedge_active` had to ask it of `failures[].ts` -- a per-failure timestamp inside
+    a list, which is not a field of a mapping and has no episode-start reading at all -- and so
+    hand-rolled `isinstance(v, (int, float))` with no screen behind it. That is how a fourth copy
+    of one question gets written: not out of carelessness, but because the centralised form only
+    fitted three of the four shapes. This is the shape the fourth needed.
+
+    WHY ONE SCREEN SERVES BOTH, STATED AS TWO ARGUMENTS RATHER THAN ONE BORROWED ONE -- because
+    the readings differ and only the verdict coincides, and a borrowed argument is how a clause
+    written about one field silently acquires authority over another:
+
+      * Of an EPISODE START, `_is_start_to_remember` already says it: an instant at or before the
+        epoch is not a start, it is the same fact as `None` -- nobody recorded one.
+      * Of a FAILURE TIMESTAMP the reading is different and the verdict is the same. `0` there does
+        not mean "this failure was observed in 1970"; no observer in this repository has a clock
+        that could produce it. It means the stamp is MISSING, and a missing stamp is not evidence
+        about when anything happened. The harm is specific: these values are fed to a `min()` that
+        dates a wedge, so one of them dates the outage to 1970 -- older than any threshold, so the
+        alarm fires forever at priority zero on a gate that is fine.
+
+    NON-FINITE IS THE ONE THAT BITES HARDEST, and `json.loads` accepts the bare `NaN`/`Infinity`
+    tokens, so it arrives from a FILE rather than from a caller's mistake. `NaN` fails every
+    comparison, so it walks straight through an age threshold; `min()` returns it or not depending
+    on list order; and `int(NaN // 60)` and `time.gmtime(NaN)` both RAISE. A detector that promised
+    its callers it would never raise into the draw ladder therefore had a crash whose reachability
+    turned on dict iteration order.
+
+    BUT NOT, AS THIS DOCSTRING FIRST CLAIMED, the reason to prefer this function over a hand-rolled
+    `v > 0` -- the mutation run refuted that. `NaN > 0` is False, so a bare positivity test screens
+    NaN too, by accident of IEEE semantics. The reasons that survive measurement are duller and
+    real: `+Infinity` PASSES `v > 0` and turns an age into `-inf`, which reads as "too young" and
+    suppresses the alarm silently; an ISO-8601 value -- which `guard_episode` may write back,
+    because the winner is returned in its own representation -- is dropped entirely by a numeric
+    test; and a fifth copy is a fifth thing to keep in step. Kept here beside the claim it
+    corrects, per the rule about predictions filed before their answers.
+
+    Returns the ORDERED NUMBER, not the value: a caller doing arithmetic wants seconds, and making
+    it re-parse an ISO string itself is how the representations drift apart again."""
+    key = _episode_key(v)
+    return key[1] if _is_start_to_remember(key) else None
 
 
 def _absent(v: Any) -> bool:
@@ -227,7 +276,7 @@ def episode_age_seconds(state: Mapping[str, Any], since_field: str, now: float) 
     start would be publishing a confident figure from a value nobody recorded, which is the defect
     this screen was added to close. `None` here means what the first line says -- no start is
     recorded -- and that is precisely what a zero is."""
-    key = _episode_key(state.get(since_field))
-    if not _is_start_to_remember(key):
+    started = recorded_instant_seconds(state.get(since_field))
+    if started is None:
         return None
-    return max(0.0, float(now) - key[1])
+    return max(0.0, float(now) - started)

@@ -136,6 +136,9 @@ from background.coupled_triad import (  # noqa: E402
     world_l3_blocked as _coupled_world_l3_blocked,
 )
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
+from background.episode_monotonic import (  # noqa: E402  (PW4, one screen for every timestamp)
+    recorded_instant_seconds as _recorded_instant,
+)
 from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 from tools import maturity_map_store as map_store  # noqa: E402 (the map's canonical reader)
@@ -3786,12 +3789,49 @@ def _publish_gate_wedge_active(
     if _gate_pass_supersedes_failures(last_tested, head, failures, green_ts):
         return None
     # AGE: oldest available wedge signal. Fail-safe toward drawing.
-    ts_candidates = [float(f["ts"]) for f in failures
-                     if isinstance(f, dict) and isinstance(f.get("ts"), (int, float))]
+    #
+    # EVERY CANDIDATE GOES THROUGH THE ONE SCREEN (2026-09-04). This block used to admit anything
+    # `isinstance(v, (int, float))` -- no positivity, no bool refusal, no finiteness -- across all
+    # three sources, and it was the last hand-rolled copy of a question `episode_monotonic` now
+    # answers in one place. On a MIN() the consequence is not proportional to the error: ONE bad
+    # value out of any number of good ones wins outright and dates the wedge to 1970, which is
+    # older than any threshold, so RUNG 1 fires permanently at priority zero on a healthy gate.
+    #
+    # `failures[].ts` IS NOT AN EPISODE START and was deliberately not folded into the repair that
+    # closed `wedge_since`: it is the instant a failure was OBSERVED. The screen lands in the same
+    # place by a different route -- a non-positive stamp there means the stamp is MISSING, not that
+    # a failure happened in 1970 -- and `recorded_instant_seconds` carries both arguments so the
+    # next reader does not have to reconstruct which one applies here.
+    #
+    # AND IT STOPS THIS FUNCTION RAISING. `json.loads` parses a bare `NaN`, `min()` returns it or
+    # not depending on list order, `age < THRESHOLD` is False for it, and `int(age // 60)` twelve
+    # lines below RAISES -- out of `_self_refill_draw_ladder`, which does not catch, so the whole
+    # ladder dies rather than one rung. That is strictly worse than the wedge this rung exists to
+    # draw: a permanent fire is loud, a dead ladder is the silent tick-stall of 2026-07-23/24.
+    # The FAIL-SAFE clause above promised callers this could not happen; now it cannot.
+    #
+    # WHY THE SHARED SCREEN AND NOT A HAND-ROLLED `v > 0` HERE -- corrected against the mutation
+    # run rather than reasoned, because the first draft of this comment got it wrong. A hand-rolled
+    # `v > 0` DOES stop the raise: `NaN > 0` is False, so the comparison screens NaN by accident of
+    # IEEE semantics rather than by intent. What it does NOT do is read an ISO-8601 `wedge_since`,
+    # which `guard_episode` may legitimately write back because it returns the winner in its own
+    # representation -- so a hand-roll silently drops the one un-trimmed signal and measures the
+    # wedge from the failures alone, under-reporting the age it exists to establish. That, and the
+    # fourth copy, are the real reasons. `test_an_iso_stamp_is_read_rather_than_discarded` and
+    # `test_the_screen_is_the_shared_one_and_not_a_fourth_hand_rolled_copy` are the two controls
+    # that told the difference; nothing else in the file did.
+    ts_candidates = []
+    for f in failures:
+        if isinstance(f, dict):
+            observed = _recorded_instant(f.get("ts"))
+            if observed is not None:
+                ts_candidates.append(observed)
     for key in ("wedge_since", "alerted_at"):
-        v = state.get(key)
-        if isinstance(v, (int, float)):
-            ts_candidates.append(float(v))
+        recorded = _recorded_instant(state.get(key))
+        if recorded is not None:
+            ts_candidates.append(recorded)
+    # Fail-safe as above: >= 3 failures but not one orderable timestamp among them means the age
+    # is UNKNOWN, and unknown is not "old enough". Same direction as the unreadable state file.
     if not ts_candidates:
         return None
     age = now - min(ts_candidates)
