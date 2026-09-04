@@ -63,8 +63,23 @@ was backwards: because `since_fields` is LOW-water, an unrecordable proposal is 
 orderable, so it did not survive the guard, it WON -- `guard_episode({"t": 1.7e9}, {"t": 0})`
 returned `0`, dating a live 2026 episode to 1970 in one write. Screening the proposal is therefore
 the opposite of a clear: with a start on the prior side the prior now stands. `_asserts_no_start`
-carries the full argument and the measurements. The asymmetry that remains, and that is still the
-point, is about ORDER: the proposal is type-checked first and a misdeclared field still raises.
+carries the full argument and the measurements.
+
+AND THE ORDER CLAIM THAT SENTENCE ENDED ON WAS FALSE, kept here beside its correction (2026-09-04,
+third pass). It read: "the proposal is type-checked first and a misdeclared field still raises."
+The proposal was type-checked *last* -- both loops screened the PRIOR and `continue`d before they
+ever looked at the proposal's type -- so the refusal was silent in exactly the state a newly wired
+field is in. Measured, before this pass:
+
+    guard_episode({"t": None},   {"t": "banana"}, since_fields=("t",))   -> {"t": "banana"}
+    guard_episode({"t": 1.7e9},  {"t": "banana"}, since_fields=("t",))   -> RAISES
+    guard_episode({"c": None},   {"c": "banana"}, streak_fields=("c",))  -> {"c": "banana"}
+
+That is the reachability of a guard running exactly backwards: quiet while the field is new and
+unproven, loud only once it has been working long enough to have a recorded prior. A cold state
+file is not an edge case for a just-wired field -- it is the definition of one, so "the first test
+run surfaces it" was never true of the run that mattered. `_check_proposal_is_orderable` now runs
+at the top of BOTH loops and the sentence above is finally a description of the code.
 
 Pure functions only -- no I/O, no imports from the modules it guards (the census audits those).
 Used by: `process_run_complete._write_publish_gate_state`.
@@ -216,7 +231,9 @@ def _asserts_no_start(v: Any) -> bool:
     A single bad write did not merely survive the guard; the guard PREFERRED it over a healthy
     2026 start and dated a live episode to 1970. The three carriers that echo their own proposal
     off disk (`ntfy_utils.since_epoch`, `sim_runner.first_failure_ts`,
-    `process_run_complete.wedge_since`) then re-proposed it forever.
+    `process_run_complete.wedge_since`) then re-proposed it forever. All three now screen what they
+    echo with `recorded_instant_seconds` before offering it, which is what makes the hoisted type
+    check below safe -- see `_check_proposal_is_orderable`.
 
     WHY TREATING IT AS ABSENT CANNOT UNDER-REPORT, which is the failure mode this whole class
     exists to cure. The value declined is one that dates the episode to before anything here ran,
@@ -230,15 +247,53 @@ def _asserts_no_start(v: Any) -> bool:
         that reads as an established 1970 episode to the next hand-rolled `isinstance` test that
         meets it -- and there were three of those, one of them on a PRIORITY ZERO page.
 
-    AND WHY IT IS NOT A REFUSAL. `_refuse` fires exactly where it fired before: this screen is
-    asked only of values `_episode_key` could already order, so a misdeclared field still raises
-    and a data-dependent value still cannot raise into the failure path being monitored.
-    `bool` and `NaN` are not in this set at all -- they are unorderable, and were already refused.
+    AND WHY IT IS NOT A REFUSAL. This screen is asked only of values `_episode_key` could already
+    order, so it neither adds nor removes a raise. `bool` and `NaN` are not in this set at all --
+    they are unorderable, and are refused by `_check_proposal_is_orderable` before this is asked.
     """
     if _absent(v):
         return True
     key = _episode_key(v)
     return key is not None and not _is_start_to_remember(key)
+
+
+def _check_proposal_is_orderable(field: str, proposed: Any, is_orderable) -> None:
+    """Refuse a proposed value this guard cannot order -- asked BEFORE the prior is consulted.
+
+    WHY IT MOVED (2026-09-04). Both loops used to screen the prior first and `continue` on an
+    unrecordable one, so the refusal never ran when the state file was cold. The module docstring
+    above carries the measurements and the correction of the claim this contradicted.
+
+    WHY THAT IS SAFE, WHICH IS THE WHOLE OF THE DECISION AND WAS PRE-COMMITTED AS A SEPARATE ONE.
+    The stated risk of widening where `_refuse` fires is that a value ECHOED OFF DISK reaches a
+    raise inside the failure path of the pipeline this guard monitors -- which is the harm the
+    module's fail direction exists to prevent. That risk is specific and checkable, so it was
+    checked rather than argued. Every live `since_fields` carrier derives its proposal like this:
+
+      * `supervisor._check_stuck_escalation` -- `first_seen_at = now`. Never off disk.
+      * `sim_runner.record_run_outcome`      -- `first if recorded_instant_seconds(first) is not
+                                                None else stamp`.
+      * `ntfy_utils`                         -- `_carry_epoch`, same screen, else `now`.
+      * `process_run_complete`               -- `prev if _is_episode_start(prev) else now`, and
+                                                `_is_episode_start` delegates here.
+
+    Every carrier that echoes disk already vets what it echoes, with THIS MODULE'S OWN screen, so
+    no live call site can reach `_refuse` with a data-dependent value on either path. The raise is
+    therefore what the docstring always claimed it was: a property of the call site.
+
+    THE RESIDUAL, NAMED RATHER THAN GLOSSED. A future carrier that echoes its prior UNSCREENED
+    would meet this raise on exactly the cold path -- because for such a carrier `proposed is old`,
+    so a corrupt disk value makes the prior unrecordable and the proposal unorderable in one move.
+    A provenance test (`proposed is old` -> degrade, else refuse) would exempt it, and was
+    rejected: it buys protection for a carrier class that does not exist and whose three former
+    members' own comments record being fixed AWAY from that shape, at the price of a second
+    mechanism keyed to a proxy for where a value came from. The smaller mechanism is the one that
+    fires, plus the four screens above that make firing unreachable from real data.
+    """
+    if _absent(proposed):
+        return                      # a clear/cold-start, never a type error (`_absent`)
+    if not is_orderable(proposed):
+        _refuse(field, "proposed", proposed)
 
 
 def _refuse(field: str, side: str, value: Any) -> None:
@@ -285,6 +340,9 @@ def guard_episode(
 
     for field in since_fields:
         old, proposed = prev.get(field), out.get(field)
+        _check_proposal_is_orderable(       # BEFORE the prior screen: a cold state file is the
+            field, proposed,                # state a just-wired field is IN, and it used to be
+            lambda v: _episode_key(v) is not None)   # the one state that could not raise.
         old_key = _episode_key(old)
         if not _is_start_to_remember(old_key):
             # No episode was open, an unreadable prior, or a start at/before the epoch -- which is
@@ -299,9 +357,7 @@ def guard_episode(
             out[field] = old              # a failure tried to CLEAR an open episode -- in words
             continue                      # (`None`) or in numbers (a 1970 epoch). Same assertion,
                                           # same answer: the recorded start stands.
-        new_key = _episode_key(proposed)
-        if new_key is None:
-            _refuse(field, "proposed", proposed)
+        new_key = _episode_key(proposed)    # non-None: absent and unorderable both left above
         if new_key[0] != old_key[0]:
             raise EpisodeFieldTypeError(
                 f"episode field {field!r}: the previous value {old!r} is {old_key[0]} and the "
@@ -313,13 +369,13 @@ def guard_episode(
 
     for field in streak_fields:
         old, proposed = prev.get(field), out.get(field)
+        _check_proposal_is_orderable(     # a counter is a number, and only a number -- and the
+            field, proposed, _is_num)     # same hoist, for the same reason, one loop over
         if not _is_num(old):
             continue                      # no episode was open, or an unreadable prior
         if _absent(proposed):
             out[field] = old              # a failure tried to RESET an open counter
             continue
-        if not _is_num(proposed):
-            _refuse(field, "proposed", proposed)   # a counter is a number, and only a number
         out[field] = max(old, proposed)
 
     return out

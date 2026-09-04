@@ -197,13 +197,30 @@ def test_rung_1d_does_not_clear_its_thirty_minute_bar_on_a_stamp_nobody_recorded
 
 def test_rung_1d_still_fires_on_a_real_producer_outage(tmp_path):
     """The SILENT leg. A rung that could only stay quiet is as ignored as a blind one, and
-    suppressing a real starvation is the failure this rung was built for (2026-08-17)."""
+    suppressing a real starvation is the failure this rung was built for (2026-08-17).
+
+    KEYED TO THE BAR, NOT TO A NUMBER THAT USED TO CLEAR IT (2026-09-04). This read
+    `now - 4 * 3600` against a 30-minute bar. `PRODUCER_STARVED_MIN_AGE_SECONDS` is now
+    `_publish_cadence_seconds()` -- the site moved to a weekly cadence in 78986f2aa and everything
+    calibrated for the old one moved with it -- so the bar went from 1800s to 604800s and this leg
+    went red: a 4h outage is no longer an outage over a 7-day bar. That is the control keyed to
+    today's answer, exactly backwards, and the damage was worse than a red. This is the ONLY leg
+    asserting the priority-zero rung can fire AT ALL; every other leg asserts it stays quiet, and a
+    rung that refused everything would have passed all of them. Its sibling
+    `test_producer_starvation_draw.PAST_DIAGNOSED` already had the right shape -- derive from the
+    constant, so the control follows the cadence instead of pinning it."""
     import re
     import time
+
+    from background import supervisor as sv
+
     now = time.time()
-    msg = _rung_1d(tmp_path, now - 4 * 3600, now)
-    assert msg is not None, "the real producer outage no longer draws"
-    assert re.search(r"over 4\.0h", msg), msg
+    outage = sv.PRODUCER_STARVED_MIN_AGE_SECONDS + 4 * 3600      # comfortably over whatever the bar is
+    msg = _rung_1d(tmp_path, now - outage, now)
+    assert msg is not None, (
+        f"the real producer outage no longer draws: {outage / 3600:.1f}h against a bar of "
+        f"{sv.PRODUCER_STARVED_MIN_AGE_SECONDS / 3600:.1f}h")
+    assert re.search(rf"over {outage / 3600:.1f}h", msg), msg
 
 
 def test_the_ntfy_carrier_restamps_and_its_rendered_string_is_never_inherited(tmp_path,
