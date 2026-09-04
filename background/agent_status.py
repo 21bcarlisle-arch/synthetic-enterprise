@@ -11,6 +11,8 @@ import os
 from datetime import datetime, timezone
 from pathlib import Path
 
+from background.episode_prior import ABSENT, preserve_unreadable, prior_unreadable
+
 STATUS_FILE = Path(__file__).resolve().parent.parent / "docs" / "observability" / "agent_status.json"
 SITE_STATUS_FILE = Path(__file__).resolve().parent.parent / "site" / "data" / "agent_status.json"
 
@@ -19,13 +21,64 @@ def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _load() -> dict:
-    if STATUS_FILE.exists():
-        try:
-            return json.loads(STATUS_FILE.read_text())
-        except (json.JSONDecodeError, OSError):
-            pass
+#: Stamped on the file when the roster was rebuilt from a prior nobody could read. It is the
+#: difference between a board that shows three agents because three exist and one that shows three
+#: because it forgot the rest, and there is no other way to tell those apart from the file.
+ROSTER_LOST_FIELD = "roster_rebuilt_from_unreadable"
+
+
+def _fresh() -> dict:
     return {"_schema_version": "1", "last_updated": _now_iso(), "agents": []}
+
+
+def _load() -> tuple[dict, str]:
+    """`(data, verdict)`. The verdict is `episode_prior`'s -- absent, readable or unreadable.
+
+    MEASURED 2026-09-05 over the whole partition, against a live prior of two agents (one of them
+    eight days stale and in `error` with an anomaly). The old body was `json.loads(...)` under
+    `except (json.JSONDecodeError, OSError)`, and `json.loads` accepts `null` and a list, so
+    neither ever reached the except:
+
+        prior                 _load           update_agent_status        roster after
+        LIVE (control)        2 agents        ok                         [supervisor, sim-runner, +1]
+        missing file          default         ok                         [+1]            correct
+        empty file            default         ok                         [+1]            ALL LOST
+        truncated             default         ok                         [+1]            ALL LOST
+        {"other": 1}          {'other': 1}    ok                         [+1]            ALL LOST
+        json `null`           None            RAISED AttributeError      --
+        [1, 2, 3]             [1,2,3]         RAISED AttributeError      --
+        {"agents": [1, 2]}    as written      RAISED TypeError           --
+
+    THE RAISES ARE ON EVERY DAEMON'S HEARTBEAT PATH. 19 of the 28 call sites across 11 modules have
+    no enclosing try, and `supervisor.main()` calls this as its FIRST act, outside the `while` and
+    outside every try -- so an unreadable status file stopped the escalation watchdog STARTING.
+
+    AND THE MEMBERS THAT DID NOT RAISE WERE THE QUIETER HARM. This is a read-modify-write over the
+    whole roster: a default `{"agents": []}` plus one appended entry IS the new file, so every
+    other agent's row is destroyed by a read that failed -- and `SITE_STATUS_FILE.write_text` two
+    lines later carries the wipe to the PUBLISHED board in the same call. Measured: the eight-day
+    stale agent in `error` did not go stale on the board, it VANISHED from it. That defeats the
+    census row's own argument for `benign` ("a failing agent that stops writing makes the number
+    WORSE, not better"), which holds only while the row still exists.
+
+    A ROSTER THAT IS ONLY PARTLY RIGHT IS NOT A ROSTER: `{"agents": [1, 2]}` parses, and the
+    entries are what `a["name"]` subscripts. Screened here rather than at the subscript, because
+    the subscript is inside the flock on the send path of every daemon in the repo.
+    """
+    from background.episode_prior import READABLE, load_episode_prior
+
+    data, verdict = load_episode_prior(STATUS_FILE)
+    if verdict != READABLE:
+        return _fresh(), verdict
+    agents = data.get("agents", [])
+    if not isinstance(agents, list) or not all(
+        isinstance(a, dict) and isinstance(a.get("name"), str) for a in agents
+    ):
+        from background.episode_prior import UNREADABLE
+        return _fresh(), UNREADABLE
+    data.setdefault("_schema_version", "1")
+    data["agents"] = agents
+    return data, verdict
 
 
 
@@ -59,11 +112,25 @@ def update_sim_metrics(
     if in_test_process() and is_live_record_path(STATUS_FILE):
         return
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    existed_before_lock = STATUS_FILE.exists()  # see update_agent_status: the lock CREATES it
 
     with open(STATUS_FILE, "a+") as lockfile:
         fcntl.flock(lockfile, fcntl.LOCK_EX)
         try:
-            data = _load()
+            # BOTH WRITE SITES, and this module's own history is why that is spelled out. The
+            # comment above records a previous repair that guarded `update_agent_status` and not
+            # this one, and 32 refusals survived it unchanged. This function is the same
+            # read-modify-write over the same roster: without the branch below, a metrics update
+            # on an unreadable board destroys every agent row exactly as the other site did.
+            data, verdict = _load()
+            if not existed_before_lock:
+                verdict = ABSENT
+            if prior_unreadable(verdict):
+                kept = preserve_unreadable(STATUS_FILE, keep_original=True)
+                data[ROSTER_LOST_FIELD] = {
+                    "at": _now_iso(), "rebuilt_by": "update_sim_metrics",
+                    "old_bytes": kept or "could not be preserved",
+                }
             if phase:
                 data["phase"] = phase
             if tests_passing:
@@ -121,12 +188,38 @@ def update_agent_status(
     if in_test_process() and is_live_record_path(STATUS_FILE):
         return
     STATUS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    # ASKED BEFORE THE LOCK, AND THAT ORDER IS THE WHOLE POINT. `open(..., "a+")` CREATES the
+    # file, so by the time `_load` looks at it a first-ever run has a zero-length file on disk --
+    # which is UNREADABLE by construction (an empty file is what a truncated write leaves behind).
+    # Found by measuring the repair rather than by reasoning about it: every fresh board announced
+    # that it had lost a roster it never had, and wrote a bogus `.unreadable` copy of nothing. The
+    # loader's ABSENT branch is correct and was simply unreachable from its only caller.
+    existed_before_lock = STATUS_FILE.exists()
 
     with open(STATUS_FILE, "a+") as lockfile:
         fcntl.flock(lockfile, fcntl.LOCK_EX)
         try:
-            data = _load()
+            data, verdict = _load()
+            if not existed_before_lock:
+                verdict = ABSENT
             now = _now_iso()
+
+            # PRESERVE BEFORE THE REBUILD OVERWRITES IT. The write below is the whole file, so on
+            # an unreadable prior the roster this call is about to replace is the only copy there
+            # was. Best-effort and never fatal: a daemon that cannot archive a corrupt board must
+            # still be able to say it is alive.
+            if prior_unreadable(verdict):
+                # COPY, not move: the flock above is held on THIS path's open handle, and moving
+                # the inode would drop the rebuild at a path nothing is holding while every other
+                # daemon writes the same file.
+                kept = preserve_unreadable(STATUS_FILE, keep_original=True)
+                # ON THE FILE, not in a log. The board's job is to say who is alive, and a board
+                # that forgot the roster is indistinguishable from a system with fewer agents --
+                # the one thing a reader cannot recover for themselves.
+                data[ROSTER_LOST_FIELD] = {
+                    "at": now, "rebuilt_by": name,
+                    "old_bytes": kept or "could not be preserved",
+                }
 
             agents = data.get("agents", [])
             entry = next((a for a in agents if a["name"] == name), None)

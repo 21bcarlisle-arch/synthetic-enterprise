@@ -6219,12 +6219,36 @@ def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str) -> tuple[b
 
 
 def _load_idle_turn_count() -> int:
-    if not IDLE_TURN_COUNTER_FILE.exists():
+    """The all-time idle-turn total.
+
+    MEASURED 2026-09-05 in the census loader sweep. `json.loads` accepts `null` and a list, so
+    neither reached `except (json.JSONDecodeError, OSError)` and the `.get` one line later raised:
+
+        missing / empty / truncated / {"other": 1}  ->  0
+        json `null`                                 ->  RAISED AttributeError
+        `[1, 2, 3]`                                 ->  RAISED AttributeError
+        CONTROL live prior {"count": 417}           ->  417
+
+    WHERE THAT RAISE WENT, corrected from the prediction filed before the run. It escapes
+    `run_cycle` -- there is no try covering the call -- but `main`'s loop catches every Exception,
+    so the supervisor does NOT die. It logs `Supervisor cycle error` every two minutes forever and
+    the tick never completes: alive, warm and doing nothing, which is the responder's shape rather
+    than the producer's, and it fires on exactly the branch that exists to make an idle machine
+    visible. The pre-registration predicted the tick would be killed; half right, and the half it
+    got wrong is the half that decides how it looks in a log.
+
+    ABSENT and UNREADABLE take the same ACTION -- start from 0 -- and the reset is genuinely cheap:
+    `count` is all-time, its only consumers are a log line and `naive_organ`'s evidence reference,
+    and nothing reads it for severity. So the repair here is the CRASH, not the conflation, and
+    that asymmetry is why this carrier is not given an alarm it would have to earn.
+    """
+    count, _verdict = load_episode_prior(IDLE_TURN_COUNTER_FILE)
+    value = count.get("count", 0)
+    # `isinstance(True, int)` is True, and a bool count would then increment to 2 and stay an int
+    # forever -- silently making the all-time total wrong rather than absent.
+    if not isinstance(value, int) or isinstance(value, bool):
         return 0
-    try:
-        return json.loads(IDLE_TURN_COUNTER_FILE.read_text()).get("count", 0)
-    except (json.JSONDecodeError, OSError):
-        return 0
+    return value
 
 
 def _record_idle_turn() -> int:
