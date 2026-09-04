@@ -274,10 +274,41 @@ def close(step: str, now: datetime | None = None, path: Path | None = None) -> d
             "armed would silently skip the one that is")
     record["closed_at"] = datetime.now(LONDON).isoformat()
     write_baton(record, path)
+    archive_step_documents(step, date.fromisoformat(record["due_on"]))
     nxt = STEPS[step]["next"]
     armed = _blank(nxt, next_weekday_after(today, STEPS[nxt]["weekday"]), step)
     write_baton(armed, path)
     return armed
+
+
+def archive_step_documents(step: str, due_on: date, staging: Path | None = None) -> list[str]:
+    """Move this step's documents out of the queue root, into `done/`. Returns what moved.
+
+    THE RHYTHM MUST BE NET-ZERO ON THE ROOM IT FILES INTO. `background/staging_rooms.py --check`
+    measures the staging root as a FLOW — "219 filed, 183 dispositioned in 7 days, net +36" — and
+    names the only two remedies: fewer channels that file, or a disposition route for the ones that
+    do. A weekly rhythm is a new channel that files two documents a week plus the occasional
+    finding, so it owes the second.
+
+    AND IT IS THE CLOSE THAT DOES IT, not a sentence asking whoever reads the document to. The
+    first draft ended each staged document with "close it in the same act that archives this file",
+    which is an exhortation — the exact form the director's own instruction says decays. Every rule
+    that held here was a mechanism.
+    """
+    root = staging or STAGING
+    done = root / "done"
+    moved = []
+    for candidate in (_step_doc(step, due_on), _finding_doc(step, due_on)):
+        live = root / candidate.name
+        if not live.is_file():
+            continue
+        try:
+            done.mkdir(parents=True, exist_ok=True)
+            live.rename(done / live.name)
+            moved.append(live.name)
+        except OSError:
+            continue  # a document that will not move is left in the queue, never deleted
+    return moved
 
 
 def _step_doc(step: str, due_on: date) -> Path:
@@ -361,8 +392,9 @@ def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
                   "_Against Monday's ranking, item by item. Where one did not move, say whether it "
                   "was wrong to rank it or wrong to leave it._", "", "- ", ""]
     lines += ["---", "",
-              "Close it with `python3 -m background.weekly_rhythm --close` in the same act that "
-              "archives this file. Closing is what arms the next step; nothing else does.", ""]
+              "Close it with `python3 -m background.weekly_rhythm --close`. That arms the next step "
+              "— nothing else does — and archives this document to `done/` itself, so the rhythm "
+              "disposes of everything it files.", ""]
     return "\n".join(lines)
 
 
@@ -398,8 +430,9 @@ def _finding_body(step: str, due_on: date, today: date, overdue: list[dict]) -> 
         "`python3 -m background.weekly_rhythm --close`, which arms the next step and is the only "
         "thing that does.",
         "",
-        "**Discharged:** when the step is closed. This finding is filed ONCE per due date — the "
-        "baton records that it was — so a step that stays open does not mint a document a day.",
+        "**Discharged:** when the step is closed, which archives this document to `done/` as well "
+        "as the step's own. Filed ONCE per due date — the baton records that it was — so a step "
+        "that stays open does not mint a document a day.",
         "",
     ])
 
