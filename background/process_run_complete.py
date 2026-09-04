@@ -5667,17 +5667,30 @@ def _read_publish_gate_state():
         # what the default says -- never `complete`, which would claim a depth nobody measured.
         st.setdefault("red_census", CENSUS_FAIL_FAST_ONLY)
         st.setdefault("total_red", len(st.get("blocking_tests") or []))
+        # DID THE GATE EVER PASS INSIDE THIS EPISODE (2026-09-04)? `episode_failures` counts
+        # failures and nothing counts the successes BETWEEN them, so an episode held open by a
+        # queue that never drains was indistinguishable from one where the gate cannot pass at
+        # all. Defaults to 0/None = "no clean publish is recorded in this episode", which is the
+        # reading the old state file actually earns -- it never recorded one either way, and
+        # claiming a publish nobody observed is the fail-open direction here.
+        st.setdefault("episode_clean_publishes", 0)
+        st.setdefault("last_clean_publish", None)
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
         return {"failures": [], "alerted_at": None, "wedge_since": None,
                 "episode_failures": 0, "cited_findings": [], "blocking_tests": [],
                 "suspects": {}, "red_census": CENSUS_FAIL_FAST_ONLY, "total_red": 0,
+                "episode_clean_publishes": 0, "last_clean_publish": None,
                 "state_unavailable": True}
 
 
 PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
-PUBLISH_GATE_STREAK_FIELDS = ("episode_failures",)
+#: Both are high-water marks scoped to the episode, so both get the PW2 monotonic guard: a
+#: failure write proposes neither and must not be able to forget either. `episode_clean_publishes`
+#: is the count of clean publishes that happened INSIDE the open episode -- the field that tells
+#: "the gate cannot pass" apart from "the gate passes and the queue outruns it".
+PUBLISH_GATE_STREAK_FIELDS = ("episode_failures", "episode_clean_publishes")
 
 
 def _write_publish_gate_state(state, *, episode_closed=False):
@@ -5698,8 +5711,18 @@ def _write_publish_gate_state(state, *, episode_closed=False):
            "blocking_tests": state.get("blocking_tests", []),
            "suspects": state.get("suspects", {}),
            "red_census": state.get("red_census", CENSUS_FAIL_FAST_ONLY),
-           "total_red": state.get("total_red", 0)}
-    out = guard_episode(_read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None,
+           "total_red": state.get("total_red", 0),
+           "episode_clean_publishes": state.get("episode_clean_publishes", 0),
+           "last_clean_publish": state.get("last_clean_publish")}
+    prior = _read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None
+    # `last_clean_publish` is a LATEST-wins timestamp, which is the opposite ordering to
+    # `since_fields` (earliest-wins), so the monotonic guard cannot express it and it is carried
+    # here instead. A failure write proposes None and must keep the prior -- otherwise the very
+    # next red erases the evidence that the gate passed 40 minutes ago, which is the whole point
+    # of recording it. Only an evidenced episode close clears it.
+    if not episode_closed and out.get("last_clean_publish") is None and isinstance(prior, dict):
+        out["last_clean_publish"] = prior.get("last_clean_publish")
+    out = guard_episode(prior,
                         out,
                         since_fields=PUBLISH_GATE_SINCE_FIELDS,
                         streak_fields=PUBLISH_GATE_STREAK_FIELDS,
@@ -6044,14 +6067,52 @@ def _suspect_clause(blocking, suspects, linked):
     return out
 
 
-def _episode_phrase(wedge_since, episode_failures, now):
+def _episode_phrase(wedge_since, episode_failures, now,
+                    clean_publishes=0, last_clean_publish=None):
     """One line of EPISODE memory: how long, how many, since when. Degrades to an explicit
     'unknown' rather than to a plausible-looking zero — an under-stated episode is exactly
-    the defect being fixed."""
+    the defect being fixed.
+
+    TWO EPISODES WORE ONE SENTENCE (2026-09-04). `record_publish_gate_success` preserves
+    `wedge_since`/`episode_failures` when a clean publish leaves markers still pending — correct,
+    and load-bearing: the episode is "the queue this pipeline exists to drain is still not
+    drained", so a success that drains nothing may not close it (PW2). But the sentence rendered
+    from those fields said **"consecutive failures"**, and after a clean publish inside the
+    episode they are demonstrably not consecutive — a success sat among them.
+
+    THE REAL STATE THAT PRODUCED THIS, verbatim: `wedge_since` 2026-09-04T05:57Z,
+    `episode_failures` 8 — while `sim-runner-log.md` records "Publish gate recovered" at 10:53Z,
+    forty minutes before the reading. Anything reading this state concluded nothing had published
+    for 5h37m; the true fault was that a ~45-minute gate cycle cannot keep up with a marker minted
+    every ~13 minutes, so `pending == 0` is never observed at a success instant and the episode
+    can never close. A whole delivery turn opened on that false premise.
+
+    THOSE ARE DIFFERENT FAULTS WITH DIFFERENT REMEDIES, which is the entire reason they get
+    different sentences: a gate that cannot pass needs the red fixed; a gate that passes and is
+    outrun by its own queue needs the cadence or the cycle time changed, and fixing reds will
+    never close it. CLAUDE.md: say what the thing IS before measuring it.
+
+    The unbroken-outage branch is UNCHANGED and still says "consecutive" — that is the null
+    control (`test_alarm_carries_the_episode_not_just_the_window` already pins it), so a "fix"
+    that merely deleted the word from every path would go red rather than pass silently."""
     if not isinstance(wedge_since, (int, float)):
         return "EPISODE: start time unrecorded (this alarm cannot bound the episode)."
     age_min = int(max(0.0, now - float(wedge_since)) // 60)
     since_iso = datetime.fromtimestamp(float(wedge_since), timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
+    if isinstance(clean_publishes, int) and clean_publishes > 0:
+        if isinstance(last_clean_publish, (int, float)):
+            last_iso = datetime.fromtimestamp(
+                float(last_clean_publish), timezone.utc).strftime("%Y-%m-%dT%H:%M UTC")
+            last_phrase = "last at {}".format(last_iso)
+        else:
+            last_phrase = "time unrecorded"
+        return ("EPISODE: open since {} -- {}h{:02d}m, {} failure(s) AND {} clean publish(es) "
+                "INSIDE this episode ({}). The gate is PASSING intermittently, so this is NOT an "
+                "unbroken outage: the episode stays open because the run_complete queue has never "
+                "reached zero. Read it as THROUGHPUT (the gate cycle is slower than markers "
+                "arrive), not as a wedge -- fixing a red will not close it.").format(
+                    since_iso, age_min // 60, age_min % 60, episode_failures,
+                    clean_publishes, last_phrase)
     return ("EPISODE: wedged since {} -- {}h{:02d}m and {} consecutive failures in THIS "
             "episode (not a fresh hour).").format(
                 since_iso, age_min // 60, age_min % 60, episode_failures)
@@ -6103,7 +6164,8 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
                              cited=None, markers_pending=None, blocking=None,
                              blocking_hash=None, suspects=None,
                              census=CENSUS_FAIL_FAST_ONLY, total_red=0,
-                             cause=None, cause_evidence=None):
+                             cause=None, cause_evidence=None,
+                             clean_publishes=0, last_clean_publish=None):
     now = time.time() if now is None else float(now)
     window_min = PUBLISH_GATE_WINDOW_SECONDS // 60
     n = len(recent)
@@ -6118,7 +6180,9 @@ def _fire_publish_gate_alert(recent, kind, rc, git_hash, unavailable, send_ntfy_
             "are piling up unpublished. Latest cause: {} (rc={}, git={}). {} "
             "Markers pending: {}.").format(
                 count_phrase, window_min, detail, rc, git_hash,
-                _episode_phrase(wedge_since, episode_failures, now), markers_phrase)
+                _episode_phrase(wedge_since, episode_failures, now,
+                                clean_publishes=clean_publishes,
+                                last_clean_publish=last_clean_publish), markers_phrase)
     if unavailable:
         what += (" NOTE: the gate-state file was unreadable, so this alert fired "
                  "fail-closed on the first failure rather than risk staying silent.")
@@ -6261,6 +6325,19 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # drops older entries from `failures`. Cleared only by record_publish_gate_success.
         prev_episode = state.get("episode_failures")
         episode_failures = (int(prev_episode) if isinstance(prev_episode, int) else count - 1) + 1
+        # READ FOR THE ALARM ONLY, and deliberately NOT passed to the write below.
+        #
+        # A failure cannot know about a publish and must not be able to erase the record that one
+        # happened inside this episode -- but that is already the job of the single choke-point:
+        # `episode_clean_publishes` is a PUBLISH_GATE_STREAK_FIELD (the `episode_monotonic` class
+        # guard, R10) and `last_clean_publish` is carried in `_write_publish_gate_state`. Passing
+        # them here as well was an EQUIVALENCE, not a second safeguard: with the duplicate in
+        # place, deleting either real mechanism left all seven controls green, so both were
+        # unprovable. Established by mutation rather than assumed
+        # (tests/background/test_an_episode_held_open_by_its_queue_is_not_an_unbroken_outage.py).
+        prev_clean = state.get("episode_clean_publishes")
+        episode_clean = int(prev_clean) if isinstance(prev_clean, int) else 0
+        last_clean = state.get("last_clean_publish")
         threshold_met = unavailable or count >= PUBLISH_GATE_FAILURE_THRESHOLD
         last_alert = state.get("alerted_at")
         armed = last_alert is None or (now - float(last_alert)) >= PUBLISH_GATE_COOLDOWN_SECONDS
@@ -6309,7 +6386,9 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                      now=now, cited=cited, blocking=blocking,
                                      blocking_hash=blocking_hash, suspects=suspects,
                                      census=census, total_red=total_red,
-                                     cause=cause, cause_evidence=cause_evidence)
+                                     cause=cause, cause_evidence=cause_evidence,
+                                     clean_publishes=episode_clean,
+                                     last_clean_publish=last_clean)
             alerted_at = now
             fired = True
         _write_publish_gate_state({"failures": failures, "alerted_at": alerted_at,
@@ -6443,11 +6522,36 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
                 _measure_suspect_list(prev, float(now) if now is not None else time.time())
             except Exception as exc:  # noqa: BLE001 - diagnostics may never gate a recovery
                 log("Suspect-list scoring skipped (the wedge still clears): {}".format(exc))
+        stamp = float(now) if now is not None else time.time()
+        prev_clean = prev.get("episode_clean_publishes")
+        # On a CLOSE this is proposed as 0 and the guard lets it reset with the rest of the
+        # episode. On a preserved episode it counts the publish that just happened, which is the
+        # fact `_episode_phrase` needs and the fact this state file has never carried.
+        episode_clean = 0 if episode_closed else (
+            (int(prev_clean) if isinstance(prev_clean, int) else 0) + 1)
         _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None,
-                                   "episode_failures": 0, "cited_findings": [], "suspects": {}},
+                                   "episode_failures": 0, "cited_findings": [], "suspects": {},
+                                   "episode_clean_publishes": episode_clean,
+                                   "last_clean_publish": None if episode_closed else stamp},
                                   episode_closed=episode_closed)
         if had_state:
-            log("Publish gate recovered -- cleared wedge state, re-armed alarm.")
+            # THE LOG LINE MUST NAME THE BRANCH IT TOOK (2026-09-04). This said "cleared wedge
+            # state" unconditionally, including on the path that deliberately preserves
+            # `wedge_since`/`episode_failures` -- so the log asserted a clear that the code beside
+            # it had just declined to make, and every later reader of the state saw an unbroken
+            # outage where a clean publish had happened. Same class as this pipeline's own
+            # "last 40 lines" header printed over a selection: a small lie in a diagnostic costs
+            # the reader the one thing the diagnostic is for.
+            if episode_closed:
+                log("Publish gate recovered -- queue drained to zero, episode CLOSED: "
+                    "cleared wedge state, re-armed alarm.")
+            else:
+                log("Publish gate PASSED and published, but {} run_complete marker(s) are still "
+                    "pending, so the episode stays OPEN (wedge_since/episode_failures preserved "
+                    "-- PW2). Alarm re-armed; this is clean publish #{} inside the episode. A "
+                    "queue that never reaches zero across successive passes is a THROUGHPUT "
+                    "fault, not a wedge.".format(
+                        "an unknown number of" if pending is None else pending, episode_clean))
             try:
                 from background import action_needed
                 reg = action_needed.load_register()
