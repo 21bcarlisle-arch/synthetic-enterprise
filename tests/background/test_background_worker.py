@@ -858,3 +858,61 @@ def test_a_failed_frontier_ends_the_sweep_instead_of_publishing_ever_older_snaps
     # stuck, so it must survive the failure intact.
     assert sorted(p.name for p in background_worker.STAGING_DIR.glob("run_complete_*.md")) \
         == sorted(names), "a failed frontier retired markers -- a red gate must not eat its queue"
+
+
+# ── liveness is its own job, and it lands BEFORE the cadence slows ───────────────────────────────
+
+def test_the_liveness_beat_needs_no_content_publish(monkeypatch):
+    """THE CARRY-ACROSS the director named when slowing the site to a weekly cadence: *"The publish
+    path has been our best liveness signal — when the site stops we know something is wrong — so
+    give that job to something else before you slow it down."*
+
+    Under a weekly content cadence, "the site stopped" is correct six days in seven and therefore
+    says nothing. The heartbeat has to beat on its own clock.
+
+    `_refresh_published_liveness_on_skip` was BUILT for this separation and was wired to the wrong
+    thing: it could only run inside a publish cycle, so it inherited the cadence it exists to be
+    independent of. MUTATION: gate the beat on a content publish having happened and this fires.
+    """
+    from background import process_run_complete as prc
+
+    called = []
+    monkeypatch.setattr(prc, "_head_sha", lambda: "abc1234")
+    monkeypatch.setattr(prc, "_refresh_published_liveness_on_skip",
+                        lambda sha: called.append(sha) or True)
+    monkeypatch.setattr(background_worker, "log", lambda *a, **k: None)
+
+    assert background_worker.beat_liveness() is True
+    assert called == ["abc1234"], "the beat did not reach the liveness publisher"
+
+
+def test_the_liveness_beat_can_never_take_the_sweep_down(monkeypatch):
+    """It is a passenger on the worker's cycle. An observer that can red its subject is the defect
+    this project names first, and the sweep is the safety net for every leftover marker.
+
+    MUTATION: remove the try/except and this fires."""
+    from background import process_run_complete as prc
+
+    monkeypatch.setattr(prc, "_head_sha", lambda: "abc1234")
+    monkeypatch.setattr(prc, "_refresh_published_liveness_on_skip",
+                        lambda sha: (_ for _ in ()).throw(RuntimeError("origin unreachable")))
+    logged = []
+    monkeypatch.setattr(background_worker, "log", lambda m: logged.append(m))
+
+    assert background_worker.beat_liveness() is False
+    assert any("non-fatal" in m for m in logged), "a failed beat must say so rather than vanish"
+
+
+def test_a_throttled_beat_is_not_a_failure(monkeypatch):
+    """`_push_due()` throttles the push, so most cycles legitimately publish nothing. That must read
+    as quiet, not as a fault — otherwise the signal that says 'the machine is alive' would cry wolf
+    every cycle it was simply too soon to push."""
+    from background import process_run_complete as prc
+
+    monkeypatch.setattr(prc, "_head_sha", lambda: "abc1234")
+    monkeypatch.setattr(prc, "_refresh_published_liveness_on_skip", lambda sha: False)
+    logged = []
+    monkeypatch.setattr(background_worker, "log", lambda m: logged.append(m))
+
+    assert background_worker.beat_liveness() is False
+    assert not logged, "a throttled beat logged something, which makes quiet look like noise"

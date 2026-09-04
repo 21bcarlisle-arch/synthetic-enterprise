@@ -326,6 +326,37 @@ def _check_zero_progress(pending):
     return fire
 
 
+def beat_liveness() -> bool:
+    """Publish the liveness surface, whether or not any content published. Returns True iff a
+    fresh liveness commit reached origin.
+
+    LIVENESS IS NOW ITS OWN JOB, AND THIS LANDS BEFORE THE CADENCE SLOWS. Director, 2026-09-04:
+    *"The publish path has been our best liveness signal — when the site stops we know something is
+    wrong — so give that job to something else before you slow it down."* The site is moving to a
+    WEEKLY content cadence, and the moment it does, "the site stopped" stops meaning anything: six
+    days in seven it is correct.
+
+    THE MECHANISM ALREADY EXISTED AND WAS WIRED TO THE WRONG THING. `process_run_complete.
+    _refresh_published_liveness_on_skip` publishes ONLY `LIVENESS_SURFACE_FILES` — a heartbeat and
+    the agent status, no figures — and was built for exactly this separation (Fault#1, 2026-07-25:
+    "an unchanged-output night froze the live-site heartbeat ~4h though the machine was healthy").
+    But it could only ever run INSIDE a publish cycle, so it inherited the cadence it exists to be
+    independent of. Here it runs every worker cycle (~30 min) with no content publish required.
+
+    Cheap by construction: two small files, its own narrow pathspec, and `_push_due()` throttles the
+    push. Wrapped, because a liveness beat may never take the sweep down — it is a passenger.
+    """
+    try:
+        from background import process_run_complete as _prc
+        if _prc._refresh_published_liveness_on_skip(_prc._head_sha() or "unknown"):
+            log("Liveness heartbeat published (content cadence is weekly; this is the signal that "
+                "the machine is alive between publishes)")
+            return True
+    except Exception as exc:  # noqa: BLE001 -- a passenger, never a gate on the sweep
+        log(f"Liveness heartbeat skipped (non-fatal): {exc}")
+    return False
+
+
 def process_leftover_run_markers():
     """Process any run_complete_*.md markers that process_run_complete.py left behind.
 
@@ -676,6 +707,8 @@ def main():
             process_leftover_run_markers()
         except Exception as exc:
             log(f"process_leftover_run_markers error: {exc}")
+
+        beat_liveness()
 
         if is_peak_hours():
             now = datetime.now(timezone.utc)
