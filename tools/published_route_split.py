@@ -86,7 +86,11 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from simulation.market_switching_propensity import published_departure_band
-from tools.published_tariff_mix import default_tariff_share, years_with_an_established_figure
+from tools.published_tariff_mix import (
+    default_tariff_share,
+    fixed_share,
+    years_with_an_established_figure,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent
 ARTEFACT = PROJECT / "docs" / "reports" / "published_route_split.json"
@@ -190,6 +194,109 @@ FIXED_ACTIVE_RENEWAL_SHARE = 0.35
 #: survey fields both events and publishes them combined; the cross-tabulation exists in the
 #: underlying data tables and was not reachable this pass.
 EXTERNAL_SHARE_OF_ACTIVE_RENEWALS: float | None = None
+
+
+@dataclass(frozen=True)
+class SwitcherSplitObservation:
+    """One CIM wave's split of reported switching into external and internal, on ONE base.
+
+    THE FIELD THAT EARNS THIS A DATACLASS IS `recall_window_years`. Every other register in this
+    module is keyed by the year it describes; this one is not, because a six-month recall window
+    asked in January straddles two calendar years and the published default-tariff share moves
+    between them. A bare `year` would have forced a choice nothing establishes, so the window is
+    carried whole and every verdict below is taken at the MOST GENEROUS year the window touches.
+
+    Counts are the published WEIGHTED counts, rounded to 4dp from the data-table cells. Shares are
+    derived and never stored: `net` is the survey's own union of the two actions and is NOT their
+    sum in W1, so a stored share would silently pick one denominator and lose that.
+    """
+
+    wave: int
+    fieldwork: str
+    recall_window_years: tuple[int, ...]
+    base_unweighted: int
+    base_weighted: float
+    #: "I/we have switched to a new supplier"
+    external_weighted: float
+    #: "I/we have switched tariff with the same supplier"
+    internal_weighted: float
+    #: The table's own "Net: Have switched". The UNION, so it is <= the sum when a respondent
+    #: reported both. Held rather than derived because the overlap is the thing worth seeing.
+    net_switched_weighted: float
+
+    @property
+    def external_share_of_switching(self) -> float:
+        """`phi_survey` -- external over ALL reported switching. NOT `phi`; see the reading."""
+        return self.external_weighted / self.net_switched_weighted
+
+    @property
+    def internal_rate_of_all_households(self) -> float:
+        """Internal switches per household over the RECALL WINDOW. Deliberately not annualised.
+
+        Annualising would only raise it, and every verdict this feeds is of the form "internal
+        switching already EXCEEDS a ceiling". Taking the un-annualised six-month rate is therefore
+        the conservative direction, and it means no annualisation convention is load-bearing.
+        """
+        return self.internal_weighted / self.base_weighted
+
+    @property
+    def both_actions_overlap(self) -> float:
+        """Weighted respondents reporting BOTH actions: the sum less the published union."""
+        return self.external_weighted + self.internal_weighted - self.net_switched_weighted
+
+
+#: Ofgem's Consumer Impacts of Market Conditions survey, question C4 -- *"Which, if any, of these
+#: have you or your household done IN THE PAST 6 MONTHS?"*, base all respondents, with **"switched
+#: to a new supplier" and "switched tariff with the same supplier" as separate response options on
+#: the same base**. This is the instrument §11 of the finding asked for and §14 restated as the only
+#: thing the chain still owed, and it is REPORTED BEHAVIOUR rather than intention.
+#:
+#: Source: wave 6 data tables, Table 108 (`W2W Tables`), which carries all six waves in one banner.
+#: `docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md` holds the provenance.
+#:
+#: WHY THIS DOES NOT CLOSE `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS`, stated at the register rather than
+#: only in the reading, because the register is what a future session will reach for first: the base
+#: is ALL HOUSEHOLDS, so both response options mix the SVT route and the fixed-renewal route. The
+#: survey adds one equation and one unknown (the rate at which SVT households move internally) and
+#: an equation that arrives with its own unknown identifies nothing.
+SWITCHER_SPLIT_OBSERVATIONS: tuple[SwitcherSplitObservation, ...] = (
+    SwitcherSplitObservation(
+        wave=1, fieldwork="March 2022", recall_window_years=(2021, 2022),
+        base_unweighted=2944, base_weighted=2873.6930,
+        external_weighted=267.9529, internal_weighted=378.7993,
+        net_switched_weighted=632.3701,
+    ),
+    SwitcherSplitObservation(
+        wave=2, fieldwork="July 2022", recall_window_years=(2022,),
+        base_unweighted=2984, base_weighted=2954.5042,
+        external_weighted=245.1449, internal_weighted=368.6360,
+        net_switched_weighted=613.7809,
+    ),
+    SwitcherSplitObservation(
+        wave=3, fieldwork="November/December 2022", recall_window_years=(2022,),
+        base_unweighted=3457, base_weighted=3456.9999,
+        external_weighted=252.4255, internal_weighted=500.8593,
+        net_switched_weighted=753.2848,
+    ),
+    SwitcherSplitObservation(
+        wave=4, fieldwork="July 2023", recall_window_years=(2023,),
+        base_unweighted=3434, base_weighted=3434.0000,
+        external_weighted=157.8359, internal_weighted=379.2057,
+        net_switched_weighted=537.0416,
+    ),
+    SwitcherSplitObservation(
+        wave=5, fieldwork="January 2024", recall_window_years=(2023, 2024),
+        base_unweighted=3439, base_weighted=3439.0000,
+        external_weighted=191.9714, internal_weighted=398.4467,
+        net_switched_weighted=590.4181,
+    ),
+    SwitcherSplitObservation(
+        wave=6, fieldwork="January/February 2025", recall_window_years=(2024, 2025),
+        base_unweighted=3458, base_weighted=3458.0000,
+        external_weighted=182.8863, internal_weighted=588.5251,
+        net_switched_weighted=771.4115,
+    ),
+)
 
 BASES = ("as_published", "all_domestic")
 
@@ -1158,6 +1265,120 @@ def where_the_worlds_joint_point_falls() -> dict | None:
     }
 
 
+def _renewal_route_internal_ceiling(years: tuple[int, ...]) -> dict:
+    """The MOST internal switching the fixed-renewal route can produce, over `years`.
+
+    A fixed-term household can only make an internal move by actively renewing onto a new deal with
+    its existing supplier, so the route's internal output is `(1 - s) * 0.35 * (1 - phi)` and its
+    ceiling is at `phi = 0`: `(1 - s) * 0.35`. Nothing about phi is assumed to state the ceiling --
+    that is the point of taking it at the endpoint.
+
+    Evaluated at the LARGEST published fixed share across every year the recall window touches, so
+    the ceiling is the most generous one the record allows and a reading that still exceeds it
+    cannot be argued down by the choice of year. Years with no established share contribute nothing
+    and are named rather than dropped.
+    """
+    considered, missing, best = [], [], None
+    for year in years:
+        band = fixed_share(year, "all_domestic")
+        if band is None:
+            missing.append(year)
+            continue
+        considered.append(year)
+        best = band[1] if best is None else max(best, band[1])
+    return {
+        "years_considered": considered,
+        "years_with_no_established_fixed_share": missing,
+        "most_generous_fixed_share": best,
+        "ceiling": None if best is None else round(best * FIXED_ACTIVE_RENEWAL_SHARE, 6),
+    }
+
+
+def whether_the_survey_split_identifies_phi() -> dict:
+    """What Ofgem's CIM external/internal split does and does not settle about `phi`.
+
+    THE SOURCING §11 ASKED FOR AND §14 CALLED THE ONLY THING STILL OWED HAS ARRIVED, AND IT DOES
+    NOT CLOSE THE CONSTANT. Stating why in one place, because "we found the survey" and "we know
+    phi" are one sentence apart and the gap between them is this repository's recurring shape.
+
+    Over all households, the two published rates decompose by route:
+
+        E  =  s * H_svt        +  (1 - s) * 0.35 * phi          <- external; this IS the record's R
+        I  =  s * J_svt        +  (1 - s) * 0.35 * (1 - phi)    <- internal; the survey's new row
+
+    `J_svt`, the rate at which SVT households move onto a fix WITH THEIR EXISTING SUPPLIER, is not
+    published anywhere. So the survey's second row arrives carrying its own unknown, and two
+    equations in three unknowns identify no more than one equation in two did. `phi_survey`, the
+    external share of ALL reported switching, is a MIXTURE of the two routes' external shares
+    weighted by how much switching each route produces -- it is not `phi` and is not a bound on it
+    in either direction without an assumption about `J_svt` that nothing supplies.
+
+    WHAT THE SURVEY DOES SETTLE, AND IT NEEDS NO ASSUMPTION AT ALL: `J_svt >= 0` is enough to make
+    the second equation a testable ceiling. Internal switching that exceeds `(1 - s) * 0.35` cannot
+    have come from the fixed-renewal route at any `phi`, so the excess is the SVT route -- a route
+    the world has no mechanism for. That is `internal_exceeds_the_renewal_routes_ceiling`.
+    """
+    waves = []
+    for obs in SWITCHER_SPLIT_OBSERVATIONS:
+        ceiling = _renewal_route_internal_ceiling(obs.recall_window_years)
+        rate = obs.internal_rate_of_all_households
+        exceeds = None if ceiling["ceiling"] is None else rate > ceiling["ceiling"]
+        waves.append({
+            "wave": obs.wave,
+            "fieldwork": obs.fieldwork,
+            "recall_window_years": list(obs.recall_window_years),
+            "base_unweighted": obs.base_unweighted,
+            "external_rate_of_all_households": round(
+                obs.external_weighted / obs.base_weighted, 6
+            ),
+            "internal_rate_of_all_households": round(rate, 6),
+            "phi_survey": round(obs.external_share_of_switching, 6),
+            "both_actions_overlap_weighted": round(obs.both_actions_overlap, 4),
+            "renewal_route_internal_ceiling": ceiling,
+            "internal_exceeds_the_renewal_routes_ceiling": exceeds,
+            "multiple_of_the_ceiling": (
+                None if ceiling["ceiling"] is None else round(rate / ceiling["ceiling"], 4)
+            ),
+        })
+    phis = [w["phi_survey"] for w in waves]
+    judged = [w for w in waves if w["internal_exceeds_the_renewal_routes_ceiling"] is not None]
+    return {
+        "what_this_is": (
+            "Ofgem Consumer Impacts of Market Conditions, question C4, six waves on one base, "
+            "reported behaviour over the past six months. The instrument the finding has asked for "
+            "since §11. It separates external from internal switching and it does NOT identify phi."
+        ),
+        "source": "docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md",
+        "per_wave": waves,
+        "phi_survey_span": [min(phis), max(phis)],
+        "phi_survey_is_not_phi": (
+            "phi_survey is external over ALL reported switching, on a base of all households. phi "
+            "is external over ACTIVE RENEWALS AT A FIXED-TERM END. The survey's base contains the "
+            "SVT route, which contributes to both of its rows, so phi_survey is a route mixture. "
+            "Two different populations; the ratio of the survey's two rows is not phi."
+        ),
+        "why_the_survey_cannot_close_it": (
+            "I = s*J_svt + (1-s)*0.35*(1-phi) introduces J_svt, the SVT segment's INTERNAL move "
+            "rate, which nothing published establishes. One new equation, one new unknown."
+        ),
+        # The result that survives all of that, because it needs only J_svt >= 0.
+        "internal_exceeds_the_renewal_routes_ceiling_in_every_judged_wave": bool(judged) and all(
+            w["internal_exceeds_the_renewal_routes_ceiling"] for w in judged
+        ),
+        "judged_waves": len(judged),
+        "what_that_means": (
+            "internal switching is already larger than the ENTIRE fixed-term active-renewal "
+            "population, at the most generous published fixed share and with no annualisation. So "
+            "most internal switching originates from default/SVT households moving onto a fix with "
+            "their existing supplier -- and `simulation/renewals.py` has no such move at all. This "
+            "is the published half of the question §9 raised and could not settle: the world's "
+            "SVT hazard is calibrated as drift off the SVT PRODUCT and graded against a band of "
+            "EXTERNAL changes of supplier, and those differ by exactly this route."
+        ),
+        "the_constant_is_still": EXTERNAL_SHARE_OF_ACTIVE_RENEWALS,
+    }
+
+
 def published_route_split() -> dict:
     """The whole reading, as the committed artefact carries it."""
     svt = svt_segment_churn_band()
@@ -1259,6 +1480,7 @@ def published_route_split() -> dict:
         # has a different failure mode.
         "whether_the_constant_phi_verdict_turns_on_one_survey_year":
             whether_the_constant_phi_verdict_turns_on_one_survey_year(),
+        "whether_the_survey_split_identifies_phi": whether_the_survey_split_identifies_phi(),
         "how_to_regenerate": "python3 -m tools.published_route_split --write",
     }
 

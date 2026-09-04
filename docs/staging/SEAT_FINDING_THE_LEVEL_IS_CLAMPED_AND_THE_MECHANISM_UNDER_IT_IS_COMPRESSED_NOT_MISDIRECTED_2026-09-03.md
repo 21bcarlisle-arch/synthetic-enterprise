@@ -1364,3 +1364,186 @@ first**: that instruction has now been right four times in this chain, and the f
 right about a figure a director ruling had already turned on.
 
 — Delivery seat, 2026-09-04.
+
+---
+
+## 15. The φ instrument exists, it does not close φ, and what it does close is a route the world has no mechanism for — 2026-09-04
+
+§14 closed owing exactly one thing:
+
+> *"the φ cross-tabulation from Ofgem's Consumer Impacts of Market Conditions survey — one
+> cross-tabulation of one survey, separating 'switched supplier' from 'switched tariff with the same
+> supplier' on one base. Unchanged since §11 … Before sourcing it externally, **look in this tree
+> first**."*
+
+**The tree was searched first and was dry, and that was written down before the fetch.** The one
+result worth carrying from the in-tree pass: `simulation/renewals.py` and `renewal_engagement.py`
+have **no internal-switch concept at all** — no `same_supplier`, no retention move, no re-contract —
+so there was no in-tree value that could have been mistaken for φ. Then the external pass ran, and
+**the instrument exists.** Source and provenance:
+`docs/market_research/gb_domestic_switcher_split_cim_2022_2025.md`. Register:
+`SWITCHER_SPLIT_OBSERVATIONS` in `tools/published_route_split.py`. Reading:
+`whether_the_survey_split_identifies_phi`, committed in `docs/reports/published_route_split.json`.
+Pre-registration:
+`SEAT_PREREGISTRATION_WHETHER_A_PUBLISHED_SWITCHER_SPLIT_CAN_CLOSE_PHI_AT_ALL_2026-09-04.md`,
+filed before any source was fetched. All seven graded below.
+
+### The instrument, and where the four previous sections were looking
+
+Ofgem CIM **question C4** — *"Which, if any, of these have you or your household done in the past 6
+months?"*, base all respondents — carries *"switched to a new supplier"* and *"switched tariff with
+the same supplier"* as **separate codes on one base**, as reported behaviour, across all six waves.
+
+**§11's "not reachable this pass" and §7 of `gb_switching_rate_denominators.md`'s *"the domestic
+instrument does not split it"* were both true of the question they were reading and false of the
+instrument.** That file was reading CIM's *stated-reason* battery, whose base is switchers and whose
+codes do not separate the two events. C4 is a different question in the same survey, and it does.
+The correction belongs beside the claim: the split was three tabs away in a survey this repository
+had already cited twice.
+
+| wave | fieldwork | switched **supplier** | switched **tariff, same supplier** | net | φ_survey |
+|---|---|---|---|---|---|
+| W1 | March 2022 | 9.32% | 13.18% | 22.01% | 0.4237 |
+| W2 | July 2022 | 8.30% | 12.48% | 20.77% | 0.3994 |
+| W3 | Nov/Dec 2022 | 7.30% | 14.49% | 21.79% | 0.3351 |
+| W4 | July 2023 | 4.60% | 11.04% | 15.64% | 0.2939 |
+| W5 | January 2024 | 5.58% | 11.59% | 17.17% | 0.3251 |
+| W6 | Jan/Feb 2025 | 5.29% | 17.02% | 22.31% | 0.2371 |
+
+### It does not close φ, and the reason is an equation that arrives with its own unknown
+
+The base is ALL HOUSEHOLDS, so both rows mix the two routes:
+
+```
+E  =  s·H_svt  +  (1−s)·0.35·φ          ← external. This IS the record's R.
+I  =  s·J_svt  +  (1−s)·0.35·(1−φ)      ← internal. The survey's new row.
+```
+
+`J_svt`, the rate at which default/SVT households move onto a fix **with their existing supplier**,
+is published nowhere. **One new equation, one new unknown.** `φ_survey` is a route *mixture* and is
+not φ — and, contrary to what this pass predicted, it is not a bound on φ in either direction.
+`EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` is still `None`, now for a reason that is measured rather than
+asserted. `test_the_sourced_switcher_split_does_not_become_the_unestablished_constant` is the leg
+that stops the arriving instrument becoming the arriving number, which was this section's live risk.
+
+**The tariff-type banner is the obvious next reach and it does not work.** Table 109 gives φ_survey
+of 0.221–0.398 among fixed-tariff respondents and 0.356–0.540 among variable-tariff ones. Tariff
+type is recorded *after* the switch, so switching onto a fix puts a household in the fixed column
+whichever route it came from. This is exactly the contamination
+`household_switching_response_amplitude.md` §2.4 recorded for this survey family — *"so the next
+session does not reach for the biggest number on the page"* — and the warning caught this session.
+The figures are published so nobody re-fetches 26MB to learn they are unusable; they are not used.
+
+### What it does close, needing only `J_svt ≥ 0`
+
+Drop φ. The renewal route's internal output is `(1−s)·0.35·(1−φ)`, so its ceiling at any φ is
+`(1−s)·0.35`. Taken at the **largest** published fixed share across every year each recall window
+touches, against the survey's **un-annualised six-month** rate — both choices push against the
+conclusion:
+
+| wave | internal (6 mo.) | renewal-route ceiling (annual) | multiple |
+|---|---|---|---|
+| W1 | 13.18% | 7.00% | **1.88×** |
+| W2 | 12.48% | 7.00% | **1.78×** |
+| W3 | 14.49% | 7.00% | **2.07×** |
+| W4 | 11.04% | 7.00% | **1.58×** |
+| W5 | 11.59% | 7.00% | **1.66×** |
+| W6 | 17.02% | 12.60% | **1.35×** |
+
+**Six of six, over the ceiling, comparing six months against a year.**
+
+> **Most GB domestic internal switching is default/SVT households taking a fix with their existing
+> supplier. It cannot be fixed-term renewal — there are not enough fixed-term households in the
+> record for it to be. And the world has no such move at all.**
+
+### Why that is the useful result, and it runs against us
+
+§9 closed on a question it could not settle: *"the hazard is drift off the SVT **product**, and the
+band it is being asked to reproduce is external change of **supplier**. Those are not the same event,
+and nobody has established the relation."* This is the published half of that relation.
+`SVT_INERTIA_ANNUAL_RECENT = 0.20` is sourced as a product-drift rate; the external share of that
+drift is below 1; so the external rate it implies is **below 0.20**, and §9's gap against the
+record's required 0.334–0.342 is **wider** than the published 1.67×–1.71×, not narrower.
+
+**No magnitude is quoted for the widening**, because `J_svt` is what would set it and `J_svt` is the
+unknown this whole section is about. A direction with no magnitude is what the evidence supports.
+
+### The pre-registration, graded, all seven
+
+- **P1 — REFUTED.** I predicted the cross-tabulation would NOT be reachable from the published
+  tables, at about 60/40. It is: question C4, six waves, one base, behavioural, in both the main
+  report and the data tables. My reasoning generalised from CIM's *stated-reason* battery — the one
+  question this repo had already read — to the whole instrument. **The graded prediction is the
+  reason the search happened at all**, and it was wrong in the direction that costs nothing.
+- **P2 — REFUTED, and not narrowly.** Predicted φ_survey ∈ [0.45, 0.70], point 0.58. Actual
+  **0.237–0.424**: every wave below the interval's floor, and my point estimate is 1.4×–2.4× the
+  observed values. I over-weighted the pre-2022 external-switching era that the waves do not cover.
+- **P3 — CONFIRMED as stated, and its force is reduced by P6.** φ_survey is below 0.618 in 6 of 6
+  waves, far below. But I framed this as the record's admissible interval being contradicted, and
+  P6's confirmation means φ_survey is not the quantity that interval is about. **A confirmed
+  prediction about the wrong quantity is not evidence, and it is graded that way here rather than
+  banked.**
+- **P4 — VOID, and deliberately not collected.** It predicted what the implied `H_svt` would be at
+  φ_survey. Computing that would be substituting a route mixture into an identity that needs the
+  renewal route alone — the exact misattribution `test_the_sourced_switcher_split_does_not_become_
+  the_unestablished_constant` exists to refuse. A prediction whose antecedent the pass refutes
+  cannot be collected either way, and it is recorded as uncollectable rather than quietly answered.
+- **P5 — REFUTED, and the miss is in our favour.** I predicted every wave would be 2023 or later.
+  W1–W3 are 2022. The useful half: waves DO fall inside fitted years 2023 and 2024, better coverage
+  than predicted. The half that stands: **nothing covers 2016–2021**, the 2022 structural break sits
+  between the instrument and the years that most need it, and no carry-back is adopted.
+- **P6 — SPLIT: CONFIRMED on the claim, REFUTED on the reasoning, and the refuted half is the
+  section.** The base is not φ's base and the split does not close the constant — as predicted, and
+  it is the prediction I held most strongly. But I said φ_survey is an **UPPER bound** on renewal
+  φ *"because the SVT route is overwhelmingly external — an SVT household has no fixed deal to
+  internally renew onto."* **That sentence is wrong.** An SVT household taking a fix with its
+  existing supplier is an internal move, and the ceiling table above shows it is the *dominant* form
+  of internal switching in the record. The SVT route loads both rows, so φ_survey bounds nothing.
+  Following that error to its end is what produced the `J_svt ≥ 0` ceiling, which is the only
+  assumption-free result this pass has.
+- **P7 — CONFIRMED.** No constant edited, no solver aim point moved, `YEAR_LEVEL_ANCHOR` untouched,
+  `emergent_level_verdict` still six of seven outside their bands. §4's constraint 4, an eleventh
+  time. Verified by a **structural walk over the parsed artefact**: exactly one top-level addition,
+  zero removals, zero changed values — §14's P8 lesson applied rather than restated.
+
+### Controls
+
+Five legs in `tests/architecture/test_switching_rate_commons.py`, all mutation-proven on disk under
+`python3 -B` across seven mutations: the ceiling taken at `min` over the recall window, the ceiling
+taken at the fixed band's LOW end (both shrink the ceiling and flatter the verdict), the unjudgeable
+branch collapsed to `False`, the unjudgeable wave silently dropped from the reading, φ_survey taken
+over the SUM instead of the published union, the internal rate annualised before comparison, and φ
+filled in from the survey.
+
+**The unjudgeable branch is INJECTED, not asserted.** All six real waves touch a year with an
+established fixed share, so `internal_exceeds_the_renewal_routes_ceiling` is `True` six times and the
+`None` branch never runs on today's data — a leg that only read the six would be testing `all()` over
+a constant. So a wave whose window touches only 2020 and 2021, the two years `published_tariff_mix`
+declares unestablished, is injected; the reading must return `None` for it, must NAME the two years,
+and must leave the denominator unchanged. `False` there would be a fail-open reading as *"checked,
+and it did not exceed"* when nothing was checked.
+
+**The union leg needs W1 to exist.** Waves 2–6 have zero overlap between the two actions, so summing
+and unioning agree; **W1's rows exceed its published union by 14.4 weighted respondents**. The leg
+requires a non-zero overlap to be present, so it cannot be satisfied by a register that happened to
+store equal values — §13's own pass-branch defect, one turn later.
+
+### Where this leaves the repair
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published, and rung 1
+is unmoved. What changed:
+
+> **The sourcing owed since §11 is discharged as an INSTRUMENT and refused as a VALUE.** φ is not
+> closed and is not closeable by this survey, because the survey's second row carries `J_svt` with
+> it. What is now established, with no assumption beyond `J_svt ≥ 0`, is that **the dominant
+> internal-switching route in the GB record is default/SVT households re-contracting with their own
+> supplier — a route `simulation/renewals.py` does not model at all** — and that this widens §9's
+> hazard gap rather than closing it.
+
+One thing owed, and it has changed identity: **not φ, but `J_svt`** — the rate at which
+default-tariff households take a fixed deal with their existing supplier. It closes the system by
+supplying the unknown instead of the ratio, it is the easier of the two to imagine a
+supplier-returned series carrying, and unlike φ it names a mechanism the world is missing rather
+than a constant the world would have to be given.
+
+— Delivery seat, 2026-09-04.

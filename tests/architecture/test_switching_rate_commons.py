@@ -4802,3 +4802,196 @@ def test_a_second_tenure_observation_cannot_move_the_mix_free_envelope_or_the_co
                 f"changed. §14 reports that interval as unchanged by the second observation and "
                 f"that report would be false."
             )
+
+
+# --- §15: the CIM switcher split, and the ceiling that survives its non-identification -----------
+
+
+def _survey_split() -> dict:
+    return _split_module().whether_the_survey_split_identifies_phi()
+
+
+def test_the_sourced_switcher_split_does_not_become_the_unestablished_constant():
+    """MUTATION: write phi_survey into `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS`.
+
+    THE DEFECT THIS EXISTS FOR, and it is the one §15 was most at risk of committing. The chain
+    asked for a domestic instrument separating "switched supplier" from "switched tariff with the
+    same supplier" for four sections, and one arrived. The temptation on arrival is to divide its
+    two rows and call the ratio phi. It is not phi: the survey's base is ALL HOUSEHOLDS, so both of
+    its rows mix the SVT route with the fixed-renewal route, and phi is defined over active
+    renewals at a fixed-term end alone. A number with a real citation attached to the wrong
+    population is worse than the declared `None`, because the citation makes it unfalsifiable in
+    review.
+
+    Keyed to the PROPERTY -- phi is not identified by this instrument -- and not to today's span,
+    so a genuinely identifying source landing later passes here and only a misattribution fails.
+    """
+    split = _split_module()
+    reading = _survey_split()
+
+    assert split.EXTERNAL_SHARE_OF_ACTIVE_RENEWALS is None, (
+        "phi has been given a value. If a source now identifies the external share of ACTIVE "
+        "FIXED-TERM RENEWALS on that population, this control should be rewritten against it -- "
+        "but the CIM split does not, and its ratio must not be what filled the slot."
+    )
+    assert reading["the_constant_is_still"] is None
+    lo, hi = reading["phi_survey_span"]
+    assert lo <= hi
+    assert reading["phi_survey_is_not_phi"].strip(), (
+        "the reading publishes phi_survey without stating what separates it from phi. That "
+        "sentence is the whole control at the reader's end."
+    )
+    for wave in reading["per_wave"]:
+        assert wave["phi_survey"] != split.EXTERNAL_SHARE_OF_ACTIVE_RENEWALS
+
+
+def test_the_renewal_route_ceiling_is_taken_at_the_most_generous_year_and_share():
+    """MUTATION: take the ceiling at `min` over the window, or at the fixed band's LOW end.
+
+    Both mutations SHRINK the ceiling, and a smaller ceiling is easier to exceed -- so both push
+    §15's verdict toward the flattering answer while looking like a tightening. The verdict claimed
+    is *"internal switching exceeds the whole fixed-renewal route even at the most generous
+    published fixed share"*, and only the maximum over the window at the band's high end earns that
+    sentence.
+
+    Held by construction rather than by re-deriving the arithmetic: 2025's published fixed share is
+    the highest in the record, so a window touching it must produce a ceiling strictly larger than
+    the same window without it.
+    """
+    split = _split_module()
+    ceiling = split._renewal_route_internal_ceiling
+
+    with_2025 = ceiling((2023, 2025))
+    without = ceiling((2023,))
+    assert with_2025["ceiling"] > without["ceiling"], (
+        "a window that reaches 2025 -- the record's highest published fixed share -- produced a "
+        "ceiling no larger than one that does not. The ceiling is not taken at the most generous "
+        "year the window touches, so the 'even at the most generous share' claim is unearned."
+    )
+    for years in ((2023,), (2024,), (2023, 2025)):
+        cell = ceiling(years)
+        band_his = [
+            split.fixed_share(y, "all_domestic")[1]
+            for y in years
+            if split.fixed_share(y, "all_domestic") is not None
+        ]
+        assert cell["most_generous_fixed_share"] == max(band_his), (
+            f"{years}: the ceiling did not use the HIGH end of the published fixed-share band. "
+            f"The low end would understate the renewal route's reach and overstate §15's excess."
+        )
+        assert cell["ceiling"] == pytest.approx(
+            max(band_his) * split.FIXED_ACTIVE_RENEWAL_SHARE
+        )
+
+
+def test_a_window_with_no_established_fixed_share_returns_no_verdict_rather_than_false():
+    """MUTATION: collapse the unjudgeable branch into `False`, or drop the wave silently.
+
+    THE MISSING BRANCH IS INJECTED, NOT ASSERTED THROUGH THE OPERATOR. Every one of the six real
+    waves touches at least one year with an established fixed share, so today
+    `internal_exceeds_the_renewal_routes_ceiling` is `True` in all six and the `None` branch never
+    runs. A leg that only read the six would be testing `all()` over a constant. So a wave whose
+    recall window touches ONLY 2020 and 2021 -- the two years `published_tariff_mix` declares as
+    having no established figure -- is injected, and the reading must come back `None` for it and
+    must exclude it from the denominator rather than counting it as a failure to exceed.
+
+    `False` here would be a fail-open of the most expensive kind: it reads as "we checked this wave
+    and internal switching did NOT exceed the ceiling", when nothing was checked at all.
+    """
+    split = _split_module()
+    before = _survey_split()
+    assert before["judged_waves"] == len(split.SWITCHER_SPLIT_OBSERVATIONS), (
+        "some real wave is already unjudged; this control's injection no longer manufactures the "
+        "branch it exists to exercise and must be rewritten."
+    )
+
+    unjudgeable = split.SwitcherSplitObservation(
+        wave=9001, fieldwork="INJECTED BY A CONTROL", recall_window_years=(2020, 2021),
+        base_unweighted=1000, base_weighted=1000.0,
+        external_weighted=100.0, internal_weighted=900.0, net_switched_weighted=1000.0,
+    )
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(
+            split,
+            "SWITCHER_SPLIT_OBSERVATIONS",
+            split.SWITCHER_SPLIT_OBSERVATIONS + (unjudgeable,),
+        )
+        after = _survey_split()
+
+    injected = [w for w in after["per_wave"] if w["wave"] == 9001]
+    assert len(injected) == 1, "the unjudgeable wave was dropped from the reading entirely."
+    cell = injected[0]
+    assert cell["internal_exceeds_the_renewal_routes_ceiling"] is None, (
+        "a wave whose window has no established fixed share came back with a BOOLEAN verdict. "
+        "There is no ceiling to exceed, so there is no verdict -- and `False` would read as a "
+        "wave that was checked and passed."
+    )
+    assert cell["renewal_route_internal_ceiling"]["ceiling"] is None
+    assert cell["renewal_route_internal_ceiling"]["years_with_no_established_fixed_share"] == [
+        2020, 2021,
+    ], "the unestablished years were not NAMED. A dropped year cannot be audited."
+    assert after["judged_waves"] == before["judged_waves"], (
+        "the unjudgeable wave entered the denominator. A verdict of 'every judged wave exceeds' "
+        "must not be diluted or inflated by a wave that could not be judged."
+    )
+    assert after["internal_exceeds_the_renewal_routes_ceiling_in_every_judged_wave"] is True
+
+
+def test_the_overlap_comes_from_the_published_union_and_one_wave_has_one():
+    """MUTATION: use the SUM of the two rows as phi_survey's denominator instead of the published net.
+
+    The survey's `Net: Have switched` is a UNION, not a sum: a respondent may report both actions.
+    In waves 2-6 the two coincide, so a reading that summed would agree with a reading that used
+    the net and nothing would notice. **Wave 1 is the one that separates them** -- its sum exceeds
+    its published union by 14.4 weighted respondents -- so the register keeps the net as published
+    and the overlap is derived from it.
+
+    Requiring a non-zero overlap to EXIST is what stops this leg being satisfied by a register that
+    happened to store equal values, which is the shape §13's own pass-branch defect had.
+    """
+    split = _split_module()
+    overlaps = {o.wave: o.both_actions_overlap for o in split.SWITCHER_SPLIT_OBSERVATIONS}
+    assert any(v > 1.0 for v in overlaps.values()), (
+        "no wave in the register reports both actions from the same respondents. The published "
+        "union would then be indistinguishable from the sum and this leg could not fire."
+    )
+    for obs in split.SWITCHER_SPLIT_OBSERVATIONS:
+        assert obs.net_switched_weighted <= obs.external_weighted + obs.internal_weighted + 1e-3, (
+            f"wave {obs.wave}: the published union exceeds the sum of its own parts."
+        )
+        assert obs.external_share_of_switching == pytest.approx(
+            obs.external_weighted / obs.net_switched_weighted
+        ), (
+            f"wave {obs.wave}: phi_survey is not taken over the published union. Summing the rows "
+            f"would double-count respondents who did both and understate the external share."
+        )
+
+
+def test_the_ceiling_verdict_is_taken_on_the_un_annualised_recall_window():
+    """MUTATION: annualise the internal rate before comparing it with the ceiling.
+
+    The ceiling is an ANNUAL quantity -- `(1 - s) * 0.35` is renewals per account-year -- and the
+    survey's rate is over six months. Annualising the survey side would be arithmetically defensible
+    and is deliberately NOT done, because every verdict it feeds has the form "internal switching
+    already exceeds this ceiling", and annualising only raises the left-hand side. Comparing the raw
+    six-month rate against an annual ceiling is therefore the conservative comparison, and it means
+    §15's result survives without any annualisation convention being load-bearing.
+
+    Keyed to the property that the comparison is conservative, not to today's multiples.
+    """
+    split = _split_module()
+    reading = _survey_split()
+    for obs, cell in zip(split.SWITCHER_SPLIT_OBSERVATIONS, reading["per_wave"], strict=False):
+        assert cell["wave"] == obs.wave
+        assert cell["internal_rate_of_all_households"] == pytest.approx(
+            obs.internal_weighted / obs.base_weighted, abs=1e-6
+        ), (
+            f"wave {obs.wave}: the rate compared against the ceiling is not the raw recall-window "
+            f"rate. Any annualisation inflates the left-hand side of a 'already exceeds' claim."
+        )
+        if cell["multiple_of_the_ceiling"] is not None:
+            assert cell["multiple_of_the_ceiling"] == pytest.approx(
+                cell["internal_rate_of_all_households"]
+                / cell["renewal_route_internal_ceiling"]["ceiling"],
+                rel=1e-3,
+            )
