@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import pytest
 
+from background import finding_classes as fc
 from background import staging_rooms as sr
 
 # --------------------------------------------------------------------------- #
@@ -238,3 +239,83 @@ def test_the_check_EXITS_NONZERO_on_sediment_and_not_only_on_a_floor():
     source = " ".join(inspect.getsource(sr.main).split())
 
     assert "sediment_violations(args.root)" in source
+
+
+# --------------------------------------------------------------------------- #
+# A document TRACKED in the root that a disposition will keep moving out       #
+# --------------------------------------------------------------------------- #
+#
+# THE CLASS THIS CLOSES, 2026-09-04. `room_for` above is asserted over NAMES, in the abstract,
+# and nothing applied it to what git actually TRACKS. So the rule was right and unenforced:
+# a preregistration committed into the staging root is moved to `records/` by the disposition,
+# restored to the root by the next operation that touches a tracked-but-deleted path, and
+# `finding_classes.room_collisions` then refuses EVERY commit in the tree until someone sweeps
+# the duplicate by hand. That wedged publishing for ~7.7h across 12 consecutive failures.
+#
+# It was diagnosed and repaired twice in one day, both times as an INSTANCE: `4a4ac598b` (13:32)
+# untracked the one path it had in front of it, and 56 minutes later `197261a2d` (14:28) committed
+# a new preregistration into the same tracked root and the loop restarted. Two more were staged to
+# land the same way when this was written. An absurdity is fixed as a class, not an instance.
+
+
+def test_the_rule_can_flag_a_root_tracked_document_AND_leaves_the_root_kinds_alone():
+    """THE REACHABILITY LEG, WRITTEN FIRST. The real-tree control below asserts an EMPTY list,
+    and an empty list is exactly what a predicate that flags nothing returns — it would pass
+    against a tree with the defect in it, forever, which is this project's most repeated way of
+    shipping a control that cannot fail.
+
+    So both directions are asserted over hand-built names: a preregistration (room `records/`,
+    which `room_collisions` walks) MUST be flagged, and a finding (room = the root itself) must
+    NOT be. The pair is what makes the empty verdict below evidence rather than a tautology.
+
+    MUTATION (must fire): return `[]` from `self_refuelling_root_documents`; or drop the
+    `in ROOM_DIRNAMES` test, which flags the findings too.
+    """
+    prereg = "SEAT_PREREG_SOMETHING_MEASURED_2026-09-04.md"
+    finding = "SEAT_FINDING_SOMETHING_BROKE_2026-09-04.md"
+
+    assert sr.room_for(sr.kind_of(prereg)) == sr.RECORDS_DIRNAME
+    assert sr.room_for(sr.kind_of(finding)) is None
+
+    flagged = fc.self_refuelling_root_documents([prereg, finding])
+
+    assert flagged == [prereg], (
+        "the predicate must flag a preregistration tracked in the root and spare a finding, "
+        "which belongs there — a predicate that cannot tell them apart cannot fail usefully"
+    )
+
+
+def test_no_document_is_TRACKED_in_the_staging_root_that_a_disposition_will_move_out():
+    """THE SUBJECT IS THE INDEX, and that is not an accident. `surgical_land` gates a standalone
+    extract whose HEAD is the PARENT sha but whose INDEX is the tree the commit would create, so
+    `git ls-files` is the only subject that judges the commit being made rather than the one
+    before it. Reading `git ls-tree HEAD` here would grade every commit against its predecessor
+    and go green one commit late — which is how a control keyed to the wrong tree lets the very
+    commit that reintroduces the defect through.
+
+    MUTATION (must fire): re-track any preregistration at `docs/staging/<name>.md`.
+    """
+    import subprocess
+
+    tracked = subprocess.run(
+        ["git", "ls-files", "docs/staging/"],
+        capture_output=True,
+        text=True,
+        cwd=sr.REPO_ROOT,
+    )
+    assert tracked.returncode == 0, "git could not be asked; an unreadable tree is not a clean one"
+
+    names = [
+        path.rsplit("/", 1)[1]
+        for path in tracked.stdout.split()
+        if path.count("/") == 2  # docs/staging/<name> — the ROOT itself, not a room
+    ]
+    assert names, "no tracked documents found in the staging root — the query, not the tree, is wrong"
+
+    assert fc.self_refuelling_root_documents(names) == [], (
+        "these are tracked in the staging root but their kind sends them to a room "
+        "`room_collisions` treats as mutually exclusive with it. Every disposition moves them "
+        "out and every restore of the tracked path brings them back, and the pair refuses every "
+        "commit in the tree until someone sweeps it by hand. Move the file to the room "
+        "`staging_rooms.room_for` names and land the DELETION of the root path with it"
+    )
