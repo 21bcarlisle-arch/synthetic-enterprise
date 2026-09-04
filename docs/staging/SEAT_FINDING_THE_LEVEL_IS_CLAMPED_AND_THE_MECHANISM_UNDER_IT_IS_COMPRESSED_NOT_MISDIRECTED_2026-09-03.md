@@ -813,3 +813,180 @@ refusal was to make the reading reachable from something that runs, not to decla
 freeze it beside `svt_generated_share_check`.
 
 — Delivery seat, 2026-09-04.
+
+## 12. §11's refusal was the mixed pair, not the record — and the repair is unmoved — 2026-09-04
+
+§11 closed owing two things. One is a sourcing job (φ). The other was not, and it is done here:
+
+> *"**§9's and §10's readings must be re-run jointly, not separately.** Result 2 above is only
+> visible when the hazard and the share move together, and each of those readings holds the other's
+> subject fixed by construction."*
+
+**§11 took that step with a mixed pair, and its result 2 is refuted by the consistent one.**
+`tools.published_route_split.where_the_worlds_joint_point_falls`, committed in
+`docs/reports/published_route_split.json` beside the section it corrects. Pre-registration:
+`SEAT_PREREGISTRATION_WHETHER_THE_RECORD_STILL_REFUSES_THE_PAIR_WHEN_THE_PAIR_IS_PRICED_JOINTLY_2026-09-04.md`,
+filed before the module existed. All six graded below.
+
+### What was wrong with §11's step
+
+`where_the_worlds_point_falls` computes `phi_admitting_required` by feeding §9's `required_hazard`
+— solved holding the world's **own, lower** SVT share fixed, and therefore sized to close the entire
+gap on the SVT route alone — into a composition evaluated at the **published** share. That is not
+"both repairs land". It is one repair sized to do all the work, applied on top of another repair
+that has already done part of it. It double-counts, and the double-count is the whole of result 2.
+
+The self-consistent quantity was already published by §10 and nobody had multiplied it out:
+`H_joint = world_hazard × hazard_multiple_still_required_at_band_low`, where the multiple already
+has the renewal route moved to the complement of the published share. `H_joint` is then judged
+against an admissible interval and a φ **pinned to that same share** — not swept over the published
+pair, which is the same mixture one level down.
+
+### The result: the record refuses the joint pair in no year
+
+All-domestic basis, published share at its high endpoint, `renewal_rescaled`:
+
+| year | §9's required | `H_joint` | admissible at that share | in? | φ (joint) | φ (mixed, §11) |
+|---|---|---|---|---|---|---|
+| 2017 | 0.2841 | **0.1999** | 0.0122 – 0.2200 | ✓ | 0.061–0.100 | **−0.360 – −0.270** |
+| 2018 | 0.2793 | 0.2793 | 0.0853 – 0.3416 | ✓ | 0.217–0.251 | 0.217–0.251 |
+| 2019 | 0.3340 | 0.3263 | 0.1058 – 0.3638 | ✓ | 0.110–0.151 | 0.079–0.153 |
+| 2023 | 0.0842 | 0.0876 | 0.0600 – 0.1389 | ✓ | 0.290–1.318 | 0.309–1.405 |
+| 2024 | 0.1692 | 0.1361 | 0.0884 – 0.1872 | ✓ | 0.163–0.898 | −0.418–0.367 |
+
+*2020 and 2021 stay REFUSED for want of a published share, unchanged and still not interpolated.
+The denominator is 5 of 7 and is reported as 5.*
+
+`years_the_record_refuses_the_joint_pair` is **empty on both bases, at both share endpoints, under
+both accountings** — 40 corners, no refusal. **§11's 2017 REFUSED mark is withdrawn.** Jointly,
+2017 needs `H_svt` of 0.193–0.221 against an admissible ceiling of 0.220–0.237, at φ of 0.061–0.134.
+
+### And composition does not rescue the hazard, which is the result that matters
+
+The flip is real and it changes nothing about where the repair is aimed. Against the published
+`SVT_INERTIA_ANNUAL_RECENT = 0.20`, all-domestic:
+
+| year | §9's required ÷ 0.20 | `H_joint` ÷ 0.20 |
+|---|---|---|
+| 2017 | 1.42 | **1.00** |
+| 2018 | 1.40 | 1.40 |
+| 2019 | 1.67 | **1.63** |
+| 2023 | 0.42 | 0.44 |
+| 2024 | 0.85 | 0.68 |
+
+**§9's headline stands almost exactly.** Its 1.67× at 2019 becomes 1.63×; 2018 does not move at all,
+because there the published share equals this world's to three decimals. Only 2017 moves materially.
+The repair stays where §9 and §11 left it: the hazard per SVT-account-year, and whether 0.20 —
+drift off the SVT *product* — is the right published quantity for a band made of external changes of
+*supplier*.
+
+### The direction is not forced, and I filed a prediction saying it was
+
+`H_joint` is **higher** than §9's required hazard at 2018 and 2019 on the as-published basis and at
+2023 on both — up to 1.118×. Two causes, and neither was in the hand argument that produced P1:
+
+1. **The published share is not always above the world's.** §10 established that on the as-published
+   basis this world reads *above* the record at 2018 and 2019, and I carried the all-domestic sign
+   into a prediction that spanned both bases.
+2. **The renewal route is not always small against the band.** Moving account-days onto SVT takes
+   them off fixed, so the renewal route shrinks — and where it is a large share of a small band
+   (2023: 2.82pp of an 8.9pp band low) that costs the SVT route more than the larger share gains it.
+
+**And the falsification criterion I filed was itself wrong.** P1 said *"if it comes out FALSE the
+implementation is wrong, and that is worth knowing before the interesting predictions are read."* It
+came out false and the implementation is right. A prediction that pre-commits "false ⇒ my code is
+broken" is a trap when the "forced" claim rests on an assumption the filer did not notice making —
+it would have sent the next hour after a bug that does not exist. Recorded here rather than quietly
+dropped, because it is a better lesson than the prediction was.
+
+### The basis choice now has a price, and §10 left it open
+
+On the all-domestic basis the joint requirement **falls** in 4 of 5 years; on the as-published basis
+it **rises** in 3 of 5. That is entirely §10's prepayment restoration, which §10 deliberately left
+unsettled because this world models no prepayment meter and its book is neither published
+population. It was an open note there. It is a priced decision here, and it is the first place the
+choice changes a number anyone would act on.
+
+### One φ for every year: EMPTY — and it was empty before the repair, so it says nothing about it
+
+Derived after the numbers were seen and labelled so in the artefact. φ is one behavioural quantity
+per year describing one market, so the per-year intervals having an empty intersection is a
+statement about the world. Taken as the union over both share endpoints, all-domestic,
+`renewal_rescaled`:
+
+> 2017 [0.061, 0.100] · 2019 [0.110, 0.151] · 2024 [0.163, 0.898] · 2018 [0.217, 0.251] · 2023 [0.290, 1.318]
+
+2017, 2019 and 2018 are **pairwise disjoint** — three consecutive years each requiring a different
+φ, and not in date order. **No single φ reconciles the jointly-repaired world with the record.**
+
+**And that is not evidence about the repair**, which is why the artefact carries the same reading at
+the world's *current* hazard: 2017 [0.395, 0.437], 2019 [0.628, 0.672], 2018 [0.574, 0.608] —
+**also empty, also disjoint, and already true before any of this**. The joint repair moves the
+required φ down by roughly 0.3–0.5 and leaves the year-to-year spread where it was. So the honest
+statement is a fidelity one and not a verdict on the repair: *this world's SVT route cannot be
+reconciled with the published route split by any constant φ at any hazard level, before or after.*
+
+That does not contradict §8's finding that the SVT route's relative slope is +0.99. §8 measured the
+world's SVT departures against the record's **total** departures; this measures an implied φ, which
+also carries the published **share** series' year-to-year movement. A mismatch here can live in the
+share series as easily as in the hazard, and 2020 and 2021 are missing from that series entirely.
+**Which of the two moves is the next question**, and it is narrower than the one §11 handed on.
+
+### The pre-registration, graded, all six
+
+- **P1 — REFUTED**, and it was filed as "arithmetically forced". See above; the error and the bad
+  falsification criterion are both recorded rather than the prediction being retired.
+- **P2 — CONFIRMED.** 2017 flips on both bases, at both share endpoints, under both accountings, and
+  is the only flip. Predicted the as-published `H_joint` would land in 0.21–0.24 and stay inside
+  [−0.014, 0.237] narrowly: it is **0.2140**, inside by 0.023.
+- **P3 — CONFIRMED.** φ ≥ 0 in every comparable year on both bases at all 40 corners; the record
+  refuses the pair nowhere. Predicted 2017's φ in [0.00, 0.15]: it is 0.061–0.134 across every
+  corner.
+- **P4 — SPLIT, and the split is the prepayment basis.** Predicted the joint requirement would sit
+  inside or below the published 0.15–0.20 in at least 3 of 5. **CONFIRMED on all-domestic** (2017
+  0.1999 inside, 2023 and 2024 below — exactly 3). **REFUTED on as-published** (2 of 5). I filed the
+  converse explicitly and it is the half that holds: *"if `H_joint` is still above 0.20 in most
+  years, composition is a second-order correction and §9's headline stands."* It is, and it does.
+- **P5 — REFUTED in 2 of 5, and its second half CONFIRMED.** Predicted `renewal_held` would move
+  `H_joint` by under 0.01 everywhere: it does at 2017 (0.007), 2018 (0.000) and 2019 (0.001), and
+  does not at 2023 (0.020) and 2024 (0.017) — the two years with the smallest bands. It flips **no**
+  verdict anywhere, which was the point: the result cannot be picked by choosing an accounting.
+- **P6 — CONFIRMED.** 2020 and 2021 stay refused, the denominator stays 5 of 7, and
+  `EXTERNAL_SHARE_OF_ACTIVE_RENEWALS` is still `None`.
+
+### Two defects caught in this reading's own machinery
+
+**φ was taken off the unrounded hazard while the rounded one was published**, so the artefact did not
+reproduce from its own printed inputs — a reader recomputing φ from the published `H_joint` got a
+different number in the last place. Caught by the control, which recomputes longhand from the
+artefact rather than by calling the module's own helper; fixed by rounding before φ is taken, not
+after.
+
+**The first draft of the one-φ control could not fail.** Both intersections are empty, so replacing
+`is_non_empty` with a constant `False` reproduced the artefact exactly and the leg stayed green. That
+is an equivalence, and it was repaired rather than recorded as one: the rule is now the module-level
+pure function `intersect_spans`, and the control exercises both branches on spans it constructs, so
+the True branch is reachable whatever the world says this week.
+
+### Controls
+
+Seven legs in `tests/architecture/test_switching_rate_commons.py`, all seven mutation-proven on disk
+across ten mutations: `at_share` accepted and ignored; the joint hazard judged over both share
+endpoints (the mixed pair one level down); the basis crossed between requirement and interval; every
+admitted year credited as a flip; a φ above 1 reported as a refusal, and φ clipped into [0, 1]; the
+joint hazard replaced by §9's column; the unrepaired-world companion dropped; the intersection
+written down; its verdict frozen; and an empty intersection clipped instead of crossed. The drift
+detector over the committed artefact gains the joint section, because a published section outside
+its key list has no drift detector at all.
+
+**Nothing here picks a number.** No constant edited, no solver aim point moved, `YEAR_LEVEL_ANCHOR`
+untouched, `emergent_level_verdict` still six of seven outside their bands. §4's constraint 4, an
+eighth time.
+
+**This finding stays BLOCKING.** The world's level is still clamped and still published. What
+changed: §11's result 2 is withdrawn, the record admits the joint pair everywhere, composition is
+confirmed second-order, and the binding unestablished quantity is still φ — now with the added
+constraint that no constant φ can reconcile this world's SVT route with the record in every year,
+which was already true before any repair was attempted and which nothing has yet attributed.
+
+— Delivery seat, 2026-09-04.

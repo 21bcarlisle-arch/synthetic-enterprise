@@ -1160,5 +1160,1011 @@
    }
   }
  },
+ "where_the_worlds_joint_point_falls": {
+  "what_this_is": "\u00a79's required hazard and \u00a710's published share applied TOGETHER and judged against the record at that same share. The correction to `where_the_worlds_point_falls`, which pairs a hazard solved at the world's share with a composition at the published one and so double-counts the repair.",
+  "identity": "H_joint = world_hazard x hazard_multiple_still_required_at_band_low, where the multiple already has the renewal route moved to the complement of the published share. H_joint is then judged at THAT share and no other.",
+  "sources": {
+   "hazard_and_required": "docs/reports/svt_route_shortfall_decomposition.json",
+   "share_and_still_required_multiple": "docs/reports/svt_composition_vs_published.json"
+  },
+  "measured_at_anchor": 1.0,
+  "world_level_digest": "39a192ce04c1eda8",
+  "headline_accounting": "renewal_rescaled",
+  "years_measurable": [
+   "2017",
+   "2018",
+   "2019",
+   "2023",
+   "2024"
+  ],
+  "years_refused": {
+   "2020": "no established published default-tariff share for 2020; NOT interpolated between 2019 and 2022. The interval spans the crisis, which is the one stretch of this record known to have moved fast and non-monotonically, so an interpolated value would be a manufactured reading in exactly the years the world is hardest to check. Ofgem's per-supplier data portal series may settle it and has not been read.",
+   "2021": "no established published default-tariff share for 2021; Ofgem's SotM chart 'Electricity share of customers on each tariff type' STARTS at April 2021 and would settle this, but its values are in an image and are not in the PDF's text layer. Recorded as a gap with a named route to closing it rather than read off a chart by eye."
+  },
+  "years_the_record_refuses_the_joint_pair": {
+   "as_published": [],
+   "all_domestic": []
+  },
+  "one_phi_for_every_year": {
+   "status": "derived after the fact; not a graded prediction",
+   "at_the_joint_hazard": {
+    "as_published": {
+     "renewal_rescaled": {
+      "years": {
+       "2017": [
+        0.060931,
+        0.095774
+       ],
+       "2018": [
+        0.216941,
+        0.247336
+       ],
+       "2019": [
+        0.10978,
+        0.146283
+       ],
+       "2023": [
+        0.289566,
+        1.318137
+       ],
+       "2024": [
+        0.162941,
+        0.897635
+       ]
+      },
+      "intersection": [
+       0.289566,
+       0.095774
+      ],
+      "is_non_empty": false
+     },
+     "renewal_held": {
+      "years": {
+       "2017": [
+        0.080456,
+        0.119172
+       ],
+       "2018": [
+        0.191366,
+        0.221761
+       ],
+       "2019": [
+        0.096294,
+        0.136817
+       ],
+       "2023": [
+        0.402857,
+        1.834377
+       ],
+       "2024": [
+        0.321154,
+        1.193404
+       ]
+      },
+      "intersection": [
+       0.402857,
+       0.119172
+      ],
+      "is_non_empty": false
+     }
+    },
+    "all_domestic": {
+     "renewal_rescaled": {
+      "years": {
+       "2017": [
+        0.060928,
+        0.100228
+       ],
+       "2018": [
+        0.216945,
+        0.25141
+       ],
+       "2019": [
+        0.109789,
+        0.151177
+       ],
+       "2023": [
+        0.289566,
+        1.318137
+       ],
+       "2024": [
+        0.162941,
+        0.897635
+       ]
+      },
+      "intersection": [
+       0.289566,
+       0.100228
+      ],
+      "is_non_empty": false
+     },
+     "renewal_held": {
+      "years": {
+       "2017": [
+        0.090885,
+        0.134479
+       ],
+       "2018": [
+        0.217022,
+        0.251487
+       ],
+       "2019": [
+        0.109341,
+        0.155157
+       ],
+       "2023": [
+        0.402857,
+        1.834377
+       ],
+       "2024": [
+        0.321154,
+        1.193404
+       ]
+      },
+      "intersection": [
+       0.402857,
+       0.134479
+      ],
+      "is_non_empty": false
+     }
+    }
+   },
+   "at_the_worlds_current_hazard": {
+    "as_published": {
+     "years": {
+      "2017": [
+       0.394577,
+       0.430178
+      ],
+      "2018": [
+       0.570588,
+       0.600983
+      ],
+      "2019": [
+       0.620595,
+       0.659503
+      ],
+      "2023": [
+       0.137286,
+       1.165857
+      ],
+      "2024": [
+       0.476434,
+       1.275034
+      ]
+     },
+     "intersection": [
+      0.620595,
+      0.430178
+     ],
+     "is_non_empty": false
+    },
+    "all_domestic": {
+     "years": {
+      "2017": [
+       0.396599,
+       0.436722
+      ],
+      "2018": [
+       0.573984,
+       0.608449
+      ],
+      "2019": [
+       0.628349,
+       0.67237
+      ],
+      "2023": [
+       0.137286,
+       1.165857
+      ],
+      "2024": [
+       0.476434,
+       1.275034
+      ]
+     },
+     "intersection": [
+      0.628349,
+      0.436722
+     ],
+     "is_non_empty": false
+    }
+   }
+  },
+  "years_the_mixed_pair_refused_and_the_joint_pair_admits": {
+   "as_published": [
+    "2017"
+   ],
+   "all_domestic": [
+    "2017"
+   ]
+  },
+  "per_year": {
+   "2017": {
+    "world_hazard": 0.13266,
+    "required_hazard_holding_the_worlds_share_fixed": 0.284098,
+    "world_svt_account_day_share": 0.4326,
+    "band_pct": [
+     13.5,
+     14.0
+    ],
+    "as_published": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.57,
+      "composition_multiple": 1.3177,
+      "admissible_svt_churn_at_this_share": [
+       -0.027193,
+       0.245614
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.394577,
+       0.427799
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.664,
+        "joint_required_hazard": 0.220746,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.060962,
+         0.094185
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.6252,
+        "joint_required_hazard": 0.215599,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.080456,
+         0.113678
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.59,
+      "composition_multiple": 1.3639,
+      "admissible_svt_churn_at_this_share": [
+       -0.014407,
+       0.237288
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.395335,
+       0.430178
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.6131,
+        "joint_required_hazard": 0.213994,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.060931,
+         0.095774
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.5702,
+        "joint_required_hazard": 0.208303,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.084329,
+         0.119172
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    },
+    "all_domestic": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.6195,
+      "composition_multiple": 1.4321,
+      "admissible_svt_churn_at_this_share": [
+       0.002946,
+       0.225989
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.396599,
+       0.434144
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.5439,
+        "joint_required_hazard": 0.204814,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.060955,
+         0.0985
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.4954,
+        "joint_required_hazard": 0.19838,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.090885,
+         0.128429
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.6365,
+      "composition_multiple": 1.4714,
+      "admissible_svt_churn_at_this_share": [
+       0.012215,
+       0.219953
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.397421,
+       0.436722
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.507,
+        "joint_required_hazard": 0.199919,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.060928,
+         0.100228
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.4554,
+        "joint_required_hazard": 0.193073,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.095178,
+         0.134479
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    }
+   },
+   "2018": {
+    "world_hazard": 0.190827,
+    "required_hazard_holding_the_worlds_share_fixed": 0.279348,
+    "world_svt_account_day_share": 0.5854,
+    "band_pct": [
+     19.5,
+     20.0
+    ],
+    "as_published": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.53,
+      "composition_multiple": 0.9054,
+      "admissible_svt_churn_at_this_share": [
+       0.057547,
+       0.377358
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.570588,
+       0.600983
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.5752,
+        "joint_required_hazard": 0.300591,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.216941,
+         0.247336
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.6168,
+        "joint_required_hazard": 0.308529,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.191366,
+         0.221761
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.53,
+      "composition_multiple": 0.9054,
+      "admissible_svt_churn_at_this_share": [
+       0.057547,
+       0.377358
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.570588,
+       0.600983
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.5752,
+        "joint_required_hazard": 0.300591,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.216941,
+         0.247336
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.6168,
+        "joint_required_hazard": 0.308529,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.191366,
+         0.221761
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    },
+    "all_domestic": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.5855,
+      "composition_multiple": 1.0003,
+      "admissible_svt_churn_at_this_share": [
+       0.085269,
+       0.341588
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.573984,
+       0.608449
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.4636,
+        "joint_required_hazard": 0.279294,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.216945,
+         0.25141
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.4635,
+        "joint_required_hazard": 0.279275,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.217022,
+         0.251487
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.5855,
+      "composition_multiple": 1.0003,
+      "admissible_svt_churn_at_this_share": [
+       0.085269,
+       0.341588
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.573984,
+       0.608449
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.4636,
+        "joint_required_hazard": 0.279294,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.216945,
+         0.25141
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.4635,
+        "joint_required_hazard": 0.279275,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.217022,
+         0.251487
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    }
+   },
+   "2019": {
+    "world_hazard": 0.197192,
+    "required_hazard_holding_the_worlds_share_fixed": 0.333955,
+    "world_svt_account_day_share": 0.5704,
+    "band_pct": [
+     20.7,
+     21.3
+    ],
+    "as_published": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.51,
+      "composition_multiple": 0.8941,
+      "admissible_svt_churn_at_this_share": [
+       0.069608,
+       0.417647
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.620595,
+       0.655581
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.8711,
+        "joint_required_hazard": 0.368966,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.10978,
+         0.144766
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.8941,
+        "joint_required_hazard": 0.373501,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.096294,
+         0.13128
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.53,
+      "composition_multiple": 0.9292,
+      "admissible_svt_churn_at_this_share": [
+       0.080189,
+       0.401887
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.623029,
+       0.659503
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.8078,
+        "joint_required_hazard": 0.356484,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.109808,
+         0.146283
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.8227,
+        "joint_required_hazard": 0.359422,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.100342,
+         0.136817
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    },
+    "all_domestic": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.5685,
+      "composition_multiple": 0.9967,
+      "admissible_svt_churn_at_this_share": [
+       0.098461,
+       0.37467
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.628349,
+       0.668077
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.6986,
+        "joint_required_hazard": 0.33495,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.109789,
+         0.149518
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.6992,
+        "joint_required_hazard": 0.335069,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.109341,
+         0.14907
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.5855,
+      "composition_multiple": 1.0265,
+      "admissible_svt_churn_at_this_share": [
+       0.105764,
+       0.363792
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.631012,
+       0.67237
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.6549,
+        "joint_required_hazard": 0.326333,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.109819,
+         0.151177
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.6499,
+        "joint_required_hazard": 0.325347,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.113799,
+         0.155157
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    }
+   },
+   "2023": {
+    "world_hazard": 0.09355,
+    "required_hazard_holding_the_worlds_share_fixed": 0.084237,
+    "world_svt_account_day_share": 0.7218,
+    "band_pct": [
+     8.9,
+     12.5
+    ],
+    "as_published": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.8,
+      "composition_multiple": 1.1084,
+      "admissible_svt_churn_at_this_share": [
+       0.02375,
+       0.15625
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.202286,
+       0.716571
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 0.9183,
+        "joint_required_hazard": 0.085907,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.289634,
+         0.80392
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 0.8124,
+        "joint_required_hazard": 0.076,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.402857,
+         0.917143
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.9,
+      "composition_multiple": 1.247,
+      "admissible_svt_churn_at_this_share": [
+       0.06,
+       0.138889
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.137286,
+       1.165857
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 0.9367,
+        "joint_required_hazard": 0.087628,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.289566,
+         1.318137
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 0.7221,
+        "joint_required_hazard": 0.067552,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.805806,
+         1.834377
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    },
+    "all_domestic": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.8,
+      "composition_multiple": 1.1084,
+      "admissible_svt_churn_at_this_share": [
+       0.02375,
+       0.15625
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.202286,
+       0.716571
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 0.9183,
+        "joint_required_hazard": 0.085907,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.289634,
+         0.80392
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 0.8124,
+        "joint_required_hazard": 0.076,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.402857,
+         0.917143
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.9,
+      "composition_multiple": 1.247,
+      "admissible_svt_churn_at_this_share": [
+       0.06,
+       0.138889
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.137286,
+       1.165857
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 0.9367,
+        "joint_required_hazard": 0.087628,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.289566,
+         1.318137
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 0.7221,
+        "joint_required_hazard": 0.067552,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.805806,
+         1.834377
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    }
+   },
+   "2024": {
+    "world_hazard": 0.114562,
+    "required_hazard_holding_the_worlds_share_fixed": 0.169157,
+    "world_svt_account_day_share": 0.6061,
+    "band_pct": [
+     12.5,
+     16.1
+    ],
+    "as_published": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.8,
+      "composition_multiple": 1.32,
+      "admissible_svt_churn_at_this_share": [
+       0.06875,
+       0.20125
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.476434,
+       0.99072
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.2394,
+        "joint_required_hazard": 0.141988,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.162994,
+         0.67728
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.1186,
+        "joint_required_hazard": 0.128149,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.321154,
+         0.83544
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.86,
+      "composition_multiple": 1.419,
+      "admissible_svt_churn_at_this_share": [
+       0.088372,
+       0.187209
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.54034,
+       1.275034
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.1877,
+        "joint_required_hazard": 0.136065,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.162941,
+         0.897635
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.0406,
+        "joint_required_hazard": 0.119213,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.458711,
+         1.193404
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    },
+    "all_domestic": {
+     "at_published_low": {
+      "published_svt_account_day_share": 0.8,
+      "composition_multiple": 1.32,
+      "admissible_svt_churn_at_this_share": [
+       0.06875,
+       0.20125
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.476434,
+       0.99072
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.2394,
+        "joint_required_hazard": 0.141988,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.162994,
+         0.67728
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.1186,
+        "joint_required_hazard": 0.128149,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.321154,
+         0.83544
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     },
+     "at_published_high": {
+      "published_svt_account_day_share": 0.86,
+      "composition_multiple": 1.419,
+      "admissible_svt_churn_at_this_share": [
+       0.088372,
+       0.187209
+      ],
+      "phi_admitting_the_worlds_current_hazard": [
+       0.54034,
+       1.275034
+      ],
+      "accountings": {
+       "renewal_rescaled": {
+        "hazard_multiple_still_required": 1.1877,
+        "joint_required_hazard": 0.136065,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.162941,
+         0.897635
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       },
+       "renewal_held": {
+        "hazard_multiple_still_required": 1.0406,
+        "joint_required_hazard": 0.119213,
+        "joint_hazard_is_admissible": true,
+        "phi_admitting_joint": [
+         0.458711,
+         1.193404
+        ],
+        "record_refuses_the_joint_pair": false,
+        "record_needs_more_than_the_fixed_route_can_supply": false
+       }
+      }
+     }
+    }
+   }
+  }
+ },
  "how_to_regenerate": "python3 -m tools.published_route_split --write"
 }
