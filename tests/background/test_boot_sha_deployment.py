@@ -139,7 +139,7 @@ def test_signal_is_green_when_head_moved_but_nothing_loaded_changed():
     """THE always-red mutation: revert the signal to HEAD-comparison and this reds. The daemon
     booted from an OLD sha, HEAD has moved, and a file changed — but not one it imports. GREEN."""
     d = loaded_code_drift(["a"], {"a": "OLDSHA"}, {"a": {"background/a.py"}},
-                          changed_since=lambda sha: {"docs/status/LATEST.md", "background/z.py"})
+                          changed_since=lambda sha, session=None: {"docs/status/LATEST.md", "background/z.py"})
     assert d["stale"] == {} and d["unresolved"] == {}
 
 
@@ -147,14 +147,14 @@ def test_signal_is_red_when_a_loaded_module_changed():
     """The half that must still fire: one changed module inside the closure is stale, even though
     only that single file moved."""
     d = loaded_code_drift(["a"], {"a": "OLDSHA"}, {"a": {"background/a.py", "background/b.py"}},
-                          changed_since=lambda sha: {"background/b.py"})
+                          changed_since=lambda sha, session=None: {"background/b.py"})
     assert d["stale"] == {"a": ["background/b.py"]}
 
 
 @pytest.mark.parametrize("boot_shas,closures,changed,reason", [
-    ({"a": None}, {"a": {"background/a.py"}}, lambda s: set(), "unstamped"),
-    ({"a": "OLD"}, {"a": set()}, lambda s: {"background/a.py"}, "closure-unknown"),
-    ({"a": "OLD"}, {"a": {"background/a.py"}}, lambda s: None, "sha-unresolved"),
+    ({"a": None}, {"a": {"background/a.py"}}, lambda s, sess=None: set(), "unstamped"),
+    ({"a": "OLD"}, {"a": set()}, lambda s, sess=None: {"background/a.py"}, "closure-unknown"),
+    ({"a": "OLD"}, {"a": {"background/a.py"}}, lambda s, sess=None: None, "sha-unresolved"),
 ])
 def test_an_unanswerable_check_is_unresolved_never_a_silent_green(boot_shas, closures,
                                                                   changed, reason):
@@ -197,7 +197,7 @@ def test_entry_path_handles_both_manifest_launch_forms(tmp_path):
 def test_a_missing_entry_yields_an_empty_closure_which_callers_must_treat_as_unresolved(tmp_path):
     """Pinning the contract between the two modules: empty is NOT 'nothing changed'."""
     assert code_closure.import_closure("nope/missing.py", tmp_path) == set()
-    d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": set()}, lambda s: {"background/a.py"})
+    d = loaded_code_drift(["a"], {"a": "OLD"}, {"a": set()}, lambda s, sess=None: {"background/a.py"})
     assert d["unresolved"] == {"a": "closure-unknown"}
 
 
@@ -232,7 +232,7 @@ def test_sim_runner_replayed_against_the_wedge_boot_state_is_RED():
     closure = code_closure.closure_for_session("sim-runner")
     assert closure, "sim-runner must have a resolvable closure (vacuity)"
     d = loaded_code_drift(["sim-runner"], {"sim-runner": _WEDGE_BOOT_SHA},
-                          {"sim-runner": closure}, boot_sha.changed_paths_since)
+                          {"sim-runner": closure}, lambda sha, session=None: boot_sha.changed_paths_since(sha))
     assert "sim-runner" in d["stale"], "the daemon that broke must read RED on its own boot state"
     assert "background/sim_runner.py" in d["stale"]["sim-runner"]
 
@@ -302,3 +302,103 @@ def test_live_evaluation_watches_a_nonempty_daemon_set_and_can_be_green():
 # reconciliation), never a published business surface -- so it must never wedge the live
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 pytestmark = pytest.mark.operational
+
+
+# ── the boot stamp must describe the TREE, not just the commit ───────────────────────────────────
+
+def _repo(tmp_path):
+    """A real git repo. A fake `git` here would test the fake, and the whole defect lives in what
+    `git diff <sha> -- ` counts against a DIRTY tree."""
+    import subprocess
+    for cmd in (["git", "init", "-q"], ["git", "config", "user.email", "t@t"],
+                ["git", "config", "user.name", "t"]):
+        subprocess.run(cmd, cwd=tmp_path, check=True)
+    (tmp_path / "mod.py").write_text("original\n")
+    subprocess.run(["git", "add", "mod.py"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "commit", "-qm", "base", "--no-gpg-sign"], cwd=tmp_path, check=True)
+    return subprocess.run(["git", "rev-parse", "HEAD"], cwd=tmp_path, capture_output=True,
+                          text=True, check=True).stdout.strip()
+
+
+def test_an_uncommitted_edit_present_at_boot_is_not_code_the_daemon_is_missing(tmp_path, monkeypatch):
+    """THE DEFECT THIS OWNS, measured on the live box 2026-09-04.
+
+    A daemon boots from a WORKING TREE; the stamp could only record a COMMIT. So every uncommitted
+    edit already on disk at boot was reported for ever as code the daemon did not have — when the
+    daemon had loaded exactly those bytes. On this tree several lanes keep ~185 files dirty, so it
+    is not an edge case: ALL THIRTEEN staleness causes across four daemons were of this kind, none
+    was a commit any daemon had missed, and a restart cannot clear one of them. G-D2 restarted
+    those four every ten minutes for eight hours on it.
+
+    MUTATION: ignore `boot_blobs` in `changed_paths_since` and this fires.
+    """
+    sha = _repo(tmp_path)
+    monkeypatch.setattr(boot_sha, "_REPO", tmp_path)
+    (tmp_path / "mod.py").write_text("edited by another lane\n")   # dirty BEFORE the daemon boots
+    at_boot = boot_sha.dirty_blobs()
+    assert at_boot and "mod.py" in at_boot
+
+    assert boot_sha.changed_paths_since(sha) == {"mod.py"}, "the old, subject-free answer"
+    assert boot_sha.changed_paths_since(sha, at_boot) == set(), (
+        "the daemon loaded these bytes off the disk and is reported as missing them"
+    )
+
+
+def test_an_edit_made_AFTER_boot_is_still_caught(tmp_path, monkeypatch):
+    """THE NULL CONTROL, and the leg that stops the fix becoming a blindfold. The original
+    argument for diffing the working tree stands for anything edited after boot — that is the
+    caller/callee split which ran ten hours on 2026-08-09. MUTATION: return an empty set whenever
+    `boot_blobs` is supplied and this fires."""
+    sha = _repo(tmp_path)
+    monkeypatch.setattr(boot_sha, "_REPO", tmp_path)
+    (tmp_path / "mod.py").write_text("dirty at boot\n")
+    at_boot = boot_sha.dirty_blobs()
+
+    (tmp_path / "mod.py").write_text("edited again, after the daemon booted\n")
+    assert boot_sha.changed_paths_since(sha, at_boot) == {"mod.py"}, (
+        "an edit made after boot is genuinely code the daemon does not have"
+    )
+
+
+def test_a_file_clean_at_boot_and_dirty_now_is_caught(tmp_path, monkeypatch):
+    """The other direction: nothing was dirty at boot, so `{}` is recorded, and a later edit must
+    still count. `{}` and None mean different things and only one of them is 'cannot tell'."""
+    sha = _repo(tmp_path)
+    monkeypatch.setattr(boot_sha, "_REPO", tmp_path)
+    at_boot = boot_sha.dirty_blobs()
+    assert at_boot == {}, "nothing was dirty, which is not the same as not knowing"
+
+    (tmp_path / "mod.py").write_text("edited after boot\n")
+    assert boot_sha.changed_paths_since(sha, at_boot) == {"mod.py"}
+
+
+def test_an_unknown_boot_tree_over_reports_rather_than_under_reports(tmp_path, monkeypatch):
+    """A stamp written before this field existed has no `dirty_blobs`. The degradation must be to
+    today's noisy answer, never to a quiet one: a needless restart costs a warm daemon, a missed
+    one leaves stale code serving. MUTATION: treat None as {} and this fires."""
+    sha = _repo(tmp_path)
+    monkeypatch.setattr(boot_sha, "_REPO", tmp_path)
+    (tmp_path / "mod.py").write_text("dirty\n")
+    assert boot_sha.changed_paths_since(sha, None) == {"mod.py"}
+
+
+def test_the_stamp_distinguishes_nothing_dirty_from_could_not_tell(tmp_path, monkeypatch):
+    """THE REACHABILITY LEG: all three states of the boot record must be producible, and the third
+    is the one that would otherwise be silently folded into the second."""
+    sha = _repo(tmp_path)
+    monkeypatch.setattr(boot_sha, "_REPO", tmp_path)
+    monkeypatch.setattr(boot_sha, "BOOT_DIR", tmp_path / ".boot")
+
+    boot_sha.stamp("clean-daemon")
+    assert boot_sha.read_boot_blobs("clean-daemon") == {}
+
+    (tmp_path / "mod.py").write_text("dirty\n")
+    boot_sha.stamp("dirty-daemon")
+    assert set(boot_sha.read_boot_blobs("dirty-daemon")) == {"mod.py"}
+
+    monkeypatch.setattr(boot_sha, "dirty_blobs", lambda: None)
+    boot_sha.stamp("cannot-tell-daemon")
+    assert boot_sha.read_boot_blobs("cannot-tell-daemon") is None
+    assert boot_sha.read_boot_sha("cannot-tell-daemon") == sha, (
+        "a stamp that could not read the tree must still record the commit"
+    )

@@ -557,7 +557,10 @@ def launcher_drift(entries: list[dict], observed: dict[str, str | None]) -> list
 def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
                       closures: dict[str, set[str]], changed_since) -> dict:
     """PURE (mutation-testable). Per running daemon, which of the modules IT IMPORTS changed since
-    it booted. `changed_since(sha)` -> set of repo-relative changed paths, or None if unresolvable.
+    it booted. `changed_since(sha, session)` -> set of repo-relative changed paths, or None if
+    unresolvable. SESSION is passed because the answer is per-daemon, not per-commit: two daemons
+    booted at the same SHA minutes apart loaded different working trees, and from 2026-09-04 the
+    comparison is against the bytes each ACTUALLY loaded (see `boot_sha.read_boot_blobs`).
 
     Returns {"stale": {session: [changed loaded paths]}, "unresolved": {session: reason}}.
     Three fail-SAFE (never fail-open) rules, each with a named reason rather than a silent green:
@@ -577,7 +580,7 @@ def loaded_code_drift(running_sessions, boot_shas: dict[str, str | None],
         if not closure:
             unresolved[session] = "closure-unknown"
             continue
-        changed = changed_since(sha)
+        changed = changed_since(sha, session)
         if changed is None:
             unresolved[session] = "sha-unresolved"
             continue
@@ -600,7 +603,9 @@ def evaluate_boot_sha_drift() -> dict:
     population = drift_population(observed)
     closures = {s: code_closure.closure_for_session(s) for s in population}
     boot_shas = {s: boot_sha.read_boot_sha(s) for s in population}
-    d = loaded_code_drift(population, boot_shas, closures, boot_sha.changed_paths_since)
+    d = loaded_code_drift(
+        population, boot_shas, closures,
+        lambda sha, session: boot_sha.changed_paths_since(sha, boot_sha.read_boot_blobs(session)))
     # VACUITY GUARD (R15): an empty population while units are demonstrably active is a FAILED
     # check, not a clean one. The old detector's silent shrink is what this must never repeat.
     any_active = any((unit_states.get(e["session"]) or {}).get("active")

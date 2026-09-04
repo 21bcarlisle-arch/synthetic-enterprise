@@ -271,6 +271,17 @@ def unincorporated_for_s(changed_paths, now: float, repo=None) -> float | None:
     tree several lanes hold uncommitted work in permanently, those two never agree, and the column
     a reader takes for severity anti-correlated with the verdict beside it.
 
+    CORRECTED THE SAME DAY, BESIDE THE CLAIM (d7d658284, another lane, hours after this landed).
+    The paragraph below said this figure had stopped being a property of a commit and become a
+    property of a process. It had not: it became a property of a FILE. Six of eleven published rows
+    carried the identical 97646.4 because `max()` kept landing on `head_red_register.py`, which all
+    six import, and six rows showed a time-behind LARGER than the row's own running age -- 27 hours
+    against processes ten minutes old. Third time this column was wrong, and the first two fixes,
+    this one included, each corrected the REDUCER without asking what the SET was.
+    `unincorporated_since_start` dates the set from the process, which is what makes the claim below
+    true rather than merely intended. The claim is kept, not rewritten, so the correction can be
+    read against it.
+
     It was not per-daemon either: every daemon booted at the same SHA got the same number, so the
     column carried no information about any individual daemon at all. Eleven rows, two distinct
     values, both properties of a commit rather than of a process.
@@ -473,6 +484,37 @@ def restart_plan(report: dict, self_unit: str | None = None) -> dict:
     return {"restart": sorted(restart), "defer": sorted(defer), "hold": hold}
 
 
+def units_holding_a_live_seat(proc_root: str | Path = "/proc") -> frozenset[str]:
+    """Units with a seat PROCESS alive in them right now -- not a tmux server, the seat itself.
+
+    NOT the same question as `session_hosting_units`, and the difference is the whole point. A
+    `tmux: server` persists between turns, which is why it decides the ROUTE (defer, never
+    restart-on-sight). A `claude` process is the seat actually running, so it decides WHEN that
+    route may fire. Measured 2026-09-04: `worker-seat-manager.service` held both, because this
+    session was inside it.
+
+    NOT ATTRIBUTED THROUGH THE HEARTBEAT'S OWN `pid`, which was the first draft. The heartbeat is
+    written by a PreToolUse HOOK -- a subprocess that exits immediately -- so the pid it records is
+    dead before any reader can place it, and every attribution through it returns None. A field
+    that can only ever answer "cannot tell" is worse than no field: it routes every call into the
+    fail-closed branch while looking like a measurement.
+    """
+    root = Path(proc_root)
+    live = set()
+    for entry in root.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            if (entry / "comm").read_text().strip() != "claude":
+                continue
+        except OSError:
+            continue
+        unit = _resolve_owning_unit(int(entry.name), proc_root=root)
+        if unit:
+            live.add(unit)
+    return frozenset(live)
+
+
 def unit_has_working_seat(unit: str, drift_free: bool = False) -> tuple[bool, str]:
     """Is a seat MID-WORK in this unit right now? `(busy, reason)`, fail-closed on doubt.
 
@@ -517,15 +559,40 @@ def unit_has_working_seat(unit: str, drift_free: bool = False) -> tuple[bool, st
     # session_id and is rewritten on every tool call, so it is warm exactly while a seat is working.
     # A job running in a host unit IS the seat's work, so the heartbeat covers it -- there is no
     # third thing for the process count to catch here.
+    # ASK OF THIS UNIT, NOT OF THE MACHINE. There is ONE heartbeat file, and the first version read
+    # it for every unit -- `unit` appeared nowhere but the message string. So a seat working
+    # anywhere marked EVERY deferred unit busy.
+    #
+    # WHAT THAT DID AND DID NOT CAUSE, because I got this wrong first and the correction matters
+    # more than the fix. The deferred branch had fired zero times in 48 production ticks and I read
+    # that as the fourth door into the unreachable-branch trap. It was not. Measured: the deferred
+    # unit was `worker-seat-manager.service`, and the live `claude` process inside it was THIS
+    # interactive session. Busy was the right answer, and restarting would have killed the seat
+    # mid-turn -- the one thing the director's authority excludes. Zero fires in eight hours is
+    # explained by a seat that worked for eight hours, not by a defect.
+    #
+    # The global read is still wrong, just not for that reason: a SECOND deferred host, with no
+    # seat in it at all, would be marked busy by this session's heartbeat and stay stale forever.
+    # That is latent today and would be invisible the day it mattered.
+    live = units_holding_a_live_seat()
+    if unit in live:
+        return True, "a seat process is live in {} right now".format(unit)
+
     heartbeat = _REPO / "docs" / "observability" / ".seat_heartbeat.json"
     try:
         age = time.time() - heartbeat.stat().st_mtime
     except Exception as exc:  # noqa: BLE001
         return True, "the seat heartbeat is unreadable ({!r}), which is not evidence of idle".format(
             exc)
-    if age < _SEAT_IDLE_S:
-        return True, "the seat heartbeat moved {:.0f}s ago (< {:.0f}s)".format(age, _SEAT_IDLE_S)
-    return False, "no session process in {} and the seat heartbeat is {:.0f}s old".format(unit, age)
+    if age >= _SEAT_IDLE_S:
+        return False, "no seat has beaten anywhere for {:.0f}s, so {} is between turns".format(
+            age, unit)
+    if not live:
+        # FAIL CLOSED: something beat within the window and no seat process can be placed anywhere,
+        # so the beat cannot be ruled out as this unit's. A lost turn costs more than one tick.
+        return True, ("a seat beat {:.0f}s ago and no seat process could be placed in any unit, so "
+                      "it may be {}'s".format(age, unit))
+    return False, "the live seat(s) are in {}, not {}".format(", ".join(sorted(live)), unit)
 
 
 #: How quiet a seat must be before its host may be restarted. Not a tuning knob dressed as a
