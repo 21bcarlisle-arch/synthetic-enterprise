@@ -525,10 +525,22 @@ def process_leftover_run_markers():
             # failed. Walking on could only ever publish something staler than what already
             # refused, at a full expensive cycle each.
             _record_publish_gate_outcome(marker, result.returncode)
+            # THROUGH `child_output_excerpt`, NOT A RAW TAIL (2026-09-04). This branch is new in
+            # 3d369242c and it hand-rolled its own rendering, which silently undid three landed
+            # repairs at once: the lowercase stream LABEL (2026-08-21 — a reader cannot tell the
+            # publisher's verdict from whatever the runtime warned about last), BOTH streams rather
+            # than stdout alone (2026-08-21 — a child that dies on an uncaught traceback says
+            # nothing on stdout), and `verdict_excerpt` SELECTION rather than a positional tail
+            # (2026-08-24 — a publish prints ~100 "Generated site/data/*.json" lines AFTER the
+            # sentence naming its refusal, so the tail renders forty things that went right).
+            # Only the label was under a control, so only the label went red; the sibling that
+            # checks for the cause phrase passed on luck, because the raw tail happened to still
+            # contain it. The excerpt helper is the one place all three live.
             log(f"Failed to process {marker.name} (rc={result.returncode}) — the sweep ends here "
                 f"and the NEXT one retries from the newest marker on disk. The publisher's own "
                 f"verdict is on STDOUT:\n"
-                + ((result.stdout or "").strip()[-2000:] or "(publisher printed nothing)"))
+                + child_output_excerpt(getattr(result, "stdout", None),
+                                       getattr(result, "stderr", None)))
             return
         else:
             log(f"Failed to process {marker.name} (rc={result.returncode}) — will retry next "
