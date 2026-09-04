@@ -68,7 +68,8 @@ from pathlib import Path
 from typing import Any, Mapping
 
 __all__ = ["ABSENT", "READABLE", "UNREADABLE", "PRIOR_VERDICTS",
-           "classify_prior", "load_episode_prior", "prior_unreadable"]
+           "classify_prior", "load_episode_prior", "prior_unreadable",
+           "classify_list_prior", "load_list_prior"]
 
 ABSENT = "absent"
 READABLE = "readable"
@@ -125,6 +126,58 @@ def load_episode_prior(path: Path | str) -> tuple[dict[str, Any], str]:
         return {}, ABSENT           # raced away between exists() and read: absent now
     except OSError:
         return {}, UNREADABLE       # permissions, I/O error, a directory: present, unreadable
+
+
+def classify_list_prior(raw: str | None, item_type: type = str) -> tuple[list[Any], str]:
+    """`classify_prior` for a state file whose record is a JSON ARRAY, not an object.
+
+    THE SAME PARTITION, THE SAME THREE VERDICTS, AND A FOURTH WAY IN. A mapping-shaped loader
+    screens with `isinstance(parsed, Mapping)`; a list-shaped one that screens only
+    `isinstance(parsed, list)` still admits a list whose ITEMS are wrong, and that is not a
+    theoretical member -- `["id1", 2]` is the shape that made `ntfy_utils.was_sent_by_us` answer
+    True off a record already known to be corrupt, and the shape that made
+    `staging_watcher.load_seen` return `{1, 2, 3}` and resume from it. So the item type is
+    screened too, and a list that is PARTLY right is UNREADABLE, not READABLE-with-some-junk:
+    a record we cannot fully account for cannot answer "was this one in it".
+
+    Added 2026-09-04 for the three list-shaped carriers the census had only asked about
+    one at a time: `.staging_watcher_seen.json`, `.sent_ntfy_ids.json`, and any successor.
+    `[]` is READABLE and empty -- an empty record is a fact, unlike an empty FILE.
+    """
+    if raw is None:
+        return [], ABSENT
+    try:
+        parsed = json.loads(raw)
+    except (json.JSONDecodeError, ValueError):
+        return [], UNREADABLE
+    if not isinstance(parsed, list):
+        return [], UNREADABLE
+    # `isinstance(True, int)` is True, so a bool would pass an `item_type=int` screen. Every
+    # caller here wants str, but the exclusion is written once rather than left as a trap.
+    if not all(isinstance(i, item_type) and not isinstance(i, bool) for i in parsed):
+        return [], UNREADABLE
+    return list(parsed), READABLE
+
+
+def load_list_prior(path: Path | str, item_type: type = str) -> tuple[list[Any], str]:
+    """`classify_list_prior` over a path, with `load_episode_prior`'s exact OSError readings.
+
+    Deliberately a sibling rather than a flag on `load_episode_prior`: the two return different
+    empty values (`{}` vs `[]`) and a caller that got the wrong one would find out at the next
+    index, not here.
+    """
+    p = Path(path)
+    try:
+        if not p.exists():
+            return [], ABSENT
+    except OSError:
+        return [], UNREADABLE
+    try:
+        return classify_list_prior(p.read_text(), item_type)
+    except FileNotFoundError:
+        return [], ABSENT
+    except OSError:
+        return [], UNREADABLE
 
 
 def prior_unreadable(verdict: str) -> bool:

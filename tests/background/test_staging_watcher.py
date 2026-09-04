@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 
 from background import staging_watcher as watcher
+from background.episode_prior import ABSENT, READABLE
 
 
 @pytest.fixture(autouse=True)
@@ -143,13 +144,18 @@ def test_save_and_load_seen_roundtrip(tmp_path, monkeypatch):
 
     watcher.save_seen({"TASK_A.md", "TASK_B.md"})
 
-    assert watcher.load_seen() == {"TASK_A.md", "TASK_B.md"}
+    # Contract changed 2026-09-04: `(seen, verdict)`. A round-tripped file is READABLE, which
+    # is a stronger claim than the old bare set -- it says the loader could account for every
+    # entry, not just that json.loads did not raise.
+    assert watcher.load_seen() == ({"TASK_A.md", "TASK_B.md"}, READABLE)
 
 
-def test_load_seen_missing_file_returns_none(tmp_path, monkeypatch):
+def test_load_seen_missing_file_is_ABSENT_not_merely_falsy(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STATE_FILE", tmp_path / "missing.json")
 
-    assert watcher.load_seen() is None
+    # ABSENT, not merely None: the point of the 2026-09-04 repair is that a missing file and an
+    # UNREADABLE one both seed but are no longer the same answer.
+    assert watcher.load_seen() == (None, ABSENT)
 
 
 def test_check_once_notifies_only_for_new_files(tmp_path, monkeypatch):
@@ -188,7 +194,7 @@ def test_check_once_persists_seen_state(tmp_path, monkeypatch):
     (tmp_path / "TASK_NEW.md").write_text("new")
     watcher.check_once(set())
 
-    assert watcher.load_seen() == {"TASK_NEW.md"}
+    assert watcher.load_seen() == ({"TASK_NEW.md"}, READABLE)
 
 
 def test_current_files_finds_md_files(tmp_path, monkeypatch):
@@ -208,7 +214,7 @@ def test_save_seen_overwrites_previous(tmp_path, monkeypatch):
     watcher.save_seen({"OLD.md"})
     watcher.save_seen({"NEW.md"})
 
-    assert watcher.load_seen() == {"NEW.md"}
+    assert watcher.load_seen() == ({"NEW.md"}, READABLE)
 
 
 def test_check_once_notifies_for_multiple_new_files(tmp_path, monkeypatch):
@@ -250,7 +256,7 @@ def test_save_and_reload_multiple_files(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STATE_FILE", state_file)
     files = {"A.md", "B.md", "C.md", "D.md"}
     watcher.save_seen(files)
-    assert watcher.load_seen() == files
+    assert watcher.load_seen() == (files, READABLE)
 
 
 def test_check_once_returns_updated_seen(tmp_path, monkeypatch):

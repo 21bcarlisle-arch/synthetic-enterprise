@@ -9,6 +9,7 @@ for the pull-loop draw. Classification and routing are unchanged.
 from pathlib import Path
 
 from background import dispatcher
+from background.episode_prior import READABLE
 
 
 def _make_staging_file(staging_dir: Path, name: str, message: str) -> Path:
@@ -136,8 +137,12 @@ def test_seen_state_persisted_across_calls(tmp_path, monkeypatch):
     seen = dispatcher.check_once({})
     assert "from_rich_005.md" in seen
 
-    loaded = dispatcher._load_seen()
+    # Contract changed 2026-09-04: `(seen, verdict)`. Asserting READABLE here is the part
+    # that would have caught the old loader -- it returned a dict for a good file and
+    # `None`/a list for a corrupt one, and `in` works on all three.
+    loaded, verdict = dispatcher._load_seen()
     assert "from_rich_005.md" in loaded
+    assert verdict == READABLE
 
 
 def test_already_processed_files_skipped_on_restart(tmp_path, monkeypatch):
