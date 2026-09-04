@@ -868,9 +868,24 @@ def _decomposition(priced_share: float, resolvable: bool, decisive: bool = True)
 
 
 def _withheld_headline(decomposition):
-    """A headline whose contrast is INSIDE its own floor -- the only state that names a remedy."""
+    """A headline whose contrasts are INSIDE their own floor -- the only state that names a remedy.
+
+    BOTH LEGS ARE PUT INSIDE THE FLOOR, AND UNTIL 2026-09-04 ONLY ONE WAS. This helper set the
+    selection leg to £1,816 against a ±£2,578 floor and left the advantage at the canonical run's
+    £12,071, which CLEARS that floor -- so every remedy test below ran on a page that had withheld
+    `selection_gbp` alone while `_decomposition` declares a split of `value_advantage_gbp`. The
+    fixture was the defect `test_a_remedy_priced_on_a_leg_the_page_resolved_is_refused` exists for:
+    the price the assertions checked was for the one leg the page had just given a direction to.
+    A shared fixture that embeds the defect makes every control keyed to it green for the wrong
+    reason, so it is fixed here rather than worked around at the seven call sites.
+
+    The advantage is set to the SAME £1,816 rather than to some other inside-the-floor number so
+    that the two legs' withholding cannot be told apart by size, and any test that passes only
+    because one leg is bigger fails here instead of on the real page.
+    """
     art = _load(THREE_ARM)
-    art["level_vs_selection"] = dict(art["level_vs_selection"], selection_gbp=1815.79)
+    art["level_vs_selection"] = dict(art["level_vs_selection"],
+                                     value_advantage_gbp=1815.79, selection_gbp=1815.79)
     return gva.build(art, _floor_with_spread(2577.80), _load(RUN_OUTPUT), decomposition)["headline"]
 
 
@@ -2664,6 +2679,96 @@ def test_a_remedy_that_splits_another_quantity_is_refused_rather_than_restated()
             and gva.PAGE_FIGURE_CONTRAST in mismatched_headline), (
         "the refusal states neither quantity, so a reader cannot check the comparison it refuses "
         "on: {}".format(mismatched_headline))
+
+
+def _headline_withholding_only_the_selection_leg(decomposition):
+    """The advantage CLEARS its floor and the selection leg does not -- one withheld leg, not two.
+
+    £12,071 is the canonical run's own advantage and it clears ±£2,578; £1,816 is inside it. So a
+    remedy appended to this page is appended to a refusal about `selection_gbp` alone, and
+    `_decomposition` declares a split of `value_advantage_gbp`. Both other quantity guards pass on
+    it by construction: the book is this page's book and the declared contrast IS
+    `PAGE_FIGURE_CONTRAST`.
+    """
+    art = _load(THREE_ARM)
+    art["level_vs_selection"] = dict(art["level_vs_selection"],
+                                     value_advantage_gbp=12071.08, selection_gbp=1815.79)
+    return gva.build(art, _floor_with_spread(2577.80), _load(RUN_OUTPUT), decomposition)["headline"]
+
+
+def test_a_remedy_priced_on_a_leg_the_page_resolved_is_refused_rather_than_restated():
+    """THE DEFECT (2026-09-04): the page attached a price for resolving one leg to its refusal to
+    resolve a DIFFERENT one.
+
+    `_selection_sentence` appended the remedy when `withheld` was true, and that flag was an
+    `any(...)` over two contrasts. The quantity guard beside it asked about one -- the module
+    constant `PAGE_FIGURE_CONTRAST`. So the OR could be true for the selection leg while the split
+    priced the advantage, and nothing anywhere compared the two.
+
+    IT WAS NOT HYPOTHETICAL: IT WAS THIS FILE'S OWN SHARED FIXTURE. `_withheld_headline` withheld
+    `selection_gbp` alone against the canonical run's £12,071 advantage, which clears the same
+    ±£2,578 floor. Every remedy control here ran on that page, and the page said "it takes about
+    54 priced renewals against this book's 120 to bring the bar under the gap" -- a price derived
+    from a `value_advantage_gbp` split, printed under a refusal about `selection_gbp`, with "the
+    gap" left for the reader to bind. The fixture is corrected in `_withheld_headline`; this test
+    holds the property so it cannot come back.
+
+    WHY THE 2026-09-03 GUARD DOES NOT COVER IT. `_decomposition_is_the_same_contrast` was written
+    against a page that bounded ONE figure, where "is this the page's figure?" and "is this the
+    withheld figure?" were the same question. `5ce6b0f9b` and `074a2c2db` gave the selection and
+    level legs bounds of their own and the page now states three. That is the R15 shape "a control
+    over a mixed subject reports the OR", arrived at by the subject widening under a control that
+    did not move.
+
+    SOLE WITNESS. One leg withheld, the split declaring the OTHER leg, same book, and the declared
+    contrast IS `PAGE_FIGURE_CONTRAST` -- so the book guard and the 09-03 contrast guard both pass
+    and this control is the only thing that can red.
+
+    R15 -- the mutations, each run and reverted under `python3 -B`:
+      * `_decomposition_prices_a_withheld_leg` returns `None` unconditionally (the defect as it
+        shipped) -> the witness reds.
+      * `_selection_sentence` passes `(gva.PAGE_FIGURE_CONTRAST,)` instead of the legs it actually
+        withheld -- the parameter accepted and ignored, which is how a signature-keyed refusal
+        lifts -> the witness reds.
+      * drop `_which_leg_this_remedy_prices` from the admitting branches -> the naming rung reds.
+    The null rung is `both`, which must KEEP the remedy: a control that only ever demands the
+    remedy be absent is satisfied by deleting the remedy.
+    """
+    dec = _decomposition(0.85, resolvable=True)
+    assert gva._decomposition_contrast(dec) == gva.PAGE_FIGURE_CONTRAST, (
+        "the witness must satisfy the 09-03 contrast guard, or that guard is what reds and this "
+        "control is an equivalence of it")
+    assert gva._decomposition_is_the_same_book(dec, _load(THREE_ARM)) is None, (
+        "the witness must satisfy the BOOK guard, or this control is not the sole reason it reds")
+
+    # SOLE WITNESS. Only `selection_gbp` was withheld; the split prices `value_advantage_gbp`.
+    only_selection = _headline_withholding_only_the_selection_leg(dec)
+    assert "clearing the ±£2,578" in only_selection, (
+        "the witness must have the advantage CLEARING its floor -- otherwise both legs are "
+        "withheld, the split does price a withheld leg, and there is no defect to catch: {}"
+        .format(only_selection))
+    assert "larger SETTLED BOOK" not in only_selection, (
+        "the page priced resolving a leg it had just given a direction to -- the defect as it "
+        "shipped: {}".format(only_selection))
+    assert "DID NOT WITHHOLD" in only_selection, (
+        "the refusal must NAME its reason; a silently dropped remedy reads as a question nobody "
+        "asked: {}".format(only_selection))
+    assert (gva.SELECTION_CONTRAST in only_selection
+            and gva.PAGE_FIGURE_CONTRAST in only_selection), (
+        "the refusal states neither quantity, so a reader cannot check the pairing it refuses "
+        "on: {}".format(only_selection))
+
+    # THE NULL RUNG. Both legs withheld: the split DOES price one of them, so the remedy stands.
+    both = _withheld_headline(dec)
+    assert "larger SETTLED BOOK" in both, (
+        "the null rung: a remedy that prices a leg this page actually withheld was refused "
+        "anyway, so this control would be satisfied by deleting the remedy: {}".format(both))
+    assert "DID NOT WITHHOLD" not in both, (
+        "a remedy priced on a withheld leg was accused of pricing a resolved one: {}".format(both))
+    # AND IT NAMES WHICH LEG, because two were withheld and the price is for one of them.
+    assert "for that leg alone" in both and gva.SELECTION_CONTRAST in both, (
+        "two legs were withheld and the price is for one; the page named neither, so a reader "
+        "cannot tell which figure the price resolves: {}".format(both))
 
 
 def test_the_contrast_reconciliation_is_published_beside_the_book_one_not_folded_into_it():
