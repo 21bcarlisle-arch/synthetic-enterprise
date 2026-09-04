@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T04:08:34.577518Z",
+  "generated_at": "2026-09-04T05:58:50.967289Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -301,10 +301,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "cbbeb99d38839b9256a93bd0b06a9a0a46638856",
+    "publishing_tree_commit": "c963acf1f1f083bd7ed764ddd01db8c683c8f7aa",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from cbbeb99d3 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from c963acf1f -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -472,10 +472,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "cbbeb99d38839b9256a93bd0b06a9a0a46638856",
+      "publishing_tree_commit": "c963acf1f1f083bd7ed764ddd01db8c683c8f7aa",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from cbbeb99d3 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from c963acf1f -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -932,13 +932,25 @@
         "count": 1223,
         "share_of_renewals_offered": 0.6262,
         "by_design": false,
-        "why": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because the world has no standard-variable product to set it to -- `build_renewal_schedule` settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a comparison benchmark. It is an honest silence about a product the world lacks, NOT a label someone forgot to write, and the repair is an SVT product in the world rather than an assignment to this field (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."
+        "exclusion_class": "the_worlds_product_mix",
+        "why": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). The breakdown beside this count is the evidence and this sentence is derived from it: 1,223 on `svt`. None of it is a missing label. All 1,223 are households the world settled on a product that has no renewal decision to price, so no repair to this company's code moves one of them into the arm's reach. THIS IS THE ARM'S CEILING AND IT IS A FACT ABOUT THE MARKET: only a household on a fixed deal has a renewal rate that can be moved, and the rest of a domestic book does not. Reaching them is an ACQUISITION decision -- winning them onto a fixed deal -- and this arm does not make it.",
+        "by_tariff_type": [
+          {
+            "tariff_type": "svt",
+            "count": 1223,
+            "what_it_is": "the household is on the standard variable product (`simulation/svt_product.py`). Its rate is the published Ofgem default-tariff cap, its segment boundaries are cap changes rather than expiries, and no notice is served and no offer made at one. The arm prices a RENEWAL by moving a struck rate; there is no struck rate here and no renewal at which to move one. A real supplier reaches this household by winning it onto a fixed deal, which is an acquisition decision and not this arm's.",
+            "is_a_defect": false,
+            "share_of_the_refusals": 1.0
+          }
+        ],
+        "breakdown_available": true
       },
       {
         "stage": "not_the_arms_commodity",
         "count": 346,
         "share_of_renewals_offered": 0.1772,
         "by_design": true,
+        "exclusion_class": "deliberate_scope",
         "why": "the arm is fitted to electricity and has never been fitted to gas"
       },
       {
@@ -946,6 +958,7 @@
         "count": 252,
         "share_of_renewals_offered": 0.129,
         "by_design": true,
+        "exclusion_class": "deliberate_scope",
         "why": "term 0 has no prior term to price against"
       },
       {
@@ -953,6 +966,7 @@
         "count": 12,
         "share_of_renewals_offered": 0.0061,
         "by_design": false,
+        "exclusion_class": "the_arm_ran_and_decided",
         "why": "the arm RAN and found no margin that survives both the price cap and the churn model's support bound. A decision, not an omission."
       }
     ],
@@ -1044,9 +1058,9 @@
       "classification_basis": "the world's own `acquisition_type`, via `renewal_funnel.by_account_class`",
       "premise_basis": "measured on the roster this run bound: 0 of the accounts it won or drew carry an electricity product the guard would admit",
       "sentence": "The method has priced 58 accounts the company found rather than started with (PROS-2016-0042, PROS-2016-0099, PROS-2017-0038, PROS-2017-0065, PROS-2017-0130, PROS-2017-0185, PROS-2018-0016, PROS-2018-0039, PROS-2018-0137, PROS-2018-0161, PROS-2018-0223, PROS-2018-0238, PROS-2019-0009, PROS-2019-0024, PROS-2019-0135, PROS-2019-0164, PROS-2019-0190, PROS-2019-0255, PROS-2019-0310, PROS-2020-0032, PROS-2020-0221, PROS-2020-0249, PROS-2020-0303, PROS-2020-0347, PROS-2021-0029, PROS-2021-0105, PROS-2021-0133, PROS-2021-0175, PROS-2021-0288, PROS-2021-0324, PROS-2021-0362, PROS-2023-0025, PROS-2024-0110, SYN-2016-001, SYN-2016-007, SYN-2016-008, SYN-2016-009, SYN-2016-015, SYN-2016-018, SYN-2016-019, SYN-2016-020, SYN-2016-022, SYN-2016-023, SYN-2016-026, SYN-2016-028, SYN-2016-030, SYN-2016-032, SYN-2016-034, SYN-2016-036, SYN-2016-042, SYN-2016-044, SYN-2016-045, SYN-2016-048, SYN-2016-051, SYN-2016-055, SYN-2016-057, SYN-2016-060, SYN-2016-062). The gate that used to refuse every won household is passable, so what limits this experiment now is book size, not eligibility.",
-      "what_is_owed": "Not a relaxed guard. The world has no standard-variable product, so a won household's product was never decided rather than forgotten; the repair is that product, drawn from the published domestic fixed/SVT split, and it makes the in-scope surface SMALLER as a share of the book, not bigger (docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md, settled 2026-08-28)."
+      "what_is_owed": "NOTHING, and that is the finding. Not a relaxed guard, and not a world change either: every renewal refused here is a household on a product that has no renewal to price, so there is no repair that moves one of them into this arm's reach. What is owed is that this page stops describing the arm's reach as a shortfall. Reaching these households is an ACQUISITION problem -- winning them onto a fixed deal -- and a different arm's."
     },
-    "concentration_note": "Every account the artefact names among its own scored decisions is one of the nine hand-seeded customers. WHY THE SURFACE IS SMALL, corrected 2026-08-28: this note used to name ONE eligibility guard -- the drawn population carrying no product label -- and conclude the surface was small by PLUMBING and not by design. The funnel says otherwise. Of the 1,833 renewals the arm did not price, 598 are DELIBERATE SCOPE (33%) -- term 0 has no prior term to price against; the arm is fitted to electricity and has never been fitted to gas -- and 1,235 (67%) are the product-label gap in the drawn book. So the surface is small by design AND by plumbing, and design is the larger half. Giving the drawn population a product is a change to the baseline world, which R13 says is decided on fidelity evidence and never because it would make this experiment bigger.",
+    "concentration_note": "9 of the 10 accounts the artefact names among its scored decisions are customers the company FOUND rather than started with; the other 1 is from the founding roster. Of the 1,833 renewals the arm did not price: 1,223 (67%) are households the world settled on a product with NO RENEWAL to price, which no repair to this company's code reaches; 598 (33%) are DELIBERATE SCOPE -- the arm was never pointed at them; 12 (1%) are renewals the arm RAN on and declined, which is a decision not an omission. So NONE of them is reachable by fixing this company's own code: what bounds the arm here is what the arm is for and what the world's book is made of, not plumbing.",
     "discrimination_auc": 0.6553622159090909,
     "auc_population": {
       "retained": 88,

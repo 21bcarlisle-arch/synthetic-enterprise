@@ -124,6 +124,7 @@ from pathlib import Path
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
 from tools.inference_claim import CANNOT_TELL, cannot_tell_sentence, inference_claim
+from tools.product_gate_refusal import refusal_breakdown
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -824,11 +825,20 @@ def _is_the_lever_reachable(decomposition: dict) -> str:
         return ("{} of the {} accounts the arm priced are drawn households, so acquisition does "
                 "reach this arm and the growth above is a book-size lever."
                 .format(drawn, len(priced_accounts)))
+    # WHY THE CAUSE CLAUSE IS GONE (2026-09-04). This sentence used to close with "because drawn
+    # households' renewals stop for want of a standard-variable product to be moved off ... The
+    # lever is a PRODUCT, not a size." The COUNT it rests on -- no drawn household priced -- is
+    # measured and still true. The CAUSE was not measured here and was false from 2026-08-30, when
+    # the product it says is missing shipped. Two facts in one sentence, one of them checked, and
+    # the unchecked one was doing all the persuading. The cause now lives in exactly one place,
+    # `why_the_rest_were_not_priced`, derived from the run's own per-product breakdown; this
+    # sentence points at it rather than restating it from memory.
     return ("But that growth is NOT reachable by acquiring customers: all {} accounts the arm "
-            "priced are the founding roster and not one is a household this world drew, because "
-            "drawn households' renewals stop for want of a standard-variable product to be moved "
-            "off. Buying more of them adds churn cascade -- the half of the floor no book size "
-            "shrinks -- and no priced decisions at all. The lever is a PRODUCT, not a size."
+            "priced are the founding roster and not one is a household this world drew. Buying "
+            "more of them adds churn cascade -- the half of the floor no book size shrinks -- and "
+            "no priced decisions at all. WHY their renewals stop is not asserted here: read "
+            "`why_the_rest_were_not_priced`, which derives it from the products this run actually "
+            "settled."
             .format(len(priced_accounts)))
 
 
@@ -1414,43 +1424,166 @@ _SCOPE_BY_DESIGN = {
 }
 
 
+#: What each exclusion CLASS is called on the page, in the order a reader should weigh them.
+#: THREE CLASSES AND NOT TWO, because the page published two for a week and the missing third is
+#: where 62.6% of the arm's blindness actually lives. "Deliberate scope" says the arm was never
+#: pointed here; "our defect" says a household a real supplier would have priced was lost to our
+#: own code; "the world's product mix" says the household exists, is on a product with no renewal,
+#: and no repair to our code reaches it. The first and third are ceilings and the second is work,
+#: and folding the third into the second is what told a reader that a closed plumbing gap
+#: explained the arm's reach.
+_CLASS_DELIBERATE_SCOPE = "deliberate_scope"
+_CLASS_COMPANY_DEFECT = "our_defect"
+_CLASS_WORLD_PRODUCT_MIX = "the_worlds_product_mix"
+_CLASS_MIXED = "both_our_defect_and_the_worlds_product_mix"
+_CLASS_ARM_DECIDED = "the_arm_ran_and_decided"
+_CLASS_NOT_ESTABLISHED = "not_established"
+
+#: Stages whose class is a property of the STAGE and not of the run behind it.
+_CLASS_BY_STAGE: dict[str, str] = {
+    "acquisition_term": _CLASS_DELIBERATE_SCOPE,
+    "not_the_arms_commodity": _CLASS_DELIBERATE_SCOPE,
+    "declined": _CLASS_ARM_DECIDED,
+    "no_locked_rate": _CLASS_WORLD_PRODUCT_MIX,
+}
+
+#: How each class reads in one clause, for the attribution sentence.
+_CLASS_READINGS: dict[str, str] = {
+    _CLASS_DELIBERATE_SCOPE: "DELIBERATE SCOPE -- the arm was never pointed at them",
+    _CLASS_ARM_DECIDED: "renewals the arm RAN on and declined, which is a decision not an omission",
+    _CLASS_WORLD_PRODUCT_MIX: (
+        "households the world settled on a product with NO RENEWAL to price, which no repair to "
+        "this company's code reaches"),
+    _CLASS_COMPANY_DEFECT: "OUR DEFECT -- terms the world settled without deciding what they were",
+    _CLASS_MIXED: (
+        "a mix of our defect and the world's product mix, reported apart in the breakdown"),
+    _CLASS_NOT_ESTABLISHED: "NOT ATTRIBUTED -- this run did not record what product they were on",
+}
+
+
+def _product_gate_class(breakdown: dict) -> str:
+    """Which class the product-gate refusals belong to, DERIVED from the run's own breakdown.
+
+    Never asserted, and it can come back any of four ways. This is the seam the false cause got
+    through: the page had a string here, the string said "a missing product label in the drawn
+    book", and the artefact it was reading said `{"'svt'": 1223}` -- no missing label at all.
+    """
+    if not breakdown.get("available") or breakdown.get("unexplained_values"):
+        return _CLASS_NOT_ESTABLISHED
+    defect, structural = breakdown["defect_count"], breakdown["structural_count"]
+    if defect and structural:
+        return _CLASS_MIXED
+    if defect:
+        return _CLASS_COMPANY_DEFECT
+    if structural:
+        return _CLASS_WORLD_PRODUCT_MIX
+    return _CLASS_NOT_ESTABLISHED
+
+
 def _exclusions(funnel: dict) -> list[dict]:
-    """Every non-zero funnel stage that is not `priced`, with whether it is scope or a gap."""
+    """Every non-zero funnel stage that is not `priced`, classified and explained.
+
+    THE PRODUCT-GATE ROW IS DERIVED FROM THE RUN'S OWN BREAKDOWN AND NOT FROM THE ARTEFACT'S
+    `means` STRING. That string is authored by `run_value_cycle_ab` at the moment a run is
+    written, so an artefact from before a world change carries a sentence about a world that no
+    longer exists -- and the page renders artefacts weeks old by design. The count and the
+    per-value breakdown beside it are measurements and cannot rot the same way, so the sentence
+    is composed from them here, at publish time (`tools/product_gate_refusal.py`).
+    """
+    breakdown = refusal_breakdown(funnel.get("product_not_upliftable_by_tariff_type"))
     out = []
     for stage in (funnel.get("stages") or []):
         if not isinstance(stage, dict) or stage.get("stage") == "priced":
             continue
+        name = stage.get("stage")
         count = stage.get("count") or 0
         if not count:
             continue
-        out.append({
-            "stage": stage.get("stage"),
+        if name == "product_not_upliftable":
+            row_class, why = _product_gate_class(breakdown), breakdown["why"]
+        else:
+            row_class = _CLASS_BY_STAGE.get(name, _CLASS_NOT_ESTABLISHED)
+            why = _SCOPE_BY_DESIGN.get(name) or stage.get("means")
+        row = {
+            "stage": name,
             "count": count,
             "share_of_renewals_offered": stage.get("share_of_renewals_offered"),
-            "by_design": stage.get("stage") in _SCOPE_BY_DESIGN,
-            "why": _SCOPE_BY_DESIGN.get(stage.get("stage")) or stage.get("means"),
-        })
+            # KEPT, because two published surfaces and a control read it, and it is still the
+            # question "was the arm ever pointed here". It is now DERIVED from the class rather
+            # than being the only axis, so a refusal that is neither scope nor our defect stops
+            # being reported as our defect by elimination.
+            "by_design": row_class == _CLASS_DELIBERATE_SCOPE,
+            "exclusion_class": row_class,
+            "why": why,
+        }
+        if name == "product_not_upliftable":
+            # THE EVIDENCE, BESIDE THE SENTENCE. The reader can check the cause against the run
+            # instead of taking the prose on trust, which is the only reason the last false cause
+            # was catchable at all.
+            row["by_tariff_type"] = breakdown["rows"]
+            row["breakdown_available"] = breakdown["available"]
+        out.append(row)
     return sorted(out, key=lambda s: -s["count"])
 
 
+def _who_the_named_sample_is(accounts: list, who: dict) -> str:
+    """Who the accounts in the scored sample ARE, counted rather than remembered.
+
+    FOUNDER AND FOUND ARE THE WHOLE POINT. The enterprise-value claim is that the advantage comes
+    from inference over the customers the method FINDS, so "all nine are hand-seeded" and "nine of
+    ten were found" are the sentence's two possible readings and they are opposite verdicts on the
+    thesis. This page asserted the first for a week after the second became true.
+    """
+    if not accounts:
+        return "This run's artefact names no accounts among its scored decisions."
+    found = sorted(a for a in accounts if str(a).startswith(_WON_OR_DRAWN_ID_PREFIXES))
+    if not found:
+        return ("Every one of the {} accounts the artefact names among its scored decisions is a "
+                "customer the company was FOUNDED with, not one it found.".format(len(accounts)))
+    if len(found) == len(accounts):
+        return ("Every one of the {} accounts the artefact names among its scored decisions is a "
+                "customer the company FOUND rather than started with.".format(len(accounts)))
+    rest = len(accounts) - len(found)
+    return ("{found} of the {total} accounts the artefact names among its scored decisions are "
+            "customers the company FOUND rather than started with; the other {rest} {is_are} from "
+            "the founding roster.".format(found=len(found), total=len(accounts), rest=rest,
+                                          is_are="is" if rest == 1 else "are"))
+
+
 def _attribution_sentence(exclusions: list[dict], offered) -> str:
-    """One sentence saying how the unpriced renewals split between scope and gap. Derived."""
+    """How the unpriced renewals split ACROSS THE CLASSES. Derived, and never two-valued.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-04). This sentence used to sum `by_design` and call the
+    entire remainder "the product-label gap in the drawn book", concluding "small by design AND by
+    plumbing". On the run it was published from, the remainder was 1,223 SVT households and 12
+    arm declines -- not one missing label -- so the page named a plumbing defect as the largest
+    single cause of its own blindness four days after that defect was closed. A two-bucket
+    attribution over a three-class subject reports the OR, which is R15's mixed-subject shape.
+    """
     if not exclusions:
         return "The funnel reports no exclusions, so nothing can be attributed."
-    design = sum(e["count"] for e in exclusions if e["by_design"])
-    gap = sum(e["count"] for e in exclusions if not e["by_design"])
-    total = design + gap
+    total = sum(e["count"] for e in exclusions)
     if not total:
         return "The funnel reports no exclusions, so nothing can be attributed."
-    return (
-        "Of the {total:,} renewals the arm did not price, {design:,} are DELIBERATE SCOPE "
-        "({design_pct:.0f}%) -- {reasons} -- and {gap:,} ({gap_pct:.0f}%) are the product-label "
-        "gap in the drawn book. So the surface is small by design AND by plumbing, and design is "
-        "the larger half."
-    ).format(
-        total=total, design=design, gap=gap,
-        design_pct=100.0 * design / total, gap_pct=100.0 * gap / total,
-        reasons="; ".join(sorted(_SCOPE_BY_DESIGN.values())))
+    by_class: dict[str, int] = {}
+    for e in exclusions:
+        by_class[e["exclusion_class"]] = by_class.get(e["exclusion_class"], 0) + e["count"]
+    parts = []
+    for name, count in sorted(by_class.items(), key=lambda kv: -kv[1]):
+        parts.append("{count:,} ({pct:.0f}%) are {reading}".format(
+            count=count, pct=100.0 * count / total,
+            reading=_CLASS_READINGS.get(name, "in a class this page has no reading for ({})"
+                                        .format(name))))
+    # WHAT IS ACTUALLY REACHABLE, said in the same breath as the split, because the whole point of
+    # separating the classes is that only one of them is work. Derived: the day a defect count
+    # appears, this sentence names it without anyone editing a string.
+    reachable = by_class.get(_CLASS_COMPANY_DEFECT, 0) + by_class.get(_CLASS_MIXED, 0)
+    tail = ("So {:,} of them are reachable by fixing this company's own code, and the rest are the "
+            "arm's ceiling rather than its backlog.".format(reachable) if reachable else
+            "So NONE of them is reachable by fixing this company's own code: what bounds the arm "
+            "here is what the arm is for and what the world's book is made of, not plumbing.")
+    return ("Of the {:,} renewals the arm did not price: ".format(total)
+            + "; ".join(parts) + ". " + tail)
 
 
 def _widening_consequence(by_class: dict) -> str | None:
@@ -2090,6 +2223,12 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
                  "predates `by_account_class`")
     labels = funnel.get("product_not_upliftable_by_tariff_type") or {}
     unlabelled = labels.get("None") if isinstance(labels, dict) else None
+    # WHAT THOSE LABELS MEAN, derived once here and shared with the branches below, so this
+    # function and `why_the_rest_were_not_priced` cannot come to different conclusions about the
+    # same breakdown. Two surfaces reading one measurement and reasoning about it separately is
+    # exactly how the page ended up asserting a closed defect on one panel while the artefact
+    # beside it said `svt`.
+    refusals = refusal_breakdown(labels)
     never_reached = offered - len(priced_accounts)
 
     # THE PREMISE, MEASURED RATHER THAN ASSERTED. The structural sentence turns on a claim about
@@ -2155,13 +2294,38 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
             "company/pricing/value_based_renewal.py). No number of won households changes what "
             "that guard reads, so there is no book size at which the first one is priced."
         ).format(priced=len(priced_accounts), rest=never_reached, unlabelled=unlabelled)
+    elif refusals["available"] and not refusals["defect_count"] and refusals["structural_count"]:
+        # THE CEILING, AND IT IS NOT A GATE (2026-09-04). Until this branch existed, a run whose
+        # product-gate refusals were ALL on real products the world settled fell through to
+        # "refuses renewals under more than one label" and named the single label it had found as
+        # though it were several -- a sentence that was false about the count AND silent about the
+        # only thing that matters here. This says the honest thing instead: the households exist,
+        # they are on a product with no renewal to price, and that is a fact about a domestic book
+        # rather than a defect in ours. It is the unflattering reading -- it says the arm's reach
+        # cannot be grown by fixing anything here -- and it is derived, so the day one refusal
+        # turns out to be our own the branch above claims it back.
+        verdict = "the_arms_ceiling"
+        sentence = (
+            "THE METHOD HAS NEVER PRICED A CUSTOMER THE COMPANY WON, AND ON THIS RUN THAT IS NOT "
+            "A GATE WE CAN OPEN. Every renewal it priced belongs to one of {priced} accounts the "
+            "company was founded with; the other {rest} accounts the world offered a renewal to "
+            "have never had one reach the arm. But not one of the {structural:,} renewals refused "
+            "at the product gate is a missing label: they are households the world settled on a "
+            "product with no renewal decision to price ({names}). A renewal arm reaches a "
+            "household only where there is a struck rate and a boundary at which to move it, and "
+            "most of a domestic book has neither at any moment. So this is the arm's CEILING and "
+            "not its backlog, and it is a finding about how much of a real book per-customer "
+            "renewal pricing can legitimately reach -- not a defect to repair."
+        ).format(priced=len(priced_accounts), rest=never_reached,
+                 structural=refusals["structural_count"],
+                 names=", ".join("`{}`".format(r["tariff_type"]) for r in refusals["rows"]))
     else:
         verdict = "unresolved"
         sentence = (
-            "The method has priced none of the {rest} accounts the company won or drew, but this "
-            "run's product gate refuses renewals under more than one label ({labels}), so this "
-            "surface does not claim a single cause for it."
-        ).format(rest=never_reached,
+            "The method has priced none of the {rest} accounts the company won or drew, and this "
+            "surface does not claim a single cause for it: the product gate refused renewals "
+            "under {n} label{s} ({labels}) and they do not all read the same way."
+        ).format(rest=never_reached, n=len(labels), s="" if len(labels) == 1 else "s",
                  labels=", ".join(sorted(str(k) for k in labels)) or "none recorded")
     return {
         "available": True,
@@ -2183,13 +2347,48 @@ def _who_the_method_has_priced(funnel: dict) -> dict:
             "argued from the code path, not measured -- this artefact predates "
             "`renewal_funnel.product_label_by_account_class`"),
         "sentence": sentence,
-        "what_is_owed": (
-            "Not a relaxed guard. The world has no standard-variable product, so a won "
-            "household's product was never decided rather than forgotten; the repair is that "
-            "product, drawn from the published domestic fixed/SVT split, and it makes the "
-            "in-scope surface SMALLER as a share of the book, not bigger "
-            "(docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md, settled 2026-08-28)."),
+        # WHAT IS OWED DEPENDS ON WHICH PRODUCTS WERE REFUSED, so it is branched on the same
+        # measurement as the verdict rather than typed once. Until 2026-09-04 this said "the world
+        # has no standard-variable product ... the repair is that product" -- it stayed on the
+        # page for five days after that product shipped (`simulation/svt_product.py`, 2026-08-30)
+        # and went on asking for work that was done. A remedy sentence with no evidence behind it
+        # rots exactly like a figure and nothing was watching this one.
+        "what_is_owed": _what_is_owed_at_the_product_gate(refusals),
     }
+
+
+def _what_is_owed_at_the_product_gate(refusals: dict) -> str:
+    """The remedy, derived from what the gate actually refused. Never a relaxed guard.
+
+    Three answers and they are not interchangeable. Unlabelled records are ours to fix. Households
+    on a product with no renewal are not a repair at all -- the honest response is to say so and
+    stop calling the arm's reach a defect. An unrecorded breakdown owes a measurement before it
+    owes a remedy, and saying that is cheaper than being wrong about which of the other two it is.
+    """
+    if not refusals["available"]:
+        return ("A measurement before a remedy: this run did not record which products the gate "
+                "refused, and the two possibilities -- records we failed to label, and households "
+                "on a product with no renewal -- ask for opposite work.")
+    if refusals["defect_count"] and not refusals["structural_count"]:
+        return ("Not a relaxed guard. {:,} terms were settled without a product being decided for "
+                "them, which is a defect in the world's records and ours to close "
+                "(docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md)."
+                .format(refusals["defect_count"]))
+    if refusals["structural_count"] and not refusals["defect_count"]:
+        return ("NOTHING, and that is the finding. Not a relaxed guard, and not a world change "
+                "either: every renewal refused here is a household on a product that has no "
+                "renewal to price, so there is no repair that moves one of them into this arm's "
+                "reach. What is owed is that this page stops describing the arm's reach as a "
+                "shortfall. Reaching these households is an ACQUISITION problem -- winning them "
+                "onto a fixed deal -- and a different arm's.")
+    if refusals["defect_count"] and refusals["structural_count"]:
+        return ("Two different things, and only one of them is work: {:,} terms carry no decided "
+                "product and are ours to close; the other {:,} are households on a product with "
+                "no renewal to price, which no repair reaches."
+                .format(refusals["defect_count"], refusals["structural_count"]))
+    return ("Not established: the gate refused renewals under a product this page has no reading "
+            "for ({}), so what is owed cannot be named until that is settled."
+            .format(", ".join(refusals["unexplained_values"]) or "an unrecorded value"))
 
 
 #: EVERY RUN THAT HAS MEASURED THE BELIEF'S RANK STATISTIC, newest first, each naming the artefact
@@ -2926,15 +3125,15 @@ def _decisions(three_arm: dict, provenance: dict | None = None) -> dict:
         # WHOSE customers those decisions are, which is a different question from how many there
         # are and is the one the enterprise-value claim turns on.
         "who_the_method_has_priced": who,
+        # WHY THE SURFACE IS SMALL, and every clause of it is now derived. Two hand-typed
+        # sentences lived here and both outlived their evidence: "every account ... is one of the
+        # nine hand-seeded customers", which stopped being true once the arm priced 58 found
+        # accounts, and "giving the drawn population a product is a change to the baseline
+        # world", which asked for a world change that shipped on 2026-08-30. A note explaining a
+        # measurement is not exempt from being a claim.
         "concentration_note": (
-            "Every account the artefact names among its own scored decisions is one of the nine "
-            "hand-seeded customers. WHY THE SURFACE IS SMALL, corrected 2026-08-28: this note "
-            "used to name ONE eligibility guard -- the drawn population carrying no product "
-            "label -- and conclude the surface was small by PLUMBING and not by design. The "
-            "funnel says otherwise. " + _attribution_sentence(exclusions, offered) + " Giving "
-            "the drawn population a product is a change to the baseline world, which R13 says is "
-            "decided on fidelity evidence and never because it would make this experiment "
-            "bigger."),
+            _who_the_named_sample_is(accounts, who) + " "
+            + _attribution_sentence(exclusions, offered)),
         "discrimination_auc": _f(belief.get("discrimination_auc")),
         # THE SAMPLE THE RANK STATISTIC IS COMPUTED OVER, published beside it. An AUC on
         # single-digit departures is a number with no bound, and this figure went out for four

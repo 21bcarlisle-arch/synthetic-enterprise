@@ -1058,18 +1058,26 @@ def test_the_book_size_remedy_says_whether_the_book_can_be_grown_into_it():
     assert "larger SETTLED BOOK" in unreachable and "54 priced renewals" in unreachable, (
         "the null rung of the parent control: the price must still be stated: {}".format(
             unreachable))
-    assert "PRODUCT, not a size" in unreachable, (
+    # RE-KEYED 2026-09-04, and the re-keying is itself the point. This asserted the literal
+    # phrase "PRODUCT, not a size" -- the closing clause of a sentence that also claimed drawn
+    # households' renewals stop "for want of a standard-variable product to be moved off". That
+    # cause was false from 2026-08-30 and this control was GREEN on it, because it was keyed to
+    # the words of the remedy rather than to the property the remedy exists for: that the page
+    # must not offer book growth as a lever no acquisition can pull. `NOT reachable by acquiring
+    # customers` is that property, and it survives the cause being restated or withdrawn.
+    _CAVEAT = "NOT reachable by acquiring customers"
+    assert _CAVEAT in unreachable, (
         "every priced account was the founding roster and the page still offered book growth as "
         "the lever, which is a remedy nobody can pull: {}".format(unreachable))
 
     reachable = _withheld_headline(_priced_by("C1", "SYN-2021-001"))
-    assert "PRODUCT, not a size" not in reachable, (
+    assert _CAVEAT not in reachable, (
         "the arm priced a DRAWN household, so acquisition does reach it -- printing the caveat "
         "anyway is a control asserting the world stays broken: {}".format(reachable))
     assert "54 priced renewals" in reachable, reachable
 
     silent = _withheld_headline(_decomposition(0.85, resolvable=True))
-    assert "PRODUCT, not a size" not in silent, silent
+    assert _CAVEAT not in silent, silent
     assert "not established here" in silent, (
         "an artefact carrying no provenance read as REACHABLE by omission, which is the "
         "flattering branch chosen by silence: {}".format(silent))
@@ -1253,7 +1261,16 @@ def test_a_mixed_product_gate_does_not_get_the_single_cause_sentence():
     who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
         "decisions"]["who_the_method_has_priced"]
     assert who["verdict"] == "unresolved"
-    assert "more than one label" in who["sentence"]
+    # KEYED TO THE PROPERTY, NOT TO THE WORDING (re-keyed 2026-09-04). This asserted the literal
+    # phrase "more than one label", which was a sentence that COUNTED nothing -- it said "more
+    # than one" while holding the labels in its hand, and it fired identically whether the gate
+    # had refused two products or twelve. The property is: the refusal names every label it saw
+    # and claims no single mechanism.
+    assert "does not claim a single cause" in who["sentence"]
+    for label in ("None", "flex"):
+        assert label in who["sentence"], (
+            "the refusal withholds a cause and does not name the labels it withheld it over, so a "
+            "reader cannot tell which products it could not read")
 
 
 def test_the_class_split_prefers_the_worlds_own_label_over_the_id_prefix():
@@ -3324,3 +3341,184 @@ def test_both_auc_nulls_on_the_page_name_the_same_world_as_the_run_they_came_fro
         assert block["inside_the_null"] is None, (
             "one of the two renderings of the same unstamped null still states a direction while "
             "the other withholds it")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+# THE PUBLISHED CAUSE UNDER THE LARGEST DROP IN THE FUNNEL (2026-09-04)
+# ═══════════════════════════════════════════════════════════════════════════════════════════════
+#
+# THE DEFECT THESE EXIST FOR. `site/data/value_arms.json` published, under 1,223 of 1,953
+# renewals -- 62.6% of everything the arm did not price -- that the cause was `tariff_type = None`
+# because "the world has no standard-variable product to set it to". The world had had one since
+# 2026-08-30 (`simulation/svt_product.py`), `build_renewal_schedule` delegated to it, and the
+# artefact the page was generated FROM said `product_not_upliftable_by_tariff_type =
+# {"'svt'": 1223}` -- not one `None` among them. The page named a closed plumbing defect as the
+# largest single cause of its own blindness, and the measurement that refuted it was four lines
+# away in the file it was reading.
+#
+# The defect was that the cause was a STRING authored when the run was written, and a string about
+# the world cannot go stale loudly. So the cause is now DERIVED from the run's own per-product
+# counts at publish time, and these are the legs that hold it there.
+#
+# R15 -- the mutations, each run and reverted:
+#   * make `_exclusions` fall back to the artefact's `means` for `product_not_upliftable` (the
+#     pre-fix behaviour) -> `test_the_product_gate_cause_follows_the_run_not_the_artefacts_prose`
+#     reds, because the fixture's `means` is the false sentence and its breakdown is `svt`.
+#   * default an unrecognised product's `is_a_defect` to False instead of None ->
+#     `test_a_product_this_page_has_no_reading_for_is_named_and_not_folded_in` reds.
+#   * return the confident SVT sentence when the breakdown is absent ->
+#     `test_a_run_with_no_breakdown_refuses_to_name_a_cause` reds.
+# The leg that stops this becoming a control pinned to today's answer is
+# `test_an_unlabelled_breakdown_is_still_published_as_our_own_defect`: feed it the OLD world and
+# the page must go back to calling it a defect, with nobody editing a sentence.
+
+_FALSE_MEANS = (
+    "A term carrying `None` is a DRAWN account, and the field is unset because the world has no "
+    "standard-variable product to set it to.")
+
+
+def _funnel(by_tariff_type, means=_FALSE_MEANS, count=1223):
+    """A funnel whose PROSE and whose COUNTS disagree -- the exact shape that shipped."""
+    return {
+        "stages": [
+            {"stage": "acquisition_term", "count": 252, "share_of_renewals_offered": 0.129,
+             "means": "term 0"},
+            {"stage": "product_not_upliftable", "count": count,
+             "share_of_renewals_offered": 0.6262, "means": means},
+            {"stage": "priced", "count": 120, "share_of_renewals_offered": 0.0614,
+             "means": "priced"},
+        ],
+        "product_not_upliftable_by_tariff_type": by_tariff_type,
+    }
+
+
+def _gate_row(funnel):
+    rows = [r for r in gva._exclusions(funnel) if r["stage"] == "product_not_upliftable"]
+    assert rows, "the product gate row vanished from the published exclusions"
+    return rows[0]
+
+
+def test_the_product_gate_cause_follows_the_run_not_the_artefacts_prose():
+    """The published cause is read off the counts, not off the sentence the run was born with.
+
+    THE WHOLE DEFECT IN ONE ASSERTION. This fixture is the state the feed was actually in on
+    2026-09-04: a `means` string saying the world has no standard-variable product, sitting in the
+    same block as a breakdown saying every refusal was ON that product.
+    """
+    row = _gate_row(_funnel({"'svt'": 1223}))
+    assert "no standard-variable product" not in row["why"], (
+        "the page is still republishing the artefact's own prose, so a cause written before a "
+        "world change survives it")
+    assert "svt" in row["why"], "the published cause does not name the product it is about"
+    assert row["by_tariff_type"] == [
+        {"tariff_type": "svt", "count": 1223, "share_of_the_refusals": 1.0,
+         "is_a_defect": False, "what_it_is": row["by_tariff_type"][0]["what_it_is"]}], (
+        "the evidence the cause is derived from is not published beside it, so a reader cannot "
+        "check the sentence against the run -- which is the only reason the last false cause was "
+        "catchable at all")
+
+
+def test_an_svt_only_breakdown_is_the_arms_ceiling_and_never_our_defect():
+    """Households on a product with no renewal are not a plumbing gap, and the split says so."""
+    funnel = _funnel({"'svt'": 1223})
+    row = _gate_row(funnel)
+    assert row["exclusion_class"] == gva._CLASS_WORLD_PRODUCT_MIX
+    assert row["by_design"] is False, (
+        "an SVT household is not the arm's deliberate scope -- the arm would price it if it had a "
+        "renewal -- and reporting it as by-design hides that the ceiling is the world's")
+    sentence = gva._attribution_sentence(gva._exclusions(funnel), 1953)
+    assert "NONE of them is reachable by fixing this company's own code" in sentence, (
+        "the attribution still offers the reader a repair that does not exist")
+    assert "plumbing gap" not in sentence and "product-label gap" not in sentence
+
+
+def test_an_unlabelled_breakdown_is_still_published_as_our_own_defect():
+    """KEYED TO THE PROPERTY. Feed it the old world and the old, correct verdict comes back.
+
+    Without this leg the fix above is a control pinned to today's answer: it would go on saying
+    "the arm's ceiling, nothing to repair" the day the labelling defect returned, which is exactly
+    backwards and is the shape this repository has shipped before.
+    """
+    funnel = _funnel({"None": 1223})
+    row = _gate_row(funnel)
+    assert row["exclusion_class"] == gva._CLASS_COMPANY_DEFECT
+    assert "OUR defect" in row["why"] or "our defect" in row["why"].lower()
+    sentence = gva._attribution_sentence(gva._exclusions(funnel), 1953)
+    assert "1,223 of them are reachable by fixing this company's own code" in sentence
+
+
+def test_a_mixed_breakdown_reports_the_two_halves_apart():
+    """Two causes under one count is R15's mixed-subject shape; the OR of them is not a reading."""
+    row = _gate_row(_funnel({"'svt'": 1000, "None": 223}, count=1223))
+    assert row["exclusion_class"] == gva._CLASS_MIXED
+    assert "1,000" in row["why"] and "223" in row["why"], (
+        "a mixed breakdown published one number, so the reader cannot tell what is reachable")
+
+
+def test_a_run_with_no_breakdown_refuses_to_name_a_cause():
+    """FAIL CLOSED. Every run before 2026-08-30 is this case, and none of them may read as clean."""
+    row = _gate_row(_funnel(None))
+    assert row["exclusion_class"] == gva._CLASS_NOT_ESTABLISHED
+    assert "NOT established" in row["why"] or "not established" in row["why"], (
+        "an artefact that recorded no breakdown is being given a confident cause anyway")
+    assert row["breakdown_available"] is False
+
+
+def test_a_product_this_page_has_no_reading_for_is_named_and_not_folded_in():
+    """An unexplained label at the largest drop in the funnel is the finding, not a footnote."""
+    funnel = _funnel({"'green_tracker'": 1223})
+    row = _gate_row(funnel)
+    assert row["exclusion_class"] == gva._CLASS_NOT_ESTABLISHED
+    assert "green_tracker" in row["why"], "the unrecognised product is not even named"
+    assert row["by_tariff_type"][0]["is_a_defect"] is None, (
+        "an unknown product defaulted to `not a defect`, which is the flattering branch and the "
+        "reason `is_a_defect` is three-valued")
+
+
+def test_the_remedy_under_the_product_gate_asks_for_work_that_is_not_already_done():
+    """`what_is_owed` is a claim and rots like one. It asked for a shipped product for five days."""
+    from tools.product_gate_refusal import refusal_breakdown
+    owed = gva._what_is_owed_at_the_product_gate(refusal_breakdown({"'svt'": 1223}))
+    assert "the world has no standard-variable product" not in owed
+    assert "NOTHING, and that is the finding" in owed, (
+        "the page still describes the arm's ceiling as a shortfall someone can close")
+    # ...and the other side, so this is not pinned either.
+    owed_old = gva._what_is_owed_at_the_product_gate(refusal_breakdown({"None": 1223}))
+    assert "ours to close" in owed_old
+
+
+def test_a_gate_refusing_only_real_products_says_ceiling_and_not_gate():
+    """The branch the live run will reach the moment the last unlabelled record is gone.
+
+    THE DEFECT THIS EXISTS FOR. Before it, a run whose product gate refused only products the
+    world had really settled fell through to the `unresolved` sentence -- "the product gate
+    refused renewals under more than one label" -- which was false about the count and silent
+    about the only thing that mattered: that these households have no renewal for any arm to
+    price, so the arm's reach is a ceiling and not a backlog. This is the branch that says so,
+    and without this leg it is a published sentence that has never run.
+
+    Fires on: routing an all-real-product breakdown back through `unresolved`, and on the
+    ceiling sentence being reachable when any refusal IS a missing label (which is the leg above,
+    `test_the_structural_claim_needs_both_halves_of_its_evidence`).
+    """
+    art = _load(THREE_ARM_20260829)
+    funnel = art["renewal_funnel"]["value_arm"]
+    funnel["product_not_upliftable_by_tariff_type"] = {"'svt'": 600, "'flex'": 62}
+    who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+    assert who["verdict"] == "the_arms_ceiling", who["verdict"]
+    assert "NOT A GATE WE CAN OPEN" in who["sentence"]
+    assert "not one of the 662 renewals refused at the product gate is a missing label" in (
+        who["sentence"].replace("but not", "not"))
+    assert "`svt`" in who["sentence"] and "`flex`" in who["sentence"], (
+        "the ceiling is claimed without naming the products it rests on")
+    assert "NOTHING, and that is the finding" in who["what_is_owed"]
+
+    # THE OTHER SIDE, so this is not pinned: put one unlabelled term back and the ceiling claim
+    # must be withdrawn, because then part of the refusal IS ours.
+    funnel["product_not_upliftable_by_tariff_type"] = {"'svt'": 600, "None": 62}
+    who = gva.build(art, _load(NOISE_FLOOR), _load(RUN_OUTPUT))[
+        "decisions"]["who_the_method_has_priced"]
+    assert who["verdict"] != "the_arms_ceiling", (
+        "62 terms the world never decided a product for, and the page still tells the reader "
+        "there is nothing here to repair")

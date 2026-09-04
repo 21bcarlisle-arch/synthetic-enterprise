@@ -1838,16 +1838,22 @@ FUNNEL_STAGE_MEANINGS: dict[str, str] = {
     "not_the_arms_commodity": (
         "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs "
         "are calibrated on the electricity book and the supplier has never fitted them to gas."),
+    # NO CAUSE IS ASSERTED HERE ANY MORE, and that is the repair (2026-09-04). This entry used to
+    # close with "the world has no standard-variable product to set it to -- `build_renewal_
+    # schedule` settles exactly fixed, flex, deemed and pass_through". Every clause of it was
+    # false from 2026-08-30, when `simulation/svt_product.py` shipped and the builder began
+    # delegating to it, and the artefacts this module wrote carried the dead sentence to a public
+    # page for five days -- while `product_not_upliftable_by_tariff_type`, four lines further
+    # down the same file, read `{"'svt'": 1223}`. A string about the world cannot go stale
+    # loudly; the count beside it cannot go stale at all. So the meaning stops at the GUARD, which
+    # is a fact about this company's code and true whatever the world is doing, and the CAUSE is
+    # derived from the breakdown at the point of publication (`tools/product_gate_refusal.py`).
     "product_not_upliftable": (
         "the term's `tariff_type` is not one this writer prices "
-        "(`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). READ THE PER-VALUE BREAKDOWN BESIDE "
-        "THIS COUNT. A term carrying `None` is a DRAWN account, and the field is unset because "
-        "the world has no standard-variable product to set it to -- `build_renewal_schedule` "
-        "settles exactly fixed, flex, deemed and pass_through, and SVT exists only as a "
-        "comparison benchmark. It is an honest silence about a product the world lacks, NOT a "
-        "label someone forgot to write, and the repair is an SVT product in the world rather "
-        "than an assignment to this field "
-        "(`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28)."),
+        "(`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). WHY these particular renewals were "
+        "refused is NOT stated here: read `product_not_upliftable_by_tariff_type` beside this "
+        "count, because a term the world settled on a product with no renewal to price and a term "
+        "whose product was never decided are the same integer and opposite conclusions."),
     "no_observed_history": (
         "nothing settled for this account inside the one-year observation window before the "
         "term start, so the arm has no EAC, tenure or current rate to price from."),
@@ -2141,20 +2147,20 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
         "reading": (
             "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. "
             "The stages are the arm's OWN eligibility rule, so a large drop is not automatically "
-            "a defect. The drop at `product_not_upliftable` on terms whose tariff_type is `None` "
-            "was read as a defect until 2026-08-28 and is NOT one: the field is unset because the "
-            "world has no standard-variable product, and setting it to `fixed` was REFUSED -- it "
-            "would assert a 100%-fixed domestic book against a published share of roughly one "
-            "third, and the only thing it would improve is this experiment's `n` (R13; "
-            "`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`). "
-            "SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING: roughly a third of a "
-            "domestic book is on a fixed deal at any time and only that third has a renewal rate "
-            "that can be moved. Nor is the current count the right one -- when an honest SVT "
-            "product lands, the in-scope surface is on the order of a third of 222 electricity "
-            "renewals, and it gets SMALLER as a share of the book, not bigger. This instrument's "
-            "power ceiling is a fact about how much of a domestic book per-customer pricing can "
-            "legitimately reach. R12: diagnostic, never a target, and specifically NOT a cue to "
-            "relax a guard so the experiment gets a bigger n."
+            "a defect. WHAT THE DROP AT `product_not_upliftable` MEANS IS READ OFF "
+            "`product_not_upliftable_by_tariff_type` AND IS NOT ASSERTED HERE -- this paragraph "
+            "used to explain it as terms carrying `None` for want of a standard-variable product, "
+            "and went on saying so after that product shipped on 2026-08-30 while the breakdown "
+            "in this same block said otherwise. "
+            "SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING, and that claim does "
+            "NOT depend on which products the gate refused today: only a household on a fixed "
+            "deal has a struck renewal rate that any arm can move, roughly a third of a domestic "
+            "book is on one at any moment, and the rest of it has no renewal decision to price at "
+            "all. This instrument's power ceiling is a fact about how much of a domestic book "
+            "per-customer renewal pricing can legitimately reach, and it gets SMALLER as a share "
+            "of the book as the world's product mix gets more honest, not bigger. R12: "
+            "diagnostic, never a target, and specifically NOT a cue to relax a guard so the "
+            "experiment gets a bigger n."
         ),
     }
 

@@ -877,6 +877,55 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + esc(accts.length) + " (" + esc(accts.join(", ")) + ").</p>"
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(dec.concentration_note) + "</p>"
+          /* WHERE THE UNPRICED RENEWALS WENT, WITH THE EVIDENCE UNDER THE LARGEST DROP. Until
+             2026-09-04 the feed carried this table and the page rendered only the summary
+             sentence, so the reader met a CAUSE and never the counts it was derived from -- and
+             the cause was wrong for five days (it named a missing product label; the run said
+             `svt`) with nothing on the page a reader could have checked it against. The
+             per-product rows are printed under the product-gate row for exactly that reason: a
+             sentence a reader cannot check is a sentence nobody catches. */
+          + ((dec.why_the_rest_were_not_priced || []).length
+              ? '<p style="margin:8px 0 4px;font-size:11.5px;"><strong>Where the '
+                + esc((dec.why_the_rest_were_not_priced || [])
+                        .reduce(function (t, e) { return t + e.count; }, 0))
+                + " unpriced renewals went.</strong></p>"
+                + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+                + 'margin:0 0 8px;border-collapse:collapse;"><tr>'
+                + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Stopped "
+                + "at</th>"
+                + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Renewals"
+                + "</th>"
+                + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">What that is</th>"
+                + "</tr>"
+                + dec.why_the_rest_were_not_priced.map(function (e) {
+                    var row = "<tr><td style=\"padding:1px 10px 1px 0;\">" + esc(e.stage)
+                      + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+                      + esc(e.count.toLocaleString())
+                      + "</td><td style=\"padding:1px 0;\">"
+                      + esc((e.exclusion_class || "").replace(/_/g, " ")) + "</td></tr>";
+                    /* THE PER-PRODUCT ROWS, indented under their stage. Only the product gate
+                       carries them; every other stage's cause is the stage itself. */
+                    (e.by_tariff_type || []).forEach(function (p) {
+                      row += "<tr><td style=\"padding:1px 10px 1px 12px;opacity:.8;\">&mdash; `"
+                        + esc(p.tariff_type) + "`</td>"
+                        + "<td style=\"text-align:right;padding:1px 10px 1px 0;opacity:.8;\">"
+                        + esc(p.count.toLocaleString()) + "</td>"
+                        + "<td style=\"padding:1px 0;opacity:.8;\">"
+                        + (p.is_a_defect === true ? "our defect"
+                            : p.is_a_defect === false ? "the world's product mix"
+                            : "NOT ESTABLISHED") + "</td></tr>";
+                    });
+                    return row;
+                  }).join("")
+                + "</table></div>"
+                /* THE CAUSE UNDER THE LARGEST DROP, in full, beside the counts it comes from. */
+                + (function () {
+                    var gate = dec.why_the_rest_were_not_priced.filter(function (e) {
+                      return e.stage === "product_not_upliftable"; })[0];
+                    return gate ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                      + prose(gate.why) + "</p>" : "";
+                  }())
+              : "")
           // WHOSE customers those decisions are. The claim this whole page exists to support is
           // that the advantage comes from inference over the customers the method FINDS, and
           // until 2026-08-30 the page said how MANY decisions there were and never whose. Amber

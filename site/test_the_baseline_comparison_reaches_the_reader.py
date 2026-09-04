@@ -366,25 +366,51 @@ def test_the_coverage_denominator_is_renewals_and_not_accounts(live):
     assert dec["book_accounts_settled"] != offered
 
 
-def test_the_page_says_the_small_surface_is_design_as_well_as_plumbing(live):
-    """The note used to attribute the whole small surface to ONE eligibility guard and conclude
-    it was "small by PLUMBING, not by design". The funnel says 755 of the 1,184 unpriced renewals
-    are deliberate scope -- term 0 and gas -- and 429 are the product-label gap.
+def test_the_page_never_attributes_the_small_surface_to_one_cause(live):
+    """The note used to attribute the whole small surface to ONE eligibility guard.
 
-    Fires on: reverting to a single-cause attribution, which understates the arm's designed scope
-    by roughly two to one.
+    RE-KEYED 2026-09-04, and the re-keying is the finding. This asserted the literal sentence
+    "small by design AND by plumbing" -- a two-bucket attribution over a three-class subject. On
+    the run it was green against, the "plumbing" bucket was 1,223 SVT households and 12 arm
+    declines: not one line of plumbing. The control was pinned to an ANSWER, so it stayed green
+    while the answer went false, and it would have gone RED the day the page started telling the
+    truth. That is the exact backwards shape CLAUDE.md names.
+
+    Keyed now to the property: every non-empty exclusion class the feed reports must reach the
+    reader with its own count, and the page must never state one cause for the whole remainder.
+
+    Fires on: collapsing the classes back to a single attribution, and on a class reaching the
+    feed but not the rendered page.
     """
     dec = _live_feed()["decisions"]
     exclusions = dec.get("why_the_rest_were_not_priced") or []
     assert len(exclusions) >= 3, (
         "fewer than three exclusion stages reached the feed, so the attribution below is being "
         "made on a population that has emptied: {}".format(exclusions))
-    assert any(e["by_design"] for e in exclusions) and any(not e["by_design"] for e in exclusions), (
-        "every exclusion is classified the same way -- the split this note exists to state has "
-        "collapsed")
+    classes = {e["exclusion_class"] for e in exclusions}
+    assert len(classes) >= 2, (
+        "every exclusion is in one class -- the split this note exists to state has collapsed: "
+        "{}".format(sorted(classes)))
     rendered = live["arms-decisions"]
-    assert "small by design AND by plumbing" in rendered, (
-        "the page attributes the small decision surface to one cause again")
+    # EVERY CLASS, WITH ITS COUNT, IN FRONT OF THE READER. A class that reaches the feed and stops
+    # at the JSON is the failure this page has shipped twice.
+    by_class = {}
+    for e in exclusions:
+        by_class[e["exclusion_class"]] = by_class.get(e["exclusion_class"], 0) + e["count"]
+    for name, count in by_class.items():
+        assert "{:,}".format(count) in rendered, (
+            "the {} class holds {:,} renewals and that count never reaches the rendered page"
+            .format(name, count))
+    # AND THE EVIDENCE UNDER THE LARGEST DROP. The product gate's cause was wrong for five days
+    # and nothing on the page let a reader check it, because the per-product counts stopped at
+    # the feed. They must be rendered.
+    gate = [e for e in exclusions if e["stage"] == "product_not_upliftable"]
+    if gate and gate[0].get("by_tariff_type"):
+        for product in gate[0]["by_tariff_type"]:
+            assert product["tariff_type"] in rendered, (
+                "the product gate refused {:,} renewals on `{}` and the page names the cause "
+                "without ever naming the product".format(
+                    product["count"], product["tariff_type"]))
 
 
 # ── the bound: what the world could do about either arm ──────────────────────────────────────
