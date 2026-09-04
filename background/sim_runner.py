@@ -588,12 +588,21 @@ def _record_publish_gate_outcome(marker, rc, *, kind=None):
     Imported lazily, not at module scope, for the same reason
     background_worker.py does: importing the publish pipeline at sim_runner
     import time drags in the whole reporting stack. Swallows everything -- a
-    monitoring failure must never break the run loop it monitors."""
+    monitoring failure must never break the run loop it monitors.
+
+    AND THIS IS WHERE THE OUTCOME WAS OBSERVED BEING LOST (2026-09-04 15:48Z). The lazy import
+    opens files from a tree three lanes write concurrently and caught one mid-write:
+    *"publish-gate outcome recording failed (non-fatal): cannot import name
+    `recorded_instant_seconds` from `background.episode_monotonic`"*. Non-fatal was true of this
+    loop and false of the measurement -- the failure being routed never reached the detector, so
+    the episode read one failure short of what happened. `background/publish_outcome_route.py`
+    carries the incident, the bounded retry, and the reason it is one module rather than a twin of
+    this body in `background_worker`."""
     try:
-        from background import process_run_complete as prc
-        return prc.record_publish_gate_outcome(marker, rc, kind=kind)
-    except Exception as exc:
-        log('publish-gate outcome recording failed (non-fatal): {}'.format(exc))
+        from background.publish_outcome_route import route
+        return route(marker, rc, kind=kind, log=log)
+    except Exception as exc:  # noqa: BLE001 -- the last resort if the ROUTE is what is torn
+        log('publish-gate outcome LOST (the route could not be reached): {}'.format(exc))
         return None
 
 

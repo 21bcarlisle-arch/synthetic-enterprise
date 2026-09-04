@@ -109,6 +109,57 @@ the new base), or have it commit THROUGH `surgical_land`. Both touch the commit 
 wall, so it needs its own design and its own controls — it is not a bounded-tick change, and it is
 not this turn's.
 
+---
+
+## The stand-down is broken, on the REFUSAL side (2026-09-04, delivery seat, later the same day)
+
+*Recorded beside the paragraph above rather than replacing it: what that paragraph declined is
+half of what landed, and the half it did not name is the more interesting one.*
+
+The judgement above framed the choice as "retry the commit" versus "commit through
+`surgical_land`". **Both are wrong first moves, because they answer the race and the race is not
+what the publisher meets.** What the publisher meets is a REFUSAL — `BEHIND_ORIGIN`, evaluated
+before a single path is staged — and by the time it fires, the state it refuses on is almost always
+mechanically closable. Measured at four separate moments this afternoon: `ahead == 0` every time.
+Nothing of ours to land, so nothing to merge and nothing to judge: only a ref to move.
+
+So `git_commit_push` now calls `_advance_to_origin_or_say_why()` when the refusal fires, and
+**re-reads the refusal afterwards** rather than assuming the act had its effect — the rule
+`origin_reconcile` paid 29 empty merges to learn. The advance is `git merge --ff-only origin/main`
+under `tree_lock`, and only when `commits_ahead == 0`.
+
+**Why that is not the merge `_divergence_refusal` argues against, which was the whole question.**
+Its two objections are objections to a *merge*:
+
+* *"a gated merge takes longer than a publish cycle"* — a fast-forward creates no commit and no new
+  tree. It moves HEAD onto a commit already on origin, gated by whoever landed it. ~1s, against a
+  672s cycle.
+* *"a daemon that merged unattended would be deciding to move other people's work"* — a
+  fast-forward cannot sweep anything into a commit because it makes none, and git refuses it
+  outright when an incoming path is modified or untracked here. **Git's own refusal is the guard**,
+  exactly as this same tree already relies on it in `origin_reconcile`'s `ahead == 0` branch.
+
+`test_the_publish_paths_refusal_is_untouched` stays green and stays right: the ACT lives in a new
+function and `_divergence_refusal` is still a pure read. That control is keyed to the property, so
+it did not have to move.
+
+**What this does NOT close, said plainly.** The push-side race is untouched. Origin can still move
+during the commit's own ~660s hook chain and reject the push, and that is the next increment —
+`surgical_land`'s bounded re-gate, at the push rather than at the refusal. The prediction that
+separates the two is pre-registered in
+`SEAT_PREREGISTRATION_WHETHER_A_MECHANICAL_ADVANCE_AT_THE_REFUSAL_LETS_A_DRAINED_QUEUE_CLOSE_ITS_EPISODE_2026-09-04.md`,
+including which result would refute this repair and which would merely locate the residue.
+
+The lossless-twin half — an untracked file byte-identical to origin's blob at that path — is
+**still the other lane's**, still handed to them, and still deliberately untouched here:
+`background/origin_reconcile.py` was uncommitted-modified in the shared tree while this was written.
+When the ff refuses on that cause, this repair correctly refuses too and says so in the evidence.
+
+Controls: `tests/background/test_a_publish_that_lost_the_race_closes_a_mechanical_fork_before_refusing.py`
+— twelve, real git repositories throughout (git's refusal IS the safety argument, so a stubbed
+runner would have been a tautology), one control over the whole partition so a function that
+advances nothing cannot pass, and six mutations run and fired.
+
 I also did not disposition the second live red
 (`test_self_clearing_alarm_census.py::test_every_live_hit_is_dispositioned`), for the same reason
 the previous seat did not: marking another lane's control benign to unblock my own commit is the

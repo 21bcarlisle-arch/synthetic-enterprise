@@ -120,12 +120,76 @@ def test_the_repairs_are_still_repairs_and_not_refusals():
 
 
 def test_the_two_doors_that_skip_the_loops_entirely_still_skip_them():
-    """SILENT. `episode_closed` and a non-Mapping prior return before either loop runs. The hoist
-    must not have lifted the refusal above them -- an evidenced close is the caller's assertion and
-    is allowed to write whatever it closed with."""
+    """SILENT. `episode_closed` and a prior that is not even a Mapping return before either loop
+    runs. The hoist must not have lifted the refusal above them -- an evidenced close is the
+    caller's assertion and is allowed to write whatever it closed with, and a state file that
+    parsed to a list is PRESENT AND UNREADABLE, which is data, which degrades.
+
+    `None` USED TO BE ASSERTED HERE AND IT DOES NOT BELONG (2026-09-04, fourth pass). Grouping it
+    with a non-Mapping prior made "the guard cannot read this" and "there is nothing to read" one
+    case, and this module turns on that difference everywhere else. It is now its own control
+    below, in the FIRES direction where it belongs."""
     assert guard_episode({"t": GOOD}, {"t": MISDECLARED},
                          since_fields=SINCE, episode_closed=True)["t"] == MISDECLARED
-    assert guard_episode(None, {"t": MISDECLARED}, since_fields=SINCE)["t"] == MISDECLARED
+    for unreadable in ("not-a-mapping", 17, [1, 2]):
+        assert guard_episode(unreadable, {"t": MISDECLARED},
+                             since_fields=SINCE)["t"] == MISDECLARED
+
+
+def test_no_state_file_at_all_is_the_coldest_start_and_is_still_type_checked():
+    """FIRES, and it is the run the whole finding above is named after.
+
+    The hoist went in at the top of the two LOOPS, and both loops sit below
+    `if not isinstance(prev, Mapping): return out` -- so `prev={}` raised and `prev=None` did not.
+    A missing KEY was covered; a missing FILE was not, and the missing file is the EARLIER state.
+
+    That is not a hypothetical shape. `sim_runner.record_run_outcome` passes `previous or None` and
+    `process_run_complete._write_publish_gate_state` passes `... if PUBLISH_GATE_STATE_FILE.exists()
+    else None`, so a field newly wired into either carrier meets the guard with `None` on its very
+    first write. `None` is ABSENT, not unreadable: nothing came off disk, so the proposal cannot be
+    an echo and the fail direction protects nothing by staying quiet."""
+    with pytest.raises(EpisodeFieldTypeError):
+        guard_episode(None, {"t": MISDECLARED}, since_fields=SINCE)
+    with pytest.raises(EpisodeFieldTypeError):
+        guard_episode(None, {"c": MISDECLARED}, streak_fields=STREAK)
+
+    # ...and the SILENT half in the same place, because a check that refused a cold first write
+    # outright would pass the two legs above and break every carrier's first run.
+    assert guard_episode(None, {"t": GOOD}, since_fields=SINCE)["t"] == GOOD
+    assert guard_episode(None, {"c": 1}, streak_fields=STREAK)["c"] == 1
+    assert guard_episode(None, {"t": None}, since_fields=SINCE)["t"] is None
+
+
+def test_the_two_carriers_that_pass_none_still_write_on_their_very_first_run(tmp_path, monkeypatch):
+    """WIRED, not just built -- and the leg that would catch the change above having broken
+    production rather than repaired it.
+
+    `sim_runner` and `process_run_complete` are the two live call sites that hand this guard `None`
+    rather than `{}`, and they do it on the run that has no state file. A widened refusal is worth
+    nothing if it fires there, so both are driven with no state file at all and each must persist a
+    state its own alarm can read."""
+    import json
+
+    import background.action_needed as an
+    import background.process_run_complete as prc
+    from background import sim_runner
+
+    gate_state = tmp_path / ".publish_gate_state.json"
+    monkeypatch.setattr(prc, "PUBLISH_GATE_STATE_FILE", gate_state)
+    monkeypatch.setattr(prc, "STAGING_DIR", tmp_path)
+    monkeypatch.setattr(prc, "GATE_BLOCKING_TESTS_FILE", tmp_path / ".blocking.json")
+    monkeypatch.setattr(prc, "WEDGE_SUSPECT_HIT_RATE_FILE", tmp_path / ".hit_rate.json")
+    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "prc_log.md")
+    monkeypatch.setattr(an, "REGISTER_PATH", tmp_path / "action_needed_register.json")
+    assert not gate_state.exists(), "the point of this leg is that the file does not exist yet"
+    prc.record_publish_gate_failure("cold", rc=1, now=GOOD, send_ntfy_fn=lambda m: "id")
+    assert json.loads(gate_state.read_text())["wedge_since"] == GOOD
+
+    producer_state = tmp_path / "producer.json"
+    monkeypatch.setattr(sim_runner, "LOG_FILE", tmp_path / "sim_log.md")
+    st = sim_runner.record_run_outcome(ok=False, detail="cold", state_path=producer_state,
+                                       now=GOOD)
+    assert st["first_failure_ts"] == GOOD and st["consecutive_failures"] == 1
 
 
 def test_an_undeclared_field_is_never_type_checked():

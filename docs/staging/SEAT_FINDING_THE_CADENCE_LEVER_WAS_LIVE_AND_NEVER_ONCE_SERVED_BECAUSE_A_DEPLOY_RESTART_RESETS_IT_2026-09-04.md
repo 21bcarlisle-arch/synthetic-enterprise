@@ -112,6 +112,29 @@ which is precisely the waste the producer-side finding measured, moved downstrea
    tree, and the file's mtime is 15:48Z — another lane was rewriting it as the daemon imported
    it. A torn read of a source file under a live daemon, not a broken landing. It means
    publish-gate outcome recording is silently skipped whenever it happens.
+
+   **ACTIONED 2026-09-04, delivery seat, and the observation above understated it.** "Non-fatal"
+   is true of the run loop and false of the measurement: the outcome being routed is usually a
+   FAILURE, so one that never arrives makes the episode read one failure SHORT of what happened —
+   the under-reporting `episode_monotonic` exists to prevent, arriving by the one route that guard
+   cannot see, because the guard is downstream of the import that failed.
+
+   The repair is `background/publish_outcome_route.py`: a bounded retry (two attempts, 1s apart)
+   over the torn import, keyed to `ImportError`/`SyntaxError` — the two shapes a half-written
+   module takes — and to nothing else, because a detector that raises on real state will raise
+   again a second later. A lost record is now logged as **LOST**, naming its consequence, rather
+   than as "skipped" or "non-fatal", both of which read benign.
+
+   **The interesting part is that the first draft of the fix was in the wrong file.** There were
+   two byte-for-byte twins of this wrapper — `background_worker._record_publish_gate_outcome` and
+   `sim_runner._record_publish_gate_outcome` — and I repaired the worker, which is *not* where the
+   loss was observed. One requirement, two implementations, fixed in one and live in the other:
+   this project's most expensive recurring shape, reproduced inside the repair for it, and caught
+   only by re-reading the log line quoted above against the code I had just changed. Hence one
+   module and a control that fails asymmetrically — mutate either wrapper back and that one's leg
+   goes red while the other stays green. Controls:
+   `tests/background/test_a_torn_import_lost_a_publish_outcome_silently.py`, twelve, six mutations
+   run and fired.
 2. **The refuted "TWO full suite runs" note still stands at `process_run_complete.py:301`.** The
    correction landed at line 370 for a *different* constant in the same file; the original claim
    was left uncorrected beside it. Owed, small, and deliberately not smuggled into this commit.

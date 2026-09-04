@@ -632,12 +632,21 @@ def _record_publish_gate_outcome(marker, rc, *, kind=None):
     path feeds the same detector. This sweep was the only caller, which left
     the detector blind to sim_runner.py -- the path that actually publishes in
     the steady state -- for ~4 days. This wrapper stays because it is the name
-    tests/background/test_background_worker.py pins."""
+    tests/background/test_background_worker.py pins.
+
+    AND THE ROUTE ITSELF NOW LIVES ONCE TOO (2026-09-04). `sim_runner` carried a byte-for-byte
+    twin of the body below, and the torn-import loss observed at 15:48Z happened in THAT one. A
+    repair written here would have read as done and left the observed instance live -- the exact
+    shape CLAUDE.md names as this project's most expensive. See
+    `background/publish_outcome_route.py` for the incident and why the retry is bounded at two."""
     try:
-        from background import process_run_complete as prc
-        prc.record_publish_gate_outcome(marker, rc, kind=kind)
-    except Exception as exc:
-        log(f"publish-gate outcome recording skipped for {marker.name}: {exc}")
+        from background.publish_outcome_route import route
+        route(marker, rc, kind=kind,
+              log=lambda m: log(f"{m} (marker {marker.name})"))
+    except Exception as exc:  # noqa: BLE001 -- a monitoring failure may never break the sweep
+        # The last resort, for the vanishing case where the ROUTE is the file being written. It
+        # is a leaf module importing only `time`, so this is much narrower than what it replaced.
+        log(f"publish-gate outcome LOST for {marker.name} (the route could not be reached): {exc}")
 
 
 def main():
