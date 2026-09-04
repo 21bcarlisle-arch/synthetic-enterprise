@@ -187,15 +187,18 @@ def sent_ids_unreadable() -> bool:
 def was_sent_by_us(msg_id: str | None) -> bool:
     """True if `msg_id` was recorded by a prior `send_ntfy()` call.
 
-    THE ANSWER FOR AN UNREADABLE FILE IS UNCHANGED AND THE JUDGEMENT IS OPEN, stated here rather
-    than buried: absent and unreadable both give False, and the two are NOT the same fact. Absent
-    means nothing was ever sent, so False is simply true. Unreadable means we cannot tell whose a
-    message is, and False there says "not ours" -- which is how `ntfy_responder` comes to capture
-    our own outbound as INBOUND and stage a bogus `from_rich`, a message carrying the director's
-    authority that he never sent. The other answer is no better by default: True would suppress a
-    real message from him. Which way this should fail is a per-control decision about the RESPONDER,
-    not a detail of this loader, so it is handed off with the measurement rather than guessed here.
-    `sent_ids_unreadable()` makes the third state askable in the meantime.
+    THE ANSWER FOR AN UNREADABLE FILE IS STILL False, AND THE JUDGEMENT IS NOW SETTLED ELSEWHERE
+    (2026-09-04). Absent and unreadable are NOT the same fact. Absent means nothing was ever sent,
+    so False is simply true. Unreadable means we cannot tell whose a message is, and neither
+    boolean is honest there: False says "not ours", which is how `ntfy_responder` came to capture
+    our own outbound as INBOUND and stage a bogus `from_rich` carrying the director's authority he
+    never gave; True would suppress a real message from him. The resolution is that the question is
+    not this loader's to answer -- it stays a plain "is this id in the record", and the RESPONDER
+    asks `sent_ids_unreadable()` FIRST and refuses to classify at all, quarantining the message
+    unstaged and unanswered. See `ntfy_responder.check_once`'s provenance branch and
+    tests/background/test_the_responder_refuses_to_guess_whose_a_message_is.py. Do not "fix" this
+    to return True: that would move the decision back inside a loader and silently re-arm the
+    other failure for every future caller.
 
     What IS fixed: a non-list prior no longer decides this by accident. `json.loads` accepts
     `"abc"`, and `msg_id in "abc"` is a SUBSTRING test, so a corrupt file could answer True for an

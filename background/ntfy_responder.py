@@ -90,7 +90,7 @@ from background.agent_status import update_agent_status  # noqa: E402
 # this, on the first full-suite run after the guard was wired in.
 from background import inbound_secret_redaction  # noqa: E402
 from background.notify import notify  # noqa: E402
-from background.ntfy_utils import NTFY_AUTH_TOKEN, NTFY_TOPIC, was_sent_by_us  # noqa: E402
+from background.ntfy_utils import NTFY_AUTH_TOKEN, NTFY_TOPIC, sent_ids_unreadable, was_sent_by_us  # noqa: E402,E501
 
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
 
@@ -510,10 +510,31 @@ def _register_inbound_and_detect_flood(
     return False, None
 
 
-def _quarantine(message: str, reason: str) -> Path:
-    """Preserve a flood message in docs/staging/quarantine/ (NOT the scanned
-    root). Fail-safe: nothing is ever dropped -- this file is the durable
-    record so a genuine message caught in a flood tail can be recovered."""
+#: Why a message was withheld from the scanned staging root. The guard that fires names itself,
+#: because "QUARANTINED" on its own sends the reader to the flood guard whatever the cause.
+_QUARANTINE_KINDS = {
+    "flood": (
+        "flood guard",
+        "The responder detected a machine-cadence flood and withheld this "
+        "message from the scanned staging root. Nothing is dropped -- this file "
+        "preserves the content for manual review.",
+    ),
+    "provenance": (
+        "provenance unknown",
+        "The sent-ids record EXISTS and cannot be read, so the responder cannot tell its own "
+        "outbound from an inbound steer. Staging it would mint a `from_rich` carrying the "
+        "director's authority that he may never have sent; dropping it would lose a real one. "
+        "Neither is acceptable, so it is preserved here unstaged and unanswered. The record "
+        "rebuilds itself on the next outgoing send (`ntfy_utils.record_sent_id` moves the "
+        "unreadable bytes aside), so this state is bounded, not permanent.",
+    ),
+}
+
+
+def _quarantine(message: str, reason: str, kind: str = "flood") -> Path:
+    """Preserve a message in docs/staging/quarantine/ (NOT the scanned root). Fail-safe: nothing
+    is ever dropped -- this file is the durable record so a genuine message caught by a guard can
+    be recovered. `kind` selects the heading and the explanation; see `_QUARANTINE_KINDS`."""
     qdir = _quarantine_dir()
     qdir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -524,12 +545,11 @@ def _quarantine(message: str, reason: str) -> Path:
     body, families = inbound_secret_redaction.redact(message)
     if families:
         inbound_secret_redaction.preserve_raw(message, ts)
+    heading, explanation = _QUARANTINE_KINDS[kind]
     path.write_text(
-        "# QUARANTINED inbound NTFY message (flood guard)\n\n"
+        f"# QUARANTINED inbound NTFY message ({heading})\n\n"
         f"Reason: {reason}\n\n"
-        "The responder detected a machine-cadence flood and withheld this "
-        "message from the scanned staging root. Nothing is dropped -- this file "
-        "preserves the content for manual review.\n\n"
+        f"{explanation}\n\n"
         + (f"> REDACTED: {len(families)} credential-shaped string(s) "
            f"({', '.join(sorted(set(families)))}); raw message out of tree.\n\n"
            if families else "")
@@ -594,11 +614,48 @@ def check_once(since: float, seen_hashes: list[str]) -> tuple[float, list[str]]:
             continue
         latest = max(latest, msg_time)
 
-        if was_sent_by_us(record.get("id")):
-            continue
-
         message = record.get("message", "").strip()
         if not message:
+            continue
+
+        # THE JUDGEMENT `ntfy_utils.was_sent_by_us` HANDED OFF, SETTLED HERE (2026-09-04).
+        # It asks "is this id in the record"; when the record exists and cannot be read there is
+        # no honest boolean, and BOTH answers are defects of this responder rather than of that
+        # loader. False stages our own outbound as a `from_rich` -- direction carrying the
+        # director's authority that he never gave. True suppresses a real steer from him. So the
+        # responder refuses to answer instead: preserve, do not stage, do not reply. Not replying
+        # is load-bearing twice over -- it is what keeps a misread echo from feeding itself.
+        # Ahead of `was_sent_by_us` deliberately: below it, an unreadable record has already
+        # answered False and the message is past the only place that could catch it.
+        if sent_ids_unreadable():
+            qpath = _quarantine(
+                message,
+                "sent-ids record present but unreadable -- cannot tell our own outbound from "
+                "an inbound steer",
+                kind="provenance",
+            )
+            rate_state = _load_rate_state()
+            now_ts = time.time()
+            # Stamped on the ATTEMPT and on its own key. Sharing the flood guard's `last_alert`
+            # would let either guard's alert silence the other's first-ever one.
+            if now_ts - rate_state.get("last_provenance_alert", 0) >= FLOOD_ALERT_COOLDOWN_SECONDS:
+                rate_state["last_provenance_alert"] = now_ts
+                _save_rate_state(rate_state)
+                notify(
+                    "[PROVENANCE GUARD] The NTFY sent-ids record is unreadable, so inbound "
+                    "cannot be told from our own echo. Messages preserved in "
+                    "docs/staging/quarantine/, withheld from the scanned staging root and NOT "
+                    "answered. It clears itself on the next outgoing send. No further alerts "
+                    f"for {FLOOD_ALERT_COOLDOWN_SECONDS // 60}min.",
+                    kind="real_alarm",
+                    headers={"X-Priority": "4", "X-Tags": "rotating_light"},
+                )
+            else:
+                _save_rate_state(rate_state)
+            log(f"Quarantined message {record.get('id')!r} of unknown provenance -> {qpath.name}")
+            continue
+
+        if was_sent_by_us(record.get("id")):
             continue
 
         # UNTRUSTED-NOISE DROP (2026-07-29, DIRECTOR_RULING_FIX_DOUBLE_MESSAGING):
