@@ -44,6 +44,7 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 
 import pytest
 
@@ -282,8 +283,23 @@ def test_every_real_census_hit_is_covered():
     # `publish_provenance.json` guards itself with a once-only stamp (`record_paused` writes only
     # `if not state.get('paused_since')`) and has no cold-start reset to lose.
     guarded_elsewhere = {"publish_provenance.json"}
+    # Swept by a SIBLING control rather than here, and the citation is checked below rather than
+    # taken on trust. `.weekly_rhythm.json` became a `real` row on 2026-09-04 when the carriers the
+    # census had never dispositioned were swept: its `due_on` is an episode start and `days_late`
+    # is read off it, and an unreadable baton bootstrapped over an open, overdue step. It is not
+    # probed by `_build` above because its prior is not a `{counter, since}` state at all -- the
+    # generic probe would have to be taught a second shape to reach it, and a probe bent to fit two
+    # records grades neither.
+    covered_by_a_sibling = {".weekly_rhythm.json"}
+    sibling = (
+        Path(__file__).parent / "test_undispositioned_carriers_absent_vs_unreadable.py"
+    )
+    assert sibling.is_file(), (
+        f"{sorted(covered_by_a_sibling)} is exempted here on the word of {sibling.name}, and that "
+        "file is not on disk -- an exemption citing a control that does not exist is the prose "
+        "inventory this rung exists to refuse")
 
-    uncovered = real - covered - already_distinguishing - guarded_elsewhere
+    uncovered = real - covered - already_distinguishing - guarded_elsewhere - covered_by_a_sibling
     assert not uncovered, (
         f"census `real` hits with no absent-vs-unreadable coverage: {sorted(uncovered)}. "
         "A new carrier of this class must either be probed above or named with its reason."
