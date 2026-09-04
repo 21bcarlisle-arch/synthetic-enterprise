@@ -179,17 +179,46 @@ def test_an_unreadable_proc_restarts_nothing(tmp_path):
 
 # ── the turn boundary ───────────────────────────────────────────────────────────────────────────
 
-def test_a_unit_still_holding_a_session_process_is_busy(monkeypatch):
+def test_hosting_a_session_does_not_by_itself_make_a_unit_busy(monkeypatch, tmp_path):
+    """THE CORRECTION, kept as a control so it cannot come back.
+
+    The first version of `unit_has_working_seat` returned BUSY whenever the unit was in the
+    session-hosting set. But hosting is what makes a unit DEFERRED, and a hosted unit holds its
+    tmux server permanently — between turns as much as during them. So the condition was always
+    true, the deferred branch was unreachable, and the seat host would have sat stale forever while
+    the log printed "DEFERRED" every ten minutes: a permanent no-op wearing caution's clothes.
+
+    MUTATION: reinstate `if unit in hosting: return True` and this fires.
+
+    Hosting decides WHICH ROUTE; busy decides WHEN that route fires. They are different facts."""
     monkeypatch.setattr(dr, "session_hosting_units",
                         lambda *a, **k: (frozenset({"worker-seat-manager.service"}), None))
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True)
+    hb = obs / ".seat_heartbeat.json"
+    hb.write_text("{}")
+    import os
+    old_t = os.stat(hb).st_mtime - (dr._SEAT_IDLE_S + 60)
+    os.utime(hb, (old_t, old_t))
+    monkeypatch.setattr(dr, "_REPO", tmp_path)
+
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
-    assert busy and "still inside" in why
+    assert not busy, "a session host with a cold heartbeat is a turn boundary, not busy: " + why
+
+
+def test_a_job_in_flight_makes_the_seat_host_busy_even_with_a_cold_heartbeat(monkeypatch, tmp_path):
+    """The other half: a cold heartbeat is not enough if the unit is actually running something."""
+    monkeypatch.setattr(dr, "unit_is_mid_work",
+                        lambda unit: (True, "3 process(es) in the cgroup, so a job is in flight"))
+    busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
+    assert busy and "in flight" in why
 
 
 def test_an_unreadable_heartbeat_reads_as_busy(monkeypatch, tmp_path):
     """MUTATION: treat an unreadable heartbeat as idle and this fires. 'I could not tell' must
     never authorise a restart that costs a turn."""
-    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
     monkeypatch.setattr(dr, "_REPO", tmp_path)  # no heartbeat file exists under here
     busy, why = dr.unit_has_working_seat("worker-seat-manager.service")
     assert busy and "unreadable" in why
@@ -197,7 +226,7 @@ def test_an_unreadable_heartbeat_reads_as_busy(monkeypatch, tmp_path):
 
 def test_a_quiet_unit_with_a_cold_heartbeat_is_a_turn_boundary(monkeypatch, tmp_path):
     """The only path that lets a session host restart. Both signals must say idle."""
-    monkeypatch.setattr(dr, "session_hosting_units", lambda *a, **k: (frozenset(), None))
+    monkeypatch.setattr(dr, "unit_is_mid_work", lambda unit: (False, None))
     obs = tmp_path / "docs" / "observability"
     obs.mkdir(parents=True)
     hb = obs / ".seat_heartbeat.json"

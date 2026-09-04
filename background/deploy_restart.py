@@ -360,19 +360,36 @@ def restart_plan(report: dict, self_unit: str | None = None) -> dict:
 def unit_has_working_seat(unit: str, drift_free: bool = False) -> tuple[bool, str]:
     """Is a seat MID-WORK in this unit right now? `(busy, reason)`, fail-closed on doubt.
 
-    THE TURN BOUNDARY, observed rather than announced. Two independent signals, and BUSY wins on
-    either, because the cost of restarting mid-work is a lost turn and the cost of waiting is one
-    more five-minute tick:
-      * a live interactive-session process still in the unit, and
+    THE TURN BOUNDARY, observed rather than announced.
+
+    CORRECTED WITHIN THE HOUR OF FIRST LANDING, and the first version could never have fired. It
+    returned BUSY whenever the unit was in the session-hosting set — but being in that set is what
+    makes a unit DEFERRED in the first place, and a hosted unit holds its tmux server and seat
+    process permanently, between turns as much as during them. So the condition was always true,
+    the deferred branch was unreachable, and `worker-seat-manager` would have sat stale forever
+    while the log said "DEFERRED" every ten minutes. That is a permanent no-op wearing caution's
+    clothes — the same shape this module refuses for viewers a few lines up, made by the same hand
+    on the same afternoon.
+
+    HOSTING AND BUSY ARE DIFFERENT FACTS. Hosting decides WHICH ROUTE a unit takes (defer, never
+    restart-on-sight). Busy decides WHEN the deferred route fires. Conflating them collapses the
+    second into the first.
+
+    The signals that do mean busy, BUSY winning on any of them, because a lost turn costs more
+    than one more ten-minute tick:
+      * a job in flight in the unit's cgroup, and
       * a seat heartbeat younger than `_SEAT_IDLE_S`.
     An unreadable heartbeat reads as BUSY. "I could not tell" must never authorise the restart.
+
+    THE HEARTBEAT IS THE RIGHT CLOCK, checked rather than assumed: it carries the live seat's own
+    `session_id` and `tool_count` and is rewritten on every tool call, so it is warm exactly while
+    a seat is working and cold exactly between turns. And a restart here is not a decapitation —
+    `worker_seat.py` is a seed-by-id create-or-resume manager whose stated job is to bring the seat
+    back, which is why this is a turn boundary rather than a shutdown.
     """
-    hosting, unresolved = session_hosting_units()
-    if unresolved:
-        return True, "cannot resolve the session set ({}), so the unit is treated as busy".format(
-            unresolved)
-    if unit in hosting:
-        return True, "a live interactive-session process is still inside {}".format(unit)
+    mid_work, why = unit_is_mid_work(unit)
+    if mid_work:
+        return True, why or "a job is in flight"
     heartbeat = _REPO / "docs" / "observability" / ".seat_heartbeat.json"
     try:
         age = time.time() - heartbeat.stat().st_mtime
