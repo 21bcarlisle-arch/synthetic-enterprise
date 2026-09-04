@@ -79,6 +79,30 @@ PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 #: and that failure is still caught at eight minutes. What a tight window buys is false reds on
 #: ordinary variance, and a control that cries wolf gets bypassed, which costs more than the
 #: minutes. Widen the clock, never the claim.
+#:
+#: MEASURED AGAIN 2026-09-04, from the 60 most recent Cloudflare Pages runs (2026-09-01 22:28
+#: to 2026-09-04 10:00) -- 50 green, 10 red -- and the 462 `serving the deployed bytes after Ns`
+#: observations those runs printed, which is the distribution the note at `main()` asked the next
+#: person to collect. Three things it settles, and the third is why ATTEMPTS is NOT touched here:
+#:
+#:   * The UPLOAD has never failed. In all 10 red runs `wrangler pages deploy` exited success and
+#:     only this assertion failed. Every red on the deploy path for three days has been a
+#:     verification failure, not a publication failure.
+#:   * Direct file routes are fast and the 8-minute clock is 3.8x more than they have ever
+#:     needed: min 0s, median 25s, p90 91s, max 126s across all 462 observations.
+#:   * A directory URL has NEVER ONCE been confirmed -- 0 of those 462 observations is a
+#:     `/`-terminated URL. Every push that changed a `site/**/index.html` went red (4 of 4 where
+#:     the head commit shows the change directly; the other 6 reds are merge commits whose push
+#:     RANGE contained one, confirmed for `ded79e205` from its own `DEPLOY_BASE_REF`), and not
+#:     one of the 50 green runs changed a directory-index page at all.
+#:
+#: So the 2026-08-20 remedy -- widen the clock from 2m17s to 8m -- did not work, and the reason
+#: it cannot be fixed by widening it again HERE is that there is no upper bound to widen TO: a
+#: clock has to be set from a distribution, and the distribution of successful directory-URL
+#: promotions is EMPTY. Choosing a bigger number would be a number picked because a number was
+#: needed. What is missing is an observation of a directory URL going live at all, so what this
+#: file does instead is make the refusal NAME which of the two worlds it is in (below), so the
+#: next red carries the evidence a bound could be set from.
 ATTEMPTS = 32
 GAP_SECONDS = 15
 
@@ -126,6 +150,49 @@ def url_for(path: str) -> str | None:
     return f"{HOST}/{rel}"
 
 
+def bytes_at(ref: str, path: str) -> bytes | None:
+    """The committed bytes of `path` at `ref`, or None if that cannot be read.
+
+    None is the honest answer for a ref this checkout does not have (a force-push, a first
+    push with no base) and it is NOT treated as "unchanged" anywhere -- see `classify`.
+    """
+    out = subprocess.run(
+        ["git", "show", f"{ref}:{path}"], cwd=PROJECT, capture_output=True,
+    )
+    return out.stdout if out.returncode == 0 else None
+
+
+def classify(url: str, want: str, path: str, base: str | None) -> str:
+    """Why is this URL still not the deployed bytes? Name it, rather than implying one.
+
+    A timeout collapses two worlds that need different responses, and printing one sentence
+    for both is what made ten red deploys unreadable:
+
+      * REPLACED -- the edge is serving exactly the bytes this push overwrote. That is the
+        defect this control was built for: the deploy landed and readers still have the old
+        page. It is a statement about the reader, and it is actionable immediately.
+      * UNCONFIRMED -- the edge is serving neither the new bytes nor the old ones, or could
+        not be read at all. This control cannot tell what happened, and saying so is a
+        result. On 2026-09-04 every one of the ten reds was of this kind, on a directory
+        URL, while the bytes were in fact correct when checked by hand minutes later.
+
+    The exit code does NOT depend on which one it is: an unproven deploy stays red either
+    way. Only the sentence changes, because a refusal that names its reason is how the
+    refusal itself gets found to be wrong -- and this one was.
+    """
+    try:
+        got = hashlib.sha256(fetch(url, "classify")).hexdigest()
+    except (urllib.error.URLError, OSError) as exc:
+        return f"UNCONFIRMED (the edge did not answer: {exc})"
+    if got == want:
+        return "RESOLVED after the clock ran out -- the window is too short, not the deploy"
+    if base:
+        previous = bytes_at(base, path)
+        if previous is not None and hashlib.sha256(previous).hexdigest() == got:
+            return "REPLACED -- the edge is still serving the bytes this push overwrote"
+    return "UNCONFIRMED (serving neither the new bytes nor the ones this push overwrote)"
+
+
 def fetch(url: str, nonce: str) -> bytes:
     sep = "&" if "?" in url else "?"
     req = urllib.request.Request(
@@ -137,8 +204,10 @@ def fetch(url: str, nonce: str) -> bytes:
 
 
 def main() -> int:
-    rows = changed_files(os.environ.get("DEPLOY_BASE_REF"))
+    base = os.environ.get("DEPLOY_BASE_REF")
+    rows = changed_files(base)
     wanted: dict[str, str] = {}     # url -> expected sha256
+    source: dict[str, str] = {}     # url -> the repo path it came from, for `classify`
     deleted: list[str] = []
     for status, path in rows:
         url = url_for(path)
@@ -152,6 +221,7 @@ def main() -> int:
             continue
         with open(full, "rb") as fh:
             wanted[url] = hashlib.sha256(fh.read()).hexdigest()
+        source[url] = path
 
     if deleted:
         print(
@@ -190,10 +260,14 @@ def main() -> int:
         if attempt < ATTEMPTS - 1:
             time.sleep(GAP_SECONDS)
 
+    named = [
+        f"{url}\n    {classify(url, outstanding[url], source[url], base)}"
+        for url in sorted(outstanding)
+    ]
     print(
         f"FAILED: {len(outstanding)} of {len(wanted)} changed asset(s) are still not what\n"
         f"poesys.net serves after {ATTEMPTS * GAP_SECONDS // 60} minutes:\n  "
-        + "\n  ".join(sorted(outstanding)),
+        + "\n  ".join(named),
         file=sys.stderr,
     )
     return 1
