@@ -3065,17 +3065,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (148 active customers) under 12-month forward scenarios.
-Generated: 2026-09-04T08:05:52Z
+Live portfolio (147 active customers) under 12-month forward scenarios.
+Generated: 2026-09-04T15:36:47Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-10,322 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£20,645 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£32,623 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-9,712 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£19,424 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£30,677 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
