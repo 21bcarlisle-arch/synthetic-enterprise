@@ -1538,8 +1538,8 @@ def _svt_drift_belief() -> dict:
         }
 
     try:
-        route = (json.loads(SVT_BELIEF_GRADE.read_text(encoding="utf-8"))
-                 .get("per_route") or {}).get("svt_segment") or {}
+        grade = json.loads(SVT_BELIEF_GRADE.read_text(encoding="utf-8"))
+        route = (grade.get("per_route") or {}).get("svt_segment") or {}
     except Exception as exc:  # noqa: BLE001 - any failure here is an absence on the page, by design
         return _unavailable("the belief grade artefact could not be read ({}: {}). Rebuild it "
                             "with `python3 -m tools.measure_churn_heterogeneity "
@@ -1596,6 +1596,29 @@ def _svt_drift_belief() -> dict:
                             "itself, so the decomposition legs are not publishable on their own")
 
     belief = arms[0]
+    # WHICH WORLD THIS GRADE WAS MEASURED IN, and the verdict withheld when it cannot say.
+    #
+    # THE DEFECT THIS EXISTS FOR, found 2026-09-04 by walking the direction's second clause --
+    # "no bound on that page is unstamped" -- across every block the page renders rather than
+    # only the contrast legs it was drawn about. `contrast_bounds`, the error bar and all three
+    # arm legs were made to name their world on 2026-09-04; this block was not, and it is the
+    # one publishing a RESOLVED direction. `svt_drift_belief_grade.json` carries neither
+    # `world_identity` nor `generated_at` -- it can name neither a world nor a date -- and the
+    # page rendered `ceiling_clears` as a green "the signal is there" from it, two paragraphs
+    # under a headline saying no direction here may be read as resolved. Same contradiction
+    # `_seed_spreads` documents, one block over, and fail-OPEN in the flattering direction.
+    #
+    # THE CEILING'S VERDICT IS WITHHELD AND THE NUMBERS ARE KEPT, which is `_leg_in_this_world`'s
+    # grammar and not a new one: a figure and its interval are what was measured, and only the
+    # DIRECTION read off them needs a world to stand in. `None` and not `False` -- "we cannot say
+    # which world this was graded in" and "the ceiling does not clear" are different states, and
+    # collapsing them is the defect the last pass caught in its own first draft.
+    #
+    # THE ARMS' OWN `inside_the_null` IS DELIBERATELY LEFT ALONE. It resolves to "we cannot tell",
+    # which is the direction that cannot mislead upward, and the director's instruction is that
+    # those words appear whenever the reading sits inside its null. Withholding a refusal because
+    # its world is unknown would replace a caveat with a silence.
+    measured_in_world = ((grade.get("world_identity") or {}).get("digest"))
     return {
         "available": True,
         "why": None,
@@ -1605,7 +1628,19 @@ def _svt_drift_belief() -> dict:
         "ceiling": ceiling,
         "ceiling_null_low": _f((ceiling_offset.get("null") or {}).get("low")),
         "ceiling_null_high": _f((ceiling_offset.get("null") or {}).get("high")),
-        "ceiling_clears": ceiling_offset.get("clears_the_null"),
+        "ceiling_clears": (ceiling_offset.get("clears_the_null")
+                           if measured_in_world else None),
+        "measured_in_world": measured_in_world,
+        "ceiling_verdict_withheld_because": None if measured_in_world else (
+            "THIS GRADE NAMES NO WORLD. The artefact it is read from carries no departure-level "
+            "identity and no run date, so it cannot be shown to have been measured over the "
+            "world that is live now -- and the departure level is what decides how much signal "
+            "there is to find. The ceiling and its interval are published because they are what "
+            "was measured; whether the ceiling CLEARS that interval is a direction, and a "
+            "direction whose world is unknown is not stated here. Re-run "
+            "`python3 -m tools.measure_churn_heterogeneity "
+            "--out=docs/observability/svt_drift_belief_grade.json` from a tree that stamps "
+            "`world_identity` to restore it."),
         "arms": arms,
         # THE SENTENCE IS THE PAYLOAD, exactly as in `_inference_claim`. Derived from the belief
         # arm's own three numbers, so the prose and the table beside it cannot disagree.

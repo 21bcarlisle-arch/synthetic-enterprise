@@ -1175,10 +1175,25 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                   : Number(sv.ceiling_null_low).toFixed(4) + "&ndash;"
                     + Number(sv.ceiling_null_high).toFixed(4))
               + '</td><td style="padding:1px 0;white-space:nowrap;">'
-              + (sv.ceiling_clears
-                  ? '<span style="color:var(--green);">the signal is there</span>'
-                  : '<span style="color:var(--muted);">no signal established</span>')
+              /* THREE STATES, NOT TWO. `ceiling_clears` is null when the grade names no world,
+                 and the two-branch ternary that stood here rendered that as "no signal
+                 established" -- which reads as a measurement that came back empty when the truth
+                 is that the direction was never stated. "We graded it and it does not clear" and
+                 "we cannot say which world it was graded in" are different states and the page
+                 must not collapse them. Same shape as `arms-departure`'s verdict column. */
+              + (sv.ceiling_clears === null || sv.ceiling_clears === undefined
+                  ? '<span style="color:var(--amber);">world unknown &mdash; no verdict</span>'
+                  : sv.ceiling_clears
+                      ? '<span style="color:var(--green);">the signal is there</span>'
+                      : '<span style="color:var(--muted);">no signal established</span>')
               + "</td></tr>" + svRows + "</table></div>"
+              /* THE REASON THE VERDICT IS WITHHELD, BESIDE THE TABLE THAT WITHHOLDS IT. A cell
+                 reading "world unknown" that a reader cannot expand is a refusal without its
+                 reason, which is the shape CLAUDE.md names as worse than no figure. */
+              + (sv.ceiling_verdict_withheld_because
+                  ? '<p style="margin:4px 0 0;font-size:11px;color:var(--amber);">'
+                    + prose(sv.ceiling_verdict_withheld_because) + "</p>"
+                  : "")
               + '<p style="margin:4px 0 0;font-size:11px;color:var(--muted);">'
               + prose(sv.why_per_exposure_day || "") + " Measured on "
               + esc(String(sv.decisions)) + " decisions and " + esc(String(sv.departures))

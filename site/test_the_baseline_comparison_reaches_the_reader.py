@@ -2294,6 +2294,54 @@ def test_the_belief_reaches_the_reader_beside_its_ceiling_and_never_alone(live):
         "number")
 
 
+def test_a_ceiling_verdict_whose_world_is_unknown_is_withheld_where_the_reader_sees_it(live):
+    """A RESOLVED DIRECTION MAY NOT BE READ OFF AN ARTEFACT THAT NAMES NO WORLD.
+
+    THE DEFECT. `svt_drift_belief_grade.json` carries neither `world_identity` nor
+    `generated_at`. The page rendered `ceiling_clears` from it as a green "the signal is there"
+    -- a resolved direction -- two paragraphs under a headline stating that no direction on this
+    page may be read as resolved, because the departure level decides how much signal there is
+    to find and this grade cannot say which level it was measured over. Every other bound on
+    this page was made to name its world on 2026-09-04; this block was the one left, and it is
+    the one that RESOLVES rather than refuses, so it failed open in the flattering direction.
+
+    THE THIRD STATE IS THE POINT. Withholding the verdict as `False` would render "no signal
+    established", which reads as a grading that came back empty. It did not come back empty --
+    it was never placed in a world. The two must not collapse.
+
+    Fires on: restoring the two-branch ternary in `arms-svt-belief` (the null then renders as
+    "no signal established"); dropping `ceiling_verdict_withheld_because` from the render;
+    or publishing `clears_the_null` unconditionally in `_svt_drift_belief`.
+
+    WHAT THIS DELIBERATELY DOES NOT ASSERT, so nobody re-adds it: that the ceiling and its
+    interval survive the withholding. Blanking that row reds
+    `test_the_belief_reaches_the_reader_beside_its_ceiling_and_never_alone` above -- verified by
+    mutation, not assumed -- and a second control over one property is the duplication this
+    repository names as a defect in its own right.
+    """
+    block = _svt(_live_feed())
+    rendered = live["arms-svt-belief"]
+
+    if block.get("measured_in_world"):
+        pytest.skip("the grade now names world {}, so the verdict is legitimately stated and "
+                    "this control has nothing to withhold".format(block["measured_in_world"]))
+
+    assert block["ceiling_clears"] is None, (
+        "the grade names no world, so the ceiling's DIRECTION must be withheld as None -- "
+        "False would say the ceiling was graded and did not clear, which is a different claim")
+    assert "the signal is there" not in rendered, (
+        "the page states a resolved direction off a grade that cannot say which world it was "
+        "measured in -- the exact reading the headline above it refuses")
+    assert "no signal established" not in rendered, (
+        "the withheld verdict rendered as a grading that came back empty; 'we cannot say which "
+        "world this was graded in' and 'it does not clear' are different states")
+    assert "world unknown" in rendered.lower(), (
+        "nothing in the verdict cell tells a reader the direction was withheld")
+    assert "names no world" in rendered.lower(), (
+        "the verdict is withheld and the reason is not on the page beside it, which is a "
+        "refusal a reader cannot check")
+
+
 def test_the_reading_inside_its_null_says_we_cannot_tell_where_a_reader_sees_it(live):
     """The director's words, on the surface, not in a footnote.
 
