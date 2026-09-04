@@ -114,6 +114,24 @@ SIM_RUN_DURATION_P50_SECONDS = 732
 #: the reachability control in tests/background/test_sim_runner.py).
 BETWEEN_RUN_PAUSE_SECONDS = max(60, PUBLISHER_CYCLE_P90_SECONDS - SIM_RUN_DURATION_P50_SECONDS)
 
+#: THE PAUSE IS NOW LONGER THAN THIS DAEMON LIVES, so it has to outlive the process.
+#:
+#: Measured 2026-09-04, and it is why landing the pause above changed almost nothing. `sim-runner`
+#: is restarted by `background/deploy_restart.py` whenever it holds code that moved, and in a tree
+#: with several lanes committing that fires far more often than once per 78-minute pause. Every
+#: simulation run between 13:22Z and 15:18Z began at a restart instant -- 5 of 5, journalctl's
+#: `Started sim-runner.service` stamps matching the `run_complete_*.md` marker names to the second
+#: -- so `time.sleep(4685)` was entered five times and served for as little as 1.7 minutes before
+#: SIGTERM. Marker interarrival stayed at ~30 min against a derived period of 78.
+#:
+#: The restart is CORRECT and is not what changes: it is the deployment step, and a daemon serving
+#: stale code is the defect it exists to prevent. What was wrong is that the pause lived only in a
+#: process's own stack, so a restart silently reset it to zero. Persisting the deadline makes the
+#: producer's period a property of the SCHEDULE rather than of process lifetime, and any pause
+#: longer than the restart interval is otherwise unreachable by construction -- a constant nobody
+#: could ever observe being honoured.
+NEXT_RUN_FILE = PROJECT_DIR / "docs" / "observability" / ".sim_next_run_not_before.json"
+
 sys.path.insert(0, str(PROJECT_DIR))
 from background import publisher_budget  # noqa: E402
 from background.agent_protocol import AgentMessage  # noqa: E402
@@ -559,8 +577,82 @@ def _check_hold(was_held: bool) -> tuple[bool, bool]:
     return False, False
 
 
+def record_next_run_not_before(deadline: float, *, path=None) -> None:
+    """Persist the instant before which no new simulation may start.
+
+    Best-effort and NEVER fatal, for the same reason `record_run_outcome` is: a producer that
+    dies because its own bookkeeping failed is worse than an unwritten deadline. An unwritten
+    deadline degrades to the OLD behaviour (run immediately on restart), which is a throughput
+    loss and not a correctness one.
+    """
+    import json
+
+    p = Path(path) if path is not None else NEXT_RUN_FILE
+    try:
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text(json.dumps({"next_run_not_before": float(deadline)}, indent=2) + "\n")
+    except OSError as exc:  # pragma: no cover - defensive, mirrors record_run_outcome
+        log(f"Could not record the next-run deadline (non-fatal): {exc}")
+
+
+def pause_owed_from_a_previous_process(*, now=None, path=None) -> tuple[float, str]:
+    """Seconds of a previous process's between-run pause still owed, and WHY that is the answer.
+
+    Returns `(0.0, reason)` when a run may start immediately. The reason is returned rather than
+    logged in here so the caller can put it in the log line beside the number -- a refusal to run
+    that does not say why is how an idle producer gets mistaken for a dead one.
+
+    THE INSTANT IS VALIDATED BY `recorded_instant_seconds`, the one definition, and not by
+    `isinstance(x, (int, float))`. That hand-roll is what waved `0` and `True` through into
+    `first_failure_ts` and produced a 496,815-hour outage on the director's own surface
+    (see `record_run_outcome`). A `0` here would read as a deadline in 1970, i.e. "run now" --
+    which is the same wrong answer the old code gave, arrived at silently.
+
+    FAILS TOWARD RUNNING, deliberately and in every direction: no file, unreadable file, corrupt
+    JSON, a non-instant, or a deadline already passed all yield 0.0. The cost of a wrong 0.0 is
+    one early run; the cost of a wrong large number is a producer that never runs again, and
+    those are not symmetric. The clamp below is the same argument applied to the upper end -- a
+    far-future deadline (a clock step, a hand edit, a half-written file) can delay one run by at
+    most one whole pause, never park the producer indefinitely.
+    """
+    import json
+
+    p = Path(path) if path is not None else NEXT_RUN_FILE
+    when = time.time() if now is None else now
+    # A MISSING file and a CORRUPT one are the same decision and DIFFERENT news: the first is
+    # the ordinary cold start, the second means something wrote garbage where the cadence lives
+    # and is worth seeing in the log. Same answer, separate reasons.
+    try:
+        text = p.read_text()
+    except OSError:
+        return 0.0, "no deadline was recorded by a previous process"
+    try:
+        raw = json.loads(text)
+    except ValueError:
+        return 0.0, "the recorded deadline file is not readable JSON"
+    deadline = recorded_instant_seconds((raw or {}).get("next_run_not_before"))
+    if deadline is None:
+        return 0.0, "the recorded deadline is not an instant"
+    owed = deadline - when
+    if owed <= 0:
+        return 0.0, "the recorded deadline has already passed"
+    if owed > BETWEEN_RUN_PAUSE_SECONDS:
+        return float(BETWEEN_RUN_PAUSE_SECONDS), (
+            f"the recorded deadline is {owed:.0f}s away, longer than one whole pause "
+            f"({BETWEEN_RUN_PAUSE_SECONDS}s) -- clamped rather than trusted")
+    return float(owed), "resuming the between-run pause a previous process had begun"
+
+
 def main() -> None:
     log("Simulation runner started")
+    # A RESTART MUST NOT RESET THE PAUSE. See NEXT_RUN_FILE: this daemon is restarted on
+    # deployment far more often than once per pause, and without this the derived cadence is
+    # unreachable however the constant is set. Once at start-up only -- inside one process
+    # lifetime the `time.sleep` at the foot of the loop is what holds the period.
+    owed, why = pause_owed_from_a_previous_process()
+    if owed > 0:
+        log(f"Holding {owed:.0f}s before the first run — {why}")
+        time.sleep(owed)
     was_held = False
     while True:
         was_held, should_skip = _check_hold(was_held)
@@ -578,6 +670,9 @@ def main() -> None:
             record_run_outcome(False, detail=f"{type(exc).__name__}: {exc}")
             success = False
         wait = BETWEEN_RUN_PAUSE_SECONDS if success else 300
+        # Recorded BEFORE the sleep, not after it: the whole failure being closed is this process
+        # not surviving to the other side of the sleep.
+        record_next_run_not_before(time.time() + wait)
         log(f"Waiting {wait}s before next run...")
         time.sleep(wait)
 

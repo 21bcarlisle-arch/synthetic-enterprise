@@ -269,3 +269,114 @@ def test_check_hold_no_prior_hold_does_not_touch_force_republish_flag(tmp_path, 
 # publish. The gate runs `-m 'not operational'`. See tests/conftest.py for the marker.
 import pytest  # noqa: E402,F811
 pytestmark = pytest.mark.operational
+
+
+# ── The pause must outlive the process that began it (lane 0 throughput, 2026-09-04) ──────
+
+
+def test_a_restart_inside_the_pause_does_not_start_a_new_run(tmp_path):
+    """THE DEFECT: a restart mid-pause reset the cadence to zero and nothing could see it.
+
+    Measured 2026-09-04 — every simulation run between 13:22Z and 15:18Z began at a
+    `Started sim-runner.service` instant, so the 4685s pause was entered five times and never
+    once served. Marker interarrival stayed at ~30 min against a derived period of 78.
+    Before `pause_owed_from_a_previous_process` existed this asked nothing: a fresh process had
+    no memory of the deadline at all and ran immediately, always.
+    """
+    p = tmp_path / "next.json"
+    now = 1_000_000.0
+    sim_runner.record_next_run_not_before(now + 3000.0, path=p)
+
+    owed, why = sim_runner.pause_owed_from_a_previous_process(now=now, path=p)
+
+    assert owed == pytest.approx(3000.0)
+    assert why  # a hold that does not say why is how an idle producer reads as a dead one
+
+
+def test_the_owed_pause_partition_is_whole_and_every_leg_is_reachable(tmp_path):
+    """ONE control over the WHOLE partition, because a function that returned 0.0 for every
+    input would pass every per-leg test written here. The `assert ... and ...` at the foot is
+    the reachability control: it fails if the deferring branch becomes unreachable, which is the
+    exact trap CLAUDE.md names — a guard that refuses everything passes every test of a guard.
+    """
+    now = 1_000_000.0
+
+    absent = tmp_path / "does_not_exist.json"
+    corrupt = tmp_path / "corrupt.json"
+    corrupt.write_text("{not json")
+    passed = tmp_path / "passed.json"
+    sim_runner.record_next_run_not_before(now - 1.0, path=passed)
+    future = tmp_path / "future.json"
+    sim_runner.record_next_run_not_before(now + 600.0, path=future)
+
+    legs = {
+        name: sim_runner.pause_owed_from_a_previous_process(now=now, path=path)
+        for name, path in (
+            ("absent", absent), ("corrupt", corrupt),
+            ("passed", passed), ("future", future),
+        )
+    }
+
+    # Every leg names its own reason rather than sharing one.
+    assert len({why for _, why in legs.values()}) == len(legs)
+    assert legs["absent"][0] == 0.0
+    assert legs["corrupt"][0] == 0.0
+    assert legs["passed"][0] == 0.0
+    assert legs["future"][0] == pytest.approx(600.0)
+    # REACHABILITY: both sides of the partition are attainable from real inputs.
+    assert legs["future"][0] > 0 and legs["absent"][0] == 0.0
+
+
+def test_a_far_future_deadline_cannot_park_the_producer_forever(tmp_path):
+    """The upper-end null. A clock step, a hand edit or a half-written file must cost at most
+    one pause — never a producer that silently never runs again. Without the clamp this returns
+    a decade and the failure is indistinguishable from a dead daemon.
+    """
+    p = tmp_path / "next.json"
+    now = 1_000_000.0
+    sim_runner.record_next_run_not_before(now + 10 * 365 * 24 * 3600.0, path=p)
+
+    owed, why = sim_runner.pause_owed_from_a_previous_process(now=now, path=p)
+
+    assert owed == float(sim_runner.BETWEEN_RUN_PAUSE_SECONDS)
+    assert "clamped" in why
+
+
+def test_the_recorded_deadline_is_validated_by_the_one_definition(tmp_path):
+    """`0` and `True` are not instants, and `isinstance(x, (int, float))` waves both through.
+
+    That hand-roll is what put `0` into `first_failure_ts` and rendered a 496,815-hour outage on
+    the director's surface. Here a `0` would read as a 1970 deadline — "run now" — which is the
+    OLD wrong answer reached silently, so the fail-open would be invisible rather than loud.
+
+    THIS CONTROL IS KEYED TO THE REASON, NOT THE NUMBER, and that is the whole point. Asserting
+    `owed == 0.0` is a TAUTOLOGY here: `0` and `True` yield 0.0 under BOTH implementations —
+    the one definition rejects them as non-instants, the hand-roll accepts them as 1970 and then
+    calls the deadline "already passed". Same number, opposite meanings, and only the reason can
+    tell them apart. Proven by mutation: swapping in `isinstance(v, (int, float))` SURVIVED the
+    number-only version of this test and is killed by this one.
+    """
+    import json
+
+    now = 1_000_000.0
+    for value in (0, True, None, "soon", []):
+        p = tmp_path / f"v_{type(value).__name__}_{value!r}.json"
+        p.write_text(json.dumps({"next_run_not_before": value}))
+        owed, why = sim_runner.pause_owed_from_a_previous_process(now=now, path=p)
+        assert owed == 0.0, f"{value!r} was treated as a deadline"
+        assert "not an instant" in why, (
+            f"{value!r} was accepted as an instant and reported as {why!r} — a value that is not "
+            f"a time must be refused as one, not silently re-described as a past deadline")
+
+
+def test_the_pause_is_longer_than_the_interval_that_defeats_it(tmp_path):
+    """Keyed to the PROPERTY the persistence exists to serve, not to today's constant.
+
+    The producer's derived pause (78 min) exceeds the observed deployment-restart interval
+    (~30 min median, 20 min shortest, journalctl 2026-09-04). While that is true the pause is
+    unreachable WITHOUT persistence, so this test states the condition under which the mechanism
+    is load-bearing. It goes red — correctly — if someone shortens the pause back under the
+    restart interval, at which point persisting it stops being the thing that matters.
+    """
+    shortest_observed_restart_interval_s = 20 * 60
+    assert sim_runner.BETWEEN_RUN_PAUSE_SECONDS > shortest_observed_restart_interval_s

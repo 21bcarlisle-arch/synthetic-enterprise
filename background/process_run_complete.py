@@ -298,12 +298,25 @@ PUSH_THROTTLE_SECONDS = 30 * 60
 # allocated rather than asking for more -- and `test_the_deadline_leaves_room_for_the_publish_
 # path_after_the_gate` still holds.
 #
-# AND THE REAL REPAIR IS NOT THIS. The publisher pays for TWO full suite runs per cycle: its own
-# scoped gate, and then a comparable chain again inside `git commit`. Halving that is the fix with
-# headroom in it; raising a deadline only buys time against a curve that is still rising. That
-# change touches the commit gate, which is a wall, and needs its own design and its own controls.
-# Recorded here so the next reader knows this constant is a STOPGAP with a measurement behind it,
-# not an answer.
+# WHAT THIS PARAGRAPH SAID UNTIL 2026-09-04, AND IT IS MEASURED FALSE. It read: *"AND THE REAL
+# REPAIR IS NOT THIS. The publisher pays for TWO full suite runs per cycle: its own scoped gate,
+# and then a comparable chain again inside `git commit`. Halving that is the fix with headroom in
+# it."* It is corrected here rather than deleted because it was load-bearing: it was quoted as the
+# premise of a lane 0 throughput direction, which named halving the gate cycle as *"the only lever
+# with headroom in it"* and spent a turn on it.
+#
+# Both halves are instrumented and neither supports it:
+#   * the publisher's own scoped gate ~660s (`publish_gate_duration.jsonl`)
+#   * the commit hook chain       ~134s (`commit_hook_duration.jsonl`)
+# The second run is a FIFTH of the first, not a comparable one, and has not been comparable since
+# 2026-08-31 (see MEASURED_COMMIT_HOOK_CHAIN_SECONDS_2026_09_04, which records the 5.4x step).
+# Together they are ~12 min of a cycle, so halving the gate returns ~5 min. There is no headroom
+# in this lever. The identical correction was already recorded at the 880s constant below and NOT
+# here, which is how one refuted claim went on being read as current in the same file that
+# disproved it -- the same one-rule-many-copies shape as the VAT defect.
+#
+# The constant this paragraph annotates is still a STOPGAP with a measurement behind it rather
+# than an answer. That part was right and stands.
 #
 # THE MEASUREMENT THAT WAS MISSING is now taken: `_record_commit_hook_duration` times this call
 # and records it against THIS deadline, so the hook chain's cost is observed rather than inferred
