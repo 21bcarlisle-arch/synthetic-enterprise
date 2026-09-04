@@ -37,6 +37,7 @@ Usage:
 from __future__ import annotations
 
 import collections
+import datetime
 import inspect
 import json
 import random
@@ -67,6 +68,7 @@ from simulation.market_switching_propensity import (
     market_switching_multiplier,
     published_departure_band,
 )
+from simulation.renewal_engagement import PASSIVE_RENEWAL_RATE
 from tools.departure_population import (
     account_denominator_refusal,
     banner,
@@ -1254,6 +1256,547 @@ def _composition_main(table_path: Path) -> int:
     return 0
 
 
+INTERNAL_RETURN = PROJECT / "docs" / "reports" / "svt_internal_return_and_tenure.json"
+
+#: The three fates an SVT stint can have in this world, and they are exhaustive by construction.
+#: A stint's last captured segment either records a departure, or is followed by a fixed renewal
+#: for the same account, or neither -- and "neither" is the window ending under the account, which
+#: is a CENSORED observation and not a household that stayed. Named rather than inferred because
+#: `returned / (returned + departed)` and `returned / all stints` are different quantities and the
+#: reader must not have to work out which one a bare "return rate" meant.
+STINT_DEPARTED = "departed"
+STINT_RETURNED = "returned_to_fixed"
+STINT_CENSORED = "still_on_svt_at_window_end"
+
+#: How close after a stint's end a fixed renewal must fall to count as that stint's return. The
+#: capture stamps a segment's `event_date` at its START and carries its length separately, so the
+#: stint's end is a derived date and the renewal beside it can land a day either side of it. Two
+#: days, and the control mutates it: at zero the returns this world actually has are still found,
+#: which is what says the tolerance is slack rather than the thing producing the answer.
+_RETURN_TOLERANCE_DAYS = 2
+
+
+def _svt_stints(svt_rows: list[dict]) -> dict[str, list[list[dict]]]:
+    """Split each account's captured SVT segments into maximal STINTS, newest last.
+
+    A STINT IS A SPELL ON THE PRODUCT, NOT A SPELL IN THE CAPTURE. `sim_years_on_svt` accumulates
+    across consecutive passive anniversaries -- an account that rolls passive twice has one stint
+    of two years, not two stints -- and RESETS to zero when the account arrives on the product
+    afresh. So the boundary is the reset, and the reset is the only evidence in this artefact that
+    the account went somewhere else in between.
+
+    THE RESET IS CORROBORATED AND NOT TRUSTED ALONE. Every one of this capture's 18 resets also
+    carries a date gap between the stint's end and the next segment's start, and a fixed renewal
+    inside that gap. Three independent marks of the same event; `test_the_stint_boundary_agrees_
+    with_the_date_gap` holds the first two together, because a reset without a gap would mean the
+    boundary is an artefact of the recorder rather than a move by the household.
+    """
+    by_account: dict[str, list[dict]] = collections.defaultdict(list)
+    for row in svt_rows:
+        by_account[row["customer_id"]].append(row)
+    stints: dict[str, list[list[dict]]] = {}
+    for account, rows in by_account.items():
+        rows = sorted(rows, key=lambda r: r["event_date"])
+        spells: list[list[dict]] = [[rows[0]]]
+        for previous, current in zip(rows, rows[1:]):
+            if float(current["sim_years_on_svt"]) < float(previous["sim_years_on_svt"]) - 1e-9:
+                spells.append([current])
+            else:
+                spells[-1].append(current)
+        stints[account] = spells
+    return stints
+
+
+def _stint_end(stint: list[dict]) -> datetime.date:
+    """The day after a stint's last captured segment, which is the day the account left it."""
+    last = stint[-1]
+    return datetime.date.fromisoformat(last["event_date"]) + datetime.timedelta(
+        days=int(last["sim_segment_days"])
+    )
+
+
+def _stint_fate(
+    stint: list[dict],
+    next_stint: list[dict] | None,
+    renewal_dates: list[datetime.date],
+    *,
+    tolerance_days: int = _RETURN_TOLERANCE_DAYS,
+) -> str:
+    """Which of the three fates this stint had.
+
+    THE RENEWAL MUST FALL INSIDE THIS STINT'S OWN INTERVAL and not merely after it. An account with
+    three stints has renewals after all three, so "is there a later renewal" would credit the first
+    stint with the third stint's return and would count one household's single move three times.
+    """
+    if stint[-1]["event_type"] == "churned":
+        return STINT_DEPARTED
+    end = _stint_end(stint)
+    horizon = (
+        datetime.date.fromisoformat(next_stint[0]["event_date"])
+        if next_stint is not None
+        else datetime.date.max
+    )
+    window_opens = end - datetime.timedelta(days=tolerance_days)
+    if any(window_opens <= renewal < horizon for renewal in renewal_dates):
+        return STINT_RETURNED
+    return STINT_CENSORED
+
+
+def svt_internal_return_and_tenure(renewal_rows: list[dict], svt_rows: list[dict]) -> dict:
+    """The world's INTERNAL re-contract rate, and the tenure mix its level implies.
+
+    MEASURED AT `NO_LEVEL_CORRECTION` LIKE EVERY READING IN THIS CHAIN -- and here the anchor is
+    irrelevant to the answer rather than merely held fixed, because neither a stint's fate nor an
+    account's SVT tenure is a probability. It is stated anyway: a reader who has followed §8-§12
+    will ask, and "the anchor cannot reach this" is a better answer than silence.
+
+    WHY THIS READING EXISTS. §15 concluded that the record's dominant internal-switching route --
+    a default/SVT household taking a fix with its EXISTING supplier -- is *"a route
+    `simulation/renewals.py` does not model at all"*. That was a grep for `same_supplier`, and the
+    grep was right. The conclusion is not: `simulation/renewals.py` bounds a passive stint at the
+    household's next anniversary and re-enters its own term loop there, so an active draw at that
+    anniversary builds a fixed term WITH THIS SAME SUPPLIER. The route is modelled, it is unnamed,
+    and until now it was unmeasured.
+
+    THE THREE THINGS THIS SEPARATES, because a bare "internal switching rate" is three quantities:
+
+      * `per_svt_account_year` -- returns over SVT account-years of exposure. The unit in which it
+        can be compared with `renewal_engagement.PASSIVE_RENEWAL_RATE`, which is the per-anniversary
+        draw that produces it.
+      * `of_the_whole_book` -- returns over accounts on the book. The unit Ofgem CIM question C4
+        publishes, whose base is all respondents, and therefore the ONLY one in which the world and
+        the record can be put beside each other at all.
+      * `long_stayer_share` -- the share of SVT account-DAYS carrying three or more years of tenure,
+        which is what selects `SVT_INERTIA_ANNUAL_LONG_STAYER` over `SVT_INERTIA_ANNUAL_RECENT`.
+        This is the quantity §14 put two published observations of into the tree, for the composition
+        question, and which nothing has yet compared with the world.
+
+    THE COMPARISON WITH THE RECORD KEEPS §15'S CONSERVATIVE DIRECTION. CIM C4's internal row is a
+    SIX-MONTH recall; `of_the_whole_book` is a FULL YEAR. The world's year is compared against the
+    record's half-year WITHOUT annualising the record, so wherever this reading says the world is
+    below the record, it is below by at least that much. Annualising would make every gap larger and
+    would need an assumption about repeat switching that nothing establishes.
+    """
+    book = union_by_year(renewal_rows, svt_rows)
+    # BINNED ON `event_date`, NOT ON `market_year`, because `_svt_factors` bins on `event_date` and
+    # `long_stayer_share_of_svt_account_days` is meant to be read beside section 9's
+    # `share_of_decisions_on_the_long_stayer_branch`. Two binnings that agree on today's capture
+    # would still be two, and the day they diverge the two readings would disagree for a reason
+    # nobody could see.
+    svt_by_year: dict[int, list[dict]] = collections.defaultdict(list)
+    for row in svt_rows:
+        svt_by_year[int(str(row["event_date"])[:4])].append(row)
+    renewal_dates: dict[str, list[datetime.date]] = collections.defaultdict(list)
+    for row in renewal_rows:
+        renewal_dates[row["customer_id"]].append(datetime.date.fromisoformat(row["event_date"]))
+
+    fates_by_year: dict[int, collections.Counter] = collections.defaultdict(collections.Counter)
+    totals: collections.Counter = collections.Counter()
+    for account, spells in _svt_stints(svt_rows).items():
+        for index, stint in enumerate(spells):
+            following = spells[index + 1] if index + 1 < len(spells) else None
+            fate = _stint_fate(stint, following, renewal_dates.get(account, []))
+            fates_by_year[_stint_end(stint).year][fate] += 1
+            totals[fate] += 1
+
+    per_year: dict[str, dict] = {}
+    for year in sorted(svt_by_year):
+        rows = svt_by_year[year]
+        account_days = sum(float(row["sim_segment_days"]) for row in rows)
+        long_days = sum(
+            float(row["sim_segment_days"])
+            for row in rows
+            if float(row["sim_years_on_svt"]) >= SVT_LONG_STAYER_YEARS
+        )
+        account_years = account_days / 365.25
+        accounts = book[year]["accounts"]
+        returned = fates_by_year[year][STINT_RETURNED]
+        long_share = long_days / account_days if account_days else 0.0
+        per_year[str(year)] = {
+            "svt_account_years": round(account_years, 4),
+            "accounts_on_book": accounts,
+            "stint_fates": {fate: fates_by_year[year][fate] for fate in _STINT_FATES},
+            "internal_return_rate": {
+                "per_svt_account_year": (
+                    round(returned / account_years, 6) if account_years else None
+                ),
+                "of_the_whole_book": round(returned / accounts, 6) if accounts else None,
+            },
+            "long_stayer_share_of_svt_account_days": round(long_share, 6),
+            # What the world's own two published endpoints compose to AT THE MIX THE WORLD IS
+            # RUNNING. Not a check and not a target: it is the annual rate `svt_inertia_hazard`
+            # would select on average this year before the market multiplier touches it, and it is
+            # here so the tenure mix is visible as a RATE rather than only as a share.
+            "blended_annual_rate_at_this_mix": round(
+                SVT_INERTIA_ANNUAL_RECENT * (1.0 - long_share)
+                + SVT_INERTIA_ANNUAL_LONG_STAYER * long_share,
+                6,
+            ),
+        }
+
+    account_years_total = sum(row["svt_account_years"] for row in per_year.values())
+    published_band = published_route_split.svt_segment_churn_band()
+    observed_hull = published_band["observed_mix_hull"]
+    observed_long_share = sorted(
+        observation.long_stayer_share
+        for observation in published_route_split.SVT_TENURE_OBSERVATIONS
+    )
+    return {
+        "what_this_is": (
+            "the world's INTERNAL re-contract route -- an account leaving the SVT product for a "
+            "fixed term with THIS SAME supplier -- measured on the committed capture at "
+            "`departure_level_anchor.NO_LEVEL_CORRECTION`, beside the tenure mix that route's rate "
+            "produces. Finding section 15 concluded the route was not modelled; it is, at "
+            "`simulation/renewals.py`'s anniversary re-roll, and this is the first measurement of "
+            "it."
+        ),
+        "measured_at_anchor": NO_LEVEL_CORRECTION,
+        "the_anchor_cannot_reach_this": (
+            "a stint's fate and an account's SVT tenure are not probabilities, so no value of the "
+            "per-year level anchor changes any number in this reading. Stated rather than assumed."
+        ),
+        "years": sorted(per_year),
+        "per_year": per_year,
+        "totals": {
+            "stint_fates": {fate: totals[fate] for fate in _STINT_FATES},
+            "stints": sum(totals.values()),
+            "svt_account_years": round(account_years_total, 4),
+            "internal_return_rate_per_svt_account_year": (
+                round(totals[STINT_RETURNED] / account_years_total, 6)
+                if account_years_total
+                else None
+            ),
+        },
+        "the_draw_that_produces_it": {
+            "constant": "simulation.renewal_engagement.PASSIVE_RENEWAL_RATE",
+            "value": PASSIVE_RENEWAL_RATE,
+            "published_as": (
+                "`docs/market_research/svt_rates_active_passive_2016_2025.md` section 4: "
+                "'Fixed at expiry -> active switch | ~35% | Inverse of SVT rollover share at "
+                "expiry'. A rate defined AT A FIXED-TERM EXPIRY."
+            ),
+            "the_second_use_that_is_not_sourced": (
+                "`simulation/renewals.py` draws the same constant at an SVT ANNIVERSARY, where "
+                "`simulation/svt_product.py`'s own docstring says there is 'No term boundary ... "
+                "nothing is renewed, nothing is offered, and the household makes no decision'. One "
+                "published anchor, two events, and nothing in the tree sources the second."
+            ),
+            "realised_over_drawn": (
+                round(
+                    (totals[STINT_RETURNED] / account_years_total) / PASSIVE_RENEWAL_RATE, 6
+                )
+                if account_years_total and PASSIVE_RENEWAL_RATE
+                else None
+            ),
+            "why_they_differ": (
+                "`active_renewal_probability_for_customer` threads a PERSISTENT per-household "
+                "engagement archetype through the draw, so the households that reach the SVT "
+                "product are the disengaged tail and the population rate does not describe them. "
+                "The realised rate is a fact about who is on the product, not about the constant."
+            ),
+        },
+        "against_the_record": _internal_return_vs_record(per_year),
+        "tenure_mix_vs_the_published_observations": {
+            "what_this_is": (
+                "section 14 put two published observations of the SVT segment's within-segment "
+                "long-stayer share into the tree -- to compose the published churn band for the "
+                "phi question -- and nothing has compared them with the world's own mix. This is "
+                "that comparison, and it bears on section 9's headline because section 9's "
+                "1.67x-1.71x was taken against the published RECENT endpoint at a mix of 0.000 and "
+                "0.202."
+            ),
+            "observed_long_stayer_share": [
+                round(observed_long_share[0], 6), round(observed_long_share[-1], 6)
+            ],
+            "observed_mix_hull_band": list(observed_hull),
+            "years_whose_mix_is_inside_the_observed_range": [
+                year for year, row in sorted(per_year.items())
+                if observed_long_share[0]
+                <= row["long_stayer_share_of_svt_account_days"]
+                <= observed_long_share[-1]
+            ],
+            "years_whose_mix_is_below_every_observation": [
+                year for year, row in sorted(per_year.items())
+                if row["long_stayer_share_of_svt_account_days"] < observed_long_share[0]
+            ],
+            "what_this_does_to_section_9s_headline": _headline_at_the_observed_mix(
+                renewal_rows, svt_rows, observed_hull, per_year
+            ),
+        },
+        "what_this_does_not_do": (
+            "it does not close rung 1, and that is knowable before it runs. The internal return is "
+            "a mechanism INSIDE section 9's `exposure` factor, and section 9's saturation bound "
+            "already put reach and exposure at their ceilings TOGETHER -- abolishing the renewal "
+            "route with them -- and reached the band's low endpoint in 1 year of 7. Nothing here "
+            "can do more than that bound already did."
+        ),
+        "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --internal-return",
+    }
+
+
+_STINT_FATES = (STINT_RETURNED, STINT_DEPARTED, STINT_CENSORED)
+
+
+def _headline_at_the_observed_mix(
+    renewal_rows: list[dict],
+    svt_rows: list[dict],
+    observed_hull: list[float],
+    per_year: dict[str, dict],
+) -> dict:
+    """Section 9's `required / published` multiple, re-taken against a tenure-composed band.
+
+    WHY THIS IS A DIFFERENT NUMBER AND NOT A CORRECTION TO ARITHMETIC. Section 9 divided the
+    record's required hazard by the flat published `SVT_INERTIA_ANNUAL_RECENT = 0.20` and got
+    1.67x at 2019 and 1.71x at 2020. 0.20 is the RECENT segment's upper endpoint -- the rate for a
+    household under three years on the product -- and section 9 chose it because those two years
+    are the base window where the market re-referencing factor is ~1.0 and because the world's mix
+    there is almost all recent. Both true. What neither section could see is that section 14 then
+    put two published observations of the SVT segment's tenure mix into the tree for a different
+    question, and the world's mix in those two years (0.000 and 0.202) is BELOW both of them
+    (0.370 and 0.558).
+
+    So section 9's denominator is the published band's upper endpoint at a tenure mix nothing has
+    observed. Re-taken against `observed_mix_hull` -- the band the published rates compose to at
+    every mix between the two observations -- the multiple is LARGER. That widens section 9's gap
+    in the same direction section 15's `J_svt >= 0` ceiling did, and it is a second, independent
+    route to the same conclusion.
+
+    BOTH ENDPOINTS ARE REPORTED AND THE GENEROUS ONE LEADS. The hull's HIGH end is the smallest
+    multiple the composition admits, so quoting it alone would be the flattering choice and quoting
+    the low end alone would be the alarming one.
+    """
+    shortfall = svt_route_shortfall_decomposition(renewal_rows, svt_rows)
+    window = shortfall["base_window_comparison"]
+    hull_low, hull_high = observed_hull
+    years = {}
+    for year, row in window["years"].items():
+        required = row["required_hazard_at_band_low"]
+        years[year] = {
+            "world_long_stayer_share": per_year[year][
+                "long_stayer_share_of_svt_account_days"
+            ] if year in per_year else None,
+            "required_hazard_at_band_low": required,
+            "section_9_multiple_over_published_recent": row["required_over_published_recent"],
+            "multiple_over_the_observed_mix_hull": {
+                "at_the_hulls_high_end": round(required / hull_high, 4) if hull_high else None,
+                "at_the_hulls_low_end": round(required / hull_low, 4) if hull_low else None,
+            },
+        }
+    return {
+        "what_this_is": (
+            "section 9's headline multiple re-taken against the tenure-composed band from section "
+            "14's two observations, instead of against the flat published recent endpoint."
+        ),
+        "published_recent_endpoint": window["published_annual_recent"],
+        "observed_mix_hull": [hull_low, hull_high],
+        "years": years,
+        "direction": (
+            "LARGER, in both base-window years and at both endpoints of the hull. Section 9's gap "
+            "against the world's own source is understated, not overstated, and this is a second "
+            "route to section 15's conclusion that arrives from the tenure mix rather than from "
+            "the internal/external split."
+        ),
+    }
+
+
+def _internal_return_vs_record(per_year: dict[str, dict]) -> dict:
+    """The world's ANNUAL whole-book internal rate against CIM C4's SIX-MONTH internal row.
+
+    THE DIRECTION IS DELIBERATE AND IT IS THE ONE THAT COSTS US. Comparing a year against a half
+    year flatters the world; where the world still comes out BELOW the record it is below by at
+    least that much. Annualising the record would need a repeat-switching assumption nothing
+    establishes, and section 15 already refused to make it for the same row.
+
+    A WAVE WHOSE RECALL WINDOW TOUCHES A YEAR THE CAPTURE DOES NOT COVER IS REFUSED, NOT SCORED.
+    `None` with the missing years named, never a silent drop and never a zero -- an absent year and
+    a year in which nobody re-contracted produce the same count otherwise.
+    """
+    waves = []
+    for observation in published_route_split.SWITCHER_SPLIT_OBSERVATIONS:
+        window = [str(year) for year in observation.recall_window_years]
+        missing = [year for year in window if year not in per_year]
+        record = observation.internal_rate_of_all_households
+        if missing:
+            waves.append({
+                "wave": observation.wave,
+                "fieldwork": observation.fieldwork,
+                "recall_window_years": window,
+                "record_internal_rate_six_months": round(record, 6),
+                "world_internal_rate_year": None,
+                "world_below_record": None,
+                "refused": (
+                    f"the capture carries no SVT year for {', '.join(missing)}, so this wave's "
+                    f"window cannot be scored against it"
+                ),
+            })
+            continue
+        # The window's HIGHEST world year, because taking the maximum is the choice that argues
+        # AGAINST a finding that the world is short.
+        world = max(per_year[year]["internal_return_rate"]["of_the_whole_book"] for year in window)
+        waves.append({
+            "wave": observation.wave,
+            "fieldwork": observation.fieldwork,
+            "recall_window_years": window,
+            "record_internal_rate_six_months": round(record, 6),
+            "world_internal_rate_year": round(world, 6),
+            "world_below_record": world < record,
+            "refused": None,
+        })
+    scored = [wave for wave in waves if wave["refused"] is None]
+    # THE LEVEL WAS THE WRONG QUESTION AND THE SPREAD IS THE RIGHT ONE, and this is derived here
+    # rather than written as prose because a published cause authored by hand rots beside the
+    # measurement that refutes it. The record's internal row is remarkably STABLE across the
+    # crisis and after it; this world's is not, and "is the world above or below" cannot see that.
+    record_rates = [wave["record_internal_rate_six_months"] for wave in scored]
+    touched = sorted({year for wave in scored for year in wave["recall_window_years"]})
+    world_rates = {
+        year: per_year[year]["internal_return_rate"]["of_the_whole_book"] for year in touched
+    }
+    record_span = (min(record_rates), max(record_rates)) if record_rates else (None, None)
+    inside = [
+        year for year, rate in world_rates.items()
+        if rate is not None and record_span[0] <= rate <= record_span[1]
+    ]
+    return {
+        "what_this_is": (
+            "Ofgem CIM question C4's 'switched tariff with the same supplier' row, base all "
+            "respondents, over a SIX-MONTH recall, against this world's whole-book internal "
+            "re-contract rate over a FULL YEAR."
+        ),
+        "waves": waves,
+        "waves_scored": len(scored),
+        "waves_the_world_is_below": [
+            wave["wave"] for wave in scored if wave["world_below_record"]
+        ],
+        "the_shape_rather_than_the_level": {
+            "what_this_is": (
+                "whether this world's internal rate sits in the interval the record's six waves "
+                "span. Derived, not asserted: the finding here is not that the world is short but "
+                "that the record's internal route is STABLE and this world's is not."
+            ),
+            "record_spans": [
+                round(record_span[0], 6) if record_span[0] is not None else None,
+                round(record_span[1], 6) if record_span[1] is not None else None,
+            ],
+            "record_widest_ratio": (
+                round(record_span[1] / record_span[0], 4)
+                if record_span[0] else None
+            ),
+            "world_rate_in_each_year_the_waves_touch": world_rates,
+            "years_touched": touched,
+            "years_inside_the_records_span": inside,
+        },
+        "a_caveat_this_reading_does_not_resolve": (
+            "C4's internal code is 'switched tariff with the same supplier' as the household "
+            "reports it, and a fixed term expiring ONTO the default tariff is also a tariff change "
+            "with the same supplier. Section 15 read the row as re-contracting onto a fix. If some "
+            "of it is the opposite move, the record's internal row overstates the quantity this "
+            "world's return route models, and the gap below is smaller than it reads. Nothing "
+            "published separates the two directions and this reading does not assume one."
+        ),
+    }
+
+
+def _internal_return_main(table_path: Path) -> int:
+    """`--internal-return`: measure the world's internal re-contract route, print it, and WRITE it.
+
+    WRITES ON THE REFUSED OUTCOME TOO, for the reason the mains beside it do: a missing file reads
+    as 'nobody ran it' and a stale one reads as current.
+    """
+    all_rows = json.loads(table_path.read_text())
+    svt_rows, svt_reason = load_svt_decisions(table_path)
+    refusal = (
+        svt_reason if svt_rows is None
+        else svt_composition_refusal(svt_rows)
+        or account_denominator_refusal(all_rows, svt_rows)
+    )
+    if refusal is not None:
+        INTERNAL_RETURN.write_text(json.dumps({
+            "refused": refusal,
+            "capture": str(table_path.relative_to(PROJECT)),
+            "what_this_is": (
+                "no internal re-contract reading could be measured from this capture. The refusal "
+                "is written rather than withheld."
+            ),
+            "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --internal-return",
+        }, indent=2) + "\n")
+        print(f"REFUSED — no internal-return reading from {table_path.name}: {refusal}")
+        return 1
+    reading = svt_internal_return_and_tenure(all_rows, svt_rows)
+    INTERNAL_RETURN.write_text(json.dumps(reading, indent=2) + "\n")
+    draw = reading["the_draw_that_produces_it"]
+    totals = reading["totals"]
+    print("── THE WORLD'S INTERNAL RE-CONTRACT ROUTE, WHICH §15 SAID IT DID NOT HAVE ──")
+    print()
+    print(f"  {totals['stints']} SVT stints: "
+          f"{totals['stint_fates'][STINT_RETURNED]} returned to a fixed term with us, "
+          f"{totals['stint_fates'][STINT_DEPARTED]} departed, "
+          f"{totals['stint_fates'][STINT_CENSORED]} still on SVT at the window's end")
+    print(f"  J_world = {totals['internal_return_rate_per_svt_account_year']:.4f} per SVT "
+          f"account-year, against a drawn {draw['value']} "
+          f"({draw['realised_over_drawn']:.3f}x)")
+    print()
+    print(f"{'year':>6} {'acct-yrs':>9} {'ret':>4} {'dep':>4} {'cens':>5} {'J/acct-yr':>10} "
+          f"{'of book':>8} {'long-stayer':>12} {'blended':>8}")
+    for year in reading["years"]:
+        row = reading["per_year"][year]
+        rate = row["internal_return_rate"]
+        fates = row["stint_fates"]
+        print(f"{year:>6} {row['svt_account_years']:>9.2f} {fates[STINT_RETURNED]:>4} "
+              f"{fates[STINT_DEPARTED]:>4} {fates[STINT_CENSORED]:>5} "
+              f"{(rate['per_svt_account_year'] or 0.0):>10.4f} "
+              f"{(rate['of_the_whole_book'] or 0.0):>8.4f} "
+              f"{row['long_stayer_share_of_svt_account_days']:>12.4f} "
+              f"{row['blended_annual_rate_at_this_mix']:>8.4f}")
+    record = reading["against_the_record"]
+    print()
+    print("── AGAINST THE RECORD (Ofgem CIM C4, six-month recall, vs this world's FULL YEAR) ──")
+    print()
+    for wave in record["waves"]:
+        if wave["refused"] is not None:
+            print(f"  W{wave['wave']} {wave['fieldwork']:>24}: REFUSED — {wave['refused']}")
+            continue
+        verdict = "world BELOW record" if wave["world_below_record"] else "world above record"
+        print(f"  W{wave['wave']} {wave['fieldwork']:>24}: record "
+              f"{wave['record_internal_rate_six_months']:.4f}/6mo  world "
+              f"{wave['world_internal_rate_year']:.4f}/yr   {verdict}")
+    print(f"  world is below the record in {len(record['waves_the_world_is_below'])} of "
+          f"{record['waves_scored']} scored waves: {record['waves_the_world_is_below']}")
+    shape = record["the_shape_rather_than_the_level"]
+    print()
+    print(f"  AND THE LEVEL IS THE WRONG QUESTION. The record's six waves span "
+          f"{shape['record_spans'][0]:.4f}–{shape['record_spans'][1]:.4f} — a factor of "
+          f"{shape['record_widest_ratio']:.2f} across the crisis and after it.")
+    print(f"  This world sits inside that span in "
+          f"{len(shape['years_inside_the_records_span'])} of "
+          f"{len(shape['years_touched'])} years those waves touch: "
+          + ", ".join(f"{y} {shape['world_rate_in_each_year_the_waves_touch'][y]:.4f}"
+                      for y in shape["years_touched"]))
+    mix = reading["tenure_mix_vs_the_published_observations"]
+    print()
+    print("── THE TENURE MIX §14 SOURCED, AGAINST THE WORLD'S ──")
+    print()
+    print(f"  observed within-segment long-stayer share: "
+          f"{mix['observed_long_stayer_share'][0]:.4f} – {mix['observed_long_stayer_share'][1]:.4f}")
+    print(f"  years inside that range: {mix['years_whose_mix_is_inside_the_observed_range']}")
+    print(f"  years BELOW every observation: {mix['years_whose_mix_is_below_every_observation']}")
+    headline = mix["what_this_does_to_section_9s_headline"]
+    print()
+    print(f"  §9's headline re-taken against the tenure-composed hull "
+          f"{headline['observed_mix_hull']} instead of the flat "
+          f"{headline['published_recent_endpoint']}:")
+    for year, row in headline["years"].items():
+        over = row["multiple_over_the_observed_mix_hull"]
+        print(f"    {year}: world mix {row['world_long_stayer_share']:.3f}, "
+              f"§9 said {row['section_9_multiple_over_published_recent']:.2f}x — at the hull it is "
+              f"{over['at_the_hulls_high_end']:.2f}x to {over['at_the_hulls_low_end']:.2f}x")
+    print(f"    {headline['direction']}")
+    print()
+    print(f"  {reading['what_this_does_not_do']}")
+    print(f"  written to {INTERNAL_RETURN.relative_to(PROJECT)}")
+    return 0
+
+
 def _renewal_risks(row: dict, anchor: float) -> dict[str, float]:
     """`{cause: hazard}` for one captured renewal decision at one anchor.
 
@@ -1715,6 +2258,8 @@ def main(argv: list[str]) -> int:
         return _svt_shortfall_main(table_path)
     if "--composition" in argv[1:]:
         return _composition_main(table_path)
+    if "--internal-return" in argv[1:]:
+        return _internal_return_main(table_path)
     all_rows = json.loads(table_path.read_text())
     rows = [r for r in all_rows if r.get("sim_bill_shock_base") is not None]
     by_year: dict[int, list[dict]] = collections.defaultdict(list)

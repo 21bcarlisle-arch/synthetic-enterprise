@@ -1,0 +1,347 @@
+{
+  "what_this_is": "the world's INTERNAL re-contract route -- an account leaving the SVT product for a fixed term with THIS SAME supplier -- measured on the committed capture at `departure_level_anchor.NO_LEVEL_CORRECTION`, beside the tenure mix that route's rate produces. Finding section 15 concluded the route was not modelled; it is, at `simulation/renewals.py`'s anniversary re-roll, and this is the first measurement of it.",
+  "measured_at_anchor": 1.0,
+  "the_anchor_cannot_reach_this": "a stint's fate and an account's SVT tenure are not probabilities, so no value of the per-year level anchor changes any number in this reading. Stated rather than assumed.",
+  "years": [
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2020",
+    "2021",
+    "2022",
+    "2023",
+    "2024",
+    "2025"
+  ],
+  "per_year": {
+    "2016": {
+      "svt_account_years": 0.0055,
+      "accounts_on_book": 3,
+      "stint_fates": {
+        "returned_to_fixed": 0,
+        "departed": 0,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.0,
+        "of_the_whole_book": 0.0
+      },
+      "long_stayer_share_of_svt_account_days": 0.0,
+      "blended_annual_rate_at_this_mix": 0.2
+    },
+    "2017": {
+      "svt_account_years": 25.0897,
+      "accounts_on_book": 58,
+      "stint_fates": {
+        "returned_to_fixed": 1,
+        "departed": 2,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.039857,
+        "of_the_whole_book": 0.017241
+      },
+      "long_stayer_share_of_svt_account_days": 0.0,
+      "blended_annual_rate_at_this_mix": 0.2
+    },
+    "2018": {
+      "svt_account_years": 29.2676,
+      "accounts_on_book": 50,
+      "stint_fates": {
+        "returned_to_fixed": 9,
+        "departed": 8,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.307507,
+        "of_the_whole_book": 0.18
+      },
+      "long_stayer_share_of_svt_account_days": 0.0,
+      "blended_annual_rate_at_this_mix": 0.2
+    },
+    "2019": {
+      "svt_account_years": 23.3867,
+      "accounts_on_book": 41,
+      "stint_fates": {
+        "returned_to_fixed": 2,
+        "departed": 8,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.085519,
+        "of_the_whole_book": 0.04878
+      },
+      "long_stayer_share_of_svt_account_days": 0.0,
+      "blended_annual_rate_at_this_mix": 0.2
+    },
+    "2020": {
+      "svt_account_years": 27.4333,
+      "accounts_on_book": 46,
+      "stint_fates": {
+        "returned_to_fixed": 2,
+        "departed": 4,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.072904,
+        "of_the_whole_book": 0.043478
+      },
+      "long_stayer_share_of_svt_account_days": 0.201697,
+      "blended_annual_rate_at_this_mix": 0.17983
+    },
+    "2021": {
+      "svt_account_years": 29.9767,
+      "accounts_on_book": 51,
+      "stint_fates": {
+        "returned_to_fixed": 9,
+        "departed": 2,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.300233,
+        "of_the_whole_book": 0.176471
+      },
+      "long_stayer_share_of_svt_account_days": 0.336286,
+      "blended_annual_rate_at_this_mix": 0.166371
+    },
+    "2022": {
+      "svt_account_years": 40.1095,
+      "accounts_on_book": 51,
+      "stint_fates": {
+        "returned_to_fixed": 0,
+        "departed": 2,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.0,
+        "of_the_whole_book": 0.0
+      },
+      "long_stayer_share_of_svt_account_days": 0.274334,
+      "blended_annual_rate_at_this_mix": 0.172567
+    },
+    "2023": {
+      "svt_account_years": 38.2533,
+      "accounts_on_book": 53,
+      "stint_fates": {
+        "returned_to_fixed": 18,
+        "departed": 5,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.470548,
+        "of_the_whole_book": 0.339623
+      },
+      "long_stayer_share_of_svt_account_days": 0.325365,
+      "blended_annual_rate_at_this_mix": 0.167463
+    },
+    "2024": {
+      "svt_account_years": 34.5462,
+      "accounts_on_book": 57,
+      "stint_fates": {
+        "returned_to_fixed": 3,
+        "departed": 6,
+        "still_on_svt_at_window_end": 0
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.08684,
+        "of_the_whole_book": 0.052632
+      },
+      "long_stayer_share_of_svt_account_days": 0.425583,
+      "blended_annual_rate_at_this_mix": 0.157442
+    },
+    "2025": {
+      "svt_account_years": 15.5318,
+      "accounts_on_book": 52,
+      "stint_fates": {
+        "returned_to_fixed": 5,
+        "departed": 1,
+        "still_on_svt_at_window_end": 38
+      },
+      "internal_return_rate": {
+        "per_svt_account_year": 0.32192,
+        "of_the_whole_book": 0.096154
+      },
+      "long_stayer_share_of_svt_account_days": 0.362066,
+      "blended_annual_rate_at_this_mix": 0.163793
+    }
+  },
+  "totals": {
+    "stint_fates": {
+      "returned_to_fixed": 49,
+      "departed": 38,
+      "still_on_svt_at_window_end": 38
+    },
+    "stints": 125,
+    "svt_account_years": 263.6003,
+    "internal_return_rate_per_svt_account_year": 0.185887
+  },
+  "the_draw_that_produces_it": {
+    "constant": "simulation.renewal_engagement.PASSIVE_RENEWAL_RATE",
+    "value": 0.35,
+    "published_as": "`docs/market_research/svt_rates_active_passive_2016_2025.md` section 4: 'Fixed at expiry -> active switch | ~35% | Inverse of SVT rollover share at expiry'. A rate defined AT A FIXED-TERM EXPIRY.",
+    "the_second_use_that_is_not_sourced": "`simulation/renewals.py` draws the same constant at an SVT ANNIVERSARY, where `simulation/svt_product.py`'s own docstring says there is 'No term boundary ... nothing is renewed, nothing is offered, and the household makes no decision'. One published anchor, two events, and nothing in the tree sources the second.",
+    "realised_over_drawn": 0.531107,
+    "why_they_differ": "`active_renewal_probability_for_customer` threads a PERSISTENT per-household engagement archetype through the draw, so the households that reach the SVT product are the disengaged tail and the population rate does not describe them. The realised rate is a fact about who is on the product, not about the constant."
+  },
+  "against_the_record": {
+    "what_this_is": "Ofgem CIM question C4's 'switched tariff with the same supplier' row, base all respondents, over a SIX-MONTH recall, against this world's whole-book internal re-contract rate over a FULL YEAR.",
+    "waves": [
+      {
+        "wave": 1,
+        "fieldwork": "March 2022",
+        "recall_window_years": [
+          "2021",
+          "2022"
+        ],
+        "record_internal_rate_six_months": 0.131816,
+        "world_internal_rate_year": 0.176471,
+        "world_below_record": false,
+        "refused": null
+      },
+      {
+        "wave": 2,
+        "fieldwork": "July 2022",
+        "recall_window_years": [
+          "2022"
+        ],
+        "record_internal_rate_six_months": 0.124771,
+        "world_internal_rate_year": 0.0,
+        "world_below_record": true,
+        "refused": null
+      },
+      {
+        "wave": 3,
+        "fieldwork": "November/December 2022",
+        "recall_window_years": [
+          "2022"
+        ],
+        "record_internal_rate_six_months": 0.144883,
+        "world_internal_rate_year": 0.0,
+        "world_below_record": true,
+        "refused": null
+      },
+      {
+        "wave": 4,
+        "fieldwork": "July 2023",
+        "recall_window_years": [
+          "2023"
+        ],
+        "record_internal_rate_six_months": 0.110427,
+        "world_internal_rate_year": 0.339623,
+        "world_below_record": false,
+        "refused": null
+      },
+      {
+        "wave": 5,
+        "fieldwork": "January 2024",
+        "recall_window_years": [
+          "2023",
+          "2024"
+        ],
+        "record_internal_rate_six_months": 0.115861,
+        "world_internal_rate_year": 0.339623,
+        "world_below_record": false,
+        "refused": null
+      },
+      {
+        "wave": 6,
+        "fieldwork": "January/February 2025",
+        "recall_window_years": [
+          "2024",
+          "2025"
+        ],
+        "record_internal_rate_six_months": 0.170192,
+        "world_internal_rate_year": 0.096154,
+        "world_below_record": true,
+        "refused": null
+      }
+    ],
+    "waves_scored": 6,
+    "waves_the_world_is_below": [
+      2,
+      3,
+      6
+    ],
+    "the_shape_rather_than_the_level": {
+      "what_this_is": "whether this world's internal rate sits in the interval the record's six waves span. Derived, not asserted: the finding here is not that the world is short but that the record's internal route is STABLE and this world's is not.",
+      "record_spans": [
+        0.110427,
+        0.170192
+      ],
+      "record_widest_ratio": 1.5412,
+      "world_rate_in_each_year_the_waves_touch": {
+        "2021": 0.176471,
+        "2022": 0.0,
+        "2023": 0.339623,
+        "2024": 0.052632,
+        "2025": 0.096154
+      },
+      "years_touched": [
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "years_inside_the_records_span": []
+    },
+    "a_caveat_this_reading_does_not_resolve": "C4's internal code is 'switched tariff with the same supplier' as the household reports it, and a fixed term expiring ONTO the default tariff is also a tariff change with the same supplier. Section 15 read the row as re-contracting onto a fix. If some of it is the opposite move, the record's internal row overstates the quantity this world's return route models, and the gap below is smaller than it reads. Nothing published separates the two directions and this reading does not assume one."
+  },
+  "tenure_mix_vs_the_published_observations": {
+    "what_this_is": "section 14 put two published observations of the SVT segment's within-segment long-stayer share into the tree -- to compose the published churn band for the phi question -- and nothing has compared them with the world's own mix. This is that comparison, and it bears on section 9's headline because section 9's 1.67x-1.71x was taken against the published RECENT endpoint at a mix of 0.000 and 0.202.",
+    "observed_long_stayer_share": [
+      0.369763,
+      0.557692
+    ],
+    "observed_mix_hull_band": [
+      0.094231,
+      0.163024
+    ],
+    "years_whose_mix_is_inside_the_observed_range": [
+      "2024"
+    ],
+    "years_whose_mix_is_below_every_observation": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020",
+      "2021",
+      "2022",
+      "2023",
+      "2025"
+    ],
+    "what_this_does_to_section_9s_headline": {
+      "what_this_is": "section 9's headline multiple re-taken against the tenure-composed band from section 14's two observations, instead of against the flat published recent endpoint.",
+      "published_recent_endpoint": 0.2,
+      "observed_mix_hull": [
+        0.094231,
+        0.163024
+      ],
+      "years": {
+        "2019": {
+          "world_long_stayer_share": 0.0,
+          "required_hazard_at_band_low": 0.333955,
+          "section_9_multiple_over_published_recent": 1.6698,
+          "multiple_over_the_observed_mix_hull": {
+            "at_the_hulls_high_end": 2.0485,
+            "at_the_hulls_low_end": 3.544
+          }
+        },
+        "2020": {
+          "world_long_stayer_share": 0.201697,
+          "required_hazard_at_band_low": 0.341823,
+          "section_9_multiple_over_published_recent": 1.7091,
+          "multiple_over_the_observed_mix_hull": {
+            "at_the_hulls_high_end": 2.0968,
+            "at_the_hulls_low_end": 3.6275
+          }
+        }
+      },
+      "direction": "LARGER, in both base-window years and at both endpoints of the hull. Section 9's gap against the world's own source is understated, not overstated, and this is a second route to section 15's conclusion that arrives from the tenure mix rather than from the internal/external split."
+    }
+  },
+  "what_this_does_not_do": "it does not close rung 1, and that is knowable before it runs. The internal return is a mechanism INSIDE section 9's `exposure` factor, and section 9's saturation bound already put reach and exposure at their ceilings TOGETHER -- abolishing the renewal route with them -- and reached the band's low endpoint in 1 year of 7. Nothing here can do more than that bound already did.",
+  "how_to_regenerate": "python3 -m tools.fit_year_level_anchor --internal-return"
+}
