@@ -177,6 +177,14 @@ every `real` row is guarded by a test on disk.
 
 ## Residual, named rather than glossed
 
+**UPDATE, same turn, kept beside the claim rather than revised away:** the first two of these were
+measured immediately after this landed, and both were real —
+`SEAT_FINDING_THE_SEND_ONCE_MEMORY_LOST_EVERY_ID_TO_A_FILE_IT_COULD_NOT_READ_2026-09-04.md`. The
+`.sent_ntfy_ids.json` consequence is worse than the guess below: not "every id re-sent" but our own
+outbound read as INBOUND, which stages a message carrying the director's authority that he never
+sent. The prediction that the shape was there was right; the prediction of what it cost was wrong,
+and understated.
+
 **The other 34 `benign` rows have not been asked the loader question.** This turn swept the three
 that were undispositioned; the `loader` field exists so the gap is visible, and it is empty for
 every row I did not measure. The shape to look for is a read-modify-write over a state file —

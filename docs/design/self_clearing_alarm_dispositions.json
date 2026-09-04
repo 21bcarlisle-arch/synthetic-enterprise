@@ -51,7 +51,8 @@
     },
     ".notify_transitions.json": {
       "verdict": "benign",
-      "why": "R5 transition memory: per-key {state, ts} recording the last state notified, so an unchanged status is not re-sent. The stored value is the latest state by design -- overwriting it is the mechanism, not a defect -- and no severity is derived from its age."
+      "why": "R5 transition memory: per-key {state, ts} recording the last state notified, so an unchanged status is not re-sent. The stored value is the latest state by design -- overwriting it is the mechanism, not a defect -- and no severity is derived from its age.",
+      "loader": "SWEPT 2026-09-04. `_read_transitions` is annotated `-> dict` and returned None for a file containing `null`, one `.get` away from every caller. Absent and unreadable remain the same ANSWER, deliberately: this memory only suppresses a REPEAT, so losing it costs one duplicate message and never a missed one. Control: tests/background/test_benign_rows_were_never_asked_the_loader_question.py"
     },
     ".boot_announced": {
       "verdict": "benign",
@@ -91,7 +92,8 @@
     },
     ".sent_ntfy_ids.json": {
       "verdict": "benign",
-      "why": "A set of already-sent notification ids, for send-once semantics. Append-only."
+      "why": "A set of already-sent notification ids, for send-once semantics. Append-only.",
+      "loader": "SWEPT 2026-09-04 and it was the worst of the benign rows. `record_sent_id` answered an unreadable file with `ids = []` and wrote a one-entry list over every id in it, and `null` or a mapping raised AttributeError inside the flock, on the send path. `was_sent_by_us` False for our OWN outbound is how ntfy_responder stages a bogus `from_rich`. Fixed: bytes preserved, no crash, no substring match. OPEN JUDGEMENT, named not guessed: what `was_sent_by_us` should ANSWER when it cannot tell is a decision about the RESPONDER's fail direction. `sent_ids_unreadable()` makes the state askable. Control: tests/background/test_benign_rows_were_never_asked_the_loader_question.py"
     },
     ".origin_staging_sync.json": {
       "verdict": "benign",

@@ -66,10 +66,23 @@ _KIND_TAG = {
 
 
 def _read_transitions() -> dict:
+    """The R5 transition memory, ALWAYS a dict.
+
+    `-> dict` IS NOT ENFORCEMENT (2026-09-04). `json.loads` accepts `null` and `[1, 2, 3]`; both
+    sail past `except Exception` and out of this annotation, so this returned `None` for a state
+    file containing the four characters `null` and every caller's `.get` was one line away. Measured
+    across the partition: missing file, truncated and empty all gave `{}` -- correct -- and `null`
+    gave `None`.
+
+    Absent and unreadable are still the same ANSWER here and that is deliberate rather than
+    overlooked: this memory only suppresses a repeat notification, so losing it costs one duplicate
+    message and never a missed one. What it must not do is lie about its type or crash the notifier.
+    """
     try:
-        return json.loads(TRANSITIONS_FILE.read_text())
-    except Exception:
+        loaded = json.loads(TRANSITIONS_FILE.read_text())
+    except Exception:  # noqa: BLE001 -- the notifier may never die of its own bookkeeping
         return {}
+    return loaded if isinstance(loaded, dict) else {}
 
 
 def _write_transitions(d: dict) -> None:
