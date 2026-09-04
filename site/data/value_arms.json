@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T01:21:03.344195Z",
+  "generated_at": "2026-09-04T02:45:29.223868Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -301,10 +301,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "074a2c2dbb4eac5fd9ba1a6f66f44f36a11d51ec",
+    "publishing_tree_commit": "cfc15589463636c53ffb7af12d2ddfd84299a56f",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 074a2c2db -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from cfc155894 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -472,10 +472,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "074a2c2dbb4eac5fd9ba1a6f66f44f36a11d51ec",
+      "publishing_tree_commit": "cfc15589463636c53ffb7af12d2ddfd84299a56f",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 074a2c2db -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from cfc155894 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -524,11 +524,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": true,
-      "same_supplier": false,
-      "published_run_net_gbp": 138152.772886,
-      "gap_gbp": -7728.653570997762,
-      "statement": "The published run's net margin (\u00a3138,152.77) is NOT the baseline arm's (\u00a3145,881.43) -- they differ by \u00a37,728.65. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "checked": false,
+      "same_supplier": null,
+      "published_run_net_gbp": 131289.339938,
+      "dashboard_net_gbp": 138152.77,
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3138,152.77 -- a gap of \u00a36,863.43 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
     }
   },
   "provisioned": {
@@ -769,7 +769,9 @@
       "null_95_low": 0.3828125,
       "null_95_high": 0.6171875,
       "p_two_sided": 0.009116034777371773,
-      "inside_the_null": false,
+      "inside_the_null": null,
+      "measured_in_world": null,
+      "verdict_withheld_because": "THIS COMPARISON NAMES NO WORLD. The interval beside it is combinatorial -- it depends on 88 retained and 32 departed renewals and on nothing else -- but whether the observed value CLEARS it is a statement about how much churn signal a particular departure level leaves to be found, and the run this figure came from carries no departure-level identity. The departure level has moved since: this page's own `world_provenance` measures the swap at +19.06pp of whole-book expected departure against published bands 0.5-3.6pp wide. The interval, the p-value and the observed value are published because they are what was measured; the direction read off them is not stated here, in either direction. Re-running the three arms in a tree that stamps `world_identity` restores it.",
       "basis": "exact Mann-Whitney null over all 137062555921358110246749187005 arrangements of 88 retained and 32 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
     },
     "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created -- what the household kept plus what we kept, over what the household would have paid on the published default tariff? 0.5 is no information. Below 0.5 is a company ranking confidently and using the ranking to extract.",
@@ -1064,7 +1066,9 @@
         "null_95_low": 0.3828125,
         "null_95_high": 0.6171875,
         "p_two_sided": 0.009116034777371773,
-        "inside_the_null": false,
+        "inside_the_null": null,
+        "measured_in_world": null,
+        "verdict_withheld_because": "THIS COMPARISON NAMES NO WORLD. The interval beside it is combinatorial -- it depends on 88 retained and 32 departed renewals and on nothing else -- but whether the observed value CLEARS it is a statement about how much churn signal a particular departure level leaves to be found, and the run this figure came from carries no departure-level identity. The departure level has moved since: this page's own `world_provenance` measures the swap at +19.06pp of whole-book expected departure against published bands 0.5-3.6pp wide. The interval, the p-value and the observed value are published because they are what was measured; the direction read off them is not stated here, in either direction. Re-running the three arms in a tree that stamps `world_identity` restores it.",
         "basis": "exact Mann-Whitney null over all 137062555921358110246749187005 arrangements of 88 retained and 32 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
       },
       "cannot_tell": null,
@@ -1459,7 +1463,7 @@
       },
       "reading": "0.13 is not a sign error and not a broken instrument. It is what the arm's own retention belief scores on 20 decisions across 10 founding accounts, five of which the arm's price rise itself drove out. The quantity is not 'does this company know who will leave' -- it is 'did the arm predict who would survive the price it chose', graded on departures that choice caused."
     },
-    "auc_reading": "Measured on 32 departures and 88 retentions -- 120 decisions on 65 accounts. A signal carrying no information at all scores between 0.38 and 0.62 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.009), so on this population the belief carried real information about who stays. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 2 of the 65 accounts this arm priced (C5_2, C8) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 54.25 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
+    "auc_reading": "Measured on 32 departures and 88 retentions -- 120 decisions on 65 accounts. A signal carrying no information at all scores between 0.38 and 0.62 on a population this size (exact null, two-sided 95%). THIS COMPARISON NAMES NO WORLD. The interval beside it is combinatorial -- it depends on 88 retained and 32 departed renewals and on nothing else -- but whether the observed value CLEARS it is a statement about how much churn signal a particular departure level leaves to be found, and the run this figure came from carries no departure-level identity. The departure level has moved since: this page's own `world_provenance` measures the swap at +19.06pp of whole-book expected departure against published bands 0.5-3.6pp wide. The interval, the p-value and the observed value are published because they are what was measured; the direction read off them is not stated here, in either direction. Re-running the three arms in a tree that stamps `world_identity` restores it. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 2 of the 65 accounts this arm priced (C5_2, C8) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 54.25 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
     "decided_by_a_bound": 72,
     "bound_note": "Some of the arm's prices were set by the lawful price cap rather than by anything about the customer. A win that came from a bound is not a win that came from inference.",
     "control_as_share_of_regulated_allowance": [
