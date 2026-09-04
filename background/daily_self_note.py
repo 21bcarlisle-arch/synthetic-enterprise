@@ -511,6 +511,19 @@ def run(force: bool = False, now: datetime | None = None, *, send=None,
                    run_git_commit=(sha or "").strip() or None)
     except Exception:  # noqa: BLE001 — the ledger is history, never a gate on publishing
         pass
+    # THE WEEKLY RHYTHM'S ONE CLOCK (director, 2026-09-04). This timer is `OnCalendar=*-*-*
+    # 07:00:00` with `Persistent=true`, which is already the director's LOCAL morning and already
+    # replays a tick the machine slept through — so the rhythm needs no timer of its own, and a
+    # second one would be a second thing to keep alive. `weekly_rhythm.tick()` decides for itself
+    # whether anything is due; on six days out of seven it reads a file and returns WAITING.
+    #
+    # Fail-closed the same way as the ledger above: the note is the product, the rhythm is a
+    # passenger, and a passenger may never take the vehicle down.
+    try:
+        from background import weekly_rhythm
+        weekly_rhythm.tick()
+    except Exception:  # noqa: BLE001 — the rhythm is a passenger on this tick, never a gate on it
+        pass
     return "published"
 
 
