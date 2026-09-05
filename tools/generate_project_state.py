@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 """Generate site/state/PROJECT_STATE.txt from current dashboard data and CLAUDE.md."""
-import json
-import re
 import datetime as dt
+import json
+import sys
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
-CLAUDE_MD = PROJECT / "CLAUDE.md"
+# RUN BOTH WAYS: `from tools.generate_project_state import generate` by process_run_complete, and
+# `python3 tools/generate_project_state.py` as a SCRIPT -- and as a script the repo root is not on
+# sys.path, so the delegated import below raises ModuleNotFoundError and the fallback publishes
+# "not stated in CLAUDE.md" over a figure that is right there in the file.
+#
+# THIS IS THE SECOND TIME IN TWO DAYS. `tools/next_step_gate.py` shipped dead for exactly this
+# reason (the commit-msg hook runs it as a script) and carries the same guard. Both times every
+# control stayed green, because pytest has already fixed sys.path -- so an import-path defect is
+# invisible to any test that imports the module, which is all of them. Caught here only by running
+# the real script and reading the real output.
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
 DASHBOARD_JSON = PROJECT / "site" / "data" / "dashboard.json"
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "state" / "PROJECT_STATE.txt"
@@ -14,40 +25,36 @@ DOCS_STATUS_PATH = PROJECT / "docs" / "status" / "PROJECT_STATE.txt"
 
 
 def _parse_phase_and_tests():
-    """Return (phase, test_count) for the MOST RECENT phase, not the one with
-    the highest test count -- the fast-suite total isn't monotonic (it
-    fluctuates with which slow/simulation tests are ignored at write time),
-    so picking the max silently regressed the reported phase label to an
-    older one whenever a later phase happened to report a smaller count.
-    New phases are always prepended at the top of "## Current state"
-    (CLAUDE.md phase-close checklist step 5), so the first COMPLETE line is
-    the current one."""
+    """(phase, test_count) from CLAUDE.md -- DELEGATED, because there must be exactly one parser.
+
+    THIS FUNCTION USED TO BE A SECOND IMPLEMENTATION and it is why a startup anchor published
+    `Current Phase: ?` and `Test Suite: 0 tests passing` for eight days (2026-08-28 to 2026-09-05,
+    found from the director's console after another session's startup read the published mirror and
+    took the figures as current).
+
+    The mechanism, exactly: it located CLAUDE.md's build stamp by `text.find("## Current state")`
+    and returned `("?", 0)` when that section was absent. The 2026-08-28 CLAUDE.md rewrite removed
+    the section. Nothing noticed, because the fallback is a well-formed pair that formats cleanly.
+
+    Its twin `generate_dashboard_data._derive_build_from_claude_md` ALREADY HELD THE REPAIR -- it
+    degrades to scanning the whole document (`section = text if idx < 0 else text[idx:]`) with a
+    comment saying it exists "so that a future rewrite cannot break the stamp merely by renaming a
+    section". One rule, two implementations, repaired in one and still live in the other: CLAUDE.md
+    names this shape as the seat's own recurring defect and the VAT rule as its evidence. Guarding
+    the divergence would have left two parsers to drift; this removes the second one.
+
+    Returns `(None, None)` rather than `("?", 0)` when CLAUDE.md cannot be parsed. A `0` test count
+    is indistinguishable from a measurement of nothing once it is rendered, and it rendered for
+    eight days. Callers MUST handle None -- `generate()` prints "unavailable" and names the reason,
+    which is a result a reader can act on in a way that `0` is not.
+    """
     try:
-        text = CLAUDE_MD.read_text()
-        idx = text.find("## Current state")
-        if idx < 0:
-            return "?", 0
-        section = text[idx:]
-        # 2026-07-10: same class of bug as generate_dashboard_data.py's
-        # _derive_build_from_claude_md() (a third independent instance --
-        # confirmed while investigating why the Home page's phases/tests
-        # chart still looked stale after an earlier fix). This required
-        # the literal word "COMPLETE"; recent entries say "CLOSED"/"CLOSED
-        # IN FULL" instead, so it silently fell through to whatever older
-        # entry last said COMPLETE.
-        for line in section.split("\n"):
-            if "COMPLETE" not in line and "CLOSED" not in line:
-                continue
-            m_ph = re.search(r"\*\*Phase (\w+) (?:COMPLETE|CLOSED(?: IN FULL)?)", line)
-            # Phase QP: entries since QL phrase this as "N collected" rather than
-            # "(N total)" -- the strict "total"-only match silently fell through
-            # to an older phase whenever a newer entry used the newer phrasing.
-            m_tc = re.search(r"(\d[\d,]+)\s+(?:total|collected)", line)
-            if m_ph and m_tc:
-                return m_ph.group(1), int(m_tc.group(1).replace(",", ""))
-        return "?", 0
+        # Lazy: the twin lives in a module that imports `company.*` at load time, and this module
+        # is itself imported by `generate_phases_json`. Deferring keeps that edge off import.
+        from tools.generate_dashboard_data import _derive_build_from_claude_md
+        return _derive_build_from_claude_md()
     except Exception:
-        return "?", 0
+        return None, None
 
 
 def _load_json(path):
@@ -61,6 +68,21 @@ def generate():
     now = dt.datetime.now(dt.timezone.utc)
     ts = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     phase, test_count = _parse_phase_and_tests()
+    # NEVER render an unavailable measurement as a number. The eight-day `0 tests passing` on the
+    # published mirror was not a wrong figure a reader could argue with -- it was a missing figure
+    # wearing a measurement's formatting, and it read as a catastrophic regression.
+    #
+    # The wording says "not stated in CLAUDE.md" rather than naming a parse failure, because that
+    # is the one claim true in every branch -- an unreadable file, a missing figure and a dropped
+    # convention all leave CLAUDE.md not stating it, and only the last is what actually happened
+    # here (the 2026-08-28 rewrite dropped phase lettering entirely, so `phase` is legitimately
+    # absent and will stay absent). A refusal that names a reason it cannot support is how the
+    # refusal itself goes unexamined.
+    _ABSENT = "not stated in CLAUDE.md"
+    phase_str = phase if phase else _ABSENT
+    tests_str = ("{:,} tests passing (unit / fast suite ~10s)".format(test_count)
+                 if test_count else _ABSENT)
+    tests_now_str = "{:,}".format(test_count) if test_count else _ABSENT
     dash = _load_json(DASHBOARD_JSON)
     run = _load_json(RUN_OUTPUT)
     build = dash.get("build", {})
@@ -89,8 +111,8 @@ def generate():
         "Generated: " + ts,
         "",
         "## Summary",
-        "- Current Phase: " + phase,
-        "- Test Suite: {:,} tests passing (unit / fast suite ~10s)".format(test_count),
+        "- Current Phase: " + phase_str,
+        "- Test Suite: " + tests_str,
         "- Company Modules: {}+ Python modules across company/".format(company_modules),
         "- Simulation Window: 2016-2025 (Elexon HH settlement data)",
         "- Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)",
@@ -138,7 +160,7 @@ def generate():
         "- Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity",
         "",
         "## Key Metrics",
-        "- Tests at start (Phase 0): 0 | Tests now: {:,}".format(test_count),
+        "- Tests at start (Phase 0): 0 | Tests now: " + tests_now_str,
         "- Net margin all-time: GBP{:,.0f} | Crisis survived: 2021-22".format(net_margin),
         "- Retention: {}/{} offers | {} no-offer churns".format(retained, offers, no_offer_churns),
     ]
@@ -147,7 +169,8 @@ def generate():
     OUT_PATH.write_text(content)
     DOCS_STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
     DOCS_STATUS_PATH.write_text(content)
-    print("Written: {} + {} (Phase={}, tests={:,})".format(OUT_PATH, DOCS_STATUS_PATH, phase, test_count))
+    print("Written: {} + {} (Phase={}, tests={})".format(
+        OUT_PATH, DOCS_STATUS_PATH, phase_str, tests_now_str))
     return True
 
 

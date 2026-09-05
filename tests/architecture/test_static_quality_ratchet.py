@@ -680,7 +680,14 @@ RUFF_BASELINE: dict[str, int] = {
     #             remedy. Attributed per-file against a `git archive HEAD` extract: that file
     #             reported 1 I001 there and reports 0 now, and no other file in the landing moved
     #             (`tests/production_surface_guard.py` reported 0 in both). SHRINK-ONLY.
-    "I001": 1329,  # lowered 2026-09-01: deadmans_switch's function-local block sorted (see log)
+    # 2026-09-05  I001 1329 -> 1328. `tools/generate_project_state.py` lost its `import re` when
+    #             its duplicate CLAUDE.md parser was DELETED (the parser that published
+    #             `0 tests passing` to the startup mirror for eight days), leaving the remaining
+    #             `json` / `datetime as dt` block unsorted -- it was already unsorted at clean HEAD
+    #             and the delete is what exposed it. Attributed per-file against a `git archive
+    #             HEAD` extract: that file reported 1 I001 there and reports 0 now, and none of the
+    #             other four files in this landing moved (all 0 in both). SHRINK-ONLY.
+    "I001": 1328,  # lowered 2026-09-05: generate_project_state's block sorted (see log)
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -706,7 +713,16 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2310  # was 2311; -1 (F841) on 2026-09-05 from
+RUFF_BASELINE_TOTAL = 2309  # was 2310; -1 (I001) on 2026-09-05 from
+                            # tools/generate_project_state.py, whose import block lost
+                            # `re` when the duplicate CLAUDE.md parser was deleted.
+                            # Measured as a whole-tree census in a `git archive HEAD`
+                            # extract overlaid with exactly this commit's files: 1329
+                            # I001 there, 1328 here. The SHARED tree reads 1327 -- another
+                            # lane holds a second I001 fix uncommitted, which is their
+                            # floor to lower; a baseline frozen from the dirty tree would
+                            # fail the live-tree control. See the dated I001 SHRINK LOG.
+                            # Before that it was 2311; -1 (F841) on 2026-09-05 from
                             # tests/background/test_remote_staging_bridge.py, whose unread
                             # `result = check_remote(seen)` binding went with the rewrite onto the
                             # shared `_bridge` helper. Attributed per-file against `git show HEAD:`:

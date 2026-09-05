@@ -3918,6 +3918,17 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("PROJECT_STATE generation failed: {}".format(exc))
     try:
+        # WRITES the anchor-age table; never blocks the publish. Withholding a publish because one
+        # document's date sentence is wrong would make the startup surface STALER, which is the
+        # defect this exists to fix. The refusal lives at commit time instead
+        # (`--gate` in tools/git-hooks/pre-commit), where the lane that broke a date can fix it.
+        from tools.startup_anchor_freshness import main as _anchor_freshness
+        _rc = _anchor_freshness([])
+        log("Generated docs/status/STARTUP_ANCHORS.md"
+            + (" -- WITH REFUSALS, an anchor misstates its own age" if _rc else ""))
+    except Exception as exc:
+        log("Startup-anchor freshness generation failed: {}".format(exc))
+    try:
         from tools.generate_phases_json import generate as gen_phases
         gen_phases()
         log("Generated site/data/phases.json")
@@ -4845,6 +4856,13 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     docs_status_project = PROJECT_DIR / "docs" / "status" / "PROJECT_STATE.txt"
     if docs_status_project.exists():
         files.append(str(docs_status_project))
+    # The computed age of every startup anchor. Ships by the SAME push as LATEST.md and
+    # PROJECT_STATE.txt because that route is the one already proven to reach the edge fresh --
+    # and because this table's own row is the deadman for its generator: if the generator stops,
+    # the row ages in public alongside the anchors it is reporting on.
+    docs_status_anchors = PROJECT_DIR / "docs" / "status" / "STARTUP_ANCHORS.md"
+    if docs_status_anchors.exists():
+        files.append(str(docs_status_anchors))
     site_state_billing = PROJECT_DIR / "site" / "state" / "billing_ledger.json"
     if site_state_billing.exists():
         files.append(str(site_state_billing))
