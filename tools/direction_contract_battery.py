@@ -120,6 +120,21 @@ MUTATIONS = (
     ),
 )
 
+#: THE REACHABILITY FLOOR, and the reason it runs BEFORE the mutations rather than after. An
+#: import-time raise: any suite that imports the subject, directly or transitively, MUST go red
+#: under it. A suite that stays green here never reaches the module at all, and every "survived"
+#: it goes on to report means UNREACHABLE, not UNPROVED.
+#:
+#: Those two readings are the same observation, and the flattering one is the one that gets
+#: written down. This battery's own fourth column is the evidence: all eight mutations survived
+#: `test_supervisor.py`, and the suite reaches `direction` only through a fixture that monkeypatches
+#: `DIRECTION_PATH` to a file nothing writes -- so `focus_weights` short-circuits and
+#: `focus_multiplier` is never called. Eight green cells, none of them at risk. Without this round
+#: the column reads as eight contracts holding up.
+POISON_OLD = "\ndef append_decision("
+POISON_NEW = ('\nraise RuntimeError("POISON: direction.py reachability floor")'
+              "\n\n\ndef append_decision(")
+
 _FAILED = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)", re.MULTILINE)
 
 
@@ -168,13 +183,58 @@ def _baseline(results: dict, suites: tuple[str, ...], out_path: Path) -> dict:
     return baseline
 
 
-def _score(row: dict, todo: list[str], known_red: dict) -> None:
+def _poison(results: dict, suites: tuple[str, ...], out_path: Path, known_red: dict) -> dict:
+    """Can each suite go red for this subject AT ALL? Run before any mutation, never after.
+
+    A battery whose cells are all green has measured nothing until this round has run: "the
+    contract held" and "the suite never reached the line" are the same green. Recorded per suite as
+    `reaches_subject`, and every later survivor in a suite that does not reach the subject is
+    stamped `survived_but_unreachable` so the cell carries its own interpretation rather than
+    relying on a reader to remember this one.
+    """
+    poison = results.setdefault("poison", {})
+    original = SUBJECT.read_text(encoding="utf-8")
+    occurrences = original.count(POISON_OLD)
+    if occurrences != 1:
+        # The floor itself failed to apply. NOT recorded as "every suite reaches the subject" --
+        # an unavailable check reports itself unavailable, it does not report a pass.
+        results["poison_error"] = f"target present {occurrences} times, expected exactly 1"
+        print(f"POISON: TARGET NOT UNIQUE ({occurrences}) -- reachability UNKNOWN", flush=True)
+        out_path.write_text(json.dumps(results, indent=2))
+        return poison
+    todo = [s for s in suites if s not in poison]
+    if not todo:
+        return poison
+    print("POISON (import-time raise -- proves each suite can go red for this subject at all)",
+          flush=True)
+    SUBJECT.write_text(original.replace(POISON_OLD, POISON_NEW), encoding="utf-8")
+    _clear_pycache()
+    try:
+        for suite in todo:
+            r = _run_suite(suite, known_red[suite], stop_first=True)
+            r["reaches_subject"] = r["returncode"] != 0
+            poison[suite] = r
+            print(f"  {suite}: {'reaches' if r['reaches_subject'] else 'NEVER REACHES'} "
+                  f"the subject ({r['seconds']}s)", flush=True)
+            out_path.write_text(json.dumps(results, indent=2))
+    finally:
+        SUBJECT.write_text(original, encoding="utf-8")
+        _clear_pycache()
+    return poison
+
+
+def _score(row: dict, todo: list[str], known_red: dict, reaches: dict) -> None:
     """One mutation against each outstanding suite, scored as a row rather than a verdict."""
     for suite in todo:
         r = _run_suite(suite, known_red[suite], stop_first=True)
         r["died"] = r["returncode"] != 0
+        # A survivor in a suite the poison round could not redden is not evidence about the
+        # contract. Stamped on the cell, because a caveat kept only in prose stops travelling with
+        # the number the moment anyone reads the JSON.
+        r["survived_but_unreachable"] = not r["died"] and reaches.get(suite) is False
         row["per_suite"][suite] = r
         print(f"  {suite}: {'DIED' if r['died'] else 'survived'} "
+              f"{'(UNREACHABLE -- proves nothing) ' if r['survived_but_unreachable'] else ''}"
               f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
     # `survived_all` is the PRE-REGISTERED question and its population is the four CALLER suites.
     # The repair column is reported beside it and never folded into it.
@@ -221,6 +281,11 @@ def main(argv: list[str] | None = None) -> int:
 
     baseline = _baseline(results, suites, out_path)
     known_red = {s: tuple(baseline[s]["failed"]) for s in suites}
+    # BEFORE the mutations, not after: a survivor scored against a suite whose reachability is
+    # still unknown has to be re-read once it is, and this battery has already published one
+    # column that needed exactly that.
+    poison = _poison(results, suites, out_path, known_red)
+    reaches = {s: r["reaches_subject"] for s, r in poison.items()}
     results.setdefault("mutations", {})
 
     for mid, contract, old, new in MUTATIONS:
@@ -243,7 +308,7 @@ def main(argv: list[str] | None = None) -> int:
         _clear_pycache()
         row["target_occurrences"] = occurrences
         print(f"\n{mid}: {contract}", flush=True)
-        _score(row, todo, known_red)
+        _score(row, todo, known_red, reaches)
         SUBJECT.write_text(original, encoding="utf-8")
         _clear_pycache()
         out_path.write_text(json.dumps(results, indent=2))
@@ -258,6 +323,14 @@ def main(argv: list[str] | None = None) -> int:
         # standing prediction, and printing it beside the survivors is how a partial run gets
         # read as a finished one.
         print(f"NOT YET GRADED ON EVERY SUITE (no verdict): {partial}", flush=True)
+    blind = [s for s, hit in reaches.items() if not hit]
+    if blind:
+        # Printed beside the survivors and not in a footnote: these suites contributed a green
+        # cell to every row above and not one of those cells was ever at risk.
+        print(f"SUITES THAT NEVER REACH THE SUBJECT (their green cells prove nothing): {blind}",
+              flush=True)
+    if "poison_error" in results:
+        print(f"REACHABILITY UNKNOWN -- {results['poison_error']}", flush=True)
     return 0
 
 
