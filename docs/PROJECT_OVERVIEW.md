@@ -1,12 +1,25 @@
 # Synthetic Enterprise — Project Overview & Audit
 
-*Last updated: 2026-08-09. 2,500+ commits. 23,826 tests collected (full suite). Codebase: ~55,700 lines across 360+ Python modules.*
+*Last updated: 2026-09-05. 9,385 commits. 26,731 tests collected (full suite). Codebase: 826,700
+lines across 2,701 tracked Python modules (all `*.py` in the index, tests included).*
+
+> **Do not judge any of these documents' freshness by this sentence, or by the HTTP
+> `last-modified` header of the URLs below.** This sentence is hand-typed and rots; the header is
+> the Pages artefact's upload time, which is identical for every file in the mirror and reads
+> "today" for a document untouched for a month. The computed age of each anchor is at
+> [status/STARTUP_ANCHORS.md](https://21bcarlisle-arch.github.io/synthetic-enterprise/status/STARTUP_ANCHORS.md),
+> written from git history on every publish. *(2026-09-05: the previous version of this line said
+> "2026-08-09. 2,500+ commits. 23,826 tests. ~55,700 lines across 360+ modules" — every figure
+> wrong, commits by 3.7x and lines by 15x, and a session that started from it was orienting on a
+> project a fifteenth of this one's size. `tools/startup_anchor_freshness.py` is what now refuses
+> that.)*
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
 - Annual report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
 - Assumptions: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md
 - Status: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md
+- Anchor freshness: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/STARTUP_ANCHORS.md
 
 > **The operating spine (ratified 2026-07-18): [`docs/design/ONE_FRAMEWORK.md`](design/ONE_FRAMEWORK.md).** The atom is the quantum; every map (horizons, epochs, value-cycle, lanes) is a projection of it; the DRAW is the sole arbiter of what/when/at-what-level. Self-governance (fronts/gates) enforces it.
 

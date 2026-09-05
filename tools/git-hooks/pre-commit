@@ -41,6 +41,17 @@ python3 tools/level_promotion_gate.py || exit 1
 # silently skip). R15-proven in tests/tools/test_site_lane_gate.py.
 python3 tools/site_lane_gate.py || exit 1
 
+# STARTUP-ANCHOR FRESHNESS GATE (2026-09-05, director console: another session's startup read the
+# published PROJECT_OVERVIEW/ASSUMPTIONS/LATEST and oriented on four-week-old state). A commit that
+# CHANGES one of the startup anchors while leaving its own "Last updated:" sentence saying
+# something else is REFUSED -- the document would then tell every fresh session an age it does not
+# have, and the HTTP last-modified header cannot correct it (the Pages mirror uploads all of docs/
+# as one artefact, so a month-old file is served with today's date). Scoped to anchors THIS COMMIT
+# stages: an unrelated lane is never refused for a date it did not break. Age alone never refuses
+# -- old-and-honest is reported in docs/status/STARTUP_ANCHORS.md, not blocked. Fails closed if the
+# anchor block is unparseable. R15-proven in tests/tools/test_startup_anchor_freshness.py.
+python3 tools/startup_anchor_freshness.py --gate || exit 1
+
 # §6 COHERENCE-BY-DERIVATION GATE (Phase D, 2026-07-27, DIRECTOR_RULING_WORK_DEFINITION_AND_
 # COHERENCE): a node's Live/Building/Planned stage must agree across the model, the diagram, the
 # site and the map -- "publish FAILS when they disagree." The site-lane gate above fires ONLY on
