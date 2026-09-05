@@ -218,7 +218,7 @@ def _git(*args: str) -> str | None:
     return out.stdout if out.returncode == 0 else None
 
 
-def _commit_facts(commit: str) -> tuple[float, list[str]]:
+def _commit_facts(commit: str, since: str | None = None) -> tuple[float, list[str]]:
     """(commit time as a UTC epoch, repo-relative paths it touched) for `commit`.
 
     `(0.0, [])` for anything git will not answer — an unknown ref, an empty commit. An
@@ -235,6 +235,23 @@ def _commit_facts(commit: str) -> tuple[float, list[str]]:
     however much had landed. The paths a merge DELIVERED are `first-parent..commit`: what the
     branch gained that it did not already have. Still straight out of git, never the caller's —
     a caller free-typing paths is the 2026-08-21 shared-tree hole and stays closed.
+
+    `since` ANSWERS A DIFFERENT AND BETTER-POSED QUESTION: not "what did this commit bring in"
+    but "what does it add to `since`". Both are git's answers and neither is the caller's, but
+    only the second is well-defined for the merge shape `surgical_land --merge origin/main`
+    produces — and that is the shape EVERY re-gate after an origin move produces.
+
+    THE FIRST-PARENT ANSWER IS BACKWARDS FOR THAT SHAPE, filed LATENT on 2026-09-04 and
+    reproduced live on 2026-09-05 by the promote seam that now binds automatically: merging
+    `origin/main` INTO your landing makes YOUR work the first parent, so `first-parent..commit`
+    is precisely the OTHER lane's work. It bound four of the director's paths to this claim and
+    printed a plausible success line. Nothing about the merge is malformed; the question was.
+
+    `A...B` (three dots) is `merge-base(A, B)..B` — what B has that A does not — so it is right
+    whether or not `since` is an ancestor, and identical to the two-dot form when it is. The
+    caller supplies a REF, never a path list: at the one seam that has a non-ambiguous answer
+    (`promote_worktree_landing`, which holds the pre-push `origin/main`) that ref is
+    `git rev-parse origin/main`, so the 2026-08-21 hole stays shut.
     """
     parents = _git("rev-list", "--parents", "-n", "1", commit)
     if parents is None or not parents.split():
@@ -248,7 +265,9 @@ def _commit_facts(commit: str) -> tuple[float, list[str]]:
         return 0.0, []
 
     ancestry = parents.split()          # <commit> <parent>...
-    if len(ancestry) > 2:               # a merge: diff what it brought in, against parent one
+    if since:                           # what this commit ADDS to `since`, merge or not
+        names = _git("diff", "--no-renames", "--name-only", f"{since}...{commit}")
+    elif len(ancestry) > 2:             # a merge: diff what it brought in, against parent one
         names = _git("diff", "--no-renames", "--name-only", ancestry[1], commit)
     else:
         names = _git("show", "--no-renames", "--format=", "--name-only", commit)
@@ -396,8 +415,13 @@ def _store_is_worktree_local(store: Path) -> bool:
     return True
 
 
-def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = None) -> str:
+def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
+                   since: str | None = None) -> str:
     """WHICH of `record_landing`'s four refusals fired. Called only after one did.
+
+    `since` MUST BE PASSED WHENEVER `record_landing` WAS GIVEN ONE, or this re-derives the
+    refusal from a different subject and can name a cause that did not fire — a reason keyed to
+    a question the caller did not ask is worse than no reason, because it reads as measured.
 
     The refusal used to recite all four causes at once, which is the same as naming none: the
     caller reads "not claimed, or unreadable, or empty, or older than the first draw" and still
@@ -427,8 +451,11 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
                     "to inform. If you just finished it, this is the expected reading after a "
                     "--release; if you did not, the claim was swept and you are working "
                     "unclaimed")
-        when, paths = _commit_facts(commit)
+        when, paths = _commit_facts(commit, since)
         if not paths:
+            if since:
+                return (f"{commit} adds NOTHING to {since} -- it is already contained there, so "
+                        f"there are no paths to bind")
             return f"{commit} is UNREADABLE or touched no files -- there are no paths to bind"
         since = _binding_instant(focus_id, rec, store)
         if when <= since:
@@ -526,7 +553,7 @@ def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
 
 
 def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
-                   claimed_at: float | None = None) -> list[str]:
+                   claimed_at: float | None = None, since: str | None = None) -> list[str]:
     """Bind the paths a LANDED COMMIT touched to a Lane 0 claim. Returns the claim's full scope.
 
     This is what makes the delivery lane's deadline conditional instead of a timer. Call it
@@ -534,8 +561,12 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
 
         python3 -m background.delivery_lane --landed <focus-id>
 
-    WHAT THE CALLER CONTROLS IS ONLY *WHEN*. The paths come out of `git show`, so a tick cannot
-    name a broad directory and be credited with four other lanes' commits — the 2026-08-21 hole.
+    WHAT THE CALLER CONTROLS IS ONLY *WHEN*, and — with `since` — WHICH GIT QUESTION. The paths
+    come out of git either way, so a tick cannot name a broad directory and be credited with four
+    other lanes' commits (the 2026-08-21 hole). `since` is a REF, not a path list: pass the base
+    this landing is being added to and the subject becomes "what this adds to that base", which
+    is the only well-posed question when HEAD is a `merge origin/main into my landing`. See
+    `_commit_facts`; the seam that has that ref is `tools/promote_worktree_landing`.
     `claimed_at` is left untouched, so the deadline restarts from the commit's own timestamp via
     `seat_work_in_hand.last_progress`, not from the moment this was called.
 
@@ -558,7 +589,7 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         rec = claims_mod._load(store).get(focus_id)
         if not isinstance(rec, dict):
             return []
-        when, paths = _commit_facts(commit)
+        when, paths = _commit_facts(commit, since)
         if not paths:
             return []
         if claimed_at is None:

@@ -73,6 +73,16 @@ from background import action_needed  # noqa: E402
 # this module does not import either. An unavailable check is a FAILED check (R15).
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.harden_commit import is_harden_commit  # noqa: E402
+# The append-or-monotonic episode seam and the loader above it. Same doctrine as the guard above:
+# top level and no `try`, because a lost-race episode this module could not measure is a lost-race
+# episode it would report as a fresh one — the self-clearing-alarm shape both modules exist for.
+from background.episode_monotonic import episode_age_seconds, guard_episode  # noqa: E402
+from background.episode_prior import ABSENT as EPISODE_PRIOR_ABSENT  # noqa: E402
+from background.episode_prior import (  # noqa: E402
+    load_episode_prior,
+    preserve_unreadable,
+    prior_unreadable,
+)
 from background.primary_state_scan import drawable_undrawn_mints  # noqa: E402  (LAW C independent read)
 
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "deadmans-switch-log.md"
@@ -83,6 +93,15 @@ POLL_INTERVAL_SECONDS = 300       # 5 minutes -- a safety net, not a turn-grante
 BLOCKED_THRESHOLD_SECONDS = 45 * 60   # 45 min of no commit + queued work = BLOCKED
 SILENT_STALL_THRESHOLD_SECONDS = 90 * 60  # 90 min of no commit at all = STALL (backstop)
 RE_ESCALATE_SECONDS = 60 * 60         # re-alert hourly while still stuck
+# WHEN A LOST PUSH RACE STOPS BEING BENIGN, and deliberately the SAME quantity this module already
+# declares rather than a second tolerance for one condition. `origin_reconcile.REFUSED_RACE` is
+# benign only in so far as it self-heals: the next cadence re-fetches, re-merges on the new base and
+# gates again. What makes it benign is therefore not the race, it is the healing — so the question
+# to ask of it is the one BLOCKED_THRESHOLD_SECONDS already answers, "how long may work sit
+# undelivered before that is worth a person's attention". An open fork IS undelivered work; giving
+# it its own number would be one name carrying two values by another route. Derived, not picked: at
+# POLL_INTERVAL_SECONDS the self-healing retry has had nine goes by the time this elapses.
+RACE_PERSISTENCE_SECONDS = BLOCKED_THRESHOLD_SECONDS
 # EIGHTH CLASS escalation duty (2026-07-27, DIRECTOR_RULING): rest exceeding 2h while any mint is
 # open, or exceeding 6h in any circumstance, MUST raise an [ACT] -- neither suppressed by the
 # proven-rest fold (that fold silenced the 42h stall). "A machine that rests for 42 hours must be
@@ -130,6 +149,15 @@ _FORK_ORPHAN_KEY = "deadman_fork_orphan"
 _WORKTREE_UNDECLARED_KEY = "deadman_worktree_undeclared"
 _WORKTREE_REAP_KEY = "deadman_worktree_reap"
 _ORIGIN_FORK_KEY = "deadman_origin_fork"
+#: The episode record for an UNCLOSED run of lost push races. Only the race path writes it and that
+#: path can only ever EXTEND it (low-water start, high-water count, via `episode_monotonic`); only a
+#: reconciler outcome that is NOT a race closes it. That asymmetry is the point — it is the shape
+#: `background/self_clearing_alarm_census.py` enumerates, and the direction it fails in is toward
+#: remembering an open episode rather than restarting one.
+#: A MODULE-LEVEL PATH LITERAL, not a value minted inside a resolver: a state path that only exists
+#: inside a function drops out of the census's own AST derivation, so this file would leave the
+#: class by becoming invisible to it rather than by being repaired.
+ORIGIN_RACE_EPISODE_FILE = OBSERVABILITY_DIR / ".origin_race_episode.json"
 _STATUS_STALE_KEY = "deadman_status_stale"
 
 
@@ -709,13 +737,24 @@ def _check_origin_fork() -> None:
     log(f"ORIGIN FORK ({r['status']}): {r['detail']}")
     if r["status"] in (origin_reconcile.LEVEL, origin_reconcile.RECONCILED,
                         origin_reconcile.PUSHED, origin_reconcile.FAST_FORWARDED):
+        _close_race_episode("the reconciler reached origin")
         clear_transition(_ORIGIN_FORK_KEY)
         return
     if r["status"] == origin_reconcile.GATE_RUNNING:
         # NOT A FORK CONDITION AND NOT A CLEARANCE. The gate holds the lock, so nothing was even
         # looked at; alarming would be reporting a state that was not observed, and clearing would
         # be reporting agreement that was not observed either. Wait for the next cadence.
+        #
+        # AND IT DOES NOT TOUCH AN OPEN RACE EPISODE EITHER, for exactly the same reason. Closing
+        # it would be asserting the race healed on a cycle that did not look; extending it would be
+        # counting a cycle that did not try as a loss. The episode is measured in ELAPSED TIME and
+        # not in cadences precisely so that a stretch of unlooked-at cycles neither shortens nor
+        # inflates it — the clock is the one thing that keeps running when nothing was observed.
         return
+    if r["status"] == origin_reconcile.REFUSED_RACE:
+        _report_lost_push_race(r)
+        return
+    _close_race_episode(f"the reconciler now reports {r['status']}, which is not a race")
     notify(
         f"[ORIGIN FORK] {r['status']}: {r['detail']} — origin is {r['behind']} commit(s) ahead and "
         f"the fork could NOT be closed automatically, so landings and publishing stay blocked "
@@ -723,6 +762,122 @@ def _check_origin_fork() -> None:
         kind="real_alarm", transition_key=_ORIGIN_FORK_KEY,
         state=f"{r['status']}:{r['behind']}", re_escalate_after=RE_ESCALATE_SECONDS,
         # BLOCKED_WORK, not drift: while this stands, nothing this machine does can reach origin.
+        topic_class=_digest_classes().BLOCKED_WORK,
+    )
+
+
+def _close_race_episode(because: str) -> None:
+    """End an open lost-race episode, naming what ended it. Silent when none was open.
+
+    THE ONLY WAY THE EPISODE EVER SHORTENS, and it is deliberately not on the failure path: the
+    race branch may extend the record and nothing else, so a reconciler that keeps losing cannot
+    reset the clock its own alarm reads. Never raises — a bookkeeping failure here must not take
+    the deadman down, and leaving a stale episode open makes the alarm louder, not quieter.
+    """
+    try:
+        prev, verdict = load_episode_prior(ORIGIN_RACE_EPISODE_FILE)
+        if verdict == EPISODE_PRIOR_ABSENT:
+            return
+        age = episode_age_seconds(prev, "race_since", time.time())
+        log("ORIGIN FORK race episode CLOSED after {} ({} lost race(s)): {}.".format(
+            "an unmeasurable interval" if age is None else f"{age / 60:.0f} min",
+            prev.get("races", "?"), because))
+        ORIGIN_RACE_EPISODE_FILE.unlink(missing_ok=True)
+    except Exception as e:  # noqa: BLE001 — see docstring: never take the cycle down
+        log(f"origin-race episode close error: {e}")
+
+
+def _extend_race_episode(now: float) -> tuple[dict, bool]:
+    """Record one more lost push race. Returns `(episode, measurable)`.
+
+    `measurable` is FALSE when the record was present and could not be read. That is not the same
+    fact as no record — `background/episode_prior.py` exists because five carriers had conflated
+    exactly these two — and here the difference decides whether the caller may call a race benign.
+    A race is benign only in so far as it is SELF-HEALING, and an unreadable record is precisely
+    the state in which self-healing cannot be shown. So it is reported, never suppressed.
+    """
+    prev, verdict = load_episode_prior(ORIGIN_RACE_EPISODE_FILE)
+    measurable = not prior_unreadable(verdict)
+    if not measurable:
+        preserve_unreadable(ORIGIN_RACE_EPISODE_FILE)
+    proposed = {"race_since": now, "races": int(prev.get("races") or 0) + 1}
+    episode = guard_episode(prev, proposed,
+                            since_fields=("race_since",), streak_fields=("races",))
+    dest = guard_live_ledger_write(ORIGIN_RACE_EPISODE_FILE,
+                                   writer="deadmans_switch._extend_race_episode")
+    dest.write_text(json.dumps(episode, indent=2), encoding="utf-8")
+    return episode, measurable
+
+
+def _report_lost_push_race(r: dict) -> None:
+    """A lost push race has a TRUTHFUL name (`REFUSED_RACE`, landed 3d5694078) and, until now, an
+    untruthful message: it fell through to the fork alarm and told the director that *"landings and
+    publishing stay blocked until someone reconciles"* — for an outcome that clears itself on the
+    next five-minute cadence, with nothing for him to reconcile and nothing for him to do. That
+    costs the only scarce resource here, because he acts on BLOCKED_WORK.
+
+    NOT SUPPRESSED BESIDE `GATE_RUNNING`, and the difference between the two is the whole design.
+    `GATE_RUNNING` means nothing was LOOKED at. A race means the reconciler looked, built the merge,
+    gated it clean, and still could not push — the fork IS open and it STAYED open. Silencing that
+    outright would open a fail-silent hole exactly where it hurts most: a persistently lost race is
+    a reconciler that has stopped converging, and it would never page at all.
+
+    So the benign case is the SELF-HEALING one, and the test is whether it healed. Below
+    RACE_PERSISTENCE_SECONDS the episode is logged and nothing is sent; at or beyond it the
+    director hears about it — under BLOCKED_WORK, which by then is finally true — with a message
+    that names what is actually happening and does not ask him to merge anything by hand.
+    """
+    now = time.time()
+    try:
+        episode, measurable = _extend_race_episode(now)
+    except Exception as e:  # noqa: BLE001 — bookkeeping must not take the cycle down...
+        episode, measurable = {}, False   # ...but it must not silence the race either.
+        log(f"origin-race episode bookkeeping error: {e}")
+    races = episode.get("races", "?")
+    age = episode_age_seconds(episode, "race_since", now) if measurable else None
+
+    if age is None:
+        # FAIL LOUD, AND SAY WHICH FAILURE IT IS. "We cannot tell" is a result and belongs on the
+        # surface. The alternative direction — treat an unmeasurable episode as a fresh one — is
+        # the 2026-08-09 shape verbatim: a record that cannot be read reporting a fresh episode
+        # inside an old one, and here it would be a standing race that never pages.
+        notify(
+            f"[ORIGIN FORK] the push was refused as a lost race ({r['detail']}) and this machine "
+            f"CANNOT SAY how long that has been going on: the episode record at "
+            f"{ORIGIN_RACE_EPISODE_FILE.name} is present and unreadable (preserved alongside). A "
+            f"lost race is benign only while it is self-healing, and that is exactly what cannot "
+            f"be shown here — so it is reported rather than assumed. Origin is {r['behind']} "
+            f"commit(s) ahead.",
+            kind="real_alarm", transition_key=_ORIGIN_FORK_KEY,
+            # Keyed to the CONDITION and not to `behind`, which moves every cadence: a state that
+            # moves every cycle is a transition check that cannot suppress anything.
+            state="race:unmeasurable", re_escalate_after=RE_ESCALATE_SECONDS,
+            topic_class=_digest_classes().BLOCKED_WORK,
+        )
+        return
+
+    if age < RACE_PERSISTENCE_SECONDS:
+        log(f"ORIGIN FORK race (BENIGN, self-healing): lost the push race, {races} in this episode, "
+            f"{age / 60:.0f} min in. Nothing is owed — the next cadence re-merges on the new base. "
+            f"Not paged below {RACE_PERSISTENCE_SECONDS / 60:.0f} min.")
+        return
+
+    notify(
+        f"[ORIGIN FORK] the reconciler has lost the push race {races} time(s) over "
+        f"{age / 3600:.1f}h and is NOT converging. Each cycle it fetches, merges, gates the merge "
+        f"CLEAN — and then origin moves before the push lands, so the whole gate is spent and the "
+        f"fork stays open. Origin is {r['behind']} commit(s) ahead. THERE IS NOTHING TO MERGE BY "
+        f"HAND: the merge already works. Something is pushing to origin faster than a gate run "
+        f"takes, and that is what needs looking at.",
+        kind="real_alarm", transition_key=_ORIGIN_FORK_KEY,
+        # KEYED TO THE EPISODE, not to today's count or today's `behind`. Both move every cadence,
+        # and a state that changes every cycle sends every cycle — which is how this channel has
+        # buried its own signal before. One episode is one condition; `re_escalate_after` is what
+        # re-tells him while it stands, and a genuinely new episode changes the key.
+        state="race:{}".format(int(float(episode.get("race_since") or 0))),
+        re_escalate_after=RE_ESCALATE_SECONDS,
+        # BLOCKED_WORK, and by this point it is TRUE: the fork has been open for as long as this
+        # module's own definition of work sitting undelivered, and nothing is reaching origin.
         topic_class=_digest_classes().BLOCKED_WORK,
     )
 
