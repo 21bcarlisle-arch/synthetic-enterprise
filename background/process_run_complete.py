@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from contextlib import ExitStack, contextmanager
+from contextlib import ExitStack, contextmanager, nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -1096,6 +1096,11 @@ from background.child_diagnostics import (  # noqa: E402  (H30)
 from background.episode_monotonic import (  # noqa: E402  (PW2)
     guard_episode,
     recorded_instant_seconds,  # one screen for every timestamp this file reads
+)
+from background.episode_prior import (  # noqa: E402  (the census loader sweep)
+    load_episode_prior,
+    preserve_unreadable,
+    prior_unreadable,
 )
 from background.tree_lock import TreeLockTimeout, tree_lock  # noqa: E402
 
@@ -4508,7 +4513,10 @@ def _divergence_refusal():
                 "established -- refusing rather than creating one that may be rejected")
     return ("origin/main is {} commit(s) AHEAD of HEAD, so a commit created here could only be "
             "rejected non-fast-forward and would widen the fork by one more. Reconcile first: "
-            "`python3 -m tools.surgical_land --merge origin/main`".format(ahead))
+            "`python3 -m background.origin_reconcile`, which does the gated merge in an ISOLATED "
+            "worktree. Do NOT run `surgical_land --merge origin/main` in the shared tree: it "
+            "opens the shared index, and this refusal's own reason for existing is that routinely "
+            "three lanes have uncommitted work in it".format(ahead))
 
 
 #: How long a fast-forward of this checkout may take. Generous for a ~130 MB tree on a machine
@@ -4546,7 +4554,57 @@ FORK_ADVANCE_TIMEOUT_SECONDS = 300
 PUBLISH_ADVANCE_ATTEMPTS = 3
 
 
-def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
+def _refused_advance_cause(project, blockers_fn=None):
+    """The NAMED cause of a refused fast-forward, and whether calling it "the guard working" is
+    honest. Returns `(verdict, clause)`, both sentences, never raising.
+
+    BORROWED WHOLE FROM THE SIBLING, NOT RESTATED. `origin_reconcile.paths_blocking_fast_forward`
+    asks this exact question and `_blocking_clause` renders this exact answer, and both carry the
+    incident that put them there. A third implementation would fork that history -- and this
+    module has already paid for the copy-instead-of-call shape once, at this very function: the
+    ahead-count was reused and the advance was hand-rolled, so when the twin-clearing repair
+    landed in `advance_shared_tree` it reached the reconciler's two legs and not this one.
+
+    WHY THE VERDICT IS DERIVED AND NOT FIXED. The string this replaces asserted, of EVERY
+    refusal, that it was "the guard working and not a fault". For an `FF_UNTRACKED` twin that is
+    exactly right. For an `FF_MODIFIED` path it is false in the way that costs a reader an
+    orientation: a tracked file some lane is holding dirty is a WEDGE with an owner and a named
+    remedy, and telling the reader it is the guard working sends them away from the one act that
+    would clear it. Measured 2026-09-04/05: nine advance attempts, zero fires, and the single
+    tracked path refusing every one of them was this module's own source file -- while the log
+    line said the guard was working.
+    """
+    try:
+        from background.origin_reconcile import (
+            FF_MODIFIED,
+            _blocking_clause,
+            paths_blocking_fast_forward,
+        )
+        blocking = (blockers_fn or paths_blocking_fast_forward)(project)
+        clause = _blocking_clause(blocking)
+    except Exception as exc:  # noqa: BLE001 -- naming the cause must never cost git's own words
+        return ("whether this is a dirty-tree collision was NOT established ({}: {}), so this "
+                "names the refusal and not its cause".format(type(exc).__name__, exc), "")
+    if blocking is None:
+        # `None` is "I could not look", and `_blocking_clause` already says so. What must NOT
+        # happen is that it reads as the reassuring verdict -- an unestablished cause is not a
+        # clean bill.
+        return ("whether this is a dirty-tree collision was NOT established", clause)
+    if any(b.get("kind") == FF_MODIFIED for b in blocking):
+        return ("this is NOT merely the guard working: a tracked file this tree has edited is "
+                "holding the shared tree behind origin. It belongs to whichever lane is holding "
+                "it, and `python3 -m tools.isolate_hunks --survey` is how that lane lands its "
+                "hunks without waiting for anyone", clause)
+    if blocking:
+        return ("the guard working and not a fault -- every blocking path is UNTRACKED here, so "
+                "no lane's work is at stake if they are byte-identical to what origin brings "
+                "(`git hash-object` against `git rev-parse origin/main:<path>` settles it)",
+                clause)
+    return ("nothing local collides, so this refusal is NOT a dirty-tree collision and calling "
+            "it the guard working would be a guess", clause)
+
+
+def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None, blockers_fn=None):
     """Close a fork the publish path just found, when closing it is MECHANICAL. Never raises.
 
     Returns `{"advanced": bool, "reason": str}`. `advanced` is claimed only when git itself
@@ -4618,23 +4676,90 @@ def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
         if ahead > 0:
             return {"advanced": False,
                     "reason": "this tree holds {} commit(s) of its own, so the fork is REAL and "
-                              "closing it is a judgement: it needs the gated merge door "
-                              "(`python3 -m tools.surgical_land --merge origin/main`), which is "
-                              "longer than a publish cycle. Left to origin_reconcile on the "
-                              "deadman cadence, which is where it belongs".format(ahead)}
+                              "closing it is a judgement: it needs the gated merge door, which is "
+                              "longer than a publish cycle. OWNED BY `python3 -m "
+                              "background.origin_reconcile` on the deadman cadence, which merges "
+                              "in an ISOLATED worktree -- measured 2026-09-04, it closed 41 real "
+                              "forks unaided, so this is a state with an owner and not a state "
+                              "waiting on a reader".format(ahead)}
         # THE LOCK, BECAUSE THIS WRITES THE SHARED WORKING TREE -- and taken and RELEASED here
         # rather than held into the commit below, which acquires it again. `tree_lock` is an
         # flock and a nested acquisition from one process deadlocks (see `_git_add_or_refuse`).
+        # THE ADVANCE IS THE SIBLING'S, NOT A SECOND COPY OF IT (2026-09-05). What used to be here
+        # was one `git merge --ff-only` and its refusal. `origin_reconcile.advance_shared_tree` is
+        # the same act plus the repair this one never got: when EVERY path git refuses on is an
+        # untracked file whose bytes origin already holds at that same path, it removes them and
+        # asks again. Measured on this tree 2026-09-04 -- 13 of 14 blocking paths were files
+        # about to be replaced by themselves.
+        #
+        # `_refused_advance_cause` twelve lines up already names this exact shape as the debt:
+        # "the ahead-count was reused and the advance was hand-rolled, so when the twin-clearing
+        # repair landed in `advance_shared_tree` it reached the reconciler's two legs and not this
+        # one." That sentence was written while this function still hand-rolled it; this is it
+        # being paid, so a third fix to the fast-forward can never again reach two callers of
+        # three.
+        #
+        # NOT A WIDER ACT THAN THE PUBLISHER ALREADY SANCTIONS. The removal is all-or-nothing (a
+        # single FF_MODIFIED path and nothing is deleted at all), the twins are selected by hash
+        # equality against origin's own blob, and origin holds every byte of every one -- it is
+        # the same mechanism already running against this same tree on the deadman cadence.
+        #
+        # THE LOCK IS TAKEN HERE AND THE INNER ONE IS PASSED OUT, and that is not a bypass. The
+        # helper locks only its removal-and-retry leg; its FIRST fast-forward attempt writes the
+        # shared tree unlocked, which is fine for its own caller and not fine for this one. Taking
+        # it across the whole call closes that window, and `locker=nullcontext` is how the helper's
+        # own seam says "the caller holds it" -- `tree_lock` is an flock and a nested acquisition
+        # from one process deadlocks (see `_git_add_or_refuse`). Released before the commit below,
+        # which acquires it again for the same reason.
+        #
+        # `ff_fn` KEEPS THE MERGE ON THIS FUNCTION'S OWN RUNNER AND TIMEOUT. The publish path has a
+        # budget the deadman cadence does not, and `runner=` is the seam four sibling suites use to
+        # prove this recovery can never raise into a cycle that must finish.
+        #
+        # AND THE MERGE'S OWN OUTPUT IS KEPT HERE RATHER THAN READ BACK OUT OF THE HELPER'S REASON.
+        # Only two of `advance_shared_tree`'s five refusal branches quote git, and the branch a
+        # dirty publish tree actually takes -- "N of M blocking path(s) are NOT byte-identical" --
+        # is not one of them. A refusal derived from a clause whose ground truth is missing is
+        # unfalsifiable, which is the property
+        # `test_the_refusal_names_the_path_the_remedy_and_gits_own_words` exists for, and it went
+        # red on the first draft of this call. Owning the runner means owning what it said: this
+        # cannot be lost again by a future branch added inside the helper.
+        _ff_seen = []
+        from background.origin_reconcile import advance_shared_tree
         with tree_lock():
-            ff = _run(["git", "merge", "--ff-only", "origin/main"], FORK_ADVANCE_TIMEOUT_SECONDS)
-        if ff.returncode == 0:
+            # DEFINED INSIDE THE LOCK ON PURPOSE, and the placement is load-bearing twice over: the
+            # merge must RUN under the lock, and `test_the_advance_writes_the_shared_tree_under_
+            # the_tree_lock` reads this block's AST to check that the argv is there to run.
+            def _ff():
+                ff = _run(["git", "merge", "--ff-only", "origin/main"],
+                          FORK_ADVANCE_TIMEOUT_SECONDS)
+                _ff_seen.append(ff)
+                return ff
+
+            adv = advance_shared_tree(project, blockers_fn=blockers_fn, locker=nullcontext,
+                                      ff_fn=_ff)
+        if adv["advanced"]:
             return {"advanced": True,
                     "reason": "fast-forwarded the shared tree onto origin/main -- no commit was "
                               "created and origin was not touched, so this cycle's completed work "
-                              "is publishable rather than discarded"}
+                              "is publishable rather than discarded. {}".format(adv["reason"])}
+        # THE CAUSE, AHEAD OF GIT'S OWN WORDS RATHER THAN INSTEAD OF THEM. git names the first
+        # colliding path and stops; the clause names all of them and which KIND each is, which is
+        # what decides who clears it. Both are kept: the clause is what a reader acts on, git's
+        # tail is the ground truth it is derived from -- and `adv["reason"]` carries that tail.
+        #
+        # THE CLAUSE IS RE-DERIVED AFTER THE HELPER ACTED, so on the one path where twins WERE
+        # removed and git refused anyway, it describes what is blocking NOW and cannot name them.
+        # `adv["reason"]` is what names them, and it carries the `git checkout` that restores any
+        # one -- which is why both sentences are kept rather than the tidier one.
+        _verdict, _clause = _refused_advance_cause(project, blockers_fn)
+        _said = (stderr_tail(_ff_seen[-1].stderr) if _ff_seen
+                 else "the fast-forward was never attempted, so git said nothing")
         return {"advanced": False,
-                "reason": "git REFUSED the fast-forward (rc={}), which is the guard working and "
-                          "not a fault: {}".format(ff.returncode, stderr_tail(ff.stderr))}
+                "reason": "git REFUSED the fast-forward (rc={}) -- {}. {} The advance reported: "
+                          "{}. git said: {}".format(
+                              _ff_seen[-1].returncode if _ff_seen else "unrun",
+                              _verdict, _clause, adv["reason"], _said)}
     except TreeLockTimeout as exc:
         return {"advanced": False,
                 "reason": "another writer held the tree lock ({}), so nothing was moved; the next "
@@ -5013,8 +5138,10 @@ def git_commit_push(git_hash, net_margin, outcome=None):
         notify(
             "[SIM] PUBLISH REFUSED, ORIGIN AHEAD -- {} -- no commit was created, so the fork is "
             "not one wider than it was. The mechanical advance was tried first and did not clear "
-            "it: {}. Nothing is wrong with the run or the suite; the tree needs "
-            "reconciling.".format(_behind, _why_not),
+            "it: {}. Nothing is wrong with the run or the suite, and this is NOT a call to "
+            "action: `background/origin_reconcile` owns a real fork and closes it in an isolated "
+            "worktree on the deadman cadence. If it CANNOT, the deadman pages separately "
+            "([ORIGIN FORK]) and that is the alarm to act on.".format(_behind, _why_not),
             kind="real_alarm",
         )
         return _outcome(BEHIND_ORIGIN, False,
@@ -5779,6 +5906,11 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     # commit is real, we refuse and the site stays honestly paused rather than publishing a
     # claim we cannot stand behind.
     if not _provenance_is_publishable(paths, label=label):
+        _record_liveness_surface_refusal(
+            label, publish_cause.PROVENANCE_REFUSED,
+            "the fail-closed provenance check refused the stamp before any git ran, so nothing "
+            "was staged; the violations are named in the log line this record sits beside",
+            git_hash)
         return False
     # THE SAME REFUSAL AT THE OTHER COMMIT SITE. The liveness heartbeat and the provenance banner
     # deepen a fork exactly as a content commit does, and a guard placed only where the incident
@@ -5797,6 +5929,10 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     # silences them in the one state they exist for, and that silence is what
     # SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE... watched a backlog get
     # read as an outage through.
+    #
+    # SINGLE-SHOT, WHERE THE CONTENT SITE RETRIES. `PUBLISH_ADVANCE_ATTEMPTS` buys back a 672s
+    # cycle that would otherwise be thrown away; there is no such stake here -- a banner costs
+    # seconds and the next heartbeat is minutes away -- so the lost race is simply left to it.
     if _behind is not None:
         _advance = _advance_to_origin_or_say_why()
         log("{} is behind origin ({}). Advance attempt: {}".format(
@@ -5804,13 +5940,34 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
         if _advance["advanced"]:
             # RE-READ BOTH VERDICTS THE ADVANCE INVALIDATED, for the reasons recorded at the
             # sibling site: origin can move again during the ~1s move, and the fast-forward
-            # rewrites tracked paths the provenance check had already read off disk.
+            # rewrites tracked paths the provenance check had already read off disk. This path
+            # publishes `publish_provenance.json` itself on a red cycle, so it is the likeliest
+            # file of all to have just been replaced with origin's copy.
             _behind = _divergence_refusal()
             if _behind is None and not _provenance_is_publishable(
                     paths, label="{} (re-read after the advance)".format(label)):
+                _record_liveness_surface_refusal(
+                    label, publish_cause.PROVENANCE_REFUSED,
+                    "the mechanical advance fast-forwarded the shared tree to clear the fork, and "
+                    "the fail-closed provenance check then refused the stamp on the tree the "
+                    "advance produced -- the earlier pass graded the tree as it was BEFORE the "
+                    "fast-forward; nothing was staged",
+                    git_hash)
                 return False
     if _behind is not None:
-        log("{} commit REFUSED before staging: {}.".format(label, _behind))
+        # WHICH KIND OF BEHIND-ORIGIN THIS IS, because the two want different people and until
+        # now the record could not tell them apart. A HOT ORIGIN is a state with an owner --
+        # `origin_reconcile` closes real forks on the deadman cadence and closed 41 unaided on
+        # 2026-09-04 -- and the next cycle simply succeeds. An FF_MODIFIED collision is a WEDGE:
+        # no cadence clears it, because the holder is a lane's uncommitted file, and it stays
+        # until that lane lands. Both arrive here as the identical sentence "origin/main is N
+        # commit(s) AHEAD", and reading it as the first when it is the second is what left this
+        # surface silent for six hours while every reader waited for a cadence that could not help.
+        _verdict, _clause = _refused_advance_cause(PROJECT_DIR)
+        _why = "whether a fast-forward could close it: {} {}".format(_verdict, _clause)
+        log("{} commit REFUSED before staging: {}. {}".format(label, _behind, _why))
+        _record_liveness_surface_refusal(
+            label, publish_cause.BEHIND_ORIGIN, "{} -- {}".format(_behind, _why), git_hash)
         return False
     with tree_lock():
         # THE SAME UNCHECKED ADD, at the site the finding did not name (2026-08-25). The
@@ -5839,6 +5996,15 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
             # path did. Guarded by the same "not a clean no-op" test the log line uses.
             _record_commit_refusal_reds(getattr(result, "stdout", None),
                                         getattr(result, "stderr", None), git_hash)
+            # AND THE CAUSE ITSELF, for the reason two lines up gives about the reds: this exit
+            # is a refusal of the LIVENESS surface and it left the same orphaned log line as the
+            # other two. Inside the "not a clean no-op" guard on purpose -- a byte-identical
+            # banner is the expected steady state and recording it as a refusal would fill the
+            # field with non-events, which is how a record stops being read.
+            _record_liveness_surface_refusal(
+                label, publish_cause.GATE_REFUSAL,
+                "the pre-commit hook chain refused the commit (rc={}): {}".format(
+                    result.returncode, _tail), git_hash)
         return False
     push = subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=str(PROJECT_DIR),
                           timeout=60, stderr=subprocess.PIPE, text=True)
@@ -5856,6 +6022,15 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
         return True
     log("{} push did NOT advance origin (rc={}, origin={}, head={}) -- retry next cycle.".format(
         label, push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
+    # THE FOURTH EXIT, and the last one in this function that refused in the log alone. The
+    # commit EXISTS here and origin does not have it, which is the one refusal shape that leaves
+    # the tree changed -- so it is the one a reader most needs to find in the record.
+    _record_liveness_surface_refusal(
+        label, publish_cause.PUSH_NEVER_LANDED,
+        "the commit was created here and `git ls-remote` says origin did not advance to it "
+        "(push rc={}, origin={}, head={}) -- read the REF and not the push's own rc, which is "
+        "the 3.5-hour origin-freeze of 2026-07-24".format(
+            push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]), git_hash)
     return False
 
 
@@ -6039,7 +6214,8 @@ def _write_publish_gate_state(state, *, episode_closed=False):
            "red_census": state.get("red_census", CENSUS_FAIL_FAST_ONLY),
            "total_red": state.get("total_red", 0),
            "episode_clean_publishes": state.get("episode_clean_publishes", 0),
-           "last_clean_publish": state.get("last_clean_publish")}
+           "last_clean_publish": state.get("last_clean_publish"),
+           "liveness_surface_refusal": state.get("liveness_surface_refusal")}
     prior = _read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None
     # `last_clean_publish` is a LATEST-wins timestamp, which is the opposite ordering to
     # `since_fields` (earliest-wins), so the monotonic guard cannot express it and it is carried
@@ -6048,6 +6224,14 @@ def _write_publish_gate_state(state, *, episode_closed=False):
     # of recording it. Only an evidenced episode close clears it.
     if not episode_closed and out.get("last_clean_publish") is None and isinstance(prior, dict):
         out["last_clean_publish"] = prior.get("last_clean_publish")
+    # AND THE SAME CARRY, FOR THE SAME REASON, ON THE LIVENESS-SURFACE REFUSAL. `out` is built
+    # from a FIXED key list, so a field written by anyone other than this function is dropped by
+    # the next writer -- and the next writer is `record_publish_gate_failure`, which runs on
+    # exactly the cycles this record is about. Without the carry the record would be erased
+    # milliseconds after being written, by the failure it exists to explain.
+    if (not episode_closed and out.get("liveness_surface_refusal") is None
+            and isinstance(prior, dict)):
+        out["liveness_surface_refusal"] = prior.get("liveness_surface_refusal")
     out = guard_episode(prior,
                         out,
                         since_fields=PUBLISH_GATE_SINCE_FIELDS,
@@ -6055,6 +6239,50 @@ def _write_publish_gate_state(state, *, episode_closed=False):
                         episode_closed=episode_closed)
     PUBLISH_GATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
+
+
+def _record_liveness_surface_refusal(label, cause, evidence, git_hash="unknown", *, now=None):
+    """Record WHY the liveness heartbeat or the provenance banner did not publish. Never raises.
+
+    THE HOLE THIS FILLS (measured 2026-09-04, 19:19Z and 19:49Z). Both refusals reached the log
+    and nothing else: *"at HEAD only `git_commit_push` writes `.publish_gate_state.json`, so
+    these two heartbeat refusals recorded no path anywhere."* And `log()` writes ONE bullet, while
+    `stderr_tail` joins with newlines -- so every line after the first was orphaned in the file,
+    attached to nothing and invisible to any grep keyed to the message. Four separate seats then
+    re-derived the blocking paths by hand.
+
+    WHY THIS IS ITS OWN FIELD AND NOT THE CONTENT PATH'S CAUSE RECORD. These are two different
+    subjects and this project's most expensive recurring shape is measuring one number across
+    both. `publish_cause`/`PUBLISH_CAUSE_FILE` answers *"why did the CONTENT publish not land"*
+    and is read by the wedge router on rc=77; this answers *"why did the surface whose whole job
+    is to say the system is alive not publish"*, which is a question asked precisely on the
+    cycles where content was never going to publish at all. Writing this into the content path's
+    single-record file would let a banner refusal overwrite the attribution of the cycle it was
+    reporting on. Separate field, same file, same reader.
+
+    The CAUSE NAMES ARE THE SHARED ONES (`publish_cause.CAUSES`) rather than a private vocabulary,
+    so a reader who has learned one set has learned both -- but an unrecognised cause is stored as
+    given rather than dropped, because this record's job is to stop a refusal going unrecorded and
+    a name outside the set is still better evidence than silence.
+    """
+    try:
+        state = _read_publish_gate_state()
+        state["liveness_surface_refusal"] = {
+            "ts": time.time() if now is None else float(now),
+            "label": str(label),
+            "cause": str(cause),
+            "evidence": str(evidence or "")[:900],
+            "git_hash": str(git_hash),
+        }
+        _write_publish_gate_state(state)
+        return True
+    except Exception as exc:  # noqa: BLE001 -- the same argument the advance's own except carries
+        # A RECORDING FAILURE MUST NOT BECOME A PUBLISH FAILURE. This runs on a path that has
+        # already decided to refuse; the only thing its own failure may cost is the explanation
+        # of a refusal that was happening anyway. Taking the cycle down instead would turn an
+        # observation into a fault -- the shape this pipeline paid for at the commit in 2026-08-03.
+        log("Liveness-surface refusal record skipped ({}: {})".format(type(exc).__name__, exc))
+        return False
 
 
 def pending_run_complete_markers(staging_dir=None):
@@ -6280,9 +6508,19 @@ def _load_suspect_hit_rate(path=None):
 
 
 def _append_suspect_outcome(entry, path=None):
-    """Append one closed episode's outcome, bounded. Never raises."""
+    """Append one closed episode's outcome, bounded. Never raises.
+
+    READ-MODIFY-WRITE OVER A FAIL-OPEN LOADER (2026-09-05 census loader sweep). `_load_suspect_
+    hit_rate` answers [] for every unreadable shape -- correctly, since it must never render a
+    flattering score -- and this function then wrote a ONE-episode record over it: measured
+    against a live prior of 20 episodes, all seven unreadable states left exactly 1. H42's own
+    evidence that the wedge suspect list works is the thing destroyed, and it is destroyed
+    silently, reading afterwards as "not yet measured" rather than as a loss. Preserve first: the
+    bytes are the only copy of a series nothing else recomputes."""
     p = Path(path) if path is not None else WEDGE_SUSPECT_HIT_RATE_FILE
     try:
+        if prior_unreadable(load_episode_prior(p)[1]):
+            preserve_unreadable(p)
         eps = _load_suspect_hit_rate(p)
         eps.append(entry)
         p.parent.mkdir(parents=True, exist_ok=True)

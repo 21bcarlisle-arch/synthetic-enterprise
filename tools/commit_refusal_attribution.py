@@ -61,11 +61,7 @@ import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background.process_run_complete import (
-    _REFUSING_GATE_BANNERS,
-    _parse_failed_node_ids,
-    _parse_refusing_gate,
-)
+from background.process_run_complete import _REFUSING_GATE_BANNERS, _parse_refusing_gate
 
 DEFAULT_LOG = Path("docs/observability/sim-runner-log.md")
 
@@ -118,27 +114,15 @@ def _hook_blocks(lines):
     return blocks
 
 
-def _body_at(lines, blocks, i):
-    """The hook-output block belonging to the verdict at `lines[i]`, or None.
-
-    Factored out of `_cause_at` because the subject analysis below needs the same block the cause
-    was read from. Two independent lookups would eventually disagree about WHICH block belongs to a
-    cycle, and then a subject would be compared against a cause from a different attempt.
-    """
+def _cause_at(lines, blocks, i):
+    """Which gate refused the `commit_refused` line at `lines[i]`. Fail-closed on ignorance."""
     # The hook block sits immediately above its verdict; anything further away belongs to a
     # different cycle and is not evidence about this one.
     near = [b for b in blocks if b[1] <= i and i - b[1] <= 3]
     if not near:
-        return None
-    b = max(near, key=lambda x: x[1])
-    return "\n".join(lines[b[0]:b[1]])
-
-
-def _cause_at(lines, blocks, i):
-    """Which gate refused the `commit_refused` line at `lines[i]`. Fail-closed on ignorance."""
-    body = _body_at(lines, blocks, i)
-    if body is None:
         return NO_BLOCK
+    b = max(near, key=lambda x: x[1])
+    body = "\n".join(lines[b[0]:b[1]])
     return _parse_refusing_gate(body) or (RED_TEST if _RED_TEST.search(body) else UNNAMED)
 
 
@@ -232,17 +216,13 @@ def cycles(text):
             continue
         stamp = "{} {}".format(m.group(1), m.group(2))
         if ATTEMPT_NEEDLE in line:
-            out.append({"at": stamp, "outcome": LANDED, "cause": None, "subject": None})
+            out.append({"at": stamp, "outcome": LANDED, "cause": None})
             continue
         named = _NAMED_OUTCOME.search(line)
         if named and out:
             out[-1]["outcome"] = named.group(1)
             if REFUSAL_NEEDLE in line:
-                body = _body_at(lines, blocks, i)
                 out[-1]["cause"] = _cause_at(lines, blocks, i)
-                # Read from the SAME block the cause came from, so a subject can never be paired
-                # with a cause parsed out of a different attempt.
-                out[-1]["subject"] = _subject_at(out[-1]["cause"], body)
     return [c for c in out if opens and c["at"] >= opens]
 
 
@@ -293,10 +273,6 @@ def _close(cur, seq):
         # once, the next then fires) from gates FLAPPING (one cause recurring after another has
         # intervened). A set cannot tell those apart and they call for opposite responses.
         "cause_sequence": [c["cause"] for c in refused],
-        # Index-aligned with `cause_sequence` BY CONSTRUCTION -- both are built from `refused` in
-        # one order. The subject analysis indexes one with the other's position, so a divergence
-        # here would silently compare a gate's cause against another gate's subject.
-        "subjects": [c["subject"] for c in refused],
         # An episode with two causes is not attributed to either. Same discipline as the
         # unattributable bucket: never assign to the side that makes the split cleaner.
         "cause": causes[0] if len(causes) == 1 else MIXED,
@@ -456,15 +432,11 @@ def ordering_report(text, ranks=None):
     episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if not e["censored"]]
     out = []
     for e in episodes:
-        # The index is kept because unranked causes are SKIPPED here, so a position in `seq` is
-        # not a position in `cause_sequence` -- and `subjects` is index-aligned with the latter.
-        # Re-deriving the position downstream by counting ranked causes would pair a step with
-        # another cycle's subject the moment one unattributable cycle sits in between.
-        seq = [(k, c, ranks[c]) for k, c in enumerate(e["cause_sequence"]) if c in ranks]
+        seq = [(c, ranks[c]) for c in e["cause_sequence"] if c in ranks]
         steps, seen, peak = [], [], None
-        for k, cause, rk in seq:
+        for cause, rk in seq:
             if peak is not None and rk < peak:
-                steps.append({"cause": cause, "below": peak, "at": k})
+                steps.append({"cause": cause, "below": peak})
             peak = rk if peak is None else max(peak, rk)
             seen.append(cause)
         # A RECURRENCE is the predecessor's post-hoc test: a cause reappearing after a different
@@ -477,264 +449,40 @@ def ordering_report(text, ranks=None):
     return out
 
 
-# ---------------------------------------------------------------------------------------------
-# WHAT the gate refused ON, not merely WHICH gate refused.
-#
-# The predecessor closed by saying the log "records which gate refused and never what changed
-# between attempts", and proposed reading the TREE STATE between consecutive refused cycles. That
-# route is not taken here and the reason is a base rate: `git log --all --since=2026-08-13` is
-# 60-191 commits a day against a median 3300s gap between attempts, so "did the tree move" answers
-# YES for re-breaks and non-re-breaks alike. The premise is also false -- every gate prints the
-# artefact it objected to, inside the block the log already retains.
+def masking_exposure(text, ranks=None):
+    """Per gate: how often it was NAMED, PROVEN to have passed, and simply UNKNOWABLE.
 
-#: `- TWO ROOMS <F>.md: …`, `- UNCONSOLIDATED <F>.md: …`, `- STALE SEVERITY <F>.md: …`,
-#: `- RESURRECTED <F>.md: …`, `- MISSING CLASS DOC <F>.md`. The KIND is matched as a shape
-#: (leading capitals) rather than enumerated, so a new objection kind is picked up instead of
-#: silently dropped.
-#
-# THE SUBJECT IS THE FIRST `.md` ON THE LINE, and the two near-misses pull opposite ways.
-# RESURRECTED's TAIL names a SECOND document (`superseded by <CLASS>.md`) which is not what
-# refused, so the pattern must not reach past the first token. But `MISSING CLASS DOC <F>.md` ends
-# at the filename with NO trailing colon -- so anchoring on `:` to exclude that tail drops this
-# kind entirely, and 8 of the log's 49 finding-class subjects leave the analysis silently. That is
-# the predecessor's own defect (a fail-closed fix whose table read clean because its biggest
-# entries had left it) and it was caught the same way: by printing both forms against the real log
-# rather than by reasoning about the regex.
-#
-# ESTABLISHED EQUIVALENCE, not an untested branch: inserting `.*?` before the group changes
-# nothing (61 subjects, identical list, over the whole retained log), because leftmost-minimal
-# matching already prefers the empty skip. The tightness here is documentation of intent; what
-# actually selects the first token is the regex engine, and the control above pins the OUTCOME.
-_SUBJ_FINDING_CLASS = re.compile(r"^\s*-\s+[A-Z][A-Z ]+?\s(\S+\.md)\b", re.M)
-#: `§0: level_current 2->3 on <ATOM> declares a level for source this commit does NOT contain`.
-_SUBJ_LEVEL_GATE = re.compile(r"^§\d+:\s+level_current\s+\S+\s+on\s+(\S+?)\s", re.M)
-_ORPHAN_BANNER = "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS."
-_ORPHAN_END = "Nothing imports these"
+    THE COST OF THE SAME EARLY EXIT THAT MAKES `ordering_report` WORK. A cycle naming rank r
+    proves every gate below r passed and says nothing about the gates above it, so `by_gate` is a
+    distribution of FIRST failing gate. Each count there is a LOWER bound, and the bias is monotone
+    in chain position: the last gate is only ever visible when every gate before it passes.
 
+    Without this table the natural reading of a gate with zero refusals is "it never blocked a
+    publish". For the deepest gates that is not an observation about the gate at all -- their state
+    is unknown on every refused cycle in the window, and "never named" and "never broken" are
+    indistinguishable. Reported per gate rather than as one bias figure, because the exposure is
+    wildly uneven across the chain and a single number would hide exactly that.
 
-def _subjects_finding_class(body):
-    return frozenset(_SUBJ_FINDING_CLASS.findall(body)) or None
-
-
-def _subjects_level_gate(body):
-    return frozenset(_SUBJ_LEVEL_GATE.findall(body)) or None
-
-
-def _subjects_orphan(body):
-    """The indented module lines between the ratchet's banner and its explanation."""
-    out, inside = [], False
-    for line in body.split("\n"):
-        if _ORPHAN_BANNER in line:
-            inside = True
-            continue
-        if not inside:
-            continue
-        if _ORPHAN_END in line:
-            break
-        token = line.strip()
-        # One bare token per line. A line with a space in it is the prose, not a module, and
-        # admitting it would make two blocks differ on wording rather than on subject.
-        if token and " " not in token:
-            out.append(token)
-    return frozenset(out) or None
-
-
-def _subjects_pytest(body):
-    """pytest's own `FAILED <nodeid>` summary, via the parser the publisher itself uses."""
-    return frozenset(_parse_failed_node_ids(body)) or None
-
-
-#: cause name -> how that gate names its subject. Keyed by the name the BANNER TABLE produces, so
-#: a gate renamed there loses its extractor loudly (KeyError-free: it just becomes UNKNOWN) rather
-#: than keeping a stale key that matches nothing. A gate absent here is never guessed at.
-SUBJECT_EXTRACTORS = {
-    "finding-class consolidation": _subjects_finding_class,
-    "level-promotion gate": _subjects_level_gate,
-    "orphan-ratchet": _subjects_orphan,
-    "site-lane gate": _subjects_pytest,
-    RED_TEST: _subjects_pytest,
-}
-
-
-def _subject_at(cause, body):
-    """The artefacts `cause` objected to in `body`, or None when that cannot be established.
-
-    None is NOT an empty set and the difference is the whole discipline. The banner already told
-    us this gate refused, so it printed a subject; finding none means the log's `last 40 lines`
-    window cut above it. Returning `frozenset()` would make two truncated blocks compare EQUAL and
-    manufacture a `SAME` verdict -- fabricating a standing red out of missing evidence, which is
-    the one direction this analysis cannot survive.
-    """
-    fn = SUBJECT_EXTRACTORS.get(cause)
-    return fn(body) if fn and body else None
-
-
-SAME = "SAME"
-GREW = "GREW"
-SHRANK = "SHRANK"
-CHANGED = "CHANGED"
-UNKNOWN_SUBJECT = "UNKNOWN"
-#: The verdicts that are honest ignorance rather than an answer. Held as a set for the same reason
-#: `UNATTRIBUTABLE` is: a caller reporting a headline share cannot sweep it onto either side.
-SUBJECT_UNKNOWN = frozenset({UNKNOWN_SUBJECT})
-
-
-def subject_verdict(before, after):
-    """How the subject moved between two refusals of the SAME gate."""
-    if not before or not after:
-        return UNKNOWN_SUBJECT
-    if before == after:
-        return SAME
-    if before < after:          # strict subset: the old subject is still there, more arrived
-        return GREW
-    if after < before:          # strict subset the other way: something was repaired
-        return SHRANK
-    return CHANGED
-
-
-def subject_report(text, ranks=None):
-    """Every consecutive pair of refusals by ONE gate inside one bounded episode, classified.
-
-    WHY PAIRS ARE PER-GATE. Two DIFFERENT gates refusing in sequence is the queueing question, and
-    `ordering_report` already settled what this log can and cannot say about it. The question here
-    is the one left open: when the SAME gate refuses again, is it the same complaint?
-
-    `established` reuses the rank inference exactly as `ordering_report` states it -- an
-    intervening refusal at a strictly HIGHER rank is a positive observation that this gate PASSED
-    between the two, because the chain is serial and stops at the first refusal.
+    A cause with no rank is skipped, not sorted to an end -- same rule as `gate_ranks`.
     """
     ranks = gate_ranks() if ranks is None else ranks
-    episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if not e["censored"]]
-    pairs = []
-    for e in episodes:
-        causes, subs = e["cause_sequence"], e["subjects"]
-        where = collections.defaultdict(list)
-        for i, c in enumerate(causes):
-            where[c].append(i)
-        for gate, idxs in where.items():
-            for i, j in zip(idxs, idxs[1:]):
-                established = gate in ranks and any(
-                    causes[k] in ranks and ranks[causes[k]] > ranks[gate]
-                    for k in range(i + 1, j))
-                pairs.append({
-                    "episode_from": e["from"], "gate": gate,
-                    "verdict": subject_verdict(subs[i], subs[j]),
-                    "established": established,
-                    # Endpoints inclusive. The analytic control in the pre-registration is keyed to
-                    # this: an established pair needs a cycle strictly between its ends, so a span
-                    # of 2 would mean the pairing or the rank lookup is wrong.
-                    "span": j - i + 1,
-                    "outage_s": e["outage_s"],
-                })
-    return pairs
-
-
-def subject_tally(pairs):
-    """Verdict counts over all pairs and over established pairs, plus the unknown bound."""
-    def tally(rows):
-        c = collections.Counter(p["verdict"] for p in rows)
-        known = sum(v for k, v in c.items() if k not in SUBJECT_UNKNOWN)
-        return {"counts": dict(c), "known": known, "total": len(rows)}
-
-    return {"all": tally(pairs), "established": tally([p for p in pairs if p["established"]])}
-
-
-# ---------------------------------------------------------------------------------------------
-# WHICH TEST, not merely "a test". `RED TEST` names the GATE, and the gate is one line of the hook.
-# An established re-arrival of it is two different findings wearing one label:
-#
-#   one control re-breaking        -> a contended or flaky control; go and find THAT test.
-#   different tests in turn        -> ordinary arrival traffic from other lanes; the tree is
-#                                     being broken, and no single control is at fault.
-#
-# Those call for opposite responses, so a mechanism built on the undivided bucket would be built
-# on a number that means neither. No new instrumentation is needed: the hook block already prints
-# pytest's own `FAILED <nodeid>` summary, `_subjects_pytest` already reads it via the parser the
-# publisher itself uses, and `_close` already carries those sets index-aligned with the causes.
-#
-# THE COMPARISON IS AGAINST THE PREVIOUS RED TEST REFUSAL IN THE SAME EPISODE, never across
-# episodes: an episode is bounded by a LANDING, and a landing is a positive observation that every
-# gate passed. Two reds either side of one are unrelated by construction.
-
-#: Identical node-id sets. One control, red then red again -- but see `passed_between`: identical
-#: sets only demonstrate a RE-break where the gate was observed to pass in between. Without that
-#: observation the same set is the cheaper explanation, persistence, and is reported as such.
-SAME_TEST = "SAME TEST"
-#: Sets that intersect without being equal. NOT folded into either side: it carries a re-break AND
-#: other movement, and calling it one of the two would put a mixed case behind a clean headline.
-SHARED_TESTS = "SHARED TESTS"
-#: Disjoint sets. The gate re-broke on something else entirely -- arrival traffic.
-DIFFERENT_TESTS = "DIFFERENT TESTS"
-#: No earlier `RED TEST` refusal in this episode. Not ignorance and not an answer: a positive
-#: observation that this redness ARRIVED here, with nothing in the episode to compare it against.
-FIRST_RED = "FIRST RED IN EPISODE"
-#: One of the two blocks did not retain a pytest short-summary section, so its node ids are simply
-#: gone. Reported, never guessed: the `last 40 lines` window cuts above the summary often enough
-#: that treating an absent summary as "no tests failed" would score a re-break as DIFFERENT TESTS.
-NODE_IDS_UNAVAILABLE = "UNAVAILABLE (node ids not retained)"
-#: The two rows that answer no part of the same-vs-different question. Held as a set for the same
-#: reason `UNATTRIBUTABLE` and `SUBJECT_UNKNOWN` are: a caller reporting a share cannot sweep
-#: either onto a side and report a split over a denominator that never earned it.
-RED_TEST_UNSPLIT = frozenset({FIRST_RED, NODE_IDS_UNAVAILABLE})
-
-
-def _node_id_verdict(before, after):
-    """How the failing-test set moved between two `RED TEST` refusals."""
-    if not before or not after:
-        return NODE_IDS_UNAVAILABLE
-    if before == after:
-        return SAME_TEST
-    return SHARED_TESTS if before & after else DIFFERENT_TESTS
-
-
-def red_test_report(text, ranks=None):
-    """Every established re-arrival of `RED TEST`, split by WHICH tests were failing.
-
-    Built on `ordering_report`'s peak-rank test and not on a second definition of its own: a
-    backward step is the only re-arrival this log establishes, and re-deriving it here would give
-    the two reports room to disagree about which cycles are even in scope.
-
-    `passed_between` is the STRONGER observation and is carried rather than folded in. The step
-    itself says the gate passed somewhere before this cycle; `passed_between` says a strictly
-    higher-ranked gate refused between THIS pair, so the serial chain reached past `RED TEST` and
-    it passed *since the earlier red*. Only there does an identical set mean a control re-broke.
-    Everywhere else an identical set is persistence, which is the cheaper explanation and must not
-    be published as a flaky control.
-    """
-    ranks = gate_ranks() if ranks is None else ranks
-    rows = []
-    for e in ordering_report(text, ranks=ranks):
-        causes, subs = e["cause_sequence"], e["subjects"]
-        for step in e["backward_steps"]:
-            if step["cause"] != RED_TEST:
-                continue
-            k = step["at"]
-            prior = [j for j in range(k) if causes[j] == RED_TEST]
-            if not prior:
-                rows.append({"episode_from": e["from"], "at": k, "verdict": FIRST_RED,
-                             "passed_between": False, "outage_s": e["outage_s"]})
-                continue
-            j = prior[-1]
-            rows.append({
-                "episode_from": e["from"], "at": k,
-                "verdict": _node_id_verdict(subs[j], subs[k]),
-                "passed_between": any(
-                    causes[m] in ranks and ranks[causes[m]] > ranks[RED_TEST]
-                    for m in range(j + 1, k)),
-                "outage_s": e["outage_s"],
-            })
-    return rows
-
-
-def red_test_tally(rows):
-    """Verdict counts over all rows and over those where the gate demonstrably passed between."""
-    def tally(subset):
-        c = collections.Counter(r["verdict"] for r in subset)
-        return {"counts": dict(c), "total": len(subset),
-                "split": sum(v for k, v in c.items() if k not in RED_TEST_UNSPLIT)}
-
-    return {"all": tally(rows),
-            "passed_between": tally([r for r in rows if r["passed_between"]])}
+    seq = [c["cause"] for c in cycles(text) if c["outcome"] == "commit_refused"]
+    out = {}
+    for gate, rank in ranks.items():
+        named = passing = unknown = 0
+        for cause in seq:
+            if cause == gate:
+                named += 1
+            elif cause in ranks and ranks[cause] > rank:
+                # A DEEPER gate was reached, which is a positive observation that this one passed.
+                passing += 1
+            else:
+                # Either a shallower gate refused first (this one was never reached) or the cause
+                # has no rank. Both are ignorance, and neither is folded onto the passing side.
+                unknown += 1
+        out[gate] = {"rank": rank, "named": named,
+                     "proven_passing": passing, "unknown": unknown}
+    return out
 
 
 def _hours(seconds):
@@ -749,8 +497,32 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--log", default=str(DEFAULT_LOG))
     args = ap.parse_args(argv)
-    r = attribute(Path(args.log).read_text(encoding="utf-8", errors="replace"))
+    path = Path(args.log)
+    if not path.exists():
+        print("REFUSED: no log at {} -- nothing was measured.".format(path))
+        return 2
+    r = attribute(path.read_text(encoding="utf-8", errors="replace"))
 
+    # FAIL CLOSED ON AN ABSENT SUBJECT. Every line this measures was written to the daemon's
+    # WORKING copy: the log is tracked, but its committed copy was truncated to 2026-07-17 on
+    # 2026-08-31. So a clean checkout, an isolated worktree, CI or a `git archive HEAD` extract
+    # holds a file with no named outcome in it -- and three findings now publish
+    # `python3 -m tools.commit_refusal_attribution` as their re-derivation instruction. Run from
+    # one of those, this printed `0 refusals, share 0.0%, total bounded outage 0.0h`: a complete,
+    # confidently formatted report that the publisher had never once failed. An absent subject
+    # read as a clean result is the comfortable direction and the wrong one, so it refuses and
+    # names which copy it read.
+    if r["observable_from"] is None:
+        print("REFUSED: {} contains no named commit outcome, so nothing here is measurable.\n"
+              "  read {} attempt line(s), {} of them refused\n"
+              "  The named-outcome vocabulary began 2026-08-13. A file without it is either\n"
+              "  entirely older than that, or it is the COMMITTED copy -- truncated to\n"
+              "  2026-07-17 on 2026-08-31. The subject is the running daemon's working copy.\n"
+              "  Point --log at the shared tree's copy; do not read a zero here as a result."
+              .format(path, r["attempts_lifetime"], r["refusals"]))
+        return 2
+
+    print("subject: {} ({} bytes)".format(path, path.stat().st_size))
     print("commit_refused cycles: {}".format(r["refusals"]))
     print("observable window opens: {}".format(r["observable_from"]))
     print("attempts (lifetime):   {}  -> share {}  [BLIND over its first span; NOT a rate]".format(
@@ -824,50 +596,27 @@ def main(argv=None):
             "ESTABLISHED" if e["established"] else "order-consistent",
             " -> ".join(c.split(" (")[0] for c in e["cause_sequence"][:6])))
 
-    pairs = subject_report(Path(args.log).read_text(encoding="utf-8", errors="replace"))
-    t = subject_tally(pairs)
-    print("\n=== SUBJECT: when a gate refuses AGAIN, is it the SAME complaint? ===")
-    print("every gate prints the artefact it objected to, so the log DOES say what changed.")
-    print("SAME = a STANDING RED nobody is working; the publisher retries into it on its own")
-    print("rhythm. CHANGED/GREW = an ARRIVAL STREAM from other lanes. Opposite remedies.")
-    for label in ("all", "established"):
-        row = t[label]
-        print("\n{} pairs: {} ({} with an extractable subject)".format(
-            "ALL same-gate" if label == "all" else "ESTABLISHED (gate demonstrably PASSED between)",
-            row["total"], row["known"]))
-        for v, n in sorted(row["counts"].items(), key=lambda kv: -kv[1]):
-            base = "of extractable" if v not in SUBJECT_UNKNOWN else "of all pairs"
-            print("  {:5d}  {:>6} {}  {}".format(
-                n, _pct(n, row["total"] if v in SUBJECT_UNKNOWN else row["known"]), base, v))
-    rows = red_test_report(Path(args.log).read_text(encoding="utf-8", errors="replace"))
-    rt = red_test_tally(rows)
-    print("\n=== RED TEST, SPLIT BY WHICH TEST: one control re-breaking, or the tree moving? ===")
-    print("RED TEST names the GATE, so an established re-arrival of it is two different findings")
-    print("wearing one label. ONE control re-breaking is a contended or flaky test to go and find;")
-    print("DIFFERENT tests in turn is arrival traffic from other lanes and no control's fault.")
-    for label, note in (("all", "every established RED TEST re-arrival"),
-                        ("passed_between",
-                         "and a higher gate refused BETWEEN the pair, so RED TEST passed since")):
-        row = rt[label]
-        print("\n{}: {} ({} answer the same-vs-different question)".format(
-            note, row["total"], row["split"]))
-        for v, n in sorted(row["counts"].items(), key=lambda kv: -kv[1]):
-            base = "of splittable" if v not in RED_TEST_UNSPLIT else "of all steps"
-            print("  {:5d}  {:>6} {}  {}".format(
-                n, _pct(n, row["total"] if v in RED_TEST_UNSPLIT else row["split"]), base, v))
-    print("\nwithout the between-observation an identical set is PERSISTENCE, not a re-break:")
-    print("  {} of the {} SAME TEST steps carry it.".format(
-        sum(1 for r in rows if r["verdict"] == SAME_TEST and r["passed_between"]),
-        sum(1 for r in rows if r["verdict"] == SAME_TEST)))
-
-    by_gate = collections.defaultdict(collections.Counter)
-    for p in pairs:
-        by_gate[p["gate"]][p["verdict"]] += 1
-    print("\nby gate (pairs):")
-    for gate, c in sorted(by_gate.items(), key=lambda kv: -sum(kv[1].values())):
-        print("  {:5d}  {:<32} {}".format(
-            sum(c.values()), gate.split(" (")[0],
-            "  ".join("{} {}".format(v, n) for v, n in sorted(c.items()))))
+    exposure = masking_exposure(Path(args.log).read_text(encoding="utf-8", errors="replace"))
+    refused_cycles = sum(1 for c in cycles(
+        Path(args.log).read_text(encoding="utf-8", errors="replace"))
+        if c["outcome"] == "commit_refused")
+    print("\n=== WHAT THE SAME EARLY EXIT COSTS THE CAUSE SPLIT ===")
+    print("`by_gate` above is a distribution of FIRST failing gate. Each count is a LOWER bound")
+    print("and the bias is monotone in chain position. Over {} refused cycles:".format(
+        refused_cycles))
+    print("  {:<34} {:>6} {:>8} {:>8}".format("gate (in chain order)", "named", "PROVEN", "unknown"))
+    print("  {:<34} {:>6} {:>8} {:>8}".format("", "", "passing", ""))
+    for gate, row in sorted(exposure.items(), key=lambda kv: kv[1]["rank"]):
+        print("  {:<34} {:6d} {:8d} {:8d}".format(
+            gate.split(" (")[0][:34], row["named"], row["proven_passing"], row["unknown"]))
+    blind = [g for g, row in exposure.items() if row["named"] == 0 and row["proven_passing"] == 0]
+    if blind:
+        print("\n{} gate(s) have NO observation of any kind in this window -- never named,".format(
+            len(blind)))
+        print("never proven passing. For these 'it never refused a publish' is not an")
+        print("observation about the gate; it is unobservable:")
+        for gate in sorted(blind, key=lambda g: exposure[g]["rank"]):
+            print("  {} (unknown on all {} refused cycles)".format(gate, exposure[gate]["unknown"]))
     return 0
 
 

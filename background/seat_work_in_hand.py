@@ -102,6 +102,7 @@ import subprocess
 import time
 from pathlib import Path
 
+from background.episode_prior import load_episode_prior, preserve_unreadable, prior_unreadable
 from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -118,17 +119,40 @@ CLAIMS_FILE = PROJECT_DIR / "docs" / "observability" / ".seat_work_in_hand.json"
 STALE_AFTER_SECONDS = 45 * 60
 
 
+def _load_classified(path: Path) -> tuple[dict, str]:
+    """The claims store, plus WHERE IT CAME FROM -- absent, readable, or present-but-unreadable.
+
+    THE FAIL-OPEN READ IS RIGHT AND THE READ-MODIFY-WRITE OVER IT WAS NOT (2026-09-05, the
+    census parameter-seam repair, which is what made this path a hit again). `{}` for a corrupt
+    store is correct for the READERS: losing claims fails toward work being DRAWABLE, and the
+    unsafe direction is work invisibly owned by nobody. But `claim`/`release`/`sweep` all
+    read-modify-write this same `{}` and `_save` it back, so ONE unreadable byte turns a
+    temporary fail-open into a permanent loss of every other lane's claim -- and `claimed_at` is
+    the field `last_progress`/`stale_claims` derive `idle_seconds` from, so the staleness episode
+    of every surviving claim restarts at zero. That is the self-clearing-alarm class exactly:
+    the record the alarm's severity comes from, destroyed by the failure to read it.
+
+    `null`, `[1, 2, 3]` and `"abc"` are the members that mattered: all three PARSE, so the old
+    `except (OSError, ValueError)` never saw them and only the `isinstance` tail caught them --
+    which returned the same `{}` as a missing file and told nobody the difference."""
+    state, verdict = load_episode_prior(path)
+    return state, verdict
+
+
 def _load(path: Path) -> dict:
-    if not path.is_file():
-        return {}
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        # A corrupt claims file must not wedge the sweep. Losing claims fails toward work
-        # being DRAWABLE, which is the safe direction -- the unsafe one is work invisibly
-        # owned by nobody.
-        return {}
-    return data if isinstance(data, dict) else {}
+    """The claims store for a PURE READER. Absent and unreadable both answer `{}`, deliberately:
+    a reader must not move bytes about, and every caller here already treats `{}` as "nothing
+    claimed". Writers use `_load_classified` and preserve before they overwrite."""
+    return _load_classified(path)[0]
+
+
+def _preserve_if_unreadable(verdict: str, path: Path) -> None:
+    """Move an unreadable claims store aside BEFORE a writer rebuilds over it.
+
+    In the writers only, and named rather than inlined so a grep for the question finds all
+    three of them. `preserve_unreadable` is a no-op for a readable or absent store."""
+    if prior_unreadable(verdict):
+        preserve_unreadable(path)
 
 
 def _save(claims: dict, path: Path) -> None:
@@ -169,7 +193,8 @@ def claim(work_id: str, note: str = "", paths: list[str] | None = None, *,
     out loud, in the record.
     """
     p = path or CLAIMS_FILE
-    claims = _load(p)
+    claims, verdict = _load_classified(p)
+    _preserve_if_unreadable(verdict, p)
     claims[work_id] = {
         "claimed_at": time.time() if now is None else now,
         "note": note,
@@ -241,9 +266,13 @@ def release(work_id: str, *, path: Path | None = None) -> bool:
     `record_landing`/`refusal_reason` already uses in the module that owns that pattern.
     """
     p = path or CLAIMS_FILE
-    claims = _load(p)
+    claims, verdict = _load_classified(p)
     if claims.pop(work_id, None) is None:
+        # No write happens on this branch, so there is nothing to preserve AGAINST -- and an
+        # unreadable store lands here, because `{}` has nothing to pop. The preserve belongs
+        # with the write, not with the read.
         return False
+    _preserve_if_unreadable(verdict, p)
     _save(claims, p)
     return True
 

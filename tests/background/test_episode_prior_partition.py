@@ -290,16 +290,29 @@ def test_every_real_census_hit_is_covered():
     # probed by `_build` above because its prior is not a `{counter, since}` state at all -- the
     # generic probe would have to be taught a second shape to reach it, and a probe bent to fit two
     # records grades neither.
-    covered_by_a_sibling = {".weekly_rhythm.json"}
-    sibling = (
-        Path(__file__).parent / "test_undispositioned_carriers_absent_vs_unreadable.py"
-    )
-    assert sibling.is_file(), (
-        f"{sorted(covered_by_a_sibling)} is exempted here on the word of {sibling.name}, and that "
-        "file is not on disk -- an exemption citing a control that does not exist is the prose "
-        "inventory this rung exists to refuse")
+    #
+    # `.seat_work_in_hand.json` joined them on 2026-09-05, when the census parameter-seam repair
+    # made it a hit for the first time: `claimed_at` is an episode start and `stale_claims`
+    # publishes `idle_seconds` off it, and an unreadable store had every writer rebuild a
+    # one-claim file over every other lane's claim. Its prior is a `{work_id: {...}}` MAP, so the
+    # `{counter, since}` probe above cannot reach it either.
+    #
+    # KEYED PER PATH, so each exemption names the control that actually covers it. A single
+    # shared citation would let a second path ride in on the first one's file -- which is the
+    # prose-inventory shape this rung exists to refuse, arriving through the exemption list.
+    covered_by_a_sibling = {
+        ".weekly_rhythm.json": "test_undispositioned_carriers_absent_vs_unreadable.py",
+        ".seat_work_in_hand.json": "test_the_census_lost_five_hits_to_the_parameter_seam.py",
+    }
+    for exempt_path, sibling_name in sorted(covered_by_a_sibling.items()):
+        sibling = Path(__file__).parent / sibling_name
+        assert sibling.is_file(), (
+            f"{exempt_path} is exempted here on the word of {sibling_name}, and that file is not "
+            "on disk -- an exemption citing a control that does not exist is the prose inventory "
+            "this rung exists to refuse")
 
-    uncovered = real - covered - already_distinguishing - guarded_elsewhere - covered_by_a_sibling
+    uncovered = (real - covered - already_distinguishing - guarded_elsewhere
+                 - set(covered_by_a_sibling))
     assert not uncovered, (
         f"census `real` hits with no absent-vs-unreadable coverage: {sorted(uncovered)}. "
         "A new carrier of this class must either be probed above or named with its reason."

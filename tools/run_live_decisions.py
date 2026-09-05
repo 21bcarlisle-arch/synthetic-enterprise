@@ -227,7 +227,10 @@ def append_decision_log(decision, log_path=None):
             try:
                 entry = json.loads(line)
                 day = entry["decision_run_at"][:10]
-            except (json.JSONDecodeError, TypeError, KeyError, IndexError) as e:
+            # ValueError, not JSONDecodeError: it is the parent class, so it still catches every
+            # torn line, and it additionally covers the decode errors `json.loads` raises that are
+            # NOT JSONDecodeError. Narrowing to the subclass buys nothing and leaks the rest.
+            except (ValueError, TypeError, KeyError, IndexError) as e:
                 print(
                     f"REFUSING to append to {log_path}: line {lineno} cannot be read as a decision "
                     f"({e.__class__.__name__}: {e}), so whether {run_date} is already recorded "

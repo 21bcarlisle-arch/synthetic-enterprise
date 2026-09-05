@@ -318,6 +318,37 @@ def _format_aged_staging_line(entry: dict) -> str:
     return f"{entry['filename']} ({entry['age_days']:.1f}d): {entry['summary']}"
 
 
+class _StampUnreadable(Exception):
+    """The once-per-day stamp exists but could not be read. Distinct from its absence."""
+
+
+def _last_digest_date() -> str | None:
+    """The date stamp of the last digest, or None if it has NEVER been written.
+
+    Guarded like its two siblings — `boot_announce.already_announced_this_boot` and
+    `daily_self_note.already_ran_today` — which both wrap the same read in `except OSError`.
+    This one did not, and an `.exists()` check does not cover what it looks like it covers:
+    a directory at the path, a permissions error, or the file being unlinked in the window
+    between the check and the read all raise OSError out of `_maybe_send_daily_digest` and
+    into the sanity daemon's cycle, from a once-a-day bookkeeping read.
+
+    ABSENT IS NOT UNREADABLE, and collapsing them is why this raises rather than returning a
+    second None. The guard that did return None for both argued a duplicate digest costs the
+    director one repeated notification — but the causes that make this path unreadable (a
+    directory at it, a permissions error) do not clear on their own and make it UNWRITABLE
+    too, so the stamp never advances and "one duplicate" is really one every 30-minute cycle
+    until somebody intervenes. That is precisely the alarm-that-repeats-unactionably this
+    function exists to prevent, so the unreadable case refuses to send and says why, and only
+    the genuinely-never-stamped case may send.
+    """
+    try:
+        return LAST_DIGEST_DATE_FILE.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise _StampUnreadable(exc) from exc
+
+
 def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     """Standing open findings get ONE line in a daily digest, not a 30-min
     repeat (director's own framing, 2026-07-11: "an alarm that repeats
@@ -356,15 +387,17 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     state that leaks between callers, and it buys nothing the ordering does not already give.
     """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # THROUGH THE HELPER, NOT BESIDE IT. This read was hand-rolled here while `_last_digest_date`
+    # sat one screen up carrying the same guard, which is how the two came to disagree about what
+    # an unreadable stamp means. One reader, one answer: None is never-stamped and may send,
+    # `_StampUnreadable` is cannot-tell and may not.
     try:
-        last_sent = LAST_DIGEST_DATE_FILE.read_text(encoding="utf-8").strip()
-    except FileNotFoundError:
-        last_sent = None  # never stamped -- ABSENT is not UNREADABLE, and only this branch may send
-    except OSError as e:
-        last_sent = None  # MUTANT
+        last_sent = _last_digest_date()
+    except _StampUnreadable as exc:
+        cause = exc.__cause__
         log(f"Daily digest SKIPPED -- the once-per-day stamp {LAST_DIGEST_DATE_FILE.name} is "
-            f"unreadable ({e.__class__.__name__}: {e}), so whether today's digest already went "
-            f"cannot be established. Refusing rather than risking a 30-minute repeat.")
+            f"unreadable ({cause.__class__.__name__}: {cause}), so whether today's digest already "
+            f"went cannot be established. Refusing rather than risking a 30-minute repeat.")
         return
     if last_sent == today:
         return

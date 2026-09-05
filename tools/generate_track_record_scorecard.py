@@ -87,7 +87,7 @@ def _load_log(log_path=None):
             continue
         try:
             entry = json.loads(line)
-        except json.JSONDecodeError:
+        except ValueError:
             unreadable += 1
             continue
         if not isinstance(entry, dict):
@@ -252,11 +252,11 @@ def _retention_ev_log(log_entries):
 
 
 def generate(log_path=None, portfolio_path=None, out_path=None, today=None):
-    log_entries, unreadable_log_lines = _load_log(log_path)
+    log_entries, unreadable_lines = _load_log(log_path)
     customers_by_cid = _load_portfolio(portfolio_path)
     wall_clock_today = today if today is not None else dt.datetime.now(dt.timezone.utc).date()
 
-    clock_started = log_entries[0]["decision_run_at"][:10] if log_entries else None
+    clock_started = (log_entries[0].get("decision_run_at") or "")[:10] or None if log_entries else None
 
     graded, pending, inconclusive = _grade_renewals(
         log_entries, customers_by_cid, wall_clock_today, RENEWAL_TOLERANCE_PCT
@@ -273,10 +273,10 @@ def generate(log_path=None, portfolio_path=None, out_path=None, today=None):
         "wall_clock_today": wall_clock_today.isoformat(),
         "clock_started": clock_started,
         "log_entry_count": len(log_entries),
-        # The denominator's own honesty. Non-zero means `log_entry_count` is smaller than the
-        # record actually is, and every count below it is understated by an unknown amount --
-        # a figure published without this beside it is a plausible number with a hole in it.
-        "unreadable_log_lines": unreadable_log_lines,
+        # The bound this figure's own sample size earns: how many lines of the decision log
+        # could not be read at all. Normally 0. Anything else means every count below is
+        # over a PARTIAL log, and the reader is told rather than left to assume completeness.
+        "unreadable_log_lines": unreadable_lines,
         "renewal_tolerance_pct": RENEWAL_TOLERANCE_PCT,
         "renewal_grading": {
             "graded_count": len(graded),
