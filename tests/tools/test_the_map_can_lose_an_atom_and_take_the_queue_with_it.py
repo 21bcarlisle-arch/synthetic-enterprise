@@ -267,7 +267,20 @@ def test_the_seeded_register_carries_the_two_atoms_nobody_explained():
     a plausible sentence. A `None` with a named reason cannot be read as established; an invented
     reason can."""
     reasons = yaml.safe_load((REPO_ROOT / g.RETIRED_REL).read_text(encoding="utf-8"))
-    assert len(reasons) == 22
+    # RE-KEYED 2026-09-05, from `assert len(reasons) == 22`, which was pinned to the register's
+    # SIZE ON THE DAY IT WAS SEEDED. That reds the moment the register does its job -- the first
+    # six renames recorded in it broke this control, and the cure was to edit the literal, a
+    # two-line diff travelling with the very act the register exists to capture. A control keyed
+    # to today's answer goes red when the record becomes MORE complete and stays green when it
+    # rots, which is exactly backwards.
+    #
+    # The property is a FLOOR, not a count: the register may only grow, because an entry is the
+    # sole surviving record of an atom that left the map, and deleting one is the defect this
+    # whole file exists to catch (`test_a_register_control_needs_its_inverse`).
+    assert len(reasons) >= 22, (
+        f"the retirement register has shrunk to {len(reasons)}: an entry is the only record that "
+        "its atom was ever on the map, so removing one removes the last thing that could notice"
+    )
     for atom in ("D6a_ageing_gap_metric_reshape", "D6b_ambiguous_remittance_misdating"):
         assert "NO stated reason" in reasons[atom], (
             f"{atom} lost the statement that nothing was ever recorded for it"

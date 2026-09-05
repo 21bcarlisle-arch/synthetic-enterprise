@@ -24,6 +24,7 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 import sys
 import time
 import urllib.error
@@ -93,8 +94,83 @@ PENDING = "pending"
 ON_DISK_STATUSES = ("fetched", "present")
 
 
+LOCK = CACHE_ROOT / ".pull.lock"
+
+
 class PullRefused(RuntimeError):
     """Raised with a reason a human can act on. Never raised bare."""
+
+
+def _process_identity(pid: int) -> str | None:
+    """A pid PLUS the boot-clock tick it started at, or None if it is not running.
+
+    The pid alone is not an identity. Linux recycles them, and a lock naming a recycled
+    number reads as held forever -- the pull would refuse itself for the rest of the
+    machine's uptime, which is a worse failure than the concurrency it guards. Field 22
+    of /proc/<pid>/stat is the start time in clock ticks; a different process wearing the
+    same number has a different one.
+    """
+    try:
+        stat = Path(f"/proc/{pid}/stat").read_text()
+    except OSError:
+        return None
+    # The comm field is parenthesised and may itself contain spaces and brackets, so the
+    # fields are counted from the LAST ')' rather than by splitting the whole line.
+    fields = stat[stat.rfind(")") + 1:].split()
+    return f"{pid}:{fields[19]}" if len(fields) > 19 else None
+
+
+def acquire_lock(*, lock: Path = LOCK) -> str | None:
+    """Refuse a second pull while one is running. Returns the identity written.
+
+    Two pullers share the cache and append to the same `.part` file. The result is not a
+    crash: it is a grid of the right name and the wrong bytes, which fails the size check
+    and is written into the receipt as a failed row -- a gap the analysis would read as
+    "the archive did not have this month". Fabricated evidence, from two processes each
+    behaving correctly.
+
+    This became reachable on 2026-09-05: the lane-0 claim for the pull was not held, so
+    `--landed` bound nothing and the item stays drawable while its runner is still going.
+    """
+    if lock.exists():
+        held = _process_identity_in(lock)
+        if held:
+            raise PullRefused(
+                f"a pull is already running ({held}); {lock} holds it. Two pullers append "
+                "to the same .part file and produce a grid of the right name and the "
+                "wrong bytes. Wait for it, or stop that process first"
+            )
+    mine = _process_identity(os.getpid())
+    lock.parent.mkdir(parents=True, exist_ok=True)
+    lock.write_text(f"{mine}\n" if mine else f"{os.getpid()}\n")
+    return mine
+
+
+def _process_identity_in(lock: Path) -> str | None:
+    """The identity a lock file names, if that exact process is still alive."""
+    try:
+        written = lock.read_text().strip()
+    except OSError:
+        return None
+    pid_text = written.split(":")[0]
+    if not pid_text.isdigit():
+        return None
+    live = _process_identity(int(pid_text))
+    # A bare pid from an older lock format cannot be told from a recycled one, so it is
+    # honoured only as a pid. Anything carrying a start time must match it exactly.
+    if ":" not in written:
+        return written if live else None
+    return written if live == written else None
+
+
+def release_lock(identity: str | None, *, lock: Path = LOCK) -> None:
+    """Drop the lock only if it is still OURS.
+
+    A run that took the lock, was killed, and had it replaced by a later run must not
+    delete the later run's lock on the way out.
+    """
+    if _process_identity_in(lock) == (identity or _process_identity(os.getpid())):
+        lock.unlink(missing_ok=True)
 
 
 def _load_credentials() -> dict:
@@ -609,6 +685,22 @@ def main(argv=None) -> int:
         RECEIPT.write_text(json.dumps(merged, indent=2) + "\n")
         return merged
 
+    try:
+        identity = acquire_lock()
+    except PullRefused as exc:
+        print(f"REFUSED: {exc}", file=sys.stderr)
+        return 1
+
+    # The lock is held across the FINAL receipt write, not just the fetching. A second
+    # puller starting in the gap between the last file and the last write would merge
+    # against a receipt this run is still holding in memory.
+    try:
+        return _pull(args, tiers, write_receipt)
+    finally:
+        release_lock(identity)
+
+
+def _pull(args, tiers: tuple[str, ...], write_receipt) -> int:
     try:
         summary = run(
             tiers,
