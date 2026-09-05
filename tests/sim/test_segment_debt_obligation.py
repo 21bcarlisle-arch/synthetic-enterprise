@@ -124,3 +124,49 @@ def test_true_terms_class_dispatch():
     assert w29.true_terms_class("iandc") == w29.BUSINESS_TERMS
     assert w29.is_business_segment("sme") is True
     assert w29.is_business_segment("resi") is False
+
+
+# ---------------------------------------------------------------------------
+# The seal, asserted where the label is MINTED
+# ---------------------------------------------------------------------------
+
+def test_what_this_module_mints_is_refused_by_the_world_true_canon():
+    """Every label `observed_segment` returns must be REFUSED by
+    `normalise_segment` -- asserted here, at the minting site, and not only in
+    the vocabulary's own suite.
+
+    THE DEFECT THIS CLOSES is not in either module: it is that the seal between
+    them had exactly one proof in the whole tree
+    (`tests/sim/test_w2_15_segment_vocabularies.py`), and this file -- the suite
+    of the module that MINTS the sealed type -- did not carry it. Measured by
+    mutation on 2026-09-06: deleting the isinstance check in
+    `normalise_segment` killed that one file and nothing else, this suite
+    included.
+
+    A string-only block cannot be substituted for the type check and this test
+    would catch that too: TWO of the three labels below ('resi', 'sme') are
+    also valid canonical aliases and would coerce silently, so a string block
+    raises on 'iandc' alone -- passing through a whole resi/SME population and
+    failing the first time an I&C customer appears.
+    """
+    from simulation.segment_vocabulary import (
+        UnknownSegmentError,
+        normalise_segment,
+    )
+
+    minted = {w29.observed_segment(seg, f"SEAL{i:05d}")
+              for seg in ("resi", "sme", "iandc")
+              for i in range(400)}
+    # The partition control, before any leg asserts what the refusal does: all
+    # three labels must actually be reachable, or this test could pass by
+    # exercising one of them.
+    assert minted == {"resi", "sme", "iandc"}, minted
+
+    for label in minted:
+        assert isinstance(label, w29.CompanyBookLabel), label
+        with pytest.raises(UnknownSegmentError):
+            normalise_segment(label)
+        # ... and the refusal is about PROVENANCE, not spelling: the same
+        # characters as a bare str normalise fine for 'resi' and 'sme'.
+        if str(label) in ("resi", "sme"):
+            assert normalise_segment(str(label)) in ("resi", "SME")
