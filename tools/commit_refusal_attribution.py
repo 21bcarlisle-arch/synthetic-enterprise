@@ -763,11 +763,25 @@ def red_test_report(text, ranks=None):
 
 
 def red_test_tally(rows):
-    """Verdict counts over all rows and over those where the gate demonstrably passed between."""
+    """Verdict counts over all rows and over those where the gate demonstrably passed between.
+
+    `SAME_TEST` is the ONE verdict whose plain reading is wrong, so its two halves travel with the
+    count rather than in a note beside it. On its own `SAME TEST 7 (46.7%)` reads "a flaky control,
+    go and find it", and on this log every one of those seven is persistence -- a standing red the
+    publisher retried into, with the gate never once observed to pass between the pair. A caller
+    that reports `counts` and not the halves publishes the flattering reading, and the correction
+    sitting three lines below in prose is exactly the footnote a figure must not depend on.
+
+    Keyed to the PROPERTY, not to today's zero: the day a re-break is demonstrated the row reports
+    it as one, and neither half is the default the other falls through to.
+    """
     def tally(subset):
         c = collections.Counter(r["verdict"] for r in subset)
+        same = [r for r in subset if r["verdict"] == SAME_TEST]
         return {"counts": dict(c), "total": len(subset),
-                "split": sum(v for k, v in c.items() if k not in RED_TEST_UNSPLIT)}
+                "split": sum(v for k, v in c.items() if k not in RED_TEST_UNSPLIT),
+                "same_test_rebroke": sum(1 for r in same if r["passed_between"]),
+                "same_test_persisted": sum(1 for r in same if not r["passed_between"])}
 
     return {"all": tally(rows),
             "passed_between": tally([r for r in rows if r["passed_between"]])}
@@ -935,12 +949,18 @@ def main(argv=None):
             note, row["total"], row["split"]))
         for v, n in sorted(row["counts"].items(), key=lambda kv: -kv[1]):
             base = "of splittable" if v not in RED_TEST_UNSPLIT else "of all steps"
-            print("  {:5d}  {:>6} {}  {}".format(
-                n, _pct(n, row["total"] if v in RED_TEST_UNSPLIT else row["split"]), base, v))
+            # The bound goes ON the row it inverts. A reader who quotes the SAME TEST count and
+            # stops has quoted "a flaky control" out of evidence that says the opposite.
+            note = "" if v != SAME_TEST else "   [{} demonstrably re-broke, {} persistence]".format(
+                row["same_test_rebroke"], row["same_test_persisted"])
+            print("  {:5d}  {:>6} {}  {}{}".format(
+                n, _pct(n, row["total"] if v in RED_TEST_UNSPLIT else row["split"]), base, v, note))
+    # Read off the tally rather than re-counted from `rows`: two derivations of one figure are
+    # two figures, and this file exists because two such figures were once added together.
     print("\nwithout the between-observation an identical set is PERSISTENCE, not a re-break:")
     print("  {} of the {} SAME TEST steps carry it.".format(
-        sum(1 for r in rows if r["verdict"] == SAME_TEST and r["passed_between"]),
-        sum(1 for r in rows if r["verdict"] == SAME_TEST)))
+        rt["all"]["same_test_rebroke"],
+        rt["all"]["same_test_rebroke"] + rt["all"]["same_test_persisted"]))
 
     by_gate = collections.defaultdict(collections.Counter)
     for p in pairs:

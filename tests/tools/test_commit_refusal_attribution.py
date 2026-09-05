@@ -759,6 +759,33 @@ def test_an_identical_set_is_only_a_re_break_where_the_gate_passed_between():
     assert attr.red_test_tally(between)["passed_between"]["counts"] == {attr.SAME_TEST: 1}
 
 
+def test_the_same_test_count_never_travels_without_the_two_halves_that_invert_it():
+    """THE FIGURE THAT IS WORSE THAN NO FIGURE, and the defect is in the REPORTING not the split.
+
+    `passed_between` is on every row, so the distinction above is already computable -- and a
+    caller reading `counts[SAME_TEST]` and stopping still publishes "a flaky control, go and find
+    it" when every one of those steps is a standing red nobody cleared. The correction lived in a
+    trailing paragraph, which is the footnote CLAUDE.md forbids a published figure from depending
+    on. So the halves are part of the row.
+
+    ONE control over the whole partition, not a leg each: the log below carries a persistence step
+    AND a demonstrated re-break, so an implementation that answered one thing for every SAME TEST
+    row -- the fail-open being "call them all re-breaks", the fail-closed "call them all
+    persistence" -- goes red here, where a single-branch assertion would still pass.
+    """
+    rows = _red_rows([ORPHAN_HOOK,
+                      _pytest_hook("t.py::a"),      # nothing prior           -> FIRST RED
+                      _pytest_hook("t.py::a"),      # identical, nothing between -> persistence
+                      LEVEL_HOOK,                   # a HIGHER gate refused: RED TEST passed since
+                      _pytest_hook("t.py::a")])     # identical, and it re-broke
+    row = attr.red_test_tally(rows)["all"]
+    assert row["counts"][attr.SAME_TEST] == 2
+    assert row["same_test_rebroke"] == 1
+    assert row["same_test_persisted"] == 1
+    # The halves partition the count -- a SAME TEST step cannot fall out of both and be unreported.
+    assert row["same_test_rebroke"] + row["same_test_persisted"] == row["counts"][attr.SAME_TEST]
+
+
 def test_a_steps_position_is_the_cause_index_and_not_its_place_among_ranked_causes():
     """Unattributable cycles are SKIPPED when ranks are walked, and `subjects` is not.
 
