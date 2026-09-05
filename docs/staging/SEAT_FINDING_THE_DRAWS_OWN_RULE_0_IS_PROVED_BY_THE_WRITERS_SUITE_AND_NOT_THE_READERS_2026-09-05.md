@@ -8,9 +8,13 @@
 fixed before any of this was run. Claim id `direction-contract-battery-per-caller`. Harness:
 `tools/direction_contract_battery.py`.**
 
-**Status: three of the four caller suites graded. The fourth (`tests/background/test_supervisor.py`,
+**Status: ~~three of the four caller suites graded. The fourth (`tests/background/test_supervisor.py`,
 ~670s a pass, ~100 minutes for a baseline and eight mutations) is running and is NOT reported here.
-The standing prediction therefore has NO VERDICT YET and is not claimed either way below.**
+The standing prediction therefore has NO VERDICT YET and is not claimed either way below.~~**
+**Superseded 2026-09-06 00:20 BST by §10 — kept above rather than revised, because the whole point
+of §5 and §9 is that they were written while this said what it says. ALL FOUR COLUMNS ARE NOW
+GRADED. §5 is CONFIRMED, §9's poison round returned the exact pair that confirms it, and the
+standing prediction is CONFIRMED by M2 and M7.**
 
 ---
 
@@ -268,3 +272,180 @@ came back.** Three things guard it:
 The asymmetry is deliberate and stated so it cannot be quietly applied: a SURVIVOR here needs no
 re-run, because concurrency can only add failures, never remove them. Under concurrency a survivor is
 the *conservative* reading and a kill is the *fragile* one, so only kills are re-verified.
+
+**That asymmetry has one hole and §9 is why it matters.** Concurrency can only add failures *within a
+tree*. It cannot add a mutation that was never applied — and if two shards share a `BATTERY_TREE`,
+one shard's `restore()` deletes the other's mutation and the unmutated run reports `200 passed`.
+That manufactures a SURVIVOR, which is the reading this method treats as conservative. So the
+provenance that has to be recorded for the fourth column is not the concurrency, it is the
+**one-tree-per-shard mapping**, asserted by `md5sum` before launch.
+
+## 9. PRE-REGISTERED POISON ROUND — written 2026-09-05 22:43 BST, before P1 and P2 returned
+
+The fourth column never landed. §8's four shards were killed mid-baseline (their logs stop at
+`BASELINE (no mutation, full pass, ...)`, 22:07) and `/var/tmp/direction_battery_sup.json` carries no
+`test_supervisor.py` row for any of the eight. Three consecutive turns have now ended inside that
+column. **This section is what makes the column's answer decidable without it**, and it is a
+different measurement rather than a fourth attempt at the same one.
+
+**Why a poison round at all.** "Survived" means the same thing for an unreachable room and an
+unproved contract. §5 argues from reading the fixture that the supervisor suite's rooms are
+unreachable, and probes the module directly under the fixture's condition — but it never ran the
+suite against a mutation that the suite *must* catch if it reaches the subject at all. Without that,
+eight survivals in a column are consistent with a suite that never imports the module, a suite that
+imports it and never calls it, and a suite that calls it and is short-circuited. Those are three
+different findings and only the third is §5's.
+
+Three poisons, each far louder than any of the eight, each applied by the same harness with the same
+exactly-once assertion, each in a worktree of its own:
+
+| id | poison | what a kill proves |
+|---|---|---|
+| P0 | the module raises on import | the suite IMPORTS it |
+| P1 | `focus_weights` returns all zeros, unconditionally, above every branch | the suite REACHES the seam |
+| P2 | `current_focus` always returns `()` | the suite exercises something BELOW `read_direction` |
+
+**P0 has returned and it died in all four suites** (`RuntimeError: POISON: direction imported`,
+collection error, 0.9s). Every caller suite imports the module, so no survival anywhere in this
+battery is the trivial kind.
+
+**Predictions for P1 and P2, fixed here before either returned:**
+
+| | supervisor | lane | seat | audit |
+|---|---|---|---|---|
+| P1 | **DIES** — `supervisor.py` calls `focus_weights` at four draw sites and `random.choices` raises on an all-zero weight list, so any test that runs a draw with candidates must fail | survives — no call site | **DIES** — asserts returned weights directly | survives |
+| P2 | **SURVIVES** — under the suite's own fixture `current_focus` already returns `()` for all 200 tests, so the poison is a no-op there | DIES | **DIES** — `test_a_named_atom_actually_becomes_more_likely_and_the_steer_BITES` | survives |
+
+**P1 DIES and P2 SURVIVES in `test_supervisor.py` is the outcome that confirms §5**, and it is the
+only pair that does: it says the suite reaches the seam and nothing below `current_focus`, which is
+exactly what "the fixture short-circuits it" means, measured rather than reasoned. Then all eight
+mutated lines are unreachable from that suite by construction and the fourth column cannot kill
+anything — a conclusion the column itself, run to completion, could never have distinguished from a
+weak suite.
+
+**P1 SURVIVING would be a stronger result and a different one**: the suite would never reach
+`focus_weights` at all, and §1's architectural claim would need restating.
+**P2 DYING refutes §5** and the reachability account with it.
+
+The eight-mutation fourth column is running anyway, in five worktrees asserted byte-identical on both
+subject and suite before launch (`0815090171e6…` / `963cdf0691d6…`), one mutation per tree per run
+and a sixth tree carrying its own baseline, precisely so the survivor-manufacturing hole named above
+is closed by provenance rather than by hope. Its results are §10.
+
+---
+
+## 10. GRADED — the poison round and the fourth column, both returned
+
+Run 2026-09-05 23:47–00:12 BST, ten shards concurrently, **one tree per shard**, harness
+`/var/tmp/sup_column_runner.py`. Nothing below was written before the results were in hand and
+nothing above was edited to fit them.
+
+### The poison round, against §9's table
+
+| id | poison | predicted in `test_supervisor.py` | **actual** | verdict |
+|---|---|---|---|---|
+| P0 | module raises on import | dies (all four suites) | **DIED**, all four | **CORRECT** |
+| P1 | `focus_weights` returns all zeros above every branch | **DIES** | **DIED**, 25.2s | **CORRECT** |
+| P2 | `current_focus` always returns `()` | **SURVIVES** | **SURVIVED**, 200 passed | **CORRECT** |
+
+P1 died on `test_maturity_map_draw_finds_atom_with_real_gap`, and it died by the exact mechanism
+§9 named before the run — not merely at the predicted place:
+
+    total = cum_weights[-1] + 0.0
+    if total <= 0.0:
+        raise ValueError('Total of weights must be greater than zero')
+    /usr/lib/python3.14/random.py:489: ValueError
+
+**P1 DIES and P2 SURVIVES is the pair §9 said would confirm §5, and it is the only pair that
+would.** The suite reaches `focus_weights` with a real candidate list, and it exercises nothing
+below `current_focus`. That is what "the fixture short-circuits it" means, measured rather than
+reasoned.
+
+### The fourth column, against §5's pre-registration
+
+| # | contract | supervisor | lane | seat | audit | survived ALL FOUR |
+|---|---|---|---|---|---|---|
+| M1 | `focus_multiplier` ALWAYS >= 1.0 | survived | — | **DIED** | — | no |
+| M2 | untouched on length mismatch | survived | — | — | — | **YES** |
+| M3 | forbidden keys at any depth | survived | — | **DIED** | — | no |
+| M4 | empty `not_now` refused | survived | — | **DIED** | — | no |
+| M5 | `corrected` must be a BOOLEAN | survived | — | — | **DIED** | no |
+| M6 | `read_direction` NEVER RAISES | survived | **DIED** | **DIED** | — | no |
+| M7 | `is_live` bounded BELOW | survived | — | — | — | **YES** |
+| M8 | legacy row is `None`, not `False` | survived | — | — | **DIED** | no |
+
+**All eight survived. §5 predicted all eight would survive, and gave the reason before the answer
+was known. §5 is CONFIRMED, and the reachability argument stands.** Every one of the eight was a
+full `200 passed` run (847–855s each under ten-way concurrency, against 661s serial — a 1.29×
+contention factor, not a truncation).
+
+**The standing prediction — *at least 1 of the 8 survives all four suites* — is CONFIRMED**, by M2
+and M7. Both are now proved by the repair suite in §6 and by nothing else in the tree.
+
+### Grading §5's own claim, which is sharper than "all eight survived"
+
+§5 did not predict weakness; it predicted **unreachability**, and those are different findings that
+a column of survivals cannot tell apart. The poison round is what separates them, and it is why
+this section can say something the completed column alone never could:
+
+* P0 died → the suite **imports** the module. No survival here is the trivial kind.
+* P1 died → the suite **reaches** `focus_weights` on a real draw.
+* P2 survived → the suite exercises **nothing below `current_focus`**, because under its fixture
+  `current_focus` already returns `()` for all 200 tests, so replacing its body with `return ()` is
+  a no-op there.
+
+Together: the suite calls the seam, the seam short-circuits at `if not focus`, and every one of the
+eight mutated lines sits below that short-circuit. **The eight lines are unreachable from
+`test_supervisor.py` by construction — not untested, unreachable.** That is an equivalence *under
+this fixture* and a reachable gap *in production*, and §7 already records why: `focus_weights` is
+called at four live draw sites against the real `docs/direction/DIRECTION.yaml`.
+
+So the §1 finding survives its own strongest test. The only caller of `focus_weights` cannot fail
+when `focus_weights` breaks, and the contract the module annotates `MUTATION (must fire):` was
+proved — before §6 — by a suite that caller is forbidden by design to see.
+
+### Provenance, because §8's asymmetry has exactly one hole and this is how it was closed
+
+§8 accepts a SURVIVOR without re-running it, on the ground that concurrency can only add failures.
+The hole it named: concurrency cannot add a mutation that was **never applied**, and a shard whose
+mutation was wiped reports `200 passed` — a manufactured survivor, wearing the conservative
+reading's clothes. Four guards, all machine-recorded in `/var/tmp/sup_column_results.json`:
+
+* **One tree per shard, ten trees, no sharing.** Asserted by the runner (`len(set(TREES)) == 10`)
+  rather than by the launch procedure, so no `restore()` can reach another shard's subject.
+* **The subject and suite are the ones §8 named.** Every shard checks its pristine subject against
+  `0815090171e6…` and its suite against `963cdf0691d6…` before patching. *This guard fired on the
+  first launch* — the pin had been written out to a full digest that was never measured, and the
+  run refused to start. That is the guard doing its job on its first application.
+* **The mutation is asserted present AFTER patching and AGAIN after the run.** All ten patched
+  digests are distinct, none equals pristine, and all ten are byte-identical before and after their
+  pass (`mutation_held_throughout: true`, ten of ten). A wiped mutation cannot be recorded as a
+  survivor.
+* **The one kill was re-run serially and alone.** `test_maturity_map_draw_finds_atom_with_real_gap`
+  in a quiet tree: **1 passed in 0.94s** unmutated, **1 failed in 1.20s** with P1 applied, same
+  test, same `ValueError`. P1's death is not a concurrency artefact.
+
+**One departure from §8, stated rather than applied quietly.** §8 required each shard to run its own
+baseline under the same concurrency. This run has **no per-shard baseline** and buys the same
+protection differently: because concurrency only adds failures, a baseline is needed only to stop a
+concurrency-induced red being read as a kill — and re-running *every* kill serially (there was one,
+and it was re-run) rules that out directly, at 2 seconds instead of ten more 850s passes. The serial
+baseline recorded earlier (green, 0 failed, 661.1s) is used here **only** as evidence the suite is
+green unmutated at this subject, never to discount a red. If a future run of this shape declines to
+re-verify a kill, the baselines go back in.
+
+### What this closes and what it does not
+
+Closed: the fourth column, the §5 pre-registration, the §9 poison round, and the standing prediction
+from `38871422b`. Four turns ended inside this column; what finished it was not a fourth attempt at
+the same 100-minute measurement but the poison round, which answered the same question in 25 seconds
+by asking whether the room was reachable instead of whether the contract was proved.
+
+**The rule that earns:** *when a mutation battery's pre-registration predicts survival, run the
+poison round FIRST. "Survived" means the same thing for an unreachable room and an unproved
+contract, and the poison separates them in seconds where the column cannot separate them at all.*
+Registered against `docs/design/CONTROLS_THAT_CANNOT_FAIL.md`'s reachability shape.
+
+Not closed, and unchanged from §7: nothing stops the next contract added to `direction.py` being
+proved by a borrowed suite. §7 records the judgement that a control watching which file a test lives
+in is not worth having, and this section does not revisit it.
