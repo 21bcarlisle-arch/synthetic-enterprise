@@ -213,9 +213,34 @@ def test_the_removal_check_is_WIRED_INTO_the_exit_code(tmp_path, monkeypatch, ca
     assert "CLAIMS THAT LEFT THE REGISTER" in out and "no_channel" in out
 
 
+def _is_a_git_tree() -> bool:
+    """Whether this checkout is a repository at all — NOT whether the rung likes what it finds.
+
+    Read from the filesystem rather than from the rung's own output, which would be the tautology
+    of asking the control whether the control should apply. `.git` is a directory in a normal
+    checkout and a FILE in a linked worktree; both are repositories and both must take the
+    asserting branch below.
+    """
+    return (drift.REPO_ROOT / ".git").exists()
+
+
 def test_the_live_register_has_lost_no_claim_since_head():
     """The live rung, against the real tree and the real git baseline. This is the leg that would
-    have gone red on the commit that dropped a claim."""
+    have gone red on the commit that dropped a claim.
+
+    BOTH ENVIRONMENTS ARE ASSERTED, and it is not a skip. This project proves a red is
+    pre-existing by running a `git archive HEAD` extract, which is a tarball with no `.git` — so a
+    test that simply failed there would be a trap for exactly the technique used to diagnose
+    traps, and a `skipif` would be a fail-open that reports nothing in the environment it skips.
+    The rung's own NOT-APPLICABLE / CANNOT-ESTABLISH split already names the distinction: with no
+    repository there is no committed baseline, and the honest answer is the refusal, not silence.
+    """
+    if not _is_a_git_tree():
+        out = removed_claims()
+        assert out and "could not be established" in out[0], (
+            "outside a repository the rung must REFUSE, naming itself — never report clean"
+        )
+        return
     assert removed_claims() == [], (
         "a claim has left docs/design/canon_claims.yaml since HEAD without a `"
         + RETIRED_SECTION + "` reason"
@@ -224,6 +249,11 @@ def test_the_live_register_has_lost_no_claim_since_head():
 
 def test_the_live_report_carries_the_removal_key():
     """The report is what the daily note and any later reader consume; a rung absent from it is a
-    rung nobody downstream can see."""
+    rung nobody downstream can see. Asserted in both environments for the reason above — the KEY
+    must be present either way, and only its contents depend on there being a baseline."""
     _, report = run(drift.REPO_ROOT, drift.REPO_ROOT / drift.DEFAULT_REGISTER)
+    assert "removed" in report, "the rung must reach the report even when it cannot answer"
+    if not _is_a_git_tree():
+        assert report["removed"] and "could not be established" in report["removed"][0]
+        return
     assert report["removed"] == []
