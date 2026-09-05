@@ -2,9 +2,22 @@
 """Generate site/state/PROJECT_STATE.txt from current dashboard data and CLAUDE.md."""
 import datetime as dt
 import json
+import sys
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
+# RUN BOTH WAYS: `from tools.generate_project_state import generate` by process_run_complete, and
+# `python3 tools/generate_project_state.py` as a SCRIPT -- and as a script the repo root is not on
+# sys.path, so the delegated import below raises ModuleNotFoundError and the fallback publishes
+# "not stated in CLAUDE.md" over a figure that is right there in the file.
+#
+# THIS IS THE SECOND TIME IN TWO DAYS. `tools/next_step_gate.py` shipped dead for exactly this
+# reason (the commit-msg hook runs it as a script) and carries the same guard. Both times every
+# control stayed green, because pytest has already fixed sys.path -- so an import-path defect is
+# invisible to any test that imports the module, which is all of them. Caught here only by running
+# the real script and reading the real output.
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
 DASHBOARD_JSON = PROJECT / "site" / "data" / "dashboard.json"
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "state" / "PROJECT_STATE.txt"

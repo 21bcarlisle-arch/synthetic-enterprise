@@ -1,22 +1,22 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-09-05T06:55:55Z
+Generated: 2026-09-05T12:24:10Z
 
 ## Summary
-- Current Phase: ?
-- Test Suite: 0 tests passing (unit / fast suite ~10s)
+- Current Phase: not stated in CLAUDE.md
+- Test Suite: 26,731 tests passing (unit / fast suite ~10s)
 - Company Modules: 519+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
 
 ## Latest Simulation Results (auto-processed 2026-09-05)
-- Net Margin: GBP141,132 (10-year 2016-2025)
-- Gross Margin: GBP379,375
-- Capital at Risk: GBP6,737
-- Treasury: GBP250,000 -> GBP391,132
-- Enterprise Value: GBP124,270 | Net after CTS: GBP91,312
+- Net Margin: GBP139,109 (10-year 2016-2025)
+- Gross Margin: GBP377,746
+- Capital at Risk: GBP6,694
+- Treasury: GBP250,000 -> GBP389,109
+- Enterprise Value: GBP124,867 | Net after CTS: GBP89,799
 - Risk Committee Interventions: 0
-- Bills Issued: 11,034
-- Retention: 38/55 offers accepted | 23 no-offer churns | 79 total churned
+- Bills Issued: 10,924
+- Retention: 30/45 offers accepted | 23 no-offer churns | 77 total churned
 
 ## Key Files (fetchable without JavaScript)
 # ADVISOR: use the github.io URLs below for verification fetches -- poesys.net (Cloudflare
@@ -50,6 +50,6 @@ Generated: 2026-09-05T06:55:55Z
 - Churn model: bill shock YoY + payment behaviour + satisfaction + market year elasticity
 
 ## Key Metrics
-- Tests at start (Phase 0): 0 | Tests now: 0
-- Net margin all-time: GBP141,132 | Crisis survived: 2021-22
-- Retention: 38/55 offers | 23 no-offer churns
+- Tests at start (Phase 0): 0 | Tests now: 26,731
+- Net margin all-time: GBP139,109 | Crisis survived: 2021-22
+- Retention: 30/45 offers | 23 no-offer churns

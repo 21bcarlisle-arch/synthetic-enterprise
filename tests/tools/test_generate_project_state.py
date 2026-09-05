@@ -80,6 +80,53 @@ def test_there_is_exactly_one_claude_md_build_parser_and_it_works_on_the_real_fi
     assert tests > 20_000, f"implausible full-suite count {tests}: parsed a scoped figure"
 
 
+def test_the_parser_answers_when_the_module_is_run_AS_A_SCRIPT():
+    """THE DEFECT THIS SHIPPED WITH FOR ONE INVOCATION, and the one every other test here missed.
+
+    `python3 tools/generate_project_state.py` runs the file as a SCRIPT, so the repo root is not
+    on `sys.path`, the delegated `from tools.generate_dashboard_data import ...` raises
+    ModuleNotFoundError, and the fallback published "not stated in CLAUDE.md" over a figure that
+    was right there in the file -- replacing an eight-day `0` with an eight-day `unavailable`.
+
+    SECOND OCCURRENCE IN TWO DAYS: `tools/next_step_gate.py` shipped dead the same way (its hook
+    runs it as a script) and carries the same guard and the same control. Both times every other
+    test was green, because pytest has already fixed `sys.path` -- so an import-path defect is
+    structurally invisible to any test that imports the module, which is all of them. Only running
+    it the way its caller runs it can fail for this reason.
+    """
+    import os
+    import subprocess
+    import sys as _sys
+
+    from tools.generate_project_state import PROJECT
+
+    # `sys.path[0] = "tools"` is what makes this faithful and is the whole point. A plain
+    # `python3 -c` leaves the CWD on sys.path, so `tools.generate_dashboard_data` imports whether
+    # or not the guard exists -- the first version of this test did exactly that and survived
+    # mutation of the guard it claims to prove. A real script run puts the SCRIPT'S DIRECTORY
+    # there instead of the CWD, which is the entire difference.
+    #
+    # `run_name` deliberately not "__main__": this must exercise the import path without letting
+    # generate() overwrite the real published PROJECT_STATE.txt in a tree other lanes are using.
+    done = subprocess.run(
+        [_sys.executable, "-c",
+         "import sys; sys.path[0] = 'tools';"
+         "import runpy;"
+         "m = runpy.run_path('tools/generate_project_state.py', run_name='probe');"
+         "print(m['_parse_phase_and_tests']()[1])"],
+        cwd=str(PROJECT), capture_output=True, text=True, timeout=180,
+        env={**os.environ, "PYTHONPATH": ""},
+    )
+
+    assert done.returncode == 0, done.stderr
+    count = done.stdout.strip()
+    assert count != "None", (
+        "the parser answered None when run as a script -- it cannot import its own dependency, "
+        f"and PROJECT_STATE.txt publishes 'not stated in CLAUDE.md'. stderr: {done.stderr!r}"
+    )
+    assert int(count) > 20_000, f"implausible full-suite count {count}"
+
+
 class _Spy:
     """A Path stand-in that captures what the generator writes, so these tests never touch the
     real published files (another lane publishes them concurrently)."""
