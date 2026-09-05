@@ -132,11 +132,30 @@ def test_a_red_gate_refuses_and_is_told_apart_from_a_conflict(tmp_path):
 
 
 def test_a_failed_push_is_never_reported_as_reconciled(tmp_path):
+    """KEYED TO THIS TEST'S OWN PROPERTY, not to whichever word the module used the day it was
+    written. It asserted `status == orc.ERROR`, and on 2026-09-05 it went red because the module
+    got MORE honest: a lost push race now returns `REFUSED_RACE`, told apart from a push that
+    genuinely cannot work (`_classify_push_failure`, and
+    `test_a_lost_push_race_is_named_apart_from_a_reconciler_that_cannot_push.py`). A control pinned
+    to today's answer reds when the code improves and stays green when the claim rots — exactly
+    backwards, and CLAUDE.md names it.
+
+    The property is in the name: a push that failed is NEVER a closed fork. That holds whatever the
+    refusal is called, and it is what this asserts now.
+
+    MUTATION: report `RECONCILED`, or `pushed=True`, on a failed push and this fails.
+    """
     r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree, drop_worktree=_no_cleanup, behind_fn=lambda p: 1,
                       ahead_fn=lambda p: 1,
                       runner=lambda w: _proc(0, "landed"),
                       pusher=lambda w: _proc(1, "", "! [rejected] non-fast-forward"))
-    assert r["status"] == orc.ERROR and r["pushed"] is False
+    assert r["status"] not in (orc.RECONCILED, orc.PUSHED, orc.LEVEL), \
+        "a push that failed was reported as a closed fork"
+    assert r["pushed"] is False
+    # ...and the injected stderr is a lost race specifically, so the refusal must say so rather
+    # than fall through to the unrecognised-failure side. Without this leg the assertion above
+    # would pass on a module that had stopped classifying push failures at all.
+    assert r["status"] == orc.REFUSED_RACE
 
 
 def test_it_never_raises_into_the_cadence(tmp_path):
@@ -288,11 +307,29 @@ def test_an_unreadable_ahead_count_does_not_push(tmp_path):
 
 
 def test_a_rejected_push_is_never_reported_as_done(tmp_path):
+    """THE OTHER PUSH SITE — the local-only leg, `behind == 0 and ahead > 0`.
+
+    This test is why the 2026-09-05 race repair did not land at one site only. It injects the same
+    non-fast-forward stderr as `test_a_failed_push_is_never_reported_as_reconciled` and stayed GREEN
+    while that one went red, because `behind_fn=0` routes it down a DIFFERENT push. Two push sites,
+    and the module's own recorded history is a repair made at one of them and not the other.
+
+    Keyed to the property — a rejected push is never done — not to the word of the day.
+
+    MUTATION: report `PUSHED`, or `pushed=True`, on a rejected push and this fails. Revert only the
+    merge-leg half of the race classification and the last assertion fails while the others hold.
+    """
     r = orc.reconcile(tmp_path, worktree=tmp_path / "wt", make_worktree=_no_worktree,
                       drop_worktree=_no_cleanup, behind_fn=lambda p: 0, ahead_fn=lambda p: 1,
                       runner=lambda w: _proc(1),
                       pusher=lambda w: _proc(1, "", "! [rejected] non-fast-forward"))
-    assert r["status"] == orc.ERROR and r["pushed"] is False
+    assert r["status"] not in (orc.PUSHED, orc.RECONCILED, orc.LEVEL), \
+        "a rejected push was reported as done"
+    assert r["pushed"] is False
+    assert r["status"] == orc.REFUSED_RACE, \
+        "the local-only push leg still folds a lost race into the word for a broken reconciler"
+    assert "1 commit(s) ahead" in r["detail"], \
+        "the leg's own context — how much was sitting local-only — was lost in the rename"
 
 
 def test_the_world_is_read_through_ONE_seam_so_a_pin_cannot_go_partial():

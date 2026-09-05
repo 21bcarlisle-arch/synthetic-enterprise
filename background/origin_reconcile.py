@@ -108,6 +108,28 @@ GATE_RUNNING = "GATE_RUNNING"
 REFUSED_CONFLICT = "REFUSED_CONFLICT"
 REFUSED_GATE = "REFUSED_GATE"
 
+#: The merge gated clean and then origin moved before the push landed, so the push was refused as a
+#: non-fast-forward and the whole gate was spent for nothing. REPORTED APART FROM `ERROR` BECAUSE IT
+#: IS CLEARED APART: this one needs no attention at all -- the next cadence re-fetches, re-merges on
+#: the new base and gates again -- while an `ERROR` push is a reconciler that cannot push and stays
+#: broken until someone looks. Folded together they were indistinguishable in the record, so a
+#: benign self-healing race read exactly like a dead reconciler (measured 2026-09-05, and the reason
+#: this status exists).
+#:
+#: THE MODULE ALREADY GUARDS THIS RACE IN THE OTHER DIRECTION. `gate_is_running` carries the
+#: director's 2026-09-02 rule verbatim -- never move origin under a running gate, because "the whole
+#: run is spent and discarded" -- which protects the PUBLISH gate from this module. Nothing
+#: protected this module from anyone else, and `surgical_land --attempts` cannot: it re-gates when
+#: HEAD moves under the gate, and in a fresh isolated worktree nothing else moves HEAD. The race
+#: that actually happens is `origin/main` advancing between the merge and the push.
+#:
+#: STILL NOT RETRIED IN-PROCESS, deliberately. A retry would have to re-merge and re-gate against
+#: the new base -- the full cost again, inside a cadence that is about to do exactly that anyway --
+#: and this is the module that once manufactured 29 commits in three and a quarter hours by looping
+#: on its own output. Naming the outcome is the whole repair; spinning on it is the defect it would
+#: reintroduce.
+REFUSED_RACE = "REFUSED_RACE"
+
 #: The two ways a shared tree refuses to advance. They are reported apart because they are cleared
 #: apart -- one is a lane's uncommitted work, the other is usually a byte-identical twin of a file
 #: origin is adding, and telling a reader "dirty" for both sends them down the wrong one.
@@ -637,6 +659,31 @@ def _classify_merge_failure(output: str) -> tuple[str, str]:
     return ERROR, output.strip()[-400:]
 
 
+def _classify_push_failure(output: str) -> tuple[str, str]:
+    """Which refusal the push gave — a race we lost, or a push that genuinely failed.
+
+    THE SAME DISTINCTION `_classify_merge_failure` DRAWS, one step later, and for the same reason:
+    the two are cleared apart, so folding them into one `ERROR` sends a reader down the wrong one.
+    A lost race clears itself on the next cadence; a broken push does not clear at all.
+
+    KEYED TO GIT'S OWN WORDS FOR THE CONDITION, not to the exit code, because every push failure
+    shares the exit code. Both spellings are matched: `[rejected] ... (non-fast-forward)` is what
+    the ref line says, and `(fetch first)` is what it says when the remote has commits we have not
+    fetched — the same race, reported differently depending on whether the ref was stale locally.
+
+    FAILS TOWARD `ERROR`, which is the pessimistic side: an unrecognised push failure is called a
+    real fault and gets looked at. The cost of that direction is a glance; the cost of the other is
+    a genuinely broken reconciler filed as a benign race and never read again.
+    """
+    lowered = output.lower()
+    if "non-fast-forward" in lowered or "fetch first" in lowered:
+        return REFUSED_RACE, (
+            "the merge gated clean and origin moved before the push landed, so it was refused as a "
+            "non-fast-forward and the gate was spent. NOTHING IS OWED: the next cadence re-fetches, "
+            "re-merges on the new base and gates again. git said: {}".format(output.strip()[:300]))
+    return ERROR, "merge gated clean but the push was rejected: {}".format(output.strip()[:300])
+
+
 def fork_state(project: Path | None = None) -> tuple[int | None, int | None]:
     """`(behind, ahead)` in one call — the module's ONE window onto the world.
 
@@ -732,9 +779,16 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
     if behind == 0:
         pushed = (pusher or _push)(project)
         if pushed.returncode != 0:
-            return {"status": ERROR, "behind": 0, "pushed": False,
-                    "detail": "local is {} commit(s) ahead and the push was rejected: {}".format(
-                        ahead, (pushed.stderr or pushed.stdout or "").strip()[:300])}
+            # AND THE SAME RACE AT THE OTHER PUSH SITE. This leg pushes gated landings that were
+            # sitting local-only, and origin can move under it exactly as it can under the merge
+            # leg below -- `behind == 0` was read before the push, not during it. Classified through
+            # the SAME helper rather than a second hand-rolled string test beside it: the module's
+            # own history is a repair made at one of two sites and not the other, and a branch that
+            # hand-rolls what a helper centralises regresses every repair the helper holds.
+            status, detail = _classify_push_failure(
+                (pushed.stderr or "") + (pushed.stdout or ""))
+            return {"status": status, "behind": 0, "pushed": False,
+                    "detail": "local is {} commit(s) ahead. {}".format(ahead, detail)}
         return {"status": PUSHED, "behind": 0, "pushed": True,
                 "detail": "pushed {} gated landing(s) that were sitting local-only".format(ahead)}
 
@@ -784,9 +838,9 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
 
         pushed = (pusher or _push)(worktree)
         if pushed.returncode != 0:
-            return {"status": ERROR, "behind": behind, "pushed": False,
-                    "detail": "merge gated clean but the push was rejected: {}".format(
-                        (pushed.stderr or pushed.stdout or "").strip()[:300])}
+            status, detail = _classify_push_failure(
+                (pushed.stderr or "") + (pushed.stdout or ""))
+            return {"status": status, "behind": behind, "pushed": False, "detail": detail}
 
         # THE SAME ADVANCE THE `ahead == 0` LEG USES, not a second hand-rolled `--ff-only` beside
         # it. This is the leg the 24h measurement caught failing most often: the merge gates clean
