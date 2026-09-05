@@ -456,11 +456,15 @@ def ordering_report(text, ranks=None):
     episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if not e["censored"]]
     out = []
     for e in episodes:
-        seq = [(c, ranks[c]) for c in e["cause_sequence"] if c in ranks]
+        # The index is kept because unranked causes are SKIPPED here, so a position in `seq` is
+        # not a position in `cause_sequence` -- and `subjects` is index-aligned with the latter.
+        # Re-deriving the position downstream by counting ranked causes would pair a step with
+        # another cycle's subject the moment one unattributable cycle sits in between.
+        seq = [(k, c, ranks[c]) for k, c in enumerate(e["cause_sequence"]) if c in ranks]
         steps, seen, peak = [], [], None
-        for cause, rk in seq:
+        for k, cause, rk in seq:
             if peak is not None and rk < peak:
-                steps.append({"cause": cause, "below": peak})
+                steps.append({"cause": cause, "below": peak, "at": k})
             peak = rk if peak is None else max(peak, rk)
             seen.append(cause)
         # A RECURRENCE is the predecessor's post-hoc test: a cause reappearing after a different
@@ -635,6 +639,104 @@ def subject_tally(pairs):
     return {"all": tally(pairs), "established": tally([p for p in pairs if p["established"]])}
 
 
+# ---------------------------------------------------------------------------------------------
+# WHICH TEST, not merely "a test". `RED TEST` names the GATE, and the gate is one line of the hook.
+# An established re-arrival of it is two different findings wearing one label:
+#
+#   one control re-breaking        -> a contended or flaky control; go and find THAT test.
+#   different tests in turn        -> ordinary arrival traffic from other lanes; the tree is
+#                                     being broken, and no single control is at fault.
+#
+# Those call for opposite responses, so a mechanism built on the undivided bucket would be built
+# on a number that means neither. No new instrumentation is needed: the hook block already prints
+# pytest's own `FAILED <nodeid>` summary, `_subjects_pytest` already reads it via the parser the
+# publisher itself uses, and `_close` already carries those sets index-aligned with the causes.
+#
+# THE COMPARISON IS AGAINST THE PREVIOUS RED TEST REFUSAL IN THE SAME EPISODE, never across
+# episodes: an episode is bounded by a LANDING, and a landing is a positive observation that every
+# gate passed. Two reds either side of one are unrelated by construction.
+
+#: Identical node-id sets. One control, red then red again -- but see `passed_between`: identical
+#: sets only demonstrate a RE-break where the gate was observed to pass in between. Without that
+#: observation the same set is the cheaper explanation, persistence, and is reported as such.
+SAME_TEST = "SAME TEST"
+#: Sets that intersect without being equal. NOT folded into either side: it carries a re-break AND
+#: other movement, and calling it one of the two would put a mixed case behind a clean headline.
+SHARED_TESTS = "SHARED TESTS"
+#: Disjoint sets. The gate re-broke on something else entirely -- arrival traffic.
+DIFFERENT_TESTS = "DIFFERENT TESTS"
+#: No earlier `RED TEST` refusal in this episode. Not ignorance and not an answer: a positive
+#: observation that this redness ARRIVED here, with nothing in the episode to compare it against.
+FIRST_RED = "FIRST RED IN EPISODE"
+#: One of the two blocks did not retain a pytest short-summary section, so its node ids are simply
+#: gone. Reported, never guessed: the `last 40 lines` window cuts above the summary often enough
+#: that treating an absent summary as "no tests failed" would score a re-break as DIFFERENT TESTS.
+NODE_IDS_UNAVAILABLE = "UNAVAILABLE (node ids not retained)"
+#: The two rows that answer no part of the same-vs-different question. Held as a set for the same
+#: reason `UNATTRIBUTABLE` and `SUBJECT_UNKNOWN` are: a caller reporting a share cannot sweep
+#: either onto a side and report a split over a denominator that never earned it.
+RED_TEST_UNSPLIT = frozenset({FIRST_RED, NODE_IDS_UNAVAILABLE})
+
+
+def _node_id_verdict(before, after):
+    """How the failing-test set moved between two `RED TEST` refusals."""
+    if not before or not after:
+        return NODE_IDS_UNAVAILABLE
+    if before == after:
+        return SAME_TEST
+    return SHARED_TESTS if before & after else DIFFERENT_TESTS
+
+
+def red_test_report(text, ranks=None):
+    """Every established re-arrival of `RED TEST`, split by WHICH tests were failing.
+
+    Built on `ordering_report`'s peak-rank test and not on a second definition of its own: a
+    backward step is the only re-arrival this log establishes, and re-deriving it here would give
+    the two reports room to disagree about which cycles are even in scope.
+
+    `passed_between` is the STRONGER observation and is carried rather than folded in. The step
+    itself says the gate passed somewhere before this cycle; `passed_between` says a strictly
+    higher-ranked gate refused between THIS pair, so the serial chain reached past `RED TEST` and
+    it passed *since the earlier red*. Only there does an identical set mean a control re-broke.
+    Everywhere else an identical set is persistence, which is the cheaper explanation and must not
+    be published as a flaky control.
+    """
+    ranks = gate_ranks() if ranks is None else ranks
+    rows = []
+    for e in ordering_report(text, ranks=ranks):
+        causes, subs = e["cause_sequence"], e["subjects"]
+        for step in e["backward_steps"]:
+            if step["cause"] != RED_TEST:
+                continue
+            k = step["at"]
+            prior = [j for j in range(k) if causes[j] == RED_TEST]
+            if not prior:
+                rows.append({"episode_from": e["from"], "at": k, "verdict": FIRST_RED,
+                             "passed_between": False, "outage_s": e["outage_s"]})
+                continue
+            j = prior[-1]
+            rows.append({
+                "episode_from": e["from"], "at": k,
+                "verdict": _node_id_verdict(subs[j], subs[k]),
+                "passed_between": any(
+                    causes[m] in ranks and ranks[causes[m]] > ranks[RED_TEST]
+                    for m in range(j + 1, k)),
+                "outage_s": e["outage_s"],
+            })
+    return rows
+
+
+def red_test_tally(rows):
+    """Verdict counts over all rows and over those where the gate demonstrably passed between."""
+    def tally(subset):
+        c = collections.Counter(r["verdict"] for r in subset)
+        return {"counts": dict(c), "total": len(subset),
+                "split": sum(v for k, v in c.items() if k not in RED_TEST_UNSPLIT)}
+
+    return {"all": tally(rows),
+            "passed_between": tally([r for r in rows if r["passed_between"]])}
+
+
 def _hours(seconds):
     return "{:.1f}h".format(seconds / 3600.0)
 
@@ -737,6 +839,27 @@ def main(argv=None):
             base = "of extractable" if v not in SUBJECT_UNKNOWN else "of all pairs"
             print("  {:5d}  {:>6} {}  {}".format(
                 n, _pct(n, row["total"] if v in SUBJECT_UNKNOWN else row["known"]), base, v))
+    rows = red_test_report(Path(args.log).read_text(encoding="utf-8", errors="replace"))
+    rt = red_test_tally(rows)
+    print("\n=== RED TEST, SPLIT BY WHICH TEST: one control re-breaking, or the tree moving? ===")
+    print("RED TEST names the GATE, so an established re-arrival of it is two different findings")
+    print("wearing one label. ONE control re-breaking is a contended or flaky test to go and find;")
+    print("DIFFERENT tests in turn is arrival traffic from other lanes and no control's fault.")
+    for label, note in (("all", "every established RED TEST re-arrival"),
+                        ("passed_between",
+                         "and a higher gate refused BETWEEN the pair, so RED TEST passed since")):
+        row = rt[label]
+        print("\n{}: {} ({} answer the same-vs-different question)".format(
+            note, row["total"], row["split"]))
+        for v, n in sorted(row["counts"].items(), key=lambda kv: -kv[1]):
+            base = "of splittable" if v not in RED_TEST_UNSPLIT else "of all steps"
+            print("  {:5d}  {:>6} {}  {}".format(
+                n, _pct(n, row["total"] if v in RED_TEST_UNSPLIT else row["split"]), base, v))
+    print("\nwithout the between-observation an identical set is PERSISTENCE, not a re-break:")
+    print("  {} of the {} SAME TEST steps carry it.".format(
+        sum(1 for r in rows if r["verdict"] == SAME_TEST and r["passed_between"]),
+        sum(1 for r in rows if r["verdict"] == SAME_TEST)))
+
     by_gate = collections.defaultdict(collections.Counter)
     for p in pairs:
         by_gate[p["gate"]][p["verdict"]] += 1
