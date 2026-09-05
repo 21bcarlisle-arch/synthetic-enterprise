@@ -117,6 +117,26 @@ summer-persistence questions, which belong to phase 2 (summer load) rather than 
 phase 2 opens, the daily tier widens and re-runs; the puller is resumable, so that costs only
 the new files.
 
+**The unit of coverage is the SEASON, not the file.** A heating season straddles the new year,
+so a count of daily files — or a directory listing ordered by calendar year — cannot be read
+for it. Fifteen daily files is "two and a half winters", and a cold spell that begins in
+December and ends in January is one spell that a calendar year cuts in half. Since the ruling's
+§2.4 subject is precisely how long a spell lasts, the file count is the wrong number to publish
+and the seasonal count is the right one.
+
+The receipt therefore carries a `daily_heating_seasons` block stating the complete-season count
+with its first and last, and a **gap row per incomplete season naming the missing months and
+why**. Two of those gaps are structural and permanent rather than defects to chase:
+
+| Season | What is missing | Why |
+|---|---|---|
+| 1990/91 | Oct–Dec 1990 | before `SERIES_FIRST_YEAR` (1991, set by the 1991–2020 normal) |
+| 2025/26 | Jan–Mar 2026 | after `SERIES_LAST_YEAR` (2025, the archive's last complete year) |
+
+So a complete 1991–2025 daily pull yields **34 complete Oct–Mar seasons (1991/92 … 2024/25)**
+plus those two half-seasons. Any *other* gap row is a real absence — a file the archive refused
+— and carries the fetch status that caused it.
+
 ---
 
 ## 4. The token: the ruling's premise no longer holds

@@ -78,6 +78,20 @@ HEATING_SEASON_MONTHS = (1, 2, 3, 10, 11, 12)
 TOKEN_REFRESH_MARGIN_S = 600
 CHUNK = 1 << 20
 
+# How often the receipt is rewritten mid-pull. The pull is hours long and is killed
+# routinely -- by a bounded tick's cgroup, by a reboot, by the archive going away -- and
+# a receipt written only on the last line means a killed pull leaves the record of the
+# pull BEFORE it, however many GB it bought. That is what happened on 2026-09-05: 120 of
+# 315 files on disk, and a committed receipt still declaring three normals and 124 MB.
+# Five files is about two minutes of daily-tier wall clock; the cost is one 300 KB write.
+CHECKPOINT_EVERY = 5
+
+# A file the pull has not reached yet. It is a row rather than an absence so that
+# `complete == requested` cannot come true by the manifest shrinking to what is done --
+# a partial receipt whose counts balance reads exactly like a finished one.
+PENDING = "pending"
+ON_DISK_STATUSES = ("fetched", "present")
+
 
 class PullRefused(RuntimeError):
     """Raised with a reason a human can act on. Never raised bare."""
@@ -328,6 +342,115 @@ def fetch_one(entry: dict, token: Token, *, verify: bool) -> dict:
     return result
 
 
+def _walk_cache(root: Path = CACHE_ROOT) -> dict:
+    """Count and size the grids actually on disk, without consulting the receipt.
+
+    The receipt's `bytes_on_disk` is the sum of what each fetch REPORTED. This is a
+    second route to the same quantity -- stat() over the tree -- so the two can be made
+    to disagree. A receipt that sums its own rows and calls that agreement with the disk
+    is the tautology this exists to avoid: it would balance perfectly while the cache was
+    empty.
+
+    `.part` files are excluded deliberately. A half-written grid is bytes on the disk and
+    is not a file the analysis may read.
+    """
+    if not root.exists():
+        return {"files": 0, "bytes": 0, "partials": 0}
+    files = bytes_ = partials = 0
+    for path in root.rglob("*"):
+        if not path.is_file():
+            continue
+        if path.name.endswith(".part"):
+            partials += 1
+        elif path.suffix == ".nc":
+            files += 1
+            bytes_ += path.stat().st_size
+    return {"files": files, "bytes": bytes_, "partials": partials}
+
+
+def _season_label(start_year: int) -> str:
+    return f"{start_year}/{(start_year + 1) % 100:02d}"
+
+
+def daily_season_coverage(rows: list[dict]) -> dict:
+    """State the heating seasons the daily tier covers as a COUNT, with named gaps.
+
+    A heating season straddles the new year -- October to March, source document section
+    3.4 -- so a file list ordered by calendar year cannot be read for it. Fifteen daily
+    files is 'two and a half winters', not 'fifteen months of winter', and the difference
+    is the whole persistence question: a cold spell that starts in December and ends in
+    January is one spell, and it is invisible in a season that has only one of them.
+
+    Every season the window touches is either counted complete or given a gap row with a
+    reason. The two ends are always gaps and always will be: the pull starts in January
+    1991, so 1990/91 can never have its October, and it ends in December 2025, so 2025/26
+    cannot have its March until the archive publishes 2026. Naming them beats a count
+    that quietly starts a year late.
+    """
+    have, absent = {}, {}
+    for row in rows:
+        year, month = row.get("year"), row.get("month")
+        if row.get("frequency") != "day" or year is None or month is None:
+            continue
+        start = year if month >= 10 else year - 1
+        bucket = have if row.get("status") in ON_DISK_STATUSES else absent
+        bucket.setdefault(start, {})[month] = row.get("status")
+
+    seasons = sorted({*have, *absent})
+    complete, gaps = [], []
+    for start in seasons:
+        held = have.get(start, {})
+        missing = []
+        for year, month in ((start, 10), (start, 11), (start, 12),
+                            (start + 1, 1), (start + 1, 2), (start + 1, 3)):
+            if month in held:
+                continue
+            if not SERIES_FIRST_YEAR <= year <= SERIES_LAST_YEAR:
+                reason = (
+                    f"outside the pulled window "
+                    f"{SERIES_FIRST_YEAR}-{SERIES_LAST_YEAR}"
+                )
+            else:
+                reason = absent.get(start, {}).get(month) or "absent from the receipt"
+            missing.append({"month": f"{year}-{month:02d}", "reason": reason})
+        if missing:
+            gaps.append(
+                {
+                    "season": _season_label(start),
+                    "months_held": len(held),
+                    "missing": missing,
+                }
+            )
+        else:
+            complete.append(_season_label(start))
+
+    return {
+        "definition": "October-March, source document section 3.4",
+        "complete_seasons": len(complete),
+        "first_complete": complete[0] if complete else None,
+        "last_complete": complete[-1] if complete else None,
+        "gaps": gaps,
+    }
+
+
+def finalise_receipt(merged: dict, *, walk: dict | None = None) -> dict:
+    """Add the two things a reader cannot get from the rows alone.
+
+    Kept out of `merge_into_receipt` so the merge stays pure and testable without a
+    filesystem, and so the walk happens once at write time rather than per merge.
+    """
+    walk = _walk_cache() if walk is None else walk
+    return {
+        **merged,
+        "cache_walk": {
+            **walk,
+            "receipt_bytes": merged["bytes_on_disk"],
+            "reconciles": walk["bytes"] == merged["bytes_on_disk"],
+        },
+        "daily_heating_seasons": daily_season_coverage(merged.get("files", [])),
+    }
+
+
 def merge_into_receipt(summary: dict, previous: dict | None) -> dict:
     """Fold this run's results into whatever the receipt already recorded.
 
@@ -342,22 +465,72 @@ def merge_into_receipt(summary: dict, previous: dict | None) -> dict:
         return summary
 
     rows = {row["path"]: row for row in previous.get("files", [])}
-    rows.update({row["path"]: row for row in summary["files"]})
+    for row in summary["files"]:
+        # A `pending` row is this run saying "not reached yet", which is weaker evidence
+        # than a previous receipt saying "fetched, 74 MB, sha256 ...". Letting it win
+        # would make every checkpoint erase the tiers already recorded -- the defect
+        # merging was introduced to fix, arriving through the door the fix opened.
+        held = rows.get(row["path"])
+        if row["status"] == PENDING and held and held.get("status") != PENDING:
+            continue
+        rows[row["path"]] = row
     merged = sorted(rows.values(), key=lambda row: row["path"])
 
     failed = [row for row in merged if row["status"] == "failed"]
+    pending = [row for row in merged if row["status"] == PENDING]
+    on_disk = [row for row in merged if row["status"] in ON_DISK_STATUSES]
     return {
         **summary,
         "tiers": sorted({*previous.get("tiers", []), *summary["tiers"]}),
         "requested": len(merged),
-        "complete": len(merged) - len(failed),
+        # Counted from the rows' own statuses, not `len(merged) - failed`: with pending
+        # rows in the set that subtraction counts a file nobody has fetched as complete.
+        "complete": len(on_disk),
         "failed": len(failed),
+        "pending": len(pending),
+        "pull_status": "complete" if not pending and not failed else "incomplete",
         "bytes_on_disk": sum(row.get("bytes", 0) for row in merged),
         "files": merged,
     }
 
 
-def run(tiers: tuple[str, ...], *, limit: int | None, verify: bool) -> dict:
+def summarise(
+    tiers: tuple[str, ...], manifest: list[dict], results: list[dict], token_source
+) -> dict:
+    """The receipt this run would write if it stopped right now.
+
+    Manifest entries the run has not reached carry a `pending` row rather than being
+    left out, so a summary taken mid-pull states the size of the job it is part way
+    through instead of the size of the part it has done.
+    """
+    rows = results + [
+        {**entry, "status": PENDING} for entry in manifest[len(results):]
+    ]
+    failed = [r for r in rows if r["status"] == "failed"]
+    pending = [r for r in rows if r["status"] == PENDING]
+    return {
+        "generated_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "source": "Met Office HadUK-Grid 1km, CEDA Archive",
+        "dataset_version": DATASET_VERSION,
+        "release_directory": RELEASE,
+        "licence": LICENCE,
+        "archive_root": ARCHIVE_ROOT,
+        "cache_root": str(CACHE_ROOT),
+        "token_source": token_source,
+        "tiers": list(tiers),
+        "requested": len(rows),
+        "complete": len([r for r in rows if r["status"] in ON_DISK_STATUSES]),
+        "failed": len(failed),
+        "pending": len(pending),
+        "pull_status": "complete" if not pending and not failed else "incomplete",
+        "bytes_on_disk": sum(r.get("bytes", 0) for r in rows),
+        "files": rows,
+    }
+
+
+def run(
+    tiers: tuple[str, ...], *, limit: int | None, verify: bool, checkpoint=None
+) -> dict:
     env = _load_credentials()
     token = Token(env)
     manifest = build_manifest(tiers)
@@ -373,25 +546,10 @@ def run(tiers: tuple[str, ...], *, limit: int | None, verify: bool) -> dict:
             + (f"  ({outcome.get('reason')})" if outcome.get("reason") else ""),
             flush=True,
         )
+        if checkpoint and index % CHECKPOINT_EVERY == 0:
+            checkpoint(summarise(tiers, manifest, results, token.source))
 
-    failed = [r for r in results if r["status"] == "failed"]
-    total_bytes = sum(r.get("bytes", 0) for r in results)
-    return {
-        "generated_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-        "source": "Met Office HadUK-Grid 1km, CEDA Archive",
-        "dataset_version": DATASET_VERSION,
-        "release_directory": RELEASE,
-        "licence": LICENCE,
-        "archive_root": ARCHIVE_ROOT,
-        "cache_root": str(CACHE_ROOT),
-        "token_source": token.source,
-        "tiers": list(tiers),
-        "requested": len(manifest),
-        "complete": len(results) - len(failed),
-        "failed": len(failed),
-        "bytes_on_disk": total_bytes,
-        "files": results,
-    }
+    return summarise(tiers, manifest, results, token.source)
 
 
 def main(argv=None) -> int:
@@ -433,8 +591,31 @@ def main(argv=None) -> int:
         print(f"-- {len(manifest)} file(s)", file=sys.stderr)
         return 0
 
+    def write_receipt(summary: dict) -> dict:
+        previous = None
+        if RECEIPT.exists():
+            try:
+                previous = json.loads(RECEIPT.read_text())
+            except (ValueError, json.JSONDecodeError) as exc:
+                # An unreadable receipt is not an empty one. Refusing here rather than
+                # starting fresh keeps a corrupt file from being laundered into a clean
+                # record of a pull nobody can now account for.
+                raise PullRefused(
+                    f"{RECEIPT} exists but is not readable JSON ({exc}); move it aside "
+                    "before writing a new receipt"
+                ) from exc
+        merged = finalise_receipt(merge_into_receipt(summary, previous))
+        RECEIPT.parent.mkdir(parents=True, exist_ok=True)
+        RECEIPT.write_text(json.dumps(merged, indent=2) + "\n")
+        return merged
+
     try:
-        summary = run(tiers, limit=args.limit, verify=args.verify)
+        summary = run(
+            tiers,
+            limit=args.limit,
+            verify=args.verify,
+            checkpoint=write_receipt if args.receipt else None,
+        )
     except PullRefused as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
         return 1
@@ -447,27 +628,22 @@ def main(argv=None) -> int:
     )
 
     if args.receipt:
-        previous = None
-        if RECEIPT.exists():
-            try:
-                previous = json.loads(RECEIPT.read_text())
-            except (ValueError, json.JSONDecodeError):
-                # An unreadable receipt is not an empty one. Refusing here rather than
-                # starting fresh keeps a corrupt file from being laundered into a clean
-                # record of a pull nobody can now account for.
-                print(
-                    f"REFUSED: {RECEIPT} exists but is not readable JSON; move it aside "
-                    "before writing a new receipt",
-                    file=sys.stderr,
-                )
-                return 1
-        merged = merge_into_receipt(summary, previous)
-        RECEIPT.parent.mkdir(parents=True, exist_ok=True)
-        RECEIPT.write_text(json.dumps(merged, indent=2) + "\n")
+        try:
+            merged = write_receipt(summary)
+        except PullRefused as exc:
+            print(f"REFUSED: {exc}", file=sys.stderr)
+            return 1
+        seasons = merged["daily_heating_seasons"]
+        walk = merged["cache_walk"]
         print(
             f"receipt: {RECEIPT} "
             f"({merged['complete']}/{merged['requested']} across tiers "
-            f"{', '.join(merged['tiers'])})"
+            f"{', '.join(merged['tiers'])}, {merged['pull_status']})\n"
+            f"  heating seasons complete: {seasons['complete_seasons']} "
+            f"({seasons['first_complete']}..{seasons['last_complete']}), "
+            f"{len(seasons['gaps'])} with gaps\n"
+            f"  cache walk: {walk['files']} files, {walk['bytes'] / 1e9:.2f} GB, "
+            f"reconciles={walk['reconciles']}"
         )
 
     return 1 if summary["failed"] else 0
