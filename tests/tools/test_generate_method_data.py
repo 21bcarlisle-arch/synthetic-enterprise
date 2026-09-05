@@ -64,9 +64,34 @@ def test_staging_done_recent_sorted_newest_first_and_totalled(tmp_path, monkeypa
     assert recent[1]["filename"] == "b.md"
 
 
-def test_staging_done_recent_empty_when_dir_missing(tmp_path, monkeypatch):
+def test_an_unreadable_done_directory_is_not_published_as_a_count_of_zero(tmp_path, monkeypatch):
+    """RE-KEYED 2026-09-05, from `test_staging_done_recent_empty_when_dir_missing`, which asserted
+    `total == 0` and so PINNED THE FAIL-SILENT AS CORRECT -- it would have stayed green through
+    exactly the failure it appears to cover.
+
+    `total` is published as `done_total` on the method page ("Actioned all-time"). Nobody archived
+    zero documents; the directory could not be read, and a reader cannot tell those apart from a
+    rendered `0`. The same class as the eight-day `Test Suite: 0 tests passing`, and this tile has
+    already published a wrong figure once (see `_exhaust_total`'s docstring: 4,962 against 617).
+
+    The property is that an unreadable source is distinguishable from a measurement of nothing.
+    """
     monkeypatch.setattr("tools.generate_method_data.STAGING_DONE_DIR", tmp_path / "nope")
     recent, total = _staging_done_recent()
+
+    assert recent == []
+    assert total is None, "an unreadable directory must not render as 'Actioned all-time: 0'"
+
+
+def test_a_genuinely_empty_done_directory_still_counts_zero(tmp_path, monkeypatch):
+    """THE OTHER SIDE, and the reason the refusal above is keyed to READABILITY and not to
+    emptiness: a done/ directory that exists and holds nothing really has actioned nothing, and
+    `None` there would be a refusal where a measurement is available."""
+    empty = tmp_path / "done"
+    empty.mkdir()
+    monkeypatch.setattr("tools.generate_method_data.STAGING_DONE_DIR", empty)
+    recent, total = _staging_done_recent()
+
     assert recent == []
     assert total == 0
 

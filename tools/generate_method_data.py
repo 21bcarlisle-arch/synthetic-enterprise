@@ -172,8 +172,21 @@ def _exhaust_total():
 
 
 def _staging_done_recent(limit=RECENT_DONE_LIMIT):
+    """(recent, total) -- and `total` is None, never 0, when the directory cannot be read.
+
+    `total` is published as `done_total` on the method page ("Actioned all-time"). A MISSING
+    `docs/staging/done/` is not a count of nothing: nobody archived zero documents, the directory
+    was unreadable, and a rendered `0` says the opposite of that to a reader who cannot tell the
+    two apart. `_exhaust_total`'s own docstring twenty lines above records this tile publishing a
+    wrong number once already (4,962 against an instruction record of 617).
+
+    Found 2026-09-05 by sweeping for the shape the director named after the eight-day
+    `Test Suite: 0 tests passing`: a control that PINS a fail-silent branch as correct. Its
+    `test_staging_done_recent_empty_when_dir_missing` asserted `total == 0`, so it would have
+    stayed green through exactly the failure it looks like it covers.
+    """
     if not STAGING_DONE_DIR.is_dir():
-        return [], 0
+        return [], None
     entries = []
     for p in STAGING_DONE_DIR.glob("*.md"):
         try:
