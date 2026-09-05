@@ -485,3 +485,325 @@ def test_the_deepest_gate_is_unknown_on_every_refused_cycle_it_did_not_itself_na
         assert out[deep]["unknown"] == 3, deep
     # ...while the gate that was actually reached is evidenced on all three.
     assert out[attr.RED_TEST]["named"] == 3
+
+
+# ---------------------------------------------------------------------------------------------
+# SUBJECT: what the gate refused ON, which is what separates a standing red from an arrival.
+
+def _pytest_hook(*node_ids):
+    """A hook block whose pytest short summary names `node_ids`."""
+    return ("  git/hook output (last 40 lines):\n"
+            "==================== short test summary info ====================\n"
+            + "\n".join("FAILED {} - AssertionError".format(n) for n in node_ids)
+            + "\n{} failed, 40 passed".format(len(node_ids)))
+
+
+def _fc_hook(*docs):
+    return ("  git/hook output (last 40 lines):\n"
+            "[test-gate] ❌ FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED.\n"
+            + "\n".join("  - TWO ROOMS {}: present in done AND root".format(d) for d in docs))
+
+
+def _orphan_hook(*mods):
+    return ("  git/hook output (last 40 lines):\n"
+            "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS.\n"
+            + "\n".join("  {}".format(m) for m in mods)
+            + "\nNothing imports these, and no committed systemd unit runs them.")
+
+
+def _pairs(bodies, ranks=None):
+    log = "\n".join(
+        [_cycle("2026-08-20 {:02d}:00".format(i), refused=True, hook_body=b)
+         for i, b in enumerate(bodies)]
+        + [_cycle("2026-08-20 23:00", refused=False)])
+    return attr.subject_report(log, ranks=ranks)
+
+
+def test_a_truncated_block_is_unknown_and_never_two_empty_sets_comparing_equal():
+    """The fabrication this whole analysis cannot survive.
+
+    The log retains `last 40 lines`, so a subject printed above the cut is simply gone. If the
+    extractor returned `frozenset()` there instead of None, two truncated blocks would compare
+    EQUAL and the pair would be scored SAME -- manufacturing a standing red, the finding's own
+    headline, out of missing evidence. The one direction the error must not run.
+    """
+    truncated = "  git/hook output (last 40 lines):\n[test-gate] ❌ FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED."
+    assert attr._subject_at("finding-class consolidation", truncated) is None
+    assert attr.subject_verdict(None, None) == attr.UNKNOWN_SUBJECT
+    assert attr.subject_verdict(frozenset(), frozenset()) == attr.UNKNOWN_SUBJECT
+    verdicts = [p["verdict"] for p in _pairs([truncated, truncated])]
+    assert verdicts == [attr.UNKNOWN_SUBJECT], verdicts
+
+
+def test_every_subject_verdict_is_reachable_over_one_partition():
+    """A guard that refuses EVERYTHING passes every per-branch test of it.
+
+    One control over the whole partition, per CLAUDE.md, rather than a leg each: if a later edit
+    makes any verdict unreachable -- collapsing GREW into CHANGED, say, or never emitting SHRANK
+    -- this goes red where five separate assertions would each still pass.
+    """
+    a, b = frozenset("a"), frozenset("ab")
+    seen = {
+        attr.subject_verdict(a, a),
+        attr.subject_verdict(a, b),
+        attr.subject_verdict(b, a),
+        attr.subject_verdict(a, frozenset("c")),
+        attr.subject_verdict(a, None),
+    }
+    assert seen == {attr.SAME, attr.GREW, attr.SHRANK, attr.CHANGED, attr.UNKNOWN_SUBJECT}
+
+
+def test_the_growing_and_shrinking_directions_are_not_interchangeable():
+    """GREW and SHRANK carry opposite meanings and a symmetric comparison loses both.
+
+    GREW is an unfixed subject with new work piling on; SHRANK is the only verdict that
+    positively evidences a repair. A test asserting only "not SAME" survives swapping them.
+    """
+    assert attr.subject_verdict(frozenset("a"), frozenset("ab")) == attr.GREW
+    assert attr.subject_verdict(frozenset("ab"), frozenset("a")) == attr.SHRANK
+
+
+def test_each_gate_names_its_own_subject_and_the_kinds_do_not_leak():
+    """One extractor per gate, each reading that gate's own output shape.
+
+    The finding-class case is the trap: `RESURRECTED <F>.md: superseded by <CLASS>.md ...` names a
+    SECOND document in its tail, and capturing that too would make two refusals about different
+    documents share a subject and score SAME.
+    """
+    assert attr._subject_at(attr.RED_TEST, _pytest_hook("t.py::a", "t.py::b")) == frozenset(
+        {"FAILED t.py::a - AssertionError", "FAILED t.py::b - AssertionError"})
+    assert attr._subject_at("orphan-ratchet", _orphan_hook("tools.x", "tools.y")) == frozenset(
+        {"tools.x", "tools.y"})
+    # BOTH near-misses in one fixture, because they pull in opposite directions and a fixture
+    # carrying only one is passed by a pattern that fails the other. RESURRECTED's tail names a
+    # second document that must NOT be captured; MISSING CLASS DOC ends with no trailing colon and
+    # must still BE captured. Anchoring on `:` passes the first and silently drops the second --
+    # which is what the real log caught after this control's first draft had only RESURRECTED.
+    both = ("  git/hook output (last 40 lines):\n"
+            "[test-gate] ❌ FINDING-CLASS CONSOLIDATION BROKEN -- COMMIT REFUSED.\n"
+            "  - RESURRECTED WORKER_A_2026-08-19.md: superseded by CLASS_B_2026-08-12.md "
+            "but present in the staging root\n"
+            "  - MISSING CLASS DOC CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md")
+    assert attr._subject_at("finding-class consolidation", both) == frozenset(
+        {"WORKER_A_2026-08-19.md", "CLASS_CONTROLS_THAT_CANNOT_FAIL_2026-08-12.md"})
+    level = ("  git/hook output (last 40 lines):\n[level-gate] ❌ COMMIT REFUSED:\n"
+             "§0: level_current 2->3 on H_GAP_fabric declares a level for source ...")
+    assert attr._subject_at("level-promotion gate", level) == frozenset({"H_GAP_fabric"})
+
+
+def test_a_pair_is_two_refusals_of_ONE_gate_and_never_of_two():
+    """Two different gates in sequence is the QUEUEING question, already settled elsewhere.
+
+    Pairing across gates would compare a red test's node IDs against an orphan module list, score
+    CHANGED every time, and drown the standing-red signal in a verdict that means nothing.
+    """
+    assert _pairs([_pytest_hook("t.py::a"), _orphan_hook("tools.x")]) == []
+    same_gate = _pairs([_pytest_hook("t.py::a"), _pytest_hook("t.py::a")])
+    assert [p["gate"] for p in same_gate] == [attr.RED_TEST]
+
+
+def test_established_needs_an_intervening_HIGHER_rank_not_merely_an_intervening_cycle():
+    """The inference is the serial chain's, and only a higher rank licenses it.
+
+    The chain stops at the FIRST refusal, so only an intervening gate ranked ABOVE this one is a
+    positive observation that this one passed. An intervening LOWER rank says nothing, and a
+    version that counted any intervening cycle would report every long episode as established.
+    """
+    low, high = ("low", (1, 0)), ("high", (9, 0))
+    ranks = {attr.RED_TEST: (5, 0), "orphan-ratchet": low[1], "site-lane gate": high[1]}
+    below = _pairs([_pytest_hook("t.py::a"), _orphan_hook("tools.x"),
+                    _pytest_hook("t.py::a")], ranks=ranks)
+    above = _pairs([_pytest_hook("t.py::a"),
+                    "  git/hook output (last 40 lines):\n[site-lane] ❌ red\n1 passed",
+                    _pytest_hook("t.py::a")], ranks=ranks)
+    red_below = [p for p in below if p["gate"] == attr.RED_TEST]
+    red_above = [p for p in above if p["gate"] == attr.RED_TEST]
+    assert [p["established"] for p in red_below] == [False]
+    assert [p["established"] for p in red_above] == [True]
+
+
+def test_an_established_pair_always_spans_at_least_three_cycles():
+    """The pre-registered analytic control, keyed to the property and not to today's answer.
+
+    An established pair needs a cycle STRICTLY BETWEEN its endpoints, so its span is >= 3 by
+    construction. A span of 2 means the pairing indices and the rank lookup have come apart -- and
+    then every subject verdict is comparing the wrong two refusals. Runs against the real log
+    when it is present, and against a synthetic episode always.
+    """
+    synthetic = _pairs([_pytest_hook("t.py::a"),
+                        "  git/hook output (last 40 lines):\n[site-lane] ❌ red\n1 passed",
+                        _pytest_hook("t.py::b")],
+                       ranks={attr.RED_TEST: (5, 0), "site-lane gate": (9, 0)})
+    established = [p for p in synthetic if p["established"]]
+    assert established, "the control is vacuous unless an established pair is attainable"
+    assert all(p["span"] >= 3 for p in established)
+    if attr.DEFAULT_LOG.exists():
+        live = [p for p in attr.subject_report(
+            attr.DEFAULT_LOG.read_text(encoding="utf-8", errors="replace"))
+            if p["established"]]
+        assert all(p["span"] >= 3 for p in live)
+
+
+def test_the_subject_sequence_stays_index_aligned_with_the_cause_sequence():
+    """The subject analysis indexes one list with the other's position.
+
+    If the two ever diverge in length or order, a gate's cause is compared against a DIFFERENT
+    gate's subject and every verdict below is silently about the wrong pair of refusals.
+    """
+    # DELIBERATELY NOT PALINDROMIC. A first draft used a->orphan->a, and reversing the subject
+    # list left it byte-identical, so a mutation that built `subjects` from `reversed(refused)`
+    # survived. The fixture must distinguish an order from its reverse to test an order at all.
+    log = "\n".join(
+        [_cycle("2026-08-20 0{}:00".format(i), refused=True, hook_body=b)
+         for i, b in enumerate([_pytest_hook("t.py::a"), _orphan_hook("tools.x"),
+                                _pytest_hook("t.py::b"), _orphan_hook("tools.y")])]
+        + [_cycle("2026-08-20 09:00", refused=False)])
+    e = attr._episodes(attr.cycles(log), breaker_is_landing=True)[0]
+    assert len(e["subjects"]) == len(e["cause_sequence"]) == 4
+    assert e["cause_sequence"][1] == "orphan-ratchet"
+    assert e["subjects"][1] == frozenset({"tools.x"})
+    assert e["subjects"][3] == frozenset({"tools.y"})
+    assert e["subjects"] != list(reversed(e["subjects"]))
+
+
+def test_the_orphan_scan_is_bounded_when_its_end_marker_is_absent():
+    """The `last 40 lines` window can hand us a block whose closing line never arrived.
+
+    With no `Nothing imports these` to stop at, the scan runs to the end of the block and meets
+    the ratchet's prose. Admitting a prose line as a module makes two refusals about the SAME
+    modules differ on WORDING and score CHANGED -- reporting an arrival where there is a standing
+    red. Established as reachable, not assumed: on the real log the end marker is always present,
+    so this shape is exactly what is untested without a control that builds it.
+    """
+    unterminated = ("  git/hook output (last 40 lines):\n"
+                    "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS.\n"
+                    "  tools.x\n"
+                    "  This is the no-caller class (13 instances in 13 days)")
+    assert attr._subject_at("orphan-ratchet", unterminated) == frozenset({"tools.x"})
+
+
+# ---------------------------------------------------------------------------------------------
+# RED TEST SPLIT BY NODE ID: `RED TEST` names the GATE, and one control re-breaking and the tree
+# being broken by other lanes arrive under that one label. Opposite remedies, so the split has to
+# survive every way a classifier can flatter one side.
+
+
+def _red_rows(bodies, ranks=None):
+    """The RED TEST re-arrival rows of one bounded episode whose refusals carry `bodies`."""
+    log = "\n".join(
+        [_cycle("2026-08-20 {:02d}:00".format(i), refused=True, hook_body=b)
+         for i, b in enumerate(bodies)]
+        + [_cycle("2026-08-20 23:00", refused=False)])
+    return attr.red_test_report(log, ranks=ranks)
+
+
+def test_every_red_test_split_verdict_is_reachable_over_one_partition():
+    """A classifier that answered one thing for everything passes every per-branch leg of itself.
+
+    One control over the whole partition, per CLAUDE.md, and not a leg each: if a later edit
+    collapses SHARED into DIFFERENT, or stops emitting FIRST RED, or lets an absent summary fall
+    through to a side, this goes red where five separate assertions would each still pass.
+    """
+    rows = _red_rows([ORPHAN_HOOK,
+                      _pytest_hook("t.py::a"),                 # nothing prior -> FIRST RED
+                      _pytest_hook("t.py::a"),                 # identical     -> SAME TEST
+                      _pytest_hook("t.py::a", "t.py::b"),      # intersects    -> SHARED TESTS
+                      _pytest_hook("t.py::c"),                 # disjoint      -> DIFFERENT TESTS
+                      RED_HOOK])                               # no summary    -> UNAVAILABLE
+    assert [r["verdict"] for r in rows] == [
+        attr.FIRST_RED, attr.SAME_TEST, attr.SHARED_TESTS,
+        attr.DIFFERENT_TESTS, attr.NODE_IDS_UNAVAILABLE]
+    # And the two that answer no part of the question stay out of the split denominator.
+    t = attr.red_test_tally(rows)
+    assert t["all"]["total"] == 5 and t["all"]["split"] == 3
+
+
+def test_an_absent_pytest_summary_is_unavailable_and_never_a_disjoint_set():
+    """THE FAIL-OPEN THIS SPLIT WOULD OTHERWISE SHIP, and its direction is the damaging one.
+
+    The log retains `last 40 lines`, so a block can carry the `FAILED` lines that NAME the cause
+    while the `short test summary info` header they belong to sits above the cut -- the parser is
+    scoped to that header, so it returns nothing. If "nothing" were read as an empty set, an
+    absent summary beside a real one would be DISJOINT, and the module would publish a re-break of
+    a different test out of evidence that is simply missing. Injected, not observed: the retained
+    window on the live log has always kept the header, so this branch has no natural instance and
+    is exactly what stays untested unless a control builds it.
+    """
+    assert attr._subject_at(attr.RED_TEST, RED_HOOK) is None
+    assert attr._node_id_verdict(None, frozenset({"t.py::a"})) == attr.NODE_IDS_UNAVAILABLE
+    assert attr._node_id_verdict(frozenset(), frozenset()) == attr.NODE_IDS_UNAVAILABLE
+    rows = _red_rows([ORPHAN_HOOK, _pytest_hook("t.py::a"), RED_HOOK])
+    assert rows[-1]["verdict"] == attr.NODE_IDS_UNAVAILABLE
+
+
+def test_an_identical_set_is_only_a_re_break_where_the_gate_passed_between():
+    """THE DISTINCTION THE HEADLINE RESTS ON, and the reason the flag is carried not folded.
+
+    A backward step says `RED TEST` passed at SOME point before this cycle. It does NOT say the
+    gate passed since the EARLIER red -- the chain is serial and stops at the first refusal, so
+    while `RED TEST` is refusing, nothing above it is observed at all. Two identical sets with no
+    higher-ranked gate in between are a red that never cleared: PERSISTENCE, the cheap
+    explanation. Publishing that as a flaky control would send someone hunting a test that is
+    simply still failing. Both legs asserted together: a flag that was always False, or always
+    True, satisfies either one alone.
+    """
+    without = _red_rows([ORPHAN_HOOK, _pytest_hook("t.py::a"), _pytest_hook("t.py::a")])
+    between = _red_rows([ORPHAN_HOOK, _pytest_hook("t.py::a"),
+                         LEVEL_HOOK, _pytest_hook("t.py::a")])
+    assert [r["verdict"] for r in without][-1] == attr.SAME_TEST
+    assert [r["verdict"] for r in between][-1] == attr.SAME_TEST
+    assert without[-1]["passed_between"] is False
+    assert between[-1]["passed_between"] is True
+    # The tally is the surface that could quietly lose the distinction.
+    assert attr.red_test_tally(without)["passed_between"]["total"] == 0
+    assert attr.red_test_tally(between)["passed_between"]["counts"] == {attr.SAME_TEST: 1}
+
+
+def test_a_steps_position_is_the_cause_index_and_not_its_place_among_ranked_causes():
+    """Unattributable cycles are SKIPPED when ranks are walked, and `subjects` is not.
+
+    So the position of a backward step inside the ranked walk is NOT its position in
+    `cause_sequence`, and using the former to index `subjects` reads a DIFFERENT cycle's subject
+    -- silently, and only once an unrankable cycle happens to sit between two reds, which is
+    common in the live log. The fixture puts one there and pins the verdict that only correct
+    alignment can produce.
+    """
+    blind = "  git/hook output (last 40 lines):\nsomething nobody has a needle for"
+    rows = _red_rows([ORPHAN_HOOK, _pytest_hook("t.py::a"), blind, _pytest_hook("t.py::c")])
+    assert [r["at"] for r in rows] == [1, 3]
+    # Off-by-one against the ranked walk would pair the second red with the BLIND cycle's absent
+    # subject and score UNAVAILABLE -- the flattering answer, because it hides the misalignment.
+    assert rows[-1]["verdict"] == attr.DIFFERENT_TESTS
+
+
+def test_the_comparison_never_reaches_across_a_landing():
+    """An episode is bounded by a LANDING, and a landing is a positive observation that every gate
+    passed. Two reds either side of one are unrelated by construction, so comparing across would
+    manufacture a re-break out of two independent episodes that happened to break the same test --
+    which, on a tree several lanes are committing to, is exactly what a common test looks like.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 01:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 02:00", refused=True, hook_body=_pytest_hook("t.py::a")),
+        _cycle("2026-08-20 03:00", refused=False),
+        _cycle("2026-08-20 04:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 05:00", refused=True, hook_body=_pytest_hook("t.py::a")),
+        _cycle("2026-08-20 06:00", refused=False)])
+    rows = attr.red_test_report(log)
+    assert [r["episode_from"] for r in rows] == ["2026-08-20 01:00", "2026-08-20 04:00"]
+    # Both are the first red of their OWN episode. Reaching across would make the second SAME TEST.
+    assert [r["verdict"] for r in rows] == [attr.FIRST_RED, attr.FIRST_RED]
+
+
+def test_the_split_is_scoped_to_red_test_and_does_not_swallow_other_gates_steps():
+    """`ordering_report` yields a backward step for every gate that descends, and most of them are
+    not `RED TEST`. A filter written on the episode rather than the step would pull an
+    orphan-ratchet or level-gate re-arrival into a report whose whole subject is WHICH TEST --
+    where the node-id extractor returns nothing and the row would land in UNAVAILABLE, inflating
+    the bucket that means "the log did not keep the evidence" with rows that never had any.
+    """
+    e = _episode([ORPHAN_HOOK, LEVEL_HOOK, SITE_HOOK, _pytest_hook("t.py::a")])
+    assert [s["cause"] for s in e["backward_steps"]] == [
+        "level-promotion gate", "site-lane gate", attr.RED_TEST]
+    rows = _red_rows([ORPHAN_HOOK, LEVEL_HOOK, SITE_HOOK, _pytest_hook("t.py::a")])
+    assert len(rows) == 1 and rows[0]["at"] == 3
