@@ -95,12 +95,14 @@ Archive to `docs/staging/done/` once the paths above are either committed or rev
 - `background, docs, tests, tools left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-08-30)
 - `background, company, docs, simulation and elsewhere left uncommitted by a session that stopped mid-work holding # claim(` (first seen 2026-08-31)
 - `.claude, background, company, docs and elsewhere left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-08-31)
+- `nothing left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-05)
 ## Still live
 - **2026-08-28** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-08-29** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-08-30** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-08-31** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-09-01** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
+- **2026-09-05** — still live. 1 repeats over 107.3h without the state changing. No second document filed: this condition already has one.
 ## Episodes — what each dead seat was holding
 
 ### 2026-08-28 08:18 UTC
@@ -5832,3 +5834,93 @@ this project keeps paying for.
 **What is owed, stated so the next drawer inherits a decision rather than a re-read:** the adopt/
 discard call on the 2026-08-26 snapshot's uncommitted paths. That is a real piece of work and it is
 not the wedge's, so it was not done under a priority-zero tick.
+
+### 2026-09-05 04:35 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **107.3h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `PB3_book_growth_as_earned_outcome` — claimed 368.2h ago. The seat said: DISCOVER/FRAME: the gain/loss asymmetry finding + design. Cannot BUILD -- PB2 is level 0.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 20
+- Last commit on the tree: `4988ef943 the two lanes repairing one torn-line defect reached OPPOSITE answers, and the appender needed the refusing one`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-05 05:14 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **108.0h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `PB3_book_growth_as_earned_outcome` — claimed 368.9h ago. The seat said: DISCOVER/FRAME: the gain/loss asymmetry finding + design. Cannot BUILD -- PB2 is level 0.
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 20
+- Last commit on the tree: `2345bb0e1 correct PB4's build beside the claim: the three-way payment draw already exists and nothing calls it`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
