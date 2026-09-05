@@ -1,7 +1,7 @@
 {
   "_doc": "THE RATCHET FLOOR for the no-caller class. Every module here is unreachable from the committed schedule TODAY and is grandfathered: nobody must fix them to commit. What the gate refuses is a module that is NOT on this list becoming unreachable -- i.e. the moment a new one is created. Shrink it freely; growing it requires saying why in the commit that grows it.",
   "entrypoint_count": 55,
-  "module_count": 1082,
+  "module_count": 1084,
   "orphans": [
     "background.bad_debt_reconciliation_run",
     "background.cascade_correlation_estimation",
@@ -116,7 +116,6 @@
     "company.crm.tariff_notification",
     "company.crm.tpa_register",
     "company.crm.tpi_conduct_register",
-    "company.crm.vulnerability_index",
     "company.finance",
     "company.finance.annualised_revenue_report",
     "company.finance.bad_debt_provision",
@@ -330,6 +329,7 @@
     "tools.build_battery_register",
     "tools.closed_atom_delivery",
     "tools.compare_chase_belief",
+    "tools.contract_battery",
     "tools.converged_contract_screen",
     "tools.couple_supply_start",
     "tools.couple_w2_6_c8",
@@ -371,6 +371,7 @@
     "tools.run_phase1c_renewals",
     "tools.run_phase3a",
     "tools.run_phase4b_on_phase2b",
+    "tools.segment_vocabulary_contract_battery",
     "tools.split_price_response_by_curve_position",
     "tools.ssp_refit_era_partitioned",
     "tools.ssp_refit_regime_partitioned",

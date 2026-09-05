@@ -1,33 +1,17 @@
 #!/usr/bin/env python3
 """R15 mutation battery for `background/direction.py`, scored PER CALLER SUITE.
 
-`tools/mutate_printed_figure_rederivation.py` is the same family and asserts a
-different thing: that one NAMED test fires per mutation. That shape cannot
-answer this question, because the question is not "is this contract proved" but
-"WHICH of the four caller suites is proving it". A converged module inherits
-whichever caller suite happened to be strongest, and a contract proved by one
-suite dies the day that caller is refactored away. So every mutation is run
-against each caller suite SEPARATELY and the answer is a row of four, never a
-pass/fail.
+The SUBJECT of this file is the spec below -- the four caller suites, the eight
+contracts and the reachability anchor. The procedure that runs it lives in
+`tools/contract_battery.py`, extracted there when the sweep reached its third
+subject: a battery copied per subject is exactly the converged-code defect this
+sweep exists to find, committed by the instrument that finds it. What the engine
+guarantees, and why each guarantee is there, is documented on the engine.
 
 Pre-registration and the eight predictions:
 `docs/staging/SEAT_PREREG_WHICH_CALLER_SUITE_IS_EACH_DIRECTION_CONTRACT_STANDING_ON_2026-09-05.md`
-
-Three things here are not decoration:
-
-* **The target string is asserted present EXACTLY ONCE before patching.** A
-  surviving mutation is otherwise indistinguishable from a patch that never
-  applied, and this project has recorded that exact false survivor.
-* **A BASELINE pass runs first and its reds are deselected** from every
-  mutation run. A test already red at HEAD would otherwise be read as the
-  mutation dying, in every one of the eight rows at once.
-* **Restore is from a pristine copy held OUTSIDE the tree**, and `pkill -f` on
-  this battery matches the calling shell, so an in-tree restore step can be
-  killed along with the thing it was restoring from.
-
-Results are written outside the tree too (`--out`), because an in-flight
-mutation leaving `background/direction.py` dirty is what makes
-`promote_worktree_landing` refuse.
+Results, including the fourth column and the poison round that voided it:
+`docs/staging/SEAT_RESULT_THE_FOURTH_COLUMN_SURVIVED_ENTIRE_AND_THE_BATTERY_PROVING_IT_HAD_NO_REACHABILITY_FLOOR_2026-09-05.md`
 
 Usage:
     python3 -m tools.direction_contract_battery --out /var/tmp/battery.json
@@ -35,19 +19,7 @@ Usage:
 """
 from __future__ import annotations
 
-import argparse
-import atexit
-import json
-import re
-import shutil
-import signal
-import subprocess
-import sys
-import time
-from pathlib import Path
-
-PROJECT = Path(__file__).resolve().parent.parent
-SUBJECT = PROJECT / "background" / "direction.py"
+from tools.contract_battery import BatterySpec, run
 
 #: The four caller suites. `tools/generate_delivery_page.py` is the fourth
 #: first-party caller and has no suite that imports it AND direction, so the
@@ -135,203 +107,20 @@ POISON_OLD = "\ndef append_decision("
 POISON_NEW = ('\nraise RuntimeError("POISON: direction.py reachability floor")'
               "\n\n\ndef append_decision(")
 
-_FAILED = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)", re.MULTILINE)
 
-
-def _clear_pycache() -> None:
-    for root in ("background", "tools", "tests", "company", "saas"):
-        for cached in (PROJECT / root).rglob("__pycache__"):
-            shutil.rmtree(cached, ignore_errors=True)
-
-
-def _run_suite(suite: str, deselect: tuple[str, ...], stop_first: bool) -> dict:
-    """One suite, one pass. Returns the failing node ids and the wall clock."""
-    cmd = [sys.executable, "-m", "pytest", suite, "-q", "--tb=no", "-rfE",
-           "-p", "no:cacheprovider"]
-    for node in deselect:
-        cmd += ["--deselect", node]
-    if stop_first:
-        cmd.append("-x")
-    started = time.time()
-    proc = subprocess.run(cmd, cwd=PROJECT, capture_output=True, text=True)
-    out = proc.stdout + proc.stderr
-    return {
-        "suite": suite,
-        "returncode": proc.returncode,
-        "failed": sorted(set(_FAILED.findall(out))),
-        "seconds": round(time.time() - started, 1),
-        "tail": out.strip().splitlines()[-3:],
-    }
-
-
-def _baseline(results: dict, suites: tuple[str, ...], out_path: Path) -> dict:
-    """The unmutated pass, per suite, recorded before anything is patched.
-
-    ITS REDS ARE THE POINT. A test already red at HEAD reads as the mutation dying, in every row at
-    once, and a battery that skips this step has measured that something failed rather than what.
-    """
-    baseline = results.setdefault("baseline", {})
-    print("BASELINE (no mutation, full pass, reds recorded and later deselected)", flush=True)
-    for suite in suites:
-        if suite in baseline:
-            continue
-        r = _run_suite(suite, (), stop_first=False)
-        baseline[suite] = r
-        print(f"  {suite}: rc={r['returncode']} failed={len(r['failed'])} {r['seconds']}s",
-              flush=True)
-        out_path.write_text(json.dumps(results, indent=2))
-    return baseline
-
-
-def _poison(results: dict, suites: tuple[str, ...], out_path: Path, known_red: dict) -> dict:
-    """Can each suite go red for this subject AT ALL? Run before any mutation, never after.
-
-    A battery whose cells are all green has measured nothing until this round has run: "the
-    contract held" and "the suite never reached the line" are the same green. Recorded per suite as
-    `reaches_subject`, and every later survivor in a suite that does not reach the subject is
-    stamped `survived_but_unreachable` so the cell carries its own interpretation rather than
-    relying on a reader to remember this one.
-    """
-    poison = results.setdefault("poison", {})
-    original = SUBJECT.read_text(encoding="utf-8")
-    occurrences = original.count(POISON_OLD)
-    if occurrences != 1:
-        # The floor itself failed to apply. NOT recorded as "every suite reaches the subject" --
-        # an unavailable check reports itself unavailable, it does not report a pass.
-        results["poison_error"] = f"target present {occurrences} times, expected exactly 1"
-        print(f"POISON: TARGET NOT UNIQUE ({occurrences}) -- reachability UNKNOWN", flush=True)
-        out_path.write_text(json.dumps(results, indent=2))
-        return poison
-    todo = [s for s in suites if s not in poison]
-    if not todo:
-        return poison
-    print("POISON (import-time raise -- proves each suite can go red for this subject at all)",
-          flush=True)
-    SUBJECT.write_text(original.replace(POISON_OLD, POISON_NEW), encoding="utf-8")
-    _clear_pycache()
-    try:
-        for suite in todo:
-            r = _run_suite(suite, known_red[suite], stop_first=True)
-            r["reaches_subject"] = r["returncode"] != 0
-            poison[suite] = r
-            print(f"  {suite}: {'reaches' if r['reaches_subject'] else 'NEVER REACHES'} "
-                  f"the subject ({r['seconds']}s)", flush=True)
-            out_path.write_text(json.dumps(results, indent=2))
-    finally:
-        SUBJECT.write_text(original, encoding="utf-8")
-        _clear_pycache()
-    return poison
-
-
-def _score(row: dict, todo: list[str], known_red: dict, reaches: dict) -> None:
-    """One mutation against each outstanding suite, scored as a row rather than a verdict."""
-    for suite in todo:
-        r = _run_suite(suite, known_red[suite], stop_first=True)
-        r["died"] = r["returncode"] != 0
-        # A survivor in a suite the poison round could not redden is not evidence about the
-        # contract. Stamped on the cell, because a caveat kept only in prose stops travelling with
-        # the number the moment anyone reads the JSON.
-        r["survived_but_unreachable"] = not r["died"] and reaches.get(suite) is False
-        row["per_suite"][suite] = r
-        print(f"  {suite}: {'DIED' if r['died'] else 'survived'} "
-              f"{'(UNREACHABLE -- proves nothing) ' if r['survived_but_unreachable'] else ''}"
-              f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
-    # `survived_all` is the PRE-REGISTERED question and its population is the four CALLER suites.
-    # The repair column is reported beside it and never folded into it.
-    callers = {s: r for s, r in row["per_suite"].items() if s in SUITES}
-    row["survived_all"] = (len(callers) == len(SUITES)
-                           and not any(r["died"] for r in callers.values()))
-    row["killed_by"] = [s for s, r in callers.items() if r["died"]]
-    repair = row["per_suite"].get(REPAIR_SUITE)
-    if repair is not None:
-        row["caught_by_own_suite"] = repair["died"]
+SPEC = BatterySpec(
+    name="direction",
+    subject="background/direction.py",
+    suites=SUITES,
+    repair_suite=REPAIR_SUITE,
+    mutations=MUTATIONS,
+    poison_old=POISON_OLD,
+    poison_new=POISON_NEW,
+)
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", default="/var/tmp/direction_battery_results.json")
-    ap.add_argument("--pristine", default="/var/tmp/direction_pristine.py",
-                    help="restore source, held OUTSIDE the tree on purpose")
-    ap.add_argument("--only", nargs="*", default=None, help="mutation ids to run")
-    ap.add_argument("--suites", nargs="*", default=None,
-                    help="substring match; `tests/background/test_supervisor.py` costs ~670s a "
-                         "pass and the other three cost seconds, so the cheap three are worth "
-                         "grading and landing on their own first")
-    args = ap.parse_args(argv)
-    suites = tuple(s for s in SELECTABLE if not args.suites
-                   or any(frag in s for frag in args.suites))
-
-    out_path = Path(args.out)
-    pristine = Path(args.pristine)
-    original = SUBJECT.read_text(encoding="utf-8")
-    pristine.write_text(original, encoding="utf-8")
-
-    def restore() -> None:
-        if SUBJECT.read_text(encoding="utf-8") != original:
-            SUBJECT.write_text(original, encoding="utf-8")
-            _clear_pycache()
-
-    atexit.register(restore)
-    for sig in (signal.SIGINT, signal.SIGTERM):
-        signal.signal(sig, lambda *_: sys.exit(130))
-
-    results = json.loads(out_path.read_text()) if out_path.exists() else {}
-    results.setdefault("subject", "background/direction.py")
-    results.setdefault("suites", list(SUITES))
-
-    baseline = _baseline(results, suites, out_path)
-    known_red = {s: tuple(baseline[s]["failed"]) for s in suites}
-    # BEFORE the mutations, not after: a survivor scored against a suite whose reachability is
-    # still unknown has to be re-read once it is, and this battery has already published one
-    # column that needed exactly that.
-    poison = _poison(results, suites, out_path, known_red)
-    reaches = {s: r["reaches_subject"] for s, r in poison.items()}
-    results.setdefault("mutations", {})
-
-    for mid, contract, old, new in MUTATIONS:
-        if args.only and mid not in args.only:
-            continue
-        row = results["mutations"].setdefault(mid, {"contract": contract, "per_suite": {}})
-        todo = [s for s in suites if s not in row.get("per_suite", {})]
-        if not todo:
-            print(f"{mid}: all requested suites already recorded, skipping", flush=True)
-            continue
-        occurrences = original.count(old)
-        if occurrences != 1:
-            # NOT a survivor -- a patch that could never have applied. Recorded
-            # as its own outcome so it can never be read as evidence.
-            row["error"] = f"target present {occurrences} times, expected exactly 1"
-            out_path.write_text(json.dumps(results, indent=2))
-            print(f"{mid}: TARGET NOT UNIQUE ({occurrences}) -- not run", flush=True)
-            continue
-        SUBJECT.write_text(original.replace(old, new), encoding="utf-8")
-        _clear_pycache()
-        row["target_occurrences"] = occurrences
-        print(f"\n{mid}: {contract}", flush=True)
-        _score(row, todo, known_red, reaches)
-        SUBJECT.write_text(original, encoding="utf-8")
-        _clear_pycache()
-        out_path.write_text(json.dumps(results, indent=2))
-
-    restore()
-    survivors = [m for m, r in results["mutations"].items() if r.get("survived_all")]
-    partial = [m for m, r in results["mutations"].items()
-               if len(r.get("per_suite", {})) < len(SUITES)]
-    print(f"\nSURVIVED ALL FOUR SUITES: {survivors or 'none'}", flush=True)
-    if partial:
-        # NOT survivors. A mutation graded against three of four suites has no verdict on the
-        # standing prediction, and printing it beside the survivors is how a partial run gets
-        # read as a finished one.
-        print(f"NOT YET GRADED ON EVERY SUITE (no verdict): {partial}", flush=True)
-    blind = [s for s, hit in reaches.items() if not hit]
-    if blind:
-        # Printed beside the survivors and not in a footnote: these suites contributed a green
-        # cell to every row above and not one of those cells was ever at risk.
-        print(f"SUITES THAT NEVER REACH THE SUBJECT (their green cells prove nothing): {blind}",
-              flush=True)
-    if "poison_error" in results:
-        print(f"REACHABILITY UNKNOWN -- {results['poison_error']}", flush=True)
-    return 0
+    return run(SPEC, argv)
 
 
 if __name__ == "__main__":
