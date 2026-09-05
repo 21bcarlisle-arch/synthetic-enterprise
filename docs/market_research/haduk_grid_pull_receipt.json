@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-05T16:28:12Z",
+  "generated_at_utc": "2026-09-05T17:38:51Z",
   "source": "Met Office HadUK-Grid 1km, CEDA Archive",
   "dataset_version": "v1.3.2.ceda",
   "release_directory": "v20260512",
@@ -13,11 +13,11 @@
     "normals"
   ],
   "requested": 318,
-  "complete": 125,
+  "complete": 318,
   "failed": 0,
-  "pending": 193,
-  "pull_status": "incomplete",
-  "bytes_on_disk": 5716503484,
+  "pending": 0,
+  "pull_status": "complete",
+  "bytes_on_disk": 19846078338,
   "files": [
     {
       "tier": "normals",
@@ -1021,7 +1021,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19931201-19931231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19931201-19931231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75035918,
+      "sha256": "5564ea7bedcbf9636c22f0e12d9e1109536957c659c1b0a99a1b9101a2642ccb"
     },
     {
       "tier": "daily",
@@ -1031,7 +1033,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19940101-19940131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19940101-19940131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74921498,
+      "sha256": "ff8a9c8b5ba84fb94f3109d6d3d939e4a6ca9e802ccd3b0a0fb14a1196dd915b"
     },
     {
       "tier": "daily",
@@ -1041,7 +1045,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19940201-19940228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19940201-19940228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 70368223,
+      "sha256": "24d653320d8cc05bb195ea4291baecef512e1dcbd4d85416bacec07d7b911fb8"
     },
     {
       "tier": "daily",
@@ -1051,7 +1057,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19940301-19940331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19940301-19940331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74384427,
+      "sha256": "e2b08bf6bc84292a4dcacf30f032a78c7ca5caff708c4104d597e6bc59354cc6"
     },
     {
       "tier": "daily",
@@ -1061,7 +1069,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19941001-19941031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19941001-19941031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73173034,
+      "sha256": "2c03748290b04fc2692cb414731732d9bf9a52ff5ff0b92901461fb11704166b"
     },
     {
       "tier": "daily",
@@ -1071,7 +1081,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19941101-19941130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19941101-19941130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71504044,
+      "sha256": "c5338c7072db4feb2e15c7dc42381966bb18401f4b1df79acd7b078fd76b8eb8"
     },
     {
       "tier": "daily",
@@ -1081,7 +1093,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19941201-19941231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19941201-19941231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74287231,
+      "sha256": "bc17c172cd0c58559823dc4da7df6990fd31a9759df06d268d30009d35cd6ba4"
     },
     {
       "tier": "daily",
@@ -1091,7 +1105,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19950101-19950131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19950101-19950131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75055063,
+      "sha256": "5177fae081d11553a18356c0e4f9ee93f102e2eff901f0956a7ffd9c85a6ff43"
     },
     {
       "tier": "daily",
@@ -1101,7 +1117,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19950201-19950228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19950201-19950228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69385990,
+      "sha256": "03b7f3bff6099966a99ca08fadf165836b15d69facee0e0465d9a2687a508c7a"
     },
     {
       "tier": "daily",
@@ -1111,7 +1129,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19950301-19950331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19950301-19950331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75071322,
+      "sha256": "bb88bc0f91018b94580f0c7c8159c626259630d0e8e3231000b1ce1fe0ec596d"
     },
     {
       "tier": "daily",
@@ -1121,7 +1141,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19951001-19951031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19951001-19951031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73035877,
+      "sha256": "c90b2ec96d17a87ee5eb43e5c500cf9b5839709d4fc2f6b83846fc31a8bddf19"
     },
     {
       "tier": "daily",
@@ -1131,7 +1153,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19951101-19951130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19951101-19951130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72045863,
+      "sha256": "9c81351350739b2cfea9d312aedb636e22c49a1b9a23a44cf916ab2364be0bf8"
     },
     {
       "tier": "daily",
@@ -1141,7 +1165,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19951201-19951231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19951201-19951231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75277234,
+      "sha256": "7e8b51119fdaf986a731c543fabb2da37723a9c601cc40979ac6a9f4b7c40ba7"
     },
     {
       "tier": "daily",
@@ -1151,7 +1177,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19960101-19960131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19960101-19960131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75061706,
+      "sha256": "8b441dc6dfd0608f41e353b1aa98d93afd20349fa7304c35169b1e708eafe3a0"
     },
     {
       "tier": "daily",
@@ -1161,7 +1189,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19960201-19960229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19960201-19960229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72418673,
+      "sha256": "2de9f0ada150b5cfdb3c00fbe3079196cb4df6f71cda8cd45c7ca5485880a6e3"
     },
     {
       "tier": "daily",
@@ -1171,7 +1201,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19960301-19960331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19960301-19960331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75296349,
+      "sha256": "026ca7084909ac6374eb39fa4428f4ba8f8f5aa3a3dcb0a10092d8c34d19fc42"
     },
     {
       "tier": "daily",
@@ -1181,7 +1213,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19961001-19961031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19961001-19961031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73154829,
+      "sha256": "d9ff665ad3e52a5a09463fab3356e98e73c1c6f0c7cdd3ff34c33e5912ec448f"
     },
     {
       "tier": "daily",
@@ -1191,7 +1225,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19961101-19961130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19961101-19961130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73005433,
+      "sha256": "cb77ee517a2190a5a6efcf5b893736385a56632f9754f396bb758e9aa8cc6490"
     },
     {
       "tier": "daily",
@@ -1201,7 +1237,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19961201-19961231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19961201-19961231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75581360,
+      "sha256": "d461669b9238baa444323dc61c4e370ce721f97f79c8ead9663a87536f75a817"
     },
     {
       "tier": "daily",
@@ -1211,7 +1249,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19970101-19970131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19970101-19970131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75241478,
+      "sha256": "213c5e1001e1b9c30f245f8217ea676ca606ed5e6e8944f70308f2875af44c48"
     },
     {
       "tier": "daily",
@@ -1221,7 +1261,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19970201-19970228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19970201-19970228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69346252,
+      "sha256": "567dfd10964842c01d72b75b86ccf5e249bdbac4b5122283b9db6f9e035c93f6"
     },
     {
       "tier": "daily",
@@ -1231,7 +1273,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19970301-19970331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19970301-19970331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73798347,
+      "sha256": "79a48557c6496635a8fb460470d0ee8fc8e34909658b04643f2be62272aa7821"
     },
     {
       "tier": "daily",
@@ -1241,7 +1285,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19971001-19971031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19971001-19971031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73407428,
+      "sha256": "3428448d4522bce6ec7e7a7ed118575eaedd7d96d956efa3431e02e89905589f"
     },
     {
       "tier": "daily",
@@ -1251,7 +1297,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19971101-19971130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19971101-19971130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71798581,
+      "sha256": "1be53d46b080494ee6da4238e069597b817654eda54d9b837854a4ad2a17d6af"
     },
     {
       "tier": "daily",
@@ -1261,7 +1309,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19971201-19971231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19971201-19971231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74364452,
+      "sha256": "8dbf7b34594c38a00c5fe9302bb93e7d6efef664d1e654786d922ec0464c982a"
     },
     {
       "tier": "daily",
@@ -1271,7 +1321,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19980101-19980131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19980101-19980131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74870633,
+      "sha256": "24f755a484c0397c38cf504093ece959053e69f6cd3f0518b1983e80653787c0"
     },
     {
       "tier": "daily",
@@ -1281,7 +1333,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19980201-19980228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19980201-19980228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 68797907,
+      "sha256": "6de1d734e664db00b3e6de084a56aae6b15f32b17241491a75bbda5e6a73f74d"
     },
     {
       "tier": "daily",
@@ -1291,7 +1345,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19980301-19980331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19980301-19980331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74125485,
+      "sha256": "5bb2c633a0683cd5e07d23ce65e729a1f771188f611a5ce9e9eb31c6aed9d9aa"
     },
     {
       "tier": "daily",
@@ -1301,7 +1357,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19981001-19981031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19981001-19981031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73551286,
+      "sha256": "c6d17fad7a44b0f92240bacbac4456872b177f3968abb4439f92418dc955c413"
     },
     {
       "tier": "daily",
@@ -1311,7 +1369,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19981101-19981130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19981101-19981130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72549256,
+      "sha256": "97f9fb5a2ef9b8d117c920fa5200a55d095e86f4104d046fd93a9f9eb5219b99"
     },
     {
       "tier": "daily",
@@ -1321,7 +1381,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19981201-19981231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19981201-19981231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74504327,
+      "sha256": "473d78319acbdf3182c2054702139cd63978d42bfb13d678efbc1b06144d302f"
     },
     {
       "tier": "daily",
@@ -1331,7 +1393,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19990101-19990131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19990101-19990131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74723859,
+      "sha256": "3ba044246a5bd28d4b47c68f03e30c4321d424ec6fd6f93a95777d9316fd0f57"
     },
     {
       "tier": "daily",
@@ -1341,7 +1405,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19990201-19990228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19990201-19990228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69773308,
+      "sha256": "13c6618540c8f3bf4d3e5377cd7559582f6ce897a7dc147c467abfa951f0d410"
     },
     {
       "tier": "daily",
@@ -1351,7 +1417,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19990301-19990331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19990301-19990331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74330649,
+      "sha256": "8cc1d4e8549263550124fe87b83250f358eca227bf23cb636e58767ace8051ce"
     },
     {
       "tier": "daily",
@@ -1361,7 +1429,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19991001-19991031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19991001-19991031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73237640,
+      "sha256": "05cde63c96f6779d5e9f29170c2448757cfce7bda0b5fb35e0994455d2693487"
     },
     {
       "tier": "daily",
@@ -1371,7 +1441,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19991101-19991130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19991101-19991130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72052591,
+      "sha256": "91d13dbaf4790591f4f5eb81b89d98351b9a6379541adbe6bf6b8538992aed65"
     },
     {
       "tier": "daily",
@@ -1381,7 +1453,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_19991201-19991231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_19991201-19991231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75107448,
+      "sha256": "f1b8a506f8c354902edd838d979be327947f70d15ec98f5360f2cdfb6dcaffc9"
     },
     {
       "tier": "daily",
@@ -1391,7 +1465,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20000101-20000131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20000101-20000131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74648593,
+      "sha256": "593ebe2d0eb639bbb0457c316df5558eabd055dc227d11f73f8cd947636e73fd"
     },
     {
       "tier": "daily",
@@ -1401,7 +1477,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20000201-20000229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20000201-20000229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71109906,
+      "sha256": "7c47355eaa68725613167176e6ef6802d0650d8222993e3dacaba96e96924a56"
     },
     {
       "tier": "daily",
@@ -1411,7 +1489,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20000301-20000331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20000301-20000331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73983619,
+      "sha256": "016f8d3adf84e2c5c1d113635fa7858bb527b978a5394bad45941a87c8dab24f"
     },
     {
       "tier": "daily",
@@ -1421,7 +1501,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20001001-20001031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20001001-20001031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73324957,
+      "sha256": "9c8378ef5b8007f20334cc227c7ca812ce6322b7549aaa7497204c9eae64bd2f"
     },
     {
       "tier": "daily",
@@ -1431,7 +1513,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20001101-20001130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20001101-20001130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72375955,
+      "sha256": "cd706921a18dbfa2fd1f7eb739d30ef82fd7e2eab3972c93ffc119a218bdee69"
     },
     {
       "tier": "daily",
@@ -1441,7 +1525,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20001201-20001231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20001201-20001231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74462777,
+      "sha256": "2d0d901f69af9e76e4ec09b4d89734746d8506568bb0623d78440e23632b6a61"
     },
     {
       "tier": "daily",
@@ -1451,7 +1537,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20010101-20010131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20010101-20010131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75198097,
+      "sha256": "8f354ce75ff8f623ce2b80a736311011ce993a9ded6cc36ebefc2667c4339192"
     },
     {
       "tier": "daily",
@@ -1461,7 +1549,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20010201-20010228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20010201-20010228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69834594,
+      "sha256": "6caa1670adaf59542bc7ff5ad98b6b7796a88c6c68afd879567a6a06c3b553c9"
     },
     {
       "tier": "daily",
@@ -1471,7 +1561,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20010301-20010331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20010301-20010331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75150159,
+      "sha256": "afd15e3fb5677dee990a968ec01603514cdb25593603dd3ae4b887e169f55b88"
     },
     {
       "tier": "daily",
@@ -1481,7 +1573,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20011001-20011031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20011001-20011031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72973510,
+      "sha256": "7ec65b023a445b1410abbf09bed03fe00dafbb4fa6c479d300cbf0ff05db1bfe"
     },
     {
       "tier": "daily",
@@ -1491,7 +1585,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20011101-20011130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20011101-20011130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72030532,
+      "sha256": "993bbc61881370e7c570ce4baf984cd3be45de5eab7a842ce359006683e05e8b"
     },
     {
       "tier": "daily",
@@ -1501,7 +1597,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20011201-20011231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20011201-20011231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75113786,
+      "sha256": "cf93a1a182e924d7d760b055d9bc497b094a231b0efc1d14dcebb6149bbe66a0"
     },
     {
       "tier": "daily",
@@ -1511,7 +1609,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20020101-20020131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20020101-20020131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74235215,
+      "sha256": "c9d204240a337a413ca5f3e9a64a9f27e2798735dd54c3133eb78028c8e596f8"
     },
     {
       "tier": "daily",
@@ -1521,7 +1621,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20020201-20020228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20020201-20020228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69285696,
+      "sha256": "2cf8f3d12fb7e7adfaa07519be091c04c9ec5cd7ad7d40e7a35ab2b7e33564e4"
     },
     {
       "tier": "daily",
@@ -1531,7 +1633,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20020301-20020331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20020301-20020331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74066321,
+      "sha256": "528f3eefb5c7bb32b643d3f543c927b05efd9cc560a85eed96a3825d11f448db"
     },
     {
       "tier": "daily",
@@ -1541,7 +1645,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20021001-20021031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20021001-20021031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73598848,
+      "sha256": "2b3291290aa0910367ab07b597ec7db6e81b78a8b3c74a27a043533589d612aa"
     },
     {
       "tier": "daily",
@@ -1551,7 +1657,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20021101-20021130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20021101-20021130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71928953,
+      "sha256": "21473e81acd88933e590b013a49615db1fa9642348e30757792926281d1cbfdd"
     },
     {
       "tier": "daily",
@@ -1561,7 +1669,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20021201-20021231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20021201-20021231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74566259,
+      "sha256": "64af745d1425aa46ba12e2aae5cafaacb577906a580f62cb39d7a0eda2795e64"
     },
     {
       "tier": "daily",
@@ -1571,7 +1681,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20030101-20030131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20030101-20030131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74964999,
+      "sha256": "2debfc83174c6396ff594aad778ac9a70d6c663a5f909a3627677f07cb0b2b01"
     },
     {
       "tier": "daily",
@@ -1581,7 +1693,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20030201-20030228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20030201-20030228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69960291,
+      "sha256": "5269f1046c6a20cd1ad6cd8761cc35123a5b538ca41fcfe73d84ba5f462fde2d"
     },
     {
       "tier": "daily",
@@ -1591,7 +1705,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20030301-20030331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20030301-20030331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73560483,
+      "sha256": "cc283076f06242923fb9c8d8616f11d56db9ac6871e15be50ee4e1633bf07cc9"
     },
     {
       "tier": "daily",
@@ -1601,7 +1717,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20031001-20031031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20031001-20031031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73605672,
+      "sha256": "107e2fbd1c29e47db209c8f8b7a5241b91aeb5e5a4b0a6881a32419f9f4459e5"
     },
     {
       "tier": "daily",
@@ -1611,7 +1729,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20031101-20031130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20031101-20031130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71921975,
+      "sha256": "9a3fbe736f1f6aec6cff6e4cdf139ee42753e0a078baa824f2d71e7fac917b16"
     },
     {
       "tier": "daily",
@@ -1621,7 +1741,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20031201-20031231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20031201-20031231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74515626,
+      "sha256": "ca00a37a98435f268649e996b80814ed0581440d61459a7dbbfb4fcc5b42c283"
     },
     {
       "tier": "daily",
@@ -1631,7 +1753,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20040101-20040131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20040101-20040131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74677343,
+      "sha256": "0eee7edc136d30bb90ac5df5737086f9ba41530aeedd6bac6cbe0880dc71fe76"
     },
     {
       "tier": "daily",
@@ -1641,7 +1765,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20040201-20040229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20040201-20040229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71476440,
+      "sha256": "b2d5601e7669c5ba85ca9ceb1395f2bb6796da1ea4a5b6f1d8cf2220a181fc9b"
     },
     {
       "tier": "daily",
@@ -1651,7 +1777,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20040301-20040331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20040301-20040331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74323932,
+      "sha256": "459b326e577ddf4de9607ac30210c343e1203cf66b956e870cf2b612e4cce93d"
     },
     {
       "tier": "daily",
@@ -1661,7 +1789,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20041001-20041031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20041001-20041031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73333048,
+      "sha256": "541bd8cb206a1cc30f9690d198598f460f917a68ac0c9b594a29c5761f663318"
     },
     {
       "tier": "daily",
@@ -1671,7 +1801,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20041101-20041130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20041101-20041130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72061808,
+      "sha256": "2eab33eb677269ef4815f313d17d977db113f6709be56561db5e2aeb80b1f1eb"
     },
     {
       "tier": "daily",
@@ -1681,7 +1813,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20041201-20041231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20041201-20041231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74321604,
+      "sha256": "3743088952156705cedec8df42db71665997390b7ee130b320741b3f56a334eb"
     },
     {
       "tier": "daily",
@@ -1691,7 +1825,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20050101-20050131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20050101-20050131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74370421,
+      "sha256": "feb2255ea28d7048e53e4525139a59a705c6036eb781a77b83f79a5a10e6fc4e"
     },
     {
       "tier": "daily",
@@ -1701,7 +1837,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20050201-20050228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20050201-20050228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 70058213,
+      "sha256": "9282de720c225918aaa327a855fd5294a965b747a4b945747bb38377f8e63827"
     },
     {
       "tier": "daily",
@@ -1711,7 +1849,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20050301-20050331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20050301-20050331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74352819,
+      "sha256": "08ce1da438a4f6e2484e3cc208475a882e7012cd2c1704844d043a85d9ac31bb"
     },
     {
       "tier": "daily",
@@ -1721,7 +1861,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20051001-20051031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20051001-20051031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73028433,
+      "sha256": "6d4f9ec0d38b5de01ecde972d84bd233e43107d2c6ebef835eb0869bcf5683dc"
     },
     {
       "tier": "daily",
@@ -1731,7 +1873,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20051101-20051130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20051101-20051130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72562924,
+      "sha256": "bcd5a0ecd5c3035f8947c199bfb85c541d9aea163d5bd9d93794ab6ff748da69"
     },
     {
       "tier": "daily",
@@ -1741,7 +1885,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20051201-20051231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20051201-20051231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74524569,
+      "sha256": "6dc16a85685f878d2338f782fbce25d54e8f6d0546b8300c2a3d0701b0484632"
     },
     {
       "tier": "daily",
@@ -1751,7 +1897,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20060101-20060131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20060101-20060131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74863848,
+      "sha256": "ebf8a852625b55df3565518694b58cc5189ccedba1c29e1b41c0724c6e108378"
     },
     {
       "tier": "daily",
@@ -1761,7 +1909,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20060201-20060228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20060201-20060228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69958965,
+      "sha256": "bba6bf7d2b4cd977a31f966c03ab18ba0f7622b632d37b5c71580a323fcfad4a"
     },
     {
       "tier": "daily",
@@ -1771,7 +1921,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20060301-20060331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20060301-20060331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75274649,
+      "sha256": "d0178a245aecc67f9f3629876835255df93306ee154422c5ccec0ebf9e35aed6"
     },
     {
       "tier": "daily",
@@ -1781,7 +1933,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20061001-20061031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20061001-20061031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72940842,
+      "sha256": "d3cd4588693dd9274e59ff3067d01ecff1b80cc1a2b44553fc3f7087ffbf7584"
     },
     {
       "tier": "daily",
@@ -1791,7 +1945,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20061101-20061130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20061101-20061130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72032734,
+      "sha256": "0142f51c770183a9ec4d53e9d4a433926693b330593ab6aef4e9072ae9328ab4"
     },
     {
       "tier": "daily",
@@ -1801,7 +1957,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20061201-20061231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20061201-20061231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74252625,
+      "sha256": "b2d76df6c9d16d7a7bf27a1013906f846ee323ba65c243e9824234c176c2752d"
     },
     {
       "tier": "daily",
@@ -1811,7 +1969,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20070101-20070131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20070101-20070131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74356948,
+      "sha256": "ee76ada718504cff83ef40011d20c95c29ae7897a81820d0570668810c46f566"
     },
     {
       "tier": "daily",
@@ -1821,7 +1981,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20070201-20070228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20070201-20070228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69251664,
+      "sha256": "5136c25b9c9e67e2ff5329552c2257d4629808652e554b8baed55a1531da978b"
     },
     {
       "tier": "daily",
@@ -1831,7 +1993,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20070301-20070331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20070301-20070331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74127083,
+      "sha256": "f940e440fe9b4b7b0bc2e7417ffc8e9bf54dc00103b150c5a23a204241b0ca9d"
     },
     {
       "tier": "daily",
@@ -1841,7 +2005,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20071001-20071031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20071001-20071031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73053465,
+      "sha256": "68036c5a2d06d5ad36ca549bb8abba4103b41ac0de6658bda348e2921cd4c958"
     },
     {
       "tier": "daily",
@@ -1851,7 +2017,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20071101-20071130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20071101-20071130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72162043,
+      "sha256": "d2a444b344a85c3289ab1a06f9a8261d12a7a30d70b4b405516434923d435df3"
     },
     {
       "tier": "daily",
@@ -1861,7 +2029,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20071201-20071231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20071201-20071231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74641754,
+      "sha256": "9c70e3812a22e5f0947ef0525926dd0165a7e93992ede39c54106e9dc0898471"
     },
     {
       "tier": "daily",
@@ -1871,7 +2041,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20080101-20080131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20080101-20080131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74474884,
+      "sha256": "87bc69bd51501899734b45788f8914e49299a1f9454f4397f442db440d4b4e87"
     },
     {
       "tier": "daily",
@@ -1881,7 +2053,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20080201-20080229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20080201-20080229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 70858209,
+      "sha256": "69ab076723b729e58589bc943395adb19d80b9fa019eb7301d537013c0078724"
     },
     {
       "tier": "daily",
@@ -1891,7 +2065,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20080301-20080331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20080301-20080331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74731023,
+      "sha256": "3b562ed7127af031736260370c62fa690e6563b49df0c0adbf8e82989add2def"
     },
     {
       "tier": "daily",
@@ -1901,7 +2077,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20081001-20081031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20081001-20081031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73659151,
+      "sha256": "0c5ccf9b5dc13e361a53a1c3a3392497d66c475a1d123e1f932cc296e7aa661c"
     },
     {
       "tier": "daily",
@@ -1911,7 +2089,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20081101-20081130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20081101-20081130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72363004,
+      "sha256": "b6c05fbc0604fb0d51707b8c179dd95636203e8dcd2e2866c37081df0bff7720"
     },
     {
       "tier": "daily",
@@ -1921,7 +2101,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20081201-20081231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20081201-20081231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75113270,
+      "sha256": "d936b32aac3d12af5dc901069013b2396f935ce20a8ebc3147194a60d9d8e821"
     },
     {
       "tier": "daily",
@@ -1931,7 +2113,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20090101-20090131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20090101-20090131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75317459,
+      "sha256": "a3d3f8d8b7581270eaf5f136118b475246edf1a6dae1890fd8eb2d8271fa4492"
     },
     {
       "tier": "daily",
@@ -1941,7 +2125,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20090201-20090228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20090201-20090228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69953884,
+      "sha256": "0c422dd1a5fcde0d0c808c349470596564f7db6e2c2a733a4ef251abe7ccf2e4"
     },
     {
       "tier": "daily",
@@ -1951,7 +2137,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20090301-20090331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20090301-20090331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74154331,
+      "sha256": "967a4fd29bfa7d4f0f4be619030aad5fe47c66b88939eb14f03efff1f9126af2"
     },
     {
       "tier": "daily",
@@ -1961,7 +2149,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20091001-20091031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20091001-20091031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73092616,
+      "sha256": "bddc768857a87761c69b97db6c5038d0c1c834ff6acc12707e7f1c426d79b665"
     },
     {
       "tier": "daily",
@@ -1971,7 +2161,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20091101-20091130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20091101-20091130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72020424,
+      "sha256": "282bb801327e59620f51701acab81c6821299d7e3fa2c132c5fdaf442e4c5cfa"
     },
     {
       "tier": "daily",
@@ -1981,7 +2173,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20091201-20091231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20091201-20091231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75097570,
+      "sha256": "729c788e471f1b18a7e5bd599f280dcbdc4d5f56087375923ff6dae93dba00e9"
     },
     {
       "tier": "daily",
@@ -1991,7 +2185,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20100101-20100131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20100101-20100131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75625693,
+      "sha256": "67938b7a8d4da8e9071667454ee6c9312a54990da3a1bcd1e010b94e7bca676d"
     },
     {
       "tier": "daily",
@@ -2001,7 +2197,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20100201-20100228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20100201-20100228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 70569609,
+      "sha256": "ab2d3b038697e3f76cfaeb77061f30c4d95a4f2351cd9a8074093e8a3a9b4227"
     },
     {
       "tier": "daily",
@@ -2011,7 +2209,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20100301-20100331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20100301-20100331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74586164,
+      "sha256": "ac0994d5686c7ed77a03a34b018fbffd60ab03ed58d7ebe4e4b0ed0b41482be0"
     },
     {
       "tier": "daily",
@@ -2021,7 +2221,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20101001-20101031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20101001-20101031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73272042,
+      "sha256": "8cadb80afaf37acb3e4feddfcefd5a1945ec55037c20a449a0377d7204b3586a"
     },
     {
       "tier": "daily",
@@ -2031,7 +2233,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20101101-20101130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20101101-20101130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72796257,
+      "sha256": "0ba05ff688c49fb4bc1b53fef168ee9c107be0acfa9fa525c1420c3afdc15f81"
     },
     {
       "tier": "daily",
@@ -2041,7 +2245,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20101201-20101231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20101201-20101231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74591417,
+      "sha256": "882e06eb04b4705d6f21d927991d1193a783967297aa747639d2dea65d198f75"
     },
     {
       "tier": "daily",
@@ -2051,7 +2257,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20110101-20110131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20110101-20110131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75178753,
+      "sha256": "d0e36a4c396718f6381c84d186e00d69a2dad9e57cc0fa14d8040305a42754c5"
     },
     {
       "tier": "daily",
@@ -2061,7 +2269,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20110201-20110228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20110201-20110228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69214024,
+      "sha256": "3b87a4d24c11f613c3f26f77a92c5879db96930b62139f6f66a76a6f52d8a23d"
     },
     {
       "tier": "daily",
@@ -2071,7 +2281,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20110301-20110331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20110301-20110331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74167051,
+      "sha256": "dd968fa9d73a210283a7b5132d56844154093e8f8dd0b26687ef9fa297168d7d"
     },
     {
       "tier": "daily",
@@ -2081,7 +2293,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20111001-20111031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20111001-20111031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73133524,
+      "sha256": "60ac34fb0d514a150a90343b17568c947e320c23c4592b1bc695527b901c2418"
     },
     {
       "tier": "daily",
@@ -2091,7 +2305,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20111101-20111130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20111101-20111130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71500959,
+      "sha256": "a5e79da79b04b4d1869c86841ccf4929e5ac57817cc1151b15a9d4c22e377c7e"
     },
     {
       "tier": "daily",
@@ -2101,7 +2317,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20111201-20111231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20111201-20111231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74699026,
+      "sha256": "5aad6cd8faa2d3d6fe78f3ef9f26b66feab5edb41f22893a9cea5c744c36aaef"
     },
     {
       "tier": "daily",
@@ -2111,7 +2329,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20120101-20120131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20120101-20120131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74712624,
+      "sha256": "28474c05fb953e8c90336b36d4325890ea7f0ed69a6df6248e8277e302a1e5a5"
     },
     {
       "tier": "daily",
@@ -2121,7 +2341,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20120201-20120229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20120201-20120229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71262496,
+      "sha256": "a030bbe87d471e366979b1dcb42b674e786814dea70ef4060a2e638725680100"
     },
     {
       "tier": "daily",
@@ -2131,7 +2353,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20120301-20120331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20120301-20120331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73438847,
+      "sha256": "39252b24d9a7c180c5c2505f0a969650dbadc4a454936b53f4307f43c6a19c8f"
     },
     {
       "tier": "daily",
@@ -2141,7 +2365,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20121001-20121031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20121001-20121031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73533762,
+      "sha256": "a4e1495cf8cff9221256f7c8f2248f3da09c22ffadf0cd24416b8d73fb9782d4"
     },
     {
       "tier": "daily",
@@ -2151,7 +2377,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20121101-20121130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20121101-20121130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72340108,
+      "sha256": "2bc0e806135185046c70ae966278b3bad5cd95d03ff81b70d6dd89a139360bb8"
     },
     {
       "tier": "daily",
@@ -2161,7 +2389,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20121201-20121231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20121201-20121231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74825832,
+      "sha256": "b1807d655ccc1b5143544d6f320f1bc927b2debe4b2a0d82f9ae568e294e11f1"
     },
     {
       "tier": "daily",
@@ -2171,7 +2401,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20130101-20130131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20130101-20130131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75317979,
+      "sha256": "ce3f954251ef832c7353f21d973f0dac375f7583edbc493c023405d49fc645be"
     },
     {
       "tier": "daily",
@@ -2181,7 +2413,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20130201-20130228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20130201-20130228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 70237495,
+      "sha256": "5fee6f657ad6df00431446bb126088eb98825d4ed529c92b4190a70b8e7d3ec7"
     },
     {
       "tier": "daily",
@@ -2191,7 +2425,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20130301-20130331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20130301-20130331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 76049377,
+      "sha256": "9c3313b21eb977cf3240c67d604388e0c19cbba8ad1405ab5b56140948bdd52f"
     },
     {
       "tier": "daily",
@@ -2201,7 +2437,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20131001-20131031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20131001-20131031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73136286,
+      "sha256": "00f83932b99905410ef8edf51fc65c285ea6ab49f8cd781885dbfc2d12cdecdf"
     },
     {
       "tier": "daily",
@@ -2211,7 +2449,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20131101-20131130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20131101-20131130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72451136,
+      "sha256": "fa71a01539c4ab6e5162df4de9b68164fb831d7838b076c12960a192af921ed1"
     },
     {
       "tier": "daily",
@@ -2221,7 +2461,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20131201-20131231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20131201-20131231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74133894,
+      "sha256": "61ad74834f7690746d1bc484b235d058c8cc063c0e6d4bbdf0de2758df3bb56f"
     },
     {
       "tier": "daily",
@@ -2231,7 +2473,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20140101-20140131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20140101-20140131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74512178,
+      "sha256": "d58993a8f625088d1e4d9aebcc1f6763ff49e00a4d6d918447c1fd820fe5805b"
     },
     {
       "tier": "daily",
@@ -2241,7 +2485,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20140201-20140228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20140201-20140228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69413333,
+      "sha256": "f7db2c6c6a7bf59220a3f47e92299a2fdf76b8c84071e2f85023483c44132821"
     },
     {
       "tier": "daily",
@@ -2251,7 +2497,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20140301-20140331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20140301-20140331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73787899,
+      "sha256": "2802a56c4550a68145f38c64c1ab91da3cc7ace365743f85a74704fb3543585c"
     },
     {
       "tier": "daily",
@@ -2261,7 +2509,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20141001-20141031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20141001-20141031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73120617,
+      "sha256": "b3f684ba6829d3ae0513cbe3d377ec1582140b6582ed571a6f8c74711b7870fa"
     },
     {
       "tier": "daily",
@@ -2271,7 +2521,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20141101-20141130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20141101-20141130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71720760,
+      "sha256": "15fd4a721808970500f715c9b294010a2cf10f6b8875ba2d62e71560bcd9a9e2"
     },
     {
       "tier": "daily",
@@ -2281,7 +2533,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20141201-20141231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20141201-20141231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74686553,
+      "sha256": "b12d4747cb778e4b809dadc59da36bc581d37724866aced4107628915cbf9184"
     },
     {
       "tier": "daily",
@@ -2291,7 +2545,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20150101-20150131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20150101-20150131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75196307,
+      "sha256": "6e2b553a105ba9d99c88715bd367595d07904ff9092197bb6f65fefb5f02c294"
     },
     {
       "tier": "daily",
@@ -2301,7 +2557,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20150201-20150228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20150201-20150228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69866322,
+      "sha256": "51a783b24922e3b991baacb57572ca29e425847f5ef834d99e6639b66d06914c"
     },
     {
       "tier": "daily",
@@ -2311,7 +2569,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20150301-20150331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20150301-20150331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74272594,
+      "sha256": "8729b8f69595967ee1d8bce05f55cb0410f059f0de96ca3f9b50f80b8f9972d4"
     },
     {
       "tier": "daily",
@@ -2321,7 +2581,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20151001-20151031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20151001-20151031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72984901,
+      "sha256": "0911f21e73374348b042c97ed921b9b6ac000a17d066bf031bd7c1b55b2dffbe"
     },
     {
       "tier": "daily",
@@ -2331,7 +2593,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20151101-20151130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20151101-20151130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71871174,
+      "sha256": "3772e1135ef83927a2f5675f2368248370e61d07bcea405937c23f25854ee8ec"
     },
     {
       "tier": "daily",
@@ -2341,7 +2605,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20151201-20151231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20151201-20151231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73751767,
+      "sha256": "7ff47c1c65795c20a8c6b9f9e443652be96829274268e31a14eccb48c79460d9"
     },
     {
       "tier": "daily",
@@ -2351,7 +2617,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160101-20160131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20160101-20160131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74719776,
+      "sha256": "bc81b8c27f211458dc77e4d923354d27a657de058cc8f0e2dc1bd91082347a08"
     },
     {
       "tier": "daily",
@@ -2361,7 +2629,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160201-20160229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20160201-20160229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71648275,
+      "sha256": "452a1d176323bcc4e1363a207573ba6929335e97a3267477343b0f3f9b530a78"
     },
     {
       "tier": "daily",
@@ -2371,7 +2641,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160301-20160331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20160301-20160331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74367234,
+      "sha256": "8fb0f7beb79b6519235a9eb95426b6209d6ffb630c8407c8388e492731be91fe"
     },
     {
       "tier": "daily",
@@ -2381,7 +2653,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20161001-20161031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20161001-20161031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73115499,
+      "sha256": "ec656e33db0bbba9421768a21b239020b49cca134f83d6f89a2a5c1f622aaa9f"
     },
     {
       "tier": "daily",
@@ -2391,7 +2665,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20161101-20161130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20161101-20161130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72617106,
+      "sha256": "1a35aacab63bf676cc3ab1c0956034e82d751948be5fd9e0dcac9897db6d7b34"
     },
     {
       "tier": "daily",
@@ -2401,7 +2677,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20161201-20161231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20161201-20161231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73850927,
+      "sha256": "3a02b90a71b3cf6c08f6c93277d78f7f4a801e13dd094caf41d144e74ab18c9a"
     },
     {
       "tier": "daily",
@@ -2411,7 +2689,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170101-20170131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20170101-20170131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74897044,
+      "sha256": "af9df5fb3176b3f142a36131e8b6c22c5766b72dbb7aa62b9327b7f6b177196b"
     },
     {
       "tier": "daily",
@@ -2421,7 +2701,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170201-20170228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20170201-20170228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69428148,
+      "sha256": "855486d9dd5014198470bc5203497498b4058ebaf77ec19240169c70ea066d04"
     },
     {
       "tier": "daily",
@@ -2431,7 +2713,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170301-20170331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20170301-20170331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73896583,
+      "sha256": "add1bd48cea3fa4cd9204c02a1e173aa10c854ee17b7d214b66a735fae20aa80"
     },
     {
       "tier": "daily",
@@ -2441,7 +2725,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20171001-20171031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20171001-20171031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73028125,
+      "sha256": "11ab12cf232da14c842d4ec9bb7099705b3a1274cd79885509758384e2bd992b"
     },
     {
       "tier": "daily",
@@ -2451,7 +2737,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20171101-20171130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20171101-20171130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72478092,
+      "sha256": "e8e4952b4e9e3590f907cd85b688fb99dd915e69437c8921862b17dc90a36d74"
     },
     {
       "tier": "daily",
@@ -2461,7 +2749,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20171201-20171231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20171201-20171231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74645394,
+      "sha256": "613171b37e23322412d5c988023d1d8cea9015de2598e1964b7d81437e0fe859"
     },
     {
       "tier": "daily",
@@ -2471,7 +2761,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180101-20180131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20180101-20180131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74831024,
+      "sha256": "fff6911ce3d6189663b2c2fae6d62bde32bc92b836bc49098d0492188b1a98e2"
     },
     {
       "tier": "daily",
@@ -2481,7 +2773,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180201-20180228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20180201-20180228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 70410139,
+      "sha256": "b6ae93d865cdf34b40698d97ddac8a5fe5f232f646e4c7644e172796ca427290"
     },
     {
       "tier": "daily",
@@ -2491,7 +2785,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180301-20180331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20180301-20180331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75088339,
+      "sha256": "4ee5dc283a2116ba8838c7c3207f8d29036b2957ab707c91a7eaa1c4211b982d"
     },
     {
       "tier": "daily",
@@ -2501,7 +2797,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20181001-20181031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20181001-20181031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73380829,
+      "sha256": "873c2b0e6ffef81dece9a7e4ee11cadd24a88a671f0f7c3a24c4836181a51ea3"
     },
     {
       "tier": "daily",
@@ -2511,7 +2809,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20181101-20181130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20181101-20181130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71915525,
+      "sha256": "b4a1cbcf43a233aec52afc7d63c69594bb80ef96b3fafac5c501da028ae6ec60"
     },
     {
       "tier": "daily",
@@ -2521,7 +2821,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20181201-20181231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20181201-20181231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73979532,
+      "sha256": "23171ac588e4d1db9ac2431e5eec46c29f4bce618abb72ca419d70d4b0dfbea4"
     },
     {
       "tier": "daily",
@@ -2531,7 +2833,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190101-20190131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20190101-20190131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75179484,
+      "sha256": "1c9b0e60b8f2f0731a2681249d7e1ff361e11a61ae6287915c13a808efc7c008"
     },
     {
       "tier": "daily",
@@ -2541,7 +2845,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190201-20190228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20190201-20190228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 68695860,
+      "sha256": "1f02b7610a8fc9446ef545178c64253f94f861d7b4a601be7ccdcb65ec8a4bf1"
     },
     {
       "tier": "daily",
@@ -2551,7 +2857,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190301-20190331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20190301-20190331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74081876,
+      "sha256": "dd2170609d6dd80286ba60798d01caa3aba742c2170e67477d3252438fcdea9d"
     },
     {
       "tier": "daily",
@@ -2561,7 +2869,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20191001-20191031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20191001-20191031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73442637,
+      "sha256": "735149820684110d855a9f96aa9c6e62a465b84108db77fcfc92d9bf4fbef1f9"
     },
     {
       "tier": "daily",
@@ -2571,7 +2881,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20191101-20191130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20191101-20191130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72600199,
+      "sha256": "4e5d89bd95810a6c86014823d3ec43b3d820e83f66146af8900fbc49d27069a9"
     },
     {
       "tier": "daily",
@@ -2581,7 +2893,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20191201-20191231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20191201-20191231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74199299,
+      "sha256": "58b69aa7203d4d072d1554693f34ef7201e00376d396087d963734c370d1dfc2"
     },
     {
       "tier": "daily",
@@ -2591,7 +2905,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200101-20200131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20200101-20200131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74146964,
+      "sha256": "83533381eb65ea024ebb73de65786e14e55233aa62b5bfdeb568cb0e050ae07f"
     },
     {
       "tier": "daily",
@@ -2601,7 +2917,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200201-20200229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20200201-20200229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71117325,
+      "sha256": "e9918f54dbc50611b8ec243893ca1f4567a422fab79a6bb7e4a5494635ac3b6d"
     },
     {
       "tier": "daily",
@@ -2611,7 +2929,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200301-20200331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20200301-20200331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74426192,
+      "sha256": "4c63acf3ca22290c4a4c4bdfa744b2a5691ff236bba11a2877b074006200c3e4"
     },
     {
       "tier": "daily",
@@ -2621,7 +2941,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20201001-20201031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20201001-20201031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73292499,
+      "sha256": "f17d8653d01768ea62b6897038a725fa2c31834352c49e31a40905480266e6ba"
     },
     {
       "tier": "daily",
@@ -2631,7 +2953,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20201101-20201130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20201101-20201130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71742996,
+      "sha256": "dcaea62850cdc994bbae617ac0e6cd3878e00a1a883e0a43c0e6a40841a2a18c"
     },
     {
       "tier": "daily",
@@ -2641,7 +2965,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20201201-20201231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20201201-20201231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74749523,
+      "sha256": "9390c7794900c6e736b1094c9a9f3d83a2b4f6cea5e446a9e615ef474b8d5d7b"
     },
     {
       "tier": "daily",
@@ -2651,7 +2977,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210101-20210131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20210101-20210131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75674397,
+      "sha256": "6b75ccb2698b473a2d2007a8c54a1d606f3e2ad5afc158b824041d5e9b029157"
     },
     {
       "tier": "daily",
@@ -2661,7 +2989,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210201-20210228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20210201-20210228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69725023,
+      "sha256": "2648395c69f8c4b4125809137c4b189f8963e15aa46c52dff3c62b85b8c3536f"
     },
     {
       "tier": "daily",
@@ -2671,7 +3001,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210301-20210331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20210301-20210331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74133118,
+      "sha256": "9111ec808e50805c08a6eb653bdc01b14b38b47312fcc603dc782062a8d5a0b8"
     },
     {
       "tier": "daily",
@@ -2681,7 +3013,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20211001-20211031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20211001-20211031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73134063,
+      "sha256": "a2edaff77f06e704d4b8648d621ed1114c05a34aa8b997bd40517f7c277b5ee1"
     },
     {
       "tier": "daily",
@@ -2691,7 +3025,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20211101-20211130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20211101-20211130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72031356,
+      "sha256": "68ec1c2cb8c01d7e24c674f73b88a2e19b9fd484c10d85c26082d9c7d10d8e13"
     },
     {
       "tier": "daily",
@@ -2701,7 +3037,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20211201-20211231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20211201-20211231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74317337,
+      "sha256": "739d6c82d3643928a7460b11fd8b3fb43368c43d38f532123e460ebba5b47ae9"
     },
     {
       "tier": "daily",
@@ -2711,7 +3049,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220101-20220131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20220101-20220131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74413500,
+      "sha256": "022946f508ea350e2f7fdf66dbaac48201328c77010e19d98e94a25d86ad93d2"
     },
     {
       "tier": "daily",
@@ -2721,7 +3061,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220201-20220228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20220201-20220228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69308786,
+      "sha256": "3102f358c7135ab6d1209513029063354cfa20a080cd2d144c4eebe86d627720"
     },
     {
       "tier": "daily",
@@ -2731,7 +3073,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220301-20220331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20220301-20220331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73864155,
+      "sha256": "08007852d69cffa8b54d9518b94c6830edf1e3a7efa1f477d49ef8b66ab6272e"
     },
     {
       "tier": "daily",
@@ -2741,7 +3085,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20221001-20221031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20221001-20221031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73069806,
+      "sha256": "8af239adc7869657d4e34712f0c5ab4bbe04ef75bdbc784a7c9f0fdef169962e"
     },
     {
       "tier": "daily",
@@ -2751,7 +3097,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20221101-20221130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20221101-20221130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 71742437,
+      "sha256": "16dd835bf2a1c70aa19f67633e2a0ad68db0ee07fb94e4a804c7ae37511c4e28"
     },
     {
       "tier": "daily",
@@ -2761,7 +3109,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20221201-20221231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20221201-20221231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74896353,
+      "sha256": "59ef4abe8ba929222fd2a8043cdc6a5e7507774be9f154a79a755d768e1339e9"
     },
     {
       "tier": "daily",
@@ -2771,7 +3121,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230101-20230131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20230101-20230131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74762990,
+      "sha256": "2e50b60276a1e2509202489c05e68d75910b8cefe16a35972eaefef5b6ab63ba"
     },
     {
       "tier": "daily",
@@ -2781,7 +3133,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230201-20230228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20230201-20230228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 68989323,
+      "sha256": "4948b568bae48847ce63f0ced1614f90dd811ef0f9e9d9e99414ec57ed274d27"
     },
     {
       "tier": "daily",
@@ -2791,7 +3145,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230301-20230331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20230301-20230331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74512760,
+      "sha256": "e13d2f3ebdce72520ab5ed86ebdb5a0e17001c3a32ff91fc8a41480e03418e9d"
     },
     {
       "tier": "daily",
@@ -2801,7 +3157,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20231001-20231031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20231001-20231031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73214427,
+      "sha256": "e8a3d8e602ef7480f9f75f2685982ea049c82622b14edab3d26c2c6d3d1a799b"
     },
     {
       "tier": "daily",
@@ -2811,7 +3169,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20231101-20231130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20231101-20231130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72302875,
+      "sha256": "97bf552a9abf9eb7eb531c794fa0ac42b9a9bc2cd25a71964060c495347e2aca"
     },
     {
       "tier": "daily",
@@ -2821,7 +3181,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20231201-20231231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20231201-20231231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74225216,
+      "sha256": "021157f4da602afed8bc1f167273f2b3f940d5ada4b0cf4af7db39537b502468"
     },
     {
       "tier": "daily",
@@ -2831,7 +3193,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240101-20240131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20240101-20240131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74961555,
+      "sha256": "ecbec3eca14f1511a72696fa8cf05408e6852f8a05a5b4ceca3f0a1bc1cffad8"
     },
     {
       "tier": "daily",
@@ -2841,7 +3205,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240201-20240229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20240201-20240229.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 70693093,
+      "sha256": "941c6ba122d93595e807e6ab56d271bc909ae153ab001d001db5890b5e75f1ac"
     },
     {
       "tier": "daily",
@@ -2851,7 +3217,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240301-20240331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20240301-20240331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74110734,
+      "sha256": "aa39a39a9967635ba911ba019b5c15d8c71434cdc220625dd8206c9b736bf7fb"
     },
     {
       "tier": "daily",
@@ -2861,7 +3229,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20241001-20241031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20241001-20241031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73081274,
+      "sha256": "a4e7426b5526298ea3063683137d673e3f2a1e860f545ccea05c76d6add585f6"
     },
     {
       "tier": "daily",
@@ -2871,7 +3241,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20241101-20241130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20241101-20241130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72070732,
+      "sha256": "1565212bfbd3712d17c7315497a254b016332eb9612dc62332a835d543dc2ab7"
     },
     {
       "tier": "daily",
@@ -2881,7 +3253,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20241201-20241231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20241201-20241231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73914380,
+      "sha256": "67c320f25645f45067c66dbc8a7e31fcde666b931710c49a32aea16e6d247a08"
     },
     {
       "tier": "daily",
@@ -2891,7 +3265,9 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250101-20250131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20250101-20250131.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 75009621,
+      "sha256": "1ecb8d96a322a62d6107f2914f7184b42c07bd93995b482a2ad8f0ce5b3db859"
     },
     {
       "tier": "daily",
@@ -2901,7 +3277,9 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250201-20250228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20250201-20250228.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 69513035,
+      "sha256": "7ac5fb8419303899124a8b7d43b075917ebbfe47e99c5c126d3a4e56c5987d57"
     },
     {
       "tier": "daily",
@@ -2911,7 +3289,9 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250301-20250331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20250301-20250331.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73622562,
+      "sha256": "082e470be62792840f450906b54b835affb9071bc9d338ba98139bbfe6bb3cb5"
     },
     {
       "tier": "daily",
@@ -2921,7 +3301,9 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20251001-20251031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20251001-20251031.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 73148745,
+      "sha256": "f45fe50673bd4666cbe5ee377aa9287e7b3498f3a9820352d743eb2f39e856a5"
     },
     {
       "tier": "daily",
@@ -2931,7 +3313,9 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20251101-20251130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20251101-20251130.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 72187647,
+      "sha256": "33b8d7b376febde4b01a4213f5ef32027195ca5b1207687263aff314c1fb7f6b"
     },
     {
       "tier": "daily",
@@ -2941,7 +3325,9 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20251201-20251231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20251201-20251231.nc",
-      "status": "pending"
+      "status": "fetched",
+      "bytes": 74106526,
+      "sha256": "b15932180a6e6d2529c3bea3b10d086854cabe3033a000c0c76f1f226375ba79"
     },
     {
       "tier": "normals",
@@ -3340,17 +3726,17 @@
     }
   ],
   "cache_walk": {
-    "files": 125,
-    "bytes": 5716503484,
+    "files": 318,
+    "bytes": 19846078338,
     "partials": 0,
-    "receipt_bytes": 5716503484,
+    "receipt_bytes": 19846078338,
     "reconciles": true
   },
   "daily_heating_seasons": {
     "definition": "October-March, source document section 3.4",
-    "complete_seasons": 2,
+    "complete_seasons": 34,
     "first_complete": "1991/92",
-    "last_complete": "1992/93",
+    "last_complete": "2024/25",
     "gaps": [
       {
         "season": "1990/91",
@@ -3371,973 +3757,9 @@
         ]
       },
       {
-        "season": "1993/94",
-        "months_held": 2,
-        "missing": [
-          {
-            "month": "1993-12",
-            "reason": "pending"
-          },
-          {
-            "month": "1994-01",
-            "reason": "pending"
-          },
-          {
-            "month": "1994-02",
-            "reason": "pending"
-          },
-          {
-            "month": "1994-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "1994/95",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "1994-10",
-            "reason": "pending"
-          },
-          {
-            "month": "1994-11",
-            "reason": "pending"
-          },
-          {
-            "month": "1994-12",
-            "reason": "pending"
-          },
-          {
-            "month": "1995-01",
-            "reason": "pending"
-          },
-          {
-            "month": "1995-02",
-            "reason": "pending"
-          },
-          {
-            "month": "1995-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "1995/96",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "1995-10",
-            "reason": "pending"
-          },
-          {
-            "month": "1995-11",
-            "reason": "pending"
-          },
-          {
-            "month": "1995-12",
-            "reason": "pending"
-          },
-          {
-            "month": "1996-01",
-            "reason": "pending"
-          },
-          {
-            "month": "1996-02",
-            "reason": "pending"
-          },
-          {
-            "month": "1996-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "1996/97",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "1996-10",
-            "reason": "pending"
-          },
-          {
-            "month": "1996-11",
-            "reason": "pending"
-          },
-          {
-            "month": "1996-12",
-            "reason": "pending"
-          },
-          {
-            "month": "1997-01",
-            "reason": "pending"
-          },
-          {
-            "month": "1997-02",
-            "reason": "pending"
-          },
-          {
-            "month": "1997-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "1997/98",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "1997-10",
-            "reason": "pending"
-          },
-          {
-            "month": "1997-11",
-            "reason": "pending"
-          },
-          {
-            "month": "1997-12",
-            "reason": "pending"
-          },
-          {
-            "month": "1998-01",
-            "reason": "pending"
-          },
-          {
-            "month": "1998-02",
-            "reason": "pending"
-          },
-          {
-            "month": "1998-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "1998/99",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "1998-10",
-            "reason": "pending"
-          },
-          {
-            "month": "1998-11",
-            "reason": "pending"
-          },
-          {
-            "month": "1998-12",
-            "reason": "pending"
-          },
-          {
-            "month": "1999-01",
-            "reason": "pending"
-          },
-          {
-            "month": "1999-02",
-            "reason": "pending"
-          },
-          {
-            "month": "1999-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "1999/00",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "1999-10",
-            "reason": "pending"
-          },
-          {
-            "month": "1999-11",
-            "reason": "pending"
-          },
-          {
-            "month": "1999-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2000-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2000-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2000-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2000/01",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2000-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2000-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2000-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2001-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2001-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2001-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2001/02",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2001-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2001-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2001-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2002-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2002-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2002-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2002/03",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2002-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2002-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2002-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2003-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2003-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2003-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2003/04",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2003-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2003-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2003-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2004-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2004-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2004-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2004/05",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2004-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2004-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2004-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2005-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2005-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2005-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2005/06",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2005-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2005-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2005-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2006-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2006-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2006-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2006/07",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2006-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2006-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2006-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2007-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2007-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2007-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2007/08",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2007-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2007-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2007-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2008-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2008-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2008-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2008/09",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2008-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2008-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2008-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2009-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2009-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2009-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2009/10",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2009-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2009-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2009-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2010-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2010-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2010-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2010/11",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2010-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2010-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2010-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2011-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2011-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2011-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2011/12",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2011-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2011-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2011-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2012-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2012-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2012-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2012/13",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2012-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2012-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2012-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2013-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2013-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2013-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2013/14",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2013-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2013-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2013-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2014-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2014-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2014-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2014/15",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2014-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2014-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2014-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2015-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2015-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2015-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2015/16",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2015-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2015-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2015-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2016-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2016-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2016-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2016/17",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2016-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2016-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2016-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2017-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2017-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2017-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2017/18",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2017-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2017-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2017-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2018-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2018-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2018-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2018/19",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2018-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2018-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2018-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2019-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2019-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2019-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2019/20",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2019-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2019-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2019-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2020-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2020-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2020-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2020/21",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2020-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2020-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2020-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2021-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2021-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2021-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2021/22",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2021-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2021-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2021-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2022-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2022-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2022-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2022/23",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2022-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2022-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2022-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2023-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2023-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2023-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2023/24",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2023-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2023-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2023-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2024-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2024-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2024-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
-        "season": "2024/25",
-        "months_held": 0,
-        "missing": [
-          {
-            "month": "2024-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2024-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2024-12",
-            "reason": "pending"
-          },
-          {
-            "month": "2025-01",
-            "reason": "pending"
-          },
-          {
-            "month": "2025-02",
-            "reason": "pending"
-          },
-          {
-            "month": "2025-03",
-            "reason": "pending"
-          }
-        ]
-      },
-      {
         "season": "2025/26",
-        "months_held": 0,
+        "months_held": 3,
         "missing": [
-          {
-            "month": "2025-10",
-            "reason": "pending"
-          },
-          {
-            "month": "2025-11",
-            "reason": "pending"
-          },
-          {
-            "month": "2025-12",
-            "reason": "pending"
-          },
           {
             "month": "2026-01",
             "reason": "outside the pulled window 1991-2025"
