@@ -130,6 +130,13 @@ from tools import maturity_map_store as map_store
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 MATURITY_MAP = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 
+#: The filename literal stays at module level for the reason `seat_work_in_hand.CLAIMS_FILE`
+#: records in full: the alarm census attributes a state file by module-level ASSIGNMENT, and a
+#: path built only inside a function drops out of it silently.
+CLAIMS_FILE = (seat_continuation.shared_tree_dir() / "docs" / "observability"
+               / ".delivery_lane_claims.json")
+
+
 def claims_file(project_dir: Path | None = None) -> Path:
     """Claims on delivery-lane items, in the MAIN worktree whatever tree this process stands in.
 
@@ -140,11 +147,10 @@ def claims_file(project_dir: Path | None = None) -> Path:
     against `PROJECT_DIR` made that binding structurally impossible from the worktree it chose.
     `.gitignore` lists this path, so no commit could carry it either.
     """
+    if project_dir is None:
+        return CLAIMS_FILE
     return (seat_continuation.shared_tree_dir(project_dir) / "docs" / "observability"
-            / ".delivery_lane_claims.json")
-
-
-CLAIMS_FILE = claims_file()
+            / CLAIMS_FILE.name)
 
 #: EVERY draw of a Lane 0 id, first and latest, and it OUTLIVES the claim on purpose.
 #:

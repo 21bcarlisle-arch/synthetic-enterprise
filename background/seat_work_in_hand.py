@@ -108,6 +108,15 @@ from background.seat_continuation import shared_tree_dir
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 
+#: THE FILENAME LITERAL STAYS AT MODULE LEVEL AND IS LOAD-BEARING FOR AN INSTRUMENT, so do not
+#: tidy it inside `claims_file` below. `self_clearing_alarm_census._module_state_symbols` reads
+#: module-level ASSIGNMENTS and takes the last string literal in the value; the first draft of the
+#: worktree repair put the whole expression in the function, and `.seat_work_in_hand.json` left
+#: the census altogether -- caught the same hour by `eroded_dispositions`, which exists for exactly
+#: this and was built five days after the erosion it is named for. `claims_file` derives the name
+#: from here so there is still ONE definition of the path.
+CLAIMS_FILE = shared_tree_dir() / "docs" / "observability" / ".seat_work_in_hand.json"
+
 
 def claims_file(project_dir: Path | None = None) -> Path:
     """The claim store, in the MAIN worktree, whichever tree this process is standing in.
@@ -125,11 +134,9 @@ def claims_file(project_dir: Path | None = None) -> Path:
     the repairs that rule already carries. What is NOT moved is the git `cwd` below -- progress is
     measured against the commit the claimant actually made, which lives in ITS tree's HEAD.
     """
-    return (shared_tree_dir(project_dir) / "docs" / "observability"
-            / ".seat_work_in_hand.json")
-
-
-CLAIMS_FILE = claims_file()
+    if project_dir is None:
+        return CLAIMS_FILE
+    return shared_tree_dir(project_dir) / "docs" / "observability" / CLAIMS_FILE.name
 
 #: How long a claim may sit with nothing landing before it goes back to the draw.
 #:
