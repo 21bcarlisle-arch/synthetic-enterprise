@@ -23,8 +23,8 @@
     "run_retained": true,
     "verified_at": "2026-09-05T07:06:32Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=65343b227; blocking tests: FAILED tests/tools/test_generate_dashboard_data.py::test_extract_opex_ledger_uses_final_year_active_resi_population, FAILED tests/tools/test_generate_dashboard_data.py::test_extract_opex_ledger_excludes_ic_and_sme_from_benchmark, FAILED tests/tools/test_generate_dashboard_data.py::test_extract_opex_ledger_per_household_figures_are_cor",
+  "paused_since": "2026-09-05T08:59:45Z",
   "schema": 1,
   "showing_run": {
     "generated_at": "2026-09-05T07:06:32Z",
@@ -38,6 +38,6 @@
     "run_retained": true,
     "verified_at": "2026-09-05T07:06:32Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-05T07:06:32Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-05T09:27:23Z"
 }
