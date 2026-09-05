@@ -120,13 +120,73 @@ unanswerable, and §1 above could not have been written from it.
 That the two runs agree is luck, not method. The rule this earns: **a mutation battery that records
 only a return code has measured that something failed, not what.**
 
-## 5. What is still open
+## 5. WHY the consumer's suite proves nothing — measured, and it is by construction
+
+Added after the three columns above landed, while the supervisor column is still running. This is
+the mechanism, and it was found by reading the suite rather than waiting for it.
+
+`tests/background/test_supervisor.py` imports `direction` for exactly one purpose. There is no test
+of any direction contract in its 200 tests. Line 150, inside the shared fixture that isolates every
+state path a cycle touches:
+
+    monkeypatch.setattr(direction_module, "DIRECTION_PATH", tmp_path / "DIRECTION.yaml")
+
+Nothing ever writes that file — line 150 is the only occurrence of `DIRECTION_PATH` in the suite and
+`DIRECTION.yaml` appears elsewhere only in a comment. So **every test in the suite runs with the
+direction record absent**, and that is deliberate and correct for what those tests describe: without
+it, every "nothing is open" test reads the live record and correctly finds work in it.
+
+Putting the suite's own condition to the module directly:
+
+    DIRECTION_PATH -> a path that does not exist
+    read_direction ->  None
+    current_focus  ->  ()
+    focus_weights([{id: atom-a}, {id: atom-b}], [1.0, 1.0]) -> [1.0, 1.0]   (unchanged)
+    focus_multiplier invocations -> 0
+
+`focus_weights` short-circuits at `if not focus` and **`focus_multiplier` is never called at all**.
+So the mutated line in M1 — the one the module annotates `MUTATION (must fire):` — is not merely
+unproved by the consumer's suite, it is **unreachable from it**. The same short-circuit is upstream
+of every other mutation in the battery.
+
+This is the sharper form of §1, and it is not an accusation of carelessness: the fixture is right,
+and its comment says where it expects the proof to live instead — *"The lane itself is proven both
+ways in test_delivery_lane.py."* §2 measured that suite. It kills one mutation of eight, and
+`test_delivery_seat.py` kills the same one. **The deferral points at the suite with no unique
+coverage.**
+
+The shape, stated generally: *a caller's suite that isolates a dependency — correctly, so its own
+subject is what is under test — can never fail when that dependency's contract breaks. Convergence
+then leaves the contract proved by whichever OTHER caller happened to test it directly, and that
+caller may be one the consumer is forbidden by design to see.*
+
+**PRE-REGISTERED, before the supervisor column finishes** (it is ~100 minutes and in flight; this
+prediction is filed now precisely so it cannot be written after the answer):
+
+> All eight mutations SURVIVE `tests/background/test_supervisor.py`, and the killed-by sets in the
+> table above are already final. Not because the suite is weak, but because the short-circuit above
+> makes every mutated line unreachable under its fixture. If any mutation dies there, this section
+> is wrong and the reachability argument with it.
+
+If that holds, the standing prediction — *at least 1 of the 8 survives all four suites* — is
+CONFIRMED at this subject by M2 and M7, and the LATENT general statement from `38871422b`
+generalises to a second converged module.
+
+## 6. What is still open
 
 * The `test_supervisor.py` column, all eight mutations, in flight in an isolated worktree
   (`/var/tmp/se-battery-supervisor`, results to `/var/tmp/direction_battery_sup.json`) so that an
   in-flight mutation cannot dirty the shared tree and refuse a landing.
 * **The standing prediction — "at least 1 of the 8 survives all four suites" — is UNGRADED.** M2 and
   M7 are the only candidates and both need the fourth column. Neither is called a survivor here.
-* No repair is proposed yet. §1 names a reachable gap rather than an equivalence — `focus_weights`
-  is live on every draw — but the repair belongs on the shared module where the contract lives, and
-  choosing it before the fourth column lands would be choosing it without the evidence.
+* **The survivors are a reachable gap, not an equivalence, and §5 is what makes that certain.** The
+  unreachability is in the *fixture*, not in the code: `focus_weights` is called on every real draw
+  (`supervisor.py` lines 1396, 1809, 1902, 2029) against the live `docs/direction/DIRECTION.yaml`,
+  so every mutated line is reachable in production and unreachable only under test. That is the
+  opposite of dead code, and it is why the repair is a test rather than a deletion.
+* **The repair `direction.py` has no suite of its own.** Every contract it states in prose is proved
+  — where it is proved at all — by a suite belonging to some other module, which is exactly the
+  condition that makes a contract's proof an accident of refactoring order. The structural fix is a
+  suite beside the module, keyed to the properties rather than to today's callers, and it is one
+  file rather than three routing tests. Not started; it is the next increment and it needs the
+  fourth column first so it is written against a measured gap and not a predicted one.
