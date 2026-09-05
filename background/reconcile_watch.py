@@ -34,6 +34,13 @@ from background import gap_ledger_reconciler as _gap  # noqa: E402
 from background import process_reconciler as _proc  # noqa: E402
 from background import schedule_reconciler as _sched  # noqa: E402
 from background import seat_work_in_hand as _seat  # noqa: E402
+from background.episode_prior import (  # noqa: E402
+    ABSENT,
+    load_episode_prior,
+    preserve_unreadable,
+    prior_unreadable,
+    screen_list_value,
+)
 
 # How many gap-drift lines the human summary spells out before counting the rest. The SIGNATURE
 # always carries every item (so no transition can hide behind the cap) and the overflow is stated,
@@ -80,16 +87,61 @@ def build_report(proc_results: list[dict], sched_results: list[dict],
     return sig, summary
 
 
-def _load_last() -> list[str]:
-    """Last-seen drift signature. Missing/unreadable => [] (clean baseline), so a FIRST clean run
-    is NOT a false transition (it matches the clean baseline) while a first run that is already in
-    drift correctly pages (drift != the clean baseline)."""
-    try:
-        data = json.loads(STATE_FILE.read_text())
-        drift = data.get("drift") if isinstance(data, dict) else None
-        return drift if isinstance(drift, list) else []
-    except (OSError, ValueError):
+#: Said on the surface, not in a footnote. A page whose transition claim cannot be made must say so
+#: in the page, or the director reads a bare all-clear as "it cleared" when what happened is "it is
+#: clean now and we cannot tell you what it was".
+_PRIOR_UNREADABLE_NOTE = (
+    "[RECONCILE] THE LAST-SEEN DRIFT SIGNATURE WAS PRESENT AND UNREADABLE. This page states the "
+    "CURRENT reconcile and makes no claim about whether it is a change. Paged rather than "
+    "swallowed: read as a clean baseline, a lost memory beside a clean reconcile compares EQUAL, "
+    "and the recovery page is the one that never goes out."
+)
+
+
+def _unreadable(reason: str) -> None:
+    """Log the loss, keep the bytes, and answer None. The preserve is not optional housekeeping:
+    `run()` calls `_save` on the page this loss forces, so the recovery is what destroys the
+    evidence of what was lost."""
+    kept = preserve_unreadable(STATE_FILE) or "(could not be preserved)"
+    _log(f"last-seen drift signature UNREADABLE ({reason}); bytes kept at {kept}")
+    return None
+
+
+def _load_last() -> list[str] | None:
+    """The last-seen drift signature, or `None` for PRESENT-AND-UNREADABLE, which is not one.
+
+    THE TWO DIRECTIONS DIFFER, and until 2026-09-05 both answered `[]`.
+
+    ABSENT -> `[]`, the clean baseline, unchanged. The original argument for it is sound and still
+    holds: a FIRST clean run must not page, and `[]` is what makes it compare equal rather than
+    read as a transition; a first run already in drift still pages, because drift != clean.
+
+    UNREADABLE -> `None`. `[]` is a CLAIM -- "we were clean" -- and a corrupt file is not evidence
+    for it. What that bought, concretely: with a corrupt state file and a currently-clean
+    reconcile, `sig != last` was False, so the RECOVERY page was never sent. The director keeps
+    holding the last alarm he received and nothing anywhere records that the all-clear was
+    swallowed. `cleared = not sig and last` was False for the same reason, so even the tag would
+    have been wrong. This is the ONLY quiet member of the partition -- every other unreadable shape
+    here fails loud, to a duplicate drift page you can see and dismiss -- and a watcher whose whole
+    purpose is that drift is LOUD must not let its own lost memory silence the all-clear.
+
+    IT CANNOT STORM, which is what makes paging affordable: `run()` calls `_save(sig)` on every
+    page, so a well-formed file replaces the corrupt one in the same pass. One page per corruption,
+    not one every five minutes.
+
+    A mapping that came off disk does NOT make its `drift` field a signature. A missing key,
+    `"abc"` or `[1, 2]` are unreadable records, not clean ones -- and `"abc"` is the shape that
+    answers `len()` with 3 and reads as three alarms downstream.
+    """
+    state, verdict = load_episode_prior(STATE_FILE)
+    if prior_unreadable(verdict):
+        return _unreadable("the file could not be read or did not parse to a mapping")
+    if verdict == ABSENT:
         return []
+    drift = screen_list_value(state.get("drift"))
+    if drift is None:
+        return _unreadable("it parsed, but its `drift` field is not a list of signature strings")
+    return drift
 
 
 def _save(sig: list[str]) -> None:
@@ -214,10 +266,16 @@ def run(proc_results: list[dict] | None = None,
 
     sig, summary = build_report(proc_results, sched_results, gap_results)
     last = _load_last()
-    changed = sig != last
+    # UNREADABLE IS NOT `[]`. See `_load_last` for the direction and why it is this one: a lost
+    # memory compared against a clean reconcile is EQUAL, and the page it silences is the recovery.
+    unreadable = last is None
+    changed = unreadable or sig != last
+    if unreadable:
+        summary = f"{_PRIOR_UNREADABLE_NOTE}\n{summary}"
 
-    _log(f"reconcile {'DRIFT' if sig else 'clean'} ({len(sig)} alarm(s)); "
-         f"{'transition -> paging' if changed else 'unchanged -> log only'}")
+    disposition = ("prior UNREADABLE -> paging the current state, transition unknown" if unreadable
+                   else "transition -> paging" if changed else "unchanged -> log only")
+    _log(f"reconcile {'DRIFT' if sig else 'clean'} ({len(sig)} alarm(s)); {disposition}")
 
     if changed:
         if notify is None:
@@ -228,7 +286,10 @@ def run(proc_results: list[dict] | None = None,
             # own name is the classification: manifest DIVERGENCE is the first category he listed
             # for batching.
             from background.notify import notify as notify
-        cleared = not sig and last
+        # An unreadable prior beside a clean reconcile IS the all-clear the old code swallowed, so
+        # it carries the recovery tag -- with the note above saying we cannot prove it was a
+        # change. Tagging it `rotating_light` would page an alarm for a state with no drift in it.
+        cleared = not sig and (unreadable or bool(last))
         notify(summary, headers={
             "X-Tags": "white_check_mark" if cleared else "rotating_light",
             "X-Priority": "default" if cleared else "high",
