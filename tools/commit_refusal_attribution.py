@@ -50,35 +50,6 @@ RIGHT-CENSORING IS REPORTED, NEVER AVERAGED IN. A run still open at the end of t
 terminating landing, so its outage is a LOWER BOUND. That is also the run most likely to be the
 longest -- an ongoing wedge is the one nobody has cleared -- so folding it into a median or a max
 would bias the headline toward comfort. It is carried separately and excluded from both.
-
-THE SUBJECT IS THE DAEMON'S WORKING COPY, AND THIS MODULE REFUSES RATHER THAN ASSUME IT.
-`docs/observability/sim-runner-log.md` is tracked, but the committed copy was truncated to
-2026-07-17 on 2026-08-31 and every line this measurement reads has been written since. So a clean
-checkout, an isolated worktree, CI, or a `git archive HEAD` extract all hold a file with ZERO
-refusals in it -- and the first two findings built on this module both published
-"re-derive: python3 -m tools.commit_refusal_attribution" as their reproduction instruction. Run
-that anywhere but the shared tree and the original module answered `0 refusals, 0.0h outage,
-share 0.0%`: a confident, fully-formatted report of the publisher never having failed. An absent
-subject read as a clean result is the fail-open direction, so `main` now REFUSES when the log
-carries no named outcome and names which copy it read and why it is empty.
-
-WHAT THE ORDER OF THE GATES PROVES, AND WHAT IT DOES NOT. `core.hooksPath` is `tools/git-hooks`,
-and every gate there is invoked `python3 ... || exit 1` -- serial, fixed order, stopping at the
-first refusal. Therefore a named cause proves every EARLIER gate PASSED on that cycle and says
-nothing at all about the later ones. Two consequences, and both are proofs rather than inferences:
-
-  * `by_gate` is a distribution of FIRST FAILING gate, not of failing gate. Each count is a lower
-    bound, and the bias is monotone in hook position -- the last gate is only ever visible when
-    all fourteen before it pass.
-  * A cause recurring inside one episode is decidable. If any cause named BETWEEN its two
-    occurrences sits LATER in the order, the recurring gate was reached and cleared in between, so
-    it genuinely re-broke (PROVEN FLAP). If every intervening cause sits EARLIER, the gate may have
-    stood broken and invisible the whole time (MASKABLE -- no evidence either way). Unknown
-    positions are UNDECIDABLE and are never folded onto either side.
-
-The order is DERIVED from the hook files, joined to the publisher's own banner table by the emitter
-path that table already carries. A hand-written order list would drift from the hook silently,
-which is the same defect as a private banner vocabulary one level up.
 """
 
 from __future__ import annotations
@@ -93,9 +64,6 @@ from pathlib import Path
 from background.process_run_complete import _REFUSING_GATE_BANNERS, _parse_refusing_gate
 
 DEFAULT_LOG = Path("docs/observability/sim-runner-log.md")
-#: The live gate runner, in run order. `core.hooksPath` points at this directory; `commit-msg`
-#: runs after `pre-commit`, so concatenating them in this order IS the execution order.
-HOOK_FILES = ("tools/git-hooks/pre-commit", "tools/git-hooks/commit-msg")
 
 #: A timestamped runner-log line. Untimestamped lines are hook output belonging to the line above.
 _TIMESTAMPED = re.compile(r"^- \[(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}) UTC\]")
@@ -127,144 +95,9 @@ LANDED = "landed"
 MIXED = "MIXED (more than one cause in one episode)"
 
 
-#: How a recurrence inside one episode is decided. The three are exhaustive over a recurrence and
-#: no refusal is ever moved between them to make a cleaner story.
-PROVEN_FLAP = "PROVEN FLAP (reached and cleared in between, so it re-broke)"
-MASKABLE = "MASKABLE (may have stood broken behind an earlier gate)"
-UNDECIDABLE = "UNDECIDABLE (a position involved is unknown)"
-#: How one step between two consecutive DISTINCT causes is decided.
-QUEUE_STEP = "QUEUE STEP (a later gate revealed)"
-NEW_BREAKAGE = "PROVEN NEW BREAKAGE (an earlier gate that was passing broke)"
-
-#: pytest's short-summary node ids, used ONLY to tell one red test from another inside a RED TEST
-#: recurrence. Anchored exactly like `_RED_TEST` and for the same reason.
-_RED_NODE = re.compile(r"^(?:FAILED|ERROR) (\S+)", re.M)
-#: How the test gate reaches its pytest run. The RED TEST bucket's position within its emitter is
-#: this line, because everything the emitter prints above it refuses BEFORE the suite is reached.
-_PYTEST_CALL = '"-m", "pytest"'
-
-
 def _parse_ts(stamp):
     """`'2026-08-13 22:23'` -> aware datetime. The log's resolution is the minute."""
     return datetime.strptime(stamp, "%Y-%m-%d %H:%M").replace(tzinfo=timezone.utc)
-
-
-def _emitter_tokens(emitter):
-    """`'tools/x.py'` -> the two spellings a hook can invoke it by: path and `-m` module."""
-    stem = emitter[:-3] if emitter.endswith(".py") else emitter
-    return (emitter, stem.replace("/", "."))
-
-
-def gate_order(root=None):
-    """Map each cause name to its position `(hook_index, line_within_emitter)`.
-
-    DERIVED, never typed. `hook_index` is the position of the emitter's invocation across
-    `HOOK_FILES` in run order; the second element orders two causes that share one emitter by
-    where each prints, since the earlier print refuses before the later code is reached.
-
-    Fail-closed in three places, because a wrong position turns an UNDECIDABLE into a confident
-    verdict and this measurement exists to stop exactly that: an emitter the hooks never invoke is
-    ABSENT from the result (its position is unknown, not last); a banner whose text is not found in
-    its emitter's source gets `None` for the second element, which makes it incomparable with its
-    own siblings rather than tied to them; and a missing hook file yields `{}`, so every comparison
-    downstream is UNDECIDABLE rather than silently defaulting to file order.
-    """
-    root = Path(root) if root is not None else Path(".")
-    invocations = []
-    for hook in HOOK_FILES:
-        path = root / hook
-        if not path.exists():
-            return {}
-        for line in path.read_text(encoding="utf-8", errors="replace").split("\n"):
-            stripped = line.strip()
-            if stripped.startswith("#") or "python3" not in stripped:
-                continue
-            invocations.append(stripped)
-
-    def index_of(emitter):
-        tokens = _emitter_tokens(emitter)
-        for i, line in enumerate(invocations):
-            if any(t in line for t in tokens):
-                return i
-        return None
-
-    def line_of(emitter, needles):
-        path = root / emitter
-        if not path.exists():
-            return None
-        src = path.read_text(encoding="utf-8", errors="replace").split("\n")
-        hits = [i for i, line in enumerate(src) if any(n in line for n in needles)]
-        return min(hits) if hits else None
-
-    order = {}
-    for name, needles, emitter in _REFUSING_GATE_BANNERS:
-        idx = index_of(emitter)
-        if idx is None:
-            continue
-        sub = line_of(emitter, needles)
-        # Two banners can share one NAME (the half-hourly ratchet has two). Keep the earliest,
-        # since that is the one that would refuse first.
-        if name not in order or (idx, sub or 0) < (order[name][0], order[name][1] or 0):
-            order[name] = (idx, sub)
-
-    # RED TEST is not a banner: it is the test gate reaching its suite, which happens after every
-    # line that gate prints. Positioned by the pytest invocation itself, so it moves if the gate is
-    # ever reordered.
-    red_emitter = "tools/pre_commit_test_gate.py"
-    red_idx = index_of(red_emitter)
-    if red_idx is not None:
-        order[RED_TEST] = (red_idx, line_of(red_emitter, (_PYTEST_CALL,)))
-    return order
-
-
-def _compare(a, b):
-    """-1/0/1 if the positions are comparable, else None. `None` is a REFUSAL to rank."""
-    if a[0] != b[0]:
-        return -1 if a[0] < b[0] else 1
-    if a[1] is None or b[1] is None:
-        return None
-    return -1 if a[1] < b[1] else (0 if a[1] == b[1] else 1)
-
-
-def recurrence_pairs(sequence):
-    """Every CONSECUTIVE re-occurrence of a cause with something else in between.
-
-    Consecutive occurrences only: pairing every occurrence with every later one would count one
-    gate that fired six times as fifteen recurrences and make the flap share a function of episode
-    length rather than of flapping.
-    """
-    where = collections.defaultdict(list)
-    for i, cause in enumerate(sequence):
-        where[cause].append(i)
-    out = []
-    for cause, positions in where.items():
-        for i, j in zip(positions, positions[1:]):
-            between = sequence[i + 1:j]
-            if between:
-                out.append({"cause": cause, "at": i, "again_at": j, "between": between})
-    return out
-
-
-def classify_recurrence(cause, between, order):
-    """Decide one recurrence. PROVEN FLAP beats UNDECIDABLE: one proven later gate is enough."""
-    if cause not in order:
-        return UNDECIDABLE
-    verdicts = [_compare(order[m], order[cause]) if m in order else None for m in set(between)]
-    if any(v == 1 for v in verdicts):
-        return PROVEN_FLAP
-    if any(v is None for v in verdicts):
-        return UNDECIDABLE
-    return MASKABLE
-
-
-def classify_transition(before, after, order):
-    """Decide one step between two consecutive distinct causes."""
-    if before not in order or after not in order:
-        return UNDECIDABLE
-    c = _compare(order[after], order[before])
-    if c is None or c == 0:
-        return UNDECIDABLE
-    return QUEUE_STEP if c > 0 else NEW_BREAKAGE
 
 
 def _hook_blocks(lines):
@@ -281,33 +114,16 @@ def _hook_blocks(lines):
     return blocks
 
 
-def _block_body_at(lines, blocks, i):
-    """The hook output belonging to the verdict at `lines[i]`, or None if it was not retained."""
+def _cause_at(lines, blocks, i):
+    """Which gate refused the `commit_refused` line at `lines[i]`. Fail-closed on ignorance."""
     # The hook block sits immediately above its verdict; anything further away belongs to a
     # different cycle and is not evidence about this one.
     near = [b for b in blocks if b[1] <= i and i - b[1] <= 3]
     if not near:
-        return None
-    b = max(near, key=lambda x: x[1])
-    return "\n".join(lines[b[0]:b[1]])
-
-
-def _cause_at(lines, blocks, i):
-    """Which gate refused the `commit_refused` line at `lines[i]`. Fail-closed on ignorance."""
-    body = _block_body_at(lines, blocks, i)
-    if body is None:
         return NO_BLOCK
+    b = max(near, key=lambda x: x[1])
+    body = "\n".join(lines[b[0]:b[1]])
     return _parse_refusing_gate(body) or (RED_TEST if _RED_TEST.search(body) else UNNAMED)
-
-
-def _red_node_ids(body):
-    """The failing node ids in one hook block. Empty when the block did not retain them.
-
-    Used ONLY to split a proven RED TEST flap into one test re-breaking versus two different tests
-    breaking in turn. `RED TEST` is a bucket and not a gate identity, so without this the two read
-    identically and they mean different things.
-    """
-    return frozenset(_RED_NODE.findall(body or ""))
 
 
 def attribute(text):
@@ -400,14 +216,13 @@ def cycles(text):
             continue
         stamp = "{} {}".format(m.group(1), m.group(2))
         if ATTEMPT_NEEDLE in line:
-            out.append({"at": stamp, "outcome": LANDED, "cause": None, "red_tests": frozenset()})
+            out.append({"at": stamp, "outcome": LANDED, "cause": None})
             continue
         named = _NAMED_OUTCOME.search(line)
         if named and out:
             out[-1]["outcome"] = named.group(1)
             if REFUSAL_NEEDLE in line:
                 out[-1]["cause"] = _cause_at(lines, blocks, i)
-                out[-1]["red_tests"] = _red_node_ids(_block_body_at(lines, blocks, i))
     return [c for c in out if opens and c["at"] >= opens]
 
 
@@ -458,9 +273,6 @@ def _close(cur, seq):
         # once, the next then fires) from gates FLAPPING (one cause recurring after another has
         # intervened). A set cannot tell those apart and they call for opposite responses.
         "cause_sequence": [c["cause"] for c in refused],
-        # Parallel to `cause_sequence`: which tests were named red at each refusal, so a RED TEST
-        # recurrence can be split into the same test re-breaking and a different one breaking.
-        "red_sequence": [c.get("red_tests") or frozenset() for c in refused],
         # An episode with two causes is not attributed to either. Same discipline as the
         # unattributable bucket: never assign to the side that makes the split cleaner.
         "cause": causes[0] if len(causes) == 1 else MIXED,
@@ -495,51 +307,182 @@ def episode_report(text):
     }
 
 
-def recurrence_report(text, root=None):
-    """Queueing, flapping, or masking: classify every recurrence and every step, by gate order.
+#: The hook that IS the firing order. Ranks are derived from it at call time, never hardcoded
+#: here -- a rank table written by hand is a paraphrase, and the defect this whole module exists
+#: to avoid is a paraphrase of the gates drifting from the gates.
+HOOK = Path("tools/git-hooks/pre-commit")
+#: The commit-msg gate runs only after ALL of pre-commit passed, so it is last by construction and
+#: is not findable in the pre-commit file. Its rank is "after everything", not a guess.
+_AFTER_PRE_COMMIT = 10 ** 6
 
-    Runs over the COST episodes (broken only by a landing), because that is the unit the outage
-    sits in. Episodes with a single cause contribute nothing and are not counted as evidence for
-    either side.
+
+def _hook_order(hook_text):
+    """Emitter module -> its position in the serial chain, read from the hook's own invocations.
+
+    Matches both spellings the hook uses (`python3 tools/x.py` and `python3 -m tools.x`), because
+    a matcher that knew only one would silently rank half the chain as absent -- and absent, in
+    the ordering analysis below, reads as "no evidence" rather than as a broken instrument.
     """
-    order = gate_order(root)
-    episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if e["cycles"] > 1]
+    order = {}
+    for i, line in enumerate(hook_text.split("\n")):
+        m = re.search(r"python3\s+(?:-m\s+([\w.]+)|(\S+\.py))", line)
+        if not m:
+            continue
+        mod = m.group(2) or (m.group(1).replace(".", "/") + ".py")
+        order.setdefault(mod, i)
+    return order
 
-    recurrences, transitions, per_episode = [], [], []
+
+#: Shortest prefix of a needle still specific enough to locate. Below this a match is a
+#: coincidence rather than a position, and a coincidental position is worse than none.
+_MIN_NEEDLE = 24
+
+
+def _needle_pos(body, needle):
+    """Where `needle` is printed in `body`, or None when that cannot be established.
+
+    NOT a bare `.find()`, and the difference is load-bearing. Gate banners are written in the
+    source as ADJACENT STRING LITERALS split across lines, so the runtime needle
+    (`"...HAS NO PARSEABLE SEVERITY HEADER"`) never occurs contiguously in the file that prints
+    it. A `.find()` returns -1 there, and the obvious fallback -- treat -1 as 0 -- ranks that gate
+    FIRST inside its emitter, which is the strongest position there is. That inverts the one
+    comparison this module makes: it would report a backward step, i.e. an ESTABLISHED
+    re-arrival, from a gate whose position was never found. So the fallback is None and the cause
+    leaves the analysis entirely.
+    """
+    # The floor bounds SHRINKING, never the needle itself: `"[level-gate] ❌"` is 14 characters
+    # and entirely specific, and an earlier draft of this floor silently dropped it -- along with
+    # site-lane and scope-evidence, three of the commonest causes in the log -- leaving an
+    # analysis that looked clean because its biggest gates had left it.
+    at = body.find(needle)
+    if at >= 0:
+        return at
+    probe = needle[:-1]
+    while len(probe) >= _MIN_NEEDLE:
+        at = body.find(probe)
+        if at >= 0:
+            return at
+        probe = probe[:-1]
+    return None
+
+
+def gate_ranks(hook_text=None, emitter_texts=None):
+    """`cause name -> (chain rank, rank within its emitter)`, derived from the enforcement.
+
+    WHY A PAIR AND NOT AN INTEGER. Several causes share one emitter: `finding-class`,
+    `finding-severity` and `RED TEST` are all printed by `pre_commit_test_gate.py`, which the hook
+    invokes ONCE. Ranking them equal would throw away the fact that its `main()` runs the
+    consolidation check second and pytest LAST -- and that fact is what makes the largest episode
+    in the log analysable at all. The secondary rank is the byte offset of the cause's own needle
+    inside the file that prints it, so it is read from the emitter rather than asserted here.
+
+    A cause with no rank (unattributable, or a gate the hook no longer invokes) is ABSENT from the
+    result rather than sorted to an end. Callers must skip it; ranking ignorance would invent
+    ordering evidence, which is the one error this analysis cannot survive.
+    """
+    hook_text = HOOK.read_text(encoding="utf-8") if hook_text is None else hook_text
+    order = _hook_order(hook_text)
+    texts = {} if emitter_texts is None else dict(emitter_texts)
+
+    def body(path):
+        if path not in texts:
+            p = Path(path)
+            texts[path] = p.read_text(encoding="utf-8") if p.exists() else ""
+        return texts[path]
+
+    ranks = {}
+    for name, needles, emitter in _REFUSING_GATE_BANNERS:
+        if emitter not in order:
+            continue
+        inner = _needle_pos(body(emitter), needles[0])
+        if inner is None:
+            continue
+        cand = (order[emitter], inner)
+        # A gate with two rows (half-hourly) keeps its EARLIEST needle: the gate refuses at the
+        # first of them, and the later row is a second message from the same chain position.
+        if name not in ranks or cand < ranks[name]:
+            ranks[name] = cand
+    # The write-time gate lives in commit-msg, which runs after the whole pre-commit chain.
+    for name, _, emitter in _REFUSING_GATE_BANNERS:
+        if emitter not in order and "write_time_gate" in emitter:
+            ranks[name] = (_AFTER_PRE_COMMIT, 0)
+    tg = "tools/pre_commit_test_gate.py"
+    if tg in order:
+        # pytest is invoked, not printed, so RED TEST's needle is the subprocess call itself.
+        m = re.search(r'"-m",\s*"pytest"', body(tg))
+        ranks[RED_TEST] = (order[tg], m.start() if m else len(body(tg)))
+    return ranks
+
+
+def ordering_report(text, ranks=None):
+    """Which episodes carry a gate that went PASSING -> REFUSING, and which merely look like it.
+
+    THE ONLY INFERENCE THE LOG LICENSES. The chain is serial and stops at the first refusal, so a
+    cycle naming a gate at rank r is a positive observation that every gate below r PASSED in that
+    cycle. A later cycle naming a rank BELOW the highest already reached is therefore a gate that
+    passed and then refused -- an established re-arrival, immune to the firing order.
+
+    AND THE ONE IT DOES NOT. A forward step is what a genuine queue AND a set of gates that were
+    all red from the start both produce, because a later gate's state is unobservable while an
+    earlier one refuses. So `queueing` is NOT falsifiable here and is never reported as found:
+    the complement bucket is ORDER-CONSISTENT, which is a statement about what we cannot tell
+    apart, not a finding that the gates queued.
+    """
+    ranks = gate_ranks() if ranks is None else ranks
+    episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if not e["censored"]]
+    out = []
     for e in episodes:
-        seq, reds = e["cause_sequence"], e["red_sequence"]
-        mine = []
-        for pair in recurrence_pairs(seq):
-            verdict = classify_recurrence(pair["cause"], pair["between"], order)
-            same = None
-            if pair["cause"] == RED_TEST:
-                a, b = reds[pair["at"]], reds[pair["again_at"]]
-                same = bool(a & b) if (a and b) else None
-            mine.append({**pair, "verdict": verdict, "same_test": same, "from": e["from"]})
-        recurrences.extend(mine)
+        seq = [(c, ranks[c]) for c in e["cause_sequence"] if c in ranks]
+        steps, seen, peak = [], [], None
+        for cause, rk in seq:
+            if peak is not None and rk < peak:
+                steps.append({"cause": cause, "below": peak})
+            peak = rk if peak is None else max(peak, rk)
+            seen.append(cause)
+        # A RECURRENCE is the predecessor's post-hoc test: a cause reappearing after a different
+        # one intervened. Kept so the two classifications can be compared row by row rather than
+        # only in aggregate -- the disagreement is the finding.
+        recurs = any(any(x != c for x in seen[seen.index(c):len(seen) - seen[::-1].index(c)])
+                     for c in set(seen))
+        out.append({**e, "ranked_causes": len(seq), "backward_steps": steps,
+                    "established": bool(steps), "recurrence": recurs})
+    return out
 
-        collapsed = [c for i, c in enumerate(seq) if i == 0 or c != seq[i - 1]]
-        steps = [{"from_cause": a, "to_cause": b, "verdict": classify_transition(a, b, order),
-                  "from": e["from"]} for a, b in zip(collapsed, collapsed[1:])]
-        transitions.extend(steps)
-        per_episode.append({"from": e["from"], "outage_s": e["outage_s"],
-                            "censored": e["censored"], "cycles": e["cycles"],
-                            "verdicts": {r["verdict"] for r in mine},
-                            "steps": {s["verdict"] for s in steps}})
 
-    return {
-        "order": order,
-        "episodes": per_episode,
-        "recurrences": recurrences,
-        "transitions": transitions,
-        "recurrence_counts": collections.Counter(r["verdict"] for r in recurrences),
-        "transition_counts": collections.Counter(t["verdict"] for t in transitions),
-        "episodes_with_a_proven_flap": sum(
-            1 for e in per_episode if PROVEN_FLAP in e["verdicts"]),
-        "episodes_with_proven_new_breakage": sum(
-            1 for e in per_episode if NEW_BREAKAGE in e["steps"]),
-        "multi_cycle_episodes": len(per_episode),
-    }
+def masking_exposure(text, ranks=None):
+    """Per gate: how often it was NAMED, PROVEN to have passed, and simply UNKNOWABLE.
+
+    THE COST OF THE SAME EARLY EXIT THAT MAKES `ordering_report` WORK. A cycle naming rank r
+    proves every gate below r passed and says nothing about the gates above it, so `by_gate` is a
+    distribution of FIRST failing gate. Each count there is a LOWER bound, and the bias is monotone
+    in chain position: the last gate is only ever visible when every gate before it passes.
+
+    Without this table the natural reading of a gate with zero refusals is "it never blocked a
+    publish". For the deepest gates that is not an observation about the gate at all -- their state
+    is unknown on every refused cycle in the window, and "never named" and "never broken" are
+    indistinguishable. Reported per gate rather than as one bias figure, because the exposure is
+    wildly uneven across the chain and a single number would hide exactly that.
+
+    A cause with no rank is skipped, not sorted to an end -- same rule as `gate_ranks`.
+    """
+    ranks = gate_ranks() if ranks is None else ranks
+    seq = [c["cause"] for c in cycles(text) if c["outcome"] == "commit_refused"]
+    out = {}
+    for gate, rank in ranks.items():
+        named = passing = unknown = 0
+        for cause in seq:
+            if cause == gate:
+                named += 1
+            elif cause in ranks and ranks[cause] > rank:
+                # A DEEPER gate was reached, which is a positive observation that this one passed.
+                passing += 1
+            else:
+                # Either a shallower gate refused first (this one was never reached) or the cause
+                # has no rank. Both are ignorance, and neither is folded onto the passing side.
+                unknown += 1
+        out[gate] = {"rank": rank, "named": named,
+                     "proven_passing": passing, "unknown": unknown}
+    return out
 
 
 def _hours(seconds):
@@ -558,14 +501,17 @@ def main(argv=None):
     if not path.exists():
         print("REFUSED: no log at {} -- nothing was measured.".format(path))
         return 2
-    text = path.read_text(encoding="utf-8", errors="replace")
-    r = attribute(text)
+    r = attribute(path.read_text(encoding="utf-8", errors="replace"))
 
     # FAIL CLOSED ON AN ABSENT SUBJECT. Every line this measures was written to the daemon's
-    # WORKING COPY after the committed one was truncated on 2026-08-31, so a clean checkout, an
-    # isolated worktree or a `git archive HEAD` extract holds a file with no named outcome in it.
-    # Reporting 0 refusals and 0.0h of outage from one is a confident claim that the publisher
-    # never failed, which is the comfortable direction and the wrong one.
+    # WORKING copy: the log is tracked, but its committed copy was truncated to 2026-07-17 on
+    # 2026-08-31. So a clean checkout, an isolated worktree, CI or a `git archive HEAD` extract
+    # holds a file with no named outcome in it -- and three findings now publish
+    # `python3 -m tools.commit_refusal_attribution` as their re-derivation instruction. Run from
+    # one of those, this printed `0 refusals, share 0.0%, total bounded outage 0.0h`: a complete,
+    # confidently formatted report that the publisher had never once failed. An absent subject
+    # read as a clean result is the comfortable direction and the wrong one, so it refuses and
+    # names which copy it read.
     if r["observable_from"] is None:
         print("REFUSED: {} contains no named commit outcome, so nothing here is measurable.\n"
               "  read {} attempt line(s), {} of them refused\n"
@@ -576,9 +522,9 @@ def main(argv=None):
               .format(path, r["attempts_lifetime"], r["refusals"]))
         return 2
 
-    print("subject: {} ({} bytes), observable window opens {}".format(
-        path, path.stat().st_size, r["observable_from"]))
+    print("subject: {} ({} bytes)".format(path, path.stat().st_size))
     print("commit_refused cycles: {}".format(r["refusals"]))
+    print("observable window opens: {}".format(r["observable_from"]))
     print("attempts (lifetime):   {}  -> share {}  [BLIND over its first span; NOT a rate]".format(
         r["attempts_lifetime"], _pct(r["refusals"], r["attempts_lifetime"])))
     print("attempts (observable): {}  -> share {}  <- the rate".format(
@@ -624,33 +570,53 @@ def main(argv=None):
     print("\nmixed-cause episodes: {} of {} multi-cycle ({})".format(
         ep["mixed"], ep["multi_cycle"], _pct(ep["mixed"], ep["multi_cycle"])))
 
-    rec = recurrence_report(text)
-    print("\n=== QUEUEING, FLAPPING, OR MASKED: what the fixed gate order proves ===")
-    if not rec["order"]:
-        print("  REFUSED: gate order unavailable (hook files not found from cwd) -- every")
-        print("  classification below would be UNDECIDABLE, so none is offered.")
-        return 0
-    print("gate order, derived from {}:".format(" then ".join(HOOK_FILES)))
-    for name, pos in sorted(rec["order"].items(), key=lambda kv: (kv[1][0], kv[1][1] or -1)):
-        print("  {:2d}.{:<5} {}".format(pos[0], pos[1] if pos[1] is not None else "  ?", name))
-    print("\nrecurrences of one cause inside one episode ({} total):".format(
-        sum(rec["recurrence_counts"].values())))
-    for verdict, n in rec["recurrence_counts"].most_common():
-        print("  {:4d}  {:>6}  {}".format(
-            n, _pct(n, sum(rec["recurrence_counts"].values())), verdict))
-    same = [r for r in rec["recurrences"] if r["cause"] == RED_TEST and r["same_test"] is not None]
-    if same:
-        print("  of the RED TEST recurrences whose node ids were retained: {} SAME test, "
-              "{} DIFFERENT test(s)".format(sum(1 for r in same if r["same_test"]),
-                                            sum(1 for r in same if not r["same_test"])))
-    print("\nsteps between consecutive distinct causes ({} total):".format(
-        sum(rec["transition_counts"].values())))
-    for verdict, n in rec["transition_counts"].most_common():
-        print("  {:4d}  {:>6}  {}".format(
-            n, _pct(n, sum(rec["transition_counts"].values())), verdict))
-    print("\nmulti-cycle episodes: {} | containing a PROVEN FLAP: {} | containing PROVEN NEW "
-          "BREAKAGE: {}".format(rec["multi_cycle_episodes"], rec["episodes_with_a_proven_flap"],
-                                rec["episodes_with_proven_new_breakage"]))
+    ordered = [e for e in ordering_report(
+        Path(args.log).read_text(encoding="utf-8", errors="replace")) if e["cause"] == MIXED]
+    mixed_outage = sum(e["outage_s"] for e in ordered)
+    est = [e for e in ordered if e["established"]]
+    oc = [e for e in ordered if not e["established"]]
+    print("\n=== ORDERING: did a gate RE-BREAK, or is the firing order faking it? ===")
+    print("the chain is serial and stops at the first refusal, so a cycle naming rank r is a")
+    print("positive observation that every gate below r PASSED. A later cycle naming a LOWER")
+    print("rank is a gate that passed and then refused. A FORWARD step establishes nothing --")
+    print("a queue and a set of gates red from the start are indistinguishable here.")
+    print("\nESTABLISHED re-arrival: {} of {} mixed episodes, {} of mixed outage ({})".format(
+        len(est), len(ordered), _hours(sum(e["outage_s"] for e in est)),
+        _pct(sum(e["outage_s"] for e in est), mixed_outage)))
+    print("ORDER-CONSISTENT (cannot tell from simultaneous redness): {}, {} ({})".format(
+        len(oc), _hours(sum(e["outage_s"] for e in oc)),
+        _pct(sum(e["outage_s"] for e in oc), mixed_outage)))
+    concealed = [e for e in est if not e["recurrence"]]
+    print("\nof which the contiguous-block test MISSES {}: a cause appearing once, at a rank "
+          "below\none already reached, is a re-arrival that no recurrence test can see.".format(
+              len(concealed)))
+    for e in sorted(ordered, key=lambda x: -x["outage_s"])[:5]:
+        print("  {:>6}  {:3d}cyc  {:<18}  {}".format(
+            _hours(e["outage_s"]), e["cycles"],
+            "ESTABLISHED" if e["established"] else "order-consistent",
+            " -> ".join(c.split(" (")[0] for c in e["cause_sequence"][:6])))
+
+    exposure = masking_exposure(Path(args.log).read_text(encoding="utf-8", errors="replace"))
+    refused_cycles = sum(1 for c in cycles(
+        Path(args.log).read_text(encoding="utf-8", errors="replace"))
+        if c["outcome"] == "commit_refused")
+    print("\n=== WHAT THE SAME EARLY EXIT COSTS THE CAUSE SPLIT ===")
+    print("`by_gate` above is a distribution of FIRST failing gate. Each count is a LOWER bound")
+    print("and the bias is monotone in chain position. Over {} refused cycles:".format(
+        refused_cycles))
+    print("  {:<34} {:>6} {:>8} {:>8}".format("gate (in chain order)", "named", "PROVEN", "unknown"))
+    print("  {:<34} {:>6} {:>8} {:>8}".format("", "", "passing", ""))
+    for gate, row in sorted(exposure.items(), key=lambda kv: kv[1]["rank"]):
+        print("  {:<34} {:6d} {:8d} {:8d}".format(
+            gate.split(" (")[0][:34], row["named"], row["proven_passing"], row["unknown"]))
+    blind = [g for g, row in exposure.items() if row["named"] == 0 and row["proven_passing"] == 0]
+    if blind:
+        print("\n{} gate(s) have NO observation of any kind in this window -- never named,".format(
+            len(blind)))
+        print("never proven passing. For these 'it never refused a publish' is not an")
+        print("observation about the gate; it is unobservable:")
+        for gate in sorted(blind, key=lambda g: exposure[g]["rank"]):
+            print("  {} (unknown on all {} refused cycles)".format(gate, exposure[gate]["unknown"]))
     return 0
 
 

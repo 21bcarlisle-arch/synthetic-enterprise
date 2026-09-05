@@ -263,125 +263,162 @@ def test_a_landing_is_the_absence_of_a_failure_line_and_the_blind_span_is_not_re
     assert attr.episode_report(log)["bounded"][0]["outage_s"] == 3600
 
 
-# --- The fixed serial gate order, and what it PROVES about a recurrence -----------------------
-#
-# `core.hooksPath` is `tools/git-hooks` and every gate there is `python3 ... || exit 1`, so the
-# named cause is the FIRST failing gate. These controls are over that inference, not over the
-# counts it produces.
-
-def _fake_root(tmp_path, emitters, sources=None):
-    """A repo root whose hook invokes `emitters` IN THE GIVEN ORDER.
-
-    The emitter paths and banner texts are the REAL ones, taken from the publisher's own table --
-    only the order is synthetic. A fixture that invented its own gate names would pass while the
-    join to that table was broken, which is the one thing these controls exist to check.
-    """
-    hooks = tmp_path / "tools" / "git-hooks"
-    hooks.mkdir(parents=True, exist_ok=True)
-    (hooks / "pre-commit").write_text(
-        "\n".join(["#!/bin/sh"] + ["python3 {} || exit 1".format(e) for e in emitters]))
-    (hooks / "commit-msg").write_text("#!/bin/sh\n")
-    for emitter, body in (sources or {}).items():
-        path = tmp_path / emitter
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(body)
-    return tmp_path
+LEVEL_HOOK = ("  git/hook output (last 40 lines):\n"
+              "[level-gate] ❌ unauthorized level move\n364 passed in 40s")
+SITE_HOOK = ("  git/hook output (last 40 lines):\n"
+             "[site-lane] ❌ a site door is red\n364 passed in 40s")
 
 
-TEST_GATE = "tools/pre_commit_test_gate.py"
-ORPHAN_GATE = "tools/orphan_ratchet.py"
-_SOURCES = {
-    TEST_GATE: 'print("[test-gate] \\u274c FINDING-CLASS CONSOLIDATION BROKEN")\n'
-               'r = subprocess.run([sys.executable, "-m", "pytest", *targets])\n',
-    ORPHAN_GATE: 'print("orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS")\n',
-}
+def _episode(bodies):
+    """One bounded episode whose refusals carry `bodies`, in order, then a landing."""
+    log = "\n".join(
+        [_cycle("2026-08-20 {:02d}:00".format(i), refused=True, hook_body=b)
+         for i, b in enumerate(bodies)]
+        + [_cycle("2026-08-20 23:00", refused=False)])
+    return attr.ordering_report(log)[0]
 
 
-def test_the_same_recurrence_is_a_flap_or_a_mask_depending_on_the_hook_order(tmp_path):
-    """THE ORDERING CONTROL: the two orders must produce DIFFERENT verdicts on ONE sequence.
-
-    The defect this names is the whole reason the question was open. `RED TEST, orphan, RED TEST`
-    is a proven flap only if the orphan ratchet runs AFTER the test gate -- reaching it proves the
-    suite passed in between, so the red test was cleared and re-broke. Run the orphan ratchet
-    FIRST and the identical sequence proves nothing: the red test may have stood broken behind it
-    the whole time. A classifier that ignored the hook and answered from the sequence alone would
-    give one answer here and be right by accident half the time.
-    """
-    seq = [attr.RED_TEST, "orphan-ratchet", attr.RED_TEST]
-    pair = attr.recurrence_pairs(seq)[0]
-    assert pair["cause"] == attr.RED_TEST and pair["between"] == ["orphan-ratchet"]
-
-    tests_first = attr.gate_order(
-        _fake_root(tmp_path / "a", [TEST_GATE, ORPHAN_GATE], _SOURCES))
-    orphan_first = attr.gate_order(
-        _fake_root(tmp_path / "b", [ORPHAN_GATE, TEST_GATE], _SOURCES))
-    assert attr.classify_recurrence(pair["cause"], pair["between"], tests_first) == attr.PROVEN_FLAP
-    assert attr.classify_recurrence(pair["cause"], pair["between"], orphan_first) == attr.MASKABLE
+def test_a_needle_absent_from_its_emitter_yields_no_rank_rather_than_the_first_position():
+    """THE FAIL-OPEN THIS MODULE ALMOST SHIPPED. Gate banners are written as adjacent string
+    literals split across source lines, so a runtime needle need not occur contiguously in the
+    file that prints it. `.find()` returns -1, and treating -1 as offset 0 ranks that gate FIRST
+    inside its emitter -- the strongest position available. Every later cause would then look
+    like a step back to it, i.e. an ESTABLISHED re-arrival, manufactured out of a failed lookup.
+    None is the only safe answer, and the cause must leave the analysis."""
+    assert attr._needle_pos("nothing like it here", "❌ A BANNER THIS FILE NEVER PRINTS") is None
+    assert attr._needle_pos("... [level-gate] ❌ ...", "[level-gate] ❌") == 4
+    ranks = attr.gate_ranks(hook_text="python3 tools/only_gate.py || exit 1",
+                            emitter_texts={"tools/only_gate.py": "no banner in here"})
+    # The write-time gate is exempt: it is not in the pre-commit file at all (commit-msg runs it
+    # after the whole chain), so its position is structural rather than looked up.
+    in_chain = {k: v for k, v in ranks.items() if v[0] != attr._AFTER_PRE_COMMIT}
+    assert in_chain == {}, "a gate whose banner was never found kept a rank: {}".format(in_chain)
 
 
-def test_a_step_to_an_earlier_gate_is_proven_new_breakage_and_never_a_queue_step(tmp_path):
-    """A queue and new breakage are opposite conclusions and the order separates them.
-
-    `orphan-ratchet` then `RED TEST` means an EARLIER gate refused on the second cycle -- it was
-    reached and passed on the first, so something broke it in between. Calling that a queue step
-    would license "the publisher just needs to be told about every refusal at once", which is
-    exactly wrong when the tree is being broken underneath it. The reverse direction must come out
-    as the queue step, or the classifier is simply labelling every transition the same way.
-    """
-    order = attr.gate_order(_fake_root(tmp_path, [TEST_GATE, ORPHAN_GATE], _SOURCES))
-    assert attr.classify_transition("orphan-ratchet", attr.RED_TEST, order) == attr.NEW_BREAKAGE
-    assert attr.classify_transition(attr.RED_TEST, "orphan-ratchet", order) == attr.QUEUE_STEP
+def test_a_short_but_exact_needle_is_ranked_and_not_dropped_by_the_shrink_floor():
+    """The over-correction for the defect above, caught by printing the table. A floor applied to
+    the needle ITSELF rather than to the shrinking dropped `[level-gate] ❌`, `[site-lane] ❌` and
+    `[scope-evidence] ❌` -- three of the commonest causes in the log -- leaving an analysis that
+    read as clean because its biggest gates had silently left it."""
+    ranks = attr.gate_ranks()
+    for cause in ("level-promotion gate", "site-lane gate", "scope-evidence ratchet"):
+        assert cause in ranks, "{} lost its rank; the analysis is blind to it".format(cause)
 
 
-def test_an_unknown_position_is_undecidable_and_is_never_folded_onto_either_side(tmp_path):
-    """FAIL CLOSED. The unattributable buckets have no position by construction, and a gate the
-    hook does not invoke has none either. Guessing -- treating unknown as 'later', or dropping it
-    so the pair reads MASKABLE -- would manufacture the flap/queue verdicts this measurement is
-    entirely about. Same discipline as the UNATTRIBUTABLE bucket one level up.
-    """
-    order = attr.gate_order(_fake_root(tmp_path, [TEST_GATE, ORPHAN_GATE], _SOURCES))
-    assert attr.NO_BLOCK not in order and attr.UNNAMED not in order
-    assert attr.classify_recurrence(attr.RED_TEST, [attr.NO_BLOCK], order) == attr.UNDECIDABLE
-    assert attr.classify_transition(attr.RED_TEST, attr.UNNAMED, order) == attr.UNDECIDABLE
-    # A gate that IS known, mixed with one that is not, still resolves when the known one PROVES
-    # the flap -- one proven later gate is enough, and refusing there would hide a real finding.
-    assert attr.classify_recurrence(
-        attr.RED_TEST, [attr.NO_BLOCK, "orphan-ratchet"], order) == attr.PROVEN_FLAP
+def test_the_rank_order_is_the_hooks_invocation_order_and_not_a_table_written_here():
+    """Keyed to the ENFORCEMENT. `process_run_complete` carries a comment asserting its classifier
+    table is the chain's order; a comment cannot be checked and this is why the order is derived
+    from `tools/git-hooks/pre-commit` instead. Reorder the hook and this goes red, which is the
+    point: a stale rank table would silently invert every backward-step verdict below."""
+    ranks = attr.gate_ranks()
+    hook = attr.HOOK.read_text(encoding="utf-8")
+    order = attr._hook_order(hook)
+    for name, _, emitter in attr._REFUSING_GATE_BANNERS:
+        if name in ranks and emitter in order:
+            assert ranks[name][0] == order[emitter]
+    assert ranks["level-promotion gate"] < ranks["site-lane gate"] < ranks["orphan-ratchet"]
 
 
-def test_a_missing_hook_yields_no_order_at_all_rather_than_file_order(tmp_path):
-    """The order is DERIVED, so its absence must be visible. If `gate_order` fell back to the
-    banner table's own listing order, the classification would keep answering confidently from a
-    list that has no relationship to what the hook runs -- a private vocabulary drifting from the
-    thing it names, one level up from the defect the banner reuse already fixed.
-    """
-    assert attr.gate_order(tmp_path) == {}
-    assert attr.classify_recurrence(attr.RED_TEST, ["orphan-ratchet"], {}) == attr.UNDECIDABLE
+def test_pytest_ranks_last_inside_its_emitter_so_a_red_test_proves_the_earlier_checks_passed():
+    """The fact that makes the largest episode in the log analysable at all. finding-class,
+    finding-severity and RED TEST share one emitter and one chain position, so ranking them equal
+    would make the 68.8h episode's finding-class/RED-TEST alternation untestable. `main()` runs
+    the consolidation check second and invokes pytest LAST, so a named red test is a positive
+    observation that finding-class passed that cycle."""
+    ranks = attr.gate_ranks()
+    assert (ranks["finding-class consolidation"] < ranks["finding-severity gate"]
+            < ranks[attr.RED_TEST])
+    assert ranks["finding-class consolidation"][0] == ranks[attr.RED_TEST][0]
 
 
-def test_a_cause_firing_five_times_is_four_recurrences_and_not_ten():
-    """Pairing every occurrence with every later one makes the flap count a function of episode
-    LENGTH rather than of flapping, and the longest episode would then dominate the answer purely
-    for being long. Consecutive occurrences only; and an uninterrupted repeat is not a recurrence
-    at all, because nothing proves the gate was ever cleared between the two.
-    """
-    seq = [attr.RED_TEST, "orphan-ratchet"] * 4 + [attr.RED_TEST]
-    # RED TEST occurs 5 times -> 4 consecutive gaps; orphan-ratchet 4 times -> 3. Not 10 and 6.
-    assert len(attr.recurrence_pairs(seq)) == 7
-    assert sum(1 for p in attr.recurrence_pairs(seq) if p["cause"] == attr.RED_TEST) == 4
-    assert attr.recurrence_pairs([attr.RED_TEST, attr.RED_TEST, attr.RED_TEST]) == []
+def test_only_a_step_to_a_lower_rank_is_established_and_a_forward_step_never_is():
+    """THE WHOLE INFERENCE, over the partition rather than one leg. A forward step is what a
+    genuine queue AND a set of gates red from the start both produce, so it establishes nothing;
+    a step back is a gate that demonstrably passed and then refused. Asserting only the forward
+    leg would pass on an analysis that called EVERYTHING uninformative, and asserting only the
+    backward leg would pass on one that called everything established."""
+    forward = _episode([LEVEL_HOOK, ORPHAN_HOOK])
+    backward = _episode([ORPHAN_HOOK, LEVEL_HOOK])
+    assert not forward["established"] and forward["backward_steps"] == []
+    assert backward["established"] and len(backward["backward_steps"]) == 1
+    assert backward["backward_steps"][0]["cause"] == "level-promotion gate"
 
+
+def test_a_repeated_cause_is_persistence_and_not_a_re_arrival():
+    """A tie is not a step back. The gate was named, and still refuses -- nothing passed in
+    between, so nothing went passing->refusing. Fail-closed: the ambiguous case is scored as
+    uninformative, the direction that makes the result WEAKER."""
+    same = _episode([ORPHAN_HOOK, ORPHAN_HOOK, ORPHAN_HOOK])
+    assert not same["established"] and not same["recurrence"]
+
+
+def test_an_unattributable_cycle_between_two_named_ones_neither_creates_nor_hides_a_step():
+    """Unattributable causes have no rank and are SKIPPED, never imputed. The passed-below-rank
+    observation is per-cycle, so an unreadable cycle in between does not break the comparison
+    across it -- and it must not be allowed to invent one either."""
+    blind = "  git/hook output (last 40 lines):\nsomething nobody has a needle for"
+    with_gap = _episode([ORPHAN_HOOK, blind, LEVEL_HOOK])
+    without = _episode([ORPHAN_HOOK, LEVEL_HOOK])
+    assert with_gap["established"] == without["established"] is True
+    assert len(with_gap["backward_steps"]) == len(without["backward_steps"])
+    # Three refused cycles, only two of them rankable: the blind one is skipped, not imputed.
+    assert with_gap["ranked_causes"] == 2 and with_gap["cycles"] == 3
+
+
+def test_every_recurrence_implies_a_backward_step_which_is_a_check_on_the_rank_table():
+    """ANALYTIC, not empirical. If a cause appears at i and again at k with a different cause at
+    j between them, then either rank(j) > rank(i) -- and the return to rank(i) descends -- or
+    rank(j) < rank(i) and the step INTO j already descended. Either way a recurrence cannot exist
+    without a backward step. So a recurrence scored as unestablished means the RANK TABLE is
+    wrong, not that the gates behaved oddly, and this is the control that says so."""
+    for bodies in ([ORPHAN_HOOK, LEVEL_HOOK, ORPHAN_HOOK],
+                   [LEVEL_HOOK, ORPHAN_HOOK, LEVEL_HOOK],
+                   [SITE_HOOK, ORPHAN_HOOK, LEVEL_HOOK, SITE_HOOK]):
+        e = _episode(bodies)
+        assert e["recurrence"] and e["established"], bodies
+
+
+def test_the_ordering_verdict_is_reachable_both_ways_on_one_log():
+    """The rare-branch control, over the whole partition in one assertion. A classifier that
+    answered `established` for everything, or for nothing, would satisfy every per-episode leg
+    above written on its own; this refuses both at once."""
+    log = "\n".join([
+        _cycle("2026-08-20 01:00", refused=True, hook_body=LEVEL_HOOK),
+        _cycle("2026-08-20 02:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 03:00", refused=False),
+        _cycle("2026-08-20 04:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 05:00", refused=True, hook_body=LEVEL_HOOK),
+        _cycle("2026-08-20 06:00", refused=False)])
+    verdicts = [e["established"] for e in attr.ordering_report(log)]
+    assert verdicts == [False, True]
+
+
+def test_a_step_back_is_measured_against_the_running_peak_not_the_previous_cause():
+    """AN EQUIVALENCE THE MUTATION PASS FOUND, made into a real control rather than left to the
+    reader. Replacing the running maximum with "compare to the previous cause" survives every
+    other control here, and for the ESTABLISHED verdict it genuinely is an equivalence: if any
+    rank sits below the running peak then some ADJACENT pair must descend, or the sequence would
+    be non-decreasing throughout. It is not an equivalence for the COUNT, which the docstring
+    claims is "whether or not something else intervened adjacently" -- orphan-ratchet(108) ->
+    level-promotion(32) -> site-lane(41) is two gates that each passed and then refused, and the
+    previous-cause reading sees only one because 41 > 32."""
+    e = _episode([ORPHAN_HOOK, LEVEL_HOOK, SITE_HOOK])
+    assert e["established"]
+    assert [s["cause"] for s in e["backward_steps"]] == ["level-promotion gate", "site-lane gate"]
+
+
+# --- The subject, and what the same early exit costs the cause split -------------------------
 
 def test_an_absent_subject_is_refused_and_never_reported_as_zero_outage(tmp_path, capsys):
-    """THE FAIL-OPEN DEFECT THIS MODULE SHIPPED WITH.
+    """THE FAIL-OPEN DEFECT THIS MODULE SHIPPED WITH, found re-running it from a clean worktree.
 
-    Every line this measures was written to the daemon's WORKING copy; the committed copy was
-    truncated to 2026-07-17 on 2026-08-31. So a clean checkout, an isolated worktree or a
-    `git archive HEAD` extract holds a log with no named outcome in it -- and both landed findings
-    published `python3 -m tools.commit_refusal_attribution` as their re-derivation instruction.
-    The original answered `0 refusals, share 0.0%, total bounded outage 0.0h`: a fully formatted,
-    entirely confident report that the publisher never failed once. An absent subject read as a
-    clean result is the comfortable direction, so it must REFUSE and say which copy it read.
+    The log is tracked, but its committed copy was truncated to 2026-07-17 on 2026-08-31 and every
+    line this module measures has been written to the daemon's WORKING copy since. So a clean
+    checkout, an isolated worktree, CI or a `git archive HEAD` extract holds a file with no named
+    outcome in it -- and three findings now publish `python3 -m tools.commit_refusal_attribution`
+    as their re-derivation instruction. From one of those the module printed `0 refusals`,
+    `share 0.0%`, `total bounded outage: 0.0h`: a complete, confidently formatted report that the
+    publisher had never once failed, produced by an ABSENT subject rather than a clean one.
     """
     log = tmp_path / "sim-runner-log.md"
     log.write_text("\n".join(_cycle("2026-07-0{} 10:00".format(i), refused=False)
@@ -390,50 +427,61 @@ def test_an_absent_subject_is_refused_and_never_reported_as_zero_outage(tmp_path
     out = capsys.readouterr().out
     assert out.startswith("REFUSED:")
     assert "2026-08-31" in out and "working copy" in out
-    # The refusal must REPLACE the report, not precede it. A zero printed underneath a warning is
-    # still a zero a reader will quote.
+    # The refusal REPLACES the report; it does not precede one. A zero printed underneath a
+    # warning is still a zero a reader will quote.
     assert "total bounded outage" not in out and "0.0%" not in out
 
 
-def test_a_red_test_recurrence_is_split_by_node_id_because_red_test_is_a_bucket(tmp_path):
-    """`RED TEST` names the gate, not the test. One test re-breaking and two different tests
-    breaking in turn are different findings -- the first is a flaky or contended control, the
-    second is ordinary traffic -- and both arrive here labelled identically. Where the hook block
-    retained the node ids, the two must come out distinguishable.
+def test_a_deeper_gate_being_named_is_the_only_thing_that_proves_a_shallower_one_passed():
+    """The exposure table's whole inference, and it must not be symmetric.
+
+    A cycle naming a DEEPER gate proves this one passed. A cycle naming a SHALLOWER one proves
+    nothing -- this gate was never reached. Counting the second as evidence of passing would turn
+    the deepest gates, which are the least observed, into the best-evidenced, which is exactly
+    backwards; and it is the error that makes a gate with no refusals read as a gate that never
+    broke.
     """
-    def red(node):
-        return ("  git/hook output (last 40 lines):\n"
-                "FAILED {} - AssertionError\n1 failed, 40 passed".format(node))
+    ranks = {"shallow": (1, 0), "deep": (9, 0)}
+    log = "\n".join([_cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+                     _cycle("2026-08-20 11:00", refused=False)])
+    seq = [c for c in attr.cycles(log) if c["outcome"] == "commit_refused"]
+    assert len(seq) == 1  # one refused cycle, whose cause is neither of the two ranked names
 
-    def build(second_red):
-        return "\n".join(
-            [_cycle("2026-08-20 10:00", refused=True, hook_body=red("tests/t.py::a")),
-             _cycle("2026-08-20 11:00", refused=True, hook_body=ORPHAN_HOOK),
-             _cycle("2026-08-20 12:00", refused=True, hook_body=red(second_red)),
-             _cycle("2026-08-20 13:00", refused=False)])
+    def rows(cause):
+        text = "\n".join([_cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+                          _cycle("2026-08-20 11:00", refused=False)])
+        return attr.masking_exposure(text.replace(attr.RED_TEST, cause), ranks)
 
-    root = _fake_root(tmp_path, [TEST_GATE, ORPHAN_GATE], _SOURCES)
-    same = attr.recurrence_report(build("tests/t.py::a"), root)
-    diff = attr.recurrence_report(build("tests/other.py::b"), root)
-    reds = [r for r in same["recurrences"] if r["cause"] == attr.RED_TEST]
-    assert len(reds) == 1 and reds[0]["verdict"] == attr.PROVEN_FLAP
-    assert reds[0]["same_test"] is True
-    assert [r["same_test"] for r in diff["recurrences"] if r["cause"] == attr.RED_TEST] == [False]
+    # `orphan-ratchet` is not in `ranks`, so it is ignorance for both -- never proven passing.
+    out = rows("orphan-ratchet")
+    assert out["shallow"]["proven_passing"] == 0 and out["shallow"]["unknown"] == 1
+    assert out["deep"]["proven_passing"] == 0 and out["deep"]["unknown"] == 1
 
 
-def test_one_hook_file_missing_yields_no_order_rather_than_the_survivor_ranked_first(tmp_path):
-    """The partial-hook case, and it INVERTS the order rather than shortening it.
+def test_the_deepest_gate_is_unknown_on_every_refused_cycle_it_did_not_itself_name():
+    """The result that makes this table worth printing.
 
-    Found by a surviving mutation: relaxing `gate_order`'s missing-file refusal from `return {}`
-    to `continue` still answers `{}` when BOTH hooks are absent, so the whole-repo control above
-    passes either way. But with `pre-commit` gone and `commit-msg` present, the survivor's single
-    gate is enumerated from index 0 -- and that gate is `write-time`, which really runs LAST, after
-    all fifteen others. Every classification would then be computed against an order that is
-    exactly backwards, and would read as confident. Fail closed on ANY missing hook file, not only
-    on all of them.
+    The write-time gate runs after the entire pre-commit chain, so it is reached only when all
+    fifteen gates before it pass. In the measured window it is named zero times AND proven passing
+    zero times -- its state is unknown on every refused cycle. A reader who takes `by_gate`'s
+    silence about it as "this gate never blocked a publish" has read a fact about the chain's
+    order as a fact about the gate.
     """
-    hooks = tmp_path / "tools" / "git-hooks"
-    hooks.mkdir(parents=True)
-    (hooks / "commit-msg").write_text('#!/bin/sh\npython3 tools/write_time_gate.py "$1" || exit 1\n')
-    assert not (hooks / "pre-commit").exists()
-    assert attr.gate_order(tmp_path) == {}
+    hook = "\n".join(["python3 tools/pre_commit_test_gate.py || exit 1",
+                      "python3 tools/orphan_ratchet.py || exit 1"])
+    ranks = attr.gate_ranks(hook_text=hook, emitter_texts={
+        "tools/pre_commit_test_gate.py": 'x = [sys.executable, "-m", "pytest"]\n',
+        "tools/orphan_ratchet.py":
+            'print("orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS")\n'})
+    log = "\n".join([_cycle("2026-08-20 1{}:00".format(i), refused=True, hook_body=RED_HOOK)
+                     for i in range(3)] + [_cycle("2026-08-20 19:00", refused=False)])
+    out = attr.masking_exposure(log, ranks)
+    # `gate_ranks` ranks the commit-msg gate after the whole pre-commit chain, so it is deepest
+    # by construction -- which is exactly why it is the one nothing can observe.
+    assert max(ranks, key=lambda g: ranks[g]) == "write-time gate"
+    for deep in ("write-time gate", "orphan-ratchet"):
+        assert out[deep]["named"] == 0, deep
+        assert out[deep]["proven_passing"] == 0, deep
+        assert out[deep]["unknown"] == 3, deep
+    # ...while the gate that was actually reached is evidenced on all three.
+    assert out[attr.RED_TEST]["named"] == 3
