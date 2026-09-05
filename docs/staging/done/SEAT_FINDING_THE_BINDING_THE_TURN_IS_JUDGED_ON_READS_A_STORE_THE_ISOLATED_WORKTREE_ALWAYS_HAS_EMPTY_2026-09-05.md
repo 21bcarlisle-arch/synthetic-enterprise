@@ -96,3 +96,47 @@ worth recording because it sets the real budget: **an isolated-worktree turn hol
 claim can spend most of it losing gate races**, and `--landed` (the only thing that restarts the
 deadline) cannot be called until after the promote it is waiting on. The two mechanisms are each
 individually correct and together they can consume the window the first one grants.
+
+---
+
+## DISCHARGED 2026-09-05 (worker tick, Lane 0 draw) — both halves, and the second one is the one that cost a turn
+
+**Discharged:** `tests/background/test_a_claim_is_visible_from_every_worktree.py::test_a_claim_written_in_the_main_tree_is_read_from_a_linked_worktree`, `tests/background/test_a_claim_is_visible_from_every_worktree.py::test_the_binding_the_turn_is_judged_on_reaches_the_claim`, `tests/background/test_a_claim_is_visible_from_every_worktree.py::test_the_refusal_does_not_blame_a_sweep_when_it_is_reading_the_wrong_store`, `background/delivery_lane.py`, `background/seat_work_in_hand.py` — both stores resolve to the main worktree, and the refusal can now name the store it is reading.
+
+**The store.** `delivery_lane.claims_file()` and `seat_work_in_hand.claims_file()` resolve through
+`seat_continuation.shared_tree_dir()` — the helper built for the WRITE side of this same defect a
+day earlier (`[[a hand-off written from an isolated worktree goes to a store no tick reads]]`),
+rather than a second `git rev-parse` beside it. One resolution, one fail-closed rule, and the
+repairs that rule already carries. `DRAW_LEDGER_FILE` is derived from `CLAIMS_FILE` and travels
+with it; `seat_continuation.STORE` already resolved this way and needed nothing.
+
+**What was deliberately NOT moved**, because the finding's warning about trading one asymmetry for
+another cuts both ways: the git `cwd` in `_git`/`_last_commit_time_touching` stays the process's own
+tree. `--landed` reads `git show HEAD` to learn which paths a commit touched, and on an
+isolated-worktree turn that commit is in THAT tree's HEAD. Moving the store fixes where the claim
+lives; moving the git cwd would break which commit the binding is derived from.
+
+**The refusal.** `_store_is_worktree_local` is one predicate serving both refusals. It fires only
+when the store really is the worktree's own copy — i.e. when the resolution fell back closed, or a
+caller passed a worktree-local `path` — so the message stays true after the repair. `--release`'s
+existing clause was keyed to `git rev-parse` alone and would, post-repair, have accused a correctly
+resolved store of being local: fixed in the same predicate. That was the trap this document names,
+arriving from the other side.
+
+**Controls, mutation-proven rather than asserted.** Four mutations run, each fired:
+
+| mutation | fires |
+|---|---|
+| either store resolves against the caller's own tree | 7 of 11, both crossing legs on both modules |
+| `refusal_reason`'s worktree clause removed | the sweep-blaming leg |
+| `release_refusal_reason` warns on the worktree alone | the resolved-store leg |
+| `_store_is_worktree_local` drops its `.git`-is-a-FILE test | the main-checkout negative leg |
+
+One leg is an EQUIVALENCE and says so in its own docstring: `test_the_resolution_is_wired_into_both_module_constants`
+cannot fire when the suite runs in a main checkout, because there `shared_tree_dir()` returns
+`PROJECT_DIR`. The crossing legs carry the property; that one catches the constant drifting away
+from the function in the tree where it can differ.
+
+**Not verified here, and it is the honest gap:** no isolated-worktree turn has yet run `--landed`
+through the repaired path. The next executor turn is the first live firing, and this document is
+where its result belongs.

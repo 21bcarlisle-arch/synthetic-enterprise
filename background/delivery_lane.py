@@ -130,10 +130,21 @@ from tools import maturity_map_store as map_store
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 MATURITY_MAP = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 
-#: Claims on delivery-lane items. A SEPARATE STORE from the interactive seat's: the two are
-#: different subjects with different deadlines, and one file holding both would make a sweep of
-#: either read as a sweep of the other.
-CLAIMS_FILE = PROJECT_DIR / "docs" / "observability" / ".delivery_lane_claims.json"
+def claims_file(project_dir: Path | None = None) -> Path:
+    """Claims on delivery-lane items, in the MAIN worktree whatever tree this process stands in.
+
+    A SEPARATE STORE from the interactive seat's: the two are different subjects with different
+    deadlines, and one file holding both would make a sweep of either read as a sweep of the
+    other. Same tree as it, though, and for the reason `seat_work_in_hand.claims_file` records --
+    this store is the one the executor tells an isolated turn to bind against, and resolving it
+    against `PROJECT_DIR` made that binding structurally impossible from the worktree it chose.
+    `.gitignore` lists this path, so no commit could carry it either.
+    """
+    return (seat_continuation.shared_tree_dir(project_dir) / "docs" / "observability"
+            / ".delivery_lane_claims.json")
+
+
+CLAIMS_FILE = claims_file()
 
 #: EVERY draw of a Lane 0 id, first and latest, and it OUTLIVES the claim on purpose.
 #:
@@ -357,6 +368,28 @@ def _binding_instant(focus_id: str, rec: dict, store: Path) -> float:
     return first if 0.0 < first < claimed_at else claimed_at
 
 
+def _store_is_worktree_local(store: Path) -> bool:
+    """Is `store` this LINKED WORKTREE's private copy rather than the shared tree's?
+
+    Both refusals below need this and neither may guess it. Since `claims_file` resolves across,
+    the answer is normally False even in a worktree -- so the clause fires only when the
+    resolution genuinely did not happen: `shared_tree_dir` fell back closed (an unreadable `.git`
+    pointer, a resolved tree that does not look like this project), or a caller passed a
+    worktree-local `path`. Asserting "you are in a worktree, therefore your store is local" is
+    what the pre-repair message did, and after the repair that sentence is simply false.
+
+    A `.git` DIRECTORY means a main checkout, which IS the shared tree; a `.git` FILE is the
+    shape `git worktree add` produces. Never raises -- it runs inside refusal paths.
+    """
+    try:
+        if not (PROJECT_DIR / ".git").is_file():
+            return False
+        store.relative_to(PROJECT_DIR)
+    except (OSError, ValueError):
+        return False
+    return True
+
+
 def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = None) -> str:
     """WHICH of `record_landing`'s four refusals fired. Called only after one did.
 
@@ -374,6 +407,16 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         store = path or CLAIMS_FILE
         rec = claims_mod._load(store).get(focus_id)
         if not isinstance(rec, dict):
+            if _store_is_worktree_local(store):
+                # THE CAUSE THIS REFUSAL COULD NOT NAME (2026-09-05). It offered exactly two
+                # readings, both about the CLAIM's state, and the true one -- "I am reading a
+                # different store from the one you claimed in" -- was not in its vocabulary. The
+                # seat believed the sweep reading and nearly filed a claim-expiry finding.
+                return (f"it is not in {store} -- but that is THIS WORKTREE's copy, not the "
+                        f"shared tree's, so a claim made anywhere else was never visible here "
+                        f"and nothing about the claim's state can be read from this. The store "
+                        f"is meant to resolve to the main worktree; that it did not is itself "
+                        f"the defect to look at")
             return ("it is NOT CLAIMED -- nothing holds a deadline for it, so there is nothing "
                     "to inform. If you just finished it, this is the expected reading after a "
                     "--release; if you did not, the claim was swept and you are working "
@@ -425,15 +468,12 @@ def release_refusal_reason(focus_id: str, *, path: Path | None = None) -> str:
                     f"the 2026-09-02 finding: a PROMOTED item is claimed there and released "
                     f"here, so this release could never have found it. The work is still in "
                     f"hand; nothing has been let go")
-        common = subprocess.run(["git", "rev-parse", "--git-common-dir"], cwd=str(PROJECT_DIR),
-                                capture_output=True, text=True, timeout=10)
-        own = subprocess.run(["git", "rev-parse", "--git-dir"], cwd=str(PROJECT_DIR),
-                             capture_output=True, text=True, timeout=10)
-        if common.returncode == 0 and own.returncode == 0 and \
-                common.stdout.strip() and common.stdout.strip() != own.stdout.strip():
-            return (f"this is a LINKED WORKTREE, so {store.name} here is the worktree's copy and "
-                    f"the shared tree's store never heard the release. Run it from the shared "
-                    f"tree, or the next `ensure_worktree` resets this away")
+        if _store_is_worktree_local(store):
+            return (f"this is a LINKED WORKTREE and {store} is the worktree's own copy, so the "
+                    f"shared tree's store never heard the release. Since 2026-09-05 the store "
+                    f"RESOLVES to the main worktree, so reaching this line means the resolution "
+                    f"fell back closed or a worktree-local path was passed in -- look there "
+                    f"before believing anything about the claim itself")
         return ("it is NOT CLAIMED here -- nothing holds it, so nothing was let go. If the tick "
                 "already released it, this is the expected reading; if it never claimed, the "
                 "work was done unclaimed and the lane could not see it move")

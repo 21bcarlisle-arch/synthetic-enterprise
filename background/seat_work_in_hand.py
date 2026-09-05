@@ -104,9 +104,32 @@ from pathlib import Path
 
 from background.episode_prior import load_episode_prior, preserve_unreadable, prior_unreadable
 from background.live_ledger_guard import guard_live_ledger_write
+from background.seat_continuation import shared_tree_dir
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-CLAIMS_FILE = PROJECT_DIR / "docs" / "observability" / ".seat_work_in_hand.json"
+
+
+def claims_file(project_dir: Path | None = None) -> Path:
+    """The claim store, in the MAIN worktree, whichever tree this process is standing in.
+
+    A CLAIM IS ONLY USEFUL IF THE OTHER LANES CAN SEE IT, and until 2026-09-05 this resolved
+    against `PROJECT_DIR` -- this FILE's tree. An isolated-worktree turn therefore claimed,
+    swept and read a store nobody else had, and the executor's own instruction ("run `--landed`,
+    THIS IS WHAT THE TURN IS JUDGED ON") could only ever bind nothing from the worktree it was
+    told to run in. Measured with the claim 1752s from expiry: shared tree held it, worktree copy
+    was `{}`. Full write-up: `docs/staging/done/SEAT_FINDING_THE_BINDING_THE_TURN_IS_JUDGED_ON_
+    READS_A_STORE_THE_ISOLATED_WORKTREE_ALWAYS_HAS_EMPTY_2026-09-05.md`.
+
+    Reuses `seat_continuation.shared_tree_dir`, built for the WRITE side of the same defect a day
+    earlier, rather than a second `git rev-parse` here: one resolution, one fail-closed rule, and
+    the repairs that rule already carries. What is NOT moved is the git `cwd` below -- progress is
+    measured against the commit the claimant actually made, which lives in ITS tree's HEAD.
+    """
+    return (shared_tree_dir(project_dir) / "docs" / "observability"
+            / ".seat_work_in_hand.json")
+
+
+CLAIMS_FILE = claims_file()
 
 #: How long a claim may sit with nothing landing before it goes back to the draw.
 #:
