@@ -68,14 +68,27 @@ DCC_COMMS_CHARGE_GBP_PER_YEAR: dict[str, float] = {
 }
 
 # Ofgem "Summary of changes to the energy price cap 1 July to 30 September 2026", Annexes
-# 1-2 -- "Operating, debt and industry costs" allowance, per DUAL-FUEL domestic customer
-# per year, by payment method (docs/market_research/ASSUMPTIONS.md). Only Direct Debit and
-# Standard Credit are modelled -- this codebase's PaymentChannel enum
-# (simulation/household_segments.py) does not carry a Prepayment channel at all, so that
-# real Ofgem figure (£308.04, Prepayment) has no population to apply to here.
+# 1-3 -- "Operating, debt and industry costs" allowance, per DUAL-FUEL domestic customer
+# per year, by payment method (docs/market_research/ASSUMPTIONS.md).
+#
+# Prepayment added 2026-09-05. This dict carried Direct Debit and Standard Credit only, for
+# a reason stated in the comment above it: the PaymentChannel enum had no Prepayment member,
+# "so that real Ofgem figure (£308.04, Prepayment) has no population to apply to here". PB4
+# separated PREPAYMENT out of STANDARD_CREDIT that same day, which made the premise false and
+# gave the figure its population -- and nothing connected the two, because the anchor was
+# sitting cited-and-unreached in a comment while the enum changed in another module.
+#
+# What that cost until it was found: `build_opex_ledger` resolves the allowance with `.get`,
+# so every prepayment household fell to `unresolved_household_count` and left the benchmark
+# population ENTIRELY. Not an error -- a smaller book. `household_count` under-reported, and
+# the per-household figures on the Front Door thesis chart divided by the smaller denominator.
+# `test_a_payment_channel_the_world_can_produce_has_a_benchmark_allowance` is the control
+# that makes the NEXT enum member red here instead of quietly shrinking the population.
 OFGEM_BUNDLED_ALLOWANCE_GBP_PER_YEAR_DUAL_FUEL: dict[str, float] = {
     "direct_debit": 297.92,
     "standard_credit": 441.10,
+    # Annex 3: 17% of the total £1,812 PPM dual-fuel cap for the same quarter.
+    "prepayment": 308.04,
 }
 
 

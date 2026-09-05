@@ -133,12 +133,45 @@ def test_build_opex_ledger_investor_thesis_gap_is_benchmark_minus_true():
 
 
 def test_build_opex_ledger_unresolved_payment_channel_excluded_from_benchmark_only():
+    """The unresolved branch, exercised with a channel that is genuinely not a channel.
+
+    This used `"prepayment"` as its stand-in for "not in OFGEM_BUNDLED_ALLOWANCE" -- true
+    when written, and false from 2026-09-05, when prepayment became a real channel with a
+    real published allowance. A test that reaches a branch via a value the world later
+    starts producing legitimately stops testing the branch and starts asserting the defect.
+
+    `build_opex_ledger` takes plain strings, not the enum, so this branch stays reachable
+    from a caller passing a stale or mistyped channel -- but it is no longer reachable from
+    any PaymentChannel member, which is exactly what
+    `test_a_payment_channel_the_world_can_produce_has_a_benchmark_allowance` now enforces.
+    """
+    from simulation.household_segments import PaymentChannel
+
+    not_a_channel = "cheque_by_post"
+    assert not_a_channel not in {c.value for c in PaymentChannel}
+    assert not_a_channel not in OFGEM_BUNDLED_ALLOWANCE_GBP_PER_YEAR_DUAL_FUEL
+
     customers = [_cust("C9", "electricity", True)]
-    ledger = build_opex_ledger(customers, {"C9": "prepayment"})  # not in OFGEM_BUNDLED_ALLOWANCE
+    ledger = build_opex_ledger(customers, {"C9": not_a_channel})
     assert ledger["true_third_party_cost_gbp"] == pytest.approx(19.01)  # true side unaffected
     assert ledger["benchmark_labour_cost_gbp"] == 0.0
     assert ledger["household_count"] == 0
     assert ledger["unresolved_household_count"] == 1
+
+
+def test_a_prepayment_household_now_counts_in_the_benchmark_population():
+    """The defect this pair of commits fixes, stated as its own control.
+
+    A prepayment household used to land in `unresolved_household_count` and leave the
+    benchmark population entirely -- so `household_count` under-reported the book and every
+    per-household figure divided by the wrong denominator.
+    """
+    customers = [_cust("C9", "electricity", True)]
+    ledger = build_opex_ledger(customers, {"C9": "prepayment"})
+
+    assert ledger["household_count"] == 1
+    assert ledger["unresolved_household_count"] == 0
+    assert ledger["benchmark_labour_cost_gbp"] > 0.0
 
 
 def test_build_opex_ledger_benchmark_never_goes_negative():
@@ -195,10 +228,48 @@ def test_build_opex_ledger_per_household_single_household_equals_total():
     )
 
 
-def test_ofgem_allowance_has_no_prepayment_key():
-    """This codebase's PaymentChannel enum has no Prepayment variant -- confirms the
-    module's own documented scoping choice, not an oversight."""
-    assert "prepayment" not in OFGEM_BUNDLED_ALLOWANCE_GBP_PER_YEAR_DUAL_FUEL
+def test_a_payment_channel_the_world_can_produce_has_a_benchmark_allowance():
+    """Every PaymentChannel member must have an allowance, or its households vanish.
+
+    THIS TEST REPLACES `test_ofgem_allowance_has_no_prepayment_key`, which asserted
+    `"prepayment" not in OFGEM_BUNDLED_ALLOWANCE_...` and called it "the module's own
+    documented scoping choice, not an oversight". That was keyed to the answer of the day
+    rather than to a property, and it did exactly what such a control does: on 2026-09-05
+    PB4 separated PREPAYMENT out of STANDARD_CREDIT, the world started producing a channel
+    the allowance table did not carry, and the control that should have caught it was
+    instead GREEN -- it was pinned to the very state that had become wrong. It went red
+    only when the code became MORE honest, which is backwards.
+
+    The property is the one that matters to the reader of the number: a household whose
+    channel has no allowance is not an error, it is silently dropped from the benchmark
+    population by `.get`, so the book shrinks and the per-household figures published on
+    the Front Door thesis chart divide by a smaller denominator.
+
+    Keyed to the enum rather than to a literal list, so the next channel added reds here
+    on the commit that adds it, naming the file to change.
+    """
+    from simulation.household_segments import PaymentChannel
+
+    missing = [
+        channel.value
+        for channel in PaymentChannel
+        if channel.value not in OFGEM_BUNDLED_ALLOWANCE_GBP_PER_YEAR_DUAL_FUEL
+    ]
+    assert not missing, (
+        f"PaymentChannel member(s) {missing} have no Ofgem benchmark allowance. Their "
+        "households will be dropped from the benchmark population silently. Add the "
+        "published Ofgem allowance to OFGEM_BUNDLED_ALLOWANCE_GBP_PER_YEAR_DUAL_FUEL in "
+        "saas/opex_ledger.py -- and if no figure is published for it, say so there "
+        "explicitly rather than leaving the key absent."
+    )
+
+
+def test_the_prepayment_allowance_is_the_published_ofgem_figure():
+    """Sourced, not chosen: Ofgem cap Jul-Sep 2026 Annex 3, 17% of the £1,812 PPM
+    dual-fuel cap. Recorded in ASSUMPTIONS.md at H confidence since 2026-07-10, and
+    quoted in this module's own comment for two months before it had a population."""
+    assert OFGEM_BUNDLED_ALLOWANCE_GBP_PER_YEAR_DUAL_FUEL["prepayment"] == 308.04
+    assert 1812 * 0.17 == pytest.approx(308.04, abs=0.05)
 
 
 # -- Category (4): infrastructure at commercial rates --
