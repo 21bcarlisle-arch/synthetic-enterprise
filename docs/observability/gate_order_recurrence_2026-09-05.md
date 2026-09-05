@@ -1,113 +1,84 @@
-# Measurement — queueing, flapping, or masked, decided by the gate order
+# Measurement — what the chain's early exit costs the cause split, and which copy of the log is the subject
 
 *2026-09-05, delivery seat. Pre-registered before any classification:*
 `docs/design/PREREGISTRATION_ARE_THE_GATES_QUEUEING_FLAPPING_OR_MASKED_2026-09-05.md`.
 
 **Re-derive:**
-`python3 -m tools.commit_refusal_attribution --log <the shared tree>/docs/observability/sim-runner-log.md`
+`python3 -m tools.commit_refusal_attribution --log <shared tree>/docs/observability/sim-runner-log.md`
 
-**Read that path twice.** The subject is the running daemon's **working copy**. The committed copy
-of the log was truncated to 2026-07-17 on 2026-08-31, so a clean checkout, an isolated worktree, CI
-or a `git archive HEAD` extract holds a file with no refusal in it at all. The module now refuses
-rather than reporting zero from one — see §4.
+**Read that path twice, and see §2 before running it without `--log`.**
 
 ---
 
-## 0. The mechanism, which is what makes any of this decidable
+## 0. What this document is, after a concurrent lane landed the same question first
 
-`git config core.hooksPath` → `tools/git-hooks`. Every gate in `tools/git-hooks/pre-commit` is
-invoked `python3 … || exit 1`, and `commit-msg` runs afterwards with one more. **Serial, fixed
-order, stopping at the first refusal.**
+This turn and `SEAT_FINDING_THE_FIRING_ORDER_CONCEALS_RE_ARRIVALS_RATHER_THAN_FAKING_THEM…`
+worked the predecessor's open question — queueing versus flapping versus an ordering artefact —
+independently and simultaneously. **That finding landed first and its answer is the better one**,
+on a point where my own framing was wrong: I labelled a forward step a `QUEUE STEP`, and a forward
+step establishes nothing, because a genuine queue and a set of gates all red from the start produce
+identical logs. Their `ORDER-CONSISTENT` bucket names that correctly.
 
-Therefore a named cause proves every *earlier* gate passed on that cycle, and says nothing whatever
-about the later ones. The order below is derived from those two files, joined to the publisher's
-own `_REFUSING_GATE_BANNERS` table by the emitter path that table already carries. Nothing here is
-typed by hand.
+Their `ordering_report` also tests a step against the **running peak rank** rather than against the
+previous cause, which catches a re-arrival where a cause appears only once below a rank already
+reached. My adjacent-pair test could not see those; there are 4 of them.
 
-```
-   2.  ?   finding-severity gate          <- banner text not found in its emitter: position UNRESOLVED
-   2.1369  finding-class consolidation
-   2.1518  RED TEST                       <- the test gate reaching pytest, after everything it prints
-   3.419   level-promotion gate
-   4.138   site-lane gate
-   5.162   moap-coherence gate
-   6.127   ruling-archive-question gate
-   7.427   consolidation-rhythm gate
-   8.263   size-ratchet gate
-   9.402   orphan-ratchet
-  10.246   company-network-isolation gate
-  11.205   file-scope-generated-paths gate
-  12.205   annual-report-import ratchet
-  13.172   half-hourly-dependency ratchet
-  14.343   running-total-order gate
-  15.163   scope-evidence ratchet
-  16.365   write-time gate                <- commit-msg, i.e. after all fifteen
-```
+**So their implementation is the single definition and mine was deleted rather than merged
+alongside it.** Two lanes centralising into one file merge cleanly into two definitions of one
+concept, which is the defect this project pays for repeatedly. What follows is only what survived
+as genuinely additive.
 
-The `?` on finding-severity is the fail-closed path working: its banner is not a literal in the
-emitter's source, so its position within the test gate is unresolved and every comparison involving
-it comes back UNDECIDABLE rather than guessed.
+The headline that stands, from their measurement, is theirs: **ESTABLISHED re-arrival 11 of 16
+mixed episodes, 147.4h, 82.4% of mixed outage.**
 
-## 1. Recurrences — is a gate re-breaking, or was it never fixed?
+## 1. What the same early exit costs the cause split
 
-For a cause recurring at `t1 < t3` with something else named in between at `t2`: if any intervening
-cause sits **later** in the order, the recurring gate was reached and cleared at `t2`, so it
-genuinely re-broke. If every intervening cause sits **earlier**, the gate may have stood broken and
-invisible throughout.
+`by_gate` is a distribution of **first failing** gate. Each count is a lower bound and the bias is
+monotone in chain position: the last gate is only ever visible when every gate before it passes.
+Per gate over the 174 refused cycles the episode view covers — **named**, proven to have **passed**
+(a deeper gate was reached), or **unknown** (a shallower gate refused first, so it was never
+reached):
 
-```
-recurrences of one cause inside one episode (16 total):
-     8   50.0%  PROVEN FLAP (reached and cleared in between, so it re-broke)
-     5   31.2%  MASKABLE (may have stood broken behind an earlier gate)
-     3   18.8%  UNDECIDABLE (a position involved is unknown)
-  of the RED TEST recurrences whose node ids were retained: 3 SAME test, 3 DIFFERENT test(s)
-```
-
-Which gates actually flap:
-
-| Cause | PROVEN FLAP | MASKABLE | UNDECIDABLE |
+| Gate (chain order) | named | proven passing | unknown |
 |---|---:|---:|---:|
-| finding-class consolidation | 4 | 0 | 1 |
-| RED TEST | 3 | 2 | 1 |
-| level-promotion gate | 1 | 0 | 0 |
-| orphan-ratchet | 0 | 2 | 1 |
-| site-lane gate | 0 | 1 | 0 |
+| finding-class consolidation | 31 | 122 | 21 |
+| finding-severity gate | 0 | 122 | 52 |
+| RED TEST | 70 | 52 | 52 |
+| level-promotion gate | 12 | 40 | 122 |
+| site-lane gate | 20 | 20 | 134 |
+| moap-coherence gate | 0 | 20 | 154 |
+| ruling-archive-question gate | 0 | 20 | 154 |
+| consolidation-rhythm gate | 0 | 20 | 154 |
+| size-ratchet gate | 0 | 20 | 154 |
+| orphan-ratchet | 16 | 4 | 154 |
+| company-network-isolation gate | 0 | 4 | 170 |
+| file-scope-generated-paths gate | 1 | 3 | 170 |
+| annual-report-import ratchet | 0 | 3 | 171 |
+| half-hourly-dependency ratchet | 1 | 2 | 171 |
+| running-total-order gate | 0 | 2 | 172 |
+| scope-evidence ratchet | 2 | 0 | 172 |
+| **write-time gate** | **0** | **0** | **174** |
 
-**finding-class is the flapper**, and it is the earliest gate in the whole hook — which is why its
-recurrences are provable and orphan-ratchet's are not.
+**The write-time gate has no observation of any kind in this window.** Never named, never proven
+passing: its state is unknown on all 174 refused cycles. "It never refused a publish" is not an
+observation about that gate — it is unobservable, and reading `by_gate`'s silence as a fact about
+the gate reads a fact about the chain's order as a fact about the world. Seven gates have zero
+named refusals and 150+ unknown cycles each.
 
-## 2. Steps — a queue, or new breakage arriving?
+Read the other way: on **52 of 174 refused cycles (29.9%) the entire test suite is proven green**,
+because a gate deeper than the pytest run was named. Those publishes were blocked purely by
+governance state, and that is a positive observation rather than an inference.
 
-Between two consecutive *distinct* causes: a step to a **later** gate is consistent with the first
-being cleared and the next revealed. A step to an **earlier** gate proves that gate was *passing* on
-the previous cycle and failing on this one — something broke it while the publisher was working.
+**This is the magnitude behind P4**, which was proven a priori by the early exit. It says the
+predecessor's `governance 48% / red 40%` split is a lower bound per gate whose internal ranking
+(finding-class 31 > site-lane 20 > orphan 16) is confounded with chain position.
 
-```
-steps between consecutive distinct causes (45 total):
-    20   44.4%  QUEUE STEP (a later gate revealed)
-    13   28.9%  PROVEN NEW BREAKAGE (an earlier gate that was passing broke)
-    12   26.7%  UNDECIDABLE (a position involved is unknown)
+## 2. The instrument was answering zero from every clean tree
 
-multi-cycle episodes: 26 | containing a PROVEN FLAP: 5 | containing PROVEN NEW BREAKAGE: 9
-```
-
-## 3. Weighted by what it cost — the only ranking that decides anything
-
-Over the 26 bounded multi-cycle episodes, 228.7h of outage:
-
-| Class | Episodes | Outage | Share |
-|---|---:|---:|---:|
-| contains PROVEN NEW BREAKAGE | 9 | 132.7h | **58.0%** |
-| contains a PROVEN FLAP | 5 | 104.5h | 45.7% |
-| contains either | 9 | 132.7h | **58.0%** |
-| **PURE QUEUE** (only queue steps, no recurrence) | **4** | **25.4h** | **11.1%** |
-
-The 68.8h episode — 28.7% of all outage on its own — contains **both** a proven flap and proven new
-breakage. It is not a queue.
-
-## 4. The instrument's own fail-open defect, found while re-running it here
-
-Run from this worktree against the default path, the module used to print:
+`docs/observability/sim-runner-log.md` is tracked, but the **committed copy was truncated to
+2026-07-17 on 2026-08-31**, and every line this measurement reads has been written to the running
+daemon's **working copy** since. Run from this isolated worktree against the default path, the
+module printed:
 
 ```
 commit_refused cycles: 0
@@ -116,9 +87,10 @@ total bounded outage: 0.0h over 0 episodes
 ```
 
 A complete, confidently formatted report that the publisher has never once failed — the most
-comfortable answer available, from a file that simply does not contain the subject. Both landed
-predecessor findings publish `python3 -m tools.commit_refusal_attribution` as their re-derivation
-instruction, so anyone checking either of them from a clean tree got that. It now refuses:
+comfortable answer available, produced by an **absent** subject rather than a clean one. Three
+findings now publish `python3 -m tools.commit_refusal_attribution` as their re-derivation
+instruction, so anyone checking any of them from a clean checkout, CI, or a `git archive HEAD`
+extract was handed that. It now refuses, with exit 2:
 
 ```
 REFUSED: docs/observability/sim-runner-log.md contains no named commit outcome, so nothing here is measurable.
@@ -128,45 +100,15 @@ REFUSED: docs/observability/sim-runner-log.md contains no named commit outcome, 
   2026-07-17 on 2026-08-31. The subject is the running daemon's working copy.
   Point --log at the shared tree's copy; do not read a zero here as a result.
 ```
-(exit 2)
 
-## 5. The order bias, quantified — P4's magnitude
+The refusal **replaces** the report rather than preceding it: a zero printed underneath a warning
+is still a zero a reader will quote.
 
-For each gate, across the 174 refused cycles the episode view covers: how often it was **named**,
-how often a *later* gate was named (so it is **proven to have passed**), and how often a *strictly
-earlier* gate was named (so its state is **unknowable** — it may have been broken and invisible).
+## 3. Not done, and named rather than left implied
 
-| Gate (hook order) | named | proven passing | unknown |
-|---|---:|---:|---:|
-| 2 finding-severity gate | 0 | 52 | 122 |
-| 2 finding-class consolidation | 31 | 122 | 21 |
-| 2 RED TEST | 70 | 52 | 52 |
-| 3 level-promotion gate | 12 | 40 | 122 |
-| 4 site-lane gate | 20 | 20 | 134 |
-| 5 moap-coherence gate | 0 | 20 | 154 |
-| 6 ruling-archive-question gate | 0 | 20 | 154 |
-| 7 consolidation-rhythm gate | 0 | 20 | 154 |
-| 8 size-ratchet gate | 0 | 20 | 154 |
-| 9 orphan-ratchet | 16 | 4 | 154 |
-| 10 company-network-isolation gate | 0 | 4 | 170 |
-| 11 file-scope-generated-paths gate | 1 | 3 | 170 |
-| 12 annual-report-import ratchet | 0 | 3 | 171 |
-| 13 half-hourly-dependency ratchet | 1 | 2 | 171 |
-| 14 running-total-order gate | 0 | 2 | 172 |
-| 15 scope-evidence ratchet | 2 | 0 | 172 |
-| **16 write-time gate** | **0** | **0** | **174** |
-
-**The write-time gate's state is unknown on every single refused cycle in the window.** "It never
-refused a publish" is not an observation about it; it is unobservable. Seven gates have zero named
-refusals and over 150 unknown cycles each.
-
-Read the other way: on **52 of 174 refused cycles (29.9%) the entire test suite is proven green**,
-because a gate later than the pytest run was named. Those publishes were blocked purely by
-governance state.
-
-## Note on 175 vs 174
-
-`attribute()` counts refusal *lines* (175). `cycles()` pairs each outcome with the attempt line
-above it and keeps those at or after the window opens; the very first refusal's attempt line
-predates the opening stamp, so the episode view covers 174. Pre-existing, unchanged by this turn,
-and recorded because the two figures appear side by side above.
+**`RED TEST` is a bucket, not a gate identity.** An established re-arrival of `RED TEST` may be one
+test re-breaking or two different tests breaking in turn — a contended control versus ordinary
+traffic, which are different findings with different remedies. The hook blocks retain `FAILED`/
+`ERROR` node ids, so this is answerable from the log already retained. I built it against my own
+recurrence machinery, which was deleted in favour of theirs, and did not rebuild it on top of
+`ordering_report` this turn. It is the next question, not a gap in the data.
