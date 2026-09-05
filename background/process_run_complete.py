@@ -3138,6 +3138,13 @@ _REFUSING_GATE_BANNERS = (
     # commit it let through.
     ("startup-anchor freshness gate",
      ("[startup-anchors] REFUSED",), "tools/startup_anchor_freshness.py"),
+    # The gate's other two `[knowledge-gate]` lines are BOTH non-refusals -- the pass line
+    # (`... research documents; N named by a Knowledge`) and the fail-OPEN line (`topic graph
+    # unreadable, not blocking`) -- and neither carries `COMMIT REFUSED.`, so this needle cannot
+    # name it as the refuser of a commit it let through. That is the write-time-gate trap; here
+    # the refusal branch owns a literal of its own and needs no second needle to separate it.
+    ("knowledge-layer gate",
+     ("[knowledge-gate] COMMIT REFUSED.",), "tools/knowledge_layer_gate.py"),
     ("moap-coherence gate",
      ("[moap-coherence] ❌ COMMIT REFUSED",), "tools/moap_coherence_gate.py"),
     ("ruling-archive-question gate",

@@ -155,7 +155,7 @@ this whole turn is about, met on the way to landing it.
 
 ## Where the derivation lives
 
-`python3 -m background.publish_standing_red --replay <log>` prints every figure above. The register
+`python3 -m tools.standing_red_replay <log>` prints every figure above. The register
 it renders is `docs/staging/reference/PUBLISH_STANDING_RED_REGISTER.md`; the live store is
 `docs/observability/publish_standing_reds.json`, which starts **empty on purpose** — seeding it
 from the replay would be inventing state the live path never observed, and the next refusal is at

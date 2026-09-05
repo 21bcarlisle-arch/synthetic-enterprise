@@ -25,6 +25,7 @@ import pytest
 
 from background import publish_standing_red as psr
 from background import staging_rooms as sr
+from tools import standing_red_replay
 
 A = "tests/foo/test_a.py::test_one"
 B = "tests/bar/test_b.py::test_two"
@@ -313,7 +314,7 @@ def test_the_replay_reaches_escalation_discharge_and_a_subjectless_refusal():
         + _cycle("03:00", [])         # a non-test gate: refuses, folds no subject
         + _cycle("04:00")             # LANDS -> discharges a non-empty ledger
         + _cycle("05:00", [B]))       # B at 1, alone in a fresh ledger
-    rep = psr.replay(log)
+    rep = standing_red_replay.replay(log)
     assert rep["escalated_distinct"] == 1 and rep["escalation_events"] == 1
     assert rep["worst_cycles_blocked"] == 2
     assert rep["landings_that_discharged_something"] == 1, (
@@ -334,7 +335,7 @@ def test_the_replay_does_not_carry_a_red_across_a_landing():
     """DEFECT: a monotonic replay. If the landing did not discharge, A would reach 2 across the
     landing and be reported as standing — manufacturing an escalation out of a red that cleared."""
     log = "\n".join(_cycle("01:00", [A]) + _cycle("02:00") + _cycle("03:00", [A]))
-    rep = psr.replay(log)
+    rep = standing_red_replay.replay(log)
     assert rep["worst_cycles_blocked"] == 1 and rep["escalated_distinct"] == 0
 
 
