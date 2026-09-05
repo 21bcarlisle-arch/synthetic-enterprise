@@ -69,7 +69,8 @@ from typing import Any, Mapping
 
 __all__ = ["ABSENT", "READABLE", "UNREADABLE", "PRIOR_VERDICTS",
            "classify_prior", "load_episode_prior", "prior_unreadable",
-           "classify_list_prior", "load_list_prior", "preserve_unreadable"]
+           "classify_list_prior", "load_list_prior", "screen_list_value",
+           "preserve_unreadable"]
 
 ABSENT = "absent"
 READABLE = "readable"
@@ -150,13 +151,29 @@ def classify_list_prior(raw: str | None, item_type: type = str) -> tuple[list[An
         parsed = json.loads(raw)
     except (json.JSONDecodeError, ValueError):
         return [], UNREADABLE
-    if not isinstance(parsed, list):
+    screened = screen_list_value(parsed, item_type)
+    if screened is None:
         return [], UNREADABLE
+    return screened, READABLE
+
+
+def screen_list_value(value: Any, item_type: type = str) -> list[Any] | None:
+    """`classify_list_prior`'s SHAPE screen over an already-parsed value. `None` means unreadable.
+
+    Split out of that function 2026-09-05, unchanged, for the first carrier whose record is a list
+    NESTED INSIDE a mapping: `.reconcile_watch_state.json` is `{"drift": [...], "at": ...}`, so it
+    goes through `load_episode_prior` for the file and then still owes its `drift` field the item
+    screen a top-level list gets for free. The alternative there was `isinstance(drift, list)`
+    written out a second time -- and the bool exclusion below is exactly the kind of repair such a
+    copy silently declines to carry.
+    """
+    if not isinstance(value, list):
+        return None
     # `isinstance(True, int)` is True, so a bool would pass an `item_type=int` screen. Every
     # caller here wants str, but the exclusion is written once rather than left as a trap.
-    if not all(isinstance(i, item_type) and not isinstance(i, bool) for i in parsed):
-        return [], UNREADABLE
-    return list(parsed), READABLE
+    if not all(isinstance(i, item_type) and not isinstance(i, bool) for i in value):
+        return None
+    return list(value)
 
 
 def load_list_prior(path: Path | str, item_type: type = str) -> tuple[list[Any], str]:

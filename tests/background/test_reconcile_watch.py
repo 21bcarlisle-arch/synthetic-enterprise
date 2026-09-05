@@ -211,6 +211,107 @@ def test_the_drift_check_never_restarts_anything():
         assert verb not in code, f"the drift reporter must not {verb}"
 
 
+# ── THE MEMORY THAT COULD NOT SAY IT HAD BEEN LOST (2026-09-05) ─────────────────────────────
+# `_load_last` answered `[]` for an ABSENT state file and `[]` for every corrupt one, and `[]` is
+# this carrier's CLEAN BASELINE. So a corrupt file beside a currently-clean reconcile made
+# `sig != last` False and the RECOVERY page was never sent: the director keeps holding the last
+# alarm he received, with nothing recording that the all-clear was swallowed. The eleven other
+# conflations on this census fail LOUD (a duplicate page, an extra run); this one was the only one
+# that failed QUIET, which is why it is the one that got a direction rather than a shrug.
+
+
+def _corrupt(path, raw="{not json"):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(raw)
+
+
+def test_the_recovery_page_a_lost_memory_used_to_swallow(_wired):
+    """THE OBSERVED DEFECT. Corrupt memory + clean reconcile: under the old loader `last` was `[]`,
+    `sig` was `[]`, so `changed` was False and nothing was sent."""
+    _corrupt(W.STATE_FILE)
+    proc, sched = _clean()
+    assert W.run(proc, sched, notify=lambda *a, **k: _wired.append((a, k))) is True
+    assert len(_wired) == 1
+    assert _wired[0][1]["headers"]["X-Tags"] == "white_check_mark"
+
+
+def test_the_page_says_the_transition_claim_could_not_be_made(_wired):
+    """Fail closed AND say so on the surface. An all-clear that silently means 'clean now, and we
+    cannot tell you what it was' is a stronger claim than we hold."""
+    _corrupt(W.STATE_FILE)
+    proc, sched = _clean()
+    W.run(proc, sched, notify=lambda *a, **k: _wired.append((a, k)))
+    assert "PRESENT AND UNREADABLE" in _wired[0][0][0]
+    assert "clean" in _wired[0][0][0], "the current reconcile must still be stated, not replaced"
+
+
+def test_a_lost_memory_beside_live_drift_still_pages_the_alarm_not_a_recovery(_wired):
+    """The other half of the branch: `cleared` widened to include the unreadable case, so it has to
+    be shown NOT firing when there is drift to report. A watcher that answered white_check_mark
+    while eight items were diverging would be worse than the defect it replaced."""
+    _corrupt(W.STATE_FILE)
+    dp, ds = _drift()
+    assert W.run(dp, ds, notify=lambda *a, **k: _wired.append((a, k))) is True
+    assert _wired[0][1]["headers"]["X-Tags"] == "rotating_light"
+    assert _wired[0][1]["headers"]["X-Priority"] == "high"
+
+
+def test_an_absent_memory_is_still_the_clean_baseline_and_a_first_clean_run_stays_silent(_wired):
+    """THE DIRECTION THAT WAS DELIBERATELY NOT CHANGED. The loader's original argument is sound and
+    the repair must not take it with it: a first clean run is not a transition. Over-correcting to
+    'anything that is not a readable signature pages' would make every fresh install page once,
+    which is the always-red shape this file already refuses elsewhere."""
+    assert not W.STATE_FILE.exists()
+    proc, sched = _clean()
+    assert W.run(proc, sched, notify=lambda *a, **k: _wired.append((a, k))) is False
+    assert _wired == []
+
+
+def test_a_corrupt_memory_pages_once_and_not_on_every_tick(_wired):
+    """WHAT MAKES PAGING AFFORDABLE. `run` saves the signature on every page, so the corrupt file
+    is replaced in the same pass. If it were not, this repair would trade one swallowed all-clear
+    for a page every five minutes -- and an always-red watcher is an ignored watcher."""
+    _corrupt(W.STATE_FILE)
+    proc, sched = _clean()
+    notify = lambda *a, **k: _wired.append((a, k))  # noqa: E731
+    assert W.run(proc, sched, notify=notify) is True
+    assert W.run(proc, sched, notify=notify) is False
+    assert len(_wired) == 1
+
+
+def test_the_lost_bytes_are_kept_before_the_recovery_overwrites_them(_wired):
+    """The page forces a `_save`, and that save is what destroys the only copy of what we had.
+    Preserve first, or the recovery erases the evidence of the loss it is recovering from."""
+    _corrupt(W.STATE_FILE, '{"drift": ["G:only_record_of_this:stale"]')
+    proc, sched = _clean()
+    W.run(proc, sched, notify=lambda *a, **k: _wired.append((a, k)))
+    kept = list(W.STATE_FILE.parent.glob(f"{W.STATE_FILE.name}.unreadable*"))
+    assert kept, "the corrupt bytes were overwritten by the save the loss itself triggered"
+    assert "only_record_of_this" in kept[0].read_text()
+
+
+@pytest.mark.parametrize("raw,expected", [
+    (None, []),                                    # ABSENT -- the clean baseline, on purpose
+    ('{"drift": ["G:x:stale"], "at": "t"}', ["G:x:stale"]),   # READABLE
+    ("", None),                                    # a truncated write leaves a zero-length file
+    ("{not json", None),
+    ("null", None),                                # parses -- which is why an except never saw it
+    ("[1, 2, 3]", None),                           # parses, and is not a mapping
+    ('{"at": "t"}', None),                         # a mapping with no record in it
+    ('{"drift": "abc"}', None),                    # `len()` answers 3 for this one
+    ('{"drift": [1, 2]}', None),                   # a list whose ITEMS are not a signature
+])
+def test_the_whole_prior_partition_answers_and_both_answers_occur(_wired, raw, expected):
+    """ONE CONTROL OVER THE PARTITION, not a leg per shape. Nothing here may raise -- this loader
+    runs on a five-minute timer inside the watcher that reports everything else being broken -- and
+    the parametrisation is written so that a loader which answered `None` to EVERYTHING would fail
+    the first two rows, and one that answered `[]` to everything (today's defect) would fail the
+    other seven. A guard that refuses everything passes every test of a guard."""
+    if raw is not None:
+        _corrupt(W.STATE_FILE, raw)
+    assert W._load_last() == expected
+
+
 def test_a_failing_drift_check_does_not_stop_the_reconcile(monkeypatch):
     """FAIL-SAFE: this rides the reconcile timer, and the reconcile is the thing that must not
     stop. An exception here is logged and swallowed."""
