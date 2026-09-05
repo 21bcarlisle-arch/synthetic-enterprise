@@ -112,6 +112,12 @@ _TOOLS_DIR = Path(__file__).resolve().parent
 ROOT = _TOOLS_DIR.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
+# `register_low_water` is the SHARED low-water mechanism, called rather than copied. Three
+# hand-rolled implementations of this control already exist (removed_dispositions on the census,
+# removed_claims on the canon, removed_rows the generic), each carrying its own copy of the
+# or-empty-string null treatment and the None-never-empty refusal; a fourth copy here would regress
+# every repair the generic holds the moment one of them is fixed and this one is not.
+from background import register_low_water  # noqa: E402
 from background.gate_authorization import (  # noqa: E402
     UNKNOWN_LANE,
     UNREADABLE_INDEX_FINDING,
@@ -123,6 +129,7 @@ from background.gate_authorization import (  # noqa: E402
 )
 
 MAP_REL = "docs/design/maturity_map.yaml"
+RETIRED_REL = "docs/design/maturity_map_retired.yaml"
 # Both halves of the map -- see _whole_map below. Imported rather than restated so the two
 # files can never drift apart from the store that defines them.
 from tools.maturity_map_store import MAP_PARTS_REL  # noqa: E402
@@ -170,6 +177,173 @@ def atom_file_scopes(map_text: str) -> dict:
 
     for d in yaml.safe_load_all(map_text):
         walk(d)
+    return out
+
+
+# ── FOURTH CONTROL: the map's atom set is a HIGH-WATER MARK and nothing kept it from falling ──
+#
+# Every control over the map is written `for atom in atoms` -- the five facet checks, this gate's
+# own level comparison, the draw, the coherence gate. A control shaped that way has the REGISTER as
+# its subject set, so an atom in neither the map nor anything that names it is the subject of
+# nothing. Measured 2026-09-05: 175 of 314 atoms are named by nothing in `depends_on`/
+# `couples_with`/`blocked_on`; deleting one returned ZERO violations from all five facet checks.
+# The map's protection was the ACCIDENT of an atom being referenced, which is not a control.
+#
+# AND IT HAD ALREADY FALLEN, twice silently. Over 1,023 committed map revisions the union of both
+# halves shrank in three commits, losing 22 atoms. Twenty are argued in the commit that removed
+# them; `D6a_ageing_gap_metric_reshape` and `D6b_ambiguous_remittance_misdating` went in a commit
+# about `derive_supply_start` that does not mention them anywhere. Nothing could tell the two cases
+# apart, which is the whole argument for refusing rather than reporting.
+#
+# THE UNION, NEVER ONE HALF. `_whole_map` concatenates both parts, and it has to: measured over the
+# live half alone the 2026-08-26 split reads as 224 deletions, and every honest `refile()` of a
+# finished atom would read as one more. Measured over the union, `refile()` moves an atom and the
+# key set is unchanged (verified by running it).
+
+
+def atom_ids(map_text: str) -> set:
+    """Every atom id in the whole map -- deliberately `atom_levels`' OWN key set rather than a
+    second walk. Two walks over one register drift, and the drift is invisible: the low-water rung
+    would be guarding a slightly different population from the one the level rung gates. Pure."""
+    return set(atom_levels(map_text))
+
+
+def retired_reasons(text: str) -> dict:
+    """{atom_id: reason} from the retirement register, which is a YAML MAPPING and not a list.
+
+    RAISES on anything that is not a mapping of string keys. The register's whole job is to be the
+    one authored sentence separating an abolished atom from a lost one, so a shape that cannot
+    carry sentences is a corrupt register, not an empty one -- and the caller turns the raise into a
+    refusal. An absent-but-readable empty document IS an empty register: nothing retired yet."""
+    doc = yaml.safe_load(text)
+    if doc is None:
+        return {}
+    if not isinstance(doc, dict):
+        raise ValueError(
+            f"{RETIRED_REL} must be a YAML mapping of atom_id: reason, not "
+            f"{type(doc).__name__} -- it is not a third half of the map and must not parse as one"
+        )
+    bad = sorted(str(k) for k in doc if not isinstance(k, str))
+    if bad:
+        raise ValueError(f"{RETIRED_REL} has non-string atom ids: {', '.join(bad)}")
+    return dict(doc)
+
+
+def low_water_failures(*,
+                       old_map_text: str | None,
+                       new_map_text: str,
+                       old_retired_text: str | None,
+                       new_retired_text: str | None,
+                       head_tracks_map: bool | None,
+                       head_tracks_retired: bool | None,
+                       staged_tracks_retired: bool | None) -> list[str]:
+    """Every low-water refusal for this commit. PURE over the six inputs, so it is mutation-testable
+    without a git tree; `main()` does nothing but fetch them.
+
+    `head_tracks_*` is the three-valued answer to "does HEAD's tree contain this file": True, False,
+    or None when the probe itself failed. It exists because `git show` returns the same None for
+    "absent at that revision" and "git could not answer", and those are opposite claims. Absent is a
+    positively-established EMPTY baseline -- nothing was in the register, so nothing can have left
+    it. A failed probe is an UNESTABLISHED baseline and must refuse, or this control reports clean on
+    every tree where git is unavailable, which is the fail-silent it exists to close.
+    """
+    out: list[str] = []
+
+    # The map's ids at HEAD. An unparseable baseline refuses here, which is deliberately STRICTER
+    # than `evaluate()`'s degrade-to-{} one function above: for a level comparison an empty baseline
+    # reads every atom as new and blocks nothing that matters, but for a removal comparison an empty
+    # baseline reports "nothing was removed" -- the flattering answer, from a broken read.
+    old_ids: frozenset | None
+    if old_map_text is None:
+        if head_tracks_map is None:
+            old_ids = None
+        elif head_tracks_map is False:
+            old_ids = frozenset()  # the map is new in this commit: nothing can have left it
+        else:
+            out.append(
+                f"{MAP_REL}: HEAD's tree contains the map but its content could not be read, so "
+                f"whether an atom has been removed cannot be answered -- this is a refusal, not a "
+                f"clean result."
+            )
+            old_ids = frozenset()  # already refused above; do not refuse the same fact twice
+    else:
+        try:
+            old_ids = frozenset(atom_ids(old_map_text))
+        except Exception as exc:  # noqa: BLE001 -- an unparseable baseline is UNESTABLISHED
+            out.append(
+                f"{MAP_REL}: the map at HEAD could not be parsed ({exc}), so whether an atom has "
+                f"been removed cannot be answered -- this is a refusal, not a clean result."
+            )
+            old_ids = frozenset()
+
+    new_ids = atom_ids(new_map_text)  # already parsed by the caller; a raise here is a real defect
+
+    # The retirement register, at HEAD and as staged. `tracks` is probed SEPARATELY per revision:
+    # one flag for both would read a register newly created in this commit and a register deleted by
+    # it as the same state, and they are opposites.
+    def _retired(text, tracks, where):
+        """(reasons, refusals). `reasons` is None when the register is UNREADABLE -- distinct from
+        {}, which is the positively-established empty register that grants no reasons but hides
+        nothing."""
+        if text is None:
+            if tracks is False:
+                return {}, []  # positively absent at this revision: an empty register, not a hole
+            return None, [
+                f"{RETIRED_REL}: the {where} copy could not be read"
+                + ("" if tracks is None else ", though that revision's tree contains it")
+                + ". A register that cannot be read grants no retirement reasons and hides any row "
+                  "that left it -- this is a refusal, not a clean result."]
+        try:
+            return retired_reasons(text), []
+        except Exception as exc:  # noqa: BLE001
+            return None, [f"{RETIRED_REL}: the {where} copy is unparseable ({exc}). An unreadable "
+                          f"retirement register grants no reasons -- this is a refusal."]
+
+    new_retired, errs = _retired(new_retired_text, staged_tracks_retired, "staged")
+    out.extend(errs)
+    old_retired, errs = _retired(old_retired_text, head_tracks_retired, "HEAD")
+    out.extend(errs)
+
+    # RUNG 1 -- an atom that left the map without a reason. Routed through the shared mechanism so
+    # the null treatment, the never-empty refusal and the no-subject-gone-exception argument are the
+    # ones that were mutation-proved once, not a fourth hand-rolled copy of them.
+    out.extend(register_low_water.removed_rows(
+        register=MAP_REL,
+        current=new_ids,
+        baseline=old_ids,
+        retired=new_retired,
+        row_is="An atom row is the only record that this piece of work was ever on the map, and "
+               "175 of 314 atoms are named by nothing that would notice its absence.",
+        retire_with="`{key}: <what took it out of the tree>` to " + RETIRED_REL,
+    ))
+
+    # RUNG 2 -- a row that left the RETIREMENT register. Append-only, with exactly one way out: the
+    # atom came BACK. Without this, the reason can be erased one commit after it cleared rung 1 --
+    # by then the atom is gone from HEAD's map, so rung 1 has no subject and says nothing. The
+    # un-retirement exception is what stops this becoming a regress (a reason for retiring a reason)
+    # while granting no free pass, because there is no other honest cause to erase the record.
+    if old_retired is None or new_retired is None:
+        return out  # already refused above -- a second complaint about the same file is noise
+    left = sorted(k for k in set(old_retired) - set(new_retired) if k not in new_ids)
+    # The collapse is for a WHOLESALE clearing only, and only past a handful: a wall of identical
+    # complaints is how a reader stops reading, but a message that names no id is how a reader
+    # cannot act. Below the threshold the ids are worth more than the brevity.
+    if len(left) > 3 and not new_retired and old_retired:
+        out.append(
+            f"{RETIRED_REL}: the retirement register held {len(old_retired)} row(s) at HEAD and "
+            f"holds none now. It is append-only: those rows are the only surviving record that "
+            f"{len(left)} atom(s) ever existed, and none of them is back in the map. Restore the "
+            f"file rather than clearing it."
+        )
+        return out
+    for key in left:
+        out.append(
+            f"{RETIRED_REL}: `{key}` was in the retirement register at HEAD and is not in it now, "
+            f"and `{key}` is not back in the map either. This register is append-only: the row is "
+            f"the only surviving record that the atom existed, and deleting it erases the evidence "
+            f"rather than the debt. Restore the row, or put `{key}` back into the map in this same "
+            f"commit if it was retired in error."
+        )
     return out
 
 
@@ -370,6 +544,27 @@ def _git_show(spec: str) -> str | None:
     return r.stdout
 
 
+def _tree_tracks(rev: str, rel: str) -> bool | None:
+    """Does `rev`'s tree contain `rel`? True / False / None when the probe itself failed.
+
+    `git show` cannot answer this: it returns the same non-zero for "the path is not at that
+    revision" and "git could not run", and those are opposite claims -- one is an established empty
+    baseline, the other is no baseline at all. `ls-tree` separates them (rc 0 with empty output is a
+    positive absence). Read-only, and `--full-tree` with a root-relative pathspec so it resolves the
+    same from a linked worktree or a subdirectory, which is where this gate actually runs.
+    """
+    env = {k: v for k, v in os.environ.items() if k != "GIT_PREFIX"}
+    args = (["git", "ls-tree", "--full-tree", "--name-only", rev, "--", rel] if rev != ":" else
+            ["git", "ls-files", "--cached", "--", rel])
+    try:
+        r = subprocess.run(args, cwd=str(ROOT), env=env, capture_output=True, text=True, timeout=60)
+    except Exception:  # noqa: BLE001 -- probe unavailable == probe failed (R15 fail-silent)
+        return None
+    if r.returncode != 0:
+        return None
+    return bool(r.stdout.strip())
+
+
 def _staged_names() -> list[str]:
     """Paths staged in this commit (read-only)."""
     r = subprocess.run(["git", "diff", "--cached", "--name-only", "--diff-filter=ACM"],
@@ -411,7 +606,10 @@ def _whole_map(rev_prefix: str) -> str | None:
 
 
 def main() -> int:
-    if not any(rel in _staged_names() for rel in MAP_PARTS_REL):
+    # The retirement register is in the trigger set as well as the map's two halves: rung 2 below
+    # guards a commit that touches ONLY the register, and a trigger keyed to the map alone would
+    # make that route unreachable by construction.
+    if not any(rel in _staged_names() for rel in (*MAP_PARTS_REL, RETIRED_REL)):
         return 0  # the map is not part of this commit -- never block a non-map commit
     new_text = _whole_map(":")
     if new_text is None:
@@ -422,6 +620,27 @@ def main() -> int:
         )
         return 1
     old_text = _whole_map("HEAD:")  # None => new file, allowed
+
+    # ── FOURTH CONTROL, and it runs FIRST because it is the only one whose subject is the REGISTER
+    # rather than a row of it. Every rule below iterates atoms, so an atom deleted in this commit is
+    # the subject of none of them; asking them first and this second would be asking the question in
+    # the order that cannot answer it.
+    lw = low_water_failures(
+        old_map_text=old_text,
+        new_map_text=new_text,
+        old_retired_text=_git_show(f"HEAD:{RETIRED_REL}"),
+        new_retired_text=_git_show(f":{RETIRED_REL}"),
+        head_tracks_map=_tree_tracks("HEAD", MAP_REL),
+        head_tracks_retired=_tree_tracks("HEAD", RETIRED_REL),
+        staged_tracks_retired=_tree_tracks(":", RETIRED_REL),
+    )
+    if lw:
+        sys.stderr.write(
+            "\n[level-gate] ❌ COMMIT REFUSED (the map's atom set is a HIGH-WATER MARK -- every "
+            "other control over the map iterates atoms, so an atom deleted here is the subject of "
+            "none of them):\n  " + "\n  ".join(lw) + "\n")
+        return 1
+
     result = evaluate(old_text, new_text, read_ledger())
     if result["status"] in ("REJECT", "REJECT_UNPARSEABLE"):
         sys.stderr.write("\n[level-gate] ❌ COMMIT REFUSED (MATURITY_MAP.md §0 -- a level move must be "

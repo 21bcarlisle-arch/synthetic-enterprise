@@ -69,13 +69,14 @@ recorded; an instance that never measured its own damage contributes zero.
 from __future__ import annotations
 
 import argparse
+import ast
 import re
 import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from background import staging_rooms
+from background import register_low_water, staging_rooms
 from background.finding_severity import (
     BLOCKING,
     DOORBELL_PREFIXES,
@@ -316,6 +317,84 @@ CLASSES: tuple[FindingClass, ...] = (
 )
 
 CLASSES_BY_ID = {c.id: c for c in CLASSES}
+
+#: THE REGISTER'S LOW-WATER MARK. `{class_id: why it left CLASSES}`.
+#:
+#: Every rule in `check()` is written `for finding_class in CLASSES`, so the tuple above IS the
+#: subject set. Measured 2026-09-05: delete a class from it and `check()` returns clean — and
+#: the rung that REFUSES `MISSING CLASS DOC` refuses on a class ROW, so deleting the row is the
+#: cure for its own refusal. That is a fail-open with an extra step, and it is the same shape
+#: `removed_dispositions()` closed on the alarm census the same day.
+#:
+#: A class may honestly stop being a class: two families merge, or a shape stops recurring and
+#: its document is folded into another. That is a change of CLASSIFICATION, and it says so here
+#: in prose. It is deliberately NOT an escape hatch for the register quietly shrinking — an
+#: entry here is a claim a reader can check against the archive, which is exactly what a
+#: silently-dropped row is not.
+RETIRED_CLASSES: dict[str, str] = {}
+
+#: The register's own path, relative to the project root, as `git show HEAD:` wants it. Named
+#: here rather than built inside the function: a path literal that moves into a resolver stops
+#: being greppable, and the census's own alarm-file audit was blinded exactly that way.
+REGISTER_REL_PATH = "background/finding_classes.py"
+
+
+def class_ids_in_source(source: str) -> list[str] | None:
+    """The class ids declared by a COPY of this module's source, parsed and never executed.
+
+    Reads the `id=` keyword of every `FindingClass(...)` call in the `CLASSES` assignment. AST,
+    not `exec` and not a regex over the whole file: executing HEAD's copy of this module to
+    learn what HEAD's copy declares would let HEAD decide whether it is checked, and a bare
+    regex for `id="..."` matches the `id=` of anything else that grows in here later.
+
+    Returns None — never [] — when the assignment cannot be found. An empty list would say
+    "HEAD declared no classes", which reports every current class as an ADDITION and this
+    control as clean, and that is the fail-silent the whole rung exists to refuse.
+    """
+    try:
+        tree = ast.parse(source)
+    except SyntaxError:
+        return None
+    for node in tree.body:
+        targets = ([node.target] if isinstance(node, ast.AnnAssign)
+                   else node.targets if isinstance(node, ast.Assign) else [])
+        if not any(isinstance(t, ast.Name) and t.id == "CLASSES" for t in targets):
+            continue
+        value = node.value
+        if not isinstance(value, (ast.Tuple, ast.List)):
+            return None
+        ids: list[str] = []
+        for element in value.elts:
+            if not isinstance(element, ast.Call):
+                continue
+            for keyword in element.keywords:
+                if keyword.arg == "id" and isinstance(keyword.value, ast.Constant):
+                    ids.append(str(keyword.value.value))
+        # A CLASSES assignment that parsed but yielded no ids is a shape this extractor no
+        # longer understands, not a register that was empty. Refuse rather than report clean.
+        return ids or None
+    return None
+
+
+def removed_classes(retired: dict[str, str] | None = None,
+                    baseline: frozenset[str] | None = None) -> list[str]:
+    """Classes that were in `CLASSES` at HEAD and are not in it now, without a named reason.
+
+    Takes its baseline as an argument so the control can be driven without a git tree, and
+    defaults to reading HEAD so the live rung has no fixture to drift from.
+    """
+    base = (register_low_water.keys_at_head(REGISTER_REL_PATH, class_ids_in_source)
+            if baseline is None else baseline)
+    return register_low_water.removed_rows(
+        register="CLASS REGISTER",
+        current=CLASSES_BY_ID,
+        baseline=base,
+        retired=RETIRED_CLASSES if retired is None else retired,
+        row_is="A class row is the only record that this family was ever consolidated, and "
+               "every rule in `check()` iterates `CLASSES` — including the one that refuses a "
+               "missing class document, which this deletion would silence.",
+        retire_with="`RETIRED_CLASSES[\"{key}\"]`",
+    )
 
 
 @dataclass(frozen=True)
@@ -995,6 +1074,12 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
     root = Path(root)
     archive = root / ARCHIVE_DIRNAME
     result = CheckResult()
+
+    # RULE 7, and it runs FIRST because it is the only one whose subject is the register itself.
+    # Rules 0-6 are all `for finding_class in CLASSES` or derived from it, so a class deleted
+    # from the tuple is the subject of none of them — and rule "MISSING CLASS DOC" refuses ON a
+    # class row, which makes deleting the row the cure for that refusal. Measured 2026-09-05.
+    result.failures.extend(removed_classes())
 
     for name, left, right in room_collisions(root):
         result.failures.append(
