@@ -76,3 +76,42 @@ atom retirement a wedge. That choice is the work, not the plumbing.
 **The canon register's guard is crude but real** and is deliberately left alone: `EXPECTED_CLAIM_IDS`
 refuses ADDITIONS as well as removals, which is friction its own comment accepts on purpose.
 Replacing a working low-water mark with a better-shaped one is not worth a wedge here.
+
+---
+
+## CORRECTION, appended 2026-09-05, beside the claim rather than replacing it
+
+**The paragraph immediately above is wrong, and it was already wrong when it landed.** Another lane
+wired `removed_claims()` into `tools/canon_drift_check.py` in `605ec3995`, concurrently with this
+measurement, with its own test file
+(`tests/tools/test_the_canon_register_can_lose_a_claim_and_take_the_drift_with_it.py`). The two
+lanes found the merge, which is where concurrent repairs of one defect always surface here.
+
+What survives the correction, and what does not. The *measurement* stands: the tool did exit 0
+after a claim was deleted, and the pin in the test suite did catch it. What does not stand is the
+**judgement built on it** — "protected, leave it alone" read one guard over the register and
+concluded the register was covered, when the guard that mattered was the one the gate runs. The
+error is not the number; it is grading a register by the strongest control over it instead of
+asking which control the enforcement path actually reaches. That is the same shape as the finding
+above, one level up, and it is the reason the canon row in the table should be read as
+*tool: HOLED / suite: pinned*, not as *PROTECTED*.
+
+## THE NEXT PIECE, and it is now the largest thing here
+
+**The mechanism has three implementations.** `removed_dispositions()` +
+`_dispositions_at_head()` (census, `dc5fcbbc8`), `removed_claims()` + `_claim_ids_at_head()` +
+`load_retired()` (canon, `605ec3995`), and `register_low_water.removed_rows()` + `keys_at_head()`
+(generic, this finding). All three carry the same `or ""` null-reason treatment, the same
+None-never-empty refusal, and the same no-subject-gone-exception argument, copied by hand.
+
+That is precisely the shape CLAUDE.md names — a branch hand-rolling what a helper centralises
+regresses every repair the helper holds — and this project has already paid for it once at scale:
+one VAT rule, five implementations, a defect fixed in one in July and still live in another in
+August, with nothing able to notice. Three copies of a control whose whole subject is *registers
+that silently lose repairs* is the joke writing itself.
+
+Nobody is at fault: two bounded lanes each did the right local thing, and neither could see the
+whole. Converging them is seat work by construction. The order that keeps every proof intact is to
+re-point the two specialisations at `register_low_water`, one at a time, each with its own mutation
+pass, keeping their wording and their arguments — the generic helper already takes `register`,
+`row_is` and `retire_with` precisely so a caller loses no specificity by delegating.
