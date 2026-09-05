@@ -19,7 +19,7 @@ import time
 
 import pytest
 
-from background import seat_executor
+from background import seat_continuation, seat_executor
 
 
 @pytest.fixture(autouse=True)
@@ -328,15 +328,40 @@ def test_the_executor_writes_no_code_to_the_shared_tree():
 
     MUTATION: add any other shared-tree path to `SHARED_TREE_WRITES`, or write one directly, and
     this fires.
+
+    WHICH TREE EACH ENTRY IS RELATIVE TO — NEITHER ONE, IT IS PER ENTRY (2026-09-05). This
+    relativised all three against `seat_executor.PROJECT_DIR`, and the first two are anchored
+    there. The third is not: `seat_continuation.STORE` is anchored to `shared_tree_dir()`
+    deliberately, and that anchoring WAS the 2026-09-04 hand-off repair — a store written to a
+    worktree's own copy is a store no tick reads. From the shared tree the two roots coincide and
+    nobody noticed; from a linked worktree `relative_to` raises, so the control certifying "the
+    executor writes no code to the shared tree" was red in the ONLY environment the executor
+    actually runs in.
+
+    So each path is relativised against the root it is anchored to, discovered rather than
+    hand-listed: a per-entry mapping would decay the next time an entry is added, and pinning the
+    whole list to `shared_tree_dir()` instead would just move the breakage to the other two. This
+    is STRICTLY STRONGER than what it replaces, which checked one root and would have admitted
+    anything at all under the other.
     """
     allowed = {p.name for p in seat_executor.SHARED_TREE_WRITES}
     assert allowed == {"seat-executor-log.md", ".seat_executor.pid", ".seat_continuation.json"}
+    roots = (seat_executor.PROJECT_DIR,
+             seat_continuation.shared_tree_dir(seat_executor.PROJECT_DIR))
     for path in seat_executor.SHARED_TREE_WRITES:
-        rel = path.relative_to(seat_executor.PROJECT_DIR)
-        assert str(rel).startswith("docs/observability/"), (
-            f"{rel} is a shared-tree write outside observability — the executor would be a second "
-            "writer on the code tree, which is the thing it is built not to be"
+        under = [r for r in roots if path.is_relative_to(r)]
+        assert under, (
+            f"{path} is anchored to neither this tree ({roots[0]}) nor the shared tree "
+            f"({roots[1]}) — a write the executor's own claim cannot even locate"
         )
+        # Under EVERY root it is under, not merely one: where the two coincide, a path that is
+        # observability under one and code under the other must not slip through.
+        for root in under:
+            rel = path.relative_to(root)
+            assert str(rel).startswith("docs/observability/"), (
+                f"{rel} is a shared-tree write outside observability — the executor would be a "
+                "second writer on the code tree, which is the thing it is built not to be"
+            )
 
 
 #: The ONLY things allowed to INVOKE the executor. It was armed on 2026-08-31, deliberately and on

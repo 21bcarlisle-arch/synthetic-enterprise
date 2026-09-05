@@ -43,6 +43,15 @@ with no falsifier: a row could say `guarded` while nothing guarded anything. The
 `registered` is honest and deliberately stays RED, so a control classified real but never guarded
 remains visible debt rather than a settled-looking row.
 
+AND THE INVERSE (2026-09-05) -- `eroded_dispositions()`, a dispositioned row whose HIT has
+disappeared. `undispositioned()` only ever asked "a hit with no row"; a path that stopped being a
+hit needed no disposition and `--check` exited 0, which is how five carriers left the class the day
+the loader sweep repaired them and twelve more had gone in earlier eras. The row set is the
+high-water mark -- authored, in git, derived from nothing -- so checking today's derivation against
+it is not the read-your-own-output tautology a remembered hit count would be. A repair that
+genuinely takes a path out of the class is admitted, but only in writing (`declassified`); a path
+the census can no longer see WRITTEN or READ is not a repair and nothing excuses it.
+
 VACUITY GUARD (R15 -- the fail-open shape here is a census that finds NOTHING): a derivation that
 silently stops matching -- a renamed attribute, a moved root, a regex that stops firing -- would
 report an empty class and read as "clean". `census_is_vacuous()` makes that state an explicit
@@ -705,8 +714,93 @@ def undispositioned(census: dict[str, Any], dispositions: dict[str, dict[str, st
         row = disp.get(key)
         if not isinstance(row, dict) or row.get("verdict") not in {"real", "benign"}:
             out.append(key)
-        elif row["verdict"] == "benign" and not str(row.get("why", "")).strip():
+        elif row["verdict"] == "benign" and not str(row.get("why") or "").strip():
+            # `or ""` BEFORE `str`: `{"verdict": "benign", "why": null}` stringified to "None",
+            # which is truthy, so a row asserting nothing passed as a disposition. Found
+            # 2026-09-05 by the inverse control's own partition leg, and repaired in both places.
             out.append(key)  # "benign" with no reason is not a disposition
+    return out
+
+
+#: A row may stop being a hit for an HONEST reason: the control was repaired, and its failure path
+#: no longer writes what its alarm reads. That is a change of CLASSIFICATION, not a loss of the
+#: subject, and the row records it here in prose. It is deliberately NOT an escape hatch for the
+#: census going blind -- a path with no writers or no readers at all is not declassified, it is
+#: LOST, and this field does not excuse it.
+DECLASSIFIED_FIELD = "declassified"
+
+
+def eroded_dispositions(census: dict[str, Any],
+                        dispositions: dict[str, dict[str, str]] | None = None) -> list[str]:
+    """THE INVERSE OF `undispositioned()`: a dispositioned row whose census hit has DISAPPEARED.
+
+    `undispositioned()` asks "is there a hit with no row". Until 2026-09-05 nothing asked the other
+    direction, and that is the door the class walked out of. On 2026-09-05 the loader sweep repaired
+    six carriers by routing their reads through a shared loader; the census attributes a state file
+    by module-level symbol, so the key died at the parameter seam and FIVE paths left the census
+    altogether -- `run_history.json` dropping to ZERO recorded readers while `count_run_history_total`
+    read it on every dashboard build. Twelve more had eroded the same way in earlier eras. Nothing
+    could notice: `census_is_vacuous()` refuses only a TOTALLY empty census, and a path that stops
+    being a hit needs no disposition, so `--check` exited 0 the whole time. **The instrument should
+    fail loud on a SHRINKING subject set, not only on an empty one.**
+
+    THE DISPOSITIONS FILE IS THE HIGH-WATER MARK, and that is why this is not a tautology. The
+    obvious implementation -- remember last run's hit count and refuse a drop -- would read the
+    census's own prior output to decide whether the census is right, which is the first thing this
+    module's header forbids. `undispositioned()` already forces every hit to acquire an AUTHORED
+    row, so the row set is a human-attested record of what the class contained, kept in git,
+    reviewable, and derived from nothing. Checking today's derivation against it is checking source
+    against judgement, not against yesterday's source.
+
+    THE PARTITION, and the split is the whole design. A row can stop being a hit four ways:
+
+      * the path is gone from `state_paths` entirely -- the derivation lost it;
+      * the path is there with NO writers -- the write derivation went blind on it;
+      * the path is there with NO readers -- the read derivation went blind on it (this is exactly
+        `run_history.json` at the parameter seam);
+      * the path is fully visible, written AND read, but the classifiers no longer tag a FAILURE
+        writer or an ALARM reader.
+
+    Only the last of those is what a genuine REPAIR looks like, so only the last can be excused --
+    and only by a row that authors `declassified` with a reason. **Refusing every non-hit row
+    outright would make this control go red precisely when the code became more honest**, which is
+    this project's named backwards-control shape (`feedback_key_a_control_to_the_property`). The
+    first three are not repairs and no field excuses them: the census cannot see its own subject,
+    and that state is indistinguishable from the erosion this exists to catch.
+
+    Returns one line per eroded row, each naming which leg it failed on -- a refusal that says why
+    is how you find out the refusal itself was wrong.
+    """
+    disp = load_dispositions() if dispositions is None else dispositions
+    paths = census.get("state_paths") or {}
+    hits = set(census.get("hits") or [])
+    out: list[str] = []
+    for key in sorted(disp):
+        if key in hits:
+            continue
+        row = disp[key] if isinstance(disp[key], dict) else {}
+        rec = paths.get(key)
+        if not isinstance(rec, dict):
+            out.append("{} -- dispositioned, but the census no longer resolves the path at "
+                       "all".format(key))
+        elif not rec.get("writers"):
+            out.append("{} -- dispositioned, still read by {} function(s), but the census records "
+                       "NO WRITERS: the write derivation went blind on it".format(
+                           key, len(rec.get("readers") or [])))
+        elif not rec.get("readers"):
+            out.append("{} -- dispositioned, still written by {} function(s), but the census "
+                       "records NO READERS: the read derivation went blind on it".format(
+                           key, len(rec.get("writers") or [])))
+        # `or ""` BEFORE `str`, not `.get(field, "")`: a row carrying an explicit JSON `null`
+        # stringifies to "None", which is truthy, and the reason requirement falls open. Caught by
+        # the partition leg below on its first run, and the same slip is one line up in
+        # `undispositioned` -- fixed there too rather than here only (an absurdity is a class).
+        elif not str(row.get(DECLASSIFIED_FIELD) or "").strip():
+            out.append("{} -- dispositioned and still written ({}) and read ({}), but no longer a "
+                       "hit, and the row does not say why: add `{}` naming the repair that took "
+                       "it out of the class, or remove the row".format(
+                           key, len(rec.get("writers") or []), len(rec.get("readers") or []),
+                           DECLASSIFIED_FIELD))
     return out
 
 
@@ -767,6 +861,7 @@ def main() -> int:
                                          row.get("why", "")[:90]))
     missing = undispositioned(census, disp)
     unguarded = unguarded_real_hits(census, disp)
+    eroded = eroded_dispositions(census, disp)
     if not args.check:
         write_census(census)
         print("census written to {}".format(CENSUS_PATH))
@@ -774,7 +869,12 @@ def main() -> int:
         print("UNDISPOSITIONED HITS: {}".format(", ".join(missing)))
     if unguarded:
         print("REAL HITS NOT YET GUARDED: {}".format(", ".join(unguarded)))
-    if missing or unguarded:
+    if eroded:
+        print("DISPOSITIONED ROWS WHOSE HIT HAS DISAPPEARED (the census's subject set is "
+              "shrinking):")
+        for line in eroded:
+            print("  {}".format(line))
+    if missing or unguarded or eroded:
         return 1
     return 0
 

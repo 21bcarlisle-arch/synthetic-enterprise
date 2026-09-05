@@ -188,10 +188,19 @@ def test_an_undispositioned_hit_makes_the_gate_red(live):
 
 
 def test_a_benign_verdict_without_a_reason_does_not_count(live):
-    """'benign' with an empty why is an assertion, not a disposition."""
-    disp = dict(census.load_dispositions())
-    disp[".publish_gate_state.json"] = {"verdict": "benign", "why": "   "}
-    assert ".publish_gate_state.json" in census.undispositioned(live, disp)
+    """'benign' with an empty why is an assertion, not a disposition.
+
+    THE `null` LEG WAS MISSING UNTIL 2026-09-05 and the gate really was open on it: `why: null`
+    went through `str(row.get("why", ""))`, which yields the string "None" — truthy — so a row
+    asserting nothing counted as a disposition. Found by mutation-testing the inverse control
+    written the same day, which had inherited the identical slip. A blank string and a JSON null
+    are different values and only one of them was ever tested.
+    """
+    for nothing in ("   ", "", None):
+        disp = dict(census.load_dispositions())
+        disp[".publish_gate_state.json"] = {"verdict": "benign", "why": nothing}
+        assert ".publish_gate_state.json" in census.undispositioned(live, disp), (
+            "a benign row whose reason is {!r} was accepted as a disposition".format(nothing))
 
 
 def test_a_missing_dispositions_file_fails_toward_work(tmp_path, live):
@@ -222,3 +231,151 @@ def test_vacuity_guard_fires_on_each_way_the_derivation_can_go_blind():
 def test_the_artefact_round_trips(tmp_path, live):
     out = census.write_census(live, tmp_path / "census.json")
     assert json.loads(out.read_text())["hits"] == live["hits"]
+
+
+# ------------------------------------------------- THE INVERSE: a row whose HIT has disappeared
+#
+# `undispositioned()` asks "a hit with no row". Nothing asked the other direction until now, and
+# that is the door the class walked out of: on 2026-09-05 the loader sweep took five carriers out
+# of the census by routing their reads through a shared loader (the key dies at the parameter
+# seam), twelve more had gone the same way in earlier eras, and `--check` exited 0 throughout.
+#
+# MEASURED, and the measurement is the reason these tests exist rather than a plausible story:
+# deriving the PRE-REPAIR module over the tree at `c30738d77` and applying `eroded_dispositions`
+# to that census and that commit's own dispositions file, **17 rows fire and `undispositioned()`
+# returns []** -- sixteen on the no-readers leg (`run_history.json`, `.harden_cooldown.json`,
+# `.ntfy_digest_state.json`, `.supervisor_map_exhausted_state.json`, `retired_paths_served.json`
+# and eleven others) and one on the declassification leg. That replay needs a git extract of
+# another commit and is recorded in the finding, not run here; what is run here is each leg it
+# fired on, injected.
+
+
+def _synthetic(paths: dict, hits: list) -> dict:
+    return {"functions_scanned": 999, "state_paths": paths, "hits": hits}
+
+
+_ROW = {"verdict": "benign", "why": "a latest-value watermark"}
+
+
+def test_a_row_whose_path_vanished_from_the_census_is_refused():
+    """The derivation lost the path entirely -- a moved root, a renamed constant, a deleted
+    module. MUTATION: return [] for an absent path and this fires."""
+    out = census.eroded_dispositions(_synthetic({}, []), {"gone.json": _ROW})
+    assert len(out) == 1 and out[0].startswith("gone.json")
+    assert "no longer resolves the path" in out[0]
+
+
+def test_a_row_whose_readers_all_disappeared_is_refused():
+    """THE SHAPE THAT ACTUALLY HAPPENED. `run_history.json` kept three writers and went to ZERO
+    recorded readers when its read moved behind `load_list_prior(RUN_HISTORY_PATH)`, while
+    `count_run_history_total` read it on every dashboard build. A row still written by somebody
+    and read by nobody is the instrument going blind, not a control being repaired."""
+    out = census.eroded_dispositions(
+        _synthetic({"run_history.json": {"writers": ["a::f", "a::g", "a::h"], "readers": []}}, []),
+        {"run_history.json": _ROW})
+    assert len(out) == 1 and "NO READERS" in out[0]
+    assert "3 function(s)" in out[0], "the refusal must carry what it DID still see"
+
+
+def test_a_row_whose_writers_all_disappeared_is_refused():
+    """The mirror leg. MUTATION: check only readers and this survives."""
+    out = census.eroded_dispositions(
+        _synthetic({"s.json": {"writers": [], "readers": ["a::g"]}}, []), {"s.json": _ROW})
+    assert len(out) == 1 and "NO WRITERS" in out[0]
+
+
+def test_a_genuine_repair_is_admitted_ONLY_WHEN_THE_ROW_SAYS_WHY():
+    """The leg that stops this control being keyed to today's answer.
+
+    A path still written AND read, but no longer a hit, is what a REAL repair looks like: the
+    failure path stopped writing what the alarm reads. Refusing that outright would make the
+    census go red exactly when the code became more honest, which is this project's named
+    backwards-control shape. So it is admitted -- but only in writing, never silently.
+
+    BOTH DIRECTIONS, because a control that only ever refuses is indistinguishable from one that
+    refuses everything.
+    """
+    paths = _synthetic({"r.json": {"writers": ["a::f"], "readers": ["a::g"]}}, [])
+    silent = census.eroded_dispositions(paths, {"r.json": _ROW})
+    assert len(silent) == 1 and "does not say why" in silent[0]
+
+    for empty in ("", "   ", None):
+        row = dict(_ROW, declassified=empty)
+        assert census.eroded_dispositions(paths, {"r.json": row}), (
+            "an empty `declassified` is an assertion, not a reason -- {!r} was accepted".format(
+                empty))
+
+    spoken = dict(_ROW, declassified="2026-09-05: the write moved behind guard_episode, so the "
+                                     "failure path no longer touches the episode clock")
+    assert census.eroded_dispositions(paths, {"r.json": spoken}) == [], (
+        "a repair that is written down must clear -- otherwise the control goes red when the "
+        "code gets better")
+
+
+def test_the_erosion_check_sees_what_undispositioned_CANNOT():
+    """NOT A TAUTOLOGY: on the same census the existing gate is green and this one is red.
+
+    If both controls could only ever agree, the second one is decoration. This is the census as
+    it stood at `c30738d77` in miniature -- every hit dispositioned, and the subject set quietly
+    a row short."""
+    cen = _synthetic({"live.json": {"writers": ["a::f"], "readers": ["a::g"]},
+                      "eroded.json": {"writers": ["a::f"], "readers": []}},
+                     ["live.json"])
+    disp = {"live.json": _ROW, "eroded.json": _ROW}
+    assert census.undispositioned(cen, disp) == [], "the OLD gate must be green here"
+    assert census.eroded_dispositions(cen, disp), "the NEW gate must be red here"
+
+
+def test_every_leg_of_the_partition_is_REACHABLE_and_distinct():
+    """One control over the whole partition, not a leg per branch.
+
+    A guard that refuses everything passes every test above taken singly, and a guard that refuses
+    nothing passes the green ones. This asserts the four refusals fire on the four inputs that
+    should produce them, the two green states stay green, and each refusal names its OWN reason --
+    a control whose legs all print the same sentence cannot be debugged from its output.
+    """
+    cen = _synthetic({
+        "still_a_hit.json": {"writers": ["a::f"], "readers": ["a::g"]},
+        "no_readers.json": {"writers": ["a::f"], "readers": []},
+        "no_writers.json": {"writers": [], "readers": ["a::g"]},
+        "unexplained.json": {"writers": ["a::f"], "readers": ["a::g"]},
+        "declassified.json": {"writers": ["a::f"], "readers": ["a::g"]},
+    }, ["still_a_hit.json"])
+    disp = {
+        "still_a_hit.json": _ROW,
+        "vanished.json": _ROW,
+        "no_readers.json": _ROW,
+        "no_writers.json": _ROW,
+        "unexplained.json": _ROW,
+        "declassified.json": dict(_ROW, declassified="repaired: the writer is now monotonic"),
+    }
+    out = census.eroded_dispositions(cen, disp)
+    fired = {line.split(" -- ")[0]: line.split(" -- ", 1)[1] for line in out}
+    assert set(fired) == {"vanished.json", "no_readers.json", "no_writers.json",
+                          "unexplained.json"}, (
+        "the partition did not come out whole: {}".format(sorted(fired)))
+    assert len(set(fired.values())) == 4, (
+        "each leg must name its own reason; got {}".format(sorted(set(fired.values()))))
+
+
+def test_every_disposition_row_still_has_a_live_subject(live):
+    """The live tree. If this fails, either a path has eroded out of the census -- which is the
+    finding, not the obstacle -- or a control was genuinely repaired and its row needs
+    `declassified` saying so. Never delete the row to make this green without establishing
+    which."""
+    eroded = census.eroded_dispositions(live)
+    assert not eroded, (
+        "dispositioned rows whose census hit has disappeared:\n  " + "\n  ".join(eroded))
+
+
+def test_the_erosion_check_is_WIRED_INTO_the_gate(monkeypatch, capsys):
+    """MUTATION-PROVED IS NOT WIRED. The function above can be perfect and never consulted, so
+    this drives `main() --check` and asserts the exit code and the banner."""
+    monkeypatch.setattr("sys.argv", ["census", "--check"])
+    cen = _synthetic({"eroded.json": {"writers": ["a::f"], "readers": []}}, ["live.json"])
+    cen["state_paths"]["live.json"] = {"writers": ["a::f"], "readers": ["a::g"]}
+    monkeypatch.setattr(census, "derive", lambda *a, **k: cen)
+    monkeypatch.setattr(census, "load_dispositions",
+                        lambda *a, **k: {"live.json": _ROW, "eroded.json": _ROW})
+    assert census.main() == 1
+    assert "subject set is shrinking" in capsys.readouterr().out
