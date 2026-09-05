@@ -15,3 +15,11 @@
 # writing 'warn' to tools/write_time_gate.mode -- a deliberate one-line diff, never automatic.
 # R15-proven both ways in tests/tools/test_write_time_gate.py (8 source mutations).
 python3 tools/write_time_gate.py "$1" || exit 1
+
+# NEXT-STEP GATE (director console, 2026-09-05): a commit that advances an OPEN atom must record
+# what comes next, as an atom id or an explicit `none -- <reason>`. Its sibling above refuses a
+# commit that ADDS a capability without saying what it reused; this one refuses a commit that
+# ADVANCES one without saying what follows. The failure it exists to stop was measured: a next
+# step named in a session report existed in a chat window and nowhere in the queue, so nothing
+# could draw it, and the queue went on offering machinery because machinery was what was in it.
+python3 tools/next_step_gate.py "$1" || exit 1

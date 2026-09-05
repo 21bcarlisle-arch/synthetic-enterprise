@@ -1559,6 +1559,45 @@
   file_scope: ['simulation/population_draw.py', 'simulation/customer_events.py', 'tests/simulation/test_engagement_and_elasticity_are_separate.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the GB retail market's actual switching record: roughly half the domestic book has never switched supplier, and a large part of that half moves when a bill shock or a cap headline makes them look -- disengagement is an attention fact and the price response underneath it is a separate, and often large, quantity"
+- id: PB6_the_engagement_observable_crosses_the_seam
+  title: "P6: the antecedent the world now carries has to reach the company, or R1 bought a world nobody can learn from"
+  gain: "PB4 gave engagement an observable antecedent -- payment channel, anchored on Ofgem CIM w6 (standard credit 5.7%, prepayment 3.1%, base 5.3%) -- and measured it recoverable: held-out +0.1192 against a null of 0.0403, where the same instrument on the pre-PB4 world scored -0.0106 and did not clear. NONE OF THAT REACHES THE COMPANY. `company/interfaces/sim_interface.py` does not pass payment method; `company/crm/vulnerability_index.assess` takes a `has_ppm` argument and has NO CALLER anywhere in the tree. So the world knows something a real supplier plainly knows about its own billing arrangement, and the company cannot see it. R1s claim is that the company faces a world it could in principle learn from; a trait that stops at the wall satisfies the letter of that and none of it. THE EPISTEMIC QUESTION IS SETTLED AND EASY: how a customer pays IS the suppliers own record, not simulation ground truth -- a direct debit mandate is set up WITH the supplier. It crosses as an observable, through the seam, never by import."
+  lane: W4_the_wall
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 45    # R1 follow-on. Inherits PB4's rank because it is the second half of
+  #   the same claim: PB4 made the trait learnable IN THE WORLD, this makes it observable BY
+  #   THE COMPANY, and neither alone is what R1 asks for. Minted 2026-09-05 at the moment it
+  #   was named, per the director's console ruling that a named next step becomes ranked work
+  #   before the session ends -- "if it isn't worth minting, it wasn't worth saying".
+  provenance: seat_finding
+  depends_on: [PB4_engagement_separated_from_elasticity]
+  couples_with: [C29_decisions_stop_being_lookup_tables, C30_advice_reaches_a_household]
+  file_scope: ['company/interfaces/sim_interface.py', 'company/crm/vulnerability_index.py', 'tests/company/test_the_engagement_observable_crosses.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a real supplier's own billing record. It knows how every customer pays because it set the arrangement up, bills against it, and prices for it -- payment method is on the tariff table itself. A supplier that could not see its own payment channels would be unable to bill."
+- id: PB7_the_company_learns_what_it_can_now_see
+  title: "P7: the company is handed Ofgem's coefficient; it should discover the relationship from its own book"
+  gain: "PB6 let the company condition its churn belief on payment method, using Ofgem's published CIM w6 rates as the coefficient. That is legitimate -- a regulator's public survey is exactly what a real supplier reads -- but it is a PRIOR, not a discovery, and the D-SEGMENT wall ruling is explicit that the company 'discovers everything else exclusively through acquisition and ongoing interaction, scored on the belief-vs-truth gap'. A supplier with a book of its own does not keep quoting the national survey at its own customers: it measures ITS OWN switching rate by payment method and updates. Until it does, the company's belief cannot be WRONG, so the belief-vs-truth gap this project scores itself on has nothing to bite on -- and the enterprise value is the METHOD of finding customers, which a hardcoded constant is not. The prior-and-update shape already exists one module away: `enriched_churn_estimate` does exactly this for competitive pressure, where the published year table is used as a prior and updated by the company's own realised losses against what it predicted."
+  lane: B_commercial
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 45    # R1 follow-on, minted 2026-09-05 by the commit that created the gap it
+  #   names -- which is the point of the next-step gate landing in the same commit. Inherits the
+  #   R-set rank because a company that cannot be wrong about an observable is not learning from
+  #   it, and R1's claim is about what the company can learn.
+  provenance: seat_finding
+  depends_on: [PB6_the_engagement_observable_crosses_the_seam]
+  couples_with: [C29_decisions_stop_being_lookup_tables]
+  file_scope: ['company/crm/enriched_churn_estimate.py', 'company/crm/competitive_pressure.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier's own retention analytics. It has its own churn by payment method, measured on its own leavers, and it trusts that over a national survey the moment it has enough of them -- which is also when it starts beating the market rather than tracking it."
 - id: PB5_pounds_or_percent_resolved
   title: "P5: does the switching decision key on a percentage saving or on pounds a year, and what does the evidence say"
   gain: "Director, 2026-08-28 (P5): 'If the switching decision keys on percentage saving, every household is equally worth chasing per point of margin. If it keys on GBP, a large home is far cheaper to win because the same percentage buys more visible saving, and customer value scales with consumption in a way a percentage world misses entirely. GB comparison sites and the cap headline both present annual GBP. Establish what our world uses, what the evidence says, and reconcile.' PARTLY ANSWERED ALREADY and that is why this is small: simulation/customer_events.py's own comment records that the calibrated churn curve was always a function of an ABSOLUTE annual saving, and that the conversion into it used one market-average bill for every household until 2026-08-27, when it was changed to this household's own bill in pounds. So the world is now a GBP world at the point of decision. What is NOT established is whether the acquisition and retention decisions on the company side agree -- and a world that decides in pounds while the company targets in percent is a systematically distorting mismatch, not a rounding difference. This atom establishes both sides and reconciles them, with the external evidence (comparison-site presentation, the cap headline) cited."

@@ -56,6 +56,43 @@ def _apply_market_conditions(p_leave: float, multiplier: float) -> float:
     return 1.0 - survival ** max(0.0, float(multiplier))
 
 
+#: How much more or less a payment method SHOPS, as the company is entitled to believe it.
+#:
+#: PUBLISHED, AND THEREFORE THE COMPANY'S TO READ. Ofgem's Consumer Impacts of Market Conditions
+#: survey wave 6, Table 56: of households on standard credit 5.7% switched supplier in six months,
+#: direct debit 5.6%, prepayment 3.1%, against a 5.3% population base
+#: (`docs/market_research/what_a_supplier_can_observe_about_switching_propensity_cim_w6.md`).
+#: A regulator's published survey is exactly the kind of thing a real supplier reads, so this
+#: crosses no wall: the company is not being told the world's parameter, it is reading Ofgem.
+#:
+#: NORMALISED ON THE SAME BASE THE RATES ARE QUOTED AGAINST, so a book of average composition is
+#: unchanged and only the MIX moves the answer. Without that this would be a blanket uplift to
+#: every churn estimate wearing a payment method's name.
+_CIM_SWITCH_RATE_BY_METHOD = {
+    "direct_debit": 0.056,
+    "standard_credit": 0.057,
+    "prepayment": 0.031,
+}
+_CIM_POPULATION_BASE = 0.053
+
+
+def payment_method_engagement_factor(payment_method: str | None) -> float:
+    """The company's belief about how much this payment method shops, relative to the market.
+
+    None -- and any method this table does not know -- returns 1.0 exactly. That is the
+    unchanged-behaviour path and it is the one nearly every existing caller takes, so adding this
+    input cannot move a single estimate that does not opt in. An unknown STRING returning 1.0
+    rather than raising is deliberate: a CRM record carrying a method this table has never heard of
+    is a data-quality problem, not a reason to refuse to estimate churn for that customer.
+    """
+    if payment_method is None:
+        return 1.0
+    rate = _CIM_SWITCH_RATE_BY_METHOD.get(payment_method)
+    if rate is None:
+        return 1.0
+    return rate / _CIM_POPULATION_BASE
+
+
 def enriched_churn_estimate(
     old_rate_gbp_per_mwh: float,
     new_rate_gbp_per_mwh: float,
@@ -70,6 +107,7 @@ def enriched_churn_estimate(
     hangover_periods_remaining: int = 0,
     segment: str = "resi",
     renewal_year: int | None = None,
+    payment_method: str | None = None,
 ) -> float:
     """Return enriched churn probability from rate-sensitivity and payment-behaviour signals.
 
@@ -112,6 +150,7 @@ def enriched_churn_estimate(
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
     result = _apply_market_conditions(max(rate_est, payment_est),
                                       derived_market_pressure_multiplier(renewal_year))
+    result *= payment_method_engagement_factor(payment_method)
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))
 
 

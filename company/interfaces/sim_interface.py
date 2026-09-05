@@ -172,6 +172,26 @@ class SimInterface:
         """
         raise NotImplementedError
 
+    def get_payment_method(self, account_id: str, fuel: str = "electricity") -> str:
+        """How does this customer pay? 'direct_debit', 'standard_credit' or 'prepayment'.
+
+        OBSERVABLE, and among the least arguable things on this seam: a supplier SET THIS
+        ARRANGEMENT UP. The mandate was signed with it, it bills against it, it prices for it --
+        payment method is a column on the published tariff table, and Ofgem's own cap is set
+        per payment method. A supplier that could not see its own payment channels could not bill.
+
+        It crosses BECAUSE R1 needs it to. `simulation/household_segments.py` now gives renewal
+        engagement an antecedent in this field (Ofgem CIM w6: standard credit 5.7%, prepayment
+        3.1%, against a 5.3% base), which made engagement recoverable in the world -- held-out
+        +0.1192 against a null of 0.0403, where the pre-PB4 world scored -0.0106 and did not
+        clear. A trait that is learnable in the world and invisible at the wall satisfies the
+        letter of R1's claim and none of its point: the company would face a world it could in
+        principle learn from and still have nothing to learn it with.
+
+        Returns: one of 'direct_debit', 'standard_credit', 'prepayment'.
+        """
+        raise NotImplementedError
+
     def notify_churn(
         self,
         account_id: str,
@@ -290,6 +310,7 @@ class StubSimInterface(SimInterface):
         self._acquisition_notifications: list[dict] = []
         self._retention_notifications: list[dict] = []
         self._customer_statuses: dict[str, str] = {}
+        self._payment_methods: dict[str, str] = {}
         self._flex_desk = _FlexEnrolmentDesk(flex_venue_clock, flex_registrations)
 
     def get_settlement_data(self, mpan: str, period: str) -> dict[str, Any]:
@@ -307,6 +328,15 @@ class StubSimInterface(SimInterface):
 
     def get_customer_status(self, account_id: str) -> str:
         return self._customer_statuses.get(account_id, "active")
+
+    def get_payment_method(self, account_id: str, fuel: str = "electricity") -> str:
+        """Settable, defaulting to direct debit -- the majority channel (72% electricity).
+
+        A stub that returned a FIXED method for every account would make every test of a
+        payment-method-conditioned decision pass while proving the decision never varies, which is
+        the exact failure this seam exists to make visible. So it is a dict a test can populate.
+        """
+        return self._payment_methods.get(account_id, "direct_debit")
 
     def notify_churn(self, account_id, event_date, *, reason="non-renewal",
                  sim_churn_probability=None, company_churn_estimate=None):
@@ -414,6 +444,13 @@ class LiveSimInterface(SimInterface):
     get_customer_status(account_id)
         STUB — hardcoded "active". In production would be observable (CRM).
 
+    get_payment_method(account_id, fuel="electricity")
+        OBSERVABLE — the supplier's own billing arrangement. It set the mandate up, bills
+        against it, and prices for it; Ofgem's cap is itself set per payment method. Reads
+        the world's household channel because that is where the book is drawn, not because
+        any SIM internal is being reached for: the value is one a real supplier holds on its
+        own customer record.
+
     notify_churn(..., sim_churn_probability, company_churn_estimate)
         sim_churn_probability: SIM INTERNAL — passed in for divergence audit
         only. The company stores but does NOT use this value to make decisions.
@@ -479,6 +516,26 @@ class LiveSimInterface(SimInterface):
 
     def get_customer_status(self, account_id: str) -> str:
         return "active"
+
+    def get_payment_method(self, account_id: str, fuel: str = "electricity") -> str:
+        """The customer's own billing arrangement. See the observability audit above.
+
+        Deferred import, matching how this class reaches its price history: it keeps
+        `simulation.household_segments` off this module's import path for every consumer that
+        never asks about payment.
+
+        FAILS TO THE MAJORITY CHANNEL, NOT TO A REFUSAL, and that is a deliberate asymmetry from
+        the rest of this seam. A supplier that cannot resolve a payment method for an account has
+        a broken CRM record, not an unknown customer -- it still bills them, and it bills them the
+        way it always has. Returning direct debit (72% of the electricity book) keeps a lookup
+        failure from silently reclassifying a household as prepayment, which would move it into
+        the vulnerability score's +10 band and into the low-engagement band at once.
+        """
+        try:
+            from simulation.household_segments import payment_channel_for_customer
+            return payment_channel_for_customer(account_id, fuel).value
+        except Exception:  # noqa: BLE001 -- see the docstring: a CRM miss is not an unknown customer
+            return "direct_debit"
 
     def notify_churn(self, account_id, event_date, *, reason="non-renewal",
                  sim_churn_probability=None, company_churn_estimate=None):
