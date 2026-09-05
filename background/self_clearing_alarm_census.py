@@ -52,6 +52,15 @@ it is not the read-your-own-output tautology a remembered hit count would be. A 
 genuinely takes a path out of the class is admitted, but only in writing (`declassified`); a path
 the census can no longer see WRITTEN or READ is not a repair and nothing excuses it.
 
+AND THE ANNOTATION ITSELF (2026-09-05) -- `unasked_loader_rows()`, a hit whose row carries no
+`loader` field. The dispositions file's `_scope_of_benign` has always said in prose that a row
+without one "has not been asked, which is a gap and not a pass", and prose has no falsifier: nine
+hours after the sweep annotated all 46 rows, a full-file rewrite in the same lane deleted 33 of
+them and every rung above stayed green -- `undispositioned()` asks for a verdict and a reason,
+`unguarded_real_hits()` asks `real` rows for a test, and `eroded_dispositions()` asks whether a row
+still has a HIT, never whether it still has its ANSWER. Keyed to the property (an unanswered row),
+so it fires the same on a row that never had one as on a row that lost one.
+
 VACUITY GUARD (R15 -- the fail-open shape here is a census that finds NOTHING): a derivation that
 silently stops matching -- a renamed attribute, a moved root, a regex that stops firing -- would
 report an empty class and read as "clean". `census_is_vacuous()` makes that state an explicit
@@ -728,6 +737,8 @@ def undispositioned(census: dict[str, Any], dispositions: dict[str, dict[str, st
 #: census going blind -- a path with no writers or no readers at all is not declassified, it is
 #: LOST, and this field does not excuse it.
 DECLASSIFIED_FIELD = "declassified"
+#: The field carrying a row's answer to `_scope_of_benign` -- absent vs present-but-unreadable.
+LOADER_FIELD = "loader"
 
 
 def eroded_dispositions(census: dict[str, Any],
@@ -804,6 +815,47 @@ def eroded_dispositions(census: dict[str, Any],
     return out
 
 
+def unasked_loader_rows(census: dict[str, Any],
+                        dispositions: dict[str, dict[str, str]] | None = None) -> list[str]:
+    """A HIT WHOSE ROW HAS NO `loader` FIELD -- the answer to the question `_scope_of_benign` asks.
+
+    `benign` answers ONE question: can a write SHORTEN an episode. It says nothing about whether
+    the carrier's loader tells ABSENT from PRESENT-BUT-UNREADABLE, and a seen-set or a
+    read-modify-write store can be perfectly benign on the episode question while destroying its
+    own record on a corrupt read. The dispositions file has said in prose since the 2026-09-05
+    sweep that a row without a `loader` "has not been asked, which is a gap and not a pass". That
+    sentence had no falsifier, and it cost 33 rows the same day it was written: `c30738d77`
+    annotated all 46, `9857c0edb` rewrote the file nine hours later from a pre-sweep copy and
+    deleted 33 of the annotations, and the merge to origin diffed its resolution against the
+    rewriting side's own copy, so neither side could see the loss. `--check` was green throughout.
+
+    WHY THE THREE EXISTING RUNGS ALL MISS IT. `undispositioned()` is satisfied by a verdict and a
+    reason. `unguarded_real_hits()` interrogates `real` rows only, and 27 of the 33 lost rows are
+    `benign`. `eroded_dispositions()` -- the erosion inverse, which landed in the same MINUTE as
+    this erosion -- asks whether a dispositioned row still has a hit; every one of the 33 still
+    did. Each rung guards the row's EXISTENCE or its VERDICT; none guarded its ANSWER.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. It does not compare against a remembered set or
+    a recorded count, so it cannot go red for becoming more honest: it fires on a row with no
+    answer, identically whether the row never had one or lost one, and a genuinely new hit lands
+    RED until someone opens its loader -- which is the same teeth `undispositioned()` has.
+
+    `or ""` BEFORE `str`: a row carrying an explicit JSON `null` stringifies to "None", which is
+    truthy, and a mandatory field falls open. The same slip is live twice above and fixed there.
+    """
+    disp = load_dispositions() if dispositions is None else dispositions
+    out = []
+    for key in census.get("hits", []):
+        row = disp.get(key)
+        if not isinstance(row, dict):
+            continue  # no row at all is `undispositioned()`'s refusal, not this one
+        if not str(row.get(LOADER_FIELD) or "").strip():
+            out.append("{} -- dispositioned `{}` but its row has no `{}`: nobody has asked whether "
+                       "its loader tells ABSENT from PRESENT-BUT-UNREADABLE".format(
+                           key, row.get("verdict") or "?", LOADER_FIELD))
+    return out
+
+
 def unguarded_real_hits(census: dict[str, Any],
                         dispositions: dict[str, dict[str, str]] | None = None) -> list[str]:
     """PW4 -- `real` hits whose guard is not yet BUILT and NAMED by a test that exists.
@@ -845,7 +897,8 @@ def write_census(census: dict[str, Any] | None = None, path: Path | None = None)
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true",
-                    help="read-only: exit 1 on a vacuous census or an undispositioned hit")
+                    help="read-only: exit 1 on a vacuous census, an undispositioned hit, an "
+                         "unguarded real hit, an eroded row or an unasked loader question")
     args = ap.parse_args()
     census = derive()
     vacuous = census_is_vacuous(census)
@@ -862,6 +915,7 @@ def main() -> int:
     missing = undispositioned(census, disp)
     unguarded = unguarded_real_hits(census, disp)
     eroded = eroded_dispositions(census, disp)
+    unasked = unasked_loader_rows(census, disp)
     if not args.check:
         write_census(census)
         print("census written to {}".format(CENSUS_PATH))
@@ -874,7 +928,12 @@ def main() -> int:
               "shrinking):")
         for line in eroded:
             print("  {}".format(line))
-    if missing or unguarded or eroded:
+    if unasked:
+        print("DISPOSITIONED HITS WHOSE LOADER QUESTION HAS NEVER BEEN ASKED (or whose answer has "
+              "been deleted):")
+        for line in unasked:
+            print("  {}".format(line))
+    if missing or unguarded or eroded or unasked:
         return 1
     return 0
 

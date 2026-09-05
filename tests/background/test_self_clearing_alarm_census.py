@@ -379,3 +379,97 @@ def test_the_erosion_check_is_WIRED_INTO_the_gate(monkeypatch, capsys):
                         lambda *a, **k: {"live.json": _ROW, "eroded.json": _ROW})
     assert census.main() == 1
     assert "subject set is shrinking" in capsys.readouterr().out
+
+
+# ── unasked_loader_rows: the row's ANSWER, not its existence (2026-09-05) ──
+#
+# The three rungs above guard whether a hit HAS a row (`undispositioned`), whether a `real` row
+# names a test (`unguarded_real_hits`), and whether a row still HAS a hit (`eroded_dispositions`).
+# None of them guards the row's `loader` field -- the answer to `_scope_of_benign`'s question,
+# whether the carrier's loader tells ABSENT from PRESENT-BUT-UNREADABLE.
+#
+# MEASURED, and it is why these tests exist rather than a plausible story. `c30738d77` annotated
+# all 46 rows on 2026-09-05; `9857c0edb` rewrote the file nine hours later from a pre-sweep copy
+# and 33 annotations went with it (50 rows, 17 loaders). The merge to origin adopted the rewriting
+# side whole -- correctly, it carried a real re-audit -- and diffed its resolution against that
+# side's own copy, so the loss was invisible from both sides. `--check` was green at every commit,
+# including the one that landed `eroded_dispositions` in the SAME MINUTE as the erosion.
+
+_ANSWERED = {"verdict": "benign", "why": "a latest-value watermark",
+             "loader": "ASKED: absent and unreadable both answer {}, and the writer overwrites."}
+
+
+def _answered_census():
+    """One live hit, fully visible to every other rung -- so anything that fires here fires on
+    the loader question alone."""
+    return _synthetic({"s.json": {"writers": ["a::f"], "readers": ["a::g"]}}, ["s.json"])
+
+
+def test_a_hit_whose_row_carries_no_loader_is_refused():
+    """The property leg. MUTATION: drop the `loader` check and this survives."""
+    out = census.unasked_loader_rows(_answered_census(), {"s.json": _ROW})
+    assert len(out) == 1 and out[0].startswith("s.json")
+    assert "ABSENT from PRESENT-BUT-UNREADABLE" in out[0], (
+        "a refusal that does not say what was never asked cannot be checked: {}".format(out))
+
+
+def test_a_hit_whose_row_carries_a_loader_is_SILENT():
+    """The negative leg. A rung that refuses everything passes every refusal test, and this is
+    the only assertion that can tell the two apart."""
+    assert census.unasked_loader_rows(_answered_census(), {"s.json": _ANSWERED}) == []
+
+
+def test_the_loader_answer_does_not_fall_open_on_a_JSON_NULL():
+    """`str(None)` is "None" and truthy, so a mandatory field checked with `str(row.get(f, ""))`
+    accepts a row that answers nothing. That slip was live twice in this module and shipped once;
+    it is asserted here on all three empties rather than on the blank string alone."""
+    for nothing in ("", "   ", None):
+        row = dict(_ANSWERED, loader=nothing)
+        assert census.unasked_loader_rows(_answered_census(), {"s.json": row}), (
+            "a row whose loader answer is {!r} was accepted as asked".format(nothing))
+
+
+def test_a_hit_with_NO_ROW_AT_ALL_is_left_to_undispositioned():
+    """The partition boundary. Two rungs reporting the same hit reads as two defects, and a hit
+    with no row is `undispositioned()`'s refusal. Both directions asserted."""
+    cen = _answered_census()
+    assert census.unasked_loader_rows(cen, {}) == []
+    assert census.undispositioned(cen, {}) == ["s.json"]
+
+
+def test_the_annotation_check_sees_WHAT_THE_OTHER_THREE_RUNGS_CANNOT():
+    """THE EROSION, REPLAYED. A row with a verdict, a reason, a guard and a live hit -- exactly
+    what the 33 deleted rows looked like the moment after they were deleted. Every existing rung
+    is green on it and only the new one fires. If this test ever passes with the new rung removed,
+    the rung is redundant and should go."""
+    cen = _answered_census()
+    disp = {"s.json": _ROW}
+    assert census.undispositioned(cen, disp) == []
+    assert census.unguarded_real_hits(cen, disp) == []
+    assert census.eroded_dispositions(cen, disp) == []
+    assert census.unasked_loader_rows(cen, disp), (
+        "the erosion that actually happened is invisible to all four rungs")
+
+
+def test_every_live_disposition_row_carries_ITS_OWN_loader_answer(live):
+    """The live tree. If this fails, either an annotation has been deleted -- which is the
+    finding, not the obstacle, and `git log -S` on the row's key will name the commit -- or a new
+    hit has landed whose loader nobody has opened. Never add an empty `loader` to make it green."""
+    unasked = census.unasked_loader_rows(live)
+    assert not unasked, (
+        "dispositioned hits whose loader question has no answer:\n  " + "\n  ".join(unasked))
+
+
+def test_the_annotation_check_is_WIRED_INTO_the_gate(monkeypatch, capsys):
+    """MUTATION-PROVED IS NOT WIRED. The function can be perfect and never consulted; this drives
+    `main() --check` on a census where NOTHING ELSE is wrong and asserts the exit code and the
+    banner. `eroded_dispositions` cannot fire here -- the row's path is a live hit."""
+    monkeypatch.setattr("sys.argv", ["census", "--check"])
+    cen = _answered_census()
+    monkeypatch.setattr(census, "derive", lambda *a, **k: cen)
+    monkeypatch.setattr(census, "load_dispositions", lambda *a, **k: {"s.json": _ROW})
+    assert census.main() == 1
+    out = capsys.readouterr().out
+    assert "LOADER QUESTION HAS NEVER BEEN ASKED" in out
+    assert "subject set is shrinking" not in out, (
+        "the banner must name the rung that fired, or a reader repairs the wrong thing")
