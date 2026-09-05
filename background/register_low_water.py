@@ -93,6 +93,37 @@ suites while the canon still had its own copy of the reader. The one test of tha
 tree was pointed at the copy. Re-pointing the canon did not just delete a duplicate; it moved the
 only proof of this module's central refusal onto the reader every register now shares. Written up
 in docs/staging/records/SEAT_RESULT_THE_CONVERGENCE_PROVED_A_CONTRACT_THAT_HAD_BEEN_PROVED_NOWHERE_2026-09-05.md.
+
+SUPERSEDED 2026-09-05, beside the paragraph rather than over it, because the paragraph above is
+what a later direction was drawn from and the direction is now WRONG. That record closed by saying
+the coverage "rests on a test living in the CANON's file", and that MOVING it beside this module
+was "a small honest tidy that nothing here depends on". Both halves have since stopped being true,
+and moving it would now DELETE a proof rather than relocate one.
+
+  WHAT CLOSED THE GAP. `38871422b` added
+  `tests/background/test_the_shared_low_water_reader_refuses_rather_than_reading_empty.py`, which
+  drives this reader directly. Re-measured 2026-09-05 against that file ALONE, each mutation
+  applied singly with its anchor asserted present-and-unique and `__pycache__` cleared between
+  runs: `except (OSError, SubprocessError)`, `returncode != 0`, `except Exception` and
+  `keys is None` — all four `return None` branches — each RED it. Nothing about this module's
+  never-empty contract depends on the canon's file any more.
+
+  WHY THE MOVE IS NOW A REGRESSION, which is the part no reading of the file would tell you.
+  `test_THE_HEAD_READER_ITSELF_returns_None_and_never_an_empty_set` changed SUBJECT under the
+  convergence. It no longer proves what this reader returns — the file above does that. It is the
+  only thing in the tree that proves the canon's SEAM (`canon_drift_check._claim_ids_at_head`)
+  carries the refusal THROUGH instead of swallowing it. Measured: re-hand-roll that seam to
+  `frozenset() if out is None else out` and it is the sole test that reds, while the shared file
+  stays green throughout. A test whose subject is the seam belongs in the seam's suite. The
+  equivalent leg for the class register's seam exists and was confirmed by the same method
+  (`test_an_unestablishable_baseline_is_a_refusal_and_never_a_clean_result`).
+
+  STILL OPEN, and named rather than implied: the census seam `_dispositions_at_head` has not been
+  put to the same question. It could not be this turn — another lane holds
+  `self_clearing_alarm_census.py` dirty in the shared tree with `removed_dispositions` deleted
+  locally (14 red), so any mutation verdict from its suite is uninterpretable. Ask it once that
+  lane lands. Measurements written up in
+  docs/staging/records/SEAT_RESULT_THE_TEST_THE_DIRECTION_WANTED_MOVED_HAD_ALREADY_CHANGED_SUBJECT_2026-09-05.md.
 """
 
 from __future__ import annotations

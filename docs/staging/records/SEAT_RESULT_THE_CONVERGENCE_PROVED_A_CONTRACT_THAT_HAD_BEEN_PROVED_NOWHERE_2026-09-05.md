@@ -88,3 +88,25 @@ living in the CANON's file, which is a strange home for a contract belonging to
 `register_low_water`. Moving it, or adding one leg beside the generic, is a small honest tidy that
 nothing here depends on. Recorded so that whoever deletes the canon's copy knows what else goes
 with it.
+
+> **CORRECTED 2026-09-05, beside the paragraph rather than over it — the last three sentences were
+> wrong, and a direction was drawn from them.** The two options were offered as equivalent ("moving
+> it, OR adding one leg"). They are not, and only one of them was safe. `38871422b` took the second
+> — `tests/background/test_the_shared_low_water_reader_refuses_rather_than_reading_empty.py`, which
+> drives the reader directly and reds on all four of `keys_at_head`'s `return None` branches with
+> the canon's file out of the picture entirely. That discharged the hazard this paragraph was
+> worried about.
+>
+> A later lane-0 direction took the FIRST option and asked for the move. Re-measured before doing
+> it: `test_THE_HEAD_READER_ITSELF_returns_None_and_never_an_empty_set` had changed subject under
+> the convergence. It is no longer a test of the reader — it is now the tree's only proof that the
+> canon's seam `_claim_ids_at_head` carries the refusal through rather than swallowing it into an
+> empty baseline. Re-hand-rolling that seam reds it and nothing else; the shared file stays green.
+> **Moving it would have deleted a proof, not relocated one, and every suite would have stayed
+> green while it happened.** The work was not done and the claim was released.
+>
+> The generalisable error is in the phrase *"a small honest tidy that nothing here depends on"* —
+> written about a test whose subject was, at that moment, being changed by the very convergence
+> being written up. A tidy proposed for a thing in flight is a prediction about where the thing
+> lands. Full measurements:
+> `SEAT_RESULT_THE_TEST_THE_DIRECTION_WANTED_MOVED_HAD_ALREADY_CHANGED_SUBJECT_2026-09-05.md`.

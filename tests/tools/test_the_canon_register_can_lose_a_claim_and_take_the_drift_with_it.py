@@ -115,6 +115,23 @@ def test_THE_HEAD_READER_ITSELF_returns_None_and_never_an_empty_set():
     held no claims", which reports clean on every tree where git cannot answer.
 
     An in-repo path that HEAD does not carry makes `git show` exit non-zero for real.
+
+    DO NOT MOVE THIS BESIDE `register_low_water`, and the reason is not the one the file name
+    suggests. The paragraph above is what this test proved BEFORE the 2026-09-05 convergence, when
+    `_claim_ids_at_head` was a hand-rolled copy of the reader. It is no longer the subject.
+    `tests/background/test_the_shared_low_water_reader_refuses_rather_than_reading_empty.py` now
+    proves the reader's own contract four ways, on the reader, with this file out of the picture.
+
+    What is left here is the SEAM: that `_claim_ids_at_head` carries the reader's refusal THROUGH
+    rather than swallowing it back into an empty baseline — the exact copy the convergence removed,
+    and the exact thing a well-meaning re-hand-rolling would restore. Measured 2026-09-05 by doing
+    that: `return frozenset() if out is None else out` at the seam reds this test and one sibling,
+    and the shared reader's file stays GREEN throughout, because the reader is not what broke. Move
+    this test and the tree loses that proof with no gate to say so. The class register's seam has
+    the matching leg in its own suite for the same reason.
+
+    A direction to move it was drawn and refused on those grounds; measurements in
+    docs/staging/records/SEAT_RESULT_THE_TEST_THE_DIRECTION_WANTED_MOVED_HAD_ALREADY_CHANGED_SUBJECT_2026-09-05.md.
     """
     absent = drift.REPO_ROOT / "docs/design/__no_such_claim_register__.yaml"
     assert drift._claim_ids_at_head(absent) is None, (
