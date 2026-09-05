@@ -24,9 +24,20 @@ MUTATION, each fires a named test below:
   * pending allowed to overwrite a held row in the merge   -> the erasure test
   * `cache_walk.reconciles` computed from the rows twice   -> the tautology test
   * season coverage counted by calendar year               -> the straddle test
+  * the concurrency lock keyed to the pid alone            -> the recycled-pid test
+  * `acquire_lock` refusing on any lock file that exists   -> the killed-pull test
+
+THE LOCK IS PART OF THE SAME DEFECT and not a second subject. A pull that dies leaves a
+lock behind, and a lane-0 claim that was never held (2026-09-05: `--landed` bound nothing)
+leaves the item drawable while its runner is still going. So the two states this module is
+about -- "killed" and "still running" -- are exactly the two a lock must tell apart, and
+getting it wrong in either direction fabricates a gap row the analysis would read as the
+archive not having that month.
 """
 
 import json
+import os
+import subprocess
 
 import pytest
 
@@ -34,10 +45,14 @@ from tools import fetch_haduk_grid as fetch
 from tools.fetch_haduk_grid import (
     SERIES_FIRST_YEAR,
     SERIES_LAST_YEAR,
+    PullRefused,
+    _process_identity,
+    acquire_lock,
     build_manifest,
     daily_season_coverage,
     finalise_receipt,
     merge_into_receipt,
+    release_lock,
     summarise,
 )
 
@@ -231,6 +246,68 @@ def test_a_gap_inside_the_window_names_the_status_that_caused_it():
     assert "1999/00" in gaps, "a season with a failed month was counted complete"
     assert gaps["1999/00"]["missing"] == [{"month": "2000-01", "reason": "failed"}]
     assert gaps["1999/00"]["months_held"] == 5
+
+
+def test_a_second_puller_is_refused_while_the_first_is_still_running(tmp_path):
+    """Two pullers share one cache and APPEND to the same .part file.
+
+    That does not crash. It produces a grid of the right name and the wrong bytes, which
+    fails the size check and is written into the receipt as a failed row -- a gap the
+    analysis reads as "the archive did not have this month". Fabricated evidence, from
+    two processes each behaving correctly.
+
+    Reachable since 2026-09-05: the lane-0 claim for the pull was not held, so the item
+    stays drawable by the next tick while its runner is still going.
+    """
+    lock = tmp_path / ".pull.lock"
+    lock.write_text(_process_identity(os.getpid()) + "\n")
+
+    with pytest.raises(PullRefused) as refusal:
+        acquire_lock(lock=lock)
+
+    assert "already running" in str(refusal.value)
+    assert str(lock) in str(refusal.value), "the refusal does not say where to look"
+
+
+def test_a_lock_left_by_a_pull_that_died_does_not_block_the_next_one(tmp_path):
+    """The 2026-09-05 pull was killed by a cgroup. A lock it could not clean up must not
+    make the resumption -- the entire point of a resumable puller -- impossible."""
+    dead = subprocess.Popen(["true"])
+    dead.wait()
+    lock = tmp_path / ".pull.lock"
+    lock.write_text(f"{dead.pid}:1\n")
+
+    assert acquire_lock(lock=lock) == _process_identity(os.getpid())
+    assert lock.read_text().strip() == _process_identity(os.getpid())
+
+
+def test_a_recycled_pid_does_not_hold_the_lock_forever(tmp_path):
+    """A pid is not an identity. Linux reuses the numbers.
+
+    A guard keyed to the number alone refuses the pull for the rest of the machine's
+    uptime once some unrelated process inherits it -- a worse failure than the
+    concurrency it guards, and one that looks exactly like the guard working. The lock
+    carries the process START TIME, so the same number with a different start is a
+    different process.
+    """
+    lock = tmp_path / ".pull.lock"
+    lock.write_text(f"{os.getpid()}:999999999999\n")
+
+    assert acquire_lock(lock=lock), "a recycled pid held the lock against a live process"
+
+
+def test_releasing_does_not_delete_a_lock_that_belongs_to_someone_else(tmp_path):
+    """A run that was killed and superseded must not take the successor's lock with it."""
+    lock = tmp_path / ".pull.lock"
+    mine = acquire_lock(lock=lock)
+
+    lock.write_text("999999:1\n")
+    release_lock(mine, lock=lock)
+    assert lock.exists(), "a stale owner deleted the lock a later run is holding"
+
+    lock.write_text(mine + "\n")
+    release_lock(mine, lock=lock)
+    assert not lock.exists(), "the owner could not release its own lock"
 
 
 def test_the_written_receipt_is_json_a_later_reader_can_use(tmp_path):
