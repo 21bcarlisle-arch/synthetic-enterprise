@@ -61,7 +61,11 @@ import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background.process_run_complete import _REFUSING_GATE_BANNERS, _parse_refusing_gate
+from background.process_run_complete import (
+    _REFUSING_GATE_BANNERS,
+    _parse_failed_node_ids,
+    _parse_refusing_gate,
+)
 
 DEFAULT_LOG = Path("docs/observability/sim-runner-log.md")
 
@@ -114,15 +118,27 @@ def _hook_blocks(lines):
     return blocks
 
 
-def _cause_at(lines, blocks, i):
-    """Which gate refused the `commit_refused` line at `lines[i]`. Fail-closed on ignorance."""
+def _body_at(lines, blocks, i):
+    """The hook-output block belonging to the verdict at `lines[i]`, or None.
+
+    Factored out of `_cause_at` because the subject analysis below needs the same block the cause
+    was read from. Two independent lookups would eventually disagree about WHICH block belongs to a
+    cycle, and then a subject would be compared against a cause from a different attempt.
+    """
     # The hook block sits immediately above its verdict; anything further away belongs to a
     # different cycle and is not evidence about this one.
     near = [b for b in blocks if b[1] <= i and i - b[1] <= 3]
     if not near:
-        return NO_BLOCK
+        return None
     b = max(near, key=lambda x: x[1])
-    body = "\n".join(lines[b[0]:b[1]])
+    return "\n".join(lines[b[0]:b[1]])
+
+
+def _cause_at(lines, blocks, i):
+    """Which gate refused the `commit_refused` line at `lines[i]`. Fail-closed on ignorance."""
+    body = _body_at(lines, blocks, i)
+    if body is None:
+        return NO_BLOCK
     return _parse_refusing_gate(body) or (RED_TEST if _RED_TEST.search(body) else UNNAMED)
 
 
@@ -216,13 +232,17 @@ def cycles(text):
             continue
         stamp = "{} {}".format(m.group(1), m.group(2))
         if ATTEMPT_NEEDLE in line:
-            out.append({"at": stamp, "outcome": LANDED, "cause": None})
+            out.append({"at": stamp, "outcome": LANDED, "cause": None, "subject": None})
             continue
         named = _NAMED_OUTCOME.search(line)
         if named and out:
             out[-1]["outcome"] = named.group(1)
             if REFUSAL_NEEDLE in line:
+                body = _body_at(lines, blocks, i)
                 out[-1]["cause"] = _cause_at(lines, blocks, i)
+                # Read from the SAME block the cause came from, so a subject can never be paired
+                # with a cause parsed out of a different attempt.
+                out[-1]["subject"] = _subject_at(out[-1]["cause"], body)
     return [c for c in out if opens and c["at"] >= opens]
 
 
@@ -273,6 +293,10 @@ def _close(cur, seq):
         # once, the next then fires) from gates FLAPPING (one cause recurring after another has
         # intervened). A set cannot tell those apart and they call for opposite responses.
         "cause_sequence": [c["cause"] for c in refused],
+        # Index-aligned with `cause_sequence` BY CONSTRUCTION -- both are built from `refused` in
+        # one order. The subject analysis indexes one with the other's position, so a divergence
+        # here would silently compare a gate's cause against another gate's subject.
+        "subjects": [c["subject"] for c in refused],
         # An episode with two causes is not attributed to either. Same discipline as the
         # unattributable bucket: never assign to the side that makes the split cleaner.
         "cause": causes[0] if len(causes) == 1 else MIXED,
@@ -449,6 +473,168 @@ def ordering_report(text, ranks=None):
     return out
 
 
+# ---------------------------------------------------------------------------------------------
+# WHAT the gate refused ON, not merely WHICH gate refused.
+#
+# The predecessor closed by saying the log "records which gate refused and never what changed
+# between attempts", and proposed reading the TREE STATE between consecutive refused cycles. That
+# route is not taken here and the reason is a base rate: `git log --all --since=2026-08-13` is
+# 60-191 commits a day against a median 3300s gap between attempts, so "did the tree move" answers
+# YES for re-breaks and non-re-breaks alike. The premise is also false -- every gate prints the
+# artefact it objected to, inside the block the log already retains.
+
+#: `- TWO ROOMS <F>.md: …`, `- UNCONSOLIDATED <F>.md: …`, `- STALE SEVERITY <F>.md: …`,
+#: `- RESURRECTED <F>.md: …`, `- MISSING CLASS DOC <F>.md`. The KIND is matched as a shape
+#: (leading capitals) rather than enumerated, so a new objection kind is picked up instead of
+#: silently dropped.
+#
+# THE SUBJECT IS THE FIRST `.md` ON THE LINE, and the two near-misses pull opposite ways.
+# RESURRECTED's TAIL names a SECOND document (`superseded by <CLASS>.md`) which is not what
+# refused, so the pattern must not reach past the first token. But `MISSING CLASS DOC <F>.md` ends
+# at the filename with NO trailing colon -- so anchoring on `:` to exclude that tail drops this
+# kind entirely, and 8 of the log's 49 finding-class subjects leave the analysis silently. That is
+# the predecessor's own defect (a fail-closed fix whose table read clean because its biggest
+# entries had left it) and it was caught the same way: by printing both forms against the real log
+# rather than by reasoning about the regex.
+#
+# ESTABLISHED EQUIVALENCE, not an untested branch: inserting `.*?` before the group changes
+# nothing (61 subjects, identical list, over the whole retained log), because leftmost-minimal
+# matching already prefers the empty skip. The tightness here is documentation of intent; what
+# actually selects the first token is the regex engine, and the control above pins the OUTCOME.
+_SUBJ_FINDING_CLASS = re.compile(r"^\s*-\s+[A-Z][A-Z ]+?\s(\S+\.md)\b", re.M)
+#: `§0: level_current 2->3 on <ATOM> declares a level for source this commit does NOT contain`.
+_SUBJ_LEVEL_GATE = re.compile(r"^§\d+:\s+level_current\s+\S+\s+on\s+(\S+?)\s", re.M)
+_ORPHAN_BANNER = "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS."
+_ORPHAN_END = "Nothing imports these"
+
+
+def _subjects_finding_class(body):
+    return frozenset(_SUBJ_FINDING_CLASS.findall(body)) or None
+
+
+def _subjects_level_gate(body):
+    return frozenset(_SUBJ_LEVEL_GATE.findall(body)) or None
+
+
+def _subjects_orphan(body):
+    """The indented module lines between the ratchet's banner and its explanation."""
+    out, inside = [], False
+    for line in body.split("\n"):
+        if _ORPHAN_BANNER in line:
+            inside = True
+            continue
+        if not inside:
+            continue
+        if _ORPHAN_END in line:
+            break
+        token = line.strip()
+        # One bare token per line. A line with a space in it is the prose, not a module, and
+        # admitting it would make two blocks differ on wording rather than on subject.
+        if token and " " not in token:
+            out.append(token)
+    return frozenset(out) or None
+
+
+def _subjects_pytest(body):
+    """pytest's own `FAILED <nodeid>` summary, via the parser the publisher itself uses."""
+    return frozenset(_parse_failed_node_ids(body)) or None
+
+
+#: cause name -> how that gate names its subject. Keyed by the name the BANNER TABLE produces, so
+#: a gate renamed there loses its extractor loudly (KeyError-free: it just becomes UNKNOWN) rather
+#: than keeping a stale key that matches nothing. A gate absent here is never guessed at.
+SUBJECT_EXTRACTORS = {
+    "finding-class consolidation": _subjects_finding_class,
+    "level-promotion gate": _subjects_level_gate,
+    "orphan-ratchet": _subjects_orphan,
+    "site-lane gate": _subjects_pytest,
+    RED_TEST: _subjects_pytest,
+}
+
+
+def _subject_at(cause, body):
+    """The artefacts `cause` objected to in `body`, or None when that cannot be established.
+
+    None is NOT an empty set and the difference is the whole discipline. The banner already told
+    us this gate refused, so it printed a subject; finding none means the log's `last 40 lines`
+    window cut above it. Returning `frozenset()` would make two truncated blocks compare EQUAL and
+    manufacture a `SAME` verdict -- fabricating a standing red out of missing evidence, which is
+    the one direction this analysis cannot survive.
+    """
+    fn = SUBJECT_EXTRACTORS.get(cause)
+    return fn(body) if fn and body else None
+
+
+SAME = "SAME"
+GREW = "GREW"
+SHRANK = "SHRANK"
+CHANGED = "CHANGED"
+UNKNOWN_SUBJECT = "UNKNOWN"
+#: The verdicts that are honest ignorance rather than an answer. Held as a set for the same reason
+#: `UNATTRIBUTABLE` is: a caller reporting a headline share cannot sweep it onto either side.
+SUBJECT_UNKNOWN = frozenset({UNKNOWN_SUBJECT})
+
+
+def subject_verdict(before, after):
+    """How the subject moved between two refusals of the SAME gate."""
+    if not before or not after:
+        return UNKNOWN_SUBJECT
+    if before == after:
+        return SAME
+    if before < after:          # strict subset: the old subject is still there, more arrived
+        return GREW
+    if after < before:          # strict subset the other way: something was repaired
+        return SHRANK
+    return CHANGED
+
+
+def subject_report(text, ranks=None):
+    """Every consecutive pair of refusals by ONE gate inside one bounded episode, classified.
+
+    WHY PAIRS ARE PER-GATE. Two DIFFERENT gates refusing in sequence is the queueing question, and
+    `ordering_report` already settled what this log can and cannot say about it. The question here
+    is the one left open: when the SAME gate refuses again, is it the same complaint?
+
+    `established` reuses the rank inference exactly as `ordering_report` states it -- an
+    intervening refusal at a strictly HIGHER rank is a positive observation that this gate PASSED
+    between the two, because the chain is serial and stops at the first refusal.
+    """
+    ranks = gate_ranks() if ranks is None else ranks
+    episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if not e["censored"]]
+    pairs = []
+    for e in episodes:
+        causes, subs = e["cause_sequence"], e["subjects"]
+        where = collections.defaultdict(list)
+        for i, c in enumerate(causes):
+            where[c].append(i)
+        for gate, idxs in where.items():
+            for i, j in zip(idxs, idxs[1:]):
+                established = gate in ranks and any(
+                    causes[k] in ranks and ranks[causes[k]] > ranks[gate]
+                    for k in range(i + 1, j))
+                pairs.append({
+                    "episode_from": e["from"], "gate": gate,
+                    "verdict": subject_verdict(subs[i], subs[j]),
+                    "established": established,
+                    # Endpoints inclusive. The analytic control in the pre-registration is keyed to
+                    # this: an established pair needs a cycle strictly between its ends, so a span
+                    # of 2 would mean the pairing or the rank lookup is wrong.
+                    "span": j - i + 1,
+                    "outage_s": e["outage_s"],
+                })
+    return pairs
+
+
+def subject_tally(pairs):
+    """Verdict counts over all pairs and over established pairs, plus the unknown bound."""
+    def tally(rows):
+        c = collections.Counter(p["verdict"] for p in rows)
+        known = sum(v for k, v in c.items() if k not in SUBJECT_UNKNOWN)
+        return {"counts": dict(c), "known": known, "total": len(rows)}
+
+    return {"all": tally(pairs), "established": tally([p for p in pairs if p["established"]])}
+
+
 def _hours(seconds):
     return "{:.1f}h".format(seconds / 3600.0)
 
@@ -535,6 +721,30 @@ def main(argv=None):
             _hours(e["outage_s"]), e["cycles"],
             "ESTABLISHED" if e["established"] else "order-consistent",
             " -> ".join(c.split(" (")[0] for c in e["cause_sequence"][:6])))
+
+    pairs = subject_report(Path(args.log).read_text(encoding="utf-8", errors="replace"))
+    t = subject_tally(pairs)
+    print("\n=== SUBJECT: when a gate refuses AGAIN, is it the SAME complaint? ===")
+    print("every gate prints the artefact it objected to, so the log DOES say what changed.")
+    print("SAME = a STANDING RED nobody is working; the publisher retries into it on its own")
+    print("rhythm. CHANGED/GREW = an ARRIVAL STREAM from other lanes. Opposite remedies.")
+    for label in ("all", "established"):
+        row = t[label]
+        print("\n{} pairs: {} ({} with an extractable subject)".format(
+            "ALL same-gate" if label == "all" else "ESTABLISHED (gate demonstrably PASSED between)",
+            row["total"], row["known"]))
+        for v, n in sorted(row["counts"].items(), key=lambda kv: -kv[1]):
+            base = "of extractable" if v not in SUBJECT_UNKNOWN else "of all pairs"
+            print("  {:5d}  {:>6} {}  {}".format(
+                n, _pct(n, row["total"] if v in SUBJECT_UNKNOWN else row["known"]), base, v))
+    by_gate = collections.defaultdict(collections.Counter)
+    for p in pairs:
+        by_gate[p["gate"]][p["verdict"]] += 1
+    print("\nby gate (pairs):")
+    for gate, c in sorted(by_gate.items(), key=lambda kv: -sum(kv[1].values())):
+        print("  {:5d}  {:<32} {}".format(
+            sum(c.values()), gate.split(" (")[0],
+            "  ".join("{} {}".format(v, n) for v, n in sorted(c.items()))))
     return 0
 
 
