@@ -332,9 +332,40 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     document must never be dropped for the day just because something newer
     also happened to fire. The pre-existing "skip if something fresh already
     fired" behaviour is preserved ONLY for the standing-open-findings summary,
-    which is the part that motivated it in the first place."""
+    which is the part that motivated it in the first place.
+
+    THE STAMP IS FALLIBLE AND THE TWO SIDES FAIL TOGETHER (2026-09-05). The read was
+    `LAST_DIGEST_DATE_FILE.read_text().strip() if .exists() else None` -- bare, behind an existence
+    check, unlike its two siblings `boot_announce.already_announced_this_boot` and
+    `daily_self_note.already_ran_today`, which both catch OSError. Content corruption here is
+    genuinely harmless (a text compare fails and the digest re-sends), so this is NOT the
+    absent-vs-unreadable conflation the census sweep was about; it is a permissions error, or a
+    directory at that path, raising into the daemon's cycle. What makes it worth a mechanism rather
+    than a bare `except` is the ORDER the code USED to be in: the digest was sent at the bottom of
+    this function and the stamp written after it. A fault that stops the read stops the write too,
+    so `except OSError: last_sent = None` alone would have sent the digest, failed on the write
+    anyway, and repeated BOTH every 30 minutes -- the exact flood the 2026-07-11 redesign above
+    exists to prevent. The repair is therefore the ORDER, not the `except`: **the day is stamped
+    before the digest is sent**, so an unusable stamp -- unreadable OR unwritable -- can only ever
+    cost one day's summary, never produce a page this function cannot then suppress.
+
+    Both directions fail CLOSED, and that is the deliberate trade: a lost digest costs one day's
+    summary, a digest every half hour costs the director's attention, and his own framing quoted
+    above is that an alarm repeating unactionably is what kills the immune system. An in-process
+    "already sent" flag would save the lost day, and was written and then removed: it is module
+    state that leaks between callers, and it buys nothing the ordering does not already give.
+    """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    last_sent = LAST_DIGEST_DATE_FILE.read_text().strip() if LAST_DIGEST_DATE_FILE.exists() else None
+    try:
+        last_sent = LAST_DIGEST_DATE_FILE.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        last_sent = None  # never stamped -- ABSENT is not UNREADABLE, and only this branch may send
+    except OSError as e:
+        last_sent = None  # MUTANT
+        log(f"Daily digest SKIPPED -- the once-per-day stamp {LAST_DIGEST_DATE_FILE.name} is "
+            f"unreadable ({e.__class__.__name__}: {e}), so whether today's digest already went "
+            f"cannot be established. Refusing rather than risking a 30-minute repeat.")
+        return
     if last_sent == today:
         return
 
@@ -362,13 +393,23 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
                 + " || " + gap_line
             )
 
+    # STAMP BEFORE SENDING. This line's position is the repair, and it is unconditional: whether
+    # or not there is anything to say, today's digest question is now answered. Sending first and
+    # stamping after -- the old order -- means an unwritable stamp pages the director every 30
+    # minutes with no way for this function to stop it.
+    try:
+        LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        LAST_DIGEST_DATE_FILE.write_text(today, encoding="utf-8")
+    except OSError as e:
+        log(f"Daily digest SKIPPED -- the once-per-day stamp {LAST_DIGEST_DATE_FILE.name} could "
+            f"not be written ({e.__class__.__name__}: {e}), so nothing can record that today's "
+            f"digest went. Sending it unstamped would re-send it every cycle until midnight.")
+        return
+
     if parts:
         _digest("Sanity daemon daily digest: " + " || ".join(parts))
         log(f"Daily digest sent -- {len(aged_entries)} aged staging doc(s); "
             + ("standing open finding(s) attached" if not any_new_this_cycle else "fresh finding fired this cycle, standing summary skipped"))
-
-    LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    LAST_DIGEST_DATE_FILE.write_text(today)
 
 
 def run_cycle() -> None:

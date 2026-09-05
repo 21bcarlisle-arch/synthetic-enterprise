@@ -54,17 +54,48 @@ RENEWAL_TOLERANCE_PCT = 0.02
 
 
 def _load_log(log_path=None):
+    """(entries oldest-first, count of lines that could not be used).
+
+    A CORRUPT LINE MUST COST ONE ENTRY, NOT THE FILE -- AND MUST NOT COST IT SILENTLY (2026-09-05).
+    `live_decisions_log.jsonl` is dispositioned in `docs/design/self_clearing_alarm_dispositions.
+    json` as benign because "JSONL, append-only, same as above", where above is
+    `notification_digest._read_queue`, which "parses PER LINE, discarding only the lines it cannot
+    read". That was reasoned from a sibling rather than measured here, and it was WRONG for this
+    file: the bare `json.loads(line)` this replaces raised `JSONDecodeError` straight out of the
+    loader, so one bad byte anywhere in the log took the WHOLE scorecard down -- and
+    `entries.sort(key=lambda e: e.get(...))` would have raised `AttributeError` on any line that
+    parsed to a non-dict (`3`, `"abc"`, `[1, 2]`), which the same claim also did not cover.
+
+    The count is RETURNED rather than swallowed because the alternative failure is worse than the
+    crash it replaces. This scorecard's `log_entry_count` and its grading counts are read by
+    `tools/generate_proof_data.py` and rendered on the Proof door; a quietly dropped line publishes
+    a smaller, entirely plausible track record, and a plausible smaller number does not get noticed
+    the way a traceback does. Same shape as `count_run_history_total` answering 3 for `"abc"`.
+
+    An unreadable FILE is still allowed to raise. Absent is not unreadable: absent means the live
+    decisions run has never logged a day and an empty scorecard is the truth, while an OSError
+    means we cannot tell, and turning that into `[]` would publish "no track record" as a finding.
+    """
     path = _P(log_path) if log_path else LOG_PATH
     if not path.exists():
-        return []
+        return [], 0
     entries = []
+    unreadable = 0
     for line in path.read_text().splitlines():
         line = line.strip()
         if not line:
             continue
-        entries.append(json.loads(line))
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            unreadable += 1
+            continue
+        if not isinstance(entry, dict):
+            unreadable += 1
+            continue
+        entries.append(entry)
     entries.sort(key=lambda e: e.get("decision_run_at", ""))
-    return entries
+    return entries, unreadable
 
 
 def _load_portfolio(portfolio_path=None):
@@ -221,7 +252,7 @@ def _retention_ev_log(log_entries):
 
 
 def generate(log_path=None, portfolio_path=None, out_path=None, today=None):
-    log_entries = _load_log(log_path)
+    log_entries, unreadable_log_lines = _load_log(log_path)
     customers_by_cid = _load_portfolio(portfolio_path)
     wall_clock_today = today if today is not None else dt.datetime.now(dt.timezone.utc).date()
 
@@ -242,6 +273,10 @@ def generate(log_path=None, portfolio_path=None, out_path=None, today=None):
         "wall_clock_today": wall_clock_today.isoformat(),
         "clock_started": clock_started,
         "log_entry_count": len(log_entries),
+        # The denominator's own honesty. Non-zero means `log_entry_count` is smaller than the
+        # record actually is, and every count below it is understated by an unknown amount --
+        # a figure published without this beside it is a plausible number with a hole in it.
+        "unreadable_log_lines": unreadable_log_lines,
         "renewal_tolerance_pct": RENEWAL_TOLERANCE_PCT,
         "renewal_grading": {
             "graded_count": len(graded),

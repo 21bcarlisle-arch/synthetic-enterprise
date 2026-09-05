@@ -15,6 +15,7 @@ Two decoupled clocks (Phase RX / S1 Option B, docs/staging/S1_SHADOW_LIVE_TRACK_
    while Option A is unbuilt.
 """
 import json, datetime as dt
+import sys
 from pathlib import Path
 
 from company.crm.enriched_churn_estimate import enriched_churn_estimate
@@ -194,16 +195,49 @@ def append_decision_log(decision, log_path=None):
     for a given day is locked in and never overwritten by later re-runs the same day,
     so the log is a genuine, falsifiable record of what was recommended and when
     (not just the latest re-run's answer restated under an unchanged timestamp).
+
+    A LINE IT CANNOT READ IS NOT A LINE THAT ISN'T THERE (2026-09-05). This read is the whole
+    idempotence guard, and the bare `json.loads(line)["decision_run_at"]` it replaces raised out
+    of the function on a corrupt line -- so did a `KeyError` on a row parsed from anything without
+    that field, and a `TypeError` on a row that parsed to a scalar. That is loud, which is why it
+    survived; the reason it still had to change is what the OBVIOUS repair does. Skipping the bad
+    line and carrying on -- the reflex, and what the disposition row's "same as above" claim
+    assumed already happened here -- is WRONG in this one place: if the unreadable line is today's
+    own entry, the day drops out of `existing_dates`, the guard says "not logged yet", and a
+    re-run appends a SECOND row for the same day. That is exactly the "latest re-run's answer
+    restated" the paragraph above exists to forbid, and downstream
+    `generate_track_record_scorecard` would grade both.
+
+    So it fails CLOSED on the day question: any line it cannot turn into a date means it cannot
+    prove today is absent, and it declines to append rather than risk a duplicate. The day's
+    decision is not lost -- `live_decisions_<date>.json` and `live_decisions_latest.json` are
+    already on disk before this is called. The refusal names its reason on stderr because the
+    return value cannot: every production caller discards it (this module's own `run_decisions`
+    included), so `False` is read by tests alone and a silent `False` here would be a lost day
+    nobody could attribute.
     """
     log_path = Path(log_path) if log_path else DECISION_LOG_PATH
     run_date = decision["decision_run_at"][:10]
     existing_dates = set()
     if log_path.exists():
-        for line in log_path.read_text().splitlines():
+        for lineno, line in enumerate(log_path.read_text().splitlines(), start=1):
             line = line.strip()
             if not line:
                 continue
-            existing_dates.add(json.loads(line)["decision_run_at"][:10])
+            try:
+                entry = json.loads(line)
+                day = entry["decision_run_at"][:10]
+            except (json.JSONDecodeError, TypeError, KeyError, IndexError) as e:
+                print(
+                    f"REFUSING to append to {log_path}: line {lineno} cannot be read as a decision "
+                    f"({e.__class__.__name__}: {e}), so whether {run_date} is already recorded "
+                    f"cannot be established. Appending anyway could duplicate the day, which is "
+                    f"the one thing this log's one-entry-per-day rule exists to prevent. Today's "
+                    f"decision is still written to live_decisions_{run_date.replace('-', '')}.json.",
+                    file=sys.stderr,
+                )
+                return False
+            existing_dates.add(day)
     if run_date in existing_dates:
         return False
     log_path.parent.mkdir(parents=True, exist_ok=True)
