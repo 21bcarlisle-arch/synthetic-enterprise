@@ -307,7 +307,7 @@ def test_a_landing_stays_readable_after_the_claim_is_RELEASED(tmp_path, monkeypa
     store = tmp_path / "claims.json"
     monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", store)
     monkeypatch.setattr(delivery_lane, "_commit_facts",
-                        lambda commit: (time.time() + 10, ["background/x.py", "docs/y.md"]))
+                        lambda commit, since=None: (time.time() + 10, ["background/x.py", "docs/y.md"]))
 
     delivery_lane.claims_mod.claim("some-work", paths=[], path=store)
     assert delivery_lane.record_landing("some-work", commit="HEAD", path=store)
@@ -338,7 +338,7 @@ def test_a_REFUSED_landing_writes_no_tombstone(tmp_path, monkeypatch):
     """
     store = tmp_path / "claims.json"
     monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", store)
-    monkeypatch.setattr(delivery_lane, "_commit_facts", lambda commit: (time.time() + 10, ["a.py"]))
+    monkeypatch.setattr(delivery_lane, "_commit_facts", lambda commit, since=None: (time.time() + 10, ["a.py"]))
 
     # 1. Never claimed — there is no deadline to inform.
     assert delivery_lane.record_landing("never-claimed", commit="HEAD", path=store) == []
@@ -346,12 +346,12 @@ def test_a_REFUSED_landing_writes_no_tombstone(tmp_path, monkeypatch):
 
     # 2. Claimed, but the commit is unreadable or touched nothing.
     delivery_lane.claims_mod.claim("real-work", paths=[], path=store)
-    monkeypatch.setattr(delivery_lane, "_commit_facts", lambda commit: (0.0, []))
+    monkeypatch.setattr(delivery_lane, "_commit_facts", lambda commit, since=None: (0.0, []))
     assert delivery_lane.record_landing("real-work", commit="HEAD", path=store) == []
     assert delivery_lane.last_landing("real-work", path=store) == (0.0, [])
 
     # 3. Claimed and readable, but the commit predates the first draw — somebody else's work.
-    monkeypatch.setattr(delivery_lane, "_commit_facts", lambda commit: (time.time() - 9999, ["a.py"]))
+    monkeypatch.setattr(delivery_lane, "_commit_facts", lambda commit, since=None: (time.time() - 9999, ["a.py"]))
     assert delivery_lane.record_landing("real-work", commit="HEAD", path=store) == []
     assert delivery_lane.last_landing("real-work", path=store) == (0.0, [])
 
@@ -552,11 +552,23 @@ def test_the_release_CLI_REFUSES_instead_of_printing_success(stores, capsys):
 
     MUTATION: drop the `if not ...` guard and print unconditionally, or `return 0` on the refusal
     branch, and this fires.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S WORDING, because it was pinned to the literal
+    `released NOTHING for` and `113e26a32` changed the CLI to say `released NO CLAIM for` the
+    same day. The control went red while the code stayed correct -- which is the failure mode
+    backwards: red when the code gets clearer, green when the claim rots. What must hold is that
+    the verb is NEGATED before the id, so no caller reading the line can take it for the success
+    shape (`released <id>`); which negation word is used is not the lane's business.
     """
+    import re
+
     rc = delivery_lane.main(["--release", "never-claimed"])
     out = capsys.readouterr().out
     assert rc == 1, "a release that let nothing go exited 0"
-    assert "released NOTHING for never-claimed" in out
+    assert re.search(r"released\s+(NOTHING|NO CLAIM)\s+for\s+never-claimed", out), (
+        f"the refusal does not negate the verb before the id, so it can be read as the success "
+        f"line `released never-claimed`: {out!r}"
+    )
     assert "NOT CLAIMED here" in out
 
     # And the PASS branch is still reachable — a real claim releases and reports success.
@@ -725,7 +737,7 @@ def routed(tmp_path, monkeypatch):
         """
         def run_it():
             monkeypatch.setattr(delivery_lane, "_commit_facts",
-                                lambda commit: (time.time() + 30,
+                                lambda commit, since=None: (time.time() + 30,
                                                 ["background/seat_executor.py"]))
             return delivery_lane.record_landing("the-item", path=store)
         return run_it

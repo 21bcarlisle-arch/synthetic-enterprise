@@ -65,7 +65,12 @@ def promoting(tmp_path, tmp_path_factory, monkeypatch):
     # happens to hold, which would make these legs pass or fail on another lane's schedule.
     monkeypatch.setattr(claims_mod, "refuse_if_duplicated", lambda *a, **k: None)
     monkeypatch.setattr(mod, "_refuse_if_ungated", lambda *a, **k: None)
-    monkeypatch.setattr(mod, "_refuse_if_not_fast_forward", lambda wt, c: "0" * 40)
+
+    # The base the promotion is being added to -- a REAL sha, because `promote` passes it to the
+    # binding as the `since` ref and a placeholder would make the subject unreadable rather than
+    # wrong, which is the flattering failure.
+    base = {"sha": _git(path, "rev-parse", "HEAD").stdout.strip()}
+    monkeypatch.setattr(mod, "_refuse_if_not_fast_forward", lambda wt, c: base["sha"])
 
     # One real landing, touching one real file, so `_commit_facts` has paths to return.
     (path / "a_promoted_file.txt").write_text("landed\n")
@@ -92,7 +97,8 @@ def promoting(tmp_path, tmp_path_factory, monkeypatch):
 
     try:
         yield {"worktree": path, "store": store, "commit": commit, "when": when,
-               "pushes": pushes, "remote_now": remote_now, "mod": mod}
+               "pushes": pushes, "remote_now": remote_now, "mod": mod, "base": base,
+               "git": lambda *a: _git(path, *a)}
     finally:
         _git(PROJECT, "worktree", "remove", "--force", str(path))
         _git(PROJECT, "worktree", "prune")
@@ -235,6 +241,60 @@ def test_the_bound_paths_come_from_the_COMMIT_and_not_from_promotes_own_scope(pr
         "the binding takes a path list from `promote`, so a landing's claimed scope is no longer "
         "git's answer"
     )
-    assert "record_landing(work_id, commit=commit)" in src, (
-        "the binding no longer names the commit alone"
+    assert "record_landing(work_id, commit=commit, since=since)" in src, (
+        "the binding no longer names a commit and a base alone -- `since` is a REF, which only "
+        "chooses git's question; a path list would choose git's answer"
+    )
+
+
+def test_a_MERGE_binds_MY_paths_and_not_the_side_it_merged_IN(promoting):
+    """THE DEFECT THE FIRST LIVE RUN OF THIS BINDING REPRODUCED, filed LATENT 2026-09-04.
+
+    `record_landing`'s default subject for a merge is `first-parent..commit`. Merging
+    `origin/main` INTO your landing -- which is what `surgical_land --merge origin/main` produces,
+    and therefore what EVERY re-gate after an origin move produces -- makes YOUR work the first
+    parent, so that subject is precisely the OTHER lane's files. It binds them, exits 0, and
+    prints a plausible count.
+
+    IT IS WORSE THAN A WRONG LIST. The turn is judged on whether the BOUND paths moved on the
+    shared tree; the other lane's paths did move, so the turn is graded PASS on their commit while
+    its own work stays unbound and re-offerable. A `LANDED NOTHING` would be better, being legible.
+
+    THE SECOND ASSERT IS THE LOAD-BEARING ONE: without it a binding that returned an empty list
+    would satisfy the first, and "bound nothing" is the flattering reading of this failure.
+
+    MUTATION (must fire): stop passing `remote_head` as `since`, or make `_commit_facts` ignore
+    it -- both restore the first-parent subject and both bind `their_file.txt`.
+    """
+    git = promoting["git"]
+    mine = promoting["commit"]
+
+    # The other lane's commit, from the SAME base -- this is `origin/main` moving.
+    # DETACHED, never `-b`: a named branch is a ref in the SHARED repo, and the worktree teardown
+    # does not remove it. The first draft used `-b other-lane`, which passed once and then made
+    # every later run fail -- `checkout -b` refused the existing ref, HEAD never moved, the merge
+    # merged nothing and the leg read as "the binding is broken". A test that leaks a ref into
+    # the repo it runs against poisons its own next run.
+    git("checkout", "-q", "--detach", promoting["base"]["sha"])
+    (promoting["worktree"] / "their_file.txt").write_text("theirs\n")
+    git("add", "their_file.txt")
+    git("commit", "-q", "--no-verify", "-m", "another lane's landing")
+    theirs = git("rev-parse", "HEAD").stdout.strip()
+
+    # Re-gate: merge origin/main INTO my landing. My work is the FIRST parent.
+    git("checkout", "-q", mine)
+    git("merge", "-q", "--no-ff", "-m", "merge origin/main", theirs)
+    merged = git("rev-parse", "HEAD").stdout.strip()
+    promoting["remote_now"]["sha"] = merged
+    promoting["base"]["sha"] = theirs          # origin/main, as it stood before this push
+
+    _claim(promoting, "the-drawn-id")
+    result = promote(promoting["worktree"], work_id="the-drawn-id")
+
+    assert "their_file.txt" not in result["bound"], (
+        "the merge bound the side it merged IN -- another lane's work, credited to this claim, "
+        "with a success line on it"
+    )
+    assert result["bound"] == ["a_promoted_file.txt"], (
+        "the binding must name what this promotion ADDS to origin/main, and nothing else"
     )

@@ -226,8 +226,20 @@ def _refuse_if_duplicated(worktree: Path, commit: str, *, work_id: str | None) -
     return paths
 
 
-def _bind_to_claim(commit: str, work_id: str | None) -> tuple[list[str], str]:
+def _bind_to_claim(commit: str, work_id: str | None, since: str) -> tuple[list[str], str]:
     """Bind the PUSHED commit to `work_id`'s Lane 0 claim. Returns (bound paths, what happened).
+
+    `since` IS THE PRE-PUSH `origin/main`, and passing it is what makes the subject correct
+    rather than merely present. `record_landing`'s default question is "what did this commit
+    bring in against its FIRST parent", which is backwards for `merge origin/main into my
+    landing` — the shape every re-gate after an origin move produces. On the very first live run
+    of this binding (2026-09-05) that bound four of ANOTHER lane's paths to this claim and
+    printed a plausible success line, reproducing a defect filed LATENT the day before.
+
+    This seam is the one place with a non-ambiguous answer, because the promotion's whole subject
+    is "what does this add to `origin/main`" and `_refuse_if_not_fast_forward` has already
+    returned that ref. It is a REF and not a path list: git still answers, the caller only says
+    which question.
 
     NEVER RAISES AND NEVER REFUSES. See the module docstring for why this is a report and not a
     gate; the consequence for this function is that every way it can fail has to come back as a
@@ -253,13 +265,13 @@ def _bind_to_claim(commit: str, work_id: str | None) -> tuple[list[str], str]:
     try:
         from background.delivery_lane import record_landing, refusal_reason
 
-        bound = record_landing(work_id, commit=commit)
+        bound = record_landing(work_id, commit=commit, since=since)
         if bound:
             return bound, "bound {} path(s) to {}: {}".format(
                 len(bound), work_id, ", ".join(bound[:8])
             )
         return [], "bound NOTHING to {}: {}".format(
-            work_id, refusal_reason(work_id, commit=commit)
+            work_id, refusal_reason(work_id, commit=commit, since=since)
         )
     except Exception as exc:  # noqa: BLE001 - a bookkeeping failure must not cost a landing
         # NAMES the class, for the reason `refusal_reason` records against its own except: an
@@ -312,7 +324,7 @@ def promote(worktree: Path, *, work_id: str | None = None, dry_run: bool = False
     # AFTER the push is VERIFIED, never before it. The binding's claim is "this commit is on
     # origin/main", and making it against a push that only reported success would be the same
     # unchecked assumption the check above exists to refuse.
-    bound, binding = _bind_to_claim(commit, work_id)
+    bound, binding = _bind_to_claim(commit, work_id, remote_head)
     return {"commit": commit, "paths": paths, "from": remote_head, "pushed": True,
             "bound": bound, "binding": binding}
 
