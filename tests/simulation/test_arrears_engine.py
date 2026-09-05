@@ -73,11 +73,20 @@ def test_payment_method_resi_defaults_to_direct_debit_when_no_customer_id():
 
 
 def test_payment_method_resi_archetype_aware_with_customer_id():
-    """With a customer_id, resi payment method must be archetype-aware
-    (2026-07-09 fix) -- a large sample must produce both direct_debit and
-    standard_credit, not a flat single value."""
+    """With a customer_id, resi payment method must be archetype-aware (2026-07-09 fix)
+    -- a large sample must produce EVERY channel the world models, not a flat value.
+
+    Keyed to `PaymentChannel` rather than to the two names this asserted until
+    2026-09-05. The literal set `{"direct_debit", "standard_credit"}` was the whole
+    partition when it was written; PB4 then separated PREPAYMENT out of STANDARD_CREDIT
+    and this went red for a sample that had become MORE faithful, not less. Written
+    against the enum, the same assertion covers the partition however many members it
+    grows -- and still fails on the flat-single-value regression it was built for.
+    """
+    from simulation.household_segments import PaymentChannel
+
     methods = {payment_method("resi", 100.0, f"PM_C{i}", "electricity") for i in range(200)}
-    assert methods == {"direct_debit", "standard_credit"}
+    assert methods == {channel.value for channel in PaymentChannel}
 
 
 def test_payment_method_resi_archetype_is_deterministic():
