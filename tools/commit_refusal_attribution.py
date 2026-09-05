@@ -61,7 +61,7 @@ import statistics
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background.process_run_complete import _parse_refusing_gate
+from background.process_run_complete import _REFUSING_GATE_BANNERS, _parse_refusing_gate
 
 DEFAULT_LOG = Path("docs/observability/sim-runner-log.md")
 
@@ -307,6 +307,148 @@ def episode_report(text):
     }
 
 
+#: The hook that IS the firing order. Ranks are derived from it at call time, never hardcoded
+#: here -- a rank table written by hand is a paraphrase, and the defect this whole module exists
+#: to avoid is a paraphrase of the gates drifting from the gates.
+HOOK = Path("tools/git-hooks/pre-commit")
+#: The commit-msg gate runs only after ALL of pre-commit passed, so it is last by construction and
+#: is not findable in the pre-commit file. Its rank is "after everything", not a guess.
+_AFTER_PRE_COMMIT = 10 ** 6
+
+
+def _hook_order(hook_text):
+    """Emitter module -> its position in the serial chain, read from the hook's own invocations.
+
+    Matches both spellings the hook uses (`python3 tools/x.py` and `python3 -m tools.x`), because
+    a matcher that knew only one would silently rank half the chain as absent -- and absent, in
+    the ordering analysis below, reads as "no evidence" rather than as a broken instrument.
+    """
+    order = {}
+    for i, line in enumerate(hook_text.split("\n")):
+        m = re.search(r"python3\s+(?:-m\s+([\w.]+)|(\S+\.py))", line)
+        if not m:
+            continue
+        mod = m.group(2) or (m.group(1).replace(".", "/") + ".py")
+        order.setdefault(mod, i)
+    return order
+
+
+#: Shortest prefix of a needle still specific enough to locate. Below this a match is a
+#: coincidence rather than a position, and a coincidental position is worse than none.
+_MIN_NEEDLE = 24
+
+
+def _needle_pos(body, needle):
+    """Where `needle` is printed in `body`, or None when that cannot be established.
+
+    NOT a bare `.find()`, and the difference is load-bearing. Gate banners are written in the
+    source as ADJACENT STRING LITERALS split across lines, so the runtime needle
+    (`"...HAS NO PARSEABLE SEVERITY HEADER"`) never occurs contiguously in the file that prints
+    it. A `.find()` returns -1 there, and the obvious fallback -- treat -1 as 0 -- ranks that gate
+    FIRST inside its emitter, which is the strongest position there is. That inverts the one
+    comparison this module makes: it would report a backward step, i.e. an ESTABLISHED
+    re-arrival, from a gate whose position was never found. So the fallback is None and the cause
+    leaves the analysis entirely.
+    """
+    # The floor bounds SHRINKING, never the needle itself: `"[level-gate] ❌"` is 14 characters
+    # and entirely specific, and an earlier draft of this floor silently dropped it -- along with
+    # site-lane and scope-evidence, three of the commonest causes in the log -- leaving an
+    # analysis that looked clean because its biggest gates had left it.
+    at = body.find(needle)
+    if at >= 0:
+        return at
+    probe = needle[:-1]
+    while len(probe) >= _MIN_NEEDLE:
+        at = body.find(probe)
+        if at >= 0:
+            return at
+        probe = probe[:-1]
+    return None
+
+
+def gate_ranks(hook_text=None, emitter_texts=None):
+    """`cause name -> (chain rank, rank within its emitter)`, derived from the enforcement.
+
+    WHY A PAIR AND NOT AN INTEGER. Several causes share one emitter: `finding-class`,
+    `finding-severity` and `RED TEST` are all printed by `pre_commit_test_gate.py`, which the hook
+    invokes ONCE. Ranking them equal would throw away the fact that its `main()` runs the
+    consolidation check second and pytest LAST -- and that fact is what makes the largest episode
+    in the log analysable at all. The secondary rank is the byte offset of the cause's own needle
+    inside the file that prints it, so it is read from the emitter rather than asserted here.
+
+    A cause with no rank (unattributable, or a gate the hook no longer invokes) is ABSENT from the
+    result rather than sorted to an end. Callers must skip it; ranking ignorance would invent
+    ordering evidence, which is the one error this analysis cannot survive.
+    """
+    hook_text = HOOK.read_text(encoding="utf-8") if hook_text is None else hook_text
+    order = _hook_order(hook_text)
+    texts = {} if emitter_texts is None else dict(emitter_texts)
+
+    def body(path):
+        if path not in texts:
+            p = Path(path)
+            texts[path] = p.read_text(encoding="utf-8") if p.exists() else ""
+        return texts[path]
+
+    ranks = {}
+    for name, needles, emitter in _REFUSING_GATE_BANNERS:
+        if emitter not in order:
+            continue
+        inner = _needle_pos(body(emitter), needles[0])
+        if inner is None:
+            continue
+        cand = (order[emitter], inner)
+        # A gate with two rows (half-hourly) keeps its EARLIEST needle: the gate refuses at the
+        # first of them, and the later row is a second message from the same chain position.
+        if name not in ranks or cand < ranks[name]:
+            ranks[name] = cand
+    # The write-time gate lives in commit-msg, which runs after the whole pre-commit chain.
+    for name, _, emitter in _REFUSING_GATE_BANNERS:
+        if emitter not in order and "write_time_gate" in emitter:
+            ranks[name] = (_AFTER_PRE_COMMIT, 0)
+    tg = "tools/pre_commit_test_gate.py"
+    if tg in order:
+        # pytest is invoked, not printed, so RED TEST's needle is the subprocess call itself.
+        m = re.search(r'"-m",\s*"pytest"', body(tg))
+        ranks[RED_TEST] = (order[tg], m.start() if m else len(body(tg)))
+    return ranks
+
+
+def ordering_report(text, ranks=None):
+    """Which episodes carry a gate that went PASSING -> REFUSING, and which merely look like it.
+
+    THE ONLY INFERENCE THE LOG LICENSES. The chain is serial and stops at the first refusal, so a
+    cycle naming a gate at rank r is a positive observation that every gate below r PASSED in that
+    cycle. A later cycle naming a rank BELOW the highest already reached is therefore a gate that
+    passed and then refused -- an established re-arrival, immune to the firing order.
+
+    AND THE ONE IT DOES NOT. A forward step is what a genuine queue AND a set of gates that were
+    all red from the start both produce, because a later gate's state is unobservable while an
+    earlier one refuses. So `queueing` is NOT falsifiable here and is never reported as found:
+    the complement bucket is ORDER-CONSISTENT, which is a statement about what we cannot tell
+    apart, not a finding that the gates queued.
+    """
+    ranks = gate_ranks() if ranks is None else ranks
+    episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if not e["censored"]]
+    out = []
+    for e in episodes:
+        seq = [(c, ranks[c]) for c in e["cause_sequence"] if c in ranks]
+        steps, seen, peak = [], [], None
+        for cause, rk in seq:
+            if peak is not None and rk < peak:
+                steps.append({"cause": cause, "below": peak})
+            peak = rk if peak is None else max(peak, rk)
+            seen.append(cause)
+        # A RECURRENCE is the predecessor's post-hoc test: a cause reappearing after a different
+        # one intervened. Kept so the two classifications can be compared row by row rather than
+        # only in aggregate -- the disagreement is the finding.
+        recurs = any(any(x != c for x in seen[seen.index(c):len(seen) - seen[::-1].index(c)])
+                     for c in set(seen))
+        out.append({**e, "ranked_causes": len(seq), "backward_steps": steps,
+                    "established": bool(steps), "recurrence": recurs})
+    return out
+
+
 def _hours(seconds):
     return "{:.1f}h".format(seconds / 3600.0)
 
@@ -367,6 +509,32 @@ def main(argv=None):
             _hours(sum(xs)), _pct(sum(xs), total), cause))
     print("\nmixed-cause episodes: {} of {} multi-cycle ({})".format(
         ep["mixed"], ep["multi_cycle"], _pct(ep["mixed"], ep["multi_cycle"])))
+
+    ordered = [e for e in ordering_report(
+        Path(args.log).read_text(encoding="utf-8", errors="replace")) if e["cause"] == MIXED]
+    mixed_outage = sum(e["outage_s"] for e in ordered)
+    est = [e for e in ordered if e["established"]]
+    oc = [e for e in ordered if not e["established"]]
+    print("\n=== ORDERING: did a gate RE-BREAK, or is the firing order faking it? ===")
+    print("the chain is serial and stops at the first refusal, so a cycle naming rank r is a")
+    print("positive observation that every gate below r PASSED. A later cycle naming a LOWER")
+    print("rank is a gate that passed and then refused. A FORWARD step establishes nothing --")
+    print("a queue and a set of gates red from the start are indistinguishable here.")
+    print("\nESTABLISHED re-arrival: {} of {} mixed episodes, {} of mixed outage ({})".format(
+        len(est), len(ordered), _hours(sum(e["outage_s"] for e in est)),
+        _pct(sum(e["outage_s"] for e in est), mixed_outage)))
+    print("ORDER-CONSISTENT (cannot tell from simultaneous redness): {}, {} ({})".format(
+        len(oc), _hours(sum(e["outage_s"] for e in oc)),
+        _pct(sum(e["outage_s"] for e in oc), mixed_outage)))
+    concealed = [e for e in est if not e["recurrence"]]
+    print("\nof which the contiguous-block test MISSES {}: a cause appearing once, at a rank "
+          "below\none already reached, is a re-arrival that no recurrence test can see.".format(
+              len(concealed)))
+    for e in sorted(ordered, key=lambda x: -x["outage_s"])[:5]:
+        print("  {:>6}  {:3d}cyc  {:<18}  {}".format(
+            _hours(e["outage_s"]), e["cycles"],
+            "ESTABLISHED" if e["established"] else "order-consistent",
+            " -> ".join(c.split(" (")[0] for c in e["cause_sequence"][:6])))
     return 0
 
 
