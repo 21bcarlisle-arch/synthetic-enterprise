@@ -90,7 +90,10 @@ from background.agent_status import update_agent_status  # noqa: E402
 # this, on the first full-suite run after the guard was wired in.
 from background import inbound_secret_redaction  # noqa: E402
 from background.notify import notify  # noqa: E402
-from background.episode_prior import load_list_prior, preserve_unreadable, prior_unreadable  # noqa: E402,E501
+from background.episode_prior import (  # noqa: E402
+    READABLE, UNREADABLE, load_episode_prior, load_list_prior, preserve_unreadable,
+    prior_unreadable,
+)
 from background.ntfy_utils import NTFY_AUTH_TOKEN, NTFY_TOPIC, sent_ids_unreadable, was_sent_by_us  # noqa: E402,E501
 
 NTFY_POLL_URL = f"https://ntfy.sh/{NTFY_TOPIC}/json"
@@ -113,13 +116,54 @@ def log(msg: str) -> None:
     print(entry)
 
 
-def _load_since() -> float:
-    if STATE_FILE.exists():
-        try:
-            return json.loads(STATE_FILE.read_text())["since"]
-        except (json.JSONDecodeError, KeyError):
-            pass
-    return time.time()
+#: A FOURTH reason beside the partition's three: the file parsed as a mapping and simply does not
+#: carry a watermark. Named rather than folded into UNREADABLE, because the remedies differ --
+#: unreadable bytes are worth preserving and this record is not.
+_NO_WATERMARK = "readable_without_watermark"
+
+
+def _load_since() -> tuple[float, str]:
+    """The poll watermark, and WHICH of the priors it came from.
+
+    THE SIBLING CARRIER IN THIS SAME DAEMON, AND THE ONE THAT WAS WORSE. `_load_seen_hashes` above
+    left the responder up and answering nothing; this one stopped it starting. Measured 2026-09-04
+    over the whole partition against a live prior of `{"since": 1234.5}`:
+
+        missing file        -> time.time()
+        empty file          -> time.time()
+        truncated           -> time.time()
+        json `null`         -> RAISED TypeError: 'NoneType' object is not subscriptable
+        `[1, 2, 3]`         -> RAISED TypeError: list indices must be integers
+        `["x", 2]`          -> RAISED TypeError: list indices must be integers
+        `{"other": 1}`      -> time.time()
+        CONTROL live prior  -> 1234.5
+
+    `json.loads` ACCEPTS `null` and a list, so neither is a `JSONDecodeError`, neither was ever
+    seen by `except (json.JSONDecodeError, KeyError)`, and the subscript one line later is what
+    raised. This call is the FIRST statement of `main()` and there is no try above it, so a
+    half-written watermark did not cost one poll -- the responder did not start at all, and the
+    only inbound route the director has into this machine was simply absent. Same shape as
+    `.sim_next_run_not_before.json`, moved off the producer and onto the channel.
+
+    WHY UNREADABLE STILL RESUMES FROM NOW, AND WHY THAT IS AN ANSWER RATHER THAN A DEFAULT.
+    Looking BACK on a lost watermark is not free: a replayed backlog re-enters
+    `_register_inbound_and_detect_flood`, trips the flood guard, and quarantines the very messages
+    the lookback was for. Re-EXECUTION is already defended (`claim_message`), but the flood guard
+    is not something a lost watermark should get to trigger. So the ACTION is the cold-start one
+    and the ANSWER is not: `main` preserves the bytes so an operator can read the watermark back
+    out, and pages. THE ASYMMETRY WITH THE SEEN-HASH BRANCH BELOW IS THE JUDGEMENT, and it runs
+    the other way from that one: an unreadable dedup record costs one duplicate ack, where an
+    unreadable watermark costs every message the director sent while this daemon was down.
+    """
+    state, verdict = load_episode_prior(STATE_FILE)
+    if verdict == READABLE:
+        since = state.get("since")
+        # `isinstance(True, int)` is True, so a bool would sail through a bare numeric check and
+        # the poll would then ask ntfy for everything since 1970.
+        if isinstance(since, (int, float)) and not isinstance(since, bool):
+            return float(since), READABLE
+        return time.time(), _NO_WATERMARK
+    return time.time(), verdict
 
 
 def _save_since(since: float) -> None:
@@ -506,17 +550,32 @@ def _quarantine_dir() -> Path:
 
 
 def _load_rate_state() -> dict:
-    p = _rate_state_file()
-    if p.exists():
-        try:
-            state = json.loads(p.read_text())
-            if isinstance(state, dict):
-                state.setdefault("events", [])
-                state.setdefault("last_alert", 0)
-                return state
-        except (json.JSONDecodeError, ValueError, OSError):
-            pass
-    return {"events": [], "last_alert": 0}
+    """The flood window. THE THIRD CARRIER ON THIS DAEMON, AND THE ONE THAT WAS ALREADY SOUND.
+
+    Recorded rather than assumed, because a census row nobody asked the loader question is a gap
+    and not a pass. Measured 2026-09-04 over the same partition against a live prior of
+    `{"events": [1.0], "last_alert": 9.0}`: NO member raised, and every unreadable member fell to
+    `{"events": [], "last_alert": 0}` -- because this loader already screened
+    `isinstance(state, dict)`, which is exactly what its two siblings above lacked. The `-> dict`
+    on those was an annotation; this was a check. The prediction filed before the run said this
+    one would need the reason and not the repair, and it held.
+
+    Two things change and neither changes an answer: the verdict now comes from the same
+    classifier as its siblings, so one grep finds all three; and a mapping whose `events` is not a
+    list is unreadable rather than handed to `_register_inbound_and_detect_flood` -- the `["x", 2]`
+    lesson, that a record which is only PARTLY right is not a record. A lost window costs at most
+    one duplicate alert and one unmeasured flood window; it cannot lose a message, which is why it
+    ranked last of the three.
+    """
+    state, verdict = load_episode_prior(_rate_state_file())
+    if verdict == READABLE and not isinstance(state.get("events", []), list):
+        state, verdict = {}, UNREADABLE
+    if prior_unreadable(verdict):
+        log("[flood guard] The inbound rate-window file exists and cannot be read -- starting "
+            "from an empty window. One flood window is unmeasurable; no message is at risk.")
+    state.setdefault("events", [])
+    state.setdefault("last_alert", 0)
+    return state
 
 
 def _save_rate_state(state: dict) -> None:
@@ -811,7 +870,25 @@ def main() -> None:
             "A second responder is what caused one director message to be queued twice.")
         return
 
-    since = _load_since()
+    since, since_verdict = _load_since()
+    if prior_unreadable(since_verdict):
+        # PAGED, where the seen-hash branch below is only logged, and the difference is the cost.
+        # A lost dedup record answers one replayed message twice. A lost WATERMARK means every
+        # message the director sent while this daemon was down is not recoverable from this
+        # record -- and the daemon comes up looking perfectly healthy having lost them.
+        preserved = preserve_unreadable(STATE_FILE)
+        detail = (f"the poll watermark was present but UNREADABLE at startup; polling resumes "
+                  f"from now, so anything sent while this daemon was down is not recoverable "
+                  f"from it. Old bytes: {preserved or 'could NOT be preserved'}")
+        log(f"STARTUP: {detail}.")
+        notify(
+            "[NTFY RESPONDER] " + detail[0].upper() + detail[1:] +
+            ". The channel is UP; this says what it forgot, not that it is down.",
+            kind="real_alarm", headers={"X-Priority": "4", "X-Tags": "rotating_light"},
+        )
+    elif since_verdict == _NO_WATERMARK:
+        log("Poll watermark file is readable but carries no `since` -- resuming from now. Not the "
+            "same fact as a missing file, and not the same fact as an unreadable one.")
     seen_hashes, seen_verdict = _load_seen_hashes()
     if prior_unreadable(seen_verdict):
         # Logged, not paged, and the asymmetry with the provenance guard below is the judgement:

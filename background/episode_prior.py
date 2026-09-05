@@ -192,8 +192,16 @@ def prior_unreadable(verdict: str) -> bool:
 MAX_PRESERVED_COPIES = 10
 
 
-def preserve_unreadable(path: Path | str) -> str | None:
+def preserve_unreadable(path: Path | str, *, keep_original: bool = False) -> str | None:
     """Move an unreadable state file aside so the rebuild that follows cannot destroy it.
+
+    `keep_original=True` COPIES instead of moving, leaving the original path in place. Added
+    2026-09-05 for `agent_status.update_agent_status`, and the reason is specific rather than a
+    preference: that caller holds an `fcntl` lock on the file's own open handle, and a `replace`
+    moves the inode the lock is on -- so the rebuild that followed would land at a path nothing
+    was holding, and every other daemon writes this same file. Whether the original survives is a
+    per-carrier property (a corrupt seen-set should go, a locked register must stay), and it
+    belongs as a flag here rather than as a sixth hand-rolled loop out there.
 
     Returns the name it went to, or `None` if the bytes could not be kept. BEST-EFFORT ON PURPOSE:
     every caller of this is a daemon that must still start, and a carrier that refuses to run
@@ -219,7 +227,10 @@ def preserve_unreadable(path: Path | str) -> str | None:
         if target.exists():
             continue
         try:
-            source.replace(target)
+            if keep_original:
+                target.write_bytes(source.read_bytes())
+            else:
+                source.replace(target)
         except OSError:
             return None
         return target.name
