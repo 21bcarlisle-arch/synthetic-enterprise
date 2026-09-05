@@ -109,3 +109,67 @@ Nothing is built on this yet, on purpose — a control written before the distri
 would be keyed to today's answer. The next question is **episode duration by cause**, because it
 converts this share into a cost and decides whether the 46% governance-gate share is a problem or
 just the gates working. That question needs the episode boundaries, which are in the same log.
+
+---
+
+# RED TEST, split by WHICH test — appended 2026-09-05
+
+The Lane 0 direction: `RED TEST` names the *gate*, not the test, so an established re-arrival of
+it is two different findings wearing one label. One control re-breaking is a contended or flaky
+test to go and find. Different tests in turn is arrival traffic from other lanes, and no control
+is at fault. They call for opposite responses and were, until now, indistinguishable.
+
+Produced by `tools/commit_refusal_attribution.py` (`red_test_report` / `red_test_tally`) against
+the shared tree's `docs/observability/sim-runner-log.md`. No new instrumentation: the hook blocks
+already retained pytest's own `FAILED <nodeid>` summary.
+
+## The split
+
+17 established re-arrival steps of `RED TEST`, across **5 distinct episodes**. 15 of the 17 answer
+the same-vs-different question; 2 are the first red in their episode and have nothing to compare
+against, so they are reported and not swept onto a side.
+
+| verdict | steps | share of the 15 splittable |
+|---|---|---|
+| SAME TEST | 7 | 46.7% |
+| SHARED TESTS | 4 | 26.7% |
+| DIFFERENT TESTS | 4 | 26.7% |
+| FIRST RED IN EPISODE | 2 | — (not splittable) |
+
+## The headline is not the answer, and this is the whole finding
+
+An identical node-id set means a control *re-broke* only where the gate was observed to pass in
+between. Without that observation the cheaper explanation is **persistence** — one standing red
+that nobody is working, which the publisher retries into on its own rhythm.
+
+**Zero of the 7 SAME TEST steps carry the between-observation.** All 3 steps that do carry it are
+`DIFFERENT TESTS` (2) or `SHARED TESTS` (1).
+
+So there is **no case in this log of one control demonstrably re-breaking after passing**. The
+46.7% SAME TEST share, read as "a flaky control", would have been wrong in every instance. The
+subject analysis corroborates it independently and from the other direction: of 59 same-gate
+`RED TEST` pairs, 47 are the SAME complaint — a standing red, not a stream of new ones.
+
+## The bound this earns
+
+**Three steps.** That is the entire strong-observation sample, and it is far too small to license
+a rate, a threshold or a mechanism. What it does establish is a *direction*: the evidence for the
+flaky-control reading is not weak, it is absent, while the persistence reading is corroborated by
+two independent measurements. A mechanism built to hunt a re-breaking control would have been
+built to find something no observation here supports.
+
+## Cost, and why it is not a partition
+
+The 5 episodes carrying these steps hold **48.2h** of outage. Per-verdict episode counts sum to 9,
+not 5, because one episode carries steps of several verdicts — so the per-verdict hours (SAME 25.6,
+DIFFERENT 27.3, FIRST RED 22.9, SHARED 8.4) **overlap and do not partition the 48.2h**. They are
+not shares of it and are not published as such.
+
+## What follows
+
+Still nothing built, and now for a better reason than last time. The pre-registered action on the
+re-arrival finding was deliberately NOTHING, because a control written then would have been keyed
+to today's answer. The split has now changed what such a control would *do* — away from "find the
+test that keeps re-breaking", which has no supporting case — and the remaining question is whether
+the cost is the retry-into-a-standing-red behaviour rather than the redness itself. That is a
+question about the publisher's retry rhythm, not about any test.

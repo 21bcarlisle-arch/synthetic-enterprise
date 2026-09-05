@@ -78,3 +78,19 @@ Full result: `docs/observability/commit_refused_attribution_2026-09-05.md`.
   lifetime denominator is a span in which a refusal could not be recorded at all. Right direction,
   wrong reason — which is worth recording, because a confirmation obtained through wrong reasoning
   would have licensed the next inference and that inference would have been false.
+
+---
+
+## Follow-on, appended 2026-09-05: `RED TEST` split by failing node id
+
+**No prediction was pre-registered for this split, and none is written now.** The Lane 0 direction
+arrived after the outcome above was scored, so this section records a measurement, not a scored
+call — saying so is the point, because a prediction filed after the answer is not a prediction.
+
+Result: `docs/observability/commit_refused_attribution_2026-09-05.md`, section *"RED TEST, split by
+WHICH test"*. In one line: of 17 established re-arrival steps, 7 show an identical failing-test set
+— but **none of those 7 carries the observation that the gate passed in between**, so not one of
+them demonstrates a control re-breaking. Every step that does carry that observation (3, all of
+them) shows different or only partly-overlapping tests. The flaky-control reading has no supporting
+case; the standing-red reading has two independent ones. Three steps is the whole strong sample and
+it licenses a direction, not a threshold.
