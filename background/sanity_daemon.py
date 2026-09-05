@@ -318,6 +318,28 @@ def _format_aged_staging_line(entry: dict) -> str:
     return f"{entry['filename']} ({entry['age_days']:.1f}d): {entry['summary']}"
 
 
+def _last_digest_date() -> str | None:
+    """The date stamp of the last digest, or None if we cannot read one.
+
+    Guarded like its two siblings — `boot_announce.already_announced_this_boot` and
+    `daily_self_note.already_ran_today` — which both wrap the same read in `except OSError`.
+    This one did not, and an `.exists()` check does not cover what it looks like it covers:
+    a directory at the path, a permissions error, or the file being unlinked in the window
+    between the check and the read all raise OSError out of `_maybe_send_daily_digest` and
+    into the sanity daemon's cycle, from a once-a-day bookkeeping read.
+
+    None (unreadable) deliberately reads the same as None (absent): the digest re-sends. That
+    is the CHEAP direction of this guard and the reason no alarm is raised here — a duplicate
+    digest line costs the director one repeated notification, where the raise costs the cycle
+    that files findings at all. Content corruption was never the exposure: the compare below
+    fails against any garbage and re-sends by construction.
+    """
+    try:
+        return LAST_DIGEST_DATE_FILE.read_text().strip()
+    except OSError:
+        return None
+
+
 def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     """Standing open findings get ONE line in a daily digest, not a 30-min
     repeat (director's own framing, 2026-07-11: "an alarm that repeats
@@ -334,7 +356,7 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     fired" behaviour is preserved ONLY for the standing-open-findings summary,
     which is the part that motivated it in the first place."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    last_sent = LAST_DIGEST_DATE_FILE.read_text().strip() if LAST_DIGEST_DATE_FILE.exists() else None
+    last_sent = _last_digest_date()
     if last_sent == today:
         return
 
@@ -367,8 +389,18 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
         log(f"Daily digest sent -- {len(aged_entries)} aged staging doc(s); "
             + ("standing open finding(s) attached" if not any_new_this_cycle else "fresh finding fired this cycle, standing summary skipped"))
 
-    LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    LAST_DIGEST_DATE_FILE.write_text(today)
+    # GUARDED WITH THE READ ABOVE, AND NOT SILENTLY. Fixing only `_last_digest_date` would have
+    # been defeated here two lines later by the same OSError on the same path -- the read and
+    # the write are one exposure, not two. But the two failures are not equally harmless: an
+    # unreadable stamp costs one duplicate digest, while an unWRITABLE one costs a digest every
+    # 30-minute cycle for as long as it lasts, which is precisely the "alarm that repeats
+    # unactionably" this function was built to stop. So it is logged, where the read is not.
+    try:
+        LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        LAST_DIGEST_DATE_FILE.write_text(today)
+    except OSError as exc:
+        log(f"Daily digest date stamp UNWRITABLE ({LAST_DIGEST_DATE_FILE}): {exc} -- the digest "
+            f"will re-send every cycle until this is fixed")
 
 
 def run_cycle() -> None:

@@ -203,7 +203,22 @@ def append_decision_log(decision, log_path=None):
             line = line.strip()
             if not line:
                 continue
-            existing_dates.add(json.loads(line)["decision_run_at"][:10])
+            # ONE TORN LINE USED TO END THIS RECORD FOREVER. `json.loads(line)["..."]` was
+            # unguarded, so a half-written row (this file is appended to from the publish
+            # cycle, which is killed on a deadline) raised JSONDecodeError out of the
+            # appender -- and out of every LATER call too, because the bad line stays on
+            # disk. The day's decision was never logged, nor any day after it.
+            #
+            # Skipping is the right direction HERE, and it is not fail-open: this set is
+            # only an idempotency guard. A dropped line at worst permits a second row for
+            # that one day -- visible in the log, counted by the scorecard's
+            # `log_entry_count`, and greppable -- where raising loses the whole future of an
+            # append-only record. Failing closed on an append-only record means never
+            # appending, which destroys strictly more than the corruption did.
+            try:
+                existing_dates.add(json.loads(line)["decision_run_at"][:10])
+            except (ValueError, TypeError, KeyError, IndexError):
+                continue
     if run_date in existing_dates:
         return False
     log_path.parent.mkdir(parents=True, exist_ok=True)

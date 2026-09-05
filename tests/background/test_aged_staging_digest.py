@@ -22,6 +22,7 @@ OPS14_aged_staging_named_daily):
 import os
 import subprocess
 import time
+from datetime import datetime, timezone
 
 from background import sanity_daemon
 
@@ -331,3 +332,73 @@ def test_the_last_commit_clock_would_still_be_blinded__mutation(tmp_path, monkey
     monkeypatch.setattr(sanity_daemon, "PROJECT_DIR", repo)
     real = sanity_daemon._staged_since_epoch(doc)
     assert (time.time() - real) > 8 * 24 * 3600, "the real implementation is not fooled"
+
+
+# --- The digest's own day-stamp is the ONE file it reads unguarded (2026-09-05) ---
+
+def _digest_env(tmp_path, monkeypatch, stamp_path):
+    """Enough isolation for _maybe_send_daily_digest to run and want to send."""
+    staging = tmp_path / "staging"
+    _write_doc(staging, "OLD_DOC.md", "# stale finding\nplease look\n")
+    monkeypatch.setattr(sanity_daemon, "STAGING_ROOT", staging)
+    monkeypatch.setattr(sanity_daemon, "_staged_since_epoch", lambda p: time.time() - 10 * 24 * 3600)
+    monkeypatch.setattr(sanity_daemon, "LAST_DIGEST_DATE_FILE", stamp_path)
+    monkeypatch.setattr(sanity_daemon, "LOG_FILE", tmp_path / "log.md")
+    calls = []
+    monkeypatch.setattr(sanity_daemon, "_digest", lambda msg: calls.append(msg))
+    return calls
+
+
+def test_an_unreadable_day_stamp_does_not_raise_into_the_daemons_cycle(tmp_path, monkeypatch):
+    """THE DEFECT: `LAST_DIGEST_DATE_FILE.read_text().strip() if ...exists() else None`, with no
+    `except OSError` -- unlike `boot_announce.already_announced_this_boot` and
+    `daily_self_note.already_ran_today`, its two siblings, which both guard the identical read.
+
+    `.exists()` does not cover what it looks like it covers: a DIRECTORY at that path exists and
+    raises IsADirectoryError on read. So a once-a-day bookkeeping read could kill the cycle that
+    files findings at all. Content corruption never could -- the date compare fails against any
+    garbage and the digest simply re-sends, which is why this is a plain unguarded read and not
+    the absent-vs-unreadable class.
+
+    Unreadable must read as "not sent today" (the cheap direction): the digest still goes."""
+    stamp = tmp_path / "stamp_dir"
+    stamp.mkdir()  # a directory: .exists() is True, read_text() raises
+    calls = _digest_env(tmp_path, monkeypatch, stamp)
+
+    sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)
+
+    assert len(calls) == 1, "the digest must still fire when its own day-stamp is unreadable"
+    assert "AGED STAGING" in calls[0]
+
+
+def test_an_unwritable_day_stamp_does_not_raise_and_names_the_cost(tmp_path, monkeypatch):
+    """Guarding only the READ would have been defeated by the write two lines below it, on the
+    same path, with the same OSError -- one exposure, not two.
+
+    The two are not symmetric and the code must not treat them as such: an unwritable stamp
+    means the digest re-fires EVERY 30-minute cycle, which is the alarm-fatigue failure the
+    function's own docstring quotes the director on. So it must be LOGGED, where the read's
+    failure is not worth a line. A silent `except OSError: pass` here passes the first
+    assertion and fails the second."""
+    stamp = tmp_path / "stamp_dir"
+    stamp.mkdir()
+    calls = _digest_env(tmp_path, monkeypatch, stamp)
+
+    sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)
+
+    assert len(calls) == 1
+    log_text = (tmp_path / "log.md").read_text()
+    assert "UNWRITABLE" in log_text and "re-send every cycle" in log_text
+
+
+def test_a_writable_stamp_still_dedupes_so_the_guard_is_not_a_blanket_re_send(tmp_path, monkeypatch):
+    """The control over the whole partition. A guard that swallowed the write outright, or a
+    `_last_digest_date` that always returned None, would pass both tests above and turn the
+    daily digest into a 30-minute one. The undamaged path must still fire exactly once."""
+    calls = _digest_env(tmp_path, monkeypatch, tmp_path / ".last_digest_date")
+
+    sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)
+    sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)
+
+    assert len(calls) == 1
+    assert sanity_daemon._last_digest_date() == datetime.now(timezone.utc).strftime("%Y-%m-%d")
