@@ -78,6 +78,16 @@ REVIEWED_CLOSE_TO_LEARN = {
     # the book. Its deliverable is a figure about how well the machine finds customers worth
     # having -- knowledge about the asset, not the asset. Same class as A1/A2 governance siblings.
     "A48_enterprise_value_is_the_method_not_the_book",
+    # 2026-09-05 reviewed (delivery seat, minting DIRECTOR_CANON_RERANKING_THE_ARC item 5).
+    # A49 builds two CEILING instruments -- the most R3 and R4 could be worth if they worked
+    # perfectly. A bound is the purest form of knowledge-that-moves-no-money: its whole output is
+    # a number that tells the seat whether to START a programme, and the atom explicitly forbids
+    # itself the programmes it bounds. It is the same class as A46 three entries above (knowledge
+    # for a decision the seat does not take) and as A6_coupled_triad_gap_metric. Worth naming
+    # because it is the near miss: A49 SEQUENCES two revenue-flow programmes, so the tempting read
+    # is to inherit their stream -- but an instrument that measures a flow is not that flow, which
+    # is precisely the distinction this set exists to hold.
+    "A49_the_ceiling_comes_before_the_programme_on_r3_and_r4",
     # SITE14 was minted by the canon drift check's first live run (A45) while the mission rewrite
     # was in flight, and is reviewed here on its merits rather than waved through to clear a gate:
     # it removes two claims from a published schematic that the code does not support. It changes
