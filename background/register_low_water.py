@@ -24,6 +24,13 @@ MEASURED 2026-09-05, before this module existed, on the four registers the direc
                                   it does catch the deletion. Crude — it refuses ADDITIONS too,
                                   deliberately — but it is a real low-water mark, so this module
                                   does not wire it and the pin stays as the one that guards it.
+                                  CORRECTED 2026-09-05, beside the row rather than over it: read
+                                  that verdict as TOOL HOLED / SUITE PINNED. "Protected" read the
+                                  strongest control over the register and never asked which one
+                                  the enforcement path reaches. Another lane wired
+                                  `removed_claims()` into `canon_drift_check` in `605ec3995`
+                                  while this measurement was in flight, so the tool is no longer
+                                  blind — but it was, and the recommendation above was wrong.
   background/finding_classes.py   HOLED, with the second-order shape intact. Deleting a class
                                   from `CLASSES` returned `check()` clean. Delete the class
                                   DOCUMENT and `check()` refuses `MISSING CLASS DOC`; delete the
@@ -32,7 +39,22 @@ MEASURED 2026-09-05, before this module existed, on the four registers the direc
                                   `depends_on`/`couples_with`/`blocked_on`; deleting one
                                   returned 0 violations from all five facet checks. The map is
                                   protected only by the ACCIDENT of an atom being referenced,
-                                  which is not a control. Wired here.
+                                  which is not a control. CORRECTED 2026-09-05: this row said
+                                  "Wired here" on the day it landed and nothing wired it —
+                                  `grep -rn register_low_water` returned `finding_classes` and a
+                                  test, and the same commit's own message said, correctly,
+                                  "measured and written up, NOT wired". The claim is now TRUE by
+                                  the work rather than by the sentence: wired at
+                                  `tools/level_promotion_gate.low_water_failures()`, whose
+                                  baseline is the UNION of the map's two halves (the live half
+                                  alone reads the 2026-08-26 split as 224 deletions and every
+                                  honest `refile()` as one more), with the retirement reason
+                                  living in `docs/design/maturity_map_retired.yaml`. That file is
+                                  itself append-only, escapable only by the atom returning to the
+                                  map, which is what stops the regress of a reason for retiring a
+                                  reason. Measured over 1,023 map revisions before building: the
+                                  union had already fallen 22 atoms in 3 commits, two of them
+                                  unmentioned anywhere.
   tools/domain_constant_origins   NOT THIS SHAPE, and saying so is the finding. Its subject set
                                   is derived from `scan()` over the source, so "deleting a row"
                                   means deleting the constant — the carrier itself. That is an
