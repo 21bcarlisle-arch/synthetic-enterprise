@@ -147,6 +147,21 @@ def _string_literals(node: ast.AST) -> list[str]:
             if isinstance(n, ast.Constant) and isinstance(n.value, str)]
 
 
+def _is_path_shaped(node: ast.AST) -> bool:
+    """Is this assignment's value a PATH being carried, rather than a file's CONTENTS?
+
+    `Path(path)`, `path or DEFAULT`, `base / "x.json"`, a bare rename. Anything else -- notably
+    the result of a read -- is not, and treating it as one is how a parameter alias set turns
+    into a taint over parsed data."""
+    if isinstance(node, (ast.Name, ast.BinOp, ast.BoolOp, ast.IfExp)):
+        return True
+    if isinstance(node, ast.Call):
+        f = node.func
+        name = f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", None)
+        return name in {"Path", "str", "resolve", "expanduser", "absolute"}
+    return False
+
+
 def _module_state_symbols(tree: ast.Module) -> dict[str, str]:
     """{CONSTANT_NAME: state_file_name} for module-level path constants."""
     out: dict[str, str] = {}
@@ -167,14 +182,37 @@ class _FunctionScan:
 
     Alias tracking is what makes the derivation survive the indirection real code uses:
     `sp = state_path or PUBLISH_GATE_STATE_FILE` then `Path(sp).read_text()` is a read of
-    `.publish_gate_state.json`, and a census that missed it would under-report the class."""
+    `.publish_gate_state.json`, and a census that missed it would under-report the class.
 
-    def __init__(self, symbols: dict[str, str]) -> None:
+    AND THE SAME INDIRECTION ONE LEVEL OUT, WHICH COST THE CENSUS FIVE HITS. Symbol attribution
+    only reaches a read written in the same function as the module constant. The moment a carrier
+    is repaired by routing its read through a shared loader --
+    `load_list_prior(RUN_HISTORY_PATH)` -- the `read_text()` moves into `episode_prior`, where the
+    path is a PARAMETER and no module symbol names it, and the key is lost at the seam. So this
+    scan also records which of its own PARAMETERS are read/written, and every call site's
+    arguments; `_attribute_through_parameters` then walks a caller's keyed argument into the
+    callee's parameter. See that function for the measurement."""
+
+    def __init__(self, symbols: dict[str, str], params: tuple[str, ...] = ()) -> None:
         self.symbols = dict(symbols)
         self.reads: set[str] = set()
         self.writes: set[str] = set()
         self.calls: set[str] = set()
         self.except_writes: set[str] = set()   # writes lexically inside an `except` handler
+        # PARAMETER-POSITION FACTS. `param_aliases` starts as the parameter names and grows only
+        # through path-shaped assignments (`p = Path(path)`, `sp = path or DEFAULT`) -- never
+        # through a read's RESULT, which would taint the parsed contents as if they were the path.
+        self.params = tuple(params)
+        #: {local name: the ORIGINAL parameters it stands for}. Keyed to the root parameter and
+        #: not the alias, because attribution binds a caller's argument to a POSITION: recording
+        #: `p` from `p = Path(path)` would mean nothing to a caller, which knows only `path`.
+        self.param_aliases: dict[str, set[str]] = {p: {p} for p in params}
+        self.param_reads: set[str] = set()
+        self.param_writes: set[str] = set()
+        #: (callee_name, positional descriptors, {kwarg: descriptor}). A descriptor is
+        #: ("key", name) for a keyed expression, ("param", name) for one of OUR parameters, or
+        #: None. Recorded rather than resolved here: resolution needs the whole repo's facts.
+        self.callsites: list[tuple[str, list[Any], dict[str, Any]]] = []
 
     def _keys(self, node: ast.AST | None) -> set[str]:
         """Every state path an expression could denote -- all Names in it, mapped."""
@@ -182,6 +220,27 @@ class _FunctionScan:
             return set()
         return {self.symbols[n.id] for n in ast.walk(node)
                 if isinstance(n, ast.Name) and n.id in self.symbols}
+
+    def _param_names(self, node: ast.AST | None) -> set[str]:
+        """Every ORIGINAL parameter of THIS function an expression could denote, following
+        aliases back to the parameter a caller can actually bind."""
+        if node is None:
+            return set()
+        out: set[str] = set()
+        for n in ast.walk(node):
+            if isinstance(n, ast.Name):
+                out |= self.param_aliases.get(n.id, set())
+        return out
+
+    def _descriptor(self, node: ast.AST | None) -> Any:
+        """How a call argument names a state file: by key, by one of our parameters, or not."""
+        keys = self._keys(node)
+        if keys:
+            return ("key", sorted(keys)[0])
+        params = self._param_names(node)
+        if params:
+            return ("param", sorted(params)[0])
+        return None
 
     @staticmethod
     def _is_write_mode(mode: str) -> bool:
@@ -205,6 +264,16 @@ class _FunctionScan:
                 for target in node.targets:
                     if isinstance(target, ast.Name):
                         self.symbols[target.id] = sorted(keys)[0]
+            elif _is_path_shaped(node.value):
+                # `p = Path(path)` / `sp = path or DEFAULT`. Deliberately NOT any expression
+                # mentioning a parameter: `raw = p.read_text()` would otherwise make the file's
+                # CONTENTS an alias of its path, and the next call taking `raw` would be recorded
+                # as a read of the state file. The shape screen is what keeps the two apart.
+                roots = self._param_names(node.value)
+                if roots:
+                    for target in node.targets:
+                        if isinstance(target, ast.Name):
+                            self.param_aliases[target.id] = set(roots)
         if isinstance(node, ast.Call):
             self._visit_call(node, in_except)
         for child in ast.iter_child_nodes(node):
@@ -224,27 +293,60 @@ class _FunctionScan:
         func = call.func
         if isinstance(func, ast.Attribute):
             self.calls.add(func.attr)
+            self._record_callsite(func.attr, call)
             keys = self._keys(func.value)
+            params = self._param_names(func.value)
             if func.attr in _WRITE_ATTRS:
                 self._record_write(keys, in_except)
+                self.param_writes |= params
             elif func.attr in _READ_ATTRS:
                 self.reads |= keys
+                self.param_reads |= params
             elif func.attr == "open":
                 if self._is_write_mode(self._mode_of(call, 0)):
                     self._record_write(keys, in_except)
+                    self.param_writes |= params
                 else:
                     self.reads |= keys
+                    self.param_reads |= params
             elif func.attr in {"replace", "move", "copy", "copyfile"} and len(call.args) >= 2:
                 # os.replace(tmp, STATE) / shutil.move(...) -- the DESTINATION is written.
                 self._record_write(self._keys(call.args[1]), in_except)
+                self.param_writes |= self._param_names(call.args[1])
         elif isinstance(func, ast.Name):
             self.calls.add(func.id)
+            self._record_callsite(func.id, call)
             if func.id == "open":
-                keys = self._keys(call.args[0]) if call.args else set()
+                arg = call.args[0] if call.args else None
+                keys = self._keys(arg)
+                params = self._param_names(arg)
                 if self._is_write_mode(self._mode_of(call, 1)):
                     self._record_write(keys, in_except)
+                    self.param_writes |= params
                 else:
                     self.reads |= keys
+                    self.param_reads |= params
+
+    def _record_callsite(self, callee: str, call: ast.Call) -> None:
+        """Keep a call site only if some argument names a state file or one of our parameters.
+
+        The screen is not an optimisation: every call in the repo would otherwise become an edge
+        in the parameter fixpoint, and a derivation that connects everything reports the same
+        class as one that connects nothing."""
+        positional = [self._descriptor(a) for a in call.args]
+        keyword = {kw.arg: self._descriptor(kw.value) for kw in call.keywords if kw.arg}
+        keyword = {k: v for k, v in keyword.items() if v is not None}
+        if any(d is not None for d in positional) or keyword:
+            self.callsites.append((callee, positional, keyword))
+
+
+def _param_names_of(node: ast.FunctionDef | ast.AsyncFunctionDef) -> tuple[str, ...]:
+    """Positional parameter names, in call order, plus keyword-only ones. `*args`/`**kwargs` are
+    left out: a state path passed through them cannot be attributed to a position anyway, and
+    inventing one would attribute it to the wrong parameter."""
+    a = node.args
+    ordered = [p.arg for p in (*a.posonlyargs, *a.args)]
+    return tuple(ordered + [p.arg for p in a.kwonlyargs])
 
 
 def _scan_module(path: Path, project_dir: Path) -> dict[str, dict[str, Any]]:
@@ -261,12 +363,16 @@ def _scan_module(path: Path, project_dir: Path) -> dict[str, dict[str, Any]]:
     for node in ast.walk(tree):
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        scan = _FunctionScan(symbols)
+        scan = _FunctionScan(symbols, _param_names_of(node))
         for child in node.body:
             scan.visit(child)
         out["{}::{}".format(module, node.name)] = {
             "module": module,
             "name": node.name,
+            "params": list(scan.params),
+            "param_reads": sorted(scan.param_reads),
+            "param_writes": sorted(scan.param_writes),
+            "callsites": scan.callsites,
             "reads": sorted(scan.reads),
             "writes": sorted(scan.writes),
             # DIRECT writes stay separate from the propagated set below. The distinction is what
@@ -302,6 +408,84 @@ def _resolve_calls(facts: dict[str, dict[str, Any]]) -> dict[str, set[str]]:
         targets.discard(qual)
         edges[qual] = targets
     return edges
+
+
+def _attribute_through_parameters(facts: dict[str, dict[str, Any]]) -> int:
+    """Walk a keyed ARGUMENT into the callee's PARAMETER, to a fixpoint. Returns how many
+    (function, key) read/write facts this recovered.
+
+    WHY THIS EXISTS, MEASURED. The census attributes a state file by module-level symbol, so it
+    sees `RUN_HISTORY_PATH.read_text()` and not `load_list_prior(RUN_HISTORY_PATH)`. On
+    2026-09-05 the loader sweep repaired six carriers by routing every one of them through
+    `background/episode_prior`, whose loaders take the path as an argument -- and the census
+    derived over the tree before and after that commit LOST FIVE HITS:
+    `run_history.json`, `.harden_cooldown.json`, `.ntfy_digest_state.json`,
+    `.supervisor_map_exhausted_state.json` and `retired_paths_served.json` went from 34 hits to
+    29, with `run_history.json` dropping to ZERO recorded readers while
+    `count_run_history_total` reads it on every dashboard build.
+
+    That is the census's fail-open shape and it was getting STRONGER WITH ADOPTION: the more
+    correctly a carrier was repaired -- through the shared helper rather than a hand-rolled loop,
+    which is what this project asks for -- the more certainly it left the class the census
+    enumerates. `census_is_vacuous()` cannot see it, because it only refuses a TOTALLY empty
+    census; `undispositioned()` cannot see it, because it checks hits missing a row and never a
+    row whose hit disappeared. A path that stops being a hit needs no disposition and `--check`
+    exits 0.
+
+    A parameter is read/written if the callee reads/writes it, transitively through further
+    parameter passing -- hence the fixpoint rather than one hop. Attribution is by POSITION for
+    positional arguments and by NAME for keywords, and a keyed argument landing on a read
+    parameter is a read of that key BY THE CALLER, which is the fact that was missing.
+
+    Recovered writes join `direct_writes` as well as `writes`, deliberately:
+    `_writes_at_close_range` already counts "through one hop into a writer helper" as writing it
+    yourself, and `preserve_unreadable(STATE_PATH)` is exactly that hop."""
+    by_name: dict[str, list[str]] = {}
+    for qual, f in facts.items():
+        by_name.setdefault(f["name"], []).append(qual)
+
+    def resolve(callee: str, module: str) -> list[str]:
+        """Same-module definition first, else the unique repo-wide one. An ambiguous name is
+        dropped rather than guessed -- `_resolve_calls` states the reason and it holds here."""
+        candidates = by_name.get(callee, [])
+        same = [c for c in candidates if facts[c]["module"] == module]
+        if same:
+            return same
+        return candidates if len(candidates) == 1 else []
+
+    recovered = 0
+    changed = True
+    while changed:
+        changed = False
+        for qual, f in facts.items():
+            for callee, positional, keyword in f["callsites"]:
+                for target in resolve(callee, f["module"]):
+                    if target == qual:
+                        continue
+                    g = facts[target]
+                    params = g["params"]
+                    bound = [(params[i], d) for i, d in enumerate(positional)
+                             if d is not None and i < len(params)]
+                    bound += [(k, d) for k, d in keyword.items() if k in params]
+                    for pname, (kind, name) in bound:
+                        for role, key_fields, param_field in (
+                            ("param_reads", ("reads",), "param_reads"),
+                            ("param_writes", ("writes", "direct_writes"), "param_writes"),
+                        ):
+                            if pname not in g[role]:
+                                continue
+                            if kind == "key":
+                                for field in key_fields:
+                                    if name not in f[field]:
+                                        f[field] = sorted(set(f[field]) | {name})
+                                        changed = True
+                                        recovered += 1
+                            elif name not in f[param_field]:
+                                # The caller is itself a pass-through: its own parameter is now
+                                # known to be read/written, so ITS callers can be attributed too.
+                                f[param_field] = sorted(set(f[param_field]) | {name})
+                                changed = True
+    return recovered
 
 
 def _propagate(facts: dict[str, dict[str, Any]], edges: dict[str, set[str]]) -> None:
@@ -452,12 +636,20 @@ def derive(roots: tuple[str, ...] = SCAN_ROOTS,
     facts: dict[str, dict[str, Any]] = {}
     for path in _iter_source_files(roots, project_dir):
         facts.update(_scan_module(path, project_dir))
+    # BEFORE the call-graph closure, not after: a key recovered at a parameter seam has to be
+    # available to propagate up to the callers, which is where the alarm and failure readings
+    # are taken.
+    parameter_attributions = _attribute_through_parameters(facts)
     edges = _resolve_calls(facts)
     _propagate(facts, edges)
     paths = _index_paths(facts, edges, _invert(edges))
     return {
         "scan_roots": list(roots),
         "functions_scanned": len(facts),
+        # Recorded so the seam attribution is visible in the artefact rather than implicit in a
+        # hit count. Zero here with a non-empty tree means the parameter walk stopped matching --
+        # the erosion this field exists to make loud.
+        "parameter_attributions": parameter_attributions,
         "state_paths": dict(sorted(paths.items())),
         "hits": sorted(k for k, v in paths.items() if v["hit"]),
         "classifiers": {
