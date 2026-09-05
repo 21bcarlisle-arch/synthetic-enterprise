@@ -237,3 +237,34 @@ repair into that population would make the question unanswerable the moment the 
   honest answer is probably not — a control that watches which file a test lives in is close to the
   register-that-guards-a-register shape this project keeps paying for. Recorded as a judgement, not
   deferred as a task.
+
+## 8. How the fourth column was actually run, written BEFORE its results
+
+The three cheap suites cost 1.3–3.5s a pass. `tests/background/test_supervisor.py` costs **661s**, so
+eight mutations plus a baseline is ~99 minutes serially and two consecutive turns have now ended
+mid-column: the first died after the baseline, during M1. The column is not hard, it is just longer
+than a turn.
+
+So it is **sharded across four locked worktrees** at the same commit (`cfd4a5d4c`), two mutations
+each, run concurrently on a 16-core host. Wall clock becomes ~3 passes rather than ~9.
+
+**This changes the method, and a changed method needs its own control, stated here before any of it
+came back.** Three things guard it:
+
+* **Both files are byte-identical across all four shards and this tree**, asserted by `md5sum` on
+  `background/direction.py` and `tests/background/test_supervisor.py` before launch, so the four
+  shards are measuring one subject and not four.
+* **Each shard runs its own baseline under the same 4-way concurrency it will mutate under.** The
+  serial baseline already recorded at `/var/tmp/direction_battery_sup.json` (green, 0 failed, 661.1s)
+  is deliberately NOT reused. Reusing it would import a serial result into a concurrent run and make
+  every concurrency-induced red read as a mutation dying — the §4 defect wearing a different hat. If
+  a shard's own baseline is red, those ids are deselected from that shard's mutation runs by the
+  harness, and the reds are reported here.
+* **A DIED in this column is the surprising outcome and is not accepted on a return code.** §5
+  predicts all eight survive. Any kill is therefore re-run alone — the named failing test, serially,
+  unmutated and then mutated — before it is written down, because under concurrency a false kill and
+  a real one look identical from the exit status.
+
+The asymmetry is deliberate and stated so it cannot be quietly applied: a SURVIVOR here needs no
+re-run, because concurrency can only add failures, never remove them. Under concurrency a survivor is
+the *conservative* reading and a kill is the *fragile* one, so only kills are re-verified.
