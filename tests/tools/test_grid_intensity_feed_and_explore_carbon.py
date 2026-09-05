@@ -463,12 +463,24 @@ def test_the_feed_carries_the_PUBLISHED_value_in_THE_SAME_HALF_HOUR_not_only_a_y
     assert covered, "no record carries the published series"
 
 
-def test_a_half_hour_the_published_series_does_not_cover_is_NULL_and_never_a_substituted_ONE():
+def test_a_half_hour_the_published_series_does_not_cover_is_NULL_and_never_a_substituted_ONE(
+        monkeypatch):
     """R15 FAIL-OPEN, and the substitution would flatter us in the usual direction.
 
     1.0 is the shape's own average, so filling a missing published value with it makes the truth
     side read "exactly average" for that half hour -- which always drags the measured gap TOWARD
     ZERO, i.e. toward "our model is fine". An absence has to stay an absence.
+
+    THIS TEST COULD NOT FAIL UNTIL 2026-09-05 AND ITS NAME SAID OTHERWISE. `_paired_feed` builds
+    its `records` list in the fixture -- `"published": published.get((d, p))` -- so the first two
+    assertions grade `dict.get`, which returns `None` for a missing key by definition. The line
+    that actually implements this contract is `generate_grid_intensity_feed.build`'s
+    `None if published is None or (date_str, period) not in published`, and it was executed by
+    nothing here. Proved, not argued: rewriting that `None` to `1.0` left all 43 tests in this
+    file green, and all 95 in the only other suite that imports the module.
+
+    The fixture legs are kept because they still say what the paired feed must look like to the
+    consumers below; the shipped path is graded separately, underneath.
     """
     feed, _ours, _pub = _paired_feed()
     uncovered = [r for r in feed["records"] if r["date"] < "2024-01-11"]
@@ -477,6 +489,28 @@ def test_a_half_hour_the_published_series_does_not_cover_is_NULL_and_never_a_sub
         "a half hour outside the published series was given a value"
     )
     assert not any(r["published"] == 1.0 for r in uncovered), "1.0 was substituted for an absence"
+
+    # THE SHIPPED PATH. One day the published series covers and one it does not, through the real
+    # `build`, so the absence is produced by the module rather than by the fixture's `.get`.
+    shape = {(day, period): 1.0
+             for day in ("2024-01-01", "2024-01-02") for period in range(1, 49)}
+    demand = {key: 30_000.0 for key in shape}
+    covers_the_second_day = {("2024-01-02", period): 0.9 for period in range(1, 49)}
+    monkeypatch.setattr(gif, "published_series", lambda _d: (covers_the_second_day, "", None))
+
+    built = gif.build(shape, demand, window_days=365)
+    published_by_day = {}
+    for record in built["records"]:
+        published_by_day.setdefault(record["date"], []).append(record["published"])
+
+    assert published_by_day["2024-01-02"] and all(
+        value is not None for value in published_by_day["2024-01-02"]
+    ), "the covered day lost its published value -- the control would pass on an all-null feed"
+    assert all(value is None for value in published_by_day["2024-01-01"]), (
+        "`build` gave a half hour OUTSIDE the published series a value: {}".format(
+            sorted({v for v in published_by_day["2024-01-01"] if v is not None})
+        )
+    )
 
 
 def test_the_household_gap_is_MEASURED_against_the_published_series_and_not_inferred():
