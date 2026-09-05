@@ -272,6 +272,7 @@ def _episodes(seq, *, breaker_is_landing):
 def _close(cur, seq):
     """Finish one episode: its span, its outage, its causes, and whether it is censored."""
     members = [c for _, c in cur]
+    member_ix = [i for i, _ in cur]
     refused = [c for c in members if c["outcome"] == "commit_refused"]
     start = _parse_ts(members[0]["at"])
     last = _parse_ts(members[-1]["at"])
@@ -294,6 +295,14 @@ def _close(cur, seq):
         "last_refused_at": refused[-1]["at"] if refused else None,
         "recovery_at": recovery["at"] if recovery else None,
         "recovery_adjacent": recovery_adjacent,
+        # EVERY member cycle, refused or not, with its index in `seq`. `interval_report` walks
+        # THIS and not `refused`, because the interval between two attempts is only evidence about
+        # one gate if no third attempt sits inside it -- and a `behind_origin` cycle is an attempt.
+        # The index is what makes that checkable rather than asserted; see `intervals_adjacent`.
+        "members": [{"at": c["at"], "outcome": c["outcome"], "cause": c["cause"], "ix": i}
+                    for i, c in zip(member_ix, members)],
+        "recovery_ix": (cur[-1][0] + 1 + next(
+            (k for k, c in enumerate(after) if c["outcome"] == LANDED), 0)) if recovery else None,
         "cycles": len(members),
         "refused_cycles": len(refused),
         "span_s": (last - start).total_seconds(),
@@ -435,6 +444,170 @@ def trailing_gap_report(ep):
         "anchor_mismatch": [r for r in rows if not r["anchors_agree"]],
         "not_ending_on_refusal": [r for r in rows if not r["ends_on_refusal"]],
         "max_gap_s": ep["max_gap_s"],
+    }
+
+
+#: The five interval classes. Named as constants because the reachability control asserts over the
+#: whole set, and a class spelled by hand in one branch would silently leave that set incomplete.
+BRACKETED = "BRACKETED"
+CLEARED_WITHIN = "CLEARED-WITHIN"
+MASKED = "MASKED"
+UNRANKABLE = "UNRANKABLE"
+TRAILING = "TRAILING"
+INTERVAL_CLASSES = (BRACKETED, CLEARED_WITHIN, MASKED, UNRANKABLE, TRAILING)
+#: The only two that put a duration on a named gate -- and they point in OPPOSITE directions, so
+#: they are never summed into one "attributed" figure. Held as a pair so a caller cannot add a
+#: third by accident.
+ATTRIBUTING = (BRACKETED, CLEARED_WITHIN)
+
+
+def _classify_interval(a, b, ranks):
+    """One interval, from the attempt `a` to the immediately next attempt `b`.
+
+    `(class, gate the duration attaches to, gate demonstrably RE-BROKEN inside)`.
+
+    THE ONE INFERENCE, and it is the same one `ordering_report` uses: the chain is serial and
+    stops at the first refusal, so a cycle naming rank r is a positive observation that every gate
+    BELOW r passed in that cycle, and says nothing whatever about the gates above it.
+    """
+    ca, cb = a["cause"], b["cause"]
+    if ca is None or cb is None or ca not in ranks or cb not in ranks:
+        # A `behind_origin` attempt refuses nothing and an UNATTRIBUTABLE one names nothing. Either
+        # way one end carries no rank, so no comparison is licensed. Ignorance, reported as it.
+        return UNRANKABLE, None, None
+    if ca == cb:
+        # NOT "the gate held". Both ends observed it refusing and nothing was observed in between,
+        # so the log contains no evidence it cleared -- which is weaker, and is why this class is
+        # called BRACKETED. It could have cleared and re-broken with no attempt to see it.
+        return BRACKETED, ca, None
+    if ranks[cb] > ranks[ca]:
+        # The far end reached PAST `ca`, so `ca` demonstrably passed at some instant inside. An
+        # UPPER bound on how much longer it held, never an estimate of it.
+        return CLEARED_WITHIN, ca, None
+    # The far end stopped BELOW `ca`, so `ca`'s state there is unobservable and no duration can be
+    # attributed to it. The inference runs the other way instead: `cb` sits below `ca`, so `cb`
+    # passed at the start and refused at the end -- it re-broke inside this interval.
+    return MASKED, None, cb
+
+
+def interval_report(text, ranks=None):
+    """Attribute each bounded episode's outage to NAMED gates, interval by interval.
+
+    WHY THE EPISODE IS THE WRONG UNIT, which is the whole reason `MIXED` exists. An episode has one
+    `cause` field and can have several causes, so that field must either lie or abstain; it
+    correctly abstains, and `MIXED` is 74.6% of bounded outage as a result. The largest label we
+    publish is by construction not a cause. The unit with exactly one observation at each end is
+    the interval between two consecutive attempts.
+
+    THE PARTITION IS EXACT, NOT AN APPORTIONMENT. For members `m_0..m_{n-1}` and recovery `r`,
+    `outage = (r - m_0) = sum(m_{i+1} - m_i) + (r - m_{n-1})`, so every second of an episode lands
+    in exactly one interval and the last term is the trailing gap `trailing_gap_report` measures.
+    Nothing here is weighted, shared out or estimated; `partition_error` asserts it per episode.
+
+    Pre-registered before it was computed once, in
+    `docs/staging/records/SEAT_PREREGISTRATION_WHAT_THE_MIXED_BUCKET_IS_STANDING_ON_2026-09-05.md`.
+    The five classes and what each licenses are stated there and in `_classify_interval`.
+    """
+    ranks = gate_ranks() if ranks is None else ranks
+    episodes = [e for e in _episodes(cycles(text), breaker_is_landing=True) if not e["censored"]]
+    rows, per_episode = [], []
+    for e in episodes:
+        ms = e["members"]
+        mine = []
+        for a, b in zip(ms, ms[1:]):
+            cls, gate, rebroke = _classify_interval(a, b, ranks)
+            mine.append({
+                "episode": e["from"], "episode_cause": e["cause"], "at": a["at"],
+                "seconds": (_parse_ts(b["at"]) - _parse_ts(a["at"])).total_seconds(),
+                "class": cls, "gate": gate, "re_broke": rebroke,
+                # A PINNED TAUTOLOGY, and labelled as one rather than trusted. An episode is a
+                # maximal run of CONSECUTIVE non-landing cycles, so members are adjacent by
+                # construction and this flag cannot go false however the publisher behaves --
+                # mutating it to a literal `True` kills no control. It survives as a canary over a
+                # future change to `_episodes`, and it is NOT what protects the BRACKETED claim.
+                # What protects that claim is walking `members` and not `refused`: with an
+                # intervening `behind_origin` attempt the interval is UNRANKABLE rather than one
+                # wide BRACKETED span, and THAT is mutation-proven (see the adjacency control).
+                "adjacent": b["ix"] == a["ix"] + 1,
+            })
+        mine.append({
+            "episode": e["from"], "episode_cause": e["cause"], "at": ms[-1]["at"],
+            "seconds": (_parse_ts(e["recovery_at"]) - _parse_ts(ms[-1]["at"])).total_seconds(),
+            # Unattributable BY CONSTRUCTION, exactly as the single-cycle 100% tail is: whatever
+            # was red cleared somewhere inside here and the log cannot say when. It is a class and
+            # not a residue, so it can never be quietly absorbed into an attributed total.
+            "class": TRAILING, "gate": None, "re_broke": None,
+            "adjacent": e["recovery_ix"] == ms[-1]["ix"] + 1,
+        })
+        per_episode.append({
+            "from": e["from"], "cause": e["cause"], "outage_s": e["outage_s"],
+            "cycles": e["cycles"], "intervals": mine,
+            # C1. Re-derived from the members' OWN timestamps against the episode's outage, so a
+            # decomposition that loses or double-counts time disagrees here instead of producing a
+            # table of reasonable-looking rows that do not add up.
+            "partition_error_s": abs(sum(r["seconds"] for r in mine) - e["outage_s"]),
+            "has_masked": any(r["class"] == MASKED for r in mine),
+        })
+        rows.extend(mine)
+    return {"rows": rows, "episodes": per_episode, "ranks": ranks}
+
+
+def interval_attribution(text, ranks=None, only=None):
+    """Aggregate `interval_report` into the per-gate table, over `only` episode causes.
+
+    `only=(MIXED,)` answers the question this was built for. `only=None` is every bounded episode.
+    """
+    rep = interval_report(text, ranks)
+    eps = [e for e in rep["episodes"] if only is None or e["cause"] in only]
+    rows = [r for e in eps for r in e["intervals"]]
+    total = sum(r["seconds"] for r in rows)
+
+    by_class = {c: sum(r["seconds"] for r in rows if r["class"] == c) for c in INTERVAL_CLASSES}
+    counts = {c: sum(1 for r in rows if r["class"] == c) for c in INTERVAL_CLASSES}
+    by_gate = collections.defaultdict(lambda: dict.fromkeys(ATTRIBUTING, 0.0))
+    for r in rows:
+        if r["class"] in ATTRIBUTING:
+            by_gate[r["gate"]][r["class"]] += r["seconds"]
+    re_broke = collections.Counter(r["re_broke"] for r in rows if r["re_broke"])
+
+    # C4, and it is a SUBSET claim and not the equality the pre-registration asked for -- see the
+    # finding. Both routes read the same backward rank move, but `ordering_report` walks the ranked
+    # causes with unranked cycles SKIPPED, while an interval with an unranked end is UNRANKABLE.
+    # So an established re-arrival separated by an unattributable cycle is invisible here, and the
+    # size of that gap is a quantity rather than a discrepancy to smooth over.
+    est = {e["from"] for e in ordering_report(text, ranks) if e["established"]}
+    masked_eps = {e["from"] for e in rep["episodes"] if e["has_masked"]}
+
+    return {
+        "episodes": len(eps),
+        "total_s": total,
+        "intervals": len(rows),
+        "by_class": by_class,
+        "counts": counts,
+        # Two columns, never one. A floor on a gate that stayed red and a ceiling on a gate that
+        # went green are not the same quantity and their sum is not a quantity at all.
+        "by_gate": {g: v for g, v in sorted(
+            by_gate.items(), key=lambda kv: -kv[1][BRACKETED])},
+        "re_broke": re_broke,
+        "attributed_s": by_class[BRACKETED] + by_class[CLEARED_WITHIN],
+        "residue_s": by_class[MASKED] + by_class[UNRANKABLE] + by_class[TRAILING],
+        # Controls. A non-empty list VOIDS the table above rather than qualifying it.
+        "partition_error": [e for e in eps if e["partition_error_s"] >= 1.0],
+        "not_adjacent": [r for r in rows if not r["adjacent"]],
+        "unreached_classes": [c for c in INTERVAL_CLASSES if not counts[c]],
+        "over_outage": [e for e in eps
+                        if sum(r["seconds"] for r in e["intervals"]
+                               if r["class"] in ATTRIBUTING) > e["outage_s"] + 1.0],
+        # THE SUBSET DIRECTION IS A THEOREM, so this is the second pinned tautology and is not
+        # evidence. Two adjacent ranked members are also adjacent among the ranked causes, and
+        # `rk(b) < rk(a) <= peak`, so every MASKED interval is a backward step against the running
+        # peak too -- given both routes read ONE rank table, which they do. Emptying it kills no
+        # control. It fires only if the two rank tables ever come apart.
+        "masked_not_established": sorted(masked_eps - est),
+        # THIS is the half that carries information and it is mutation-proven: established
+        # re-arrivals the interval view cannot see, because an unattributable cycle sits between
+        # the two observations and `ordering_report` steps over what UNRANKABLE stops at.
+        "established_without_masked": sorted(est - masked_eps),
     }
 
 
@@ -902,6 +1075,75 @@ def _pct(n, d):
     return "n/a" if not d else "{:.1f}%".format(n / d * 100)
 
 
+def _print_interval_attribution(text):
+    """The MIXED bucket, decomposed onto named gates. See `interval_report` for why."""
+    at = interval_attribution(text, only=(MIXED,))
+    print("\n=== WHAT IS THE **MIXED** BUCKET STANDING ON? ===")
+    print("MIXED is the episode `cause` field ABSTAINING, not a cause -- an episode with two")
+    print("causes is attributed to neither, correctly. So the largest label we publish names no")
+    print("gate. The interval between two consecutive attempts has exactly ONE observation at")
+    print("each end, and an episode's intervals partition its outage EXACTLY.")
+    if not at["episodes"]:
+        print("\nno MIXED episodes -- nothing measured, and this is not a zero.")
+        return at
+    bad = (at["partition_error"], at["not_adjacent"], at["over_outage"])
+    if any(bad):
+        print("\nCONTROLS FAILED -- the attribution below is VOID, not merely qualified:")
+        for label, xs in zip(("interval durations do not sum to the episode's outage",
+                              "an interval's ends are not consecutive attempts -- an attempt "
+                              "sits inside it",
+                              "a gate is attributed more than its episode's whole outage"), bad):
+            if xs:
+                print("  {:3d}: {}".format(len(xs), label))
+        return at
+    print("\ncontrols: the intervals of each of the {} MIXED episodes sum to its outage to the"
+          .format(at["episodes"]))
+    print("second; every interval's ends are consecutive attempts, so 'nothing was observed in")
+    print("between' is a property of the log; and no gate is attributed more than its episode.")
+    if at["unreached_classes"]:
+        print("\nCLASSES NOT REACHED in this window (never a zero -- an unreached class is an")
+        print("unproven branch): {}".format(", ".join(at["unreached_classes"])))
+
+    total = at["total_s"]
+    print("\n{} MIXED episodes, {} of outage, {} intervals".format(
+        at["episodes"], _hours(total), at["intervals"]))
+    print("\n  {:>7}  {:>6}  {:>4}  class".format("hours", "share", "n"))
+    for c in INTERVAL_CLASSES:
+        print("  {:>7}  {:>6}  {:>4}  {}".format(
+            _hours(at["by_class"][c]), _pct(at["by_class"][c], total), at["counts"][c], c))
+    print("\n  attributed to a NAMED gate (BRACKETED + CLEARED-WITHIN): {} ({})".format(
+        _hours(at["attributed_s"]), _pct(at["attributed_s"], total)))
+    print("  residue, and it is named ignorance and not a bucket:      {} ({})".format(
+        _hours(at["residue_s"]), _pct(at["residue_s"], total)))
+
+    print("\nper gate. THE TWO COLUMNS ARE NOT ADDED and neither is 'how long the gate was red':")
+    print("  BRACKETED    both ends observed it refusing, nothing seen in between, so the log")
+    print("               holds NO EVIDENCE it cleared. Not proof it stood.")
+    print("  CLEARED      the far end reached PAST it, so it demonstrably passed inside. An")
+    print("               UPPER bound on how much longer it held.")
+    print("  {:>9}  {:>9}  gate".format("BRACKETED", "CLEARED"))
+    for gate, v in at["by_gate"].items():
+        print("  {:>9}  {:>9}  {}".format(
+            _hours(v[BRACKETED]), _hours(v[CLEARED_WITHIN]), gate))
+    if at["re_broke"]:
+        print("\ngates demonstrably RE-BROKEN inside a MASKED interval (it passed at the near end,")
+        print("refused at the far one). A count of observations, never a duration -- the interval")
+        print("cannot be attributed to it either:")
+        for gate, n in at["re_broke"].most_common():
+            print("  {:3d}  {}".format(n, gate))
+
+    print("\nCROSS-CHECK against `ordering_report`, which reads the same backward rank move by a")
+    print("different route. It walks the RANKED causes with unranked cycles skipped; an interval")
+    print("with an unranked end is UNRANKABLE. So MASKED is a SUBSET, not an equal:")
+    print("  MASKED episodes that ordering_report does NOT call established: {}  <- must be 0"
+          .format(len(at["masked_not_established"])))
+    print("  established episodes with NO masked interval:                   {}".format(
+        len(at["established_without_masked"])))
+    print("  the second number is the re-arrivals whose backward step is separated by an")
+    print("  unattributable cycle -- real, and invisible to the interval view by construction.")
+    return at
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--log", default=str(DEFAULT_LOG))
@@ -1058,6 +1300,8 @@ def main(argv=None):
             _hours(e["outage_s"]), e["cycles"],
             "ESTABLISHED" if e["established"] else "order-consistent",
             " -> ".join(c.split(" (")[0] for c in e["cause_sequence"][:6])))
+
+    _print_interval_attribution(Path(args.log).read_text(encoding="utf-8", errors="replace"))
 
     exposure = masking_exposure(Path(args.log).read_text(encoding="utf-8", errors="replace"))
     refused_cycles = sum(1 for c in cycles(
