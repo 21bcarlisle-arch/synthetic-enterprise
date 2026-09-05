@@ -1,9 +1,51 @@
 {
- "generated_at": "2026-09-04T23:31:39.086904+00:00",
+ "generated_at": "2026-09-05T02:25:20.394247+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "4ce048219",
+    "at": "2026-09-05T03:23:13+01:00",
+    "subject": "78% of re-refusals are the identical complaint, and one red was retried 24 times unchanged",
+    "substantive": true
+   },
+   {
+    "sha": "45be6a805",
+    "at": "2026-09-05T02:51:49+01:00",
+    "subject": "the firing order conceals re-arrivals rather than faking them, and 82% of the cost is a gate that re-broke",
+    "substantive": true
+   },
+   {
+    "sha": "18048be6d",
+    "at": "2026-09-05T02:20:06+01:00",
+    "subject": "the cost is 45% of the window and three quarters of it sits in episodes no single cause owns",
+    "substantive": true
+   },
+   {
+    "sha": "b8b63f01c",
+    "at": "2026-09-05T01:50:44+01:00",
+    "subject": "the 272 refusals are 175 cycles, and the rate is four times what the lifetime count implies",
+    "substantive": true
+   },
+   {
+    "sha": "e9772bc33",
+    "at": "2026-09-05T01:17:04+01:00",
+    "subject": "the advance cannot fire because its own source file is the tracked path blocking the fast-forward",
+    "substantive": false
+   },
+   {
+    "sha": "ae7df1abc",
+    "at": "2026-09-05T00:51:32+01:00",
+    "subject": "the worktree marker every other daemon honours, never read by the one function that removes it",
+    "substantive": true
+   },
+   {
+    "sha": "7b15fa917",
+    "at": "2026-09-05T00:31:39+01:00",
+    "subject": "delivery seat: direction for the next stretch",
+    "substantive": false
+   },
    {
     "sha": "e90a1347c",
     "at": "2026-09-04T23:55:17+01:00",
@@ -201,104 +243,62 @@
     "at": "2026-09-04T18:41:16+01:00",
     "subject": "EP13's remaining dispatch programme is capped, measured, and this retires it",
     "substantive": false
-   },
-   {
-    "sha": "8d41219c7",
-    "at": "2026-09-04T18:30:30+01:00",
-    "subject": "delivery seat: direction for the next stretch",
-    "substantive": false
-   },
-   {
-    "sha": "78986f2aa",
-    "at": "2026-09-04T18:24:36+01:00",
-    "subject": "the site publishes numbers and runs once a week, and everything calibrated for the old cadence moves with it",
-    "substantive": true
-   },
-   {
-    "sha": "f6109a911",
-    "at": "2026-09-04T18:15:16+01:00",
-    "subject": "land three staging moves that were made on disk and never committed, which is why the two-rooms refusal kept coming back",
-    "substantive": false
-   },
-   {
-    "sha": "faf6c20af",
-    "at": "2026-09-04T18:13:24+01:00",
-    "subject": "a background test drove the real publish path and rewrote four tracked artefacts, and what it wrote was byte-identical to the daemon's",
-    "substantive": true
-   },
-   {
-    "sha": "a4d068de6",
-    "at": "2026-09-04T18:07:40+01:00",
-    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=1beec7215, net=\u00a3141,132)",
-    "substantive": false
-   },
-   {
-    "sha": "bfd48d4f5",
-    "at": "2026-09-04T18:05:47+01:00",
-    "subject": "the staleness alarm was calibrated for a cadence the site is leaving, and the healthy banner said nothing at all",
-    "substantive": true
-   },
-   {
-    "sha": "c4c253518",
-    "at": "2026-09-04T17:59:45+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=0fefb02aad3761b17411f60bd9b9e2cb1a093b8f) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
    }
   ],
-  "substantive": 17,
-  "mechanical": 23,
+  "substantive": 19,
+  "mechanical": 21,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-04T23:24:35.164207+00:00",
+  "oriented_at": "2026-09-05T02:20:43.353646+00:00",
   "age_hours": 0.1,
   "expires_after_hours": 12.0,
   "live": true,
-  "thesis_read": "Five stretches of direction, zero focus items drawn, and this orientation finally has the mechanism instead of a guess \u2014 it is in the machine's own log, it names our top-priority atom by name, and it inverts the remedy my predecessor applied last stretch. The facts first. Nothing from focus was worked again: `tools/settlement_ceiling_probe.py` still carries its 226 uncommitted lines at mtime 2026-09-03T07:10, `tools/fit_departure_hazards.py` its 93 at the same minute, and `site/data/value_arms.json` still publishes `share_at_which_a_bigger_book_could_resolve_it: -4.5507` graded `share_is_decisive: true` with `priced_decisions_needed: 19`. All nine substantive commits were apparatus \u2014 every one under `background/`. No level moved for the TENTH stretch. Blocking findings went 14 to 18, the staging root took 243 in and let 188 out for a net +55 with the work queue at 72, and the tree is 0 ahead and 9 BEHIND origin, so the daemons running from this checkout are executing code the branch has moved past. NOW THE MECHANISM, and it is checkable rather than inferred. Last stretch's remedy was to replace slug ids with maturity-map atom ids, on the theory that a slug reaches nothing and an atom id enters the channel that runs. That prediction is REFUTED and in the informative direction: the two atom-named items were not drawn either. `PB4_engagement_separated_from_elasticity` was last drawn at 05:56:52Z, nearly fifteen hours before the stretch opened, and `A46_book_depth_is_a_curriculum_question` is not in `.atom_stall_tracker.json` at all \u2014 it has never been drawn once. Meanwhile 21 atoms WERE drawn, all of them in a single 19-minute burst between 23:05:37 and 23:24:53 at the very END of a three-hour stretch, and every one of them is an atom the director's own canon ranked BELOW R1\u2013R5: the EP adapters, the SITE atoms, and C29\u2013C31 which carry explicit sequencing blocks. Zero of the eleven atoms he set to `dial_inherited: 45` came up. The supervisor's log at 23:24 says why, in as many words: `ANTI-LIVELOCK (BUILD): every candidate is stalled, so the draw goes to the LEAST-stalled (1413 unchanged draws) rather than to the whole set -- deprioritising [... 'PB4_engagement_separated_from_elasticity(1884)', 'PB5_pounds_or_percent_resolved(1883)' ...]`. `_prefer_least_stalled` tier 2 does not reorder the candidates, it REPLACES them: `least = [a for a in candidates if streaks[a] <= floor]`. PB4's streak is 1884 against a floor of 1413, so PB4 is not in the list that reaches `weights = [dial_inherited]`, and it is therefore not in the list that reaches `_direction.focus_weights` \u2014 the one place the code's own comment says the delivery seat steers, and only there. The director's dial of 45 and my steer are both multiplying a set their subject is not a member of. The docstring calls this \"an ordering, never an exclusion\" and promises an atom \"rejoins the moment every rival has been drawn up to its own streak without moving\" \u2014 but a rival that is drawn AND moves resets to zero, so every productive draw widens the gap. 471 draws separate PB4 from the floor and the distance grows monotonically while the loop is working properly. That is R15's shape exactly: a guard whose failing branch is unreachable because the filter one level above it removed the subject, wearing a Rule-0 comment that asserts the opposite. AND THE SECOND HALF IS THE ROUTING. `delivery_lane._atom_ids` exists so that Lane 0 offers only focus ids that are NOT on the map; `_delivery_lane_draw`'s own docstring says an atom \"biases nothing\". Lane 0 DID run this stretch \u2014 the 23:24 log shows `LANE 0 DELIVERY: drew the delivery seat's own decision ahead of the dial-weighted lanes` \u2014 it simply had no focus slug for the top three priorities to hand out, because my predecessor had converted them to atom ids. So last stretch's fix took the three highest-priority items out of the only channel that demonstrably executes and put them into the one that has been jammed for 1884 consecutive draws. That is worse than the disease and it is mine, not the machine's. The remedy is applied in this file and it is the inverse: every focus id below is a SLUG again, deliberately, so it reaches Lane 0 \u2014 and item 1 repairs the draw so that the director's dial can bite without depending on me at all. The acceptance test is clean and I am pre-registering it: slug-named items should now move where atom-named ones did not, and if they do not, Lane 0 is jammed too and the next seat should stop writing direction and fix the channel before anything else. The thesis position itself is unchanged and unflattering: R1's ceiling still says the best possible function of the company's eleven observables recovers nothing of a household's true elasticity its own noise floor does not also reach, so the advantage-from-inference claim is not unproven, it is still untestable, and everything downstream of it is bounded at the floor.",
+  "thesis_read": "Sixth stretch, zero focus items drawn, and this time the channel was open and something else was standing in front of it. Last stretch I converted every focus id back to a slug on the diagnosis that atom ids were routed into the jammed atom draw while slugs reach Lane 0. That half was RIGHT and I verified it at this orientation rather than assuming it: `delivery_lane._atom_ids()` filters nothing out, and `direction.unreachable_focus` yields all five slugs, in my order, right now. The steer arrived at the lane intact. It still delivered nothing, because `delivery_lane.next_item` walks TWO stores and the second is only reached when the first is empty: `seat_continuation.live()` is offered first, unconditionally, and the focus loop sits below it. I called `next_item` at this orientation. It returns `census-loader-sweep-continue-2026-09-05`. Not a focus item \u2014 and it cannot be, because the continuation store has FIVE live entries (4.1h, 3.0h, 2.1h, 1.9h and 0.2h old) against a `STALE_AFTER_SECONDS` of six hours. Five arrived in the last 4.1 hours, one every 49 minutes, and each expires only after six. An arrival rate faster than the expiry means the store never empties, so the focus loop below it is not reached slowly \u2014 it is not reached at all, by arithmetic. That is the whole stretch explained: all eight substantive commits match a live continuation subject one-for-one (the 272-refusal attribution, the census loader sweep, the process_run_complete lane, the reconciler advance), and not one arrived through focus. It also finishes the apparatus error I have carried open for five stretches, which was never a question of ranking: a tick working an apparatus continuation finds the next apparatus defect and writes the continuation that preempts focus again, so the queue is SELF-REFILLING and the refill is always apparatus because that is what the last tick was looking at. The two thesis continuations in the store are the proof: `the-baseline-was-beaten-in-a-world-that-no-longer-exists` (40.9h) and `departure-level-emerges-from-the-household-not-the-solver` (23.3h) both aged out past the six-hour window without ever being taken, while apparatus entries were refreshed faster than they could die. AND I MUST CORRECT LAST STRETCH'S OTHER CLAIM, because it is refuted by measurement and in the informative direction. I wrote that the atom draw's starvation of PB4 was permanent and widening \u2014 \"471 draws separate PB4 from the floor and the distance grows monotonically\". It shrank. `_prefer_least_stalled` is byte-identical (unrepaired, so focus item 1 was not done either), but the 02:20 ANTI-LIVELOCK line reads a floor of 1504 where it read 1413 three hours ago, PB4 is unmoved at 1884, and the gap is 380, not 471. The floor climbs about thirty draws an hour and is swallowing the stalled set one atom at a time \u2014 KNIFE3 at 1504 joined it between two consecutive log lines. So the atom draw un-jams itself in roughly half a day at the current rate, by the ugly mechanism of nothing else moving either, and that is why it is NOT this file's first item any more. The thesis position is unchanged and unflattering: R1's ceiling still says the best possible function of the company's observables recovers nothing of a household's true elasticity its own noise floor does not also reach, so advantage-from- inference remains untestable rather than unproven; `tools/settlement_ceiling_probe.py` still carries 226 uncommitted lines at 2026-09-03T07:10 and `tools/fit_departure_hazards.py` its 93; `site/data/value_arms.json` still publishes `share_at_which_a_bigger_book_could_resolve_it: -4.5507` graded `share_is_decisive: true`; no level moved for the eleventh stretch; blocking findings are 18; the staging root holds 93 documents on a net +58 over seven days; and the tree is 1 ahead and 20 BEHIND origin/main, so every daemon running from this checkout is executing code the branch has moved past.",
   "focus": [
    {
-    "id": "unjam-the-build-draw-so-the-directors-dial-can-reach-r1",
-    "what": "Repair `_prefer_least_stalled` tier 2 in `background/supervisor.py` so that a starved atom can actually rejoin. Today it returns `least = [a for a in candidates if streaks[a] <= floor]`, which REPLACES the candidate set with the minimum-streak atoms and drops `PB4_engagement_separated_from_elasticity` (1884), `PB5_pounds_or_percent_resolved` (1883), `EP1_clv_three_horizon` (1973) and `E5_carbon_three_ledger` (1973) against a floor of 1413 \u2014 every cycle, deterministically, and the gap widens each time a rival is drawn and moves. Its docstring's promise (\"an atom rejoins the moment every rival has been drawn up to its own streak\") is what to make true. The director's 2026-08-19 ruling it implements says \"make it impossible for the system to run indefinitely on work that cannot change its own state\", and the reading it was given inverts that: the atoms that cannot change their state are precisely the ones it now guarantees are never offered. HONOUR THE RULING AND THE DIAL BOTH \u2014 the ruling forbids re-drawing an atom that keeps not moving, it does not license permanently starving the highest-dial work \u2014 so the shape to reach for is one where the stall streak orders WITHIN the dial rather than deciding membership ahead of it, or where the floor is a rotating window every candidate enters. Do not delete the guard and do not touch the dials: this is one function. THE CONTROL IS THE POINT AND IT IS WHERE THE MUTATION MUST FIRE: write it over the whole partition, asserting that a candidate set in which every atom is flagged and the streaks differ by 400+ still yields the high-dial atom on some draw \u2014 not that today's answer is a particular id. Then re-read the 23:24 ANTI-LIVELOCK line's successor and say in the commit message whether PB4 is now reachable, with the evidence. THIS IS THE ONE APPARATUS ITEM AND THERE ARE NO OTHERS \u2014 see `not_now`.",
-    "why": "Because it is the gate on everything else in this file and on the director's canon. He re-ranked the arc on 2026-09-04 and expressed it as `dial_inherited: 45` on eleven atoms, derived to give R1\u2013R5 roughly three quarters of a weighted draw; the measured outcome is 0 of 21. His instruction is currently unable to execute, and no amount of better direction-writing changes that, because the seat's only steering surface sits BELOW the filter that removes the subject. Four stretches of ranking apparatus below thesis work were right in spirit and did not help, because this is not apparatus in the ordinary sense \u2014 it is the channel the thesis work has to arrive through. Finished when a stalled high-dial atom can be shown to reach the picker, the control fires on a mutation that restores the replacement semantics, and the supervisor log shows an R1\u2013R5 atom drawn on the BUILD lane. If the repair lands and PB4 is still not drawn within the next stretch, the cause is somewhere else again and THAT is the finding \u2014 file it and say so rather than re-writing this item a sixth time."
+    "id": "focus-must-not-be-preempted-forever-by-a-self-refilling-continuation-queue",
+    "what": "Repair `background/delivery_lane.next_item` so a live continuation store cannot make the focus loop unreachable. Today the function returns the first unheld entry of `seat_continuation.live()` and only walks `direction.unreachable_focus(...)` when that loop yields nothing. Measured at this orientation: five live entries aged 4.1h, 3.0h, 2.1h, 1.9h and 0.2h against `seat_continuation.STALE_AFTER_SECONDS = 6*3600`, an arrival rate near one per 49 minutes, so the store empties never and the second loop runs never. Call `next_item()` before you start and put what it returns in the commit message; it should be `census-loader-sweep-continue-2026-09-05` and if it is not, say what changed and re-derive. DO NOT WEAKEN THE CONTINUATION CHANNEL AND DO NOT SHORTEN ITS WINDOW: it is the only channel that delivered anything this stretch \u2014 all eight substantive commits came through it \u2014 and its freshness argument in the `next_item` comment is correct and stays. What is wrong is that preemption is UNBOUNDED. Make it bounded: interleave, or let a continuation preempt only until some draw must go to the head of focus, or any shape where both stores are reached under a permanently non-empty continuation queue. THE CONTROL IS THE POINT AND MUST FIRE OVER THE WHOLE PARTITION, not on today's answer: build a store that is non-empty at EVERY instant across a long run of draws, and assert that the head of focus is returned on at least one of them AND that a fresh continuation is still returned on at least one \u2014 one assertion covering both sides, so a fix that simply inverts the starvation fails it too. Mutate the bound away and prove the control goes red. Then check `seat_executor._promote_to_handoff` and `hand_off_focus` on the write side and say in the commit message whether the refill rate is a second defect or a healthy channel that merely needs the reader fixed \u2014 state which, with the count, rather than fixing both blind.",
+    "why": "Because this is the channel my own steer travels down and it has swallowed six consecutive stretches of direction, and because it explains the apparatus error I have carried open for five: apparatus was never out-ranking thesis work, it was refilling the queue that preempts it, and a tick working apparatus writes the next apparatus continuation. It ranks above the atom-draw repair I put first last stretch on measurement, not preference \u2014 the atom floor rose 1413 to 1504 in three hours and closes the 380 to PB4 in about half a day unattended, while the continuation queue's arrival rate exceeds its own expiry and therefore clears on no timescale at all. Finished when the control above fires on its mutation and the NEXT orientation's `previous_focus_drawn.drawn` is non-empty. That last clause is the real test and it is not gradeable by the tick that does the work \u2014 so if the repair lands and `drawn` is still empty at the next orientation, the cause is a THIRD layer nobody has read, and finding it outranks everything in this file including this item."
    },
    {
     "id": "r1-give-elasticity-observable-antecedents",
-    "what": "Build R1 \u2014 the PB4 work, carried here as a SLUG on purpose so it reaches Lane 0 rather than the jammed atom draw; do not wait on focus item 1. Give a household's price elasticity OBSERVABLE ANTECEDENTS instead of a hash of the customer id, in `simulation/population_draw.py` and `simulation/customer_events.py` (PB4's own file scope). Start from the published record, not a shape that feels right: what household characteristics the evidence associates with switching behaviour \u2014 Ofgem's Consumer Survey engagement segmentation and the Retail Market Indicators read FROM THE DATA TABLES, per fuel, plus payment method, consumption band, tenure and prior switching where the record carries them \u2014 and file that read in `docs/market_research/` before writing the trait. PB4's own gain statement is the design and it is two gates, not one weight: an ENGAGEMENT gate (does this household look at all, and what makes it look) and, conditional on looking, an ELASTICITY (how far the gap moves it), with the gate taking a comparison offer as an argument so a responding competitor changes what is on offer without changing the decision's shape. HOLD THE MARGINAL DISTRIBUTION OF ELASTICITY FIXED: re-plumbing where the trait comes from is a fidelity correction and yours; changing how many households are highly elastic is curriculum, is the director's, and is reserved. If the honest version leaves our position unchanged or worse, make it and say so afterwards. Then FILE THE PREDICTION FIRST, re-run `tools/r1_inference_ceiling.py` on a book drawn after the build, and publish the verdict whichever way it falls, beside the prediction.",
-    "why": "The thesis says the advantage must come from inference and never from access, and the ceiling measured on 2026-09-04 says that today there is nothing to infer: at full coverage neither available observable clears its own null, so the best possible model recovers nothing. Until households differ for reasons a supplier could in principle observe, every comparison against the flat-rules baseline returns \"the level is everything\" and is right \u2014 the claim is not unproven, it is unfalsifiable, and R2 is bounded at the floor before a line of it is written. This is the director's first-ranked item and it has now gone five stretches without being touched. Finished when the antecedents are sourced and filed, the build holds the marginal and says so, and the ceiling re-run's verdict sits in the record next to a prediction written before the answer was known. A re-run that still reads \"noise\" is a complete result and must be published as one."
+    "what": "Build R1 \u2014 the PB4 work \u2014 as a slug, now, without waiting on focus item 1 or on the atom draw. Give a household's price elasticity OBSERVABLE ANTECEDENTS instead of a hash of the customer id, in `simulation/population_draw.py` and `simulation/customer_events.py` (PB4's own file scope). Start from the published record, not a shape that feels right: what household characteristics the evidence associates with switching behaviour \u2014 Ofgem's Consumer Survey engagement segmentation and the Retail Market Indicators read FROM THE DATA TABLES, per fuel, plus payment method, consumption band, tenure and prior switching where the record carries them \u2014 and file that read in `docs/market_research/` BEFORE writing the trait. PB4's own gain statement is the design and it is two gates, not one weight: an ENGAGEMENT gate (does this household look at all, and what makes it look) and, conditional on looking, an ELASTICITY (how far the gap moves it), with the gate taking a comparison offer as an argument so a responding competitor changes what is on offer without changing the decision's shape. HOLD THE MARGINAL DISTRIBUTION OF ELASTICITY FIXED: re-plumbing where the trait comes from is a fidelity correction and yours; changing how many households are highly elastic is curriculum, is the director's, and is reserved. If the honest version leaves our position unchanged or worse, make it and say so afterwards. FILE THE PREDICTION FIRST, then re-run `tools/r1_inference_ceiling.py` on a book drawn after the build and publish the verdict whichever way it falls, beside the prediction.",
+    "why": "The thesis says the advantage must come from inference and never from access, and the ceiling measured on 2026-09-04 says there is currently nothing to infer: at full coverage neither available observable clears its own null. Until households differ for reasons a supplier could in principle observe, every comparison against the flat-rules baseline returns \"the level is everything\" and is right \u2014 the claim is not unproven, it is unfalsifiable, and R2 is bounded at the floor before a line of it is written. This is the director's first-ranked item and it has now gone six stretches without being touched. Finished when the antecedents are sourced and filed, the build holds the marginal and says so, and the ceiling re-run's verdict sits in the record next to a prediction written before the answer was known. A re-run that still reads \"noise\" is a complete result and must be published as one."
    },
    {
     "id": "the-books-ceiling-is-our-serializer-and-not-the-world",
-    "what": "FIRST ACT, unchanged and still undone after two stretches: `tools/settlement_ceiling_probe.py` carries 226 uncommitted lines, last written 2026-09-03T07:10 and in no commit. Read them, say in the commit message whether they are finished work or an abandoned attempt, and land or discard before writing a line beside them \u2014 do not write a second probe. Then the work: in `simulation/premise_population.settled_book_ceiling`, `bytes_per_record` ADDS `settlement_build` (363.5 B) to `run_output_serialization` (411.4 B), because the serialization baseline is taken after `run_settlement` returns while the settlement working set is still held, so one build-then-serialize process pays for both. Change the path so one working set is paid once \u2014 stream records out and free them as they are written, or split build from serialize across the process boundary \u2014 then RE-RUN the probe and let the ceiling fall out of the new measurement. Do not edit the number, and do not touch the 1/sqrt(n) curve or the null.",
+    "what": "FIRST ACT, unchanged and still undone after three stretches: `tools/settlement_ceiling_probe.py` carries 226 uncommitted lines, last written 2026-09-03T07:10 and in no commit; `git status` still shows it modified at this orientation. Read them, say in the commit message whether they are finished work or an abandoned attempt, and land or discard before writing a line beside them \u2014 do not write a second probe. Then the work: in `simulation/premise_population.settled_book_ceiling`, `bytes_per_record` ADDS `settlement_build` (363.5 B) to `run_output_serialization` (411.4 B), because the serialization baseline is taken after `run_settlement` returns while the settlement working set is still held, so one build-then-serialize process pays for both. Change the path so one working set is paid once \u2014 stream records out and free them as they are written, or split build from serialize across the process boundary \u2014 then RE-RUN the probe and let the ceiling fall out of the new measurement. Do not edit the number, and do not touch the 1/sqrt(n) curve or the null.",
     "why": "This is what makes item 2 testable, which is why it outranks the rest. The ceiling probe is R1's falsifier, and its own finding says nine of the eleven observables are carried by 102 households or fewer and that at those sample sizes it cannot tell a real effect from its noise floor \u2014 so a book too narrow to see an effect returns \"noise\" and reads exactly like an R1 build that failed. The width is bound at 632 accounts against a detection floor near 806 by our own RSS accounting rather than by the world or the method. Finished when the ceiling is re-derived from a re-run probe and the published bound's binding constraint is something other than our own output path."
    },
    {
     "id": "a46-the-priced-menu-goes-to-the-director",
-    "what": "Discharge work-item 4 of the director's canon: return R5 to him as a curriculum question with its cost re-measured against TODAY's book. `docs/design/A46_THE_PRICED_MENU_2026-08-30.md` is the vehicle and already exists \u2014 read it first, and note it carries an uncommitted modification, so establish whether that is finished work before adding to it. Its headline column is stale in the direction of good news: it says that at every publish interval the number of accounts the method could actually price is ZERO for a structural reason, and `site/data/value_arms.json` now reports priced decisions against renewals offered. Re-take the menu's two columns from the live records it already reads (`docs/observability/book_growth_campaign.json`, the settlement ceiling slope artefact), state what each option costs in wall-clock and in settlement budget, carry the recommendation, and send it to him on NTFY as one message. Do NOT decide it: book age moves the P&L, which makes it curriculum and his. If item 3 has already re-run the probe, take the slope from that rather than from the stale artefact, and say which you used.",
-    "why": "He asked for exactly this and it is the only one of the canon's five work-items still open \u2014 the re-rank, the R1/R2 sequencing, the EP7\u2013EP14 unblock and the ceiling-before-programme discipline all landed. It is the cheapest item here and the one where HE is blocked on US: 37 accounts carrying five or more renewals is why nothing compounds, and until he has the priced menu he cannot rule. It is also the same subject as item 3 \u2014 both are about what a wider book costs \u2014 so the two should share one measurement rather than pay for it twice. Note that this atom has NEVER been drawn in the tracker's whole history, which is its own evidence for item 1. Finished when the figures are re-derived from the live records, the recommendation is stated, and one NTFY has gone to him \u2014 not when a decision has come back."
+    "what": "Discharge work-item 4 of the director's canon: return R5 to him as a curriculum question with its cost re-measured against TODAY's book. `docs/design/A46_THE_PRICED_MENU_2026-08-30.md` is the vehicle and already exists \u2014 read it first, and note it still carries an uncommitted modification, so establish whether that is finished work before adding to it. Its headline column is stale in the direction of good news: it says that at every publish interval the number of accounts the method could actually price is ZERO for a structural reason, and `site/data/value_arms.json` now reports priced decisions against renewals offered. Re-take the menu's two columns from the live records it already reads (`docs/observability/book_growth_campaign.json`, the settlement ceiling slope artefact), state what each option costs in wall-clock and in settlement budget, carry the recommendation, and send it to him on NTFY as one message. Do NOT decide it: book age moves the P&L, which makes it curriculum and his. If item 3 has already re-run the probe, take the slope from that rather than from the stale artefact, and say which you used.",
+    "why": "He asked for exactly this and it is the only one of the canon's five work-items still open \u2014 the re-rank, the R1/R2 sequencing, the EP7\u2013EP14 unblock and the ceiling-before-programme discipline all landed. It is the cheapest item here and the one where HE is blocked on US: 37 accounts carrying five or more renewals is why nothing compounds, and until he has the priced menu he cannot rule. It is also the same subject as item 3 \u2014 both are about what a wider book costs \u2014 so the two should share one measurement rather than pay for it twice. Finished when the figures are re-derived from the live records, the recommendation is stated, and one NTFY has gone to him \u2014 not when a decision has come back."
    },
    {
     "id": "one-page-answers-would-a-bigger-book-help-in-both-directions",
-    "what": "Re-read the live feed before changing anything, then fix the producer. `site/data/value_arms.json` publishes `floor_decomposition.share_at_which_a_bigger_book_could_resolve_it` as -4.5507, grades it `share_is_decisive: true`, and reports `larger_settled_book_would_resolve_it: true` with `priced_decisions_needed: 19` \u2014 all still live, verified in the file at this orientation. Make `tools/generate_value_arms_data.py` REFUSE a share outside [0, 1] rather than grading it, and make it say plainly that a partition whose `rest_of_book_sd_gbp` is exactly 0.0 and whose `priced_share_of_variance` is exactly 1.0 has not been shown to be two halves of one call stream. The feed has since gained a `different_book_caveat` \u2014 check what the PAGE actually renders before deciding how much is left, and say so either way. Then discharge `SEAT_FINDING_THE_UNPRICED_SIDE_CONTRIBUTES_NO_VARIANCE_AND_A_CONSTANT_SHIFT_AND_ONLY_THE_FIRST_HALF_WAS_STATED_2026-09-03.md`.",
-    "why": "A negative share published as decisive is a quantity nobody defined being differenced and then graded \u2014 this project's most expensive recurring shape \u2014 and it is on the flagship page for a fifth orientation after it was first named. It is ranked last deliberately and not dropped: it is the panel that prices a bigger book, items 3 and 4 are both about making the book bigger, and if either lands while this stands the two panels disagree louder, one telling a reader that 19 priced decisions resolve a spread on a book that already has more than that, the other that no affordable book can. Finished when no share outside [0, 1] can reach the page, the exact-zero partition is stated as unestablished rather than reported as a clean split, and the finding is dispositioned out of the staging root."
+    "what": "Re-read the live feed before changing anything, then fix the producer. `site/data/value_arms.json` publishes `floor_decomposition.share_at_which_a_bigger_book_could_resolve_it` as -4.5507, grades it `share_is_decisive: true`, and reports `larger_settled_book_would_resolve_it: true` with `priced_decisions_needed: 19` \u2014 all re-verified in the file at this orientation. Make `tools/generate_value_arms_data.py` REFUSE a share outside [0, 1] rather than grading it, and make it say plainly that a partition whose `rest_of_book_sd_gbp` is exactly 0.0 and whose `priced_share_of_variance` is exactly 1.0 has not been shown to be two halves of one call stream. The feed carries a `different_book_caveat` \u2014 check what the PAGE actually renders before deciding how much is left, and say so either way. Then discharge `SEAT_FINDING_THE_UNPRICED_SIDE_CONTRIBUTES_NO_VARIANCE_AND_A_CONSTANT_SHIFT_AND_ONLY_THE_FIRST_HALF_WAS_STATED_2026-09-03.md`.",
+    "why": "A negative share published as decisive is a quantity nobody defined being differenced and then graded \u2014 this project's most expensive recurring shape \u2014 and it is on the flagship page for a sixth orientation after it was first named. It is ranked last deliberately and not dropped: it is the panel that prices a bigger book, items 3 and 4 are both about making the book bigger, and if either lands while this stands the two panels disagree louder, one telling a reader that 19 priced decisions resolve a spread on a book that already has more than that, the other that no affordable book can. Finished when no share outside [0, 1] can reach the page, the exact-zero partition is stated as unestablished rather than reported as a clean split, and the finding is dispositioned out of the staging root."
    }
   ],
   "not_now": [
    {
-    "what": "Every apparatus item except the draw repair \u2014 the seventeen other BLOCKING apparatus findings (the hand-off to a store no tick reads, the staleness signal that cannot be cleared by the restart it triggers, the note declaration committed without its content, the zero start time rendered as a 1970 episode, the nine-day-stale committed grid feed, the wiped status roster, and the rest), and the 262 staged lines now sitting in `background/origin_reconcile.py`.",
-    "why": "My predecessor pre-registered that this focus would carry NO apparatus item, and I am breaking that deliberately and exactly once, with the reason stated so it can be judged. The ban assumed apparatus competes with thesis work for one channel. The measurement says the opposite for this one defect: the draw jam IS the channel, and four stretches of correctly refusing apparatus produced zero thesis draws precisely because nobody fixed the thing that hands thesis work out. Every other apparatus item keeps its ban and loses on the same evidence as before \u2014 nine of nine substantive commits were apparatus this stretch without a single one coming through focus, so apparatus arrives on its own whatever this file says, and a second slot spent on it buys a fifth consecutive apparatus stretch. The reversal cost is small and named: the 262 lines are staged in the index, not lost."
+    "what": "`unjam-the-build-draw-so-the-directors-dial-can-reach-r1` \u2014 repairing `_prefer_least_stalled` tier 2 in `background/supervisor.py`, which was my own first-ranked item last stretch and was not done. It is unrepaired and byte-identical.",
+    "why": "Demoted on a measurement that refutes my own argument for it, which is the honest reason and the only one that should move an item. I claimed the starvation was permanent and widening. Between the two orientations the ANTI-LIVELOCK floor rose from 1413 to 1504 while PB4 stayed at 1884, so the gap CLOSED from 471 to 380, and the 02:20 log shows KNIFE3 crossing into the least-stalled set between two consecutive lines. At about thirty draws an hour the filter releases PB4 unattended in roughly half a day. The mechanism is still ugly \u2014 it clears only because nothing else is moving either, which is a real finding about the map \u2014 but an item that resolves itself in half a day loses to one whose arrival rate exceeds its own expiry and therefore never resolves. If PB4 has not been drawn two orientations from now the measured rate was wrong and this returns to the top; I am writing that down so it can be checked against me rather than re-argued."
+   },
+   {
+    "what": "Every other apparatus item: the seventeen remaining BLOCKING apparatus findings (the hand-off to a store no tick reads, the staleness signal that cannot be cleared by the restart it triggers, the note declaration committed without its content, the zero start time rendered as a 1970 episode, the nine-day-stale committed grid feed, the wiped status roster, the two mechanisms that each stand down for the other), and the 93 documents now in the staging root.",
+    "why": "The five-stretch ban stands and the diagnosis finally justifies it properly. Apparatus does not need a focus slot \u2014 it has its own self-refilling channel and took all eight substantive commits this stretch without one. Spending a focus slot on any of these buys a sixth consecutive apparatus stretch AND leaves the queue that produced them untouched. Item 1 is the single exception and it is not apparatus in the ordinary sense: it is the reader that decides whether thesis work is ever offered at all. Reversal cost is named and small \u2014 the seventeen findings are filed, classified and not going anywhere."
    },
    {
     "what": "`the-worlds-departure-level-is-fitted-onto-its-own-check` \u2014 steps 1 and 2 of `SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED_2026-09-03.md`, and the 93 uncommitted lines in `tools/fit_departure_hazards.py`.",
-    "why": "This is the one I am least comfortable dropping and I am recording that plainly. It is the only blocking finding about the WORLD rather than the machine, it has now gone four stretches untouched, and it sits directly under item 2 \u2014 a world whose departure level equals the published rate to four decimal places by construction cannot tell us whether R1's new variation is fidelity or decoration. It loses this round only because five items is the ceiling and every item above it is either the gate on the whole file (1), the director's first rank (2), what makes 2 testable (3), or a thing he is blocked on (4). If it is still untouched at the next orientation it should be ranked above item 5, and the next seat should read this line as the handover it is."
+    "why": "Still the one I am least comfortable dropping, and my predecessor left a handover line saying it should be ranked above item 5 if untouched. It is untouched, and I am overriding that handover with the reason stated. Its own continuation entry \u2014 `departure-level-emerges-from-the-household-not-the-solver` \u2014 sat in the store and EXPIRED after 23.3 hours without being taken, which makes it evidence for item 1 rather than an argument to promote it: ranking it higher changes nothing while the reader never reaches focus. It is the only blocking finding about the WORLD rather than the machine and it sits directly under item 2, so a world whose departure level equals the published rate to four decimal places by construction cannot tell us whether R1's new variation is fidelity or decoration. It returns above item 5 the moment focus is reachable."
    },
    {
-    "what": "Taking the EP adapters the draw keeps offering \u2014 EP3, EP5, EP8, EP9, EP11, EP13, EP14, EP16, EP19, EP20 \u2014 which accounted for ten of the twenty-one atoms actually drawn this stretch.",
-    "why": "They are being handed out BECAUSE of the defect in item 1, not on their merits: the canon ranked them below R1\u2013R5 and set their dials to 3 against 45, and they reach the picker only because the high-dial atoms were filtered out above it. Working them ratifies the jam and makes the machine look productive while the director's ranking goes unexecuted \u2014 which is exactly what the last five stretches look like from outside. They are plumbing for a launch that has not been decided. The canon's own exception still stands: take one where it is genuinely cheap AND unblocks something in R1\u2013R4, and none of the items above needs one."
-   },
-   {
-    "what": "Starting R2 \u2014 `C29_decisions_stop_being_lookup_tables`, `C30_advice_reaches_a_household`, `C31_time_is_the_currency_that_does_not_exist` \u2014 even though the draw offered all three this stretch.",
-    "why": "Their own `block_reason` is the argument and it is a measurement, not a preference: a decision surface widened against a flat world produces a better-instrumented null, and the current surface is nine accounts wide with the choosing worth -\u00a3175 against an error bar many times that. The ceiling result makes it sharper \u2014 R2 cannot pay until R1 lands. That the draw offered three sequencing-blocked atoms at all is further evidence for item 1, and I am recording it as such rather than acting on the offer."
+    "what": "Taking the EP adapters and the R2 atoms the draw keeps offering \u2014 EP3, EP5, EP8, EP9, EP11, EP13, EP14, EP16, EP19, EP20, and C29/C30/C31.",
+    "why": "They are handed out because the high-dial atoms are filtered out above the picker, not on their merits: the canon ranked them below R1\u2013R5 and set their dials to 3 against 45. Working them ratifies the jam and makes the machine look productive while the director's ranking goes unexecuted. C29\u2013C31 carry their own `block_reason` and it is a measurement, not a preference: a decision surface widened against a flat world produces a better-instrumented null, and the current surface is nine accounts wide with the choosing worth -\u00a3175 against an error bar many times that. R2 cannot pay until R1 lands. The canon's exception still stands \u2014 take one where it is genuinely cheap AND unblocks something in R1\u2013R4 \u2014 and nothing above needs one."
    }
   ],
   "for_the_director": [],
@@ -308,6 +308,26 @@
  },
  "what_it_got_wrong": {
   "entries": [
+   {
+    "at": "2026-09-05T02:20:43.353646+00:00",
+    "what": "Six stretches of direction, zero focus items drawn, and three successive diagnoses of why, each correct about the layer it opened and each stopping one layer short of the answer. I blamed the `drawn` instrument (exonerated), then slug-versus-atom routing (real, and the slug remedy provably worked \u2014 `unreachable_focus` yields all five ids in order at this orientation), then the atom draw's anti-livelock filter. None of them was the binding constraint, which is that `delivery_lane.next_item` reaches the focus loop only when `seat_continuation.live()` is empty and the continuation store gains an entry every 49 minutes against a six-hour expiry. I also asserted last stretch that PB4's gap to the stall floor \"grows monotonically\"; measured this orientation it SHRANK from 471 to 380, so that claim is refuted and the item it justified is demoted in `not_now` rather than quietly dropped. The pattern is the error: each time I read one more layer only after the previous remedy failed, instead of walking the whole path from a focus id to a tick taking work before writing focus. This orientation walked it end to end \u2014 `unreachable_focus` to `next_item` to the continuation store to the claims file \u2014 which is why the cause is a called function returning a named id rather than an inference. It stays OPEN because I marked this same class corrected once already and it recurred, and because the only honest test is not mine to grade: it closes when a stretch's `previous_focus_drawn.drawn` is non-empty.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-05T02:20:43.353646+00:00",
+    "what": "Five stretches of ranking the delivery apparatus below thesis work and having apparatus eat the stretch anyway. Eight of eight substantive commits were apparatus again and not one arrived through focus. What has changed is that this is no longer an unexplained recurrence: every one of those eight matches a live entry in the continuation store one-for-one, the queue that preempts focus is refilled by the ticks working it, and the refill is always apparatus because that is what the last tick was looking at. So the ban was never the wrong policy \u2014 it was aimed at a competition for a slot that was not happening. The remedy is focus item 1 and the ban holds everywhere else. Stays open until a stretch's substantive commits are majority thesis.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-05T02:20:43.353646+00:00",
+    "what": "The transport error, graded corrected two stretches ago on one successful publish, regressed inside that same stretch and has been held open since on the condition of two consecutive orientations finding the tree level with NO hand reconciliation in between. It fails again and worse: HEAD is 1 ahead and 20 BEHIND origin/main, against 0 and 9 last orientation, so the divergence more than doubled in three hours. Six of this stretch's commits are merges subject-lined \"automatic reconciliation in an isolated worktree\", so the reconciler is running and the divergence outlives it \u2014 and the stretch's own findings say why, in `WORKER_FINDING_THE_ADVANCE_CANNOT_FIRE_BECAUSE_ITS_OWN_SOURCE_FILE_IS_THE_TRACKED_PATH_BLOCKING_THE_FAST_FORWARD`. Every daemon running from this checkout is executing code the branch has moved past, which is a standing hazard under every measurement in this file. The condition is unchanged and still right: a level tree at two consecutive orientations with no seat-made merge in the window.",
+    "corrected": false
+   },
+   {
+    "at": "2026-09-05T02:20:43.353646+00:00",
+    "what": "I have twice written a focus item asserting perishable state as established fact. No new instance this stretch: every figure in this file was read from the tree, the stall tracker, the continuation store, the live feed or a called function immediately before writing, and where the brief and the tree disagreed I read the tree \u2014 which is how my own monotonic-gap claim came out refuted rather than confirmed above. But `SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_FALSE_BEFORE_THE_TURN_READ_IT_2026-09-03.md` is still undispositioned in the staging root in its eighth stretch, so the class is unrepaired and only the next seat's own care stands between it and a fourth instance.",
+    "corrected": false
+   },
    {
     "at": "2026-09-04T23:24:35.164207+00:00",
     "what": "Five stretches of writing direction into channels nobody had read the source of. The seat has been steering with `focus_weights` and Lane 0 since 2026-08-25 and no orientation before this one opened `_prefer_least_stalled` or `delivery_lane._atom_ids` to ask whether the steer could physically reach anything. Both answers were sitting in the supervisor's own log, printed every cycle, naming PB4 and its 1884-draw streak in plain text. Four orientations theorised about ranking, bounding, the `drawn` instrument and slug-versus-atom while the mechanism logged itself every two minutes. CORRECTED as an error of method: the source is read, the mechanism is named with line-level evidence in `thesis_read`, and the repair is focus item 1.",
@@ -1407,53 +1427,48 @@
     "at": "2026-08-31T05:21:39.789188+00:00",
     "what": "The published verdict *\"CANNOT RESOLVE \u2026 INSIDE the \u00b1\u00a32,578\"* draws its conclusion from a spread measured on 2026-08-29 against a point estimate measured on 2026-08-31, in a world that gained a new defensive behaviour in between. The page carries the caveat honestly in `error_bar.staleness_caveat` \u2014 and the headline still uses the two as if they were commensurate. A caveat beside a sentence does not stop the sentence being read.",
     "corrected": null
-   },
-   {
-    "at": "2026-08-31T02:20:02.780362+00:00",
-    "what": "My last direction's item two told a worker to \"correct it to the record\" and named the blast radius as `competitive_pressure`'s enriched churn estimate and log-spread. I named the wrong downstream. The consequence that mattered was that correcting the company's belief onto the same published series the world is calibrated from would make the two sides **co-calibrated** and destroy the independence verdict \u2014 the very guard the director had made his explicit priority twelve hours earlier. The work found it and reported it under a heading saying it goes against us, which is the discipline working. But I had every fact needed to predict it when I wrote the item and did not, so it arrived as a discovery instead of as a design decision, and the difference is that a designed version would have built the posterior route in the same pass.",
-    "corrected": null
-   },
-   {
-    "at": "2026-08-31T02:20:02.780362+00:00",
-    "what": "My last direction's item three said \"done means\" the anchored world read against the run it replaced, and named `site/data/value_arms.json`'s `run_generated_at` as the evidence it had not been done. Prediction B was closed properly from the run records in `docs/reports/` and C was declared not closable with its reason \u2014 both correct. But `run_generated_at` still reads `2026-08-30T10:37:06Z` beside a `generated_at` of `2026-08-31T00:56:24Z`: the page was re-rendered from the same run rather than re-run. I wrote an exit condition and then treated a differently-evidenced answer as satisfying it. It is item two now, with the re-run as the work rather than as the check.",
-    "corrected": null
-   },
-   {
-    "at": "2026-08-31T02:20:02.780362+00:00",
-    "what": "`git stash push --keep-index` on the shared tree, mid-turn, to isolate a test failure \u2014 a rule this seat already holds, broken by reflex. It swept 508 files including every other lane's unstaged work. Then `git stash apply` failed **silently under a pipe**: `$?` was read after `| tail`, so `tail`'s exit code was mistaken for a successful restore. Both defects are already in this seat's index and both were re-learned the expensive way.",
-    "corrected": null
-   },
-   {
-    "at": "2026-08-31T02:20:02.780362+00:00",
-    "what": "The switching checker had a defect that would have manufactured a false red on a correct repair: `_implied_rate_table` read multipliers back through `_bands()[reference_year][1]` \u2014 the HIGH endpoint of 2024's 12.5\u201316.1 band, which is not a considered choice, it is `[1]`. It inflates every implied rate by 1.13x, enough to push a correctly-derived 2016 reading of 17.30% (dead centre of its band) out to 19.48% and report a defect belonging to the checker. This is why the strict xfail quoted 34.9% rather than 31.0%.",
-    "corrected": null
-   },
-   {
-    "at": "2026-08-31T02:20:02.780362+00:00",
-    "what": "A control was keyed to today's answer and only fired because the company's belief was WRONG: `test_the_CAP_is_INSIDE_the_search_and_never_a_CLAMP`'s `ceiling_bound is True` leg passed only because a 2021 multiplier of 0.57 made the arm chase margin into the cap. Correcting the belief turned it red \u2014 the code becoming more honest breaking the control, exactly the shape CLAUDE.md names. Repaired by deriving the fixture's base rate from the cap so the leg tests what its docstring claims.",
-    "corrected": null
-   },
-   {
-    "at": "2026-08-31T02:20:02.780362+00:00",
-    "what": "The one-sidedness statement claimed as landed in `6168ae6bf` was not in that commit, and the reader it was written for would not have seen it. Caught and landed in `27a646701` within the stretch. Same class one commit later: C3's write-up named its next step precisely and never said where the code to run it lives, so a reader drawing the A/B run would have rebuilt the arm from prose. Fixed in `2b9fb79d9` by citing the salvage tag.",
-    "corrected": null
    }
   ],
   "refused_own_records": [],
-  "outstanding": 52,
+  "outstanding": 56,
   "corrected": 26,
-  "correction_not_recorded": 148,
+  "correction_not_recorded": 142,
   "empty_means": ""
  },
  "what_next": {
   "focus": [
-   "unjam-the-build-draw-so-the-directors-dial-can-reach-r1",
+   "focus-must-not-be-preempted-forever-by-a-self-refilling-continuation-queue",
    "r1-give-elasticity-observable-antecedents",
    "the-books-ceiling-is-our-serializer-and-not-the-world",
    "a46-the-priced-menu-goes-to-the-director",
    "one-page-answers-would-a-bigger-book-help-in-both-directions"
   ],
   "steer_checks": [
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [],
+      "focus": [
+       "unjam-the-build-draw-so-the-directors-dial-can-reach-r1",
+       "r1-give-elasticity-observable-antecedents",
+       "the-books-ceiling-is-our-serializer-and-not-the-world",
+       "a46-the-priced-menu-goes-to-the-director",
+       "one-page-answers-would-a-bigger-book-help-in-both-directions"
+      ],
+      "steered": false
+     }
+    },
+    "drawn": [],
+    "focus": [
+     "unjam-the-build-draw-so-the-directors-dial-can-reach-r1",
+     "r1-give-elasticity-observable-antecedents",
+     "the-books-ceiling-is-our-serializer-and-not-the-world",
+     "a46-the-priced-menu-goes-to-the-director",
+     "one-page-answers-would-a-bigger-book-help-in-both-directions"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
    {
     "by_class": {
      "atom": {
@@ -1553,33 +1568,6 @@
     ],
     "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
     "steered": false
-   },
-   {
-    "by_class": {
-     "lane_0": {
-      "drawn": [
-       "the-figures-stopped-reaching-the-reader-and-no-direction-ever-named-the-path"
-      ],
-      "focus": [
-       "the-figures-stopped-reaching-the-reader-and-no-direction-ever-named-the-path",
-       "the-world-holds-more-households-on-a-fixed-deal-than-the-record-does",
-       "the-only-blocking-finding-is-down-to-one-cross-tabulation",
-       "a-prereg-states-what-it-could-have-detected"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "the-figures-stopped-reaching-the-reader-and-no-direction-ever-named-the-path"
-    ],
-    "focus": [
-     "the-figures-stopped-reaching-the-reader-and-no-direction-ever-named-the-path",
-     "the-world-holds-more-households-on-a-fixed-deal-than-the-record-does",
-     "the-only-blocking-finding-is-down-to-one-cross-tabulation",
-     "a-prereg-states-what-it-could-have-detected"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
    }
   ],
   "steered_recently": true,
