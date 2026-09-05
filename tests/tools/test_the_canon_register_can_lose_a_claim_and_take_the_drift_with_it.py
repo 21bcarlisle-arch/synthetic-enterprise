@@ -24,6 +24,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from background import register_low_water
 from tests.tools.test_canon_drift_check import (
     CHANNEL_CLAIM,
     NO_CHANNEL_CLAIM,
@@ -36,9 +37,19 @@ from tools.canon_drift_check import RETIRED_SECTION, main, removed_claims, run
 
 
 def test_a_claim_that_left_the_register_without_a_reason_is_refused():
-    """The whole point. MUTATION: return [] for an id absent from `current` and this fires."""
+    """The whole point. MUTATION: return [] for an id absent from `current` and this fires.
+
+    The refusal now names its REGISTER as well as its id, because the shared mechanism this rung
+    was re-pointed at on 2026-09-05 also speaks for the alarm census, the class register and the
+    maturity map, and a line in a mixed report that names no register is a line a reader cannot
+    act on. Asserted as both facts rather than as a `startswith` on the id: the old assertion was
+    keyed to today's formatting, and the property is that the line identifies WHICH ROW OF WHICH
+    REGISTER.
+    """
     out = removed_claims(current={"stays"}, retired={}, baseline={"stays", "gone"})
-    assert len(out) == 1 and out[0].startswith("gone")
+    assert len(out) == 1
+    assert out[0].startswith(drift.DEFAULT_REGISTER + ":"), out[0]
+    assert "gone" in out[0]
     assert "was in the register at HEAD and is not in it now" in out[0]
 
 
@@ -116,8 +127,13 @@ def test_an_UNPARSEABLE_or_SHAPELESS_register_at_head_is_unestablishable(monkeyp
         def __init__(self, stdout):
             self.stdout = stdout
 
+    # Patched on the SHARED reader, which is where the `git show` now lives. `canon_drift_check`
+    # no longer imports subprocess at all: after the 2026-09-05 convergence its head reader is a
+    # named seam onto `register_low_water.keys_at_head`, and a patch aimed at the old home would
+    # be an AttributeError rather than a quietly ineffective test.
     for payload in ("claims: [[[", "just a string", "claims: 7", "other_key: 1"):
-        monkeypatch.setattr(drift.subprocess, "run", lambda *a, _p=payload, **k: _Proc(_p))
+        monkeypatch.setattr(register_low_water.subprocess, "run",
+                            lambda *a, _p=payload, **k: _Proc(_p))
         assert drift._claim_ids_at_head(drift.REPO_ROOT / drift.DEFAULT_REGISTER) is None, (
             f"HEAD's copy {payload!r} is unusable as a baseline and must refuse, not read empty"
         )
