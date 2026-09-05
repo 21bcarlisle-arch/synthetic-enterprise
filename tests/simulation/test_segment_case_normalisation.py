@@ -189,6 +189,36 @@ class TestVocabularyFailsClosed:
         with pytest.raises(UnknownSegmentError):
             normalise_segment(None, default=None)
 
+    @pytest.mark.parametrize(
+        "not_a_string", [0, 7, 3.7, True, ["resi"], {"segment": "resi"}, object()]
+    )
+    def test_a_non_string_segment_raises_rather_than_being_coerced(self, not_a_string):
+        """Nothing in the tree drove this branch until now.
+
+        Measured 2026-09-05 by the convergence-evidence battery: mutating the
+        guard to `return default` SURVIVED all nine suites that name this module
+        or call it -- and a tree-wide search finds `None` as the only non-string
+        ever passed, which the *absence* branch catches one line earlier. So the
+        `isinstance` guard was correct and held in place by nothing.
+
+        The branch is genuinely reachable, which is what makes it worth a test
+        rather than a note: every call site reads `bill.get("segment", "resi")`,
+        a bill is built from JSON, and a malformed feed hands this a number or a
+        list. Were the guard ever traded for `return default`, every one of them
+        would quietly become a household -- the C5/C6 mis-route this module
+        exists to close, arriving through the one door nothing was watching.
+        """
+        with pytest.raises(UnknownSegmentError):
+            normalise_segment(not_a_string)
+
+    def test_a_non_string_raises_even_when_a_default_is_available(self):
+        """Absent and WRONG are different, and only the first has a defensible
+        default. Deferring to `default` here collapses that distinction, which
+        is exactly what the surviving mutation did -- so the refusal is asserted
+        with a default in hand, not only in the bare call above."""
+        with pytest.raises(UnknownSegmentError):
+            normalise_segment(1234, default=RESIDENTIAL)
+
     @pytest.mark.parametrize("spelling", SME_SPELLINGS + IC_SPELLINGS)
     def test_is_business_is_case_insensitive(self, spelling):
         assert is_business(spelling) is True
