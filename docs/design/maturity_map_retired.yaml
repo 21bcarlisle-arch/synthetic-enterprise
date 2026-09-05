@@ -1,0 +1,87 @@
+# THE MATURITY MAP'S RETIREMENT REGISTER — why an atom that was in the map is not in it now.
+#
+# THE MAP IS TWO FILES AND THIS IS NOT A THIRD. `maturity_map.yaml` (atoms with somewhere to go)
+# and `maturity_map_closed.yaml` (atoms at or above their own target) TOGETHER are the map;
+# `tools/maturity_map_store.load_atoms()` returns their union and nothing here is an atom. This
+# file is a plain MAPPING of `atom_id: reason`, deliberately a different YAML shape from either
+# half, so no reader that line-scans for `- id:` or concatenates the halves can mistake it for
+# part of the map.
+#
+# WHY IT EXISTS. Every control over the map is written `for atom in atoms` — the five facet
+# checks, the level gate, the draw, the coherence gate. A control shaped that way has the
+# REGISTER as its subject set, so an atom in neither the map nor anything that names it is the
+# subject of nothing. Measured 2026-09-05: delete a leaf atom (175 of 314 are named by nothing in
+# `depends_on`/`couples_with`/`blocked_on`) and every check returned zero violations. The map's
+# protection was the ACCIDENT of an atom being referenced, which is not a control.
+#
+# AND IT HAD ALREADY FALLEN. Over the map's 1,023 committed revisions the union of both halves
+# shrank in exactly three commits, losing 22 atoms — every id below. Twenty of those are argued at
+# length in the commit that removed them. Two are not mentioned anywhere at all. Nothing in the
+# map, and no reader of it, could tell the difference.
+#
+# HOW THE GATE USES IT. `tools/level_promotion_gate.py` compares the map's atom-id set at HEAD
+# against the staged one. An id that has gone needs a row HERE naming what took it out; without
+# one the commit is REFUSED. There is deliberately NO exception for "the work no longer exists" —
+# an atom genuinely abolished and a map quietly losing a row are the same observation from the map
+# alone, and only an authored sentence separates them.
+#
+# THIS FILE IS APPEND-ONLY, with exactly one way to remove a row: the atom came BACK. A row may be
+# deleted only in a commit whose staged map contains that id again. That terminates what would
+# otherwise be a regress (a retirement reason for retiring a retirement reason) without granting a
+# free pass: there is no other honest reason to erase the record that an atom existed.
+#
+# THE ROWS BELOW ARE HISTORICAL and inert to the gate — the gate's baseline is HEAD, and none of
+# these are in HEAD's map. They are here because the record of why they went lives only in a git
+# commit message, which no reader of the map consults. Recovered 2026-09-05 by walking every
+# revision of both halves.
+
+# ── 7d01fffba, 2026-08-08 ────────────────────────────────────────────────────────────────────
+# NO REASON WAS EVER RECORDED. The commit is titled "C15: floor derive_supply_start at the
+# account's own first observable" and its message does not mention either atom. Two atoms left
+# the map as an unremarked side-effect of a commit about something else, and this is the case the
+# gate above exists to make impossible. The sentence is not invented here: what is recorded is
+# that nothing was recorded.
+D6a_ageing_gap_metric_reshape: >-
+  Removed by 7d01fffba (2026-08-08) with NO stated reason — the commit was about
+  derive_supply_start and does not mention this atom. Recovered into this register 2026-09-05;
+  why it went is not established, and no plausible reason is supplied in its place.
+D6b_ambiguous_remittance_misdating: >-
+  Removed by 7d01fffba (2026-08-08) with NO stated reason — same commit, same silence. Recovered
+  into this register 2026-09-05; why it went is not established.
+
+# ── 82007ad44, 2026-08-10 ────────────────────────────────────────────────────────────────────
+H38_full_suite_pollution_bisect: >-
+  Removed by 82007ad44 (2026-08-10), which states the reason: two atoms had been minted under the
+  same number H38 and the collision was wedging publish. The landed one keeps the number; this
+  duplicate id was deleted. A de-duplication, not an abandonment of work.
+
+# ── 7403b89c1, 2026-08-24 ────────────────────────────────────────────────────────────────────
+# "Nineteen atoms deleted: the harness held 43% of the queue, and the 23 self-minted items below
+# target had no dependent outside their own set." The commit measured it before acting:
+# H_harness held 135 of 316 atoms and 44 of the 112 below target; 62 were provenance:proposal
+# (agent-authored under the standing licence); 23 of those sat below target; and their dependency
+# edges were CHECKED, not assumed — no non-harness atom depends on, or is blocked on, any of them.
+# A closed subgraph of work the machine had given itself. Each row below points at that argument
+# rather than paraphrasing it differently nineteen times.
+A8_experiment_loop_speed: &pruned_20260824 >-
+  Removed by 7403b89c1 (2026-08-24), the queue-composition pruning pass: a self-minted atom below
+  its target with no dependent outside the harness's own set. The measurement and the dependency
+  check are in that commit's message.
+B11_evolutionary_tournament_harness: *pruned_20260824
+H17_autonomous_build_executor: *pruned_20260824
+H18_harness_self_mutation_audit: *pruned_20260824
+H20_parallel_maintenance_lane: *pruned_20260824
+H21_self_contained_escalation: *pruned_20260824
+H22_scheduled_housekeeping: *pruned_20260824
+H25_self_gov_detection_hardening: *pruned_20260824
+H27_phone_act_channel: *pruned_20260824
+H28_precommit_gate_ambient_cwd_git_discovery: *pruned_20260824
+H29_import_time_env_capture_test_isolation: *pruned_20260824
+HX1_exit_criterion_counter_mechanise: *pruned_20260824
+HX2_stall_set_coverage_verdict: *pruned_20260824
+HX3_counter_published_and_derivable: *pruned_20260824
+H_forward_discovery_draw: *pruned_20260824
+OPS1_governance_refusal_mutation_test: *pruned_20260824
+OPS1_launcher_cutover_completion: *pruned_20260824
+OPS_stall_class_register_adoption: *pruned_20260824
+SP4_owned_quantity_registry_gate: *pruned_20260824

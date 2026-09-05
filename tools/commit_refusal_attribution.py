@@ -277,9 +277,23 @@ def _close(cur, seq):
     last = _parse_ts(members[-1]["at"])
     after = seq[cur[-1][0] + 1:]
     recovery = next((c for c in after if c["outcome"] == LANDED), None)
+    # An episode holds EVERY non-landing cycle, so its recovery must be the very next cycle. If it
+    # is not, a cycle was skipped and the "trailing gap" spans an attempt nobody counted. This is
+    # the check that a duration comparison cannot make -- see `trailing_gap_report`.
+    recovery_adjacent = bool(after) and recovery is after[0]
     causes = sorted({c["cause"] for c in refused if c["cause"]})
     return {
         "from": members[0]["at"],
+        # The three timestamps `span_s` and `outage_s` are built from, carried RAW so the
+        # decomposition can re-derive the trailing gap from them instead of differencing two
+        # figures that would cancel a shared anchor error. See `trailing_gap_report`.
+        "last_at": members[-1]["at"],
+        # The last REFUSED attempt, which is the last attempt only when the episode ends on a
+        # refusal. Under the cost definition a `behind_origin` cycle continues an episode without
+        # refusing, so these two can differ and the difference is not a rounding detail.
+        "last_refused_at": refused[-1]["at"] if refused else None,
+        "recovery_at": recovery["at"] if recovery else None,
+        "recovery_adjacent": recovery_adjacent,
         "cycles": len(members),
         "refused_cycles": len(refused),
         "span_s": (last - start).total_seconds(),
@@ -319,6 +333,9 @@ def episode_report(text):
     return {
         "cycles": len(seq),
         "median_gap_s": statistics.median(gaps) if gaps else 0.0,
+        # The widest gap the log ITSELF contains. `trailing_gap_report` bounds one trailing gap by
+        # it, and a hardcoded bound would go stale the first time the publisher stalls longer.
+        "max_gap_s": max(gaps) if gaps else 0.0,
         "episodes_strict": len(strict),
         "episodes_cost": len(cost),
         "censored": [e for e in cost if e["censored"]],
@@ -328,6 +345,96 @@ def episode_report(text):
         "by_cause": {k: sorted(v) for k, v in by_cause.items()},
         "mixed": sum(1 for e in cost if e["cause"] == MIXED),
         "multi_cycle": sum(1 for e in cost if e["cycles"] > 1),
+    }
+
+
+def trailing_gap_report(ep):
+    """Split each bounded episode's outage into the redness that STOOD and the rhythm's tail.
+
+    Pre-registered before it was computed once, in
+    `docs/staging/records/SEAT_PREREGISTRATION_WHETHER_THE_OUTAGE_IS_THE_REDNESS_STANDING_OR_THE_PUBLISHER_NOT_LOOKING_2026-09-05.md`.
+    Read that first; the predictions and the trap below are stated there and not restated here.
+
+    WHAT EACH SIDE IS, because they are brackets and neither is the quantity:
+
+      span          every minute of it is between two OBSERVED refusals, so it is a LOWER bound on
+                    how long the redness stood.
+      trailing gap  outage minus span: from the episode's last attempt to the landing attempt. The
+                    red may have cleared at any instant inside it, so it is an UPPER bound on time
+                    lost to the retry rhythm and never an estimate of it.
+
+    SINGLE-CYCLE EPISODES ARE NEVER POOLED IN. A single-cycle episode has span 0 by construction,
+    so 100% of its outage is trailing gap -- pooling would return "the rhythm is the whole cost"
+    as an arithmetic identity of the episode definition rather than as an observation about the
+    publisher. The headline set is `multi`; `single` is reported beside it as cost the rhythm owns
+    by definition.
+    """
+    rows = []
+    for e in ep["bounded"]:
+        gap = e["outage_s"] - e["span_s"]
+        # NOT `outage - span` a second time. Re-derived from the episode's own two timestamps, so
+        # a span and an outage anchored at DIFFERENT starts disagree here instead of cancelling --
+        # the index-alignment defect this module has already had once, in `subjects`.
+        direct = (_parse_ts(e["recovery_at"]) - _parse_ts(e["last_at"])).total_seconds()
+        # The pre-registration's literal words are "the landing attempt minus the last REFUSED
+        # attempt". That is the same quantity only where the episode ends on a refusal, which the
+        # cost definition does not guarantee. Both are carried and the divergence is counted.
+        to_refusal = (_parse_ts(e["recovery_at"])
+                      - _parse_ts(e["last_refused_at"])).total_seconds()
+        rows.append({
+            "from": e["from"],
+            "cycles": e["cycles"],
+            "cause": e["cause"],
+            "span_s": e["span_s"],
+            "outage_s": e["outage_s"],
+            "trailing_gap_s": gap,
+            "trailing_gap_to_last_refusal_s": to_refusal,
+            "ends_on_refusal": e["last_at"] == e["last_refused_at"],
+            "anchors_agree": abs(direct - gap) < 1.0,
+            "recovery_adjacent": e["recovery_adjacent"],
+        })
+
+    multi = [r for r in rows if r["cycles"] > 1]
+    single = [r for r in rows if r["cycles"] == 1]
+
+    def side(xs):
+        outage = sum(r["outage_s"] for r in xs)
+        gaps = sorted(r["trailing_gap_s"] for r in xs)
+        return {
+            "episodes": len(xs),
+            "outage_s": outage,
+            "span_s": sum(r["span_s"] for r in xs),
+            "trailing_gap_s": sum(gaps),
+            # None, not 0.0: an empty side has no median, and a zero here would read as "the tail
+            # is nothing" when it means "there was nothing to measure".
+            "median_trailing_gap_s": statistics.median(gaps) if gaps else None,
+            "max_trailing_gap_s": gaps[-1] if gaps else None,
+        }
+
+    return {
+        "rows": rows,
+        "multi": side(multi),
+        "single": side(single),
+        # Controls. Each names a way the INSTRUMENT, not the world, would be wrong; a non-empty
+        # list voids the decomposition rather than qualifying it.
+        "negative": [r for r in rows if r["trailing_gap_s"] < 0],
+        # THE PRE-REGISTRATION'S SECOND CONTROL, AND WHY IT IS NOT THE ONE THAT MATTERS. It asked
+        # that a trailing gap not exceed the widest observed inter-attempt gap, "because it is ONE
+        # gap by construction". Both readings of that fail. Against the 19,454s the document
+        # quoted, it is keyed to yesterday's answer and reddens when the publisher merely stalls
+        # longer -- which it since has, to 40.0h. Against a bound DERIVED from the log it cannot
+        # fail at all: the trailing gap IS one of the gaps the maximum is taken over, so the
+        # comparison is arithmetic. It is kept as a record-consistency canary -- it can still fire
+        # on a corrupted episode record -- and it is not evidence about the publisher.
+        "over_max_gap": [r for r in rows if r["trailing_gap_s"] > ep["max_gap_s"]],
+        # This is what that control was REACHING for and could not express. The episode holds
+        # every non-landing cycle, so its recovery must be the immediately next cycle; a
+        # non-adjacent recovery means a cycle was skipped and the gap spans an uncounted attempt.
+        # Unlike the duration comparison it is not implied by the arithmetic, so it can fail.
+        "recovery_not_adjacent": [r for r in rows if not r["recovery_adjacent"]],
+        "anchor_mismatch": [r for r in rows if not r["anchors_agree"]],
+        "not_ending_on_refusal": [r for r in rows if not r["ends_on_refusal"]],
+        "max_gap_s": ep["max_gap_s"],
     }
 
 
@@ -871,6 +978,60 @@ def main(argv=None):
             _hours(sum(xs)), _pct(sum(xs), total), cause))
     print("\nmixed-cause episodes: {} of {} multi-cycle ({})".format(
         ep["mixed"], ep["multi_cycle"], _pct(ep["mixed"], ep["multi_cycle"])))
+
+    tg = trailing_gap_report(ep)
+    print("\n=== DECOMPOSITION: how much of the outage is REDNESS, how much is RHYTHM? ===")
+    print("span is a LOWER bound on how long the red stood (both ends are observed refusals).")
+    print("trailing gap is an UPPER bound on time lost to the retry rhythm (the red may have")
+    print("cleared at any instant inside it). Neither is the quantity; the answer is which")
+    print("bracket is wide. Pre-registered 2026-09-05 before this was computed once.")
+    bad = (tg["negative"], tg["over_max_gap"], tg["recovery_not_adjacent"],
+           tg["anchor_mismatch"])
+    if any(bad):
+        print("\nCONTROLS FAILED -- the decomposition below is VOID, not merely qualified:")
+        for label, xs in zip(("trailing gap < 0 (anchors differ)",
+                              "trailing gap > widest observed inter-attempt gap "
+                              "({:.0f}s: the episode record is corrupt)".format(tg["max_gap_s"]),
+                              "the recovery is not the next cycle -- an attempt was skipped",
+                              "re-derived trailing gap disagrees with outage - span"), bad):
+            if xs:
+                print("  {:3d} episode(s): {}".format(len(xs), label))
+                for r in xs[:5]:
+                    print("      from {}  span {}  outage {}  gap {:.0f}s".format(
+                        r["from"], _hours(r["span_s"]), _hours(r["outage_s"]),
+                        r["trailing_gap_s"]))
+    else:
+        print("\ncontrols on all {} bounded episodes: trailing gap >= 0; the recovery is the NEXT"
+              .format(len(tg["rows"])))
+        print("cycle, so the gap spans no uncounted attempt; and the gap equals a re-derivation")
+        print("from the episode's own two timestamps, so span and outage share their anchor.")
+        print("(A trailing gap is one of the gaps `max_gap_s` is taken over, so comparing it to")
+        print(" that maximum -- {:.0f}s here -- cannot fail and is a record canary, not evidence.)"
+              .format(tg["max_gap_s"]))
+    if tg["not_ending_on_refusal"]:
+        print("\n{} bounded episode(s) end on a NON-refusal attempt, so their trailing gap runs"
+              .format(len(tg["not_ending_on_refusal"])))
+        print("from that attempt and not from the last refusal. Both are carried per episode; the")
+        print("figures below use the last ATTEMPT, which is what `outage - span` means.")
+    for label, s in (("MULTI-CYCLE  <- the headline", tg["multi"]),
+                     ("SINGLE-CYCLE <- span 0 BY CONSTRUCTION; 100% trailing gap is an identity "
+                      "of\n                the episode definition, not an observation. Never "
+                      "pooled above.", tg["single"])):
+        print("\n{}".format(label))
+        if not s["episodes"]:
+            print("  no episodes -- nothing measured, and this is not a zero.")
+            continue
+        print("  {} episodes, total outage {}".format(s["episodes"], _hours(s["outage_s"])))
+        print("    span (redness stood, LOWER bound):  {:>8}  {:>6}".format(
+            _hours(s["span_s"]), _pct(s["span_s"], s["outage_s"])))
+        print("    trailing gap (rhythm, UPPER bound): {:>8}  {:>6}".format(
+            _hours(s["trailing_gap_s"]), _pct(s["trailing_gap_s"], s["outage_s"])))
+        print("    median trailing gap {} | max {}  (median gap between attempts: {:.0f}s)".format(
+            _hours(s["median_trailing_gap_s"]), _hours(s["max_trailing_gap_s"]),
+            ep["median_gap_s"]))
+    all_outage = tg["multi"]["outage_s"] + tg["single"]["outage_s"]
+    print("\nsingle-cycle share of ALL bounded outage: {}  <- cost the rhythm owns by definition"
+          .format(_pct(tg["single"]["outage_s"], all_outage)))
 
     ordered = [e for e in ordering_report(
         Path(args.log).read_text(encoding="utf-8", errors="replace")) if e["cause"] == MIXED]
