@@ -5026,6 +5026,41 @@ def git_commit_push(git_hash, net_margin, outcome=None):
             if _behind is None:
                 log("Fork closed by fast-forward on attempt {}; this cycle's completed work is "
                     "publishable after all and continues to the commit.".format(_attempt))
+                # THE DIVERGENCE WAS NOT THE ONLY THING THE ADVANCE INVALIDATED (2026-09-04).
+                # INSIDE the retry loop, not after it, and that placement is the whole of it:
+                # the tree this grades is the one the LAST advance produced, and an attempt that
+                # advanced-then-lost-the-race goes round again and produces another. Hoisted below
+                # the loop it would still be correct here by luck, because the loop only exits with
+                # `_behind is None` at this line -- but it would grade a tree chosen by whichever
+                # exit ran, which is the shape that made the original defect.
+                # The re-read above applies the right rule -- re-read the subject after acting --
+                # to one of the two verdicts the fast-forward made stale, and the other one is
+                # the FAIL-CLOSED provenance check ~40 lines up. That check reads
+                # site/data/publish_provenance.json and site/data/dashboard.json FROM DISK, and
+                # a fast-forward rewrites every tracked path this tree has not modified. So a
+                # cycle whose provenance file was unmodified locally and changed on origin gets
+                # origin's stamp swapped in AFTER the check passed, and the commit carries this
+                # run's dashboard beside another run's provenance -- the exact mismatch
+                # `dashboard_meta_violations` exists to refuse, arriving through the one door
+                # that had already been opened.
+                #
+                # Not hypothetical arithmetic: origin is another publisher pushing this same
+                # pair, so "origin changed publish_provenance.json" is the ordinary case, and
+                # "we did not modify it this cycle" is any cycle that regenerated equal bytes.
+                #
+                # Cheap, and fail-closed the same way it is everywhere else on this surface: an
+                # unverified page is an availability cost, a page stamped with a run that never
+                # happened is a public lie.
+                if not _provenance_is_publishable(
+                        files, label="Auto-process publish (re-read after the advance)"):
+                    return _outcome(
+                        PROVENANCE_REFUSED, False,
+                        evidence="the mechanical advance fast-forwarded the shared tree to clear "
+                                 "the fork, and the fail-closed provenance check then refused the "
+                                 "stamp for git={} on the tree the advance produced -- the "
+                                 "earlier pass graded the tree as it was BEFORE the "
+                                 "fast-forward. Nothing was staged and no hook chain "
+                                 "started".format(git_hash))
                 break
             _lost.append(_attempt)
     if _behind is not None:
@@ -5823,6 +5858,42 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     # same lesson, learned in this function. On a behind-origin tree the banner cannot reach
     # origin either, so refusing costs nothing that was going to be published.
     _behind = _divergence_refusal()
+    # AND THE SAME ADVANCE AT THE OTHER COMMIT SITE, by the rule stated three lines up and twice
+    # more in this file: a repair placed only where the incident was observed is what makes a
+    # class recur. The advance landed at `git_commit_push` alone, and this path deepens -- and is
+    # blocked by -- exactly the same fork.
+    #
+    # IT MATTERS MORE HERE, NOT LESS. These two callers are the liveness heartbeat and the
+    # red-cycle banner: the surfaces whose entire job is to tell the reader the system is alive
+    # or behind, published precisely when content is NOT publishing. A behind-origin fork
+    # silences them in the one state they exist for, and that silence is what
+    # SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE... watched a backlog get
+    # read as an outage through.
+    #
+    # SINGLE-SHOT, WHERE THE CONTENT SITE RETRIES. `PUBLISH_ADVANCE_ATTEMPTS` buys back a 672s
+    # cycle that would otherwise be thrown away; there is no such stake here -- a banner costs
+    # seconds and the next heartbeat is minutes away -- so the lost race is simply left to it.
+    if _behind is not None:
+        _advance = _advance_to_origin_or_say_why()
+        log("{} is behind origin ({}). Advance attempt: {}".format(
+            label, _behind, _advance["reason"]))
+        if _advance["advanced"]:
+            # RE-READ BOTH VERDICTS THE ADVANCE INVALIDATED, for the reasons recorded at the
+            # sibling site: origin can move again during the ~1s move, and the fast-forward
+            # rewrites tracked paths the provenance check had already read off disk. This path
+            # publishes `publish_provenance.json` itself on a red cycle, so it is the likeliest
+            # file of all to have just been replaced with origin's copy.
+            _behind = _divergence_refusal()
+            if _behind is None and not _provenance_is_publishable(
+                    paths, label="{} (re-read after the advance)".format(label)):
+                _record_liveness_surface_refusal(
+                    label, publish_cause.PROVENANCE_REFUSED,
+                    "the mechanical advance fast-forwarded the shared tree to clear the fork, and "
+                    "the fail-closed provenance check then refused the stamp on the tree the "
+                    "advance produced -- the earlier pass graded the tree as it was BEFORE the "
+                    "fast-forward; nothing was staged",
+                    git_hash)
+                return False
     if _behind is not None:
         # WHICH KIND OF BEHIND-ORIGIN THIS IS, because the two want different people and until
         # now the record could not tell them apart. A HOT ORIGIN is a state with an owner --
