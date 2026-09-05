@@ -29,9 +29,18 @@ def live():
 
 
 def test_a_row_that_left_the_register_without_a_reason_is_refused():
-    """The whole point. MUTATION: return [] for a key absent from `dispositions` and this fires."""
+    """The whole point. MUTATION: return [] for a key absent from `dispositions` and this fires.
+
+    The refusal now names its REGISTER as well as its key, because the shared mechanism this rung
+    was re-pointed at on 2026-09-05 also speaks for the class register, the canon and the maturity
+    map, and a line in a mixed report that names no register is a line a reader cannot act on.
+    Asserted as both facts rather than as a `startswith` on the key: the old assertion was keyed to
+    today's formatting, and the property is that the line identifies WHICH ROW OF WHICH REGISTER.
+    """
     out = census.removed_dispositions({}, {}, baseline={"gone.json": _ROW})
-    assert len(out) == 1 and out[0].startswith("gone.json")
+    assert len(out) == 1
+    assert out[0].startswith(census.REGISTER_REL_PATH + ":"), out[0]
+    assert "gone.json" in out[0]
     assert "was in the register at HEAD and is not in it now" in out[0]
 
 
@@ -140,8 +149,10 @@ def test_the_removal_check_is_WIRED_INTO_the_gate(monkeypatch, capsys):
     monkeypatch.setattr(census, "derive", lambda *a, **k: cen)
     monkeypatch.setattr(census, "load_dispositions", lambda *a, **k: {"live.json": _ROW})
     monkeypatch.setattr(census, "load_retired", lambda *a, **k: {})
+    # The head reader's contract is a KEY SET, never a row map: the baseline's only job is to say
+    # what WAS in the register, and the rows at HEAD are not evidence about anything else.
     monkeypatch.setattr(census, "_dispositions_at_head",
-                        lambda: {"live.json": _ROW, "swept.json": _ROW})
+                        lambda: frozenset({"live.json", "swept.json"}))
     assert census.main() == 1
     out = capsys.readouterr().out
     assert "ROWS REMOVED FROM THE REGISTER WITHOUT A REASON" in out
