@@ -94,6 +94,11 @@ WORKTREE = Path(os.environ.get("SE_RECONCILE_WORKTREE", "/var/tmp/se-origin-reco
 #: the next cadence rather than sitting forever.
 MERGE_TIMEOUT_SECONDS = 25 * 60
 
+#: How long the advance waits for the shared tree lock before giving the cadence back. A REFUSAL,
+#: not a wait: the reconciler runs every 5 minutes, so a missed window costs one cadence, while a
+#: reconciler blocked on a lock is one that is not there when its window opens.
+ADVANCE_LOCK_TIMEOUT_SECONDS = 30
+
 LEVEL = "LEVEL"
 RECONCILED = "RECONCILED"
 PUSHED = "PUSHED"
@@ -102,6 +107,12 @@ NOT_ADVANCED = "NOT_ADVANCED"
 GATE_RUNNING = "GATE_RUNNING"
 REFUSED_CONFLICT = "REFUSED_CONFLICT"
 REFUSED_GATE = "REFUSED_GATE"
+
+#: The two ways a shared tree refuses to advance. They are reported apart because they are cleared
+#: apart -- one is a lane's uncommitted work, the other is usually a byte-identical twin of a file
+#: origin is adding, and telling a reader "dirty" for both sends them down the wrong one.
+FF_MODIFIED = "modified here, and origin changes it too"
+FF_UNTRACKED = "untracked here, and origin adds its own copy"
 UNREADABLE = "UNREADABLE"
 ERROR = "ERROR"
 
@@ -113,6 +124,358 @@ RUN_LOCK_FILE = PROJECT_DIR / "docs" / "observability" / ".process_run_complete.
 def _git(cwd: Path, *args: str, timeout: int = 300) -> subprocess.CompletedProcess:
     return subprocess.run(["git", *args], cwd=str(cwd), capture_output=True, text=True,
                           timeout=timeout)
+
+
+def _paths(project: Path, *args: str) -> list[str] | None:
+    """A `-z` path list from git, or `None` if git would not answer. Never a partial list."""
+    try:
+        res = _git(project, *args)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if res.returncode != 0:
+        return None
+    return [p for p in (res.stdout or "").split("\0") if p]
+
+
+def paths_blocking_fast_forward(project: Path | None = None) -> list[dict] | None:
+    """Which local paths stop `merge --ff-only origin/main`, and which KIND each one is.
+
+    A REFUSAL THAT NAMES NO CAUSE COSTS A WHOLE ORIENTATION (delivery queue, 2026-09-04): *"a
+    permanently dirty shared tree can never fast-forward, and `origin_reconcile` correctly declines
+    to force it while reporting a verdict that names no cause a reader can act on."* `NOT_ADVANCED`
+    said how far behind the tree was and repeated git's first line; the reader then had to
+    rediscover, by hand, which two paths were holding it -- and did, three separate times.
+
+    THE TWO KINDS NEED DIFFERENT PEOPLE, which is why the kind is reported and not just the path:
+
+      * `FF_MODIFIED` -- a tracked file this tree has edited that origin also changed. USUALLY, not
+        always, a lane's uncommitted work: `tools/isolate_hunks.py --survey` is how that lane lands
+        its hunks without waiting. But this kind is the OTHER kind's twin whenever somebody has run
+        `git add` -- a byte-identical staging note that was staged rather than left untracked is
+        classified here, and four of the five `FF_MODIFIED` paths holding the live tree on
+        2026-09-05 hashed equal to origin. Reading this sentence as a verdict on the INSTANCE cost
+        22 commits of divergence; `identical_tracked_twins` now asks each one.
+      * `FF_UNTRACKED` -- an untracked file here that origin ADDS. Usually byte-identical, and then
+        nobody's work is at stake at all: `git hash-object` against `git rev-parse
+        origin/main:<path>` settles it in one command.
+
+    Reads the `origin/main` ref as it already stands; it does NOT fetch, because every caller here
+    has just been through `commits_behind`, which does. `None` means git would not answer, and it
+    is deliberately distinct from `[]` -- "nothing collides" is a finding, "I could not look" is
+    not, and a verdict that renders them the same is how a fail-open reads as a clean bill.
+    """
+    project = project or PROJECT_DIR
+    incoming = _paths(project, "diff", "--name-only", "-z", "HEAD",
+                      "{}/{}".format(REMOTE, BRANCH))
+    modified = _paths(project, "diff", "--name-only", "-z", "HEAD")
+    untracked = _paths(project, "ls-files", "--others", "--exclude-standard", "-z")
+    if incoming is None or modified is None or untracked is None:
+        return None
+    arriving = set(incoming)
+    blocking = [{"path": p, "kind": FF_MODIFIED} for p in sorted(arriving.intersection(modified))]
+    blocking += [{"path": p, "kind": FF_UNTRACKED} for p in sorted(arriving.intersection(untracked))]
+    return blocking
+
+
+def _blocking_clause(blocking: list[dict] | None) -> str:
+    """The named cause, rendered ahead of git's own words rather than after them."""
+    if blocking is None:
+        return ("The paths refusing the advance could NOT be established, so this names the fork "
+                "and not its cause.")
+    if not blocking:
+        return ("NOTHING local collides with what origin brings, so the refusal is not a "
+                "dirty-tree collision and git's own words are the whole of the cause.")
+    listed = blocking[:12]
+    dropped = len(blocking) - len(listed)
+    return "Refused by {} path(s): {}{}.".format(
+        len(blocking),
+        "; ".join("{} ({})".format(b["path"], b["kind"]) for b in listed),
+        " -- and {} further path(s) not listed here".format(dropped) if dropped else "")
+
+
+def _blob_here(project: Path, path: str) -> str | None:
+    """The hash of the working-tree bytes at `path`, or None if git would not hash them."""
+    try:
+        res = _git(project, "hash-object", "--", path)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return (res.stdout or "").strip() or None if res.returncode == 0 else None
+
+
+def _blob_on_origin(project: Path, path: str) -> str | None:
+    """The hash `origin/main` holds at `path`, or None if it holds nothing there."""
+    try:
+        res = _git(project, "rev-parse", "{}/{}:{}".format(REMOTE, BRANCH, path))
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return (res.stdout or "").strip() or None if res.returncode == 0 else None
+
+
+def _blob_in_head(project: Path, path: str) -> str | None:
+    """The hash `HEAD` holds at `path`, or None if HEAD holds nothing there.
+
+    The discriminator between the two shapes an `FF_MODIFIED` twin arrives in, and they need
+    different commands to clear: a path HEAD knows is restored to HEAD's copy, a path HEAD has
+    never seen is a STAGED ADD and has to leave the index entirely.
+    """
+    try:
+        res = _git(project, "rev-parse", "HEAD:{}".format(path))
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return (res.stdout or "").strip() or None if res.returncode == 0 else None
+
+
+def identical_tracked_twins(project: Path | None = None,
+                            blocking: list[dict] | None = None) -> list[str] | None:
+    """Of the `FF_MODIFIED` paths blocking the advance, those whose bytes ALREADY equal origin's.
+
+    THE UNTRACKED SWEEP IS DEFEATED BY `git add`, AND NOTHING NOTICED FOR 22 COMMITS. Measured on
+    the live shared tree 2026-09-05: fourteen paths held the fast-forward, nine untracked and five
+    tracked. `identical_untracked_twins` matched all nine — and the all-or-nothing property then
+    correctly cleared none of them, because five `FF_MODIFIED` paths stood. **Four of those five
+    hashed EQUAL to origin's blob at the same path.** Two were staging notes another lane had
+    `git add`-ed, one was a test file, and one was this module's own source: origin's copy of it,
+    already on disk, classified as a lane's uncommitted work because the index had seen it.
+
+    So thirteen of the fourteen blockers were files about to be replaced by themselves, the sweep
+    built for exactly that sentence saw nine, and a byte-identical twin's fate depended on whether
+    anybody had happened to stage it. `paths_blocking_fast_forward` says `FF_UNTRACKED` is *"usually
+    byte-identical"* and says of `FF_MODIFIED` that it *"belongs to whichever lane is holding it"* —
+    true of the kind, and not true of the instance, which is the whole defect.
+
+    THE SAFETY ARGUMENT IS THE SIBLING'S, UNCHANGED. If the working-tree bytes at `P` equal origin's
+    blob at `P`, that content is already ON origin: returning `P` to HEAD cannot lose it, and the
+    very fast-forward this unblocks writes those same bytes back to that same path. What the tree
+    holds at `P` before and after is identical. Anything that does NOT hash-match is a lane's real
+    work and stays refused — `background/process_run_complete.py` was the fifth path, carried 58
+    lines origin has never seen, and is exactly the judgement this must not automate.
+
+    THE COMPARISON IS AGAINST THE WORKING TREE, NOT THE INDEX, and they are not the same file. Of
+    the four twins measured, one was unstaged (index at HEAD, worktree at origin) and three were
+    staged. The fast-forward refuses on what it would overwrite on disk, so disk is the subject.
+
+    `None` (git would not answer) is kept distinct from `[]` (nothing matched), for the reason the
+    sibling gives: a caller that cannot tell them apart would discard on an unread state.
+    """
+    project = project or PROJECT_DIR
+    if blocking is None:
+        return None
+    twins = []
+    for entry in blocking:
+        if entry.get("kind") != FF_MODIFIED:
+            continue
+        path = entry["path"]
+        here, theirs = _blob_here(project, path), _blob_on_origin(project, path)
+        if here is None or theirs is None:
+            return None
+        if here == theirs:
+            twins.append(path)
+    return sorted(twins)
+
+
+def restore_tracked_twin(project: Path | None = None, path: str = "") -> str | None:
+    """Return one hash-proven `FF_MODIFIED` twin to what HEAD holds. `None` on success, else why not.
+
+    NOT A DELETION, AND NOT THE SIBLING'S `unlink` EITHER. An untracked twin is cleared by removing
+    it; a tracked one has an index entry, and removing the file leaves that entry behind and the
+    fast-forward still refused. Two shapes, discriminated by `_blob_in_head`:
+
+      * HEAD holds the path — `git checkout HEAD -- <path>` puts index and worktree back to HEAD's
+        copy. The fast-forward then writes origin's copy, which is the bytes that were there.
+      * HEAD has never seen it (a staged ADD) — there is no HEAD copy to restore to, so the entry
+        leaves the index and the file leaves the disk, and the fast-forward adds it as origin's.
+
+    THE ONE CASE THIS IS NOT SAFE IN IS THE ONE IT IS NEVER CALLED IN. `git checkout HEAD -- <path>`
+    over a path a lane is holding dirty would destroy that lane's work, which is why the caller only
+    reaches here for paths `identical_tracked_twins` has hash-proven against origin. The recovery,
+    if it is ever needed, is the sibling's: `git checkout origin/main -- <path>` returns any of them
+    exactly, because that is where the bytes were read from.
+    """
+    project = project or PROJECT_DIR
+    in_head = _blob_in_head(project, path)
+    try:
+        if in_head is not None:
+            res = _git(project, "checkout", "HEAD", "--", path)
+            if res.returncode != 0:
+                return (res.stderr or res.stdout or "").strip()[:200] or "git checkout refused"
+            return None
+        res = _git(project, "rm", "--cached", "--quiet", "--", path)
+        if res.returncode != 0:
+            return (res.stderr or res.stdout or "").strip()[:200] or "git rm --cached refused"
+        (project / path).unlink(missing_ok=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return "{}: {}".format(type(exc).__name__, exc)
+    return None
+
+
+def identical_untracked_twins(project: Path | None = None,
+                              blocking: list[dict] | None = None) -> list[str] | None:
+    """Of the paths blocking the advance, those whose bytes ALREADY equal what origin brings.
+
+    THE SENTENCE THIS ACTS ON WAS ALREADY IN `paths_blocking_fast_forward`, AND ONLY A READER COULD
+    ACT ON IT: *"`FF_UNTRACKED` -- an untracked file here that origin ADDS. Usually byte-identical,
+    and then nobody's work is at stake at all: `git hash-object` against `git rev-parse
+    origin/main:<path>` settles it in one command."* It settled it for a human and for nothing else,
+    so the advance kept refusing on files whose content it was about to write back unchanged.
+
+    Measured 2026-09-04 on the live shared tree: of the two paths holding the fast-forward,
+    `...SEND_ONCE_MEMORY...md` hashed `792088eca` on disk and `792088eca` on origin. Identical. Git
+    refuses that fast-forward anyway -- correctly, because it will not clobber an untracked file --
+    and the refusal was protecting a file from being replaced by itself.
+
+    WHY HASH EQUALITY IS THE WHOLE SAFETY ARGUMENT. If the bytes at `P` equal origin's blob at `P`,
+    the content is already ON origin: removing the local copy cannot lose it, and the very
+    fast-forward this unblocks writes those same bytes back to that same path. The file goes from
+    untracked to tracked and its content never changes. Anything that does NOT hash-match is a
+    lane's real work and stays refused -- that judgement is not what this automates.
+
+    `None` (git would not answer) is kept distinct from `[]` (nothing matched) all the way up: a
+    caller that cannot tell them apart would delete on an unread state.
+    """
+    project = project or PROJECT_DIR
+    if blocking is None:
+        return None
+    twins = []
+    for entry in blocking:
+        if entry.get("kind") != FF_UNTRACKED:
+            continue
+        path = entry["path"]
+        here, theirs = _blob_here(project, path), _blob_on_origin(project, path)
+        if here is None or theirs is None:
+            return None
+        if here == theirs:
+            twins.append(path)
+    return sorted(twins)
+
+
+def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
+                        tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
+                        locker=None) -> dict:
+    """Fast-forward the shared tree onto `origin/main`, clearing byte-identical twins of BOTH kinds.
+
+    Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
+    when git itself reported the fast-forward, never inferred from the absence of an error.
+
+    THE LOOP THIS EXISTS TO BREAK, measured over 24h to 2026-09-04 from the deadman's own log: the
+    reconciler reached a window on 129 of 165 cadences (`GATE_RUNNING` only 36), gated its merge
+    clean, pushed it, and then could not advance the shared tree -- `NOT_ADVANCED`, on untracked
+    staging notes that origin was adding its own copy of. So origin moved, this tree did not, the
+    publish path read BEHIND and dropped a completed cycle, and the next cadence started one deeper.
+    The stand-down for the gate was never the binding constraint; this was.
+
+    ALL-OR-NOTHING, AND THAT IS A SAFETY PROPERTY, NOT TIDINESS. Nothing is touched unless clearing
+    the twins would leave the fast-forward with nothing else to refuse on. A tree holding one
+    NON-TWIN path cannot fast-forward however many identical files are cleared, so clearing them
+    there would be a deletion bought for no advance -- the one shape in which this could actually
+    cost someone something.
+
+    AND THE SET IT IS ALL-OR-NOTHING OVER GREW ON 2026-09-05. It used to be the untracked twins
+    alone, so a tracked blocker was fatal to the whole attempt whatever its content -- and four of
+    the five tracked blockers on the live tree that day were byte-identical to origin, holding nine
+    untracked twins hostage behind them. `identical_tracked_twins` carries that measurement. Both
+    kinds are now proven the same way (hash against origin's blob) and cleared differently
+    (`unlink` for untracked, `restore_tracked_twin` for tracked), and the length comparison is over
+    the union, so one genuinely dirty path still refuses everything -- which is what
+    `background/process_run_complete.py`, the fifth path, correctly did.
+
+    THE REMOVAL AND THE ADVANCE ARE UNDER ONE TREE LOCK. Between them the tree is missing files it
+    is about to be given back; another writer landing in that window would see a tree that never
+    legitimately existed. Losing the lock is a refusal, not a wait -- the next cadence is 5 minutes
+    away and a reconciler that blocks on a lock is a reconciler that misses its window.
+    """
+    project = project or PROJECT_DIR
+    _ff = ff_fn or (lambda: _git(project, "merge", "--ff-only",
+                                 "{}/{}".format(REMOTE, BRANCH)))
+
+    first = _ff()
+    if first.returncode == 0:
+        return {"advanced": True, "cleared": [],
+                "reason": "fast-forwarded onto {}/{} with nothing in the way".format(
+                    REMOTE, BRANCH)}
+
+    blocking = (blockers_fn or paths_blocking_fast_forward)(project)
+    if blocking is None:
+        return {"advanced": False, "cleared": [],
+                "reason": "git refused the fast-forward and the paths holding it could NOT be "
+                          "established, so nothing was removed on a state nobody read"}
+    if not blocking:
+        return {"advanced": False, "cleared": [],
+                "reason": "git refused the fast-forward and NOTHING local collides with what "
+                          "origin brings, so the cause is not a dirty-tree collision and removing "
+                          "files would not address it: {}".format(
+                              (first.stderr or first.stdout or "").strip()[:200])}
+
+    twins = (twins_fn or identical_untracked_twins)(project, blocking)
+    tracked = (tracked_twins_fn or identical_tracked_twins)(project, blocking)
+    if twins is None or tracked is None:
+        return {"advanced": False, "cleared": [],
+                "reason": "whether the blocking paths match origin byte for byte could not be "
+                          "established, so nothing was removed -- a file is never deleted on an "
+                          "unread comparison"}
+    resolvable = sorted(set(twins) | set(tracked))
+    if len(resolvable) != len(blocking):
+        held = [b["path"] for b in blocking if b["path"] not in set(resolvable)]
+        return {"advanced": False, "cleared": [],
+                "reason": "{} of {} blocking path(s) are NOT byte-identical to what origin brings, "
+                          "so clearing the {} that are would delete files and still not advance. "
+                          "Nothing was removed. Held by: {}".format(
+                              len(held), len(blocking), len(resolvable), "; ".join(held[:12]))}
+
+    try:
+        from background.tree_lock import TreeLockTimeout, tree_lock
+    except ImportError as exc:
+        return {"advanced": False, "cleared": [],
+                "reason": "the tree lock could not be imported ({}), and the shared tree is never "
+                          "written without it".format(exc)}
+    _remove = remover or (lambda p: (project / p).unlink())
+    _restore = restorer or (lambda p: restore_tracked_twin(project, p))
+    _lock = locker or (lambda: tree_lock(timeout=ADVANCE_LOCK_TIMEOUT_SECONDS))
+    tracked_set = set(tracked)
+    try:
+        with _lock():
+            cleared = []
+            for path in resolvable:
+                # The two kinds are cleared by different acts and the difference is not cosmetic:
+                # `unlink` on a path with an index entry leaves that entry behind, and the
+                # fast-forward stays refused on a file that is no longer even on disk.
+                try:
+                    if path in tracked_set:
+                        failure = _restore(path)
+                    else:
+                        _remove(path)
+                        failure = None
+                except OSError as exc:
+                    failure = str(exc)
+                if failure:
+                    return {"advanced": False, "cleared": cleared,
+                            "reason": "clearing the byte-identical twin {} failed ({}), so the "
+                                      "advance was not attempted; {} earlier twin(s) were already "
+                                      "cleared and origin holds every one of them".format(
+                                          path, failure, len(cleared))}
+                cleared.append(path)
+            second = _ff()
+    except TreeLockTimeout as exc:
+        return {"advanced": False, "cleared": [],
+                "reason": "another writer held the tree lock ({}), so nothing was removed and "
+                          "nothing was moved; the next cadence tries again".format(exc)}
+
+    if second.returncode == 0:
+        return {"advanced": True, "cleared": cleared,
+                "reason": "cleared {} path(s) whose bytes origin already held at the same path "
+                          "({} tracked, {} untracked), then fast-forwarded -- every one is back on "
+                          "disk, tracked, with identical content: {}".format(
+                              len(cleared), len(tracked_set), len(cleared) - len(tracked_set),
+                              "; ".join(cleared[:12]))}
+    # THE TWINS ARE NOT RESTORED HERE, AND THAT IS DELIBERATE. Their content is on origin by the
+    # hash equality that selected them, so `git checkout origin/main -- <path>` returns any of them
+    # exactly; re-writing them from a second guess at what they held would be this module inventing
+    # bytes. The reason names them so the next reader has the command's arguments already.
+    return {"advanced": False, "cleared": cleared,
+            "reason": "removed {} byte-identical twin(s) and git STILL refused the fast-forward, "
+                      "which means the cause was not the collision this cleared. Recover any of "
+                      "them with `git checkout {}/{} -- <path>`: {}. git: {}".format(
+                          len(cleared), REMOTE, BRANCH, "; ".join(cleared[:12]),
+                          (second.stderr or second.stdout or "").strip()[:200])}
 
 
 def commits_ahead(project: Path | None = None) -> int | None:
@@ -285,7 +648,8 @@ def gate_is_running(project: Path | None = None) -> bool:
 
 def reconcile(project: Path | None = None, *, worktree: Path | None = None,
               state_fn=None, behind_fn=None, ahead_fn=None, runner=None, pusher=None,
-              make_worktree=None, drop_worktree=None, gate_fn=None) -> dict:
+              make_worktree=None, drop_worktree=None, gate_fn=None, blockers_fn=None,
+              advance_fn=None) -> dict:
     """Close the fork with origin, or say exactly why it stayed open. Never raises.
 
     Returns {"status", "detail", "behind", "pushed"}. Fully injectable, because every one of its
@@ -345,19 +709,22 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         # by one more"* -- refusing the provenance banner on a fork this module had made.
         #
         # The only honest move when we have nothing to contribute is to ADVANCE, not to commit.
-        ff = _git(project, "merge", "--ff-only", "{}/{}".format(REMOTE, BRANCH))
-        if ff.returncode == 0:
+        adv = (advance_fn or advance_shared_tree)(project)
+        if adv["advanced"]:
             return {"status": FAST_FORWARDED, "behind": behind, "pushed": False,
+                    "cleared_paths": adv["cleared"],
                     "detail": "fast-forwarded {} commit(s) from origin; nothing of ours needed "
-                              "landing, so no commit was made and origin was not touched".format(
-                                  behind)}
+                              "landing, so no commit was made and origin was not touched. "
+                              "{}".format(behind, adv["reason"])}
+        blocking = (blockers_fn or paths_blocking_fast_forward)(project)
         return {"status": NOT_ADVANCED, "behind": behind, "pushed": False,
+                "blocking_paths": blocking, "cleared_paths": adv["cleared"],
                 "detail": "origin is {} commit(s) ahead, this machine has NOTHING to land, and the "
-                          "shared tree will not fast-forward: {}. Nothing was committed and "
+                          "shared tree will not fast-forward. {} Nothing was committed and "
                           "nothing was pushed -- a merge with no work of ours in it would only "
                           "widen the fork it claims to close. The tree advances when the lane "
-                          "holding those files lands or reverts them.".format(
-                              behind, (ff.stderr or ff.stdout or "").strip()[:200])}
+                          "holding those paths lands or reverts them. advance: {}".format(
+                              behind, _blocking_clause(blocking), adv["reason"])}
 
     ok, why = (make_worktree or _fresh_worktree)(project, worktree)
     if not ok:
@@ -378,7 +745,12 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
                     "detail": "merge gated clean but the push was rejected: {}".format(
                         (pushed.stderr or pushed.stdout or "").strip()[:300])}
 
-        ff = _git(project, "merge", "--ff-only", "{}/{}".format(REMOTE, BRANCH))
+        # THE SAME ADVANCE THE `ahead == 0` LEG USES, not a second hand-rolled `--ff-only` beside
+        # it. This is the leg the 24h measurement caught failing most often: the merge gates clean
+        # and pushes, and then the shared tree will not take what was just pushed because an
+        # untracked staging note is sitting on the path origin adds. Copying the old one-liner here
+        # would have left this leg refusing on twins that the other leg had learned to clear.
+        adv = (advance_fn or advance_shared_tree)(project)
 
         # THE STATUS MUST DESCRIBE THE SUBJECT, NOT THE STEPS. The first version returned
         # RECONCILED whenever the merge and the push succeeded, and put "shared tree NOT advanced"
@@ -387,13 +759,16 @@ def reconcile(project: Path | None = None, *, worktree: Path | None = None,
         # subject after acting cannot tell "I fixed it" from "I did the steps".
         still_behind, _ = (state_fn or fork_state)(project)
         if still_behind:
+            blocking = (blockers_fn or paths_blocking_fast_forward)(project)
             return {"status": NOT_ADVANCED, "behind": still_behind, "pushed": True,
+                    "blocking_paths": blocking, "cleared_paths": adv["cleared"],
                     "detail": "the merge gated clean and was pushed, but the shared tree did NOT "
-                              "advance and is still {} commit(s) behind: {}. This is NOT a closed "
+                              "advance and is still {} commit(s) behind. {} This is NOT a closed "
                               "fork -- origin moved and this tree did not, which is precisely the "
-                              "state that loops if it is retried on a cadence.".format(
-                                  still_behind, (ff.stderr or ff.stdout or "").strip()[:200])}
+                              "state that loops if it is retried on a cadence. advance: {}".format(
+                                  still_behind, _blocking_clause(blocking), adv["reason"])}
         return {"status": RECONCILED, "behind": behind, "pushed": True,
+                "cleared_paths": adv["cleared"],
                 "detail": "merged {} commit(s) from origin in an isolated worktree, gated, pushed, "
                           "and the shared tree is level with origin -- re-read after the fact, not "
                           "assumed from the steps succeeding".format(behind)}
