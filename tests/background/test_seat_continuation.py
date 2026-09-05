@@ -431,3 +431,106 @@ def test_a_handoff_with_no_supersedes_stores_NO_such_key(store):
     item = _hand(store, "plain")
     assert "supersedes" not in item
     assert "supersedes" not in json.loads(store.read_text())[0]
+
+
+# ── FINISHING THE WORK DID NOT TAKE IT OUT OF THE OFFER (2026-09-05) ─────────────────────────
+# Two stores hold one id: the claims store is what is IN HAND, this one is what is OFFERED, and
+# `--release` discharged only the first. So a continuation whose work was finished and landed kept
+# being handed out for the rest of its six-hour window. The claim was not the brake either --
+# `next_item` hides an id only while a claim is alive, and a claim goes stale at 100 minutes
+# against a 360-minute offer, so the sweep returned finished work straight to the pool.
+#
+# Measured on the occasion that produced this fix: the reconcile-watch continuation was written at
+# 07:57:15Z, satisfied in full by 83beb429d + 0f64b3a7e (controls included, on origin/main), and
+# handed to a fresh tick at 10:41Z, which spent its whole invocation re-deriving that.
+
+
+def _released(work_id, store, claims):
+    """Run the operator surface exactly as a tick does, returning (exit code, printed lines)."""
+    import contextlib
+    import io
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        code = delivery_lane.main(["--release", work_id])
+    return code, buf.getvalue()
+
+
+@pytest.mark.parametrize("in_offer,in_hand,expect_code,expect_retired", [
+    (True, True, 0, True),      # the ordinary finish: both stores discharged
+    (True, False, 0, True),     # THE DEFECT'S OWN CASE -- claim already swept, offer still standing
+    (False, True, 0, False),    # a focus item that was never a continuation: unchanged behaviour
+    (False, False, 1, False),   # neither store knows it -- the one reading that IS a refusal
+])
+def test_release_discharges_the_offer_and_the_claim_over_the_whole_partition(
+    store, monkeypatch, tmp_path, in_offer, in_hand, expect_code, expect_retired
+):
+    """ONE CONTROL OVER THE PARTITION, and BOTH ANSWERS OCCUR: a discharge that retires NOTHING
+    fails the two `in_offer` rows, and one that claims to retire EVERYTHING fails all four. A
+    discharge that fires on everything passes every test of a discharge, which is this project's
+    most-repeated control defect.
+
+    The exit code is in the partition on purpose: row 2 is the shape a finished continuation
+    actually arrives in, and reporting it as a refusal would train the next tick to ignore the one
+    message that does mean "the lane cannot see your work".
+
+    MUTATIONS RUN, with what each actually killed rather than what was expected of it:
+      * `retired = False` (the call deleted) -> rows 1 and 2 red, rows 3 and 4 GREEN, which is the
+        asymmetry that makes this a partition rather than four copies of one assertion;
+      * `retired = True` (fires on everything) -> ALL FOUR red. Rows 3 and 4 go on the message and
+        the exit code as designed; rows 1 and 2 go on the `next_item` assertion below, because
+        claiming the retirement without performing it leaves the offer standing. The first draft of
+        this docstring predicted two, and the extra two are the reason the property is asserted
+        against the DRAW and not against the printed line.
+    """
+    claims = tmp_path / "claims.json"
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
+    if in_offer:
+        _hand(store, "the-finished-piece")
+    if in_hand:
+        delivery_lane.claims_mod.claim("the-finished-piece", note="n", paths=[], path=claims)
+
+    code, out = _released("the-finished-piece", store, claims)
+
+    assert code == expect_code, f"exit {code} on offer={in_offer} hand={in_hand}: {out!r}"
+    assert ("retired the continuation" in out) is expect_retired, out
+    # THE LOAD-BEARING PROPERTY, asserted against the draw rather than the store: what the defect
+    # cost was a tick, and a tick sees `next_item`, not a JSON file.
+    monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus", lambda *a, **k: [])
+    offered = delivery_lane.next_item(now=1_000_100.0, path=claims)
+    assert offered is None or offered.get("id") != "the-finished-piece", (
+        "a finished item is still being offered to the next tick"
+    )
+
+
+def test_an_UNFINISHED_continuation_is_still_offered_after_a_sweep(store, monkeypatch, tmp_path):
+    """THE OPPOSITE LEG, and the reason the wire is on `--release` and not on `--sweep`.
+
+    Abandonment must NOT retire the offer: a tick that ran out of time returns its claim to the
+    pool and the work has to stay drawable. If this ever goes green by the offer disappearing, the
+    fix above has become a way to lose work rather than a way to stop re-offering finished work.
+
+    MUTATION: wire `retire_continuation` into `--sweep` as well and this fires.
+    """
+    claims = tmp_path / "claims.json"
+    monkeypatch.setattr(seat_continuation, "STORE", store)
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
+    monkeypatch.setattr(delivery_lane.direction_mod, "unreachable_focus", lambda *a, **k: [])
+    # Handed at the REAL clock, because the sweep below reads the real one and `live()` would
+    # otherwise drop this entry as six hours expired and "not offered" would again mean nothing.
+    _hand(store, "the-abandoned-piece", now=time.time())
+    # STALE BY CONSTRUCTION, or `--sweep` frees nothing and this test passes for the wrong reason:
+    # a live claim hides the id from `next_item` via `taken`, so "not offered" would say nothing
+    # about whether the offer was retired. Caught by writing the first draft without it.
+    stale = time.time() - (delivery_lane.CLAIM_STALE_SECONDS + 600)
+    delivery_lane.claims_mod.claim("the-abandoned-piece", note="n", paths=[], path=claims,
+                                   now=stale)
+
+    assert delivery_lane.main(["--sweep"]) == 0
+    assert not delivery_lane.claims_mod.held(path=claims), "the sweep did not free the claim"
+
+    offered = delivery_lane.next_item(path=claims)
+    assert offered is not None and offered["id"] == "the-abandoned-piece", (
+        "an abandoned continuation stopped being offered -- a sweep is not a finish"
+    )

@@ -487,6 +487,44 @@ def release_refusal_reason(focus_id: str, *, path: Path | None = None) -> str:
         return f"the reason could not be derived ({exc.__class__.__name__}: {exc})"
 
 
+def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
+    """Take a finished id OUT OF THE OFFER. Returns whether a live continuation was retired.
+
+    TWO STORES HOLD ONE ID AND ONLY ONE OF THEM WAS BEING DISCHARGED. `CLAIMS_FILE` holds what is
+    IN HAND; `seat_continuation.STORE` holds what is OFFERED, and `next_item` reads the second
+    ahead of `focus` (see its continuation loop). `--release` freed the claim and never touched the
+    offer, so a continuation whose work was finished stayed offerable for the rest of its six-hour
+    window. The claim is not the brake either: the continuation loop skips ids in `taken`, so the
+    item is hidden only while a claim is alive, and `CLAIM_STALE_SECONDS` is 100 minutes against a
+    360-minute continuation window -- the sweep hands the finished item straight back to the pool.
+
+    MEASURED ON THIS FUNCTION'S OWN OCCASION (2026-09-05).
+    `reconcile-watch-recovery-page-fail-direction-2026-09-05` was written at 07:57:15Z, drawn and
+    claimed, swept at 100 minutes, satisfied in full by `83beb429d` (11:18:17+01:00) and
+    `0f64b3a7e` -- every clause of its `done_means`, controls included, on origin/main -- and was
+    handed to a fresh tick at 10:41Z as unprocessed work. That tick spent its whole invocation
+    re-deriving that the repair was already there. It is the same class the seat recorded this
+    morning in `DIRECTION.yaml` focus item 3 ("a refuted instruction handed to every tick is worse
+    than an empty queue"). READING THE ITEM CANNOT CATCH IT, which is why the cure is a discharge:
+    this item's prose cites no commit id and names no artefact whose absence would give it away --
+    its premise was spent by work landing under the id ITSELF, so the only party that can know is
+    the tick that finished it, at the moment it says so.
+
+    IT IS WIRED TO `--release` AND DELIBERATELY NOT TO `--landed`. `--release` is the one place a
+    tick states a JUDGEMENT that the work is finished; `--landed` is called after each increment
+    and an increment is not the end. Abandonment does not come through here at all -- it goes to
+    `--sweep`, which returns the claim to the pool and leaves the offer standing, which is right.
+
+    NEVER RAISES, and an unreachable store reads as NOTHING RETIRED. That is the fail-safe
+    direction for this one: the cost is the re-offer we already have, where a swallowed exception
+    that reported success would retire the offer in the caller's message and not on disk.
+    """
+    try:
+        return seat_continuation.drop(focus_id, path)
+    except Exception:  # noqa: BLE001 - a handoff store must never cost a tick its release
+        return False
+
+
 def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
                    claimed_at: float | None = None) -> list[str]:
     """Bind the paths a LANDED COMMIT touched to a Lane 0 claim. Returns the claim's full scope.
@@ -752,13 +790,25 @@ def main(argv=None) -> int:
                     help="return abandoned claims to the pool")
     args = ap.parse_args(argv)
     if args.release:
+        # BOTH STORES, AND THE OFFER FIRST. `retire_continuation` explains why one discharge was
+        # never enough; it runs BEFORE the claim check because the commonest finished-continuation
+        # shape is exactly the one the claim check refuses -- claimed at draw, swept at 100
+        # minutes, finished afterwards -- and an early `return 1` there left the offer standing.
+        retired = retire_continuation(args.release)
+        if retired:
+            print(f"retired the continuation {args.release}: it will not be offered again")
         # NON-ZERO ON A REFUSAL, matching --landed directly below: the caller believes it finished
         # and the lane disagrees, which it needs to hear NOW. Printing success either way is what
         # let a turn be told "bound NOTHING: it is NOT CLAIMED" and "released" about one id.
+        #
+        # A RETIREMENT IS NOT A REFUSAL, though, and that is why `retired` gates the exit code: an
+        # id handed over as a continuation and finished after its claim was swept holds no claim by
+        # construction, and reporting that as a failure would train the next tick to ignore the one
+        # message that does mean "the lane cannot see your work".
         if not claims_mod.release(args.release, path=CLAIMS_FILE):
-            print(f"released NOTHING for {args.release}: "
+            print(f"released NO CLAIM for {args.release}: "
                   f"{release_refusal_reason(args.release)}")
-            return 1
+            return 1 if not retired else 0
         print(f"released {args.release}")
         return 0
     if args.landed:
