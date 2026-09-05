@@ -789,11 +789,16 @@ HOW TO LAND, and there is no other way:
   2. `python3 -m tools.promote_worktree_landing . --work-id <your claim id>` — gets the landing onto
      origin/main, or refuses with a named cause. If it refuses because origin moved, re-gate on the
      new base and land again. Never force anything.
-  3. `python3 -m background.delivery_lane --landed <your claim id>` — binds the paths that commit
-     touched to your claim. THIS IS WHAT THE TURN IS JUDGED ON. When the turn ends, the executor
-     asks whether those bound paths moved on the SHARED tree; a turn that landed nothing, or that
-     committed here and never ran step 2, is logged `LANDED NOTHING` and the item is re-offered
-     rather than consumed. Your exit code is not consulted.
+     THIS IS WHAT THE TURN IS JUDGED ON, and passing --work-id is what makes it so: the push also
+     BINDS the paths that commit touched to your claim, and prints what it bound or the named
+     reason it could not. When the turn ends, the executor asks whether those bound paths moved on
+     the SHARED tree; a turn that landed nothing, or that committed here and never ran step 2, is
+     logged `LANDED NOTHING` and the item is re-offered rather than consumed. Your exit code is
+     not consulted. Read that binding line — the promotion still succeeds when the binding refuses,
+     and it cannot be repaired after the turn ends.
+  3. `python3 -m background.delivery_lane --landed <your claim id>` — the SAME binding as a
+     standalone command. Step 2 has already done it, so you need this only if you landed WITHOUT
+     promoting. Running it anyway is harmless: it adds the same paths git already gave.
 
 IF IT IS BIGGER THAN ONE TURN, LAND THE PART YOU FINISHED. A landed increment proves the work is
 moving; an unlanded whole proves nothing and is lost when this turn ends.

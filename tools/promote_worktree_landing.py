@@ -28,8 +28,29 @@ WHAT IT NEVER TOUCHES: the shared working tree. It pushes from the worktree to t
 stops. Whoever owns the shared tree fast-forwards on their own schedule, or does not; either way
 this cannot write there, which is the property that makes it safe to run unattended.
 
+AND IT BINDS THE LANDING TO THE CLAIM, because the push IS the instant the binding becomes true.
+The binding used to be a third command the writer had to remember (`delivery_lane --landed`), and
+on 2026-09-05 it was not remembered: `52b51bb22` and `f994aa6fb` repaired the claim store, landed,
+promoted — and the claim read `paths: []`, so the lane had no evidence the work had moved and
+re-offered the finished item 30 minutes later to a fresh seat with no memory of it, which spent a
+whole turn rediscovering it and racing a second lane onto the same hand-off.
+
+IT HAS TO HAPPEN HERE BECAUSE IT CANNOT HAPPEN AFTERWARDS. `record_landing` refuses a commit
+older than the id's first draw, and a hand-off id is absent from `DRAW_LEDGER_FILE` because it
+never went through `draw()`, so `_binding_instant` falls back to `claimed_at` and every commit
+that did the work correctly predates it. Miss the binding in the landing turn and it is
+unrecoverable — which is exactly the property that makes "remember to run a third command" the
+wrong mechanism, since a step that must be remembered on every turn will be missed again.
+
+IT IS NOT A FIFTH REFUSAL, and that is deliberate. Binding is DOING the work, not gating it: a
+promotion that pushed successfully has moved the work whether or not the lane's bookkeeping
+followed, and refusing there would put a new gate on the seat's own path for a failure that harms
+nobody but the bookkeeping. So the binding reports — what it bound, or the named reason it
+refused — and the exit code is unchanged either way. `--landed` stays as the route for a drawn
+tick that lands without promoting.
+
 Usage:
-    python3 -m tools.promote_worktree_landing <worktree-path> [--dry-run]
+    python3 -m tools.promote_worktree_landing <worktree-path> [--work-id ID] [--dry-run]
 """
 from __future__ import annotations
 
@@ -205,6 +226,50 @@ def _refuse_if_duplicated(worktree: Path, commit: str, *, work_id: str | None) -
     return paths
 
 
+def _bind_to_claim(commit: str, work_id: str | None) -> tuple[list[str], str]:
+    """Bind the PUSHED commit to `work_id`'s Lane 0 claim. Returns (bound paths, what happened).
+
+    NEVER RAISES AND NEVER REFUSES. See the module docstring for why this is a report and not a
+    gate; the consequence for this function is that every way it can fail has to come back as a
+    sentence rather than an exception, or a bookkeeping miss would cost a landing that succeeded.
+
+    THE REASON IS ALWAYS NAMED, because the whole defect this closes was a silent `paths: []`
+    that nobody could attribute. `delivery_lane.refusal_reason` is the one place that separates
+    `record_landing`'s four causes, and calling it is what stops a second implementation of that
+    vocabulary drifting from the first — two of its answers mean STOP AND LOOK (an unclaimed id,
+    an unreadable commit) and one is ordinary, and a caller that could not tell them apart is the
+    reason that helper exists at all.
+
+    Imported inside the call, matching `_refuse_if_duplicated` one function up: `background` is
+    not a dependency this module carries at import time, so `--dry-run` on a broken background
+    package still runs every refusal.
+    """
+    if not work_id:
+        return [], (
+            "NOTHING WAS BOUND: no --work-id was given, so there is no claim to bind to. The "
+            "landing is on origin/main either way, but the delivery lane cannot see it and "
+            "cannot be told afterwards -- pass --work-id next time"
+        )
+    try:
+        from background.delivery_lane import record_landing, refusal_reason
+
+        bound = record_landing(work_id, commit=commit)
+        if bound:
+            return bound, "bound {} path(s) to {}: {}".format(
+                len(bound), work_id, ", ".join(bound[:8])
+            )
+        return [], "bound NOTHING to {}: {}".format(
+            work_id, refusal_reason(work_id, commit=commit)
+        )
+    except Exception as exc:  # noqa: BLE001 - a bookkeeping failure must not cost a landing
+        # NAMES the class, for the reason `refusal_reason` records against its own except: an
+        # unnamed failure here is the same non-answer this binding exists to remove.
+        return [], (
+            f"bound NOTHING to {work_id}: the binding could not be attempted "
+            f"({exc.__class__.__name__}: {exc})"
+        )
+
+
 def promote(worktree: Path, *, work_id: str | None = None, dry_run: bool = False) -> dict:
     """Run every refusal, then push. Returns what happened.
 
@@ -233,7 +298,9 @@ def promote(worktree: Path, *, work_id: str | None = None, dry_run: bool = False
 
     if dry_run:
         return {"commit": commit, "would_push": True, "paths": paths,
-                "from": remote_head, "pushed": False}
+                "from": remote_head, "pushed": False, "bound": [],
+                "binding": "a dry run binds nothing: the binding follows the push that "
+                           "makes it true"}
 
     _git_out(worktree, "push", REMOTE, f"HEAD:{BRANCH}")
     now = _git_out(worktree, "rev-parse", f"{REMOTE}/{BRANCH}")
@@ -242,7 +309,12 @@ def promote(worktree: Path, *, work_id: str | None = None, dry_run: bool = False
             f"push reported success but {REMOTE}/{BRANCH} is {now[:9]}, not {commit[:9]}. "
             "Verified rather than assumed — 'in the tree' and 'on origin' are different claims."
         )
-    return {"commit": commit, "paths": paths, "from": remote_head, "pushed": True}
+    # AFTER the push is VERIFIED, never before it. The binding's claim is "this commit is on
+    # origin/main", and making it against a push that only reported success would be the same
+    # unchecked assumption the check above exists to refuse.
+    bound, binding = _bind_to_claim(commit, work_id)
+    return {"commit": commit, "paths": paths, "from": remote_head, "pushed": True,
+            "bound": bound, "binding": binding}
 
 
 def main(argv=None) -> int:  # pragma: no cover - operator surface
@@ -260,6 +332,10 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
     verb = "would promote" if args.dry_run else "promoted"
     print(f"{verb} {result['commit'][:9]} -> {REMOTE}/{BRANCH} "
           f"({len(result['paths'])} path(s), from {result['from'][:9]})")
+    # ALWAYS printed, bound or not. A binding that only spoke when it succeeded would make its
+    # own silence the shape of the 2026-09-05 defect: a promotion that looked complete and a
+    # claim with `paths: []`. The exit code stays 0 -- the landing is on origin either way.
+    print(result["binding"])
     return 0
 
 
