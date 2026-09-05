@@ -16,7 +16,7 @@ proving it, so every mutation runs against each suite SEPARATELY and the answer
 is a row, never a pass/fail. A converged module inherits whichever caller suite
 happened to be strongest, and the row is the only thing that says which.
 
-THE FOUR THINGS THAT ARE NOT DECORATION
+THE FIVE THINGS THAT ARE NOT DECORATION
 ---------------------------------------
 * **The reachability floor runs FIRST.** An import-time raise, before any
   mutation. A suite that stays green under it never reaches the subject, and
@@ -30,6 +30,12 @@ THE FOUR THINGS THAT ARE NOT DECORATION
 * **A BASELINE pass runs first and its reds are deselected** from every mutation
   run. A test already red at HEAD reads as the mutation dying, in every row at
   once.
+* **The NULL round runs second.** A source edit that changes the bytes and the
+  AST but cannot change behaviour. A suite that reddens under it is grading the
+  subject's TEXT and its later kills are not execution evidence. The poison
+  round asks whether a suite CAN redden for this subject; this asks whether it
+  only reddens for the right reason. A subject with no null round is stamped
+  UNKNOWN and says so on the summary line -- never a clean bill.
 * **Restore is from a pristine copy held OUTSIDE the tree**, and results are
   written outside it too: `pkill -f` on a battery matches the calling shell, so
   an in-tree restore can be killed along with the thing it restores from, and an
@@ -88,6 +94,21 @@ class BatterySpec:
     #: if it reddens everything including these, the floor is measuring the harness and not
     #: the subject, and the whole round is void.
     control_suites: tuple[str, ...] = field(default_factory=tuple)
+    #: THE NULL ROUND, and the mirror image of the poison round. A source edit that changes
+    #: the BYTES and the AST but cannot change behaviour. Any suite that reddens under it is
+    #: grading the subject's TEXT, not running it -- and its later kills are not evidence
+    #: that a contract is proved.
+    #:
+    #: This is not hypothetical. `tools/generate_grid_intensity_feed.py` has six callers that
+    #: do `(PROJECT_DIR / "tools" / "generate_grid_intensity_feed.py").read_text()` and walk
+    #: the result as an AST. For a subject like that, `died` and "the suite executed the
+    #: mutated line" are different claims, and every battery in this family has silently
+    #: assumed they were the same.
+    #:
+    #: A subject with no null round is stamped `grades_text: null` -- UNKNOWN, never False.
+    #: An unavailable check reports itself unavailable; it does not report a pass.
+    null_old: str | None = None
+    null_new: str | None = None
 
     @property
     def selectable(self) -> tuple[str, ...]:
@@ -198,7 +219,54 @@ def _poison(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_path:
     return poison
 
 
-def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reaches: dict) -> None:
+def _null_round(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_path: Path,
+                known_red: dict) -> dict:
+    """Which suites redden for a source change that CANNOT change behaviour?
+
+    The poison round proves a suite can go red for this subject at all. It does not prove the
+    suite reddens for the RIGHT REASON, and for a subject whose callers read its source text
+    those are different questions. A suite that goes red here is grading bytes.
+
+    Returns {suite: grades_text}. Absent key means the round did not run -- UNKNOWN, and every
+    consumer below must treat it as unknown rather than as False.
+    """
+    if spec.null_old is None or spec.null_new is None:
+        return {}
+    subject = spec.subject_path
+    null = results.setdefault("null_round", {})
+    original = subject.read_text(encoding="utf-8")
+    occurrences = original.count(spec.null_old)
+    if occurrences != 1:
+        results["null_error"] = f"target present {occurrences} times, expected exactly 1"
+        print(f"NULL ROUND: TARGET NOT UNIQUE ({occurrences}) -- text-grading UNKNOWN", flush=True)
+        out_path.write_text(json.dumps(results, indent=2))
+        return {}
+    todo = [s for s in suites if s not in null]
+    if not todo:
+        return {s: r["grades_text"] for s, r in null.items()}
+    print("NULL ROUND (behaviour-preserving source edit -- a red here is a suite grading TEXT)",
+          flush=True)
+    subject.write_text(original.replace(spec.null_old, spec.null_new), encoding="utf-8")
+    _clear_pycache()
+    try:
+        for suite in todo:
+            r = _run_suite(suite, known_red.get(suite, ()), stop_first=True)
+            r["grades_text"] = r["returncode"] != 0
+            null[suite] = r
+            if r["grades_text"]:
+                print(f"  {suite}: GRADES THE TEXT -- its kills are not execution evidence "
+                      f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
+            else:
+                print(f"  {suite}: behaviour only ({r['seconds']}s)", flush=True)
+            out_path.write_text(json.dumps(results, indent=2))
+    finally:
+        subject.write_text(original, encoding="utf-8")
+        _clear_pycache()
+    return {s: r["grades_text"] for s, r in null.items()}
+
+
+def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reaches: dict,
+           grades_text: dict) -> None:
     """One mutation against each outstanding suite, scored as a row rather than a verdict."""
     for suite in todo:
         r = _run_suite(suite, known_red[suite], stop_first=True)
@@ -207,9 +275,14 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
         # contract. Stamped on the cell, because a caveat kept only in prose stops travelling with
         # the number the moment anyone reads the JSON.
         r["survived_but_unreachable"] = not r["died"] and reaches.get(suite) is False
+        # A kill by a suite that reddens for a behaviour-preserving edit is not evidence the
+        # contract is proved -- it may be reading the subject's bytes. `None` where the null
+        # round did not run: unknown, never a clean bill.
+        r["died_but_grades_text"] = r["died"] and grades_text.get(suite)
         row["per_suite"][suite] = r
         print(f"  {suite}: {'DIED' if r['died'] else 'survived'} "
               f"{'(UNREACHABLE -- proves nothing) ' if r['survived_but_unreachable'] else ''}"
+              f"{'(TEXT-GRADER -- may not have run the line) ' if r['died_but_grades_text'] else ''}"
               f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
     # `survived_all` is the PRE-REGISTERED question and its population is the CALLER suites.
     # The repair column is reported beside it and never folded into it.
@@ -262,6 +335,9 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
     # column that needed exactly that.
     poison = _poison(spec, results, suites, out_path, known_red)
     reaches = {s: r["reaches_subject"] for s, r in poison.items()}
+    # After the floor and before the mutations: the floor says a suite CAN redden for this
+    # subject, the null round says whether it only reddens for BEHAVIOUR.
+    grades_text = _null_round(spec, results, suites, out_path, known_red)
     results.setdefault("mutations", {})
 
     for mid, contract, old, new in spec.mutations:
@@ -285,7 +361,7 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
         _clear_pycache()
         row["target_occurrences"] = occurrences
         print(f"\n{mid}: {contract}", flush=True)
-        _score(spec, row, todo, known_red, reaches)
+        _score(spec, row, todo, known_red, reaches, grades_text)
         # Asserted AFTER the run as well as before it: a restore racing the suites, or a
         # concurrent lane writing the file, would otherwise leave a green row that was measured
         # against pristine source.
@@ -317,6 +393,17 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
     if hot_controls:
         print(f"CONTROL SUITES WENT RED UNDER THE POISON -- the floor did not discriminate and "
               f"the reachability column is VOID: {hot_controls}", flush=True)
+    textual = [s for s in suites if grades_text.get(s)]
+    if textual:
+        print(f"SUITES THAT REDDEN FOR A BEHAVIOUR-PRESERVING EDIT (their kills are not "
+              f"execution evidence): {textual}", flush=True)
+    elif not grades_text:
+        # Said out loud rather than left as a silent absence: no null round ran, so nothing
+        # here distinguishes a kill by execution from a kill by reading the source.
+        print("NO NULL ROUND FOR THIS SUBJECT -- whether any kill above came from reading the "
+              "subject's TEXT rather than running it is UNKNOWN, not ruled out.", flush=True)
+    if "null_error" in results:
+        print(f"TEXT-GRADING UNKNOWN -- {results['null_error']}", flush=True)
     if "poison_error" in results:
         print(f"REACHABILITY UNKNOWN -- {results['poison_error']}", flush=True)
     return 0

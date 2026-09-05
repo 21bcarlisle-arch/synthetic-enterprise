@@ -135,6 +135,17 @@ POISON_OLD = "\ndef normalise_segment("
 POISON_NEW = ('\nraise RuntimeError("POISON: segment_vocabulary reachability floor")'
               "\n\n\ndef normalise_segment(")
 
+#: THE NULL ROUND: a module-level no-op assignment. It changes the bytes and adds
+#: an AST node, and it cannot change what any function does. A suite that reddens
+#: under it is grading this file's TEXT rather than running it -- and one of the
+#: ten is a plausible candidate, because `tools/segment_case_guard.py` AST-scans
+#: `simulation/` for segment string literals. This marker deliberately contains no
+#: string literal, so the guard SHOULD be indifferent to it; measuring that rather
+#: than assuming it is the whole point.
+NULL_OLD = "class UnknownSegmentError(ValueError):"
+NULL_NEW = ("_NULL_ROUND_MARKER = None  # behaviour-preserving; tools/contract_battery.py\n"
+            "\n\nclass UnknownSegmentError(ValueError):")
+
 SPEC = BatterySpec(
     name="segment_vocabulary",
     subject="simulation/segment_vocabulary.py",
@@ -143,6 +154,8 @@ SPEC = BatterySpec(
     poison_old=POISON_OLD,
     poison_new=POISON_NEW,
     control_suites=CONTROL_SUITES,
+    null_old=NULL_OLD,
+    null_new=NULL_NEW,
 )
 
 

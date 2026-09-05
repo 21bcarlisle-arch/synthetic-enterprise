@@ -179,6 +179,28 @@ the RNG draw sequence; it proves nothing about what the contract SAYS, and it wo
 day a mutation happened to be draw-count-neutral. **A byte-identity coupling test is a tripwire,
 not a contract test, and a battery that reports only `died`/`survived` cannot tell them apart.**
 
+## A second floor, added after this result and run against it: none of these kills is textual
+
+Every battery in this family has assumed that `died` means "the suite executed the mutated line
+and an assertion failed". Nothing established that. The next subject
+(`tools/generate_grid_intensity_feed.py`) makes the gap concrete: **six of its callers read the
+module's own source with `.read_text()` and walk it as an AST**, so a source mutation can redden
+their suites without a line of it ever running.
+
+So the engine gained the mirror image of the poison round — a **null round**: a source edit that
+changes the bytes and adds an AST node and cannot change behaviour (`_NULL_ROUND_MARKER = None`).
+A suite that reddens under it is grading TEXT.
+
+Run against all ten suites of this subject, after the result above: **all ten are behaviour only.**
+None of the kills in the table came from reading the file. `tests/tools/test_segment_case_guard.py`
+was the candidate — it AST-scans `simulation/` for segment string literals — and it is indifferent,
+which is the answer the marker was written to be able to get wrong (it deliberately contains no
+string literal).
+
+This is recorded here rather than in the next subject's finding because the claim it protects is
+*this* result. A subject with no null round is now stamped UNKNOWN on the battery's own summary
+line, never as a clean bill.
+
 ## The survivors are named, and none of them is left as "probably an equivalence"
 
 There is no survivor to resolve: every contract died somewhere. The two suites that reach the
