@@ -257,16 +257,24 @@ def active_renewal_probability(engagement_level: EngagementLevel) -> float:
     return _ACTIVE_RENEWAL_PROBABILITY_BY_ENGAGEMENT[engagement_level]
 
 
-def active_renewal_probability_for_customer(customer_id: str) -> float:
-    """Convenience: resolve a customer's engagement archetype and its
-    active-renewal probability in one call -- the typical call site
-    (simulation/run_phase2b.py) only needs the final float."""
-    return active_renewal_probability(engagement_level_for_customer(customer_id))
 
 
 class PaymentChannel(str, Enum):
     DIRECT_DEBIT = "direct_debit"
     STANDARD_CREDIT = "standard_credit"
+    #: PREPAYMENT separated 2026-09-05 (PB4). It was folded into STANDARD_CREDIT because the
+    #: DESNZ commentary this module cites carries no non-DD sub-split -- true of that source, and
+    #: false of the tree: `simulation/payment_behaviour_source.py` records Ofgem 2026 at ~74% DD /
+    #: 13% standard credit / 13% prepayment, citing `simulation.dd_attribution`'s ANCHORS. The two
+    #: modules sat one import apart, each honestly flagging its own uncertainty, neither able to
+    #: see the other.
+    #:
+    #: It is separated now because the entire published ENGAGEMENT signal lives at exactly this
+    #: seam. Ofgem CIM wave 6, switching supplier in six months: standard credit 5.7%, prepayment
+    #: 3.1%, traditional prepayment 1.7% against a 5.3% base. Merged, those average to something
+    #: indistinguishable from direct debit's 5.6% -- so a world with this bucket collapsed cannot
+    #: express the strongest thing a real supplier can observe about whether a household shops.
+    PREPAYMENT = "prepayment"
 
 
 # Layer 2, dimension 1 (payment-method mix): the exact named gap in
@@ -291,6 +299,18 @@ DIRECT_DEBIT_SHARE_BY_FUEL: dict[str, float] = {
     "gas": 0.75,
 }
 
+#: How the non-DD residual divides between prepayment and standard credit.
+#:
+#: NOT A NEW NUMBER. Ofgem 2026 gives ~74% DD / 13% standard credit / 13% prepayment, recorded in
+#: `simulation.dd_attribution`'s ANCHORS section by the 2026-07-13 DISCOVER pass and already used by
+#: `simulation/payment_behaviour_source.py`. The two non-DD shares are equal, so the residual left
+#: after this module's own fuel-specific DD anchor divides 50/50 -- an anchored RATIO applied to a
+#: different but consistent DD baseline, which is exactly how `payment_behaviour_source` uses it.
+#:
+#: It lives here and that module now reads it, so the ratio has ONE home. It previously had two
+#: numerically identical ones, which is the state a value drifts out of silently.
+NON_DD_PREPAYMENT_SHARE = 0.50
+
 
 def payment_channel_for_customer(customer_id: str, fuel: str = "electricity") -> PaymentChannel:
     """Deterministic per-customer, per-fuel payment-channel archetype,
@@ -300,7 +320,22 @@ def payment_channel_for_customer(customer_id: str, fuel: str = "electricity") ->
     and gas as two independent accounts (own MPAN/MPRN) per household."""
     share = DIRECT_DEBIT_SHARE_BY_FUEL.get(fuel, DIRECT_DEBIT_SHARE_BY_FUEL["electricity"])
     rng = random.Random(f"paychannel_{customer_id}_{fuel}")
-    return PaymentChannel.DIRECT_DEBIT if rng.random() < share else PaymentChannel.STANDARD_CREDIT
+    if rng.random() < share:
+        return PaymentChannel.DIRECT_DEBIT
+    # THE SECOND DRAW IS TAKEN ONLY BY NON-DD HOUSEHOLDS, AND THAT IS THE WHOLE DESIGN. Every
+    # direct-debit household returns on the first comparison having consumed exactly one number
+    # from exactly the stream it always consumed, so the DD/non-DD partition this world has run on
+    # since Layer 2 is BYTE-IDENTICAL -- arrears, satisfaction, final-bill and opex all see the
+    # customers they saw yesterday. Only the LABEL on the non-DD side gains resolution.
+    #
+    # The alternative was to delegate wholesale to `payment_behaviour_source.generate_payment_
+    # method`, which already draws this three ways. It was rejected after measuring it: both draws
+    # carry the SAME DD anchor (0.72/0.75) on DIFFERENT streams, so they agree on only 235 of 400
+    # households -- exactly the 58.8% two independent draws at a 72% share give by chance.
+    # Migrating would therefore have reshuffled which households pay by direct debit for 41% of
+    # the book while changing the DD SHARE not at all: maximal disturbance, zero fidelity gain.
+    return (PaymentChannel.PREPAYMENT if rng.random() < NON_DD_PREPAYMENT_SHARE
+            else PaymentChannel.STANDARD_CREDIT)
 
 
 # Layer 2 dimension 2 (fuel poverty / income-band, 2026-07-09): DESNZ "Annual
@@ -314,7 +349,15 @@ def payment_channel_for_customer(customer_id: str, fuel: str = "electricity") ->
 # blend, not an independently anchored figure, flagged as such.
 FUEL_POVERTY_RATE_BY_CHANNEL: dict[PaymentChannel, float] = {
     PaymentChannel.DIRECT_DEBIT: 0.088,
-    PaymentChannel.STANDARD_CREDIT: 0.204,
+    # UNBLENDED 2026-09-05. These two carried 0.204 between them -- the unweighted mean of the two
+    # published rates, which the comment above correctly labelled "an honest blend, not an
+    # independently anchored figure". The blend existed only because the bucket was merged; with
+    # prepayment separated, each side takes the figure DESNZ actually publishes for it. This is the
+    # rare repair that DELETES an approximation rather than adding one, and no new source was
+    # needed: the two rates were already quoted, four lines up, in the comment explaining why they
+    # had to be averaged.
+    PaymentChannel.STANDARD_CREDIT: 0.185,
+    PaymentChannel.PREPAYMENT: 0.223,
 }
 
 
@@ -327,6 +370,78 @@ def fuel_poverty_for_customer(customer_id: str, payment_channel: PaymentChannel)
     rate = FUEL_POVERTY_RATE_BY_CHANNEL.get(payment_channel, FUEL_POVERTY_RATE_BY_CHANNEL[PaymentChannel.STANDARD_CREDIT])
     rng = random.Random(f"fuelpoverty_{customer_id}")
     return rng.random() < rate
+
+
+#: Ofgem CIM wave 6, Table 56 (question C4): the share of households in each payment-method banner
+#: column that SWITCHED SUPPLIER in the past six months, against a 5.3% population base.
+#: `docs/market_research/what_a_supplier_can_observe_about_switching_propensity_cim_w6.md` holds the
+#: bases (n=2483 / 438 / 491) and the parsing.
+#:
+#: This is the observable antecedent PB4 exists for. Before it, whether a household shopped was
+#: `random.Random(f"engagement_{customer_id}")` and nothing else -- the canon's "a hash of the
+#: customer id", literally. A supplier cannot learn a hash, so the company faced a world in which
+#: engagement was real, mattered, and was structurally unlearnable.
+CIM_SWITCH_RATE_BY_CHANNEL: dict[PaymentChannel, float] = {
+    PaymentChannel.DIRECT_DEBIT: 0.056,
+    PaymentChannel.STANDARD_CREDIT: 0.057,
+    PaymentChannel.PREPAYMENT: 0.031,
+}
+
+
+def _channel_population_shares() -> dict[PaymentChannel, float]:
+    """The drawn mix, DERIVED from the same two constants the draw uses.
+
+    Never a written-down mix. A hardcoded 72/14/14 here would be a second statement of something
+    `payment_channel_for_customer` already decides, and it would go stale the day either anchor
+    moved while continuing to look authoritative -- which is the whole reason the multiplier below
+    is normalised against this rather than against a literal.
+    """
+    dd = DIRECT_DEBIT_SHARE_BY_FUEL["electricity"]
+    return {
+        PaymentChannel.DIRECT_DEBIT: dd,
+        PaymentChannel.PREPAYMENT: (1.0 - dd) * NON_DD_PREPAYMENT_SHARE,
+        PaymentChannel.STANDARD_CREDIT: (1.0 - dd) * (1.0 - NON_DD_PREPAYMENT_SHARE),
+    }
+
+
+def engagement_multiplier_for_channel(channel: PaymentChannel) -> float:
+    """How much more or less this payment method shops, MEAN-PRESERVING over the drawn population.
+
+    Normalised so the population-weighted mean multiplier is exactly 1.0. That is not tidiness: an
+    un-normalised version would move the book's AGGREGATE renewal engagement, and therefore its
+    churn level, as a side effect of adding a dimension -- which is a level change made blind to
+    the director's baseline, and R12 forbids choosing parameters to hit an output either way. The
+    same discipline `price_elasticity_for_customer` keeps for the elasticity spread.
+
+    So this changes WHICH households shop, never HOW MANY. That is precisely the R1 question: the
+    company's problem was never the level, it was that nothing observable predicted the identity.
+    """
+    shares = _channel_population_shares()
+    mean = sum(shares[c] * CIM_SWITCH_RATE_BY_CHANNEL[c] for c in shares)
+    if mean <= 0:
+        return 1.0
+    return CIM_SWITCH_RATE_BY_CHANNEL[channel] / mean
+
+
+def active_renewal_probability_for_customer(customer_id: str) -> float:
+    """Convenience: resolve a customer's engagement archetype and its
+    active-renewal probability in one call -- the typical call site
+    (simulation/run_phase2b.py) only needs the final float.
+
+    TWO GATES, NOT ONE WEIGHT (PB4, director 2026-08-28). The archetype supplies the household's
+    persistent disposition to shop; the payment channel supplies the part a supplier could actually
+    observe. They multiply rather than replace each other, because the brief's whole point is that
+    they are different facts: *"a disengaged household can be highly price-sensitive once a bill
+    shock makes it look"*. Elasticity -- how far a price gap moves a household once it is looking --
+    is untouched here and stays in `price_elasticity_for_customer`.
+    """
+    base = active_renewal_probability(engagement_level_for_customer(customer_id))
+    scaled = base * engagement_multiplier_for_channel(payment_channel_for_customer(customer_id))
+    # A probability, so it is clamped -- but note the clamp is what would silently break the
+    # mean-preservation above if it ever bound, so `test_the_engagement_multiplier_preserves_the_
+    # population_mean` measures the realised mean through this function rather than the multiplier
+    # in isolation.
+    return min(1.0, max(0.0, scaled))
 
 
 class TenureType(str, Enum):

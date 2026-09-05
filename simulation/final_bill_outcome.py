@@ -208,6 +208,25 @@ GONE_AWAY_TENURE_MULTIPLIER: dict[TenureType, float] = {
 GONE_AWAY_CHANNEL_MULTIPLIER: dict[PaymentChannel, float] = {
     PaymentChannel.DIRECT_DEBIT: 0.75,
     PaymentChannel.STANDARD_CREDIT: 1.40,
+    # PREPAYMENT INHERITS STANDARD CREDIT'S FIGURE, AND THAT IS ALMOST CERTAINLY WRONG.
+    #
+    # It is here because prepayment was separated from standard credit on 2026-09-05 for an
+    # ENGAGEMENT reason (PB4), and a household that was in the STANDARD_CREDIT bucket yesterday
+    # must not silently change its gone-away behaviour today as a side effect of a change made
+    # about something else. 1.40 is therefore this world's EXISTING behaviour preserved exactly,
+    # not a value anchored for prepayment.
+    #
+    # Why it is likely wrong, recorded so the gap is checkable rather than merely flagged: the
+    # reasoning above this dict is that "a standard-credit customer must actively choose to pay a
+    # bill for a property they have already left". A prepayment customer has ALREADY PAID -- the
+    # meter takes the money before the energy. The structural argument says prepayment should sit
+    # at or below direct debit's 0.75, not at standard credit's 1.40, and moving it is a change to
+    # what the world does that needs its own anchor and its own measurement.
+    #
+    # No published gone-away-by-payment-method rate was found for it. An invented number here
+    # would be load-bearing within a week and unattributable within a month, so the inherited
+    # figure stands with its reason named.
+    PaymentChannel.PREPAYMENT: 1.40,
 }
 
 # Income-stress multiplier. Calibration choice; deliberately FLATTER than

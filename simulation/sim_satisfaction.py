@@ -38,6 +38,16 @@ _MAX_TENURE_BONUS = 0.10
 _PAYMENT_CHANNEL_DELTA: dict[PaymentChannel, float] = {
     PaymentChannel.DIRECT_DEBIT: 0.0,
     PaymentChannel.STANDARD_CREDIT: -0.06,
+    # INHERITED, NOT ANCHORED -- same reasoning as `final_bill_outcome.GONE_AWAY_CHANNEL_
+    # MULTIPLIER`. Prepayment was separated for an engagement reason and must not change
+    # satisfaction as a side effect, so it keeps the value its households already had.
+    #
+    # The CIM banner behind that separation does carry a satisfaction cut, and it is the reason
+    # this is flagged rather than quietly left: dissatisfied households switch at 3.0% against
+    # 5.4% for satisfied ones, so satisfaction and engagement move OPPOSITE ways here. Wiring a
+    # prepayment satisfaction penalty without that in hand would push this world toward the naive
+    # unhappy-customers-leave model the same survey refutes.
+    PaymentChannel.PREPAYMENT: -0.06,
 }
 
 # Same source: even respondents who share the SAME coarse "satisfied"

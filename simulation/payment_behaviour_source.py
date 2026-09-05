@@ -138,6 +138,9 @@ from datetime import date, timedelta
 from typing import Optional, Sequence
 
 from simulation.arrears_engine import payment_outcome as _core_payment_outcome
+from simulation.household_segments import (
+    NON_DD_PREPAYMENT_SHARE as _PREPAYMENT_SHARE_OF_NON_DD,
+)
 from simulation.segment_vocabulary import is_business
 
 STREAM_NAMESPACE = "W2_11_payment_behaviour_source"
@@ -198,7 +201,9 @@ _DD_SHARE_BY_FUEL = {"electricity": 0.72, "gas": 0.75}
 
 # Ofgem 2026 (via simulation.dd_attribution's own ANCHORS): ~74% DD / 13%
 # standard credit / 13% prepayment -> non-DD residual splits ~50/50.
-_PREPAYMENT_SHARE_OF_NON_DD = 0.50
+# ONE HOME (2026-09-05): `_PREPAYMENT_SHARE_OF_NON_DD` is imported at the top of this module from
+# `household_segments`, which now draws the three-way channel for the whole world. Until then it
+# was a second, numerically identical literal here -- the state a value drifts out of silently.
 
 # ESTIMATE (R10 calibration gap, not sourced): standard-credit sub-instrument.
 _STANDARD_CREDIT_SUBMETHOD_SHARE = {STANDING_ORDER: 0.50, CARD: 0.50}

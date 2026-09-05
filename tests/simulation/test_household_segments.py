@@ -88,10 +88,27 @@ def test_large_sample_matches_population_shares():
 
 
 def test_active_renewal_probability_for_customer_matches_manual_lookup():
+    """RE-POINTED 2026-09-05 (PB4), from one gate to two.
+
+    This asserted that the convenience function IS the archetype lookup, which was the contract
+    until engagement gained an observable antecedent. It now composes the persistent disposition
+    (the archetype) with the part a supplier can actually see (the payment channel), because the
+    atom's whole claim is that those are different facts about a household.
+
+    Still the same KIND of control -- the composed answer must be reproducible by hand from its two
+    named inputs -- so a third factor appearing silently still fails here.
+    """
+    from simulation.household_segments import (
+        engagement_multiplier_for_channel,
+        payment_channel_for_customer,
+    )
     for i in range(20):
         cid = f"C{i}"
-        expected = active_renewal_probability(engagement_level_for_customer(cid))
-        assert active_renewal_probability_for_customer(cid) == expected
+        expected = (
+            active_renewal_probability(engagement_level_for_customer(cid))
+            * engagement_multiplier_for_channel(payment_channel_for_customer(cid))
+        )
+        assert active_renewal_probability_for_customer(cid) == min(1.0, max(0.0, expected))
 
 
 def test_large_sample_realized_active_renewal_rate_close_to_anchor():
