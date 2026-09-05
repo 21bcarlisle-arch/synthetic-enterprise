@@ -15,8 +15,23 @@ false in the expensive direction:
     `except Exception` logs it as "generation failed" and moves on). A line that parsed to a
     non-dict got further and raised AttributeError from the sort key instead.
 
-These are controls over the PROPERTY the disposition claims -- "a corrupt line costs one entry,
-never the file" -- not over today's answer, so they stay honest if either reader is rewritten.
+THE TWO READERS NEEDED OPPOSITE REPAIRS, and this file asserted the wrong one for the appender
+until 2026-09-05, when a concurrent lane's fix for the same defect was merged. The scorecard is a
+pure READER: it drops the bad line, keeps the rest, and publishes `unreadable_log_lines` so the
+drop is stated on the surface. The appender is a WRITER, and skipping there is not the same act at
+all -- the realistic torn line is the most recent write, which is TODAY'S own row, so skipping it
+drops today out of `existing_dates`, the guard reports "not logged yet", and a re-run appends a
+SECOND row for the same day. That is the exact duplicate the one-entry-per-day rule exists to
+forbid, and `generate_track_record_scorecard` would grade both. So the appender fails CLOSED on
+the day question and names its reason on stderr. Nothing is lost by refusing: the day's decision
+is already on disk in `live_decisions_<date>.json` before this is ever called.
+
+The integrity of the published track record beats its continuity. A record that stopped growing
+behind a named, greppable refusal is honest; one that quietly gained a second row for a day is a
+plausible number with a hole in it, which is the failure this project keeps paying for.
+
+These are controls over the PROPERTY each disposition claims, not over today's answer, so they
+stay honest if either reader is rewritten.
 """
 import json
 
@@ -37,36 +52,43 @@ def _log(tmp_path, *lines):
 
 # ── the appender ──────────────────────────────────────────────────────────────────────────
 
-def test_a_torn_line_does_not_stop_the_decision_log_growing_forever(tmp_path):
-    """THE DEFECT: one half-written row raised out of append_decision_log, so no decision was
-    ever appended again. The append is what the whole track record is built from."""
+def test_a_torn_line_refuses_the_append_rather_than_risking_a_duplicate_day(tmp_path, capsys):
+    """THE DEFECT was an unguarded parse that raised out of the appender. THE REPAIR IS NOT THE
+    REFLEX. This test asserted the skip until 2026-09-05 and it was wrong: a torn line is a write
+    killed mid-flight, so the likeliest one is today's own row, and skipping it is what MANUFACTURES
+    the duplicate day. Refusing cannot -- see the module docstring for why nothing is lost by it.
+
+    MUTATION: replace the `return False` with `continue` and the second row lands -- `len == 2`
+    reds, which is the duplicate itself."""
     log = _log(tmp_path, json.dumps(_GOOD), '{"decision_run_at": "2026-09-0')
 
-    assert rld.append_decision_log({"decision_run_at": "2026-09-05T00:00:00Z"}, log) is True
+    assert rld.append_decision_log({"decision_run_at": "2026-09-05T00:00:00Z"}, log) is False
 
-    written = log.read_text().splitlines()
-    assert len(written) == 3, "the new decision must reach the file past the torn line"
-    assert json.loads(written[-1])["decision_run_at"] == "2026-09-05T00:00:00Z"
+    assert len(log.read_text().splitlines()) == 2, "nothing may be appended past a line we cannot read"
+    err = capsys.readouterr().err
+    assert "REFUSING" in err and "2026-09-05" in err, (
+        "a refusal that does not name its reason is how the refusal itself never gets corrected"
+    )
 
 
-def test_the_torn_line_costs_only_its_own_days_idempotency_and_no_others(tmp_path):
-    """The skip must stay NARROW. Dropping the unreadable line must not drop the READABLE
-    days with it -- if it did, every past day would re-append on the next run and the log
-    would stop being one row per day, which is the property the guard exists to keep."""
+def test_the_refusal_does_not_depend_on_which_day_is_being_appended(tmp_path):
+    """The refusal is keyed to "the log cannot be read", NOT to the incoming day. A guard that
+    only refused days it had already seen would let an unseen day through the same hole."""
     log = _log(tmp_path, json.dumps(_GOOD), "not json at all")
 
-    # The day that IS readable in the log is still refused a second row.
     assert rld.append_decision_log({"decision_run_at": "2026-09-01T09:00:00Z"}, log) is False
+    assert rld.append_decision_log({"decision_run_at": "2027-01-01T09:00:00Z"}, log) is False
     assert len(log.read_text().splitlines()) == 2
 
 
-def test_a_line_that_is_valid_json_but_not_a_record_does_not_stop_the_appender(tmp_path):
+def test_a_line_that_is_valid_json_but_not_a_record_refuses_too(tmp_path, capsys):
     """`json.loads` succeeds for `"abc"` and for `5`; the subscript after it is what raised.
-    A guard written only around the parse would still have let this through."""
+    A guard written only around the parse would still have let this through -- and a line that
+    parses but carries no date is exactly as unreadable, for the day question, as a torn one."""
     log = _log(tmp_path, json.dumps(_GOOD), '"abc"', "5", "[]", "{}")
 
-    assert rld.append_decision_log({"decision_run_at": "2026-09-06T00:00:00Z"}, log) is True
-    assert json.loads(log.read_text().splitlines()[-1])["decision_run_at"].startswith("2026-09-06")
+    assert rld.append_decision_log({"decision_run_at": "2026-09-06T00:00:00Z"}, log) is False
+    assert "REFUSING" in capsys.readouterr().err
 
 
 # ── the published scorecard ───────────────────────────────────────────────────────────────
@@ -109,8 +131,8 @@ def test_the_scorecard_publishes_how_many_lines_it_could_not_read(tmp_path, bad,
     result = scorecard.generate(log_path=log, portfolio_path=tmp_path / "absent.json",
                                 out_path=tmp_path / "out.json")
 
-    assert result["log_lines_unreadable"] == expected
-    assert json.loads((tmp_path / "out.json").read_text())["log_lines_unreadable"] == expected
+    assert result["unreadable_log_lines"] == expected
+    assert json.loads((tmp_path / "out.json").read_text())["unreadable_log_lines"] == expected
 
 
 def test_the_clean_log_is_still_read_whole(tmp_path):
@@ -124,5 +146,11 @@ def test_the_clean_log_is_still_read_whole(tmp_path):
                                 out_path=tmp_path / "out.json")
 
     assert result["log_entry_count"] == 3
-    assert result["log_lines_unreadable"] == 0
+    assert result["unreadable_log_lines"] == 0
+    # THE CONTROL LEG FOR THE WHOLE APPENDER PARTITION. Every other appender test above asserts
+    # `is False`, so an `append_decision_log` that refused unconditionally -- the failure mode a
+    # fail-closed repair actually has -- would pass all of them. The undamaged log must still
+    # refuse a REPEAT day and still accept a NEW one.
     assert rld.append_decision_log({"decision_run_at": "2026-09-03T18:00:00Z"}, log) is False
+    assert rld.append_decision_log({"decision_run_at": "2026-09-04T09:00:00Z"}, log) is True
+    assert len(log.read_text().splitlines()) == 4

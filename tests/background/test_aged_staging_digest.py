@@ -360,35 +360,59 @@ def test_an_unreadable_day_stamp_does_not_raise_into_the_daemons_cycle(tmp_path,
     garbage and the digest simply re-sends, which is why this is a plain unguarded read and not
     the absent-vs-unreadable class.
 
-    Unreadable must read as "not sent today" (the cheap direction): the digest still goes."""
+    CORRECTED IN PLACE 2026-09-05, beside the claim it got wrong. This test used to end "Unreadable
+    must read as 'not sent today' (the cheap direction): the digest still goes", and asserted the
+    send. That reasoning treated the duplicate as costing ONE notification. It does not: every
+    cause that makes this path unreadable -- a directory at it, a permissions error -- makes it
+    unwritable too, so the stamp never advances and the digest re-fires every 30-minute cycle for
+    as long as the fault lasts. That is the alarm-fatigue failure the function exists to prevent,
+    reintroduced through its own guard. Unreadable now REFUSES and says why; only a genuinely
+    absent stamp may send, and `_last_digest_date` raises rather than returning a second None so
+    the two cannot be confused again. The no-raise property this test is named for is unchanged."""
     stamp = tmp_path / "stamp_dir"
     stamp.mkdir()  # a directory: .exists() is True, read_text() raises
     calls = _digest_env(tmp_path, monkeypatch, stamp)
 
-    sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)
+    sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)  # must not raise
 
-    assert len(calls) == 1, "the digest must still fire when its own day-stamp is unreadable"
-    assert "AGED STAGING" in calls[0]
-
-
-def test_an_unwritable_day_stamp_does_not_raise_and_names_the_cost(tmp_path, monkeypatch):
-    """Guarding only the READ would have been defeated by the write two lines below it, on the
-    same path, with the same OSError -- one exposure, not two.
-
-    The two are not symmetric and the code must not treat them as such: an unwritable stamp
-    means the digest re-fires EVERY 30-minute cycle, which is the alarm-fatigue failure the
-    function's own docstring quotes the director on. So it must be LOGGED, where the read's
-    failure is not worth a line. A silent `except OSError: pass` here passes the first
-    assertion and fails the second."""
-    stamp = tmp_path / "stamp_dir"
-    stamp.mkdir()
-    calls = _digest_env(tmp_path, monkeypatch, stamp)
-
-    sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)
-
-    assert len(calls) == 1
+    assert calls == [], "an unreadable stamp cannot establish whether today's digest went"
     log_text = (tmp_path / "log.md").read_text()
-    assert "UNWRITABLE" in log_text and "re-send every cycle" in log_text
+    # Keyed to the phrase only the READ refusal emits. "unreadable" alone is satisfied by the
+    # WRITE refusal too, whose message quotes a path carrying this test's own name via tmp_path.
+    assert "Refusing rather than risking a 30-minute repeat" in log_text
+    assert "IsADirectoryError" in log_text
+
+
+def test_an_unwritable_day_stamp_never_sends_rather_than_paging_every_cycle(tmp_path, monkeypatch):
+    """Guarding only the READ would have been defeated by the write below it, on the same path,
+    with the same OSError -- one exposure, not two.
+
+    The fixture cannot be a directory: that fails the READ first and never reaches this branch,
+    which is exactly how the old version of this test passed while asserting nothing about the
+    write. Here the stamp is simply ABSENT, so the read legitimately says "never sent" and only
+    the write fails -- and the repair is the ORDER. Stamping before sending means an unwritable
+    stamp costs one day's summary; the old send-then-stamp order meant 48 pages a day."""
+    stamp = tmp_path / ".last_digest_date"
+    calls = _digest_env(tmp_path, monkeypatch, stamp)
+    real_write = type(stamp).write_text
+
+    def refuse(self, *a, **k):
+        if self == stamp:
+            raise PermissionError(13, "Permission denied")
+        return real_write(self, *a, **k)
+
+    monkeypatch.setattr(type(stamp), "write_text", refuse)
+
+    for _ in range(4):
+        sanity_daemon._maybe_send_daily_digest(any_new_this_cycle=True)
+
+    assert calls == [], f"four cycles, one unwritable stamp, {len(calls)} pages"
+    log_text = (tmp_path / "log.md").read_text()
+    assert "could not be written" in log_text
+    assert "Refusing rather than risking" not in log_text, (
+        "the read succeeded here; the WRITE is the branch under test and the two must not be "
+        "confusable -- both end in no digest and only one proves the write is guarded"
+    )
 
 
 def test_a_writable_stamp_still_dedupes_so_the_guard_is_not_a_blanket_re_send(tmp_path, monkeypatch):

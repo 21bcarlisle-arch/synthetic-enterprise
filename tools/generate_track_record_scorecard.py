@@ -54,21 +54,27 @@ RENEWAL_TOLERANCE_PCT = 0.02
 
 
 def _load_log(log_path=None):
-    """`(entries, unreadable_line_count)` from the decision log.
+    """(entries oldest-first, count of lines that could not be used).
 
-    A TORN LINE USED TO BLANK THE WHOLE PUBLISHED SCORECARD. `json.loads(line)` was
-    unguarded, so one half-written row raised out of here, out of `generate()`, and was
-    swallowed by the publish cycle's `except Exception` as "Track record scorecard
-    generation failed" -- the entire predicted-vs-realised record gone from the site because
-    of one byte. A row that parses to a NON-dict was worse still: it reached
-    `entries.sort(key=lambda e: e.get(...))` and raised AttributeError instead, the shape
-    where `len()` (or here `.get`) happily answers for something that is not the record.
+    A CORRUPT LINE MUST COST ONE ENTRY, NOT THE FILE -- AND MUST NOT COST IT SILENTLY (2026-09-05).
+    `live_decisions_log.jsonl` is dispositioned in `docs/design/self_clearing_alarm_dispositions.
+    json` as benign because "JSONL, append-only, same as above", where above is
+    `notification_digest._read_queue`, which "parses PER LINE, discarding only the lines it cannot
+    read". That was reasoned from a sibling rather than measured here, and it was WRONG for this
+    file: the bare `json.loads(line)` this replaces raised `JSONDecodeError` straight out of the
+    loader, so one bad byte anywhere in the log took the WHOLE scorecard down -- and
+    `entries.sort(key=lambda e: e.get(...))` would have raised `AttributeError` on any line that
+    parsed to a non-dict (`3`, `"abc"`, `[1, 2]`), which the same claim also did not cover.
 
-    So a bad line now costs one entry, as the whole class of append-only-JSONL carriers is
-    supposed to. But it is NOT dropped silently: the count is returned and published as
-    `log_lines_unreadable` on the scorecard, because this feeds a public track record and a
-    figure computed over a log we could not fully read must say so on the surface. Zero is
-    the normal answer and any other value is a visible defect, not a footnote.
+    The count is RETURNED rather than swallowed because the alternative failure is worse than the
+    crash it replaces. This scorecard's `log_entry_count` and its grading counts are read by
+    `tools/generate_proof_data.py` and rendered on the Proof door; a quietly dropped line publishes
+    a smaller, entirely plausible track record, and a plausible smaller number does not get noticed
+    the way a traceback does. Same shape as `count_run_history_total` answering 3 for `"abc"`.
+
+    An unreadable FILE is still allowed to raise. Absent is not unreadable: absent means the live
+    decisions run has never logged a day and an empty scorecard is the truth, while an OSError
+    means we cannot tell, and turning that into `[]` would publish "no track record" as a finding.
     """
     path = _P(log_path) if log_path else LOG_PATH
     if not path.exists():
@@ -270,7 +276,7 @@ def generate(log_path=None, portfolio_path=None, out_path=None, today=None):
         # The bound this figure's own sample size earns: how many lines of the decision log
         # could not be read at all. Normally 0. Anything else means every count below is
         # over a PARTIAL log, and the reader is told rather than left to assume completeness.
-        "log_lines_unreadable": unreadable_lines,
+        "unreadable_log_lines": unreadable_lines,
         "renewal_tolerance_pct": RENEWAL_TOLERANCE_PCT,
         "renewal_grading": {
             "graded_count": len(graded),

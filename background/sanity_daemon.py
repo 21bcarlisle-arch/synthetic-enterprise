@@ -318,8 +318,12 @@ def _format_aged_staging_line(entry: dict) -> str:
     return f"{entry['filename']} ({entry['age_days']:.1f}d): {entry['summary']}"
 
 
+class _StampUnreadable(Exception):
+    """The once-per-day stamp exists but could not be read. Distinct from its absence."""
+
+
 def _last_digest_date() -> str | None:
-    """The date stamp of the last digest, or None if we cannot read one.
+    """The date stamp of the last digest, or None if it has NEVER been written.
 
     Guarded like its two siblings — `boot_announce.already_announced_this_boot` and
     `daily_self_note.already_ran_today` — which both wrap the same read in `except OSError`.
@@ -328,16 +332,21 @@ def _last_digest_date() -> str | None:
     between the check and the read all raise OSError out of `_maybe_send_daily_digest` and
     into the sanity daemon's cycle, from a once-a-day bookkeeping read.
 
-    None (unreadable) deliberately reads the same as None (absent): the digest re-sends. That
-    is the CHEAP direction of this guard and the reason no alarm is raised here — a duplicate
-    digest line costs the director one repeated notification, where the raise costs the cycle
-    that files findings at all. Content corruption was never the exposure: the compare below
-    fails against any garbage and re-sends by construction.
+    ABSENT IS NOT UNREADABLE, and collapsing them is why this raises rather than returning a
+    second None. The guard that did return None for both argued a duplicate digest costs the
+    director one repeated notification — but the causes that make this path unreadable (a
+    directory at it, a permissions error) do not clear on their own and make it UNWRITABLE
+    too, so the stamp never advances and "one duplicate" is really one every 30-minute cycle
+    until somebody intervenes. That is precisely the alarm-that-repeats-unactionably this
+    function exists to prevent, so the unreadable case refuses to send and says why, and only
+    the genuinely-never-stamped case may send.
     """
     try:
-        return LAST_DIGEST_DATE_FILE.read_text().strip()
-    except OSError:
+        return LAST_DIGEST_DATE_FILE.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
         return None
+    except OSError as exc:
+        raise _StampUnreadable(exc) from exc
 
 
 def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
@@ -354,9 +363,42 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     document must never be dropped for the day just because something newer
     also happened to fire. The pre-existing "skip if something fresh already
     fired" behaviour is preserved ONLY for the standing-open-findings summary,
-    which is the part that motivated it in the first place."""
+    which is the part that motivated it in the first place.
+
+    THE STAMP IS FALLIBLE AND THE TWO SIDES FAIL TOGETHER (2026-09-05). The read was
+    `LAST_DIGEST_DATE_FILE.read_text().strip() if .exists() else None` -- bare, behind an existence
+    check, unlike its two siblings `boot_announce.already_announced_this_boot` and
+    `daily_self_note.already_ran_today`, which both catch OSError. Content corruption here is
+    genuinely harmless (a text compare fails and the digest re-sends), so this is NOT the
+    absent-vs-unreadable conflation the census sweep was about; it is a permissions error, or a
+    directory at that path, raising into the daemon's cycle. What makes it worth a mechanism rather
+    than a bare `except` is the ORDER the code USED to be in: the digest was sent at the bottom of
+    this function and the stamp written after it. A fault that stops the read stops the write too,
+    so `except OSError: last_sent = None` alone would have sent the digest, failed on the write
+    anyway, and repeated BOTH every 30 minutes -- the exact flood the 2026-07-11 redesign above
+    exists to prevent. The repair is therefore the ORDER, not the `except`: **the day is stamped
+    before the digest is sent**, so an unusable stamp -- unreadable OR unwritable -- can only ever
+    cost one day's summary, never produce a page this function cannot then suppress.
+
+    Both directions fail CLOSED, and that is the deliberate trade: a lost digest costs one day's
+    summary, a digest every half hour costs the director's attention, and his own framing quoted
+    above is that an alarm repeating unactionably is what kills the immune system. An in-process
+    "already sent" flag would save the lost day, and was written and then removed: it is module
+    state that leaks between callers, and it buys nothing the ordering does not already give.
+    """
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    last_sent = _last_digest_date()
+    # THROUGH THE HELPER, NOT BESIDE IT. This read was hand-rolled here while `_last_digest_date`
+    # sat one screen up carrying the same guard, which is how the two came to disagree about what
+    # an unreadable stamp means. One reader, one answer: None is never-stamped and may send,
+    # `_StampUnreadable` is cannot-tell and may not.
+    try:
+        last_sent = _last_digest_date()
+    except _StampUnreadable as exc:
+        cause = exc.__cause__
+        log(f"Daily digest SKIPPED -- the once-per-day stamp {LAST_DIGEST_DATE_FILE.name} is "
+            f"unreadable ({cause.__class__.__name__}: {cause}), so whether today's digest already "
+            f"went cannot be established. Refusing rather than risking a 30-minute repeat.")
+        return
     if last_sent == today:
         return
 
@@ -384,23 +426,23 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
                 + " || " + gap_line
             )
 
+    # STAMP BEFORE SENDING. This line's position is the repair, and it is unconditional: whether
+    # or not there is anything to say, today's digest question is now answered. Sending first and
+    # stamping after -- the old order -- means an unwritable stamp pages the director every 30
+    # minutes with no way for this function to stop it.
+    try:
+        LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+        LAST_DIGEST_DATE_FILE.write_text(today, encoding="utf-8")
+    except OSError as e:
+        log(f"Daily digest SKIPPED -- the once-per-day stamp {LAST_DIGEST_DATE_FILE.name} could "
+            f"not be written ({e.__class__.__name__}: {e}), so nothing can record that today's "
+            f"digest went. Sending it unstamped would re-send it every cycle until midnight.")
+        return
+
     if parts:
         _digest("Sanity daemon daily digest: " + " || ".join(parts))
         log(f"Daily digest sent -- {len(aged_entries)} aged staging doc(s); "
             + ("standing open finding(s) attached" if not any_new_this_cycle else "fresh finding fired this cycle, standing summary skipped"))
-
-    # GUARDED WITH THE READ ABOVE, AND NOT SILENTLY. Fixing only `_last_digest_date` would have
-    # been defeated here two lines later by the same OSError on the same path -- the read and
-    # the write are one exposure, not two. But the two failures are not equally harmless: an
-    # unreadable stamp costs one duplicate digest, while an unWRITABLE one costs a digest every
-    # 30-minute cycle for as long as it lasts, which is precisely the "alarm that repeats
-    # unactionably" this function was built to stop. So it is logged, where the read is not.
-    try:
-        LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        LAST_DIGEST_DATE_FILE.write_text(today)
-    except OSError as exc:
-        log(f"Daily digest date stamp UNWRITABLE ({LAST_DIGEST_DATE_FILE}): {exc} -- the digest "
-            f"will re-send every cycle until this is fixed")
 
 
 def run_cycle() -> None:

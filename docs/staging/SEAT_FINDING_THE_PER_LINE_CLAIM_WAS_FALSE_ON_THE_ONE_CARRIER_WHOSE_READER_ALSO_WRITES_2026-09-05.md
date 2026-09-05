@@ -73,15 +73,26 @@ with no reader able to tell that from having nothing to show.
 
 ## The fix
 
-Both readers skip a bad line and keep going. **Skipping is right here and is not fail-open**: the
-appender's set is only an idempotency guard, so a dropped line at worst permits a second row for
-one day — visible, counted, greppable — where raising loses the whole future of an append-only
-record. Failing closed on an append-only record means never appending, which destroys strictly more
-than the corruption did.
+**CORRECTED 2026-09-05, beside the claim it got wrong.** This section originally read *"Both readers
+skip a bad line and keep going. Skipping is right here and is not fail-open"*, and argued that a
+dropped line "at worst permits a second row for one day". That argument was wrong about the
+appender, and a concurrent lane repairing the same defect reached the opposite answer independently
+— which is how it was caught, at the merge. **The two readers need OPPOSITE repairs.**
 
-The scorecard is a published surface, so its skip is **stated, not silent**: a new
-`log_lines_unreadable` field rides on the artefact. Zero is the normal answer, and it must be a real
-zero rather than an absent field, so a reader can tell a clean log from an unasked question.
+The scorecard is a pure READER and skips: a bad line costs one entry. Because it is a published
+surface the skip is **stated, not silent** — an `unreadable_log_lines` field rides on the artefact.
+Zero is the normal answer, and it must be a real zero rather than an absent field, so a reader can
+tell a clean log from an unasked question.
+
+The appender is a WRITER and **refuses**, naming its reason on stderr. The "at worst one duplicate"
+concession was the whole defect: a torn line is a write killed mid-flight, so the likeliest torn
+line is *today's own row*. Skipping it drops today out of `existing_dates`, the guard reports "not
+logged yet", and a re-run appends a second row for the same day — the exact duplicate the
+one-entry-per-day rule exists to forbid, and `generate_track_record_scorecard` grades both. So the
+bad case is the LIKELY one, not the tail. Nothing is lost by refusing: `live_decisions_<date>.json`
+and `live_decisions_latest.json` are already on disk before the append is attempted. The integrity
+of a published track record beats its continuity — a record that stopped growing behind a named,
+greppable refusal is honest; one that quietly gained a second row for a day is not.
 
 `tests/tools/test_the_jsonl_carriers_torn_line_partition.py` — 9 controls, all mutation-proven
 (7 mutants killed, including *guard too wide*, *guard only the parse and not the subscript*, and
