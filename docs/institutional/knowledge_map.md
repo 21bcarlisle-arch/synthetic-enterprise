@@ -26,6 +26,34 @@ have used in 2018 is not the one published in 2026)
 
 ---
 
+## Domain: Weather Geography of Household Heat Load
+
+Phase 1 of the weather-cells derivation: what set of weather cells captures the vast majority of
+**household-weighted** variation in the drivers of household heat load. The source is established
+and validated; the derivation it feeds is not done, so every derived row below is a gap, not a
+value. Nothing here may be quoted as a cell count yet.
+
+| Topic | What we know | Conf | Key gaps | Next question |
+|-------|-------------|------|---------|---------------|
+| Authoritative weather grid | Met Office HadUK-Grid v1.3.2.ceda at 1 km, OGL v3.0, via CEDA; 245,077 land cells on a 900×1450 OSGB36 grid; record to end-2025; annual release | H | — | Does the next annual release change the grid or only extend it? |
+| Phase-1 drivers, 1991–2020 normals | Mean air temperature (°C), wind speed at 10 m (m/s), sunshine (hours). GB+NI unweighted annual mean 9.12 °C; annual sunshine 1,403 h; Jan/Jul temp 3.9/15.3 °C; winter wind 5.6 m/s vs summer 4.1 m/s | H | Not yet cross-checked against the Met Office's own published UK averages | Do our land-cell means reconcile with the published UK 1991–2020 averages, and if not, is it the weighting? |
+| Temperature/wind coupling | Wind is highest in the coldest months at national scale — the direction the ruling's expected-shape block predicts | M | Whether it survives per-cell and at daily resolution | Is "cold and still" or "cold and windy" the peak-load condition per cell? |
+| Solar irradiance | **We do not have it.** HadUK publishes sunshine *duration*, not irradiance, and the 1 km archive has no irradiance product | H | The duration→irradiance bridge is undecided: Ångström–Prescott (latitude-specific coefficients) vs a second gridded source | Which source, and what does adopting it cost in single-anchor discipline? |
+| Sub-monthly wind and sun | **Unavailable at daily resolution.** Only `tas` publishes a daily product | H | Cold-and-still coincidence cannot be measured from this source at all | Does a second source support daily wind without breaking the anchor? |
+| GB-only boundary | HadUK is a UK product; 14,565 land cells are in Northern Ireland. Census household weights (E&W 2021, Scotland 2022) carry no NI postcodes, so household weighting is itself the GB mask | H | Must be asserted in the analysis, not assumed | — |
+| Cell count vs variation explained | **Nothing established.** The curve does not exist | — | The whole derivation: level and shape curves, 90/95/99% cell sets, LDZ/GSP/SAP-21 comparison, persistence, synchrony | How many cells for 95%? |
+| Elevation to house height | **Not pulled.** Ordnance Survey open terrain data | — | Whole step | — |
+| Household weights by postcode | **Not pulled.** E&W 2021 and Scotland 2022 censuses | — | Whole step | — |
+| Independent validation | **Not done.** DESNZ sub-national gas consumption at small-area level — the check that cells explain real heat demand, not merely weather | — | Whole step | Do the derived cells beat LDZ at explaining small-area gas use? |
+
+**Sources:** Met Office HadUK-Grid v1.3.2.ceda (CEDA Archive, OGL v3.0)
+**Files:** `docs/market_research/haduk_grid_weather_cells_phase1_source.md` (the working doc, with
+the four choices the data forces), `docs/market_research/haduk_grid_pull_receipt.json` (per-file
+provenance and sha256), `tools/fetch_haduk_grid.py` (the puller)
+**Ruling:** `docs/staging/DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05.md`
+
+---
+
 ## Domain: Regulatory Framework
 
 | Topic | What we know | Conf | Key gaps | Next question |

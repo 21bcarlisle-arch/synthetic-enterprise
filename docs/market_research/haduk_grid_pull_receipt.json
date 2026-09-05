@@ -1,0 +1,49 @@
+{
+  "generated_at_utc": "2026-09-05T11:45:29Z",
+  "source": "Met Office HadUK-Grid 1km, CEDA Archive",
+  "dataset_version": "v1.3.2.ceda",
+  "release_directory": "v20260512",
+  "licence": "Open Government Licence v3.0",
+  "archive_root": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km",
+  "cache_root": "/home/rich/.cache/synthetic-enterprise/haduk_grid",
+  "token_source": "minted",
+  "tiers": [
+    "normals"
+  ],
+  "requested": 3,
+  "complete": 3,
+  "failed": 0,
+  "bytes_on_disk": 124079328,
+  "files": [
+    {
+      "tier": "normals",
+      "variable": "tas",
+      "frequency": "mon-30y",
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/mon-30y/v20260512/tas_hadukgrid_uk_1km_mon-30y_199101-202012.nc",
+      "path": "tas/mon-30y/tas_hadukgrid_uk_1km_mon-30y_199101-202012.nc",
+      "status": "fetched",
+      "bytes": 41385254,
+      "sha256": "a68aa595f8a05e63ce904e7025377758d3c056a280fe87d0b6d29e9b0fba6876"
+    },
+    {
+      "tier": "normals",
+      "variable": "sfcWind",
+      "frequency": "mon-30y",
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/sfcWind/mon-30y/v20260512/sfcWind_hadukgrid_uk_1km_mon-30y_199101-202012.nc",
+      "path": "sfcWind/mon-30y/sfcWind_hadukgrid_uk_1km_mon-30y_199101-202012.nc",
+      "status": "fetched",
+      "bytes": 41890687,
+      "sha256": "c64bcb33922c95215354b0507d54fe1ff56bc279f6685b88bbb39307050efacc"
+    },
+    {
+      "tier": "normals",
+      "variable": "sun",
+      "frequency": "mon-30y",
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/sun/mon-30y/v20260512/sun_hadukgrid_uk_1km_mon-30y_199101-202012.nc",
+      "path": "sun/mon-30y/sun_hadukgrid_uk_1km_mon-30y_199101-202012.nc",
+      "status": "fetched",
+      "bytes": 40803387,
+      "sha256": "d1cda0d700368a29f61dc26a51e3ebb427ee3a866402c0976412b731cd3109a0"
+    }
+  ]
+}
