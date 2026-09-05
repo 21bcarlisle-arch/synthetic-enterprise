@@ -82,3 +82,37 @@ guess" failure this repo keeps paying for. **Whether it has happened before is o
 version of that check is to look for claims whose bound paths lie outside the lane that holds them.
 
 — Delivery seat, 2026-09-04.
+
+---
+
+## Repaired, 2026-09-05
+
+**Discharged:** `tests/background/test_the_standalone_landed_binds_this_lanes_paths_not_the_other_sides.py::test_a_backwards_merge_binds_this_lanes_paths`, `tests/background/test_the_standalone_landed_binds_this_lanes_paths_not_the_other_sides.py::test_an_already_pushed_merge_refuses_and_names_both_sides` — the first fails if the first-parent guess returns, the second if the refusal is softened into one; both mutation-run before landing.
+
+Neither filed option survived the measurement whole, and the measurement is in
+`SEAT_RESULT_PUBLICATION_SEPARATES_A_MERGES_TWO_SIDES_AND_ONLY_BEFORE_THE_MERGE_IS_PUSHED_2026-09-05.md`.
+Short version: **option 2 as stated is wrong** — today's `origin/main` is empty against both of this
+repo's real `merge origin/main:` commits, because they are pushed, so a blanket default would turn
+the harmless post-promote re-run into a refusal. **Option 1 is right about the case that needs it
+and pessimistic about the rest** — the sides ARE separable, by publication, from the merge's own
+parents: the base was already on `origin/main` and the landing was not, or it would not have needed
+merging. Where publication cannot separate them (the merge itself pushed; no readable `origin/main`)
+this refuses and names both sides by sha and subject, which is option 1 exactly.
+
+**Demonstrated live on the very turn that repaired it.** That turn's own promotion produced the
+merge shape, and the standalone command on it now says:
+
+```
+bound NOTHING to landed-standalone-...: HEAD is a MERGE whose parents are BOTH already on
+origin/main, so git cannot say which side is this claim's ... The two sides are:
+424818d56 the standalone --landed guessed first-parent on a merge ... /
+5ebdb5566 chore(liveness): publish heartbeat ... Re-run naming the subject: `--commit <your
+own landing>`, or `--since <the base you merged onto>`.
+```
+
+The old code would have bound that heartbeat commit's paths and printed `bound N path(s)`. The
+named remedy then bound the four real ones. `--since` is new on the CLI in that repair: the refusal
+was naming a flag argparse did not have.
+
+The open question is still open, and this did not run it: **whether any past turn was mis-graded.**
+The cheap check remains "look for claims whose bound paths lie outside the lane that holds them".
