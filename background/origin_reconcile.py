@@ -350,7 +350,7 @@ def identical_untracked_twins(project: Path | None = None,
 
 def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
                         tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
-                        locker=None) -> dict:
+                        locker=None, ahead_fn=None) -> dict:
     """Fast-forward the shared tree onto `origin/main`, clearing byte-identical twins of BOTH kinds.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
@@ -368,6 +368,28 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     NON-TWIN path cannot fast-forward however many identical files are cleared, so clearing them
     there would be a deletion bought for no advance -- the one shape in which this could actually
     cost someone something.
+
+    THAT SENTENCE WAS FALSE FOR ONE CAUSE, AND IT IS THE CAUSE THE LIVE TREE HAD ON 2026-09-05.
+    "Nothing else to refuse on" was only ever tested against the DIRTY-TREE collisions
+    `paths_blocking_fast_forward` enumerates. A tree that has diverged -- local commits origin does
+    not have -- cannot fast-forward for a reason no working-tree path can express, and git says so
+    in words this module never read: *"Diverging branches can't be fast-forwarded"*. Measured here
+    that day: `behind 32, ahead 5`, and `paths_blocking_fast_forward` still answered with 18 paths,
+    none of which was the cause. Had those 18 all hashed equal to origin -- the state the twin sweep
+    exists to reach, and the one it was about to be handed -- this would have taken the tree lock,
+    unlinked the untracked twins, restored the tracked ones, and then failed the second `--ff-only`
+    exactly as before. A deletion bought for no advance: the named worst case, reached through the
+    door the guard was not watching.
+
+    SO DIVERGENCE IS ASKED FIRST, AND IT IS ASKED OF GIT, NOT OF THE TREE. `commits_ahead` is the
+    same seam `reconcile` already trusts to decide whether a merge is legitimate at all. Unreadable
+    is a REFUSAL, like every other comparison here: a file is never deleted on a question that was
+    not answered.
+
+    THE WINDOW IS REAL AND IT IS MINUTES WIDE. `reconcile` reads `ahead` once at the top, then
+    merges, gates and pushes before calling this -- and several sessions and daemons commit into
+    this one tree throughout. The tree that was level when `reconcile` looked is routinely diverged
+    by the time the advance runs, so this is not a guard against a hypothetical.
 
     AND THE SET IT IS ALL-OR-NOTHING OVER GREW ON 2026-09-05. It used to be the untracked twins
     alone, so a tracked blocker was fatal to the whole attempt whatever its content -- and four of
@@ -392,6 +414,27 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
         return {"advanced": True, "cleared": [],
                 "reason": "fast-forwarded onto {}/{} with nothing in the way".format(
                     REMOTE, BRANCH)}
+
+    # BEFORE ANY PATH IS JUDGED, ASK WHETHER A FAST-FORWARD WAS POSSIBLE AT ALL. Divergence is not
+    # a collision and no amount of clearing addresses it, so this has to come ahead of the twin
+    # comparison rather than beside it -- the blocking set is non-empty on a diverged tree too, and
+    # it names paths that are not the cause.
+    ahead = (ahead_fn or commits_ahead)(project)
+    if ahead is None:
+        return {"advanced": False, "cleared": [],
+                "reason": "git refused the fast-forward and whether this tree holds commits origin "
+                          "does NOT could not be established, so nothing was cleared -- a file is "
+                          "never deleted on a question that was not answered"}
+    if ahead:
+        return {"advanced": False, "cleared": [],
+                "reason": "git refused the fast-forward because this tree has DIVERGED -- {} local "
+                          "commit(s) that {}/{} does not have. No working-tree path is the cause "
+                          "and clearing twins would delete files and still not advance, so nothing "
+                          "was touched. The fork closes by landing those commits on origin (the "
+                          "reconciler's own merge leg, `python3 -m background.origin_reconcile`), "
+                          "never by clearing paths here. git: {}".format(
+                              ahead, REMOTE, BRANCH,
+                              (first.stderr or first.stdout or "").strip()[:200])}
 
     blocking = (blockers_fn or paths_blocking_fast_forward)(project)
     if blocking is None:

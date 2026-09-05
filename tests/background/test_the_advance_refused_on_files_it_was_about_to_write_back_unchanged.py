@@ -74,6 +74,9 @@ class _Advance:
             remover=self.removed.append,
             restorer=lambda path: None,
             locker=contextlib.nullcontext,
+            # LEVEL WITH ORIGIN: the subject here is the twin comparison, not divergence, and the
+            # real `commits_ahead` reads whatever repository the suite happens to run in.
+            ahead_fn=lambda _project: 0,
         )
 
 
@@ -127,6 +130,7 @@ def test_the_removal_and_the_advance_actually_happened_in_that_order():
         ff_fn=ff,
         remover=lambda p: order.append("rm:{}".format(p)),
         locker=contextlib.nullcontext,
+        ahead_fn=lambda _project: 0,
     )
     assert order == ["ff", "rm:{}".format(twin), "ff"], \
         "the advance must try the fast-forward, clear the twins git refused on, and only then try " \

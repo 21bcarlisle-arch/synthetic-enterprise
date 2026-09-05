@@ -88,6 +88,10 @@ class _Advance:
             remover=self.removed.append,
             restorer=self._restore,
             locker=contextlib.nullcontext,
+            # LEVEL WITH ORIGIN, so the subject of every test here stays the TWIN logic. The real
+            # `commits_ahead` reads the repository the suite runs in, which is routinely ahead of
+            # origin, and that would refuse these cases for a reason none of them is about.
+            ahead_fn=lambda _project: 0,
         )
 
 
