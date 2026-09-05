@@ -80,6 +80,15 @@ its two test files stop being dirty at all, and the blocking set becomes nine un
 two staged twins plus `process_run_complete.py` — **all resolvable except the last**, which holds
 everything until that lane lands its hunks.
 
+**Measured after landing `aab6fb990`, beside the prediction:** `blocking: 13 | untracked twins: 10
+| tracked twins: 2 | STILL HELD BY: ['background/process_run_complete.py']`. The substance held —
+one path, and it is the one that is somebody's work. The **count** did not: I predicted nine
+untracked twins and there are ten, because a further staging note arrived from another lane between
+the prediction and the measurement. That is the tree being live, not the mechanism being wrong, and
+it is worth keeping written down: **a prediction about a count over a shared tree is a prediction
+about a minute.** The property (which paths are resolvable, and why) is what was actually being
+tested and is what held.
+
 ## 4. Controls
 
 `tests/background/test_the_twin_sweep_was_defeated_by_git_add.py`, 9 tests, **nine named mutations
