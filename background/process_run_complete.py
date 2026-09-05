@@ -9,7 +9,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from contextlib import ExitStack, contextmanager
+from contextlib import ExitStack, contextmanager, nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -4685,21 +4685,81 @@ def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None, b
         # THE LOCK, BECAUSE THIS WRITES THE SHARED WORKING TREE -- and taken and RELEASED here
         # rather than held into the commit below, which acquires it again. `tree_lock` is an
         # flock and a nested acquisition from one process deadlocks (see `_git_add_or_refuse`).
+        # THE ADVANCE IS THE SIBLING'S, NOT A SECOND COPY OF IT (2026-09-05). What used to be here
+        # was one `git merge --ff-only` and its refusal. `origin_reconcile.advance_shared_tree` is
+        # the same act plus the repair this one never got: when EVERY path git refuses on is an
+        # untracked file whose bytes origin already holds at that same path, it removes them and
+        # asks again. Measured on this tree 2026-09-04 -- 13 of 14 blocking paths were files
+        # about to be replaced by themselves.
+        #
+        # `_refused_advance_cause` twelve lines up already names this exact shape as the debt:
+        # "the ahead-count was reused and the advance was hand-rolled, so when the twin-clearing
+        # repair landed in `advance_shared_tree` it reached the reconciler's two legs and not this
+        # one." That sentence was written while this function still hand-rolled it; this is it
+        # being paid, so a third fix to the fast-forward can never again reach two callers of
+        # three.
+        #
+        # NOT A WIDER ACT THAN THE PUBLISHER ALREADY SANCTIONS. The removal is all-or-nothing (a
+        # single FF_MODIFIED path and nothing is deleted at all), the twins are selected by hash
+        # equality against origin's own blob, and origin holds every byte of every one -- it is
+        # the same mechanism already running against this same tree on the deadman cadence.
+        #
+        # THE LOCK IS TAKEN HERE AND THE INNER ONE IS PASSED OUT, and that is not a bypass. The
+        # helper locks only its removal-and-retry leg; its FIRST fast-forward attempt writes the
+        # shared tree unlocked, which is fine for its own caller and not fine for this one. Taking
+        # it across the whole call closes that window, and `locker=nullcontext` is how the helper's
+        # own seam says "the caller holds it" -- `tree_lock` is an flock and a nested acquisition
+        # from one process deadlocks (see `_git_add_or_refuse`). Released before the commit below,
+        # which acquires it again for the same reason.
+        #
+        # `ff_fn` KEEPS THE MERGE ON THIS FUNCTION'S OWN RUNNER AND TIMEOUT. The publish path has a
+        # budget the deadman cadence does not, and `runner=` is the seam four sibling suites use to
+        # prove this recovery can never raise into a cycle that must finish.
+        #
+        # AND THE MERGE'S OWN OUTPUT IS KEPT HERE RATHER THAN READ BACK OUT OF THE HELPER'S REASON.
+        # Only two of `advance_shared_tree`'s five refusal branches quote git, and the branch a
+        # dirty publish tree actually takes -- "N of M blocking path(s) are NOT byte-identical" --
+        # is not one of them. A refusal derived from a clause whose ground truth is missing is
+        # unfalsifiable, which is the property
+        # `test_the_refusal_names_the_path_the_remedy_and_gits_own_words` exists for, and it went
+        # red on the first draft of this call. Owning the runner means owning what it said: this
+        # cannot be lost again by a future branch added inside the helper.
+        _ff_seen = []
+        from background.origin_reconcile import advance_shared_tree
         with tree_lock():
-            ff = _run(["git", "merge", "--ff-only", "origin/main"], FORK_ADVANCE_TIMEOUT_SECONDS)
-        if ff.returncode == 0:
+            # DEFINED INSIDE THE LOCK ON PURPOSE, and the placement is load-bearing twice over: the
+            # merge must RUN under the lock, and `test_the_advance_writes_the_shared_tree_under_
+            # the_tree_lock` reads this block's AST to check that the argv is there to run.
+            def _ff():
+                ff = _run(["git", "merge", "--ff-only", "origin/main"],
+                          FORK_ADVANCE_TIMEOUT_SECONDS)
+                _ff_seen.append(ff)
+                return ff
+
+            adv = advance_shared_tree(project, blockers_fn=blockers_fn, locker=nullcontext,
+                                      ff_fn=_ff)
+        if adv["advanced"]:
             return {"advanced": True,
                     "reason": "fast-forwarded the shared tree onto origin/main -- no commit was "
                               "created and origin was not touched, so this cycle's completed work "
-                              "is publishable rather than discarded"}
+                              "is publishable rather than discarded. {}".format(adv["reason"])}
         # THE CAUSE, AHEAD OF GIT'S OWN WORDS RATHER THAN INSTEAD OF THEM. git names the first
         # colliding path and stops; the clause names all of them and which KIND each is, which is
         # what decides who clears it. Both are kept: the clause is what a reader acts on, git's
-        # tail is the ground truth it is derived from.
+        # tail is the ground truth it is derived from -- and `adv["reason"]` carries that tail.
+        #
+        # THE CLAUSE IS RE-DERIVED AFTER THE HELPER ACTED, so on the one path where twins WERE
+        # removed and git refused anyway, it describes what is blocking NOW and cannot name them.
+        # `adv["reason"]` is what names them, and it carries the `git checkout` that restores any
+        # one -- which is why both sentences are kept rather than the tidier one.
         _verdict, _clause = _refused_advance_cause(project, blockers_fn)
+        _said = (stderr_tail(_ff_seen[-1].stderr) if _ff_seen
+                 else "the fast-forward was never attempted, so git said nothing")
         return {"advanced": False,
-                "reason": "git REFUSED the fast-forward (rc={}) -- {}. {} git said: {}".format(
-                    ff.returncode, _verdict, _clause, stderr_tail(ff.stderr))}
+                "reason": "git REFUSED the fast-forward (rc={}) -- {}. {} The advance reported: "
+                          "{}. git said: {}".format(
+                              _ff_seen[-1].returncode if _ff_seen else "unrun",
+                              _verdict, _clause, adv["reason"], _said)}
     except TreeLockTimeout as exc:
         return {"advanced": False,
                 "reason": "another writer held the tree lock ({}), so nothing was moved; the next "
