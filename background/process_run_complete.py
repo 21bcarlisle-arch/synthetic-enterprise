@@ -4554,7 +4554,57 @@ FORK_ADVANCE_TIMEOUT_SECONDS = 300
 PUBLISH_ADVANCE_ATTEMPTS = 3
 
 
-def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
+def _refused_advance_cause(project, blockers_fn=None):
+    """The NAMED cause of a refused fast-forward, and whether calling it "the guard working" is
+    honest. Returns `(verdict, clause)`, both sentences, never raising.
+
+    BORROWED WHOLE FROM THE SIBLING, NOT RESTATED. `origin_reconcile.paths_blocking_fast_forward`
+    asks this exact question and `_blocking_clause` renders this exact answer, and both carry the
+    incident that put them there. A third implementation would fork that history -- and this
+    module has already paid for the copy-instead-of-call shape once, at this very function: the
+    ahead-count was reused and the advance was hand-rolled, so when the twin-clearing repair
+    landed in `advance_shared_tree` it reached the reconciler's two legs and not this one.
+
+    WHY THE VERDICT IS DERIVED AND NOT FIXED. The string this replaces asserted, of EVERY
+    refusal, that it was "the guard working and not a fault". For an `FF_UNTRACKED` twin that is
+    exactly right. For an `FF_MODIFIED` path it is false in the way that costs a reader an
+    orientation: a tracked file some lane is holding dirty is a WEDGE with an owner and a named
+    remedy, and telling the reader it is the guard working sends them away from the one act that
+    would clear it. Measured 2026-09-04/05: nine advance attempts, zero fires, and the single
+    tracked path refusing every one of them was this module's own source file -- while the log
+    line said the guard was working.
+    """
+    try:
+        from background.origin_reconcile import (
+            FF_MODIFIED,
+            _blocking_clause,
+            paths_blocking_fast_forward,
+        )
+        blocking = (blockers_fn or paths_blocking_fast_forward)(project)
+        clause = _blocking_clause(blocking)
+    except Exception as exc:  # noqa: BLE001 -- naming the cause must never cost git's own words
+        return ("whether this is a dirty-tree collision was NOT established ({}: {}), so this "
+                "names the refusal and not its cause".format(type(exc).__name__, exc), "")
+    if blocking is None:
+        # `None` is "I could not look", and `_blocking_clause` already says so. What must NOT
+        # happen is that it reads as the reassuring verdict -- an unestablished cause is not a
+        # clean bill.
+        return ("whether this is a dirty-tree collision was NOT established", clause)
+    if any(b.get("kind") == FF_MODIFIED for b in blocking):
+        return ("this is NOT merely the guard working: a tracked file this tree has edited is "
+                "holding the shared tree behind origin. It belongs to whichever lane is holding "
+                "it, and `python3 -m tools.isolate_hunks --survey` is how that lane lands its "
+                "hunks without waiting for anyone", clause)
+    if blocking:
+        return ("the guard working and not a fault -- every blocking path is UNTRACKED here, so "
+                "no lane's work is at stake if they are byte-identical to what origin brings "
+                "(`git hash-object` against `git rev-parse origin/main:<path>` settles it)",
+                clause)
+    return ("nothing local collides, so this refusal is NOT a dirty-tree collision and calling "
+            "it the guard working would be a guess", clause)
+
+
+def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None, blockers_fn=None):
     """Close a fork the publish path just found, when closing it is MECHANICAL. Never raises.
 
     Returns `{"advanced": bool, "reason": str}`. `advanced` is claimed only when git itself
@@ -4642,9 +4692,14 @@ def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None):
                     "reason": "fast-forwarded the shared tree onto origin/main -- no commit was "
                               "created and origin was not touched, so this cycle's completed work "
                               "is publishable rather than discarded"}
+        # THE CAUSE, AHEAD OF GIT'S OWN WORDS RATHER THAN INSTEAD OF THEM. git names the first
+        # colliding path and stops; the clause names all of them and which KIND each is, which is
+        # what decides who clears it. Both are kept: the clause is what a reader acts on, git's
+        # tail is the ground truth it is derived from.
+        _verdict, _clause = _refused_advance_cause(project, blockers_fn)
         return {"advanced": False,
-                "reason": "git REFUSED the fast-forward (rc={}), which is the guard working and "
-                          "not a fault: {}".format(ff.returncode, stderr_tail(ff.stderr))}
+                "reason": "git REFUSED the fast-forward (rc={}) -- {}. {} git said: {}".format(
+                    ff.returncode, _verdict, _clause, stderr_tail(ff.stderr))}
     except TreeLockTimeout as exc:
         return {"advanced": False,
                 "reason": "another writer held the tree lock ({}), so nothing was moved; the next "
