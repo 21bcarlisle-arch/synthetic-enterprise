@@ -120,6 +120,49 @@ def test_an_unreadable_map_does_not_wedge_every_lane(tmp_path, monkeypatch, caps
     assert "not blocking" in capsys.readouterr().err
 
 
+def test_the_escape_count_comes_from_the_commit_record_not_a_store(tmp_path):
+    """THE DEFECT THE FIRST VERSION SHIPPED WITH, and it made the measurement flattering.
+
+    Escapes were appended to `docs/observability/next_step_escapes.jsonl` under `PROJECT` --
+    `Path(__file__).parent.parent`. The sanctioned landing move runs the hook chain inside a
+    `tempfile.mkdtemp(prefix="surgical-land-")` extract which is `rmtree`'d afterwards, so every
+    escape from every properly-landed commit was written into a directory that then ceased to
+    exist. The file was never tracked. The register read "one escape, ever" -- a number produced
+    by counting nothing, and one that reads as "escapes are rare".
+
+    Driven against a real repo whose commits were made in the ordinary way: the point is that the
+    count's subject is the durable record, so where the hook happened to run cannot lose it.
+    """
+    import subprocess
+
+    repo = tmp_path / "r"
+    repo.mkdir()
+    env = {"PATH": "/usr/bin:/bin", "HOME": str(tmp_path),
+           "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+           "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"}
+    subprocess.run(("git", "init", "-q", "-b", "main", "."), cwd=repo, check=True, env=env)
+    for i, msg in enumerate((
+        "advance a thing\n\nNEXT: PB9_a_real_successor_here\n",
+        "close another\n\nNEXT: none -- the atom reaches target and nothing follows\n",
+        "an ordinary commit naming no atom and carrying no trailer\n",
+    )):
+        (repo / f"f{i}").write_text(str(i))
+        subprocess.run(("git", "add", "-A"), cwd=repo, check=True, env=env)
+        subprocess.run(("git", "commit", "-q", "-m", msg), cwd=repo, check=True, env=env)
+
+    original = gate.PROJECT
+    try:
+        gate.PROJECT = repo
+        got = gate.escape_rate(window=50)
+    finally:
+        gate.PROJECT = original
+
+    assert got["declared"] == 2, "the untrailered commit must not be counted as declaring one"
+    assert got["escaped"] == 1
+    assert got["rate"] == 0.5
+    assert got["reasons"] == ["the atom reaches target and nothing follows"]
+
+
 def test_the_gate_fires_when_run_THE_WAY_THE_HOOK_RUNS_IT(tmp_path):
     """THE DEFECT THIS SHIPPED WITH FOR ONE WIRING, and the one every other test here missed.
 

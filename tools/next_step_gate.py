@@ -38,15 +38,26 @@ reason: a gate that forced a successor to exist would be a gate that made people
 THE ESCAPE IS DELIBERATE AND COUNTED. `NEXT: none -- <reason>` cannot be prevented; any reason a
 person types will satisfy any predicate a gate can write, and a gate that pretends otherwise is an
 exhortation wearing a mechanism's clothes (this project's own most expensive recurring shape). So
-instead of pretending, every `none` is appended to `docs/observability/next_step_escapes.jsonl`,
-which makes the escape RATE a measurable number rather than an unfalsifiable claim. A run of them is
-then a finding about how work is being closed, in the same way the product/machinery split is a
-finding about how work is being chosen.
+instead of pretending, the escape RATE is measurable: `--report` derives it from the commit record.
+A run of escapes is then a finding about how work is being closed, in the same way the
+product/machinery split is a finding about how work is being chosen.
+
+THE COUNT IS DERIVED FROM `git log`, NOT FROM A STORE, and the first version got this wrong.
+It appended each escape to `docs/observability/next_step_escapes.jsonl` under `PROJECT`, which is
+`Path(__file__).parent.parent` -- and the sanctioned landing move runs the hook chain inside a
+`tempfile.mkdtemp(prefix="surgical-land-")` extract that is `rmtree`'d afterwards. So every escape
+from every properly-landed commit was written into a directory that then ceased to exist, the file
+was never even tracked, and the register read "one escape, ever": a flattering number produced by
+counting nothing. A measurement whose subject is a throwaway checkout is the same shape as a
+measurement whose subject is another process's uncommitted copy, and this project has paid for both.
+
+The trailer is already in the commit message, which is durable, tracked, and cannot be lost to a
+temp directory. So the record IS the store, and there is no store to lose.
 """
 from __future__ import annotations
 
-import json
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -59,8 +70,6 @@ PROJECT = Path(__file__).resolve().parent.parent
 # it could have found this.
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
-
-ESCAPES = PROJECT / "docs" / "observability" / "next_step_escapes.jsonl"
 
 #: `NEXT:` at the start of a line, case-insensitive, to the end of that line.
 _NEXT_RE = re.compile(r"^\s*NEXT:\s*(.+?)\s*$", re.IGNORECASE | re.MULTILINE)
@@ -144,18 +153,46 @@ def _looks_like_atom_id(value: str) -> bool:
     return bool(re.fullmatch(r"[A-Z]{1,3}[0-9]{0,3}_[a-z0-9_]{6,}", value.strip()))
 
 
-def record_escape(message: str, reason: str) -> None:
-    """Append a `none` declaration so the escape rate is countable. Never blocks a commit."""
-    try:
-        ESCAPES.parent.mkdir(parents=True, exist_ok=True)
-        subject = message.strip().splitlines()[0][:120] if message.strip() else ""
-        with ESCAPES.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps({"subject": subject, "reason": reason[:300]}) + "\n")
-    except OSError:
-        pass
+def escape_rate(window: int = 200) -> dict:
+    """How often the escape is taken, derived from the commit record itself.
+
+    `declared` counts commits carrying any NEXT: trailer; `escaped` counts the subset declaring
+    `none`. Commits with no trailer are not in either -- most commits name no open atom and are
+    never asked for one, so including them would bury the rate in traffic.
+    """
+    done = subprocess.run(
+        ["git", "log", f"-{int(window)}", "--format=%x00%B"],
+        cwd=str(PROJECT), capture_output=True, text=True, timeout=120,
+    )
+    if done.returncode != 0:
+        raise RuntimeError(f"git log failed: {done.stderr.strip()[:200]}")
+
+    declared = escaped = 0
+    reasons: list[str] = []
+    for body in done.stdout.split("\x00"):
+        trailers = _NEXT_RE.findall(body)
+        if not trailers:
+            continue
+        declared += 1
+        for raw in trailers:
+            m = _NONE_RE.match(raw)
+            if m:
+                escaped += 1
+                reasons.append(m.group(1)[:160])
+                break
+    return {"window": window, "declared": declared, "escaped": escaped,
+            "rate": (escaped / declared) if declared else None, "reasons": reasons}
 
 
 def main(argv: list[str]) -> int:
+    if len(argv) >= 2 and argv[1] == "--report":
+        r = escape_rate()
+        pct = "n/a" if r["rate"] is None else f"{r['rate'] * 100:.0f}%"
+        print(f"[next-step-gate] over the last {r['window']} commits: {r['declared']} declared a "
+              f"next step, {r['escaped']} took the `none` escape ({pct}).")
+        for reason in r["reasons"]:
+            print(f"    none -- {reason}")
+        return 0
     if len(argv) < 2:
         return 0
     try:
@@ -175,10 +212,6 @@ def main(argv: list[str]) -> int:
     if not ok:
         print("[next-step-gate] COMMIT REFUSED.\n" + why, file=sys.stderr)
         return 1
-    for raw in _NEXT_RE.findall(message):
-        m = _NONE_RE.match(raw)
-        if m:
-            record_escape(message, m.group(1))
     return 0
 
 
