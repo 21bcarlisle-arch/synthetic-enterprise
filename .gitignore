@@ -18,11 +18,19 @@ docs/observability/.tmux_relay.lock
 background/.open_agenda.json
 background/.agenda_last_nudge.json
 docs/observability/.last_processed_fingerprint.json
-# The delivery lane's live claim store and its draw ledger. Never tracked, and ignored explicitly
-# from 2026-09-02 because the seat executor now writes a copy into its WORKTREE (so the child's
-# `--landed`/`--release`, which import the worktree's `delivery_lane`, reach a real claim). Without
-# this the child finds an untracked file in `docs/observability/` every turn -- noise at best, and
-# at worst a broad pathspec committing one lane's live claims into the shared tree.
+# The delivery lane's live claim store and its draw ledger. RUNTIME STATE, never tracked: a claim
+# is about what is in hand right now, and a committed one would be three lanes' merge conflict.
+#
+# Ignored explicitly from 2026-09-02, when the reason was that the seat executor wrote a COPY into
+# its worktree for the child's `--landed`/`--release` to reach. That reason expired on 2026-09-05:
+# `CLAIMS_FILE` now resolves through `seat_continuation.shared_tree_dir()`, so there is one store,
+# in the main worktree, and no per-worktree copy is written at all.
+#
+# THE ENTRY STAYS, AND NOT MERELY OUT OF CAUTION. Being ignored is load-bearing in the main tree
+# for the original harm -- a broad pathspec committing one lane's live claims -- and it is why
+# `ensure_worktree`'s `git clean -qfd` (no `-x`) never removed a worktree copy, which is the false
+# premise `seat_executor.bound_landing` used to rest its "written by THIS turn" leg on. If this
+# line is ever dropped, read that docstring first.
 docs/observability/.delivery_lane_claims.json
 docs/observability/.delivery_lane_claims.draws.json
 docs/reports/ledger_latest.json

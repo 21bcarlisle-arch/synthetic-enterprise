@@ -457,19 +457,6 @@ def worktree_is_live(path) -> bool:
         return False
 
 
-def _worktree_claims() -> Path:
-    """The delivery-lane claims store INSIDE the executor's worktree.
-
-    `delivery_lane.PROJECT_DIR` is `Path(__file__).resolve().parent.parent`, so the child running
-    `python3 -m background.delivery_lane --landed/--release <id>` with its cwd in the worktree
-    imports the WORKTREE's copy of the module and reads and writes THIS file. The shared store
-    never hears it. That is not a bug to route around -- it is what worktree isolation is for --
-    so both readers here ask both stores instead, and `delivery_lane.CLAIMS_FILE` keeps pointing
-    at the tree that imported it.
-    """
-    return WORKTREE / "docs" / "observability" / delivery_lane.CLAIMS_FILE.name
-
-
 def _claim_stores() -> tuple[Path, ...]:
     """EVERY store a turn's claim is written to. ACQUIRE AND RELEASE BOTH ITERATE THIS.
 
@@ -490,18 +477,24 @@ def _claim_stores() -> tuple[Path, ...]:
     and the alarm was the one with no way to be right: it reads the only store the turn's paths
     never reach.
 
-    The three answer three different questions, which is why they are three files and not one:
+    THERE WERE THREE UNTIL 2026-09-05 AND THE THIRD IS GONE WITH THE DEFECT THAT NEEDED IT. The
+    third was `WORKTREE / "docs/observability" / <lane store name>`, on the stated ground that a
+    child running `python3 -m background.delivery_lane --landed <id>` from the worktree imports
+    the WORKTREE's module and so reaches the WORKTREE's file. That was true, and it is what the
+    claim-store repair removed: `delivery_lane.CLAIMS_FILE` now resolves through
+    `seat_continuation.shared_tree_dir()`, so the child reaches the SHARED store from either tree.
+    Measured from `/var/tmp/se-seat-executor` at 53c46519e -- every store resolved under
+    `/home/rich/synthetic-enterprise`. Keeping the leg would have left a reader of a file no
+    writer writes, and its own justification asserting the opposite.
+
+    The two answer two different questions, which is why they are two files and not one:
 
       * `seat_work_in_hand` -- the CROSS-LANE PATH GUARD's store (`refuse_if_duplicated`).
       * the SHARED delivery-lane store -- what `next_item` filters on, so it is what stops a
-        concurrent draw handing this item to a second writer mid-turn.
-      * the WORKTREE's delivery-lane store -- the one the CHILD reaches, because its cwd is the
-        worktree and `python3 -m background.delivery_lane --landed <id>` imports that copy.
-
-    NOT the same list as `_still_claimed` reads, and that asymmetry is deliberate: that function
-    asks whether the TICK released, and a tick can only reach the two delivery-lane stores.
+        concurrent draw handing this item to a second writer mid-turn, AND what the child binds
+        its landing into from whichever tree it runs in.
     """
-    return (delivery_lane.claims_mod.CLAIMS_FILE, delivery_lane.CLAIMS_FILE, _worktree_claims())
+    return (delivery_lane.claims_mod.CLAIMS_FILE, delivery_lane.CLAIMS_FILE)
 
 
 def _still_claimed(work_id: str) -> bool:
@@ -511,10 +504,13 @@ def _still_claimed(work_id: str) -> bool:
     handoff loses the seat's judgement about what comes next, and mistakenly keeping one costs a
     tick that finds the work already done and says so.
 
-    BOTH STORES, AND `held` IN EITHER IS NOT ENOUGH -- it must be held in BOTH. `run_once` writes
-    the claim to both, so the id going ABSENT from either one is a release that really happened:
-    from the worktree store when the tick ran `--release` (its cwd is the worktree, so that is the
-    copy it reaches), from the shared store when a tick or a sweep released it there.
+    THE LANE'S STORE IS NOW THE ONLY PLACE A TICK CAN RELEASE, so it is the only one asked. This
+    read both it and a worktree copy until 2026-09-05, on the ground that a tick running
+    `--release` in the worktree reached that copy; the claim-store repair made
+    `delivery_lane.CLAIMS_FILE` resolve to the shared tree from either tree, so both legs became
+    the same question and the worktree leg became a file nothing writes. An AND over a store no
+    writer can clear is a condition that only ever weakens -- exactly the direction that put the
+    unconditional discharge here in the first place.
 
     THIS USED TO ASK ONE STORE AND IT WAS THE WRONG ONE. `run_once` claimed via
     `claims_mod.claim(...)` with no `path=`, which is `seat_work_in_hand`'s store, and this asked
@@ -524,13 +520,10 @@ def _still_claimed(work_id: str) -> bool:
     the discharge door instead of the refusal door. Finding:
     `docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md`.
     """
-    for store in (delivery_lane.CLAIMS_FILE, _worktree_claims()):
-        try:
-            if work_id not in delivery_lane.held(path=store):
-                return False
-        except Exception:  # noqa: BLE001
-            return True
-    return True
+    try:
+        return work_id in delivery_lane.held(path=delivery_lane.CLAIMS_FILE)
+    except Exception:  # noqa: BLE001
+        return True
 
 
 def _hand_back(work_id: str, claimed_at: float) -> None:
@@ -648,30 +641,32 @@ def shared_tree_changes_since(base: str) -> tuple[set[str], str]:
 
 
 def bound_landing(work_id: str) -> tuple[float, list[str]]:
-    """The newest landing bound to `work_id`, from EITHER store this turn could have written.
+    """The newest landing bound to `work_id`, from the store the child binds into.
 
-    TWO STORES, AND THE SECOND IS NOT BELT-AND-BRACES. `delivery_lane.PROJECT_DIR` is derived from
-    `__file__`, so the child running `python3 -m background.delivery_lane --landed <id>` with its
-    cwd in the worktree imports the WORKTREE's copy of the module and binds into the WORKTREE's
-    claims store. The shared store never hears about it. A verdict that read only the shared store
-    would therefore answer LANDED NOTHING for every correctly-behaved turn as well as every failed
-    one -- a constant verdict, which is not a control (R15).
+    ONE STORE SINCE 2026-09-05, AND THAT IS THE REPAIR RATHER THAN A NARROWING. This read the
+    shared store and a worktree copy, because `delivery_lane.PROJECT_DIR` was derived from
+    `__file__`: a child running `python3 -m background.delivery_lane --landed <id>` with its cwd
+    in the worktree imported the WORKTREE's module and bound into the WORKTREE's file, which the
+    shared store never heard about. Reading both was the right compensation for that; removing
+    the cause is better. `delivery_lane.CLAIMS_FILE` now resolves through
+    `seat_continuation.shared_tree_dir()`, so both trees' children bind into the same file.
 
-    The worktree's store is the STRONGER witness where it exists: `ensure_worktree` resets that
-    tree at the start of every turn, so anything in it was written by THIS turn's child. It is
-    still only leg 1 -- the shared tree has to agree separately.
+    THE SENTENCE THIS DOCSTRING LOST WAS FALSE THE WHOLE TIME, and it is why the leg is deleted
+    rather than kept as belt-and-braces. It read: *"the worktree's store is the STRONGER witness
+    where it exists: `ensure_worktree` resets that tree at the start of every turn, so anything in
+    it was written by THIS turn's child."* `ensure_worktree` runs `git clean -qfd` -- no `-x` --
+    and `.gitignore:26` lists this exact file, so the reset never removed it and a copy could
+    carry a landing bound by any earlier turn. `subject_moved`'s `landed_at <= since` guard is
+    what actually contained that, not the reset the comment credited. A leg justified by a
+    property its own code does not have is the R15 shape, and it outlived the defect it answered.
 
-    `(0.0, [])` if neither store carries one. Never raises.
+    `(0.0, [])` if the store carries none. Never raises.
     """
-    best: tuple[float, list[str]] = (0.0, [])
-    for store in (delivery_lane.CLAIMS_FILE, _worktree_claims()):
-        try:
-            when, paths = delivery_lane.last_landing(work_id, path=store)
-        except Exception:  # noqa: BLE001
-            continue
-        if when > best[0] and paths:
-            best = (when, paths)
-    return best
+    try:
+        when, paths = delivery_lane.last_landing(work_id, path=delivery_lane.CLAIMS_FILE)
+    except Exception:  # noqa: BLE001
+        return (0.0, [])
+    return (when, paths) if paths else (0.0, [])
 
 
 def subject_moved(work_id: str, base: str, since: float) -> tuple[bool, str]:

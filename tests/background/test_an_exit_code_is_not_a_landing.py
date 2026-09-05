@@ -597,21 +597,29 @@ def test_a_release_reason_that_BLOWS_UP_still_names_its_class(stores, monkeypatc
     assert "could not be derived" in why and "RuntimeError" in why
 
 
-def test_the_refusal_NAMES_THE_WORKTREE_when_that_is_where_it_is_standing(stores, tmp_path,
-                                                                          monkeypatch):
-    """§6's trap, pinned against a REAL linked worktree rather than a stubbed answer.
+def test_the_refusal_names_the_worktree_ONLY_when_the_STORE_is_really_worktree_local(
+        stores, tmp_path, monkeypatch):
+    """BOTH SIDES OF §6's trap, over ONE real linked worktree. The partition, not a leg.
 
-    A child running `--release` with its cwd in the executor's worktree writes the WORKTREE's
-    store; `ensure_worktree` resets it next turn, so the shared tree never hears the release. The
-    reason has to say so, because "not claimed" would send the reader to the wrong store entirely.
+    THIS CONTROL WAS KEYED TO THE ANSWER AND THE ANSWER CHANGED (2026-09-05). It asserted that
+    standing in a linked worktree is ENOUGH to name the worktree -- which was true while
+    `CLAIMS_FILE` resolved against `PROJECT_DIR`, and is exactly what the claim-store repair
+    abolished. `claims_file` now resolves through `seat_continuation.shared_tree_dir()`, so a
+    child in the worktree writes the SHARED store and the worktree is no longer the cause of
+    anything. The old assertion went red when the code became more honest, which is the shape
+    CLAUDE.md names: key a control to the PROPERTY, not to today's answer.
 
-    THIS CLAUSE IS WHY THE FIXTURE PINS `PROJECT_DIR`. It is a property of where the PROCESS
-    stands, not of the id, so it fires for every id once it fires at all — which means it MASKS
-    the other two causes rather than joining them. Covering it here is what keeps that a
-    deliberate ordering instead of an accident nobody measured.
+    THE PROPERTY IS THE IMPLICATION, so both legs are asserted together and one function owns
+    them. A one-leg version of either half passes under the bug the other half catches: assert
+    only "names it" and the repair reads as a regression; assert only "does not name it" and a
+    clause that never fires at all is green.
 
-    MUTATION: drop the `common != own` comparison, or return the generic string here, and this
-    fires.
+      * standing in a worktree, store RESOLVED ACROSS -> must NOT blame the worktree
+      * standing in a worktree, store genuinely INSIDE it -> must blame the worktree
+
+    MUTATION: make `_store_is_worktree_local` return `(PROJECT_DIR / ".git").is_file()` -- the
+    pre-repair rule -- and leg 1 fires. Drop the `relative_to` guard's effect by returning False
+    unconditionally and leg 2 fires.
     """
     worktree = tmp_path / "linked"
     git = ["git", "-c", "user.email=t@t", "-c", "user.name=t", "-C", str(stores.shared)]
@@ -620,15 +628,25 @@ def test_the_refusal_NAMES_THE_WORKTREE_when_that_is_where_it_is_standing(stores
                    capture_output=True)
     monkeypatch.setattr(delivery_lane, "PROJECT_DIR", worktree)
 
+    # LEG 1 -- the repair. `stores.lane` is outside the worktree, which is what a resolved store
+    # looks like from in here. The worktree must not be blamed for it.
     why = delivery_lane.release_refusal_reason("nowhere-at-all", path=stores.lane)
-    assert "LINKED WORKTREE" in why and "shared tree" in why
+    assert "LINKED WORKTREE" not in why, \
+        f"the worktree was blamed for a store that resolved across to the shared tree: {why}"
+    assert "NOT CLAIMED" in why, why
+
+    # LEG 2 -- the cause that SURVIVES the repair: resolution fell back closed, or a caller passed
+    # a worktree-local path. That is still real and still the thing to say.
+    local = worktree / "docs" / "observability" / "delivery_lane_claims.json"
+    local.parent.mkdir(parents=True, exist_ok=True)
+    why_local = delivery_lane.release_refusal_reason("nowhere-at-all", path=local)
+    assert "LINKED WORKTREE" in why_local and "shared tree" in why_local, why_local
 
     # The id-specific cause still OUTRANKS it: the matched pair is actionable and the worktree
     # clause would otherwise swallow it on the executor's own route, where it matters most.
     delivery_lane.claims_mod.claim("promoted-item", paths=[], path=stores.hand)
-    assert "matched pair" in delivery_lane.release_refusal_reason("promoted-item",
-                                                                  path=stores.lane)
-# ------------------------------------------------------------- the ROUTE decides the store
+    assert "matched pair" in delivery_lane.release_refusal_reason("promoted-item", path=local)
+# --------------------------------------------------- the ROUTE decides WHO CLAIMS, not the store
 #
 # WHY THIS SECTION EXISTS AND WHY IT DRIVES `run_once` RATHER THAN A FIXTURE.
 #
@@ -639,11 +657,20 @@ def test_the_refusal_NAMES_THE_WORKTREE_when_that_is_where_it_is_standing(stores
 # `delivery_lane`'s. A tick that really landed and really promoted `8cb73c627` was scored as having
 # landed nothing. The old verdict could never say NO; its replacement could never say YES.
 #
-# So these tests stub NOTHING between `run_once` and the stores. They let the ROUTE choose where
-# the claim lands -- which is the thing that was wrong -- and a fixture that claimed directly would
+# So these tests stub NOTHING between `run_once` and the stores. They let the ROUTE choose the
+# claim path -- which is the thing that was wrong -- and a fixture that claimed directly would
 # pass under the defect, which is exactly the trap the finding's §9.6 names.
 #
-# Finding: docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md
+# THIS HEADER SAID "the ROUTE decides the STORE" UNTIL 2026-09-05, and that was the pre-repair
+# world: `CLAIMS_FILE` resolved against the importing tree, so a promoted turn's child in the
+# worktree and a drawn tick on the shared tree wrote DIFFERENT files. The claim-store repair
+# resolves both through `seat_continuation.shared_tree_dir()`, so the store is now one file and
+# the route decides only WHO CLAIMED it -- `run_once` for a promotion, `draw()` for a drawn item.
+# The section keeps its shape because that difference is still real and still worth two
+# parametrisations; only the axis it names has moved.
+#
+# Findings: docs/staging/done/SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md
+#           docs/staging/done/SEAT_FINDING_THE_BINDING_THE_TURN_IS_JUDGED_ON_READS_A_STORE_THE_ISOLATED_WORKTREE_ALWAYS_HAS_EMPTY_2026-09-05.md
 
 
 @pytest.fixture()
@@ -684,9 +711,17 @@ def routed(tmp_path, monkeypatch):
     def child_binds(store):
         """What `python3 -m background.delivery_lane --landed the-item` does from a given cwd.
 
-        The cwd is what selects the store: a tick in the worktree imports the worktree's module,
-        a tick on the shared tree imports the shared one. That is simulated by the explicit
-        `path=`, and it is the whole subject of these tests.
+        THE CWD NO LONGER SELECTS THE STORE, and that is the 2026-09-05 repair rather than a
+        simplification of the test. It used to: a tick in the worktree imported the worktree's
+        module and wrote the worktree's file, a tick on the shared tree wrote the shared one --
+        so an isolated turn's `--landed`, the call the executor says it is judged on, could only
+        ever bind into a copy nothing else read. `CLAIMS_FILE` now resolves through
+        `seat_continuation.shared_tree_dir()`, so every child reaches the shared store.
+
+        The explicit `path=` stays because it is what lets a test say WHICH store it means, and
+        `routed.child_store` is the fixture's single answer to that. Pinning the resolution itself
+        is `tests/background/test_a_claim_is_visible_from_every_worktree.py`, against a real
+        `git worktree`; duplicating it here would be a second copy of one property.
         """
         def run_it():
             monkeypatch.setattr(delivery_lane, "_commit_facts",
@@ -717,7 +752,13 @@ def routed(tmp_path, monkeypatch):
 
     return type("Routed", (), {
         "shared": shared,
-        "worktree_store": worktree / "docs" / "observability" / shared.name,
+        # THE STORE A CHILD REACHES, FROM EITHER TREE. This was `worktree / docs/observability /
+        # <name>` while `CLAIMS_FILE` resolved against the importing tree; the 2026-09-05
+        # claim-store repair made it resolve through `shared_tree_dir()`, so a child in the
+        # worktree and a tick on the shared tree now bind into the SAME file. Kept as a named
+        # attribute rather than inlined: the tests below are ABOUT which store the child reaches,
+        # so that has to stay a thing the fixture says out loud and can be changed in one place.
+        "child_store": shared,
         "work_in_hand": tmp_path / "work_in_hand.json",
         "staging": tmp_path / "staging",
         "spawn": staticmethod(spawn),
@@ -736,11 +777,14 @@ def test_the_verdict_can_say_YES_on_the_PROMOTED_route(routed):
     the child's `--landed` refused with `NOT CLAIMED`, nothing was ever bound, and leg 1 could
     never pass. The verdict was a constant, which is not a control (R15's fourth shape).
 
-    MUTATION: drop `_worktree_claims()` from the claim loop in `run_once` and this fires -- the
-    child binds into a store holding no claim, `record_landing` refuses, and the turn scores
-    LANDED NOTHING. That is the measured 2026-09-02 behaviour, restored exactly.
+    MUTATION: drop `delivery_lane.CLAIMS_FILE` from `_claim_stores()` and this fires -- the child
+    binds into a store holding no claim, `record_landing` refuses, and the turn scores LANDED
+    NOTHING. That is the measured 2026-09-02 behaviour, restored exactly. (The mutation named here
+    until 2026-09-05 was "drop `_worktree_claims()`", which was the same defect while the child
+    reached the worktree's copy; that store is gone with the resolution repair, and the leg the
+    promoted route now depends on is the shared one.)
     """
-    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    routed.spawn(child=routed.child_binds(routed.child_store))
     ran, detail = seat_executor.run_once()
 
     assert "LANDED NOTHING" not in detail, \
@@ -798,7 +842,7 @@ def test_the_executors_OWN_hand_back_is_not_read_as_the_tick_releasing(routed):
     MUTATION: move `_hand_back(...)` above `tick_released = not _still_claimed(...)` and this
     fires.
     """
-    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    routed.spawn(child=routed.child_binds(routed.child_store))
     ran, detail = seat_executor.run_once()
 
     assert "LANDED NOTHING" not in detail, detail
@@ -819,9 +863,9 @@ def test_the_tick_RELEASING_really_does_discharge(routed):
     False unconditionally and the test above fires. Neither constant passes both.
     """
     def lands_then_releases():
-        routed.child_binds(routed.worktree_store)()
+        routed.child_binds(routed.child_store)()
         # `python3 -m background.delivery_lane --release the-item`, run from the worktree.
-        assert delivery_lane.claims_mod.release("the-item", path=routed.worktree_store) is True, \
+        assert delivery_lane.claims_mod.release("the-item", path=routed.child_store) is True, \
             "the tick's release found nothing to remove -- run_once never claimed there"
 
     routed.spawn(child=lands_then_releases)
@@ -871,27 +915,37 @@ def test_the_hand_back_releases_only_the_claim_THIS_turn_took(routed):
 
 @pytest.mark.parametrize("route", ["promoted", "drawn"])
 def test_a_FINISHED_turn_leaves_no_claim_in_ANY_store_it_took_one_in(routed, route):
-    """BOTH ROUTES, for §9.6's reason: the route picks which store the landing is bound into, and
-    a release covering only the bound one would pass on whichever route was tested.
+    """BOTH ROUTES, for §9.6's reason -- though the reason is now the CLAIMANT, not the store.
+
+    WHAT THE ROUTE PICKS CHANGED ON 2026-09-05 AND THE PARAMETRISATION SURVIVES IT. It used to
+    pick the STORE: a promoted turn's child ran in the worktree and bound into the worktree's copy,
+    a drawn tick ran on the shared tree and bound into the shared one. The claim-store repair made
+    `CLAIMS_FILE` resolve through `shared_tree_dir()`, so both children now bind into the SAME
+    file and that axis is gone. What still differs is WHO CLAIMED: a promotion never goes through
+    `delivery_lane.draw()`, so `run_once` is the only thing that can claim the id, while a drawn
+    item arrives already claimed. That is a real difference in the acquire path and it is what
+    these two parametrisations now hold apart.
 
     Asserted against the STORES, never a return value or a printed line -- the finding's §10.1 is
     precisely about instruments that report on themselves.
 
     BOTH ENDS, and the mid-turn half is what stops the release being "proved" by never claiming.
-    The list is read from `_claim_stores()` at run time rather than written out here, so this says
-    *acquire and release agree* rather than *there are three stores*: a fourth added to the acquire
-    is covered the moment it is added.
+    Both lists are read from `_claim_stores()` at run time rather than written out here, so this
+    says *acquire and release agree* rather than *there are N stores*: a store added to the
+    acquire is covered the moment it is added, and one removed stops being demanded of the
+    release. That is deliberate after the worktree store was dropped from both ends together --
+    a hand-written list here would have gone red for the removal and taught the next reader to
+    edit the control rather than read it.
 
-    MUTATIONS. Release side -- restore `for store in (delivery_lane.CLAIMS_FILE,)` in `_hand_back`,
-    the pre-repair list, and both parametrisations fire on `work_in_hand`; `_claim_stores()[:2]`
-    fires on the worktree store. Acquire side -- drop `claims_mod.CLAIMS_FILE` from
-    `_claim_stores()` and the `work_in_hand` leg below fires. That last mutation SURVIVED the harm
-    test beside this one, and this leg is why it is not left as an equivalence: dropping the store
-    from BOTH ends removes the orphan honestly, but it also removes a live-turn declaration two
-    readers depend on, so the loss had to be named somewhere.
+    MUTATIONS. Release side -- restore `for store in (delivery_lane.CLAIMS_FILE,)` in `_hand_back`
+    and both parametrisations fire on `work_in_hand`. Acquire side -- drop `claims_mod.CLAIMS_FILE`
+    from `_claim_stores()` and the `work_in_hand` leg below fires. That last mutation SURVIVED the
+    harm test beside this one, and this leg is why it is not left as an equivalence: dropping the
+    store from BOTH ends removes the orphan honestly, but it also removes a live-turn declaration
+    two readers depend on, so the loss had to be named somewhere.
     """
-    store = routed.worktree_store if route == "promoted" else routed.shared
-    routed.spawn(child=routed.child_binds(store))
+    # The store is the same on both routes now; the ROUTE is carried by who claimed, above.
+    routed.spawn(child=routed.child_binds(routed.child_store))
     ran, detail = seat_executor.run_once()
     assert "LANDED NOTHING" not in detail, detail  # the turn really did land, on this route
 
@@ -905,9 +959,9 @@ def test_a_FINISHED_turn_leaves_no_claim_in_ANY_store_it_took_one_in(routed, rou
     assert routed.mid_turn["work_in_hand"], \
         "the turn never declared itself in the cross-lane store while it was running"
 
-    for left in (routed.work_in_hand, routed.shared, routed.worktree_store):
+    for left in {*seat_executor._claim_stores(), routed.child_store}:
         assert "the-item" not in delivery_lane.claims_mod._load(left), \
-            f"a finished turn left its claim standing in {left.name}"
+            f"a finished turn left its claim standing in {left}"
 
 
 def test_the_orphaned_claim_a_finished_turn_used_to_leave_ALARMS_ON_FINISHED_WORK(routed):
@@ -935,7 +989,7 @@ def test_the_orphaned_claim_a_finished_turn_used_to_leave_ALARMS_ON_FINISHED_WOR
     the default.
     """
     routed.staging.mkdir()
-    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    routed.spawn(child=routed.child_binds(routed.child_store))
     seat_executor.run_once()
 
     # Long past `STALE_AFTER_SECONDS`, which is what the next tick's `refuse_if_duplicated` reaches
@@ -982,7 +1036,7 @@ def test_a_turn_whose_TICK_DID_NOT_RELEASE_says_so_instead_of_going_quiet(routed
     MUTATION: delete the `if not tick_released:` arm (fall through to the `elif`) and this fires --
     the turn goes silent again, exactly as it did on 2026-09-02.
     """
-    routed.spawn(child=routed.child_binds(routed.worktree_store))
+    routed.spawn(child=routed.child_binds(routed.child_store))
     ran, detail = seat_executor.run_once()
     assert "LANDED NOTHING" not in detail, detail
 
@@ -1007,8 +1061,8 @@ def test_a_DRAWN_items_missing_discharge_is_not_read_as_the_tick_holding_on(rout
     monkeypatch.setattr(seat_executor, "seat_continuation_drop", lambda wid: False)
 
     def lands_then_releases():
-        routed.child_binds(routed.worktree_store)()
-        assert delivery_lane.claims_mod.release("the-item", path=routed.worktree_store) is True
+        routed.child_binds(routed.child_store)()
+        assert delivery_lane.claims_mod.release("the-item", path=routed.child_store) is True
 
     routed.spawn(child=lands_then_releases)
     ran, detail = seat_executor.run_once()
