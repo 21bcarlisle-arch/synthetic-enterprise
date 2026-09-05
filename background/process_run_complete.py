@@ -3521,11 +3521,71 @@ def _record_commit_refusal_reds(stdout, stderr, git_hash="unknown"):
                 "No gate banner this classifier knows was in the output either, so the refusal "
                 "is UNNAMEABLE from here -- read the hook output itself, and do not read an "
                 "earlier cycle's blocking list as this cycle's cause."))
+        # A refusal that named no test is STILL a refusal, and the ledger's denominator is
+        # refusals. Folding nothing here is the point: a non-test gate has no test subject and
+        # inventing one for it is the 2026-09-02 defect where five GREEN tests were published as
+        # the blockers of an orphan-ratchet refusal.
+        _note_standing_red_refusal([], git_hash)
         return []
     log("Publish commit REFUSED by the hook chain -- blocking test(s): {}".format(
         "; ".join(node_ids[:GATE_MAX_CITED_BLOCKING_TESTS])))
     _write_blocking_tests(node_ids, git_hash, census=CENSUS_HOOK_CHAIN)
+    # THE SNAPSHOT CANNOT HOLD AN AGE, and the age is the whole finding (988270c2e, e0cc653c9).
+    # `_write_blocking_tests` above is overwritten every cycle and deleted on green, so a red that
+    # has refused twenty-four consecutive cycles reads, at every reader in this system, exactly
+    # like one that broke a minute ago -- and nothing escalates, so the publisher retries into it
+    # on a rhythm that by measurement cannot clear it. This is the same node ids, folded into a
+    # store that remembers.
+    _note_standing_red_refusal(node_ids, git_hash)
     return node_ids
+
+
+# ── THE AGE THE SNAPSHOT THREW AWAY ───────────────────────────────────────────────────────────
+#
+# Both of these are here rather than at their call sites for the reason R10 gives: the refusal
+# reaches the ledger from `_record_commit_refusal_reds`, which is the ONE function that holds the
+# hook chain's node ids, so a third refusal path added later inherits the fold for free.
+#
+# THEY MUST STAY SYMMETRIC. Every commit path that folds a refusal in must also record its pass,
+# or the ledger becomes a ratchet that only ever accumulates -- which is the failure mode that
+# would make it worse than the snapshot it replaces, because a register nobody can empty is a
+# register nobody reads.
+def _note_standing_red_refusal(node_ids, git_hash="unknown"):
+    """Fold this refusal into the standing-red ledger. Never raises, never blocks the publisher."""
+    try:
+        from background import publish_standing_red
+        standing = publish_standing_red.note_refusal(node_ids, git_hash)
+    except Exception as exc:  # noqa: BLE001 -- a diagnostic must never red the path it observes
+        log("Standing-red ledger: could not fold this refusal ({}: {}).".format(
+            type(exc).__name__, exc))
+        return []
+    if standing:
+        log("Publish STANDING RED -- {} test(s) have now refused the publisher {}+ cycles with no "
+            "landing between: {}. Retrying will not clear these; they are drawn as work in "
+            "docs/staging/reference/{}.".format(
+                len(standing), publish_standing_red.STANDING_AFTER_CYCLES,
+                "; ".join(standing[:GATE_MAX_CITED_BLOCKING_TESTS]),
+                publish_standing_red.REGISTER_NAME))
+    return standing
+
+
+def _record_commit_hook_pass(git_hash="unknown"):
+    """The hook chain PASSED, so discharge the standing-red ledger. Never raises.
+
+    A commit that returned 0 ran the same chain over the same tree, so nothing it did not stop can
+    still be stopping it. This is the ledger's only exit and it is one act -- absence from a later
+    refusal discharges nothing, because the chain is fail-fast."""
+    try:
+        from background import publish_standing_red
+        cleared = publish_standing_red.note_landing(git_hash)
+    except Exception as exc:  # noqa: BLE001 -- as above
+        log("Standing-red ledger: could not record the hook chain's pass ({}: {}).".format(
+            type(exc).__name__, exc))
+        return 0
+    if cleared:
+        log("Standing-red ledger DISCHARGED: the hook chain passed, clearing {} tracked "
+            "test(s).".format(cleared))
+    return cleared
 
 
 def last_blocking_tests(now=None, path=None):
@@ -5348,6 +5408,12 @@ def git_commit_push(git_hash, net_margin, outcome=None):
                                       "this same commit"))
             return _outcome(NOTHING_TO_COMMIT, False)
 
+        # THE COMMIT LANDED, so the hook chain passed over this tree. Symmetric with the fold in
+        # `_record_commit_refusal_reds` above -- see `_record_commit_hook_pass` for why the two
+        # must stay paired. Placed BEFORE the push throttle on purpose: the discharge is evidence
+        # about the pre-commit CHAIN, and whether the push is deferred says nothing about it.
+        _record_commit_hook_pass(git_hash)
+
         if not _push_due():
             log("Committed locally, push deferred (throttled to every {}min)".format(
                 PUSH_THROTTLE_SECONDS // 60
@@ -6029,6 +6095,10 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
                 "the pre-commit hook chain refused the commit (rc={}): {}".format(
                     result.returncode, _tail), git_hash)
         return False
+    # Paired with the refusal fold this same function does through `_record_commit_refusal_reds`
+    # ten lines up. The liveness commit runs the SAME hook chain, so it must discharge the ledger
+    # it can add to -- a path that only ever adds turns the register into a ratchet.
+    _record_commit_hook_pass(git_hash)
     push = subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=str(PROJECT_DIR),
                           timeout=60, stderr=subprocess.PIPE, text=True)
     local_head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=str(PROJECT_DIR),

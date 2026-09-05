@@ -151,6 +151,16 @@ KIND_CLASS_DEBT = "class_debt"
 #: beats a finding because a finding describes something that might be wrong and this is something
 #: that IS.
 KIND_HEAD_RED = "head_red"
+#: The STANDING-RED register: reds that keep refusing the PUBLISHER, with an age.
+#:
+#: Ranked at 36, immediately ABOVE the HEAD-red register and below class debt, and the argument is
+#: certainty of cost. A HEAD-red is broken at committed HEAD; it may or may not be blocking
+#: anything. A standing publish red is *demonstrably* blocking publication and has been measured
+#: doing it for N cycles — RED TEST is 28.3% of all bounded publish outage, 67.8h against 5.1h for
+#: the next gate (e0cc653c9), and 0 of 7 same-test re-arrivals ever re-broke, so retrying is known
+#: not to clear it. It stays below class debt for the same reason head_red does: a class register
+#: is the generator, and closing a generator dominates repairing one instance of anything.
+KIND_PUBLISH_STANDING_RED = "publish_standing_red"
 #: An archived verbatim transcript. Record, never work.
 KIND_CONSOLE = "console"
 #: The pipeline's own coordination markers. These self-process on the daemon's cadence and
@@ -207,6 +217,7 @@ ORDER: dict[str, int] = {
     KIND_DIRECTIVE: 20,
     KIND_MINT: 30,
     KIND_CLASS_DEBT: 35,
+    KIND_PUBLISH_STANDING_RED: 36,
     KIND_HEAD_RED: 37,
     KIND_FINDING: 40,
     KIND_UNKNOWN: 50,
@@ -337,7 +348,7 @@ def kind_of(name: str) -> str:
 
 def room_for(kind: str) -> str | None:
     """The room a kind belongs in, relative to the staging root, or None for the root itself."""
-    if kind in (KIND_REFERENCE, KIND_CLASS_DEBT, KIND_HEAD_RED):
+    if kind in (KIND_REFERENCE, KIND_CLASS_DEBT, KIND_HEAD_RED, KIND_PUBLISH_STANDING_RED):
         # A DRAWN REGISTER IS STILL A REGISTER. `KIND_CLASS_DEBT` is the same document as
         # `KIND_REFERENCE` promoted for one reason (it is accruing and undecided), so its ROOM
         # must not change with its rank — a register that migrated to the root because it became
@@ -578,7 +589,8 @@ def work_queue(root: Path | str = DEFAULT_STAGING_ROOT) -> list[QueueItem]:
             mtime = 0.0
         items.append(QueueItem(p, kind, ORDER.get(kind, ORDER[KIND_UNKNOWN]), mtime))
     items.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
-    return _with_the_head_red_register(root, _with_accruing_class_registers(root, items))
+    return _with_the_standing_red_register(
+        root, _with_the_head_red_register(root, _with_accruing_class_registers(root, items)))
 
 
 def _with_accruing_class_registers(root: Path, items: list[QueueItem]) -> list[QueueItem]:
@@ -638,6 +650,31 @@ def _with_the_head_red_register(root: Path, items: list[QueueItem]) -> list[Queu
     except Exception:
         return items
     merged = items + [QueueItem(path, KIND_HEAD_RED, ORDER[KIND_HEAD_RED], 0.0)]
+    merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
+    return merged
+
+
+def _with_the_standing_red_register(root: Path, items: list[QueueItem]) -> list[QueueItem]:
+    """Splice the STANDING-RED register into the queue at rank 36 when anything is standing.
+
+    FAIL-OPEN for the same reason as both siblings above: a draw that cannot rank one register must
+    still see every finding, mint and ask.
+
+    Spliced only when `drawable()` is non-empty — so a publisher that is landing parks no permanent
+    item, and one landing empties the ledger and takes this straight back out of the queue. **That
+    is the "zero means zero" property, enforced here rather than promised in the document.**
+    """
+    try:
+        from background import publish_standing_red
+        if not publish_standing_red.drawable(root):
+            return items
+        path = Path(root) / REFERENCE_DIRNAME / publish_standing_red.REGISTER_NAME
+        if not path.is_file():
+            return items
+    except Exception:
+        return items
+    merged = items + [QueueItem(path, KIND_PUBLISH_STANDING_RED,
+                                ORDER[KIND_PUBLISH_STANDING_RED], 0.0)]
     merged.sort(key=lambda i: (i.rank, i.mtime, i.path.name))
     return merged
 
