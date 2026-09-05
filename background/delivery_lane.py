@@ -218,6 +218,76 @@ def _git(*args: str) -> str | None:
     return out.stdout if out.returncode == 0 else None
 
 
+def _parents(commit: str) -> list[str] | None:
+    """`commit`'s parent shas, oldest-listed-first, or None if git will not answer.
+
+    `[]` for a root commit is a real answer and must stay distinguishable from None, which is
+    "git refused" -- an unknown ref, a tree-ish. The two go opposite ways at every caller.
+    """
+    line = _git("rev-list", "--parents", "-n", "1", commit)
+    if line is None or not line.split():
+        return None
+    return line.split()[1:]
+
+
+def _describe(commit: str) -> str:
+    """`<short sha> <subject>` for a refusal that has to be acted on without opening git."""
+    out = (_git("show", "-s", "--format=%h %s", commit) or "").strip()
+    return out.splitlines()[0] if out else commit
+
+
+def _merge_base_side(parents: list[str]) -> tuple[str | None, str]:
+    """WHICH parent of a merge is the BASE the landing was merged ONTO — or why git cannot say.
+
+    THE QUESTION THE GRADE ASKS IS "what did this claim add", and for a merge that is the diff
+    against the side that was ALREADY THERE. Which side that is depends on the direction of the
+    merge, and the direction is not recoverable from parent order alone: `merge origin/main into
+    my landing` puts the base SECOND, `merge my branch into origin` puts it FIRST, and both are
+    ordinary here. Guessing first-parent is what bound another lane's four paths to a claim on
+    2026-09-05 and printed a success line over it.
+
+    MEASURED on this repo's own history, 2026-09-05, before this was written. On `42d253da5`
+    (`merge origin/main: re-gate the shared low-water reader contracts`) the first-parent diff is
+    one file, `DIRECTOR_RULING_AMENDMENT_MERIT_ORDER...`, which belongs to the lane that was
+    merged IN; the second-parent diff is the three low-water paths that landing actually
+    delivered. `179a6e042` splits the same way. The guess is not merely unproven, it is backwards
+    for the shape `tools.surgical_land --merge origin/main` produces, and that is the shape every
+    re-gate after an origin move produces.
+
+    THE DISCRIMINATOR IS PUBLICATION, and it is git's own: the base a landing was merged onto is
+    on `origin/main` already; the landing is not, or it would not have needed merging. So when
+    EXACTLY ONE parent is an ancestor of `origin/main`, that parent is the base and there is
+    nothing to ask the caller. That is the same subject `tools/promote_worktree_landing` passes
+    as `since` -- it holds the pre-push `origin/main` directly -- so the two routes now agree
+    rather than merely coexisting.
+
+    IT REFUSES RATHER THAN GUESSING when the discriminator cannot separate them, which is a real
+    and reachable state: once the merge itself is pushed BOTH parents are on `origin/main` (also
+    measured -- it is why the two commits above answer ANCESTOR for both today), and with no
+    readable `origin/main` NEITHER is. A refusal there costs one re-run with `--commit`; the
+    guess costs a claim bound to somebody else's files, which has no symptom at all.
+    """
+    published = [p for p in parents
+                 if _git("merge-base", "--is-ancestor", p, "origin/main") is not None]
+    if len(published) == 1:
+        return published[0], ""
+    sides = " / ".join(_describe(p) for p in parents)
+    if published:
+        return None, (
+            "is a MERGE whose parents are BOTH already on origin/main, so git cannot say which "
+            "side is this claim's -- and the first-parent guess is the OTHER lane's work half "
+            f"the time. The two sides are: {sides}. Re-run naming the subject: `--commit <your "
+            "own landing>`, or `--since <the base you merged onto>`. If a promotion already ran "
+            "for this claim it has bound these paths correctly and there is nothing to repair"
+        )
+    return None, (
+        "is a MERGE and NEITHER parent is on origin/main -- unreadable here, or this history is "
+        f"unrelated to it -- so nothing establishes which side is the base. The two sides are: "
+        f"{sides}. Re-run naming the subject: `--commit <your own landing>`, or `--since <the "
+        "base you merged onto>`"
+    )
+
+
 def _commit_facts(commit: str, since: str | None = None) -> tuple[float, list[str]]:
     """(commit time as a UTC epoch, repo-relative paths it touched) for `commit`.
 
@@ -247,14 +317,20 @@ def _commit_facts(commit: str, since: str | None = None) -> tuple[float, list[st
     is precisely the OTHER lane's work. It bound four of the director's paths to this claim and
     printed a plausible success line. Nothing about the merge is malformed; the question was.
 
+    SO THERE IS NO FIRST-PARENT GUESS LEFT. A caller with no `since` gets the same well-posed
+    question derived from git — `_merge_base_side` picks the parent that is already published —
+    or a refusal naming both sides. The standalone `--landed` is the route a tick uses when it
+    lands WITHOUT promoting, and it had no unambiguous base to hand; it has one now, and where
+    it does not it says so instead of binding somebody else's files.
+
     `A...B` (three dots) is `merge-base(A, B)..B` — what B has that A does not — so it is right
     whether or not `since` is an ancestor, and identical to the two-dot form when it is. The
     caller supplies a REF, never a path list: at the one seam that has a non-ambiguous answer
     (`promote_worktree_landing`, which holds the pre-push `origin/main`) that ref is
     `git rev-parse origin/main`, so the 2026-08-21 hole stays shut.
     """
-    parents = _git("rev-list", "--parents", "-n", "1", commit)
-    if parents is None or not parents.split():
+    parents = _parents(commit)
+    if parents is None:
         return 0.0, []
     stamp = _git("show", "-s", "--format=%ct", commit)
     if stamp is None or not stamp.strip():
@@ -264,11 +340,16 @@ def _commit_facts(commit: str, since: str | None = None) -> tuple[float, list[st
     except ValueError:
         return 0.0, []
 
-    ancestry = parents.split()          # <commit> <parent>...
     if since:                           # what this commit ADDS to `since`, merge or not
         names = _git("diff", "--no-renames", "--name-only", f"{since}...{commit}")
-    elif len(ancestry) > 2:             # a merge: diff what it brought in, against parent one
-        names = _git("diff", "--no-renames", "--name-only", ancestry[1], commit)
+    elif len(parents) > 1:              # a merge: against the side that was already there
+        base, _unresolved = _merge_base_side(parents)
+        if base is None:
+            # The refusal `refusal_reason` re-derives and names. Empty paths is how every
+            # unbindable commit reaches `record_landing`, and it must stay one signal: a
+            # second "refuse" channel out of here is a second thing to keep in step.
+            return when, []
+        names = _git("diff", "--no-renames", "--name-only", f"{base}...{commit}")
     else:
         names = _git("show", "--no-renames", "--format=", "--name-only", commit)
     if names is None:
@@ -456,6 +537,15 @@ def refusal_reason(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
             if since:
                 return (f"{commit} adds NOTHING to {since} -- it is already contained there, so "
                         f"there are no paths to bind")
+            # THE AMBIGUOUS MERGE IS A THIRD CAUSE, not a flavour of "unreadable", and it is the
+            # one with a remedy the caller can apply in one command. Saying "touched no files"
+            # about a merge that plainly touched several is the shape of refusal this function
+            # exists to end.
+            parents = _parents(commit)
+            if parents and len(parents) > 1:
+                _base, unresolved = _merge_base_side(parents)
+                if unresolved:
+                    return f"{commit} {unresolved}"
             return f"{commit} is UNREADABLE or touched no files -- there are no paths to bind"
         since = _binding_instant(focus_id, rec, store)
         if when <= since:
@@ -567,6 +657,10 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
     this landing is being added to and the subject becomes "what this adds to that base", which
     is the only well-posed question when HEAD is a `merge origin/main into my landing`. See
     `_commit_facts`; the seam that has that ref is `tools/promote_worktree_landing`.
+    WITHOUT `since` ON A MERGE, that base is now derived from git rather than guessed at the
+    first parent (`_merge_base_side`), and where git cannot separate the two sides this REFUSES
+    and names both. The standalone `--landed` is the route a tick uses when it lands without
+    promoting, so it is the route that carried the guess.
     `claimed_at` is left untouched, so the deadline restarts from the commit's own timestamp via
     `seat_work_in_hand.last_progress`, not from the moment this was called.
 
@@ -817,6 +911,12 @@ def main(argv=None) -> int:
                          "deadline from that commit's own timestamp")
     ap.add_argument("--commit", default="HEAD",
                     help="which commit --landed reads its paths from (default: HEAD)")
+    ap.add_argument("--since", default=None,
+                    help="the BASE this landing is added to (a ref, never a path list). The "
+                         "subject becomes 'what --commit adds to this', which is the question "
+                         "tools/promote_worktree_landing asks with the pre-push origin/main. "
+                         "Only needed when a merge HEAD's own parents cannot say which side "
+                         "is yours -- the refusal names both when that happens")
     ap.add_argument("--sweep", action="store_true",
                     help="return abandoned claims to the pool")
     args = ap.parse_args(argv)
@@ -843,12 +943,15 @@ def main(argv=None) -> int:
         print(f"released {args.release}")
         return 0
     if args.landed:
-        scope = record_landing(args.landed, commit=args.commit)
+        scope = record_landing(args.landed, commit=args.commit, since=args.since)
         if not scope:
             # Non-zero: the caller believes it landed something and the lane disagrees, which it
-            # needs to hear NOW rather than as a false alarm in 100 minutes.
+            # needs to hear NOW rather than as a false alarm in 100 minutes. `since` goes to BOTH
+            # or the reason is derived from a question the caller did not ask -- `refusal_reason`
+            # says so in its own docstring, and passing it to only one of the two is how that
+            # happens.
             print(f"bound NOTHING to {args.landed}: "
-                  f"{refusal_reason(args.landed, commit=args.commit)}")
+                  f"{refusal_reason(args.landed, commit=args.commit, since=args.since)}")
             return 1
         print("bound {} path(s) to {}: {}".format(len(scope), args.landed, ", ".join(scope[:8])))
         return 0

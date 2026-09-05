@@ -12,9 +12,18 @@ divergence was precisely the way to produce a landing this lane could not see. I
 on merge `0e0d17fcc`, which delivered `site/data/value_arms.json` and the floor-leg
 pre-registration and bound none of it.
 
-The fix reads a merge as `first-parent..commit` — what the branch GAINED. The paths still come
-straight out of git and never from the caller, so the 2026-08-21 shared-tree hole (a caller
-naming a broad directory and being credited with other lanes' commits) stays closed.
+The fix reads a merge against the side that was ALREADY THERE — what the branch GAINED. The paths
+still come straight out of git and never from the caller, so the 2026-08-21 shared-tree hole (a
+caller naming a broad directory and being credited with other lanes' commits) stays closed.
+
+WHICH side that is stopped being a guess on 2026-09-05. This file was written when it read
+`first-parent..commit`, which is right for `merge side INTO main` — the shape below — and
+backwards for `merge origin/main INTO my landing`, the shape `surgical_land --merge` produces.
+`_merge_base_side` now derives it: the published parent is the base. So the fixture here grew an
+`origin/main`, because a repo without one no longer resembles the live case in the way this file
+depends on, and the sibling
+`test_the_standalone_landed_binds_this_lanes_paths_not_the_other_sides.py` is where the
+backwards shape is graded.
 """
 
 from __future__ import annotations
@@ -55,7 +64,12 @@ def repo(tmp_path, monkeypatch):
     _commit(r, "only_on_side.txt", "side\n")
 
     _git(r, "checkout", "-q", "main")
-    _commit(r, "only_on_main.txt", "main\n")
+    base = _commit(r, "only_on_main.txt", "main\n")
+    # THE PUBLISHED SIDE, and it is what makes this a `merge side INTO main`: `main` was already
+    # on origin when the merge was made, `side` was not. Without it neither parent is published,
+    # `_merge_base_side` can separate nothing, and the lane correctly refuses to guess -- which
+    # is a different test, and it lives in the sibling file named above.
+    _git(r, "update-ref", "refs/remotes/origin/main", base)
     _git(r, "merge", "--no-ff", "-m", "merge side", "side")
 
     monkeypatch.setattr(delivery_lane, "PROJECT_DIR", r)
@@ -72,8 +86,9 @@ def test_a_merge_binds_the_paths_it_delivered(repo):
     when, paths = delivery_lane._commit_facts("HEAD")
 
     assert paths == ["only_on_side.txt"], (
-        "a merge must bind what it brought in (first-parent..commit). Empty here means the "
-        "combined-diff read is back and a sanctioned --merge landing binds nothing."
+        "a merge must bind what it brought in -- the diff against the side that was already "
+        "published. Empty here means the combined-diff read is back and a sanctioned --merge "
+        "landing binds nothing."
     )
     assert when > 0.0
 
