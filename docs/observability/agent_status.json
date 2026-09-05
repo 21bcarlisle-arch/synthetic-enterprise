@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-05T13:32:50.979868+00:00",
+  "last_updated": "2026-09-05T14:04:56.858499+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T13:32:50.979868+00:00",
+      "last_heartbeat": "2026-09-05T14:04:56.283498+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-05T13:12:47.613309+00:00",
       "anomaly": null,
@@ -35,9 +35,9 @@
     {
       "name": "sim-runner",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T12:00:05.643438+00:00",
-      "last_action": "Run complete in 746s \u2014 28053 KB (run_output_e18ca807c_20260905T114739Z.json)",
-      "last_action_ts": "2026-09-05T12:00:05.643438+00:00",
+      "last_heartbeat": "2026-09-05T13:47:22.294323+00:00",
+      "last_action": "Run complete in 704s \u2014 28053 KB (run_output_1bfd26b39_20260905T133538Z.json)",
+      "last_action_ts": "2026-09-05T13:47:22.294323+00:00",
       "anomaly": null,
       "role": "Runs full 10-year simulation in a loop; writes run_complete markers",
       "produces": "docs/reports/run_output_*.json, docs/staging/run_complete_*.md"
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T13:32:44.286627+00:00",
-      "last_action": "Worker started",
-      "last_action_ts": "2026-09-05T13:32:44.286627+00:00",
+      "last_heartbeat": "2026-09-05T13:34:51.582876+00:00",
+      "last_action": "Task batch complete",
+      "last_action_ts": "2026-09-05T13:34:51.582876+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T13:31:27.588406+00:00",
+      "last_heartbeat": "2026-09-05T14:04:56.858499+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-05T13:12:48.887030+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T13:21:49.932138+00:00",
+      "last_heartbeat": "2026-09-05T13:51:50.186507+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-05T13:21:49.932138+00:00",
+      "last_action_ts": "2026-09-05T13:51:50.186507+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
