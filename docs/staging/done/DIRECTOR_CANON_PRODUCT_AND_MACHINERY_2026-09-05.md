@@ -1,16 +1,9 @@
-**Severity:** LATENT · **Lane:** A_strategy_governance
-
-*(Header line added by the delivery seat, 2026-09-05, transcribing the severity the
-document and its own commit message both already declare — `Severity: LATENT` in the
-**Type:** line below, `Severity LATENT` in the commit subject. Nothing else is changed.
-The seat did not decide this value and is not entitled to; it made a declared one
-machine-readable, because without the line `finding_severity` reads the document as
-UNCLASSIFIED and every merge of `origin/main` — including the reconciler's own, on the
-deadman cadence — is refused. Why the director's document could arrive without the line
-at all, and why that is the gate's defect and not his, is filed as
-`SEAT_FINDING_THE_DIRECTORS_OWN_STAGED_DOCUMENT_WEDGED_EVERY_MERGE...`.)*
-
 # [DIRECTOR-CANON] — Product and machinery: what counts, and what the machine owes the lanes (2026-09-05)
+
+**Severity:** LATENT · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** unminted
+
+*Header applied AUTOMATICALLY by `background/staging_watcher` on arrival, because an unclassified staging document refuses every lane's commit and an arriving document must never block a landing. Severity LATENT: carried through from the author's own words. Lane A_strategy_governance is the default for an externally-authored instruction and says what KIND of document this is, not what it is about — correct it if it belongs to a lane. Not one word of the author's text is altered.*
+
 
 **Type:** [CANON — a definition and a standing rule about how work is chosen. Severity: LATENT. Mechanism is the delivery seat's; the definitions and the properties are the director's.]
 
