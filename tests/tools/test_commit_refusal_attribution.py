@@ -143,3 +143,121 @@ def test_the_publishers_own_banner_table_is_what_names_the_gate(banner, expected
     r = attr.attribute(_cycle("2026-08-20 10:00", refused=True,
                               hook_body="  git/hook output:\n{}\n40 passed".format(banner)))
     assert r["by_gate"] == {expected: 1}
+
+
+# ---------------------------------------------------------------------------
+# EPISODES -- what a refusal COSTS. A count of cycles is not a cost, and the
+# defects below are the ways a cost measurement flatters itself.
+# ---------------------------------------------------------------------------
+
+
+def _failed(ts, outcome):
+    """A cycle that failed for some reason OTHER than commit_refused."""
+    return "\n".join([
+        "- [{} UTC] [process_run] Committing and pushing (net=£1)".format(ts),
+        "- [{} UTC] [process_run] Commit/push failed ({})".format(ts, outcome),
+    ])
+
+
+def test_an_unterminated_episode_is_censored_and_excluded_not_counted_as_short():
+    """The log ending mid-wedge has no landing to measure against, and that episode is exactly
+    the one most likely to be the longest -- nobody has cleared it yet. Treating the last refusal
+    as its end would report an ONGOING outage as a finished, short one, biasing the headline
+    toward comfort in precisely the case that matters most."""
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 11:00", refused=False),
+        _cycle("2026-08-20 12:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 13:00", refused=True, hook_body=ORPHAN_HOOK),
+    ])
+    ep = attr.episode_report(log)
+    assert len(ep["censored"]) == 1
+    assert ep["censored"][0]["from"] == "2026-08-20 12:00"
+    # A lower bound, and never a number that can be maxed or medianed.
+    assert ep["censored"][0]["outage_s"] is None
+    assert [e["from"] for e in ep["bounded"]] == ["2026-08-20 10:00"]
+    assert ep["longest"]["from"] == "2026-08-20 10:00"
+
+
+def test_the_two_run_definitions_give_different_answers_on_the_same_log():
+    """A cost episode ends at a LANDING; a cycle-share run ends at anything that is not this
+    failure mode. A `behind_origin` cycle mid-wedge is a recovery under one and not the other,
+    and the publisher did NOT land -- so the cost definition must merge what the share definition
+    splits. If both definitions returned the same number on a log built to separate them, the
+    distinction would be decorative and the module would be reporting one figure twice."""
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _failed("2026-08-20 11:00", "behind_origin"),
+        _cycle("2026-08-20 12:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 13:00", refused=False),
+    ])
+    ep = attr.episode_report(log)
+    assert ep["episodes_strict"] == 2
+    assert ep["episodes_cost"] == 1
+    assert ep["episodes_cost"] < ep["episodes_strict"]
+    # And the merged episode spans the interloper: 10:00 -> 13:00, not two 1-cycle runs.
+    assert ep["bounded"][0]["cycles"] == 3
+    assert ep["bounded"][0]["outage_s"] == 3 * 3600
+
+
+def test_a_single_cycle_episode_has_a_real_outage_although_its_span_is_zero():
+    """Span excludes the recovery, so a 1-cycle episode has span 0 -- and reporting THAT as the
+    cost says a refusal is free. It is not: the publisher cannot publish until the next attempt
+    lands, which is at least one inter-attempt gap away."""
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 10:45", refused=False),
+    ])
+    e = attr.episode_report(log)["bounded"][0]
+    assert e["span_s"] == 0
+    assert e["outage_s"] == 45 * 60
+
+
+def test_an_episode_with_two_causes_is_attributed_to_neither():
+    """The same discipline as the unattributable bucket, one level up. Assigning a mixed episode
+    to its first or its commonest cause is how 74% of the cost gets a tidy label it did not earn,
+    and the by-cause medians then describe episodes that were never purely that cause."""
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 11:00", refused=True, hook_body=RED_HOOK),
+        _cycle("2026-08-20 12:00", refused=False),
+    ])
+    ep = attr.episode_report(log)
+    assert ep["bounded"][0]["cause"] == attr.MIXED
+    assert ep["bounded"][0]["causes"] == [attr.RED_TEST, "orphan-ratchet"]
+    assert attr.RED_TEST not in ep["by_cause"] and "orphan-ratchet" not in ep["by_cause"]
+    assert ep["mixed"] == 1
+
+
+def test_the_cause_sequence_separates_gates_queueing_from_one_gate_flapping():
+    """Two episodes with the SAME cause set and the same length mean opposite things: A,B,B is
+    each gate cleared once in turn; A,B,A is a gate that was cleared and broke again. They call
+    for opposite responses -- reorder the gates, versus find what keeps re-breaking one -- and a
+    set of causes cannot tell them apart, so the order has to survive into the record."""
+    def build(bodies):
+        return "\n".join(
+            [_cycle("2026-08-20 1{}:00".format(i), refused=True, hook_body=b)
+             for i, b in enumerate(bodies)]
+            + [_cycle("2026-08-20 19:00", refused=False)])
+
+    queue = attr.episode_report(build([ORPHAN_HOOK, RED_HOOK, RED_HOOK]))["bounded"][0]
+    flap = attr.episode_report(build([ORPHAN_HOOK, RED_HOOK, ORPHAN_HOOK]))["bounded"][0]
+    assert queue["causes"] == flap["causes"]
+    assert queue["cause_sequence"] != flap["cause_sequence"]
+    assert queue["cause_sequence"] == [attr.RED_TEST if b is RED_HOOK else "orphan-ratchet"
+                                       for b in (ORPHAN_HOOK, RED_HOOK, RED_HOOK)]
+
+
+def test_a_landing_is_the_absence_of_a_failure_line_and_the_blind_span_is_not_read_as_landings():
+    """This log has no success line: the publisher announces an attempt and speaks again only if
+    it failed. So a landing is an ABSENCE, and an absence only means anything after the named
+    outcomes arrived. Reading the blind span as a wall of successful cycles would put an
+    enormous, entirely fictional recovery in front of the first real episode."""
+    log = "\n".join(
+        [_cycle("2026-07-01 10:0{}".format(i), refused=False) for i in range(4)]
+        + [_cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+           _cycle("2026-08-20 11:00", refused=False)])
+    seq = attr.cycles(log)
+    assert [c["at"] for c in seq] == ["2026-08-20 10:00", "2026-08-20 11:00"]
+    assert seq[-1]["outcome"] == attr.LANDED and seq[-1]["cause"] is None
+    assert attr.episode_report(log)["bounded"][0]["outage_s"] == 3600
