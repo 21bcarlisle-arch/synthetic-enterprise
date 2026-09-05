@@ -31,6 +31,12 @@ MEASURED 2026-09-05, before this module existed, on the four registers the direc
                                   `removed_claims()` into `canon_drift_check` in `605ec3995`
                                   while this measurement was in flight, so the tool is no longer
                                   blind — but it was, and the recommendation above was wrong.
+                                  CORRECTED AGAIN 2026-09-05, beside both rows rather than over
+                                  them: "this module does not wire it" is no longer true either.
+                                  `removed_claims()` was a hand-rolled SECOND implementation of
+                                  everything below, and it now calls `removed_rows()`/
+                                  `keys_at_head()`. The literal pin in the suite stays as the
+                                  crude second belt it always was.
   background/finding_classes.py   HOLED, with the second-order shape intact. Deleting a class
                                   from `CLASSES` returned `check()` clean. Delete the class
                                   DOCUMENT and `check()` refuses `MISSING CLASS DOC`; delete the
@@ -71,6 +77,22 @@ WHERE IT BITES. The baseline is HEAD, so this is a commit-time ratchet against t
 copy: you cannot drop a row in a commit without saying why. Once a bad commit has landed, HEAD
 contains the loss and this goes quiet — said plainly rather than implied, because the gates run
 pre-commit on the working tree and that is the whole enforcement point.
+
+THE FOUR CALL SITES, as of 2026-09-05. There is one implementation of this mechanism and this is
+it; a fifth register joins by CALLING, never by copying.
+
+  docs/design/self_clearing_alarm_dispositions.json  self_clearing_alarm_census.removed_dispositions
+  background/finding_classes.py CLASSES              finding_classes.removed_classes
+  docs/design/maturity_map.yaml                      level_promotion_gate.low_water_failures
+  docs/design/canon_claims.yaml                      canon_drift_check.removed_claims
+
+WHAT THE CONVERGENCE ITSELF MEASURED, because it is not what convergence is usually sold on.
+Mutating `keys_at_head`'s `return None` to `return frozenset()` — the never-empty contract, the
+whole difference between "HEAD's register was empty" and "I cannot answer" — SURVIVED in all four
+suites while the canon still had its own copy of the reader. The one test of that contract in the
+tree was pointed at the copy. Re-pointing the canon did not just delete a duplicate; it moved the
+only proof of this module's central refusal onto the reader every register now shares. Written up
+in docs/staging/records/SEAT_RESULT_THE_CONVERGENCE_PROVED_A_CONTRACT_THAT_HAD_BEEN_PROVED_NOWHERE_2026-09-05.md.
 """
 
 from __future__ import annotations

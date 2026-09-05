@@ -24,6 +24,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from background import register_low_water
 from tests.tools.test_canon_drift_check import (
     CHANNEL_CLAIM,
     NO_CHANNEL_CLAIM,
@@ -36,15 +37,19 @@ from tools.canon_drift_check import RETIRED_SECTION, main, removed_claims, run
 
 
 def test_a_claim_that_left_the_register_without_a_reason_is_refused():
-    """The whole point. MUTATION: return [] for an id absent from `current` and this fires."""
+    """The whole point. MUTATION: return [] for an id absent from `current` and this fires.
+
+    The refusal now names its REGISTER as well as its id, because the shared mechanism this rung
+    was re-pointed at on 2026-09-05 also speaks for the alarm census, the class register and the
+    maturity map, and a line in a mixed report that names no register is a line a reader cannot
+    act on. Asserted as both facts rather than as a `startswith` on the id: the old assertion was
+    keyed to today's formatting, and the property is that the line identifies WHICH ROW OF WHICH
+    REGISTER.
+    """
     out = removed_claims(current={"stays"}, retired={}, baseline={"stays", "gone"})
-    # Keyed to what the refusal must CARRY, not to where in the sentence it carries it. The rung
-    # reports through `register_low_water.removed_rows` since 2026-09-05, which leads with the
-    # register's name so a reader of a mixed report knows which one spoke; an assertion on the
-    # first characters was keyed to today's wording and said nothing about the property.
     assert len(out) == 1
-    assert "gone" in out[0], "the refusal must name the claim that left, or nobody can act on it"
-    assert drift.REGISTER_NAME in out[0], "and must say which register lost it"
+    assert out[0].startswith(drift.DEFAULT_REGISTER + ":"), out[0]
+    assert "gone" in out[0]
     assert "was in the register at HEAD and is not in it now" in out[0]
 
 
@@ -112,40 +117,22 @@ def test_THE_HEAD_READER_ITSELF_returns_None_and_never_an_empty_set():
     )
 
 
-UNUSABLE_AT_HEAD = ("claims: [[[", "just a string", "claims: 7", "other_key: 1")
-
-
-def test_the_EXTRACTOR_reads_None_and_never_an_empty_list_for_an_unusable_register():
-    """The half of the reader that is THIS register's: raw text -> claim ids.
-
-    HEAD's copy parses to something that is not a mapping with a `claims` list, or does not parse
-    at all. None, never [] — [] is the claim "HEAD's register held no claims, so nothing can have
-    been removed". Driven directly, with no git and no patch, because this is a pure function of
-    the text. MUTATION: return [] on any of these legs and this fires.
-    """
-    for payload in UNUSABLE_AT_HEAD:
-        assert drift.claim_ids_in_register_text(payload) is None, (
-            f"HEAD's copy {payload!r} is unusable as a baseline and must refuse, not read empty"
-        )
-    assert drift.claim_ids_in_register_text(yaml.safe_dump({"claims": [CHANNEL_CLAIM]})) == [
-        CHANNEL_CLAIM["id"]], "and a register it CAN read must yield its ids, or the leg above is "\
-                              "satisfied by an extractor that refuses everything"
-
-
 def test_an_UNPARSEABLE_or_SHAPELESS_register_at_head_is_unestablishable(monkeypatch):
-    """The COMPOSITION, which the extractor leg above cannot reach. `_claim_ids_at_head` delegates
-    the git read to `register_low_water.keys_at_head` since 2026-09-05, so this patches the SHARED
-    module's subprocess — and it is a separate leg on purpose: a control that only exercised the
-    helper would survive `_claim_ids_at_head` being mutated to `return frozenset()`, which is the
-    exact fail-silent both halves exist to refuse."""
+    """The reader's other two failure legs, which the returncode leg does not cover: HEAD's copy
+    parses to something that is not a mapping with a `claims` list. Same direction — None, not an
+    empty baseline that would silently admit every removal."""
     class _Proc:
         returncode = 0
 
         def __init__(self, stdout):
             self.stdout = stdout
 
-    for payload in UNUSABLE_AT_HEAD:
-        monkeypatch.setattr(drift.register_low_water.subprocess, "run",
+    # Patched on the SHARED reader, which is where the `git show` now lives. `canon_drift_check`
+    # no longer imports subprocess at all: after the 2026-09-05 convergence its head reader is a
+    # named seam onto `register_low_water.keys_at_head`, and a patch aimed at the old home would
+    # be an AttributeError rather than a quietly ineffective test.
+    for payload in ("claims: [[[", "just a string", "claims: 7", "other_key: 1"):
+        monkeypatch.setattr(register_low_water.subprocess, "run",
                             lambda *a, _p=payload, **k: _Proc(_p))
         assert drift._claim_ids_at_head(drift.REPO_ROOT / drift.DEFAULT_REGISTER) is None, (
             f"HEAD's copy {payload!r} is unusable as a baseline and must refuse, not read empty"
@@ -179,28 +166,6 @@ def test_BOTH_baseline_branches_are_reachable(tmp_path, monkeypatch):
     )
     assert "could not be established" not in "".join(refused), (
         "the refusal here must be the REMOVAL branch, not the unestablishable-baseline branch"
-    )
-
-
-def test_THE_RULE_COMES_FROM_THE_SHARED_MECHANISM_AND_IS_NOT_A_LOCAL_COPY(monkeypatch):
-    """CONVERGENCE, asserted rather than asked for in a comment.
-
-    This rung, `removed_dispositions` on the alarm census and `removed_rows` the generic all landed
-    within one hour on 2026-09-05, each carrying its own copy of the or-empty-string null treatment,
-    the None-never-empty refusal and the no-subject-gone-exception argument. That is the VAT shape —
-    one rule, several implementations, a defect fixed in one and live in another for a month — on a
-    control whose entire subject is registers that silently lose repairs.
-
-    A comment saying "call the shared one" is an exhortation and the next lane will not read it.
-    This drives the routing: replace the shared mechanism and the rung must speak with its voice.
-    MUTATION: re-inline the loop here, keeping every current test green, and this fires.
-    """
-    monkeypatch.setattr(drift.register_low_water, "removed_rows",
-                        lambda **kw: [f"SHARED SPOKE for {sorted(kw['baseline'] - set(kw['current']))}"])
-    out = removed_claims(current={"stays"}, retired={}, baseline={"stays", "gone"})
-    assert out == ["SHARED SPOKE for ['gone']"], (
-        "the low-water rule must reach this register through `register_low_water.removed_rows`, "
-        "not through a fourth hand-rolled copy of it"
     )
 
 

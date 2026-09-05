@@ -93,9 +93,14 @@ import argparse
 import ast
 import json
 import re
-import subprocess
 from pathlib import Path
 from typing import Any
+
+# The SHARED low-water mechanism, called rather than copied. `removed_dispositions()` was the first
+# hand-rolled implementation of it (dc5fcbbc8) and two more followed within the day; each carried
+# its own copy of the or-empty-string null treatment and the None-is-never-empty refusal, which is
+# the shape that lets a defect be repaired in one and stay live in another for a month.
+from background import register_low_water
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 OBS_DIR = PROJECT_DIR / "docs" / "observability"
@@ -744,32 +749,33 @@ def load_retired(path: Path | None = None) -> dict[str, str]:
     return rows if isinstance(rows, dict) else {}
 
 
-def _dispositions_at_head() -> dict[str, dict[str, str]] | None:
-    """The register as HEAD has it -- the baseline `removed_dispositions()` measures against.
+#: The register's path as git names it, for the shared reader and for the refusal's prefix.
+REGISTER_REL_PATH = "docs/design/self_clearing_alarm_dispositions.json"
 
-    Returns None, never {}, when the baseline cannot be established. The two are opposite claims:
-    {} says "HEAD's register was empty, so nothing can have been removed" and would report clean on
-    every tree where git is unavailable, which is the fail-silent shape this whole module exists to
-    refuse. The caller turns None into a refusal that names itself.
 
-    `git show HEAD:<path>` and not a working-tree read: the point is to compare the working copy
-    against the last committed judgement, and it resolves correctly from a linked worktree, which
-    is the only environment `seat_executor` runs in.
-    """
-    rel = DISPOSITIONS_PATH.relative_to(PROJECT_DIR)
-    try:
-        proc = subprocess.run(["git", "show", "HEAD:{}".format(rel.as_posix())],
-                              cwd=PROJECT_DIR, capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
-        return None
-    if proc.returncode != 0:
-        return None
-    try:
-        data = json.loads(proc.stdout)
-    except ValueError:
-        return None
+def _disposition_keys_in_register(text: str) -> list[str] | None:
+    """The row keys in a raw copy of the register, or None when that copy is unusable as a
+    baseline. PARSED, never executed -- `keys_at_head` hands this HEAD's bytes, and running HEAD's
+    copy of anything to find out what HEAD's copy declares is a route for HEAD to decide whether it
+    is checked. A raise here is caught one level up and becomes the same None."""
+    data = json.loads(text)
     rows = data.get("dispositions") if isinstance(data, dict) else None
-    return rows if isinstance(rows, dict) else None
+    return list(rows) if isinstance(rows, dict) else None
+
+
+def _dispositions_at_head() -> frozenset[str] | None:
+    """The register's KEYS as HEAD has them -- the baseline `removed_dispositions()` measures
+    against. Returns None, never `frozenset()`, when the baseline cannot be established.
+
+    A NAMED SEAM ONTO THE SHARED READER, not a second copy of it. `register_low_water.keys_at_head`
+    holds the `git show HEAD:` read, the linked-worktree resolution and the never-empty contract;
+    this exists so the census's own tests have something to drive and to patch, and so the module
+    reads without a reader having to follow the import. It carries no rule of its own -- if you are
+    about to add one here, it belongs in the shared reader, or this is a fourth implementation
+    again.
+    """
+    return register_low_water.keys_at_head(REGISTER_REL_PATH, _disposition_keys_in_register,
+                                           project_dir=PROJECT_DIR)
 
 
 def removed_dispositions(dispositions: dict[str, dict[str, str]] | None = None,
@@ -807,28 +813,28 @@ def removed_dispositions(dispositions: dict[str, dict[str, str]] | None = None,
     stopped.
 
     Takes its baseline as an argument so the control can be driven without a git tree, and defaults
-    to reading HEAD so the live rung has no fixture to drift from.
+    to reading HEAD so the live rung has no fixture to drift from. A dict baseline is accepted as
+    well as a set: every caller here holds the register as {key: row}, and `frozenset(...)` over
+    either gives the key set that is actually the subject.
+
+    ROUTED THROUGH `register_low_water.removed_rows`, NOT A COPY OF IT. This function was the first
+    of three hand-rolled implementations of one mechanism, each with its own copy of the `or ""`
+    null treatment and the never-empty refusal. The rule lives in one place now; what stays here is
+    what is genuinely the CENSUS's -- which register, what a row records, and how to retire one.
     """
     disp = load_dispositions() if dispositions is None else dispositions
     ret = load_retired() if retired is None else retired
-    base = _dispositions_at_head() if baseline is None else baseline
-    if base is None:
-        return ["the register's baseline at HEAD could not be established (git show failed, or "
-                "HEAD's copy is absent or unparseable), so whether a row has been removed cannot "
-                "be answered -- this is a refusal, not a clean result"]
-    out: list[str] = []
-    for key in sorted(set(base) - set(disp)):
-        # `or ""` BEFORE `str`, not `.get(key, "")`: a `_retired` entry carrying an explicit JSON
-        # `null` stringifies to "None", which is truthy, and the reason requirement falls open.
-        # The same slip was live in `undispositioned` and `eroded_dispositions` until 2026-09-05;
-        # an absurdity is fixed as a class, so the new escape hatch is born with the treatment.
-        if not str(ret.get(key) or "").strip():
-            out.append("{} -- this row was in the register at HEAD and is not in it now, and "
-                       "`{}` does not say why. A row is the only record that this carrier was ever "
-                       "in the class; removing it removes the alarm that its hit vanished. Restore "
-                       "it, or add `{}[\"{}\"]` naming what took the carrier out of the tree.".format(
-                           key, RETIRED_SECTION, RETIRED_SECTION, key))
-    return out
+    base = _dispositions_at_head() if baseline is None else frozenset(baseline)
+    return register_low_water.removed_rows(
+        register=REGISTER_REL_PATH,
+        current=disp,
+        baseline=base,
+        retired=ret,
+        row_is="A row is the only record that this carrier was ever in the class; removing it "
+               "removes the alarm that its hit vanished, and `eroded_dispositions()` rests its "
+               "whole non-tautology argument on the row set being a HIGH-WATER mark.",
+        retire_with="`{}[\"{{key}}\"]`".format(RETIRED_SECTION),
+    )
 
 
 def undispositioned(census: dict[str, Any], dispositions: dict[str, dict[str, str]] | None = None

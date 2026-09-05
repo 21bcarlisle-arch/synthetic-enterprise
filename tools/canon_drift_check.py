@@ -95,16 +95,16 @@ from typing import Any, Callable, Iterator
 import yaml
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-
 if str(REPO_ROOT) not in sys.path:
+    # Run as `python3 tools/canon_drift_check.py` the repository root is not on the path, and an
+    # import-path defect is invisible to every test that imports the module. Same shape, and the
+    # same two lines, as `tools/level_promotion_gate.py`.
     sys.path.insert(0, str(REPO_ROOT))
-# `register_low_water` is the SHARED low-water mechanism, CALLED rather than copied. This module
-# hand-rolled its own on 2026-09-05 (`605ec3995`) at the same hour the census hand-rolled a second
-# (`dc5fcbbc8`) and the generic was extracted from both (`6f4e6b1f4`) -- three copies of the
-# or-empty-string null treatment, the None-never-empty refusal and the no-subject-gone-exception
-# argument. That is the VAT shape: one rule, several implementations, a defect fixed in one and
-# live in another. Neither lane was wrong; a bounded invocation cannot see the whole, which is why
-# converging them is the seat's.
+
+# The SHARED low-water mechanism, called rather than copied. `removed_claims()` was the second of
+# three hand-rolled implementations of it to land on 2026-09-05; each carried its own copy of the
+# or-empty-string null treatment and the None-is-never-empty refusal, which is the shape that lets
+# a defect be repaired in one and stay live in another for a month.
 from background import register_low_water  # noqa: E402
 
 DEFAULT_REGISTER = "docs/design/canon_claims.yaml"
@@ -310,10 +310,6 @@ class Verdict:
 #: git, and it is visible in the diff.
 RETIRED_SECTION = "_retired"
 
-#: How the shared low-water mechanism names THIS register in a refusal. Several registers report
-#: through the same wording now, so a reader of a mixed report has to be told which one spoke.
-REGISTER_NAME = "CANON CLAIM REGISTER"
-
 
 def load_retired(path: Path) -> dict[str, str]:
     """The `_retired` section: {claim_id: why it left the register}. Absent or malformed yields {},
@@ -327,38 +323,42 @@ def load_retired(path: Path) -> dict[str, str]:
     return rows if isinstance(rows, dict) else {}
 
 
-def claim_ids_in_register_text(text: str) -> list[str] | None:
-    """HEAD's raw register TEXT -> the claim ids in it, or None when that text is not a register.
-
-    The `extract` half of `register_low_water.keys_at_head`. It PARSES and never execs, which
-    matters less for YAML than for a register living in a module, but the contract is the shared
-    one and this is the half that is specific to this register's shape.
-
-    None, never [], for every unusable shape -- unparseable YAML, a document that is not a mapping,
-    a `claims` key that is not a list. The shared reader turns each of those into an
-    UNESTABLISHABLE baseline, and the caller turns that into a refusal that names itself. Returning
-    [] would be the claim "HEAD's register held no claims, so nothing can have been removed".
-    """
-    try:
-        data = yaml.safe_load(text)
-    except yaml.YAMLError:
-        return None
+def _claim_ids_in_register(text: str) -> list[str] | None:
+    """The claim ids in a raw copy of the register, or None when that copy is unusable as a
+    baseline. PARSED, never executed. A raise is caught one level up and becomes the same None --
+    an unparseable baseline is an UNESTABLISHED baseline, never an empty one."""
+    data = yaml.safe_load(text)
     claims = data.get("claims") if isinstance(data, dict) else None
     if not isinstance(claims, list):
         return None
     return [c["id"] for c in claims if isinstance(c, dict) and "id" in c]
 
 
+def _register_name(register: Path) -> str:
+    """How the refusal names this register. Repo-relative where git can name it, absolute
+    otherwise -- an ad-hoc `--register` outside the tree still has to identify itself in a report
+    that now carries lines from four registers."""
+    try:
+        return register.resolve().relative_to(REPO_ROOT).as_posix()
+    except ValueError:
+        return str(register)
+
+
 def _claim_ids_at_head(register: Path) -> frozenset[str] | None:
     """The register's ids as HEAD has them -- the baseline `removed_claims()` measures against.
 
-    Routed through `register_low_water.keys_at_head`, so the `git show HEAD:` read, the timeout,
-    the OSError leg and the None-never-empty contract are the ones that were mutation-proved once
-    rather than a second copy of them. What stays here is the only part that is this register's:
-    where the file is, and how to read claim ids out of its text.
+    A NAMED SEAM ONTO THE SHARED READER, not a second copy of it. `register_low_water.keys_at_head`
+    holds the `git show HEAD:` read, the linked-worktree resolution, and the contract that matters
+    most here: it returns None, never `frozenset()`, when the baseline cannot be established. Those
+    are opposite claims -- an empty set says "HEAD's register held no claims, so nothing can have
+    been removed" and would report clean on every tree where git is unavailable, which is the
+    fail-silent shape this module's header refuses.
+
+    This function carries no rule of its own. If you are about to add one, it belongs in the shared
+    reader, or this is a second implementation again.
     """
     rel = register.resolve().relative_to(REPO_ROOT)
-    return register_low_water.keys_at_head(rel.as_posix(), claim_ids_in_register_text,
+    return register_low_water.keys_at_head(rel.as_posix(), _claim_ids_in_register,
                                            project_dir=REPO_ROOT)
 
 
@@ -402,6 +402,12 @@ def removed_claims(register: Path | None = None, *,
 
     Takes its baseline and its current set as arguments so the control can be driven without a git
     tree, and defaults to reading HEAD so the live rung has no fixture to drift from.
+
+    ROUTED THROUGH `register_low_water.removed_rows`, NOT A COPY OF IT. This was the second of
+    three hand-rolled implementations of one mechanism to land on 2026-09-05, each with its own
+    copy of the `or ""` null treatment and the never-empty refusal. The rule lives in one place
+    now; what stays here is what is genuinely the CANON's -- which register, the NOT-APPLICABLE
+    branch for a register with no committed copy, what a row records, and how to retire one.
     """
     reg = register if register is not None else REPO_ROOT / DEFAULT_REGISTER
     if baseline is None:
@@ -415,27 +421,28 @@ def removed_claims(register: Path | None = None, *,
             reg.resolve().relative_to(REPO_ROOT)
         except ValueError:
             return []
-    base = _claim_ids_at_head(reg) if baseline is None else baseline
-    if base is not None and current is None:
-        # Only reached when there IS a baseline to measure against. With none, the refusal below
-        # is about the baseline and reading the working copy would only be a second way to fail.
+    base = _claim_ids_at_head(reg) if baseline is None else frozenset(baseline)
+    if base is None:
+        # The baseline refusal below does not read `current`, and complaining about a second fact
+        # when the first already makes the question unanswerable is noise. Ordering preserved from
+        # before the convergence: the unestablishable baseline is the refusal that gets reported.
+        current = set()
+    elif current is None:
         try:
             current = {c.id for c in load_register(reg)}
         except ProbeError as exc:
             return [f"the register's current claims could not be read ({exc}), so whether a claim "
                     f"has been removed cannot be answered -- this is a refusal, not a clean result"]
-    # The rule itself -- the null-reason treatment, the never-empty refusal, the no-subject-gone
-    # exception -- belongs to the shared mechanism, so a repair to any one of them reaches this
-    # register too. What is passed in is the part that is only true HERE: what a claim row records,
-    # and the exact hatch to author.
+    ret = load_retired(reg) if retired is None else retired
     return register_low_water.removed_rows(
-        register=REGISTER_NAME,
-        current=() if current is None else current,
-        baseline=None if base is None else frozenset(base),
-        retired=load_retired(reg) if retired is None else retired,
-        row_is="The row is the only thing that binds this page sentence to a predicate over the "
-               "code; removing it removes the drift check that the page still tells the truth.",
-        retire_with="`" + RETIRED_SECTION + "[\"{key}\"]` in the register",
+        register=_register_name(reg),
+        current=current,
+        baseline=base,
+        retired=ret,
+        row_is="The row is the only thing that binds a page sentence to a predicate over the "
+               "code, and every verdict this register produces -- OVER_CLAIM, SUPERSEDED, "
+               "UNBOUND, ERROR -- is a refusal ON A ROW, so deleting the row cures its own red.",
+        retire_with="`{}[\"{{key}}\"]`".format(RETIRED_SECTION),
     )
 
 

@@ -1058,3 +1058,236 @@ def test_the_widest_gap_comparison_is_a_tautology_and_is_never_read_as_evidence(
     assert tg["over_max_gap"] == []
     # And the check that CAN fail is green on the same episode, so the two are not redundant.
     assert tg["recovery_not_adjacent"] == []
+
+
+# ---------------------------------------------------------------------------
+# THE INTERVAL DECOMPOSITION of the MIXED bucket. Pre-registered in
+# docs/staging/records/SEAT_PREREGISTRATION_WHAT_THE_MIXED_BUCKET_IS_STANDING_ON_2026-09-05.md.
+# MIXED is the episode `cause` field abstaining, so 74.6% of outage carries a label that is by
+# construction not a cause. These controls guard the unit that does not have that problem -- the
+# interval between two consecutive attempts, which has exactly one observation at each end.
+# ---------------------------------------------------------------------------
+
+#: Ranks stated explicitly so these controls read the CLASSIFIER and not today's hook file. The
+#: rank table itself is checked against the hook by
+#: `test_the_rank_order_is_the_hooks_invocation_order_and_not_a_table_written_here`.
+_IRANKS = {"finding-class consolidation": (1, 0), attr.RED_TEST: (1, 9),
+           "level-promotion gate": (2, 0), "site-lane gate": (3, 0), "orphan-ratchet": (4, 0)}
+CLASS_HOOK = ("  git/hook output (last 40 lines):\n"
+              "❌ FINDING-CLASS CONSOLIDATION BROKEN\n364 passed in 40s")
+
+
+def _ilog(*rows):
+    """A log from `(hh, hook_body_or_None)` rows; `None` is a `behind_origin` attempt."""
+    return "\n".join(
+        _cycle("2026-08-20 {:02d}:00".format(hh), refused=True, hook_body=b) if b
+        else _failed("2026-08-20 {:02d}:00".format(hh), "behind_origin")
+        for hh, b in rows)
+
+
+def _iat(log, only=(attr.MIXED,)):
+    return attr.interval_attribution(log, ranks=_IRANKS, only=only)
+
+
+def test_the_intervals_of_an_episode_partition_its_outage_exactly(monkeypatch):
+    """A decomposition that loses or double-counts time publishes a table of reasonable-looking
+    rows that do not add up, and every percentage in it is wrong while every row looks right.
+
+    The partition is `outage = sum(m_{i+1} - m_i) + (r - m_{n-1})`, re-derived from the members'
+    OWN timestamps rather than from the episode totals -- so an interval builder that skipped a
+    member, or double-counted the trailing gap, disagrees here instead of cancelling.
+    """
+    log = _ilog((10, RED_HOOK), (11, RED_HOOK), (13, CLASS_HOOK),
+                (16, None), (17, LEVEL_HOOK), (18, None))
+    log += "\n" + _cycle("2026-08-20 20:00", refused=False)
+    at = _iat(log)
+    assert at["episodes"] == 1 and at["partition_error"] == []
+    # 10:00 -> 20:00 is the outage, and the six intervals must reconstruct exactly that.
+    assert at["total_s"] == 10 * 3600
+    assert sum(r["seconds"] for r in attr.interval_report(log, _IRANKS)["rows"]) == 10 * 3600
+    # And the control CAN fail -- through the MODULE'S OWN threshold and not through one
+    # re-typed here. Filtering in the test would leave `interval_attribution`'s tolerance
+    # unexercised, and widening that tolerance is exactly how this control would fall open.
+    real = attr.interval_report
+
+    def corrupt(text, ranks=None):
+        rep = real(text, ranks)
+        rep["episodes"][0]["partition_error_s"] = 3600.0
+        return rep
+
+    monkeypatch.setattr(attr, "interval_report", corrupt)
+    assert len(_iat(log)["partition_error"]) == 1
+
+
+def test_every_interval_takes_exactly_one_class_and_none_falls_through():
+    """An interval that matched no branch would vanish from the class table while still being
+    counted in the outage -- so the shares would sum to under 100% and the residue would read as
+    smaller than it is, which is the direction of error that flatters this attribution."""
+    log = _ilog((10, RED_HOOK), (11, RED_HOOK), (12, SITE_HOOK), (13, CLASS_HOOK), (14, None))
+    log += "\n" + _cycle("2026-08-20 16:00", refused=False)
+    at = _iat(log)
+    assert sum(at["counts"].values()) == at["intervals"]
+    assert sum(at["by_class"].values()) == at["total_s"]
+    assert set(at["counts"]) == set(attr.INTERVAL_CLASSES)
+
+
+def test_every_interval_class_is_reachable_over_one_partition():
+    """A classifier that returned one label for everything passes a per-class test and fails this
+    one. THE CONTROL IS OVER THE WHOLE PARTITION for that reason: a rare branch must be shown to
+    be TAKEABLE before anything is asserted about what it does, and an unreached class is an
+    unproven branch rather than a zero.
+    """
+    log = _ilog(
+        (10, RED_HOOK),        # ->
+        (11, RED_HOOK),        # BRACKETED: same gate, nothing seen between
+        (12, SITE_HOOK),       # CLEARED-WITHIN: the far end reached past RED TEST
+        (13, CLASS_HOOK),      # MASKED: a LOWER rank, so site-lane's state is unobservable
+        (14, None),            # UNRANKABLE: a behind_origin attempt refuses nothing
+    )
+    log += "\n" + _cycle("2026-08-20 16:00", refused=False)   # TRAILING
+    at = _iat(log)
+    assert at["unreached_classes"] == [], at["counts"]
+    assert all(at["counts"][c] for c in attr.INTERVAL_CLASSES)
+    # Reachable is not enough on its own: each must land on the interval it was built for.
+    got = {r["at"]: r["class"] for r in attr.interval_report(log, _IRANKS)["rows"]}
+    assert got == {"2026-08-20 10:00": attr.BRACKETED,
+                   "2026-08-20 11:00": attr.CLEARED_WITHIN,
+                   "2026-08-20 12:00": attr.MASKED,
+                   "2026-08-20 13:00": attr.UNRANKABLE,
+                   "2026-08-20 14:00": attr.TRAILING}
+
+
+def test_a_lower_rank_at_the_far_end_attributes_the_interval_to_no_gate_at_all():
+    """MASKED is the class that must attribute NOTHING, and it is the tempting one to fill in.
+
+    The chain stopped BELOW the near end's gate, so that gate's state at the far end is
+    unobservable -- crediting the interval to it would invent the one kind of evidence this
+    analysis cannot survive. What IS established runs the other way: the lower gate passed at the
+    near end and refused at the far one, so it re-broke inside. That is carried as a COUNT of
+    observations and never as a duration.
+    """
+    log = _ilog((10, SITE_HOOK), (11, CLASS_HOOK)) + "\n" + _cycle("2026-08-20 12:00",
+                                                                   refused=False)
+    rows = attr.interval_report(log, _IRANKS)["rows"]
+    masked = [r for r in rows if r["class"] == attr.MASKED]
+    assert len(masked) == 1
+    assert masked[0]["gate"] is None                       # no duration on either gate
+    assert masked[0]["re_broke"] == "finding-class consolidation"
+    at = _iat(log)
+    assert at["by_gate"] == {}                             # nothing attributed anywhere
+    assert at["by_class"][attr.MASKED] == 3600
+    assert at["re_broke"]["finding-class consolidation"] == 1
+    # The mirror: the SAME two gates the other way round is CLEARED-WITHIN, attributed and bounded
+    # from above. If the classifier were symmetric these two would be one class.
+    other = _ilog((10, CLASS_HOOK), (11, SITE_HOOK)) + "\n" + _cycle("2026-08-20 12:00",
+                                                                     refused=False)
+    fwd = [r for r in attr.interval_report(other, _IRANKS)["rows"]
+           if r["class"] == attr.CLEARED_WITHIN]
+    assert [r["gate"] for r in fwd] == ["finding-class consolidation"]
+
+
+def test_an_interval_whose_ends_are_not_consecutive_attempts_is_flagged():
+    """BRACKETED says "nothing was observed in between", and that must be a property of the LOG
+    and not of how the builder happens to walk it.
+
+    Walk `refused` instead of `members` and a BRACKETED interval steps straight over an
+    intervening `behind_origin` attempt -- which is an attempt, and its absence from the interval
+    is exactly what "nothing was observed" would then be hiding. The seq index is carried so the
+    claim is checkable; a duration comparison cannot make it.
+    """
+    log = _ilog((10, RED_HOOK), (11, None), (12, RED_HOOK))
+    log += "\n" + _cycle("2026-08-20 13:00", refused=False)
+    at = _iat(log, only=None)      # one cause, so the MIXED view would correctly exclude it
+    assert at["not_adjacent"] == []
+    # The real defect this names: with the interloper skipped, 10:00 -> 12:00 would read as one
+    # BRACKETED RED TEST interval. It does not -- both its intervals are UNRANKABLE.
+    assert at["counts"][attr.BRACKETED] == 0
+    assert at["counts"][attr.UNRANKABLE] == 2
+    # The `adjacent` flag itself is a PINNED TAUTOLOGY and this control does not lean on it: an
+    # episode is a maximal run of CONSECUTIVE cycles, so the flag cannot go false on any sound log
+    # and pinning it to a literal `True` kills nothing. It is carried as a canary over a future
+    # change to `_episodes`. The assertions above are the ones that catch the defect, and they
+    # catch it through the CLASSES -- which is why they are stated as counts and not as a flag.
+    assert all(r["adjacent"] for r in attr.interval_report(log, _IRANKS)["rows"])
+
+
+def test_a_masked_interval_is_always_an_established_re_arrival_but_not_the_reverse():
+    """Two implementations of one backward rank move, and the PRE-REGISTRATION ASKED FOR THE WRONG
+    RELATION -- it asked for equality in both directions. The correct relation is a subset, and
+    the gap is a real quantity rather than a discrepancy to smooth over.
+
+    `ordering_report` walks the ranked causes with unranked cycles SKIPPED, so it sees a backward
+    step across an unattributable cycle. An interval with an unranked end is UNRANKABLE, so the
+    interval view cannot. Subset must hold exactly; the strict direction must be ATTAINABLE, or
+    the "not the reverse" half of this control is a claim about nothing.
+    """
+    # Equal case: adjacent ranked refusals, so both routes see the step.
+    both = _ilog((10, SITE_HOOK), (11, CLASS_HOOK)) + "\n" + _cycle("2026-08-20 12:00",
+                                                                    refused=False)
+    at = _iat(both)
+    assert at["masked_not_established"] == [] and at["established_without_masked"] == []
+    # Strict case: an UNATTRIBUTABLE cycle between the two, which ordering_report steps over.
+    split = _ilog((10, SITE_HOOK), (11, "  git/hook output (last 40 lines):\n(truncated)"),
+                  (12, CLASS_HOOK)) + "\n" + _cycle("2026-08-20 13:00", refused=False)
+    gap = _iat(split)
+    # The subset direction is a THEOREM given both routes read one rank table, so this half is
+    # pinned rather than trusted -- emptying it kills no control. The next two lines are the ones
+    # that fire, and they are what makes "not the reverse" a claim about something.
+    assert gap["masked_not_established"] == []
+    assert gap["established_without_masked"] == ["2026-08-20 10:00"]
+    assert gap["counts"][attr.MASKED] == 0                 # invisible to the interval view
+    assert gap["counts"][attr.UNRANKABLE] == 2
+
+
+def test_a_gate_is_never_attributed_more_than_its_episodes_whole_outage():
+    """C1 catches a partition that does not sum, but two sign errors that cancel would pass it.
+    This is the independent bound: attributed time is a subset of the intervals, which are a
+    partition of the outage, so it can never exceed it however the classifier errs.
+    """
+    log = _ilog((10, RED_HOOK), (11, RED_HOOK), (12, RED_HOOK))
+    log += "\n" + _cycle("2026-08-20 13:00", refused=False)
+    at = _iat(log, only=None)      # one cause, so the MIXED view would correctly exclude it
+    assert at["over_outage"] == []
+    assert at["attributed_s"] + at["residue_s"] == at["total_s"] == 3 * 3600
+    rep = attr.interval_report(log, _IRANKS)
+    rep["episodes"][0]["intervals"][0]["seconds"] = 99 * 3600
+    over = [e for e in rep["episodes"]
+            if sum(r["seconds"] for r in e["intervals"]
+                   if r["class"] in attr.ATTRIBUTING) > e["outage_s"] + 1.0]
+    assert len(over) == 1
+
+
+def test_the_two_attributing_classes_are_never_added_into_one_gate_figure():
+    """A floor on a gate that STAYED RED and a ceiling on a gate that WENT GREEN are opposite
+    quantities, and their sum is not a quantity at all. One "attributed to this gate" column
+    would read as "how long the gate was red", which neither number is and which the log cannot
+    say. The per-gate table must therefore keep them apart at the data structure, not only in the
+    printed header, or the next caller will add them.
+    """
+    log = _ilog((10, RED_HOOK), (11, RED_HOOK), (12, SITE_HOOK), (13, SITE_HOOK))
+    log += "\n" + _cycle("2026-08-20 14:00", refused=False)
+    at = _iat(log)
+    assert set(at["by_gate"][attr.RED_TEST]) == set(attr.ATTRIBUTING)
+    assert at["by_gate"][attr.RED_TEST] == {attr.BRACKETED: 3600.0, attr.CLEARED_WITHIN: 3600.0}
+    assert at["by_gate"]["site-lane gate"] == {attr.BRACKETED: 3600.0, attr.CLEARED_WITHIN: 0.0}
+    # The two columns are separately reachable and separately zeroable -- a structure that had
+    # collapsed them could not show a gate with one and not the other.
+    assert at["by_gate"]["site-lane gate"][attr.CLEARED_WITHIN] == 0.0
+    assert attr.MASKED not in at["by_gate"][attr.RED_TEST]
+
+
+def test_a_mixed_only_view_never_reports_the_solo_cause_episodes_it_excludes():
+    """The whole point is to decompose the bucket that ABSTAINS. An `only` filter that leaked
+    single-cause episodes in would answer a different question -- and it would answer it with a
+    larger, more impressive number, which is the direction that needs the control.
+    """
+    log = _ilog((10, RED_HOOK), (11, SITE_HOOK))                       # mixed
+    log += "\n" + _cycle("2026-08-20 12:00", refused=False)
+    log += "\n" + _ilog((14, RED_HOOK), (15, RED_HOOK))                # solo RED TEST
+    log += "\n" + _cycle("2026-08-20 16:00", refused=False)
+    mixed, every = _iat(log), _iat(log, only=None)
+    assert mixed["episodes"] == 1 and every["episodes"] == 2
+    assert mixed["total_s"] == 2 * 3600 and every["total_s"] == 4 * 3600
+    # The solo episode's BRACKETED hour must appear in one view and not the other.
+    assert every["by_gate"][attr.RED_TEST][attr.BRACKETED] == 3600
+    assert mixed["by_gate"][attr.RED_TEST][attr.BRACKETED] == 0.0
