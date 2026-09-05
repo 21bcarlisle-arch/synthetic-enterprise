@@ -383,6 +383,38 @@ SIM_RUNNER_HOLD_FLAG = PROJECT_DIR / "docs" / "review_gates" / ".sim_runner_hold
 SIM_RUN_OUTPUT_DIR = PROJECT_DIR / "docs" / "reports"
 SIM_RUN_OUTPUT_GLOB = "run_output_*.json"
 PRODUCER_STARVED_MIN_FAILURES = 3          # sustained, not a lone flake (mirrors rung 1's bar)
+
+# ---------------------------------------------------------------------------------------------
+# PRODUCT PRIORITY (director console, 2026-09-05)
+# ---------------------------------------------------------------------------------------------
+# "I changed the dial, and the dial isn't what chooses." The re-rank of 2026-09-04 moved eleven
+# R1-R5 atoms to dial 45 and the machine then ran ten hours and 66 commits with no product work in
+# any of them. The dial only orders atoms WITHIN the final draw; four rungs return before that draw
+# is ever reached, and one of them -- RUNG 1c, the BLOCKING-finding lane exclusion -- was removing
+# the three core R1 atoms (EP17, PB4, PB5) from candidacy entirely, because a BLOCKING finding sat
+# in lane W2_customer_generator. The weights moved and the selector did not.
+#
+# THE TEST THE DIRECTOR GAVE FOR MACHINERY WORK, and the reason this exemption is UNCONDITIONAL
+# rather than gated on a starvation threshold: a machinery fix earns precedence if something a
+# reader or a customer depends on is broken, or if the machine genuinely cannot land work. Those
+# two cases are ALREADY the priority-zero rungs -- a wedged publish gate, a dead producer, a
+# persistent operational red -- and `_priority_zero_active` is their exact enumeration. Anything
+# still sitting in rung 1c has, by construction, failed that test: it is loud, adjacent, newly
+# discovered, or a finding this seat filed itself. So it may still exclude ordinary same-lane
+# feature work, and it may not exclude what the director ranked first.
+#
+# DERIVED FROM THE MAP, never a hardcoded atom list, so a later re-rank moves the set without a
+# code change and this constant cannot silently describe a set that no longer exists.
+PRODUCT_PRIORITY_DIAL_FLOOR = 45
+
+#: Commits between one atom being NAMED and the next, at the median, over the fortnight to
+#: 2026-09-05 (1197 commits, 53 of which named an atom; p90 was 51). Carried so the starvation
+#: stretch is reported against what normal work looks like rather than against a feeling.
+PRODUCT_NAMED_MEDIAN_GAP = 6
+#: The stretch at which no product progress stops being a lull and becomes a finding about how work
+#: is being chosen. Four times the median and half the p90 -- comfortably past one item's ordinary
+#: landing traffic, comfortably short of the 87-commit stretch that was live when this was written.
+PRODUCT_STARVED_COMMIT_STRETCH = 25
 # BOTH LIMBS ARE NOW DERIVED FROM THE DECLARED CADENCE (2026-09-04). The director moved numbers and
 # runs to a weekly publish for cost; a producer alarm calibrated for the old half-hourly cadence
 # fires at PRIORITY ZERO every thirty minutes on a machine doing exactly what it was told, and a
@@ -2460,7 +2492,22 @@ def record_harden_pass(atom_id: str, path: Path | None = None,
 # A staged [DIRECTOR-RULING] / [STEER] header, in ANY bracketed tag that ENDS in RULING or STEER
 # (matches [DIRECTOR-RULING], [STEER], [ADVISOR-STEER], [DIRECTOR-STEER]). Content detection is the
 # R7-correct primary signal (act on real content, not a filename a daemon could spoof).
-_DIRECTOR_RULING_STEER_HEADER_RE = re.compile(r"\[[A-Z0-9 _-]*(?:RULING|STEER)\]", re.IGNORECASE)
+#: CANON was added 2026-09-05, and its absence is why the director had to paste two documents into
+#: the console by hand. This mechanism is the one thing in the machine that surfaces a director
+#: document ahead of self-filed work -- and it knew the words RULING and STEER and not the word
+#: CANON, so `DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04` and
+#: `DIRECTOR_CANON_PRODUCT_AND_MACHINERY_2026-09-05` were both invisible to it while eighty-seven
+#: commits of machinery work landed past them. Nothing was broken; the vocabulary was short by one
+#: word. That is the shape to remember: the mechanism existed, was tested, and was mute.
+_DIRECTOR_RULING_STEER_HEADER_RE = re.compile(
+    r"\[[A-Z0-9 _-]*(?:RULING|STEER|CANON)\]", re.IGNORECASE)
+
+#: ONE HOME for the filename convention, shared by the draw suppressor and the mint source below.
+#: They previously carried the same tuple as two literals, which is how a vocabulary widened in one
+#: place stays narrow in the other -- the exact defect this constant was created while fixing.
+_DIRECTOR_DOC_PREFIXES = (
+    "DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_", "DIRECTOR_CANON_",
+)
 
 
 def _unconsumed_director_ruling_or_steer(staging_dir: Path | None = None) -> bool:
@@ -2487,7 +2534,7 @@ def _unconsumed_director_ruling_or_steer(staging_dir: Path | None = None) -> boo
     except OSError:
         return False
     for p in files:
-        if p.name.startswith(("DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_")):
+        if p.name.startswith(_DIRECTOR_DOC_PREFIXES):
             return True
         try:
             head = p.read_text(encoding="utf-8")[:600]
@@ -2543,7 +2590,7 @@ def _is_ruling_or_steer(name: str, head: str) -> bool:
     primary signal). Shares the header regex + naming prefixes with the item-1 draw suppressor so the
     two can never disagree about what counts as a ruling/steer."""
     return bool(
-        name.startswith(("DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_"))
+        name.startswith(_DIRECTOR_DOC_PREFIXES)
         or _DIRECTOR_RULING_STEER_HEADER_RE.search(head)
     )
 
@@ -5326,16 +5373,28 @@ def _self_refill_draw_ladder() -> str | None:
     if blocker_reason:
         log(blocker_reason)
 
+    # THE FLOOR (director, 2026-09-05): a stretch with no product progress is itself a finding
+    # about how work is being chosen, and it outranks the machinery item that displaced it. Logged
+    # rather than filed: the register already exists for defects that can wait, and a rung that
+    # mints a document every thirty minutes is the treadmill this is meant to end.
+    stretch, starved = _product_starvation_stretch()
+    if starved:
+        log(f"PRODUCT STARVATION (RUNG 1c-override): {stretch} commits since any product-priority "
+            f"atom was named, against a median of {PRODUCT_NAMED_MEDIAN_GAP} over the last fortnight. "
+            f"{_product_share_phrase()} "
+            f"Product-priority atoms are exempt from the blocking-finding lane exclusion this cycle "
+            f"(director, 2026-09-05: R1/R2 must be able to win against machinery work).")
+
     build_atoms = _maturity_map_draw_concurrent(exclude_stalled=True)
-    build_atoms = [a for a in build_atoms if a.get("lane") not in blocked_lanes]
+    build_atoms = _drop_lane_blocked(build_atoms, blocked_lanes)
     drawn_ids: set[str] = {a["id"] for a in build_atoms if "id" in a}
 
     site_atoms = _site_lane_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset(drawn_ids))
-    site_atoms = [a for a in site_atoms if a.get("lane") not in blocked_lanes]
+    site_atoms = _drop_lane_blocked(site_atoms, blocked_lanes)
     drawn_ids |= {a["id"] for a in site_atoms if "id" in a}
 
     discovery_atoms = _idle_discover_frame_draw_concurrent(exclude_stalled=True, exclude_ids=frozenset(drawn_ids))
-    discovery_atoms = [a for a in discovery_atoms if a.get("lane") not in blocked_lanes]
+    discovery_atoms = _drop_lane_blocked(discovery_atoms, blocked_lanes)
 
     # BOUNDED FAN-OUT (director P0, 2026-07-17): cap the COMBINED fork count at MAX_CONCURRENT_FORKS
     # BEFORE assembly -- no 12-fork blooms. Priority BUILD > SITE > DISCOVERY (matches the cross-lane
@@ -5558,6 +5617,102 @@ def _self_refill_draw_ladder() -> str | None:
             "invariants, or widen its real-world fidelity. NTFY the director this dial was yielded."
         )
     return None
+
+
+def _product_priority_ids() -> frozenset[str]:
+    """The atom ids the director has ranked above machinery work, read from the map's own dial.
+
+    FAILS TOWARD THE OLD BEHAVIOUR. If the map cannot be read, this returns empty and every atom is
+    once again subject to the lane exclusion. That is the safe direction: the harm from a missing
+    exemption is a delayed product atom, and the harm from a fabricated one is exempting the whole
+    map from a blocking finding.
+    """
+    try:
+        from tools import maturity_map_store
+        return frozenset(
+            a["id"] for a in maturity_map_store.load_live_atoms()
+            if a.get("id") and int(a.get("dial_inherited") or 0) >= PRODUCT_PRIORITY_DIAL_FLOOR
+        )
+    except Exception as exc:  # noqa: BLE001 -- an unreadable map must not take the selector down
+        log(f"product-priority set unavailable, lane exclusion applies to every atom: {exc}")
+        return frozenset()
+
+
+def _drop_lane_blocked(atoms: list, blocked_lanes) -> list:
+    """Apply RUNG 1c's lane exclusion, EXEMPTING what the director ranked first.
+
+    See PRODUCT_PRIORITY_DIAL_FLOOR for why the exemption is unconditional. The exemption is logged
+    every time it changes the answer, because a silent override of a director ruling is how the next
+    reader concludes the ruling was never there.
+    """
+    keep_ids = _product_priority_ids()
+    kept, exempted = [], []
+    for a in atoms:
+        if a.get("lane") not in blocked_lanes:
+            kept.append(a)
+        elif a.get("id") in keep_ids:
+            kept.append(a)
+            exempted.append(a.get("id"))
+    if exempted:
+        log(f"PRODUCT-PRIORITY EXEMPTION: {', '.join(sorted(exempted))} kept in the draw despite a "
+            f"BLOCKING finding in their lane (director, 2026-09-05 -- a finding that does not break "
+            f"a reader's page and does not stop the machine landing work may not displace R1/R2).")
+    return kept
+
+
+def _product_share_phrase() -> str:
+    """The measured product/machinery split, as one clause for the starvation log line.
+
+    Canon §4 asks for the split to be "measured and visible" and warns in the same breath that this
+    "must not become machinery about machinery". So it is surfaced WHERE WORK IS CHOSEN -- one
+    clause on the rung that is already firing -- rather than as a daemon, an artefact and an alarm
+    of its own. `tools/product_machinery_split` holds the definition and the controls.
+    """
+    try:
+        from tools.product_machinery_split import split
+        r = split(window=100)
+        if not r["enough_to_judge"] or r["product_share"] is None:
+            return "Split over the last 100 commits: too thin to judge."
+        return (f"Product share over the last 100 commits: {r['product_share']:.0%} "
+                f"({r['product']} product / {r['machinery']} machinery, floor {r['floor']:.0%}).")
+    except Exception as exc:  # noqa: BLE001 -- a clause in a log line, never a gate
+        return f"Split unavailable ({exc})."
+
+
+def _product_starvation_stretch() -> tuple[int, bool]:
+    """(commits since a product-priority atom was last named, whether that is now a finding).
+
+    KEYED TO THE ATOM BEING NAMED, never to its `file_scope`, and that is the whole design. Measured
+    over the twenty hours this was written in: 148 commits, ZERO naming a product-priority atom, and
+    123 file-touches landing inside one's declared scope. A scope-keyed detector would have read
+    "product progress is happening" continuously and never fired -- the R-set's scopes include
+    `tools/`, `docs/design/` and `simulation/`, which is exactly what machinery work touches. Three
+    of the eleven carry no file_scope at all, so a scope detector is also blind to them entirely.
+    """
+    try:
+        ids = _product_priority_ids()
+        if not ids:
+            return 0, False
+        out = subprocess.run(
+            ["git", "log", "-n", "400", "--pretty=%s%x00%b%x1e"],
+            cwd=str(PROJECT_DIR), capture_output=True, text=True, timeout=30,
+        ).stdout
+        stretch = 0
+        for entry in out.split("\x1e"):
+            if not entry.strip():
+                continue
+            if any(i in entry for i in ids):
+                break
+            stretch += 1
+        return stretch, stretch >= PRODUCT_STARVED_COMMIT_STRETCH
+    except Exception as exc:  # noqa: BLE001 -- an observation, never a gate
+        # RAISES THE FLOOR RATHER THAN LOWERING IT. The first draft returned (0, False) here and a
+        # NameError in the line above made it return "no starvation" on every call -- the floor was
+        # unreachable, silently, in exactly the way this whole mechanism exists to stop. An
+        # unmeasurable stretch is reported AS starvation: the harm from a false positive is that
+        # product work is drawn while machinery waits, which is the direction the director asked for.
+        log(f"product starvation stretch UNMEASURABLE, reporting as starved: {exc}")
+        return -1, True
 
 
 def _priority_zero_active() -> bool:
