@@ -1,6 +1,6 @@
 {
   "annotation": {
-    "checked_at": "2026-09-05T06:14:17Z",
+    "checked_at": "2026-09-05T14:38:18Z",
     "nonblocking_reds": [
       "ERROR tests/architecture/test_a_departure_reading_declares_its_population.py"
     ],
@@ -9,35 +9,35 @@
       "tree_state": "working-tree"
     },
     "nonblocking_reds_total": 1,
-    "open_findings": 20
+    "open_findings": 23
   },
   "last_verified": {
-    "generated_at": "2026-09-05T14:15:01Z",
-    "git_commit": "65343b227",
+    "generated_at": "2026-09-05T15:33:23Z",
+    "git_commit": "108ff5a68",
     "population": {
       "accounts": 251,
       "bills": 10924,
       "total_revenue_gbp": 675114.37
     },
-    "run_id": "run_output_65343b227_20260905T082630Z.json",
+    "run_id": "run_output_108ff5a68_20260905T150527Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-05T14:15:01Z"
+    "verified_at": "2026-09-05T15:33:23Z"
   },
-  "paused_reason": null,
-  "paused_since": null,
+  "paused_reason": "scoped publish-path suite red at git=1cfc48c01; blocking tests: FAILED tests/background/test_a_refusing_gate_banner_is_a_string_a_gate_prints.py::test_every_gate_the_chain_runs_is_either_named_or_declared_unnameable, FAILED tests/background/test_only_work_is_in_the_work_channel.py::test_no_document_is_TRACKED_in_the_staging_root_that_a_disposition_will_move_out, FAILED tests/background/test_publis",
+  "paused_since": "2026-09-05T17:31:10Z",
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-05T14:15:01Z",
-    "git_commit": "65343b227",
+    "generated_at": "2026-09-05T15:33:23Z",
+    "git_commit": "108ff5a68",
     "population": {
       "accounts": 251,
       "bills": 10924,
       "total_revenue_gbp": 675114.37
     },
-    "run_id": "run_output_65343b227_20260905T082630Z.json",
+    "run_id": "run_output_108ff5a68_20260905T150527Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-05T14:15:01Z"
+    "verified_at": "2026-09-05T15:33:23Z"
   },
-  "verification_state": "verified",
-  "written_at": "2026-09-05T14:15:01Z"
+  "verification_state": "paused",
+  "written_at": "2026-09-05T19:46:34Z"
 }
