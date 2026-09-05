@@ -129,6 +129,16 @@ def _retention_ev(old_rate, proposed_rate, customer, segment, fuel, expected_mar
         fuel=fuel,
         hedge_fraction=customer.get("hedge_fraction") or 0.0,
         segment=segment,
+        # HOW THIS ACCOUNT PAYS, from the company's own CRM record (written by
+        # `tools/project_portfolio_to_2026.py` off the approved seam). Ofgem's Consumer Impacts
+        # of Market Conditions survey puts annual switching at 5.6% for direct debit, 5.7% for
+        # standard credit and 3.1% for prepayment -- a published regulator statistic, which is
+        # what a real supplier reads, not the world's copy of the same numbers.
+        #
+        # `None` when the observable is unavailable, and `payment_method_engagement_factor`
+        # returns exactly 1.0 for None, so an unknown payment method leaves the estimate
+        # bit-for-bit as it was rather than quietly applying the majority channel's factor.
+        payment_method=customer.get("payment_method"),
     )
     # THE OFFER'S VALUE, both legs probability-weighted (R3, 2026-08-28).
     #

@@ -94,6 +94,18 @@ REVIEWED_CLOSE_TO_LEARN = {
     # no figure, sells nothing and earns nothing -- it makes an existing published claim true,
     # which is the identical class as SITE13 four entries above and as A45 that produced it.
     "SITE14_the_front_door_schematic_carries_the_corrected_model",
+    # 2026-09-05 reviewed (delivery seat, minting the four director rulings staged that day).
+    # H33 disposes 121 parked documents into DONE / SUPERSEDED / UNBLOCKED / STILL PARKED /
+    # DIRECTOR. It sells nothing, prices nothing and touches no bill; what it changes is whether
+    # the machine can SEE its own live work -- three documents sampled at random were stale in
+    # three different ways, one of them parked on a condition met weeks earlier. That is the
+    # identical class as H45 at the top of this set ("it changes no price, no bill and no
+    # customer -- what it changes is whether the machine can find its own work"), and the
+    # UNBLOCKED bucket is the point: the audit's output is knowledge about which parked items are
+    # secretly live. Worth naming as the near miss: the work it UNBLOCKS may sit in any value
+    # stream, and inheriting theirs would be the same mistake A49 is called out for two entries
+    # above -- an audit that finds a flow is not that flow.
+    "H33_the_parked_document_audit_is_the_idle_hole_at_scale",
     # 2026-08-10 reviewed (worker tick, backlog-triage Group A: "verify the atom exists; mint if
     # not"). Both classified on their merits, not to clear the gate.
     # AO12 is a MEASUREMENT atom: it runs a bounded 10k-customer probe against a prediction
