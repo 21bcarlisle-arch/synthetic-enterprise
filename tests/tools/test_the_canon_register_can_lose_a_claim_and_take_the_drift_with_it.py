@@ -46,10 +46,15 @@ def test_a_claim_that_left_the_register_without_a_reason_is_refused():
     keyed to today's formatting, and the property is that the line identifies WHICH ROW OF WHICH
     REGISTER.
     """
+    # 2026-09-05: the docstring above already argued for this and the code still said
+    # `startswith(DEFAULT_REGISTER + ":")` -- an assertion keyed to WHERE in the sentence the
+    # register is named, which goes red the day the shared mechanism reorders its own wording and
+    # says nothing about whether the line is actionable. The property is that the refusal
+    # identifies which row of which register; both facts, neither position.
     out = removed_claims(current={"stays"}, retired={}, baseline={"stays", "gone"})
     assert len(out) == 1
-    assert out[0].startswith(drift.DEFAULT_REGISTER + ":"), out[0]
-    assert "gone" in out[0]
+    assert drift.DEFAULT_REGISTER in out[0], f"must say WHICH register lost it: {out[0]}"
+    assert "gone" in out[0], f"must name the claim that left, or nobody can act on it: {out[0]}"
     assert "was in the register at HEAD and is not in it now" in out[0]
 
 
@@ -166,6 +171,32 @@ def test_BOTH_baseline_branches_are_reachable(tmp_path, monkeypatch):
     )
     assert "could not be established" not in "".join(refused), (
         "the refusal here must be the REMOVAL branch, not the unestablishable-baseline branch"
+    )
+
+
+def test_THE_RULE_COMES_FROM_THE_SHARED_MECHANISM_AND_IS_NOT_A_LOCAL_COPY(monkeypatch):
+    """CONVERGENCE, asserted rather than asked for in a comment.
+
+    RESTORED 2026-09-05 after a merge dropped it. Two lanes converged this rung onto
+    `register_low_water` twelve minutes apart (cbfb12f1b locally, 029c21452 on origin) and the
+    resolution took origin's file wholesale on the belief that it was the superset. It was not:
+    origin held nothing this side lacked, and this control plus the extractor's own were the
+    price. The check that would have caught it is comparing the resolution against the side that
+    was DROPPED, since diffing against the side you adopted proves only that you adopted it.
+
+    Why it matters more than the count: origin's version asserts the convergence in a COMMENT.
+    A comment saying "call the shared one" is an exhortation, and the next lane will not read it --
+    which is precisely the shape both commits existed to remove, reproduced inside the fix for it.
+    This drives the routing instead: replace the shared mechanism and the rung must speak with its
+    voice. MUTATION: re-inline the loop here, keeping every other test in this file green, and this
+    fires.
+    """
+    monkeypatch.setattr(drift.register_low_water, "removed_rows",
+                        lambda **kw: [f"SHARED SPOKE for {sorted(kw['baseline'] - set(kw['current']))}"])
+    out = removed_claims(current={"stays"}, retired={}, baseline={"stays", "gone"})
+    assert out == ["SHARED SPOKE for ['gone']"], (
+        "the low-water rule must reach this register through `register_low_water.removed_rows`, "
+        "not through a fourth hand-rolled copy of it"
     )
 
 
