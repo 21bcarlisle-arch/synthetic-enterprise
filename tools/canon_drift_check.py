@@ -87,6 +87,7 @@ import argparse
 import ast
 import json
 import re
+import subprocess
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -293,6 +294,135 @@ class Verdict:
         }
 
 
+#: The `_retired` section of the claim register: {claim_id: why it left}. The ONLY way a claim may
+#: leave without a refusal. Same shape, and the same argument, as `RETIRED_SECTION` in
+#: `background/self_clearing_alarm_census.py` -- the escape hatch exists, it is authored, it is in
+#: git, and it is visible in the diff.
+RETIRED_SECTION = "_retired"
+
+
+def load_retired(path: Path) -> dict[str, str]:
+    """The `_retired` section: {claim_id: why it left the register}. Absent or malformed yields {},
+    which makes every removal unexplained and the check RED, never green. Same direction of failure
+    as `load_register`: toward work, never toward silence."""
+    try:
+        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return {}
+    rows = data.get(RETIRED_SECTION) if isinstance(data, dict) else None
+    return rows if isinstance(rows, dict) else {}
+
+
+def _claim_ids_at_head(register: Path) -> set[str] | None:
+    """The register's ids as HEAD has them -- the baseline `removed_claims()` measures against.
+
+    Returns None, never set(), when the baseline cannot be established. The two are opposite
+    claims: an empty set says "HEAD's register held no claims, so nothing can have been removed"
+    and would report clean on every tree where git is unavailable, which is the fail-silent shape
+    this module's header refuses. The caller turns None into a refusal that names itself.
+
+    `git show HEAD:<path>` and not a working-tree read: the subject is the working copy against the
+    last committed judgement, and it resolves correctly from a linked worktree.
+    """
+    rel = register.resolve().relative_to(REPO_ROOT)
+    try:
+        proc = subprocess.run(["git", "show", f"HEAD:{rel.as_posix()}"],
+                              cwd=REPO_ROOT, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        data = yaml.safe_load(proc.stdout)
+    except yaml.YAMLError:
+        return None
+    claims = data.get("claims") if isinstance(data, dict) else None
+    if not isinstance(claims, list):
+        return None
+    return {c["id"] for c in claims if isinstance(c, dict) and "id" in c}
+
+
+def removed_claims(register: Path | None = None, *,
+                   current: set[str] | None = None,
+                   retired: dict[str, str] | None = None,
+                   baseline: set[str] | None = None) -> list[str]:
+    """THE REGISTER'S LOW-WATER MARK: a claim that was in the register at HEAD and is not in it now.
+
+    THE THIRD QUESTION, asked of this register because it was asked of the census's on 2026-09-05
+    (`dc5fcbbc8`) and the answer generalises. Every control here iterates the register: `run()`
+    evaluates `load_register(...)`, so the register IS the subject set. A claim in the register is
+    checked; a claim that has left is the subject of nothing. The register is a high-water mark and
+    nothing kept the mark from falling.
+
+    THE SECOND-ORDER SHAPE, which is why this is not merely a missing rung. Every drift verdict --
+    OVER_CLAIM, SUPERSEDED, UNBOUND, ERROR -- is a REFUSAL ON A ROW, and `main()` exits non-zero
+    for it. Deleting the row clears the refusal. Measured on the live register before this existed:
+    fifteen claims with one drifting exits 1; delete the drifting claim and the same tree exits 0
+    with "14 registered claim(s) checked ... all HOLD". A red clearable by deleting the evidence is
+    a fail-open with an extra step, and the note would have gone on reporting a clean canon.
+
+    WHY `test_the_live_register_membership_is_pinned_literally` IS NOT THIS CONTROL. That test
+    pins a LITERAL id set, so it is keyed to today's answer rather than to the property: it reds
+    when a claim is legitimately ADDED, and its cure when a claim is deleted is to delete the id
+    from the literal -- a two-line diff that travels in the same commit as the deletion and is
+    asked for no reason at all. This rung demands an authored sentence instead, and measures
+    against HEAD rather than against a constant that moves with the change.
+
+    NO PAGE-GONE EXCEPTION, AND THAT IS THE DESIGN. The tempting rule is "allow the removal if the
+    page is gone or the anchor no longer resolves anyway". That is exactly the fail-open above:
+    `evaluate()` already returns UNBOUND for a vanished anchor and ERROR for a missing page, so
+    granting those cases a free pass here would hand row-deletion the cure for the two verdicts
+    most likely to be inconvenient. A page genuinely retired and a register gone stale are the same
+    observation from the code alone; only an authored sentence separates them.
+
+    WHERE IT BITES. The baseline is HEAD, so this is a commit-time ratchet against the WORKING
+    copy: you cannot drop a claim in a commit without saying why. Once a bad commit has landed,
+    HEAD contains the loss and this goes quiet -- said plainly rather than implied, because the
+    gates run pre-commit on the working tree and that is the whole enforcement point.
+
+    Takes its baseline and its current set as arguments so the control can be driven without a git
+    tree, and defaults to reading HEAD so the live rung has no fixture to drift from.
+    """
+    reg = register if register is not None else REPO_ROOT / DEFAULT_REGISTER
+    if baseline is None:
+        # NOT APPLICABLE is not the same claim as CANNOT ESTABLISH, and collapsing the two would
+        # cost this rung either its teeth or its usability. A register outside the repository --
+        # every `tmp_path` fixture, and any register handed to `--register` ad hoc -- has no
+        # committed copy and never could have one, so there is no high-water mark to fall from and
+        # nothing to refuse. A register INSIDE the repository that git cannot answer for is the
+        # fail-silent case, and it refuses below.
+        try:
+            reg.resolve().relative_to(REPO_ROOT)
+        except ValueError:
+            return []
+    base = _claim_ids_at_head(reg) if baseline is None else baseline
+    if base is None:
+        return ["the claim register's baseline at HEAD could not be established (git show failed, "
+                "or HEAD's copy is absent or unparseable), so whether a claim has been removed "
+                "cannot be answered -- this is a refusal, not a clean result"]
+    if current is None:
+        try:
+            current = {c.id for c in load_register(reg)}
+        except ProbeError as exc:
+            return [f"the register's current claims could not be read ({exc}), so whether a claim "
+                    f"has been removed cannot be answered -- this is a refusal, not a clean result"]
+    ret = load_retired(reg) if retired is None else retired
+    out: list[str] = []
+    for claim_id in sorted(base - current):
+        # `or ""` BEFORE `str`, not `.get(id, "")`: a `_retired` entry carrying an explicit YAML
+        # `null` stringifies to "None", which is truthy, and the reason requirement falls open.
+        # The same slip was live in three rungs of the census until 2026-09-05; an absurdity is
+        # fixed as a class, so this hatch is born with the treatment.
+        if not str(ret.get(claim_id) or "").strip():
+            out.append(
+                f"{claim_id} -- this claim was in the register at HEAD and is not in it now, and "
+                f"`{RETIRED_SECTION}` does not say why. The row is the only thing that binds this "
+                f"page sentence to a predicate over the code; removing it removes the drift check "
+                f"that the page still tells the truth. Restore it, or add "
+                f"`{RETIRED_SECTION}[\"{claim_id}\"]` naming what took the claim out of the canon.")
+    return out
+
+
 def load_register(path: Path) -> list[Claim]:
     """Load the claim register. Missing, empty or malformed is an ERROR, never an empty pass."""
     if not path.exists():
@@ -355,11 +485,16 @@ def run(root: Path, register: Path) -> tuple[list[Verdict], dict[str, Any]]:
         "counts": counts,
         "drift": [v.as_dict() for v in verdicts if v.verdict in DRIFT_VERDICTS],
         "verdicts": [v.as_dict() for v in verdicts],
+        # The THIRD question, beside the two the verdicts answer. "Is this claim still true?" and
+        # "is the register still bound to its page?" are both questions ABOUT A ROW, so neither can
+        # see a row that left. Carried in the report rather than as a verdict because it is not a
+        # claim's verdict -- there is no claim left to give one to.
+        "removed": removed_claims(register, current={c.id for c in claims}),
     }
     return verdicts, report
 
 
-def _render(verdicts: list[Verdict]) -> str:
+def _render(verdicts: list[Verdict], removed: list[str] | None = None) -> str:
     lines = ["CANON DRIFT CHECK -- what the page claims that the code no longer supports", ""]
     for verdict in verdicts:
         lines.append(f"  [{verdict.verdict:<10}] {verdict.claim.id}")
@@ -372,6 +507,10 @@ def _render(verdicts: list[Verdict]) -> str:
         lines.append("")
     drift = [v for v in verdicts if v.verdict in DRIFT_VERDICTS]
     lines.append(f"{len(verdicts)} claims checked · {len(drift)} drifting")
+    if removed:
+        lines.append("")
+        lines.append("CLAIMS THAT LEFT THE REGISTER -- a row nothing checks any more:")
+        lines.extend(f"  [REMOVED   ] {item}" for item in removed)
     return "\n".join(lines)
 
 
@@ -406,6 +545,17 @@ def note_line(root: Path | None = None, *, write_report: bool = True) -> str:
             pass
     drift = report["drift"]
     checked = report["claims_checked"]
+    removed = report["removed"]
+    if removed:
+        # Named FIRST and unconditionally: a claim that left the register cannot appear in `drift`,
+        # because there is no row left to give a verdict to. Reporting "all HOLD" beside a silent
+        # removal is exactly the sentence this rung exists to stop being printed.
+        named = "; ".join(item.split(" -- ")[0] for item in removed[:5])
+        more = "" if len(removed) <= 5 else f" (+{len(removed) - 5} more)"
+        return (f"canon drift: {len(removed)} claim(s) LEFT the register since HEAD with no "
+                f"`{RETIRED_SECTION}` reason — {named}{more}. A removed claim is not a claim that "
+                f"holds; it is a page sentence nothing checks. The other {checked} were checked. "
+                f"Full report: `{DEFAULT_REPORT}`.")
     if not drift:
         return (f"canon drift: {checked} registered claim(s) checked against the code, all HOLD "
                 f"(register `{DEFAULT_REGISTER}`).")
@@ -432,12 +582,14 @@ def main(argv: list[str] | None = None) -> int:
         print(f"CANON DRIFT CHECK UNAVAILABLE: {exc}", file=sys.stderr)
         return 2  # an unavailable check is a FAILED check (R15 fail-silent)
 
-    print(json.dumps(report, indent=2) if args.json else _render(verdicts))
+    print(json.dumps(report, indent=2) if args.json else _render(verdicts, report["removed"]))
     if args.write_report:
         out = root / DEFAULT_REPORT
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    return 1 if any(v.verdict in DRIFT_VERDICTS for v in verdicts) else 0
+    # A claim that LEFT is a failure of the same rank as a claim that drifted -- the whole point of
+    # the rung is that deleting the row must not be cheaper than fixing the page.
+    return 1 if (any(v.verdict in DRIFT_VERDICTS for v in verdicts) or report["removed"]) else 0
 
 
 if __name__ == "__main__":
