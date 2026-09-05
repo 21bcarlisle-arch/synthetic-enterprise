@@ -760,7 +760,21 @@ def _check_origin_fork() -> None:
         f"the fork could NOT be closed automatically, so landings and publishing stay blocked "
         f"until someone reconciles.",
         kind="real_alarm", transition_key=_ORIGIN_FORK_KEY,
-        state=f"{r['status']}:{r['behind']}", re_escalate_after=RE_ESCALATE_SECONDS,
+        # KEYED TO THE CONDITION, NOT TO `behind`. `behind` moves whenever ANY lane pushes to
+        # origin, so one standing NOT_ADVANCED presented a new state every five-minute cadence and
+        # re-sent every cycle — which is the thing `re_escalate_after` exists to do hourly, and it
+        # cannot do it if the state never repeats. MEASURED over the 117 fall-through cadences in
+        # docs/observability/deadmans-switch-log.md from 2026-09-02 to 2026-09-05: 58 sends keyed
+        # on `{status}:{behind}` against 36 keyed on the status alone. The 22 extra pages are a
+        # LOWER bound — REFUSED_CONFLICT and REFUSED_GATE do not print `behind` in their detail
+        # line, so their moves are invisible to that count and were not included.
+        #
+        # The same repair the REFUSED_RACE sibling took (f25935bc5); this is the branch that was
+        # left out of scope then. The count still belongs in the MESSAGE, which is where a moving
+        # quantity is worth having: it tells him how bad it is now without deciding whether to tell
+        # him at all. `clear_transition` above is what ends the episode — a fork that closes and
+        # re-opens is a new condition and pages again.
+        state=r["status"], re_escalate_after=RE_ESCALATE_SECONDS,
         # BLOCKED_WORK, not drift: while this stands, nothing this machine does can reach origin.
         topic_class=_digest_classes().BLOCKED_WORK,
     )

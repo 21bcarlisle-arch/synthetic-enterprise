@@ -300,6 +300,52 @@ def test_GATE_RUNNING_neither_closes_nor_extends_an_open_episode(fork):
     assert fork.cleared == [], "a cycle that did not look may not clear the fork alarm either"
 
 
+# ── THE SIBLING TWO LINES BELOW, which carried the same assumption ──────────────────────────────
+#
+# The race repair (f25935bc5) keyed its own alarm on the EPISODE and left the fall-through alarm it
+# had just been carved out of still keying on `f"{status}:{behind}"`. CLAUDE.md's rule is that when
+# one control is keyed to a moving answer you grep every sibling; this is that sibling, and these
+# two controls are what the grep owed.
+#
+# MEASURED before it was touched, over the 117 fall-through cadences in
+# docs/observability/deadmans-switch-log.md between 2026-09-02 08:28 and 2026-09-05 13:12 (92
+# NOT_ADVANCED, 16 REFUSED_CONFLICT, 5 REFUSED_GATE, 4 ERROR): 58 sends under `{status}:{behind}`
+# against 36 under the status alone — 22 pages caused by nothing but another lane pushing to
+# origin. A LOWER bound: REFUSED_CONFLICT and REFUSED_GATE never print `behind` in their detail
+# line, so their moves could not be counted from the log at all.
+def test_the_fall_through_forks_state_does_not_move_when_only_behind_moves(fork):
+    """THE DEFECT. `behind` counts commits on ORIGIN, so it changes whenever any other lane pushes
+    — nothing to do with whether THIS fork closed. Keyed on it, one standing refusal presented a
+    new state every five-minute cadence and re-sent every cycle, which is precisely what
+    `re_escalate_after=RE_ESCALATE_SECONDS` ("re-alert hourly while still stuck") is there to
+    prevent and cannot, because an ever-changing state never reaches the unchanged path.
+
+    MUTATION: restore `state=f"{r['status']}:{r['behind']}"` and this fails.
+    """
+    fork.run(orc.NOT_ADVANCED, detail="the shared tree will not fast-forward", behind=12)
+    fork.run(orc.NOT_ADVANCED, detail="the shared tree will not fast-forward", behind=13)
+
+    assert len(fork.sent) == 2, "the fixture bypasses notify's own suppression; both reach it"
+    assert len({kw["state"] for _, kw in fork.sent}) == 1, \
+        "one standing refusal is one condition, however far origin has run on"
+    assert "12" in fork.sent[0][0] and "13" in fork.sent[1][0], \
+        "and the count still belongs in the MESSAGE — it says how bad it is, not whether to tell him"
+
+
+def test_a_DIFFERENT_refusal_STATUS_is_still_a_different_state(fork):
+    """THE OTHER HALF, and without it the repair above is unfalsifiable: `state="OPEN"` passes every
+    assertion in the test above and buries a fork whose cause changed under one that had already
+    been reported. What may not move the key is `behind`; what MUST move it is the condition.
+
+    MUTATION: hard-wire the state to any constant and this fails while its sibling above passes.
+    """
+    fork.run(orc.NOT_ADVANCED, detail="the shared tree will not fast-forward", behind=4)
+    fork.run(orc.REFUSED_CONFLICT, detail="both lanes edited docs/status/LATEST.md", behind=4)
+    fork.run(orc.REFUSED_GATE, detail="the merged tree is red", behind=4)
+
+    assert len({kw["state"] for _, kw in fork.sent}) == 3
+
+
 # ── the threshold is derived, not picked ────────────────────────────────────────────────────────
 def test_the_race_window_is_the_modules_OWN_blocked_threshold(fork):
     """CLAUDE.md: *a number you need is a question to research, never a value to pick.* The question
