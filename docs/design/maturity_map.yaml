@@ -1598,6 +1598,24 @@
   file_scope: ['company/crm/enriched_churn_estimate.py', 'company/crm/competitive_pressure.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier's own retention analytics. It has its own churn by payment method, measured on its own leavers, and it trusts that over a national survey the moment it has enough of them -- which is also when it starts beating the market rather than tracking it."
+- id: H31_the_consistency_gate_disagreement_before_the_next_publish
+  title: "the consistency gate failed on a headline number, and weekly publishing means it sits in a file instead of on a page"
+  gain: "Director, 2026-09-05: 'The consistency gate failed at 08:43Z, dashboard against exec-summary on a headline number. Under weekly publishing that sits in a file rather than on a page, so fix it before the next publish rather than now.' TWO SURFACES DISAGREEING ABOUT ONE FIGURE is the class `_check_population_consistency` exists for -- its own docstring names it: 'two different populations rendered on one page, both called accounts/households, silently diverging'. THE DEADLINE IS THE POINT: weekly cadence converted this from a live wrong page into a wrong FILE, which buys days and removes urgency without removing the defect. It must be discharged BEFORE the next weekly publish or the cadence has done nothing but hide it. Reproduce the 08:43Z failure first rather than reasoning from the gate's name -- this seat has twice this week published a cause derived from a control's title instead of its output."
+  lane: H_harness
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 12    # NOT R-set rank: it is machinery, and the director's own test puts it
+  #   below product unless a reader's page is broken -- which weekly publishing means it is not,
+  #   yet. Ranked to be drawn before the next publish, not before R1.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: []
+  file_scope: ['tools/generate_dashboard_data.py', 'tools/generate_insights.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose regulatory return and whose board pack quote different customer counts. Nobody notices until someone reads both, and then nobody can say which was ever right."
 - id: PB5_pounds_or_percent_resolved
   title: "P5: does the switching decision key on a percentage saving or on pounds a year, and what does the evidence say"
   gain: "Director, 2026-08-28 (P5): 'If the switching decision keys on percentage saving, every household is equally worth chasing per point of margin. If it keys on GBP, a large home is far cheaper to win because the same percentage buys more visible saving, and customer value scales with consumption in a way a percentage world misses entirely. GB comparison sites and the cap headline both present annual GBP. Establish what our world uses, what the evidence says, and reconcile.' PARTLY ANSWERED ALREADY and that is why this is small: simulation/customer_events.py's own comment records that the calibrated churn curve was always a function of an ABSOLUTE annual saving, and that the conversion into it used one market-average bill for every household until 2026-08-27, when it was changed to this household's own bill in pounds. So the world is now a GBP world at the point of decision. What is NOT established is whether the acquisition and retention decisions on the company side agree -- and a world that decides in pounds while the company targets in percent is a systematically distorting mismatch, not a rounding difference. This atom establishes both sides and reconciles them, with the external evidence (comparison-site presentation, the cap headline) cited."
