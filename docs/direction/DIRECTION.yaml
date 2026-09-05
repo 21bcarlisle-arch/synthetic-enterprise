@@ -1,270 +1,256 @@
 version: 1
-oriented_at: "2026-09-05T05:22:57.380657+00:00"
-
+oriented_at: "2026-09-05T11:20:44.118919+00:00"
 thesis_read: >-
-  The director wrote canon this stretch and it says the thing I have been failing to make true:
-  the harness pulls and the lanes only ask. He is right, and the measurement built in answer to him
-  is worse than the sixty-six commits he complained of. `tools/product_machinery_split.py`, run at
-  this orientation: 0 product against 35 machinery in the last 50 commits, 0 against 71 in the last
-  100, and over the trailing 2000 commits the product share has NEVER reached 25% — min 2.10%,
-  median 16.03%, max 28.74%. I checked the instrument rather than quoting it, because it classifies
-  `docs/market_research/` as NEITHER and `docs/staging/` as MACHINERY, which means this stretch's
-  only two pieces of thesis thinking — the CIM switching banner and the PB4 antecedent finding —
-  count as zero product. That classification is correct and I am not going to weaken it: `git log
-  --name-only -- company/ saas/ simulation/` over this whole stretch returns NOTHING. Eighteen
-  substantive commits and not one line of the world or the supplier in it. The instrument is honest
-  and the number is real. Against the thesis that is the whole read: advantage-from-inference cannot
-  be demonstrated by a supplier nobody is changing. SEVENTH STRETCH, ZERO FOCUS ITEMS DRAWN —
-  `previous_focus_drawn.drawn` is empty again, and the steer itself is the thing drifting, so I have
-  written this file differently in consequence (below). My first item last stretch was to repair
-  `background/delivery_lane.next_item`; `git log --since` on that file returns nothing, the function
-  is byte-unchanged, and `next_item()` called at this orientation returns
-  `split-the-red-test-bucket-into-gate-identity-2026-09-05` — a continuation, against five live
-  entries in a store whose arrival rate beats its six-hour expiry. The item that would fix the
-  channel is unreachable THROUGH that channel, which is the bootstrap I walked into by ranking it
-  first, and it is why item 1 below is an ATOM ID and not a slug: an atom biases the ordinary draw
-  and does not go through Lane 0 at all. AND THE ATOM DRAW IS NEWLY OPEN, which is the one genuinely
-  good thing to report. Answering the canon, a lane changed the SELECTOR: rung 1c of the supervisor
-  ladder was excluding EP17, PB4 and PB5 from candidacy ENTIRELY — not outranking them, excluding
-  them, because a BLOCKING finding sat in their lane — and product-priority atoms are now exempt.
-  I verified it rather than trusting the commit message: `supervisor._product_priority_ids()` returns
-  eleven atoms and PB4 is in the set. The same commit taught the director-document rung the word
-  CANON, which is why he had to paste both canons into the console by hand. So the door I have been
-  pushing on for seven stretches was opened by his intervention and not by mine, and my job now is to
-  put product through it before it silts up. One correction carried forward and CONFIRMED, not
-  quietly dropped: I claimed two stretches ago that PB4's distance to the anti-livelock floor "grows
-  monotonically". It does not. The 05:24 BUILD line reads a floor of 1573 against PB4 unmoved at
-  1884 — a gap of 311, after 380 three hours ago and 471 six hours ago. It is closing at roughly
-  thirty draws an hour, so that starvation self-clears in about half a day and is not worth a
-  stretch. Everything else is unchanged and unflattering: no level moved for the twelfth stretch;
-  blocking findings are 21, up from 18; the staging root holds 109 documents on a net +82 over seven
-  days; and `tools/settlement_ceiling_probe.py` still carries 226 uncommitted lines beside
-  `fit_departure_hazards.py`'s 93 — thesis measurement written, never landed, third day. The tree is
-  level with origin/main at 0 and 0, which is the first time in four orientations, but I made that
-  true by hand in f81333756 (thirty-five commits, nine conflicts), so it does not discharge the
-  transport error and I have not marked it discharged.
-
+  The director sent an instruction an hour before this orientation and nothing has moved on it, and
+  that single fact says more about where we stand against the thesis than the 33 commits do.
+  `DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05` landed at 10:12Z and his
+  NTFY at 10:16Z said "draw it now, as a parallel fork, data pull first — the CEDA token expires in
+  3 days". `staging_rooms.work_queue()` ranks those two documents 1st and 2nd of 76, correctly. At
+  11:20Z there is no HadUK file anywhere on this machine, nothing under `docs/market_research/`
+  bearing on weather cells, and `delivery_lane.next_item()` returns
+  `bind-the-landing-at-the-promote-seam-not-in-a-remembered-third-command`. Ranking is not drawing,
+  and the gap between the two is now the project's binding constraint. Against the thesis proper the
+  stretch was thin but not empty: 99d2befb4 (PB6) put an engagement observable across
+  `company/interfaces/sim_interface.py` and into `enriched_churn_estimate.py`, which is the right
+  shape — the company conditioning on something it could actually see rather than on ground truth —
+  and it is one of two product-classified commits in the trailing fifty. Everything else was
+  register low-water rungs, claim stores, reconcilers and census dispositions.
+  `tools/product_machinery_split.py`, run at 11:22Z, reads 6.25% over 50, 2.99% over 100, 1.52% over
+  200 and 4.30% over 400. Meanwhile the machine went backwards on transport: `git rev-list
+  --left-right --count HEAD...origin/main` returns 0 and 10 against 0 and 6 last orientation,
+  `.publish_gate_state.json` has been wedged 2.35h with 4 red at HEAD, and its own liveness refusal
+  names the cause precisely — 7 tracked paths held dirty in this shared tree, `delivery_lane.py`
+  among them, against 831 dirty paths overall. I did advance the ninth-stretch question my
+  predecessor left open rather than restating it: `next_item()` walks `seat_continuation.live()`
+  first and returns the first free entry unconditionally, and there are five live entries (two of
+  which are the same low-water convergence work under different ids), so the `focus` loop below it
+  is never reached — not by accident but by construction, because interactive seats refill that
+  store faster than its expiry window drains it. That is a fixable precedence bug, not a mystery
+  about weights, and four stretches of my predecessors' reasoning about lanes and dials was aimed at
+  the wrong variable. The previous direction named four items and `previous_focus_drawn.drawn` is
+  empty for the ninth consecutive stretch; the steer itself is the thing drifting, and item 4 below
+  is the only reason to believe this file will be read by anything other than the director. Every
+  figure here was read live between 11:20Z and 11:23Z and will be stale for whoever reads it —
+  re-run before relying on any of them.
 stretch_reviewed:
-  since: "2026-09-05T02:20:43.353646+00:00"
-  commits: 32
-  substantive: 18
-
+  since: "2026-09-05T08:23:44.625788+00:00"
+  commits: 33
+  substantive: 16
 focus:
-  - id: PB4_engagement_separated_from_elasticity
+  - id: weather-cells-phase1-pull-the-haduk-grids
     what: >-
-      Build PB4 to the four ordered steps in
-      `docs/staging/SEAT_FINDING_THE_ENGAGEMENT_ANTECEDENT_R1_NEEDS_IS_DESTROYED_BY_A_COLLAPSED_PAYMENT_BUCKET_2026-09-05.md`,
-      AS CORRECTED BY ITS OWN CORRECTION SECTION — read that section before step 1, because step 1 as
-      first written is wrong. The correction: `simulation/payment_behaviour_source.generate_payment_method`
-      ALREADY draws payment method three ways, anchored on Ofgem 74/13/13 via `dd_attribution`, with a
-      live PREPAYMENT branch — and it has ZERO consumers outside its own tests, while the two-way
-      `payment_channel_for_customer` (no prepayment at all) is wired into six: `arrears_engine`,
-      `final_bill_outcome`, `sim_satisfaction`, `run_phase2b`, `run_phase4c_on_phase2b` and by
-      reference `opex_ledger`. So (1) MIGRATE those live consumers onto the anchored three-way draw
-      and retire the two-way one; do NOT add a third consumer beside two definitions, which is the
-      trap the correction exists to close — the two draws are statistically independent
-      (`paychannel_{cid}_{fuel}` against `_base_seed_for`) and measured 41.2% disagreement over 400
-      households, so a second consumer picking the other one makes that a LIVE inconsistency the same
-      day. (2) Unblend `FUEL_POVERTY_RATE_BY_CHANNEL` onto the two published rates it currently
-      averages — prepayment 22.3%, standard credit 18.5% — which stops being a blend the moment (1)
-      lands. (3) Give `household_segments.active_renewal_probability_for_customer` its observable
-      antecedent, anchored on the CIM ratios in
-      `docs/market_research/what_a_supplier_can_observe_about_switching_propensity_cim_w6.md`
-      (traditional PPM 1.7% against standard credit 5.7%, base 5.3%), mean-preserving over the
-      74/13/13 mix so it cannot re-level the book — the same discipline
-      `price_elasticity_for_customer` already keeps. Today that function is
-      `random.Random(f"engagement_{customer_id}")` at `household_segments.py:60`, a hash, which is
-      the canon's own complaint verbatim in code. (4) Re-run `tools/r1_inference_ceiling.py`, which
-      is the falsifier and is currently sitting at its own null. THE CONTROL IS THE POINT: before
-      wiring anything, assert the three-member partition is REACHABLE — that a generated population
-      contains all three channels and that the engagement multiplier is NOT ~1.0 across it. A
-      two-member enum makes this build run, pass and encode no signal, which is exactly what it would
-      look like if it had worked. Write that one assertion over the whole partition, not a leg per
-      branch, and mutate the antecedent back out to prove it goes red.
+      Do the CEDA pull the director's ruling puts first, today. Read
+      `~/.config/synthetic-enterprise/.env.ceda` (`CEDA_USERNAME`, `CEDA_PASSWORD`, `CEDA_TOKEN`).
+      First try to self-mint at `https://services.ceda.ac.uk/api/token/create/` with basic auth — it
+      returned 500 for this account this morning; if it works, wire self-minting and never depend on
+      a hand-pasted token again, and if it does not, use `CEDA_TOKEN` and record the 500 as a finding
+      with its response body. Then pull HadUK-Grid v1.3.2.ceda at 1 km for GB: monthly `tas`,
+      monthly wind speed and monthly sunshine duration over the published climate-normal span, plus
+      DAILY `tas` (persistence in §2.4 cannot be computed from monthlies). Raw grids go to a local
+      cache on Skynet OUTSIDE the repo — several GB, and §4 forbids them in the tree. Commit only a
+      committed inventory artefact: for each file, the variable, temporal resolution, spatial
+      extent, byte count, SHA-256 and the URL it came from, plus a named gap row for anything the
+      archive did not have. Proof the pull is usable, not merely present: open one monthly `tas`
+      file and print GB-mean temperature by month for one year against the published normal. If the
+      token dies mid-pull, NTFY him for a fresh one — §4 says two minutes for him — do not
+      improvise a substitute source.
     why: >-
-      Because it is the only piece of product work in the tree that is fully specified, sits behind a
-      gate that already exists, and ends in running the falsifier that decides whether the thesis is
-      testable at all. R1's ceiling says the best function of our observables recovers nothing of a
-      household's true elasticity that its own noise floor does not also reach — so advantage-from-
-      inference is untestable rather than unproven, and it stays untestable while the population has
-      no observable to condition on. It is also the answer to the director's canon in the only
-      currency that counts: 0 product commits in the last 100, zero lines of `company/`, `saas/` or
-      `simulation/` this whole stretch, and PB4 is one of the three atoms rung 1c was silently
-      excluding. DONE is `r1_inference_ceiling` re-run with a full-coverage observable and its answer
-      published whichever way it falls — a ceiling still at the null is a complete result and gets
-      said plainly, not buried.
-
-  - id: focus-is-unreachable-because-the-continuation-store-never-empties
+      This is the only item in this file with a window that closes: the token expires ~2026-09-08 and
+      HadUK-Grid is a once-a-year release, so a missed pull is not a delayed item, it is a stalled
+      phase. It is also the director's own instruction, given directly and an hour before this
+      orientation, and it is product — the cells become both a public knowledge page and an artefact
+      the SIM consumes when the weather hierarchy's BUILD opens. Done when the grids are on local
+      disk, the inventory artefact is committed and checked, the token question (self-mint or
+      manual) is answered in writing, and the GB-mean print matches the published normal. Do NOT
+      wait for the publish wedge in item 3, and do NOT start the analysis before the pull is proven
+      — §5 fixes that order.
+  - id: weather-cells-phase1-curve-and-knowledge-page
     what: >-
-      Repair `background/delivery_lane.next_item` so a permanently non-empty continuation store
-      cannot make the focus loop unreachable. The function offers every unheld entry of
-      `seat_continuation.live()` first and only walks `direction.unreachable_focus(_atom_ids())`
-      when that loop yields nothing. Measured at this orientation: FIVE live entries against
-      `STALE_AFTER_SECONDS = 6*3600`, arrivals faster than expiry, so the second loop is not reached
-      slowly — it is not reached at all, by arithmetic. Call `next_item()` before you start and put
-      what it returns in the commit message; at 05:22Z it was
-      `split-the-red-test-bucket-into-gate-identity-2026-09-05`, and if it is not that, say what
-      changed and re-derive rather than assuming. DO NOT WEAKEN THE CONTINUATION CHANNEL AND DO NOT
-      SHORTEN ITS WINDOW — it is the only channel that has delivered anything for seven stretches and
-      its freshness argument in the `next_item` comment is correct and stays. What is wrong is that
-      preemption is UNBOUNDED. Make it bounded: interleave, or let continuations preempt only until
-      some draw must go to the head of focus, or any shape where both stores are reached under a
-      permanently non-empty queue. THE CONTROL MUST FIRE OVER THE WHOLE PARTITION AND NOT ON TODAY'S
-      ANSWER: build a store that is non-empty at EVERY instant across a long run of draws, then
-      assert in ONE control that the head of focus is returned on at least one draw AND a fresh
-      continuation is still returned on at least one — so a fix that merely inverts the starvation
-      fails it too. Mutate the bound away and prove it goes red. Then read
-      `seat_executor._promote_to_handoff` and `hand_off_focus` on the WRITE side and state in the
-      commit message, with the count, whether the refill rate is a second defect or a healthy channel
-      that only needs the reader fixed — say which, rather than fixing both blind.
+      Derive the cells and write the page, per §§2–3 of the ruling. Cluster GB on the three phase-1
+      drivers at house height (elevation-corrected per postcode from OS open terrain data, not the
+      1 km cell mean), weighted by HOUSEHOLDS from the 2021 E&W and 2022 Scotland censuses via
+      postcode — never from the SIM's drawn population, which §4 forbids. Produce the two
+      explained-variation curves the ruling asks for, level (annual heat load) and shape (cold-and-
+      still versus mild-and-windy months), and name the cell sets at 90/95/99%, each overlaid
+      afterwards with LDZ, GSP and SAP-21 as comparators with a stated figure for how well each
+      approximates the derived cells. Report cold-spell persistence and cross-cell synchrony per
+      cell — §2.4 puts both in phase 1. Validate against DESNZ sub-national gas consumption at
+      small-area level, which is a different source from the one that generated the cells. Then the
+      knowledge page: all six rungs, cells as a versioned Choice-class claim, rate-of-change
+      settled/slow, an expected-shape block stating the findings falsifiably, stubs minted for the
+      phase-2 and phase-3 topics, external register (no atom ids, rung numbers or lane labels), and
+      rows added to `docs/market_research/ASSUMPTIONS.md` and
+      `docs/institutional/knowledge_map.md`. HadUK publishes sunshine duration, not irradiance:
+      choosing the irradiance source is yours and must be registered as a Choice naming its
+      alternative. Finish with the plain-English NTFY in §3.4 — the curve, the recommended cell
+      count, the fidelity cost of going coarser, and where the data forced a choice.
     why: >-
-      This is the channel my own steer travels down and it has swallowed seven consecutive stretches
-      of it, including last stretch's item to fix this very function, which is the bootstrap: the
-      repair cannot be delivered by the mechanism it repairs. It earns its place ahead of other
-      machinery under the canon's own test — not because it is loud or adjacent, but because the
-      machine genuinely cannot deliver the seat's decisions, and every stretch it stays broken is a
-      stretch where the director's direction reaches the lanes and dies there. It ranks BELOW PB4
-      because ranking it first is what I did last time and the canon is explicit that machinery
-      winning on urgency is the disease. DONE is a stretch whose `previous_focus_drawn.drawn` is
-      non-empty; nothing I can assert in a commit message substitutes for that.
-
-  - id: PB5_pounds_or_percent_resolved
+      This is where the value actually is, and it is the first product work of any size the file has
+      carried in weeks: a stated fidelity cost for a chosen simplification, rather than four weather
+      nodes picked by convenience. It also feeds the thesis directly — household-weighted heat-load
+      cells are an inference substrate the company can condition on without any access it should not
+      have. Register phases 2 and 3 on the map as decided-not-authorised with their opening
+      conditions, and do not start them; §4 is explicit. Done when the curve, the cell definitions
+      and the page are committed and the director has had the plain-English report. If the page
+      thins into machinery, the content wins — the ruling's DoD 0.
+  - id: unwedge-the-shared-tree-and-the-publish-path
     what: >-
-      Settle from published evidence whether the household switching decision keys on a PERCENTAGE
-      saving or on POUNDS PER YEAR, then wire whichever the evidence supports into the switching
-      decision and say in the commit message what the other branch would have implied. Research
-      first and from the commons — the same route that produced the CIM banner this stretch, which is
-      the proof the route works: every GB price comparison site and the Ofgem cap headline itself
-      present an annual GBP figure, never a percentage, so a supplier modelling the decision in
-      percent is modelling a number the customer is never shown. Establish that against the published
-      record rather than asserting it; if the evidence does not settle it, that is a finding to file
-      and the code carries an explicit gap, not a plausible constant. This is the same lane and the
-      same population as PB4 and `couples_with` it in the map, so land it on top of PB4's three-way
-      channel rather than beside it.
+      Clear the wedge at its named cause rather than by hand-merging. `.publish_gate_state.json`
+      records `total_red: 4` (one in `tests/background/test_an_exit_code_is_not_a_landing.py`, three
+      in `tests/tools/test_generate_dashboard_data.py` on the opex ledger's per-household
+      arithmetic) and a `liveness_surface_refusal` naming 7 tracked paths that this tree has edited
+      and origin also changes, `background/delivery_lane.py` among them, against 831 dirty paths
+      overall. Two separate jobs. (a) Fix the 4 reds at HEAD — the three opex-ledger ones are the
+      unfinished half of the prepayment split and should be checked against
+      `saas/opex_ledger.py`'s already-cited Ofgem prepayment allowance before anything is
+      re-baselined. (b) Land the contested hunks: run `python3 -m tools.isolate_hunks --survey`,
+      and for each path, land the hunks that belong to a finished piece of work via
+      `surgical_land --content` and leave the rest. Separately, dispose of
+      `WORKER_FINDING_THE_SHARED_TREE_HOLDS_A_SUPERSEDED_DRAFT_...` — a superseded draft of
+      `background/self_clearing_alarm_census.py` sits dirty in this tree deleting `removed_dispositions`
+      and `shared_loader_answers`, both landed at HEAD, and holds 23 tests red for every lane that
+      runs them. Do NOT run `git merge` or `surgical_land --merge origin/main` in the shared tree,
+      and do not close the fork with another seat merge: the standing error condition on transport
+      requires two consecutive orientations level with no hand reconciliation between them, and a
+      hand merge would destroy the only evidence that the automatic route works.
     why: >-
-      Because it decides who is worth chasing, and the two answers are commercially opposite: on
-      percentage every household is equally worth chasing per point of margin; on pounds a large home
-      is far cheaper to win because the same percentage buys more visible saving. That is a
-      per-customer commercial decision made on what the supplier can observe, which is the thesis
-      stated exactly. It is at level 0 against a level 2 intent, it is product-priority and now
-      exempt from the rung that was excluding it, and it is stalled at 1883 unchanged draws. DONE is
-      the decision made from a cited source and live in the switching path, with the losing branch's
-      implication recorded beside it.
-
-  - id: land-or-account-for-the-two-uncommitted-thesis-probes
+      The director's own ruling says it: "do not let this ruling be the reason the wedge is skipped —
+      reconcile that as its own item." A knowledge page nobody can publish is not a deliverable, and
+      the fork widened from 6 to 10 this stretch while daemons run from a checkout the branch has
+      moved past. This also sits under the weather work rather than above it because it blocks the
+      LANDING, not the doing. Done when `git rev-list --left-right --count HEAD...origin/main`
+      returns 0 and 0 having got there through `background.origin_reconcile` alone, when
+      `.publish_gate_state.json` shows `total_red: 0` with a clean publish recorded, and when the
+      23 shared-tree reds are gone because the superseded draft was disposed of rather than
+      overwritten silently.
+  - id: continuations-preempt-focus-unconditionally
     what: >-
-      `tools/settlement_ceiling_probe.py` carries 226 uncommitted lines and
-      `tools/fit_departure_hazards.py` 93, and they have been sitting in the working tree unlanded
-      since 2026-09-03. Run `python3 tools/isolate_hunks.py --survey` on both FIRST. If they are
-      unowned, land them with `tools/surgical_land.py` and nothing else. If they are another lane's
-      live in-flight work, do not touch the bytes: file a one-paragraph finding naming the lane and
-      what is being held, and stop. Never `git stash` and never `git checkout <path>` — the
-      instruction here is land-or-account-for, and discarding is not one of the two.
+      Make `background/delivery_lane.next_item()` able to reach `focus`. Today it walks
+      `seat_continuation.live()` first and returns the first unclaimed entry unconditionally; the
+      `focus` loop beneath it runs only when that store is empty, and it is never empty because
+      every interactive seat writes continuations faster than `live()`'s window expires. Five are
+      live right now, two of them the same low-water convergence work filed under two ids
+      (`converge-three-low-water-implementations`, `register-low-water-three-implementations-one-mechanism`).
+      Make the precedence conditional rather than absolute — the smallest version that can fail: a
+      continuation only outranks `focus` while it is younger than the current direction's
+      `oriented_at`, so a freshly-oriented seat's ranked head is taken before continuations derived
+      before it existed, and the freshness argument in the existing docstring (a continuation is
+      minutes old, a focus item up to three hours) is preserved exactly where it is true. Add the
+      one control that would have caught nine stretches of this: assert over the whole partition
+      that BOTH branches are reachable — a continuation can win and a focus item can win — not one
+      leg per branch. Then settle the open question beside it: PB4 was BUILT on 2026-09-04 without
+      ever being drawn, and `seat_executor._promote_to_handoff` writing a focus item into the
+      continuation store is the leading candidate for how; establish whether that route fires and
+      whether it records a draw, and file what you find either way.
     why: >-
-      Because it is thesis measurement that was written, cost a session, and is currently evidence
-      only this checkout can see — one `ensure_worktree` away from being deleted, and invisible to
-      every clean-tree measurement in the meantime. Three days is long enough to stop assuming
-      someone means to land it. DONE is the diff clean on both paths, or a filed finding saying whose
-      they are and why they cannot land yet.
-
+      Nine consecutive stretches of direction and `previous_focus_drawn.drawn` empty every time. A
+      steer nothing reads is not a steer, and this is the first orientation that can name the
+      mechanism in one sentence instead of theorising about dials — so it is cheap now and has cost
+      nine stretches of the director's attention already. It ranks fourth and not first deliberately:
+      six stretches of putting the delivery apparatus above product is a graded error of mine, and I
+      am not repeating it to fix the apparatus that would have delivered the product. Done when a
+      test proves both branches reachable, when the duplicate low-water continuation is retired via
+      `--release` from the SHARED tree, and — the real acceptance — when a later orientation finds
+      `previous_focus_drawn.drawn` non-empty. That last is not mine to grade.
 not_now:
   - what: >-
-      Draining the 21 BLOCKING findings, which is up from 18 last orientation, and the staging root
-      at 109 documents on a net +82 over seven days.
+      Closing the 0-behind-10 fork by hand now, with `origin_reconcile` or a seat merge, so this
+      checkout runs current code within the hour.
     why: >-
-      This is the loudest thing in the tree and the canon is explicitly about not letting loudness
-      choose. Rung 1c already routes around a blocked lane rather than stopping the machine — the
-      ladder's own log says "the drain proceeds around it (other lanes unaffected)" — and the canon
-      rules that a filed defect is not a forgotten one. So the queue growing is a cost I am choosing
-      to carry for a stretch in exchange for the first product commits in a hundred. If PB4 is
-      blocked BY a finding in W2_customer_generator, clear that one finding and only that one.
+      It would work and it is tempting, and it is exactly what the standing transport error's own
+      condition excludes. Two consecutive orientations level with no hand reconciliation between
+      them is the only evidence that would distinguish "the automatic route works" from "a seat
+      keeps mopping up". Seven seat merges appear in this window alone. I would rather hold the
+      evidence and route the repair through item 3's named cause than buy three hours of currency
+      and learn nothing.
   - what: >-
-      Repairing the anti-livelock floor in `_prefer_least_stalled` so PB4 and the other stalled
-      product atoms rejoin the draw immediately.
+      The staging sediment: 280 documents filed into the staging root in 7 days against 198
+      dispositioned, a net +82, with a work queue of 76. Filing is free and dispositioning is not,
+      so this grows without bound.
     why: >-
-      Measured and REFUTING MY OWN EARLIER CLAIM that the gap widens monotonically: the BUILD floor
-      is 1573 against PB4's unmoved 1884, a gap of 311 after 380 and 471 at the two previous
-      orientations. It closes at roughly thirty draws an hour, so it self-clears in about half a day
-      by nothing more than waiting, and a stretch spent on it buys hours. Naming PB4 in focus biases
-      the draw regardless — Rule 0 makes anti-livelock an ordering and never an exclusion.
+      Real, and it will have to be answered by closing channels that file rather than by working
+      harder at the queue. But it is filing machinery, the product share is 2.99% over 100, and the
+      director has just named product work with a three-day fuse. A queue growing by twelve a day
+      can absorb one more stretch; a token that expires cannot.
   - what: >-
-      A46_book_depth_is_a_curriculum_question — taking the priced menu to the director.
+      Retiring the five live continuations one at a time — the reconciler-race alarm, the promote-seam
+      binding, the standing-red decomposition, and the two duplicate low-water items.
     why: >-
-      It is a genuine question of his and it is correctly marked returned-not-decided, but it was
-      focus item 4 last stretch and was not drawn, and book depth bounds a comparison we currently
-      have nothing new to make. It is worth more once PB4 has changed what the book actually
-      contains. Deferring a director question is mine to do; abandoning it is not, and it comes back
-      next orientation if PB4 lands.
+      This is what the last direction asked for and it treats the symptom. Retiring five entries from
+      a store that refills every turn buys one tick of reachability. Item 4 changes the precedence
+      instead, which is the difference between doing the work and building the thing that watches
+      the work. The one exception is the duplicate pair, which is a genuine defect and is folded into
+      item 4.
   - what: >-
-      Correcting `tools/product_machinery_split.py` so that `docs/market_research/` research counts
-      as product rather than NEITHER.
+      Naming PB4, PB5 and EP17 as focus items again. All three sit in lane `W2_customer_generator`
+      and were excluded from candidacy entirely by RUNG 1c until this stretch's exemption for
+      product-priority atoms; they are drawable now for the first time.
     why: >-
-      I went looking for this defect and did not find one. The classification is the canon's own
-      §2 — records and research describe work rather than being it — and the instrument can only go
-      green when `company/`, `saas/` or `simulation/` change, which is exactly the right test. Making
-      research count would have let this stretch report progress it did not make. The 0% is honest
-      and I am leaving it able to hurt.
+      They are good work and the ordinary draw can now reach them without my help, which is the whole
+      point of the rung 1c repair. Spending focus slots on atoms the draw can take is how lane 0 —
+      the only consumer of this file — ends up carrying nothing it alone can deliver. The shortage
+      here has never been candidate product items; it has been draws.
   - what: >-
-      Building a second mechanism to stop machinery preempting product, beside the rung 1c exemption
-      that just landed.
+      Opening a separate investigation into the three red `test_extract_opex_ledger_*` tests, which
+      look like the unfinished prepayment work from the previous stretch rather than a fresh
+      regression.
     why: >-
-      The exemption is one day old, verified live at this orientation (`_product_priority_ids()`
-      returns eleven atoms including PB4), and has never had a stretch to work. The lane that built
-      it already deleted one parallel rung it had written for exactly this reason. Adding a second
-      selector now would be machinery about machinery, which the canon names as the defect performing
-      itself. Give it this stretch and judge it on whether the split moves.
-
+      They are folded into item 3(a) instead. They are red at HEAD and wedging the publisher, so they
+      have to be fixed regardless; giving them their own slot would rank a four-test repair above the
+      director's ruling, and splitting the wedge across two items is how one half gets done.
 wrong:
   - what: >-
-      Seven stretches of direction and zero focus items drawn. Last stretch I ranked the repair of
-      `background/delivery_lane.next_item` first, having finally walked the whole path to the real
-      cause. It was not done: `git log --since` on that file returns nothing, the function is
-      byte-unchanged, and `next_item()` at this orientation still returns a continuation against five
-      live entries. The new error on top of the old one is that I put the fix for the delivery channel
-      INSIDE the delivery channel — a bootstrap I should have seen when I wrote it, because the whole
-      diagnosis I had just completed says that loop is never reached. This stretch I have acted on
-      that instead of restating it: item 1 is an ATOM ID, which biases the ordinary draw and does not
-      pass through Lane 0 at all, and the atom path was opened one day ago by the rung 1c product
-      exemption, which I verified by calling `_product_priority_ids()` rather than reading its commit
-      message. It stays OPEN because I have marked this class corrected once before and it recurred,
-      and because the only honest test is not mine to grade: it closes when a stretch's
-      `previous_focus_drawn.drawn` is non-empty.
+      Nine stretches of direction and zero focus items drawn. `previous_focus_drawn.drawn` is empty
+      again. What is NEW is that the mechanism is no longer a mystery, and it is not the one four
+      stretches of my predecessors' reasoning assumed: `delivery_lane.next_item()` walks
+      `seat_continuation.live()` FIRST and returns its first unclaimed entry unconditionally, so the
+      `focus` loop beneath it is reached only when that store is empty — and it is never empty,
+      because interactive seats write continuations faster than `live()`'s expiry drains them. Five
+      are live at 11:21Z and `next_item()` returns
+      `bind-the-landing-at-the-promote-seam-not-in-a-remembered-third-command`. So this was never
+      about dials, weights or lanes; it is an unconditional precedence between two queues. My
+      predecessor's open sub-question — how PB4 was BUILT on 2026-09-04 without being drawn — is
+      still unanswered; `seat_executor._promote_to_handoff` promoting a focus item into the
+      continuation store is the leading candidate and I did not test it, so I am not claiming it.
+      Item 4 carries both. Stays open on the unchanged test, which is not mine to grade: it closes
+      when a stretch's `previous_focus_drawn.drawn` is non-empty.
     corrected: false
   - what: >-
-      Six stretches of ranking the delivery apparatus below thesis work and having apparatus eat the
-      stretch anyway. It is worse this stretch, not better, and now measured rather than inferred:
-      eighteen substantive commits, ZERO lines of `company/`, `saas/` or `simulation/`, and
-      `product_machinery_split` reporting 0 product against 71 machinery over the last 100 commits,
-      with the share never having reached 25% across the trailing 2000. What has changed is that the
-      director stopped waiting for me and wrote canon, and a lane answered it by repairing the
-      SELECTOR — the rung that was excluding EP17, PB4 and PB5 from candidacy outright. That is the
-      first structural remedy this error has had, and it is his, not mine: my contribution was five
-      stretches of correct diagnosis and a ban that was aimed at a competition for a slot that was
-      not happening. Stays open until a stretch's substantive commits include product.
+      The share-shaped condition that replaced the one-commit-shaped one: this closes when the
+      trailing-100 product share is above its declared floor at an orientation I did not hand-pick,
+      with no stretch in between where I chose the commits to make it so. Not met and not close.
+      `tools/product_machinery_split.py` at 11:22Z reads 6.25% over 50, 2.99% over 100, 1.52% over
+      200 and 4.30% over 400 — below the floor at every horizon, as it has been at every horizon
+      every time it has been run. Two product commits in the trailing fifty, of which 99d2befb4
+      (PB6) is the one that touches the thesis.
     corrected: false
   - what: >-
-      The transport error, graded corrected two stretches ago on one successful publish, regressed
-      inside that same stretch and has been held open on the condition of two consecutive orientations
-      finding the tree level with NO hand reconciliation in between. Half of it passes now and half
-      fails. `git rev-list --left-right --count HEAD...origin/main` returns 0 and 0 — level for the
-      first time in four orientations, against 1 ahead and 20 behind last time. But this stretch
-      contains f81333756, a seat-made merge of thirty-five commits with nine conflicts resolved by
-      hand, which is precisely the reconciliation the condition excludes. So the tree being level is
-      evidence about my hands, not about the machine, and I am not marking it discharged on the half
-      that passes. The condition is unchanged and still right: level at two consecutive orientations
-      with no seat-made merge in the window. Next orientation can close it if nothing intervenes.
+      The transport error, held open on the condition of two consecutive orientations finding the
+      tree level with NO hand reconciliation in between. It went backwards again and fails both
+      halves, worse than last stretch. `git rev-list --left-right --count HEAD...origin/main`
+      returns 0 and 10, against 0 and 6 at the last orientation and 0 and 0 the one before; the
+      window contains seven seat-made merge commits (5e9c8103a, 676ee182a, d19f6e135, b388aaef4,
+      c486884ed, 67c6ffffa, 53c46519e), which is exactly the reconciliation the condition excludes.
+      What is new and useful is that the cause is no longer unattributed: `.publish_gate_state.json`
+      names it — 7 tracked paths this shared tree has edited that origin also changes, including
+      `background/delivery_lane.py`, against 831 dirty paths overall, plus 4 red at HEAD and a wedge
+      standing 2.35h. Item 3 attacks that named cause. The condition is unchanged and still right,
+      and `not_now` records that I declined to close the gap by hand precisely because doing so
+      would destroy its evidence.
     corrected: false
   - what: >-
-      I have twice written a focus item asserting perishable state as established fact. No new
-      instance this stretch: every figure in this file was read from the tree, the split tool, the
-      continuation store, the supervisor's own functions or the ladder log immediately before writing,
-      and the two claims I most wanted to be true I tested rather than assumed — I called
-      `_product_priority_ids()` rather than trusting the selector commit's message, and I re-measured
-      my own PB4 gap claim, which came out at 311 and confirmed last stretch's correction of it
-      instead of the flattering original. But
+      Writing a focus item that asserts perishable state as established fact — three prior instances.
+      No new instance: every figure in this file was read live between 11:20Z and 11:23Z, not
+      recalled — `product_machinery_split` run, `next_item()` and `seat_continuation.live()` called
+      rather than read, `staging_rooms.work_queue()` called, `.publish_gate_state.json` parsed,
+      `git rev-list` and `git status --porcelain` run, the ruling and the NTFY opened in full, and
+      the absence of any HadUK artefact checked by `find` rather than assumed. Two things keep it
+      open. First, the failure mode is structural and unfixed: these figures are already stale for
+      whoever reads them, which `thesis_read` now says on its own surface, but saying so is an
+      exhortation and not a mechanism. Second,
       `SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_FALSE_BEFORE_THE_TURN_READ_IT_2026-09-03.md`
-      is still undispositioned in the staging root in its ninth stretch, so the class has a finding
-      and no mechanism, and only the next seat's own care stands between it and a fourth instance.
+      is still undispositioned in the staging root in its eleventh stretch, so the class still has a
+      finding and no mechanism, and only the next seat's own care stands between it and a fourth
+      instance.
     corrected: false
-
 for_the_director: []
