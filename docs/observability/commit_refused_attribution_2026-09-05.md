@@ -129,12 +129,23 @@ already retained pytest's own `FAILED <nodeid>` summary.
 the same-vs-different question; 2 are the first red in their episode and have nothing to compare
 against, so they are reported and not swept onto a side.
 
-| verdict | steps | share of the 15 splittable |
-|---|---|---|
-| SAME TEST | 7 | 46.7% |
-| SHARED TESTS | 4 | 26.7% |
-| DIFFERENT TESTS | 4 | 26.7% |
-| FIRST RED IN EPISODE | 2 | — (not splittable) |
+| verdict | steps | share of the 15 splittable | gate observed to PASS between the pair |
+|---|---|---|---|
+| SAME TEST | 7 | 46.7% | **0 of 7** — so all 7 are persistence, not re-breaks |
+| SHARED TESTS | 4 | 26.7% | 1 |
+| DIFFERENT TESTS | 4 | 26.7% | 2 |
+| FIRST RED IN EPISODE | 2 | — (not splittable) | 0 by construction — there is no earlier red |
+
+The last column is not decoration, and it is named for the *observation* rather than for the
+conclusion drawn from it, because the conclusion differs by row: on SAME TEST its absence is what
+demotes a re-break to persistence, and on DIFFERENT TESTS the same observation is what makes the
+step arrival traffic rather than a red that never cleared.
+
+The table is wrong without it. The SAME TEST row read alone says *"a flaky control, go and find
+it"*, and the next section is why it says the opposite. `red_test_tally` now carries the two halves
+of the SAME TEST count and `main()` prints them on the row, so the figure cannot be quoted apart
+from the bound that inverts it — it was previously a paragraph below the table, which is exactly
+the footnote a published figure must never depend on.
 
 ## The headline is not the answer, and this is the whole finding
 
