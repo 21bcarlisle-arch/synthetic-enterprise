@@ -159,8 +159,35 @@ def commits_behind(project: Path | None = None) -> int | None:
 
 
 def _fresh_worktree(project: Path, path: Path) -> tuple[bool, str]:
-    """A worktree at local HEAD, owner-marked so nothing sweeps it mid-merge."""
+    """A worktree at local HEAD, owner-marked so nothing sweeps it mid-merge.
+
+    AND IT ASKS THE MARKER BEFORE IT REMOVES, which is the leg that was missing (2026-09-04). The
+    marker below exists so `fork_salvage` and `fork_reconciler` do not sweep a merge in progress —
+    and this function, which owns the only path either of them would sweep, did not read it. So the
+    ONE mechanism `WORKTREE` is not protected from is a second copy of this module: every reconciler
+    shares one fixed path, nothing here takes a lock, and `gate_is_running` answers about the
+    PUBLISH gate, never about another reconciler.
+
+    REPRODUCED ON REAL DISK, not argued. At 2026-09-04 23:39Z the deadman's reconcile was ~40s into
+    `surgical_land --merge` in `/var/tmp/se-origin-reconcile`; a seat ran `python3 -m
+    background.origin_reconcile` — which is the command `_divergence_refusal` PRINTS to every reader
+    of a publish refusal — and this function force-removed and recreated that directory under the
+    running merge's cwd. Measured 3 minutes later: the marker held the second (by then killed) pid
+    while the deadman's merge was still executing against a tree rebuilt beneath it.
+
+    A REFUSAL AND NEVER A WAIT. `reconcile` renders this as ERROR with the reason attached, and the
+    deadman comes back in five minutes; blocking here would hold the cadence for up to
+    `MERGE_TIMEOUT_SECONDS`. The two legs of `worktree_is_live` are what make refusing safe rather
+    than permanent — a killed reconciler's marker fails the pid check, so nothing wedges on a crash.
+    """
     try:
+        from background.seat_executor import worktree_is_live
+        if path.exists() and worktree_is_live(path):
+            return False, ("another writer holds {} (owner marker live, or the worktree is "
+                           "git-locked), so removing it would rebuild the tree under a merge that "
+                           "is already running -- refusing rather than waiting, because the "
+                           "cadence returns in minutes and a held cadence is a reconciler that is "
+                           "not there when its window opens".format(path))
         if path.exists():
             _git(project, "worktree", "remove", "--force", str(path))
         _git(project, "worktree", "prune")
