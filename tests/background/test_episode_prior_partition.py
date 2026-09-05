@@ -300,9 +300,24 @@ def test_every_real_census_hit_is_covered():
     # KEYED PER PATH, so each exemption names the control that actually covers it. A single
     # shared citation would let a second path ride in on the first one's file -- which is the
     # prose-inventory shape this rung exists to refuse, arriving through the exemption list.
+    #
+    # `.origin_race_episode.json` joined them on 2026-09-05. It is the one carrier here born AFTER
+    # the loader sweep, so it went in through `episode_prior.load_episode_prior` rather than being
+    # retro-fitted, and its whole seven-member partition was run against `_extend_race_episode`
+    # before it landed. The generic probe above cannot reach it for a different reason than the
+    # other two: its shape is fine (`races`/`race_since` IS `{counter, since}`), but every leg that
+    # exercises it needs the `fork` git-state fixture, because the value under test is what
+    # `deadmans_switch._report_lost_push_race` decides about a real divergence. A probe taught to
+    # stand up a fork would be a second harness grading itself.
+    #
+    # NOTE ON THE DIRECTION: this carrier PAGES on unreadable rather than degrading to a fresh
+    # episode -- the opposite of the five that shipped the conflation -- so the sibling's assertion
+    # is that an unreadable record is REPORTED, not merely told apart.
     covered_by_a_sibling = {
         ".weekly_rhythm.json": "test_undispositioned_carriers_absent_vs_unreadable.py",
         ".seat_work_in_hand.json": "test_the_census_lost_five_hits_to_the_parameter_seam.py",
+        ".origin_race_episode.json":
+            "test_a_benign_lost_push_race_is_not_paged_as_blocked_work.py",
     }
     for exempt_path, sibling_name in sorted(covered_by_a_sibling.items()):
         sibling = Path(__file__).parent / sibling_name
