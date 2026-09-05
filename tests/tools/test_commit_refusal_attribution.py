@@ -834,3 +834,227 @@ def test_the_split_is_scoped_to_red_test_and_does_not_swallow_other_gates_steps(
         "level-promotion gate", "site-lane gate", attr.RED_TEST]
     rows = _red_rows([ORPHAN_HOOK, LEVEL_HOOK, SITE_HOOK, _pytest_hook("t.py::a")])
     assert len(rows) == 1 and rows[0]["at"] == 3
+
+
+# --------------------------------------------------------------------------------------------
+# The decomposition: outage into the redness that STOOD and the retry rhythm's tail.
+# Pre-registered in docs/staging/records/SEAT_PREREGISTRATION_WHETHER_THE_OUTAGE_IS_THE_REDNESS_
+# STANDING_OR_THE_PUBLISHER_NOT_LOOKING_2026-09-05.md before it was computed once.
+# --------------------------------------------------------------------------------------------
+
+
+def _decompose(log):
+    return attr.trailing_gap_report(attr.episode_report(log))
+
+
+def test_a_single_cycle_episodes_hundred_percent_tail_never_reaches_the_headline():
+    """THE TRAP the pre-registration named, and the only reason this is two sets and not one.
+
+    A single-cycle episode has span 0 BY CONSTRUCTION, so its outage is 100% trailing gap however
+    the publisher behaves. Pooling one enormous single-cycle episode with the multi-cycle set
+    would drag the headline share toward "the rhythm is the whole cost" -- an arithmetic identity
+    of the episode definition being read as an observation about the publisher. The control is
+    that the huge single-cycle episode moves the SINGLE side and leaves the headline untouched.
+    """
+    multi_only = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 20:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 21:00", refused=False),
+    ])
+    with_single = multi_only + "\n" + "\n".join([
+        _cycle("2026-08-22 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-23 10:00", refused=False),          # 24h, all of it trailing gap
+    ])
+    a, b = _decompose(multi_only), _decompose(with_single)
+    # Both partitions are populated -- without this the separation could be vacuous.
+    assert b["multi"]["episodes"] == 1 and b["single"]["episodes"] == 1
+    assert b["multi"] == a["multi"]
+    assert b["single"]["trailing_gap_s"] == 24 * 3600
+    assert b["single"]["span_s"] == 0
+    # And the identity is not laundered into the headline share.
+    assert b["multi"]["trailing_gap_s"] / b["multi"]["outage_s"] == pytest.approx(1 / 11)
+
+
+def test_a_span_and_an_outage_read_from_different_anchors_disagree_instead_of_cancelling():
+    """`trailing_gap = outage - span` cancels any error the two share, so differencing them can
+    never detect one. This module has already had exactly that defect once, in `subjects` against
+    `cause_sequence`. The control re-derives the gap from the episode's OWN two timestamps: shift
+    the anchor under `span_s` alone and the two derivations must diverge and be reported.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 12:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 13:00", refused=False),
+    ])
+    ep = attr.episode_report(log)
+    assert _decompose(log)["anchor_mismatch"] == []
+    ep["bounded"][0]["span_s"] -= 3600           # an outage anchored an hour off its span
+    bad = attr.trailing_gap_report(ep)
+    assert len(bad["anchor_mismatch"]) == 1
+    assert bad["anchor_mismatch"][0]["from"] == "2026-08-20 10:00"
+
+
+def test_the_one_gap_bound_is_read_from_the_log_and_not_from_the_number_it_had_when_written():
+    """The pre-registration cites 19,454s as the widest observed inter-attempt gap. A control
+    pinned to that number goes red when the publisher merely stalls longer -- keyed to today's
+    answer rather than to the property, which is that a trailing gap is ONE gap. The bound must
+    move with the log, so widening the widest gap must widen the bound and clear the flag.
+    """
+    def build(recovery_at):
+        return "\n".join([
+            _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+            _cycle("2026-08-20 11:00", refused=True, hook_body=ORPHAN_HOOK),
+            _cycle(recovery_at, refused=False),
+        ])
+
+    tight = _decompose(build("2026-08-20 12:00"))
+    assert tight["max_gap_s"] == 3600 and tight["over_max_gap"] == []
+    # The recovery is now 10h after the last refusal, and 10h IS the widest gap in this log --
+    # so a trailing gap equal to it is one gap, and the flag must stay down.
+    wide = _decompose(build("2026-08-20 21:00"))
+    assert wide["max_gap_s"] == 10 * 3600
+    assert wide["rows"][0]["trailing_gap_s"] == 10 * 3600
+    assert wide["over_max_gap"] == []
+    assert wide["max_gap_s"] > tight["max_gap_s"]
+
+
+def test_a_trailing_gap_wider_than_any_observed_gap_is_flagged_rather_than_averaged_in():
+    """A gap wider than any attempt-to-attempt interval in the log cannot be ONE gap: an attempt
+    happened inside it that the parse did not see, so the episode was closed on the wrong cycle.
+    Folding such an episode into the totals silently credits a parse failure to the retry rhythm,
+    which is the side this measurement is trying to bound from ABOVE.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 11:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 12:00", refused=False),
+    ])
+    ep = attr.episode_report(log)
+    assert _decompose(log)["over_max_gap"] == []
+    ep["bounded"][0]["outage_s"] += 99 * 3600
+    assert len(attr.trailing_gap_report(ep)["over_max_gap"]) == 1
+
+
+def test_a_negative_trailing_gap_is_reported_and_not_summed_away():
+    """Outage is anchored at the episode start and so is span, so outage < span is impossible on
+    a sound record -- and summing a negative into the total would make the rhythm's share look
+    SMALLER, flattering prediction 1. The void condition has to be visible per episode, because
+    two negatives and a positive can total to something entirely plausible.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 12:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 13:00", refused=False),
+    ])
+    ep = attr.episode_report(log)
+    assert _decompose(log)["negative"] == []
+    ep["bounded"][0]["outage_s"] = ep["bounded"][0]["span_s"] - 60
+    assert len(attr.trailing_gap_report(ep)["negative"]) == 1
+
+
+def test_an_episode_ending_on_a_non_refusal_carries_both_readings_and_is_counted():
+    """The pre-registration says "the landing attempt minus the last REFUSED attempt". Under the
+    cost definition an episode ends on the last attempt that did not LAND, which can be a
+    `behind_origin` cycle -- so the two phrasings name different quantities, and `outage - span`
+    is the second one. Reporting one figure under the other definition's words is this project's
+    most expensive recurring shape. Both are carried and the divergence is counted, never
+    inferred by the reader from a footnote.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _failed("2026-08-20 14:00", "behind_origin"),
+        _cycle("2026-08-20 15:00", refused=False),
+    ])
+    tg = _decompose(log)
+    row = tg["rows"][0]
+    assert tg["not_ending_on_refusal"] == [row]
+    assert row["trailing_gap_s"] == 3600                      # from the behind_origin attempt
+    assert row["trailing_gap_to_last_refusal_s"] == 5 * 3600  # from the last REFUSAL
+    assert row["trailing_gap_s"] != row["trailing_gap_to_last_refusal_s"]
+
+
+def test_an_empty_side_has_no_median_rather_than_a_zero_that_reads_as_no_tail():
+    """A median of an empty set is not 0.0. Reporting one would say "the tail is nothing" where
+    the truth is "there was nothing to measure" -- the same fail-open shape as a not-found lookup
+    defaulting to a valid extreme, and here it would silently support prediction 1.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 12:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 13:00", refused=False),
+    ])
+    tg = _decompose(log)
+    assert tg["single"]["episodes"] == 0
+    assert tg["single"]["median_trailing_gap_s"] is None
+    assert tg["single"]["max_trailing_gap_s"] is None
+    assert tg["multi"]["median_trailing_gap_s"] == 3600
+
+
+def test_a_censored_episode_contributes_no_trailing_gap_at_all():
+    """An open wedge has no terminating landing, so it has no trailing gap -- and it is the
+    episode most likely to be the longest. Reading its span as an outage would give it a trailing
+    gap of zero and pull the headline share DOWN, which is the direction that flatters the
+    pre-registered prediction. Excluded here as it is excluded everywhere else on this direction.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 11:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 12:00", refused=False),
+        _cycle("2026-08-21 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-21 20:00", refused=True, hook_body=ORPHAN_HOOK),
+    ])
+    ep = attr.episode_report(log)
+    assert len(ep["censored"]) == 1
+    tg = attr.trailing_gap_report(ep)
+    assert len(tg["rows"]) == 1
+    assert [r["from"] for r in tg["rows"]] == ["2026-08-20 10:00"]
+
+
+def test_a_recovery_that_is_not_the_next_cycle_is_flagged_where_a_duration_cannot_be():
+    """What the pre-registration's "trailing gap <= the widest gap" control was reaching for.
+
+    An episode holds EVERY non-landing cycle, so its recovery is the immediately next cycle; the
+    failure it feared -- an attempt inside the trailing gap that nobody counted -- shows up as a
+    non-adjacent recovery, not as a long duration. Skipping a cycle would credit that attempt's
+    interval to the retry rhythm, the very side this measurement bounds from above.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _failed("2026-08-20 11:00", "behind_origin"),
+        _cycle("2026-08-20 12:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 13:00", refused=False),
+    ])
+    seq = attr.cycles(log)
+    # Reachable BOTH ways over one partition of one log, so the field is an observation and not a
+    # constant wearing a check's clothes: the strict definition breaks a run on `behind_origin`,
+    # whose recovery is therefore NOT the next cycle, while the cost definition swallows it.
+    assert [e["recovery_adjacent"] for e in attr._episodes(seq, breaker_is_landing=False)] == [
+        False, True]
+    assert [e["recovery_adjacent"] for e in attr._episodes(seq, breaker_is_landing=True)] == [True]
+    assert _decompose(log)["recovery_not_adjacent"] == []
+    ep = attr.episode_report(log)
+    ep["bounded"][0]["recovery_adjacent"] = False
+    assert len(attr.trailing_gap_report(ep)["recovery_not_adjacent"]) == 1
+
+
+def test_the_widest_gap_comparison_is_a_tautology_and_is_never_read_as_evidence():
+    """A mutation that does not fire is a missing test or an equivalence, and this one is an
+    equivalence -- so it is pinned rather than trusted.
+
+    A trailing gap is BY CONSTRUCTION one of the inter-attempt gaps that `max_gap_s` is the
+    maximum of, so on any sound log the comparison cannot fail however the publisher behaves. It
+    survives only as a canary over a corrupted record. If a future edit makes it fireable on real
+    data, that edit has changed what a trailing gap is, and this control is where that surfaces.
+    """
+    log = "\n".join([
+        _cycle("2026-08-20 10:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-20 11:00", refused=True, hook_body=ORPHAN_HOOK),
+        _cycle("2026-08-21 05:00", refused=False),      # an 18h tail, far beyond the cadence
+    ])
+    ep = attr.episode_report(log)
+    tg = attr.trailing_gap_report(ep)
+    assert tg["rows"][0]["trailing_gap_s"] == 18 * 3600
+    assert tg["rows"][0]["trailing_gap_s"] == tg["max_gap_s"]   # it IS the widest gap
+    assert tg["over_max_gap"] == []
+    # And the check that CAN fail is green on the same episode, so the two are not redundant.
+    assert tg["recovery_not_adjacent"] == []
