@@ -3133,6 +3133,11 @@ _REFUSING_GATE_BANNERS = (
      "tools/pre_commit_test_gate.py"),
     ("level-promotion gate", ("[level-gate] ❌",), "tools/level_promotion_gate.py"),
     ("site-lane gate", ("[site-lane] ❌",), "tools/site_lane_gate.py"),
+    # All three refusal paths (unmeasurable, LIES, not-in-HEAD) share this prefix; the passing
+    # path prints `[startup-anchors] wrote ...`, so the needle cannot name it as the refuser of a
+    # commit it let through.
+    ("startup-anchor freshness gate",
+     ("[startup-anchors] REFUSED",), "tools/startup_anchor_freshness.py"),
     ("moap-coherence gate",
      ("[moap-coherence] ❌ COMMIT REFUSED",), "tools/moap_coherence_gate.py"),
     ("ruling-archive-question gate",
