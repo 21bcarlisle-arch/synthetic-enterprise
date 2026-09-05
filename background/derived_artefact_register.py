@@ -90,6 +90,43 @@ REGISTER: tuple[DerivedArtefact, ...] = (
 SCANNED_TREES = ("background", "tools")
 
 
+# ── the renderer set used when a MERGE has to re-derive ─────────────────────────────────────
+#
+# WHY A SECOND TUPLE EXISTS, and why it is not the fail-open index this module warns about.
+# `REGISTER` is measured against `discover()` in both directions, which is what stops it falling
+# behind. `discover()` finds a module by two properties: it takes `--write`, and it owns a
+# module-level `docs/design/*.md` constant. `background.finding_classes` has NEITHER -- its flag
+# is `--render`, and its six outputs are computed per class from `CLASS_DOC_PREFIX` and the
+# class's own id, so there is no module-level path to find. It is nonetheless a derived artefact
+# in exactly the sense that matters here: a committed file that is a function of the tree, whose
+# `--check` reds when the two disagree.
+#
+# Rather than contort `discover()` (which would mean teaching an AST scan to evaluate an f-string
+# over a class attribute) the exemption is NAMED, and
+# `test_the_named_exemption_is_still_undiscoverable` reds if it ever becomes discoverable -- so
+# the exemption cannot outlive its reason and quietly become a duplicate registration.
+EXTRA_RENDERERS: tuple[tuple[str, str], ...] = (
+    ("background.finding_classes", "--render"),
+)
+
+
+def renderers() -> list[tuple[str, str]]:
+    """(module, write_flag) for everything a merge must re-derive. ONE home for the set."""
+    return [(a.module, "--write") for a in REGISTER] + list(EXTRA_RENDERERS)
+
+
+def rendered_paths() -> list[str]:
+    """Repo-relative paths the renderers own, for reading back after a re-derive.
+
+    The class registers are globbed rather than listed because the set is the CLASSES tuple's
+    business, not this module's -- listing them here would be a second place to update.
+    """
+    out = [a.rendered for a in REGISTER]
+    out += [str(p.relative_to(PROJECT_DIR))
+            for p in (PROJECT_DIR / "docs" / "staging" / "reference").glob("CLASS_*.md")]
+    return out
+
+
 # ── discovery: the INDEPENDENT oracle the register is measured against ──────────────────────
 
 def _takes_write_flag(tree: ast.Module) -> bool:

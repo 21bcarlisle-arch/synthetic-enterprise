@@ -144,6 +144,11 @@ from background.tree_lock import (  # noqa: E402  (needs the path insert above)
 # recreate the accretion the ruling forbids: the tool must face what `git commit` faces.
 HOOK_REL = "tools/git-hooks/pre-commit"
 
+#: Per-renderer budget for the re-derive pass. Generous: the class registers walk the whole
+#: staging tree. A renderer that overruns is skipped and the gate reds on the unrepaired state,
+#: which is the honest outcome -- never a landing taken down by its own repair.
+RENDER_TIMEOUT_S = 300
+
 # The extract is a full tree copy. Below this, refuse -- a gate that cannot be materialised has
 # not run (the publish gate's own floor, same reasoning).
 MIN_FREE_MB = 500
@@ -448,6 +453,86 @@ def build_resulting_tree(root: Path, paths: list[str], parent: str,
             _git_text(root, "update-index", "--add", "--cacheinfo",
                       "{},{},{}".format(_mode_at(root, parent, path), sha, path), env=env)
         return _git_text(root, "write-tree", env=env)
+    finally:
+        for leftover in (idx, idx + ".lock"):
+            try:
+                os.unlink(leftover)
+            except OSError:
+                pass
+
+
+def rederive_in(root: Path, checkout: Path, result_tree: str) -> tuple[str, list[str]]:
+    """Re-derive the tree's derived artefacts INSIDE the extract, and fold the result back in.
+
+    Returns (tree_sha, [relpath...]) -- the tree with the re-derivations in it, and what changed.
+
+    WHY THIS EXISTS, and it is a CLASS not an instance. A derived file whose header carries a
+    COUNT of its own list is written by two lanes on the same day: each adds one row. Git merges
+    the two lists cleanly -- different lines, no conflict -- and takes the header from one side,
+    so the merged tree says "printed 12, list holds 13" and the consolidation gate refuses it.
+    Correctly: a register disagreeing with its own list is how a member goes missing unnoticed.
+
+    That deadlocks, and the deadlock is total. There is no `--resolve` route, because
+    `build_merge_tree` rule 1 refuses a resolution for a path that did not conflict -- rightly,
+    since that rule is the only thing stopping `--merge --content` becoming a smuggling door. And
+    neither side can fix it alone: this seat's tree cannot name origin's member without origin's
+    member FILE, which arrives with the merge, and whose own `**Advances:**` line names a test
+    that arrives with it too. Measured 2026-09-05: origin sat still for 88 minutes with every lane
+    behind the same refusal. Any derived count merged from two sides will do this again.
+
+    THE BYTES ARE THE TOOL'S OWN, WHICH IS WHY THIS IS NOT RULE 1's HOLE. A resolution is caller
+    input and must be fenced. This runs the renderer the repo already ships, on the merged tree,
+    in the extract that is about to be gated, and commits what it produces. There is no caller
+    input to smuggle: the same tree in yields the same bytes out, and if the renderer's output
+    still fails the gate the landing is still refused.
+
+    The extract is where it runs for the reason `derived_artefact_register` gives at length: a
+    projection rendered from the WORKING tree is a projection of uncommitted sources, and the
+    gate -- re-deriving from committed truth -- would then red on it. Here the extract IS the
+    tree the commit creates, so what is rendered is what the gate re-derives.
+    """
+    from background import derived_artefact_register as dar
+
+    before = {}
+    for rel in dar.rendered_paths():
+        f = checkout / rel
+        before[rel] = f.read_bytes() if f.is_file() else None
+
+    for module, flag in dar.renderers():
+        try:
+            subprocess.run([sys.executable, "-m", module, flag], cwd=str(checkout),
+                           env=_gitless_env(), capture_output=True, timeout=RENDER_TIMEOUT_S)
+        except (OSError, subprocess.SubprocessError):
+            # A renderer that cannot run leaves its artefact as the merge left it, and the gate
+            # then reds on the true state. Never take a landing down over a repair.
+            continue
+
+    changed: dict[str, bytes] = {}
+    for rel in dar.rendered_paths():
+        f = checkout / rel
+        now = f.read_bytes() if f.is_file() else None
+        if now is not None and now != before.get(rel):
+            changed[rel] = now
+    if not changed:
+        return result_tree, []
+
+    fd, idx = tempfile.mkstemp(prefix="surgical-land-rederive-")
+    os.close(fd)
+    os.unlink(idx)
+    env = _gitless_env()
+    env["GIT_INDEX_FILE"] = idx
+    try:
+        _git_text(root, "read-tree", result_tree, env=env)
+        for rel, blob in sorted(changed.items()):
+            r = _git(root, "hash-object", "-w", "--stdin", "--path", rel, env=env, stdin=blob)
+            if r.returncode != 0:
+                raise LandingRefused(
+                    "re-deriving {} produced bytes git would not hash (rc={}): {}".format(
+                        rel, r.returncode, r.stderr.decode("utf-8", "replace").strip()[-200:]))
+            sha = r.stdout.decode("ascii").strip()
+            _git_text(root, "update-index", "--add", "--cacheinfo",
+                      "100644,{},{}".format(sha, rel), env=env)
+        return _git_text(root, "write-tree", env=env), sorted(changed)
     finally:
         for leftover in (idx, idx + ".lock"):
             try:
@@ -873,7 +958,8 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
                   tests: str, hook_rel: str = HOOK_REL,
                   content_sourced: list[str] | None = None,
                   merge_parent: str | None = None,
-                  resolved: list[str] | None = None) -> str:
+                  resolved: list[str] | None = None,
+                  rederived: list[str] | None = None) -> str:
     lines = [
         RECEIPT_HEADER,
         "tool: tools/surgical_land.py",
@@ -903,6 +989,12 @@ def build_receipt(parent: str, result_tree: str, files: list[str], gate_rc: int,
         # here is what makes "somebody decided" part of the record rather than folklore, and it is
         # the difference between a resolution and a smuggled change.
         lines.append("conflicts-resolved: {}".format(", ".join(sorted(resolved))))
+    if rederived:
+        # Named on the receipt because these paths are in the commit and NOBODY ASKED FOR
+        # THEM. A landing that quietly carries files the caller did not name is the shape
+        # this whole tool exists to prevent; the difference here is that the bytes are the
+        # repo's own renderer output, and saying so is what keeps that difference visible.
+        lines.append("re-derived: {}".format(", ".join(sorted(rederived))))
     lines.append("paths: {}".format(len(files)))
     lines += ["  - {}".format(p) for p in files]
     return "\n".join(lines)
@@ -1306,6 +1398,25 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
     swept = sweep_stale_extracts()
     try:
         materialise(root, checkout, result_tree, parent, paths, swept=swept)
+        # RE-DERIVE BEFORE GATING. A derived file merged from two sides can end up internally
+        # inconsistent with no conflict for anyone to resolve -- see `rederive_in`. The renderer
+        # runs on the extract, which IS the tree the commit creates, and anything it changes is
+        # folded back into that tree so the gated bytes and the committed bytes stay identical.
+        # MERGES ONLY, and the restriction is the point. On an ordinary pathspec landing the
+        # author chose what to commit, and a stale derived artefact is a real defect the gate
+        # should make them fix -- re-deriving it silently would smooth over exactly the staleness
+        # the consolidation gate exists to surface. A MERGE is different: nobody authored the
+        # combination, git did, and the inconsistency it produces has no author to send it back to.
+        rederived: list[str] = []
+        if merge_parent is not None:
+            result_tree, rederived = rederive_in(root, checkout, result_tree)
+        if rederived:
+            # THE RECEIPT MUST NOT UNDERSTATE THE COMMIT. `files` was computed against the tree
+            # BEFORE the re-derive, so leaving it would ship a receipt naming fewer paths than
+            # the commit carries -- and `--verify` re-derives that list, so it would red on every
+            # landing that repaired anything. Recomputed against the tree actually being committed.
+            files = changed_paths(root, parent_tree, result_tree)
+            print("[surgical-land] re-derived on merge: {}".format(", ".join(rederived)))
         # The gate is the window archived run markers have been observed returning to the staging
         # root inside (WORKER_FINDING_ARCHIVED_RUN_MARKERS_RETURN_TO_THE_STAGING_ROOT..._2026-08-20:
         # ten files, one shared mtime, forty seconds before this tool's own reflog entry). This
@@ -1327,7 +1438,7 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         _ACTIVE_CHECKOUTS.discard(checkout)
     receipt = build_receipt(parent, result_tree, files, rc, tests, hook_rel,
                             content_sourced=sorted(content or ()), merge_parent=merge_parent,
-                            resolved=sorted(resolutions or ()))
+                            resolved=sorted(resolutions or ()), rederived=rederived)
     return _commit_and_swap(root, result_tree, parent, message + "\n\n" + receipt, files,
                             merge_parent=merge_parent)
 
