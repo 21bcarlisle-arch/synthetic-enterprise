@@ -123,27 +123,112 @@ def test_check_remote_new_non_advisor_commits_returns_unchanged():
     assert result == seen
 
 
-def test_check_remote_extracts_and_writes_advisor_file(tmp_path):
-    file_content = "# Phase OP proposal"
+def _bridge(tmp_path, blob: bytes, *, names=("PHASE_OP.md",), rc=0, stderr=b""):
+    """Drive `check_remote` through one extraction and return what `git show` handed the writer.
+
+    The blob is delivered through `subprocess.run` and NOT through `_run`, because that is the
+    seam the writer actually reads from: `_run` returns `stdout.strip()`, which is right for
+    every caller that parses it and wrong for the one that writes bytes to a file.
+    """
     from background.staging_watcher import check_remote
-    seen = set()
+
+    def fake_raw(cmd, **kwargs):
+        return MagicMock(returncode=rc, stdout=blob, stderr=stderr)
 
     with patch("background.staging_watcher._run") as mock_run, \
-         patch("background.staging_watcher._extract_advisor_staging_files", return_value=["PHASE_OP.md"]), \
+         patch("background.staging_watcher._extract_advisor_staging_files",
+               return_value=list(names)), \
          patch("background.staging_watcher.STAGING_DIR", tmp_path), \
+         patch("background.staging_watcher.subprocess.run", fake_raw), \
          patch("background.staging_watcher.log"):
+        mock_run.side_effect = [(0, "", ""), (0, "abc1234", ""), (0, "3", "")]
+        check_remote(set())
 
-        mock_run.side_effect = [
-            (0, "", ""),
-            (0, "abc1234", ""),
-            (0, "3", ""),
-            (0, file_content, ""),
-        ]
-        result = check_remote(seen)
+
+def test_check_remote_extracts_and_writes_advisor_file(tmp_path):
+    file_content = b"# Phase OP proposal\n"
+    _bridge(tmp_path, file_content)
 
     written = tmp_path / "PHASE_OP.md"
     assert written.exists()
-    assert written.read_text() == file_content
+    assert written.read_bytes() == file_content
+
+
+def test_the_bridge_writes_origins_bytes_and_not_a_stripped_copy(tmp_path):
+    """THE DEFECT (2026-09-05). The bridge read `_run`, whose contract is `stdout.strip()`, and
+    wrote that to disk -- so every resurrected document differed from origin's blob by its
+    trailing newline.
+
+    ONE BYTE IS THE WHOLE COST. `origin_reconcile.identical_untracked_twins` clears a blocking
+    path only when it is BYTE-IDENTICAL to what origin brings, and `advance_shared_tree` is
+    all-or-nothing, so a single near-twin refuses the entire fast-forward. Measured live on
+    2026-09-05: six documents this line had resurrected, each one newline short, and the advance
+    naming all six in "10 of 18 blocking path(s) are NOT byte-identical".
+
+    KEYED TO EQUALITY WITH THE BLOB, not to "ends with a newline" -- the second is today's
+    symptom and would go green if the strip were replaced by a different mangling.
+    """
+    blob = b"# A staged document\n\nwith a body.\n"
+    _bridge(tmp_path, blob)
+    assert (tmp_path / "PHASE_OP.md").read_bytes() == blob, \
+        "the local copy must be origin's blob byte-for-byte, or the twin sweep cannot clear it"
+
+
+def test_a_blob_that_genuinely_has_no_trailing_newline_is_not_given_one(tmp_path):
+    """THE NULL BESIDE IT. A writer that "fixes" the symptom by appending a newline passes the
+    test above and fails here, and would create exactly the same one-byte divergence in the
+    other direction for any blob origin stores without one.
+    """
+    blob = b"# No newline at the end of this one"
+    _bridge(tmp_path, blob)
+    assert (tmp_path / "PHASE_OP.md").read_bytes() == blob
+
+
+def test_a_failed_extraction_writes_nothing(tmp_path):
+    """FAIL CLOSED. A `git show` that could not read the blob must leave no file at all -- an
+    empty document in the staging root rings the doorbell and wins draws.
+    """
+    _bridge(tmp_path, b"", rc=128, stderr=b"fatal: bad object")
+    assert not (tmp_path / "PHASE_OP.md").exists()
+
+
+@pytest.mark.parametrize("room", ["done", "in_progress", "records"])
+def test_a_document_consumed_into_any_room_is_not_resurrected(tmp_path, room):
+    """THE SECOND DEFECT AT THE SAME SITE. The guard listed `done/` and `in_progress/` as two
+    hardcoded instances. `records/` -- the room whose whole claim is THIS IS NOT WORK AND NEVER
+    WAS -- landed 2026-09-03 and reached neither, so every pre-registration dispositioned out of
+    the work channel was written back into it on the next poll, at a 90-second cadence.
+
+    PARAMETRISED OVER THE ROOMS THE GUARD CLAIMS TO COVER, so a fourth room added to
+    `finding_classes.ROOM_DIRNAMES` without widening the guard reds here rather than being found
+    in a wedge. The negative leg below is what stops a guard that refuses everything passing.
+    """
+    consumed = tmp_path / room
+    consumed.mkdir()
+    (consumed / "PHASE_OP.md").write_bytes(b"consumed here\n")
+
+    _bridge(tmp_path, b"resurrected\n")
+    assert not (tmp_path / "PHASE_OP.md").exists(), \
+        f"a document consumed into {room}/ must not be written back into the work channel"
+
+
+def test_the_room_guard_covers_every_room_the_frozen_tuple_names():
+    """The parametrisation above is a list; this is the property. It reds when a room is added to
+    `ROOM_DIRNAMES` and the cases above are not widened with it -- which is the way the previous
+    two instance-fixes rotted.
+    """
+    from background import finding_classes
+    assert set(finding_classes.ROOM_DIRNAMES) == {"done", "in_progress", "records"}, \
+        ("ROOM_DIRNAMES gained or lost a room -- widen "
+         "test_a_document_consumed_into_any_room_is_not_resurrected to match")
+
+
+def test_a_document_in_no_room_IS_resurrected(tmp_path):
+    """THE NULL. Without this, a guard that skipped every name -- or a bridge that had stopped
+    writing at all -- would pass every assertion above. This is the branch the bridge exists for.
+    """
+    _bridge(tmp_path, b"resurrected\n")
+    assert (tmp_path / "PHASE_OP.md").read_bytes() == b"resurrected\n"
 
 
 def test_check_remote_skips_existing_file(tmp_path):

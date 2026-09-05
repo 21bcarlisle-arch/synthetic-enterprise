@@ -116,6 +116,20 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-05  F841 127 -> 126  (the staging bridge stops stripping origin's blob)
+#     ONE FILE, `tests/background/test_remote_staging_bridge.py`, and it is a side effect rather
+#     than a tidying pass. `test_check_remote_extracts_and_writes_advisor_file` bound
+#     `result = check_remote(seen)` and asserted nothing about it; rewriting that test onto the
+#     shared `_bridge` helper — needed because the bridge's content read moved off `_run` and onto
+#     raw `subprocess.run`, so `_run`'s `stdout.strip()` no longer reaches a file — dropped the
+#     binding with it.
+#     MEASURED PER-FILE AGAINST `git show HEAD:`, per this log's standing rule and not off the
+#     shared working tree: that file reads 2 at HEAD and 1 here; the other three files in this
+#     commit (`background/staging_watcher.py`, `tests/background/test_staging_watcher.py`,
+#     `background/process_run_complete.py`) read 0 on both sides. The whole move is that file's
+#     and there is no shortfall to explain.
+#     The SECOND F841 in that file survives and is left: `test_check_remote_skips_existing_file`
+#     binds a `result` it does not read, and it is not on this commit's path.
 #   2026-09-01  I001 1334 -> 1333  (the worktree reaper gets a caller, and landings reach the channel)
 #     EARNED, and by one file: `background/deadmans_switch.py`. MEASURED PER-FILE AGAINST
 #     `git show HEAD:`, per this log's standing rule and not off the shared working tree. That file
@@ -672,7 +686,7 @@ RUFF_BASELINE: dict[str, int] = {
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
     "F401": 265,
     "E402": 174,
-    "F841": 127,
+    "F841": 126,
     "E741": 107,
     "F811": 94,
     "E702": 76,
@@ -692,7 +706,13 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2311  # was 2312; -1 (I001) on 2026-09-04 from
+RUFF_BASELINE_TOTAL = 2310  # was 2311; -1 (F841) on 2026-09-05 from
+                            # tests/background/test_remote_staging_bridge.py, whose unread
+                            # `result = check_remote(seen)` binding went with the rewrite onto the
+                            # shared `_bridge` helper. Attributed per-file against `git show HEAD:`:
+                            # 2 at HEAD, 1 now; the other three files in that commit read 0 on both
+                            # sides. See the dated F841 note in the SHRINK LOG.
+                            # Before that it was 2312; -1 (I001) on 2026-09-04 from
                             # tests/background/test_process_run_complete.py, whose function-local
                             # import block went with the publish-block isolation repair.
                             # Attributed per-file: 1 at `git archive HEAD`, 0 now. See the dated

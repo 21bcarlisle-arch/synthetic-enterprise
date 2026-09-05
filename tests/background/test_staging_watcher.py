@@ -1,5 +1,6 @@
 import time
 from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -611,6 +612,24 @@ def _bridge_fake_run(show_counter):
     return fake_run
 
 
+def _bridge_fake_show(show_counter):
+    """The RAW `git show` the bridge writes from, counted on the same dict as `_run`'s.
+
+    The content read moved off `_run` on 2026-09-05: `_run` returns `stdout.strip()`, and the
+    bridge is the one caller whose output is a FILE, so a stripped copy differed from origin's
+    blob by its trailing newline and defeated the twin sweep that clears fast-forward blockers.
+    These two tests are about the RESURRECTION GUARD, not the bytes, so the counter simply
+    follows the read to its new seam -- the byte-identity property has its own legs in
+    tests/background/test_remote_staging_bridge.py.
+    """
+    def fake_show(cmd, **kwargs):
+        if cmd[:2] == ["git", "show"]:
+            show_counter["n"] += 1
+            return MagicMock(returncode=0, stdout=b"doc content from origin\n", stderr=b"")
+        return MagicMock(returncode=0, stdout=b"", stderr=b"")
+    return fake_show
+
+
 def test_bridge_does_not_resurrect_archived_doc(tmp_path, monkeypatch):
     monkeypatch.setattr(watcher, "STAGING_DIR", tmp_path)
     monkeypatch.setattr(watcher, "log", lambda m: None)
@@ -621,6 +640,7 @@ def test_bridge_does_not_resurrect_archived_doc(tmp_path, monkeypatch):
                         lambda ref: ["DIRECTOR_ANSWERS_C7.md"])
     counter = {"n": 0}
     monkeypatch.setattr(watcher, "_run", _bridge_fake_run(counter))
+    monkeypatch.setattr(watcher.subprocess, "run", _bridge_fake_show(counter))
 
     watcher.check_remote(set())
 
@@ -638,6 +658,7 @@ def test_bridge_materialises_unarchived_advisor_doc(tmp_path, monkeypatch):
                         lambda ref: ["NEW_ADVISOR_STEER.md"])
     counter = {"n": 0}
     monkeypatch.setattr(watcher, "_run", _bridge_fake_run(counter))
+    monkeypatch.setattr(watcher.subprocess, "run", _bridge_fake_show(counter))
 
     watcher.check_remote(set())
 

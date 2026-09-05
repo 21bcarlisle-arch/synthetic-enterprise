@@ -130,6 +130,8 @@ INSTRUCTION_STALE_SECONDS = 48 * 3600
 # Standalone script -- add the repo root so `from background.ntfy_utils
 # import ...` works regardless of how it\'s invoked.
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from background import finding_classes  # noqa: E402  -- for ROOM_DIRNAMES, the one frozen list of
+#                                       consumed rooms; see the resurrection guard in check_remote
 from background.notify import notify  # noqa: E402
 from background.agent_status import update_agent_status  # noqa: E402
 from background.episode_prior import READABLE, load_list_prior, preserve_unreadable, prior_unreadable  # noqa: E402,E501
@@ -317,13 +319,39 @@ def check_remote(seen: set[str]) -> set[str]:
         # [ADVISOR-STAGED] commits that first added these docs, so this bridge would
         # re-materialise them into root every cycle. Either subdir is the canonical
         # "consumed" signal; skip it. (A genuine re-issue reuses a fresh name.)
-        if (_done_dir() / name).exists() or (_in_progress_dir() / name).exists():
+        #
+        # KEYED TO THE ROOM TUPLE, NOT TO A THIRD HARDCODED NAME (2026-09-05). That list was
+        # written twice as an instance -- done/, then in_progress/ -- and `records/` arrived on
+        # 2026-09-03 and reached neither, so every pre-registration dispositioned out of the work
+        # channel was resurrected into it on the next poll. `finding_classes.ROOM_DIRNAMES` is
+        # the tuple whose own docstring says "a new room is not a new room until this tuple knows
+        # about it"; reading it here means the fourth room widens this guard on the commit that
+        # adds it, instead of leaving a third instance for someone to find in a wedge.
+        if any((STAGING_DIR / room / name).exists() for room in finding_classes.ROOM_DIRNAMES):
             continue
-        rc4, content, err4 = _run(["git", "show", "origin/main:" + remote_path])
-        if rc4 != 0:
+        # THE RAW BLOB, NOT `_run`'s PARSED STDOUT (2026-09-05). `_run` returns
+        # `stdout.strip()` -- correct for every caller that parses lines out of it, and silently
+        # wrong for the one caller that writes those bytes to a FILE. The strip removes the
+        # trailing newline, so this bridge wrote a copy differing from origin's blob by exactly
+        # one byte.
+        #
+        # ONE BYTE IS THE WHOLE DEFECT. `origin_reconcile.identical_untracked_twins` clears a
+        # blocking path only when it is BYTE-IDENTICAL to what origin brings -- "protecting a
+        # file from being replaced by itself" -- and `advance_shared_tree` is all-or-nothing, so
+        # a single near-twin refuses the entire fast-forward. Measured on the live tree
+        # 2026-09-05: six documents resurrected by this line, each `git show`.strip(), each one
+        # newline short, and the advance reporting "10 of 18 blocking path(s) are NOT
+        # byte-identical" with all six named. A whitespace convenience inside a helper is what
+        # had kept the mechanical advance at zero fires for its entire life.
+        raw = subprocess.run(
+            ["git", "show", "origin/main:" + remote_path],
+            capture_output=True, cwd=str(PROJECT_DIR), timeout=30,
+        )
+        if raw.returncode != 0:
+            err4 = raw.stderr.decode("utf-8", "replace").strip()
             log(f"Could not extract {name} from origin/main: {err4[:60]}")
             continue
-        local_path.write_text(content)
+        local_path.write_bytes(raw.stdout)
         log(f"Remote staging bridge: extracted {name} from advisor commit")
 
     return seen  # check_once will pick up new files on next poll
