@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-05T08:41:48.765664+00:00",
+  "last_updated": "2026-09-05T09:28:09.310917+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T08:41:31.310974+00:00",
+      "last_heartbeat": "2026-09-05T09:28:09.310917+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-05T05:10:53.099874+00:00",
       "anomaly": null,
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T08:41:39.715429+00:00",
+      "last_heartbeat": "2026-09-05T09:01:42.633279+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-09-05T08:41:39.715429+00:00",
+      "last_action_ts": "2026-09-05T09:01:42.633279+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -85,9 +85,9 @@
     {
       "name": "epistemic-verifier",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T07:25:28.029477+00:00",
+      "last_heartbeat": "2026-09-05T09:01:28.888834+00:00",
       "last_action": "Scan complete \u2014 PASS (0 violations)",
-      "last_action_ts": "2026-09-05T07:25:28.029477+00:00",
+      "last_action_ts": "2026-09-05T09:01:28.888834+00:00",
       "anomaly": null,
       "role": "Scans phase-close diffs for SIM/company epistemic barrier violations",
       "produces": "PASS/FAIL report to stdout"
@@ -105,7 +105,7 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T08:41:48.765664+00:00",
+      "last_heartbeat": "2026-09-05T09:27:43.904719+00:00",
       "last_action": "Supervisor started",
       "last_action_ts": "2026-09-05T08:41:41.290544+00:00",
       "anomaly": null,
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-05T08:40:55.243680+00:00",
+      "last_heartbeat": "2026-09-05T09:10:55.492775+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-05T08:40:55.243680+00:00",
+      "last_action_ts": "2026-09-05T09:10:55.492775+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
