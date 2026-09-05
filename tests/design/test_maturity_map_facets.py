@@ -105,7 +105,7 @@ REVIEWED_CLOSE_TO_LEARN = {
     # secretly live. Worth naming as the near miss: the work it UNBLOCKS may sit in any value
     # stream, and inheriting theirs would be the same mistake A49 is called out for two entries
     # above -- an audit that finds a flow is not that flow.
-    "H33_the_parked_document_audit_is_the_idle_hole_at_scale",
+    "H48_the_parked_document_audit_is_the_idle_hole_at_scale",
     # 2026-08-10 reviewed (worker tick, backlog-triage Group A: "verify the atom exists; mint if
     # not"). Both classified on their merits, not to clear the gate.
     # AO12 is a MEASUREMENT atom: it runs a bounded 10k-customer probe against a prediction

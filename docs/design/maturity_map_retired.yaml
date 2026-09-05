@@ -85,3 +85,42 @@ OPS1_governance_refusal_mutation_test: *pruned_20260824
 OPS1_launcher_cutover_completion: *pruned_20260824
 OPS_stall_class_register_adoption: *pruned_20260824
 SP4_owned_quantity_registry_gate: *pruned_20260824
+
+# RENUMBERED 2026-09-05, delivery seat. NOT retirements: every subject below is still live work,
+# under a new number, in the same half of the map, minted the same day. Recorded here because the
+# low-water rung cannot tell a rename from a deletion -- both are an id that was in the register
+# at HEAD and is not in it now -- and it is right not to: an id IS the record, so a subject that
+# changes id has lost the only thing binding it to its own history unless a line like this exists.
+#
+# THE CAUSE, and it is a finding already filed and unfixed:
+# `SEAT_FINDING_THE_ATOM_NUMBER_IS_PICKED_FROM_ONE_HALF_OF_A_TWO_FILE_MAP_AND_CHECKED_AGAINST_BOTH
+# _2026-09-05.md`. `load_live_atoms()` returns the LIVE half; the uniqueness control checks BOTH.
+# Every number below was picked by reading the live half and collided with a CLOSED atom.
+H31_the_consistency_gate_disagreement_before_the_next_publish: >-
+  renumbered to `H46_the_consistency_gate_disagreement_before_the_next_publish` on 2026-09-05, hours after being minted, because the number
+  collided with a closed atom. The subject did not leave the tree and no work was
+  dropped; follow the new id.
+H32_the_orientation_header_states_a_figure_it_computes: >-
+  renumbered to `H47_the_orientation_header_states_a_figure_it_computes` on 2026-09-05, hours after being minted, because the number
+  collided with a closed atom. The subject did not leave the tree and no work was
+  dropped; follow the new id.
+H33_the_parked_document_audit_is_the_idle_hole_at_scale: >-
+  renumbered to `H48_the_parked_document_audit_is_the_idle_hole_at_scale` on 2026-09-05, hours after being minted, because the number
+  collided with a closed atom. The subject did not leave the tree and no work was
+  dropped; follow the new id.
+W1_11_weather_cells_for_household_heat_load: >-
+  renumbered to `W1_14_weather_cells_for_household_heat_load` on 2026-09-05, hours after being minted, because the number
+  collided with a closed atom. The subject did not leave the tree and no work was
+  dropped; follow the new id.
+W2_12_the_housing_joint_the_sample_and_the_ceiling: >-
+  renumbered to `W2_18_the_housing_joint_the_sample_and_the_ceiling` on 2026-09-05, hours after being minted, because the number
+  collided with a closed atom. The subject did not leave the tree and no work was
+  dropped; follow the new id.
+W2_13_who_lives_where_money_and_composition: >-
+  renumbered to `W2_19_who_lives_where_money_and_composition` on 2026-09-05, hours after being minted, because the number
+  collided with a closed atom. The subject did not leave the tree and no work was
+  dropped; follow the new id.
+C31_one_obligation_one_vulnerability_scorer: >-
+  renumbered to `C32_one_obligation_one_vulnerability_scorer` on 2026-09-05, hours after
+  being minted, because the number collided with the live `C31_time_is_the_currency_that
+  _does_not_exist`. The subject did not leave the tree; follow the new id.
