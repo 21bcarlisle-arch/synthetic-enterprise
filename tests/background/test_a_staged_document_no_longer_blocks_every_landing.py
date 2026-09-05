@@ -21,6 +21,7 @@ objections cannot apply, and the refusal in the publish path stays exactly as it
 from __future__ import annotations
 
 import inspect
+import re
 import subprocess
 from pathlib import Path
 
@@ -175,10 +176,29 @@ def test_it_uses_the_sanctioned_door_rather_than_a_second_one():
 
 def test_the_shared_tree_is_only_ever_FAST_FORWARDED_and_git_may_refuse():
     """It cannot advance a shared tree past uncommitted work and does not try: `--ff-only`, and
-    git's own refusal is the safety net rather than a failure. Never `--force`, ever."""
-    src = inspect.getsource(orc.reconcile)
-    assert '"merge", "--ff-only"' in src
-    assert "--force" not in src
+    git's own refusal is the safety net rather than a failure. Never `--force`, ever.
+
+    KEYED TO EVERY `git merge` IN THE MODULE, NOT TO ONE FUNCTION'S SOURCE (2026-09-04). This read
+    `inspect.getsource(orc.reconcile)` for the literal `"merge", "--ff-only"`, and went red when the
+    advance was hoisted into `advance_shared_tree` so both of `reconcile`'s legs could share the
+    twin-clearing repair. The property was never touched and the control failed anyway -- the
+    "keyed to today's answer" shape CLAUDE.md names, which goes red when the code gets better.
+
+    The property is about every merge this module runs against the SHARED tree, so that is the
+    subject. `_run_merge` is the `tools.surgical_land --merge` door and is excluded on purpose: it
+    runs in the ISOLATED worktree, where a real merge is the whole point.
+
+    `--force` is NOT banned module-wide, because `git worktree remove --force` on a throwaway
+    checkout is legitimate and unrelated. It is banned where it would mean forcing the shared tree.
+    """
+    merge_args = re.findall(r'"merge",\s*"([^"]+)"', inspect.getsource(orc))
+    assert merge_args and set(merge_args) == {"--ff-only"}, \
+        "every `git merge` against the shared tree must be --ff-only, so git's own refusal is the " \
+        "guard -- found {}".format(merge_args)
+    assert "--force" not in inspect.getsource(orc.advance_shared_tree), \
+        "the one function that writes the shared tree must never force anything"
+    assert "advance_shared_tree" in inspect.getsource(orc.reconcile), \
+        "reconcile must reach the shared advance rather than hand-rolling a second one beside it"
 
 
 def test_the_worktree_is_declared_in_use_while_the_merge_runs():

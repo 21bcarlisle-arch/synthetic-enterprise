@@ -157,7 +157,18 @@ def test_a_mechanical_fork_is_closed_so_the_completed_cycle_can_commit(forked, u
 
 def test_a_commit_of_our_own_is_never_fast_forwarded_away(forked, unlocked, tmp_path):
     """`ahead > 0` is a REAL fork: closing it is a judgement and needs the gated merge door. This
-    path must leave it entirely alone, and say which door owns it."""
+    path must leave it entirely alone, and say which door owns it.
+
+    THE DOOR ASSERTION WAS KEYED TO THE WRONG DOOR (corrected 2026-09-04, later the same day).
+    It demanded the literal `surgical_land --merge`, which names the act that opens the SHARED
+    index -- the very thing this refusal's own docstring refuses to do unattended because
+    "routinely three lanes have uncommitted work in this tree". The owner is
+    `background/origin_reconcile`, which runs that same gated merge in an ISOLATED worktree. So
+    the assertion now asks for the OWNER rather than for a command string, which is the property
+    it always meant: a refusal for a state something else owns must name that something.
+    See `SEAT_FINDING_THE_RECONCILER_IS_NOT_STARVED...` and
+    `tests/background/test_a_forks_refusal_points_at_a_door_that_is_safe_in_the_shared_tree.py`.
+    """
     ours = tmp_path / "ours"
     _git(tmp_path, "clone", str(tmp_path / "origin.git"), str(ours))
     _identify(ours)
@@ -171,7 +182,7 @@ def test_a_commit_of_our_own_is_never_fast_forwarded_away(forked, unlocked, tmp_
 
     assert result["advanced"] is False
     assert _head(ours) == before, "our commit must still be here"
-    assert "surgical_land --merge" in result["reason"], "the refusal must name the door that owns it"
+    assert "origin_reconcile" in result["reason"], "the refusal must name the door that owns it"
 
 
 def test_another_lanes_uncommitted_work_makes_git_refuse_and_that_refusal_stands(forked, unlocked,

@@ -50,6 +50,8 @@ import json
 import time
 from pathlib import Path
 
+from background.episode_prior import load_episode_prior
+
 _HERE = Path(__file__).resolve().parent
 _OBS = _HERE.parent / "docs" / "observability"
 
@@ -109,10 +111,22 @@ def _was_delivered(result: object) -> bool:
 
 
 def _read_state() -> dict:
-    try:
-        return json.loads(STATE_FILE.read_text())
-    except Exception:
-        return {}
+    """The digest watermark: {digested_through_seq, last_digest_ts}.
+
+    `except Exception: return {}` caught the truncated file and NOT `null`, `[1, 2, 3]` or
+    `"abc"` -- those parse, so this returned a non-dict and `pending()`'s `.get` raised
+    AttributeError one line later (measured 2026-09-05, census loader sweep). Both halves matter
+    and they are different: the raise stops the digest flushing at all, and the {} makes
+    `digested_through_seq` read 0, which is not a lost suppression but a REPLAY -- measured
+    against a live prior of 5 pending in a 30-entry queue, `pending()` returned all 30. The
+    watermark is the only thing standing between a corrupt read and the director being sent every
+    notification this daemon has ever deferred.
+
+    Deliberately NOT preserved-and-alarmed: the very next successful flush writes a correct
+    `digested_through_seq` back from the entries it actually carried, so the record is
+    self-repairing, and the replay is loud enough to notice by itself."""
+    state, _verdict = load_episode_prior(STATE_FILE)
+    return state
 
 
 def _write_state(d: dict) -> None:
