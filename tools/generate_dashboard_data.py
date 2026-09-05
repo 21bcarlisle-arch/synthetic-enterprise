@@ -21,6 +21,8 @@ from company.analytics.retention_deferral_economics import (
 )
 from company.trading.hedge_decision import VAR_REVENUE_LIMIT
 
+from background.episode_prior import load_list_prior
+
 PROJECT = Path(__file__).resolve().parent.parent
 SSP_CACHE = PROJECT / "sim" / "cache" / "elexon_ssp_full.json"
 OUTPUT_PATH = PROJECT / "site" / "data" / "dashboard.json"
@@ -1936,15 +1938,16 @@ def extract_dd_rails(data):
 
 
 def extract_run_history(history_path=None, max_entries=10):
-    """Return last N run history entries, or [] if absent/invalid."""
+    """Return last N run history entries, or [] if absent/invalid.
+
+    `null` PARSES, so `except (JSONDecodeError, ValueError)` never saw it and `len(None)` raised
+    TypeError out of a function whose whole contract is "or [] if invalid" -- measured 2026-09-05
+    in the census loader sweep, and the raise lands in the dashboard build. `load_list_prior`
+    screens the items too: `"abc"` has a `len` of 3 and slices, so a bare string reached the
+    Project tab as three runs."""
     path = history_path or RUN_HISTORY_PATH
-    if not Path(path).exists():
-        return []
-    try:
-        history = json.loads(Path(path).read_text())
-        return history[-max_entries:] if len(history) > max_entries else history
-    except (json.JSONDecodeError, ValueError):
-        return []
+    history, _verdict = load_list_prior(path, item_type=dict)
+    return history[-max_entries:] if len(history) > max_entries else history
 
 
 def count_run_history_total(history_path=None):
@@ -1952,15 +1955,17 @@ def count_run_history_total(history_path=None):
     extract_run_history() for display. The Project tab's "Sim runs" KPI used
     to read len(run_history) off the truncated list, so it always showed
     exactly max_entries (10) no matter how many runs had actually happened
-    -- a dead counter (PROJECT_TAB_OVERHAUL.md critique)."""
+    -- a dead counter (PROJECT_TAB_OVERHAUL.md critique).
+
+    THE KPI MUST NOT BE FABRICATED FROM A CORRUPT RECORD (2026-09-05 census loader sweep).
+    Measured against a live prior of 100 runs: `"abc"` published **3** and `[1, 2, 3]` published
+    **3** -- `len()` answers for both, so a garbage file rendered as a plausible run count on the
+    director's own surface; `null` raised TypeError, uncaught, out of the dashboard build.
+    `load_list_prior` screens the items, so every one of those is now 0, and 0 is honest: this
+    figure is "runs we can account for", not "bytes in a file"."""
     path = history_path or RUN_HISTORY_PATH
-    if not Path(path).exists():
-        return 0
-    try:
-        history = json.loads(Path(path).read_text())
-        return len(history)
-    except (json.JSONDecodeError, ValueError):
-        return 0
+    history, _verdict = load_list_prior(path, item_type=dict)
+    return len(history)
 
 
 # The 23 SLC/regulatory obligations shown on the Supplier Regulatory tab, each

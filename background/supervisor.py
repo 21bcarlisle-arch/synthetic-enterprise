@@ -142,7 +142,11 @@ from background.episode_monotonic import (  # noqa: E402  (PW4)
 from background.episode_monotonic import (  # noqa: E402  (PW4, one screen for every timestamp)
     recorded_instant_seconds as _recorded_instant,
 )
-from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
+from background.episode_prior import (  # noqa: E402
+    load_episode_prior,
+    preserve_unreadable,
+    prior_unreadable,
+)
 from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 from tools import maturity_map_store as map_store  # noqa: E402 (the map's canonical reader)
@@ -2384,13 +2388,17 @@ def _file_scope_sha(a: dict, root: Path | None = None) -> str:
 def _load_harden_cooldown(path: Path | None = None) -> dict:
     """Load the {atom_id: {'at': iso, 'sha': content_sha}} rotation-memory marker. FAIL-OPEN
     to {} (missing/malformed -> no atom in cooldown -> the draw behaves exactly as it did
-    before the cooldown existed): a broken marker must never silence a real HARDEN draw."""
+    before the cooldown existed): a broken marker must never silence a real HARDEN draw.
+
+    THE READ IS FAIL-OPEN AND CORRECT; THE WRITE OVER IT WAS NOT (2026-09-05 census loader sweep).
+    `record_harden_pass` is a read-modify-write over this same {} -- measured against a live prior
+    of 8 atoms, every unreadable state loaded 0 and the next stamp wrote a ONE-atom marker over
+    all 8, turning the temporary fail-open this docstring argues for into a permanent loss. The
+    preserve is in the WRITER, not here: this loader has pure readers (`_is_drained_and_gated`,
+    `deadmans_switch._rest_is_proven_legitimate`) that must not move bytes about."""
     p = path or HARDEN_COOLDOWN_PATH
-    try:
-        d = json.loads(Path(p).read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        return {}
-    return d if isinstance(d, dict) else {}
+    d, _verdict = load_episode_prior(p)
+    return d
 
 
 def _harden_in_cooldown(a: dict, cooldown: dict, now: datetime | None = None) -> bool:
@@ -2448,6 +2456,13 @@ def record_harden_pass(atom_id: str, path: Path | None = None,
     atom = next((a for a in atoms if isinstance(a, dict) and a.get("id") == atom_id), None)
     if atom is None:
         return None
+    # READ-MODIFY-WRITE OVER A FAIL-OPEN LOADER: preserve before rebuilding (2026-09-05 sweep).
+    # `_load_harden_cooldown` answers {} for a corrupt marker, and the write below would then put
+    # ONE atom where 8 were. Preserving is what makes the loss recoverable and, more to the point,
+    # visible -- a cooldown marker that silently empties reads exactly like a fleet of atoms that
+    # were never hardened.
+    if prior_unreadable(load_episode_prior(p)[1]):
+        preserve_unreadable(p)
     cooldown = _load_harden_cooldown(p)
     now = now or datetime.now(timezone.utc)
     cooldown[atom_id] = {"at": now.isoformat(), "sha": _atom_content_sha(atom),
@@ -6219,12 +6234,36 @@ def _record_atom_draw_and_check_stall(atom_id: str, fingerprint: str) -> tuple[b
 
 
 def _load_idle_turn_count() -> int:
-    if not IDLE_TURN_COUNTER_FILE.exists():
+    """The all-time idle-turn total.
+
+    MEASURED 2026-09-05 in the census loader sweep. `json.loads` accepts `null` and a list, so
+    neither reached `except (json.JSONDecodeError, OSError)` and the `.get` one line later raised:
+
+        missing / empty / truncated / {"other": 1}  ->  0
+        json `null`                                 ->  RAISED AttributeError
+        `[1, 2, 3]`                                 ->  RAISED AttributeError
+        CONTROL live prior {"count": 417}           ->  417
+
+    WHERE THAT RAISE WENT, corrected from the prediction filed before the run. It escapes
+    `run_cycle` -- there is no try covering the call -- but `main`'s loop catches every Exception,
+    so the supervisor does NOT die. It logs `Supervisor cycle error` every two minutes forever and
+    the tick never completes: alive, warm and doing nothing, which is the responder's shape rather
+    than the producer's, and it fires on exactly the branch that exists to make an idle machine
+    visible. The pre-registration predicted the tick would be killed; half right, and the half it
+    got wrong is the half that decides how it looks in a log.
+
+    ABSENT and UNREADABLE take the same ACTION -- start from 0 -- and the reset is genuinely cheap:
+    `count` is all-time, its only consumers are a log line and `naive_organ`'s evidence reference,
+    and nothing reads it for severity. So the repair here is the CRASH, not the conflation, and
+    that asymmetry is why this carrier is not given an alarm it would have to earn.
+    """
+    count, _verdict = load_episode_prior(IDLE_TURN_COUNTER_FILE)
+    value = count.get("count", 0)
+    # `isinstance(True, int)` is True, and a bool count would then increment to 2 and stay an int
+    # forever -- silently making the all-time total wrong rather than absent.
+    if not isinstance(value, int) or isinstance(value, bool):
         return 0
-    try:
-        return json.loads(IDLE_TURN_COUNTER_FILE.read_text()).get("count", 0)
-    except (json.JSONDecodeError, OSError):
-        return 0
+    return value
 
 
 def _record_idle_turn() -> int:
@@ -6240,12 +6279,23 @@ def _record_idle_turn() -> int:
 
 
 def _load_map_exhausted_state() -> dict:
-    if not MAP_EXHAUSTED_STATE_FILE.exists():
-        return {}
-    try:
-        return json.loads(MAP_EXHAUSTED_STATE_FILE.read_text())
-    except (json.JSONDecodeError, OSError):
-        return {}
+    """The edge-detector's prior. ABSENT and PRESENT-BUT-UNREADABLE both start from "not
+    exhausted", and the conflation is deliberately left rather than repaired -- see below.
+
+    WHAT WAS NOT LEFT (2026-09-05 census loader sweep): `null`, `[1, 2, 3]` and `"abc"` all PARSE,
+    so `except (JSONDecodeError, OSError)` never saw them, this returned a non-dict out of a
+    `-> dict` annotation, and `check_map_exhausted_escalation`'s `state.get` one line later raised
+    AttributeError -- measured, all three. That is the supervisor's own cycle, so the tick never
+    completes and `main`'s blanket handler logs it every two minutes forever: the same
+    alive-and-deaf shape as `_load_idle_turn_count`, reached through a different door.
+
+    Why the conflation itself earns no alarm: the record is one boolean edge. Reading it as
+    "not exhausted" when it was "exhausted" costs one duplicate NTFY on the next genuine
+    CANNOT-draw, and the escalation it might duplicate is one this daemon WANTS sent. Nothing
+    reads it for severity and no write can shorten an episode. Guarding it would be an escalation
+    nobody chose, which the dispositions file's `_scope_of_benign` forbids."""
+    state, _verdict = load_episode_prior(MAP_EXHAUSTED_STATE_FILE)
+    return state
 
 
 def _save_map_exhausted_state(state: dict) -> None:

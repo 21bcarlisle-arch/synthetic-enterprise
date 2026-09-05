@@ -9,6 +9,7 @@ Called by process_run_complete.py after every full sim run. Output:
   docs/observability/run_history.json    -- cumulative (one entry per run)
 """
 import json
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -16,6 +17,18 @@ from pathlib import Path
 from typing import Optional
 
 PROJECT = Path(__file__).resolve().parent.parent
+# Before the `background.` import, not after: this module has a `__main__` block, and run as a
+# script sys.path[0] is `tools/`, so the import would raise ModuleNotFoundError before a line of
+# it executed. Same shape as tools/level_promotion_gate.py and tools/executor_cli.py.
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
+
+from background.episode_prior import (  # noqa: E402
+    load_list_prior,
+    preserve_unreadable,
+    prior_unreadable,
+)
+
 RUN_INSIGHTS_PATH = PROJECT / "docs" / "observability" / "run_insights.json"
 RUN_HISTORY_PATH = PROJECT / "docs" / "observability" / "run_history.json"
 
@@ -484,12 +497,19 @@ def append_run_history(insights: RunInsights, history_path: Optional[Path] = Non
         return  # skip test data with invalid net margin
     hp = history_path or RUN_HISTORY_PATH
     hp.parent.mkdir(parents=True, exist_ok=True)
-    history = []
-    if hp.exists():
-        try:
-            history = json.loads(hp.read_text())
-        except (json.JSONDecodeError, ValueError):
-            history = []
+    # ABSENT AND PRESENT-BUT-UNREADABLE ARE OPPOSITE FACTS, AND THIS IS A READ-MODIFY-WRITE
+    # (2026-09-05 census sweep). No file means no run was ever recorded, so starting a fresh list
+    # is right. A truncated one means 100 runs WERE recorded -- and `history = []` then wrote a
+    # ONE-entry list over them, which `generate_dashboard_data.count_run_history_total` publishes
+    # as the Project tab's "Sim runs" KPI: measured, 100 -> 1, a published figure destroyed by a
+    # corrupt read with nothing anywhere able to notice. `null`, `{"a": 1}` and `"abc"` were worse
+    # again: they PARSE, so the except never saw them and `h.get` two lines down raised inside
+    # `_process`'s blanket `except Exception`, which logs "Run insights generation skipped" and
+    # loses the run from history silently. `item_type=dict` screens the ITEMS too -- `[1, 2, 3]`
+    # is a list and would otherwise pass an `isinstance(parsed, list)` check.
+    history, verdict = load_list_prior(hp, item_type=dict)
+    if prior_unreadable(verdict):
+        preserve_unreadable(hp)
     entry = {
         "git_hash": insights.git_hash,
         "generated_at": insights.generated_at,
