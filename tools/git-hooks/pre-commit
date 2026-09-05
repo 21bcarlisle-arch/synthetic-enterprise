@@ -52,6 +52,17 @@ python3 tools/site_lane_gate.py || exit 1
 # anchor block is unparseable. R15-proven in tests/tools/test_startup_anchor_freshness.py.
 python3 tools/startup_anchor_freshness.py --gate || exit 1
 
+# KNOWLEDGE-LAYER GATE (2026-09-05, director console: "when a piece of work produces domain
+# understanding, it lands in the Knowledge layer with its sources and its gaps stated. Findings
+# about the machine go to the registers"). A commit that ADDS a document to docs/market_research/
+# must have that document declare where its understanding lands -- a topic id, or `none -- <reason>`.
+# Measured the day it was written: 78 of 82 research documents were named by no Knowledge surface
+# at all, because research that reaches no reader looks exactly like research that does. ADDS only:
+# 45% of recent commits touch that directory, and a gate firing on all of them would teach every
+# lane to type `none`. Fails OPEN on an unreadable topic graph -- the registry is not its subject.
+# `--report` prints the standing backlog. R15-proven in tests/tools/test_knowledge_layer_gate.py.
+python3 tools/knowledge_layer_gate.py || exit 1
+
 # §6 COHERENCE-BY-DERIVATION GATE (Phase D, 2026-07-27, DIRECTOR_RULING_WORK_DEFINITION_AND_
 # COHERENCE): a node's Live/Building/Planned stage must agree across the model, the diagram, the
 # site and the map -- "publish FAILS when they disagree." The site-lane gate above fires ONLY on
