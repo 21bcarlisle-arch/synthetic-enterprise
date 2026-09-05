@@ -23,7 +23,7 @@
     "run_retained": true,
     "verified_at": "2026-09-05T07:06:32Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=e18ca807c; blocking tests: FAILED tests/background/test_a_refusing_gate_banner_is_a_string_a_gate_prints.py::test_every_gate_the_chain_runs_is_either_named_or_declared_unnameable, FAILED tests/background/test_episode_prior_partition.py::test_every_real_census_hit_is_covered",
+  "paused_reason": "scoped publish-path suite red at git=e18ca807c; blocking tests: ERROR tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py::test_the_count_is_read_from_the_remote_and_not_from_the_tracking_ref, ERROR tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py::test_a_clone_level_with_origin_reads_zero_and_is_not_refused, ERROR tests/back",
   "paused_since": "2026-09-05T08:59:45Z",
   "schema": 1,
   "showing_run": {
@@ -39,5 +39,5 @@
     "verified_at": "2026-09-05T07:06:32Z"
   },
   "verification_state": "paused",
-  "written_at": "2026-09-05T13:09:48Z"
+  "written_at": "2026-09-05T13:22:09Z"
 }
