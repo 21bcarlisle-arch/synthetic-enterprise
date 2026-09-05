@@ -103,3 +103,9 @@ Nor does it establish that P1 of
 `SEAT_PREREGISTRATION_WHETHER_A_MECHANICAL_ADVANCE_AT_THE_REFUSAL_LETS_A_DRAINED_QUEUE_CLOSE_ITS_EPISODE_2026-09-04.md`
 holds. The answers written into that file are what they are; this finding is the *cause* of one of
 them, not a substitute for the measurement.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 4 matches for `publish_gate_and_wedge` against 0 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

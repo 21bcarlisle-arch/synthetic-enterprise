@@ -265,3 +265,9 @@ promote a worktree with uncommitted tracked changes and **named the paths**. A r
 what it found is doing a second job nobody designed it for, and this is the second time this turn
 that a gate's own output was the evidence (`finding_severity` prints the full BLOCKING roster).
 Worth remembering when a refusal is made quieter.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 7 matches for `publish_gate_and_wedge` against 2 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

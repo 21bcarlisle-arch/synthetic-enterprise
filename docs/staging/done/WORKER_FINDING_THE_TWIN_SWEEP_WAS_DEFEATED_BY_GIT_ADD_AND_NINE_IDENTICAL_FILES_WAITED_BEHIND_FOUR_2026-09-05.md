@@ -115,3 +115,9 @@ different mechanism: nobody was standing down here. The reconciler reached its w
 found the fork, and refused on a set it had mis-partitioned. **A control that classifies its
 subject before measuring it is blind to every member the classification puts on the other side** —
 and the classification here was `git add`, which is not a fact about the file at all.
+
+## Class registration
+
+Belongs to `uncommitted_and_orphaned_work`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 7 matches for `uncommitted_and_orphaned_work` against 2 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

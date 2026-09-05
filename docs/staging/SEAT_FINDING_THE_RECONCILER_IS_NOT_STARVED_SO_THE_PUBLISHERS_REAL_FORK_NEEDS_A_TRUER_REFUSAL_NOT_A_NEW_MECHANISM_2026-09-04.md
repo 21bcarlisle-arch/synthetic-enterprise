@@ -145,3 +145,9 @@ records the decision, and repairs a refusal that pointed readers at an unsafe ac
 **The next item is `commit_refused` at 272.** That is where publish cycles actually die — nine times
 the fork's whole contribution — and nothing in this direction, or the one before it, has looked at
 it. It should be measured before anything else on this surface is built.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 6 matches for `publish_gate_and_wedge` against 1 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

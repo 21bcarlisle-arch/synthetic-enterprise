@@ -115,3 +115,9 @@ stops the tree acquiring new near-twins; it does not clear the four that are rea
 also not established how many of the advance's nine historical refusals this cause accounts for —
 the blocker census is not retained per attempt, which is itself worth an instrument and is not one
 I built in this turn.
+
+## Class registration
+
+Belongs to `uncommitted_and_orphaned_work`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 3 matches for `uncommitted_and_orphaned_work` against 1 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

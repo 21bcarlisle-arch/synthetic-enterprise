@@ -154,3 +154,9 @@ lane finding it cannot land and having no reason to suspect a file it never touc
 **Discharged in this same commit.** The store side is landed and
 `tests/design/test_atom_notes_store.py` is 19 passed at the new HEAD. The *observability* gap under
 "Owed next" is NOT discharged and remains the real finding.
+
+## Class registration
+
+Belongs to `uncommitted_and_orphaned_work`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 8 matches for `uncommitted_and_orphaned_work` against 2 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

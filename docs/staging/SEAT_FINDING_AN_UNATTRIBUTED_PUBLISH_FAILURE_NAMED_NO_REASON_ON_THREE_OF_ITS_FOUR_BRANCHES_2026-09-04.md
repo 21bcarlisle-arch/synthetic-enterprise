@@ -132,3 +132,9 @@ this turn. The four-hour outage the direction describes had ended before the tur
 
 The one thing left that was nobody's and still live is the empty `cause_evidence` — the field that
 sent the brief to the wrong wedge in the first place. That is what this commit repairs.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 5 matches for `publish_gate_and_wedge` against 1 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

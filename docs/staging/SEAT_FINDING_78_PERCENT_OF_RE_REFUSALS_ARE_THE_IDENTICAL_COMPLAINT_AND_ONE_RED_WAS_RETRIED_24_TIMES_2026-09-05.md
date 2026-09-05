@@ -116,3 +116,9 @@ justifiable and the two should be separable in the record.
 
 **Evidence:** `python3 -m tools.commit_refusal_attribution` (final section). Controls:
 `tests/tools/test_commit_refusal_attribution.py`, 34 tests, the 9 new ones mutation-proven.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 7 matches for `publish_gate_and_wedge` against 3 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

@@ -91,3 +91,9 @@ against the replay above: the same victim deletion that returned clean from all 
 returns a named refusal. The `_retired` escape hatch carries the `str(x or "").strip()` treatment
 so a JSON `null` reason cannot fall open. Discharged 2026-09-05 by the delivery seat, which landed
 the repair this document specified.
+
+## Class registration
+
+Belongs to `controls_that_cannot_fail`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 3 matches for `controls_that_cannot_fail` against 0 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

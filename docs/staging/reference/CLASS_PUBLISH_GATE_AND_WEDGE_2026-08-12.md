@@ -2,18 +2,24 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 64 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
+**Instances:** 72 · **Class:** `publish_gate_and_wedge` · **Source's own count:** ~18 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "publish-gate/wedge")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 64 instances
+## The 72 instances
 
+- `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md` — BLOCKING
+- `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_DIRECTORS_OWN_STAGED_DOCUMENT_WEDGED_EVERY_MERGE_BECAUSE_A_MERGE_MAKES_ANOTHER_AUTHORS_FILE_THIS_COMMITS_OWN_2026-09-05.md` — LATENT
+- `SEAT_FINDING_THE_FIVE_PATH_CONFLICT_CLOSED_BY_ANOTHER_ROUTE_AND_THE_RECONCILER_SPENDS_A_WHOLE_GATE_ON_A_RACE_IT_LOSES_2026-09-05.md` — LATENT
+- `SEAT_FINDING_THE_FIXTURE_PIN_WAS_NEVER_THE_BLOCKER_AND_THE_ALARM_TEXT_HAD_HALF_THE_GUARDS_THE_STATE_FILE_HAD_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_PATH_THAT_WEDGED_THE_PUBLISHER_WAS_THE_FILE_THE_LANE_REPAIRING_THE_PUBLISHER_WAS_HOLDING_2026-09-04.md` — BLOCKING
+- `SEAT_FINDING_THE_PUBLISHER_CHECKS_BEHIND_ORIGIN_ONCE_AT_THE_END_OF_A_CYCLE_THE_TREE_OUTRUNS_FIVE_TIMES_OVER_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md` — LATENT
 - `SEAT_FINDING_THE_REPAIR_THAT_CLEARS_THE_PUBLISH_WEDGE_RUNS_45_MINUTES_BEFORE_THE_GATE_THAT_READS_IT_2026-09-04.md` — BLOCKING
+- `SEAT_FINDING_THE_ROOM_RULE_WAS_ENFORCED_OVER_NAMES_AND_NEVER_OVER_THE_TRACKED_TREE_2026-09-04.md` — LATENT
 - `SEAT_FINDING_THE_WEDGE_DETECTORS_MIN_ADMITTED_ANY_NUMBER_SO_ONE_UNRECORDED_STAMP_COULD_DATE_AN_OUTAGE_TO_1970_2026-09-04.md` — LATENT
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
 - `WORKER_FINDING_ARCHIVED_STAGING_FILES_RESURRECTED_TWICE_DURING_A_LIVE_SURGICAL_LAND_2026-08-18.md` — LATENT
@@ -42,10 +48,12 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS_2026-08-24.md` — RECORDED
 - `WORKER_FINDING_THE_GATES_SCRATCH_SPACE_IS_RAM_AND_NOTHING_DRAINS_IT_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_GATES_SKIP_PATH_NEVER_RESTAMPS_THE_GREEN_CLOCK_SO_THE_WEDGE_CROSS_CHECK_DECAYS_2026-08-27.md` — LATENT
+- `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md` — BLOCKING
 - `WORKER_FINDING_THE_GATE_SELECTS_BY_FILENAME_STEM_SO_A_RENAMED_KEYS_CONSUMERS_NEVER_RUN_2026-08-17.md` — LATENT
 - `WORKER_FINDING_THE_GATE_WAS_THE_BRANCHS_OWN_ADMISSION_TICKET_2026-08-12.md` — RECORDED
 - `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md` — LATENT
 - `WORKER_FINDING_THE_HEADROOM_SURFACE_PUBLISHES_A_TEST_FIXTURE_AS_THE_GATES_DURATION_2026-08-20.md` — RECORDED
+- `WORKER_FINDING_THE_IN_FLIGHT_GATE_DETECTOR_COUNTED_THE_WORKER_READING_ABOUT_THE_GATE_2026-09-04.md` — LATENT
 - `WORKER_FINDING_THE_LANDING_TOOL_EXTRACTS_INTO_THE_TMPFS_THE_GATE_WAS_MOVED_OFF_2026-08-14.md` — RECORDED
 - `WORKER_FINDING_THE_NAMED_BLOCKING_TEST_PASSES_WHEN_YOU_RUN_IT_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_ORDER_DEPENDENT_BLOCKING_TEST_CANNOT_BE_ORDER_DEPENDENT_2026-08-28.md` — LATENT
@@ -77,7 +85,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**337.9 recorded episode-hours** across 17 of the 64 instances; largest single recorded episode **60h**; 8 instance(s) name a published figure in scope.
+**352.9 recorded episode-hours** across 20 of the 72 instances; largest single recorded episode **60h**; 8 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -93,27 +101,27 @@ This document supersedes the individual findings listed below, which are **archi
 - **13 hours** — `WORKER_FINDING_THE_ELEVENTH_WEDGE_WAS_A_STACK_NOT_A_BUG_2026-08-10.md`: …data.py` carried uncommitted hydration. So the gate had been red for 13h on work that was **finished and sitting on the disk it was failing ag…
 - **11 hours** — `SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md`: …wedge doorbell --- ## What happened The publish gate was red for ~11h on two nodes in `tests/tools/test_head_green_census.py`. The episode…
 - **10 hours** — `WORKER_FINDING_THE_GHOST_PUSHER_GUARD_FIRES_ON_A_CONCURRENT_WRITER_2026-08-09.md`: …) **Severity:** LATENT · **Lane:** H_harness **Found during:** the ~10h publish-wedge unwedge, while running the gate's own argv without `-x`…
+- **7 hours** — `SEAT_FINDING_THE_FIXTURE_PIN_WAS_NEVER_THE_BLOCKER_AND_THE_ALARM_TEXT_HAD_HALF_THE_GUARDS_THE_STATE_FILE_HAD_2026-09-04.md`: …`-1.0` | `now` (restamped) | | `None` | `now` (cold start) | | `now - 7h` | `now - 7h` — **remembered** | ## What mutation found that no reas…
 - **7 hours** — `WORKER_FINDING_SECOND_WEDGE_CAUSE_LANDED_AFTER_THE_FIRST_2026-08-09.md`: …he episode* (23:17 UTC). So: * it is **not** a cause of the observed 7-hour episode (inferred-free: the timestamps do not overlap), and * it **…
+- **4 hours** — `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md`: …HEAD, independently found by both lanes within the hour: it pinned a 4h outage against `PRODUCER_STARVED_MIN_AGE_SECONDS`, which is `_publish…
 - **4 hours** — `WORKER_FINDING_THE_CONTROL_ON_THE_REPAIRERS_ROOM_SET_FROZE_THE_ANSWER_AND_A_NEW_ROOM_WEDGED_EVERY_COMMIT_2026-09-04.md`: …worker, while draining the publish wedge that had held the site for ~4 hours with ten `run_complete_*` markers queued. Reproduced and mutation-pro…
+- **4 hours** — `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`: …ed 2026-09-05 by the autonomous worker, on the tick that cleared the ~4h publish-gate wedge (cause: `1ca38912d`, the startup-anchor banner row…
 - **3 hours** — `WORKER_FINDING_THE_GATES_SCRATCH_SPACE_IS_RAM_AND_NOTHING_DRAINS_IT_2026-08-12.md`: …separately and is why the exhaustion loop still > closes: the drain's 3h age bound is longer than the ~80-minute fill, so restored reach > rec…
 - **3 hours** — `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md`: …**0** were older than the sweep's `STALE_HEAD_CHECKOUT_AGE_SECONDS` = 3h bound, so a live sweep still frees nothing. Measured fill rate over…
 - **2 hours** — `WORKER_FINDING_A_MUTATION_TEST_RAN_THE_OPERATIONAL_SUITE_INSIDE_THE_PUBLISH_GATE_2026-08-12.md`: …ere quiet only by accident of arithmetic — they need `since_commit >= 2h` and the stall tests pin their gap at ~46 min. Latent, not isolated.…
 
 ## What is owed
 
-3 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+8 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
+- `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md`
+- `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md`
+- `SEAT_FINDING_THE_FIXTURE_PIN_WAS_NEVER_THE_BLOCKER_AND_THE_ALARM_TEXT_HAD_HALF_THE_GUARDS_THE_STATE_FILE_HAD_2026-09-04.md`
 - `SEAT_FINDING_THE_PATH_THAT_WEDGED_THE_PUBLISHER_WAS_THE_FILE_THE_LANE_REPAIRING_THE_PUBLISHER_WAS_HOLDING_2026-09-04.md`
+- `SEAT_FINDING_THE_PUBLISHER_CHECKS_BEHIND_ORIGIN_ONCE_AT_THE_END_OF_A_CYCLE_THE_TREE_OUTRUNS_FIVE_TIMES_OVER_2026-09-04.md`
 - `SEAT_FINDING_THE_REPAIR_THAT_CLEARS_THE_PUBLISH_WEDGE_RUNS_45_MINUTES_BEFORE_THE_GATE_THAT_READS_IT_2026-09-04.md`
+- `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
-
-## Refused consolidation — out of lane, still live
-
-These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
-
-- `SEAT_FINDING_THE_LAST_PUBLISH_WEDGE_WAS_ONE_UNSTAGED_FILE_2026-09-02.md` — lane `D_billing_metering`
-- `SEAT_FINDING_THE_LEG_THAT_PRODUCES_THE_PUBLISHED_BOUND_WAS_OOM_KILLED_AND_WROTE_NOTHING_2026-09-03.md` — lane `W2_customer_generator`
-- `SEAT_FINDING_THE_OOM_FIX_REMOVED_ONE_CAUSE_OF_THE_ABSENT_ARTEFACT_AND_LEFT_THE_ABSENCE_2026-09-03.md` — lane `W2_customer_generator`
 
 ## Disposition
 

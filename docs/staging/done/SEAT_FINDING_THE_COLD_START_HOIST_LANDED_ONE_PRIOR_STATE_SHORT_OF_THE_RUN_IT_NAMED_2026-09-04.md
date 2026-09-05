@@ -104,3 +104,9 @@ lanes within the hour: it pinned a 4h outage against `PRODUCER_STARVED_MIN_AGE_S
 `_publish_cadence_seconds()` and moved to weekly in `78986f2aa`. The SILENT leg of a PRIORITY ZERO
 rung was dead while the rung worked as designed. `90d7d3462` keyed it to the bar; verified here to
 stay green at a 30-minute and a 30-day cadence. No further change needed.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 5 matches for `publish_gate_and_wedge` against 1 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

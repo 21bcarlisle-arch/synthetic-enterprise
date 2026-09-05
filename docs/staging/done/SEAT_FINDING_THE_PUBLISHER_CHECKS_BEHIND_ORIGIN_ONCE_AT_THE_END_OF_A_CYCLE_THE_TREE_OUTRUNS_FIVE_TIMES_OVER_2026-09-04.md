@@ -83,3 +83,9 @@ A publish cycle that LOSES the race re-gates on the new base and lands, rather t
 `behind_origin` and dropping the work. Not written as a **Discharged:** field, deliberately: that
 field is a claim that the repair has landed, and `finding_severity` grades it as one — my first
 draft used it for an exit CONDITION and was correctly refused as a FALSE-DISCHARGE.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 6 matches for `publish_gate_and_wedge` against 2 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

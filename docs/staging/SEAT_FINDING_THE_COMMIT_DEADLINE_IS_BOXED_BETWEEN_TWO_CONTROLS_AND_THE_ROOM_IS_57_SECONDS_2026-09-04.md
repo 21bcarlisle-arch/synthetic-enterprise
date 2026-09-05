@@ -435,3 +435,9 @@ is the state that actually killed twelve commits in August.
 **Status: BLOCKING → DISCHARGED.** The class lesson — *a control graded against a proxy series
 silently decouples when its subject changes, and the ledger for the real subject may already exist,
 unread* — is the one worth carrying, not this document's arithmetic.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 8 matches for `publish_gate_and_wedge` against 0 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

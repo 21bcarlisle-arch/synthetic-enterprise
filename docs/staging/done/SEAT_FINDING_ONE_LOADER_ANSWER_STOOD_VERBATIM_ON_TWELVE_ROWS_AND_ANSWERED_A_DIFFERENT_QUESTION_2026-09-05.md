@@ -110,3 +110,9 @@ same defect stated once and applied twelve times, because the defect's signature
 is absent. **A control that catches inherited answers by looking for the citation is blind to the
 inheritance that does not cite.** The cheaper invariant is the one that does not depend on
 detecting intent: a claim about one carrier appears on one row.
+
+## Class registration
+
+Belongs to `controls_that_cannot_fail`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 4 matches for `controls_that_cannot_fail` against 0 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

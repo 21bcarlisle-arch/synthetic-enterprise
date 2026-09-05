@@ -111,3 +111,9 @@ the reader who acts.
 name a *different* set of test files — whichever ones happen to take `tmp_path` early in that run's
 order. If the named set moves between runs while the code does not, that is the signature, and it
 is checkable against `publish_gate_duration.jsonl` history without running anything.
+
+## Class registration
+
+Belongs to `publish_gate_and_wedge`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 15 matches for `publish_gate_and_wedge` against 0 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*

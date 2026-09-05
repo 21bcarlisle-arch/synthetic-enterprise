@@ -133,3 +133,9 @@ Nothing yet, in landed terms — HEAD and origin are both intact and the drawn w
 it. The cost so far is 23 red tests that every lane in this tree now has to reason past, and a
 premise in the delivery queue (*"the census now has all three rungs"*) that reads as true from
 git and false from the tree.
+
+## Class registration
+
+Belongs to `controls_that_cannot_fail`.
+
+*Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 3 matches for `controls_that_cannot_fail` against 1 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*
