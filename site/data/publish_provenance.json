@@ -12,32 +12,32 @@
     "open_findings": 20
   },
   "last_verified": {
-    "generated_at": "2026-09-05T07:06:32Z",
-    "git_commit": "9e3b3bd1c",
+    "generated_at": "2026-09-05T14:15:01Z",
+    "git_commit": "65343b227",
     "population": {
       "accounts": 251,
-      "bills": 11034,
-      "total_revenue_gbp": 680246.78
+      "bills": 10924,
+      "total_revenue_gbp": 675114.37
     },
-    "run_id": "run_output_9e3b3bd1c_20260905T063926Z.json",
+    "run_id": "run_output_65343b227_20260905T082630Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-05T07:06:32Z"
+    "verified_at": "2026-09-05T14:15:01Z"
   },
-  "paused_reason": "scoped publish-path suite red at git=65343b227; blocking tests: FAILED tests/background/test_episode_prior_partition.py::test_every_real_census_hit_is_covered",
-  "paused_since": "2026-09-05T08:59:45Z",
+  "paused_reason": null,
+  "paused_since": null,
   "schema": 1,
   "showing_run": {
-    "generated_at": "2026-09-05T07:06:32Z",
-    "git_commit": "9e3b3bd1c",
+    "generated_at": "2026-09-05T14:15:01Z",
+    "git_commit": "65343b227",
     "population": {
       "accounts": 251,
-      "bills": 11034,
-      "total_revenue_gbp": 680246.78
+      "bills": 10924,
+      "total_revenue_gbp": 675114.37
     },
-    "run_id": "run_output_9e3b3bd1c_20260905T063926Z.json",
+    "run_id": "run_output_65343b227_20260905T082630Z.json",
     "run_retained": true,
-    "verified_at": "2026-09-05T07:06:32Z"
+    "verified_at": "2026-09-05T14:15:01Z"
   },
-  "verification_state": "paused",
-  "written_at": "2026-09-05T13:49:34Z"
+  "verification_state": "verified",
+  "written_at": "2026-09-05T14:15:01Z"
 }

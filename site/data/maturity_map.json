@@ -376,7 +376,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1652,
+      "stall_consecutive_unchanged": 1726,
       "forward_attachments": []
     },
     {
@@ -841,7 +841,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1622,
+      "stall_consecutive_unchanged": 1725,
       "forward_attachments": []
     },
     {
@@ -910,7 +910,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -959,7 +959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -1027,7 +1027,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": []
     },
     {
@@ -1049,7 +1049,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -1095,7 +1095,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 989,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": []
     },
     {
@@ -1139,7 +1139,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1623,
+      "stall_consecutive_unchanged": 1726,
       "forward_attachments": []
     },
     {
@@ -1161,7 +1161,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 989,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": []
     },
     {
@@ -1203,7 +1203,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1244,7 +1244,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1300,7 +1300,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": []
     },
     {
@@ -1322,7 +1322,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 989,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -1457,7 +1457,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16571,
+      "stall_consecutive_unchanged": 16872,
       "forward_attachments": []
     },
     {
@@ -1523,7 +1523,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 989,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": []
     },
     {
@@ -1545,7 +1545,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 989,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -1567,7 +1567,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -1589,7 +1589,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 989,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": []
     },
     {
@@ -1613,7 +1613,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 3,
+      "stall_consecutive_unchanged": 4,
       "forward_attachments": []
     },
     {
@@ -1633,7 +1633,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1006,
       "forward_attachments": []
     },
     {
@@ -1706,6 +1706,203 @@
       "forward_attachments": []
     },
     {
+      "id": "PB6_the_engagement_observable_crosses_the_seam",
+      "name": "",
+      "lane": "W4_the_wall",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "PB4_engagement_separated_from_elasticity"
+      ],
+      "couples_with": [
+        "C29_decisions_stop_being_lookup_tables",
+        "C30_advice_reaches_a_household"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "PB7_the_company_learns_what_it_can_now_see",
+      "name": "",
+      "lane": "B_commercial",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "PB6_the_engagement_observable_crosses_the_seam"
+      ],
+      "couples_with": [
+        "C29_decisions_stop_being_lookup_tables"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "H31_the_consistency_gate_disagreement_before_the_next_publish",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 12,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "H32_the_orientation_header_states_a_figure_it_computes",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 12,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 21,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_11_weather_cells_for_household_heat_load",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_5_premise_demand_shape"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_12_the_housing_joint_the_sample_and_the_ceiling",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_11_weather_cells_for_household_heat_load"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_13_who_lives_where_money_and_composition",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_12_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "couples_with": [
+        "W1_11_weather_cells_for_household_heat_load"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "H33_the_parked_document_audit_is_the_idle_hole_at_scale",
+      "name": "",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 12,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": 1,
+      "forward_attachments": []
+    },
+    {
+      "id": "C31_one_obligation_one_vulnerability_scorer",
+      "name": "",
+      "lane": "C_customer_ops",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
       "id": "PB5_pounds_or_percent_resolved",
       "name": "",
       "lane": "W2_customer_generator",
@@ -1747,7 +1944,31 @@
       "chain": null,
       "at_target": false,
       "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stall_consecutive_unchanged": 1,
+      "forward_attachments": []
+    },
+    {
+      "id": "A49_the_ceiling_comes_before_the_programme_on_r3_and_r4",
+      "name": "",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "E5_carbon_three_ledger",
+        "C30_advice_reaches_a_household",
+        "A46_book_depth_is_a_curriculum_question"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": 1,
       "forward_attachments": []
     },
     {
@@ -1773,7 +1994,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -1795,8 +2016,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 3,
       "forward_attachments": []
     },
     {
@@ -1844,7 +2065,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -1869,7 +2090,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 990,
+      "stall_consecutive_unchanged": 1007,
       "forward_attachments": []
     },
     {
@@ -7027,7 +7248,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 310,
+  "total_atoms": 320,
   "epoch2_movements": [
     {
       "id": "M1",

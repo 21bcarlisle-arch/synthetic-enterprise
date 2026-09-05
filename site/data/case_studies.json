@@ -1,14 +1,14 @@
 {
   "meta": {
-    "generated_at": "2026-09-05T06:51:50Z",
-    "git_commit": "9e3b3bd1c",
+    "generated_at": "2026-09-05T13:54:36Z",
+    "git_commit": "65343b227",
     "household_count": 164,
     "note": "Auto-curated from real per-household timeline/reaction-chain/churn-accuracy data (WEBSITE_AS_SHOWCASE.md tab 4) -- no household is hand-picked."
   },
   "cases": [
     {
       "category": "Most eventful journey",
-      "headline": "155 timeline + reaction-chain entries on record",
+      "headline": "177 timeline + reaction-chain entries on record",
       "wall_side": "sim",
       "account_id": "PROS-2017-0065",
       "base_account_id": "PROS-2017-0065",
@@ -21,7 +21,7 @@
     },
     {
       "category": "Largest company-vs-SIM churn divergence",
-      "headline": "69.7 percentage points apart at the 2020 renewal (sim 95.7% vs company 26.1%)",
+      "headline": "70.0 percentage points apart at the 2020 renewal (sim 95.7% vs company 25.7%)",
       "wall_side": "sim",
       "account_id": "C5",
       "base_account_id": "C5",
@@ -44,7 +44,7 @@
       "link": {
         "acc": "SYN-2016-001",
         "tab": "timeline",
-        "year": 2021
+        "year": 2020
       }
     },
     {
@@ -77,16 +77,16 @@
     },
     {
       "category": "Silent-middle churn risk",
-      "headline": "True satisfaction fell 12.0 percentage points (75.3% in 2017 to 63.3% in 2023) but never once answered a survey -- invisible to the company's measurement instrument",
+      "headline": "True satisfaction fell 6.0 percentage points (73.8% in 2019 to 67.8% in 2021) but never once answered a survey -- invisible to the company's measurement instrument",
       "wall_side": "sim",
-      "account_id": "SYN-2016-055",
-      "base_account_id": "SYN-2016-055",
+      "account_id": "PROS-2018-0238",
+      "base_account_id": "PROS-2018-0238",
       "segment": "resi",
       "commodity": "electricity",
       "link": {
-        "acc": "SYN-2016-055",
+        "acc": "PROS-2018-0238",
         "tab": "timeline",
-        "year": 2023
+        "year": 2021
       }
     }
   ]

@@ -1,5 +1,5 @@
 ## CURRENT SYSTEM (declared truth) — bounded-parallel autonomy, gate-governed
-Last updated: 2026-09-05T07:06:34Z
+Last updated: 2026-09-05T14:15:03Z
 
 **H_harness — THE BY-CONSTRUCTION GATE'S ESCAPE HATCH NOW NAMES ITS SUBJECT, AND THE `0` IT
 PUBLISHED WAS NOT ONE (this commit).** Rung-1c blocker discharged out of
@@ -2474,11 +2474,11 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 ---
 
-**Latest simulation results (2016–2025)** — auto-processed (718s / 12 min):
-- Net margin: £141,132.21 | Gross: £378,393.29 | Capital: £6,737
-- Treasury: £250,000 → £391,132 | 0 committee interventions | 11034 bills issued
-- Enterprise value: £124,269.72 | Net after CTS: £91,312
-- Retention: 55 offers, 38/55 retained | 23 no-offer churns | 79 total churned accounts
+**Latest simulation results (2016–2025)** — auto-processed (721s / 12 min):
+- Net margin: £139,109.49 | Gross: £376,427.85 | Capital: £6,694
+- Treasury: £250,000 → £389,109 | 0 committee interventions | 10924 bills issued
+- Enterprise value: £124,866.75 | Net after CTS: £89,799
+- Retention: 45 offers, 30/45 retained | 23 no-offer churns | 77 total churned accounts
 
 <!-- NAIVE_ORGAN_ASKS -->
 **NAIVE ORGAN asks:** — open questions; answer WITH EVIDENCE (`answer_question`) or mark a miss. Never actions.
@@ -2590,6 +2590,6 @@ belief-vs-truth). Adapter+consumer run bounded-parallel, gap last. Deliberately 
 
 <!-- EFFORT_SIZING_DIGEST -->
 **EFFORT SIZING** (G5_effort_sizing_discipline -- DIAL, never a target/gate; R12 anti-goal-seek):
-- Remaining effort: ~1599.5h across 70 sized atom(s) (12 of 82 below-target atoms still unsized).
+- Remaining effort: ~1812.5h across 79 sized atom(s) (13 of 92 below-target atoms still unsized).
 - Estimate-vs-actual by lane: A_strategy_governance: est 10.5h vs actual 12.0h (+1.5h, underestimated); C_customer_ops: est 12.0h vs actual 45.7h (+33.7h, underestimated); D_billing_metering: est 10.5h vs actual 11.6h (+1.1h, underestimated); H_harness: est 8.6h vs actual 45.7h (+37.1h, underestimated); W2_customer_generator: est 1.0h vs actual 2.6h (+1.6h, underestimated)
 <!-- /EFFORT_SIZING_DIGEST -->

@@ -1,41 +1,20 @@
 {
-  "generated_at": "2026-09-05T06:55:59Z",
+  "generated_at": "2026-09-05T13:58:45Z",
   "source_year": 2025,
-  "treasury_gbp": 391132.21,
-  "active_customer_count": 147,
+  "treasury_gbp": 389109.49,
+  "active_customer_count": 145,
   "customers": [
-    {
-      "cid": "PROS-2017-0065",
-      "commodity": "electricity",
-      "segment": "resi",
-      "current_rate_gbp_per_mwh": 240.2034,
-      "last_renewal_date": "2025-02-14",
-      "next_renewal_estimate": "2026-02-14",
-      "eac_kwh_per_year": 4761.0,
-      "hedge_fraction": 0.8681,
-      "net_gbp_2025": 98.65
-    },
-    {
-      "cid": "PROS-2017-0065g",
-      "commodity": "gas",
-      "segment": "resi",
-      "current_rate_gbp_per_mwh": 63.4,
-      "last_renewal_date": null,
-      "next_renewal_estimate": null,
-      "eac_kwh_per_year": 14810.0,
-      "hedge_fraction": 0.85,
-      "net_gbp_2025": 125.36
-    },
     {
       "cid": "PROS-2017-0130",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 148.5354,
-      "last_renewal_date": "2021-04-20",
-      "next_renewal_estimate": "2022-04-20",
+      "current_rate_gbp_per_mwh": 391.9518,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
       "eac_kwh_per_year": 1789.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 112.83
+      "net_gbp_2025": 112.66,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2017-0130g",
@@ -46,7 +25,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6712.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 59.46
+      "net_gbp_2025": 59.46,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2018-0016",
@@ -57,7 +37,8 @@
       "next_renewal_estimate": "2022-01-11",
       "eac_kwh_per_year": 3767.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 106.86
+      "net_gbp_2025": 106.86,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2018-0016g",
@@ -68,18 +49,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9594.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 116.92
+      "net_gbp_2025": 116.92,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2018-0039",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 240.6255,
-      "last_renewal_date": "2025-01-29",
-      "next_renewal_estimate": "2026-01-29",
+      "current_rate_gbp_per_mwh": 156.3429,
+      "last_renewal_date": "2019-01-31",
+      "next_renewal_estimate": "2020-01-31",
       "eac_kwh_per_year": 1689.0,
-      "hedge_fraction": 0.8782,
-      "net_gbp_2025": 96.85
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 102.83,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2018-0039g",
@@ -90,7 +73,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6186.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 84.54
+      "net_gbp_2025": 84.54,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2018-0080",
@@ -101,7 +85,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1781.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 105.83
+      "net_gbp_2025": 105.89,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2018-0080g",
@@ -112,18 +97,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7038.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 81.06
+      "net_gbp_2025": 81.06,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2019-0024",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 244.2424,
-      "last_renewal_date": "2024-01-28",
-      "next_renewal_estimate": "2025-01-28",
+      "current_rate_gbp_per_mwh": 132.9295,
+      "last_renewal_date": "2020-01-29",
+      "next_renewal_estimate": "2021-01-29",
       "eac_kwh_per_year": 3750.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 117.1
+      "net_gbp_2025": 108.49,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2019-0024g",
@@ -134,7 +121,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 17871.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 129.15
+      "net_gbp_2025": 129.15,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2019-0069g",
@@ -145,40 +133,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 15967.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 65.06
-    },
-    {
-      "cid": "PROS-2019-0135",
-      "commodity": "electricity",
-      "segment": "resi",
-      "current_rate_gbp_per_mwh": 204.6497,
-      "last_renewal_date": "2024-05-04",
-      "next_renewal_estimate": "2025-05-04",
-      "eac_kwh_per_year": 3069.0,
-      "hedge_fraction": 0.85,
-      "net_gbp_2025": 115.86
-    },
-    {
-      "cid": "PROS-2019-0135g",
-      "commodity": "gas",
-      "segment": "resi",
-      "current_rate_gbp_per_mwh": 57.468,
-      "last_renewal_date": null,
-      "next_renewal_estimate": null,
-      "eac_kwh_per_year": 12046.0,
-      "hedge_fraction": 0.85,
-      "net_gbp_2025": 51.27
+      "net_gbp_2025": 65.06,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2019-0164",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 147.8678,
+      "current_rate_gbp_per_mwh": 146.7329,
       "last_renewal_date": "2021-06-04",
       "next_renewal_estimate": "2022-06-04",
       "eac_kwh_per_year": 1548.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 106.5
+      "net_gbp_2025": 106.5,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2019-0164g",
@@ -189,7 +157,32 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 5501.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 35.12
+      "net_gbp_2025": 35.09,
+      "payment_method": "standard_credit"
+    },
+    {
+      "cid": "PROS-2019-0190",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 108.0533,
+      "last_renewal_date": "2020-06-25",
+      "next_renewal_estimate": "2021-06-25",
+      "eac_kwh_per_year": 2862.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 114.08,
+      "payment_method": "prepayment"
+    },
+    {
+      "cid": "PROS-2019-0190g",
+      "commodity": "gas",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 42.1737,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 13337.0,
+      "hedge_fraction": 0.0,
+      "net_gbp_2025": 29.92,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2019-0216",
@@ -200,18 +193,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2293.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 111.35
+      "net_gbp_2025": 111.35,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2019-0216g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 44.4418,
+      "current_rate_gbp_per_mwh": 44.3639,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9303.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 43.78
+      "net_gbp_2025": 43.36,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2019-0302",
@@ -222,18 +217,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 10015.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 171.49
+      "net_gbp_2025": 171.49,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2019-0302g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 47.8714,
+      "current_rate_gbp_per_mwh": 47.8704,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9910.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 45.19
+      "net_gbp_2025": 45.18,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0012",
@@ -244,7 +241,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3145.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 118.62
+      "net_gbp_2025": 118.62,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0012g",
@@ -255,18 +253,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 13384.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 106.4
+      "net_gbp_2025": 106.4,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0067",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 222.5919,
+      "current_rate_gbp_per_mwh": 219.1022,
       "last_renewal_date": "2025-02-25",
       "next_renewal_estimate": "2026-02-25",
       "eac_kwh_per_year": 4307.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 74.8
+      "net_gbp_2025": 70.63,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0067g",
@@ -277,7 +277,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 16702.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 123.81
+      "net_gbp_2025": 123.81,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0190",
@@ -288,62 +289,68 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1696.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 107.39
+      "net_gbp_2025": 107.39,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2020-0190g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 41.8094,
+      "current_rate_gbp_per_mwh": 41.81,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7300.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 41.46
+      "net_gbp_2025": 41.46,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0221",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 165.266,
-      "last_renewal_date": "2021-07-05",
-      "next_renewal_estimate": "2022-07-05",
+      "current_rate_gbp_per_mwh": 196.5462,
+      "last_renewal_date": "2024-07-04",
+      "next_renewal_estimate": "2025-07-04",
       "eac_kwh_per_year": 2231.0,
-      "hedge_fraction": 0.85,
-      "net_gbp_2025": 110.78
+      "hedge_fraction": 0.0,
+      "net_gbp_2025": 84.81,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0221g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 43.2187,
+      "current_rate_gbp_per_mwh": 44.0477,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7109.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 40.18
+      "net_gbp_2025": 43.5,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0249",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 196.123,
-      "last_renewal_date": "2024-07-25",
-      "next_renewal_estimate": "2025-07-25",
+      "current_rate_gbp_per_mwh": 167.6308,
+      "last_renewal_date": "2021-07-26",
+      "next_renewal_estimate": "2022-07-26",
       "eac_kwh_per_year": 4348.0,
-      "hedge_fraction": 0.0,
-      "net_gbp_2025": 69.0
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 132.23,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2020-0347",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 216.2047,
-      "last_renewal_date": "2024-11-13",
-      "next_renewal_estimate": "2025-11-13",
+      "current_rate_gbp_per_mwh": 199.6085,
+      "last_renewal_date": "2023-11-14",
+      "next_renewal_estimate": "2024-11-14",
       "eac_kwh_per_year": 4424.0,
-      "hedge_fraction": 0.0,
-      "net_gbp_2025": 91.15
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 125.41,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2020-0347g",
@@ -354,7 +361,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 17257.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 108.37
+      "net_gbp_2025": 108.37,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0391",
@@ -365,7 +373,8 @@
       "next_renewal_estimate": "2025-12-24",
       "eac_kwh_per_year": 9165.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 93.01
+      "net_gbp_2025": 93.01,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2020-0391g",
@@ -376,40 +385,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 13758.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 106.29
-    },
-    {
-      "cid": "PROS-2021-0029",
-      "commodity": "electricity",
-      "segment": "resi",
-      "current_rate_gbp_per_mwh": 242.7513,
-      "last_renewal_date": "2025-01-25",
-      "next_renewal_estimate": "2026-01-25",
-      "eac_kwh_per_year": 3669.0,
-      "hedge_fraction": 0.85,
-      "net_gbp_2025": 41.91
-    },
-    {
-      "cid": "PROS-2021-0029g",
-      "commodity": "gas",
-      "segment": "resi",
-      "current_rate_gbp_per_mwh": 63.5739,
-      "last_renewal_date": null,
-      "next_renewal_estimate": null,
-      "eac_kwh_per_year": 13797.0,
-      "hedge_fraction": 0.0,
-      "net_gbp_2025": 35.19
+      "net_gbp_2025": 106.29,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2021-0060",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 234.1375,
+      "current_rate_gbp_per_mwh": 230.7933,
       "last_renewal_date": "2025-02-24",
       "next_renewal_estimate": "2026-02-24",
       "eac_kwh_per_year": 3894.0,
-      "hedge_fraction": 0.8528,
-      "net_gbp_2025": 90.59
+      "hedge_fraction": 0.8549,
+      "net_gbp_2025": 87.1,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0060g",
@@ -420,7 +409,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 17517.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 110.31
+      "net_gbp_2025": 110.31,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2021-0105",
@@ -431,7 +421,8 @@
       "next_renewal_estimate": "2026-04-04",
       "eac_kwh_per_year": 3144.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 99.8
+      "net_gbp_2025": 99.8,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0105g",
@@ -442,7 +433,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 11818.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 82.39
+      "net_gbp_2025": 82.39,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0133",
@@ -453,7 +445,8 @@
       "next_renewal_estimate": "2026-04-30",
       "eac_kwh_per_year": 3560.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 113.76
+      "net_gbp_2025": 113.76,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0133g",
@@ -464,7 +457,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 12669.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 54.52
+      "net_gbp_2025": 54.52,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0175",
@@ -475,7 +469,8 @@
       "next_renewal_estimate": "2026-06-07",
       "eac_kwh_per_year": 2296.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 114.69
+      "net_gbp_2025": 114.69,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2021-0175g",
@@ -486,7 +481,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7813.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 30.19
+      "net_gbp_2025": 30.18,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2021-0212",
@@ -497,18 +493,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2868.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 115.21
+      "net_gbp_2025": 115.21,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2021-0212g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 43.8596,
+      "current_rate_gbp_per_mwh": 44.0218,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9695.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 40.52
+      "net_gbp_2025": 41.41,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0248",
@@ -519,18 +517,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2603.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 115.48
+      "net_gbp_2025": 115.48,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0248g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 45.4858,
+      "current_rate_gbp_per_mwh": 45.4995,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 13449.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 42.58
+      "net_gbp_2025": 42.66,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2021-0324",
@@ -541,18 +541,20 @@
       "next_renewal_estimate": "2024-10-24",
       "eac_kwh_per_year": 2864.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 115.38
+      "net_gbp_2025": 115.38,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0324g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 49.478,
+      "current_rate_gbp_per_mwh": 49.4783,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7195.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 46.76
+      "net_gbp_2025": 46.76,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2021-0362",
@@ -563,7 +565,8 @@
       "next_renewal_estimate": "2025-11-22",
       "eac_kwh_per_year": 3645.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 54.79
+      "net_gbp_2025": 54.79,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2021-0362g",
@@ -574,7 +577,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 14358.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 99.58
+      "net_gbp_2025": 99.58,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2021-0399",
@@ -585,7 +589,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1518.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 106.43
+      "net_gbp_2025": 106.43,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2021-0399g",
@@ -596,7 +601,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6110.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 77.17
+      "net_gbp_2025": 77.17,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2022-0019",
@@ -607,7 +613,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1451.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 103.02
+      "net_gbp_2025": 102.93,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2022-0019g",
@@ -618,7 +625,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6085.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 81.17
+      "net_gbp_2025": 81.17,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2022-0049",
@@ -629,7 +637,8 @@
       "next_renewal_estimate": "2025-02-17",
       "eac_kwh_per_year": 4628.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 104.34
+      "net_gbp_2025": 103.79,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2022-0049g",
@@ -640,7 +649,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 17000.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 124.71
+      "net_gbp_2025": 124.71,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2023-0001",
@@ -651,7 +661,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4649.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 126.9
+      "net_gbp_2025": 126.9,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2023-0001g",
@@ -662,18 +673,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 16759.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 124.94
+      "net_gbp_2025": 124.94,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0025",
       "commodity": "electricity",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 239.8844,
+      "current_rate_gbp_per_mwh": 239.656,
       "last_renewal_date": "2025-01-20",
       "next_renewal_estimate": "2026-01-20",
       "eac_kwh_per_year": 2762.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 12.0
+      "net_gbp_2025": 12.0,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0025g",
@@ -684,7 +697,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 10774.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 24.89
+      "net_gbp_2025": 24.89,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2023-0072g",
@@ -695,7 +709,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7636.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 38.0
+      "net_gbp_2025": 38.0,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0113",
@@ -706,7 +721,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4491.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 132.04
+      "net_gbp_2025": 132.04,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2023-0113g",
@@ -717,7 +733,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 15856.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 70.01
+      "net_gbp_2025": 70.01,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2023-0146",
@@ -728,7 +745,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3139.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 120.83
+      "net_gbp_2025": 120.83,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0146g",
@@ -739,7 +757,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 15083.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 2.69
+      "net_gbp_2025": 2.69,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0172",
@@ -750,7 +769,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1418.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 106.44
+      "net_gbp_2025": 106.44,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2023-0172g",
@@ -761,7 +781,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 5967.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 44.63
+      "net_gbp_2025": 44.63,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0205",
@@ -772,7 +793,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4077.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 129.66
+      "net_gbp_2025": 129.66,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0225",
@@ -783,18 +805,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3249.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 117.88
+      "net_gbp_2025": 117.88,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2023-0225g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 45.2234,
+      "current_rate_gbp_per_mwh": 45.1513,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 12153.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 45.32
+      "net_gbp_2025": 44.83,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0280",
@@ -805,18 +829,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 813.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 108.89
+      "net_gbp_2025": 108.89,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0280g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 46.0634,
+      "current_rate_gbp_per_mwh": 46.061,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4145.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 40.8
+      "net_gbp_2025": 40.79,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2023-0305",
@@ -827,18 +853,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1914.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 108.89
+      "net_gbp_2025": 108.89,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2023-0305g",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 48.4635,
+      "current_rate_gbp_per_mwh": 48.4638,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8432.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 45.2
+      "net_gbp_2025": 45.21,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0014",
@@ -849,7 +877,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4349.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 109.58
+      "net_gbp_2025": 109.58,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0014g",
@@ -860,7 +889,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 18841.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 150.97
+      "net_gbp_2025": 150.97,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0040",
@@ -871,7 +901,8 @@
       "next_renewal_estimate": "2026-02-02",
       "eac_kwh_per_year": 3167.0,
       "hedge_fraction": 0.8885,
-      "net_gbp_2025": 104.33
+      "net_gbp_2025": 104.33,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0040g",
@@ -882,7 +913,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 12392.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 111.37
+      "net_gbp_2025": 111.37,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2024-0065",
@@ -893,7 +925,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2233.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 113.97
+      "net_gbp_2025": 113.29,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0065g",
@@ -904,7 +937,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6316.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 88.62
+      "net_gbp_2025": 88.62,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0083",
@@ -915,7 +949,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2750.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 127.89
+      "net_gbp_2025": 127.89,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2024-0083g",
@@ -926,7 +961,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 12475.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 124.02
+      "net_gbp_2025": 124.02,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0110",
@@ -937,7 +973,8 @@
       "next_renewal_estimate": "2026-04-11",
       "eac_kwh_per_year": 1994.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 104.53
+      "net_gbp_2025": 104.53,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0110g",
@@ -948,7 +985,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7890.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 74.77
+      "net_gbp_2025": 74.77,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0131",
@@ -959,7 +997,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4360.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 151.75
+      "net_gbp_2025": 151.75,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0131g",
@@ -970,7 +1009,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 17131.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 80.04
+      "net_gbp_2025": 80.04,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0179",
@@ -981,7 +1021,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3399.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 57.02
+      "net_gbp_2025": 57.02,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2024-0179g",
@@ -992,7 +1033,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 13105.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 24.98
+      "net_gbp_2025": 24.98,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0199",
@@ -1003,7 +1045,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2370.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 91.41
+      "net_gbp_2025": 91.41,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2024-0199g",
@@ -1014,7 +1057,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8439.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 45.73
+      "net_gbp_2025": 45.73,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0218",
@@ -1025,7 +1069,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2780.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 98.23
+      "net_gbp_2025": 98.23,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0218g",
@@ -1036,7 +1081,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 14800.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 50.95
+      "net_gbp_2025": 50.95,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2024-0241",
@@ -1047,7 +1093,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1828.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 99.36
+      "net_gbp_2025": 99.36,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2024-0241g",
@@ -1058,7 +1105,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 5875.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 52.9
+      "net_gbp_2025": 52.9,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0270",
@@ -1069,7 +1117,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2535.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 102.03
+      "net_gbp_2025": 102.03,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0270g",
@@ -1080,7 +1129,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 10953.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 46.22
+      "net_gbp_2025": 46.22,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0289",
@@ -1091,7 +1141,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1225.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 102.65
+      "net_gbp_2025": 102.65,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0289g",
@@ -1102,7 +1153,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 4757.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 42.37
+      "net_gbp_2025": 42.37,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0315",
@@ -1113,7 +1165,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3088.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 72.52
+      "net_gbp_2025": 72.52,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0315g",
@@ -1124,7 +1177,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 13122.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 56.09
+      "net_gbp_2025": 56.09,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0335",
@@ -1135,7 +1189,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1518.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 83.76
+      "net_gbp_2025": 83.76,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0335g",
@@ -1146,7 +1201,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7402.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 51.88
+      "net_gbp_2025": 51.88,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0349",
@@ -1157,7 +1213,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2263.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 102.31
+      "net_gbp_2025": 102.31,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2024-0349g",
@@ -1168,7 +1225,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 11571.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 100.49
+      "net_gbp_2025": 100.49,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0033",
@@ -1179,7 +1237,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2747.0,
       "hedge_fraction": 0.8803,
-      "net_gbp_2025": 84.2
+      "net_gbp_2025": 84.2,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2025-0033g",
@@ -1190,7 +1249,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 12035.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 91.84
+      "net_gbp_2025": 91.84,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2025-0051",
@@ -1201,7 +1261,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2340.0,
       "hedge_fraction": 0.8656,
-      "net_gbp_2025": 70.6
+      "net_gbp_2025": 70.6,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0051g",
@@ -1212,7 +1273,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8799.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 68.99
+      "net_gbp_2025": 68.99,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0077",
@@ -1223,7 +1285,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 5659.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 5.64
+      "net_gbp_2025": 5.64,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0087",
@@ -1234,7 +1297,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1033.0,
       "hedge_fraction": 0.863,
-      "net_gbp_2025": 49.4
+      "net_gbp_2025": 49.4,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0087g",
@@ -1245,7 +1309,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3345.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 32.96
+      "net_gbp_2025": 32.96,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2025-0106",
@@ -1256,7 +1321,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1512.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 55.92
+      "net_gbp_2025": 55.92,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "PROS-2025-0106g",
@@ -1267,7 +1333,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6323.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 45.39
+      "net_gbp_2025": 45.39,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0136",
@@ -1278,7 +1345,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1002.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 25.92
+      "net_gbp_2025": 25.92,
+      "payment_method": "prepayment"
     },
     {
       "cid": "PROS-2025-0136g",
@@ -1289,7 +1357,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3308.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 18.28
+      "net_gbp_2025": 18.28,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0163",
@@ -1300,7 +1369,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 482.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 9.0
+      "net_gbp_2025": 9.0,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "PROS-2025-0163g",
@@ -1311,7 +1381,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1219.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 3.85
+      "net_gbp_2025": 3.85,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-002",
@@ -1322,7 +1393,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8062.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 89.0
+      "net_gbp_2025": 89.0,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-004",
@@ -1333,7 +1405,8 @@
       "next_renewal_estimate": "2019-01-16",
       "eac_kwh_per_year": 3910.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 107.43
+      "net_gbp_2025": 109.95,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-005",
@@ -1344,7 +1417,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8139.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 84.2
+      "net_gbp_2025": 84.2,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-010",
@@ -1355,7 +1429,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2347.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 105.01
+      "net_gbp_2025": 105.01,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-011",
@@ -1366,7 +1441,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6929.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 85.71
+      "net_gbp_2025": 85.71,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-012",
@@ -1377,7 +1453,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 8925.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 95.11
+      "net_gbp_2025": 95.11,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-013",
@@ -1388,7 +1465,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7771.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 88.47
+      "net_gbp_2025": 88.47,
+      "payment_method": "prepayment"
     },
     {
       "cid": "SYN-2016-014",
@@ -1399,7 +1477,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 12255.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 123.48
+      "net_gbp_2025": 123.48,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-016",
@@ -1410,7 +1489,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 14983.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 111.37
+      "net_gbp_2025": 111.37,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-017",
@@ -1421,7 +1501,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2765.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 112.21
+      "net_gbp_2025": 112.44,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-021",
@@ -1432,7 +1513,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 14013.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 135.82
+      "net_gbp_2025": 135.82,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "SYN-2016-024",
@@ -1443,7 +1525,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 9587.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 95.29
+      "net_gbp_2025": 95.29,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-025",
@@ -1454,18 +1537,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 11449.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 167.33
-    },
-    {
-      "cid": "SYN-2016-030",
-      "commodity": "electricity",
-      "segment": "resi",
-      "current_rate_gbp_per_mwh": 254.0053,
-      "last_renewal_date": "2025-04-12",
-      "next_renewal_estimate": "2026-04-12",
-      "eac_kwh_per_year": 3285.0,
-      "hedge_fraction": 0.0,
-      "net_gbp_2025": 79.19
+      "net_gbp_2025": 167.29,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-033",
@@ -1476,7 +1549,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2312.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 115.96
+      "net_gbp_2025": 115.96,
+      "payment_method": "direct_debit"
+    },
+    {
+      "cid": "SYN-2016-034",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 228.8129,
+      "last_renewal_date": "2025-05-01",
+      "next_renewal_estimate": "2026-05-01",
+      "eac_kwh_per_year": 2113.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 96.65,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-035",
@@ -1487,7 +1573,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6470.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 53.78
+      "net_gbp_2025": 50.52,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-037",
@@ -1498,7 +1585,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 6212.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 49.68
+      "net_gbp_2025": 50.73,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-038",
@@ -1509,7 +1597,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7705.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 46.89
+      "net_gbp_2025": 47.23,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "SYN-2016-040",
@@ -1520,7 +1609,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 5038.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 29.5
+      "net_gbp_2025": 29.56,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-041",
@@ -1531,18 +1621,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 13854.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": -6.84
+      "net_gbp_2025": -6.84,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-046",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 42.5914,
+      "current_rate_gbp_per_mwh": 42.592,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 11813.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 35.28
+      "net_gbp_2025": 35.29,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-049",
@@ -1553,7 +1645,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 2008.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 111.59
+      "net_gbp_2025": 111.59,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-050",
@@ -1564,18 +1657,32 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 7750.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 35.51
+      "net_gbp_2025": 35.51,
+      "payment_method": "direct_debit"
+    },
+    {
+      "cid": "SYN-2016-051",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 256.785,
+      "last_renewal_date": null,
+      "next_renewal_estimate": null,
+      "eac_kwh_per_year": 3702.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 125.58,
+      "payment_method": "prepayment"
     },
     {
       "cid": "SYN-2016-052",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 42.8193,
+      "current_rate_gbp_per_mwh": 42.8311,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 15920.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 30.14
+      "net_gbp_2025": 30.23,
+      "payment_method": "standard_credit"
     },
     {
       "cid": "SYN-2016-053",
@@ -1586,7 +1693,8 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 3169.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 119.31
+      "net_gbp_2025": 119.31,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-055",
@@ -1597,18 +1705,20 @@
       "next_renewal_estimate": "2024-08-03",
       "eac_kwh_per_year": 2242.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 114.6
+      "net_gbp_2025": 114.6,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-056",
       "commodity": "gas",
       "segment": "resi",
-      "current_rate_gbp_per_mwh": 45.5412,
+      "current_rate_gbp_per_mwh": 45.5538,
       "last_renewal_date": null,
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 10557.0,
       "hedge_fraction": 0.0,
-      "net_gbp_2025": 42.73
+      "net_gbp_2025": 42.79,
+      "payment_method": "direct_debit"
     },
     {
       "cid": "SYN-2016-061",
@@ -1619,7 +1729,20 @@
       "next_renewal_estimate": null,
       "eac_kwh_per_year": 1855.0,
       "hedge_fraction": 0.85,
-      "net_gbp_2025": 110.17
+      "net_gbp_2025": 110.17,
+      "payment_method": "prepayment"
+    },
+    {
+      "cid": "SYN-2016-062",
+      "commodity": "electricity",
+      "segment": "resi",
+      "current_rate_gbp_per_mwh": 104.4507,
+      "last_renewal_date": "2017-08-31",
+      "next_renewal_estimate": "2018-08-31",
+      "eac_kwh_per_year": 3384.0,
+      "hedge_fraction": 0.85,
+      "net_gbp_2025": 124.07,
+      "payment_method": "prepayment"
     }
   ]
 }
