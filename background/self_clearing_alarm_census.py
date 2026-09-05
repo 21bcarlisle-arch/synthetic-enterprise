@@ -974,6 +974,114 @@ def unasked_loader_rows(census: dict[str, Any],
     return out
 
 
+#: The AUTHORED list of sentences that may legitimately stand on more than one row -- PROVENANCE
+#: (when a row was written, by which pass, under which test), which really is the same fact about
+#: many rows. Same shape and same argument as `RETIRED_SECTION` and `DECLASSIFIED_FIELD`: the
+#: escape hatch exists, it is in writing, and it is visible in the diff.
+PROVENANCE_SECTION = "_shared_provenance"
+
+#: Below this, a repeated fragment is a turn of phrase rather than a claim. 60 characters is the
+#: threshold the 2026-09-05 sweep measured the register at; it is a floor on noise, not a finding.
+MIN_CLAIM_CHARS = 60
+
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
+
+
+def _claim_sentences(text: Any) -> list[str]:
+    """The sentences of a `why`/`loader` field, whitespace-normalised so a reflow is not a change."""
+    out = []
+    for raw in _SENTENCE_SPLIT.split(str(text or "")):
+        s = " ".join(raw.split())
+        if len(s) >= MIN_CLAIM_CHARS:
+            out.append(s)
+    return out
+
+
+def shared_loader_answers(document: dict[str, Any] | None = None) -> list[str]:
+    """A SENTENCE STANDING ON TWO ROWS THAT IS NOT DECLARED PROVENANCE.
+
+    A `why` or a `loader` is a claim about ONE carrier's code. Sharing one verbatim means at most
+    one of those rows was ever opened -- and the other one reads as asked-and-answered, so nothing
+    will ask it again. That is `_scope_of_resemblance`'s defect without its signature: a reason
+    saying "same shape as X" at least NAMES the row it was graded from and can be followed, where a
+    bulk sentence names nothing.
+
+    WHY THE RESEMBLANCE RUNG COULD NOT SEE THIS. `_scope_of_resemblance` was written against
+    citations, so it is blind to the inheritance that does not cite. On 2026-09-05 one sentence --
+    "ASKED AND CLEAN -- measured across the whole partition ... no state raises and none is a
+    read-modify-write" -- stood verbatim on TWELVE rows, through the resemblance re-audit that ran
+    the same day, because that pass swept `why` and this was in `loader`. Re-opened against the
+    twelve carriers: "no state raises" was true of all twelve, "none is a read-modify-write" was
+    false of three, and "CLEAN" answered a DIFFERENT question from the one `_scope_of_benign`
+    commissioned the field for -- only three of the twelve tell ABSENT from PRESENT-BUT-UNREADABLE,
+    and `.reconcile_watch_state.json` swallows a drift-recovery page because `[]` is both its
+    corrupt-read answer and its clean baseline. No verdict moved, which is exactly why nothing
+    would ever have re-asked them.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. It holds no list of known-bad sentences and no
+    remembered count: it fires on the shape "one claim, two rows", so it cannot go red for the
+    register becoming more honest, and a thirteenth copy of anything lands RED whether or not
+    today's twelve were ever written. It reads the ROWS and never `census["hits"]`, so census
+    erosion cannot blind it -- unlike every other rung here, this one has no derived subject.
+
+    THE DECLARED EXCEPTION, and it is the point rather than a hole. Provenance genuinely is the
+    same fact about many rows: `Control: tests/...`, "RESTORED 2026-09-05 ...", "SWEPT ...". Those
+    are declared in `PROVENANCE_SECTION` by prefix, and declaring one is the act of saying out loud
+    "this is provenance, not an answer" -- which is precisely the judgement the twelve-row sentence
+    skipped. Adding a line there to silence a refusal is the same move as deleting a row to make
+    the gate green, and it is visible in the diff for the same reason.
+
+    WHAT IT DOES NOT CATCH, named rather than implied: a copied answer with a word changed. This is
+    a floor on inherited answers, not a proof of independent ones. The expensive half -- whether
+    the answer is TRUE of the carrier -- no rung can do, and pretending otherwise would be the
+    control-that-cannot-fail shape this file exists to refuse.
+
+    THE `null` TRAP, AND WHY IT IS NOT LOAD-BEARING HERE. `str(None)` is "None", truthy, and a
+    mandatory field checked by `.strip()` alone falls open on an explicit JSON null -- the slip the
+    rungs above carry `or ""` to close. Mutating `or ""` out of `_claim_sentences` kills no test,
+    and that is an EQUIVALENCE rather than a missing one: "None" is four characters, so
+    MIN_CLAIM_CHARS drops it either way. The `or ""` stays because the floor is a noise threshold
+    that a later hand could reasonably lower, and it must not become the only thing standing
+    between a JSON null and a fabricated claim. Recorded rather than left for the reader to assume
+    the flattering answer.
+    """
+    if document is None:
+        try:
+            document = json.loads(DISPOSITIONS_PATH.read_text())
+        except (OSError, ValueError):
+            # Fail toward work: an unreadable register is `load_dispositions()`'s refusal (every
+            # hit undispositioned), and duplicating it here would report the same fault twice.
+            return []
+    if not isinstance(document, dict):
+        return []
+    rows = document.get("dispositions")
+    rows = rows if isinstance(rows, dict) else {}
+    section = document.get(PROVENANCE_SECTION)
+    declared = section.get("sentences") if isinstance(section, dict) else None
+    declared = [str(s) for s in declared if str(s or "").strip()] if isinstance(declared, list) \
+        else []
+
+    seen: dict[str, list[str]] = {}
+    for key, row in sorted(rows.items()):
+        if not isinstance(row, dict):
+            continue
+        for field in ("why", LOADER_FIELD):
+            for sentence in _claim_sentences(row.get(field)):
+                seen.setdefault(sentence, [])
+                if key not in seen[sentence]:
+                    seen[sentence].append(key)
+
+    out = []
+    for sentence, keys in sorted(seen.items()):
+        if len(keys) < 2 or any(sentence.startswith(d) for d in declared):
+            continue
+        out.append("{} rows carry one verbatim claim, so at most one of them was opened -- {}: "
+                   "\"{}\". Either give each row its own answer, or declare the sentence in `{}` "
+                   "if it is provenance rather than an answer".format(
+                       len(keys), ", ".join(keys), sentence[:160], PROVENANCE_SECTION))
+    return out
+
+
 def unguarded_real_hits(census: dict[str, Any],
                         dispositions: dict[str, dict[str, str]] | None = None) -> list[str]:
     """PW4 -- `real` hits whose guard is not yet BUILT and NAMED by a test that exists.
@@ -1036,6 +1144,7 @@ def main() -> int:
     eroded = eroded_dispositions(census, disp)
     unasked = unasked_loader_rows(census, disp)
     removed = removed_dispositions(disp)
+    shared = shared_loader_answers()
     if not args.check:
         write_census(census)
         print("census written to {}".format(CENSUS_PATH))
@@ -1058,7 +1167,12 @@ def main() -> int:
               "falling, and the row is the only record the carrier was ever in the class):")
         for line in removed:
             print("  {}".format(line))
-    if missing or unguarded or eroded or unasked or removed:
+    if shared:
+        print("ONE ANSWER STANDING ON SEVERAL ROWS (a claim about one carrier belongs on one row; "
+              "an inherited answer reads as asked-and-answered, so nothing asks it again):")
+        for line in shared:
+            print("  {}".format(line))
+    if missing or unguarded or eroded or unasked or removed or shared:
         return 1
     return 0
 
