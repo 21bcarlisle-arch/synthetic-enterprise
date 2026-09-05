@@ -172,7 +172,49 @@ If that holds, the standing prediction — *at least 1 of the 8 survives all fou
 CONFIRMED at this subject by M2 and M7, and the LATENT general statement from `38871422b`
 generalises to a second converged module.
 
-## 6. What is still open
+## 6. The repair, and it is mutation-proven
+
+`tests/background/test_direction_contracts.py` — 39 tests, 0.15s, the module's own suite. Written
+against the properties rather than today's callers, so a contract's proof stops being an accident of
+which caller someone happened to be working in.
+
+Run through the same battery as a fifth column (`--suites test_direction_contracts`), baseline green:
+
+| # | contract | four caller suites | own suite |
+|---|---|---|---|
+| M1 | `focus_multiplier` ALWAYS >= 1.0 | seat only | **DIED** `test_direction_can_only_ADD_attention_across_the_WHOLE_partition` |
+| M2 | untouched on length mismatch | **nothing** | **DIED** `test_a_MISMATCHED_candidate_list_leaves_the_weights_BYTE_IDENTICAL` |
+| M3 | forbidden keys at any depth | seat only | **DIED** `test_a_TARGET_SHAPED_key_is_refused_AT_ANY_DEPTH[target-inside a list of dicts]` |
+| M4 | empty `not_now` refused | seat only | **DIED** `test_a_direction_that_REJECTED_NOTHING_is_refused` |
+| M5 | `corrected` must be a BOOLEAN | audit only | **DIED** `test_a_recorded_ERROR_needs_a_BOOLEAN_correction_state[yes]` |
+| M6 | `read_direction` NEVER RAISES | lane + seat | **DIED** `test_read_direction_NEVER_RAISES_whatever_is_wrong_with_the_file` |
+| M7 | `is_live` bounded BELOW | **nothing** | **DIED** `test_a_FUTURE_DATED_record_does_not_steer_any_more_than_a_STALE_one[-0.5]` |
+| M8 | legacy row is `None`, not `False` | audit only | **DIED** `test_an_UNRECORDED_correction_state_is_None_and_never_False[stored2]` |
+
+**Eight of eight, each killed by the test named for that defect.** The two contracts that were
+proved by nothing are now proved: a mismatched candidate list leaves the weights byte-identical, and
+a future-dated record does not steer. The second is the one worth naming — without the lower bound a
+record stamped in the future can *never* age out, because its age only grows toward zero, so a clock
+skew or a bad stamp pins the draw to one orientation permanently.
+
+Three things in that file are there to stop it becoming a control that cannot fail:
+
+* **A vacuity guard.** Every test breaks one field of a shared valid record and asserts a refusal.
+  If that record were itself invalid they would all pass for the wrong reason, so
+  `test_the_fixture_record_is_actually_VALID_or_every_test_below_passes_vacuously` asserts it
+  validates first.
+* **The partition, not a leg per branch.** `focus_multiplier` is asserted `>= 1.0` over named,
+  unnamed and empty ids *and* that every rank is reachable and distinct — because a function that
+  ignored focus and always returned 1.0 would satisfy the bound on its own.
+* **The inverse of the target guard.** A guard that refused everything would pass every
+  forbidden-key test, so a `why` quoting a measurement (`"the belief error is +0.5pp"`) is asserted
+  to be accepted.
+
+The repair column is deliberately **not** a member of the battery's `SUITES` tuple.
+`survived_all` answers the pre-registered question *"did any caller prove this"*, and folding the
+repair into that population would make the question unanswerable the moment the repair landed.
+
+## 7. What is still open
 
 * The `test_supervisor.py` column, all eight mutations, in flight in an isolated worktree
   (`/var/tmp/se-battery-supervisor`, results to `/var/tmp/direction_battery_sup.json`) so that an
@@ -184,9 +226,14 @@ generalises to a second converged module.
   (`supervisor.py` lines 1396, 1809, 1902, 2029) against the live `docs/direction/DIRECTION.yaml`,
   so every mutated line is reachable in production and unreachable only under test. That is the
   opposite of dead code, and it is why the repair is a test rather than a deletion.
-* **The repair `direction.py` has no suite of its own.** Every contract it states in prose is proved
-  — where it is proved at all — by a suite belonging to some other module, which is exactly the
-  condition that makes a contract's proof an accident of refactoring order. The structural fix is a
-  suite beside the module, keyed to the properties rather than to today's callers, and it is one
-  file rather than three routing tests. Not started; it is the next increment and it needs the
-  fourth column first so it is written against a measured gap and not a predicted one.
+* **The repair is done and is §6.** It was written against the three measured columns plus the
+  reachability measurement in §5, not against the pending fourth — which is sound because §5 shows
+  the fourth column *cannot* kill anything, and because a suite keyed to the module's properties
+  does not depend on which caller proves what. If the supervisor column refutes §5, the repair is
+  still correct; only the account of why the gap existed would change.
+* **Not done: nothing yet stops this recurring.** The eight contracts are now proved beside the
+  module, but the next contract added to `direction.py` can be proved by a borrowed suite exactly as
+  these were, and nothing would notice. Whether that is worth a control is a real question and the
+  honest answer is probably not — a control that watches which file a test lives in is close to the
+  register-that-guards-a-register shape this project keeps paying for. Recorded as a judgement, not
+  deferred as a task.

@@ -60,6 +60,13 @@ SUITES = (
     "tests/background/test_the_self_audit_declared_a_correction_and_nothing_carried_it.py",
 )
 
+#: The module's OWN suite, written as the repair once the four columns above showed the contracts
+#: standing on borrowed suites. Deliberately NOT a member of `SUITES`: `survived_all` answers "did
+#: any caller prove this", and folding the repair into that population would make the pre-registered
+#: question unanswerable the moment the repair landed. It is scored as its own column.
+REPAIR_SUITE = "tests/background/test_direction_contracts.py"
+SELECTABLE = SUITES + (REPAIR_SUITE,)
+
 #: (id, the contract as the module states it, old, new). Each is ONE edit to a
 #: named function; each `old` must appear exactly once in the subject.
 MUTATIONS = (
@@ -169,10 +176,15 @@ def _score(row: dict, todo: list[str], known_red: dict) -> None:
         row["per_suite"][suite] = r
         print(f"  {suite}: {'DIED' if r['died'] else 'survived'} "
               f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
-    graded = row["per_suite"]
-    row["survived_all"] = (len(graded) == len(SUITES)
-                           and not any(r["died"] for r in graded.values()))
-    row["killed_by"] = [s for s, r in graded.items() if r["died"]]
+    # `survived_all` is the PRE-REGISTERED question and its population is the four CALLER suites.
+    # The repair column is reported beside it and never folded into it.
+    callers = {s: r for s, r in row["per_suite"].items() if s in SUITES}
+    row["survived_all"] = (len(callers) == len(SUITES)
+                           and not any(r["died"] for r in callers.values()))
+    row["killed_by"] = [s for s, r in callers.items() if r["died"]]
+    repair = row["per_suite"].get(REPAIR_SUITE)
+    if repair is not None:
+        row["caught_by_own_suite"] = repair["died"]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -186,7 +198,7 @@ def main(argv: list[str] | None = None) -> int:
                          "pass and the other three cost seconds, so the cheap three are worth "
                          "grading and landing on their own first")
     args = ap.parse_args(argv)
-    suites = tuple(s for s in SUITES if not args.suites
+    suites = tuple(s for s in SELECTABLE if not args.suites
                    or any(frag in s for frag in args.suites))
 
     out_path = Path(args.out)
