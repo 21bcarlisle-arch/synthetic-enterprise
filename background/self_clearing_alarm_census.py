@@ -61,6 +61,16 @@ them and every rung above stayed green -- `undispositioned()` asks for a verdict
 still has a HIT, never whether it still has its ANSWER. Keyed to the property (an unanswered row),
 so it fires the same on a row that never had one as on a row that lost one.
 
+AND THE REGISTER'S OWN LOW-WATER MARK (2026-09-05) -- `removed_dispositions()`, a row that has left
+the register itself. Every rung above iterates either the hits or the rows, so a key in NEITHER is
+the subject of nothing: delete the row and the hit together and all five report clean, which was
+measured on the live tree before this was built. That matters because `eroded_dispositions()` rests
+on the row set being a HIGH-WATER mark, and nothing made the mark unable to fall -- worse, since
+that rung REFUSES a row whose path the census can no longer resolve, deleting the row was the cure
+for its own refusal. A red clearable by deleting the evidence is a fail-open with an extra step.
+The baseline is the register at HEAD, so this bites on the WORKING COPY at commit time, which is
+where the gates run and where the 33-annotation rewrite would have been stopped.
+
 VACUITY GUARD (R15 -- the fail-open shape here is a census that finds NOTHING): a derivation that
 silently stops matching -- a renamed attribute, a moved root, a regex that stops firing -- would
 report an empty class and read as "clean". `census_is_vacuous()` makes that state an explicit
@@ -83,6 +93,7 @@ import argparse
 import ast
 import json
 import re
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -713,6 +724,113 @@ def load_dispositions(path: Path | None = None) -> dict[str, dict[str, str]]:
     return rows if isinstance(rows, dict) else {}
 
 
+#: The AUTHORED record of a row deliberately taken OUT of the register: {state_file: reason}. The
+#: only thing that distinguishes a carrier genuinely deleted from the tree from the register being
+#: quietly tidied to match a census that went blind -- which, from the census alone, are the same
+#: observation. Same shape and same reasoning as `DECLASSIFIED_FIELD` one rung over.
+RETIRED_SECTION = "_retired"
+
+
+def load_retired(path: Path | None = None) -> dict[str, str]:
+    """The `_retired` section: {state_file: why it left the register}. Absent or malformed yields
+    {} -- which makes every removal unexplained and `--check` RED, never green. Same direction of
+    failure as `load_dispositions`: toward work, never toward silence."""
+    p = path if path is not None else DISPOSITIONS_PATH
+    try:
+        data = json.loads(p.read_text())
+    except (OSError, ValueError):
+        return {}
+    rows = data.get(RETIRED_SECTION) if isinstance(data, dict) else None
+    return rows if isinstance(rows, dict) else {}
+
+
+def _dispositions_at_head() -> dict[str, dict[str, str]] | None:
+    """The register as HEAD has it -- the baseline `removed_dispositions()` measures against.
+
+    Returns None, never {}, when the baseline cannot be established. The two are opposite claims:
+    {} says "HEAD's register was empty, so nothing can have been removed" and would report clean on
+    every tree where git is unavailable, which is the fail-silent shape this whole module exists to
+    refuse. The caller turns None into a refusal that names itself.
+
+    `git show HEAD:<path>` and not a working-tree read: the point is to compare the working copy
+    against the last committed judgement, and it resolves correctly from a linked worktree, which
+    is the only environment `seat_executor` runs in.
+    """
+    rel = DISPOSITIONS_PATH.relative_to(PROJECT_DIR)
+    try:
+        proc = subprocess.run(["git", "show", "HEAD:{}".format(rel.as_posix())],
+                              cwd=PROJECT_DIR, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if proc.returncode != 0:
+        return None
+    try:
+        data = json.loads(proc.stdout)
+    except ValueError:
+        return None
+    rows = data.get("dispositions") if isinstance(data, dict) else None
+    return rows if isinstance(rows, dict) else None
+
+
+def removed_dispositions(dispositions: dict[str, dict[str, str]] | None = None,
+                         retired: dict[str, str] | None = None,
+                         baseline: dict[str, dict[str, str]] | None = None) -> list[str]:
+    """THE REGISTER'S LOW-WATER MARK: a row that was in the register at HEAD and is not in it now.
+
+    `eroded_dispositions()` asks whether a ROW still has a HIT. It is the inverse of
+    `undispositioned()` and it closed a real hole. But it iterates `sorted(disp)`, so its subject
+    set IS the register, and its own docstring rests the whole non-tautology argument on the
+    register being a HIGH-WATER mark. Nothing made the mark unable to fall. Measured on the live
+    tree on 2026-09-05, before this existed: take a row that is currently a hit, delete the row and
+    the hit together, and `undispositioned`, `eroded_dispositions`, `unasked_loader_rows`,
+    `unguarded_real_hits` and `census_is_vacuous` ALL return clean. A key in neither the hits nor
+    the rows is the subject of nothing.
+
+    THE SECOND-ORDER SHAPE, which is why this is not merely a missing rung. `eroded_dispositions()`
+    REFUSES a row whose path the census can no longer resolve. Deleting that row clears the
+    refusal. A control whose red can be cleared by deleting the evidence is a fail-open with an
+    extra step, and every rung here would have gone on reporting a clean class.
+
+    NO CENSUS-SHAPE EXCEPTION, AND THAT IS THE DESIGN. The tempting rule is "allow the removal if
+    the census no longer resolves the path anyway -- the carrier is gone from the tree". That is
+    exactly the fail-open above. `eroded_dispositions()` refuses the path-gone case precisely
+    BECAUSE a genuinely deleted carrier and a derivation gone blind are the same observation from
+    the census alone; granting that case a free pass here would hand row-deletion the cure. Only an
+    authored sentence can tell them apart, so the only way out is `_retired` with a reason -- the
+    same shape, and the same argument, as `declassified` one rung over.
+
+    WHERE IT BITES. The baseline is HEAD, so this is a commit-time ratchet against the WORKING
+    copy: you cannot drop a row in a commit without saying why. Once a bad commit has landed, HEAD
+    contains the loss and this goes quiet again -- said plainly rather than implied, because the
+    gates run pre-commit on the working tree and that is the whole enforcement point. It is where
+    `9857c0edb` -- the rewrite from a pre-sweep copy that deleted 33 annotations -- would have been
+    stopped.
+
+    Takes its baseline as an argument so the control can be driven without a git tree, and defaults
+    to reading HEAD so the live rung has no fixture to drift from.
+    """
+    disp = load_dispositions() if dispositions is None else dispositions
+    ret = load_retired() if retired is None else retired
+    base = _dispositions_at_head() if baseline is None else baseline
+    if base is None:
+        return ["the register's baseline at HEAD could not be established (git show failed, or "
+                "HEAD's copy is absent or unparseable), so whether a row has been removed cannot "
+                "be answered -- this is a refusal, not a clean result"]
+    out: list[str] = []
+    for key in sorted(set(base) - set(disp)):
+        # `or ""` BEFORE `str`, not `.get(key, "")`: a `_retired` entry carrying an explicit JSON
+        # `null` stringifies to "None", which is truthy, and the reason requirement falls open.
+        # The same slip was live in `undispositioned` and `eroded_dispositions` until 2026-09-05;
+        # an absurdity is fixed as a class, so the new escape hatch is born with the treatment.
+        if not str(ret.get(key) or "").strip():
+            out.append("{} -- this row was in the register at HEAD and is not in it now, and "
+                       "`{}` does not say why. A row is the only record that this carrier was ever "
+                       "in the class; removing it removes the alarm that its hit vanished. Restore "
+                       "it, or add `{}[\"{}\"]` naming what took the carrier out of the tree.".format(
+                           key, RETIRED_SECTION, RETIRED_SECTION, key))
+    return out
+
+
 def undispositioned(census: dict[str, Any], dispositions: dict[str, dict[str, str]] | None = None
                     ) -> list[str]:
     """Hits with no verdict on record. This is what gives the census teeth: a NEW control of this
@@ -898,7 +1016,8 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true",
                     help="read-only: exit 1 on a vacuous census, an undispositioned hit, an "
-                         "unguarded real hit, an eroded row or an unasked loader question")
+                         "unguarded real hit, an eroded row, an unasked loader question or a row "
+                         "removed from the register without a reason")
     args = ap.parse_args()
     census = derive()
     vacuous = census_is_vacuous(census)
@@ -916,6 +1035,7 @@ def main() -> int:
     unguarded = unguarded_real_hits(census, disp)
     eroded = eroded_dispositions(census, disp)
     unasked = unasked_loader_rows(census, disp)
+    removed = removed_dispositions(disp)
     if not args.check:
         write_census(census)
         print("census written to {}".format(CENSUS_PATH))
@@ -933,7 +1053,12 @@ def main() -> int:
               "been deleted):")
         for line in unasked:
             print("  {}".format(line))
-    if missing or unguarded or eroded or unasked:
+    if removed:
+        print("ROWS REMOVED FROM THE REGISTER WITHOUT A REASON (the register's high-water mark is "
+              "falling, and the row is the only record the carrier was ever in the class):")
+        for line in removed:
+            print("  {}".format(line))
+    if missing or unguarded or eroded or unasked or removed:
         return 1
     return 0
 
