@@ -5811,6 +5811,11 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     # commit is real, we refuse and the site stays honestly paused rather than publishing a
     # claim we cannot stand behind.
     if not _provenance_is_publishable(paths, label=label):
+        _record_liveness_surface_refusal(
+            label, publish_cause.PROVENANCE_REFUSED,
+            "the fail-closed provenance check refused the stamp before any git ran, so nothing "
+            "was staged; the violations are named in the log line this record sits beside",
+            git_hash)
         return False
     # THE SAME REFUSAL AT THE OTHER COMMIT SITE. The liveness heartbeat and the provenance banner
     # deepen a fork exactly as a content commit does, and a guard placed only where the incident
@@ -5819,7 +5824,19 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
     # origin either, so refusing costs nothing that was going to be published.
     _behind = _divergence_refusal()
     if _behind is not None:
-        log("{} commit REFUSED before staging: {}.".format(label, _behind))
+        # WHICH KIND OF BEHIND-ORIGIN THIS IS, because the two want different people and until
+        # now the record could not tell them apart. A HOT ORIGIN is a state with an owner --
+        # `origin_reconcile` closes real forks on the deadman cadence and closed 41 unaided on
+        # 2026-09-04 -- and the next cycle simply succeeds. An FF_MODIFIED collision is a WEDGE:
+        # no cadence clears it, because the holder is a lane's uncommitted file, and it stays
+        # until that lane lands. Both arrive here as the identical sentence "origin/main is N
+        # commit(s) AHEAD", and reading it as the first when it is the second is what left this
+        # surface silent for six hours while every reader waited for a cadence that could not help.
+        _verdict, _clause = _refused_advance_cause(PROJECT_DIR)
+        _why = "whether a fast-forward could close it: {} {}".format(_verdict, _clause)
+        log("{} commit REFUSED before staging: {}. {}".format(label, _behind, _why))
+        _record_liveness_surface_refusal(
+            label, publish_cause.BEHIND_ORIGIN, "{} -- {}".format(_behind, _why), git_hash)
         return False
     with tree_lock():
         # THE SAME UNCHECKED ADD, at the site the finding did not name (2026-08-25). The
@@ -5848,6 +5865,15 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
             # path did. Guarded by the same "not a clean no-op" test the log line uses.
             _record_commit_refusal_reds(getattr(result, "stdout", None),
                                         getattr(result, "stderr", None), git_hash)
+            # AND THE CAUSE ITSELF, for the reason two lines up gives about the reds: this exit
+            # is a refusal of the LIVENESS surface and it left the same orphaned log line as the
+            # other two. Inside the "not a clean no-op" guard on purpose -- a byte-identical
+            # banner is the expected steady state and recording it as a refusal would fill the
+            # field with non-events, which is how a record stops being read.
+            _record_liveness_surface_refusal(
+                label, publish_cause.GATE_REFUSAL,
+                "the pre-commit hook chain refused the commit (rc={}): {}".format(
+                    result.returncode, _tail), git_hash)
         return False
     push = subprocess.run(["git", "push", "origin", "HEAD:main"], cwd=str(PROJECT_DIR),
                           timeout=60, stderr=subprocess.PIPE, text=True)
@@ -5865,6 +5891,15 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
         return True
     log("{} push did NOT advance origin (rc={}, origin={}, head={}) -- retry next cycle.".format(
         label, push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
+    # THE FOURTH EXIT, and the last one in this function that refused in the log alone. The
+    # commit EXISTS here and origin does not have it, which is the one refusal shape that leaves
+    # the tree changed -- so it is the one a reader most needs to find in the record.
+    _record_liveness_surface_refusal(
+        label, publish_cause.PUSH_NEVER_LANDED,
+        "the commit was created here and `git ls-remote` says origin did not advance to it "
+        "(push rc={}, origin={}, head={}) -- read the REF and not the push's own rc, which is "
+        "the 3.5-hour origin-freeze of 2026-07-24".format(
+            push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]), git_hash)
     return False
 
 
@@ -6048,7 +6083,8 @@ def _write_publish_gate_state(state, *, episode_closed=False):
            "red_census": state.get("red_census", CENSUS_FAIL_FAST_ONLY),
            "total_red": state.get("total_red", 0),
            "episode_clean_publishes": state.get("episode_clean_publishes", 0),
-           "last_clean_publish": state.get("last_clean_publish")}
+           "last_clean_publish": state.get("last_clean_publish"),
+           "liveness_surface_refusal": state.get("liveness_surface_refusal")}
     prior = _read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None
     # `last_clean_publish` is a LATEST-wins timestamp, which is the opposite ordering to
     # `since_fields` (earliest-wins), so the monotonic guard cannot express it and it is carried
@@ -6057,6 +6093,14 @@ def _write_publish_gate_state(state, *, episode_closed=False):
     # of recording it. Only an evidenced episode close clears it.
     if not episode_closed and out.get("last_clean_publish") is None and isinstance(prior, dict):
         out["last_clean_publish"] = prior.get("last_clean_publish")
+    # AND THE SAME CARRY, FOR THE SAME REASON, ON THE LIVENESS-SURFACE REFUSAL. `out` is built
+    # from a FIXED key list, so a field written by anyone other than this function is dropped by
+    # the next writer -- and the next writer is `record_publish_gate_failure`, which runs on
+    # exactly the cycles this record is about. Without the carry the record would be erased
+    # milliseconds after being written, by the failure it exists to explain.
+    if (not episode_closed and out.get("liveness_surface_refusal") is None
+            and isinstance(prior, dict)):
+        out["liveness_surface_refusal"] = prior.get("liveness_surface_refusal")
     out = guard_episode(prior,
                         out,
                         since_fields=PUBLISH_GATE_SINCE_FIELDS,
@@ -6064,6 +6108,50 @@ def _write_publish_gate_state(state, *, episode_closed=False):
                         episode_closed=episode_closed)
     PUBLISH_GATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
     PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
+
+
+def _record_liveness_surface_refusal(label, cause, evidence, git_hash="unknown", *, now=None):
+    """Record WHY the liveness heartbeat or the provenance banner did not publish. Never raises.
+
+    THE HOLE THIS FILLS (measured 2026-09-04, 19:19Z and 19:49Z). Both refusals reached the log
+    and nothing else: *"at HEAD only `git_commit_push` writes `.publish_gate_state.json`, so
+    these two heartbeat refusals recorded no path anywhere."* And `log()` writes ONE bullet, while
+    `stderr_tail` joins with newlines -- so every line after the first was orphaned in the file,
+    attached to nothing and invisible to any grep keyed to the message. Four separate seats then
+    re-derived the blocking paths by hand.
+
+    WHY THIS IS ITS OWN FIELD AND NOT THE CONTENT PATH'S CAUSE RECORD. These are two different
+    subjects and this project's most expensive recurring shape is measuring one number across
+    both. `publish_cause`/`PUBLISH_CAUSE_FILE` answers *"why did the CONTENT publish not land"*
+    and is read by the wedge router on rc=77; this answers *"why did the surface whose whole job
+    is to say the system is alive not publish"*, which is a question asked precisely on the
+    cycles where content was never going to publish at all. Writing this into the content path's
+    single-record file would let a banner refusal overwrite the attribution of the cycle it was
+    reporting on. Separate field, same file, same reader.
+
+    The CAUSE NAMES ARE THE SHARED ONES (`publish_cause.CAUSES`) rather than a private vocabulary,
+    so a reader who has learned one set has learned both -- but an unrecognised cause is stored as
+    given rather than dropped, because this record's job is to stop a refusal going unrecorded and
+    a name outside the set is still better evidence than silence.
+    """
+    try:
+        state = _read_publish_gate_state()
+        state["liveness_surface_refusal"] = {
+            "ts": time.time() if now is None else float(now),
+            "label": str(label),
+            "cause": str(cause),
+            "evidence": str(evidence or "")[:900],
+            "git_hash": str(git_hash),
+        }
+        _write_publish_gate_state(state)
+        return True
+    except Exception as exc:  # noqa: BLE001 -- the same argument the advance's own except carries
+        # A RECORDING FAILURE MUST NOT BECOME A PUBLISH FAILURE. This runs on a path that has
+        # already decided to refuse; the only thing its own failure may cost is the explanation
+        # of a refusal that was happening anyway. Taking the cycle down instead would turn an
+        # observation into a fault -- the shape this pipeline paid for at the commit in 2026-08-03.
+        log("Liveness-surface refusal record skipped ({}: {})".format(type(exc).__name__, exc))
+        return False
 
 
 def pending_run_complete_markers(staging_dir=None):
