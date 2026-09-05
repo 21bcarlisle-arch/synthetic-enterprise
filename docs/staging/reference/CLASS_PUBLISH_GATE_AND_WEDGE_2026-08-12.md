@@ -123,6 +123,14 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_FINDING_THE_LAST_PUBLISH_WEDGE_WAS_ONE_UNSTAGED_FILE_2026-09-02.md` — lane `D_billing_metering`
+- `SEAT_FINDING_THE_LEG_THAT_PRODUCES_THE_PUBLISHED_BOUND_WAS_OOM_KILLED_AND_WROTE_NOTHING_2026-09-03.md` — lane `W2_customer_generator`
+- `SEAT_FINDING_THE_OOM_FIX_REMOVED_ONE_CAUSE_OF_THE_ABSENT_ARTEFACT_AND_LEFT_THE_ABSENCE_2026-09-03.md` — lane `W2_customer_generator`
+
 ## Disposition
 
 **Decision:** OPEN

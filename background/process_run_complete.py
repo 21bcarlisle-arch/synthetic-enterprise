@@ -4149,6 +4149,24 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("company.json generation failed: {}".format(exc))
     try:
+        # The Journey door's Regulatory tab feed (site/data/regulatory.json). Wired here
+        # 2026-09-05 for the SAME R11 no-orphan-transition reason every sibling above carries --
+        # and it is the one that PROVES the reason rather than restating it. This generator had
+        # no caller anywhere in the tree: not here, not in tools/, no unit, no timer. Its feed
+        # therefore sat seven weeks stale, claiming 63 regulatory modules against a live 67 and
+        # an AMBER overall RAG that company.json had already stopped saying. The control written
+        # for exactly that drift existed and was never collected, because it lived in tools/
+        # (SEAT_FINDING_FORTY_TWO_TESTS_LIVE_WHERE_NO_RUNNER_LOOKS, 2026-09-05).
+        #
+        # AFTER gen_company, not beside it: regulatory.json reads obligation_count, overall_rag
+        # and status_counts OUT of site/data/company.json, so running it first would stamp the
+        # PREVIOUS cycle's compliance state with this cycle's clock.
+        from tools.generate_regulatory_data import main as gen_regulatory
+        gen_regulatory()
+        log("Generated site/data/regulatory.json (Journey door, Regulatory tab)")
+    except Exception as exc:
+        log("regulatory.json generation failed: {}".format(exc))
+    try:
         # The growth curve WITH the reason it has that shape (director, 2026-08-24: "if our own
         # code binds growth rather than the simulated economics, say so on the site"). The
         # campaign has been writing docs/observability/book_growth_campaign.json every run and

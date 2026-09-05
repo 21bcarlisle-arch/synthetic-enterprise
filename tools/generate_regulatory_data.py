@@ -37,7 +37,13 @@ SIMPLICITY GUARD: this is a stat-count-from-disk generator, not a repository
 pattern -- plain path globs and one JSON read, mirroring
 tools/generate_dashboard_data.py's stamp convention.
 
-Usage:  python3 tools/generate_regulatory_data.py
+Usage:  python3 -m tools.generate_regulatory_data     (from the repo root)
+
+NOT `python3 tools/generate_regulatory_data.py`, which is what this line said until 2026-09-05
+and which does not work: run as a script, the repo root is not on sys.path and
+`from company.regulatory.compliance_scorecard import ComplianceDomain` below raises
+ModuleNotFoundError. Every test of this module inserts the root on sys.path itself, so the whole
+suite is blind to it -- the documented invocation was the only one nobody had.
 """
 from __future__ import annotations
 

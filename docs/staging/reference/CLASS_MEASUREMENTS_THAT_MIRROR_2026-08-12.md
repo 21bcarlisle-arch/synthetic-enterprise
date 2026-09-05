@@ -23,6 +23,14 @@ This document supersedes the individual findings listed below, which are **archi
 
 **0 hours traced** across 8 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `WORKER_FINDING_BILL_SHOCK_IS_THREE_CAUSES_AND_A_SIGN_COLLAPSED_INTO_ONE_ABS_2026-09-01.md` — lane `W2_customer_generator`
+- `WORKER_FINDING_THE_DISSATISFACTION_DOSE_IS_BOUNDED_BY_TWO_PAGES_WE_ALREADY_HOLD_AND_THE_WORLD_SITS_UNDER_THE_BOUND_2026-09-01.md` — lane `W2_customer_generator`
+- `WORKER_FINDING_THE_WORLD_MODELS_FIRST_RESPONSE_AND_THE_RECORD_SAYS_RESOLUTION_IS_WHAT_MATTERS_2026-09-01.md` — lane `W2_customer_generator`
+
 ## Disposition
 
 **Decision:** OPEN

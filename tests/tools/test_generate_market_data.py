@@ -13,7 +13,13 @@ import json
 import sys
 from pathlib import Path
 
-PROJECT = Path(__file__).resolve().parent.parent
+# The repo root. THREE parents, not two: these suites were written in `tools/` (where no
+# runner ever collected them) and moved to `tests/tools/` on 2026-09-05 -- see
+# SEAT_FINDING_FORTY_TWO_TESTS_LIVE_WHERE_NO_RUNNER_LOOKS. `tools/` has no __init__.py, so
+# the generator under test is reachable only by putting the repo root and `tools/` on the
+# path; getting this depth wrong fails at COLLECTION and reads as "these tests were broken
+# all along" rather than as a bad move.
+PROJECT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT))
 sys.path.insert(0, str(PROJECT / "tools"))
 

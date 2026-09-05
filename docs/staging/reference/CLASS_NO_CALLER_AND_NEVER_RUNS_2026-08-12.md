@@ -2,15 +2,16 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 11 · **Class:** `no_caller_and_never_runs` · **Source's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
+**Instances:** 12 · **Class:** `no_caller_and_never_runs` · **Source's own count:** ~5 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "no-caller/never-runs")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 11 instances
+## The 12 instances
 
 - `SEAT_FINDING_THE_PUBLISHING_PATH_WRITES_A_RUN_OUTPUT_WITH_NO_WORLD_AND_NO_RECONCILIATION_2026-09-04.md` — LATENT
+- `SEAT_RESULT_THE_COLLECTION_GAP_IS_CLOSED_AND_THE_FEED_THAT_FELL_THROUGH_IT_HAD_NO_CALLER_2026-09-05.md` — LATENT
 - `WORKER_FINDING_A_POPULATION_TEST_IS_UNREACHABLE_BY_ANY_STEM_SELECTOR_2026-08-10.md` — LATENT
 - `WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31.md` — LATENT
 - `WORKER_FINDING_THE_CITATION_CONTROL_NEVER_RUNS_ON_THE_COMMIT_THAT_RENAMES_A_FALSIFIER_2026-08-27.md` — LATENT
@@ -24,7 +25,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**0 hours traced** across 11 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
+**0 hours traced** across 12 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
 
 ## What is owed
 
@@ -37,6 +38,10 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_FINDING_ONE_OFGEM_OBLIGATION_HAS_TWO_VULNERABILITY_SCORERS_THAT_DISAGREE_AND_THE_DEAD_ONE_DECIDES_DISCONNECTION_2026-09-05.md` — lane `C_customer_ops`
+- `SEAT_FINDING_THE_2022_ANCHOR_SLOT_IS_INERT_SO_ITS_DECLARED_VALUE_IS_UNFALSIFIABLE_2026-09-02.md` — lane `W2_customer_generator`
+- `SEAT_FINDING_THE_SHOCK_AFTERMATH_EXCLUSION_BECAME_UNREACHABLE_WHEN_SHOCK_BECAME_SIGNED_2026-09-02.md` — lane `D_billing_metering`
+- `WORKER_FINDING_THE_WORLD_DECLARES_A_GAP_ITS_OWN_KNOWLEDGE_LAYER_HAS_CLOSED_2026-09-01.md` — lane `W2_customer_generator`
+- `WORKER_FINDING_THE_WORLD_KNOWS_HOW_EACH_HOUSEHOLD_PAYS_AND_BILL_SHOCK_IS_THE_ONE_ORGAN_NOT_TOLD_2026-09-01.md` — lane `W2_customer_generator`
 
 ## Disposition
 
