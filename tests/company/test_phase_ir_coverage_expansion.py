@@ -78,60 +78,6 @@ class TestTPIBook:
         assert total == pytest.approx(270.0)
 
 
-# ===== vulnerability_index =====
-from company.crm.vulnerability_index import (
-    assess_vulnerability, FuelPovertyIndicator, VulnerabilityBand
-)
-
-
-class TestVulnerabilityIndex:
-    def test_home_oxygen_critical(self):
-        a = assess_vulnerability("C1", dt.date(2022,1,1),
-                                  [FuelPovertyIndicator.HOME_OXYGEN])
-        assert a.band == VulnerabilityBand.CRITICAL
-
-    def test_arrears_score_zero_when_no_arrears(self):
-        a = assess_vulnerability("C2", dt.date(2022,1,1), [], arrears_gbp=0.0)
-        assert a.arrears_score == 0
-
-    def test_arrears_score_5_small(self):
-        a = assess_vulnerability("C2", dt.date(2022,1,1), [], arrears_gbp=100.0)
-        assert a.arrears_score == 5
-
-    def test_arrears_score_10_medium(self):
-        a = assess_vulnerability("C2", dt.date(2022,1,1), [], arrears_gbp=300.0)
-        assert a.arrears_score == 10
-
-    def test_arrears_score_20_high(self):
-        a = assess_vulnerability("C2", dt.date(2022,1,1), [], arrears_gbp=600.0)
-        assert a.arrears_score == 20
-
-    def test_fuel_poverty_score_high(self):
-        a = assess_vulnerability("C3", dt.date(2022,1,1), [], fuel_spend_pct=0.12)
-        assert a.fuel_poverty_score == 20
-
-    def test_ppm_score(self):
-        a = assess_vulnerability("C4", dt.date(2022,1,1), [], has_ppm=True)
-        assert a.ppm_score == 10
-
-    def test_is_priority_services_high(self):
-        # DISABILITY(25) + CHILD_HOUSEHOLD(10) = 35 → HIGH band
-        a = assess_vulnerability("C5", dt.date(2022,1,1),
-                                  [FuelPovertyIndicator.DISABILITY,
-                                   FuelPovertyIndicator.CHILD_HOUSEHOLD])
-        assert a.is_priority_services
-
-    def test_disconnection_protected_critical_only(self):
-        a = assess_vulnerability("C6", dt.date(2022,1,1),
-                                  [FuelPovertyIndicator.HOME_OXYGEN])  # CRITICAL
-        assert a.disconnection_protected
-
-    def test_disconnection_not_protected_medium(self):
-        a = assess_vulnerability("C7", dt.date(2022,1,1),
-                                  [FuelPovertyIndicator.CHILD_HOUSEHOLD])  # +10 → MEDIUM
-        assert not a.disconnection_protected
-
-
 # ===== contact_log =====
 from company.crm.contact_log import (
     ContactLog, ContactChannel, ContactReason

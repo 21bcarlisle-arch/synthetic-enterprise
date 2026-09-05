@@ -687,12 +687,31 @@ RUFF_BASELINE: dict[str, int] = {
     #             and the delete is what exposed it. Attributed per-file against a `git archive
     #             HEAD` extract: that file reported 1 I001 there and reports 0 now, and none of the
     #             other four files in this landing moved (all 0 in both). SHRINK-ONLY.
-    "I001": 1328,  # lowered 2026-09-05: generate_project_state's block sorted (see log)
+    # 2026-09-05  I001 1328 -> 1326, E402 174 -> 173. Atom C32: `company/crm/vulnerability_index.py`
+    #             was DELETED (a fifth rendering of the PSR/vulnerability obligation, no production
+    #             caller, deriving `disconnection_protected` from an invented score threshold that
+    #             the published rule does not resemble -- see
+    #             `docs/domain_artefact_library/regulatory/psr_eligibility_and_disconnection_protection.md`).
+    #             Its dedicated suite went with it, and the mid-file import block that pulled it
+    #             into `tests/company/test_phase_ir_coverage_expansion.py` went with that section.
+    #             ATTRIBUTED PER-FILE against `git show HEAD:`, per this log's standing rule and NOT
+    #             off the shared working tree: `tests/company/crm/test_vulnerability_index.py` read
+    #             I001 1 / E402 0 at HEAD and is deleted (-1 I001);
+    #             `tests/company/test_phase_ir_coverage_expansion.py` read I001 3 / E402 2 at HEAD
+    #             and reads 2 / 1 now (-1 I001, -1 E402); `company/crm/vulnerability_index.py` read
+    #             0 / 0 at HEAD so its deletion moves nothing; the new control file reads 0 / 0.
+    #             That accounts for the whole delta with no shortfall.
+    #             THE SHARED TREE READS I001 1325, ONE LOWER, AND THAT -1 IS NOT BANKED HERE --
+    #             another lane holds an uncommitted I001 fix and it is theirs to lower. Measured in
+    #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
+    #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
+    #             live-tree control the moment this landed alone.  SHRINK-ONLY.
+    "I001": 1326,  # lowered 2026-09-05: the dead vulnerability scorer and its suite deleted (see log)
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
     "F401": 265,
-    "E402": 174,
+    "E402": 173,  # lowered 2026-09-05 with the I001 entry above — same deletion, same attribution
     "F841": 126,
     "E741": 107,
     "F811": 94,
@@ -713,7 +732,16 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2309  # was 2310; -1 (I001) on 2026-09-05 from
+RUFF_BASELINE_TOTAL = 2306  # was 2309; -2 (I001) and -1 (E402) on 2026-09-05 from atom C32,
+                            # which DELETED `company/crm/vulnerability_index.py` (a scorer with no
+                            # production caller whose `disconnection_protected` rule bore no
+                            # relation to the published one), its dedicated suite, and the mid-file
+                            # import block that reached it from
+                            # `tests/company/test_phase_ir_coverage_expansion.py`. Attributed
+                            # per-file against `git show HEAD:` with no shortfall; the shared tree
+                            # reads one I001 lower and that -1 belongs to another lane. See the
+                            # dated I001 entry in the SHRINK LOG.
+                            # Before that it was 2310; -1 (I001) on 2026-09-05 from
                             # tools/generate_project_state.py, whose import block lost
                             # `re` when the duplicate CLAUDE.md parser was deleted.
                             # Measured as a whole-tree census in a `git archive HEAD`
