@@ -98,3 +98,50 @@ PPM (1.7%), and the model has no smart/traditional meter distinction on the prep
 `PaymentChannel` carrying prepayment separately at the published share, and
 `tools/r1_inference_ceiling.py` re-run on a book drawn after step 3. Not written as a
 **Discharged:** field — nothing has landed yet.
+
+---
+
+## CORRECTION, same day, before any of the build above was written
+
+**Step 1 above is wrong, and the true state is better and worse than it says.** I proposed splitting
+`PaymentChannel` three ways as new work. It does not need writing: **`simulation/payment_behaviour_
+source.generate_payment_method` already draws the three-way method**, anchored, with
+`PREPAYMENT = "prepayment"` and `_PREPAYMENT_SHARE_OF_NON_DD = 0.50` carrying the Ofgem 74/13/13
+mix, and a live branch that returns prepayment.
+
+**It has zero consumers.** Outside its own module and its tests, nothing in `simulation/`,
+`company/` or `saas/` calls it. Meanwhile the two-way `payment_channel_for_customer` — the one with
+no prepayment at all — is wired into six: `arrears_engine`, `final_bill_outcome`, `sim_satisfaction`,
+`run_phase2b`, `run_phase4c_on_phase2b` and (by reference) `opex_ledger`.
+
+So the correct three-way draw is dead code and the impoverished two-way draw is the world.
+
+**Measured, because the obvious next worry is whether the two contradict each other in flight:**
+
+```
+DD/non-DD agreement over 400 households: 235 agree, 165 disagree (41.2%)
+```
+
+They are statistically independent — `paychannel_{cid}_{fuel}` against `_base_seed_for("{cid}::
+{fuel}")`, different streams, no coupling — and 58.8% agreement is exactly what chance gives for two
+independent draws at a 72% DD share. **But this is NOT a live inconsistency today**, precisely
+because one of the two never runs. It would become one the instant a second consumer picked the
+other draw, which is exactly what wiring R1's engagement antecedent to `generate_payment_method`
+would have done. That is the trap this correction exists to close: the fix is to MIGRATE the live
+path onto the anchored draw, never to add a third consumer beside two definitions.
+
+**The build, corrected:**
+
+1. Migrate `payment_channel_for_customer` onto `generate_payment_method`'s draw so there is one
+   definition of a household's payment method, and `PaymentChannel` gains `PREPAYMENT`. This is a
+   world change with six downstream consumers and it moves households between buckets, so it is
+   fidelity work to be done deliberately and measured, not a refactor.
+2. Unblend `FUEL_POVERTY_RATE_BY_CHANNEL` onto the two published rates it averages (22.3% / 18.5%).
+3. Then the engagement antecedent, mean-preserving over the mix.
+4. Then re-run `tools/r1_inference_ceiling.py`.
+
+**Why this is worth more than the atom it blocks.** A correctly anchored, carefully sourced,
+prepayment-aware payment model was built and never wired to anything, while the world ran on a
+simplification that explicitly records "the real sub-split isn't published". That is the
+`no_caller_and_never_runs` class meeting the £55/£150 class in one place, and it cost R1 its
+antecedent.
