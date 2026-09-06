@@ -52,6 +52,17 @@ work also stops an honest repair. Consistent with
 `feedback_work_landed_before_it_was_claimed_can_never_be_bound`; the remedy is binding in the
 landing turn, never a forced `claimed_at`.
 
+> **NARROWED 2026-09-06**, beside the claim, by a recurrence on a different id — see
+> `SEAT_RESULT_THE_ONE_VARIABLE_RERUN_REPRODUCES_EXACTLY_FROM_THE_SHARED_TREE_AND_THE_REDRAW_WAS_AN_UNBOUND_CLAIM_2026-09-06.md`.
+> **"cannot be bound retroactively by the next one" is true only of the case this finding was
+> written from** — a promoted/hand-off id absent from `DRAW_LEDGER_FILE`, where `_binding_instant`
+> falls back to `claimed_at`. For an id **with** draw history it compares against `first_drawn_at`,
+> and a retroactive `--landed <id> --commit <sha>` succeeds. Measured: commit `50081fb4e` at
+> 20:14:05Z predates its claim's `claimed_at` of 20:25:08Z by 11 minutes and would be refused
+> against it, postdates `first_drawn_at` of 15:05:10Z by five hours, and bound three paths. The
+> recommendation below stands unchanged — bind in the landing turn — but a seat reading the
+> sentence above as universal will not try the one command that recovers it.
+
 ## And a second lane worked the same hand-off concurrently
 
 While this turn was analysing the follow-on asymmetry, `9bdb358cc` — *"the executor's worktree claim
