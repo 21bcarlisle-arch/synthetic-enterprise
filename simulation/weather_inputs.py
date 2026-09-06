@@ -16,6 +16,7 @@ import csv
 from datetime import date, timedelta
 
 from company.interfaces.supply_book import registered_supply_points
+from simulation.weather_cell_siting import cell_matched_site
 
 # The supply book, bound once at import: the seam hands back the LIVE roster
 # objects (see company/interfaces/supply_book.py, IDENTITY), so a runtime append
@@ -31,12 +32,31 @@ _WEATHER_SOURCE_CUSTOMERS = [
 
 
 def _weather_source_customer_id(customer: dict) -> str:
-    """The customer_id whose weather CSV covers `customer`'s location —
-    itself if it's a C1-C4-style resi electricity customer, otherwise the
-    C1-C4 customer sharing the exact same `location` dict."""
+    """The customer_id whose weather CSV covers `customer`'s location.
+
+    Three steps, in order, and the order is the point:
+
+    1. **Itself, or an exact `location` match** — a C1-C4-style resi electricity customer, or one
+       sharing the identical coordinate dict. Unchanged, and it still answers every premise that
+       settled before this seam existed, so no live customer's weather moved.
+    2. **A derived weather cell match** (`simulation.weather_cell_siting`, W1_14). The four archive
+       sites are four points; the cells W1_19-W1_25 derived are what says whether some OTHER point
+       experiences the same weather. Step 1 can only ever match a coordinate to four decimal
+       places, which is a statement about typing rather than about climate.
+    3. **Its own id**, which has no CSV, so the caller refuses. `weather_cell_siting.
+       siting_refusal` is what turns that bare miss into a reason naming the driver that disagreed.
+
+    Step 2 currently accepts nothing the supply book contains — Birmingham and Teesside each share
+    some but not all of an archive site's cells, and the four sites between them cover 3.5% of GB
+    households on all three drivers at once. That is a measurement of the ARCHIVE, not of this
+    function: it fires the moment a fifth pull lands, and the module records why.
+    """
     for source in _WEATHER_SOURCE_CUSTOMERS:
         if source["location"] == customer["location"]:
             return source["customer_id"]
+    matched = cell_matched_site(customer["location"])
+    if matched is not None:
+        return matched
     return customer["customer_id"]
 
 
