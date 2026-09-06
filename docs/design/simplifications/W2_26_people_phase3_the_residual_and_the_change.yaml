@@ -12,4 +12,19 @@ map_notes:
     THE DISTINCTION THE DIRECTOR DREW IS THE HARD PART, AND IT IS A DEFINITION RATHER THAN A NUMBER. Willingness to BUY and willingness to APPRECIATE are two different quantities, they correlate, and measuring one figure across two populations is this project''s most expensive recurring failure -- average unit rate, net margin and bill shock are all the same shape. Differencing them before defining them would be that shape again, and the cause split must follow from the definition rather than the definition from the split.
 
 
-    AND THE UNPROMPTED DEVICE PURCHASE IS THE PEOPLE-SIDE TWIN of the housing timeline (W2_24): a world where kit only ever arrives because we sold it cannot tell value created from value claimed.'
+    AND THE UNPROMPTED DEVICE PURCHASE IS THE PEOPLE-SIDE TWIN of the housing timeline (W2_24): a world where kit only ever arrives because we sold it cannot tell value created from value claimed.
+
+
+    FRAME PASS 2026-09-06 (docs/design/W2_26_PEOPLE_PHASE3_FRAME.md) -- three findings, and two of them change what this atom is.
+
+
+    (1) THE DEVICE-PURCHASE WORRY ABOVE IS ALREADY DISCHARGED and phase 3 should not re-derive it. Kit already arrives on an anchored national curve with no company involvement: solar_install, ev_acquired, heat_pump_installed, battery_installed, smart_meter_installed, insulation_upgraded and boiler_replaced are all live EventTypes, solar from DESNZ REPD cumulative domestic installs over 28.4M households. Income shocks are likewise built and anchored (job_loss at 2.2%/household/yr, income_recovery, illness, retirement_starts). "Extending the existing stream" is the right instruction for these two.
+
+
+    (2) IT IS THE WRONG INSTRUCTION FOR CHILDREN, because there is nothing to extend. `new_baby` is in EventType and drawn against ONS Birth Summary Tables, but in apply_events it does exactly one thing -- bump income_stress LOW->MODERATE. No occupant is added; divorce and retirement_starts have the identical shape. The reason is STRUCTURAL: composition does not live on the object life events mutate. Household carries no occupancy field; children_count and people_count live in dwelling_records/premise_trace, people_count is a deterministic hash of customer_id and children_count is DEFAULT_CHILDREN_COUNT with the module stating at line 115 that it does NOT fabricate a children distribution; and life_events.py imports none of those modules. No route exists. Recommendation to the director, treated as adopted unless he objects: split children out of phase 3 and sequence it against phase 1''s occupancy work, because phase 1 already draws composition and a move emitter would build most of the same seam.
+
+
+    (3) THE WORD `willingness` IS ALREADY TAKEN. saas/arrears_classifier.py:90 defines class Willingness(str, Enum) with WILL/WONT -- the can''t-pay/won''t-pay quadrant, scored against a SIM-side hidden answer key in simulation/willingness_classification.py -- and renewal_engagement.py:159 uses "willingness to shop" in prose for the engagement archetype. Phase 3''s two value-add quantities would make four senses of one word, one of which decides collections outcomes. DECIDED HERE, reversible and needing no ruling: they do not get called `willingness` bare. They are not named or defined here, because naming them before defining them is the exact failure this note already warns about.'
+map_records:
+  evidence:
+  - docs/design/W2_26_PEOPLE_PHASE3_FRAME.md
