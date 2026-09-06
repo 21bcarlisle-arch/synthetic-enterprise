@@ -946,7 +946,7 @@ def decide_margin(
 
 from company.crm.customer_profitability import (  # noqa: E402
     MIN_TERM_INDEX_FOR_UPLIFT,
-    UPLIFTABLE_COMMODITY,
+    UPLIFTABLE_COMMODITIES,
     UPLIFTABLE_TARIFF_TYPES,
 )
 from saas.cost_to_serve import cost_to_serve_for_period  # noqa: E402
@@ -1130,7 +1130,7 @@ def renewal_margin_uplift(
         return MarginArmUplift(
             0.0, not_run_reason="acquisition term: nothing observed yet",
             not_run_stage=STAGE_ACQUISITION_TERM)
-    if commodity != UPLIFTABLE_COMMODITY:
+    if commodity not in UPLIFTABLE_COMMODITIES:
         return MarginArmUplift(
             0.0, not_run_reason=f"commodity {commodity!r} is not priced by this arm",
             not_run_stage=STAGE_NOT_THE_ARMS_COMMODITY)
@@ -1141,7 +1141,13 @@ def renewal_margin_uplift(
 
     # Two vocabularies, mapped rather than shared -- see `segments_for`.
     churn_segment, cost_segment = segments_for(segment, is_domestic)
-    observed = observed_account_state(account_id, term_start, settled_records, cost_segment)
+    # THE COMMODITY IS PASSED, NOT ASSUMED. Every quantity `observed_account_state`
+    # derives is commodity-specific — which settled records belong to this account's
+    # book, what cadence cost-to-serve is charged at, and which standing-charge table
+    # nets out of the realised rate — and until gas was admitted above, the guard
+    # made the electricity literal correct by construction. It no longer is.
+    observed = observed_account_state(
+        account_id, term_start, settled_records, cost_segment, commodity)
     if observed is None:
         return MarginArmUplift(
             0.0, not_run_reason="nothing settled for this account inside the observation window",
@@ -1164,6 +1170,13 @@ def renewal_margin_uplift(
             cost_to_serve_gbp_per_year=observed["cost_to_serve_gbp_per_year"],
             # THE CHURN vocabulary, not the cost one -- see the mapping above.
             segment=churn_segment,
+            # THE FUEL, and it is not cosmetic. `estimate_churn_probability` branches
+            # on it: gas carries its own base churn rate and its own rate sensitivity,
+            # written for a stickier dual-fuel product with fewer alternatives. Left at
+            # the default, every gas renewal this arm now prices would be answered by
+            # the ELECTRICITY curve — a wrong answer that looks exactly like a right
+            # one, which is the whole reason the gate and the fuel move together.
+            fuel=commodity,
             renewal_year=int(term_start[:4]),
             # EVERYTHING THIS ACCOUNT'S OWN RECORDS ALREADY SAID, and until 2026-08-26 none of it
             # was passed. `decide_margin` takes twenty company observables; this adapter handed it
@@ -1212,8 +1225,19 @@ def renewal_margin_uplift(
 
 def observed_account_state(
     account_id: str, term_start: str, settled_records: list[dict], segment: str,
+    commodity: str,
 ) -> dict | None:
     """Tenure, EAC, the rate this account is actually on, and cost-to-serve — all observed.
+
+    `commodity` IS REQUIRED AND HAS NO DEFAULT (2026-09-07). Three of the derivations
+    below are per-commodity — the record filter, the cost-to-serve cadence and the
+    standing-charge table — and all three read the SAME argument, so an account's
+    state cannot be assembled half from one book and half from another. A default
+    would have made every caller that forgot it read the electricity book for a gas
+    renewal and return a number with nothing wrong on its face; on a book that is
+    87 dual-fuel of 164 accounts, that account HAS an electricity leg, so the wrong
+    answer would be a populated, plausible one rather than an empty one. Adding the
+    argument as required is what makes every call site state which book it means.
 
     Returns `None` where the account has nothing settled inside the window before this term. That
     is a STATE and not an error: an account with no observed history is one this arm has no basis
@@ -1252,7 +1276,7 @@ def observed_account_state(
     prior = [
         r for r in settled_records
         if r.get("customer_id") == account_id
-        and r.get("commodity", UPLIFTABLE_COMMODITY) == UPLIFTABLE_COMMODITY
+        and r.get("commodity", commodity) == commodity
         and r.get("settlement_date", "") < term_start
     ]
     if not prior:
@@ -1266,7 +1290,7 @@ def observed_account_state(
     if kwh <= 0.0:
         return None
 
-    fixed_revenue = _observed_standing_charge_gbp(window, segment)
+    fixed_revenue = _observed_standing_charge_gbp(window, segment, commodity)
     tenure_years = max(0.0, (start - _date.fromisoformat(
         min(r.get("settlement_date", term_start) for r in prior))).days / 365.25)
 
@@ -1294,7 +1318,7 @@ def observed_account_state(
         "expected_periods": min(MAX_EXPECTED_PERIODS, max(1.0, tenure_years)),
         "cost_to_serve_gbp_per_year": sum(
             cost_to_serve_for_period(
-                segment, float(r.get("revenue_gbp") or 0.0), UPLIFTABLE_COMMODITY,
+                segment, float(r.get("revenue_gbp") or 0.0), commodity,
                 periods=int(r.get("settlement_periods_folded", 1) or 1))
             for r in window),
     }
@@ -1306,7 +1330,8 @@ def observed_account_state(
 MAX_EXPECTED_PERIODS: float = 6.0
 
 
-def _observed_standing_charge_gbp(window: list[dict], segment: str) -> float:
+def _observed_standing_charge_gbp(
+    window: list[dict], segment: str, commodity: str) -> float:
     """What this account was billed in STANDING CHARGE over the window, from its own records.
 
     THE RECORD IS AUTHORITATIVE AND THE TARIFF TABLE IS THE FALLBACK, which is the same order
@@ -1324,4 +1349,4 @@ def _observed_standing_charge_gbp(window: list[dict], segment: str) -> float:
     if stamped > 0.0:
         return stamped
     days = len({r.get("settlement_date") for r in window if r.get("settlement_date")})
-    return days * standing_charge_rate(UPLIFTABLE_COMMODITY, segment)
+    return days * standing_charge_rate(commodity, segment)

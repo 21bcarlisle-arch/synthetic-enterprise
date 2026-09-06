@@ -176,14 +176,28 @@ def estimate_prior_term_net_margin(
 def compute_profitability_uplift(
     cid: str,
     term_start_str: str,
+    # The whole settled book; the as_of bound is applied downstream, at
+    # `settlement_date < term_start_str`. See the clock paragraph below.
     all_records: list[dict],
+    commodity: str = "electricity",
 ) -> float:
     """Return a unit-rate uplift (GBP/MWh) for net-negative customers.
 
     Phase 44a: called at renewal term signing. Returns NET_NEGATIVE_UPLIFT_GBP_PER_MWH
     if the most recent prior term was net-negative; 0.0 otherwise.
+
+    `commodity` selects WHICH BOOK the prior term is read from, and it is the same
+    argument `estimate_prior_term_net_margin` has always taken. It defaults to
+    electricity for callers that predate gas eligibility; the eligibility door
+    below passes the renewal's own commodity and never the default.
+
+    THE as_of BOUND IS UNCHANGED BY THAT ARGUMENT and stays where it has always
+    been applied — one call down, where `settlement_date < term_start_str` keeps
+    only what had settled when the term was struck. Selecting a commodity narrows
+    the book; it does not widen the clock.
     """
-    prior_margin = estimate_prior_term_net_margin(cid, term_start_str, all_records)
+    prior_margin = estimate_prior_term_net_margin(
+        cid, term_start_str, all_records, commodity=commodity)
     if prior_margin is None or prior_margin >= 0.0:
         return 0.0
     return NET_NEGATIVE_UPLIFT_GBP_PER_MWH
@@ -214,10 +228,44 @@ def compute_profitability_uplift(
 # ---------------------------------------------------------------------------
 
 # The products this uplift can be applied to. Deemed and flexible terms have no
-# locked unit rate to adjust, and gas is priced off a book this policy has never
-# been calibrated against.
+# locked unit rate to adjust.
 UPLIFTABLE_TARIFF_TYPES: frozenset[str] = frozenset({"fixed", "pass_through"})
-UPLIFTABLE_COMMODITY: str = "electricity"
+
+# THE COMMODITIES THIS ELIGIBILITY RULE ADMITS. Gas was excluded here from the
+# start on the stated ground that it "is priced off a book this policy has never
+# been calibrated against" — true when written, and no longer true of any input
+# either writer behind this gate needs (2026-09-07):
+#
+#   * the churn model has had gas constants all along and branches on them
+#     (`company/crm/churn_model.py`: a gas base rate and rate sensitivity written
+#     for a stickier dual-fuel product). A gas renewal answered on the
+#     electricity branch is answered by the WRONG curve, not by a missing one;
+#   * `saas/cost_to_serve.cost_to_serve_for_period` already takes `commodity` and
+#     switches cadence on it — gas settles daily, electricity half-hourly;
+#   * `saas/non_commodity.STANDING_CHARGE_GBP_PER_DAY["gas"]` has carried
+#     resi/SME rates since it was written;
+#   * `company/pricing/ofgem_price_cap.get_cap_unit_rate_for_date` resolves 'gas'
+#     as a first-class fuel, so a gas renewal has a real lawful ceiling to be
+#     decided UNDER rather than an electricity one borrowed for it. The two are
+#     not close: GBP 33.40/MWh against GBP 190-odd at 2021-06.
+#
+# WHAT THIS COST WHILE IT STOOD, measured on the world this company runs against:
+# 346 of 1,953 offered renewals — 17.7%, and the largest exclusion this company's
+# own code owns — refused at `not_the_arms_commodity`, against 120 the value arm
+# priced. Both instruments that can speak to the value thesis came back "cannot
+# tell" and both attributed it to how few decisions there are to score.
+#
+# WIDENING IT IS NOT ENOUGH BY ITSELF, and that is why this comment is here. Each
+# per-commodity input above has to be READ per-commodity at the call site. A gate
+# that admits gas while a writer behind it keeps passing the electricity literal
+# prices a gas renewal off an electricity book and says nothing — the same defect
+# `test_the_defect_this_control_guards_would_change_a_real_answer` was written
+# for, moved one level down, and worse here because on a book that is 87 dual-fuel
+# of 164 accounts the electricity leg EXISTS, so the wrong answer is a populated
+# plausible one rather than an empty one. See `commodity=` threaded through
+# `compute_profitability_uplift` below and through
+# `value_based_renewal.observed_account_state`, which now REQUIRES it.
+UPLIFTABLE_COMMODITIES: frozenset[str] = frozenset({"electricity", "gas"})
 # Term 0 is the acquisition term: there is no prior term to have been negative.
 MIN_TERM_INDEX_FOR_UPLIFT: int = 1
 
@@ -244,8 +292,14 @@ def renewal_unit_rate_uplift(
         return 0.0
     if term_index < MIN_TERM_INDEX_FOR_UPLIFT:
         return 0.0
-    if commodity != UPLIFTABLE_COMMODITY:
+    if commodity not in UPLIFTABLE_COMMODITIES:
         return 0.0
     if tariff_type not in UPLIFTABLE_TARIFF_TYPES:
         return 0.0
-    return compute_profitability_uplift(account_id, term_start, settled_records)
+    # THE COMMODITY GOES DOWN WITH IT. While this gate admitted electricity only,
+    # `compute_profitability_uplift`'s default WAS the gate's own answer and the
+    # omission could not show. It can now: a gas renewal whose prior term is read
+    # off the electricity leg of the same dual-fuel household is repriced against
+    # a book that is not its own.
+    return compute_profitability_uplift(
+        account_id, term_start, settled_records, commodity=commodity)

@@ -142,10 +142,33 @@ def standing_charge_rate(commodity: str, segment: str) -> float:
     test_standing_charge_rate_never_silently_defaults_a_segment) rather than
     silently inherit the domestic rate -- the exact class of bug fixed here for
     I&C (previously defaulted to the resi 0.27 rate).
+
+    THE COMMODITY FALLS CLOSED AND THE SEGMENT DOES NOT, and the asymmetry is the
+    point. An unrecognised SEGMENT is a business the company has just started
+    serving, and the domestic rate is a defensible thing to charge it while
+    somebody adds the row. An unrecognised COMMODITY is not that: this table holds
+    every fuel this supplier sells, so a caller asking for one that is not here is
+    a caller that does not know what it is billing, and handing it the ELECTRICITY
+    rates answers a question about gas with an answer about electricity and says
+    nothing.
+
+    Until 2026-09-07 it did exactly that. The defect could not show because
+    `UPLIFTABLE_COMMODITY` was 'electricity', so the one caller in the value arm
+    passed the literal this fallback would have supplied anyway -- the gate made
+    the fallback unreachable, and widening the gate to gas is what put a second
+    commodity on this path. Raising is the whole repair: a `ValueError` naming the
+    commodity is how a mistyped or newly-added fuel is found in the first run
+    rather than in a published rate nobody can attribute (CLAUDE.md, "write
+    refusals that name their reason").
     """
-    commodity_rates = STANDING_CHARGE_GBP_PER_DAY.get(
-        commodity, STANDING_CHARGE_GBP_PER_DAY["electricity"]
-    )
+    if commodity not in STANDING_CHARGE_GBP_PER_DAY:
+        raise ValueError(
+            f"no standing-charge table for commodity {commodity!r}; this supplier "
+            f"sells {sorted(STANDING_CHARGE_GBP_PER_DAY)} and returning the "
+            "electricity rates for anything else would price one fuel off another. "
+            "Add the fuel's own resi/SME/I&C rates here, with their source."
+        )
+    commodity_rates = STANDING_CHARGE_GBP_PER_DAY[commodity]
     return commodity_rates.get(segment, commodity_rates["resi"])
 
 

@@ -21,14 +21,14 @@ from __future__ import annotations
 
 from company.crm.customer_profitability import (
     MIN_TERM_INDEX_FOR_UPLIFT,
-    UPLIFTABLE_COMMODITY,
+    UPLIFTABLE_COMMODITIES,
     UPLIFTABLE_TARIFF_TYPES,
     renewal_unit_rate_uplift,
 )
 
 __all__ = [
     "MIN_TERM_INDEX_FOR_UPLIFT",
-    "UPLIFTABLE_COMMODITY",
+    "UPLIFTABLE_COMMODITIES",
     "UPLIFTABLE_TARIFF_TYPES",
     "renewal_unit_rate_uplift",
 ]

@@ -88,7 +88,7 @@ from background.boot_sha import current_head
 # releases it.
 from company.analytics.household_value_share import build_household_value_share
 from company.crm.customer_profitability import (
-    UPLIFTABLE_COMMODITY,
+    UPLIFTABLE_COMMODITIES,
     UPLIFTABLE_TARIFF_TYPES,
 )
 from company.policy.decision_policy import (
@@ -1836,8 +1836,12 @@ FUNNEL_STAGE_MEANINGS: dict[str, str] = {
         "term 0. The account had no prior term when this one was struck, so there is nothing "
         "observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."),
     "not_the_arms_commodity": (
-        "gas. `UPLIFTABLE_COMMODITY` is electricity: the arm's churn and cost-to-serve inputs "
-        "are calibrated on the electricity book and the supplier has never fitted them to gas."),
+        "a commodity outside `UPLIFTABLE_COMMODITIES`. Gas was here until 2026-09-07, on the "
+        "ground that the arm's churn and cost-to-serve inputs had never been fitted to it; every "
+        "one of those inputs now takes the renewal's OWN commodity (churn `fuel`, cost-to-serve "
+        "cadence, standing-charge table, cap ceiling), so the stage counts only fuels this "
+        "supplier does not sell. The MEANING stops at the guard and the cause is read off the "
+        "breakdown, for the reason given below."),
     # NO CAUSE IS ASSERTED HERE ANY MORE, and that is the repair (2026-09-04). This entry used to
     # close with "the world has no standard-variable product to set it to -- `build_renewal_
     # schedule` settles exactly fixed, flex, deemed and pass_through". Every clause of it was
@@ -1946,8 +1950,11 @@ def product_label_by_account_class() -> dict:
     classes = account_class_map()
     census: dict[tuple[str, str, bool, str], int] = collections.Counter()
     # Whether each billing account's legs agree that a product was DECIDED for them. Two legs of
-    # one account minted by two paths can disagree, and the disagreement is invisible to the arm
-    # today only because the gas leg is refused one gate earlier, at the commodity.
+    # one account minted by two paths can disagree. That disagreement used to be invisible to the
+    # arm, because the gas leg was refused one gate earlier at the commodity and only the
+    # electricity leg ever reached the product gate. Since 2026-09-07 both legs reach it, so a
+    # populated `billing_accounts_whose_legs_disagree_about_labelling` is now a live difference in
+    # what the arm prices rather than a latent one.
     key_present_by_account: dict[str, set[bool]] = collections.defaultdict(set)
     reachable: set[str] = set()
     for record in list(CUSTOMERS) + list(SUCCESSOR_CUSTOMERS):
@@ -1957,7 +1964,7 @@ def product_label_by_account_class() -> dict:
         resolved = record.get("tariff_type", "fixed")
         census[(name, record["commodity"], present, resolved)] += 1
         key_present_by_account[account].add(present)
-        if (record["commodity"] == UPLIFTABLE_COMMODITY
+        if (record["commodity"] in UPLIFTABLE_COMMODITIES
                 and resolved in UPLIFTABLE_TARIFF_TYPES
                 and name in _FOUND_ACCOUNT_CLASSES):
             reachable.add(account)
@@ -1971,12 +1978,12 @@ def product_label_by_account_class() -> dict:
             "from which renewals the run happened to price."),
         "the_guard_this_feeds": (
             "company/crm/customer_profitability.py: UPLIFTABLE_TARIFF_TYPES = {}, applied at "
-            "company/pricing/value_based_renewal.renewal_margin_uplift on commodity {!r}."
-        ).format(sorted(UPLIFTABLE_TARIFF_TYPES), UPLIFTABLE_COMMODITY),
+            "company/pricing/value_based_renewal.renewal_margin_uplift on commodities {!r}."
+        ).format(sorted(UPLIFTABLE_TARIFF_TYPES), sorted(UPLIFTABLE_COMMODITIES)),
         "legs": [
             {"account_class": name, "commodity": commodity, "tariff_type_key_present": present,
              "resolved_tariff_type": resolved, "legs": count,
-             "the_guard_admits_it": (commodity == UPLIFTABLE_COMMODITY
+             "the_guard_admits_it": (commodity in UPLIFTABLE_COMMODITIES
                                      and resolved in UPLIFTABLE_TARIFF_TYPES)}
             for (name, commodity, present, resolved), count in sorted(
                 census.items(), key=lambda item: str(item[0]))

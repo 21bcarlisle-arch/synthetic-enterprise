@@ -1425,7 +1425,10 @@ def _resolvable(value, spread) -> bool | None:
 #: judgement that lives in a regex drifts silently.
 _SCOPE_BY_DESIGN = {
     "acquisition_term": "term 0 has no prior term to price against",
-    "not_the_arms_commodity": "the arm is fitted to electricity and has never been fitted to gas",
+    "not_the_arms_commodity": (
+        "the commodity is outside `UPLIFTABLE_COMMODITIES` (electricity, gas). Gas sat here "
+        "until 2026-09-07 and no longer does: the arm now reads the renewal's own commodity for "
+        "its churn curve, its cost-to-serve cadence, its standing-charge table and its lawful cap"),
 }
 
 

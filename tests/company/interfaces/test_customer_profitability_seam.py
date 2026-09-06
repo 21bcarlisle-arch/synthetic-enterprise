@@ -64,7 +64,9 @@ ACCOUNT = "C4"
 TERM_START = "2019-04-01"
 
 # The account's own settled book. The prior term (2018-04-01) ran at a loss on
-# electricity; the same account's gas term did not.
+# BOTH legs, so every eligible row of the matrix below returns the same non-zero
+# uplift whichever book it is read from. That is deliberate for controls 2 and 4
+# and USELESS for the threading question -- see SPLIT_SIGN_RECORDS.
 SETTLED_RECORDS = [
     {
         "customer_id": ACCOUNT, "commodity": "electricity",
@@ -79,32 +81,94 @@ SETTLED_RECORDS = [
         "net_margin_gbp": -31.00,
     }
     for month in (5, 6, 7, 8)
+] + [
+    # A SETTLED, LOSS-MAKING BOOK ON A FUEL THIS SUPPLIER DOES NOT SELL. Without
+    # it the commodity gate's mutation is unkillable for the flattering reason:
+    # delete the gate and 'hydrogen' passes into `estimate_prior_term_net_margin`,
+    # which finds no hydrogen records, returns None, and the door answers 0.0 --
+    # the same number the gate gives, so the control goes green on a gate that is
+    # doing nothing. The gate's actual claim is "a fuel outside
+    # `UPLIFTABLE_COMMODITIES` is refused EVEN WHERE THERE IS A BOOK TO REPRICE",
+    # and only a populated book can put that claim at risk.
+    {
+        "customer_id": ACCOUNT, "commodity": "hydrogen",
+        "settlement_date": f"2018-{month:02d}-28", "term_start": "2018-04-01",
+        "net_margin_gbp": -22.50,
+    }
+    for month in (5, 6, 7, 8)
+]
+
+# THE SAME ACCOUNT WITH THE TWO LEGS ON OPPOSITE SIDES OF ZERO. `SETTLED_RECORDS`
+# above cannot answer "which book did this renewal read", because both books say
+# net-negative and the uplift is a flat constant -- reading the wrong one returns
+# the right number. This fixture is the discriminator: electricity lost money and
+# gas made it, so a gas renewal priced off the electricity leg is repriced when it
+# should not be, and the two answers are 5.0 and 0.0 rather than 5.0 and 5.0.
+#
+# It is not hypothetical on this world's book: 87 of 164 settled accounts are dual
+# fuel, so the account whose gas leg would be priced off its electricity leg is the
+# MAJORITY case, and the wrong answer is a populated plausible one.
+SPLIT_SIGN_RECORDS = [
+    {
+        "customer_id": ACCOUNT, "commodity": "electricity",
+        "settlement_date": f"2018-{month:02d}-28", "term_start": "2018-04-01",
+        "net_margin_gbp": -14.20,
+    }
+    for month in (5, 6, 7, 8)
+] + [
+    {
+        "customer_id": ACCOUNT, "commodity": "gas",
+        "settlement_date": f"2018-{month:02d}-28", "term_start": "2018-04-01",
+        "net_margin_gbp": +31.00,
+    }
+    for month in (5, 6, 7, 8)
 ]
 
 # (label, commodity, tariff_type, term_index, locked_unit_rate)
 MATRIX = [
     ("eligible: renewed electricity fixed", "electricity", "fixed", 1, 142.5),
     ("eligible: renewed electricity pass-through", "electricity", "pass_through", 2, 155.0),
+    # GAS IS AN ELIGIBLE ARM FROM 2026-09-07, not a refused one. It sat in the
+    # refused block below on the ground that the arm's inputs had never been fitted
+    # to it; every one of those inputs now takes the renewal's own commodity.
+    ("eligible: renewed gas fixed", "gas", "fixed", 1, 42.0),
     ("acquisition term", "electricity", "fixed", 0, 142.5),
-    ("gas", "gas", "fixed", 1, 42.0),
+    # THE COMMODITY GATE'S REMAINING SUBJECT. `UPLIFTABLE_COMMODITIES` is a set of
+    # the fuels this supplier sells, so the arm this gate refuses is a fuel it does
+    # not -- which is what keeps the gate reachable now that gas passes it.
+    ("unsupported commodity", "hydrogen", "fixed", 1, 42.0),
     ("deemed", "electricity", "deemed", 1, 142.5),
     ("flex", "electricity", "flex", 1, 142.5),
     ("no locked rate", "electricity", "fixed", 1, None),
     ("no tariff type at all", "electricity", None, 1, 142.5),
 ]
-ELIGIBLE_LABELS = {MATRIX[0][0], MATRIX[1][0]}
+ELIGIBLE_LABELS = {MATRIX[0][0], MATRIX[1][0], MATRIX[2][0]}
 
 
-def _pre_cut(commodity, tariff_type, term_index, locked_unit_rate):
-    """The exact expression `run_phase2b.py::main()` ran before step 22."""
+def _pre_cut(commodity, tariff_type, term_index, locked_unit_rate, records=None):
+    """The eligibility rule spelled with LITERALS, outside the door.
+
+    This began as the exact expression `run_phase2b.py::main()` ran before step
+    22, and control 2's job was that the composition lift moved no number. The
+    rule it restates has since been CHANGED on purpose -- gas admitted, 2026-09-07
+    -- so the literal `commodity == "electricity"` was updated with it rather than
+    left to fail. Every other arm is untouched, so the lift is still what this
+    comparison proves on the rows that did not move.
+
+    It passes `commodity=` down for the same reason the door does: a restatement
+    that read one book for both fuels would agree with a door that did the same,
+    and control 2 would go green on the defect it exists to catch.
+    """
     if (locked_unit_rate is not None and term_index >= 1
-            and commodity == "electricity"
+            and commodity in ("electricity", "gas")
             and tariff_type in ("fixed", "pass_through")):
-        return compute_profitability_uplift(ACCOUNT, TERM_START, SETTLED_RECORDS)
+        return compute_profitability_uplift(
+            ACCOUNT, TERM_START, records if records is not None else SETTLED_RECORDS,
+            commodity=commodity)
     return 0.0
 
 
-def _door(commodity, tariff_type, term_index, locked_unit_rate, module=door):
+def _door(commodity, tariff_type, term_index, locked_unit_rate, module=door, records=None):
     return module.renewal_unit_rate_uplift(
         account_id=ACCOUNT,
         commodity=commodity,
@@ -112,7 +176,7 @@ def _door(commodity, tariff_type, term_index, locked_unit_rate, module=door):
         term_index=term_index,
         term_start=TERM_START,
         locked_unit_rate=locked_unit_rate,
-        settled_records=SETTLED_RECORDS,
+        settled_records=records if records is not None else SETTLED_RECORDS,
     )
 
 
@@ -310,10 +374,28 @@ def test_mutation_a_hardcoded_argument_is_caught(defect, expected):
 
 
 def test_the_defect_this_control_guards_would_change_a_real_answer():
-    """Not hypothetical: the gas term IS net-negative in this fixture, so a
-    hardcoded `commodity="electricity"` would reprice it."""
-    assert _door("gas", "fixed", 1, 42.0) == 0.0
-    assert _door("electricity", "fixed", 1, 42.0) > 0.0
+    """Not hypothetical, and the defect it names MOVED when gas was admitted.
+
+    Until 2026-09-07 a hardcoded `commodity="electricity"` at the call site made
+    the door reprice a gas renewal it should have refused, and this asserted the
+    refusal. Gas is eligible now, so the refusal is gone and the SAME literal
+    causes the deeper version of the same error: the gas renewal is priced, off
+    the account's ELECTRICITY book. `SPLIT_SIGN_RECORDS` puts the two legs on
+    opposite sides of zero so the two readings give different answers.
+    """
+    assert _door("gas", "fixed", 1, 42.0, records=SPLIT_SIGN_RECORDS) == 0.0, (
+        "the gas leg made money in this fixture, so a gas renewal read off its OWN "
+        "book carries no unprofitability uplift"
+    )
+    assert _door("electricity", "fixed", 1, 42.0, records=SPLIT_SIGN_RECORDS) > 0.0, (
+        "the electricity leg lost money, so the hardcoded literal this control "
+        "guards would have handed the gas renewal a repricing it has not earned"
+    )
+    # AND THE COMMODITY IS NOT MERELY ACCEPTED, IT IS SPENT. A door that took the
+    # argument and dropped it before `compute_profitability_uplift` would pass
+    # every assertion above only if the two readings agreed -- they do not.
+    assert _door("gas", "fixed", 1, 42.0, records=SPLIT_SIGN_RECORDS) != _door(
+        "electricity", "fixed", 1, 42.0, records=SPLIT_SIGN_RECORDS)
 
 
 # ---------------------------------------------------------------------------
@@ -325,7 +407,8 @@ def test_the_defect_this_control_guards_would_change_a_real_answer():
     "arm,gate",
     [
         ("acquisition term", "    if term_index < MIN_TERM_INDEX_FOR_UPLIFT:\n        return 0.0\n"),
-        ("gas", "    if commodity != UPLIFTABLE_COMMODITY:\n        return 0.0\n"),
+        ("unsupported commodity",
+         "    if commodity not in UPLIFTABLE_COMMODITIES:\n        return 0.0\n"),
         ("deemed", "    if tariff_type not in UPLIFTABLE_TARIFF_TYPES:\n        return 0.0\n"),
     ],
 )

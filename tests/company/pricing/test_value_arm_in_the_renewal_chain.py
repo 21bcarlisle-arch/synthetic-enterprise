@@ -211,7 +211,10 @@ def test_the_arm_reads_the_RUNS_policy_and_not_a_module_default():
 @pytest.mark.parametrize("over,reason_fragment", [
     (dict(settled_records=[]), "nothing settled"),
     (dict(term_index=0), "acquisition term"),
-    (dict(commodity="gas"), "not priced by this arm"),
+    # GAS WAS THIS ROW UNTIL 2026-09-07 and is now an arm the writer prices; the
+    # stage it left behind still exists and still needs a subject, so the subject
+    # is a fuel outside `UPLIFTABLE_COMMODITIES` rather than one inside it.
+    (dict(commodity="hydrogen"), "not priced by this arm"),
     (dict(tariff_type="flex"), "no locked margin"),
     (dict(struck_unit_rate_gbp_per_mwh=None), "no locked rate"),
 ])
@@ -256,15 +259,15 @@ def test_the_observation_window_is_the_one_the_churn_estimate_uses():
     a different span, the arm's own objective would be internally inconsistent about how big the
     customer is and nothing would report it."""
     assert vbr.OBSERVATION_WINDOW_YEARS == 1
-    observed = vbr.observed_account_state("C1", "2021-01-01", _settled(), "resi")
+    observed = vbr.observed_account_state("C1", "2021-01-01", _settled(), "resi", "electricity")
     assert observed["eac_kwh"] == pytest.approx(250.0 * 12)
     # A record older than the window is outside it, and a record after the term start is
     # invisible: the point-in-time blindfold, asserted rather than assumed.
     older = _settled(year=2018) + _settled(year=2020)
-    assert vbr.observed_account_state("C1", "2021-01-01", older, "resi")["eac_kwh"] == (
+    assert vbr.observed_account_state("C1", "2021-01-01", older, "resi", "electricity")["eac_kwh"] == (
         pytest.approx(250.0 * 12))
     future = _settled(year=2020) + _settled(year=2022)
-    assert vbr.observed_account_state("C1", "2021-01-01", future, "resi")["eac_kwh"] == (
+    assert vbr.observed_account_state("C1", "2021-01-01", future, "resi", "electricity")["eac_kwh"] == (
         pytest.approx(250.0 * 12))
 
 
@@ -295,7 +298,7 @@ def test_a_renewal_the_arm_CANNOT_LAWFULLY_PRICE_leaves_the_rate_alone_and_says_
     # the STRUCK rate alone had already overshot what the churn model has evidence for. A cheap
     # account meeting an expensive term -- 2021 wholesale -- not an expensive customer.
     cheap = _settled(kwh_per_month=250.0, revenue_per_month=26.25)   # ~GBP 105/MWh realised
-    observed = vbr.observed_account_state("C1", "2021-01-01", cheap, "SME")
+    observed = vbr.observed_account_state("C1", "2021-01-01", cheap, "SME", "electricity")
     assert observed["current_rate_gbp_per_mwh"] * 1.831 < 251.45, (
         "fixture no longer reproduces the incident -- the support bound reaches the base rate, "
         "so the arm can price this and the refusal below would never fire")
@@ -379,7 +382,7 @@ def test_the_arm_prices_against_the_COMMODITY_rate_not_the_ALL_IN_billed_one():
     `revenue / (kwh / 1000.0)` and this reds on the first assertion.
     """
     records = _settled_with_standing_charge()
-    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi", "electricity")
 
     all_in = (sum(r["revenue_gbp"] for r in records)
               / (sum(r["consumption_kwh"] for r in records) / 1000.0))
@@ -407,7 +410,7 @@ def test_forgetting_the_STANDING_CHARGE_makes_the_chain_arm_OVER_PRICE():
     measures the mechanism rather than today's number.
     """
     records = _settled_with_standing_charge()
-    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi", "electricity")
     base = 120.0 - TARGET_MARGIN_GBP_PER_MWH
     common = dict(customer_id="C1", arm=vbr.VALUE_BASED, base_rate_gbp_per_mwh=base,
                   eac_kwh=observed["eac_kwh"], tenure_years=observed["tenure_years"],
@@ -443,7 +446,7 @@ def test_the_arm_prices_a_renewal_at_its_OBSERVED_lifetime_not_the_no_evidence_f
     records = (_settled_with_standing_charge(year=2018)
                + _settled_with_standing_charge(year=2019)
                + _settled_with_standing_charge(year=2020))
-    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi", "electricity")
     assert observed["tenure_years"] > 2.9
     assert observed["expected_periods"] > vbr.FALLBACK_LIFETIME_PERIODS, (
         "a three-year account is still being priced at the one-period fallback meant for an "
@@ -463,7 +466,7 @@ def test_the_STANDING_CHARGE_FALLBACK_counts_DAYS_and_not_SETTLEMENT_ROWS():
     records = _settled_with_standing_charge()
     for row in records:
         row.pop("standing_charge_gbp")
-    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi")
+    observed = vbr.observed_account_state("C1", "2021-01-01", records, "resi", "electricity")
 
     days = len({r["settlement_date"] for r in records})
     assert observed["fixed_revenue_gbp_per_year"] == pytest.approx(
@@ -544,3 +547,221 @@ def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
                 f"struck at {struck}: the arm asked for {entry['unit_rate_after']:.2f} GBP/MWh "
                 f"against a cap of {cap:.2f} -- an unlawful offer that only writer 4 stops"
             )
+
+
+# ── gas is priced as gas, not as electricity wearing a label ────────────────────────────────
+#
+# `UPLIFTABLE_COMMODITIES` admitted gas on 2026-09-07, closing the largest exclusion this
+# company's own code owned: 346 of 1,953 offered renewals against 120 the arm priced.
+#
+# WIDENING A GATE IS THE EASY HALF AND THE UNSAFE ONE. Four inputs behind it are
+# commodity-specific, and each has an electricity answer sitting where a missing gas answer
+# would go: the record filter (which leg's book), the churn curve (`fuel`), the cost-to-serve
+# cadence (gas settles daily, electricity half-hourly), and the standing-charge table. A gate
+# that admits gas while any of those keeps its electricity literal returns a NUMBER, not an
+# error -- and on a book that is 87 dual-fuel of 164 accounts the account really does have an
+# electricity leg to read, so the wrong answer is populated and plausible.
+#
+# Every control below is written to fail if one of those four reverts to the literal. None of
+# them asserts a particular gas price: they assert that the gas answer and the electricity
+# answer are DIFFERENT and that the difference comes from the gas inputs.
+
+
+def _dual_fuel_book(account: str = "C1", *, year: int = 2020) -> list[dict]:
+    """One account, two legs, DELIBERATELY DIFFERENT SIZES.
+
+    The sizes are what make the record filter falsifiable. Equal legs would let a filter that
+    reads the wrong book return the right EAC, and the control would go green on the defect.
+    """
+    elec = _settled(account, year=year, kwh_per_month=250.0, revenue_per_month=45.0)
+    gas = [
+        {
+            "customer_id": account,
+            "commodity": "gas",
+            "settlement_date": f"{year}-{m:02d}-15",
+            "term_start": f"{year}-01-01",
+            "consumption_kwh": 900.0,
+            # A REAL DOMESTIC GAS LEVEL, and it is load-bearing rather than dressing.
+            # Gas unit rates are roughly a third of electricity's, and so is the gas cap:
+            # GBP 33.40/MWh at 2021-06 against GBP 190-odd for electricity. A gas book
+            # written at electricity levels makes the arm DECLINE every gas renewal for
+            # want of a lawful margin -- which is the arm behaving correctly and the
+            # fixture testing nothing.
+            "revenue_gbp": 32.0,
+            "net_margin_gbp": 1.0,
+            "margin_gbp": 5.0,
+            # Gas settles DAILY, so a gas record folds a day and not 48 half-hours. The value
+            # is the fixture's half of the cadence the cost model switches on.
+            "settlement_periods_folded": 1,
+        }
+        for m in range(1, 13)
+    ]
+    return elec + gas
+
+
+def test_a_gas_renewal_reads_the_gas_leg_and_not_the_electricity_one():
+    """THE RECORD FILTER. Reverting it to the electricity literal returns the elec leg's EAC.
+
+    3,000 kWh (12 x 250) against 10,800 kWh (12 x 900): the two legs cannot be confused for
+    one another, and neither can be reached by summing both.
+    """
+    book = _dual_fuel_book()
+    gas = vbr.observed_account_state("C1", "2021-01-01", book, "resi", "gas")
+    elec = vbr.observed_account_state("C1", "2021-01-01", book, "resi", "electricity")
+    assert gas["eac_kwh"] == pytest.approx(900.0 * 12)
+    assert elec["eac_kwh"] == pytest.approx(250.0 * 12)
+    assert gas["eac_kwh"] != elec["eac_kwh"]
+    # NOT THE SUM EITHER. A filter deleted outright — rather than reverted — would pass both
+    # assertions above only if it happened to match one leg; this closes the third outcome.
+    assert gas["eac_kwh"] != pytest.approx((900.0 + 250.0) * 12)
+
+
+def test_a_gas_renewal_is_costed_on_the_gas_cadence_and_the_gas_standing_charge():
+    """COST-TO-SERVE and the STANDING CHARGE, each against its own table.
+
+    Both are asserted against `saas` directly rather than against a number written here: a
+    constant copied into this file would keep agreeing with the arm after the table moved,
+    which is a control keyed to today's answer instead of to the property.
+    """
+    from saas.cost_to_serve import cost_to_serve_for_period
+    from saas.non_commodity import standing_charge_rate
+
+    book = _dual_fuel_book()
+    gas = vbr.observed_account_state("C1", "2021-01-01", book, "resi", "gas")
+
+    expected_cts = sum(
+        cost_to_serve_for_period("resi", 32.0, "gas", periods=1) for _ in range(12))
+    assert gas["cost_to_serve_gbp_per_year"] == pytest.approx(expected_cts)
+    # And it is NOT what the electricity cadence would have charged on the same records.
+    assert gas["cost_to_serve_gbp_per_year"] != pytest.approx(
+        sum(cost_to_serve_for_period("resi", 32.0, "electricity", periods=1) for _ in range(12)))
+
+    # The gas standing charge, from the gas table. These records carry no stamped
+    # `standing_charge_gbp`, so the fallback path is the one under test -- 12 distinct
+    # settlement dates at the gas resi rate.
+    assert gas["fixed_revenue_gbp_per_year"] == pytest.approx(
+        12 * standing_charge_rate("gas", "resi"))
+    assert standing_charge_rate("gas", "resi") != standing_charge_rate("electricity", "resi"), (
+        "the two tables agree, so this control can no longer tell them apart -- give it a "
+        "different discriminator rather than deleting it"
+    )
+
+
+def test_the_gas_renewal_is_priced_by_the_gas_churn_curve():
+    """THE `fuel` ARGUMENT. `estimate_churn_probability` branches on it, and the gas branch
+    carries its own base rate and its own rate sensitivity for a stickier product.
+
+    Asserted as a DIFFERENCE between the two fuels at identical inputs, so it fails if the
+    adapter stops passing `fuel` (both sides collapse onto the electricity curve and become
+    equal), and it does not encode either curve's constants here.
+    """
+    from company.crm.churn_model import estimate_churn_probability
+
+    kwargs = dict(old_rate_gbp_per_mwh=120.0, new_rate_gbp_per_mwh=180.0,
+                  tenure_years=3.0, annual_consumption_kwh=10800.0, segment="resi")
+    assert estimate_churn_probability(fuel="gas", **kwargs) != pytest.approx(
+        estimate_churn_probability(fuel="electricity", **kwargs)), (
+        "the two fuels' churn curves have converged, so passing `fuel` can no longer change "
+        "an answer and the control below proves nothing"
+    )
+
+    book = _dual_fuel_book()
+    with policy_scope(VALUE_ARM_POLICY):
+        gas = vbr.renewal_margin_uplift(
+            account_id="C1", commodity="gas", tariff_type="fixed", term_index=2,
+            term_start="2021-01-01", locked_unit_rate=40.0, settled_records=book,
+            is_domestic=False, arm=vbr.VALUE_BASED)
+    assert gas.decision is not None, f"the arm refused a gas renewal it admits: {gas!r}"
+    # The gas leg is the one that was priced: the arm's own record of how big this customer is
+    # must be the gas leg's EAC, and there is no route to that number from the electricity leg.
+    assert gas.decision.eac_mwh == pytest.approx(900.0 * 12 / 1000.0)
+
+
+def test_the_adapter_SPENDS_the_fuel_rather_than_merely_having_one(monkeypatch):
+    """THE CALLER, not the helper -- and this control exists because the obvious one failed.
+
+    `test_the_gas_renewal_is_priced_by_the_gas_churn_curve` above asserts that the two fuels'
+    curves differ and that the gas leg's EAC reached the decision. Both are true of an adapter
+    that never passes `fuel` at all: the first calls `estimate_churn_probability` directly and
+    the second is answered by the record filter. Deleting `fuel=commodity` from the
+    `decide_margin` call left all of it green -- a control keyed to the helper surviving a
+    mutation of the caller, which is the shape this repo has been caught by before.
+
+    So this one reads the CALL. It fails if the argument is dropped, and it fails if the
+    argument is passed as a literal, which is the same defect the seam's control 3 guards one
+    writer along.
+    """
+    seen: list[dict] = []
+    real = vbr.decide_margin
+
+    def spy(**kwargs):
+        seen.append(kwargs)
+        return real(**kwargs)
+
+    monkeypatch.setattr(vbr, "decide_margin", spy)
+    book = _dual_fuel_book()
+    for commodity, rate in (("gas", 40.0), ("electricity", 200.0)):
+        with policy_scope(VALUE_ARM_POLICY):
+            vbr.renewal_margin_uplift(
+                account_id="C1", commodity=commodity, tariff_type="fixed", term_index=2,
+                term_start="2021-01-01", locked_unit_rate=rate, settled_records=book,
+                is_domestic=False, arm=vbr.VALUE_BASED)
+
+    assert len(seen) == 2, f"the arm did not reach the decision on both fuels: {seen!r}"
+    assert [call.get("fuel") for call in seen] == ["gas", "electricity"], (
+        "the adapter did not hand `decide_margin` the renewal's own fuel. Left to its default, "
+        "every gas renewal this arm now prices is answered by the ELECTRICITY churn curve -- a "
+        "wrong number that looks exactly like a right one"
+    )
+
+
+def test_the_gas_renewal_decides_under_the_GAS_cap_and_not_the_electricity_one():
+    """The lawful ceiling is a fact about the fuel. A gas renewal decided under the electricity
+    cap is deciding under a bound that does not bind it, and `decide_margin` refuses the
+    post-hoc version of that error explicitly.
+    """
+    from datetime import date as _date
+
+    from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date
+
+    gas_cap = get_cap_unit_rate_for_date("gas", _date(2021, 6, 1))
+    elec_cap = get_cap_unit_rate_for_date("electricity", _date(2021, 6, 1))
+    assert gas_cap is not None and elec_cap is not None
+    assert gas_cap != pytest.approx(elec_cap), (
+        "the two caps agree on this date, so this control cannot tell which one the chain "
+        "read -- move the date rather than deleting the control"
+    )
+
+    book = _dual_fuel_book(year=2020)
+    with policy_scope(VALUE_ARM_POLICY):
+        result = _drive(commodity="gas", is_domestic=True, tariff_type="fixed",
+                        term_start="2021-06-01", struck_unit_rate_gbp_per_mwh=28.0,
+                        settled_records=book)
+    priced = [e for e in result.value_arm_entries if not e.get("declined")]
+    assert priced, f"the chain priced no gas renewal: {result.value_arm_entries!r}"
+    for entry in priced:
+        assert entry["unit_rate_after"] <= gas_cap + 1e-6, (
+            f"the arm asked {entry['unit_rate_after']:.2f} GBP/MWh for a gas renewal against a "
+            f"gas cap of {gas_cap:.2f} -- it decided under the wrong fuel's ceiling"
+        )
+
+
+def test_a_fuel_this_supplier_does_not_sell_is_REFUSED_rather_than_priced_as_electricity():
+    """The gate still gates, and the fallback under it no longer answers.
+
+    `standing_charge_rate` returned the ELECTRICITY table for any unrecognised commodity until
+    2026-09-07, silently. That was unreachable while the gate admitted electricity only; the
+    gate is wider now, so the fallback is what stands between a mistyped fuel and a published
+    rate priced off the wrong book. It raises, and this asserts both halves.
+    """
+    from saas.non_commodity import standing_charge_rate
+
+    uplift = vbr.renewal_margin_uplift(
+        account_id="C1", commodity="hydrogen", tariff_type="fixed", term_index=2,
+        term_start="2021-01-01", locked_unit_rate=200.0, settled_records=_dual_fuel_book(),
+        is_domestic=True, arm=vbr.VALUE_BASED)
+    assert uplift.not_run_stage == vbr.STAGE_NOT_THE_ARMS_COMMODITY
+    assert uplift.uplift_gbp_per_mwh == 0.0
+
+    with pytest.raises(ValueError, match="hydrogen"):
+        standing_charge_rate("hydrogen", "resi")
