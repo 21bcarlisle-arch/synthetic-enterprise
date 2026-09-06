@@ -720,3 +720,177 @@ def test_the_shrunk_figure_declares_that_it_is_not_unbiased():
     assert "over-corrects" in shrunk["what_it_assumes"], shrunk
     assert r.shrunk_toward_the_null(0.6308, None)["value"] is None, (
         "with no null to shrink toward the figure is unavailable, not zero")
+
+
+# ---------------------------------------------------------------------------
+# THE WHOLE-BOOK RUNG. A ranked sweep reports its WINNER, so the rung's household count is the
+# winner's and not the book's -- and one `decision_only` field in the candidate grid can win and
+# drag the whole rung down to the renewing subset however large the book gets. On 2026-09-06 the
+# book was 164, four observables had just been lifted to full coverage, and the magnitude still
+# refused at 69 with a message that read "the book is too small". The book was never the problem.
+# ---------------------------------------------------------------------------
+
+
+def test_every_observable_declares_a_scope_and_the_declaration_is_a_partition():
+    """The fail-closed exclusion in `whole_book_fields` must not be how a gap gets lived with.
+
+    An observable added to `OBSERVABLE_FIELDS` and not to the scope table is silently dropped from
+    the whole-book rung -- the rung quietly goes back to being renewal-shaped and nothing on the
+    surface says so. This is the control that makes that a red instead of a shrug.
+    """
+    undeclared = [f for f in r.OBSERVABLE_FIELDS if f not in r.OBSERVABLE_FIELD_SCOPE]
+    assert not undeclared, (
+        f"{undeclared} reach the sweep with no declared scope, so the whole-book rung drops them "
+        "silently and its population is set by an omission rather than a decision")
+    # A PARTITION, not a free-text column: a third value would split the book three ways and
+    # `whole_book_fields` would keep only one of them without saying which.
+    scopes = {v[0] for v in r.OBSERVABLE_FIELD_SCOPE.values()}
+    assert scopes == {"account_state", "decision_only"}, scopes
+    # BOTH SIDES ARE OCCUPIED. A table that declared everything `account_state` would make the
+    # whole-book rung identical to the all-candidate one and every assertion below vacuously true.
+    for scope in ("account_state", "decision_only"):
+        assert any(v[0] == scope for v in r.OBSERVABLE_FIELD_SCOPE.values()), scope
+    # EVERY DECLARATION NAMES ITS REASON. The scope is a judgement about what a supplier holds, and
+    # a judgement recorded without its reason cannot be found to be wrong.
+    for field, (_, why) in r.OBSERVABLE_FIELD_SCOPE.items():
+        assert why and len(why) > 20, f"{field} declares a scope with no reason: {why!r}"
+    # AND NOTHING GROUND-TRUTH SNEAKS IN THROUGH THE TABLE.
+    assert not (set(r.OBSERVABLE_FIELD_SCOPE) & set(r.GROUND_TRUTH_FIELDS))
+
+
+def test_the_whole_book_restriction_keys_on_DECLARED_SCOPE_and_never_on_coverage():
+    """THE ONE THING THAT KEEPS THIS FROM BEING A SECOND BITE AT THE SEARCH.
+
+    A rung restricted by "keep the pairs with the most households" is outcome-driven: it would pick
+    a different field set for every book and the reader could never tell the restriction from the
+    result. The restriction here is on a declaration made in the source before the run, so this
+    control puts the two criteria in DISAGREEMENT and asserts the declaration wins.
+    """
+    # `perceived_bill_saving_gbp` is `decision_only`; give it MORE households than anything else.
+    # `svt_rate_gbp_per_mwh` is `account_state`; give it the fewest.
+    assert r.OBSERVABLE_FIELD_SCOPE["perceived_bill_saving_gbp"][0] == "decision_only"
+    assert r.OBSERVABLE_FIELD_SCOPE["svt_rate_gbp_per_mwh"][0] == "account_state"
+
+    kept = r.whole_book_fields(["perceived_bill_saving_gbp", "svt_rate_gbp_per_mwh"])
+    assert kept == ["svt_rate_gbp_per_mwh"], (
+        f"the restriction followed coverage rather than the declaration: {kept}")
+    # FAIL CLOSED on a field nobody declared, and the leg that proves the filter is not "keep
+    # everything": an undeclared field is dropped even though nothing says it is decision-only.
+    assert r.whole_book_fields(["a_field_nobody_declared"]) == []
+    # AND THE FILTER CAN KEEP THINGS, so a filter that dropped everything cannot pass this file.
+    account_state = [f for f in r.OBSERVABLE_FIELDS
+                     if r.OBSERVABLE_FIELD_SCOPE[f][0] == "account_state"]
+    assert r.whole_book_fields(r.OBSERVABLE_FIELDS) == account_state
+    assert len(account_state) >= 2, (
+        "fewer than two whole-book fields means the whole-book PAIR rung has no pair to score and "
+        "the rung is unreachable by construction")
+
+
+def _two_scope_book(households: int, seed: int):
+    """A book whose winner is a `decision_only` pair on a MINORITY of households.
+
+    This is the shape the real book has and the reason the whole-book rung exists: the strong signal
+    sits on the field only the renewing accounts carry, so the sweep's winner -- and therefore the
+    magnitude's fit fold -- collapses to that subset while the book itself is four times larger.
+    """
+    rng = random.Random(seed)
+    obs, traits = {}, {}
+    renewing = households // 4
+    for h in range(households):
+        cid = f"c{h}"
+        obs[cid] = {"unit_rate_gbp_per_mwh": rng.uniform(0.0, 100.0),
+                    "rate_vs_svt_pct": rng.uniform(-30.0, 30.0),
+                    "company_eac_kwh": rng.uniform(1000.0, 9000.0)}
+        # A weak but real signal on what the whole book carries...
+        traits[cid] = obs[cid]["unit_rate_gbp_per_mwh"] * 0.004 + rng.gauss(0.0, 0.05)
+        if h < renewing:
+            # ...and a much stronger one on the field only the renewing quarter has.
+            obs[cid]["perceived_bill_saving_gbp"] = traits[cid] * 900.0 + rng.gauss(0.0, 8.0)
+            obs[cid]["discount_pct"] = rng.uniform(0.0, 15.0)
+    fields = ["unit_rate_gbp_per_mwh", "rate_vs_svt_pct", "company_eac_kwh",
+              "perceived_bill_saving_gbp", "discount_pct"]
+    return r._pair_grid(obs, fields), traits
+
+
+def test_a_decision_only_winner_collapses_the_magnitude_and_the_whole_book_rung_ANSWERS():
+    """ONE CONTROL OVER THE WHOLE PARTITION, and it is the defect this rung was built for.
+
+    Both legs are asserted together because each alone passes for the wrong reason: a rung that
+    ALWAYS refuses passes the first, and a rung that ALWAYS answers passes the second. The pair the
+    sweep reports must refuse for want of households while the scope-restricted rung, on the same
+    book and the same fold assignment, answers -- and if that ever stops being true the restriction
+    has stopped buying anything and should be deleted rather than believed.
+    """
+    grid, traits = _two_scope_book(households=240, seed=909)
+    folds = r.global_folds(sorted({c for cand in grid for c in cand["ids"]}))
+
+    ranked = []
+    for cand in grid:
+        held, _ = r._cellwise_ceiling(cand["xs"], cand["ys"],
+                                      [traits[c] for c in cand["ids"]], 2)
+        ranked.append({"x": cand["x"], "y": cand["y"], "n": len(cand["ids"]),
+                       "held_out": round(held, 4)})
+    ranked.sort(key=lambda row: -abs(row["held_out"]))
+    winner = ranked[0]
+
+    # THE PREMISE OF THE WHOLE RUNG, asserted rather than assumed: the sweep's winner really is
+    # built on the minority field. Without this the two legs below would be measuring nothing.
+    assert "perceived_bill_saving_gbp" in (winner["x"], winner["y"]), (
+        f"this fixture no longer reproduces the defect -- the winner is {winner}")
+    assert winner["n"] < len(traits) / 2, (
+        f"the winner carries {winner['n']} of {len(traits)} households; the collapse is the point")
+
+    all_candidates = r.magnitude_verdict(
+        r.three_way_split(grid, traits, 2, folds), None, 4)
+    book_grid = [c for c in grid
+                 if c["x"] in r.whole_book_fields([c["x"]])
+                 and c["y"] in r.whole_book_fields([c["y"]])]
+    whole_book = r.magnitude_verdict(r.three_way_split(book_grid, traits, 2, folds), None, 4)
+
+    assert all_candidates["estimate"] is None and all_candidates["refused"], (
+        "the all-candidate rung must still refuse -- its fit fold is the winner's subset: "
+        f"{all_candidates}")
+    assert whole_book["estimate"] is not None and whole_book["refused"] is None, (
+        "the scope-restricted rung sits on the whole book and must be able to answer, or the "
+        f"restriction buys nothing: {whole_book}")
+    assert whole_book["households_per_cell_on_the_fit_fold"] > \
+        all_candidates["households_per_cell_on_the_fit_fold"], (
+        "the restriction has to BUY power, not merely change the answer")
+    # NO `decision_only` FIELD REACHED THE RESTRICTED GRID. Keyed to the scope table rather than to
+    # today's field names, so it stays true when the table changes.
+    for cand in book_grid:
+        for axis in (cand["x"], cand["y"]):
+            assert r.OBSERVABLE_FIELD_SCOPE[axis][0] == "account_state", axis
+    assert book_grid, "the restricted grid is empty, so every assertion above is vacuous"
+
+
+def test_field_provenance_names_the_record_and_carries_the_scope_verdict():
+    """A coverage number alone cannot say whether it is a defect or a fact.
+
+    69 of 164 is a bookkeeping accident for a field the company holds continuously and the honest
+    truth for a field that only exists at a renewal. The record it came from is what lets a reader
+    check the declaration against the world instead of taking it on trust.
+    """
+    payload = {
+        "account_state_log": [
+            {"customer_id": "C1", "unit_rate_gbp_per_mwh": 140.0},
+            {"customer_id": "C1g", "unit_rate_gbp_per_mwh": 60.0},
+            {"customer_id": "C2", "unit_rate_gbp_per_mwh": 155.0},
+        ],
+        "churn_journey_log": [{"customer_id": "C1", "perceived_bill_saving_gbp": 42.0}],
+        # A second record carrying the SAME field: the households must union, not double-count.
+        "dynamic_pricing_log": [{"customer_id": "C2", "unit_rate_gbp_per_mwh": 150.0}],
+        "not_a_row_list": {"total": 3},
+    }
+    got = r.field_provenance(payload)
+
+    # THE GAS LEG IS NOT A SECOND HOUSEHOLD, here as everywhere else in this instrument.
+    assert got["unit_rate_gbp_per_mwh"]["households"] == 2, got["unit_rate_gbp_per_mwh"]
+    assert got["unit_rate_gbp_per_mwh"]["records"] == {"account_state_log": 2,
+                                                       "dynamic_pricing_log": 1}
+    assert got["unit_rate_gbp_per_mwh"]["scope"] == "account_state"
+    assert got["perceived_bill_saving_gbp"]["scope"] == "decision_only"
+    assert got["perceived_bill_saving_gbp"]["records"] == {"churn_journey_log": 1}
+    # A FIELD NO RECORD CARRIED IS REPORTED AT ZERO, not omitted: an absent key reads as "not
+    # asked", and the whole point of this block is to make a missing field visible.
+    assert got["discount_pct"]["households"] == 0 and got["discount_pct"]["records"] == {}
