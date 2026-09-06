@@ -15,13 +15,21 @@ the finding beside this file). Two lanes writing one new module at one path is
 the unlandable-merge shape, so the drafts were merged here rather than raced.
 
 M11 comes from that second seat's own RUN, reconciled in afterwards. It is M2
-with `series = {}` in place of `series = []`, and it SURVIVES where M2 dies --
-see the comment on it. M2's kill is an AttributeError on a list, not the control
-catching the lost refusal, so `M2 proved` in the result beside this file is one
-row too generous. The repair that makes the contract genuinely proved is landed
-in the control itself:
+with `series = {}` in place of `series = []`. M2's kill is an AttributeError on a
+list, not the control catching the lost refusal, so `M2 proved` in the result
+beside this file is one row too generous. The repair that makes the contract
+genuinely proved is landed in the control itself:
 `test_the_feed_REFUSES_to_publish_without_the_fuel_mix_rather_than_reverting_to_the_old_shape`
 now asserts the refusal NAMES the missing cache.
+
+M11 SURVIVED before that repair and DIES after it, and this paragraph said
+"it SURVIVES where M2 dies" in the present tense until 2026-09-06 -- asserting a
+survival in the same breath as the landed repair that ends it. Measured at spec
+fingerprint `95c9da4db380`: M11 is killed by that same control, `died` with
+`died_but_grades_text` false and the null round green throughout, so the kill is
+behaviour and not the suite reading this module's bytes. The survival is the
+reason M11 exists and the kill is the evidence the repair worked; both belong in
+the record, which is why the first is kept above rather than overwritten.
 
 Pre-registration, written and landed BEFORE this ran, at `da7336230`:
 `docs/staging/SEAT_FINDING_THE_NEXT_SUBJECTS_CONVERGED_SURFACE_IS_MOSTLY_RE_EXPORTS_AND_A_BATTERY_WOULD_HAVE_SCORED_THEM_2026-09-06.md`
@@ -183,8 +191,12 @@ MUTATIONS = (
         # `pytest.raises(FuelOutturnUnavailable)`, so it reddens on the WRONG CLASS -- it
         # never saw the contract at all. Substitute `series = {}` instead, which is what a
         # real fail-open patch would write, and `FuelOutturnUnavailable` still arrives --
-        # from `coal_capacity_by_year` refusing an empty series -- so the control passes and
-        # the fallback ships.
+        # from `coal_capacity_by_year` refusing an empty series -- so the control passed and
+        # the fallback shipped. THAT WAS THE PRE-REPAIR READING. Since the control began
+        # asserting the refusal NAMES the missing cache, the wrong namer is caught: measured
+        # at fingerprint `95c9da4db380`, M11 DIES. Kept as a live row rather than retired,
+        # because it is the only thing that would redden if that naming assertion were ever
+        # weakened back.
         #
         # A NEW FALSE-KILL MODE FOR THE FAMILY, and the mirror of the recorded false
         # survivors: a mutation whose replacement is the wrong TYPE reddens a suite on a
