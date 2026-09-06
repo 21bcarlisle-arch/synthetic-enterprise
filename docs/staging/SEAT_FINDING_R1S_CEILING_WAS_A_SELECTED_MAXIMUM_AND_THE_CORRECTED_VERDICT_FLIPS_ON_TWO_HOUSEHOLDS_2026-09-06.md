@@ -128,10 +128,20 @@ nothing"* and is the opposite claim to *"measured nothing"*. It now refuses unde
 `MIN_HOUSEHOLDS`, names the worktree cause in the refusal, and takes `--run <path>` so the tree
 holding the real book can be named.
 
-## Still pointing at the old null, and not touched here
+## Still pointing at the old null, and not touched here — CLOSED 2026-09-06
 
 `docs/design/maturity_map.yaml` and
 `docs/design/simplifications/A49_the_ceiling_comes_before_the_programme_on_r3_and_r4.yaml` both
-describe R1's ceiling as *"held-out per-cell mean against a max/48 null"*. That description is now
-wrong in the way this finding is about. Left for a lane that is already editing the map rather than
-opened as a second writer to it.
+described R1's ceiling as *"held-out per-cell mean against a max/48 null"*. That description was
+wrong in the way this finding is about. Left, when this was written, for a lane already editing the
+map rather than opened as a second writer to it.
+
+**Both now carry the selection-corrected description** — the null description at `06fc90189`, and
+A49's gate language (p=0.0746 at n=71 against p=0.0249 at n=69, two runs of the same population, so
+*a number that flips on two households is not a gate*) in the lane-0 landing that follows this
+edit. This section is kept rather than deleted because it is what minted the lane-0 item, and a
+loose end that reads open after it is closed gets drawn again.
+
+**What is NOT closed, and is why this finding stays BLOCKING:** the measurement still cannot bound
+the inference programme, and A49 was minted on the premise that it could. Coverage closes that, not
+a re-description.
