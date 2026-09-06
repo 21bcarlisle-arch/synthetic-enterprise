@@ -96,7 +96,9 @@ from tools.contract_battery import BatterySpec, run
 #: the fixture errored, `-x` stopped at the first node, and the cell came back
 #: `DIED (SETUP ERROR -- no control body ran)` naming a control written for a different row. The
 #: control had not run and the cell could not say so. Splitting it into a file with no real-cache
-#: fixture is what makes the row measurable by this instrument rather than by hand.
+#: fixture is what makes the row measurable by this instrument rather than by hand -- and it is
+#: also why M9 has a control at all despite the twin (M13) landed for it beside this note: a
+#: mutation that breaks the real-cache path can only be graded from a file that does not use it.
 DIRECT_SUITES = (
     "tests/sim/test_elexon_fuel_outturn.py",
     "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
@@ -274,25 +276,74 @@ MUTATIONS = (
         "        series = {}",
     ),
     (
-        # M12 IS M10 WITH A TYPE-CORRECT REPLACEMENT, and it is here for the reason M11 is here
-        # for M2. M10 substitutes a LIST where a mapping is expected; the `AttributeError:
-        # 'list' object has no attribute 'items'` that follows grades the type system, and it
-        # arrives through the module-scoped fixture so no control body runs a line
-        # (`died_by_setup_error_only` at `d892342119e8`). The substitution a real fail-open patch
-        # would write keeps the type and skips only the adapter: build the mapping inline.
+        # M12, M13 AND M14 ARE THE TYPE-CORRECT TWINS OF M3, M9 AND M10, and they exist for
+        # the reason the M11 comment above states as a rule. Measured 2026-09-06 at
+        # fingerprint `d892342119e8`: M3, M9 and M10 all came back DIED and all three were
+        # stamped `died_by_setup_error_only` -- each substitutes a value of the WRONG TYPE,
+        # `fuel_mix()` raises before it returns, the module-scoped fixture that calls it
+        # errors, and every test in the file errors with it. Not one control body ran.
+        #
+        # No control can be written against those three, because no control that calls
+        # `fuel_mix()` can assert past a `fuel_mix()` that raises. So the originals are kept
+        # as live rows -- they are what would redden if the wrong-type crash ever stopped
+        # being a crash -- and the contract is closed by the substitution a real fail-open
+        # refactor would actually write: one that still RETURNS, leaving a value a control
+        # can grade.
+        # `docs/staging/records/SEAT_PREREG_THE_TYPE_CORRECT_TWINS_OF_THE_THREE_ROWS_THAT_RAISE_INSIDE_THE_SUBJECT_2026-09-06.md`
+        #
+        # RUN, at the fingerprint these three rows moved this spec to, `4c2f0abd38d4`: all three
+        # DIED, each naming a DIFFERENT node and each naming the control written for it, with
+        # `died_by_setup_error_only` FALSE and `errored` EMPTY on every row -- so unlike M3, M9 and
+        # M10 a control body ran and the kill is the property, not the type system. All six
+        # pre-registered predictions held. Baseline 51 passed in 30.1s (the data-present timing),
+        # poison reaches the subject with both control suites green, null round `behaviour only`.
+        # `docs/staging/SEAT_RESULT_THE_THREE_ROWS_NO_CONTROL_COULD_ASSERT_PAST_ARE_CLOSED_BY_THEIR_TYPE_CORRECT_TWINS_2026-09-06.md`
+        "M12",
+        "the outturn is normalised to SETTLEMENT PERIODS and stays at half-hour grain all "
+        "the way to the derived mix (M3 with a mapping, not a list)",
+        "    series = fuel.to_settlement_periods(fuel.load_cached())",
+        "    _raw = fuel.to_settlement_periods(fuel.load_cached())\n"
+        "    series = {(day, 1): row for (day, _period), row in _raw.items()}",
+    ),
+    (
+        "M13",
+        "the thermal floor is reduced over the THERMAL cache and not another cache beside it "
+        "that happens to reduce to the same shape (M9 with gas-shaped rows, not none)",
+        "fuel.thermal_floor_by_year(fuel.thermal_by_period(fuel.load_cached_thermal()))",
+        "fuel.thermal_floor_by_year(fuel.biomass_by_period(fuel.load_cached_biomass()))",
+    ),
+    (
+        "M14",
+        "the biomass rows reach the yearly envelope at HALF-HOUR grain -- period-ising them "
+        "and then collapsing the periods is the same loss (M10 with a mapping, not a list)",
+        "    biomass = fuel.biomass_envelope_by_year("
+        "fuel.biomass_by_period(fuel.load_cached_biomass()))",
+        "    _bio = fuel.biomass_by_period(fuel.load_cached_biomass())\n"
+        "    biomass = fuel.biomass_envelope_by_year(\n"
+        "        {(day, 1): mw for (day, _period), mw in _bio.items()})",
+    ),
+    (
+        # M15 IS A SECOND TWIN OF M10, and it is here beside M14 because the two grade DIFFERENT
+        # legs of one call. M14 substitutes a mapping that has been period-ised and then collapsed
+        # to one period a day: it grades the GRAIN. This substitutes a mapping built without
+        # `biomass_by_period` at all: it grades the FUEL-TYPE FILTER. Both are type-correct, both
+        # still return, and neither kills the other's control -- landed from a concurrent lane on
+        # the same claim, reconciled here rather than one being dropped for the other.
         #
         # ON THE REAL RECORD THIS IS AN EQUIVALENCE, which is stated because it decides what a
         # green cell here would mean. MEASURED 2026-09-06 over 143,057 cached rows: the biomass
-        # cache is 100% `BIOMASS`, every `settlementDate` is already 10 characters, every period
-        # is inside 1-50, and the 19 duplicate `(date, period)` keys resolve the way a dict
-        # comprehension resolves them. Three of `biomass_by_period`'s four legs therefore cannot
-        # be seen against the real cache at all, and the fourth -- the fuel-type filter -- has
-        # nothing to filter. The control written for this row supplies its own MIXED cache,
-        # because the state this contract exists for is the one where the biomass fetch is
-        # widened or the caches are merged, not the one on disk today.
-        "M12",
-        "the biomass rows are FILTERED TO BIOMASS before the envelope is taken (M10 with a "
-        "dict, not a list) -- an envelope over a mixed cache is another fleet's output",
+        # cache is 100% `BIOMASS`, every `settlementDate` is already 10 characters, every period is
+        # inside 1-50, and the 19 duplicate `(date, period)` keys resolve the way a dict
+        # comprehension resolves them. Three of `biomass_by_period`'s four legs therefore cannot be
+        # seen against the real cache at all, and the fourth -- the filter -- has nothing to filter.
+        # The control written for this row supplies its own MIXED cache, because the state this
+        # contract exists for is the one where the biomass fetch is widened or the caches are
+        # merged, not the one on disk today. That is also why it cannot live in the real-cache
+        # suite: a control whose subject is a cache the tree does not have must build its own.
+        "M15",
+        "the biomass rows are FILTERED TO BIOMASS before the envelope is taken -- an envelope "
+        "over a mixed cache is another fleet's output (M10 with a dict, and the filter leg "
+        "where M14 takes the grain leg)",
         "fuel.biomass_envelope_by_year(fuel.biomass_by_period(fuel.load_cached_biomass()))",
         "fuel.biomass_envelope_by_year({(r[\"settlementDate\"], r[\"settlementPeriod\"]): "
         "float(r[\"generation\"]) for r in fuel.load_cached_biomass()})",

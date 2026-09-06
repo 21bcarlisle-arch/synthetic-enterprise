@@ -1,4 +1,4 @@
-**Severity:** RECORDED · **Lane:** product (what the world is for) + W1/W2 fidelity register · **Priority:** P1 for registration; fidelity gaps folded into the existing phases; two small discovery pulls authorised · **Proportionality:** reversible / narrow
+**Severity:** RECORDED · **Lane:** A_strategy_governance (the director's own words: "product (what the world is for) + W1/W2 fidelity register" -- `product` is not one of the thirteen lanes `background/finding_severity.LANES` knows, and an unparseable lane refuses EVERY lane's merge of origin/main, so the field carries the nearest real lane and his phrasing is kept verbatim beside it) · **Priority:** P1 for registration; fidelity gaps folded into the existing phases; two small discovery pulls authorised · **Proportionality:** reversible / narrow
 
 # [DIRECTOR-RULING][ADVISOR-STAGED] Supplier-side use-case register, and the SIM fidelity each one needs (2026-09-06)
 
