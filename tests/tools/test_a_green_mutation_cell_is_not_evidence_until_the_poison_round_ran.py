@@ -40,7 +40,9 @@ def subject(tmp_path, monkeypatch):
 def _fake_runs(verdicts):
     """`_run_suite` replaced by a table of returncodes, keyed by suite."""
     def run(suite, deselect, stop_first):
-        return {"suite": suite, "returncode": verdicts[suite], "failed": [],
+        # `errored` is carried because the real `_run_suite` always sets it and `_score` reads
+        # it: a fake narrower than the thing it stands in for grades the fake.
+        return {"suite": suite, "returncode": verdicts[suite], "failed": [], "errored": [],
                 "seconds": 0.0, "tail": []}
     return run
 

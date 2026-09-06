@@ -63,7 +63,7 @@ def _row(spec: BatterySpec, dies: set[str], graded: list[str] | None = None) -> 
             "tools.contract_battery._run_suite",
             lambda suite, deselect, stop_first: {
                 "suite": suite, "returncode": 1 if suite in dies else 0,
-                "failed": [], "seconds": 0.0, "tail": []},
+                "failed": [], "errored": [], "seconds": 0.0, "tail": []},
         )
         _score(spec, row, todo, dict.fromkeys(todo, ()), reaches, {})
     return row
@@ -199,7 +199,7 @@ def test_a_kill_by_a_MIXED_test_is_flagged_and_never_read_as_a_caller_verdict():
                 "suite": suite, "returncode": 1, "failed": [
                     f"{CALLER_A}::test_both_at_once[a-param]" if suite == CALLER_A
                     else f"{suite}::test_an_ordinary_caller_test"],
-                "seconds": 0.0, "tail": []},
+                "errored": [], "seconds": 0.0, "tail": []},
         )
         _score(spec, row, todo, dict.fromkeys(todo, ()), dict.fromkeys(todo, True), {})
 

@@ -1226,13 +1226,21 @@ def _published_records_carry(feed, shape) -> bool:
 
 
 @pytest.fixture(scope="module")
-def real_publish(tmp_path_factory):
-    """ONE real publish off the real caches, shared by the three controls below.
+def real_mix():
+    """`fuel_mix()` on the real caches and NOTHING DOWNSTREAM OF IT.
 
-    ~15s: `fuel_mix()` is ~6s over 235 MB of outturn and `generate()` runs it again on the path
-    that publishes. Both are wanted -- the tuple is the subject and the feed is where it has to
-    arrive -- and paying for them once is the difference between a control that costs 15s and
-    three that cost 45s.
+    SPLIT OUT OF `real_publish` ON 2026-09-06, AND THE SPLIT IS THE CONTROL. Battery rows M3,
+    M4, M7, M9 and M10 all came back DIED against this file in the run that closed M5/M6/M8, and
+    all five named the same node. Every one was `ERROR at setup`: each mutation makes the
+    PUBLISH raise -- `AttributeError`, `TypeError`, `KeyError`, `FuelOutturnUnavailable` -- so
+    the module-scoped fixture blew up and no control body ran a line for any of the five.
+    `SEAT_RESULT_FIVE_CONTRACTS_CAME_BACK_DIED_AND_THE_KILL_WAS_ONE_FIXTURE_ERRORING_2026-09-06`
+
+    Two of those five -- M4 and M7 -- do not break `fuel_mix()` itself; they break something
+    downstream that reads the tuple. Grading them needs a fixture that stops at the tuple, which
+    is this one. The remaining three (M3, M9, M10) raise INSIDE `fuel_mix()` and cannot be
+    reached by any control that calls it; they are open, and `died_by_setup_error_only` on their
+    cells is what stops the next reader taking their DIED for a proof.
 
     IT SKIPS WITHOUT THE CACHES, AND A SKIPPED ROUND OF THE BATTERY GRADES NOTHING. `sim/cache/`
     is gitignored, so a `git archive HEAD` extract has none of it and every mutation below would
@@ -1254,12 +1262,138 @@ def real_publish(tmp_path_factory):
     if absent:
         pytest.skip(f"not measured in this tree -- no {', '.join(absent)}")
 
+    return gif.fuel_mix()
+
+
+@pytest.fixture(scope="module")
+def real_publish(real_mix, tmp_path_factory):
+    """ONE real publish off the real caches, shared by the three controls that grade the FEED.
+
+    ~15s: `fuel_mix()` is ~6s over 235 MB of outturn and `generate()` runs it again on the path
+    that publishes. Both are wanted -- the tuple is the subject and the feed is where it has to
+    arrive -- and paying for them once is the difference between a control that costs 15s and
+    three that cost 45s.
+    """
     demand = gif.aggregate_demand(json.loads(gif.DEMAND_CACHE.read_text(encoding="utf-8")))
     renewables = gif.aggregate_renewable_generation(
         json.loads(gif.AGWS_CACHE.read_text(encoding="utf-8")))
-    mix = gif.fuel_mix()
     feed = gif.generate(out_path=tmp_path_factory.mktemp("feed") / "grid_intensity_feed.json")
-    return mix, demand, renewables, feed
+    return real_mix, demand, renewables, feed
+
+
+def test_the_TUPLES_ORDER_is_the_contract_and_each_member_is_a_DIFFERENT_SHAPE(real_mix):
+    """M4. All eight callers unpack `fuel_mix()` positionally, so the order IS the interface --
+    there are no names on the way out, and a swap is a silent re-wiring of every one of them.
+
+    WHY THIS IS NOT THE TYPE ANNOTATION RESTATED. The annotation is a comment the runtime never
+    checks; this asserts what the caches actually produce, and asserts the two swapped members
+    are distinguishable AT ALL -- if members 0 and 1 had the same shape, M4 would be an
+    equivalence and no control could tell. MEASURED 2026-09-06: member 0 is 175,212 entries keyed
+    `(date, period)` with `(MW, t/MWh)` pairs; member 1 is 10 entries keyed by integer year with
+    float values. Nothing about that is a coincidence of today's record.
+
+    MUTATION (must fire): swap `fuel.imports_by_period(series)` and
+    `fuel.coal_capacity_by_year(series)` in the returned tuple -- battery row M4, whose kill in
+    the run of 2026-09-06 was `real_publish` erroring on `TypeError: float() argument must be a
+    string or a real number, not 'tuple'` with no control body run.
+    """
+    assert len(real_mix) == 7, (
+        f"`fuel_mix()` returns {len(real_mix)} members and every caller unpacks seven"
+    )
+    imports, coal_capacity, _coverage, floors, must_run, _mrc, biomass = real_mix
+
+    # THE TWO M4 SWAPS, asserted as SHAPES rather than as positions, so the control says which
+    # member is which rather than counting them.
+    for name, member in (("imports", imports), ("must-run", must_run)):
+        key = next(iter(member))
+        assert isinstance(key, tuple) and len(key) == 2 and isinstance(key[1], int), (
+            f"the {name} member is not keyed by (settlement date, period): {key!r}"
+        )
+    assert all(isinstance(v, tuple) and len(v) == 2 for v in imports.values()), (
+        "the imports member does not carry (MW, tonnes/MWh) pairs, so whatever is in position 0 "
+        "is not what `build_shape(imports_by_period=...)` consumes"
+    )
+    assert all(isinstance(v, float) for v in must_run.values()), (
+        "the must-run member does not carry a single MW float per half hour"
+    )
+
+    for name, member in (("coal capacity", coal_capacity), ("thermal floor", floors),
+                         ("biomass envelope", biomass)):
+        assert all(isinstance(year, int) and 2000 < year < 2100 for year in member), (
+            f"the {name} member is not keyed by calendar year: {sorted(member)[:3]}"
+        )
+    assert all(isinstance(v, float) for v in coal_capacity.values()), (
+        "the coal-capacity member does not carry one MW float per year"
+    )
+    # AND THE TWO SWAPPED MEMBERS ARE TELLABLE APART, which is what makes M4 a contract rather
+    # than an equivalence. Without this leg the block above would still pass on a subject whose
+    # first two members had become interchangeable.
+    assert set(map(type, imports)) != set(map(type, coal_capacity)), (
+        "members 0 and 1 are keyed the same way, so swapping them would change nothing "
+        "detectable and this control proves nothing about the order"
+    )
+
+
+def test_the_MUST_RUN_COVERAGE_measures_the_MUST_RUN_BLOCK_and_not_the_IMPORTS_beside_it(
+        real_mix):
+    """M7. The coverage published beside the must-run block is the only thing that can say the
+    block was measured rather than served from the flat 5,600 MW fallback -- the shape itself
+    cannot, because a half hour served from a flat 5,600 MW and one served from a measured 5,600
+    MW are the same number.
+
+    WHY IT WAS PROVED BY NOTHING. Member 5 and member 2 are both `dict[str, float]`, both are
+    coverage, and both are published. Substituting one for the other passes every type, and the
+    only reason the 2026-09-06 run went red was `build()` raising `KeyError: 'usable_fraction'`
+    in a fixture -- a crash, in a test that never ran, that says nothing about which quantity
+    member 5 holds.
+
+    THE TIE IS TO THE BLOCK ITSELF, not to a number: `min`, `mean` and `max` are re-derived here
+    from member 4 and must be what member 5 reports, and its usable count must be the block's
+    length. Two independent reductions of the same rows agreeing is evidence; `import_coverage`
+    cannot satisfy it at any value, because it has none of those keys and its numbers are MWh
+    sums over cables. MEASURED 2026-09-06: 544 / 6,013 / 9,831 MW over 175,156 half hours.
+
+    MUTATION (must fire): `fuel.zero_carbon_must_run_coverage(must_run_rows)` ->
+    `fuel.import_coverage(series)` -- battery row M7.
+    """
+    must_run, coverage = real_mix[4], real_mix[5]
+    import_coverage = real_mix[2]
+
+    missing = {"usable_fraction", "usable_half_hours", "negative_half_hours",
+               "min_mw", "mean_mw", "max_mw"} - set(coverage)
+    assert not missing, (
+        f"member 5 is missing {sorted(missing)} -- it is not the must-run coverage, and "
+        f"`build()` publishes those exact keys. What it does carry: {sorted(coverage)}"
+    )
+    assert set(coverage) != set(import_coverage), (
+        "the must-run coverage and the import coverage have become the same vocabulary, so no "
+        "control here can tell which quantity member 5 holds"
+    )
+
+    # IT DESCRIBES THE BLOCK BESIDE IT. Re-derived from member 4, which `zero_carbon_must_run_
+    # coverage` never sees -- it reduces the raw rows independently.
+    assert coverage["usable_half_hours"] == float(len(must_run)), (
+        f"the coverage counts {coverage['usable_half_hours']:.0f} usable half hours and the "
+        f"block it is published beside has {len(must_run)}"
+    )
+    assert coverage["min_mw"] == pytest.approx(min(must_run.values())), (
+        f"the coverage reports a minimum of {coverage['min_mw']} MW and the block's own minimum "
+        f"is {min(must_run.values())} MW -- it is measuring something else"
+    )
+    assert coverage["max_mw"] == pytest.approx(max(must_run.values())), (
+        f"the coverage reports a maximum of {coverage['max_mw']} MW and the block's own maximum "
+        f"is {max(must_run.values())} MW"
+    )
+    assert coverage["mean_mw"] == pytest.approx(
+        sum(must_run.values()) / len(must_run), rel=1e-9), (
+        "the coverage's mean is not the mean of the block it describes"
+    )
+    # AND `negative_half_hours` IS THE ONE TO WATCH -- it is the second of the two conditions
+    # that let this series cross the wall at half-hourly grain, and it is zero today.
+    assert coverage["negative_half_hours"] == 0.0, (
+        f"{coverage['negative_half_hours']:.0f} half hours carry a NEGATIVE zero-carbon must-run "
+        "reading. The crossing has to be re-argued, not re-clamped."
+    )
 
 
 def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES_the_series(
