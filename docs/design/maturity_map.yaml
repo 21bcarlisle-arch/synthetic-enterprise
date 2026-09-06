@@ -1096,6 +1096,11 @@
     'tools/ep13_input_ceiling.py', 'tests/tools/test_ep13_input_ceiling.py',
     'tools/ep13_embedded_generation_bound.py',
     'tests/tools/test_ep13_embedded_generation_bound.py',
+    # ADDED 2026-09-06. The second suite is not a split of the first: the first tests the
+    # INSTRUMENT on synthetic worlds, this one tests the PRODUCER on the real caches. They were
+    # separated because the old file's own helper `_measure` is what hid, for months, the fact
+    # that `measure()` itself was executed by nothing in the tree.
+    'tests/tools/test_ep13_embedded_generation_bound_measure.py',
     'tools/ep13_peer_bound.py', 'tests/tools/test_ep13_peer_bound.py',
     'tools/ep13_per_fuel_oracle_bound.py', 'tests/tools/test_ep13_per_fuel_oracle_bound.py',
     'tools/ep13_ccgt_swap_ceiling.py', 'tests/tools/test_ep13_ccgt_swap_ceiling.py',
