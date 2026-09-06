@@ -1585,6 +1585,31 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
+  # STILL 0, AND NOT FOR WANT OF A BUILD -- 2026-09-06, delivery-seat disposition pass.
+  # The build landed 2026-09-05 and is verified on the tree, not on a record:
+  # household_segments.py:262 draws PREPAYMENT on the non-DD branch only at the published Ofgem
+  # 13/13 split; FUEL_POVERTY_RATE_BY_CHANNEL is unblended onto DESNZ 22.3%/18.5%; line 439
+  # multiplies the CIM-anchored channel multiplier into the renewal probability, mean-preserving.
+  # 8 controls green at 5b8f79767, including a reachability leg (the third enum member IS drawn),
+  # a safety leg (no household changed DD status) and a two-sided falsifier (+0.1192 against a
+  # null of 0.0403 AFTER; -0.0106 against 0.0410 BEFORE).
+  #
+  # I came to raise this to 1 and DID NOT, because the reason it is held turns out to be a good
+  # one. Two of the three BLOCKING findings on W2_customer_generator were brakes that had outlived
+  # their defect and are dispositioned in this commit. The third is live:
+  # SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED
+  # _2026-09-03. It is not adjacent bookkeeping -- its subject is `fit_whole_book`, which solves a
+  # per-year anchor so the book's DEPARTURE rate hits the published one, absorbing "how much hazard
+  # the individuals supply" into one scalar. That is the same quantity PB4's multiplier feeds. A
+  # level certified now would be certified by an instrument that can absorb the very signal this
+  # atom exists to add, which is exactly what OPS11 is for. Recording the refusal here rather than
+  # accepting the limitation, because the acceptance I had drafted -- "the finding cannot reach
+  # PB4's evidence" -- is FALSE, and I only found that by reading §1 instead of the title.
+  # When it lifts: L1 is what these controls carry, not L2. L2 wants DISCOVER-lite + VERIFY, and
+  # VERIFY's 0b leg is evidence on a DEPLOYED SURFACE. DISCOVER is there and predates the build
+  # (docs/market_research/what_a_supplier_can_observe_about_switching_propensity_cim_w6.md), as are
+  # tests, invariants and population stats over 6000 households -- but nothing renders PB4 to a
+  # reader. That surface is PB6 below, itself at 1.
   level_current: 0
   level_target: 3
   loop_stage: build
@@ -1994,7 +2019,7 @@
   real_world_twin: "a board deciding how many years of trading history a strategy is to be judged over -- a question about what the firm is being asked to prove, not one the analyst running the backtest gets to settle"
 - id: A49_the_ceiling_comes_before_the_programme_on_r3_and_r4
   title: "The ceiling-before-programme discipline reached R1 and stopped there: R3 and R4 would be built with no bound on what they could possibly be worth"
-  gain: "DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04, WORK THIS CREATES item 5: 'The ceiling-before-programme discipline from EP13 applied to R1-R4 before building', and \u00a73: 'EP13's ceiling measurement was good work and the pattern it demonstrated -- measure the ceiling before the programme rather than after six passes -- should be applied to everything in R1-R4.' MINTED BECAUSE THE COVERAGE IS PARTIAL AND THE UNCOVERED HALF IS THE EXPENSIVE HALF. R1 has its ceiling (tools/r1_inference_ceiling.py, held-out per-cell mean against a max/48 null -- the best possible function of the coordinate, so no estimator can beat it) and R2's bound follows from R1's result rather than needing its own instrument, both recorded in SEAT_FINDING_R1S_INFERENCE_CEILING_IS_AT_THE_NULL_AND_R2_CANNOT_PAY_UNTIL_R1_LANDS_2026-09-04."
+  gain: "DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04, WORK THIS CREATES item 5: 'The ceiling-before-programme discipline from EP13 applied to R1-R4 before building', and \u00a73: 'EP13's ceiling measurement was good work and the pattern it demonstrated -- measure the ceiling before the programme rather than after six passes -- should be applied to everything in R1-R4.' MINTED BECAUSE THE COVERAGE IS PARTIAL AND THE UNCOVERED HALF IS THE EXPENSIVE HALF. R1 has its ceiling (tools/r1_inference_ceiling.py, held-out per-cell mean -- the best possible function of the coordinate, so no estimator can beat it) and R2's bound follows from R1's result rather than needing its own instrument, both recorded in SEAT_FINDING_R1S_INFERENCE_CEILING_IS_AT_THE_NULL_AND_R2_CANNOT_PAY_UNTIL_R1_LANDS_2026-09-04. NULL DESCRIPTION CORRECTED 2026-09-06 (06fc90189, and the loose end that finding named): this row said 'against a max/48 null', which was the defect rather than the design -- the pair rung ranks 45 candidates and graded the winner against a null drawn for THAT PAIR ALONE, which accepted a book of pure noise 9 times in 10. The null is now SELECTION-CORRECTED: one draw shuffles the household->trait assignment across the whole book and re-scores every candidate, 200 draws give the distribution of the maximum actually reported. What this does to A49's own premise is the thing to carry: at n=69 the corrected verdict crosses 0.05 on a difference of two households, so R1's ceiling does not currently bound the R3/R4 programme and the live record of that is SEAT_FINDING_R1S_CEILING_WAS_A_SELECTED_MAXIMUM_AND_THE_CORRECTED_VERDICT_FLIPS_ON_TWO_HOUSEHOLDS_2026-09-06."
   notes_rehomed: [origin_note]
   lane: A_strategy_governance
   value_stream: close_to_learn
