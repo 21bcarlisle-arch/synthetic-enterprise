@@ -403,3 +403,38 @@ def test_an_absent_ceiling_measurement_does_not_render_as_a_measured_zero():
 
     assert "not the same as the bound being zero" in body
     assert "0.0000" not in body
+
+
+def test_the_tell_INSIDE_the_published_figure_reaches_the_reader():
+    """The winner scores better out of sample than in it, and for two days nothing said so.
+
+    The instrument's docstring names this as "a fit scoring three times better on households it
+    never saw, which no real fit does" -- and the control named for it, keyed to MOST pairs, read
+    green while the WINNER on the page showed it at 3.66x. A reader given "clears, marginally" and
+    not this cannot judge the number.
+
+    MUTATION (must fire): render the panel without the tell. Both sides of the partition are
+    asserted, because a sentence the panel always emits is boilerplate, not evidence.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    c = dict(live.get("the_number_the_programme_rests_on") or {})
+    if not c.get("available"):
+        pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
+
+    c["winner_outscores_its_own_fit"] = True
+    c["winner_held_out_over_in_sample"] = 3.66
+    live["the_number_the_programme_rests_on"] = c
+    shown = _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
+    assert "3.66" in shown, "how far the inversion goes is what makes it judgeable"
+    # THE DISCRIMINATOR HAS TO BE UNIQUE TO THE BLOCK, and the obvious phrase is not: the
+    # instrument's own `what_it_does_not_say` already contains "never saw", and the panel renders
+    # that string on every branch. Keying the partition to it would have passed both legs and
+    # proved nothing about the block being tested. "does not overturn" is emitted here and nowhere
+    # else on the page.
+    assert "does not overturn" in shown, (
+        "the tell is in the feed and not on the page a reader gets")
+
+    c["winner_outscores_its_own_fit"] = False
+    hidden = _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
+    assert "does not overturn" not in hidden, (
+        "the panel emits the tell regardless of the property, so its presence says nothing")
