@@ -271,8 +271,18 @@ def read_households() -> dict[str, int]:
     return out
 
 
-def census_weights() -> tuple[dict[tuple[int, int], float], dict[str, int]]:
+def census_weights(group_of=None) -> tuple[dict, dict[str, int]]:
     """({(cell_x, cell_y): households}, drop counts), placed on the ADDRESS RECORD.
+
+    WITH `group_of`, THE SAME PLACEMENT SPLIT BY A KEY OF THE OUTPUT AREA. `group_of(oa)` returns
+    the group an output area belongs to (or None to drop it, counted as
+    `output_area_outside_the_grouping`), and the weights come back as `{group: {cell: households}}`.
+    It is one grouping key threaded through the loop below rather than a second implementation,
+    because the whole hazard of a second one is that the two placements silently diverge and the
+    coverage figures published from each stop being comparable. `tools/household_siting_frame.py`
+    passes the ONS region and is the only caller that does; with `group_of=None` this returns
+    exactly what it always did, and `test_grouping_conserves_the_ungrouped_placement` is the
+    control that says the two agree cell for cell.
 
     Cell indices are floor(metres / 1000), which is the HadUK-Grid 1 km cell containing the point:
     the grid's x coordinates are cell CENTRES at 500 m, 1500 m, ... so index i spans [i*1000,
@@ -315,12 +325,21 @@ def census_weights() -> tuple[dict[tuple[int, int], float], dict[str, int]]:
             by_oa[oa].append((int(row["east"]), int(row["north"])))
 
     weights: dict[tuple[int, int], float] = defaultdict(float)
+    grouped: dict[str, dict[tuple[int, int], float]] = defaultdict(lambda: defaultdict(float))
+    drops["output_area_outside_the_grouping"] = 0
     fell_back = 0
     for oa, points in by_oa.items():
         n = households.get(oa)
         if n is None:
             drops["output_area_not_in_census"] += 1
             continue
+        group = None
+        if group_of is not None:
+            group = group_of(oa)
+            if group is None:
+                drops["output_area_outside_the_grouping"] += 1
+                continue
+        into = weights if group is None else grouped[group]
         # THE OUTPUT AREA'S REACH: the cells its postcodes land in AND their immediate neighbours,
         # because the whole finding is that an area's addresses spill into cells no centroid
         # occupies. Bounded at one cell so a dense urban area does not smear across a city.
@@ -342,15 +361,17 @@ def census_weights() -> tuple[dict[tuple[int, int], float], dict[str, int]]:
             fell_back += 1
             share = n / len(points)
             for east, north in points:
-                weights[(east // 1000, north // 1000)] += share
+                into[(east // 1000, north // 1000)] += share
             continue
         for (row_, col), k in counts.items():
             if k:
-                weights[(col - 200, row_ - 200)] += n * k / total
+                into[(col - 200, row_ - 200)] += n * k / total
 
     drops["census_areas_with_no_live_postcode"] = len(set(households) - set(by_oa))
     drops["output_areas_placed_on_centroids_for_want_of_an_address"] = fell_back
-    return dict(weights), drops
+    if group_of is None:
+        return dict(weights), drops
+    return {g: dict(cells) for g, cells in grouped.items()}, drops
 
 
 #: A land cell further than this from any live GB residential postcode is not GB land at all.

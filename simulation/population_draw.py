@@ -300,6 +300,23 @@ class SyntheticCustomer:
     # straight back -- which is why the fix belongs at the DRAW and not in another roster.
     smart_meter: bool = False
 
+    # WHERE THIS HOUSEHOLD IS (W2_18). Drawn from the region's OWN household distribution --
+    # census households placed on the address record, carrying the HadUK-Grid normals' own
+    # coordinates (`simulation.household_siting`). RENDERED by `to_customer_dict()` like
+    # `smart_meter` and unlike `cohort`/`premise`: a supplier knows its customer's address, and
+    # the derived weather cells (W1_19-W1_22, W1_25) are keyed by COORDINATE, so without this
+    # every drawn household was refused by `weather_cell_siting.cells_for_location` and the
+    # world's household heat load was driven by none of the derivation. Measured 2026-09-06:
+    # 210 of 210 drawn households carried lat=None, with ten real regions drawn.
+    #
+    # None IS A REAL ANSWER AND STAYS ONE. The coordinate FOLLOWS THE REGION -- it is sourced
+    # from the region's household distribution and there is no distribution for a region that is
+    # not a real region. So with the default placeholder region these stay None, exactly as
+    # `test_region_is_explicit_placeholder_not_fabricated` requires, and a coordinate appears
+    # when the director's curriculum is on. That is why there is no separate dial for it.
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+
     def to_customer_dict(self) -> dict:
         """Render a saas-shaped customer dict (for the L2 integration layer)."""
         return {
@@ -311,7 +328,7 @@ class SyntheticCustomer:
             "payment_method": self.payment_method,
             "consumption_band": self.consumption_band,
             "eac_kwh": self.eac_kwh,
-            "location": {"lat": None, "lon": None, "region": self.region},
+            "location": {"lat": self.lat, "lon": self.lon, "region": self.region},
             "tariff_type": self.tariff_type,
             # RENDERED, unlike `cohort` and `premise`: see the field's own note. Without this the
             # supplier's book cannot say what meter it installed, and every drawn customer reads
@@ -421,7 +438,28 @@ def _draw_one(
         # the company's book HARDER to serve cheaply, not easier, because a smart meter means the
         # supplier can no longer bill an estimate and hope.
         smart_meter=_draw_smart_meter(customer_id, base_seed, acquisition_date.year, segment),
+        **_coordinate_fields(customer_id, base_seed, region),
     )
+
+
+def _coordinate_fields(customer_id: str, base_seed: int, region: str) -> dict:
+    """`{"lat": ..., "lon": ...}` for this household, or both None with the reason recorded.
+
+    LAZY IMPORT, for the same reason `_draw_dwelling` imports `premise_population` lazily: the
+    frame is a committed CSV this module has no other reason to read, and the siting module names
+    this one in its own REUSE block, so importing it at module scope would be a cycle.
+
+    Its substream is this module's by NAME ONLY -- `household_siting._substream` is keyed on
+    (its own stream name, customer_id, base_seed) and consumed by nothing else, so siting a
+    household cannot move a single value of the acquisition sequence above
+    (`test_the_siting_draw_does_not_perturb_the_acquisition_stream`).
+    """
+    from simulation.household_siting import coordinate_for_customer
+
+    sited = coordinate_for_customer(customer_id, base_seed, region)
+    if sited is None:
+        return {"lat": None, "lon": None}
+    return {"lat": sited[0], "lon": sited[1]}
 
 
 def iter_acquisition_events(

@@ -1,0 +1,79 @@
+{
+  "source": "Census 2021 TS041 + OS Open UPRN + ONSPD (RGN25CD) + HadUK-Grid 1 km normals",
+  "placement": "tools.weather_cell_weights.census_weights(group_of=ONS region)",
+  "cells": 144542,
+  "households": 24664503,
+  "diagnostics": {
+    "no_output_area": 0,
+    "output_area_not_in_census": 0,
+    "output_area_outside_the_grouping": 46270,
+    "census_areas_with_no_live_postcode": 128,
+    "output_areas_placed_on_centroids_for_want_of_an_address": 0,
+    "cells_off_the_land_grid": 1918,
+    "households_off_the_land_grid": 115364,
+    "per_region": {
+      "East": {
+        "cells": 19057,
+        "households": 2614129,
+        "households_off_the_land_grid": 14489
+      },
+      "East Midlands": {
+        "cells": 15704,
+        "households": 2036392,
+        "households_off_the_land_grid": 755
+      },
+      "London": {
+        "cells": 1895,
+        "households": 3415930,
+        "households_off_the_land_grid": 6149
+      },
+      "North East": {
+        "cells": 7075,
+        "households": 1170011,
+        "households_off_the_land_grid": 5559
+      },
+      "North West": {
+        "cells": 12372,
+        "households": 3143477,
+        "households_off_the_land_grid": 9657
+      },
+      "South East": {
+        "cells": 19417,
+        "households": 3773519,
+        "households_off_the_land_grid": 34284
+      },
+      "South West": {
+        "cells": 23163,
+        "households": 2422878,
+        "households_off_the_land_grid": 26100
+      },
+      "Wales": {
+        "cells": 17726,
+        "households": 1331257,
+        "households_off_the_land_grid": 15817
+      },
+      "West Midlands": {
+        "cells": 13749,
+        "households": 2429177,
+        "households_off_the_land_grid": 0
+      },
+      "Yorkshire and The Humber": {
+        "cells": 14384,
+        "households": 2327732,
+        "households_off_the_land_grid": 2555
+      }
+    },
+    "regions": [
+      "East",
+      "East Midlands",
+      "London",
+      "North East",
+      "North West",
+      "South East",
+      "South West",
+      "Wales",
+      "West Midlands",
+      "Yorkshire and The Humber"
+    ]
+  }
+}

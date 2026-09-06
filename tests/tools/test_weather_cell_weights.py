@@ -7,6 +7,7 @@ Britain. Everything here guards the substitute: three open sources, joined by po
 from __future__ import annotations
 
 import csv
+from collections import defaultdict
 
 import pytest
 
@@ -400,3 +401,53 @@ def test_the_weights_do_NOT_come_from_the_SIMS_OWN_POPULATION():
         assert forbidden not in body, (
             f"{forbidden!r} appears in the code: the weights must come from the censuses, not from "
             "anything this company generated")
+
+
+def test_GROUPING_CONSERVES_THE_UNGROUPED_PLACEMENT(cache, addresses):
+    """DEFECT: a second placement. `census_weights(group_of=...)` exists so
+    `tools/household_siting_frame` can split the same households by ONS region, and the hazard of
+    any second implementation is that it drifts -- the two would each look right and the coverage
+    figures published from them would stop being comparable.
+
+    Asserted cell for cell, not on the total: a total conserves under a placement that puts the
+    same households in the wrong squares, which is the only mistake this can make.
+    """
+    addresses(c_10_10=4, c_11_10=1)
+    _seed(cache,
+          [["E1 1AA", "E00000001", 10_500, 10_500, "E92000001"],
+           ["W1 1AA", "W00000001", 10_500, 10_500, "W92000004"]],
+          ew=(("E00000001", 100), ("W00000001", 60)),
+          scot=(("S00000001", 40),))
+
+    flat, flat_drops = w.census_weights()
+    grouped, grouped_drops = w.census_weights(group_of=lambda oa: oa[0])
+
+    merged = defaultdict(float)
+    for cells in grouped.values():
+        for cell, households in cells.items():
+            merged[cell] += households
+    assert {k: round(v, 6) for k, v in merged.items()} == {
+        k: round(v, 6) for k, v in flat.items()}, "the grouped placement is not the same placement"
+    # The Scottish area has census households and no live postcode in this fixture, so it never
+    # reaches the grouping at all -- it is already counted as `census_areas_with_no_live_postcode`.
+    assert set(grouped) == {"E", "W"}
+    assert flat_drops["output_area_outside_the_grouping"] == 0
+    assert grouped_drops["output_area_outside_the_grouping"] == 0
+
+
+def test_a_GROUP_OF_RETURNING_NONE_DROPS_THE_HOUSEHOLDS_AND_COUNTS_THEM(cache, addresses):
+    """DEFECT (fail-silent): an output area outside the grouping absorbed into some region anyway,
+    or dropped without a count. Scotland is the live instance -- it has no slot in the region
+    marginal -- and 8% of GB households vanishing quietly would leave every English region's
+    weather looking exactly as it should."""
+    addresses(c_10_10=1)
+    _seed(cache,
+          [["E1 1AA", "E00000001", 10_500, 10_500, "E92000001"],
+           ["AB1 1AA", "S00000001", 10_500, 10_500, "S92000003"]],
+          ew=(("E00000001", 100),), scot=(("S00000001", 40),))
+
+    grouped, drops = w.census_weights(group_of=lambda oa: "keep" if oa.startswith("E") else None)
+
+    assert set(grouped) == {"keep"}
+    assert round(sum(grouped["keep"].values())) == 100, "the kept households moved"
+    assert drops["output_area_outside_the_grouping"] == 1
