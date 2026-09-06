@@ -1113,7 +1113,37 @@ def price_elasticity_for_customer(
     ITS OWN SUBSTREAM (C-S2), distinct from the `price_sensitivity` axis, so adding this cannot
     perturb the segment draw any customer already had -- the byte-identical-cohort control that
     `assign_cohort` rests on still holds.
+
+    AND IT REFUSES A SUPPLY-POINT LEG, because nothing downstream can tell that it should have.
+    This draw is a hash of the id, so it answers for ANY string: ask it for `NOT_A_REAL_ID` and it
+    returns 1.4223 -- in range, right shape, drawn from nothing. A caller that asks the wrong
+    question therefore gets a plausible trait and no signal, which is how `tools/r1_inference_ceiling`
+    came to grade 87 of 264 rows against elasticities belonging to no household: a run output's
+    `customer_id` is a SUPPLY POINT, and a household's gas leg is registered under its electricity
+    point's id plus `GAS_LEG_ID_SUFFIX`. `C1g` came back 0.5255 while the world had given household
+    `C1` a 1.6043, and every rung below was indistinguishable from the real thing.
+
+    The world draws ONE elasticity per property, so a leg has no truth to be graded against and the
+    only place that can be seen is here, where the id is still a string with structure in it. The
+    simulation's own call sites already normalise (`customer_events` and `run_phase2b` each take
+    `household_of(cid)` first), so this is a TRIPWIRE and fires nowhere in the world today --
+    measured, not assumed, and the pre-registration that predicted it is
+    `docs/staging/records/SEAT_PREREGISTRATION_DOES_THE_GROUND_TRUTH_ELASTICITY_LOOKUP_EVER_GET_ASKED_FOR_A_SUPPLY_POINT_LEG_2026-09-06.md`.
+
+    WHAT THIS DOES NOT CLOSE, so a green guard is not over-read: `household_of` is a string
+    transform, not a roster lookup. Only the LEG class is caught. `NOT_A_REAL_ID` is its own
+    household by that rule and is still answered. Closing the fail-open needs the population roster
+    at the draw, which is a larger change and is not what this guard buys.
     """
+    from simulation.household import household_of
+
+    if household_of(customer_id) != customer_id:
+        raise ValueError(
+            f"price_elasticity_for_customer refuses {customer_id!r}: that is a supply-point leg of "
+            f"household {household_of(customer_id)!r}, not a household. The world draws one "
+            "elasticity per property, so this id has no trait to return and a hash of it would be "
+            "a fabricated one. Pass simulation.household.household_of(<id>).")
+
     c = curriculum if curriculum is not None else _load_cohort_curriculum()
     from simulation.market_switching_propensity import PRICE_SENSITIVITY_WEIGHT
 

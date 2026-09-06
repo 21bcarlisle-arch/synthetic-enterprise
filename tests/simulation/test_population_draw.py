@@ -591,3 +591,65 @@ def test_per_asset_falls_back_to_scalar_when_table_absent():
     assert pd.low_carbon_adoption_eligibility_multiplier("private_rent", "solar_pv", curriculum=old) == \
         old["tenure_adoption_gating_strength"]["value"]["renter_adoption_propensity_multiplier"]
     assert pd.low_carbon_adoption_eligibility_multiplier("own_outright", "solar_pv", curriculum=old) == 1.0
+
+
+# ---------------------------------------------------------------------------
+# The ground-truth elasticity draw must refuse a question it has no answer to
+# ---------------------------------------------------------------------------
+def test_the_elasticity_draw_refuses_a_supply_point_leg_and_still_answers_for_its_household():
+    """THE DEFECT: this draw is a hash of the id, so it answers for ANY string.
+
+    `tools/r1_inference_ceiling` keyed its target column on a run output's `customer_id`, which is
+    a SUPPLY POINT -- and a household's gas leg is that id plus `GAS_LEG_ID_SUFFIX`. So `C1g` was
+    graded against an elasticity belonging to no household (0.5255) while the world had given `C1`
+    a 1.6043, and 87 of 264 rows on `run_output_f53c90b85` were that shape. Nothing downstream
+    could tell: a fabricated trait has the right range and the right distribution.
+
+    BOTH LEGS OF THE PARTITION IN ONE CONTROL, deliberately. A guard that refused EVERYTHING would
+    pass a test that only asserted the refusal, and this project has entered that trap repeatedly.
+    The household must still be answered, and answered with a usable weight.
+    """
+    from simulation.household import GAS_LEG_ID_SUFFIX
+
+    household = "C1"
+    leg = household + GAS_LEG_ID_SUFFIX
+
+    with pytest.raises(ValueError):
+        pd.price_elasticity_for_customer(leg, 20260724)
+
+    weight = pd.price_elasticity_for_customer(household, 20260724)
+    assert weight > 0.0, "the household itself must still be answered -- a guard that refuses " \
+                         "everything passes the refusal leg alone"
+    assert pd.price_elasticity_for_customer(household, 20260724) == weight
+
+
+def test_the_elasticity_refusal_names_the_household_it_should_have_been_asked_for():
+    """A refusal that only says no is how a caller 'fixes' it by catching and defaulting.
+
+    Naming the household turns the refusal into the repair instruction, which is the whole reason
+    the R1 defect took two days to see: the wrong answer and the right one are the same shape.
+    """
+    from simulation.household import GAS_LEG_ID_SUFFIX
+
+    with pytest.raises(ValueError) as refusal:
+        pd.price_elasticity_for_customer("PROS-2016-0067" + GAS_LEG_ID_SUFFIX, 20260724)
+    said = str(refusal.value)
+    assert "PROS-2016-0067" in said
+    assert "household_of" in said, "the refusal must name the call that repairs it"
+
+
+def test_a_household_normalised_id_can_never_trip_the_elasticity_guard():
+    """The guard cannot break a caller that normalises, and that is a PROPERTY, not today's answer.
+
+    `customer_events` and `run_phase2b` both take `household_of(cid)` before drawing. This asserts
+    the reason that is safe -- `household_of` is idempotent, so a normalised id is always its own
+    household -- rather than pinning the two call sites, which would go red the day a third one is
+    added correctly.
+    """
+    from simulation.household import GAS_LEG_ID_SUFFIX, household_of
+
+    for raw in ("C1", "C1" + GAS_LEG_ID_SUFFIX, "C_IC1", "SYN-2021-001", "C1_2",
+                "PROS-2016-0067" + GAS_LEG_ID_SUFFIX):
+        normalised = household_of(raw)
+        assert household_of(normalised) == normalised
+        assert pd.price_elasticity_for_customer(normalised, 20260724) > 0.0

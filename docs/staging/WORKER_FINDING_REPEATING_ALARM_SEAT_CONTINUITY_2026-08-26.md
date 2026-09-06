@@ -96,6 +96,7 @@ Archive to `docs/staging/done/` once the paths above are either committed or rev
 - `background, company, docs, simulation and elsewhere left uncommitted by a session that stopped mid-work holding # claim(` (first seen 2026-08-31)
 - `.claude, background, company, docs and elsewhere left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-08-31)
 - `background, docs, saas, tests and elsewhere left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-02)
+- `simulation, tests left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-06)
 ## Still live
 - **2026-08-28** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-08-29** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
@@ -106,6 +107,7 @@ Archive to `docs/staging/done/` once the paths above are either committed or rev
 - **2026-09-03** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-09-04** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-09-05** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
+- **2026-09-06** — still live. 1 repeats over 144.7h without the state changing. No second document filed: this condition already has one.
 ## Episodes — what each dead seat was holding
 
 ### 2026-08-28 08:18 UTC
@@ -9699,3 +9701,49 @@ Archive to `docs/staging/done/` once the paths above are either committed or rev
 Belongs to `uncommitted_and_orphaned_work`.
 
 *Declared 2026-09-05 by the delivery seat, on the director's instruction to fold findings into the class registers rather than leave them as individual documents. Classified on the MECHANISM THIS DOCUMENT DESCRIBES (its body), not on its title: the registered classifier greps titles, and the titles have outgrown its vocabulary — which is why 92 findings sat `unclassed` while the six classes held 138 instances. The body carries 12 matches for `uncommitted_and_orphaned_work` against 0 for the runner-up, which is the threshold used; anything below it was left for a reader rather than graded from a sibling.*
+
+### 2026-09-06 17:56 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **144.7h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- Nothing was claimed. Whatever it was doing, it did not say.
+
+#### What it left in the tree, uncommitted
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- `simulation/population_draw.py`
+- `tests/simulation/test_population_draw.py`
+- `tests/tools/test_r1_inference_ceiling.py`
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 20
+- Last commit on the tree: `3851553ec R1's ceiling counted a household's gas leg as a second household and invented its elasticity`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
