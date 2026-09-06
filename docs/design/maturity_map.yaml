@@ -364,7 +364,13 @@
   depends_on: [D6_payment_ageing_gap_validity]
   couples_with: [W2_9_segment_debt_tnc, W2_11_payment_behaviour_source]
   records_rehomed: [evidence]
-  file_scope: ['tools/generate_proof_data.py', 'background/sanity_daemon.py', 'site/proof/index.html', 'site/proof/test_coupled_gaps_panel.py', 'tests/tools/test_generate_proof_coupled_gaps.py']
+  # 2026-09-06: `site/proof/` was DELETED at 03dd8c49e (eleven pages folded into five tabs) and
+  # the coupled-gaps panel now renders on `site/harness/index.html`. The row still named the old
+  # door and a control at `site/proof/test_coupled_gaps_panel.py` that no commit ever wrote, which
+  # made D9 read as "repoint at the control that exists" when the honest state is that its build
+  # has not run. The surviving control predates the row (cfcae0bc3, 2026-07-14, three weeks before
+  # 15f44e022) so D9 stays ungradable -- but now for the reason that is true.
+  file_scope: ['tools/generate_proof_data.py', 'background/sanity_daemon.py', 'site/harness/index.html', 'tests/tools/test_generate_proof_coupled_gaps.py']
 - id: A_scope_of_need_scoring_frame
   notes_rehomed: [name]
   lane: G_data_learning
@@ -707,8 +713,7 @@
   records_rehomed: [evidence]
 - id: KNIFE3_wall_crossing_paydown
   title: "Pay down the remaining wall crossings"
-  gain: "What is left of the 107 direct SIM/company imports goes through the one sanctioned seam, which is the same seam a real go-live would swap for real endpoints."
-  notes_rehomed: [citation_correction_2026-09-03_note, name, origin_note]
+  notes_rehomed: [citation_correction_2026-09-03_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -723,8 +728,7 @@
   file_scope: ['company/interfaces/sim_interface.py', 'tests/architecture/test_epistemic_wall_ratchet.py', 'tests/architecture/test_epistemic_wall_single_source.py', 'tools/knife_hotspot_measure.py', 'tools/epistemic_wall.py', 'tools/epistemic_verifier.py', 'tools/wall_crossing_dispositions.py', 'tests/tools/test_wall_crossing_dispositions.py', 'docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md', 'company/interfaces/market_feed_publication.py', 'company/market/price_feed.py', 'simulation/publish_market_feed.py', 'simulation/reputation_index.py', 'simulation/resentment_ledger.py', 'simulation/activation_energy.py', 'simulation/churn_journey.py', 'simulation/feedback_survey.py', 'simulation/run_phase2b.py', 'tests/architecture/test_static_quality_ratchet.py', 'company/interfaces/renewal_offer.py', 'company/pricing/renewal_desk.py', 'tests/company/interfaces/test_renewal_offer_seam.py', 'simulation/renewals.py', 'tests/simulation/test_renewals_approval_routing.py', 'tests/architecture/test_epistemic_wall_indirect_ratchet.py', 'tests/tools/test_knife_hotspot_measure.py', 'simulation/churn_ceiling.py', 'simulation/satisfaction_churn.py', 'simulation/switching_propensity.py', 'tests/simulation/test_churn_ceiling.py', 'tools/pre_commit_test_gate.py', 'simulation/household.py', 'simulation/customer_events.py', 'tests/architecture/test_household_identity_is_the_worlds.py', 'tests/simulation/test_home_move_undeliverable_win.py', 'background/live_payment_triad.py', 'tests/architecture/test_live_payment_triad_is_the_only_bridge.py']
 - id: EP1_clv_three_horizon
   title: "What a customer is worth, on three horizons"
-  gain: "Acquisition, retention and tariff decisions get a value number to argue with instead of a margin snapshot."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: B_commercial
   value_stream: close_to_learn
   epoch: 2
@@ -744,8 +748,7 @@
   simplifications_count: 18   # 2026-08-25 pass 19, LEVEL STAYS 2 (drawn 2 -> 3, NOT claimed): THE LANDING -- and this atom's own RECORD was refusing every commit on the tree. Pass 18 finished the code and ended without committing it, so `git log -S three_horizon_clv -- simulation/run_phase4c_on_phase2b.py` still returned NOTHING and 722 changed lines plus 15 new tests sat in no commit while sim_runner served them from the working tree. It could not have landed: test_map_within_per_atom_budget was RED at EP1_clv_three_horizon 14501 B against a 12288 B cap, and the pre-commit gate is tree-wide, so EVERY lane was refused (sim-runner-log 03:49 UTC, commit_refused; the published-figures-not-at-origin alarm is the same red from the other end). Nothing in company/ or tools/ was wrong -- the MAP ENTRY was: four trailing history comments (passes 17, 16, 13, 10; 9534 B) that are verbatim duplicates of notes already in the sibling store. Dropped: 14847 -> 5313 B, map mean 1048 -> 1016 B over 298 atoms, and the site register is byte-identical because generate_simplified_data renders from store.for_atom and never from these comments. Took the control's OWN named remedy ("rehome the growing FIELD to the record store rather than raising this number") instead of the one-character cap raise; no new control, because test_per_atom_budget_fires_on_accretion_and_on_one_fat_atom and test_per_atom_budget_is_invariant_to_atom_COUNT already fire and already pin honest growth. STRUCTURAL CAUSE (inferred in attribution, observed in mechanism): notes were rehomed so the map would stay an INDEX, but a per-pass `#` line in the map is a SECOND record of the same fact, so thorough note-writing competes with the tree's commit budget -- this atom writes the longest notes in the repo and hit the cap first; SITE1_expert_doors at 10495 B is next. EP1 now carries EXACTLY ONE map comment and a fifth history line on any atom re-opens this. LANDED, checkable: build_three_horizon_clv_snapshots (customer_value_view + the door), three_horizon_clv AND three_horizon_clv_snapshots in run_phase4c, ep1_series_provenance/select_belief/flatten_ep1_series in couple_clv, tests/company/analytics/test_clv_snapshot_series.py; 186 green on the atom's suites + 154 on the store/map suites. Pass 18's map sentence "so the whole pass went in as one commit" was FALSE when written and is corrected here rather than deleted. L3 STILL NOT CLAIMED (R11): run_output_latest.json still lacks three_horizon_clv_snapshots, so select_belief reads grades_atom_estimator=False, fallback_reason=run_predates_ep1_belief_series -- EP1 has not been graded ONCE. What changed is that the wiring is now a property of the repository, not of one working tree. OWED: the first real grading on the next sim run, now genuinely one cycle away with the publish wedge cleared; the horizon hypothesis (confirm, never correct, R12); the ledger row still unrefreshed behind another lane's uncommitted insertions
 - id: EP2_variance_learning_loop
   title: "Expected minus realised, fed back into belief"
-  gain: "Margin volatility becomes explained variance or a named defect, instead of a shrug."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
@@ -763,8 +766,7 @@
   file_scope: ['tests/saas/reporting/test_ep2_rate_chain_decomposition.py']
 - id: EP3_pricing_engine_late_truth
   title: "Prices decided ex-ante, then met by late cost truth"
-  gain: "Tariffs stop being back-calculated and become a decision with an owner, inputs and an audit trail."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: B_commercial
   value_stream: wholesale_to_price
   epoch: 2
@@ -784,8 +786,7 @@
   simplifications_count: 2
 - id: EP4_collections_journey
   title: "The whole road from missed payment to resolution"
-  gain: "Debt stops being a balance and becomes a journey with decisions, costs and outcomes at each step."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 2
@@ -812,8 +813,7 @@
   file_scope: []
 - id: EP5_settlement_true_ups
   title: "Cost truth arriving fourteen months late, and landing properly"
-  gain: "The ledger restates on the real timetable instead of pretending the first number was the answer."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: E_finance_treasury
   value_stream: wholesale_to_price
   epoch: 2
@@ -843,8 +843,7 @@
 # (a proposal) is, so nothing here is waiting on anything to be opened.
 - id: PB3_book_growth_as_earned_outcome
   title: "A growth curve that can be lost"
-  gain: "Book size becomes an outcome the company can fail at, instead of a number that goes up."
-  notes_rehomed: [name, discover_note]
+  notes_rehomed: [discover_note, gain, name]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
@@ -928,8 +927,7 @@
 # --- EPOCH 3: the wall becomes real transport (blocked -- R13 curriculum)
 - id: EP7_adapter_elexon_insights
   title: "Elexon Insights and IRIS, for real"
-  gain: "The settlement and market data the SIM already fakes arrives from the actual platform, on the actual cadence."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: wholesale_to_price
   epoch: 3
@@ -948,8 +946,7 @@
   file_scope: []
 - id: EP8_adapter_dcc_duis
   title: "Smart metering as DUIS service requests"
-  gain: "The mocked meter path is shaped like the real one, so accession is paperwork rather than a rebuild."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
@@ -969,8 +966,7 @@
   simplifications_count: 3
 - id: EP9_adapter_n3rgy_consented_metering
   title: "Real meter data today, via a DCC Other User"
-  gain: "The metering path gets exercised against a live external system years before accession."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
@@ -1005,8 +1001,7 @@
   simplifications_count: 3
 - id: EP10_adapter_uk_link_xoserve
   title: "Gas, through UK Link"
-  gain: "The gas half of the book gets the same industry-systems reality the electricity half has."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
@@ -1025,8 +1020,7 @@
   file_scope: []
 - id: EP11_adapter_gocardless_bacs
   title: "Direct Debit against a real sandbox"
-  gain: "The money path -- mandates, collections, failures -- runs end to end against an external system before any bank relationship exists."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
@@ -1045,8 +1039,7 @@
   file_scope: []
 - id: EP12_adapter_css_rec_switching
   title: "Switching under the REC"
-  gain: "Gaining and losing customers becomes an industry process with its own failure modes, not a state change."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
@@ -1066,8 +1059,7 @@
   file_scope: []
 - id: EP13_adapter_carbon_intensity
   title: "Carbon from the actual grid, half-hour by half-hour"
-  gain: "The carbon ledger gets ground truth from day one instead of a factor table."
-  notes_rehomed: [name, origin_note, level_hold_note]
+  notes_rehomed: [gain, level_hold_note, name, origin_note]
   lane: W4_the_wall
   value_stream: close_to_learn
   epoch: 3
@@ -1119,8 +1111,7 @@
   simplifications_count: 7
 - id: EP14_adapter_published_cost_stack
   title: "The non-commodity stack, parsed from what is actually published"
-  gain: "Network and policy costs stop being parameters and start being documents that change under the company."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: wholesale_to_price
   epoch: 3
@@ -1140,8 +1131,7 @@
   simplifications_count: 1
 - id: EP15_forecast_feed
   title: "A forward view the company is allowed to have"
-  gain: "Hedging and pricing get a legitimate forecast to be wrong with, instead of a blindfold or a leak."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W1_market_weather
   value_stream: wholesale_to_price
   epoch: 3
@@ -1159,8 +1149,7 @@
 # --- EPOCH 4: generated worlds and selection (blocked -- R13 curriculum)
 - id: EP16_anchored_generators
   title: "Generated worlds that stay tethered to reality"
-  gain: "The company can be tested against worlds that never happened without those worlds becoming fiction."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W1_market_weather
   value_stream: close_to_learn
   epoch: 4
@@ -1177,8 +1166,7 @@
   simplifications_count: 5
 - id: EP17_varied_population_draw
   title: "A different cast every run"
-  gain: "The company stops memorising its customers and has to cope with a population it did not choose."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 4
@@ -1207,8 +1195,7 @@
   simplifications_count: 6
 - id: EP18_enterprise_value_fitness
   title: "Enterprise value as the thing being selected for"
-  gain: "Strategies compete on what a buyer would pay, not on a proxy the company chose for itself."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 4
@@ -1226,8 +1213,7 @@
 # --- EPOCH 5: go-live (blocked -- R13 curriculum)
 - id: EP19_counterparty_qualification_paths
   title: "The accession checklist, per counterparty"
-  gain: "Go-live stops being a date and becomes a list of named qualifications with owners."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: F_risk_compliance
   value_stream: close_to_learn
   epoch: 5
@@ -1244,8 +1230,7 @@
   file_scope: []
 - id: EP20_go_live_cutover_analysis
   title: "What actually happens on the day"
-  gain: "The transport swap the whole wall was built for gets analysed before it is attempted."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 5
@@ -1263,12 +1248,18 @@
 # --- The ruling's own machinery (drawable now -- deliverables 2, 3 and 4)
 - id: H41_the_map_ratchet_has_no_ongoing_drain
   title: "The map ratchet drains once and refills at mint rate"
-  gain: "The spine ratchet stops being a control that goes red every fortnight and gets paid with the record."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, level_hold_note, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 0   # 2026-09-06: THE WORK IS BUILT AND THE LEVEL DID NOT MOVE, and the second
+  #   half is not a hedge. Both drains landed -- stock (137 atoms' `gain` out of both map halves
+  #   under three proofs; ratchet headroom 1,417 -> 44,616 B) and flow (`gain` in NOTE_FIELDS so an
+  #   inline one is refused, plus INLINE_PROSE_BUDGET catching the next fat field under any name).
+  #   `record_level_up_self_certified` REFUSED the ratification: OPS11, lane H_harness holds 13
+  #   live BLOCKING findings, so a level certified here would rest on an instrument this lane's own
+  #   findings say may be wrong. Accepting the limitation to move the number would be exactly that.
+  #   The evidence is in the store's `level_hold_note`; the row moves when the lane drains.
   level_target: 2
   loop_stage: build
   dial_inherited: 2
@@ -1276,14 +1267,20 @@
   depends_on: []
   couples_with: []
   records_rehomed: [evidence]
-  file_scope: ['tests/design/test_simplifications_store.py', 'tools/simplifications_store.py', 'tools/generate_proof_data.py', 'docs/design/maturity_map.yaml']
+  blocked_on: null
+  block_reason: "Built, not ratified. OPS11 refuses a level move in H_harness while the lane holds
+    13 live BLOCKING findings; the mechanism is landed and proven either way."
+  # file_scope CORRECTED 2026-09-06: it named `tools/generate_proof_data.py`, which no control in
+  # this row's scope reaches -- a file_scope entry is EVIDENCE for the level claimed, and an
+  # unreached one inflates what the controls cover. Replaced with the two suites that do run
+  # (70 controls between them) and the one-shot that moved the stock.
+  file_scope: ['tests/design/test_simplifications_store.py', 'tests/design/test_atom_notes_store.py', 'tools/simplifications_store.py', 'tools/migrate_gain_to_store.py', 'docs/design/maturity_map.yaml']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a disk-space alarm cleared by deleting last month's logs, which fires again next month because nothing changed the write rate"
 
 - id: H40_full_suite_pollution_bisect
   title: "Name the module that pollutes the full suite, then close its class"
-  gain: "Instance-fixing a moving target is how three days went; the ruling granted the bisect precisely so the cause gets named once."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -1301,8 +1298,7 @@
 
 - id: OPS6_scoped_publish_path_suite
   title: "Define the publish-path's own suite, and let it alone block publishing"
-  gain: "The gate conflates 'is the whole repo green at HEAD' with 'may the site update', so a stale ledger row freezes the public surface; 22h of frozen site over bookkeeping is the measured cost."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -1320,8 +1316,7 @@
 
 - id: OPS7_provenance_stamps_on_live_pages
   title: "Stamp run id, verifying commit and verification time on the page itself"
-  gain: "A freshness claim is a provenance claim; without the stamp on the pixel a visitor cannot tell what they are seeing or how current it is."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -1339,8 +1334,7 @@
 
 - id: OPS8_last_known_good_staleness_banner
   title: "Behind, never frozen, never silent: serve last-known-good under a dated banner"
-  gain: "A silently frozen surface is indistinguishable from a current one; the honest failure mode is to keep serving and say how old it is."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -1358,8 +1352,7 @@
 
 - id: SITE2_two_sided_wall_exhibit
   title: "The household page stops calling itself a customer portal and becomes the wall's own exhibit"
-  gain: "A page that shows a visitor a customer's own churn probability under a banner inviting them to 'view your household' misrepresents, on a public surface, the exact separation this project exists to demonstrate -- and every existing label protecting that separation today is prose, which a new panel can bypass just by omitting it."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1391,8 +1384,7 @@
   real_world_twin: "a regulator's comparison exhibit that puts a customer's own bill next to the supplier's internal cost-to-serve view, labelled so neither can be mistaken for the other"
 - id: SITE3_wall_exhibit_url_rename
   title: "The wall exhibit's URL stops saying 'customers', and every link to the old one is repointed"
-  gain: "SITE2 took the 'Customer Portal' claim off the page's title, entry copy and framing, but the door still resolves at /customers/ -- and the ruling names the URL alongside the name and the copy. The rename is the half that cannot be done inside one page: it moves a canonical door, so the sitemap, five door navs, three generated site feeds and a dozen hard-coded test paths all have to move with it or the redirect strands the reader it was added for."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1430,8 +1422,7 @@
 # cleared for the real reason rather than the recorded one.
 - id: SITE4_ia_register_and_nav
   title: "One IA register in three states, and every page's nav renders from it"
-  gain: "The brief reads 'five tabs, in a ruled order' as one edit."
-  notes_rehomed: [origin_note, level_hold_note]
+  notes_rehomed: [gain, level_hold_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1447,7 +1438,7 @@
   real_world_twin: "a utility whose site map lives in sixteen hand-maintained page footers, so every reorganisation is sixteen chances to strand a page"
 - id: SITE6_knowledge_in_nav_glossary_dissolved
   title: "Knowledge enters the nav and the glossary PAGE dies -- while the glossary LAYER lives"
-  gain: "The brief's one non-negotiable sequencing constraint binds here: only once Knowledge carries real content does the glossary warehouse go, 301'd to Knowledge with its 26 definitions moved into the prose that needs them. The trap the brief does not name: `site/data/glossary.json` has a live consumer in the glossary LAYER (`site/test_glossary_layer.py`, 13 tests, L1 'definitions stay in ONE place'), which is a term-inspection mechanism separate from the page. The director ruled §6 Q4 explicitly -- the layer SURVIVES. §3's argument is against a warehouse a reader must already know the term to search; inline term inspection is the opposite of that and serves §6.7 directly. Killing the page must not kill the layer, and that must be decided rather than discovered."
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1462,8 +1453,7 @@
   real_world_twin: "retiring a plant glossary into the operating manual, and accidentally decommissioning the tooltip system that quoted it"
 - id: SITE8_home_reordered_and_link_labels
   title: "Home opens with the claim, the diagram moves to the foot, and no link label repeats six times"
-  gain: "Six identical `Evidence behind this stage ->` labels on the homepage -- exactly six, word for word, confirmed against the committed source."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1478,8 +1468,7 @@
   real_world_twin: "an annual report whose contents page lists the same chapter title six times"
 - id: SITE9_harness_tab_and_director_record
   title: "Harness carries the methodology account -- and the director record is not advertised until a stranger's view of it has been read"
-  gain: "The tab that carries the two-seat model, the named failure classes, the honest count of what broke and why, and the known-limitations section re-homed from Proof."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1496,8 +1485,7 @@
   real_world_twin: "a board minute book that was always technically available on request, being moved to the front of the public shelf"
 - id: SITE11_proof_dissolved
   title: "/proof/ is DISSOLVED, not deleted -- and the five redirects it answers move with it"
-  gain: "The dangerous one, and the correction the director accepted back up the chain in his own words ('my instruction would have broken five live redirects')."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1512,8 +1500,7 @@
   real_world_twin: "closing a records office whose address is printed on five statutory notices, and forwarding the post before you turn off the lights"
 - id: SITE12_evidence_a_reader_can_use
   title: "The evidence surface answers a sceptic, not a maintainer"
-  gain: "Director, 2026-08-18, on the Capabilities door's evidence links: 'the evidence links land a reader in the machine's own vocabulary -- atom ids, levels, lane names, file paths ... the outcome I want: a sceptic can get from a claim to the thing that justifies it and understand what they're looking at, without knowing any of our internal language.' MEASURED: /evidence/ renders, per architecture node, a block per work item consisting of a raw id (`D1_bill_correctness`), a level pair (`L3/3`), a lane name (`D_billing_metering`), a loop stage, repo file paths and a ledger entry."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1529,8 +1516,7 @@
   real_world_twin: "an auditor's working papers published verbatim as the annual report's evidence section -- every figure traceable and not one sentence written for the person reading it"
 - id: H43_birth_certificate_law_remaining_instantiations
   title: "The Birth Certificate law's four unbuilt instantiations: a governance-data schema validator, organ output budgets, reconciliation-must-fail, and a migration ledger"
-  gain: "The 2026-08-05 advisor retro (ADVISOR_RETRO_FAILURE_MODES_AND_BIRTH_CERTIFICATE_LAW_2026-08-05) named one law -- anything that persists declares its reader/writer/bound/death, and checks additionally declare a proven failure -- as the lateral fix for five clustered failure modes (write-time blindness, stores born without lifecycles, fields without contracts, checks that pass emptily, migrations without a finish line)."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1546,8 +1532,7 @@
   real_world_twin: "a regulator's data-quality rulebook -- every register declares who reads it, who may write it, how it is bounded, and how a check on it was proven to catch a planted error, rather than trusting each new register to reinvent the same disciplines"
 - id: H45_the_queue_is_chained_to_the_map
   title: "P8: every staging work item carries a lane, an epoch and an atom, and the machine can say how many do not"
-  gain: "Director, 2026-08-28, having read all 49 files in docs/staging/: 'not one file carries a lane, an epoch or an atom id, so the queue is disconnected from the map entirely -- the same missing chain the guidance calls P8'."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -1563,8 +1548,7 @@
   real_world_twin: "an engineering organisation where every ticket carries its component and its release train, so 'what is in flight for this subsystem' is a query rather than a conversation -- and where a design document that no longer matches any live component is flagged by the tooling rather than by whoever happens to reread it"
 - id: A45_the_canon_is_a_standing_subject
   title: "Something other than the director must ask what the page claims that the code no longer supports"
-  gain: "Director, 2026-08-28: 'Today's three corrections were found because the director and advisor happened to read the page -- no mechanism ever checks it, so the mission sits structurally outside the machine's field of view."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 2
@@ -1580,8 +1564,7 @@
   real_world_twin: "a regulated firm's control-attestation cycle: the statement of what the firm does is re-tested against what the systems do on a schedule, by someone whose job it is, rather than at the moment a board member happens to read it"
 - id: PB4_engagement_separated_from_elasticity
   title: "P4: whether a household enters a choice process at all is not how far price moves it once it does"
-  gain: "Director, 2026-08-28 (P4): 'A large share of GB households have never switched at any price -- an engagement fact, not an elasticity one -- and a disengaged household can be highly price-sensitive once a bill shock makes it look, which is exactly why bill shocks are predictive."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
@@ -1631,8 +1614,7 @@
   real_world_twin: "the GB retail market's actual switching record: roughly half the domestic book has never switched supplier, and a large part of that half moves when a bill shock or a cap headline makes them look -- disengagement is an attention fact and the price response underneath it is a separate, and often large, quantity"
 - id: PB6_the_engagement_observable_crosses_the_seam
   title: "P6: the antecedent the world now carries has to reach the company, or R1 bought a world nobody can learn from"
-  gain: "PB4 gave engagement an observable antecedent -- payment channel, anchored on Ofgem CIM w6 (standard credit 5.7%, prepayment 3.1%, base 5.3%) -- and measured it recoverable: held-out +0.1192 against a null of 0.0403, where the same instrument on the pre-PB4 world scored -0.0106 and did not clear."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
@@ -1660,8 +1642,7 @@
   real_world_twin: "a real supplier's own billing record. It knows how every customer pays because it set the arrangement up, bills against it, and prices for it -- payment method is on the tariff table itself. A supplier that could not see its own payment channels would be unable to bill."
 - id: PB7_the_company_learns_what_it_can_now_see
   title: "P7: the company is handed Ofgem's coefficient; it should discover the relationship from its own book"
-  gain: "PB6 let the company condition its churn belief on payment method, using Ofgem's published CIM w6 rates as the coefficient."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: B_commercial
   value_stream: meter_to_cash
   epoch: 3
@@ -1694,8 +1675,7 @@
   real_world_twin: "a supplier's own retention analytics. It has its own churn by payment method, measured on its own leavers, and it trusts that over a national survey the moment it has enough of them -- which is also when it starts beating the market rather than tracking it."
 - id: H46_the_consistency_gate_disagreement_before_the_next_publish
   title: "the consistency gate failed on a headline number, and weekly publishing means it sits in a file instead of on a page"
-  gain: "Director, 2026-09-05: 'The consistency gate failed at 08:43Z, dashboard against exec-summary on a headline number."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: price_to_bill
   epoch: 3
@@ -1713,8 +1693,7 @@
   real_world_twin: "a supplier whose regulatory return and whose board pack quote different customer counts. Nobody notices until someone reads both, and then nobody can say which was ever right."
 - id: H47_the_orientation_header_states_a_figure_it_computes
   title: "the first thing every session reads is a hand-typed sentence, and it was 15x wrong"
-  gain: "2026-09-05, from the director's console: another session's startup read PROJECT_OVERVIEW.md from the published mirror and oriented on it."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: price_to_bill
   epoch: 3
@@ -1732,8 +1711,7 @@
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
   title: "phase 1: the smallest set of weather cells that captures household-weighted heat-load variation across GB"
-  gain: "Phase 1 of weather: the smallest set of cells capturing household-weighted heat-load variation across GB, answered as a curve. The HadUK pull is complete; the derivation is bounded into W1_19-W1_22."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -1757,37 +1735,54 @@
   #   "draw it ahead of the next un-drawn product item"; sequencing against its siblings is carried
   #   structurally by depends_on rather than by inventing a 46th rung on a scale that has none.
   provenance: director_ruling
-  # BLOCKER RESTATED 2026-09-06: "17 pulls" counted the partition, "two pulls" the supply book's
-  # LOCATIONS, and neither set is this atom's subject. The successor is the `depends_on` edge below,
-  # not `blocked_on`, which cannot name an atom id today (SEAT_FINDING_BLOCKED_ON_CANNOT_NAME_AN_
-  # ATOM_2026-09-06.md).
+  # WHAT THIS ATOM WAITS ON, named -- and it is NOT W1_23 or W1_24. Both of those DEPEND ON this
+  # atom and open when it reaches level 3, so deferring the wiring to them is circular. The blocker
+  # is ARCHIVE BREADTH -- and on 2026-09-06 both the COUNT and the REASON were corrected. "17 more
+  # pulls" counts the PARTITION (21 cells less the 4 occupied), which is W1_23's precondition, not
+  # this atom's. THIS atom waits on the BOOK: six distinct supply-book locations, four with
+  # archives, so it is TWO pulls. Both figures are real and count different sets.
   blocked_on: null
-  block_reason: "L1->L2 needs a COORDINATE AT THE DRAW, not archive breadth, and W2_18 owns it
-    (file_scope already names `population_draw.py`); W1_24 is downstream. Of 18 supply points 14
-    resolve by exact location and 0 by the cell branch; all 4 refusals are I&C, no resi premise sits
-    at an un-archived location, so the two pulls move household coverage 100%->100%. And 100% of
-    drawn households carry `lat: None` from `population_draw.to_customer_dict`, so the cell branch
-    refuses every one whatever the archive holds -- even under `draw_region=True`, where ten real GB
-    regions are drawn and none carries a coordinate. That placeholder is protected
-    (`test_region_is_explicit_placeholder_not_fabricated`) and a coordinate must NOT be fabricated in
-    the weather seam. Held by `test_no_household_in_this_world_can_reach_the_cell_substitution_
-    branch`, keyed to the claim being FALSE so it reds when the world improves. Figures and poison
-    rounds: SEAT_FINDING_W1_14_WAITED_ON_THE_WRONG_GAP_2026-09-06.md. Still open, but no longer this
-    atom's precondition: the I&C gap is TWO pulls, HTTP 429 twice on 2026-09-06."
-  depends_on: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  # RE-MEASURED 2026-09-06 (later tick), because a stated precondition is a proxy that expires and
+  # 'clears on its own' is a prediction, not a reading. Probed the archive directly for Birmingham
+  # (52.4862,-1.8904), two days of one variable: still HTTP 429, and the reason string is now
+  # "Daily API request limit exceeded. Please try again tomorrow." So the block is real, external,
+  # and dated -- not a stale note. THE SECOND HALF OF THIS NOTE IS NOW DISCHARGED, 2026-09-06 (later
+  # tick), and it is kept beside its correction rather than revised away. It read: step 1 scans resi
+  # ELECTRICITY sources only, all four premises at the two uncovered locations are I&C (C_IC1/C_IC2
+  # Birmingham, C_IC3 + C_IC3g Teesside), so C_IC2 and C_IC3g could only resolve through step 2's
+  # STATIC `weather_cell_siting.ARCHIVE_SITES` dict -- hence "the two pulls must land WITH two
+  # entries there", plus an instruction not to add those entries before the CSVs exist.
+  #
+  # Both halves of that are now mechanical instead of remembered. `_weather_source_customer_id`
+  # steps 1 and 2 both check `_has_archive` -- the CSV on disk -- rather than inferring the archive
+  # from `commodity`/`segment` or trusting the static dict. So: (a) C_IC2 and C_IC3g settle on the
+  # SAME-COORDINATE archive holder via step 1 (proved reachable against a witness archive, not
+  # assumed), and no ARCHIVE_SITES entry is needed for them; (b) an entry added before its CSV lands
+  # can no longer return an unreadable id, so pull and entry may land in EITHER order. The old
+  # predicate was also admitting C7/C8/C9, which hold no CSV -- today's answers were correct only
+  # because C1/C2/C3 precede them in book ORDER. Every live premise resolves exactly as before
+  # (18/18 unchanged); three mutations of the new guards are killed by the two controls added.
+  # THE PULL IS THEREFORE THE WHOLE GAP AGAIN, which is what block_reason says.
+  block_reason: "L1->L2 needs weather ARCHIVE breadth, not more derivation, and TWO pulls close it:
+    `sim/weather_data/` holds 4 real Open-Meteo sites and the supply book has 6 distinct locations,
+    so Birmingham and Teesside are the whole gap. Attempted 2026-09-06, refused HTTP 429 'Daily API
+    request limit exceeded' -- external, clears on its own. That attempt found the header-only-CSV
+    data-loss defect fixed the same day (staged SEAT_FINDING, 2026-09-06). Measured by
+    `simulation/weather_cell_siting.derive()`, recorded in `sim/weather_cells/site_cells.json`. NOT
+    deferred to W1_23/W1_24 -- both depend_on this atom and open when it lands."
+  depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
-  # `tools/generate_weather_cells_data.py` left this scope 2026-09-06: it is a SITE publisher and
-  # this scope names where the SEAM lands. CORRECTION: the removal first reasoned that the file
-  # "HAS NEVER EXISTED in any commit". False -- it landed 4h23m earlier, in that commit's own
-  # tree, and it inverts the headline: nothing imports the derivation is true of the WORLD, never
-  # of the tree. SEAT_FINDING_W1_14_ROW_DENIED_A_FILE_IN_ITS_OWN_TREE_2026-09-06.md
+  # `tools/generate_weather_cells_data.py` was in this scope until 2026-09-06 and HAS NEVER EXISTED
+  # in any commit -- a level-0 row's file_scope is checked by nothing, so it named a program no build
+  # ever wrote. Replaced with the three paths the seam actually lands in. NOT `sim/weather_cells/
+  # site_cells.json`: that is the derived OUTPUT, and scoping the generated file would find the path
+  # dirty on every re-derivation. Scope the generator, not the generated.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that hedges and forecasts on 14 GSP groups because that is how it is settled, having never asked how many genuinely distinct weather regimes its customers actually live in."
 - id: W2_18_the_housing_joint_the_sample_and_the_ceiling
   title: "phase 1 of housing: the houses, the space-filling sample, and the technical ceiling on each value lever"
-  gain: "Phase 1 of housing: the fitted joint, the space-filling sample drawn for DIFFERENCE and rejected on OUTPUTS, and the technical ceiling per lever in physical units. Extends four live modules; does not fork a parallel premise generator."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1803,8 +1798,7 @@
   real_world_twin: "a supplier whose entire customer model is an average annual consumption figure, which is why every targeted offer it has ever made went to the households least able to act on it."
 - id: W2_19_who_lives_where_money_and_composition
   title: "phase 1 of people: money and who they are, as prior-plus-residual on small-area geography"
-  gain: "Phase 1 of people: money and who they are, as prior-plus-residual on small-area geography -- the household you would EXPECT given the postcode and the house, and how this one deviates. Scope extended twice on 2026-09-05/06 (merit order; use-case register)."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1823,7 +1817,7 @@
   real_world_twin: "a supplier that knows a property is a three-bed semi and assumes three bedrooms means three people, then cannot explain why half its direct debits are wrong."
 - id: H48_the_parked_document_audit_is_the_idle_hole_at_scale
   title: "121 parked documents, and the only question that matters is whether the reason each was parked is still true"
-  gain: "DIRECTOR RULING 2026-09-05 section 3, docs/staging/DIRECTOR_RULING_JULY_STEERS_RECONCILED_AND_PARKED_AUDIT_2026-09-05.md. Director verbatim: 'I do not want to ignore prior steers or stages that are out of date.' Three documents sampled at random were stale in THREE DIFFERENT WAYS -- done-but-not-moved, parked-on-a-condition-met-weeks-ago, and half-superseded -- which is the idle-hole class this harness has already named twice: a CORRECT park with no mechanism to notice its condition changing. 121 documents at that hit rate is not a filing problem, it is live work nobody can see. Five dispositions, each carrying an EVIDENCE LINE rather than the document's own header, because a document closed on its own header is a document nobody opened. The DIRECTOR bucket batches into ONE plain-English list, never 121 messages. Sequenced AFTER the HadUK pull, which has now landed, so this is unblocked."
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1840,8 +1834,7 @@
   real_world_twin: "a change board with a hundred items parked pending decisions that were taken last quarter, where the parking itself is what stops anyone noticing."
 - id: C32_one_obligation_one_vulnerability_scorer
   title: "two vulnerability scorers implement one Ofgem obligation, disagree on every shared term, and the dead one decides disconnection"
-  gain: "SEAT FINDING 2026-09-05, docs/staging/SEAT_FINDING_ONE_OFGEM_OBLIGATION_HAS_TWO_VULNERABILITY_SCORERS_THAT_DISAGREE_AND_THE_DEAD_ONE_DECIDES_DISCONNECTION_2026-09-05.md, found while carrying out the director's own instruction to give vulnerability_index.assess_vulnerability the caller it lacks."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 3
@@ -1876,8 +1869,7 @@
   real_world_twin: "a supplier with a vulnerability team working one list and a collections system scoring another, where the customer on home oxygen is priority on one and ordinary on the other, and nobody finds out until the disconnection."
 - id: D46_the_validator_holds_against_the_varied_population
   title: "the bill validator reconstructed a small homogeneous book to the penny; it must hold against the population the segments produce"
-  gain: "DIRECTOR SEQUENCING, 2026-09-05 console, STAGE 2 of three and it supersedes the ranking where they conflict: 'Second: bill it correctly."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
@@ -1896,8 +1888,7 @@
   real_world_twin: "a supplier whose billing engine was proved correct against the customers it already had, meeting its first prepayment change-of-tenancy with an estimated opening read."
 - id: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system
   title: "whether a property has a mains gas connection is a drawn attribute, from the same NEED rows floor area came from"
-  gain: "HOUSING RULING section 3.1 names 'heating system and fuel INCLUDING NO MAINS GAS'."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1916,8 +1907,7 @@
   real_world_twin: "a supplier that decides a household is off-grid because its gas meter read nothing this quarter."
 - id: W2_21_the_premise_joint_is_fitted_not_drawn_independently
   title: "the physical quantities are drawn from a fitted joint with their published correlations, not axis by axis"
-  gain: "HOUSING RULING section 3.1: the fitted joint of the quantities that carry the variance, WITH THEIR PUBLISHED CORRELATIONS -- flats are newer and smaller, pre-1919 is solid-wall, rural is detached and off-gas and has a drive."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1936,8 +1926,7 @@
   real_world_twin: "a stock model that draws a 40 square metre detached house because nothing told it those two facts travel together."
 - id: W2_22_the_sample_is_space_filling_and_rejects_on_outputs
   title: "draw for difference: a candidate house is rejected when one already drawn would behave the same"
-  gain: "HOUSING RULING section 1 and 3.2, and the director's framing is the whole of it: 'Draw for DIFFERENCE, not for proportion."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1956,8 +1945,7 @@
   real_world_twin: "a research panel recruited to match the census on every margin, in which every respondent turns out to be the same person twice."
 - id: G14_half_hourly_grid_carbon_intensity_aligned_to_settlement
   title: "historical half-hourly grid carbon intensity, aligned to the settlement periods the world already runs on"
-  gain: "AUTHORISED 2026-09-06 by DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY section 3.2 -- one of two small discovery pulls, 'reversible, cheap, wall-clean'."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: G_data_learning
   # price_to_bill, not close_to_learn. The default was wrong and the hygiene control
   # said so: this asset exists so a household's CARBON can sit beside its money bill
@@ -1980,8 +1968,7 @@
   real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
 - id: G15_forward_curve_series_to_backtest_hedging_by_physics
   title: "a published forward-curve or hedge-cost series good enough to backtest hedging by physics"
-  gain: "AUTHORISED 2026-09-06 by the use-case register ruling section 3.2, the second of the two pulls, and the register's own fidelity table marks it as the gap standing between use case 3.1 (hedging by physics) and any test of it: 'cell weather with synchrony; gradient distribution; HEDGE COST MODEL AND FORWARD CURVES'."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: E_finance_treasury
   value_stream: wholesale_to_price
   epoch: 3
@@ -1997,7 +1984,7 @@
   real_world_twin: "a trading desk backtesting a strategy on prices that were only published after the trades it claims to have made."
 - id: PB5_pounds_or_percent_resolved
   title: "P5: does the switching decision key on a percentage saving or on pounds a year, and what does the evidence say"
-  gain: "Director, 2026-08-28 (P5): 'If the switching decision keys on percentage saving, every household is equally worth chasing per point of margin. If it keys on GBP, a large home is far cheaper to win because the same percentage buys more visible saving, and customer value scales with consumption in a way a percentage world misses entirely. GB comparison sites and the cap headline both present annual GBP. Establish what our world uses, what the evidence says, and reconcile.' PARTLY ANSWERED ALREADY and that is why this is small: simulation/customer_events.py's own comment records that the calibrated churn curve was always a function of an ABSOLUTE annual saving, and that the conversion into it used one market-average bill for every household until 2026-08-27, when it was changed to this household's own bill in pounds. So the world is now a GBP world at the point of decision. What is NOT established is whether the acquisition and retention decisions on the company side agree -- and a world that decides in pounds while the company targets in percent is a systematically distorting mismatch, not a rounding difference. This atom establishes both sides and reconciles them, with the external evidence (comparison-site presentation, the cap headline) cited."
+  notes_rehomed: [gain]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -2017,7 +2004,7 @@
   real_world_twin: "every GB price comparison site and the Ofgem cap headline itself, all of which present an annual GBP figure -- a household is told 'save £312 a year', never 'save 11%', so a supplier modelling the decision in percent is modelling a number the customer is never shown"
 - id: A46_book_depth_is_a_curriculum_question
   title: "P9: only 37 accounts carry five or more renewals, so nothing can compound -- and book age moves the P&L, which makes it the director's"
-  gain: "Director, 2026-08-28 (P9): 'Book depth bounds every comparison. Only 37 accounts carry five or more renewals, so nothing can compound. Book age moves the P&L, which makes it curriculum and therefore the director's -- flagged, not delegated.' RETURNED, NOT DECIDED, as WORK THIS CREATES item 4 requires. This atom exists to carry the COST of each option to him and to hold the decision, not to take it: R13 is explicit that difficulty changes are named, versioned, director-authored artefacts and never adjusted by the agent in response to company outcomes, and the agent controls both sides of that wall. What the seat owes him is the priced menu -- how many renewals each option buys, what it costs in wall-clock against the 30-minute publish cadence that binds SETTLEMENT_CUSTOMER_YEAR_BUDGET, and which comparisons stay bounded until it lands."
+  notes_rehomed: [gain]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
@@ -2051,8 +2038,7 @@
   real_world_twin: "a board deciding how many years of trading history a strategy is to be judged over -- a question about what the firm is being asked to prove, not one the analyst running the backtest gets to settle"
 - id: A49_the_ceiling_comes_before_the_programme_on_r3_and_r4
   title: "The ceiling-before-programme discipline reached R1 and stopped there: R3 and R4 would be built with no bound on what they could possibly be worth"
-  gain: "DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04, WORK THIS CREATES item 5: 'The ceiling-before-programme discipline from EP13 applied to R1-R4 before building', and \u00a73: 'EP13's ceiling measurement was good work and the pattern it demonstrated -- measure the ceiling before the programme rather than after six passes -- should be applied to everything in R1-R4.' MINTED BECAUSE THE COVERAGE IS PARTIAL AND THE UNCOVERED HALF IS THE EXPENSIVE HALF. R1 has its ceiling (tools/r1_inference_ceiling.py, held-out per-cell mean -- the best possible function of the coordinate, so no estimator can beat it) and R2's bound follows from R1's result rather than needing its own instrument, both recorded in SEAT_FINDING_R1S_INFERENCE_CEILING_IS_AT_THE_NULL_AND_R2_CANNOT_PAY_UNTIL_R1_LANDS_2026-09-04. NULL DESCRIPTION CORRECTED 2026-09-06 (06fc90189, and the loose end that finding named): this row said 'against a max/48 null', which was the defect rather than the design -- the pair rung ranks 45 candidates and graded the winner against a null drawn for THAT PAIR ALONE, which accepted a book of pure noise 9 times in 10. The null is now SELECTION-CORRECTED: one draw shuffles the household->trait assignment across the whole book and re-scores every candidate, 200 draws give the distribution of the maximum actually reported. What this does to A49's own premise is the thing to carry: at n=69 the corrected verdict crosses 0.05 on a difference of two households, so R1's ceiling does not currently bound the R3/R4 programme and the live record of that is SEAT_FINDING_R1S_CEILING_WAS_A_SELECTED_MAXIMUM_AND_THE_CORRECTED_VERDICT_FLIPS_ON_TWO_HOUSEHOLDS_2026-09-06."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
@@ -2073,8 +2059,7 @@
   real_world_twin: "an investment committee that requires a size-of-the-prize estimate before it funds a programme, rather than after the first three milestones -- the discipline that stops a team proving it can execute something that was never worth executing"
 - id: C29_decisions_stop_being_lookup_tables
   title: "P6: acquisition budget takes no customer id, dunning keys on segment and days overdue, retention is a fixed offer and fixed tiers"
-  gain: "Director, 2026-08-28 (P6): 'Acquisition budget takes no customer id; dunning keys on segment and days overdue while capacity_to_pay and the breathing-space register go unread; retention is a fixed offer and fixed tiers."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 4
@@ -2096,8 +2081,7 @@
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
 - id: SITE14_the_front_door_schematic_carries_the_corrected_model
   title: "The published schematic still tells a reader the traits are coupled and the company can die; the canon page says neither"
-  gain: "THE FIRST LIVE FINDING OF THE CANON DRIFT CHECK ITSELF (A45, tools/canon_drift_check.py, 2026-08-28), which is the argument for the instrument as much as the work: THE_MODEL_ON_A_PAGE.md carried C1's and C3's corrections within hours, and site/index.html -- the rendered schematic a visitor actually reads, and the only version of the model most readers will ever see -- still describes a population 'drawn fresh every run with coupled hidden traits' and a company that 'can be wrong, and it can die'."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2113,7 +2097,7 @@
   real_world_twin: "a prospectus whose summary page is corrected while the infographic in the front of the same document keeps the withdrawn claim -- the correction is real, the reader never sees it, and which one is 'the document' is not a question the reader asks"
 - id: C30_advice_reaches_a_household
   title: "Advice is the third channel in the mission and has modules on disk, no recipient, and no household whose behaviour it has ever changed"
-  gain: "Director, 2026-08-28, mission: value reaches the customer 'through personalised modelling, tariffs and advice', with the instruction to NOTE that two of the three do not exist rather than fix it now. Observed: company/pricing/switching_recommendation.py renders inside company/portal/app.py and company/crm/decarb_recommender.py is discovery-wired, but NOTHING in simulation/ consumes a recommendation and no simulated customer visits the portal. The channel is built everywhere except the point where it would matter. TARIFFS is the only channel of the three that reaches a household today -- the renewal rate reaches the churn decision in simulation/customer_events.py and changes an outcome."
+  notes_rehomed: [gain]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 4
@@ -2135,7 +2119,7 @@
   real_world_twin: "a supplier whose smart-meter insights and tariff-switch prompts actually land in front of a household and change what it does -- as opposed to a recommendations engine that renders on a portal page almost nobody opens, which is the industry's usual outcome and exactly what is on disk here"
 - id: C31_time_is_the_currency_that_does_not_exist
   title: "Money, time and carbon are the three currencies the household is saved in, and time has never appeared in this project at all"
-  gain: "Director, 2026-08-28, mission: 'There are three currencies, not one -- money, time and carbon -- and we have only ever optimised money; time has never appeared in this project at all.' Verified the same day, observed-with-evidence: no time-, hours-, effort- or hassle-as-value symbol exists anywhere in company/, simulation/, saas/ or tools/, and no design document names time as a currency. Of the six cells in the mission's two-sides-by-three-currencies table, time is the only one that is ABSENT rather than merely uninstrumented -- carbon is designed and unwired (E5), household money is unmeasured but computable from figures the run already has. Time needs a household model of effort before it can be saved: what a switch, a query, a bill dispute or a meter read COSTS a household in attention. That model does not exist on either side of the wall."
+  notes_rehomed: [gain]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 4
@@ -2157,8 +2141,7 @@
   real_world_twin: "the reason a household stays on a bad tariff for years while a better one is one form away -- the switch costs attention it will not spend, which is a real cost to a real person and appears in no supplier's P&L"
 - id: W1_23_weather_phase2_the_other_loads_the_cells_do_not_carry
   title: "phase 2 (decided, not authorised): cold-water/ground temperature, day length, summer temperature"
-  gain: "Phase 1 cuts cells for HEAT load only, so those cells are unvalidated for hot water, lighting and summer load; phase 2 asks whether one cell set carries all four or each needs its own."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   records_rehomed: [evidence]
   lane: W1_market_weather
   value_stream: price_to_bill
@@ -2178,8 +2161,7 @@
   real_world_twin: "a supplier whose regional model was fitted on winter gas and is then asked, in the first hot summer, to explain a cooling and appliance load its geography was never cut for."
 - id: W1_24_weather_phase3_the_drivers_that_wait_on_a_population
   title: "phase 3 (decided, not authorised): relative humidity, wind direction, driving rain"
-  gain: "Three weather drivers that stay inert until something else exists to consume them -- a heat-pump population, a fabric moisture layer, a property orientation."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   records_rehomed: [evidence]
   lane: W1_market_weather
   value_stream: price_to_bill
@@ -2199,8 +2181,7 @@
   real_world_twin: "the installer's rule of thumb that a heat pump in damp coastal cold performs nothing like its rating -- known to every practitioner and absent from every regional weather model built for gas."
 - id: W2_23_housing_phase2_what_the_company_can_see_of_a_house
   title: "phase 2 (decided, not authorised): the observation layer -- EPC as a dated, modelled, partial snapshot; address as a free signal; what the meter reveals"
-  gain: "Phase 1 builds the house's hidden truth; this is the only thing that says what a real supplier could ever LEARN of it -- the epistemic wall made concrete on the housing axis."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   records_rehomed: [evidence]
   lane: W2_customer_generator
   value_stream: meter_to_cash
@@ -2220,8 +2201,7 @@
   real_world_twin: "the supplier that knows an address, a meter number and a monthly total, buys an EPC file covering three houses in five and a decade old where it exists, and must decide from that whether this house is worth an offer."
 - id: W2_24_housing_phase3_houses_change_on_their_own_timeline
   title: "phase 3 (decided, not authorised): the unprompted timeline -- boilers, PV and EV adoption, extensions, and the EPC falling behind"
-  gain: "A house that only ever changes because we sold it something cannot refute us; the unprompted timeline is what makes 'we saved them money' falsifiable."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   records_rehomed: [evidence]
   lane: W2_customer_generator
   value_stream: meter_to_cash
@@ -2241,8 +2221,7 @@
   real_world_twin: "the boiler that died in February and was replaced by whoever could come on Tuesday, moving the house's whole heat demand without the supplier hearing a word about it."
 - id: W2_25_people_phase2_shape_and_attitudes
   title: "phase 2 (decided, not authorised): elasticity, contact propensity and channel, presence residuals, consent to control, green stance and trust"
-  gain: "Consent to control is the new term and the one with product consequences: a battery or EV the household will not let us touch has a technical ceiling and no realisable value."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   records_rehomed: [evidence]
   lane: W2_customer_generator
   value_stream: meter_to_cash
@@ -2262,8 +2241,7 @@
   real_world_twin: "the household with a battery, a smart tariff and a flat refusal to let anyone else decide when it charges -- fully capable, and worth nothing to a flexibility product."
 - id: W2_26_people_phase3_the_residual_and_the_change
   title: "phase 3 (decided, not authorised): life events and income shocks, children arriving and leaving, unprompted device purchases, and the value-add term"
-  gain: "Willingness to BUY and willingness to APPRECIATE being saved money are two different quantities; differencing them before defining them is this project's most expensive recurring shape."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   records_rehomed: [evidence]
   lane: W2_customer_generator
   value_stream: meter_to_cash

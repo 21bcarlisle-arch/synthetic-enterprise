@@ -4,6 +4,7 @@ simplifications:
 map_notes:
   origin_note: Erroneous transfers, objections and failed switches are the substance -- a switching adapter that only models successful switches has modelled the easy half and left out every case that generates a complaint, a credit balance and a regulatory obligation. Interacts with W2_12_change_of_tenancy_debt_physics, where a switch and a tenancy change look identical from the company's side until they don't.
   name: 'Adapter for switching flows: electricity CSS (operated by DCC) and gas Supply Point Switching, both administered through RECCo under the REC Data Access Matrix, with eligibility confirmed by the REC Code Manager. Access class GATED; the adapter stays mocked, shaped to REC message flows. B10_competitor_switching_response models the company''s RESPONSE to switching; this is the industry PROCESS that switching actually runs through.'
+  gain: Gaining and losing customers becomes an industry process with its own failure modes, not a state change.
 map_records:
   evidence:
   - docs/staging/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md

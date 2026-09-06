@@ -9,6 +9,7 @@ simplifications:
 map_notes:
   origin_note: 'Activity-based pricing is a standing CLAUDE.md constraint -- flat margin makes some customers net-negative -- so a CLV that ignores cost-to-serve at the customer level reproduces the exact error the constraint names. R12 applies hard here: CLV is a DIAGNOSTIC, never a target, and no pricing or retention lever may be tuned to raise it. Coupled-triad shape when built: COMPANY estimates through the wall, HARNESS measures the estimate against SIM realised value.'
   name: 'Three-horizon customer lifetime value: contract-term, tenure-expected, and portfolio-cohort. The company''s OWN estimate assembled from observables (onboarding, flow events, payment behaviour, cost-to-serve) -- never a read of SIM truth -- so it is allowed to be wrong and the gap is the score. Named in DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08 §1 as an Epoch-2 floor item; no atom on the map touches CLV today.'
+  gain: Acquisition, retention and tariff decisions get a value number to argue with instead of a margin snapshot.
 map_records:
   evidence:
   - docs/staging/done/DIRECTOR_RULING_FUTURE_COMMITMENT_SETS_2026-08-08.md

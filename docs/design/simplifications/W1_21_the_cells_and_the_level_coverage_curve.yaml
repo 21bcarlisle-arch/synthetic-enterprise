@@ -1,12 +1,4 @@
 atom_id: W1_21_the_cells_and_the_level_coverage_curve
 map_notes:
-  origin_note: 'The ruling''s central deliverable and the director''s own question: ''how much granularity
-    is needed to capture, say 99%, versus 95 or 90% of the variation for households across these primary
-    heat load variables''. THE ANSWER IS A CURVE, NOT A NUMBER (decision 5) and this atom owns the LEVEL
-    half -- annual heat load -- with shape held by W1_18. Delivers the named cell sets at 90/95/99% and
-    their counts. THE CLUSTERING IS BLIND TO INDUSTRY BOUNDARIES (decision 6): LDZ''s 13 gas zones, the
-    14 GSP groups and SAP''s 21 climate regions are COMPARATORS overlaid afterwards with a stated figure
-    for how well each approximates the derived cells, never inputs to the fit -- and they matter because
-    the company receives settlement and network data on those boundaries. Property-side variables are
-    OUT of scope (section 1): a hillside facing the prevailing wind is a property-level exposure attribute
-    applied to its cell''s wind, not a reason for a finer cell.'
+  origin_note: 'The ruling''s central deliverable and the director''s own question: ''how much granularity is needed to capture, say 99%, versus 95 or 90% of the variation for households across these primary heat load variables''. THE ANSWER IS A CURVE, NOT A NUMBER (decision 5) and this atom owns the LEVEL half -- annual heat load -- with shape held by W1_18. Delivers the named cell sets at 90/95/99% and their counts. THE CLUSTERING IS BLIND TO INDUSTRY BOUNDARIES (decision 6): LDZ''s 13 gas zones, the 14 GSP groups and SAP''s 21 climate regions are COMPARATORS overlaid afterwards with a stated figure for how well each approximates the derived cells, never inputs to the fit -- and they matter because the company receives settlement and network data on those boundaries. Property-side variables are OUT of scope (section 1): a hillside facing the prevailing wind is a property-level exposure attribute applied to its cell''s wind, not a reason for a finer cell.'
+  gain: Cluster the drivers into cells and publish household-weighted variation explained against cell count -- the director's question answered as a CURVE, with 90/95/99% cell sets named and LDZ/GSP/SAP-21 overlaid afterwards as comparators.

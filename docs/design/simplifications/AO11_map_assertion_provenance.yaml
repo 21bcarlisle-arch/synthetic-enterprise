@@ -4,6 +4,7 @@ simplifications:
 map_notes:
   origin_note: 'This is the STALE-CELL CLASS, not a tidy-up -- the addendum''s own words, and the most recent instance is the DD cell reading level 0 with no ledger entry while all six sub-parts were built, committed and live. The company layer is already bitemporal (company/**/bitemporal_event_log.py, valid-time and transaction-time); the governance layer that steers it is not. Reuse of that primitive is the obvious candidate AND the obvious trap -- the parent programme''s own wall says forced reuse that couples two purposes is the mirror error of duplication, so check whether it fits before taking it, and record the answer either way (that check is exactly what AO2''s gate is for). NOT delivered by AO1: the index makes no assertions to timestamp, because it re-derives on every query. Additive by design -- assert nothing the draw reads until proven, per the addendum''s own mitigation.'
   name: 'ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06 item A2, which AO1 deliberately did NOT absorb: a map assertion should carry WHEN IT WAS MADE and WHEN IT WAS LAST VERIFIED against the artefacts it claims. A cell reading L0 while its artefacts on disk say L2 is a validity-window failure -- an assertion true when written and silently false now, with nothing recording either date.'
+  gain: A stale level becomes a query instead of a discovery someone happens to make weeks later.
 map_records:
   evidence:
   - docs/staging/in_progress/ADVISOR_ADDENDUM_ARCHITECTED_OUT_EDGE_INTEGRITY_2026-08-06.md

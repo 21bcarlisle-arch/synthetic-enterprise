@@ -1,13 +1,4 @@
 atom_id: W1_19_the_three_drivers_per_land_cell_from_the_normals
 map_notes:
-  origin_note: 'FIRST MOVE on the weather cells and it needs nothing but the disk: the 1991-2020 30-year
-    normals for tas, sfcWind and sun are pulled and readable (xarray + h5netcdf; netCDF4 is NOT installed,
-    h5netcdf is the engine that works). Produce the per-cell driver table -- annual and winter means of
-    temperature, wind and sunshine -- with their distributions and PAIRWISE CORRELATIONS, which is the
-    ruling''s section 3.2 first artefact and the thing every later step needs. THE CORRELATIONS ARE THE
-    POINT, not decoration: the ruling''s expected-shape block predicts ''winter temperature and wind are
-    positively correlated'' and ''the north-south gradient dominates solar'', and both are falsifiable
-    here before any clustering happens. TWO THINGS TO STATE RATHER THAN SMOOTH: HadUK publishes SUNSHINE
-    DURATION, not irradiance, so the conversion is a registered Choice with its source and its alternative
-    named -- the ruling says so explicitly; and the grid is 1450x900 including sea, so the LAND MASK matters
-    and a mean taken over the full array is a mean over the Atlantic.'
+  origin_note: 'FIRST MOVE on the weather cells and it needs nothing but the disk: the 1991-2020 30-year normals for tas, sfcWind and sun are pulled and readable (xarray + h5netcdf; netCDF4 is NOT installed, h5netcdf is the engine that works). Produce the per-cell driver table -- annual and winter means of temperature, wind and sunshine -- with their distributions and PAIRWISE CORRELATIONS, which is the ruling''s section 3.2 first artefact and the thing every later step needs. THE CORRELATIONS ARE THE POINT, not decoration: the ruling''s expected-shape block predicts ''winter temperature and wind are positively correlated'' and ''the north-south gradient dominates solar'', and both are falsifiable here before any clustering happens. TWO THINGS TO STATE RATHER THAN SMOOTH: HadUK publishes SUNSHINE DURATION, not irradiance, so the conversion is a registered Choice with its source and its alternative named -- the ruling says so explicitly; and the grid is 1450x900 including sea, so the LAND MASK matters and a mean taken over the full array is a mean over the Atlantic.'
+  gain: Temperature, wind and sunshine per 1km land cell from the 30-year normals, with their pairwise correlations -- the first artefact every later step needs, and it requires nothing but the completed pull.

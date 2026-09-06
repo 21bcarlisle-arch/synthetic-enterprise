@@ -186,7 +186,23 @@ _MIN_CLAIMS = 90
 # the uncommitted change set it waits on. Empty is the correct steady state: the one NEVER-LANDED
 # violation this control found on its first run waited on nothing and was landed instead of
 # declared.
-_KNOWN_UNLANDED: dict[str, str] = {}
+_KNOWN_UNLANDED: dict[str, str] = {
+    "tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py": (
+        "2026-09-06. KNIFE3_wall_crossing_paydown credits this file as BUILT and no tree carries "
+        "it. It waits on the uncommitted SLC 27B document corrections. Landing it was tried FIRST "
+        "and refused, which is what establishes that the wait is real: the file "
+        "exists (written 2026-09-03, stdlib-only, six green in the working tree) but "
+        "`test_NO_FILE_asserts_a_licence_condition_that_does_not_exist` reads the COMMITTED tree, "
+        "and it goes red there on ~16 documents still asserting a +-5% SLC 27B tolerance. The "
+        "correction is real but uncommitted and belongs to another lane: "
+        "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md carries five of those assertions at "
+        "HEAD and four in the working tree. So the falsifier is green only against a tree that "
+        "includes that lane's edit, and landing it here would mean banking their half-finished "
+        "document pass to make my own commit green. Clears when the SLC 27B corrections land; at "
+        "that point the falsifier lands with them and this entry must be deleted -- "
+        "test_every_declared_exemption_is_still_a_real_violation fails if it outlives the wait."
+    ),
+}
 
 # THE OTHER SHAPE, and it is not the same defect. A store note is a DATED LOG: an entry can have
 # been exactly true when written and be describing a node that a later commit deliberately renamed

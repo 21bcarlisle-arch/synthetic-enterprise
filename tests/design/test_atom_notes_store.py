@@ -56,16 +56,25 @@ def _load_atoms(path: Path = MAP_PATH) -> list:
 # --------------------------------------------------------------------------
 # pure checks (feedable synthetic inputs for mutation testing)
 # --------------------------------------------------------------------------
-def check_no_inline_notes(atoms: list) -> list[str]:
+def check_no_inline_notes(atoms: list, store_dir: Path = None) -> list[str]:
     """No map atom may carry a note-class field inline. CLASS-level: membership is
     `store.is_note_field`, which matches the named fields AND any `*_note` suffix,
-    so a newly-invented note field is caught without editing this test."""
+    so a newly-invented note field is caught without editing this test.
+
+    THE ONE EXCEPTION IS COMPUTED, NOT DECLARED (H41, 2026-09-06). Where the store would
+    REFUSE the write -- an atom already over the note-tenant bound -- the map is the only
+    home that prose has, and calling it a violation in both places would mean deleting it
+    or laundering another lane's narrative to make room. So the exception is
+    `store.note_write_refusal` returning a reason, which means it disappears by itself the
+    moment that tenant is compacted. A name on a list would not have."""
     violations = []
     for a in atoms:
         if not isinstance(a, dict):
             continue
         for k in sorted(a):
             if store.is_note_field(k):
+                if store.note_write_refusal(str(a.get("id")), k, a[k], store_dir):
+                    continue
                 violations.append(
                     f"{a.get('id')}: `{k}` is inline in the map -- note prose lives "
                     "in the store (two sources of truth forbidden). Write it with "
@@ -260,3 +269,85 @@ def test_nonempty_check_fires_on_a_dropped_text():
     assert check_notes_are_nonempty_strings({"A1": {"build_note": ""}})
     assert check_notes_are_nonempty_strings({"A1": {"build_note": None}})
     assert not check_notes_are_nonempty_strings({"A1": {"build_note": "real prose"}})
+
+
+# --------------------------------------------------------------------------
+# H41 (2026-09-06): `gain` joins the class, and the ONE exception is computed
+# --------------------------------------------------------------------------
+def _fill_tenant_to_the_bound(atom_id: str, store_dir: Path) -> None:
+    """Take one atom's note tenant to exactly NOTE_TENANT_MAX_BYTES, through the real
+    writer. A quarter at a time because a single note that breaks the bound is refused --
+    the state this reproduces is legacy prose that predates the bound, which is what
+    `OPS2_publish_gate_head_worktree` actually is."""
+    chunk = store.NOTE_TENANT_MAX_BYTES // 4
+    for field in ("build_note", "origin_note", "harden_note", "level_hold_note"):
+        store.set_note_for_atom(atom_id, field, "x" * chunk, store_dir)
+    assert store.note_tenant_bytes(store.notes_for_atom(atom_id, store_dir)) == (
+        store.NOTE_TENANT_MAX_BYTES
+    )
+
+
+def test_inline_check_fires_on_an_inline_gain():
+    """`gain` was the field that proved a suffix-keyed class guard insufficient: it is
+    narrative prose, it was the largest class in the spine (48,858 B), and it does not end
+    `_note`, so the guard could not see it while the map refilled to 0.3% headroom."""
+    assert check_no_inline_notes([{"id": "A1", "gain": "prose that belongs in the store"}])
+    assert not check_no_inline_notes([{"id": "A1", DECL: ["gain"]}])
+
+
+def test_the_inline_exception_is_the_stores_REFUSAL_and_not_an_atom_NAME(tmp_path):
+    """BOTH LEGS over one partition, which is the only shape that proves this exception is
+    computed. The SAME atom id and the SAME inline field must be a violation when the store
+    would take the note, and permitted when the store refuses it -- so what decides is the
+    store's answer, not anything about the atom. A control that only ever tried the refusing
+    side would pass identically if the exception were a hard-coded id."""
+    sd = tmp_path / "simplifications"
+    atom = [{"id": "A1", "gain": "prose"}]
+
+    # Leg 1: an empty tenant. The store would accept the write, so the map must not keep it.
+    assert check_no_inline_notes(atom, sd)
+
+    # Leg 2: the same atom, now AT the note-tenant bound (filled a quarter at a time,
+    # because the writer will not accept a single note that breaks it -- which is the bound
+    # working). The store refuses the gain, so the map is the only home the prose has.
+    _fill_tenant_to_the_bound("A1", sd)
+    assert store.note_write_refusal("A1", "gain", "prose", sd)
+    assert not check_no_inline_notes(atom, sd)
+
+
+def test_the_refusal_predicate_agrees_with_the_writer_that_raises(tmp_path):
+    """One decision, asked two ways. If `note_write_refusal` and `set_note_for_atom` could
+    disagree, the map guard would permit an inline field the store would happily have taken
+    -- a hole with no symptom."""
+    sd = tmp_path / "simplifications"
+    _fill_tenant_to_the_bound("A2", sd)
+    assert store.note_write_refusal("A2", "gain", "prose", sd)
+    with pytest.raises(ValueError, match="note budget"):
+        store.set_note_for_atom("A2", "gain", "prose", sd)
+    # And the agreeing direction, so this is not one-sided.
+    assert store.note_write_refusal("A3", "gain", "prose", sd) is None
+    store.set_note_for_atom("A3", "gain", "prose", sd)
+
+
+def test_remove_note_drops_one_key_and_keeps_every_other_tenant(tmp_path):
+    """The rename half of H41: 22 atoms had gain prose stored under `origin_note`, and
+    without a remover that mislabelling is permanent. It must not take the neighbours."""
+    sd = tmp_path / "simplifications"
+    store.set_note_for_atom("A4", "origin_note", "the gain text, misfiled", sd)
+    store.set_note_for_atom("A4", "build_note", "unrelated", sd)
+    store.append_for_atom("A4", ["a simplification entry"], sd)
+
+    store.set_note_for_atom("A4", "gain", "the gain text, misfiled", sd)
+    assert store.remove_note_for_atom("A4", "origin_note", sd) == {
+        "build_note": "unrelated",
+        "gain": "the gain text, misfiled",
+    }
+    assert store.for_atom("A4", sd) == ["a simplification entry"], "the OTHER tenant went"
+
+
+def test_remove_note_is_a_no_op_on_an_absent_field_and_refuses_a_non_note_field(tmp_path):
+    sd = tmp_path / "simplifications"
+    store.set_note_for_atom("A5", "build_note", "kept", sd)
+    assert store.remove_note_for_atom("A5", "gain", sd) == {"build_note": "kept"}
+    with pytest.raises(ValueError):
+        store.remove_note_for_atom("A5", "level_current", sd)

@@ -4,6 +4,7 @@ simplifications:
 map_notes:
   origin_note: 'Schema-drift tolerance is the requirement that makes this real: a published spreadsheet whose columns move between periods is the normal case, not the edge case, and a parser that fails silently on a moved column produces a cost stack that is confidently wrong. Fail-LOUD on an unparseable publication (R15: an unavailable input is a failed input, never a zero). Regulation-commons doctrine applies -- the TEXT is readable by every lane; the company''s READING of it stays its own and is allowed to be wrong.'
   name: 'File-ingest adapters, not REST clients, for the published cost stack: the Ofgem price cap level and full annex model (spreadsheets each period), DNO DUoS via CDCM tariff spreadsheets, TNUoS via NESO publications, and BSUoS as reformed under NESO. Access class OPEN, spreadsheet-shaped. These feed the non-commodity cost stack that the advisor''s scope brief puts in ~£4.9M reconciliation-gap territory.'
+  gain: Network and policy costs stop being parameters and start being documents that change under the company.
 map_records:
   evidence:
   - docs/design/refs/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md

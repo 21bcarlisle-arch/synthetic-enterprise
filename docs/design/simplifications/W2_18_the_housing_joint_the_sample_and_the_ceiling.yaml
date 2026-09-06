@@ -1,30 +1,4 @@
 atom_id: W2_18_the_housing_joint_the_sample_and_the_ceiling
 map_notes:
-  origin_note: 'DIRECTOR RULING 2026-09-05, docs/staging/DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05.md,
-    P1 product. THE MISSION SENTENCE IS THE FRAME: ''creating enterprise value by automating ways to find
-    individual customers we can create value for'' -- to find them the world must CONTAIN them and the
-    company must have to LOOK. So: draw for DIFFERENCE, not for proportion, and judge ''behaves the same''
-    on OUTPUTS (usage level, shape, weather gradient, ceiling per lever) never on type/age/size labels.
-    Two London terraces on one street teach the world nothing the first did not. The existing premise
-    draw (EPC band x property type x build era x heating system, raked onto EHS) STANDS and is extended,
-    never forked -- concept has one home. Its own register names the gaps this closes: floor area rests
-    on an unpublished bedrooms table, PV/EV/loft/cavity are not drawn at premise level, bungalows are
-    folded into detached, and the EPC''s model-versus-metered gap is unrepresented. Ceilings in PHYSICAL
-    units first (kWh, tonnes, customer effort) and monetised on top, because prices move. Heat pump is
-    OUT of all three phases until the director says otherwise. PRIOR-ART CHECK 2026-09-05: closed atom
-    W2_12_change_of_tenancy_debt_physics DID NOT DELIVER ITS HEADLINE and must not be read as covering
-    the move mechanics the merit-order amendment puts at rung 2. Opened all five of its artefacts: change_of_tenancy_register.py
-    (593 lines), account_closure.py (422) and final_bill_outcome.py (522) have ZERO production importers
-    between them -- 1,537 lines reachable only from tests; arrears_engine.py is genuinely wired (9 importers)
-    but arrears is not tenancy change; and home_move_win_rate.py runs, at simulation/customer_events.py:412,
-    ONLY as a retention multiplier at renewal. So ''home move'' is a name on a churn coefficient, not
-    a modelled move: the live run emits 110 customer events, every one renewed or churned, no move, no
-    property staying, no incoming occupier, no deemed contract. The atom is not dishonest -- its level_target
-    was 1, which is DISCOVER -- but a closed atom reads as done, and this one framed the physics without
-    building the emitter. SCOPE ADDED 2026-09-06 by the use-case register ruling section 3.1: the per-house
-    USAGE OUTPUT must be a PER-ASSET decomposition (heating, hot water, EV, appliances, PV), not a total,
-    with a control that the parts sum to the existing total so no published figure moves. Use case 4.5
-    scores disaggregation against per-asset truth and 4.1''s business cases price a lever against the
-    asset it moves; neither is measurable from a total. ANCHOR IT OR DECLARE IT -- the ruling''s own failure
-    mode (b) is a decomposition invented rather than anchored, and EFUS end-use splits and published disaggregation
-    studies exist.'
+  origin_note: 'DIRECTOR RULING 2026-09-05, docs/staging/DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05.md, P1 product. THE MISSION SENTENCE IS THE FRAME: ''creating enterprise value by automating ways to find individual customers we can create value for'' -- to find them the world must CONTAIN them and the company must have to LOOK. So: draw for DIFFERENCE, not for proportion, and judge ''behaves the same'' on OUTPUTS (usage level, shape, weather gradient, ceiling per lever) never on type/age/size labels. Two London terraces on one street teach the world nothing the first did not. The existing premise draw (EPC band x property type x build era x heating system, raked onto EHS) STANDS and is extended, never forked -- concept has one home. Its own register names the gaps this closes: floor area rests on an unpublished bedrooms table, PV/EV/loft/cavity are not drawn at premise level, bungalows are folded into detached, and the EPC''s model-versus-metered gap is unrepresented. Ceilings in PHYSICAL units first (kWh, tonnes, customer effort) and monetised on top, because prices move. Heat pump is OUT of all three phases until the director says otherwise. PRIOR-ART CHECK 2026-09-05: closed atom W2_12_change_of_tenancy_debt_physics DID NOT DELIVER ITS HEADLINE and must not be read as covering the move mechanics the merit-order amendment puts at rung 2. Opened all five of its artefacts: change_of_tenancy_register.py (593 lines), account_closure.py (422) and final_bill_outcome.py (522) have ZERO production importers between them -- 1,537 lines reachable only from tests; arrears_engine.py is genuinely wired (9 importers) but arrears is not tenancy change; and home_move_win_rate.py runs, at simulation/customer_events.py:412, ONLY as a retention multiplier at renewal. So ''home move'' is a name on a churn coefficient, not a modelled move: the live run emits 110 customer events, every one renewed or churned, no move, no property staying, no incoming occupier, no deemed contract. The atom is not dishonest -- its level_target was 1, which is DISCOVER -- but a closed atom reads as done, and this one framed the physics without building the emitter. SCOPE ADDED 2026-09-06 by the use-case register ruling section 3.1: the per-house USAGE OUTPUT must be a PER-ASSET decomposition (heating, hot water, EV, appliances, PV), not a total, with a control that the parts sum to the existing total so no published figure moves. Use case 4.5 scores disaggregation against per-asset truth and 4.1''s business cases price a lever against the asset it moves; neither is measurable from a total. ANCHOR IT OR DECLARE IT -- the ruling''s own failure mode (b) is a decomposition invented rather than anchored, and EFUS end-use splits and published disaggregation studies exist.'
+  gain: 'Phase 1 of housing: the fitted joint, the space-filling sample drawn for DIFFERENCE and rejected on OUTPUTS, and the technical ceiling per lever in physical units. Extends four live modules; does not fork a parallel premise generator.'

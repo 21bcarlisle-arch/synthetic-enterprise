@@ -8,6 +8,7 @@ map_notes:
 
 
     STORE ROWS WRITTEN 2026-08-17. The mint declared `notes_rehomed: [name, notes]` and `records_rehomed: [evidence]` and wrote no store file, so test_atom_notes_store.py::test_declarations_match_the_store and test_atom_records_store.py::test_declarations_match_the_store_both_directions were red at the working tree from the moment of the mint. Those two reds were 2 of the 5 that held the pre-commit gate -- and therefore the content publish -- from 2026-08-14 07:04 UTC. The mint''s own `# MINTED` comment in the map block is left exactly as written; what is added here is the `name`/`notes`/`evidence` content the declarations promised and the store never held.'
+  gain: All five published gas accounts (C1g, C2g, C3g, C4g, C_IC3g) carry zero CLV, zero churn probability, zero expected lifetime and zero forecast profit, while four of their own electricity legs are live and large -- C2 0.41/GBP4,855.58, C3 0.17/GBP3,434.19, C4 0.17/GBP1,336.57, C_IC3 0.41/GBP3,137,524.98. The published per-customer record cannot distinguish a measured zero from a field that was never populated, so the site renders a structural blank as a company belief about half of every dual-fuel household. Population is 5 legs, not the 1 household the Hour recorded.
 map_records:
   evidence:
   - tools/generate_customer_data.py

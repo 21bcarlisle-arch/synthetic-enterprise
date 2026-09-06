@@ -1417,8 +1417,7 @@
 
 - id: A9_market_at_the_seams_design_law
   title: "A second market must fit behind the seams that already exist"
-  gain: "Portability stops being a review lens someone remembers to apply and becomes a check that fails when a counterparty gets hardcoded."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
@@ -2582,7 +2581,7 @@
   records_rehomed: [evidence]
 - id: W2_17_dual_fuel_leg_clv_attribution
   title: "Every gas leg's CLV is a structural blank, and one churned household made the blank look correct"
-  notes_rehomed: [name, notes]
+  notes_rehomed: [gain, name, notes]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
@@ -2607,7 +2606,6 @@
   blocked_on: null
   simplifications_count: 0
   expert_hour: {status: not_attempted, last: null, findings: []}
-  gain: "All five published gas accounts (C1g, C2g, C3g, C4g, C_IC3g) carry zero CLV, zero churn probability, zero expected lifetime and zero forecast profit, while four of their own electricity legs are live and large -- C2 0.41/GBP4,855.58, C3 0.17/GBP3,434.19, C4 0.17/GBP1,336.57, C_IC3 0.41/GBP3,137,524.98. The published per-customer record cannot distinguish a measured zero from a field that was never populated, so the site renders a structural blank as a company belief about half of every dual-fuel household. Population is 5 legs, not the 1 household the Hour recorded."
   real_world_twin: "a supplier whose lifetime-value model is keyed on the electricity MPAN, so the gas half of every dual-fuel household reports zero value forever -- and nobody notices until one churned account makes the zero look like the right answer"
   records_rehomed: [evidence]
 - id: H30_sim_runner_discards_child_stderr
@@ -2860,8 +2858,7 @@
   records_rehomed: [evidence]
 - id: AO1_capability_index
   title: "The list of what we already have"
-  gain: "A builder can find an existing capability in seconds, so the cheapest move stops being 'write it again'."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2876,8 +2873,7 @@
   file_scope: ['tools/capability_index.py', 'tests/tools/test_capability_index.py', 'docs/design/CAPABILITY_INDEX.md']
 - id: AO2_write_time_reuse_gate
   title: "Check before you build"
-  gain: "New code gets written only when nothing existing fits -- and the reason is on the record either way."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2892,8 +2888,7 @@
   file_scope: ['tools/write_time_gate.py', 'tests/tools/test_write_time_gate.py', 'tools/git-hooks/commit-msg', 'docs/design/WRITE_TIME_GATE.md']
 - id: AO3_join_test_tier
   title: "Tests that watch the seams"
-  gain: "The parts-pass-system-fails failure -- the one behind every serious break so far -- gets caught before a refactor causes it."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2908,8 +2903,7 @@
   file_scope: ['tests/system/', 'docs/design/JOIN_TEST_TIER.md']
 - id: AO4_scale_constraints_executable
   title: "The scale rules become real checks"
-  gain: "Five production-readiness constraints stop being aspirations and start failing when they are broken."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2924,8 +2918,7 @@
   file_scope: ['tests/system/', 'docs/design/SCALE_CONSTRAINT_CHECKS.md']
 - id: AO5_hotspot_consolidation
   title: "Cut the four known tangles"
-  gain: "The worst-tangled modules get untangled one at a time, without changing what the company does."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2940,8 +2933,7 @@
   file_scope: ['docs/design/KNIFE_HOTSPOT_PASSES.md']
 - id: KNIFE1_reporting_cycle
   title: "Break the reporting/main-run import cycle"
-  gain: "The annual report stops importing the simulation run that imports it back, so the company's reporting can be read, tested and moved without dragging the whole run behind it."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2956,8 +2948,7 @@
   file_scope: ['saas/reporting/annual_report.py', 'saas/reporting/segment_report.py', 'simulation/run_phase4c_on_phase2b.py', 'tools/run_segments.py', 'tests/architecture/test_epistemic_wall_ratchet.py']
 - id: KNIFE2_customer_straddle
   title: "Stop the simulation reaching into the customer module"
-  gain: "The 16 places where the simulated world reads the company's own customer code directly go through the seam instead, so the company can be wrong about its customers the way a real supplier can."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2972,8 +2963,7 @@
   file_scope: ['saas/customers.py', 'company/interfaces/supply_book.py', 'tests/company/interfaces/test_supply_book_seam.py', 'tests/architecture/test_epistemic_wall_ratchet.py', 'docs/design/KNIFE_HOTSPOT_PASSES.md']
 - id: KNIFE4_orphan_disposition
   title: "Give every unreferenced company module a verdict"
-  gain: "258 company modules nothing calls stop being ambiguous -- each is wired to its missing caller, archived with the thing that superseded it, or explained."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2988,8 +2978,7 @@
   file_scope: ['docs/design/ORPHAN_DISPOSITION_REGISTER.md', 'tools/capability_index.py']
 - id: AO6_consolidation_rhythm
   title: "Tidying becomes a standing duty"
-  gain: "Duplicates and orphans get cleared every epoch instead of accumulating until the next big audit."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3004,8 +2993,7 @@
   file_scope: ['.claude/skills/phase-close/SKILL.md', 'docs/design/CONSOLIDATION_RHYTHM.md']
 - id: AO7_target_design_doc
   title: "The architecture we would build today"
-  gain: "Every cleanup pass has a direction to move toward, and the distance left to travel is visible."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3020,8 +3008,7 @@
   file_scope: ['docs/design/TARGET_DESIGN.md', 'tools/target_design_delta.py', 'tests/tools/test_target_design_delta.py']
 - id: AO8_board_batteries_executable
   title: "Paid-for expert reviews become standing checks"
-  gain: "External judgement already bought stops sitting inert in prose and starts failing when the company drifts from it."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3037,8 +3024,7 @@
 
 - id: AO9_blind_review_by_restricted_context
   title: "Blind review without the human courier"
-  gain: "The reviews that work because the reviewer cannot see the code can run often, instead of only when someone hand-carries them."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3060,8 +3046,7 @@
 # ---------------------------------------------------------------------------
 - id: AO10_exhaust_separated_from_record
   title: "Stop filing the machine's heartbeat with the governance"
-  gain: "The instruction record becomes readable again, because 78 instructions stop being buried under ~4,300 run markers."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3076,8 +3061,7 @@
   file_scope: ['background/staging_archive_policy.py', 'tests/background/test_staging_archive_policy.py']
 - id: AO11_map_assertion_provenance
   title: "Every map cell says when it was last checked"
-  gain: "A stale level becomes a query instead of a discovery someone happens to make weeks later."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3093,8 +3077,7 @@
   file_scope: ['tools/map_assertion_provenance.py', 'tests/tools/test_map_assertion_provenance.py']
 - id: AO12_scale_probe_10k
   title: "Find the first seam that tears at 10k customers, with a number on it"
-  gain: "The scale question stops being an extrapolation argument and becomes a measurement -- and the measurement is cheap enough to repeat."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3164,8 +3147,7 @@
 # --- EPOCH 2: the commercial brain (idle -- BUILD-parked, DISCOVER/FRAME-open)
 - id: PB1_population_target_and_its_price
   title: "How big the world should be, with what it costs beside it"
-  gain: "Population scale stops being an inherited default and becomes a proposed number that was PRICED before it was bought."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
@@ -3181,8 +3163,7 @@
   file_scope: [simulation/premise_population.py, tools/scale_probe_10k.py, tests/simulation/test_premise_population.py, docs/design/PB1_POPULATION_TARGET_AND_ITS_PRICE.md]
 - id: PB2_opening_book_won_not_assigned
   title: "The company starts with a real book, and it had to win it"
-  gain: "A 13-account book stops being a stress test of the money machinery and starts being a small supplier."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 2
@@ -3202,8 +3183,7 @@
     docs/design/PB2_JOIN_KEY_BUILD.md, docs/design/PB2_INVERSION_BUILD.md]
 - id: EP6_wall_protocol_typing
   title: "The wall stops being calls and becomes messages"
-  gain: "Go-live becomes a transport swap instead of a redesign, because the message shapes were right all along."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: W4_the_wall
   value_stream: close_to_learn
   epoch: 3
@@ -3219,8 +3199,7 @@
   simplifications_count: 62
 - id: FUT1_attach_forward_hook
   title: "A finding can say what future it advances"
-  gain: "Forward discovery accretes onto the atom it serves instead of scattering into whichever lane caught it."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3235,8 +3214,7 @@
   file_scope: [background/forward_attachment_register.py, tests/background/test_forward_attachment_register.py, docs/design/FORWARD_ATTACHMENT_LEDGER.md, tools/generate_maturity_map_data.py]
 - id: FUT2_pull_forward_proposal
   title: "Ripe futures get proposed, never self-opened"
-  gain: "A future atom that has quietly accumulated its groundwork surfaces as a case, and stops at the door."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3251,8 +3229,7 @@
   file_scope: ['background/pull_forward_proposal.py', 'tests/background/test_pull_forward_proposal.py', 'docs/design/PULL_FORWARD_PROPOSALS.md']
 - id: FUT3_blocked_atom_visibility
   title: "Blocked does not mean forgotten"
-  gain: "The 82-vs-7 lane imbalance becomes a measured dial instead of a thing someone notices."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3276,8 +3253,7 @@
 #     (background_worker.process_leftover_run_markers, drained 413 -> 12 on 2026-08-03).
 - id: PW1_staleness_is_code_actually_loaded
   title: "Stale means stale for THIS daemon's code"
-  gain: "A staleness signal that can be green is a signal someone acts on; a permanently-red one is indistinguishable from a blind one."
-  notes_rehomed: [level_note, name, origin_note]
+  notes_rehomed: [gain, level_note, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3295,8 +3271,7 @@
 
 - id: PW2_failure_clears_its_own_alarm
   title: "A check whose failure erases the record of the failure"
-  gain: "The class that let a 10h outage alarm about a 14-minute one gets a census and a guard, instead of a second instance fix."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3314,8 +3289,7 @@
 
 - id: PW4_guard_remaining_episode_states
   title: "The other four self-clearing episode states"
-  gain: "The class guard reaches every control the census called real, not only the one that broke loudly enough to be noticed."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3333,8 +3307,7 @@
 
 - id: H42_wedge_suspect_list_rederived_from_the_red
   title: "The wedge alarm's suspects come from the actual red, not from what was filed most recently"
-  gain: "The responder reads a list that can name the cause, instead of eight recent findings that provably never do."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3352,8 +3325,7 @@
 
 - id: PW3_suite_duration_watch
   title: "Nothing watches how long the suite takes"
-  gain: "The next time the suite outgrows its wall, it is a trend someone saw coming rather than a timeout that read as a pass."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3390,8 +3362,7 @@
 
 - id: OPS3_first_post_ruling_publish
   title: "Land the first publish under the new subject and say what it printed"
-  gain: "The ruling is only real once a publish has actually landed from committed truth; until then gate-on-HEAD is a claim."
-  notes_rehomed: [build_note, name]
+  notes_rehomed: [build_note, gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3409,8 +3380,7 @@
 
 - id: H33_does_this_statistic_have_a_null
   title: "Sweep every anchored band for the null it is supposed to sit above"
-  gain: "Finds the bands that a structureless population already clears -- the fail-open shape no amount of re-reading an anchor's provenance can catch."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3428,8 +3398,7 @@
 
 - id: H34_score_timing_diversity_against_its_own_null
   title: "L2.3 against its permutation null, not against a constant half-hour floor"
-  gain: "Removes the one band the H33 sweep found sitting on its own null -- as a CLASS, by scoring against the null not moving a number."
-  notes_rehomed: [build_note, name]
+  notes_rehomed: [build_note, gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3447,8 +3416,7 @@
 
 - id: H35_the_panel_never_exercises_two_of_its_own_bands
   title: "A resistive-heat home on the coupling panel, so L1.1r is judged by something"
-  gain: "Two regime-conditioned bands are carried and never exercised -- an unexercised band's null is unknown, and unknown reads like clean."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3466,8 +3434,7 @@
 
 - id: H36_the_texture_floor_is_one_number_for_every_home_size
   title: "Condition the electric texture floors on the home's own behavioural share"
-  gain: "Two of the three L1.1 floors are derived at ONE published typical home and applied at every home size -- the wrong-load-set defect one level in from the one that exercised them."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3485,8 +3452,7 @@
 
 - id: H38_the_behavioural_stream_still_carries_the_water_heater
   title: "Read L1.1 net of the WATER heater too, or say why it belongs to behaviour"
-  gain: "One drawn home in sixty is failed by a floor that is still asking it about a machine: the water heater is 36-40% of what L1.1 currently calls behaviour, and net of both machines every electrically heated home clears comfortably."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3504,8 +3470,7 @@
 
 - id: H39_the_texture_floor_sits_inside_the_spread_of_its_own_null
   title: "A texture statistic whose null is not the home's own diurnal profile"
-  gain: "A judged band whose null is the SAME NUMBER for every home. The 0.15 floor reads part of itself off each home's own mean diurnal profile -- 0.0292 to 0.1035 across the drawn 60, 19% to 69% of the floor with no behaviour in it at all -- so one floor asks a 3.5x-different question of different homes, and a generator that rescales ONE REAL DAY as every home's base shape clears it 15 of 15 while having no day-to-day behaviour at all. L1.1n reads that generator at exactly 1.0 and fails it 15 of 15. CORRECTED 2026-08-10: the mint's inferred cause (peaky profiles) is REFUTED at r=-0.05 -- sharpening a profile's peak LOWERS the reading; the driver is period-to-period roughness. The floor did NOT move (R12) and still judges the magnitude question."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3524,8 +3489,7 @@
 
 - id: H37_the_away_signature_reads_a_heat_pump_as_an_empty_house
   title: "An away-day detector that survives the heat being on the judged meter"
-  gain: "L1.3 flags an occupied heat-pump home as empty on 104 of 120 real days, and cannot fail on absence of the structure it certifies."
-  notes_rehomed: [build_note, name, origin_note]
+  notes_rehomed: [build_note, gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3543,8 +3507,7 @@
 
 - id: OPS4_surgical_landing_tool
   title: "Land exactly-named paths with the gate run against the tree the commit would create"
-  gain: "The legal move always exists, so 'bypass' stops being a concept anyone has to weigh: the check runs on the resulting tree even when the shared index is full of other lanes' work."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3562,8 +3525,7 @@
 
 - id: OPS5_retire_the_interim_bypass_shape
   title: "Retire the sanctioned interim bypass shape the moment the tool replaces it"
-  gain: "A retro-sanctioned exception with no expiry becomes the rule; the ruling gave it one, and an expiry nobody executes is an orphan transition (R11)."
-  notes_rehomed: [name, origin_note]
+  notes_rehomed: [gain, name, origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3581,8 +3543,7 @@
 
 - id: G12_queryable_projections
   title: "A query store derived from committed truth, rebuilt every publish"
-  gain: "Hand-refreshed derived files go stale silently; a store rebuilt from its sources cannot disagree with them for longer than one publish."
-  notes_rehomed: [build_note, name]
+  notes_rehomed: [build_note, gain, name]
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
@@ -3600,8 +3561,7 @@
 
 - id: G13_projection_consumers
   title: "The proof-of-caller: a site page and a lab query that read the projections"
-  gain: "A store with no reader is the same design-with-no-caller this instruction was written to end; the caller IS the deliverable."
-  notes_rehomed: [build_note, name]
+  notes_rehomed: [build_note, gain, name]
   lane: G_data_learning
   value_stream: close_to_learn
   epoch: 2
@@ -3618,8 +3578,7 @@
 
 - id: OPS9_finding_severity_field
   title: "Every finding carries a severity, and the severity is machine-readable"
-  gain: "A pile of 103 undifferentiated findings cannot be drawn against; a severity that a machine can read is what turns the pile into a queue with a front."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3637,8 +3596,7 @@
 
 - id: OPS10_finding_class_consolidation
   title: "Five families, five documents: the class with an instance list is what can win a draw"
-  gain: "Twenty siblings filed separately cannot win a draw against anything; one class document carrying twenty instances and their cumulative cost can."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3655,8 +3613,7 @@
 
 - id: OPS11_blocking_lane_refusal
   title: "A live BLOCKING finding refuses new level-raises in its own lane, and nowhere else"
-  gain: "Building on an instrument already known to be lying means the new work is certified by the lie; the refusal is what makes that structurally impossible rather than merely discouraged."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3674,8 +3631,7 @@
 
 - id: OPS12_blockers_ahead_of_disposition
   title: "Blockers draw first; the drain proceeds around them"
-  gain: "A queue that serves the oldest item first will serve a housekeeping doc ahead of a known-broken instrument, which is the ordering the ruling exists to invert."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3692,8 +3648,7 @@
 
 - id: OPS13_product_interleave_armed
   title: "One product atom per harness atom, every session, and the pair is named in the digest"
-  gain: "An interleave nobody can see in the digest is indistinguishable from one that never fired; the visible draw is the only evidence the arm is real."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3711,8 +3666,7 @@
 
 - id: OPS14_aged_staging_named_daily
   title: "Nothing ages silently: 72 hours untouched and the digest names it, every day"
-  gain: "Four director and advisor documents sat unopened for up to a week -- not deprioritised, never surfaced; the draw is fed by dials, alarms and the machine's own findings, and a quiet document generates none of the three."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -3729,8 +3683,7 @@
 
 - id: D36_bill_render_footing_and_pence
   title: "The printed bill foots on its face, in pence, with its catch-up line shown"
-  gain: "A bill can pass every ledger invariant and still be unreadable to the person holding it -- BILL_FOOTS already passes this exact record while the rendered page hides the one line that explains a negative total."
-  notes_rehomed: [name]
+  notes_rehomed: [gain, name]
   lane: D_billing_metering
   value_stream: price_to_bill
   epoch: 1
@@ -3749,7 +3702,7 @@
 
 - id: D37_the_door_row_is_four_provenances
   title: "The Proof door's gap row is four regions with four provenances, not one surface"
-  gain: "A render-site sweep that treats the door as one surface credits a figure with a site it never renders at: `gap-val` re-renders the ledger CARRIER at 3dp and owns only the dimension handed to the ledger writer, while `note` prints the composed note verbatim and so carries every figure's own renderer's digits. Landed as `_DOOR_SITE_KEY` / `_DOOR_REGIONS` / `_door_row_regions` (H27 Expert Hour #21): the row is split by provenance, and a figure's render site is asserted per region."
+  notes_rehomed: [gain]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
@@ -3765,7 +3718,7 @@
   real_world_twin: "a regulatory return whose summary table and its own footnotes are typeset by different systems to different precisions, certified once as 'the return'"
 - id: D38_renderer_provenance_names_the_moved_side
   title: "A render divergence names WHICH SIDE of the seam moved, not merely that the two disagree"
-  gain: "The walk executes a renderer and then reports a mismatch; with no record of whose renderer ran, a divergence is unattributable and both sides read as suspect. `renderer_provenance` (H27 Expert Hour #22) records the executing side, so a moved figure names the surface that moved it. Its own history is the finding it belongs to: 162 lines self-labelled `atom D38` sat complete and uncommitted in the working tree for three Hours while the register described them as open."
+  notes_rehomed: [gain]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
@@ -3781,7 +3734,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D39_a_render_need_not_be_text
   title: "A scaled render, predicted from the carrier and held to the pixel"
-  gain: "A sweep searching unscaled literals cannot find a bar whose WIDTH is the figure, and cannot say at what precision it renders -- so a scaled surface stays unexpressed and the door is credited with no site. `_check_scaled_render` does not widen the sweep: it makes the declaration state the scaling, then holds the declaration to the artefact. The predicted literal must be the rendered one on every book, and the precision the scaling implies must be COARSER than the finest precision the same door renders that figure at, or a reader can separate two companies the epsilon calls identical. (Raised Hour #21, answered Hour #27.)"
+  notes_rehomed: [gain]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
@@ -3797,7 +3750,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D40_the_population_is_the_rendered_elements
   title: "The render population is the rendered ELEMENTS, and it is deliberately not derived from the door"
-  gain: "'No element carries this class' was being read as 'the door does not render this figure', so a whole class of elements was invisible; and `basis`, a declared and searched region, is INERT across both published books, which the guard one level up cannot see because it tests for a region that came back EMPTY and a constant is not empty. `_DoorRowWalker` / `_door_row_surfaces` key the population by path with each element carrying the text it owns, so a wrapper is inert unless it prints something itself. NOT derived from the door -- that would make the subject its own population and every class the door emits true by construction, which is the fail-open direction of the same mistake, and is D40's open question answered negatively. (Hour #27.)"
+  notes_rehomed: [gain]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
@@ -3813,7 +3766,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D44_the_basis_line_declares_its_relation
   title: "Every published gap entry declares whether its baseline DIVIDES the headline"
-  gain: "`gap = raw_gap / g0` was the module's stated relation with exactly one exempt family enumerated. Measured on the 14 published pairs the door serves: eleven satisfy it and THREE do not, all three the same unenumerated family -- and the door rendered `baseline g0 <g0> - raw <raw>` for all fourteen with nothing to say which relation held, so one pair published `raw 0.000` beside a live headline (reading as 'the company's own error is nil') on the dimension whose real cost is dunning a customer who paid. `GapResult.normalisation` (divisor / reference / none) has NO usable default, is DECLARED never derived (a kind inferred from whether the arithmetic holds classifies every entry correctly by construction and could never fire on the case it exists for), and is falsifiable at construction per kind; `audit_ledger_normalisation` grades the LEDGER ON DISK rather than the code that writes it, because an entry nothing re-measures is still being served. (Hour #28.)"
+  notes_rehomed: [gain]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
@@ -3829,7 +3782,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D41_the_hold_record_answers_the_draw
   title: "An atom held below target must have its LATEST recorded Hour answered in a record the draw actually reads"
-  gain: "The promoter read `level_hold_note` -- the one record whose whole job is to answer the draw -- and was handed leads for three Hours that had already run, landed and recorded themselves. The same failure had been closed once by EDITING THE NOTE, a prose fix for a prose defect, so it recurred three times larger (R3). Either shape now satisfies the rule and neither is mandated: a separate hold note, or a verdict inside each register entry (H_GAP's shape, where the answer is written by the one act an Hour cannot skip). The population is DERIVED from the record store, not a hand-typed list of the two atoms that run Hours today. Built against a named fail-open: every hold record here ends by naming the NEXT Hour, so the highest ordinal MENTIONED is current by construction and a mention check reads green on exactly the one-Hour-behind defect. (H27 Expert Hour #22.)"
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3845,7 +3798,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D42_a_landed_claim_is_checked_against_the_tree
   title: "A register's LANDED claim checked against what is COMMITTED, never against another record"
-  gain: "Two questions over the PAIR of trees, because one reader asked twice cannot see a difference between them: `UNLANDED_HOUR_WORK` (a tracked code file carries `<atom> Expert Hour #N` in the working tree and its HEAD version does not) and `UNLANDED_HOUR_RECORD` (the atom's record file holds an Hour entry HEAD does not). HEAD side from `git show`, tree side from the filesystem. A RECORD IS NOT A LANDING: docs and site data repeat these labels verbatim, and counting them reports an Hour as landed on the strength of the register that was wrong about it -- record against record one level down. Its own exit code 3, deliberately OUTSIDE the shared repo-wide refusal, because its subject is the working tree and folding a working-tree predicate into the integrity findings would wedge every lane the moment any Hour is mid-flight, which is the state this check exists to REPORT. (Hour #25.)"
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3861,7 +3814,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D43_whose_atom_did_that_hour_build
   title: "An Hour that lands outside its own cell's file_scope is invisible twice"
-  gain: "`file_scope` is the field every provenance control here reads as 'what this cell is about', and `supervisor._file_scope_sha` decides from it whether the harden cooldown re-offers the atom -- so an off-scope Hour cannot be seen by its own atom's clocks, AND the cell that does declare the file has its assertion silently staled by an Hour it has no record of. Measured at HEAD from the map's own scopes and the labels the code carries: of 24 recorded H27 Hours, SIX left no trace in any file that cell declares. `hour_subject_findings` (HOUR_OFF_SCOPE, with a HOUR_BUILT_FOREIGN_SCOPE clause naming the cell that does own the path) plus `hours_on_subject`, on exit code 4 and report-only for D42's reason: off-subject work is often the RIGHT work, and what is not optional is that somebody knows. Coverage is prefix-aware and attribution is exact-match only, because a directory-wide scope makes ownership unarbitrable. (Hour #26.)"
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3877,7 +3830,7 @@
   expert_hour: {status: not_attempted, last: null, findings: []}
 - id: D45_the_id_a_citation_points_at
   title: "A cited atom id must resolve to a cell, or the citation is a phantom"
-  gain: "Nine consecutive Hours wrote `atom D37` ... `atom D45` into shipped source, into the Proof door's supplier and into the hold record that answers this atom's own draw, and the map carried none of them; nothing asked, for nine Hours. `--citations` reports PHANTOM_ATOM and STALE_ATOM_SLUG in the DEFAULT integrity-findings list on exit 1 -- deliberately unlike D42 and D43's report-only codes, because a phantom id is neither a working-tree state nor an attribution judgement, and ANY lane can discharge it by minting the cell or dropping the citation. `_is_id_shaped` is the second population filter, derived from the map (every live id is lane+number or lane+slug, so a bare lane letter is a lane by construction) and pinned in the ADMITTING direction, because a filter quietly dropping a real citation reads exactly like a clean map. (HARDEN draw 2026-08-14.)"
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3908,7 +3861,7 @@
 # word away and breaks nothing.
 - id: SITE5_knowledge_written
   title: "Knowledge stops being nine byte-identical stubs and carries real domain content with review dates"
-  gain: "`site/knowledge/` is not a 5.7KB stub as the brief has it -- it is 324KB across eleven pages. **CORRECTED 2026-08-18, and the correction is this atom's first real finding.** The mint claimed EIGHT pages render byte-identical visible text and that 'a reader clicking Price cap arrives at prose identical to Carbon price'. That was WRONG, and wrong by the exact method this project polices in others: the MD5 `2ad82c7405` was measured on the tag-stripped STATIC SOURCE, which is identical because all nine topics share ONE template (`knowledge/_stub/index.html`) that fetches its content from `site/data/knowledge_wholesale.json`, keyed on the directory name in `location.pathname`. RENDERED with that pathname, the pages are distinct: /price-cap/ reads 'The retail price cap' with a 111-char blurb and a 381-char scope; /carbon-price/ reads 'The UK carbon price (UK ETS + CPS)' with its own. They are honest stubs that say what a complete treatment will cover -- not duplicates. (The first re-check was ALSO wrong, in the other direction: the shared live harness stubs `location.pathname` as '/', so every topic rendered empty and appeared to confirm the original claim. Verified only on the third pass, with the pathname supplied.) WHAT SURVIVES THE CORRECTION, all re-measured: the nine topics are STUBS -- the explanations are not written, which is this atom's actual work; `wholesale-price-formation` has a DIRECTORY but NO entry in the data, so it renders its own raw slug as its title with no blurb, no scope and no links -- a genuinely broken published page, and it is not linked from the Knowledge index either; and `electricity-wholesale`, the one topic linked from /world/, carries an empty `scope` so its own 'What this page will cover' section reads 'Scope not yet stated.' No Knowledge page carries a last-reviewed date in any form, so the brief's review-due control starts from zero, not from a threshold change. This is the largest content piece in the programme after Explore, and it is a LIVE public defect today: an advertised area serving nine pages of identical boilerplate to a crawler and a reader. Knowledge is NOT put in the nav here."
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3923,7 +3876,7 @@
   real_world_twin: "a regulator's guidance library where every topic page is the same 'content coming soon' notice under a different title"
 - id: SITE7_capabilities_tab
   title: "Capabilities: SIM and Company, now and next, side by side, honest about absence"
-  gain: "The cheapest step in the programme and the one that most improves a first-time reader's path: a new area with no deletion, no redirect and no existing consumer -- purely additive on top of SITE4's register. It doubles as the roadmap and should make a separate pitch document unnecessary. `tools/generate_capabilities_json.py` already exists and writes capability data; whether it feeds this or something else is the first thing to check, not to assume. This step has NO ordering argument attached -- the proposal said so rather than pretending otherwise, and it is the one atom in the chain the director can pull forward at zero cost if he wants visible progress sooner. REVISION 2026-08-18 (brief revised after this atom was minted): it is no longer the cheapest step. It gains THE INTERFACE INVENTORY -- every seam between world and company named, split into typed doorways vs the world still handing data over directly, each with the real counterparty it swaps to at go-live (settlement and metering data, the smart-meter network, gas industry systems, payment collection), plus the wall's own measured crossing count and its trend. That is a real derivation over `W4_the_wall`'s territory, not a page. The brief calls it the strongest architectural claim the project has, because the wall IS the go-live seam: switching a simulated endpoint for a real one is the launch, not a rewrite. The inventory belongs here; the EXPERIENCE of the boundary stays SITE10's."
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3938,7 +3891,7 @@
   real_world_twin: "a product roadmap that states what does not exist yet, and is believed because of it"
 - id: SITE10_explore_traversal
   title: "Explore: one real customer, six stages, the wall visible at every one"
-  gain: "The largest piece in the programme and the strongest available demonstration of the epistemic wall: a reader picks one customer and follows PRICED -> CHOSEN -> USED -> BILLED -> PAID -> JUDGED, seeing at every stage what the world knew against what the company believed, with the change of clock between stages made explicit on screen because that change IS the industry education. The brief sets a real presentation bar -- an operator's working screen, not a six-part essay, with real artefacts (a rendered bill, a meter read history, a direct debit schedule). `site/customers/` (152KB, the existing wall exhibit) is the substrate: the brief's own 'the earlier CRM-style view set the standard' is describing a page that still exists, so the two are reconciled rather than built beside each other. Draws as its own commitment set. The wall's treatment here is the one thing in the brief exempt from see-and-correct."
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3954,7 +3907,7 @@
   real_world_twin: "a supplier's own account-management screen, opened to a stranger with the belief column left in"
 - id: H44_worker_tick_lock_toctou
   title: "worker_tick.py's spawn lock has a real TOCTOU window: two overlapping run_tick() calls can both spawn"
-  gain: "WORKER_FINDING_TWO_LIVE_WORKER_INVOCATIONS_RAN_THE_IDENTICAL_DOORBELL_CONCURRENTLY_2026-08-24 observed two live `claude -p` invocations carrying byte-identical doorbell text at 2026-08-24 07:25, one already mid-git-commit while the other (this session) started cold on the same staging queue. `.worker_tick.lock` named only one holder, correctly, but that is consistent with a genuine race, not proof one never happened: `run_tick()` (background/worker_tick.py:379-397) checks `invocation_in_flight()` once, then does the origin-sync + find_work() draw (real I/O, non-trivial wall time), and only calls `_write_lock()` AFTER `spawn_invocation()` returns -- so two overlapping check-windows can both read the lock free and both spawn; the second `_write_lock()` simply overwrites the first's entry, leaving exactly one apparently-legitimate holder even when two children ran. Cost: a second full context stream re-reads the whole repo/CLAUDE.md for work the first stream is already doing (direct token cost, zero marginal value) plus real tree-corruption risk from two uncoordinated agentic sessions editing the same shared tree -- exactly the class the docstring says the lock prevents. Fix: make invocation_in_flight() + _write_lock() one atomic critical section (e.g. os.open(LOCK_FILE, O_CREAT | O_EXCL) claimed BEFORE the draw, released/overwritten only by the same pid, stale lock still reclaimed on a dead pid as today) and add a test starting two run_tick() calls with an artificially slow _draw() that asserts only one spawns."
+  notes_rehomed: [gain]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -3988,7 +3941,7 @@
 
 - id: A47_the_score_has_no_household_side
   title: "The objective is scored on the company in all three legs, so a maximiser can win it by transferring value rather than creating any"
-  gain: "Director, 2026-08-28, mission (verbatim): 'We are creating enterprise value by automating ways to find individual customers we can create value for, and SHARING in that value... Value is created and then shared, so every decision has two sides: good for the household and good for us. Charging someone the cap transfers value, it doesn't create it, which is why the maximiser kept finding it.' Observed: SURVIVE and EARN are the company's by construction, and ABATE -- though it counts a household's tonnes -- is instrumented as our GBP/tCO2e and is not yet instrumented at all. There is no household-side term in ANY currency. This re-reads a finding already on file: WORKER_FINDING_THE_CHURN_MODELS_CAP_MAKES_THE_PROFIT_MAXIMISING_PRICE_UNBOUNDED_2026-08-25 diagnosed a missing CEILING in the churn model, and that repair is real; but a ceiling repair cannot fix a score with a side missing, because the maximiser was optimising a one-sided objective CORRECTLY. A two-sided score makes cap-pricing unattractive on the merits rather than merely unreachable. Level 2 is the objective STATED and instrumented on one household currency (money saved vs counterfactual), not the whole six-cell table."
+  notes_rehomed: [gain]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
@@ -4016,7 +3969,7 @@
 
 - id: A48_enterprise_value_is_the_method_not_the_book
   title: "The only module in the repo named enterprise_value measures the book, which is precisely the definition the mission supersedes"
-  gain: "Director, 2026-08-28, mission: 'the enterprise value is the automated method for finding those customers, not the book itself.' Observed-with-evidence the same day: saas/enterprise_value.py's own docstring says 'The portfolio-wide sum of the resulting per-account CLVs is the enterprise value: the total discounted future net margin of the customer book.' That is the superseded definition, written into the one place carrying the mission's own noun, and reached through company/analytics/customer_value_view.py into the live phase-4c run. This atom is NOT a rename: the CLV roll-up is a correct and useful figure and keeps its name in its own domain. What is missing is any measure of the METHOD -- how reliably the machine finds individual customers it can create value for, at what cost per customer found, and whether that improves. Until one exists, the project's headline number is the thing the director says is the evidence, presented as the thing being built. Filed: WORKER_FINDING_THE_ONLY_MODULE_NAMED_ENTERPRISE_VALUE_MEASURES_THE_BOOK_2026-08-28."
+  notes_rehomed: [gain]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
@@ -4050,8 +4003,7 @@
 
 - id: W1_19_the_three_drivers_per_land_cell_from_the_normals
   title: "the three phase-1 heat-load drivers per 1km land cell, and how they actually correlate"
-  gain: "Temperature, wind and sunshine per 1km land cell from the 30-year normals, with their pairwise correlations -- the first artefact every later step needs, and it requires nothing but the completed pull."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -4077,8 +4029,7 @@
 
 - id: W1_20_household_weights_per_cell_from_the_census
   title: "household weights per 1km cell, from the censuses via postcode, never from the SIM's own population"
-  gain: "Household weights per cell from the CENSUSES via postcode, never from the SIM's own draw: weighting by our own population would make the coverage curve a statement about the draw rather than about Britain."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -4103,8 +4054,7 @@
 
 - id: W1_21_the_cells_and_the_level_coverage_curve
   title: "cluster the drivers into cells and publish the curve of household-weighted variation explained against cell count"
-  gain: "Cluster the drivers into cells and publish household-weighted variation explained against cell count -- the director's question answered as a CURVE, with 90/95/99% cell sets named and LDZ/GSP/SAP-21 overlaid afterwards as comparators."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -4133,8 +4083,7 @@
 
 - id: W1_22_cold_spell_persistence_and_cross_cell_synchrony
   title: "the shape half: how long cold spells last in a cell, and whether cells go cold together"
-  gain: "The SHAPE half the ruling keeps in phase 1: how long cold spells last in a cell, and whether cells go cold together -- synchrony is what turns household weather into portfolio risk."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [gain, origin_note]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -4159,11 +4108,10 @@
 
 - id: SITE13_the_baseline_comparison_carries_its_bound
   title: "The published baseline comparison states, on the rendered page, that it compares two internal policies in a market that could not react"
-  gain: "C2 (DIRECTOR_GUIDANCE_THE_WORLD_MUST_PRESS_2026-08-28, confirmed in full by WORKER_FINDING_THE_CANON_AND_THE_CODE_DISAGREE_ON_THREE_CLAIMS_2026-08-28): 'Every measurement of the company's decisions is currently taken against an opponent that cannot move... Beating the flat baseline compares two internal policies in a market that could not react to either. That is a valid internal comparison and it is not evidence about a supplier's performance.' /capabilities/ currently publishes flat rules £153,245 against per-customer £157,913, the level explaining 102.4%, and the choosing worth -£175 with an error bar 25x the estimate -- correctly, and without that bound beside it. Publishing the comparison was right; publishing it unbounded is a claim the evidence does not carry. R11 binds hardest here: done means fetching the LIVE deployed surface and asserting the sentence renders, never that the generator emits it. The bound is RETRACTABLE by construction (a caveat can be strengthened or removed) so this is not a reserved-class public claim -- it is the correction of one."
+  notes_rehomed: [gain, name]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
-  notes_rehomed: [name]
   records_rehomed: [evidence]
   simplifications_count: 1
   # 2026-09-03 L0->L2. The page half was ALREADY TRUE and had been since 2026-08-28: the bound is
@@ -4197,7 +4145,7 @@
 
 - id: W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for
   title: "the cells each driver needs ALONE, and what a household actually feels of each"
-  gain: "Per-driver coverage curves and the sensitivity behind them: wind is the SMOOTHEST of the three where people live, and its household mechanism (the SAP infiltration factor) is 0.8x the size of temperature's, not second-order. Replaces W1_21's single joint 987 as the recommendation without disturbing it as arithmetic."
+  notes_rehomed: [gain]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -4227,7 +4175,7 @@
 
 - id: W1_27_the_cell_decision_and_the_solar_gain_check
   title: "the cell answer as a BUILD DECISION, and whether solar gain is the same gap as wind"
-  gain: "21 cells per driver held separately, not one shared partition at 987, stated against what the world uses today: 4 sites for temperature and solar gain, NOTHING for wind, one national figure for PV."
+  notes_rehomed: [gain]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -4251,7 +4199,7 @@
   real_world_twin: "a supplier that publishes a weather-cell methodology and cannot say, for any driver in it, whether its own demand engine reads that driver at all."
 - id: W1_26_the_world_has_no_wind_term_and_the_belief_does
   title: "the SIM's heat loss ignores wind while the company's belief can fit a wind-chill term against it"
-  gain: "simulation/fabric_physics.py computes infiltration from build era and insulation and nothing else -- no wind factor anywhere in the demand path -- while company/pricing/weather_normalisation_belief.py carries an optional HDD x excess-wind regressor a caller can switch on. The company can therefore fit a household wind-chill coefficient against a world in which household wind chill does not exist, and the fit will look healthy: real regressor, real data, reported r-squared. The repair is the published SAP factor, one multiplication; the cost is that every historical demand figure in the tree moves, which is a fidelity decision with its own evidence bar and is why this is an atom rather than a patch."
+  notes_rehomed: [gain]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3

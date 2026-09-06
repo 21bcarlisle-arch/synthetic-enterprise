@@ -871,3 +871,92 @@ def test_writer_round_trips_and_enforces_the_bound(tmp_path):
     assert store.load_all(sd) == {"Z1": ["first", "second"]}
     with pytest.raises(ValueError, match="per-file bound"):
         store.append_for_atom("Z1", ["x" * (PER_FILE_CEILING + 10)], sd)
+
+
+# --------------------------------------------------------------------------
+# H41 (2026-09-06): the suffix-blind half -- a budget on inline prose by SHAPE
+# --------------------------------------------------------------------------
+def check_inline_prose_budget(atoms: list, budget: int = None) -> list[str]:
+    """Map fields carrying more inline prose than one field is allowed.
+
+    WHY IT IS NOT THE NOTE CLASS AGAIN. The note guard is keyed to the field's NAME (the
+    `*_note` suffix plus a tuple), and `gain` is the proof that is not enough: it grew to
+    48,858 B -- the largest class in the spine -- entirely inside a control that was
+    working exactly as designed, because it is not called `*_note`. This check never looks
+    at the name except to honour the reader-exemption, so the next `rationale` or `summary`
+    is caught with no code change and no one having to notice."""
+    budget = store.INLINE_PROSE_BUDGET if budget is None else budget
+    violations = []
+    for a in atoms:
+        if not isinstance(a, dict):
+            continue
+        for k in sorted(a):
+            if store.over_inline_prose_budget(k, a[k], budget):
+                violations.append(
+                    f"{a.get('id')}: `{k}` is {len(a[k])} chars inline, over the "
+                    f"{budget}-char field budget -- rehome it to the record store "
+                    f"(simplifications_store.set_note_for_atom) rather than raising this"
+                )
+    return violations
+
+
+def test_no_map_field_is_over_the_inline_prose_budget():
+    """The standing control over BOTH map halves. It is the flow half of H41: the `gain`
+    migration moved the stock, and this is what stops the same prose arriving under a name
+    nobody has thought of yet."""
+    violations = check_inline_prose_budget(_load_atoms())
+    assert not violations, "inline prose over budget:\n  " + "\n  ".join(violations)
+
+
+def test_the_prose_budget_fires_on_a_field_with_a_NAME_IT_HAS_NEVER_SEEN():
+    """R15, and the property that distinguishes this control from the note guard beside it.
+    `rationale` is in no tuple and ends in no suffix; it must fail anyway, because what is
+    measured is the SHAPE of the value. If this ever passes, the guard has quietly become
+    an instance list again -- which is the exact way `gain` got in."""
+    fat = {"id": "A1", "rationale": "x" * (store.INLINE_PROSE_BUDGET + 1)}
+    assert check_inline_prose_budget([fat])
+    assert not check_inline_prose_budget([{"id": "A1", "rationale": "x" * 10}])
+
+
+def test_the_prose_budget_fires_on_the_field_that_caused_it():
+    """The instance, kept beside the class: an inline `gain` of the size the live map
+    actually carried must fail. 23 fields were over 600 chars the day this landed."""
+    assert check_inline_prose_budget([{"id": "A1", "gain": "g" * 2200}])
+
+
+def test_the_prose_budget_ignores_non_prose_and_the_exempt_reader_field():
+    """Two ways this control could fire wrongly, both proved rather than assumed. A long
+    LIST is structure, not prose -- `file_scope` on a broad atom is legitimately long. And
+    `size_basis` is exempt because `tools/effort_calibration.py` READS it, which is the
+    discriminator: budgeting a field a tool queries would wedge the lane that writes it."""
+    assert not check_inline_prose_budget([{"id": "A1", "file_scope": ["p"] * 5000}])
+    assert not check_inline_prose_budget(
+        [{"id": "A1", "size_basis": "s" * (store.INLINE_PROSE_BUDGET + 1)}]
+    )
+    # ...and the exemption is not a hole for everything: the same oversized text under any
+    # other name still fires, so this is one named field with a named reader, not a mode.
+    assert check_inline_prose_budget(
+        [{"id": "A1", "basis_size": "s" * (store.INLINE_PROSE_BUDGET + 1)}]
+    )
+
+
+def test_the_prose_budget_is_not_vacuous_on_the_live_map():
+    """The control could pass because it measures nothing -- an atom loader returning [],
+    or a budget so high no real field could reach it. Both are checked against the real
+    map: the population is real, and the budget is inside the range live fields occupy."""
+    atoms = _load_atoms()
+    assert len(atoms) > 100, f"only {len(atoms)} atoms loaded -- the budget measures nothing"
+    longest = max(
+        (len(v) for a in atoms if isinstance(a, dict)
+         for k, v in a.items()
+         if isinstance(v, str) and k not in store.PROSE_BUDGET_EXEMPT),
+        default=0,
+    )
+    assert 0 < longest <= store.INLINE_PROSE_BUDGET, (
+        f"longest non-exempt inline field is {longest} chars against a "
+        f"{store.INLINE_PROSE_BUDGET}-char budget"
+    )
+    assert longest > store.INLINE_PROSE_BUDGET // 8, (
+        f"longest live field is {longest} chars -- the budget is {store.INLINE_PROSE_BUDGET}, "
+        "so far above what the map actually carries that it could never fire"
+    )

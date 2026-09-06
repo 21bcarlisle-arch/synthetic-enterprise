@@ -535,6 +535,7 @@ def append_for_atom(atom_id: str, notes: list, store_dir: Path | None = None) ->
 NOTE_FIELDS = (
     "build_note",
     "discover_note",
+    "gain",
     "harden_note",
     "level_hold_note",
     "level_note",
@@ -542,6 +543,32 @@ NOTE_FIELDS = (
     "notes",
     "origin_note",
 )
+
+# `gain` JOINED THIS CLASS 2026-09-06 (H41, the fifth drain), and it is the member the
+# suffix half of the class guard could never have caught. WHY, measured rather than argued.
+# H32 took the map 521,770 -> 393,692 B on the strength of the note class and the ratchet
+# came back down to 400K on that. Eleven days later the map was at 408,540 B -- 0.3%
+# headroom -- and the bytes had NOT come back as notes. Per field over the live spine:
+#
+#     gain             48,858      <- the largest class in the spine, and not a tenant
+#     real_world_twin  14,089
+#     expert_hour      13,528
+#
+# The prose did not stop being written; it was written into the one narrative field the
+# migration did not cover, and a class guard keyed to the `_note` SUFFIX is blind to a
+# field called `gain` by construction. That is the whole finding
+# (docs/staging/SEAT_FINDING_THE_SPINE_RATCHET_REFILLED_IN_ELEVEN_DAYS_...): the control
+# worked exactly as designed and the prose routed around it.
+#
+# IT HAS NO READER. `tools/`, `background/`, `site/` and `tests/design/` were searched for
+# a consumer of the atom `gain` field and there is none -- no publisher, no gate, no
+# renderer. `title` is what the spine is read by. So this is prose with one home, which is
+# the exact profile this store exists to hold, and the same argument that moved `name`.
+#
+# CONSEQUENCE, deliberately, and it is the ONGOING DRAIN this atom is about: an inline
+# `gain` is now REFUSED by `check_no_inline_notes`, so the twenty-second oversized gain
+# cannot be written tomorrow. The stock move alone was a reprieve; this is the flow.
+# The remaining suffix-blind fields are held by `INLINE_PROSE_BUDGET` below.
 
 # `name` JOINED THIS CLASS 2026-08-14 (the fourth drain), and it is the one member
 # whose name does not announce it, so the reason is recorded here rather than in a
@@ -566,6 +593,51 @@ NOTE_FIELDS = (
 
 # The map-side declaration naming which note fields an atom keeps in the store.
 NOTES_DECLARATION_FIELD = "notes_rehomed"
+
+# --------------------------------------------------------------------------
+# THE SUFFIX-BLIND HALF: a budget on inline prose, whatever the field is called
+# --------------------------------------------------------------------------
+# `gain` above is the instance. The CLASS is "a spine field grows unbounded prose under a
+# name the guard does not recognise", and adding `gain` to the tuple fixes exactly one
+# member of it -- the same instance-fixing that let `gain` happen after `name`. So the
+# guard gets a second leg that does not depend on the field's NAME at all: no map field
+# may carry more than this many characters of prose inline. A `rationale` invented
+# tomorrow is caught with no code change, which is what the suffix half was for and
+# cannot do for a word that is not `*_note`.
+#
+# THE NUMBER, at real inputs rather than picked. Measured over both map halves (338 atoms)
+# the day this landed, every string field over 600 chars:
+#
+#     gain             23 fields   max 2,157      <- becomes a tenant above, so all move
+#     block_reason      5 fields   max 1,777
+#     closed            3 fields   max 1,357
+#     size_basis        1 field        4,059
+#     level_move_recorded 1 field      1,278
+#
+# 2,048 sits above every survivor of the migration and below the next accretion, so it
+# fires on growth and wedges nobody today. It is a CEILING ON ONE FIELD, not on the atom
+# or the file: honest growth in atom COUNT never moves it, which is the property the
+# whole-file ratchet lacks and the reason that one kept arriving as a publish wedge
+# carrying no information about what to fix.
+INLINE_PROSE_BUDGET = 2048
+
+# EXEMPT BECAUSE IT HAS A READER, which is the discriminator -- not because it is big.
+# `size_basis` is consumed by `tools/effort_calibration.py` (it records the explicit
+# exception that lets an oversized atom past the decomposition check), so it is structure
+# the map is queried for rather than narrative with one home. Rehoming it would break that
+# reader; budgeting it would wedge the lane that writes it. A field earns a place here by
+# naming its consumer, and the name goes in this comment where the next reader will find it.
+PROSE_BUDGET_EXEMPT = ("size_basis",)
+
+
+def over_inline_prose_budget(field: str, value, budget: int = INLINE_PROSE_BUDGET) -> bool:
+    """Is this inline map field over the prose budget? Class-keyed: the field's NAME is
+    used only to check the exemption, never to decide whether the rule applies."""
+    return (
+        isinstance(value, str)
+        and field not in PROSE_BUDGET_EXEMPT
+        and len(value) > budget
+    )
 
 # --------------------------------------------------------------------------
 # THE NOTE RATCHET: the one tenant the roll cannot drain
@@ -660,6 +732,50 @@ def notes_load_all(store_dir: Path | None = None) -> dict[str, dict]:
     return out
 
 
+def note_write_refusal(
+    atom_id: str, field: str, text: str, store_dir: Path | None = None
+) -> str | None:
+    """Why the store would refuse this note write, or None if it would accept it.
+
+    THE REFUSAL AS A VALUE, not only as an exception (H41, 2026-09-06). `set_note_for_atom`
+    raises, which is right for a writer, and it means the only way to ask "would this be
+    accepted?" was to attempt it and catch. The map-side inline guard needs exactly that
+    question: an inline note field is a defect UNLESS this store will not take it, in
+    which case the map is the only home it has and refusing both places would delete the
+    prose. Asking here keeps that exception COMPUTED -- it clears itself the moment the
+    tenant is compacted -- rather than an allowlist someone has to remember to prune.
+    """
+    if not is_note_field(field):
+        return f"{field!r} is not a rehomed-note field (class: {NOTE_FIELDS} or *_note)"
+    if not isinstance(text, str) or not text.strip():
+        return f"note {field!r} for {atom_id!r} must be a non-empty string"
+    merged = notes_for_atom(atom_id, store_dir)
+
+    # THE NOTE RATCHET (see NOTE_TENANT_MAX_BYTES). Refuse only a write that leaves
+    # the tenant over budget AND bigger than it found it, so the flow stops while the
+    # compaction that clears it stays available. Checked here rather than in
+    # `_write_tenants` on purpose: this is the only writer that can grow the tenant,
+    # and a check upstream would refuse an over-budget atom's unrelated writes too.
+    before = note_tenant_bytes(merged)
+    after = note_tenant_bytes({**merged, field: text})
+    if after <= NOTE_TENANT_MAX_BYTES or after <= before:
+        return None
+    biggest, biggest_n = max(
+        ((k, len(str(v).encode("utf-8"))) for k, v in {**merged, field: text}.items()),
+        key=lambda kv: kv[1],
+    )
+    return (
+        f"note write to {field!r} would take {atom_id!r}'s note tenant to {after} "
+        f"bytes (from {before}), over the {NOTE_TENANT_MAX_BYTES}-byte note "
+        f"budget. The roll cannot drain a note -- it moves whole list entries and "
+        f"a note is one string -- so an unbounded note tenant is the one way this "
+        f"store still becomes unwritable. Largest note is {biggest!r} at "
+        f"{biggest_n} bytes: COMPACT IT. A note is a CURRENT statement and its "
+        f"history lives in git, so a smaller replacement is always accepted, "
+        f"however far over budget the tenant already is."
+    )
+
+
 def set_note_for_atom(
     atom_id: str, field: str, text: str, store_dir: Path | None = None
 ) -> dict:
@@ -675,43 +791,40 @@ def set_note_for_atom(
     note fields always kept it.
 
     Raises ValueError for a field outside the note class (the map keeps its own
-    structured fields; this store is not a general side-channel for them)."""
+    structured fields; this store is not a general side-channel for them), and for a write
+    the note ratchet refuses -- `note_write_refusal` above holds both, and is the same
+    decision a caller can ask for without attempting the write."""
+    refusal = note_write_refusal(atom_id, field, text, store_dir)
+    if refusal is not None:
+        raise ValueError(refusal)
+    merged = notes_for_atom(atom_id, store_dir)
+    merged[field] = text
+    _write_tenants(atom_id, store_dir, map_notes=merged)
+    return merged
+
+
+def remove_note_for_atom(
+    atom_id: str, field: str, store_dir: Path | None = None
+) -> dict:
+    """Drop one note field from one atom's tenant, preserving every other tenant.
+    Returns the atom's remaining note mapping. Absent field is a no-op, not an error.
+
+    WHY THIS EXISTS (H41, 2026-09-06) and why it is not a licence to edit the record.
+    A note field can be MISFILED -- and 22 atoms were: an emergency drain wrote their
+    `gain` prose into the `origin_note` key because `gain` was not yet a tenant, so the
+    store held gain text under a name that says provenance. Correcting that is a RENAME
+    (`set_note_for_atom(id, 'gain', text)` then this), and without a remover the rename
+    is impossible and the mislabelling is permanent. It removes a KEY, never a
+    simplifications entry: `append_for_atom` stays append-only, because that register is
+    honest history and this one is a current statement (see `set_note_for_atom`)."""
     if not is_note_field(field):
         raise ValueError(
-            f"{field!r} is not a rehomed-note field (class: {NOTE_FIELDS} or *_note) "
-            "-- structured map fields stay in the map"
+            f"{field!r} is not a rehomed-note field (class: {NOTE_FIELDS} or *_note)"
         )
-    if not isinstance(text, str) or not text.strip():
-        raise ValueError(f"note {field!r} for {atom_id!r} must be a non-empty string")
     merged = notes_for_atom(atom_id, store_dir)
-
-    # THE NOTE RATCHET (see NOTE_TENANT_MAX_BYTES). Refuse only a write that leaves
-    # the tenant over budget AND bigger than it found it, so the flow stops while the
-    # compaction that clears it stays available. Checked here rather than in
-    # `_write_tenants` on purpose: this is the only writer that can grow the tenant,
-    # and a check upstream would refuse an over-budget atom's unrelated writes too.
-    before = note_tenant_bytes(merged)
-    after = note_tenant_bytes({**merged, field: text})
-    if after > NOTE_TENANT_MAX_BYTES and after > before:
-        biggest, biggest_n = max(
-            (
-                (k, len(str(v).encode("utf-8")))
-                for k, v in {**merged, field: text}.items()
-            ),
-            key=lambda kv: kv[1],
-        )
-        raise ValueError(
-            f"note write to {field!r} would take {atom_id!r}'s note tenant to {after} "
-            f"bytes (from {before}), over the {NOTE_TENANT_MAX_BYTES}-byte note "
-            f"budget. The roll cannot drain a note -- it moves whole list entries and "
-            f"a note is one string -- so an unbounded note tenant is the one way this "
-            f"store still becomes unwritable. Largest note is {biggest!r} at "
-            f"{biggest_n} bytes: COMPACT IT. A note is a CURRENT statement and its "
-            f"history lives in git, so a smaller replacement is always accepted, "
-            f"however far over budget the tenant already is."
-        )
-
-    merged[field] = text
+    if field not in merged:
+        return merged
+    del merged[field]
     _write_tenants(atom_id, store_dir, map_notes=merged)
     return merged
 

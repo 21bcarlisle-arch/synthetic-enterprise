@@ -1,0 +1,3 @@
+atom_id: C30_advice_reaches_a_household
+map_notes:
+  gain: 'Director, 2026-08-28, mission: value reaches the customer ''through personalised modelling, tariffs and advice'', with the instruction to NOTE that two of the three do not exist rather than fix it now. Observed: company/pricing/switching_recommendation.py renders inside company/portal/app.py and company/crm/decarb_recommender.py is discovery-wired, but NOTHING in simulation/ consumes a recommendation and no simulated customer visits the portal. The channel is built everywhere except the point where it would matter. TARIFFS is the only channel of the three that reaches a household today -- the renewal rate reaches the churn decision in simulation/customer_events.py and changes an outcome.'
