@@ -3,11 +3,11 @@
   "any_full_power_feature_clears_the_selection_corrected_null": false,
   "base_seed": 20260724,
   "best_pair": {
-    "held_out": 0.6127,
-    "in_sample": 0.1674,
+    "held_out": 0.6308,
+    "in_sample": 0.2288,
     "n": 69,
-    "null_mean": 0.1501,
-    "null_this_pair_alone": 0.3099,
+    "null_mean": 0.1535,
+    "null_this_pair_alone": 0.4656,
     "x": "perceived_bill_saving_gbp",
     "y": "portfolio_premium_pct"
   },
@@ -15,43 +15,126 @@
   "ceiling_clears_the_null_uncorrected_per_pair": true,
   "cells_per_axis": 2,
   "constant_fields_refused": [
-    "unit_rate_gbp_per_mwh: degenerate fit: every household in one cell",
     "resentment_score: degenerate fit: every household in one cell"
   ],
   "controls": {
     "cells_are_populations": true,
+    "every_graded_row_is_a_household": true,
     "held_out_exceeds_in_sample_on_most_pairs": false,
     "held_out_exceeds_in_sample_on_the_reported_winner": true,
     "held_out_is_disjoint_from_fit": true,
     "households_per_cell": 8.6,
     "no_ground_truth_in_features": true,
-    "reported_winner_held_out_over_in_sample": 3.66,
+    "reported_winner_held_out_over_in_sample": 2.76,
     "the_null_ran_the_same_selection": true,
-    "the_verdict_is_the_same_on_every_draw_measured": false,
-    "trait_spread": 0.57691,
+    "the_verdict_is_the_same_on_every_draw_measured": null,
+    "trait_spread": 0.58175,
     "traits_are_the_worlds": true
   },
-  "full_coverage_households": 213,
+  "full_coverage_households": 164,
   "full_power_selection": {
     "alpha": 0.05,
-    "bound_p95": 0.249,
+    "bound_p95": 0.2293,
     "clears": false,
-    "exceedances": 170,
-    "margin_over_bound": -0.1981,
+    "exceedances": 86,
+    "margin_over_bound": -0.1101,
     "null": {
       "candidates_per_draw": 2,
       "draws": 200,
-      "households_shuffled": 213,
-      "max": 0.3423,
-      "mean": 0.115,
-      "median": 0.1014,
-      "p95": 0.249
+      "households_shuffled": 164,
+      "max": 0.5643,
+      "mean": 0.1208,
+      "median": 0.0991,
+      "p95": 0.2293
     },
-    "observed": 0.0509,
-    "p_value": 0.8507
+    "observed": 0.1192,
+    "p_value": 0.4328
   },
-  "households": 213,
-  "null_floor_abs_max": 0.4948,
+  "households": 164,
+  "leg_fold_census": {
+    "households_they_belong_to": 177,
+    "supply_point_legs_folded_into_a_household": 87,
+    "supply_points_in_the_run_output": 264
+  },
+  "magnitude_shrunk_toward_the_null": {
+    "is_unbiased": false,
+    "null_median_maximum": 0.3815,
+    "observed": 0.6308,
+    "value": 0.2493,
+    "what_it_assumes": "that a best-of-N selection inflates a real effect by as much as it inflates pure noise. Under a real effect the winner is chosen on signal more often, so the true inflation is smaller and this figure over-corrects. Reported as a floor on the magnitude, never as the magnitude."
+  },
+  "magnitude_three_way_split": {
+    "bound_abs_p95": 0.2362,
+    "estimate": null,
+    "estimate_fold_is_big_enough": false,
+    "exceeds_its_own_noise_floor": false,
+    "fit_fold_holds_populations": false,
+    "households_per_cell_on_the_fit_fold": 5.0,
+    "p_value": 0.398,
+    "refused": "three-way split needs 8 households per cell on the fit fold and 20 on the estimate fold; this rung gives 5.00 per cell from a fit fold of 20 and an estimate fold of 19. The reading beside this refusal is reported because the direction of travel is evidence; it is not an estimate and must not be gated on.",
+    "under_powered_reading": -0.1164
+  },
+  "magnitude_three_way_split_detail": {
+    "estimate": -0.1164,
+    "estimate_households": 19,
+    "estimate_range": [
+      -0.3686,
+      0.0884
+    ],
+    "fit_households": 20,
+    "matched_selected_maximum": 0.363,
+    "rotations": 3,
+    "rotations_agree_on_the_winner": false,
+    "select_households": 17,
+    "selection_inflation": 0.4793,
+    "winners": [
+      {
+        "estimate": 0.0884,
+        "roles": [
+          0,
+          1,
+          2
+        ],
+        "select_score": 0.5172,
+        "x": "company_churn_estimate",
+        "y": "expected_term_margin_gbp"
+      },
+      {
+        "estimate": -0.0689,
+        "roles": [
+          1,
+          2,
+          0
+        ],
+        "select_score": -0.3391,
+        "x": "svt_rate_gbp_per_mwh",
+        "y": "expected_term_margin_gbp"
+      },
+      {
+        "estimate": -0.3686,
+        "roles": [
+          2,
+          0,
+          1
+        ],
+        "select_score": -0.4104,
+        "x": "unit_rate_gbp_per_mwh",
+        "y": "perceived_bill_saving_gbp"
+      }
+    ]
+  },
+  "magnitude_three_way_split_full_coverage": {
+    "bound_abs_p95": 0.1487,
+    "estimate": -0.1136,
+    "estimate_fold_is_big_enough": true,
+    "exceeds_its_own_noise_floor": false,
+    "fit_fold_holds_populations": true,
+    "households_per_cell_on_the_fit_fold": 27.5,
+    "p_value": 0.1741,
+    "refused": null,
+    "under_powered_reading": null
+  },
+  "null_floor_abs_max": 0.5588,
   "observable_fields_used": [
     "unit_rate_gbp_per_mwh",
     "svt_rate_gbp_per_mwh",
@@ -65,78 +148,78 @@
     "portfolio_premium_pct"
   ],
   "pairs_scored": 45,
-  "run_output": "run_output_23cbe058b_20260906T141424Z.json",
+  "run_output": "run_output_3851553ec_20260906T175920Z.json",
   "selection_corrected_null": {
     "candidates_per_draw": 45,
     "draws": 200,
-    "households_shuffled": 213,
-    "max": 0.7069,
-    "mean": 0.3831,
-    "median": 0.3673,
-    "p95": 0.5529
+    "households_shuffled": 164,
+    "max": 0.726,
+    "mean": 0.3953,
+    "median": 0.3815,
+    "p95": 0.5776
   },
   "selection_corrected_verdict": {
     "alpha": 0.05,
-    "bound_p95": 0.5529,
+    "bound_p95": 0.5776,
     "clears": true,
-    "exceedances": 4,
-    "margin_over_bound": 0.0598,
-    "observed": 0.6127,
-    "p_value": 0.0249
+    "exceedances": 5,
+    "margin_over_bound": 0.0532,
+    "observed": 0.6308,
+    "p_value": 0.0299
   },
   "single_feature_ceilings": [
     {
       "clears": false,
-      "feature": "mean_recent_margin_rate",
-      "held_out": -0.0422,
-      "in_sample": 0.2679,
-      "n": 213,
-      "null": 0.2863,
-      "refused": null
-    },
-    {
-      "clears": false,
-      "feature": "portfolio_premium_pct",
-      "held_out": -0.0509,
-      "in_sample": 0.2087,
-      "n": 213,
-      "null": 0.1692,
-      "refused": null
-    },
-    {
-      "clears": false,
       "feature": "unit_rate_gbp_per_mwh",
-      "held_out": null,
-      "in_sample": null,
-      "n": 100,
-      "null": null,
-      "refused": "degenerate fit: every household in one cell"
-    },
-    {
-      "clears": false,
-      "feature": "svt_rate_gbp_per_mwh",
-      "held_out": -0.1263,
-      "in_sample": 0.2467,
-      "n": 69,
-      "null": 0.412,
-      "refused": null
-    },
-    {
-      "clears": true,
-      "feature": "rate_vs_svt_pct",
-      "held_out": -0.353,
-      "in_sample": 0.0151,
-      "n": 69,
-      "null": 0.3345,
+      "held_out": -0.1192,
+      "in_sample": 0.2215,
+      "n": 164,
+      "null": 0.2678,
       "refused": null
     },
     {
       "clears": false,
       "feature": "company_eac_kwh",
-      "held_out": -0.0645,
-      "in_sample": 0.1261,
-      "n": 69,
-      "null": 0.4177,
+      "held_out": -0.088,
+      "in_sample": 0.1928,
+      "n": 164,
+      "null": 0.3139,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "mean_recent_margin_rate",
+      "held_out": 0.0537,
+      "in_sample": 0.3802,
+      "n": 149,
+      "null": 0.2487,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "portfolio_premium_pct",
+      "held_out": -0.0401,
+      "in_sample": 0.4057,
+      "n": 149,
+      "null": 0.2148,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "svt_rate_gbp_per_mwh",
+      "held_out": -0.1286,
+      "in_sample": 0.1267,
+      "n": 146,
+      "null": 0.2959,
+      "refused": null
+    },
+    {
+      "clears": false,
+      "feature": "rate_vs_svt_pct",
+      "held_out": 0.0898,
+      "in_sample": 0.0707,
+      "n": 146,
+      "null": 0.2455,
       "refused": null
     },
     {
@@ -178,20 +261,20 @@
   ],
   "top_pairs": [
     {
-      "held_out": 0.6127,
-      "in_sample": 0.1674,
+      "held_out": 0.6308,
+      "in_sample": 0.2288,
       "n": 69,
-      "null_mean": 0.1501,
-      "null_this_pair_alone": 0.3099,
+      "null_mean": 0.1535,
+      "null_this_pair_alone": 0.4656,
       "x": "perceived_bill_saving_gbp",
       "y": "portfolio_premium_pct"
     },
     {
-      "held_out": 0.5913,
-      "in_sample": 0.1822,
+      "held_out": 0.6038,
+      "in_sample": 0.1627,
       "n": 69,
-      "null_mean": 0.1021,
-      "null_this_pair_alone": 0.2152,
+      "null_mean": 0.121,
+      "null_this_pair_alone": 0.2716,
       "x": "perceived_bill_saving_gbp",
       "y": "mean_recent_margin_rate"
     },
@@ -205,6 +288,15 @@
       "y": "perceived_bill_saving_gbp"
     },
     {
+      "held_out": 0.4941,
+      "in_sample": 0.11,
+      "n": 69,
+      "null_mean": 0.0909,
+      "null_this_pair_alone": 0.2441,
+      "x": "resentment_score",
+      "y": "mean_recent_margin_rate"
+    },
+    {
       "held_out": 0.4799,
       "in_sample": 0.168,
       "n": 69,
@@ -214,461 +306,40 @@
       "y": "perceived_bill_saving_gbp"
     },
     {
-      "held_out": 0.4236,
-      "in_sample": 0.1628,
+      "held_out": 0.3959,
+      "in_sample": 0.1514,
       "n": 69,
-      "null_mean": 0.1096,
-      "null_this_pair_alone": 0.2193,
-      "x": "company_eac_kwh",
-      "y": "mean_recent_margin_rate"
-    },
-    {
-      "held_out": 0.4236,
-      "in_sample": 0.1396,
-      "n": 69,
-      "null_mean": 0.0888,
-      "null_this_pair_alone": 0.3274,
-      "x": "resentment_score",
-      "y": "mean_recent_margin_rate"
-    },
-    {
-      "held_out": 0.4112,
-      "in_sample": 0.1652,
-      "n": 69,
-      "null_mean": 0.0895,
-      "null_this_pair_alone": 0.2889,
+      "null_mean": 0.1099,
+      "null_this_pair_alone": 0.2599,
       "x": "company_churn_estimate",
       "y": "mean_recent_margin_rate"
     },
     {
-      "held_out": 0.3549,
-      "in_sample": 0.1039,
+      "held_out": -0.3854,
+      "in_sample": 0.0926,
       "n": 69,
-      "null_mean": 0.1553,
-      "null_this_pair_alone": 0.2979,
+      "null_mean": 0.1531,
+      "null_this_pair_alone": 0.4486,
       "x": "resentment_score",
       "y": "portfolio_premium_pct"
+    },
+    {
+      "held_out": 0.376,
+      "in_sample": 0.3563,
+      "n": 56,
+      "null_mean": 0.118,
+      "null_this_pair_alone": 0.3288,
+      "x": "expected_term_margin_gbp",
+      "y": "mean_recent_margin_rate"
     }
   ],
-  "verdict_stability": {
-    "cannot_tell_count": 13,
-    "ceiling_range": [
-      0.5661,
-      0.6127
-    ],
-    "clears_count": 19,
-    "coverage_regimes": [
-      {
-        "ceilings": [
-          0.5661
-        ],
-        "households_in_book": [
-          214
-        ],
-        "households_in_rung": 71,
-        "p_values": [
-          0.0746
-        ],
-        "runs": 13,
-        "verdict": "cannot tell",
-        "verdict_is_constant_within_this_regime": true
-      },
-      {
-        "ceilings": [
-          0.6127
-        ],
-        "households_in_book": [
-          213
-        ],
-        "households_in_rung": 69,
-        "p_values": [
-          0.0249,
-          0.0299
-        ],
-        "runs": 19,
-        "verdict": "clears",
-        "verdict_is_constant_within_this_regime": true
-      }
-    ],
-    "full_coverage_unanimous": true,
-    "households_range": [
-      69,
-      71
-    ],
-    "p_value_range": [
-      0.0249,
-      0.0746
-    ],
-    "per_run": [
-      {
-        "bound_p95": 0.5529,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0249,
-        "run": "run_output_f53c90b85_20260906T160932Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5529,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0249,
-        "run": "run_output_23cbe058b_20260906T141424Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5529,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0249,
-        "run": "run_output_74e9be26a_20260906T121719Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5529,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0249,
-        "run": "run_output_eca0b1341_20260906T102536Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_b01b1dbe3_20260906T083546Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_e58c38d5a_20260906T064753Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_d700de016_20260906T050131Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_d88ef2d78_20260906T031307Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_e1143b8ea_20260906T012516Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_fa80a1361_20260905T233900Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_cdc904c72_20260905T215105Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_494fba3b1_20260905T201959Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_1cfc48c01_20260905T184917Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_4b5a75bd5_20260905T165143Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_108ff5a68_20260905T150527Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_1bfd26b39_20260905T133538Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_e18ca807c_20260905T114739Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_43ce5b61b_20260905T101752Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.5617,
-        "ceiling": 0.6127,
-        "clears": true,
-        "full_coverage_clears": false,
-        "households_in_book": 213,
-        "n": 69,
-        "p_value": 0.0299,
-        "run": "run_output_65343b227_20260905T082630Z.json",
-        "trait_spread": 0.57691
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_9e3b3bd1c_20260905T063926Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_58ca93504_20260905T050912Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_f459f9895_20260905T032216Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_18048be6d_20260905T013625Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_7b15fa917_20260904T235025Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_b57180e53_20260904T220414Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_538735a35_20260904T201831Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_fa6ea8c7d_20260904T182745Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_1beec7215_20260904T163914Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_351aaf312_20260904T155851Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_54dfe05b4_20260904T151847Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_3d5a06c5a_20260904T144846Z.json",
-        "trait_spread": 0.57572
-      },
-      {
-        "bound_p95": 0.575,
-        "ceiling": 0.5661,
-        "clears": false,
-        "full_coverage_clears": false,
-        "households_in_book": 214,
-        "n": 71,
-        "p_value": 0.0746,
-        "run": "run_output_413f8c661_20260904T142849Z.json",
-        "trait_spread": 0.57572
-      }
-    ],
-    "runs_measured": 32,
-    "runs_refused": 0,
-    "same_population": false,
-    "unanimous": false,
-    "verdict_is_a_step_function_of_coverage": true,
-    "what_these_runs_are": "Consecutive run outputs of the same population at the same base seed, differing in how far the simulation had got -- and therefore both in which households carry both fields of a pair AND, across this window, in the size of the book itself. Those two move together here, so neither can be named as the cause of a verdict change. Not independent books and not a bootstrap: the spread here UNDERSTATES what a re-drawn book would show.",
-    "window": [
-      "run_output_413f8c661_20260904T142849Z.json",
-      "run_output_f53c90b85_20260906T160932Z.json"
-    ]
-  },
+  "verdict_stability": null,
   "we_cannot_tell": {
-    "bound_p95": 0.5529,
-    "p_value": 0.0249,
-    "statement": "The best function of the company's own observables recovers +0.6127 of a household's true price sensitivity, and it SURVIVES the correction on this book: after re-running the whole best-of-45 selection against 200 shuffled worlds, chance reached that high in 4 of them (p=0.0249). It clears by +0.0598 \u2014 about a tenth of the figure itself \u2014 so this is a marginal pass, not a bound.",
+    "bound_p95": 0.5776,
+    "on_the_magnitude": "AND THE SIZE OF IT IS NOT ESTABLISHED, which is a separate claim from whether it is real. +0.6308 is the largest of a search ranked on the very fold it is then reported from, so it is biased up as an estimate however cleanly it clears a null. De-biasing it needs a third fold \u2014 fit on one, choose on a second, score on a third \u2014 and this rung cannot carry one: 5.0 households per cell on the fit fold against the 8 this instrument requires. Forced through anyway it reads -0.1164, inside a noise floor of +0.2362 (p=0.398) \u2014 the direction of travel, and not an estimate. The full-coverage rung CAN carry the split, and there the estimate is -0.1136, inside its own noise floor of +0.1487 (p=0.1741) \u2014 indistinguishable from nothing. Holding the fit fold at the same size and separating ONLY the choosing from the reporting moves the figure from +0.3630 to -0.1164, so +0.4793 of it is the search and nothing else \u2014 one variable, measured, not inferred. The rotations do not even agree on which candidate wins, and their estimates run from -0.3686 to +0.0884: which pair is 'best' is a fact about who landed on the ranking side of the split. So R1's ceiling clears its null on this book and its MAGNITUDE has no unbiased estimate here. A49 gates R3 and R4 on this instrument and must read the magnitude field, which is null \u2014 not +0.6308. What closes it is COVERAGE, not a re-run.",
+    "p_value": 0.0299,
+    "statement": "The best function of the company's own observables recovers +0.6308 of a household's true price sensitivity, and it SURVIVES the correction on this book: after re-running the whole best-of-45 selection against 200 shuffled worlds, chance reached that high in 5 of them (p=0.0299). It clears by +0.0532 \u2014 about a tenth of the figure itself \u2014 so this is a marginal pass, not a bound.",
     "verdict": "clears",
-    "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0598. The pair rung carries 69 households, and at that size only a ceiling above +0.5529 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=213) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely. And the winning fit scores 0.6127 on households it never saw against 0.1674 on the ones it was built from -- 3.7 times better out of sample than in it. A fit does not do that; a search over 45 candidates ranked by the out-of-sample score finds one that does. This is not evidence the ceiling is chance -- the winner of a shuffled world overshoots its own fit for the same reason -- so the p-value above stands. It is the one thing that p-value cannot see, and it is why this figure is reported as the best of a search rather than as a bound. AND THE VERDICT IS NOT A PROPERTY OF THE WORLD. Re-running the whole instrument -- the 45-way sweep and its own 200-draw corrected null -- on 32 consecutive run outputs of the SAME population at the same base seed returns 19 'clears' and 13 'cannot tell', p from 0.0249 to 0.0746, on rungs of 69 to 71 households. Those books are consecutive states of one population at one base seed, so the published answer moves with the run output the instrument read. A number that changes side on that is not a gate, and R3 and R4 must not be gated on it. And this is not noise around the line, which would settle with more draws. It is a step: every run at n=71 reads 'cannot tell' (ceiling +0.5661, p=0.0746); every run at n=69 reads 'clears' (ceiling +0.6127, p from 0.0249 to 0.0299). There is no scatter inside either group. The books either side of the step differ in the whole book too (213 against 214 households), not only in the rung, so which of the two moved the verdict cannot be attributed from this evidence and is not claimed here. Either way the published answer is decided by a difference of a couple of households in a book of over two hundred, which is not a quantity a programme can be gated on."
+    "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0532. I expect a figure that clears by a tenth of itself to move with the next draw of the book, and that expectation is a prediction rather than a measurement: the stability rung has not been run in this tree. The pair rung carries 69 households, and at that size only a ceiling above +0.5776 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=164) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely. And the winning fit scores 0.6308 on households it never saw against 0.2288 on the ones it was built from -- 2.8 times better out of sample than in it. A fit does not do that; a search over 45 candidates ranked by the out-of-sample score finds one that does. This is not evidence the ceiling is chance -- the winner of a shuffled world overshoots its own fit for the same reason -- so the p-value above stands. It is the one thing that p-value cannot see, and it is why this figure is reported as the best of a search rather than as a bound. AND THE SIZE OF IT IS NOT ESTABLISHED, which is a separate claim from whether it is real. +0.6308 is the largest of a search ranked on the very fold it is then reported from, so it is biased up as an estimate however cleanly it clears a null. De-biasing it needs a third fold \u2014 fit on one, choose on a second, score on a third \u2014 and this rung cannot carry one: 5.0 households per cell on the fit fold against the 8 this instrument requires. Forced through anyway it reads -0.1164, inside a noise floor of +0.2362 (p=0.398) \u2014 the direction of travel, and not an estimate. The full-coverage rung CAN carry the split, and there the estimate is -0.1136, inside its own noise floor of +0.1487 (p=0.1741) \u2014 indistinguishable from nothing. Holding the fit fold at the same size and separating ONLY the choosing from the reporting moves the figure from +0.3630 to -0.1164, so +0.4793 of it is the search and nothing else \u2014 one variable, measured, not inferred. The rotations do not even agree on which candidate wins, and their estimates run from -0.3686 to +0.0884: which pair is 'best' is a fact about who landed on the ranking side of the split. So R1's ceiling clears its null on this book and its MAGNITUDE has no unbiased estimate here. A49 gates R3 and R4 on this instrument and must read the magnitude field, which is null \u2014 not +0.6308. What closes it is COVERAGE, not a re-run."
   }
 }
