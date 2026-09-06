@@ -123,6 +123,52 @@ OBSERVABLE_FIELDS = (
     "perceived_bill_saving_gbp", "discount_pct", "expected_term_margin_gbp",
     "mean_recent_margin_rate", "portfolio_premium_pct",
 )
+#: WHERE EACH OBSERVABLE COMES FROM IN THE COMPANY'S OWN RECORD, and it is not one kind of thing.
+#: Declared per field, in view, BEFORE any run, because the difference decides what a low coverage
+#: number MEANS -- and reading it wrong is what kept this instrument's pair rung refusing for want
+#: of households while the book sat at 164.
+#:
+#:   `account_state`   the company holds it for every account on supply in every period, whether or
+#:                     not anything happened to that account. `simulation/run_phase2b.py` writes it
+#:                     to `account_state_log`. Coverage short of the whole book is a DEFECT.
+#:   `decision_only`   it exists only where a decision was reached, and for most of them that
+#:                     decision is a renewal on a fixed electricity term -- which most of this
+#:                     book's households never have. Coverage short of the whole book is the TRUTH
+#:                     about the field, and manufacturing a value for an account that never renewed
+#:                     would invent the coverage rather than record it.
+#:
+#: The distinction is the whole point of the record: `company_eac_kwh` at 69 of 164 households was
+#: an accounting accident (the company computed it, then only wrote it down at renewals), whereas
+#: `discount_pct` at 35 is what a discount IS. One is worth fixing and the other is worth naming.
+#: `run_phase2b`'s `account_state_log` comment points AT this table for exactly that reason.
+OBSERVABLE_FIELD_SCOPE = {
+    "unit_rate_gbp_per_mwh": ("account_state", "what the company charges this account now"),
+    "svt_rate_gbp_per_mwh": ("account_state",
+                             "the published default-tariff cap on the day, PER FUEL. Read this "
+                             "field's coverage against the run that produced it: until 2026-09-06 "
+                             "the world wrote it for electricity legs only, so 146-of-164 was a "
+                             "missing READ and not the field's own scope"),
+    "rate_vs_svt_pct": ("account_state", "the spread between the two above"),
+    "company_eac_kwh": ("account_state",
+                        "the company's own estimate of annual consumption, from twelve months of "
+                        "its own billing -- held continuously, previously written only at renewal"),
+    "company_churn_estimate": ("decision_only",
+                               "`estimate_renewal_churn` takes an old rate AND a new one, so it "
+                               "exists at a renewal and nowhere else"),
+    "resentment_score": ("decision_only",
+                         "the journey register advances in a renewal window; an account with no "
+                         "renewal has no journey to read"),
+    "perceived_bill_saving_gbp": ("decision_only",
+                                  "a renewal-window quantity: what THIS renewal appears to save "
+                                  "against the rate it replaced"),
+    "discount_pct": ("decision_only", "an offer artefact -- there is no discount without an offer"),
+    "expected_term_margin_gbp": ("decision_only",
+                                 "priced at the offer, against the offer's own term"),
+    "mean_recent_margin_rate": ("account_state",
+                                "the portfolio position the pricing chain reads at every priced "
+                                "term, carried by `account_state_log` since 2026-09-06"),
+    "portfolio_premium_pct": ("account_state", "likewise, per priced term"),
+}
 #: Explicitly NOT observable, listed so the exclusion is checkable rather than trusted. Each is the
 #: simulation's own hand: what the world rolled, not what the company saw.
 GROUND_TRUTH_FIELDS = (
@@ -218,6 +264,61 @@ def leg_fold_census(payload: dict) -> dict[str, int]:
         "households_they_belong_to": len(households),
         "supply_point_legs_folded_into_a_household": len(points) - len(households),
     }
+
+
+def field_provenance(payload: dict) -> dict[str, dict]:
+    """Which record carried each observable, how many households it reached, and whether that
+    coverage is a DEFECT or a FACT.
+
+    Published rather than asserted on, because the number itself is not the finding: a field at 69
+    of 164 is a bookkeeping accident if its scope is `account_state` and the honest truth about the
+    field if its scope is `decision_only`. Naming the record it came from is what lets a reader
+    check the scope declaration against the world instead of taking it on trust.
+    """
+    per_field: dict[str, dict[str, set]] = {f: {} for f in OBSERVABLE_FIELDS}
+    for record_name, value in payload.items():
+        if not (isinstance(value, list) and value and isinstance(value[0], dict)):
+            continue
+        for row in value:
+            cid = row.get("customer_id")
+            if not cid:
+                continue
+            for field in OBSERVABLE_FIELDS:
+                got = row.get(field)
+                if isinstance(got, (int, float)) and not isinstance(got, bool):
+                    per_field[field].setdefault(record_name, set()).add(_household_key(cid))
+    out = {}
+    for field, records in per_field.items():
+        scope, why = OBSERVABLE_FIELD_SCOPE.get(field, ("undeclared", "no scope declared"))
+        union: set[str] = set()
+        for ids in records.values():
+            union |= ids
+        out[field] = {
+            "scope": scope,
+            "why": why,
+            "households": len(union),
+            "records": {name: len(ids) for name, ids in sorted(records.items())},
+        }
+    return out
+
+
+def whole_book_fields(fields) -> list[str]:
+    """Of `fields`, the ones the company holds for EVERY account on supply.
+
+    A named function and not an inline comprehension so the partition it draws can be driven by a
+    control. The distinction it applies is `OBSERVABLE_FIELD_SCOPE`'s and is declared in this file
+    above, before any run: a field whose scope is not `account_state` is one that exists only where
+    a decision fired, and a rung built on it can only ever carry the accounts that reached that
+    decision -- 69 of 164 on this book, however large the book gets.
+
+    AN UNDECLARED FIELD IS EXCLUDED, which is fail-closed and deliberate: a new observable added to
+    `OBSERVABLE_FIELDS` and not to the scope table would otherwise be silently treated as
+    whole-book, and the rung would quietly go back to being renewal-shaped with nothing to say so.
+    `test_every_observable_declares_a_scope_and_the_declaration_is_a_partition` is what stops that
+    exclusion from being how the gap gets lived with.
+    """
+    return [f for f in fields
+            if OBSERVABLE_FIELD_SCOPE.get(f, ("undeclared", ""))[0] == "account_state"]
 
 
 def true_traits(customer_ids) -> tuple[dict[str, float], int]:
@@ -1146,9 +1247,41 @@ def measure(cells: int = 2, run_path: Path | None = None,
     full_split = three_way_split(full_grid, traits, cells, folds_of)
     full_magnitude = magnitude_verdict(
         full_split, three_way_null(full_grid, traits, cells, folds_of), cells)
+    # THE PAIR RUNG THE WHOLE BOOK CARRIES, and it is what buys R1 a magnitude at all.
+    # The rung above ranks every pair and reports the winner, so ITS household count is set by
+    # whichever pair won -- and a pair built on a `decision_only` field collapses it to the renewing
+    # subset however large the book is. That is exactly what happens on this book: four observables
+    # went from 69 households to 164 when `account_state_log` landed, the book IS 164, and
+    # `magnitude_three_way_split` still refuses at 69 because the winner is
+    # `perceived_bill_saving_gbp x portfolio_premium_pct` and the first exists only where a renewal
+    # window opened. The instrument could not say that. Its refusal read "the book is too small",
+    # and the book was never the problem. MORE COVERAGE ON THE OTHER FIELDS CANNOT MOVE IT.
+    #
+    # THE RESTRICTION IS ON SCOPE AND NOT ON OUTCOME, which is the only thing that keeps this from
+    # being a second bite at the search. `OBSERVABLE_FIELD_SCOPE` declares which fields a supplier
+    # holds for every account on supply; that declaration is in the source, above, and is not
+    # adjustable by what wins. Both rungs are published side by side for the same reason the
+    # uncorrected null still is: a rung reported alone is a rung chosen.
+    #
+    # IT IS A NARROWER CLAIM, NOT A BETTER ONE. It answers "what can be recovered from what the
+    # company holds about EVERY account", which is the quantity a book-wide programme can act on.
+    # The all-candidate rung answers "what can be recovered about the households that renewed",
+    # which is a real question with a smaller population and no route to the rest of the book.
+    book_fields = whole_book_fields(shared)
+    book_grid = [c for c in grid if c["x"] in book_fields and c["y"] in book_fields]
+    book_ranked = [r for r in ranked if r["x"] in book_fields and r["y"] in book_fields]
+    book_best = book_ranked[0] if book_ranked else {"held_out": 0.0, "n": 0}
+    book_null = selection_corrected_null(book_grid, traits, cells)
+    book_verdict = graded_against_selection(book_best.get("held_out", 0.0), book_null)
+    # THE SAME `folds_of` as the rungs above, so a household sits on the same side of the split
+    # wherever it appears and the three magnitudes are comparable rather than three different draws.
+    book_split = three_way_split(book_grid, traits, cells, folds_of)
+    book_magnitude = magnitude_verdict(
+        book_split, three_way_null(book_grid, traits, cells, folds_of), cells * cells)
+
     shrunk = shrunk_toward_the_null(best.get("held_out", 0.0), pair_null)
 
-    for block in (pair_null, full_null):
+    for block in (pair_null, full_null, book_null):
         if block is not None:
             block.pop("_winners", None)
 
@@ -1177,6 +1310,28 @@ def measure(cells: int = 2, run_path: Path | None = None,
         # WHAT THE BOOK ACTUALLY IS, beside the count, because `households: 213` was wrong for two
         # days and nothing on the surface could say so. See `observable_rows`.
         "leg_fold_census": leg_fold_census(payload),
+        # WHICH RECORD CARRIED EACH OBSERVABLE, AND WHETHER ITS COVERAGE IS A DEFECT OR A FACT.
+        # See `field_provenance` and `OBSERVABLE_FIELD_SCOPE`.
+        "field_provenance": field_provenance(payload),
+        # THE ONE LINE THAT SAYS WHETHER THIS RUN'S BOOK IS ACCOUNT-SHAPED AT ALL. False means the
+        # run predates `account_state_log`, or that `extract_report_data` stopped forwarding it --
+        # and every account-state field silently falls back to its renewal-only coverage, which
+        # reads exactly like a book that got smaller.
+        "the_book_carries_an_account_shaped_record": bool(payload.get("account_state_log")),
+        # THE SAME PAIR SEARCH, RESTRICTED TO WHAT THE COMPANY HOLDS FOR EVERY ACCOUNT. See the
+        # block that builds it: the rung above reports a winner whose household count is set by the
+        # pair that won, so a `decision_only` field can win and drag it back to the renewing subset.
+        # `magnitude_three_way_split` here is the one that can be powered on this book.
+        "whole_book_pair_rung": {
+            "fields": book_fields,
+            "pairs_scored": len(book_ranked),
+            "best_pair": book_best,
+            "clears_the_selection_corrected_null": book_verdict.get("clears"),
+            "selection_corrected_verdict": book_verdict,
+            "selection_corrected_null": book_null,
+            "magnitude_three_way_split": book_magnitude,
+            "magnitude_three_way_split_detail": book_split,
+        },
         "observable_fields_used": shared,
         "cells_per_axis": cells,
         "pairs_scored": len(ranked),
@@ -1337,8 +1492,10 @@ def main(argv=None) -> int:
     print()
     print("  HOW BIG -- a separate question, and the one the correction above does NOT answer")
     det = result.get("magnitude_three_way_split_detail")
+    book = result["whole_book_pair_rung"]
     for label, mag in (("pair rung", result["magnitude_three_way_split"]),
-                       ("full coverage", result["magnitude_three_way_split_full_coverage"])):
+                       ("full coverage", result["magnitude_three_way_split_full_coverage"]),
+                       ("whole book", book["magnitude_three_way_split"])):
         est, forced = mag.get("estimate"), mag.get("under_powered_reading")
         shown = (f"{est:+.4f}" if est is not None else
                  (f"REFUSED ({forced:+.4f} under-powered, NOT an estimate)"
@@ -1359,6 +1516,20 @@ def main(argv=None) -> int:
               f"{det['selection_inflation']:+.4f}")
         print(f"    rotations agree on which pair won: {det['rotations_agree_on_the_winner']}   "
               f"estimate across rotations: {det['estimate_range']}")
+    # THE RUNG RESTRICTED TO WHAT THE COMPANY HOLDS ON EVERY ACCOUNT, printed beside the one above
+    # and never instead of it. The two answer different questions over different populations, and
+    # the reason the numbers differ is the population, not the estimator.
+    print()
+    print(f"  THE SAME SEARCH OVER THE {len(book['fields'])} FIELDS THE WHOLE BOOK CARRIES "
+          f"({book['pairs_scored']} pairs)")
+    print(f"    fields                                   : {', '.join(book['fields'])}")
+    bb = book["best_pair"]
+    print(f"    best pair                                : {bb.get('x')} x {bb.get('y')}  "
+          f"held-out {bb.get('held_out', 0.0):+.4f}  n={bb.get('n', 0)}")
+    print(f"    clears the selection-corrected null      : "
+          f"{book['clears_the_selection_corrected_null']}  "
+          f"(p={book['selection_corrected_verdict'].get('p_value')})")
+
     sh = result["magnitude_shrunk_toward_the_null"]
     if sh.get("value") is not None:
         print(f"    shrunk toward the null median instead     : {sh['value']:+.4f}  "
