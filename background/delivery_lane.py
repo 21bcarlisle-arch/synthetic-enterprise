@@ -174,6 +174,21 @@ DRAW_LEDGER_FILE = CLAIMS_FILE.with_suffix(".draws.json")
 #: is the fail-safe direction: the cost is one wasted verification, not a credited stall.
 MAX_REMEMBERED_DRAWS = 400
 
+#: How many consecutive SELF-ISSUED hand-offs the continuation source may win before the focus
+#: list is consulted first. Small on purpose: the continuation-before-focus order is right for a
+#: FIRST continuation -- a session that just finished a piece knows what comes next better than a
+#: three-hour-old re-derivation -- and wrong for the fifth in the same programme, where the
+#: "fresher judgement" argument has become a lane feeding itself.
+#:
+#: MEASURED 2026-09-06, which is why it is 3 and not a bigger number. The draw ledger's last
+#: twelve rows were twelve continuations in an unbroken chain, every one written by the tick that
+#: had just drawn the one before it, and 94 ledger rows record that no focus id had EVER been
+#: drawn. `live()` is walked to exhaustion before `direction_mod.unreachable_focus` is reached at
+#: all, so against a lane that refills every turn the second loop was unreachable BY CONSTRUCTION.
+#: Three links is roughly one programme's worth of continuation before the seat's own ranked list
+#: gets a hearing.
+SELF_HANDOFF_CHAIN_LIMIT = 3
+
 #: A delivery-lane claim that has landed NOTHING in this long goes back in the pool. Longer than
 #: the interactive seat's 45 minutes because this is the class of work that takes hours — the
 #: whole point of the lane — and shorter than the tick's own 2-hour ceiling so a dead invocation
@@ -268,6 +283,63 @@ def _ledger_path(store: Path) -> Path:
     return store.with_suffix(".draws.json")
 
 
+def _continuation_written_at(focus_id: str) -> float | None:
+    """When the continuation store recorded this id, or None if it does not hold it.
+
+    None is the answer for a focus id AND for an unreadable store, and that conflation is the safe
+    direction here: an unreadable store reads as "not a continuation", which can only SHORTEN a
+    chain and hand the focus list a hearing it might not have earned. The opposite error would
+    manufacture a chain out of a file it could not open and starve the continuation source.
+    """
+    try:
+        for entry in seat_continuation._load():
+            if str(entry.get("id")) == str(focus_id):
+                return float(entry.get("written_at") or 0.0)
+    except Exception:
+        return None
+    return None
+
+
+def _self_issued_chain(path: Path | None = None) -> int:
+    """How many hand-offs in a row this lane has drawn that IT wrote, most recent first.
+
+    THE LINK, and it is what "self-issued" means operationally: continuation B is counted only if
+    its `source_written_at` is LATER than the instant the item drawn before it was handed out. A
+    continuation written after a draw was written by the lane holding that draw. One written
+    before it came from somewhere else -- an interactive session, an executor promotion -- and
+    breaks the chain, because that is exactly the case the continuation-first order is right for.
+
+    Counted over LINKS rather than rows, so the oldest row (which has nothing before it to be
+    written after) is never credited with an authorship nothing can establish.
+
+    NEVER RAISES and an unreadable ledger reads as NO CHAIN, which preserves today's ordering. A
+    wrong 0 costs one more continuation before focus is consulted; a wrong large number would
+    silently retire the continuation source, which is the mechanism the director named as the
+    biggest single drag on the project.
+    """
+    try:
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE))
+        rows = sorted(
+            (r for r in ledger.values() if isinstance(r, dict) and r.get("last_drawn_at")),
+            key=lambda r: float(r["last_drawn_at"]), reverse=True)
+    except Exception:
+        return 0
+    #
+    # ONE TEST, NOT TWO, AND THE SECOND ONE WAS DELETED RATHER THAN KEPT (poison round,
+    # 2026-09-06). This read `if newer.get("source") != "continuation": break` first, and removing
+    # that line killed nothing: `record_draw` writes `source_written_at` ONLY where it writes
+    # `source: continuation`, so a focus row has no `source_written_at` and the link test below
+    # breaks the run at exactly the same index. An EQUIVALENCE, established rather than assumed --
+    # and a leg that cannot fail is worth less than the sentence explaining why it was removed.
+    links = 0
+    for newer, older in zip(rows, rows[1:]):
+        written = newer.get("source_written_at")
+        if written is None or float(written) <= float(older.get("last_drawn_at") or 0.0):
+            break
+        links += 1
+    return links
+
+
 def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None:
     """Remember that `focus_id` was handed out at `when`. Idempotent on the FIRST draw.
 
@@ -284,6 +356,16 @@ def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None
         if not isinstance(row, dict):
             row = {"first_drawn_at": float(when)}
         row["last_drawn_at"] = float(when)
+        # WHICH SOURCE HANDED THIS OUT, stamped ONCE beside `first_drawn_at` and for the same
+        # reason: it is a fact about the draw, and a version that re-derived it later would read
+        # a continuation store the drop/expiry has since emptied and call every past draw `focus`.
+        # `source_written_at` is what makes the chain measurable at all -- a continuation written
+        # AFTER the previous item was drawn was authored by the lane that drew it.
+        if "source" not in row:
+            written = _continuation_written_at(focus_id)
+            row["source"] = "focus" if written is None else "continuation"
+            if written is not None:
+                row["source_written_at"] = written
         ledger[focus_id] = row
         if len(ledger) > MAX_REMEMBERED_DRAWS:
             keep = sorted(ledger.items(),
@@ -797,14 +879,41 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     # reasoned about -- see `seat_continuation`'s note on why that expiry is load-bearing and not
     # tidying. Wrapped because `draw` documents that a lane which can throw takes every other lane
     # down with it, and a handoff store must never cost the machine a tick.
-    try:
-        for item in seat_continuation.live(now=now):
-            if item.get("id") and item["id"] not in taken:
+    #
+    # AND THE ORDER IS NOT UNCONDITIONAL, because the freshness argument above expires with use
+    # (2026-09-06). It holds for a FIRST continuation and fails for the fifth in one programme:
+    # once the lane is writing its own next item every turn, "fresher than focus" describes a
+    # lane feeding itself, and `live()` is walked to exhaustion before the `focus` loop is reached
+    # at all. Measured: twelve consecutive continuation draws, 94 ledger rows, and not one focus
+    # id ever drawn -- the second loop was unreachable by construction, not by ranking.
+    #
+    # So after `SELF_HANDOFF_CHAIN_LIMIT` self-issued hand-offs the sources SWAP and focus is
+    # consulted first. It is a swap and never a suppression: whichever source is asked second
+    # still answers when the first has nothing, so a chained lane with an empty focus list keeps
+    # its continuation and no turn is spent idle. Drawing a focus item stamps `source: focus` on
+    # the ledger's newest row, which breaks the chain and restores the ordinary order -- the
+    # reset needs no separate state and cannot drift out of step with the draw it describes.
+    def _continuation():
+        # Wrapped because `draw` documents that a lane which can throw takes every other lane
+        # down with it, and a handoff store must never cost the machine a tick.
+        try:
+            for item in seat_continuation.live(now=now):
+                if item.get("id") and item["id"] not in taken:
+                    return item
+        except Exception:
+            return None
+        return None
+
+    def _focus():
+        for item in direction_mod.unreachable_focus(_atom_ids()):
+            if item.get("id") and item["id"] not in taken and item["id"] not in retired:
                 return item
-    except Exception:
-        pass
-    for item in direction_mod.unreachable_focus(_atom_ids()):
-        if item.get("id") and item["id"] not in taken and item["id"] not in retired:
+        return None
+
+    chained = _self_issued_chain(store) >= SELF_HANDOFF_CHAIN_LIMIT
+    for source in (_focus, _continuation) if chained else (_continuation, _focus):
+        item = source()
+        if item is not None:
             return item
     return None
 
