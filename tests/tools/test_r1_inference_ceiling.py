@@ -334,3 +334,94 @@ def test_the_winner_signature_is_reported_and_never_flips_the_verdict():
     quiet = r._headline({"held_out": 0.1674, "in_sample": 0.6127, "n": 69}, verdict,
                         {"clears": False}, 213, 45)
     assert "never saw" not in quiet["what_it_does_not_say"], quiet["what_it_does_not_say"]
+
+
+
+def _reduce(rows):
+    """Runs the SHIPPED reducer over hand-built per-run rows, so this grades the code that decides
+    the verdict rather than a restatement of it."""
+    return r._reduce_runs([
+        {"run": f"r{i}.json", "n": n, "ceiling": c, "bound_p95": 0.55, "p_value": p,
+         "clears": clears, "full_coverage_clears": False, "trait_spread": 0.5,
+         "households_in_book": book}
+        for i, (n, book, c, p, clears) in enumerate(rows)])
+
+
+def test_a_verdict_that_changes_across_draws_is_reported_as_UNSTABLE_not_averaged():
+    """R1's ceiling gates R3 and R4 (`A49`), and it reads `cannot tell` at n=71 and `clears` at
+    n=69 on consecutive draws of one population. The instrument must say the verdict MOVED.
+
+    THE DEFECT THIS REFUSES is the tempting alternative: report the majority, or the latest, or a
+    mean p-value. Any of those publishes one side of a coin flip as a bound. `unanimous` is derived
+    from the per-run verdicts every time, so it cannot stay green while the series disagrees.
+
+    All three legs are asserted, and the stable one is not hypothetical: the eight most recent run
+    outputs on 2026-09-06 ARE unanimous, and only a window reaching back to 09-04 shows the step.
+    A rung answering "unstable" for everything would pass a one-leg version of this and catch
+    nothing.
+    """
+    disagreeing = _reduce([(71, 214, 0.5661, 0.0746, False), (71, 214, 0.5661, 0.0746, False),
+                           (69, 213, 0.6127, 0.0249, True), (69, 213, 0.6127, 0.0299, True)])
+    assert disagreeing["unanimous"] is False, "the series disagrees and the rung reports agreement"
+    assert disagreeing["clears_count"] == 2 and disagreeing["cannot_tell_count"] == 2
+    assert disagreeing["verdict_is_a_step_function_of_coverage"] is True, (
+        "each coverage regime is internally constant and they differ -- that is a step, and it is "
+        "a stronger claim than a ratio of runs because more draws would not settle it")
+
+    agreeing = _reduce([(69, 213, 0.6127, 0.0249, True), (69, 213, 0.6127, 0.0299, True)])
+    assert agreeing["unanimous"] is True, (
+        "a series that agrees must be able to say so, or 'unstable' is boilerplate")
+    assert agreeing["verdict_is_a_step_function_of_coverage"] is False, (
+        "one regime cannot be a step; claiming it would manufacture instability that is not there")
+
+    # THE THIRD STATE, and the one that would be read as a step if it were not distinguished: a
+    # regime disagreeing WITH ITSELF is scatter around the line, and coverage did not change.
+    mixed = _reduce([(69, 213, 0.6127, 0.0249, True), (69, 213, 0.5500, 0.0600, False)])
+    assert mixed["unanimous"] is False
+    assert mixed["verdict_is_a_step_function_of_coverage"] is False, (
+        "a single coverage regime disagreeing with itself is noise; calling it a step would "
+        "attribute the move to coverage when coverage did not change")
+
+    # ...AND THE SAME SCATTER ALONGSIDE A SECOND REGIME, which is the case the leg above cannot
+    # reach. With one regime the claim is already refused by the regime COUNT, so dropping the
+    # within-regime check entirely left that leg green -- found by mutating the clause out and
+    # watching every test still pass. Here two regimes differ (so the count clause is satisfied)
+    # while one of them is internally inconsistent, and only the within-regime check can refuse it.
+    ragged = _reduce([(71, 214, 0.5661, 0.0746, False), (71, 214, 0.5661, 0.0746, False),
+                      (69, 213, 0.6127, 0.0249, True), (69, 213, 0.5500, 0.0600, False)])
+    assert ragged["unanimous"] is False
+    assert ragged["verdict_is_a_step_function_of_coverage"] is False, (
+        "one regime holds both verdicts, so the verdict is not determined by coverage and calling "
+        "it a step would publish an attribution the evidence does not carry")
+
+
+def test_the_confound_is_carried_and_the_cause_is_NOT_attributed():
+    """The rung's household count and the BOOK's moved together across the measured window -- 71
+    in a 214-household book reads one way, 69 in a 213-household book the other. Two things
+    changed, so neither can be named as the cause.
+
+    The finding that minted this work said the verdict "flips on two households", which is the
+    rung's share of a change the whole book also underwent. The caveat must carry both numbers and
+    must refuse the attribution rather than quietly keeping the tidier sentence.
+    """
+    stability = _reduce([(71, 214, 0.5661, 0.0746, False), (69, 213, 0.6127, 0.0249, True)])
+    best = {"held_out": 0.6127, "in_sample": 0.1674, "n": 69}
+    verdict = {"clears": True, "p_value": 0.0249, "bound_p95": 0.5529,
+               "margin_over_bound": 0.0598, "exceedances": 4}
+
+    said = r._headline(best, verdict, {"clears": False}, 213, 45, stability)["what_it_does_not_say"]
+
+    assert "cannot be attributed" in said, said
+    assert "213" in said and "214" in said, (
+        "the book sizes either side of the step are what make the confound checkable")
+    # The contradiction this sentence carried on its first draft: it claimed the books differed
+    # ONLY in pair coverage, two clauses before saying the whole book differed too.
+    assert "differ only in which households" not in said, (
+        "the caveat asserts and then denies that coverage was the only difference")
+
+    # THE OTHER LEG: with one regime there is no confound to report and no step to claim.
+    one = _reduce([(69, 213, 0.6127, 0.0249, True), (69, 213, 0.6127, 0.0299, True)])
+    quiet = r._headline(best, verdict, {"clears": False}, 213, 45, one)["what_it_does_not_say"]
+    assert "cannot be attributed" not in quiet, (
+        "the confound sentence is emitted regardless of the evidence, so it says nothing")
+    assert "consistency check" in quiet

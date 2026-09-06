@@ -179,6 +179,37 @@ def what_next() -> dict:
     }
 
 
+def _redraw_panel(stability: dict | None) -> dict:
+    """The stability rung, rendered for a reader — or an explicit statement that it was not run.
+
+    A49 gates R3 and R4 on the figure this panel carries, so the question a reader most needs
+    answered is not "what is the number" but "would it be the same number tomorrow". On this book it
+    would not: the verdict is constant within a coverage regime and opposite between two of them.
+    That is the single most decision-relevant fact about the figure and it lived only in a staged
+    finding until now.
+    """
+    if not stability:
+        return {"measured": False,
+                "why": "the stability rung has not been run in this tree, so whether this verdict "
+                       "survives a different draw of the book is UNKNOWN — which is not the same "
+                       "as it being stable. Run `python3 -m tools.r1_inference_ceiling "
+                       "--stability` in a tree holding the run outputs."}
+    return {
+        "measured": True,
+        "runs_measured": stability.get("runs_measured"),
+        "verdict_is_the_same_on_every_run": stability.get("unanimous"),
+        "clears_count": stability.get("clears_count"),
+        "cannot_tell_count": stability.get("cannot_tell_count"),
+        "p_value_range": stability.get("p_value_range"),
+        "households_range": stability.get("households_range"),
+        "ceiling_range": stability.get("ceiling_range"),
+        "verdict_is_a_step_function_of_coverage": stability.get(
+            "verdict_is_a_step_function_of_coverage"),
+        "coverage_regimes": stability.get("coverage_regimes"),
+        "what_these_runs_are": stability.get("what_these_runs_are"),
+    }
+
+
 def the_number_the_programme_rests_on() -> dict:
     """R1's inference ceiling, READ from the instrument's committed artefact.
 
@@ -241,6 +272,11 @@ def the_number_the_programme_rests_on() -> dict:
             "reported_winner_held_out_over_in_sample"),
         "statement": headline.get("statement"),
         "what_it_does_not_say": headline.get("what_it_does_not_say"),
+        # DOES THIS VERDICT DESCRIBE THE WORLD, OR THE FILE THE INSTRUMENT HAPPENED TO READ?
+        # Lifted, never computed, like everything else on this panel. `measured: False` is rendered
+        # as UNMEASURED and never as agreement -- an unrun stability rung and a stable one are
+        # different claims, and only one of them is evidence about the number above it.
+        "does_the_verdict_survive_a_redraw": _redraw_panel(got.get("verdict_stability")),
         "why_both_figures_are_shown": (
             "The first number is what a search of "
             f"{got.get('pairs_scored')} candidate pairs returned, compared against the odds of ONE "
