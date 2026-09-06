@@ -236,6 +236,9 @@ def load_trace_weather(
                         temperature_max_c=float(row["temperature_max_c"]),
                         temperature_mean_c=float(row["temperature_mean_c"]),
                         cloud_cover_pct=float(row["cloud_cover_pct"]),
+                        # sixth column of the archive since the fetch, read by nothing until
+                        # 2026-09-06 -- see fabric_physics.SAP_REFERENCE_WIND_MS
+                        wind_speed_mean_ms=float(row["wind_speed_mean_ms"]),
                     ),
                 )
             )

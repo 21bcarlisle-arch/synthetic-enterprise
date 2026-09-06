@@ -5,51 +5,76 @@ matters is a plausible ratio between two effects that were not measured over the
 """
 from __future__ import annotations
 
+import re
+
 import pytest
 
 from tools import weather_driver_sensitivity as wds
 
 
-def test_WINDOW_CANNOT_ANSWER_FOR_WIND():
-    """THE DEFECT, AND IT SHIPPED. The first version of `_sim_has_a_wind_term` asked
-    `"wind" in name.lower()` and returned True — on `window_area`, `_WINDOW_U_BY_ERA` and
-    `_WINDOW_AREA_RATIO`. It would have published "the SIM models wind" on the strength of the
-    glazing, in the one place where the whole finding is that it does not.
+def test_THE_WIND_TERM_IS_DETECTED_BY_RUNNING_THE_MODEL_not_by_reading_it():
+    """A CONTROL THAT WAS WRONG TWICE IN OPPOSITE DIRECTIONS, both times for reading source text.
 
-    Caught by printing the number, not by a test, which is why this one exists.
+    First it asked `"wind" in name.lower()` over `fabric_parameters` and returned True — on
+    `window_area`. It would have published "the SIM models wind" on the strength of the glazing.
+    Segment-matched, it returned False correctly, and then `W1_26` put the SAP factor in
+    `FabricParameters.with_wind` rather than in `fabric_parameters`: the mechanism moved one method
+    along and the control could not see it. **A control keyed to WHERE a thing is written goes
+    stale the moment it is written somewhere else.**
+
+    It now asks the parameter vector for its heat loss coefficient at two wind speeds. That cannot
+    be fooled by a name and cannot go stale on a rename — the only thing that makes it False is the
+    factor genuinely not being applied.
     """
-    import ast
-    import re
+    from simulation import fabric_physics as fp
 
+    assert wds._sim_has_a_wind_term() is True
+
+    params = fp.fabric_parameters(wds._probe_household())
+    calm = params.with_wind(2.0).heat_loss_coefficient_kw_per_k
+    windy = params.with_wind(8.0).heat_loss_coefficient_kw_per_k
+    assert windy > calm, "more wind must mean more heat loss"
+
+    # the substring trap that produced the first wrong answer, kept as a unit on the pattern itself
+    # so the lesson survives even though the function no longer greps
     pattern = r"(?:^|_)wind(?:chill|speed|_speed)?(?:_|$)"
     for glazing in ("window_area", "_WINDOW_U_BY_ERA", "_WINDOW_AREA_RATIO", "windows"):
         assert not re.search(pattern, glazing.lower()), f"{glazing} matched the wind pattern"
     for genuine in ("wind_speed_ms", "WIND_FACTOR", "wind", "_windchill_dd", "site_wind"):
         assert re.search(pattern, genuine.lower()), f"{genuine} did not match the wind pattern"
 
-    # and the real source, which is what the claim rests on
-    src = (wds.PROJECT / "simulation" / "fabric_physics.py").read_text(encoding="utf-8")
-    tree = ast.parse(src)
-    fn = next(n for n in ast.walk(tree)
-              if isinstance(n, ast.FunctionDef) and n.name == "fabric_parameters")
-    assert any("window" in (getattr(n, "id", "") or getattr(n, "attr", "")).lower()
-               for n in ast.walk(fn)), (
-        "if `fabric_parameters` no longer mentions windows, this control has stopped guarding the "
-        "false positive it was written for")
 
-    assert wds._sim_has_a_wind_term() is False
+def test_the_REFERENCE_WIND_reproduces_the_model_that_had_NO_WIND_TERM():
+    """THE PROPERTY THAT MAKES `W1_26` AN EXTENSION AND NOT A RE-CALIBRATION.
+
+    SAP normalises the infiltration factor at 4 m/s, so `with_wind(4.0)` must return exactly the
+    parameter vector the model produced before the term existed. Without this the change would be
+    a silent re-baselining of every historical demand figure in the tree, and the movement it
+    actually causes could not be attributed to the wind series.
+    """
+    from simulation import fabric_physics as fp
+
+    params = fp.fabric_parameters(wds._probe_household())
+    at_reference = params.with_wind(fp.SAP_REFERENCE_WIND_MS)
+
+    assert at_reference.r_ia_k_per_kw == pytest.approx(params.r_ia_k_per_kw, rel=1e-12)
+    assert at_reference.heat_loss_coefficient_kw_per_k == pytest.approx(
+        params.heat_loss_coefficient_kw_per_k, rel=1e-12)
 
 
-def test_a_MISSING_SUBJECT_RAISES_rather_than_reporting_NO_WIND_TERM(monkeypatch, tmp_path):
-    """FAIL-CLOSED, and the direction matters. If `fabric_parameters` is renamed, an absent function
-    has no wind term in it — so a lenient implementation would report False, which is the FINDING,
-    and the finding would then be an artefact of a rename. "I cannot tell" is not "no"."""
-    (tmp_path / "simulation").mkdir()
-    (tmp_path / "simulation" / "fabric_physics.py").write_text("def something_else():\n    pass\n")
-    monkeypatch.setattr(wds, "PROJECT", tmp_path)
+def test_a_parameter_vector_WITHOUT_its_ventilation_components_REFUSES_the_wind_factor():
+    """FAIL-CLOSED, and the direction is the whole point. A hand-built `FabricParameters` has no
+    raw ACH or volume, so the factor cannot be computed — and the tempting implementation returns
+    `self`, which is a silent no-op that looks exactly like a calm day. That is how the wind term
+    would stay absent while appearing present, which is the defect this atom removed."""
+    from simulation import fabric_physics as fp
 
-    with pytest.raises(RuntimeError, match="renamed"):
-        wds._sim_has_a_wind_term()
+    bare = fp.FabricParameters(floor_area_m2=90.0, r_ia_k_per_kw=5.0, r_im_k_per_kw=0.5,
+                               c_i_kwh_per_k=0.75, c_m_kwh_per_k=7.5, solar_aperture_m2=5.0,
+                               internal_gain_kw=0.36)
+
+    with pytest.raises(ValueError, match="ventilation components"):
+        bare.with_wind(6.0)
 
 
 def test_the_WIND_and_TEMPERATURE_effects_span_the_SAME_PERCENTILES_of_the_SAME_population():
@@ -163,14 +188,16 @@ def test_SOLAR_GAIN_REACHABILITY_IS_MEASURED_BY_RUNNING_THE_MODEL_not_by_reading
         "conclusion wrong")
 
 
-def test_the_DATA_CONTRACT_ITSELF_carries_no_wind_field():
-    """ONE LAYER DEEPER THAN THE FUNCTION CHECK, and a stronger claim. `_sim_has_a_wind_term` says
-    the heat-loss calculation ignores wind; this says `DailyWeather` — the record the entire demand
-    path runs on — has nowhere to put it. That is the difference between a missing formula and a
-    missing contract, and it is what makes `W1_26` an atom rather than a patch.
+def test_the_DATA_CONTRACT_CARRIES_WIND_AND_IT_IS_REQUIRED():
+    """WAS `..._carries_no_wind_field` UNTIL W1_26 LANDED, and re-keyed rather than deleted.
 
-    Asserted alongside the fields that ARE there, so a rename of the record cannot quietly turn this
-    into a check of nothing.
+    The finding was that `DailyWeather` — the record the entire demand path runs on — had nowhere
+    to put a wind speed, which is why the repair was an atom and not a patch. The control now
+    asserts the repair holds AND that the field is required, because a defaulted one would restore
+    the original state for every caller that forgot it.
+
+    Asserted alongside the fields that were always there, so a rename of the record cannot quietly
+    turn this into a check of nothing.
     """
     import dataclasses
 
@@ -179,8 +206,14 @@ def test_the_DATA_CONTRACT_ITSELF_carries_no_wind_field():
     names = {f.name for f in dataclasses.fields(DailyWeather)}
     assert {"temperature_mean_c", "cloud_cover_pct", "day_of_year"} <= names, (
         "DailyWeather has changed shape; this control is no longer reading what it thinks it is")
-    assert wds._daily_weather_has_wind() is False
-    assert not any("wind" in n for n in names)
+    assert wds._daily_weather_has_wind() is True
+
+    # AND IT MUST HAVE NO DEFAULT. A default restores the old world silently for every caller that
+    # forgets, which is precisely the state W1_26 removed -- the column was in the archive all
+    # along and the reader skipped it.
+    wind = next(f for f in dataclasses.fields(DailyWeather) if f.name == "wind_speed_mean_ms")
+    assert wind.default is dataclasses.MISSING and wind.default_factory is dataclasses.MISSING, (
+        "a default wind speed makes a caller that forgets it silently receive a windless world")
 
 
 def test_SOLAR_AND_WIND_pull_in_OPPOSITE_directions_across_the_stock():

@@ -142,3 +142,93 @@ class TestPortfolioSummary:
         r2 = est.estimate_and_record("C1", 3.8, year=2023)  # same customer, different year
         s = est.portfolio_summary([r1, r2])
         assert s["customer_count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# Geographic yield (W1_25 / W1_27) — added 2026-09-06
+# ---------------------------------------------------------------------------
+
+
+def test_the_NATIONAL_FIGURE_IS_A_DECISION_and_not_something_a_caller_falls_into():
+    """THE DEFECT THIS TABLE CLOSES. Until 2026-09-06 one number served every household in the
+    book, carrying a 3.4% RMS error in annual generation — the same order as the SEG rate spread it
+    was used to value — and nothing anywhere required a caller to notice.
+
+    `yield_kwh_per_kwp` therefore has NO default. Passing `None` is how you choose the national
+    figure, and it is a visible act.
+    """
+    import inspect
+
+    from company.regulatory import seg_export_estimator as seg
+
+    sig = inspect.signature(seg.yield_kwh_per_kwp)
+    param = sig.parameters["annual_sunshine_hours"]
+    assert param.default is inspect.Parameter.empty, (
+        "a default here restores the silent national figure this table exists to replace")
+    assert seg.yield_kwh_per_kwp(None) == seg.ANNUAL_YIELD_KWH_PER_KWP
+
+
+def test_the_BAND_TABLE_AVERAGES_TO_ITS_PUBLISHED_ANCHOR():
+    """THE LEVEL, checked as an identity rather than trusted. The bands' SHAPE is derived from
+    HadUK sunshine; their LEVEL is the MCS 2025 fleet average. Weight each band by its share of GB
+    households and the result must be that anchor — if it is not, the derivation has drifted off
+    the only published number in it and every yield below is a private opinion."""
+    from company.regulatory import seg_export_estimator as seg
+
+    weighted = sum(y * s for y, s in zip(seg.SOLAR_BAND_YIELD_KWH_PER_KWP,
+                                         seg.SOLAR_BAND_HOUSEHOLD_SHARE))
+
+    assert weighted == pytest.approx(seg.ANNUAL_YIELD_KWH_PER_KWP, abs=1.5)
+    assert sum(seg.SOLAR_BAND_HOUSEHOLD_SHARE) == pytest.approx(1.0, abs=0.005)
+    assert len(seg.SOLAR_BAND_YIELD_KWH_PER_KWP) == len(seg.SOLAR_BAND_CUTS_SUNSHINE_HOURS) + 1
+    assert len(seg.SOLAR_BAND_HOUSEHOLD_SHARE) == len(seg.SOLAR_BAND_YIELD_KWH_PER_KWP)
+
+
+def test_more_sunshine_means_more_yield_and_the_boundaries_are_where_they_say():
+    """Monotonicity, and the off-by-one that a banded lookup invites: a value exactly ON a cut must
+    fall in the UPPER band, and one just below it in the lower. Getting that backwards moves a
+    quarter of the country by 20 kWh/kWp and nothing in the output looks wrong."""
+    from company.regulatory import seg_export_estimator as seg
+
+    yields = [seg.yield_kwh_per_kwp(h) for h in (900.0, 1450.0, 1550.0, 1650.0, 1900.0)]
+    assert yields == sorted(yields)
+    assert len(set(yields)) == 5, "each probe must land in a different band"
+
+    for i, cut in enumerate(seg.SOLAR_BAND_CUTS_SUNSHINE_HOURS):
+        assert seg.yield_kwh_per_kwp(cut) == seg.SOLAR_BAND_YIELD_KWH_PER_KWP[i + 1]
+        assert seg.yield_kwh_per_kwp(cut - 0.1) == seg.SOLAR_BAND_YIELD_KWH_PER_KWP[i]
+
+
+def test_the_SPREAD_IS_MATERIAL_or_the_bands_are_not_worth_carrying():
+    """A table whose bands differed by a percent would be ceremony. Keyed to the property — the
+    spread must be big enough to matter against the SEG rate it multiplies — rather than to today's
+    numbers."""
+    from company.regulatory import seg_export_estimator as seg
+
+    lo, hi = seg.SOLAR_BAND_YIELD_KWH_PER_KWP[0], seg.SOLAR_BAND_YIELD_KWH_PER_KWP[-1]
+
+    assert hi / lo - 1.0 > 0.08, f"a {hi / lo - 1:.1%} spread does not justify five bands"
+    assert lo < seg.ANNUAL_YIELD_KWH_PER_KWP < hi, (
+        "the national figure must sit INSIDE the band range; outside it, one of the two is wrong")
+
+
+def test_a_NON_POSITIVE_SUNSHINE_DURATION_is_refused_rather_than_banded():
+    """Zero or negative hours is a broken lookup, not the dullest place in Britain. Banding it
+    would return a real-looking yield for a location that does not exist."""
+    from company.regulatory import seg_export_estimator as seg
+
+    for bad in (0.0, -1.0):
+        with pytest.raises(ValueError, match="positive"):
+            seg.yield_kwh_per_kwp(bad)
+
+
+def test_the_ESTIMATOR_USES_THE_LOCATION_when_one_is_given():
+    """REACHABILITY at the seam that matters: the table is worthless if `annual_yield_kwh` ignores
+    it. Two identical systems in the dullest and sunniest bands must generate different amounts."""
+    est = _estimator()
+    dull = est.annual_yield_kwh(4.0, annual_sunshine_hours=1000.0)
+    bright = est.annual_yield_kwh(4.0, annual_sunshine_hours=1900.0)
+    national = est.annual_yield_kwh(4.0)
+
+    assert bright > national > dull
+    assert bright / dull > 1.08

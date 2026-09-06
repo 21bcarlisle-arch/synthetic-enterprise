@@ -51,8 +51,17 @@ PROJECT = Path(__file__).resolve().parent.parent
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
-#: SAP 10.2 / BREDEM. The divisor is the reference wind speed the infiltration tables are keyed to.
-SAP_REFERENCE_WIND_MS = 4.0
+#: SAP 10.2 / BREDEM reference wind speed, IMPORTED FROM THE SIM rather than kept here. It was a
+#: local copy while the world had no wind term and there was nothing to import; now that
+#: `fabric_physics` owns the physics, two definitions of one constant is the shape that lets them
+#: drift apart and disagree in a report nobody re-derives.
+def _sap_reference_wind_ms() -> float:
+    from simulation.fabric_physics import SAP_REFERENCE_WIND_MS as reference
+
+    return reference
+
+
+SAP_REFERENCE_WIND_MS = _sap_reference_wind_ms()
 
 #: Angstrom-Prescott. Prescott's own monthly-mean values; `pv_yield_error` reports the elasticity
 #: across the published range as well, because the conclusion must not turn on the choice.
@@ -136,28 +145,29 @@ def wind_hlc_sensitivity(areas=(55.0, 90.0, 140.0)) -> dict:
 
 
 def _sim_has_a_wind_term() -> bool:
-    """Does the SIM's own heat-loss path consume wind at all?
+    """Does the SIM's own heat-loss path consume wind -- MEASURED, not read.
 
-    FALSE TODAY, and that is the finding rather than a caveat: the company's
-    `weather_normalisation_belief` carries an optional wind-chill regressor, so it can fit a
-    household wind term against a world that has none. Read from the source rather than asserted,
-    so this flips by itself on the day the repair lands.
+    THIS FUNCTION HAS BEEN WRONG TWICE, in opposite directions, and both times because it was
+    reading source text instead of running the model.
+
+      1. It asked `"wind" in name.lower()` over `fabric_parameters` and returned TRUE on
+         `window_area`. It would have published "the SIM models wind" on the strength of the
+         glazing.
+      2. Segment-matched, it returned FALSE -- correctly, until `W1_26` landed the SAP factor in
+         `FabricParameters.with_wind` rather than in `fabric_parameters`. The mechanism moved one
+         method along and the control could not see it. A control keyed to WHERE a thing is written
+         goes stale the moment it is written somewhere else.
+
+    So it now does what the solar-gain check does: builds a parameter vector, asks for it at two
+    wind speeds, and reports whether the heat loss coefficient actually moved. That cannot be
+    fooled by a name and cannot go stale on a rename.
     """
-    import ast
+    from simulation import fabric_physics as fp
 
-    tree = ast.parse((PROJECT / "simulation" / "fabric_physics.py").read_text(encoding="utf-8"))
-    fn = next((n for n in ast.walk(tree)
-               if isinstance(n, ast.FunctionDef) and n.name == "fabric_parameters"), None)
-    if fn is None:
-        raise RuntimeError("simulation.fabric_physics.fabric_parameters has moved or been renamed; "
-                           "this check cannot answer and must not report False")
-    names = {n.id for n in ast.walk(fn) if isinstance(n, ast.Name)} | {
-        n.attr for n in ast.walk(fn) if isinstance(n, ast.Attribute)}
-    # SUBSTRING MATCHING REPORTED TRUE ON THE FIRST RUN, and it was WINDOW: `window_area`,
-    # `_WINDOW_U_BY_ERA`, `_WINDOW_AREA_RATIO`. The function would have published "the SIM models
-    # wind" on the strength of its glazing. Segment-matched, so `window` cannot answer for `wind`.
-    return any(re.search(r"(?:^|_)wind(?:chill|speed|_speed)?(?:_|$)", name.lower())
-               for name in names)
+    params = fp.fabric_parameters(_probe_household())
+    calm = params.with_wind(2.0).heat_loss_coefficient_kw_per_k
+    windy = params.with_wind(8.0).heat_loss_coefficient_kw_per_k
+    return calm != windy
 
 
 def pv_yield_error(cells=(1, 2, 3, 5, 8, 13, 21, 34)) -> dict:
@@ -233,9 +243,13 @@ def _seasonal_days(cloud_pct: float = SOLAR_PROBE_CLOUD_PCT):
     days = []
     for doy in HEATING_HALF_YEAR_DOYS:
         mean = 8.0 - 5.0 * math.cos(2 * math.pi * (doy - 15) / 365.0)
+        # THE CALM REFERENCE, so the solar sweep varies the sun and nothing else. At 4 m/s the
+        # SAP factor is 1.0, which is what the solar figures were measured against before W1_26
+        # gave the world a wind term at all -- holding it here keeps them comparable.
         days.append(DailyWeather(day_of_year=doy, temperature_min_c=mean - 3.0,
                                  temperature_max_c=mean + 3.0, temperature_mean_c=mean,
-                                 cloud_cover_pct=cloud_pct))
+                                 cloud_cover_pct=cloud_pct,
+                                 wind_speed_mean_ms=SAP_REFERENCE_WIND_MS))
     return days
 
 
