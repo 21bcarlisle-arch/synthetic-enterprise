@@ -56,8 +56,10 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import fcntl
 import hashlib
 import json
+import os
 import re
 import shutil
 import signal
@@ -461,6 +463,97 @@ def fingerprint(spec: BatterySpec) -> str:
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
 
 
+class _ResultsLock:
+    """An exclusive hold on ONE results file, for the whole of one run.
+
+    THE DEFECT THIS CLOSES, 2026-09-06, and it is the half `fingerprint()` above cannot reach.
+    The fingerprint makes two DIFFERENT specs for one subject take different default paths. Two
+    runs of the SAME spec take the SAME one -- `/var/tmp/<name>_battery_<fp>.json` is global, with
+    nothing tree-scoped in it, and several worktrees share one `/var/tmp`. Results are read once
+    and written whole from memory at thirteen sites, so whichever run writes last wins and every
+    cell the other scored after that read is gone; and resume then ADOPTS what survives, because
+    `todo` skips any suite already recorded. **Fingerprint identity is not tree identity**: two
+    lanes at different commits, or the same commit with different uncommitted work, hash the same
+    and merge their cells into one file. That the two runs agree on the spec is exactly what makes
+    it invisible -- there is no disagreement for the existing refusal to detect.
+
+    WHY `flock` AND NOT THE `O_EXCL` + PID-LIVENESS SIDECAR THE FINDING PROPOSED. That design has
+    a fail-OPEN branch in it: "the recorded pid is dead, so proceed" is a judgement about a number
+    the kernel may already have reissued to something else, and it wedges permanently the one time
+    it guesses wrong in the other direction. `flock` is released by the kernel when the holder
+    dies, so a killed battery never wedges its successor and there is no staleness to reason about
+    at all. The pid, the worktree and the start time are still written -- but as the answer to
+    "who holds it?", never as the input to whether we may proceed.
+
+    Holder record written with `"a+"` rather than `"w"`, which is `ntfy_responder.
+    acquire_singleton_lock`'s repair and is inherited here deliberately: opening `"w"` truncates
+    BEFORE the lock attempt, so a refused second run would wipe the holder's record and the one
+    artefact a human reads to ask who has it would answer nothing.
+    """
+
+    def __init__(self, out_path: Path) -> None:
+        #: Beside the results file, never inside it: the file itself is rewritten whole thirteen
+        #: times a run, and a lock kept in the thing being replaced is not a lock.
+        self.path = Path(f"{out_path}.lock")
+        self._handle = None
+
+    def acquire(self) -> str | None:
+        """`None` when the hold is ours. Otherwise the refusal text, naming the holder.
+
+        FAIL CLOSED on any error that is not "somebody else has it". If we cannot prove we are
+        alone we do not run, because the cost of being wrong is a published verdict assembled from
+        two trees, and the cost of refusing is one re-run.
+        """
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            handle = open(self.path, "a+")
+        except OSError as exc:
+            return (f"REFUSED: cannot open the results lock {self.path} ({exc}), so this run "
+                    f"cannot establish that no other run holds {self.path.with_suffix('')}. "
+                    f"Not running: an unprovable hold is not a hold.")
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:
+            holder = self._read_holder(handle)
+            handle.close()
+            return (f"REFUSED: another battery run holds {self.path} ({exc}). {holder} "
+                    f"Two runs of one spec share one results file: it is read once and written "
+                    f"whole, so the second run's cells would overwrite the first's and resume "
+                    f"would then adopt whatever survived, across trees, under one fingerprint. "
+                    f"Wait for that run, or pass a different --out.")
+        handle.seek(0)
+        handle.truncate()
+        handle.write(json.dumps({"pid": os.getpid(), "worktree": str(PROJECT),
+                                 "started": time.strftime("%Y-%m-%d %H:%M:%S")}) + "\n")
+        handle.flush()
+        self._handle = handle
+        return None
+
+    @staticmethod
+    def _read_holder(handle) -> str:
+        """What the holder wrote about itself, or a plain statement that it has not said yet.
+
+        The holder wins the flock and THEN writes its record, so a run refused in that window
+        reads an empty file. Saying so is the honest answer; inventing a holder from an empty
+        record, or staying silent about who has it, are both worse than a named gap.
+        """
+        try:
+            handle.seek(0)
+            record = json.loads(handle.read() or "null")
+        except (OSError, ValueError):
+            record = None
+        if not isinstance(record, dict):
+            return "That run has not yet recorded which pid or worktree it is."
+        return (f"Held by pid {record.get('pid')} in worktree {record.get('worktree')}, "
+                f"started {record.get('started')}.")
+
+    def release(self) -> None:
+        """Closing the handle drops the flock. Safe to call when acquire refused."""
+        if self._handle is not None:
+            self._handle.close()
+            self._handle = None
+
+
 def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
     fp = fingerprint(spec)
     ap = argparse.ArgumentParser(description=f"contract battery: {spec.subject}")
@@ -475,6 +568,27 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
                     help="substring match; a subject with one slow caller suite is worth "
                          "grading and landing on the cheap ones first")
     args = ap.parse_args(argv)
+
+    # BEFORE the results file is read, before `--pristine` is written and before the subject is
+    # touched: a run that is going to be refused must not have clobbered anything on its way to
+    # finding out. Released in `finally` and NOT only at exit -- several runs happen back to back
+    # inside one pytest process, and a hold kept to process exit would make the second one refuse
+    # itself, which is the fail-closed direction but still a dead instrument.
+    lock = _ResultsLock(Path(args.out))
+    refusal = lock.acquire()
+    if refusal is not None:
+        print(refusal, flush=True)
+        # 3, not the fingerprint refusal's 2: "another run has this file open right now" and
+        # "this file belongs to a different spec" want different remedies -- wait, versus delete.
+        return 3
+    try:
+        return _run_holding_the_results_lock(spec, args, fp)
+    finally:
+        lock.release()
+
+
+def _run_holding_the_results_lock(spec: BatterySpec, args: argparse.Namespace, fp: str) -> int:
+    """The run proper. Every path in here assumes it is the only writer of `args.out`."""
     suites = tuple(s for s in spec.selectable if not args.suites
                    or any(frag in s for frag in args.suites))
 
