@@ -810,6 +810,31 @@ def test_the_contradicted_rows_reach_the_brief_as_IDS_not_a_count(monkeypatch):
     assert out["ungradable_count"] == 3
 
 
+def test_a_row_whose_LANE_is_blocked_does_not_reach_the_brief_as_something_to_go_and_move(
+        monkeypatch):
+    """The brief's job is to name work the seat can start. Both of the map's real contradictions
+    -- SITE4 in `H_harness`, PB4 in `W2_customer_generator` -- sit in lanes holding live BLOCKING
+    findings, so OPS11 refuses the very recording this list was asking for, and a flat list sent
+    the seat to discover that itself, three hours at a time.
+
+    ONE ASSERTION OVER BOTH GROUPS, because a split that put everything on one side would pass
+    either half read alone: the movable row must still arrive, and the frozen one must arrive
+    NAMING ITS BLOCKERS -- the lane is the work, and the finding names are what identify it.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [{"id": "MOVABLE_ROW", "frozen_by": []},
+         {"id": "FROZEN_ROW", "frozen_by": ["FINDING_X.md", "FINDING_Y.md"]}], []))
+    out = seat.self_contradicting_levels()
+
+    assert out["contradicted"] == ["MOVABLE_ROW"]
+    assert out["contradicted_but_frozen"] == {
+        "FROZEN_ROW": ["FINDING_X.md", "FINDING_Y.md"]}
+    assert "FROZEN_ROW" not in out["contradicted"], (
+        "a row whose recording OPS11 refuses must not be handed to the seat as a level to move")
+
+
 def test_the_orientation_check_is_bounded_so_a_slow_row_cannot_wedge_the_BRIEF(monkeypatch):
     """The seat runs three-hourly and a brief that does not arrive is worse than one missing a
     row. `KNIFE3_wall_crossing_paydown` names twelve architecture suites and a full pass costs

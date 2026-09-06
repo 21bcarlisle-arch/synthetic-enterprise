@@ -477,7 +477,17 @@ def self_contradicting_levels() -> dict:
         "available": True,
         # The IDS, not a count. A count tells the seat a number it cannot act on; the ids are the
         # rows to go and move, and there have never been more than a handful.
-        "contradicted": [c["id"] for c in contradicted],
+        #
+        # SPLIT ON WHETHER THE MOVE CAN ACTUALLY BE MADE (2026-09-06). Both of the map's real
+        # contradictions -- SITE4 in H_harness, PB4 in W2_customer_generator -- sit in lanes
+        # holding live BLOCKING findings, so OPS11 refuses the recording this list was asking
+        # for. A flat list sent the seat to spend a turn finding that out, three hours at a time.
+        "contradicted": [c["id"] for c in contradicted if not c.get("frozen_by")],
+        # Reported with the blockers NAMED, because the work here is the lane and the finding
+        # names are what identifies it. Still contradicted, still the map being wrong -- the
+        # freeze says who has to move first, never that the row is acceptable.
+        "contradicted_but_frozen": {c["id"]: list(c.get("frozen_by") or [])
+                                    for c in contradicted if c.get("frozen_by")},
         # Reported as a COUNT because it is the coverage limit, not a work list: 28 of 34 rows
         # name no control a runner can execute
         # (docs/staging/SEAT_FINDING_TWENTY_EIGHT_OF_THIRTY_FOUR_LEVEL_ZERO_ROWS_NAME_NO_CONTROL_A_RUNNER_CAN_EXECUTE_2026-09-06.md).

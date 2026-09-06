@@ -72,6 +72,26 @@ named control is ungradable ENTIRE, the absent path is printed, and the fix is t
 at the control that exists. (PB4 and PB6 are repointed; `D9` and `PB5` remain, their work genuinely
 unbuilt.)
 
+A CONTRADICTED ROW MAY BE UNMOVABLE, and until 2026-09-06 this control said so only in a prose
+footer under every row alike. The remedy it prints -- record the level -- is refused outright by
+OPS11 (`background/gate_authorization.refuse_level_raise_if_lane_blocked`) for any atom whose lane
+holds a live BLOCKING finding, and on the live map that is not the exception: `SITE4_ia_register_
+and_nav` graded CONTRADICTED with 38 passing controls, and `H_harness` holds FOURTEEN blockers, so
+the recording raises before it writes a row. `PB4` is the same shape in `W2_customer_generator`.
+Both of the map's real contradictions are frozen, and a reader following the printed instruction
+spends a turn discovering it.
+
+So the verdict carries `frozen_by` -- the live blockers on the row's own lane, empty when there
+are none -- and the two groups print different instructions, because they ARE different work: a
+movable row is one recording away, a frozen one is a lane to discharge first. The row is still
+CONTRADICTED either way and the exit code does not soften: frozen is why the map is wrong today,
+never permission for it to stay wrong.
+
+FAIL-CLOSED ON THE PROBE, in the direction that costs the reader nothing. If the lane cannot be
+read at all, the row is reported frozen with that as the named reason rather than movable -- being
+told "record this" on no information is the outcome this leg exists to stop, and the opposite
+error merely sends a reader to look at a lane that turns out to be clear.
+
 WHY IT IS NOT A PRE-COMMIT GATE, measured rather than argued. It runs pytest over arbitrary named
 files; `KNIFE3_wall_crossing_paydown` alone names twelve architecture suites. The first full pass
 against the live tree was still running at SEVEN MINUTES. A gate that costs minutes gets bypassed,
@@ -112,6 +132,11 @@ CONTROL_PREDATES_ROW = "names a control that was already on disk, and passing, b
 PROVENANCE_UNKNOWN = "the age of the row or of its named controls could not be established"
 RUN_UNAVAILABLE = "the named controls could not be run to a verdict"
 BUDGET_EXHAUSTED = "the run budget was spent before this row was reached"
+
+#: Stands in the `frozen_by` list when the lane's blockers could not be read. A string, in the
+#: same list as the real finding names, so no caller can treat "unknown" as "clear" by looking
+#: only at emptiness -- the shape that reads a not-found as a valid extreme.
+BLOCKERS_UNREADABLE = "the lane's blocking findings could not be read"
 
 #: Both halves of the map. A row minted into the live half and later closed keeps its ORIGINAL
 #: minting commit only if both are searched, and dating it from the close would make every closed
@@ -191,6 +216,33 @@ def controls_older_than_the_row(atom_id: str, controls: list[str],
     return predating, undatable
 
 
+def _lane_blockers(lane: str) -> list[str]:
+    """The live BLOCKING findings holding `lane`, by document name.
+
+    CALLS THE SHARED MECHANISM rather than re-reading the staging directory: `lane_blockers` is
+    the same function OPS11 refuses with, so this cannot report a lane clear that the recorder
+    then refuses. A second reading of the severity index here is how one control comes to
+    disagree with the control it is describing.
+    """
+    from background.gate_authorization import lane_blockers  # local: keeps import cost off callers
+    return [b.finding for b in lane_blockers(lane)]
+
+
+def frozen_by(lane, blockers_for=_lane_blockers) -> list[str]:
+    """Why a level raise on this lane would be refused today, or `[]` if it would not be.
+
+    A row with no lane at all is UNREADABLE, not clear: OPS11 resolves the lane from the atom
+    itself, so a missing one means the refusal cannot be predicted, and predicting "movable" is
+    the answer that wastes the reader's turn.
+    """
+    if not isinstance(lane, str) or not lane.strip():
+        return [BLOCKERS_UNREADABLE]
+    try:
+        return list(blockers_for(lane))
+    except Exception:  # noqa: BLE001 -- an unreadable lane is never a clear lane
+        return [BLOCKERS_UNREADABLE]
+
+
 def is_candidate(atom: dict) -> bool:
     """The partition this control speaks about: the map asserting nothing is built, while
     asserting the atom is actively being built."""
@@ -226,7 +278,8 @@ def run_controls(paths: list[str], root: Path = ROOT,
 
 def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
            timeout_s: int = DEFAULT_TIMEOUT_S, budget_s: float | None = None,
-           clock=time.monotonic, ages=controls_older_than_the_row) -> tuple[list[dict], list[dict]]:
+           clock=time.monotonic, ages=controls_older_than_the_row,
+           blockers_for=_lane_blockers) -> tuple[list[dict], list[dict]]:
     """`(contradicted, ungradable)` over the candidate partition. Rows whose controls do not all
     pass appear in neither: the map and the controls agree, and agreement is not a finding.
 
@@ -244,6 +297,10 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
     contradicted: list[dict] = []
     ungradable: list[dict] = []
     started = clock()
+    # Cached per lane: the probe reads the whole severity index, and the rows that reach it share
+    # a handful of lanes. Cached WITHIN the pass only, so a discharge landing mid-pass is picked
+    # up by the next one rather than being held for the process's lifetime.
+    lane_cache: dict = {}
     for atom in atoms:
         if not is_candidate(atom):
             continue
@@ -284,9 +341,13 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
             ungradable.append({"id": aid, "reason": RUN_UNAVAILABLE, "paths": controls,
                                "detail": detail})
         elif passed:
-            contradicted.append({"id": aid, "lane": atom.get("lane"),
+            lane = atom.get("lane")
+            if lane not in lane_cache:
+                lane_cache[lane] = frozen_by(lane, blockers_for)
+            contradicted.append({"id": aid, "lane": lane,
                                  "level_target": atom.get("level_target"),
-                                 "paths": controls, "detail": detail})
+                                 "paths": controls, "detail": detail,
+                                 "frozen_by": lane_cache[lane]})
     return contradicted, ungradable
 
 
@@ -345,22 +406,48 @@ def main(argv: list[str] | None = None) -> int:
             "while EVERY control their own row names PASSES. The map is saying nothing is built "
             "about work its own evidence says is done, and the draw reads these two fields to "
             "decide what to work on next.\n\n".format(len(contradicted)))
-        for c in contradicted:
+
+        def _row(c):
             sys.stderr.write("  {} (lane {}, target L{})\n".format(
                 c["id"], c["lane"], c["level_target"]))
             for p in c["paths"]:
                 sys.stderr.write("      PASSES: {}\n".format(p))
             sys.stderr.write("      {}\n".format(c["detail"]))
-        sys.stderr.write(
-            "\n  Fix by RECORDING the level the evidence supports\n"
-            "  (background.gate_authorization.record_level_up_self_certified) and moving the row,\n"
-            "  or -- if the passing controls do not in fact reach the atom's target -- by saying\n"
-            "  so in the row, because a control that proves nothing about its atom is the finding.\n"
-            "\n  THE RECORDING MAY ITSELF BE REFUSED, and that is not this check contradicting\n"
-            "  itself. OPS11 blocks a level raise in a lane holding a live BLOCKING finding --\n"
-            "  PB4 hit exactly that on this control's first real run, its lane's open finding\n"
-            "  being about the very antecedent the atom builds. A row that is contradicted AND\n"
-            "  correctly frozen is a real state: discharge or accept the lane's finding first.\n")
+
+        # `.get`, because a caller may hand `main` verdicts built before this field existed --
+        # and an absent field must read as "not known to be frozen", the same as the group it
+        # would have landed in then. Never as frozen: that would invent a blocker.
+        movable = [c for c in contradicted if not c.get("frozen_by")]
+        frozen = [c for c in contradicted if c.get("frozen_by")]
+
+        if movable:
+            sys.stderr.write("  MOVABLE NOW -- the lane holds no live BLOCKING finding:\n")
+            for c in movable:
+                _row(c)
+            sys.stderr.write(
+                "\n  Fix by RECORDING the level the evidence supports\n"
+                "  (background.gate_authorization.record_level_up_self_certified) and moving the "
+                "row,\n"
+                "  or -- if the passing controls do not in fact reach the atom's target -- by "
+                "saying\n"
+                "  so in the row, because a control that proves nothing about its atom is the "
+                "finding.\n\n")
+
+        if frozen:
+            sys.stderr.write(
+                "  CONTRADICTED BUT FROZEN -- the row is wrong AND the recording is refused.\n"
+                "  This is not the check contradicting itself: OPS11 blocks a level raise in a\n"
+                "  lane holding a live BLOCKING finding, so the fix here is the LANE, not the "
+                "row.\n")
+            for c in frozen:
+                _row(c)
+                for f in c["frozen_by"]:
+                    sys.stderr.write("      FROZEN BY: {}\n".format(f))
+            sys.stderr.write(
+                "\n  Discharge (repair + a checked `**Discharged:**` line in the finding's header)\n"
+                "  or accept (background.gate_authorization.record_limitation_accepted) the lane's\n"
+                "  findings first. Do not attempt the recording: it raises LaneBlockedError and\n"
+                "  writes nothing.\n")
     return 1
 
 

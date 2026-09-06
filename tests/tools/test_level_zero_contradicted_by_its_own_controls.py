@@ -414,3 +414,113 @@ def test_no_budget_means_every_row_is_reached(tmp_path: Path):
     contradicted, ungradable = lz.assess(
         atoms, root=tmp_path, ages=_ages(), runner=lambda *a, **k: (True, "1 passed"))
     assert [c["id"] for c in contradicted] == ["FIRST", "SECOND"] and ungradable == []
+
+
+# --------------------------------------------------------------------------- #
+# A contradicted row may be UNMOVABLE, and the remedy printed has to know       #
+# --------------------------------------------------------------------------- #
+
+def test_BOTH_freeze_states_are_reachable_in_one_pass(tmp_path: Path):
+    """The poison round for this leg, over the whole partition in one assertion.
+
+    A probe that answered "frozen" for everything would pass every negative leg below, and one
+    that answered "clear" for everything would pass every positive one. Only asserting that the
+    same pass produces both, plus the unreadable third state, can fail either way.
+
+    It is written over `frozen_by` and not over the printed text because the SEAT reads the
+    field: `background/delivery_seat.py` splits its brief on exactly this key.
+    """
+    for name in ("test_a.py", "test_b.py", "test_c.py"):
+        (tmp_path / name).write_text("def test_x():\n    assert True\n")
+    atoms = [
+        {**_atom("MOVABLE", scope=["test_a.py"]), "lane": "CLEAR_LANE"},
+        {**_atom("FROZEN", scope=["test_b.py"]), "lane": "BLOCKED_LANE"},
+        {**_atom("LANELESS", scope=["test_c.py"]), "lane": None},
+    ]
+    contradicted, _ = lz.assess(
+        atoms, root=tmp_path, ages=_ages(), runner=lambda *a, **k: (True, "1 passed"),
+        blockers_for=lambda lane: ["FINDING_X.md", "FINDING_Y.md"] if lane == "BLOCKED_LANE" else [])
+
+    assert {c["id"]: c["frozen_by"] for c in contradicted} == {
+        "MOVABLE": [],
+        "FROZEN": ["FINDING_X.md", "FINDING_Y.md"],
+        "LANELESS": [lz.BLOCKERS_UNREADABLE],
+    }, "the freeze states are not all reachable: {}".format(
+        [(c["id"], c["frozen_by"]) for c in contradicted])
+
+
+def test_a_frozen_row_is_still_CONTRADICTED_and_still_exits_nonzero(monkeypatch, capsys):
+    """The freeze says who has to move first. It is never permission for the row to stay wrong,
+    and the exit code is the only part of this a caller reads without a human."""
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: [])
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [{"id": "FROZEN_ROW", "lane": "H_harness", "level_target": 2,
+          "paths": ["site/test_x.py"], "detail": "38 passed", "frozen_by": ["FINDING_X.md"]}], []))
+
+    assert lz.main([]) == 1
+    err = capsys.readouterr().err
+    assert "FROZEN_ROW" in err and "FINDING_X.md" in err
+    assert "Do not attempt the recording" in err, (
+        "a frozen row printed under the RECORD-the-level instruction sends the reader at an "
+        "OPS11 refusal -- which is the turn this leg exists to save")
+
+
+def test_the_two_groups_carry_DIFFERENT_instructions(monkeypatch, capsys):
+    """One pass holding both kinds must not collapse them into one paragraph. Written as the
+    difference rather than as two substring checks, because a footer naming both remedies under
+    every row would satisfy those and teaches the reader nothing."""
+    monkeypatch.setattr(lz.map_store, "load_live_atoms", lambda: [])
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [{"id": "MOVABLE_ROW", "lane": "E_finance_treasury", "level_target": 2,
+          "paths": ["tests/x/test_a.py"], "detail": "3 passed", "frozen_by": []},
+         {"id": "FROZEN_ROW", "lane": "H_harness", "level_target": 2,
+          "paths": ["site/test_x.py"], "detail": "38 passed", "frozen_by": ["FINDING_X.md"]}], []))
+
+    lz.main([])
+    err = capsys.readouterr().err
+    movable_at = err.index("MOVABLE_ROW")
+    frozen_at = err.index("FROZEN_ROW")
+    assert movable_at < frozen_at
+    assert err.index("record_level_up_self_certified") < frozen_at, (
+        "the recording instruction must sit with the movable group, above the frozen one")
+    assert err.index("record_limitation_accepted") > frozen_at
+
+
+def test_an_unreadable_lane_is_FROZEN_and_never_movable():
+    """Fail-closed in the direction that costs the reader nothing. Being told 'record this' on no
+    information is the outcome; being sent to look at a lane that turns out to be clear is not."""
+    def boom(lane):
+        raise OSError("the severity index could not be listed")
+
+    assert lz.frozen_by("ANY_LANE", boom) == [lz.BLOCKERS_UNREADABLE]
+    assert lz.frozen_by("", lambda lane: []) == [lz.BLOCKERS_UNREADABLE]
+    assert lz.frozen_by("A_LANE", lambda lane: []) == []
+
+
+def test_the_probe_asks_the_SAME_mechanism_OPS11_refuses_with():
+    """Not a second reading of the staging directory. If this drifts from
+    `gate_authorization.lane_blockers`, the check can print MOVABLE over a row whose recording
+    then raises -- the two-implementations-of-one-rule shape this repo keeps paying for.
+
+    Run against the live tree, keyed to agreement rather than to today's blocker list.
+    """
+    from background.gate_authorization import lane_blockers
+    from tools import maturity_map_store as map_store
+
+    lanes = {a.get("lane") for a in map_store.load_live_atoms() if a.get("lane")}
+    assert lanes, "no lane to check agreement on"
+    for lane in sorted(lanes):
+        assert lz.frozen_by(lane) == [b.finding for b in lane_blockers(lane)], lane
+
+
+def test_a_lane_is_probed_ONCE_per_pass_however_many_rows_share_it(tmp_path: Path):
+    """The probe reads the whole severity index. Two live contradictions share `H_harness`
+    today; re-reading it per row is how a three-hourly orientation grows a cost nobody meant."""
+    for name in ("test_a.py", "test_b.py"):
+        (tmp_path / name).write_text("def test_x():\n    assert True\n")
+    asked = []
+    atoms = [{**_atom("ONE", scope=["test_a.py"]), "lane": "SAME_LANE"},
+             {**_atom("TWO", scope=["test_b.py"]), "lane": "SAME_LANE"}]
+    lz.assess(atoms, root=tmp_path, ages=_ages(), runner=lambda *a, **k: (True, "1 passed"),
+              blockers_for=lambda lane: asked.append(lane) or [])
+    assert asked == ["SAME_LANE"]
