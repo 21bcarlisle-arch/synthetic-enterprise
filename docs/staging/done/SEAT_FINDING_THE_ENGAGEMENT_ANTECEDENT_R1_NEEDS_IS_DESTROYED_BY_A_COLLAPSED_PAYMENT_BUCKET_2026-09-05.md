@@ -1,4 +1,5 @@
 **Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** PB4_engagement_separated_from_elasticity
+**Discharged:** `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py::test_prepayment_is_drawn_at_the_published_share_and_actually_appears`, `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py::test_the_fuel_poverty_rates_are_the_published_ones_and_not_their_average`, `tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py::test_engagement_is_now_recoverable_from_an_observable_and_provably_was_not`, `simulation/household_segments.py` — all four corrected build steps landed on 2026-09-05. Line 262 carries PREPAYMENT at the published non-DD 50/50; FUEL_POVERTY_RATE_BY_CHANNEL is unblended onto the two published rates 22.3% and 18.5%; line 439 multiplies the channel's engagement multiplier into the renewal probability mean-preservingly; and the falsifier scores the observable at held-out +0.1192 against a null of 0.0403, where the same instrument on the pre-PB4 world scored −0.0106 and did not clear. 8 controls, re-run green 2026-09-06 at 5b8f79767 against the SELECTION-CORRECTED ceiling instrument — and the correction cannot reach this evidence, because the falsifier scores one pre-specified feature with the null drawn for that feature, so there is no maximum being selected over.
 
 # The engagement antecedent R1 needs is destroyed by a collapsed payment bucket, and the split it says is unpublished is in the next module
 
@@ -96,8 +97,20 @@ PPM (1.7%), and the model has no smart/traditional meter distinction on the prep
 ## What would close this
 
 `PaymentChannel` carrying prepayment separately at the published share, and
-`tools/r1_inference_ceiling.py` re-run on a book drawn after step 3. Not written as a
-**Discharged:** field — nothing has landed yet.
+`tools/r1_inference_ceiling.py` re-run on a book drawn after step 3. Not written as
+a **Discharged:** field — nothing has landed yet.
+
+> **CORRECTION, 2026-09-06 (delivery seat, disposition pass).** The sentence above is now false and
+> is kept rather than revised, because it is the evidence the closing condition was written before
+> the answer. All four steps of the corrected build landed on 2026-09-05 and this document went on
+> reading as live for a day. That cost something specific and measurable: OPS11 freezes a level
+> raise in any lane holding a live BLOCKING finding, so PB4 — which was *built* — sat at
+> `level_current: 0` because the record of its own defect was never retired, and the orientation
+> before this one began writing PB4 up as unbuilt from this document. **A finding that outlives its
+> defect is an invisible brake**, and the brake is applied by the finding's own honesty. The header
+> now carries the `**Discharged:**` field; step 4's re-run is not this document's to hold — the
+> ceiling instrument has since been selection-corrected (`06fc90189`) and its own live record is
+> `SEAT_FINDING_R1S_CEILING_WAS_A_SELECTED_MAXIMUM_AND_THE_CORRECTED_VERDICT_FLIPS_ON_TWO_HOUSEHOLDS_2026-09-06.md`.
 
 ---
 
