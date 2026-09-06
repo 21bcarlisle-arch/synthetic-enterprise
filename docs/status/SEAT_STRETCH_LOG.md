@@ -8,6 +8,107 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-06 — Four bounded successors on the weather cells, and the answer to how much granularity Britain needs turns out to depend entirely on whether wind matters
+
+<!-- head: 2af241e0c94d -->
+
+**What this stretch was about.** Taking the four bounded successors that had just been minted for the
+weather cells and running them to the end: the drivers per cell, the household weights, the coverage
+curve that answers the director's actual question, and the persistence and synchrony a hedge would be
+priced off. All four landed. Stage 1.
+
+**The headline, in one table.** How much granularity Britain needs to capture the variation in
+household heat-load drivers:
+
+| target | cells | winter-temperature error |
+|---|---:|---:|
+| 90% | 34 | 0.22 °C |
+| 95% | 89 | 0.15 °C |
+| 99% | 987 | 0.06 °C |
+
+The last four points cost eleven times the cells the first ninety did. There is no natural cell
+count, only a price list — which is why the ruling insisted the answer be a curve.
+
+**And the line under it that matters more.** Those counts come from weighting the three drivers
+equally, which says a one-sigma move in sunshine matters as much to a heat bill as one in winter
+temperature. That is almost certainly false. The module's docstring called equal weighting
+*conservative* — an upper bound — and rather than leave that as a reassurance it was tested:
+temperature-dominant weighting needs 13/34/377, and temperature alone needs **5/8/21**. The claim
+holds at every target and in the right direction.
+
+**So: twenty-one cells capture 99.3% of the household-weighted variation in winter temperature.**
+Five capture 91%. If heat load is as temperature-dominated as the physics suggests, Britain needs
+about twenty weather cells and not a thousand. What forces the count into the hundreds is insisting
+that wind and sunshine be resolved to the same relative precision, and nothing yet establishes that
+they should be. That is now a decidable question for `W2_21`'s fitted model rather than an argued one.
+
+**Half of Britain's land has nobody on it.** 121,668 of 245,077 land cells hold a household. Weighting
+for that halves the spread on every driver, and cuts the cells needed by about 40% at every target.
+The weights came from the censuses via postcode, as the ruling requires: 1.67 million live residential
+postcodes, TS041 for England and Wales, Scotland's Census 2022 UV402. 27,283,137 households placed
+against a published total of 27.29 million.
+
+**One published figure turned out to have three values, and all three are right.** `W1_19` had reported
+winter temperature and wind correlating at −0.430 across land cells, refuting the ruling's prediction
+of a positive relationship, while noting the repo's own temporal measurement of +0.507. Household-weight
+the same cells and it is **+0.060** — among the places people actually live, the spatial relationship is
+absent. The negative figure was a fact about empty uplands. So "REFUTED as written" was too strong for
+the reading that matters, and the qualification was written back beside the original claim rather than
+only in the new document.
+
+**Cold snaps arrive in blocks, and Britain has no second weather.** Against a null that permutes the
+same cold days within the same cell and winter — count held fixed, so only clustering varies — 51.3%
+of all cold-decile days fall inside spells of five days or more, against 0.45% under independence.
+Spells of seven days or more are a thousand times more likely than chance. And on 7 February 1991,
+100% of the household book was in its own coldest decile on the same day; on one winter day in ten,
+more than half of it was. The least synchronised pair of cells in Britain still scores 2.81 against
+an independence baseline of 1.0.
+
+That means `W1_21`'s cells are the right resolution for *level* and buy almost nothing in *risk*.
+Both statements are needed. Publishing the first alone would imply the second, and any model treating
+cells as partly independent understates the tail in the flattering direction.
+
+**What went wrong, and it is the same defect twice.**
+
+The `sys.path` script-versus-module defect shipped again, in `weather_cell_weights --weighted`. Run as
+a script, `sys.path[0]` is `tools/` and not the repo root, so `from tools import ...` raises. Pytest
+fixes the path before any test can import the module, so the whole suite stays green while the command
+line is dead. It was caught by *running the command*, not by any test. Fifth instance in this
+repository; three more modules written this stretch all carry the guard and a control now.
+
+The nomis API caps an unpaged request at 25,000 rows and says so nowhere in the payload. The first
+household pull returned a well-formed CSV with correct headers and real counts for 25,000 of England
+and Wales's 188,880 output areas — 13% of the country — and every figure downstream would have been
+computed and published without an error anywhere. Caught by checking the row count against the known
+total, which is now the pull's own refusal.
+
+And the mutation harness lied. Four mutations came back KILLED because the pytest invocation carried
+an unrecognised `--timeout` flag and exited 4 every time, mutation or not. A harness that reports
+success for a reason unrelated to the thing being tested is the same shape as the controls it exists
+to check. Re-run without the flag, three died and one survived — and the survivor was the honest
+answer: the three-variable land-mask intersection is an equivalence on this data release, recorded as
+one rather than deleted, so it starts binding the day the masks diverge.
+
+**One survivor was a missing test, not an equivalence, and it named the worst possible line.** Every
+test of the coverage curve injected a synthetic driver space, which meant `_space()` — the only path
+production takes — was never exercised. Replacing its household weighting with a bare `ones()` left
+the entire suite green while every published figure silently became a statement about land: precisely
+the defect the atom exists to prevent, surviving in the module that publishes the answer. Repairing it
+surfaced a second untested line immediately.
+
+**What was stopped short of.** The industry comparators are read at their *counts* (13 LDZs, 14 GSP
+groups, 21 SAP regions → 82.3%, 83.1%, 87.0%) rather than from their actual boundaries, which are not
+in this tree. That gives upper bounds, which is enough to make the argument — the settlement geography
+the company receives its data on resolves at most 82–87% of the weather its customers experience — and
+not enough to publish a per-boundary figure. Registered rather than fudged. Elevation correction to
+house height is likewise registered as the open half of the weights atom, not implied by its absence.
+
+**Where it stands.** The four successors are closed. What remains of `W1_14` is the knowledge page and
+the site lane — `generate_weather_cells_data.py`, which is also the condition on which the three
+frozen orphan modules unfreeze.
+
+---
+
 ## 2026-09-06 — The weather pull sat undrawn for eighteen hours because the atom was a programme, and the first measurement refutes a ruling prediction by a sign
 
 <!-- head: 5f5b8d74ebb8 -->
