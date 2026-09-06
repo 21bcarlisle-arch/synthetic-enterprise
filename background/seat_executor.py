@@ -561,11 +561,26 @@ def _hand_back(work_id: str, claimed_at: float) -> None:
 
 
 def seat_continuation_drop(work_id: str) -> bool:
-    """Drop a discharged continuation. Never raises -- a handoff store must not cost a tick."""
+    """Discharge a finished continuation. Never raises -- a handoff store must not cost a tick.
+
+    IT RETIRES RATHER THAN DELETES, AND THE DELETION WAS THE HOLE (2026-09-06). An absent entry is
+    exactly the state `_promote_to_handoff` reads as "not yet handed over", so this discharge and
+    `delivery_lane --release` were both undone by the next stand-down re-promoting the same focus
+    row with a fresh clock. `seat_continuation.retire` marks the finish against the orientation it
+    happened under and `hand_off_focus` refuses to re-promote until the seat orients again.
+
+    ALREADY RETIRED STILL COUNTS AS A DISCHARGE. `retire` is a no-op on a second call, so a tick
+    that ran `--release` itself -- which is what the doorbell tells every tick to do -- would
+    otherwise reach the caller's `NO HANDOFF TO DROP` line, whose words say no record held the id.
+    That is a false statement about the commonest finished shape there is, and the caller's own
+    note explains why a mis-attributed absence costs more here than a missing line.
+    """
     try:
         from background import seat_continuation
 
-        return bool(seat_continuation.drop(work_id))
+        if seat_continuation.retire(work_id, orientation=delivery_lane.current_orientation()):
+            return True
+        return any(i.get("id") == work_id for i in seat_continuation.retired())
     except Exception:  # noqa: BLE001
         return False
 

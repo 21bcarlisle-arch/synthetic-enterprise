@@ -601,11 +601,40 @@ def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
     NEVER RAISES, and an unreachable store reads as NOTHING RETIRED. That is the fail-safe
     direction for this one: the cost is the re-offer we already have, where a swallowed exception
     that reported success would retire the offer in the caller's message and not on disk.
+
+    IT MARKS RATHER THAN DELETES, AND DELETING IS WHAT UNDID IT (2026-09-06). This called
+    `seat_continuation.drop`, and a dropped entry is simply ABSENT -- which is the one state
+    `seat_executor._promote_to_handoff` reads as "not yet handed over". So the discharge above was
+    real and lasted about an hour: the executor re-derived the same focus row, promoted it again
+    with a fresh `written_at`, and the next tick drew the same instruction. `seat_continuation.
+    retire` records the finish against the `oriented_at` it happened under, and `hand_off_focus`
+    refuses the re-promotion until the seat has oriented again -- which is the acceptance test the
+    seat itself named, rather than a second timer laid over the first.
     """
     try:
-        return seat_continuation.drop(focus_id, path)
+        return seat_continuation.retire(
+            focus_id, orientation=current_orientation(), path=path)
     except Exception:  # noqa: BLE001 - a handoff store must never cost a tick its release
         return False
+
+
+def current_orientation(path: Path | None = None) -> str | None:
+    """The `oriented_at` of the direction record as it stands, or None if it cannot be read.
+
+    A STRING, NOT A DATETIME, because it is stored and compared for EQUALITY and nothing here ever
+    does arithmetic on it. What is being asked is "has the seat oriented again since?", and that is
+    an identity question about a record, not a duration.
+
+    NEVER RAISES and None is the answer to every uncertainty -- a missing file, a malformed record,
+    an expired one. Every caller treats None as "do not refuse", so the worst case is the re-offer
+    behaviour that already exists rather than a promotion route wedged shut by a file it could not
+    parse. See `seat_continuation.retire` on why fail-open is right for this one specifically.
+    """
+    try:
+        record = direction_mod.read_direction(path)
+        return record.oriented_at.isoformat() if record is not None else None
+    except Exception:  # noqa: BLE001 - the draw must never go down for want of a timestamp
+        return None
 
 
 def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = None,
@@ -1004,6 +1033,24 @@ def hand_off_focus(focus_id: str, done_means: str, now: float | None = None) -> 
     """
     for item in direction_mod.unreachable_focus(_atom_ids()):
         if item.get("id") == focus_id:
+            # A FINISH SURVIVES THE RE-DERIVATION THAT PRODUCED THIS ROW (2026-09-06). The focus
+            # list is a standing document; it does not change because a tick finished something,
+            # and `seat_executor._promote_to_handoff` runs on every stand-down. So without this,
+            # `--release` bought about an hour and the same prose came back with a fresh clock --
+            # measured on this repair's own doorbell, promoted again seventeen minutes after the
+            # commit that satisfied it. Both mouths carry it, and the check is against the
+            # ORIENTATION rather than a timer: the seat restating the row is what spends the
+            # retirement, exactly as the promotion's own `done_means` already told the reader.
+            retired_under = seat_continuation.retirement_orientation(focus_id)
+            if retired_under is not None and retired_under == current_orientation():
+                raise ValueError(
+                    f"{focus_id!r} was RETIRED as finished under the orientation still in force "
+                    f"({retired_under}). Re-promoting it would hand a spent instruction to the "
+                    "next tick with a fresh six-hour window on prose nobody has re-read. It "
+                    "becomes promotable again when the seat orients and still names it. A session "
+                    "that means to re-issue it with NEW words can, through "
+                    "`seat_continuation --hand-off`, which is the route that carries a judgement "
+                    "rather than a re-derivation.")
             return seat_continuation.hand_off(
                 focus_id, item.get("what") or "", item.get("why") or "", done_means, now=now)
     raise KeyError(

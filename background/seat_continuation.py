@@ -329,13 +329,21 @@ def live(now: float | None = None, path: Path | None = None) -> list[dict]:
     catches the SEAT ITSELF refuting one. Both were needed -- see `hand_off` for the tick this
     cost. Because order is oldest-first, a refuted entry left in the store does not merely compete,
     it WINS.
+
+    A RETIRED ENTRY IS NOT OFFERED EITHER, and that is a THIRD reason rather than a restatement of
+    the other two. Expiry catches the tree moving under a continuation; supersession catches the
+    seat refuting one; retirement catches the tick that DID IT saying so. Only the third can fire
+    inside the window on an entry nobody has replaced, which is the commonest finished-continuation
+    shape there is -- see `retire`.
     """
     cutoff = (time.time() if now is None else now) - STALE_AFTER_SECONDS
     items = _load(path)
     dead = _superseded_ids(items)
     return [
         i for i in items
-        if float(i.get("written_at") or 0.0) >= cutoff and i.get("id") not in dead
+        if float(i.get("written_at") or 0.0) >= cutoff
+        and i.get("id") not in dead
+        and not i.get("retired_at")
     ]
 
 
@@ -367,7 +375,9 @@ def expired(now: float | None = None, path: Path | None = None) -> list[dict]:
     dead = _superseded_ids(items)
     stale = [
         i for i in items
-        if float(i.get("written_at") or 0.0) < cutoff and i.get("id") not in dead
+        if float(i.get("written_at") or 0.0) < cutoff
+        and i.get("id") not in dead
+        and not i.get("retired_at")
     ]
     return [dict(i, drawn_at=_first_drawn(i.get("id"))) for i in stale]
 
@@ -415,6 +425,77 @@ def _first_drawn(work_id) -> float | None:
         return None
 
 
+def retire(work_id: str, *, orientation: str | None = None, now: float | None = None,
+           path: Path | None = None) -> bool:
+    """Mark a continuation FINISHED so it stops being offered, and remember WHICH ORIENTATION.
+
+    A MARK RATHER THAN A DELETION, AND THE ORIENTATION IS THE WHOLE POINT (2026-09-06).
+    `delivery_lane.retire_continuation` used `drop`, which removes the entry -- and removing it is
+    what let the machine put it straight back. `seat_executor._promote_to_handoff` re-derives the
+    seat's focus list every time it stands down and promotes any row NOT currently live here, so a
+    dropped entry is simply absent and gets re-promoted minutes later with a fresh `written_at`.
+
+    MEASURED ON THIS TURN'S OWN DOORBELL. `seat-focus-is-outranked-by-a-lane-that-hands-off-to-
+    itself` was promoted at 09:06:25, drawn at 09:19:28, delivered by `9210d8153` at 09:49:03,
+    released -- and re-promoted at 10:06 and handed to the NEXT tick at 10:19:20 with the prose
+    unchanged, which still opened *"another lane holds `background/delivery_lane.py` dirty with
+    111 uncommitted lines"* about a file that had been clean and committed for twenty minutes. The
+    re-stamp also restarts the six-hour window, so the expiry that exists to stop a continuation
+    outliving the tree it reasoned about cannot fire on a re-promoted one either: the clock is
+    reset every hour on prose nobody has re-read.
+
+    KEYED TO THE PROPERTY, NOT TO A CLOCK. The retirement is spent when the seat NEXT ORIENTS and
+    still names the id -- which is exactly what `seat_executor.AUTO_PROMOTION_DONE_MEANS` already
+    promises the reader ("done is when the seat's next orientation stops naming it") and what the
+    machine never implemented. So what is stored is the `oriented_at` the retirement was made
+    under, and `delivery_lane.hand_off_focus` refuses a re-promotion only while the record still
+    carries that same stamp. A timer here would have to guess how long a seat takes to re-orient;
+    this asks the seat.
+
+    AN ORIENTATION WE COULD NOT READ IS RECORDED AS NONE, and `hand_off_focus` then allows the
+    promotion -- today's behaviour. Fail-open is right for this one and only because of what the
+    two errors cost: allowing costs one repeated offer, which is the defect we already have and can
+    see; refusing on an unreadable direction file would silently starve the promotion route the
+    director named as the biggest single drag on the project.
+
+    RE-RETIRING IS A NO-OP returning False, so the FIRST retirement -- the one whose orientation
+    describes when the work was actually finished -- is never overwritten by a later release.
+    """
+    items = _load(path)
+    hit = False
+    for item in items:
+        if item.get("id") == work_id and not item.get("retired_at"):
+            item["retired_at"] = time.time() if now is None else now
+            if orientation:
+                item["retired_at_orientation"] = str(orientation)
+            hit = True
+    if hit:
+        _save(items, path)
+    return hit
+
+
+def retired(path: Path | None = None) -> list[dict]:
+    """The entries a tick declared finished. Reported for the reason `superseded()` is.
+
+    A retired entry is in neither `live()` nor `expired()`, and this module's own history is the
+    argument for why that must not be silent: the one surface built to say whether the handoff
+    works spent a day reporting its only success as its defining failure. A finish is the good
+    outcome and it should be the one the operator surface says most plainly.
+    """
+    return [dict(i) for i in _load(path) if i.get("retired_at")]
+
+
+def retirement_orientation(work_id: str, path: Path | None = None) -> str | None:
+    """The `oriented_at` this id was retired under, or None if it is not retired (or was retired
+    before the orientation could be read). None means "do not refuse" to every caller -- see
+    `retire` on why fail-open is the right direction for this one specifically."""
+    for item in _load(path):
+        if item.get("id") == work_id and item.get("retired_at"):
+            stamp = item.get("retired_at_orientation")
+            return str(stamp) if stamp else None
+    return None
+
+
 def drop(work_id: str, path: Path | None = None) -> bool:
     """Remove one continuation. Returns whether it was there."""
     items = _load(path)
@@ -455,6 +536,13 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
     for item in live():
         age = (time.time() - float(item["written_at"])) / 3600.0
         print(f"  LIVE     {item['id']}  ({age:.1f}h old)\n           {item['what'][:110]}")
+    for item in retired():
+        # NOT SILENT, same reason as the block below and one more besides: this is the store's only
+        # record that a tick ever FINISHED anything, and the orientation on it is what says when
+        # the entry becomes promotable again.
+        under = item.get("retired_at_orientation") or "an orientation that could not be read"
+        print(f"  FINISHED {item['id']}  — retired by the tick that did it, under {under}; "
+              "not offered again until the seat re-orients and still names it")
     for item in superseded():
         # NOT SILENT. This entry is in neither live() nor expired(); if it printed nowhere, a
         # retired instruction would simply disappear and nobody could tell a supersession from a
