@@ -8,6 +8,106 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-06 — The cell answer became a build decision, the world got the wind term it never had, and the site got its first map
+
+<!-- head: 1ed1e7737af4 -->
+
+**What this stretch was about.** Three instructions in sequence: state the cell answer as a build
+decision rather than a curve; check whether solar gain is the same gap as the wind term (rather than
+assume it); then fix the wind term, fix PV, and put the cells on the site.
+
+**The decision.** Twenty-one cells each for temperature and wind, five for irradiance, one national
+for wholesale price. Three grids, not one. `W1_21`'s 987 stands as arithmetic and falls as a
+recommendation — it correctly answers "how many cells resolve all three drivers *jointly*", which is
+a question nothing here asks.
+
+**Solar gain was not the same gap, and it was checked by running the model.** The wind term was
+*named* in `fabric_physics`'s own docstring as an available archive field and consumed by nothing, so
+a check that greps for a word would have reported both drivers present. Zeroing the glazing aperture
+and re-running the 2R2C integration takes half-year heating fuel from 7,274 to 9,138 kWh: **solar
+gain offsets 20.4% of heating fuel**, larger than the wind effect, and it is wired.
+
+And the two drivers turn out to be complementary across the stock, which no single median would have
+shown. Over the same household spread, solar gain moves fuel by −1.2% in a leaky pre-1919 house and
+−7.9% in a tight post-2000 one; wind moves the heat loss coefficient by +18.6% mid-stock and only
++2.9% in that same modern house, because the Part F minimum air change rate clamps the calm end. **A
+targeting model using one as a proxy for the other would be wrong at both ends.**
+
+**The world now has a wind term** — SAP 10.2/BREDEM's `raw ACH × wind/4`, with `wind_speed_mean_ms`
+made a *required* field of `DailyWeather`. The column had been the sixth in every archive CSV since
+the fetch, sitting next to `cloud_cover_pct` in the reader, skipped. At 4 m/s the new model is the
+identity and the 60-test fabric suite passes unchanged, which is what makes it an extension rather
+than a re-calibration.
+
+**Three of the four predictions I filed before measuring were wrong**, and one cause explains three
+of them. Heating-season wind is above the annual mean at every site, and I sized the prediction on
+annual means. The Part F floor makes the effect one-sided — a calm day cannot ventilate below the
+minimum. And the archive's own winter temp/wind correlation is +0.47 to +0.54, which means **cold
+days are calm** — I had written that the two "coincide, so the cold tail widens", which inverts it.
+So the wind term matters most in *mild windy* weather: the largest single-day effect in the 2023
+replay is 8.3 °C at 9.9 m/s, +45.8%. Peak demand barely moves; the shoulder rises; daily variance
+*fell* at three of four sites. For sizing a peak-demand hedge that is the opposite of the intuitive
+answer.
+
+**PV: a latitude lookup does not work, and that is the finding.** The five sunshine bands overlap
+across four degrees of latitude — the Norfolk coast at 52–53 °N sits in the sunniest band and inland
+Devon at 50.6 °N in the dullest, because Britain's sunshine is coastal and eastern as much as
+southern. So the lookup keys on annual sunshine duration, which the Met Office publishes on a grid
+and a supplier can read for any postcode. The company's single national 850 kWh/kWp becomes five
+bands anchored to the MCS 2025 fleet average; the RMS error in annual generation falls from 3.4% to
+0.95%. **Nothing pinned the old constant** — all 21 existing tests passed with it moved 3.8%.
+
+**And the obvious sanity check does not hold**, which was worth more than one that did. The published
+750–1,050 kWh/kWp range is quoted for optimally tilted south-facing installations at the extremes;
+the fleet average is over all orientations. Two populations. The derived 835–947 spread being
+narrower says nothing about either, and reading it as corroboration *or* refutation would both be
+wrong. It is stated in the source because it is the first comparison anyone will reach for.
+
+**The site now carries a map.** Two, and a coverage curve, all inline SVG composed by the page's own
+JavaScript from a published feed. The class map shows scattered same-colour patches and the page
+says why; the control *measures* the scattering rather than trusting the sentence.
+
+**The third picture was wrong and I found it by looking at it.** The first population map shaded each
+5 km block by whether *any* of its twenty-five kilometres held a household — which reads **81%
+occupied against the 49.6% printed beside it**, because one populated square colours the whole block.
+A chart contradicting its own caption is worse than no chart, and the suite was green. Rebuilt as an
+occupancy density, with a control that holds the picture to the figure.
+
+I also printed the land mask as ASCII and looked at it. It is unmistakably Great Britain — Orkney and
+Shetland as dots, the Central Belt narrowing, the South West peninsula, East Anglia bulging right. A
+grid-origin error would have produced a plausible blob 200 km from anywhere, and no test would have
+noticed.
+
+**What cost time, and it is all one shape.** A `--content` land silently reverted another lane's map
+work: `surgical_land` re-gated against a HEAD that had moved, my content was built from the older
+base, and `--content` overwrites a whole file. The gate passed because the reverted side was
+*internally consistent* — removing a `notes_rehomed` declaration while its store file is untracked is
+exactly as coherent as adding both. The repair needed six store files, three untracked and three
+modified, found by running the design suite rather than by reading the diff. **After a `--content`
+land the check is "diff against the commit I raced", not "did the gate pass".**
+
+Two orderings that are not the same and neither is guessable from the other: `W1_25`'s level could
+not be *recorded* until the map was *landed* (the ledger resolves an atom's lane from the live map),
+while `W1_26`'s could not be *landed* until it was *recorded* (the level gate wants the entry at
+commit time). Land, reconcile, record — in that order.
+
+The orphan ratchet refused the site page twice. First I lowered the floor by four modules when only
+three were wired. Then the generator itself was an orphan — and the *local* check said the floor was
+clean while the gate refused it, because `orphan_ratchet.compute()` reads `git ls-files` and the new
+module was untracked. **A local run of that ratchet cannot see the file it is about to be refused
+for.**
+
+And one commit landed nothing at all because `/tmp` was 91% full: the message file was written, lost,
+and `surgical_land` was invoked with an empty `-m`. Freed 5.5 GB of stale HEAD extracts. A full
+`/tmp` does not announce itself; it eats writes.
+
+**Where it stands.** `W1_25`, `W1_26`, `W1_27`, `W1_28` closed. What remains of `W1_14` is the
+knowledge page's own topic entry in the knowledge layer proper, and the open questions are named:
+whether one grid of ~30 could serve both heat-load drivers, SAP's shelter factor, orientation on
+both the gain and the yield side, and cloud used where irradiance is meant.
+
+---
+
 ## 2026-09-06 — The director challenged the cell framing: wind turns out to be the smoothest driver and the largest unmodelled one
 
 <!-- head: f58753811f9b -->
