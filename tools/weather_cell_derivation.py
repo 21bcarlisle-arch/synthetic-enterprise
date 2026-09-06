@@ -71,6 +71,21 @@ TARGETS = (0.90, 0.95, 0.99)
 DEFAULT_KS = (1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584)
 
 
+def captured_share(within: float, total: float) -> float:
+    """`1 - within/total`, rounded, and never NEGATIVE ZERO.
+
+    AT k=1 THE CENTROID IS THE WEIGHTED MEAN, so `within` equals `total` to floating precision and
+    the subtraction lands on either side of zero depending on the last bit. `round()` preserves the
+    sign, `json.dumps` writes `-0.0`, and the published feed then differs from the one before it by
+    two characters -- on a generator that now rides the run-complete regen cycle, that is a commit
+    every cycle, for ever, saying nothing.
+
+    Adding zero is the whole fix: `-0.0 + 0.0` is `0.0` in IEEE-754 round-to-nearest, and every
+    other value is untouched.
+    """
+    return round(1.0 - within / total, 4) + 0.0
+
+
 def _space(household_weighted: bool = True):
     """(standardised driver matrix, native driver matrix, weights, mean, sd) over occupied cells."""
     import numpy as np
@@ -117,7 +132,7 @@ def coverage_curve(ks=DEFAULT_KS, household_weighted: bool = True, seed: int = 0
         rms = np.sqrt(np.average(residual ** 2, axis=0, weights=weights))
         rows.append({
             "cells": k,
-            "captured": round(1.0 - within / total, 4),
+            "captured": captured_share(within, total),
             "native_residuals": {name: round(float(v), 3) for name, v in zip(DRIVERS, rms)},
         })
     return rows
@@ -168,7 +183,7 @@ def choice_sensitivity(ks=DEFAULT_KS, space=None) -> dict:
             km = KMeans(n_clusters=k, n_init=1, random_state=0).fit(zs, sample_weight=weights)
             within = float(np.sum(weights[:, None] *
                                   (zs - km.cluster_centers_[km.labels_]) ** 2))
-            rows.append({"cells": k, "captured": round(1.0 - within / total, 4)})
+            rows.append({"cells": k, "captured": captured_share(within, total)})
         out[name] = {"cells_needed": {f"{int(t * 100)}pc": cells_for(t, rows) for t in TARGETS},
                      "curve": rows}
     return out
@@ -198,7 +213,7 @@ def per_driver_curve(ks=DEFAULT_KS, space=None) -> dict:
             centres = km.cluster_centers_[km.labels_]
             within = float(np.sum(weights[:, None] * (col - centres) ** 2))
             residual = native[:, i] - (centres[:, 0] * sd[i] + mean[i])
-            rows.append({"cells": k, "captured": round(1.0 - within / total, 4),
+            rows.append({"cells": k, "captured": captured_share(within, total),
                          "rms": round(float(np.sqrt(np.average(residual ** 2, weights=weights))), 3)})
         out[name] = rows
     return out

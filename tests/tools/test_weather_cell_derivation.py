@@ -221,6 +221,39 @@ def test_the_PER_DRIVER_curve_partitions_on_ONE_DRIVER_and_not_on_all_three():
             f"{got} — a residual scored against another driver's column reads as a real number")
 
 
+def test_THE_PUBLISHED_SHARE_IS_NEVER_NEGATIVE_ZERO():
+    """A GENERATOR ON A SCHEDULE MUST BE BYTE-DETERMINISTIC, and this one was not.
+
+    At one cell the centroid IS the weighted mean, so `within` equals `total` to floating precision
+    and `1 - within/total` lands on either side of zero depending on the last bit. `round()` keeps
+    the sign and `json.dumps` writes `-0.0`, so two runs of the same code over the same data produce
+    feeds differing by two characters.
+
+    That was harmless while nothing ran it. Another lane wired it into the run-complete regen cycle
+    on 2026-09-06 -- correctly, and for a reason this seat got wrong -- at which point it becomes a
+    commit every cycle, for ever, saying nothing.
+    """
+    import json
+    import math
+
+    assert math.copysign(1.0, wcd.captured_share(1.0, 1.0)) > 0, "returned negative zero"
+    for within in (1.0, 1.0 + 2e-16, 1.0 - 1e-16):
+        assert json.dumps(wcd.captured_share(within, 1.0)) == "0.0"
+    assert wcd.captured_share(0.5, 1.0) == 0.5, "the ordinary case must be untouched"
+
+
+def test_the_CURVE_SERIALISES_IDENTICALLY_ACROSS_RUNS(space):
+    """The property the fix above exists for, through the real code path rather than the helper.
+    Two runs over one fixture must produce identical JSON -- the k=1 row is where it fails."""
+    import json
+
+    first = json.dumps(wcd.coverage_curve(SMALL, space=space(True)), sort_keys=True)
+    second = json.dumps(wcd.coverage_curve(SMALL, space=space(True)), sort_keys=True)
+
+    assert first == second
+    assert "-0.0" not in first, "a negative zero reached the serialised curve"
+
+
 def test_the_curve_runs_THE_WAY_A_COMMAND_LINE_RUNS_IT():
     """Sixth module in this repository where the script entry point could be dead while every test
     is green: pytest fixes `sys.path` before a test can import anything, so `from tools import
