@@ -79,6 +79,23 @@ The LATENT general statement from `38871422b` — that a converged module inheri
 suite happened to be strongest, and some contracts inherit nothing — **generalises to a second
 subject.** Two subjects is not a law, but it is no longer a single anecdote.
 
+> **CORRECTED 2026-09-06 — the number is two and the answer is seven.**
+> `SEAT_RESULT_SEVEN_OF_DIRECTIONS_EIGHT_CONTRACTS_HAVE_NO_CALLER_PROVING_THEM_AND_THE_ONE_THAT_DOES_WAS_HIDDEN_BY_DASH_X_2026-09-06.md`,
+> fingerprint `2d872733982b`.
+>
+> Three of the four columns above are MIXED FILES: `test_delivery_seat.py` alone holds 16 tests
+> that call `direction`'s own API and assert on the result, beside 26 that exercise the seat.
+> Every one of the six kills in the table above has a first-failure node in that set, so five of
+> the six "proved" cells were **the subject grading itself**. Re-run with the 22 subject-asserting
+> tests deselected, **seven of the eight contracts have no caller proving them** — not two. The
+> statement this section draws is not weakened by that; it is much stronger than it was written.
+>
+> **And M8 moved the other way.** It reads DIED above via a subject test, and it dies on a
+> caller-only population too — on `test_the_published_panel_SPLITS_open_from_corrected_from_not_recorded`,
+> which exercises `tools/generate_delivery_page.py` for real. `-x` stopped at the subject test and
+> the genuine caller kill underneath it was never printed. **M8 is the one contract of eight that a
+> caller does prove**, and this table could not say so.
+
 M7 is the one with teeth, and the prior finding named why before knowing it survived: without the
 lower bound, a record stamped in the future can never age out, because its age only grows *toward*
 zero. A clock skew pins the draw to one orientation permanently, and nothing in any caller's suite

@@ -137,6 +137,33 @@ class BatterySpec:
     #: where the caller answer is ten of ten.
     #: `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`
     direct_suites: tuple[str, ...] = field(default_factory=tuple)
+    #: THE MIXED FILE, and the granularity `direct_suites` cannot express.
+    #:
+    #: `direct_suites` moves a WHOLE FILE out of the caller population. That is the right shape
+    #: when the subject has a dedicated test file, and it is the wrong shape for
+    #: `background/direction.py`, whose contracts are tested inside the files of the modules that
+    #: call it: `tests/background/test_delivery_seat.py` holds 16 tests that call `direction`'s
+    #: own API and assert on what comes back, and 26 that exercise the seat. Move the file out and
+    #: the seat's 26 stop counting as caller evidence; leave it in and 16 subject tests grade the
+    #: subject. Both answers are wrong and the file-level field can only choose between them.
+    #:
+    #: So: `{suite: (node,...)}`, the tests inside a CALLER suite that assert on the subject's own
+    #: API, DESELECTED from that suite's cell. What remains in the cell is caller evidence and
+    #: nothing else, which is the question `survived_all` was always asking.
+    #:
+    #: Derive it, never hand-pick it: `python3 -m tools.subject_asserting_tests --spec <slug>`
+    #: is the census, and `tests/tools/test_the_caller_population_excludes_subject_asserting_tests.py`
+    #: refuses a spec whose declaration has drifted from what the tree actually says.
+    subject_asserting_nodes: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    #: Tests that assert on the subject's API AND on a caller's, in one body -- reported, never
+    #: deselected. `test_EXPIRED_direction_offers_NOTHING` asserts `d.unreachable_focus(...) == []`
+    #: and `dl.next_item(...) is None` two lines apart.
+    #:
+    #: Deselecting it discards real caller evidence; keeping it lets a subject assert be counted as
+    #: a caller kill. Neither is right, so a row whose kill lands HERE gets a third answer --
+    #: `killed_by_a_mixed_test` -- rather than a verdict that had to pick a side. Every published
+    #: defect this sweep has found came from an instrument that picked one.
+    mixed_nodes: dict[str, tuple[str, ...]] = field(default_factory=dict)
     #: Suites with NO import path to the subject. The poison round must leave these GREEN;
     #: if it reddens everything including these, the floor is measuring the harness and not
     #: the subject, and the whole round is void.
@@ -166,6 +193,20 @@ class BatterySpec:
     def scored_outside_the_caller_population(self) -> tuple[str, ...]:
         """Scored, reported, and never counted toward `survived_all`."""
         return self.direct_suites + ((self.repair_suite,) if self.repair_suite else ())
+
+    def deselected(self, suite: str) -> tuple[str, ...]:
+        """Pytest node ids excluded from this suite's cell, qualified from the bare names.
+
+        Qualified HERE rather than in the spec because pytest will not deselect a bare name: it
+        deselects nothing, says nothing about it, and the run then reports a full caller
+        population it never had -- a silent fail-open in the one direction that flatters.
+        """
+        return tuple(f"{suite}::{node}" for node in self.subject_asserting_nodes.get(suite, ()))
+
+    def is_mixed(self, suite: str, node_id: str) -> bool:
+        """Did this failure land on a test that asserts on BOTH the subject and a caller."""
+        bare = node_id.rpartition("::")[2].partition("[")[0]
+        return bare in self.mixed_nodes.get(suite, ())
 
     @property
     def subject_path(self) -> Path:
@@ -376,6 +417,36 @@ def _null_round(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_p
     return {s: r["grades_text"] for s, r in null.items()}
 
 
+def population_drift(spec: BatterySpec) -> str:
+    """Does the spec's per-node declaration still match what the tree says. `""` when it does.
+
+    Checked at the point of USE rather than only by
+    `tests/tools/test_the_caller_population_excludes_subject_asserting_tests.py`, because a run is
+    the moment the declaration shrinks a real population and a test is not guaranteed to have run
+    before it. Both directions: an undeclared subject test lets the subject grade itself, and an
+    over-declared one deselects genuine caller evidence and manufactures the opposite answer.
+    """
+    from tools.subject_asserting_tests import census
+
+    for suite in spec.suites:
+        report = census(spec.subject, suite)
+        declared = set(spec.subject_asserting_nodes.get(suite, ()))
+        found = set(report.subject)
+        if found - declared:
+            return (f"{suite}: {sorted(found - declared)} assert on {spec.subject}'s own API and "
+                    f"are NOT declared, so their kills would be published as caller evidence.")
+        if declared - found:
+            return (f"{suite}: {sorted(declared - found)} are declared and deselected but the "
+                    f"census does not find them asserting on {spec.subject} -- real caller tests "
+                    f"are being removed from the population.")
+        undeclared_mixed = set(report.mixed) - set(spec.mixed_nodes.get(suite, ()))
+        if undeclared_mixed:
+            return (f"{suite}: {sorted(undeclared_mixed)} assert on the subject AND on a caller "
+                    f"in one body and are not declared, so their kills would enter `killed_by` "
+                    f"with nothing marking them unattributable.")
+    return ""
+
+
 def rows_without_a_caller_verdict(spec: BatterySpec, mutations: dict) -> list[str]:
     """Mutations graded on fewer than ALL the caller suites -- no verdict on the standing question.
 
@@ -430,6 +501,14 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
     # the row has a verdict: an absent key and "nothing missing" must not look the same.
     row["ungraded_callers"] = sorted(s for s in spec.suites if s not in callers)
     row["killed_by"] = [s for s, r in callers.items() if r["died"]]
+    # THE THIRD ANSWER. A caller cell that died on a test asserting on the subject AND on a caller
+    # is not a caller kill and is not a survival. `-x` makes this readable but not conclusive: it
+    # names the FIRST failure only, so a caller test later in the file may also have failed and
+    # would never appear. Reported as its own field for that reason -- the row is INDETERMINATE,
+    # and the one thing that must not happen is for it to be silently counted as proof.
+    row["killed_by_a_mixed_test"] = sorted(
+        s for s, r in callers.items()
+        if r["died"] and any(spec.is_mixed(s, n) for n in r.get("failed", ())))
     # Reported as its own field rather than left to be read off `killed_by`'s absences: a contract
     # proved ONLY by the subject's own tests and a contract proved by nothing are different
     # claims, and `killed_by: []` says both.
@@ -467,6 +546,12 @@ def fingerprint(spec: BatterySpec) -> str:
         # `survived_all` MEANS. A resumed row keeps the verdict it was written with, so a spec
         # that re-splits its population must not be able to inherit one.
         "direct_suites": list(spec.direct_suites),
+        # Hashed for the same reason as the split above, and it bites harder: these change what a
+        # caller CELL measures, not only what the reduction over the cells means. A row scored
+        # before a node was deselected is a row that ran a test this spec now excludes, and it may
+        # carry that test's kill. It must not be resumed into a run that claims otherwise.
+        "subject_asserting_nodes": {k: sorted(v)
+                                    for k, v in sorted(spec.subject_asserting_nodes.items())},
         "repair_suite": spec.repair_suite,
         "control_suites": list(spec.control_suites),
         # ids INCLUDED, but never alone: a renumbered mutation and a rewritten one are both
@@ -623,8 +708,31 @@ def _grade_under_the_claim(spec: BatterySpec, args: argparse.Namespace, fp: str,
     results.setdefault("subject", spec.subject)
     results.setdefault("suites", list(spec.suites))
 
+    drift = population_drift(spec)
+    if drift:
+        # FAIL CLOSED, BEFORE THE BASELINE, and not left to the control that also checks this.
+        # A test can be deselected, skipped or simply not run; a battery run cannot, and this is
+        # the moment the declaration is actually USED to shrink a population. A verdict reduced
+        # over a population that has drifted from the tree is precisely the defect the whole
+        # per-node repair exists to correct, and publishing one from the instrument that finds it
+        # is how `ops_repo`'s eight never-applied survivals reached a document.
+        print(f"REFUSED: {spec.name}'s caller population has drifted from the tree. "
+              f"{drift} Re-run `python3 -m tools.subject_asserting_tests --spec {spec.name}` "
+              f"and update the spec; every caller cell below it would be scored over a "
+              f"population this spec no longer describes.", flush=True)
+        return 2
+
     baseline = _baseline(results, suites, out_path)
-    known_red = {s: tuple(baseline[s]["failed"]) for s in suites}
+    known_red = {s: tuple(baseline[s]["failed"]) + spec.deselected(s) for s in suites}
+    for suite, nodes in sorted(spec.subject_asserting_nodes.items()):
+        # Printed, not merely applied. A round that silently shrinks its own population is the
+        # shape that produced the verdict this field exists to correct, and a reader of the log
+        # has to be able to see the population change without diffing two specs.
+        print(f"CALLER POPULATION: {suite} -- {len(nodes)} subject-asserting tests deselected, "
+              f"so a kill in this cell can only have come through the caller", flush=True)
+    results["subject_asserting_nodes"] = {k: sorted(v)
+                                          for k, v in spec.subject_asserting_nodes.items()}
+    results["mixed_nodes"] = {k: sorted(v) for k, v in spec.mixed_nodes.items()}
     # BEFORE the mutations, not after: a survivor scored against a suite whose reachability is
     # still unknown has to be re-read once it is, and this battery has already published one
     # column that needed exactly that.
@@ -686,6 +794,15 @@ def _grade_under_the_claim(spec: BatterySpec, args: argparse.Namespace, fp: str,
         # proves them, and it is the subject's own test file rather than any caller.
         print(f"PROVED ONLY BY THE SUBJECT'S OWN SUITES (no caller kills these): {own_only}",
               flush=True)
+    indeterminate = [m for m, r in results["mutations"].items()
+                     if r.get("killed_by_a_mixed_test")
+                     and not (set(r.get("killed_by", [])) - set(r["killed_by_a_mixed_test"]))]
+    if indeterminate:
+        # Printed beside the survivors and NOT among them. These rows' only caller kill landed on
+        # a test that asserts on the subject and on a caller in one body; the cell cannot say which
+        # assert fired, so the row has no caller verdict either way.
+        print(f"NO CALLER VERDICT -- only kill is a MIXED test (subject + caller in one body): "
+              f"{indeterminate}", flush=True)
     if partial:
         # NOT survivors. A mutation graded against a subset of suites has no verdict on the
         # standing prediction, and printing it beside the survivors is how a partial run gets

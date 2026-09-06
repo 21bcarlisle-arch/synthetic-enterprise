@@ -21,10 +21,15 @@ from __future__ import annotations
 
 from tools.contract_battery import BatterySpec, run
 
-#: The four caller suites. `tools/generate_delivery_page.py` is the fourth
-#: first-party caller and has no suite that imports it AND direction, so the
-#: fourth row here is the self-audit suite -- the closest thing the module has
-#: to one of its own.
+#: The four caller suites.
+#:
+#: CORRECTED 2026-09-06. This comment used to read: *"`tools/generate_delivery_page.py` is the
+#: fourth first-party caller and has no suite that imports it AND direction, so the fourth row here
+#: is the self-audit suite -- the closest thing the module has to one of its own."* Wrong, and
+#: wrong in the way that mattered. The self-audit suite DOES exercise `generate_delivery_page` as a
+#: caller, at `test_the_published_panel_SPLITS_open_from_corrected_from_not_recorded`, and on a
+#: caller-only population that test is the source of the ONLY genuine caller kill in the whole
+#: battery (M8). The column written off here as a near-own-suite is the one carrying real evidence.
 SUITES = (
     "tests/background/test_supervisor.py",
     "tests/background/test_delivery_lane.py",
@@ -38,6 +43,57 @@ SUITES = (
 #: question unanswerable the moment the repair landed. It is scored as its own column.
 REPAIR_SUITE = "tests/background/test_direction_contracts.py"
 SELECTABLE = SUITES + (REPAIR_SUITE,)
+
+#: THE FOUR COLUMNS ARE ALL DIRECT IMPORTERS, and three of them are MIXED FILES.
+#:
+#: The census at `b3938b313` found that all four suites above import `background.direction` at
+#: module level, and concluded that the real discriminator -- does the suite NAME a contract of the
+#: subject -- "is not statically decidable". It is not decidable at FILE granularity. It is
+#: decidable per TEST, by a stricter property: does the body call the subject's own API and assert
+#: on what comes back. `tools/subject_asserting_tests --spec direction` is that census, and these
+#: two maps are its output, not a judgement typed in here.
+#:
+#: `test_supervisor.py` is absent from both: 200 tests, not one of them asserts on `direction`'s
+#: API. It is the only real caller column this spec has -- and the poison round proved it never
+#: reaches the subject at all.
+SUBJECT_ASSERTING_NODES = {
+    "tests/background/test_delivery_lane.py": (
+        "test_a_MISSING_or_BROKEN_record_offers_nothing",
+    ),
+    "tests/background/test_delivery_seat.py": (
+        "test_a_BROKEN_direction_record_leaves_the_draw_byte_identical",
+        "test_a_CORRUPT_line_does_not_blank_the_record",
+        "test_a_MISSING_record_is_not_an_error",
+        "test_a_direction_that_NAMES_NO_WORK_is_refused",
+        "test_a_direction_that_REJECTED_NOTHING_is_refused",
+        "test_a_measurement_quoted_in_a_WHY_is_not_a_target",
+        "test_a_named_atom_actually_becomes_more_likely_and_the_steer_BITES",
+        "test_a_record_carrying_a_TARGET_is_refused_whatever_it_is_called",
+        "test_direction_EXPIRES_so_stale_advice_stops_steering_on_its_own",
+        "test_direction_can_NEVER_make_an_atom_harder_to_draw",
+        "test_direction_cannot_shorten_the_candidate_list",
+        "test_focus_that_was_never_DRAWN_is_reported_rather_than_assumed",
+        "test_the_refusal_reaches_ARBITRARY_depth",
+        "test_the_refusal_says_WHY_rather_than_returning_a_boolean",
+        "test_the_verdict_is_SPLIT_so_one_dead_channel_cannot_hide_behind_the_other",
+        "test_the_write_scope_is_CLOSED_and_holds_no_code_path",
+    ),
+    "tests/background/test_the_self_audit_declared_a_correction_and_nothing_carried_it.py": (
+        "test_a_POPULATED_self_audit_passes_and_an_ABSENT_one_is_not_an_error",
+        "test_an_EMPTY_self_audit_row_is_refused_whatever_kind_of_empty_it_is",
+        "test_an_error_with_NO_CORRECTION_STATE_is_refused",
+        "test_the_recorded_audit_reads_in_BOTH_shapes_and_never_invents_a_verdict",
+        "test_the_refusal_NAMES_the_row_so_the_seat_can_fix_the_one_that_is_wrong",
+    ),
+}
+
+#: Subject AND caller asserts in one body. Kept in the run, flagged in the row, never counted as
+#: proof: `test_EXPIRED_direction_offers_NOTHING` asserts `d.unreachable_focus(...) == []` and
+#: `dl.next_item(...) is None` two lines apart, and no cell can say which one fired.
+MIXED_NODES = {
+    "tests/background/test_delivery_lane.py": ("test_EXPIRED_direction_offers_NOTHING",),
+    "tests/background/test_delivery_seat.py": ("test_the_decision_log_is_APPEND_ONLY",),
+}
 
 #: (id, the contract as the module states it, old, new). Each is ONE edit to a
 #: named function; each `old` must appear exactly once in the subject.
@@ -113,6 +169,8 @@ SPEC = BatterySpec(
     subject="background/direction.py",
     suites=SUITES,
     repair_suite=REPAIR_SUITE,
+    subject_asserting_nodes=SUBJECT_ASSERTING_NODES,
+    mixed_nodes=MIXED_NODES,
     mutations=MUTATIONS,
     poison_old=POISON_OLD,
     poison_new=POISON_NEW,
