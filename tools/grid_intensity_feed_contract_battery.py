@@ -34,6 +34,15 @@ the record, which is why the first is kept above rather than overwritten.
 Pre-registration, written and landed BEFORE this ran, at `da7336230`:
 `docs/staging/SEAT_FINDING_THE_NEXT_SUBJECTS_CONVERGED_SURFACE_IS_MOSTLY_RE_EXPORTS_AND_A_BATTERY_WOULD_HAVE_SCORED_THEM_2026-09-06.md`
 
+THE GRID IS MACHINE-PRODUCED AT THIS SPEC'S OWN FINGERPRINT, 2026-09-06 05:40-05:55. Eleven rows
+x nine suites at `d7eb36a0b901`, results in
+`/var/tmp/grid_intensity_fuel_mix_battery_d7eb36a0b901.json`, six pre-registered predictions all
+held, and it agrees with `95c9da4db380` cell for cell across all 99. Read it before re-running
+anything here -- reproduction is provenance, and the row that matters is not a survival:
+`tests/background/test_process_run_complete.py` is the ONE caller of the eight that can go red for
+this subject at all, and it kills none of the eleven.
+`docs/staging/SEAT_RESULT_FUEL_MIXS_ELEVEN_CONTRACTS_ARE_MACHINE_GRADED_AT_A_COMMITTED_FINGERPRINT_AND_ONE_CALLER_CAN_SEE_THE_SUBJECT_2026-09-06.md`
+
 WHY THE SUBJECT IS ONE FUNCTION AND NOT THE MODULE
 --------------------------------------------------
 Seven of the eight callers import the identical five names --

@@ -118,3 +118,25 @@ contracts survived". Three things it does not establish:
 The one substantive finding this round can produce is prediction 6's, and it is worth stating in
 advance in its sharpest form so it cannot be softened afterwards: **`fuel_mix` has exactly one
 caller whose suite can go red for it, and that suite proves none of its eleven contracts.**
+
+---
+
+## CORRECTION, appended 2026-09-06 05:58 BST — AFTER the run, and everything above is left standing
+
+The run is measured and all six predictions held:
+`docs/staging/SEAT_RESULT_FUEL_MIXS_ELEVEN_CONTRACTS_ARE_MACHINE_GRADED_AT_A_COMMITTED_FINGERPRINT_AND_ONE_CALLER_CAN_SEE_THE_SUBJECT_2026-09-06.md`.
+
+**Prediction 6 above states a fact about the prior results file that is wrong.** It says *"The
+`95c9da4db380` file records `[]` for this column"*, and its refutation clause builds on that: that
+an empty column beside eleven graded rows would mean the invocation never reached its summary, and
+would be a live fail-silent defect in `tools/contract_battery.py`.
+
+`/var/tmp/grid_intensity_fuel_mix_battery_95c9da4db380.json` records
+`["tests/background/test_process_run_complete.py", "tests/sim/test_elexon_fuel_outturn.py"]` — the
+same two members the run produced. The `[]` was in the **`d7eb36a0b901`** file, which at the moment
+this was typed held no mutation rows at all and so had an empty column legitimately. One file read
+for the other.
+
+The prediction's CONTENT held. Its rationale was void, and **the fail-silent defect it reserved a
+finding for does not exist.** Nothing above is edited: a prediction revised after its answer is not
+evidence that it was made before it.
