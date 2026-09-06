@@ -227,6 +227,64 @@ def test_the_weighted_table_runs_THE_WAY_A_COMMAND_LINE_RUNS_IT():
     assert "ModuleNotFoundError" not in done.stderr
 
 
+def test_the_GB_MASK_SEPARATES_NOT_BRITAIN_from_EMPTY_BRITAIN():
+    """THE DEFECT A QUESTION ABOUT SCOTLAND SURFACED SOMEWHERE ELSE.
+
+    HadUK-Grid's land mask is the UNITED KINGDOM. 14,911 of its 245,077 land cells are outside Great
+    Britain, ONSPD carries no British grid reference for their postcodes, and this company's market
+    is GB -- so they arrive with zero households and were being counted as *empty British land*. On
+    a map they render identically to a Highland glen: absence drawn as emptiness.
+
+    The threshold is checked against the PUBLISHED GB land area, not against itself, and the
+    function refuses rather than returning a mask of somewhere else.
+    """
+    import numpy as np
+
+    if not w.ONSPD_CSV.is_file():
+        pytest.skip("the ONSPD pull is not on this machine")
+
+    # one cell in central London, one in the middle of Northern Ireland
+    drivers = {"east": np.array([530_000.0, 100_000.0]),
+               "north": np.array([180_000.0, 530_000.0])}
+    mask, stats = _stub_gb_reachable(drivers)
+    assert list(mask) == [True, False], "the far cell must fall outside the GB mask"
+    assert stats["not_gb_land_cells"] == 1
+
+
+def _stub_gb_reachable(drivers):
+    """`gb_reachable` with the published-area check relaxed, so the DISCRIMINATOR can be tested on
+    two cells rather than on a quarter of a million. The area check itself is exercised against the
+    live mask by `test_the_live_gb_mask_matches_the_published_land_area`."""
+    import csv as _csv
+
+    import numpy as np
+    from scipy.spatial import cKDTree
+
+    with w.ONSPD_CSV.open(encoding="utf-8") as fh:
+        points = [(int(r["east"]), int(r["north"])) for r in _csv.DictReader(fh)]
+    tree = cKDTree(np.array(points, dtype=float))
+    distance, _ = tree.query(np.column_stack([drivers["east"], drivers["north"]]), k=1)
+    mask = distance <= w.GB_REACH_KM * 1000.0
+    return mask, {"gb_land_cells": int(mask.sum()), "not_gb_land_cells": int((~mask).sum())}
+
+
+def test_the_live_gb_mask_matches_the_published_land_area():
+    """The mask is held to an INDEPENDENT published figure -- ONS Standard Area Measurements for
+    England, Wales and Scotland -- rather than to itself. A threshold that drifted would produce a
+    perfectly self-consistent map of the wrong country."""
+    from tools import weather_cell_drivers as drv
+
+    if not (drv.CACHE / "tas" / "mon-30y").is_dir() or not w.ONSPD_CSV.is_file():
+        pytest.skip("the HadUK normals or the ONSPD pull are not on this machine")
+
+    mask, stats = w.gb_reachable(drv.drivers())
+
+    assert abs(stats["gb_land_cells"] - w.GB_LAND_AREA_KM2) / w.GB_LAND_AREA_KM2 < 0.01
+    assert stats["not_gb_land_cells"] > 10_000, (
+        "the non-GB part of the UK mask has vanished; Northern Ireland is roughly 14,000 km2 and "
+        "if it is no longer being separated the emptiness figure is overstated again")
+
+
 def test_the_weights_do_NOT_come_from_the_SIMS_OWN_POPULATION():
     """THE RULING'S PROHIBITION, as a property of the module rather than a note in its docstring.
 

@@ -43,6 +43,20 @@ sub-kilometre while the error the centroid makes is tens of kilometres.
 **121,668 of 245,077 land cells hold at least one household — 49.6%.** An area-weighted derivation
 spends half of its effort on cells nobody lives in.
 
+> **CORRECTED 2026-09-06 — THE DENOMINATOR WAS THE UNITED KINGDOM, NOT GREAT BRITAIN.** HadUK-Grid's
+> land mask covers the whole UK, and **14,911 of its 245,077 land cells are outside Great Britain**.
+> ONSPD carries no British grid reference for Northern Irish postcodes and this company's market is
+> GB, so every one of those cells arrived with zero households and was counted as *empty British
+> land*. Over GB alone the mask is **230,166 km²** — within 0.5% of the published GB land area of
+> 228,991 km² — and **121,668 of them hold a household, 52.9%**, not 49.6%.
+>
+> "Nearly half of Britain's land holds nobody" survives as prose; the number moves. Found when the
+> director asked why Scotland had visible gaps on the published map: the answer for Scotland was
+> genuine terrain, and the same question applied to the rest of the blank found this. The
+> discriminator is distance to the nearest live GB postcode, which is sharply bimodal — 108,533
+> empty cells within 10 km, 965 between 10 and 20, and 13,207 beyond 50.
+
+
 And the occupied half is itself extremely concentrated:
 
 | share of GB households | cells | share of land cells |

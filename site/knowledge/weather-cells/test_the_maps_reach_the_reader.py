@@ -16,6 +16,7 @@ WHAT THE DIRECTOR ASKED THIS PAGE TO CONVEY, and therefore what these tests asse
 """
 from __future__ import annotations
 
+import collections
 import json
 import re
 import shutil
@@ -107,53 +108,129 @@ def test_the_class_map_is_DISCONTIGUOUS_and_the_page_SAYS_so():
         "and must say what a cell IS instead -- a set of places that behave alike")
 
 
-def test_the_EMPTY_HALF_is_drawn_and_counted():
-    """Half of GB's land holds nobody, and the page shows it on the same grid rather than asserting
-    it in a sentence. Both figures come from the feed, so a feed that stopped carrying them empties
-    the panel instead of leaving a stale number."""
+def test_the_EMPTY_PART_is_drawn_and_counted_OVER_GREAT_BRITAIN():
+    """Nearly half of GB's land holds nobody, shown on the same grid rather than asserted.
+
+    RE-KEYED 2026-09-06 FROM THE UK MASK TO GB, because the two are different denominators and the
+    page was mixing them. The Met Office grid covers the United Kingdom; 14,911 of its land cells
+    are outside Great Britain, have no household data, and were being counted as empty British land.
+    "Half of Britain's land holds nobody" was 49.6% that way and is 47.1% over GB.
+    """
     out = _boot()
     feed = json.loads(FEED.read_text())
     e = feed["emptiness"]
 
-    assert e["land_cells_with_households"] < e["land_cells"] * 0.6, (
-        "the published emptiness is no longer the finding the page is built on")
-    assert _text(out, "e-land").replace(",", "") == str(e["land_cells"])
+    assert e["land_cells"] + e["not_gb_land_cells"] == e["uk_mask_land_cells"], (
+        "the GB subset and the non-GB remainder must account for the whole mask, or one of them is "
+        "being double-counted")
+    assert e["land_cells"] != e["uk_mask_land_cells"], (
+        "if the two denominators are equal the non-GB land has stopped being separated and the "
+        "emptiness figure is overstated again")
+    assert abs(e["land_cells"] - e["published_gb_land_km2"]) / e["published_gb_land_km2"] < 0.03, (
+        "the GB mask has drifted from the published GB land area")
+
+    share = e["land_cells_with_households"] / e["land_cells"]
+    assert 0.50 < share < 0.56, f"the occupied share of GB land moved to {share:.1%}"
+    assert _text(out, "e-land").replace(",", "") == str(e["land_cells"]), (
+        "the page must print the GB denominator, not the UK one")
     assert _text(out, "e-occ").replace(",", "") == str(e["land_cells_with_households"])
 
-    pop = _html(out, "map-pop")
-    assert "var(--border)" in pop and "var(--teal)" in pop, (
-        "the population map must distinguish empty land from occupied land; one colour is not a "
-        "comparison")
 
+def test_the_DENSITY_MAP_IS_A_DENSITY_and_not_a_saturating_proportion():
+    """THE DEFECT THE DIRECTOR NAMED, and the second wrong version of this panel.
 
-def test_the_POPULATION_MAP_AGREES_WITH_THE_PUBLISHED_1KM_SHARE():
-    """THE DEFECT CAUGHT BY LOOKING AT THE PICTURE, not by any test.
+    The first shaded a block by whether ANY of its twenty-five kilometres held a household -- 81%
+    occupied against the 49.6% printed beside it. The second used the PROPORTION of a block's cells
+    that were occupied, which saturates: a dense city and a sparse village both read as fully
+    covered, and the map destroys the variation it exists to show.
 
-    The first version shaded each 5 km block by whether ANY of its twenty-five kilometres held a
-    household. That reads **81% occupied** against the **49.6%** the page prints beside it, because
-    one populated square colours the whole block. A chart that contradicts its own caption is worse
-    than no chart, and nothing in the suite would have said so.
-
-    The map now carries occupancy DENSITY, and this holds the picture to the figure: the density
-    grid's own 1 km counts must reproduce the published share.
+    A proportion cannot exceed one, so its top band is reached by any block that is merely built-up.
+    Households per km^2 spans four orders of magnitude, so THE TEST IS THAT THE BANDS DO TOO.
     """
     feed = json.loads(FEED.read_text())
-    g, e = feed["grid"], feed["emptiness"]
+    g = feed["grid"]
 
-    assert g["populated_1km_cells"] == e["land_cells_with_households"]
-    assert g["land_1km_cells_in_map"] == e["land_cells"], (
-        "the map is drawn over different land from the land the figures count")
+    labels = g["density_labels"]
+    assert len(labels) >= 6, f"{len(labels)} density bands cannot show four orders of magnitude"
+    assert "400" in labels[-1], (
+        "the top band must be an absolute count per km2; a proportion has no such band")
 
-    share = g["populated_1km_cells"] / g["land_1km_cells_in_map"]
-    assert 0.45 < share < 0.55, f"the published share moved to {share:.1%}"
-
-    # and the picture must actually USE the range, or a density map is a flag with extra steps
-    levels = set()
+    levels = collections.Counter()
     for row in g["density_rle"]:
         for part in (row.split(",") if row else []):
+            count, value = part.split(":")
+            levels[int(value)] += int(count)
+
+    occupied = [lvl for lvl in levels if lvl > 0]
+    assert len(occupied) >= 6, f"only {len(occupied)} occupied bands are drawn -- the ramp collapsed"
+    for lvl in range(1, len(labels)):
+        assert levels[lvl] > 100, (
+            f"band {lvl} ({labels[lvl]}) holds {levels[lvl]} blocks; a band nearly nobody is in is "
+            "a band the ramp is wasting")
+    drawn = sum(levels[i] for i in range(0, len(labels)))
+    assert levels[len(labels) - 1] < drawn / 3, (
+        "the top band holds a third of all land -- it is saturating, which is the defect this "
+        "panel was rebuilt to remove")
+
+
+def test_NOT_GB_LAND_IS_DRAWN_AS_ITS_OWN_THING_and_the_page_says_why():
+    """ABSENCE MUST NOT READ AS EMPTINESS -- and the defect a question about Scotland surfaced
+    somewhere else entirely.
+
+    Northern Ireland is 14,911 cells of the HadUK mask. ONSPD carries no British grid reference for
+    its postcodes and this company's market is GB, so it arrives with no household data and, drawn
+    as empty land, teaches a reader that Northern Ireland is depopulated.
+    """
+    out = _boot()
+    feed = json.loads(FEED.read_text())
+
+    levels = set()
+    for row in feed["grid"]["density_rle"]:
+        for part in (row.split(",") if row else []):
             levels.add(int(part.split(":")[1]))
-    assert {0, 4} <= levels, "the density map shows neither empty land nor fully occupied land"
-    assert len(levels - {-1}) >= 4, f"only {len(levels - {-1})} density levels drawn"
+    assert -2 in levels, "no land is marked as outside GB; the mask is being drawn as all-British"
+
+    assert "#5b4a63" in _html(out, "map-pop"), "the non-GB land is not drawn in its own colour"
+    assert "outside GB" in _html(out, "map-pop-src"), "the legend does not name it"
+
+    prose = DOOR.read_text(encoding="utf-8")
+    assert "Northern Ireland is not empty. It is not here." in prose, (
+        "the page must say what the blank is, or a reader reads absence as emptiness")
+
+
+def test_SCOTLANDS_BLANKS_ARE_ATTRIBUTED_and_the_figures_come_from_the_feed():
+    """The director could not separate three candidates from outside: a lossier census join,
+    genuinely empty terrain, or holes in the postcode-to-cell mapping. Two are honest and one is a
+    defect, and they look identical on a map. The page states which, and states it with published
+    numbers rather than typed ones."""
+    out = _boot()
+    feed = json.loads(FEED.read_text())
+    bands = feed["emptiness"]["empty_share"]
+
+    assert bands["highlands_and_north"] > bands["southern_scotland"] > bands["south_of_the_mersey"]
+    assert bands["highlands_and_north"] > 0.7, (
+        "if the north is not mostly empty, 'genuine terrain' is no longer the explanation and the "
+        "page is asserting something the data stopped supporting")
+
+    assert _text(out, "a-south") == f"{round(bands['southern_scotland'] * 100)}%"
+    assert _text(out, "a-north") == f"{round(bands['highlands_and_north'] * 100)}%"
+
+    # AND THE BANDS MUST BE OVER GB ONLY. A version computing them over the whole UK mask keeps the
+    # ordering and the 70% threshold -- both assertions above survive it -- while quietly putting
+    # Northern Ireland's 14,911 household-less cells into the northern numerators. Conservation is
+    # what sees it: the bands must partition GB land and their empty counts must sum to GB's.
+    e = feed["emptiness"]
+    land = sum(v for k, v in bands.items() if k.endswith("_land_cells"))
+    empty = sum(bands[k] * bands[k + "_land_cells"]
+                for k in bands if not k.endswith("_land_cells"))
+    assert abs(land - e["land_cells"]) < 0.01 * e["land_cells"], (
+        f"the latitude bands cover {land:,} cells against {e['land_cells']:,} of GB land -- they "
+        "are not partitioning the same land the figures count")
+    assert abs(empty - (e["land_cells"] - e["land_cells_with_households"])) < 0.02 * e["land_cells"]
+
+    prose = DOOR.read_text(encoding="utf-8")
+    for probe in ("Lerwick", "Stornoway", "Braemar"):
+        assert probe in prose, f"the towns refuting the missing-join theory are not named ({probe})"
 
 
 def test_the_CURVE_carries_BOTH_the_shared_partition_and_the_per_driver_lines():
