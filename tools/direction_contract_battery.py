@@ -170,6 +170,22 @@ MIXED_NODES = (
 )
 
 
+#: THE NULL ROUND, absent until 2026-09-06 -- so every run before this one ended on its own last
+#: line saying whether any kill above came from reading `direction.py`'s TEXT rather than running
+#: it was UNKNOWN and not ruled out. That is the mirror of the poison floor and it was the second
+#: of the two gaps in the published seven-of-eight verdict; the first was the ungraded supervisor
+#: column. Both are closed in one run rather than two, because the expensive suite is the same one.
+#:
+#: The same anchor as `POISON_OLD` deliberately: the engine asserts it appears exactly once, so a
+#: floor and its mirror sharing an anchor cannot drift into two different uniqueness claims. The
+#: marker carries no string literal, so a suite that greps the source cannot be indifferent to it
+#: for the wrong reason -- and no suite here is expected to redden, which is exactly why the round
+#: is worth running rather than assuming.
+NULL_OLD = "\ndef append_decision("
+NULL_NEW = ("\n_NULL_ROUND_MARKER = None  # behaviour-preserving; tools/contract_battery.py\n"
+            "\n\ndef append_decision(")
+
+
 SPEC = BatterySpec(
     name="direction",
     subject="background/direction.py",
@@ -180,6 +196,8 @@ SPEC = BatterySpec(
     mutations=MUTATIONS,
     poison_old=POISON_OLD,
     poison_new=POISON_NEW,
+    null_old=NULL_OLD,
+    null_new=NULL_NEW,
 )
 
 
