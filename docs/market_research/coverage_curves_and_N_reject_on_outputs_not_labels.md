@@ -36,8 +36,11 @@ drawn house is within 5% of the normalised gas×electricity range.
 > of measuring the two dimensions that were easiest to obtain, not a lower bound with
 > headroom. See `N_was_a_hundred_because_the_sample_was_blind_to_what_the_use_cases_need.md`.
 > The rest of this document — the shape of the curve, and the label-versus-output finding —
-> stands unchanged. The ruling's target is 99% of variance
-including tails, so this is the number it asked for, and it is reported rather than chosen.
+> stands unchanged.
+>
+> The sentence that stood here — "the ruling's target is 99% of variance including tails, so this
+> is the number it asked for" — is withdrawn with the figure. It was true of the two dimensions
+> measured and false of the target, which is variance in the outputs the use cases are scored on.
 
 The curve is not linear and the shape matters: the first fifty houses buy less than the next
 twenty-five. Under ~20 houses the sample is covering the dense middle over and over — which is the
