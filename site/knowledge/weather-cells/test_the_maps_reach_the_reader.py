@@ -68,6 +68,45 @@ def test_the_page_boots_itself_against_the_live_feed():
     assert meta.get("requested"), "the page fetched nothing at all"
 
 
+def test_the_CLASS_MAP_HAS_NO_HOLES_IN_GB_LAND():
+    """THE WHITE GAPS THE DIRECTOR SAW -- in the Highlands, mid-Wales and around Manchester -- and
+    they were a RENDERING HOLE, not missing data.
+
+    1,353 blocks of GB land carried no class at all, because the clustering ran over the 121,668
+    INHABITED cells while HadUK has a winter temperature for all 245,077. Uninhabited Britain had a
+    perfectly good reading and no class. The classes are still FITTED on households; they are now
+    APPLIED to all GB land, which is what a supplier with a customer anywhere must do anyway.
+
+    HELD BY COVERAGE, NOT BY EQUALITY. A 5 km block is classed if any of its twenty-five kilometres
+    is GB land, so block area necessarily EXCEEDS land area -- every coastal block is part sea. The
+    test is that it exceeds it by a coastline's worth and not by a third of the country, and that
+    it never falls short, which is what a hole looks like.
+    """
+    feed = json.loads(FEED.read_text())
+
+    def levels(rows):
+        out = collections.Counter()
+        for row in rows:
+            for part in (row.split(",") if row else []):
+                count, value = part.split(":")
+                out[int(value)] += int(count)
+        return out
+
+    classed = levels(feed["grid"]["bands_rle"])
+    blocks = sum(v for k, v in classed.items() if k >= 0)
+    land_km2 = sum(v for k, v in levels(feed["density"]["rle"]).items() if k >= 0)
+
+    assert classed[-2] > 0, "non-GB land must stay unclassed, or the map implies cells covering it"
+
+    ratio = blocks * 25 / land_km2
+    assert ratio >= 1.0, (
+        f"the class map covers {blocks * 25:,} km2 against {land_km2:,} km2 of GB land -- it is "
+        "SHORT, which is what the white holes were")
+    assert ratio < 1.25, (
+        f"the class map overshoots GB land by {ratio - 1:.0%}; partial coastal blocks explain about "
+        "a tenth, and more than that means it is classing sea or non-GB land")
+
+
 def test_THREE_VISUALS_reach_the_reader():
     """Two maps and one curve. The director asked for three things conveyed and each has a picture;
     a page that rendered two of them is not this page."""
@@ -148,29 +187,47 @@ def test_the_DENSITY_MAP_IS_A_DENSITY_and_not_a_saturating_proportion():
     Households per km^2 spans four orders of magnitude, so THE TEST IS THAT THE BANDS DO TOO.
     """
     feed = json.loads(FEED.read_text())
-    g = feed["grid"]
+    dn = feed["density"]
 
-    labels = g["density_labels"]
-    assert len(labels) >= 6, f"{len(labels)} density bands cannot show four orders of magnitude"
+    assert dn["block_km"] == 1, (
+        "the density map must be drawn at the resolution its caption counts at. At 5 km one hamlet "
+        "colours a whole block, so almost all of Britain reads as covered beside a figure saying "
+        "nearly half of it is empty -- the picture and the number measuring different things and "
+        "the page presenting them as the same.")
+
+    labels = dn["labels"]
+    assert len(labels) >= 5, f"{len(labels)} density bands cannot show four orders of magnitude"
     assert "400" in labels[-1], (
         "the top band must be an absolute count per km2; a proportion has no such band")
 
     levels = collections.Counter()
-    for row in g["density_rle"]:
+    for row in dn["rle"]:
         for part in (row.split(",") if row else []):
             count, value = part.split(":")
             levels[int(value)] += int(count)
 
     occupied = [lvl for lvl in levels if lvl > 0]
-    assert len(occupied) >= 6, f"only {len(occupied)} occupied bands are drawn -- the ramp collapsed"
+    assert len(occupied) >= 5, f"only {len(occupied)} occupied bands are drawn -- the ramp collapsed"
     for lvl in range(1, len(labels)):
-        assert levels[lvl] > 100, (
-            f"band {lvl} ({labels[lvl]}) holds {levels[lvl]} blocks; a band nearly nobody is in is "
+        assert levels[lvl] > 1000, (
+            f"band {lvl} ({labels[lvl]}) holds {levels[lvl]} cells; a band nearly nobody is in is "
             "a band the ramp is wasting")
     drawn = sum(levels[i] for i in range(0, len(labels)))
     assert levels[len(labels) - 1] < drawn / 3, (
         "the top band holds a third of all land -- it is saturating, which is the defect this "
         "panel was rebuilt to remove")
+
+    # AND THE COLOURED SHARE MUST BE THE CAPTIONED SHARE. This is the whole repair: at 1 km a
+    # coloured pixel IS an occupied square kilometre, so counting the pixels must reproduce the
+    # figure printed beside them. At 5 km it did not, and nothing said so.
+    e = feed["emptiness"]
+    coloured = sum(levels[i] for i in range(1, len(labels)))
+    assert coloured == e["land_cells_with_households"], (
+        f"the map colours {coloured:,} cells and the caption claims "
+        f"{e['land_cells_with_households']:,} -- the picture and the number are measuring "
+        "different things again")
+    assert coloured + levels[0] == e["land_cells"], (
+        "the map's GB land does not add up to the GB land the figures count")
 
 
 def test_NOT_GB_LAND_IS_DRAWN_AS_ITS_OWN_THING_and_the_page_says_why():
@@ -185,10 +242,18 @@ def test_NOT_GB_LAND_IS_DRAWN_AS_ITS_OWN_THING_and_the_page_says_why():
     feed = json.loads(FEED.read_text())
 
     levels = set()
-    for row in feed["grid"]["density_rle"]:
+    for row in feed["density"]["rle"]:
         for part in (row.split(",") if row else []):
             levels.add(int(part.split(":")[1]))
     assert -2 in levels, "no land is marked as outside GB; the mask is being drawn as all-British"
+
+    # and the CLASS map must not class it either -- a class map covering Northern Ireland implies a
+    # cell set that covers it, and the derivation is GB-only
+    class_levels = set()
+    for row in feed["grid"]["bands_rle"]:
+        for part in (row.split(",") if row else []):
+            class_levels.add(int(part.split(":")[1]))
+    assert -2 in class_levels, "the class map is drawing non-GB land as though it had a GB class"
 
     assert "#5b4a63" in _html(out, "map-pop"), "the non-GB land is not drawn in its own colour"
     assert "outside GB" in _html(out, "map-pop-src"), "the legend does not name it"

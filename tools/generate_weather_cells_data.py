@@ -62,10 +62,18 @@ CURVE_KS = (1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987)
 #: The driver the map is drawn on. Winter temperature is the one a heat-load reader came for.
 MAP_DRIVER = "winter_temp"
 
-#: Households per square kilometre of land in a block. Logarithmic, because GB spans four orders of
-#: magnitude and a linear ramp would render the whole country outside the cities as one colour.
-DENSITY_CUTS = (0.0, 1.0, 5.0, 20.0, 100.0, 400.0)
-DENSITY_LABELS = ("no households", "under 1", "1-5", "5-20", "20-100", "100-400", "400+")
+#: Households per square kilometre. Logarithmic, because GB spans four orders of magnitude and a
+#: linear ramp would render the whole country outside the cities as one colour.
+#:
+#: DRAWN AT 1 km, WHICH IS WHERE THE CLAIM IS MADE. It was drawn at 5 km against a statistic counted
+#: at 1 km, and the two disagreed on the page: almost all of Britain coloured, beside a caption
+#: saying 47% of it holds nobody. A 5 km block containing one hamlet colours entirely, so the
+#: picture and the number were measuring different things and the page presented them as the same
+#: -- the same-figure-on-two-clocks defect in visual form. At 1 km a coloured pixel IS an occupied
+#: square kilometre and the caption is a count of the pixels.
+DENSITY_CUTS = (0.0, 5.0, 20.0, 100.0, 400.0)
+DENSITY_LABELS = ("no households", "under 5", "5-20", "20-100", "100-400", "400+")
+DENSITY_BLOCK_KM = 1
 
 #: Two negative levels, and they mean different things. Sea is not land. NOT_GB is land the company
 #: has no household data for because it is not in its market -- and drawing those the same is how a
@@ -173,39 +181,47 @@ def build() -> dict:
     rows = ((north + 200_000) // 1000).astype(int)
     grid, out_h, out_w = downsample_modal(bands, rows, cols, drv.GRID_SHAPE)
 
-    # THE SAME GRID, AS HOUSEHOLDS PER SQUARE KILOMETRE.
+    # EVERY GB LAND CELL GETS A CLASS, not only the inhabited ones.
     #
-    # TWO WRONG VERSIONS PRECEDED THIS ONE and both were caught by looking at the picture. The first
-    # shaded a block by whether ANY of its twenty-five kilometres held a household: 81% occupied
-    # against the 49.6% printed beside it. The second used the PROPORTION of a block's cells that
-    # were occupied -- which saturates, so a dense city and a sparse village both read as fully
-    # covered and the map destroys the variation it exists to show.
+    # THE WHITE HOLES IN THE PUBLISHED MAP -- in the Highlands, mid-Wales and around Manchester --
+    # were 1,353 blocks of GB land carrying no class at all, and they were a RENDERING HOLE rather
+    # than missing data: HadUK has a winter temperature for all 245,077 land cells, and the
+    # clustering ran over the 121,668 INHABITED ones. Uninhabited Britain had a perfectly good
+    # temperature and no class.
     #
-    # Households per km^2 spans four orders of magnitude across GB (0.45 at the 5th percentile of
-    # occupied blocks, 5,792 at the peak), so the bands are logarithmic and the map has range again.
+    # The classes are still FITTED on households -- that is the whole point of the derivation and
+    # does not change -- and are now APPLIED to all land, which is what a supplier with a customer
+    # anywhere would have to do anyway.
     all_cols = ((d["east"] + 200_000) // 1000).astype(int)
     all_rows = ((d["north"] + 200_000) // 1000).astype(int)
-    land = np.zeros_like(grid, dtype=float)
-    households = np.zeros_like(grid, dtype=float)
-    lr, lc = all_rows // BLOCK_KM, all_cols // BLOCK_KM
-    np.add.at(land, (lr, lc), 1.0)
-    np.add.at(households, (lr, lc), weights_all)
+    all_z = (d[MAP_DRIVER] - mean[index]) / sd[index]
+    nearest = np.argmin(np.abs(all_z[:, None] - centres[None, :]), axis=1)
+    all_bands = np.array([rank[int(lab)] for lab in nearest])
+    grid, out_h, out_w = downsample_modal(all_bands, all_rows, all_cols, drv.GRID_SHAPE)
 
     # AND NORTHERN IRELAND IS NOT EMPTY BRITAIN. HadUK's mask is the UNITED KINGDOM; ONSPD gives no
     # OSGB grid reference for NI postcodes and this company's market is GB, so 14,911 land cells
-    # arrive with zero households and render identically to a Highland glen. That is absence drawn
-    # as emptiness, and it is the reason this grid carries a level of its own for it.
+    # arrive with zero households. They have temperatures like anywhere else, so they would now be
+    # CLASSED -- and a class map showing Northern Ireland would imply a cell set that covers it.
     gb_mask, gb_stats = wgt.gb_reachable(d)
-    gb_cells = np.zeros_like(grid, dtype=float)
-    np.add.at(gb_cells, (lr[gb_mask], lc[gb_mask]), 1.0)
+    not_gb_block = np.zeros(grid.shape, dtype=float)
+    land_block = np.zeros(grid.shape, dtype=float)
+    br, bc = all_rows // BLOCK_KM, all_cols // BLOCK_KM
+    np.add.at(land_block, (br, bc), 1.0)
+    np.add.at(not_gb_block, (br[~gb_mask], bc[~gb_mask]), 1.0)
+    grid = np.where(not_gb_block > land_block / 2.0, NOT_GB, grid)
 
-    per_km2 = np.where(land > 0, households / np.maximum(land, 1.0), 0.0)
-    density = np.full(grid.shape, SEA, dtype=int)
-    for level, cut in enumerate(DENSITY_CUTS):
-        density = np.where((land > 0) & (per_km2 > cut), level + 1, density)
-    density = np.where((land > 0) & (per_km2 <= DENSITY_CUTS[0]), 0, density)
-    # a block more than half of whose land is outside GB is drawn as NOT GB, whatever its density
-    density = np.where((land > 0) & (gb_cells < land / 2.0), NOT_GB, density)
+    # THE DENSITY MAP AT 1 km -- the resolution its own caption counts at.
+    density = np.full(drv.GRID_SHAPE, SEA, dtype=int)
+    level = np.zeros(len(weights_all), dtype=int)
+    for i, cut in enumerate(DENSITY_CUTS):
+        level = np.where(weights_all > cut, i + 1, level)
+    density[all_rows, all_cols] = level
+    density[all_rows[~gb_mask], all_cols[~gb_mask]] = NOT_GB
+    # cropped to the land bounding box, with the offset published, so the page can place it
+    r0, r1 = int(all_rows.min()), int(all_rows.max()) + 1
+    c0, c1 = int(all_cols.min()), int(all_cols.max()) + 1
+    density = density[r0:r1, c0:c1]
 
     band_stats = []
     for b in range(DECISION_CELLS):
@@ -231,12 +247,19 @@ def build() -> dict:
             "driver": MAP_DRIVER,
             "note": "rows are south-to-north; -1 is sea or unpopulated land",
             "bands_rle": [_rle(row.tolist()) for row in grid],
-            "density_rle": [_rle(row.tolist()) for row in density],
-            "density_labels": list(DENSITY_LABELS),
-            "density_note": "-2 land outside Great Britain (no household data), -1 sea, "
-                            "0 GB land with no household, 1+ households per km2 of land",
+            "bands_note": "classes FITTED on households, APPLIED to all GB land -- an uninhabited "
+                          "cell has a temperature and therefore a class",
             "populated_1km_cells": int((weights_all > 0).sum()),
             "land_1km_cells_in_map": int(len(weights_all)),
+        },
+        "density": {
+            "block_km": DENSITY_BLOCK_KM,
+            "height": int(density.shape[0]), "width": int(density.shape[1]),
+            "rle": [_rle(row.tolist()) for row in density],
+            "labels": list(DENSITY_LABELS),
+            "note": "-2 land outside Great Britain (no household data), -1 sea, 0 GB land with no "
+                    "household, 1+ households per km2. ONE PIXEL IS ONE SQUARE KILOMETRE, which is "
+                    "the resolution the occupancy figures beside it are counted at.",
         },
         "bands": band_stats,
         "coverage": {

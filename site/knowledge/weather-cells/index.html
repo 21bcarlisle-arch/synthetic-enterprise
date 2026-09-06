@@ -89,14 +89,21 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       in Pembrokeshire can share a cell while the hill between them belongs to another.</p>
       <p class="muted">This is why the cells are useless as an administrative geography and exactly
       right as a lookup. Nothing here follows a gas zone, a GSP group or a county.</p>
+      <p class="muted"><b>The two maps are drawn at different resolutions on purpose.</b> The class
+      map is 5 km blocks, because it shows which of 21 classes a place belongs to and a class does
+      not change over five kilometres. The density map is 1 km, because its caption counts square
+      kilometres &mdash; drawn at 5 km it showed almost all of Britain coloured beside a figure
+      saying nearly half of it is empty, since one hamlet colours a whole block.</p>
       <div class="maps">
         <div class="chartwrap">
-          <div class="chart-cap">Winter-temperature class, coldest (blue) to warmest (amber)</div>
+          <div class="chart-cap">Winter-temperature class, coldest (blue) to warmest (amber)
+          &mdash; <b>5 km blocks</b></div>
           <div id="map-bands"></div>
           <div class="chart-src" id="map-src">&hellip;</div>
         </div>
         <div class="chartwrap">
-          <div class="chart-cap">The same land, shaded by households per square kilometre</div>
+          <div class="chart-cap">Households per square kilometre &mdash; <b>1 km cells, one pixel
+          per km&sup2;</b></div>
           <div id="map-pop"></div>
           <div class="chart-src" id="map-pop-src">&hellip;</div>
         </div>
@@ -282,12 +289,13 @@ function curveSvg(joint, perDriver, targets){
 function fmt(n){ return n.toLocaleString("en-GB"); }
 
 function render(d){
-  var g=d.grid, cov=d.coverage, e=d.emptiness;
+  var g=d.grid, dn=d.density, cov=d.coverage, e=d.emptiness;
   var nb=d.bands.length;
   document.getElementById("m-bands").textContent=String(nb);
   document.getElementById("map-src").textContent =
-    g.block_km+" km blocks, "+g.width+"×"+g.height+", modal class per block. "+
-    nb+" classes on winter mean temperature.";
+    g.block_km+" km blocks, "+g.width+"×"+g.height+", modal class per block. "+nb+
+    " classes fitted on where households are and applied to all GB land — an uninhabited " +
+    "kilometre has a temperature, so it has a class.";
 
   document.getElementById("map-bands").innerHTML = mapSvg(g.bands_rle, function(v){
     return v<0 ? null : RAMP[Math.round(v*(RAMP.length-1)/Math.max(1,nb-1))];
@@ -300,20 +308,21 @@ function render(d){
   // sparse village both read as fully covered -- and destroys the variation the map exists to show.
   var POP = ["#22312f","#2f4f4a","#356b60","#3a8a78","#46a98f","#6fc7a8","#a8e0c6"];
   var NOT_GB_FILL = "#5b4a63";
-  document.getElementById("map-pop").innerHTML = mapSvg(g.density_rle, function(v){
+  document.getElementById("map-pop").innerHTML = mapSvg(dn.rle, function(v){
     if(v === -2) return NOT_GB_FILL;
     if(v < 0) return null;
     return POP[Math.min(v, POP.length-1)];
-  }, "Households per square kilometre in each 5 km square of Great Britain");
+  }, "Households per square kilometre of Great Britain, one pixel per square kilometre");
   document.getElementById("map-pop-src").innerHTML =
     '<span class="legend">' +
-    g.density_labels.map(function(lab, i){
+    dn.labels.map(function(lab, i){
       return '<span><i style="background:'+POP[Math.min(i, POP.length-1)]+'"></i>'+esc(lab)+'</span>';
     }).join("") +
     '<span><i style="background:'+NOT_GB_FILL+'"></i>outside GB — no data</span></span>' +
-    '<div style="margin-top:6px">Households per km² of land in the block. ' +
-    fmt(e.land_cells_with_households) + " of " + fmt(e.land_cells) + " km² of GB land (" +
-    Math.round(100 * e.land_cells_with_households / e.land_cells) + "%) hold a household.</div>";
+    '<div style="margin-top:6px"><b>One pixel is one square kilometre</b>, which is what the ' +
+    'figures beside it count: ' + fmt(e.land_cells_with_households) + " of " + fmt(e.land_cells) +
+    " km² of GB land (" + Math.round(100 * e.land_cells_with_households / e.land_cells) +
+    "%) hold a household, and that is the coloured share of this map.</div>";
 
   document.getElementById("e-land").textContent=fmt(e.land_cells);
   document.getElementById("e-occ").textContent=fmt(e.land_cells_with_households);
