@@ -1760,6 +1760,63 @@
   file_scope: ['tools/independent_bill_validator.py', 'company/billing/', 'docs/design/WHAT_THE_BILL_VALIDATION_CANNOT_CATCH.md']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier whose billing engine was proved correct against the customers it already had, meeting its first prepayment change-of-tenancy with an estimated opening read."
+- id: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system
+  title: "whether a property has a mains gas connection is a drawn attribute, from the same NEED rows floor area came from"
+  gain: "HOUSING RULING section 3.1 names 'heating system and fuel INCLUDING NO MAINS GAS'. Measured 2026-09-05: neither the DrawnPremise nor the Household carries any gas field at all, so off-gas is today INFERRED from the heating system -- which gets it backwards, because a property off the gas grid has no gas option to choose from and the causation runs connection -> system, not system -> connection. THE ANCHOR IS ALREADY PULLED: docs/market_research/floor_area_anchor_need_2026_hmrc_bands.md established DESNZ NEED anon2026_50k as open, account-free and HMRC-sourced, and the same 50,000 rows carry the gas/electricity split per dwelling. EXIT: a drawn mains-gas attribute whose marginal recovers the published off-gas share, with the existing heating-system marginals unmoved (a fidelity change to either is decided blind to P&L, never a side effect). WATCH THE CENSORING: NEED blanks gas readings under 1,000 kWh, so 'no gas reading' and 'no gas connection' are DIFFERENT and the first must not be read as the second -- that conflation would manufacture an off-gas population out of small flats."
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted BEFORE the work that precedes it finished, because the
+  #   director's fifth instance of "the follow-on was not in the queue" was traced to a NEXT
+  #   trailer naming W2_18 -- the whole ruling deliverable -- which is true and undrawable. A
+  #   bounded tick cannot pick up "the housing joint"; it can pick up this.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope: ['simulation/household.py', 'simulation/population_draw.py', 'docs/market_research/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that decides a household is off-grid because its gas meter read nothing this quarter."
+- id: W2_21_the_premise_joint_is_fitted_not_drawn_independently
+  title: "the physical quantities are drawn from a fitted joint with their published correlations, not axis by axis"
+  gain: "HOUSING RULING section 3.1: the fitted joint of the quantities that carry the variance, WITH THEIR PUBLISHED CORRELATIONS -- flats are newer and smaller, pre-1919 is solid-wall, rural is detached and off-gas and has a drive. The machine's own D-SEGMENT pass found the defect this closes: twenty-one trait axes drawn overwhelmingly INDEPENDENTLY. DEPENDS ON W2_20 AND THE FLOOR-AREA ANCHOR because a joint needs its margins first. THE NEED 50k SAMPLE IS THE FITTING SOURCE and it carries PROP_TYPE x PROP_AGE_BAND x FLOOR_AREA_BAND x REGION x metered consumption on one row per dwelling, so the correlations are measured rather than asserted. EXIT: every existing marginal recovers to the tolerance its current test enforces, AND at least one published correlation the independent draw could not produce is reproduced. THE FAILURE MODE TO REFUSE: an invented correlation matrix where a published cross-tab exists -- the ruling forbids it and the small-area data is what makes it unnecessary."
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted BEFORE the work that precedes it finished, because the
+  #   director's fifth instance of "the follow-on was not in the queue" was traced to a NEXT
+  #   trailer naming W2_18 -- the whole ruling deliverable -- which is true and undrawable. A
+  #   bounded tick cannot pick up "the housing joint"; it can pick up this.
+  provenance: director_ruling
+  depends_on: [W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system]
+  couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope: ['simulation/population_draw.py', 'simulation/premise_population.py', 'docs/market_research/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a stock model that draws a 40 square metre detached house because nothing told it those two facts travel together."
+- id: W2_22_the_sample_is_space_filling_and_rejects_on_outputs
+  title: "draw for difference: a candidate house is rejected when one already drawn would behave the same"
+  gain: "HOUSING RULING section 1 and 3.2, and the director's framing is the whole of it: 'Draw for DIFFERENCE, not for proportion. Two London terraces on one street teach the world nothing the first did not.' AND THE REJECTION IS JUDGED ON OUTPUTS, NOT INPUTS -- usage level, shape, weather gradient, and the ceiling on each lever -- never on type/age/size labels. That distinction is the atom: a similarity test run on inputs produces a sample matching every marginal and missing every joint corner, which is failure mode (a) the ruling names. DELIVERS the two coverage curves (distinct houses versus variance covered; tail coverage as the share of the population's top 1% on each output represented) and therefore N, which is REPORTED rather than chosen. Coverage is a property of the ENSEMBLE OF RUNS with a visited-corner ledger across lives -- the director explicitly does not want every house in every geography in one run."
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted BEFORE the work that precedes it finished, because the
+  #   director's fifth instance of "the follow-on was not in the queue" was traced to a NEXT
+  #   trailer naming W2_18 -- the whole ruling deliverable -- which is true and undrawable. A
+  #   bounded tick cannot pick up "the housing joint"; it can pick up this.
+  provenance: director_ruling
+  depends_on: [W2_21_the_premise_joint_is_fitted_not_drawn_independently]
+  couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope: ['simulation/population_draw.py', 'tools/', 'docs/market_research/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a research panel recruited to match the census on every margin, in which every respondent turns out to be the same person twice."
 - id: PB5_pounds_or_percent_resolved
   title: "P5: does the switching decision key on a percentage saving or on pounds a year, and what does the evidence say"
   gain: "Director, 2026-08-28 (P5): 'If the switching decision keys on percentage saving, every household is equally worth chasing per point of margin. If it keys on GBP, a large home is far cheaper to win because the same percentage buys more visible saving, and customer value scales with consumption in a way a percentage world misses entirely. GB comparison sites and the cap headline both present annual GBP. Establish what our world uses, what the evidence says, and reconcile.' PARTLY ANSWERED ALREADY and that is why this is small: simulation/customer_events.py's own comment records that the calibrated churn curve was always a function of an ABSOLUTE annual saving, and that the conversion into it used one market-average bill for every household until 2026-08-27, when it was changed to this household's own bill in pounds. So the world is now a GBP world at the point of decision. What is NOT established is whether the acquisition and retention decisions on the company side agree -- and a world that decides in pounds while the company targets in percent is a systematically distorting mismatch, not a rounding difference. This atom establishes both sides and reconciles them, with the external evidence (comparison-site presentation, the cap headline) cited."

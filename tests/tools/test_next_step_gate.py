@@ -197,3 +197,66 @@ def test_the_gate_fires_when_run_THE_WAY_THE_HOOK_RUNS_IT(tmp_path):
     assert "not blocking" not in done.stderr, (
         "the gate fell through its fail-open branch -- it cannot import its own dependency"
     )
+
+def test_an_atom_named_BY_NUMBER_engages_the_gate():
+    """THE DEFECT THAT MADE THIS GATE SILENT FOR FIVE INSTANCES OF ITS OWN SUBJECT.
+
+    Nobody writes `W2_18_the_housing_joint_the_sample_and_the_ceiling` in a subject line; they
+    write "W2_18 stage 1". Measured over the 17 commits that carried a NEXT trailer, only FOUR
+    named an atom by full id -- so `named` came back empty, `verdict` took its "nothing to follow"
+    branch, and the trailer was never examined. Seventeen compliant-looking commits, an empty
+    queue, and the director reporting the same failure five times with a different explanation
+    each time.
+    """
+    known = {"W2_18_the_housing_joint_the_sample_and_the_ceiling"}
+    ok, why = gate.verdict("W2_18 stage 1: measure the draw before extending it\n", known)
+
+    assert ok is False
+    assert "records no next step" in why
+
+
+def test_a_number_that_is_only_part_of_a_longer_token_does_not_match():
+    """The false-positive leg. Without a boundary, `W2_1` matches `W2_18` and every commit
+    mentioning one atom engages the gate for another."""
+    known = {"W2_1_archetype_layers"}
+
+    assert gate.atoms_named_in("work on W2_18 today", known) == set()
+    assert gate.atoms_named_in("work on W2_1 today", known) == known
+
+
+def test_AN_ATOM_CANNOT_BE_ITS_OWN_SUCCESSOR():
+    """THE SECOND HALF, and it is what makes the first half worth having.
+
+    Four of six trailers this seat wrote named `W2_18` -- the atom the commit was already inside.
+    A ruling-sized atom is not a queue unit: "the housing joint, the sample and the ceiling" is a
+    programme, so a bounded tick reading it has no first move and draws the machinery in front of
+    it instead. Naming it as your own successor is true and puts nothing in the queue.
+    """
+    known = {"W2_18_the_housing_joint_the_sample_and_the_ceiling"}
+    msg = ("W2_18 stage 1: measure the draw\n\n"
+           "NEXT: W2_18_the_housing_joint_the_sample_and_the_ceiling\n")
+    ok, why = gate.verdict(msg, known)
+
+    assert ok is False
+    assert "already working on" in why
+
+
+def test_a_DIFFERENT_atom_is_a_real_successor_and_passes():
+    """The negative leg: without it, a gate that refused every trailer would satisfy the test
+    above while making the mechanism unusable."""
+    known = {"W2_18_the_housing_joint_the_sample_and_the_ceiling",
+             "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system"}
+    msg = ("W2_18 stage 1: measure the draw\n\n"
+           "NEXT: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system\n")
+
+    assert gate.verdict(msg, known)[0] is True
+
+
+def test_the_successor_on_the_trailer_does_not_count_as_the_commits_own_subject():
+    """The trap the self-succession refusal walks into if `named` is read off the whole message:
+    the successor names itself on the NEXT line, so every correct trailer reads as
+    self-succession. The trailers are stripped before the subject is computed."""
+    known = {"W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system"}
+    msg = "an ordinary machinery commit\n\nNEXT: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system\n"
+
+    assert gate.verdict(msg, known)[0] is True

@@ -102,18 +102,40 @@ def open_atom_ids() -> set[str]:
 
 
 def atoms_named_in(message: str, known: set[str]) -> set[str]:
-    """Which open atoms this commit message names.
+    """Which open atoms this commit message names -- BY FULL ID OR BY NUMBER.
 
-    Substring rather than a word boundary, because atom ids are long and distinctive
-    (`PB4_engagement_separated_from_elasticity`) and appear inside prose, backticks, paths and
-    parentheses. A false positive here costs one trailer; a false negative costs the whole point.
+    Substring rather than a word boundary for the full id, because atom ids are long and
+    distinctive (`PB4_engagement_separated_from_elasticity`) and appear inside prose, backticks,
+    paths and parentheses. A false positive costs one trailer; a false negative costs the point.
+
+    THE NUMBER FORM IS WHY THIS GATE WAS SILENT FOR FIVE INSTANCES OF ITS OWN DEFECT. Measured
+    2026-09-06 over the 17 commits that carried a NEXT trailer: only FOUR named an atom by its full
+    id. Nobody writes `W2_18_the_housing_joint_the_sample_and_the_ceiling` in a subject line -- they
+    write "W2_18 stage 1". So `named` came back empty, `verdict` took its "no open atom named;
+    nothing to follow" branch, and the trailer was NEVER EXAMINED. Every successor I wrote was
+    decorative, and the queue stayed empty while the commits looked compliant.
+    Matching the number prefix as well lifts the gate from 4 of 17 to 10; the other 7 genuinely name
+    no atom and are correctly left alone.
+
+    A number matching several atoms returns all of them. Over-matching costs a trailer; under-
+    matching is the failure above.
     """
-    return {aid for aid in known if aid in message}
+    named = {aid for aid in known if aid in message}
+    for aid in known:
+        m = re.match(r"^([A-Z]+[0-9]+(?:_[0-9]+)?)_", aid)
+        if m and re.search(rf"(?<![A-Za-z0-9_]){re.escape(m.group(1))}(?![A-Za-z0-9_])", message):
+            named.add(aid)
+    return named
 
 
 def verdict(message: str, known_open: set[str]) -> tuple[bool, str]:
     """(passes, explanation). Pure, so the controls can drive it without a repo or a commit."""
-    named = atoms_named_in(message, known_open)
+    # THE SUBJECT IS THE COMMIT, NOT ITS TRAILER. `atoms_named_in` scans the whole message, so a
+    # successor named on the NEXT line names itself -- and the self-succession refusal below would
+    # then reject every correct trailer. Strip the trailers first: what is left is what this commit
+    # actually advanced.
+    body = _NEXT_RE.sub("", message)
+    named = atoms_named_in(body, known_open)
     if not named:
         return True, "no open atom named; nothing to follow"
 
@@ -133,6 +155,28 @@ def verdict(message: str, known_open: set[str]) -> tuple[bool, str]:
     for raw in found:
         if _NONE_RE.match(raw):
             continue
+        if raw in named:
+            # SELF-SUCCESSION, and it is why this gate did not stop five instances of the defect
+            # it was built for. Measured 2026-09-05: four of six NEXT trailers named
+            # `W2_18_the_housing_joint_the_sample_and_the_ceiling` -- INCLUDING the commits that
+            # were W2_18 work. Every one satisfied the gate and none of them put a drawable thing
+            # in the queue.
+            #
+            # The reason is that a ruling-sized atom is not a queue unit. "The housing joint, the
+            # sample and the ceiling" is a programme: a bounded tick reading it has no first move,
+            # so it falls back to the machinery in front of it, which does. Naming it as your own
+            # successor is true and useless.
+            #
+            # So the successor must be a DIFFERENT atom -- which forces the sub-step to be minted,
+            # which is the whole point. `none -- <reason>` is still available and still counted.
+            return False, (
+                f"NEXT names `{raw}`, which this commit is already working on.\n"
+                "An atom cannot be its own successor: naming it puts nothing new in the queue, and "
+                "a ruling-sized atom is not something a bounded tick can pick up -- it draws the "
+                "machinery in front of it instead. That is the exact failure this gate exists to "
+                "prevent and it passed five times.\n"
+                "Mint the next bounded step and name THAT, or `NEXT: none -- <reason>`."
+            )
         if raw in known_open or _looks_like_atom_id(raw):
             continue
         return False, (
