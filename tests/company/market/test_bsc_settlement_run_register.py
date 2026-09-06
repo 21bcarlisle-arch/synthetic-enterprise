@@ -1,10 +1,18 @@
 """Tests for BSC Settlement Run Tracking Register (Phase DH)."""
 import datetime as dt
+
 import pytest
+from dateutil.relativedelta import relativedelta
+
 from company.market.bsc_settlement_run_register import (
-    SettlementRunType, AdjustmentDirection, SettlementRunRecord,
-    BSCSettlementRunRegister, _MATERIAL_VARIANCE_THRESHOLD,
+    _MATERIAL_VARIANCE_THRESHOLD,
+    _SETTLEMENT_RUN_MONTHS,
+    AdjustmentDirection,
+    BSCSettlementRunRegister,
+    SettlementRunRecord,
+    SettlementRunType,
 )
+from company.regulatory.settlement_reconciliation import ELEXON_RUN_MONTHS
 
 
 @pytest.fixture
@@ -73,20 +81,38 @@ class TestSettlementRunRecord:
                              pcan_reference="PCAN-2023-001")
         assert rec.pcan_reference == "PCAN-2023-001"
 
-    def test_expected_run_date_sf(self, reg):
-        rec = reg.record_run(dt.date(2023, 1, 1), SettlementRunType.SF,
-                             RECV, 1000.0, 250.0)
-        assert rec.expected_run_date == dt.date(2023, 1, 1)
+    # THE DEFECT THESE NAME. Until 2026-09-06 the three tests here were
+    # `test_expected_run_date_sf` / `_r1_five_months` / `_rf_28_months`, each
+    # pinning one hand-typed month figure -- 0, 5 and 28 -- to a literal date.
+    # Every one of those figures was wrong against Elexon's published timetable,
+    # and because the control was keyed to TODAY'S ANSWER rather than to the
+    # property, all three passed for as long as the module stayed wrong and
+    # would have gone red on the day it was corrected. That is exactly backwards.
+    # Keyed to the property instead: the run date is the SOURCED lag applied to
+    # the settlement date, for every run, whatever Elexon's figures become.
 
-    def test_expected_run_date_r1_five_months(self, reg):
-        rec = reg.record_run(dt.date(2023, 1, 1), SettlementRunType.R1,
-                             dt.date(2023, 6, 15), 1000.0, 250.0)
-        assert rec.expected_run_date == dt.date(2023, 6, 1)
+    def test_every_runs_expected_date_is_the_SOURCED_lag_from_the_settlement_date(self, reg):
+        # Month arithmetic done by a different route from the subject's own
+        # (relativedelta, not hand-rolled modulo), so agreement is evidence
+        # rather than a mirror of the implementation.
+        settlement_date = dt.date(2023, 1, 17)
+        for run in SettlementRunType:
+            rec = reg.record_run(settlement_date, run, RECV, 1000.0, 250.0)
+            expected = (settlement_date
+                        + relativedelta(months=ELEXON_RUN_MONTHS[run.value])).replace(day=1)
+            assert rec.expected_run_date == expected, (
+                f"{run.value}: expected {expected}, got {rec.expected_run_date}"
+            )
 
-    def test_expected_run_date_rf_28_months(self, reg):
-        rec = reg.record_run(dt.date(2023, 1, 1), SettlementRunType.RF,
-                             dt.date(2025, 5, 1), 1000.0, 250.0)
-        assert rec.expected_run_date == dt.date(2025, 5, 1)
+    def test_the_register_holds_NO_timetable_of_its_own(self, reg):
+        # The finding this file's module docstring records: one legal timetable,
+        # four implementations, a sourced correction that reached two of them.
+        # This is the leg that makes a fifth copy here impossible -- it goes red
+        # if the map is ever re-typed, and stays green when Elexon's own numbers
+        # change, because both sides move together.
+        assert _SETTLEMENT_RUN_MONTHS == {
+            run: ELEXON_RUN_MONTHS[run.value] for run in SettlementRunType
+        }
 
 
 class TestBSCSettlementRunRegisterQueries:

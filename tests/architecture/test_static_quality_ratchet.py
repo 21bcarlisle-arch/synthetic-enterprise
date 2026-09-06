@@ -721,7 +721,17 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1321,  # lowered 2026-09-06 (second C32 turn): converging the last two vocabularies
+    "I001": 1319,  # lowered 2026-09-06 (one Elexon timetable): the settlement-timetable convergence
+    #             opened `company/regulatory/settlement_reconciliation.py` (it gains the public
+    #             ELEXON_RUN_MONTHS the register and the published feed now read instead of copying)
+    #             and `tests/company/market/test_bsc_settlement_run_register.py` (it gains the
+    #             sourced mapping and `relativedelta`). Both blocks were unsorted AT CLEAN HEAD, so
+    #             the pre-existing red would have wedged this commit — the same trap as the two
+    #             entries below. `--fix` used, diff READ before accepting: imports only, no `noqa`
+    #             in either block. THE SHARED TREE READS 1318 AND THAT IS NOT THIS COMMIT'S NUMBER;
+    #             the third fix is another lane's uncommitted work and is theirs to bank. Measured
+    #             in a `git archive HEAD` extract overlaid with exactly this commit's files: 1319.
+    #             SHRINK-ONLY. Was 1321, lowered 2026-09-06 (second C32 turn): converging the last two vocabularies
     #             opened the two suites' import blocks. THE SHARED TREE READS 1320 AND THAT IS NOT
     #             THIS COMMIT'S NUMBER — the third fix is another lane's uncommitted edit to
     #             `tests/tools/test_generate_maturity_map_data.py`, and freezing 1320 would red
@@ -758,7 +768,13 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2300  # was 2302; -2 (I001) on 2026-09-06, atom C32's second turn: the last
+RUFF_BASELINE_TOTAL = 2298  # was 2300; -2 (I001) on 2026-09-06, one Elexon timetable: the sourced
+                            # run months became public so the register and the published feed could
+                            # read them instead of copying, opening two import blocks that were
+                            # unsorted at clean HEAD. Measured in the overlaid HEAD extract (2298),
+                            # not the shared tree (2297) — a third I001 fix in flight is another
+                            # lane's.
+                            # Was 2302; -2 (I001) on 2026-09-06, atom C32's second turn: the last
                             # two vulnerability vocabularies converged and both suites' import
                             # blocks were opened to do it. Measured in the overlaid HEAD extract
                             # (2300), not the shared tree (2299) — a third I001 fix in flight

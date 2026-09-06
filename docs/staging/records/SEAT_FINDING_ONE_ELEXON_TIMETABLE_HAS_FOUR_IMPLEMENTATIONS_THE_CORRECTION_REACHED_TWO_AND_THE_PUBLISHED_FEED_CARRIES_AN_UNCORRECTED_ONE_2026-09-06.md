@@ -1,5 +1,41 @@
 **Severity:** BLOCKING · **Lane:** E_finance_treasury · **Epoch:** 2 · **Atom:** EP5_settlement_true_ups
 
+**Discharged:** 2026-09-06. The four implementations are one.
+`company/regulatory/settlement_reconciliation.py::ELEXON_RUN_MONTHS` is now the single sourced
+definition; `company/market/bsc_settlement_run_register.py` and `tools/generate_world_data.py`
+READ it (defects (b) and (c)); `simulation/settlement_timetable.py`'s docstring is corrected
+beside its own constants (defect (a)); `site/data/world.json` is regenerated and now serves
+Elexon's SF 1 / R1 2 / R2 4 / R3 7 / RF 14. Controls, each poison-proven below:
+`tests/tools/test_the_published_settlement_timetable_is_the_sourced_one.py` (three legs over the
+seam that reaches the site) and
+`tests/company/market/test_bsc_settlement_run_register.py::TestSettlementRunRecord::test_the_register_holds_NO_timetable_of_its_own`.
+
+**Poison rounds run before this discharge was written** (R15: "survived" means two opposite
+things, so reachability is proven, not assumed):
+
+| poison | what it simulates | result |
+|---|---|---|
+| `ELEXON_RUN_MONTHS["RF"] = 28` | the DF figure re-attached to RF at source | published-ladder leg **RED** |
+| generator re-types `months=28` for RF, feed regenerated | defect (c) exactly, re-committed | published-ladder leg **RED**, prose/number leg **RED** |
+| register re-types its own `_SETTLEMENT_RUN_MONTHS` map | defect (b) exactly, re-committed | both register legs **RED** |
+
+**Item 2, the deletion recommendation, was NOT taken, and here is why.** The finding recommended
+deleting `bsc_settlement_run_register.py` outright on the grounds that it has no non-test
+importers and no citation. It now has a citation and holds no timetable of its own, which removes
+the liability the recommendation was made against — a module that cannot disagree with the source
+is not a second timetable. Deleting a live module with a passing suite is a larger, less
+reversible act than making it read the truth, and the seat's call is the smaller one. Its *reach*
+finding (zero non-test importers) stands and is untouched by this turn; if the lane that owns it
+wants it gone, nothing here obstructs that.
+
+**What is NOT claimed.** The variance bands (`±0.5%` HH / `±4%` non-HH) remain unverified and are
+still named as such in `docs/market_research/elexon_settlement_run_timetable_verified.md` — this
+turn did not touch them. And the control is one leg over the published seam, not a census of every
+settlement timetable in the tree: a fifth copy that reaches neither the register nor the feed would
+still be invisible. That was a deliberate scoping call (the direction: *"do not build a register of
+implementations; one leg over the seam that actually reaches the site"*), and it is the honest bound
+on this discharge.
+
 # One Elexon settlement timetable has four implementations, the sourced correction reached two, and the published feed carries an uncorrected one
 
 **Found:** 2026-09-06 scheduled tick, LANE 3 DISCOVER/FRAME draw on `EP5_settlement_true_ups`, asking

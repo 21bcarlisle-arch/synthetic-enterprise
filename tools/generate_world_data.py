@@ -22,8 +22,10 @@ all real:
   3. METER READ estimate-vs-actual -- dashboard.customers.meter_read_log: the
      company bills partly on ESTIMATED reads (traditional meters, read delay);
      the sim knows true half-hourly consumption. The BSC settlement-run ladder
-     (SF -> R1 -> R2 -> R3 -> RF, company/market/bsc_settlement_run_register.py)
-     is the real mechanism that progressively replaces estimates with actuals.
+     (SF -> R1 -> R2 -> R3 -> RF) is the real mechanism that progressively
+     replaces estimates with actuals; its timings are READ from
+     company/regulatory/settlement_reconciliation.py::ELEXON_RUN_MONTHS, the one
+     sourced definition in the tree, never restated here.
   4. POINT-IN-TIME BLINDFOLD -- sim_data.json (real Elexon SSP price series,
      incl. the 2021-22 crisis the sim knows in full) + dashboard.market.
      contango_monthly: the company prices forward under blindness to the future
@@ -190,13 +192,29 @@ def _crossing_meter_reads(dashboard):
     trad_pct = round(100 * traditional / total, 1) if total else None
     mean_delay = round(sum(delays) / len(delays), 2) if delays else None
     # The BSC settlement-run ladder -- the real mechanism that replaces estimates
-    # with actuals over time (company/market/bsc_settlement_run_register.py).
+    # with actuals over time.
+    #
+    # THE TIMINGS ARE READ, NOT TYPED, and that is the whole point of this block.
+    # Until 2026-09-06 these five dicts hand-carried "T + 14 days / 5 / 14 / 26 / 28
+    # months" -- a copy of a copy, wrong against Elexon's own published timetable,
+    # SERVED in site/data/world.json under Poesys's name, with an `evidence` field
+    # naming a module this file does not import and which was wrong in the same way.
+    # A sourced correction had landed in settlement_reconciliation.py nineteen days
+    # earlier and could not reach a literal. Deferred import (not module-level) for
+    # the same reason as segment_revenue_mix below: sys.path is only complete after
+    # the block at the top of this file.
+    from company.regulatory.settlement_reconciliation import ELEXON_RUN_MONTHS
+    _LADDER_READS = [
+        ("SF", "First Settlement run", "estimated reads"),
+        ("R1", "First Reconciliation", "first smart/actual reads"),
+        ("R2", "Second Reconciliation", "validated reads"),
+        ("R3", "Third Reconciliation", "further corrections"),
+        ("RF", "Final Reconciliation", "last SCHEDULED run; DF at 28 months is disputes only"),
+    ]
     settlement_ladder = [
-        dict(run="SF", name="Initial Settlement", timing="T + 14 days", reads="estimated reads"),
-        dict(run="R1", name="First Reconciliation", timing="T + 5 months", reads="first smart/actual reads"),
-        dict(run="R2", name="Second Reconciliation", timing="T + 14 months", reads="validated reads"),
-        dict(run="R3", name="Third Reconciliation", timing="T + 26 months", reads="further corrections"),
-        dict(run="RF", name="Final Reconciliation", timing="T + 28 months", reads="final, no further runs"),
+        dict(run=run, name=name, months=ELEXON_RUN_MONTHS[run],
+             timing="T + " + str(ELEXON_RUN_MONTHS[run]) + " months", reads=reads)
+        for run, name, reads in _LADDER_READS
     ]
     return dict(
         id="meter_reads",
@@ -217,9 +235,9 @@ def _crossing_meter_reads(dashboard):
         estimated_count=estimated,
         traditional_count=traditional,
         basis="read-months, share billed on estimated vs actual reads (mean read delay " + (str(mean_delay) if mean_delay is not None else "?") + " days)",
-        mechanism="Where a real read is not yet in, the company bills on an ESTIMATE and cannot ask the sim for the truth. UK settlement then corrects it: the BSC run ladder (SF -> R1 -> R2 -> R3 -> RF) progressively swaps estimates for actuals over ~28 months, each run a credit/debit adjustment the company observes via its PCAN statements -- never by reading the sim's meter.",
+        mechanism="Where a real read is not yet in, the company bills on an ESTIMATE and cannot ask the sim for the truth. UK settlement then corrects it: the BSC run ladder (SF -> R1 -> R2 -> R3 -> RF) progressively swaps estimates for actuals over 14 months, RF being the last SCHEDULED run, each run a credit/debit adjustment the company observes via its PCAN statements -- never by reading the sim's meter. (The 28-month figure sometimes quoted for GB settlement is DF, the dispute rectification run, which an undisputed settlement day never reaches.)",
         settlement_ladder=settlement_ladder,
-        evidence="site/data/dashboard.json -> customers.meter_read_log; company/market/bsc_settlement_run_register.py",
+        evidence="site/data/dashboard.json -> customers.meter_read_log; timetable from company/regulatory/settlement_reconciliation.py::ELEXON_RUN_MONTHS, sourced in docs/market_research/elexon_settlement_run_timetable_verified.md",
         evidence_url="../data/dashboard.json",
     )
 

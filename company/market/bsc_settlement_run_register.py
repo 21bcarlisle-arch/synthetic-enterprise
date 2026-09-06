@@ -1,13 +1,26 @@
 """BSC Settlement Run Tracking Register (Phase DH).
 
 UK BSC P272 / SVA Settlement Process: each settlement period undergoes multiple
-reconciliation runs after the Initial Settlement (SF):
+reconciliation runs after the first run (SF). This module does not state the
+timetable — it READS it, from `company.regulatory.settlement_reconciliation.
+ELEXON_RUN_MONTHS`, which carries the citation.
 
-  SF  — Initial Settlement:       T + 14 days (estimated reads)
-  R1  — First Reconciliation:     T + 5 months (first smart/actual reads)
-  R2  — Second Reconciliation:    T + 14 months (validated reads)
-  R3  — Third Reconciliation:     T + 26 months (further corrections)
-  RF  — Final Reconciliation:     T + 28 months (final, no further runs)
+CORRECTED 2026-09-06. This docstring, the enum comments below and the run-months
+map each stated the timetable independently, as fact, with no citation on any of
+them, and all three were wrong: SF at 14 days, R1 at 5 months, R2 at 14, R3 at
+26, RF at 28. Against Elexon's own timetable (Priestley, *Settlement Timetable*,
+16 June 2014, slide 2, read directly — transcribed in
+`docs/market_research/elexon_settlement_run_timetable_verified.md`) the scheduled
+runs are SF 1 / R1 2 / R2 4 / R3 7 / RF 14 months. Elexon's RF figure (14) was
+attached here to R2, and its DF figure (28 — the DISPUTES-ONLY rectification run,
+which an ordinary settlement day never reaches) was attached here to RF, so this
+register had every settlement day carrying a dispute-length tail and calling the
+end of it "final, no further runs".
+
+The sourced correction landed in `settlement_reconciliation.py` on 2026-08-29 and
+did not reach here for nineteen days, because nothing in the tree could observe
+two settlement timetables disagreeing. That is why this file now imports rather
+than restates: a copy is what made the correction miss it.
 
 Each run may produce a credit or debit adjustment vs the prior run. Suppliers must
 account for these as revenue adjustments. Unmatched runs are a BSC compliance risk.
@@ -30,13 +43,18 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional
 
+from company.regulatory.settlement_reconciliation import ELEXON_RUN_MONTHS
+
 
 class SettlementRunType(str, Enum):
-    SF = "SF"   # Initial Settlement
-    R1 = "R1"   # First Reconciliation (~5 months)
-    R2 = "R2"   # Second Reconciliation (~14 months)
-    R3 = "R3"   # Third Reconciliation (~26 months)
-    RF = "RF"   # Final Reconciliation (~28 months)
+    """The scheduled SVA runs. Timings are NOT restated here on purpose — they
+    live once, in ELEXON_RUN_MONTHS; a comment carrying a month figure beside
+    each member is exactly the copy that went stale."""
+    SF = "SF"   # First run
+    R1 = "R1"   # First Reconciliation (interim run)
+    R2 = "R2"   # Second Reconciliation (interim run)
+    R3 = "R3"   # Third Reconciliation (interim run)
+    RF = "RF"   # Final Reconciliation -- the LAST SCHEDULED run
 
 
 class AdjustmentDirection(str, Enum):
@@ -46,11 +64,7 @@ class AdjustmentDirection(str, Enum):
 
 
 _SETTLEMENT_RUN_MONTHS: Dict[SettlementRunType, int] = {
-    SettlementRunType.SF: 0,
-    SettlementRunType.R1: 5,
-    SettlementRunType.R2: 14,
-    SettlementRunType.R3: 26,
-    SettlementRunType.RF: 28,
+    run: ELEXON_RUN_MONTHS[run.value] for run in SettlementRunType
 }
 
 _MATERIAL_VARIANCE_THRESHOLD = 0.05   # >5% vs SF = material

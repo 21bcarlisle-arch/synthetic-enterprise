@@ -2,9 +2,10 @@
 
 Real UK settlement is not a single, final-form figure produced at delivery
 time -- it is revised over a sequence of real Elexon settlement runs:
-R1 (~1 month post-delivery), R2 (~3 months), R3 (~5 months), and RF (Final
-Reconciliation, ~28 months), each resolving a further share of the total
-adjustment volume (60% / 25% / 12% / 3% respectively). This module is the
+R1 (2 months post-delivery), R2 (4 months), R3 (7 months), and RF (Final
+Reconciliation -- the LAST SCHEDULED run -- 14 months), each resolving a
+further share of the total adjustment volume (0.3093 / 0.3093 / 0.2062 /
+0.1752 respectively; source below). This module is the
 SIM/WORLD side of that mechanism -- it produces the sequence of revised
 settlement figures a real supplier would actually observe over time, one
 run at a time. It does NOT model the company's own exposure/risk estimate
@@ -18,8 +19,8 @@ W1_reveal_over_time's existing bitemporal spine
 (company/interfaces/bitemporal_event_log.py::BitemporalEventLog), not a new
 mechanism -- "one architecture, not two", the same principle already
 applied to D2_three_clocks/G2. valid_time = the settlement day the figure
-is ABOUT; transaction_time = each real run's own publication date (R1 ~1mo
-post-delivery, R2 ~3mo, R3 ~5mo, RF ~28mo). BitemporalEventLog is reused
+is ABOUT; transaction_time = each real run's own publication date (R1 2mo
+post-delivery, R2 4mo, R3 7mo, RF 14mo). BitemporalEventLog is reused
 directly (not reimplemented) because it is explicitly the shared seam
 class -- its own docstring: "Lives in company/interfaces/ (the one
 location explicitly exempt from the epistemic-wall import check) -- this
@@ -44,6 +45,16 @@ the seam. settlement_reconciliation.py remains the single source of TRUTH
 for these figures; tests/simulation/test_settlement_timetable.py imports
 it directly (tests/ may import anything) to assert these two constant
 sets never drift apart.
+
+DOCSTRING CORRECTION, 2026-09-06, recorded beside the claim rather than
+quietly revised. The two paragraphs above stated the timetable as
+"R1 ~1 month, R2 ~3, R3 ~5, RF (Final Reconciliation) ~28" with shares
+60/25/12/3 -- the pre-correction numbers -- for eight days AFTER the
+constants sixty lines below had been corrected to 2/4/7/14, in this file,
+by the commit that refuted them. Nothing caught it because every control
+here reads the constants and none reads the prose. The reader reads the
+prose first. Source for what is now written:
+`docs/market_research/elexon_settlement_run_timetable_verified.md`.
 """
 from __future__ import annotations
 

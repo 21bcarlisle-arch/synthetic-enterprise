@@ -1,7 +1,10 @@
 """Elexon BSC settlement reconciliation cash flow exposure model.
 
-UK electricity suppliers receive reconciliation adjustments up to 28 months
-after each settlement day via the R1/R2/R3/RF run sequence. These runs
+UK electricity suppliers receive reconciliation adjustments over the 14 months
+after each settlement day via the R1/R2/R3/RF run sequence, RF being the LAST
+SCHEDULED run. (28 months is DF, the dispute rectification run, which only a
+disputed settlement date ever reaches -- see the timetable comment below and
+`docs/market_research/elexon_settlement_run_timetable_verified.md`.) These runs
 correct metering errors, re-read data, and finalise consumption volumes.
 
 For suppliers, this creates:
@@ -18,7 +21,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import List, Literal, Optional
-
 
 # Reconciliation variance bands (fraction of billed kWh potentially adjusted)
 _HH_RECON_VARIANCE = 0.005     # ±0.5% for HH-metered I&C customers
@@ -56,10 +58,34 @@ _NON_HH_RECON_VARIANCE = 0.040  # ±4.0% for profile-class non-HH meters
 # Half-Hourly Settlement, whose central systems went live 24 September 2025 --  AFTER
 # `run_phase2b.REPORT_END` (2025-06-07). So 14 applies to the whole modelled window with no
 # time-variation to model.
-_R1_MONTHS = 2
-_R2_MONTHS = 4
-_R3_MONTHS = 7
-_RF_MONTHS = 14  # Final Reconciliation -- the LAST SCHEDULED run. DF (disputes only) is 28.
+# THE ONE DEFINITION. Made public 2026-09-06 because the correction above reached this file and
+# `simulation/settlement_timetable.py` and stopped there: `company/market/
+# bsc_settlement_run_register.py` and the published Door-5 feed (`tools/generate_world_data.py`)
+# each carried their own hand-typed copy, still on 5/14/26/28, and the feed's copy was SERVED
+# under Poesys's name for the nineteen days between. Both now read this mapping. A reader that
+# needs a run's timing takes it from here; nothing copies it.
+#
+# DF is in the mapping and is NOT a stage an ordinary settlement day passes through -- it is the
+# dispute rectification run, and RF at 14 months is the LAST SCHEDULED run. It is carried here
+# rather than left out precisely because leaving it out is how 28 came to be attached to RF: a
+# reader who needs the 28-month figure should find it labelled with the run it belongs to.
+#
+# II (the information run, 1 WEEK after the settlement date) is deliberately absent: this mapping
+# is in whole months and there is no honest integer for it. Anyone needing II should read the
+# sourced table directly rather than take a rounded month from here.
+ELEXON_RUN_MONTHS: dict[str, int] = {
+    "SF": 1,    # First run
+    "R1": 2,    # Interim run
+    "R2": 4,    # Interim run
+    "R3": 7,    # Interim run
+    "RF": 14,   # LAST SCHEDULED run -- closes the normal correction window
+    "DF": 28,   # 'Extra' runs -- DISPUTES ONLY, not a scheduled stage
+}
+
+_R1_MONTHS = ELEXON_RUN_MONTHS["R1"]
+_R2_MONTHS = ELEXON_RUN_MONTHS["R2"]
+_R3_MONTHS = ELEXON_RUN_MONTHS["R3"]
+_RF_MONTHS = ELEXON_RUN_MONTHS["RF"]  # Final Reconciliation -- the LAST SCHEDULED run.
 
 # Share of total reconciliation volume resolved at each run.
 #
