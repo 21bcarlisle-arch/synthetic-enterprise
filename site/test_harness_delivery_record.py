@@ -438,3 +438,63 @@ def test_the_tell_INSIDE_the_published_figure_reaches_the_reader():
     hidden = _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
     assert "does not overturn" not in hidden, (
         "the panel emits the tell regardless of the property, so its presence says nothing")
+
+
+def test_whether_the_gating_figure_SURVIVES_A_REDRAW_reaches_the_reader():
+    """A49 gates R3 and R4 on this figure, and the figure changes side across draws of the same
+    book. Until this landed the page carried the PREDICTION that it "will move with the next draw"
+    while the record already held the observation that it had -- a hedge standing in for evidence
+    we own.
+
+    ALL THREE STATES ARE ASSERTED, not just the interesting one. A panel that emits the instability
+    sentence unconditionally is boilerplate; a panel that renders "unmeasured" as agreement is the
+    fail-open this whole repair exists to prevent. The unmeasured leg is the one that would rot
+    silently -- every linked worktree is in it.
+
+    MUTATION (must fire): render the panel without the redraw block, or render `measured: false`
+    as though the verdict were stable.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    c = dict(live.get("the_number_the_programme_rests_on") or {})
+    if not c.get("available"):
+        pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
+
+    def shown(panel):
+        c["does_the_verdict_survive_a_redraw"] = panel
+        live["the_number_the_programme_rests_on"] = c
+        return _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
+
+    # LEG 1 -- it moved. The reader must be told the verdict is not a property of the world.
+    moved = shown({
+        "measured": True, "runs_measured": 32, "verdict_is_the_same_on_every_run": False,
+        "clears_count": 19, "cannot_tell_count": 13,
+        "verdict_is_a_step_function_of_coverage": True,
+        "coverage_regimes": [{"households_in_rung": 71, "verdict": "cannot tell"},
+                             {"households_in_rung": 69, "verdict": "clears"}],
+    })
+    assert "cannot gate a programme" in moved, (
+        "the verdict changes side across draws and the page does not say so")
+    assert "not a property of the world" in moved
+    # The STEP is the stronger claim and must be distinguishable from "19 of 32 cleared", which
+    # reads as noise that more draws would settle. It would not: there is no scatter inside a group.
+    assert "step, not scatter" in moved
+
+    # LEG 2 -- it held. The same panel must NOT emit the instability language, or leg 1 proves
+    # nothing about the property and only that the block renders.
+    held = shown({
+        "measured": True, "runs_measured": 32, "verdict_is_the_same_on_every_run": True,
+        "clears_count": 32, "cannot_tell_count": 0,
+    })
+    assert "cannot gate a programme" not in held, (
+        "the panel emits the instability regardless of the measurement, so it says nothing")
+    assert "consistency check and not a bound" in held, (
+        "a stable verdict across draws of ONE book must not be published as if it widened the claim")
+
+    # LEG 3 -- it was never measured. This must read as UNKNOWN and never as agreement, and it is
+    # the state every linked worktree and fresh clone is actually in.
+    unmeasured = shown({"measured": False, "why": "the stability rung has not been run in this tree."})
+    assert "unknown" in unmeasured.lower(), (
+        "an unmeasured stability rung must say so; silence here reads as a stable verdict")
+    assert "cannot gate a programme" not in unmeasured
+    assert "consistency check and not a bound" not in unmeasured, (
+        "an unrun rung rendered as a passed consistency check is the fail-open this control exists for")

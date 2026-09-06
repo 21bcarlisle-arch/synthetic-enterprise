@@ -345,8 +345,135 @@ def _winner_ratio(best: dict) -> float | None:
     return round(abs(best.get("held_out") or 0.0) / ins, 2) if ins > 0 else None
 
 
+def recent_run_outputs(k: int, directory: Path) -> list[Path]:
+    """The k most recent run outputs in `directory`, newest first. Never the `latest` alias."""
+    runs = [Path(p) for p in glob.glob(str(directory / "run_output_*.json")) if "latest" not in p]
+    return sorted(runs, key=os.path.getmtime, reverse=True)[:k]
+
+
+def verdict_across_runs(paths, cells: int = 2) -> dict | None:
+    """Does the published verdict survive being asked of a DIFFERENT DRAW OF THE SAME BOOK?
+
+    WHY THIS RUNG EXISTS. The corrected verdict on the current book clears by +0.0598, a tenth of
+    the figure itself, and the finding that landed the correction established by hand on four run
+    outputs that it crosses 0.05 on a difference of TWO HOUSEHOLDS in the rung -- p=0.0746 at n=71
+    and p=0.0249 at n=69, same population, same base seed. That was the whole reason the finding
+    stayed BLOCKING, and it lived only in the finding: the page carried the PREDICTION "a figure
+    that clears by a tenth of itself will move with the next draw of the book" while we held the
+    OBSERVATION that it already had. A hedge published in place of a measurement we own is the
+    weaker claim, and it is the one that rots.
+
+    So the instrument takes the measurement itself. Each path is re-measured end to end -- the full
+    ranked sweep and its own 200-draw selection-corrected null -- and the verdicts are counted.
+
+    WHAT IT IS NOT, and this must travel with it or it will be over-read: these are consecutive run
+    outputs of the SAME population at the SAME base seed, differing in how far the simulation had
+    got and therefore in which households carry both fields of a pair. They are not independent
+    books and this is not a bootstrap, so the spread here UNDERSTATES the sampling variability of a
+    re-drawn book. What it establishes is narrower and is exactly what a gate needs: whether the
+    published verdict is a property of the world or a property of which run output was read.
+    """
+    per_run = []
+    for path in paths:
+        try:
+            got = measure(cells=cells, run_path=path)
+        except SystemExit as refusal:
+            # A run output too thin to measure is RECORDED, never skipped: dropping it would make
+            # the series look more consistent than the evidence is.
+            per_run.append({"run": path.name, "refused": str(refusal)})
+            continue
+        best, verdict = got.get("best_pair") or {}, got.get("selection_corrected_verdict") or {}
+        per_run.append({
+            "run": path.name,
+            "n": best.get("n"),
+            "ceiling": best.get("held_out"),
+            "bound_p95": verdict.get("bound_p95"),
+            "p_value": verdict.get("p_value"),
+            "clears": verdict.get("clears"),
+            "full_coverage_clears": got.get(
+                "any_full_power_feature_clears_the_selection_corrected_null"),
+            "trait_spread": (got.get("controls") or {}).get("trait_spread"),
+            # THE WHOLE BOOK, not just the rung. Carried because the rung's household count and the
+            # book's move TOGETHER across this window, and without both numbers the change looks
+            # attributable to coverage alone when it is not.
+            "households_in_book": got.get("households"),
+        })
+    return _reduce_runs(per_run)
+
+
+def _reduce_runs(per_run: list[dict]) -> dict | None:
+    """The reduction, split from the measurement so a control can grade it without re-measuring.
+
+    Kept separate for one reason: re-running 32 books takes 40 seconds, and a control that costs 40
+    seconds is a control that gets marked slow and then skipped. This is the part where the verdict
+    is decided, so this is the part that has to be gradeable cheaply.
+    """
+    graded = [r for r in per_run if r.get("clears") is not None]
+    if len(graded) < 2:
+        return None
+    verdicts = [bool(r["clears"]) for r in graded]
+    # THE COUNTS ABOVE DEPEND ON HOW FAR BACK THE WINDOW REACHES, WHICH IS A DIAL. Grouping by the
+    # rung's household count does not: it says WHAT the verdict is a function of. On this book the
+    # answer is stark -- every run at n=71 reads `cannot tell` and every run at n=69 reads `clears`,
+    # with no jitter inside either group. The verdict is a STEP FUNCTION OF COVERAGE, not noise
+    # around a threshold, and that is a stronger and more falsifiable statement than a ratio of
+    # runs. A regime that contained both verdicts would refute it and would mean something else is
+    # moving; this reports the grouping either way rather than asserting the clean case.
+    regimes = {}
+    for r in graded:
+        seen = regimes.setdefault(r["n"], {"households_in_rung": r["n"], "runs": 0,
+                                           "verdicts": set(), "ceilings": set(), "p_values": set()})
+        seen["runs"] += 1
+        seen["verdicts"].add(bool(r["clears"]))
+        seen["ceilings"].add(r["ceiling"])
+        seen["p_values"].add(r["p_value"])
+        seen.setdefault("books", set()).add(r.get("households_in_book"))
+    coverage_regimes = [
+        {"households_in_rung": k, "runs": v["runs"],
+         "verdict": ("clears" if next(iter(v["verdicts"])) else "cannot tell")
+                    if len(v["verdicts"]) == 1 else "MIXED",
+         "verdict_is_constant_within_this_regime": len(v["verdicts"]) == 1,
+         "ceilings": sorted(c for c in v["ceilings"] if c is not None),
+         "p_values": sorted(p for p in v["p_values"] if p is not None),
+         "households_in_book": sorted(b for b in v["books"] if b is not None)}
+        for k, v in sorted(regimes.items(), reverse=True)]
+    ps = [r["p_value"] for r in graded if r.get("p_value") is not None]
+    ns = [r["n"] for r in graded if r.get("n") is not None]
+    ceilings = [abs(r["ceiling"]) for r in graded if r.get("ceiling") is not None]
+    return {
+        "runs_measured": len(graded),
+        "runs_refused": sum(1 for r in per_run if r.get("refused")),
+        # THE PROPERTY, not today's answer: derived from the per-run verdicts every time, so it
+        # goes false the moment the series disagrees and true again if coverage ever settles it.
+        "unanimous": all(verdicts) or not any(verdicts),
+        "clears_count": sum(1 for v in verdicts if v),
+        "cannot_tell_count": sum(1 for v in verdicts if not v),
+        "p_value_range": [min(ps), max(ps)] if ps else None,
+        "households_range": [min(ns), max(ns)] if ns else None,
+        "ceiling_range": [round(min(ceilings), 4), round(max(ceilings), 4)] if ceilings else None,
+        "full_coverage_unanimous": len({bool(r.get("full_coverage_clears")) for r in graded}) == 1,
+        "same_population": len({r.get("trait_spread") for r in graded}) == 1,
+        "coverage_regimes": coverage_regimes,
+        # True when every regime is internally consistent AND the regimes disagree with each other:
+        # the verdict is then determined by coverage alone, which is the finding worth publishing.
+        "verdict_is_a_step_function_of_coverage": bool(
+            len(coverage_regimes) > 1
+            and all(r["verdict_is_constant_within_this_regime"] for r in coverage_regimes)
+            and len({r["verdict"] for r in coverage_regimes}) > 1),
+        "window": [graded[-1]["run"], graded[0]["run"]],
+        "per_run": per_run,
+        "what_these_runs_are": (
+            "Consecutive run outputs of the same population at the same base seed, differing in "
+            "how far the simulation had got -- and therefore both in which households carry both "
+            "fields of a pair AND, across this window, in the size of the book itself. Those two "
+            "move together here, so neither can be named as the cause of a verdict change. Not "
+            "independent books and not a bootstrap: the spread here UNDERSTATES what a re-drawn "
+            "book would show."),
+    }
+
+
 def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
-              pairs: int) -> dict:
+              pairs: int, stability: dict | None = None) -> dict:
     """The sentence a reader gets, composed HERE so the page cannot compose a kinder one.
 
     "We cannot tell" is a result and it belongs on the surface, not in a footnote -- and it is a
@@ -401,10 +528,84 @@ def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
             "of a shuffled world overshoots its own fit for the same reason -- so the p-value "
             "above stands. It is the one thing that p-value cannot see, and it is why this figure "
             "is reported as the best of a search rather than as a bound.")
+    # THE INSTABILITY IS A MEASUREMENT OR IT IS NOTHING (added 2026-09-06). This sentence used to
+    # read "a figure that clears by a tenth of itself WILL MOVE with the next draw of the book" --
+    # a prediction, published while the record already held the observation that it HAD moved, to
+    # the other side of alpha, on a run of the same population two days earlier. A hedge standing in
+    # for evidence we own is the weaker claim and the one that goes stale. When the stability rung
+    # has run, its count replaces the hedge; when it has not, the hedge is marked as the prediction
+    # it is rather than being dressed as a finding.
+    if stability and stability.get("runs_measured", 0) >= 2:
+        n_lo, n_hi = (stability.get("households_range") or [None, None])
+        p_lo, p_hi = (stability.get("p_value_range") or [None, None])
+        series = (f"Re-running the whole instrument -- the {pairs}-way sweep and its own "
+                  f"{SELECTION_NULL_DRAWS}-draw corrected null -- on "
+                  f"{stability['runs_measured']} consecutive run outputs of the SAME population at "
+                  f"the same base seed")
+        if not stability.get("unanimous"):
+            moved = (
+                f" AND THE VERDICT IS NOT A PROPERTY OF THE WORLD. {series} returns "
+                f"{stability['clears_count']} 'clears' and {stability['cannot_tell_count']} "
+                f"'cannot tell'"
+                + (f", p from {p_lo} to {p_hi}" if p_lo is not None else "")
+                + (f", on rungs of {n_lo} to {n_hi} households" if n_lo is not None else "")
+                + ". Those books are consecutive states of one population at one base seed, so the "
+                  "published answer moves with the run output the instrument read. A number that "
+                  "changes side on that is not a gate, and R3 and R4 must not be gated on it.")
+            # THE STRONGER FORM OF THE SAME FACT, when the grouping supports it. "18 of 32 runs
+            # cleared" invites the reading that this is noise around a threshold and that more
+            # draws would settle it. They would not: the verdict is CONSTANT inside each coverage
+            # regime and differs BETWEEN them, so what decides it is two households, deterministically.
+            if stability.get("verdict_is_a_step_function_of_coverage"):
+                def _leg(r: dict) -> str:
+                    # THE WHOLE RANGE, NEVER ITS BEST END. Printing `p_values[0]` here reported
+                    # p=0.0249 for a regime holding {0.0249, 0.0299} -- the flattering end of its
+                    # own spread, published as if it were the figure.
+                    ps = r["p_values"]
+                    shown = f"p={ps[0]}" if len(ps) == 1 else f"p from {ps[0]} to {ps[-1]}"
+                    cs = r["ceilings"]
+                    ceil = (f"ceiling {cs[0]:+.4f}" if len(cs) == 1
+                            else f"ceiling {cs[0]:+.4f} to {cs[-1]:+.4f}")
+                    return (f"every run at n={r['households_in_rung']} reads '{r['verdict']}' "
+                            f"({ceil}, {shown})")
+                legs = "; ".join(_leg(r) for r in stability["coverage_regimes"]
+                                 if r["ceilings"] and r["p_values"])
+                # WHAT MOVED, AND WHAT CANNOT BE ATTRIBUTED. The rung's household count and the
+                # BOOK's move together across this window -- 71-in-rung/214-in-book reads one way
+                # and 69/213 the other, with nothing in between -- so the two are perfectly
+                # confounded and neither can be named as the cause from this evidence. The finding
+                # that minted this work said "flips on two households"; that is the rung's share of
+                # a change the whole book also underwent, and stating it alone would be attributing
+                # a move when more than one thing changed. What survives is the part that bears on
+                # a gate, and it needs no attribution at all: the verdict tracks WHICH RUN OUTPUT
+                # WAS READ, and the books either side of the step differ by about half a percent.
+                books = sorted({b for r in stability["coverage_regimes"]
+                                for b in r.get("households_in_book", [])})
+                confound = (
+                    f" The books either side of the step differ in the whole book too "
+                    f"({books[0]} against {books[-1]} households), not only in the rung, so which "
+                    "of the two moved the verdict cannot be attributed from this evidence and is "
+                    "not claimed here." if len(books) > 1 else "")
+                moved += (
+                    f" And this is not noise around the line, which would settle with more draws. "
+                    f"It is a step: {legs}. There is no scatter inside either group." + confound +
+                    " Either way the published answer is decided by a difference of a couple of "
+                    "households in a book of over two hundred, which is not a quantity a "
+                    "programme can be gated on.")
+        else:
+            moved = (
+                f" {series} returns the same verdict on every one"
+                + (f" (p from {p_lo} to {p_hi})" if p_lo is not None else "")
+                + ". That is a consistency check, not a bound: these are draws of one book rather "
+                  "than independent books, so it cannot widen the claim, only fail to undermine it.")
+        power += moved
     if clears:
+        hedge = ("" if stability and stability.get("runs_measured", 0) >= 2 else
+                 " I expect a figure that clears by a tenth of itself to move with the next draw "
+                 "of the book, and that expectation is a prediction rather than a measurement: the "
+                 "stability rung has not been run in this tree.")
         not_said = ("This does not establish a bound. It is a marginal pass on one book, clearing "
-                    f"by {pair_verdict.get('margin_over_bound', 0.0):+.4f}, and a figure that "
-                    "clears by a tenth of itself will move with the next draw of the book. " + power)
+                    f"by {pair_verdict.get('margin_over_bound', 0.0):+.4f}." + hedge + " " + power)
     else:
         not_said = ("This is not a finding that price sensitivity is unlearnable. It is a refusal "
                     "to distinguish, which is a different claim. " + power)
@@ -430,7 +631,12 @@ def _pair_grid(obs: dict, shared, min_ids: int = 20) -> list[dict]:
     return grid
 
 
-def measure(cells: int = 2, run_path: Path | None = None) -> dict:
+def measure(cells: int = 2, run_path: Path | None = None,
+            stability_runs: list[Path] | None = None) -> dict:
+    """`stability_runs`, when given, re-measures each of those run outputs end to end and reports
+    whether the verdict survives a different draw of the same book. Left None by callers that only
+    want the single-book reading -- and by the recursive call inside `verdict_across_runs`, which
+    is what stops it descending."""
     run = run_path or newest_run_output()
     payload = json.loads(run.read_text())
     obs = observable_rows(payload)
@@ -506,6 +712,8 @@ def measure(cells: int = 2, run_path: Path | None = None) -> dict:
         if block is not None:
             block.pop("_winners", None)
 
+    stability = verdict_across_runs(stability_runs, cells) if stability_runs else None
+
     spread = (statistics.pstdev(list(traits.values())) if len(traits) > 1 else 0.0)
     # Half the households are the fit side; they are what the cell means are built from.
     households_per_cell = (best.get("n", 0) / 2) / (cells * cells) if cells else 0.0
@@ -542,7 +750,12 @@ def measure(cells: int = 2, run_path: Path | None = None) -> dict:
             bool(abs(best.get("held_out", 0.0)) > null_floor),
         "selection_corrected_null": pair_null,
         "selection_corrected_verdict": pair_verdict,
-        "we_cannot_tell": _headline(best, pair_verdict, full_verdict, full_n, len(ranked)),
+        # WHETHER THE VERDICT SURVIVES A DIFFERENT DRAW OF THE SAME BOOK. `None` when the series was
+        # not measured, which is a different claim from "measured, and stable" -- the page has to be
+        # able to tell those apart, so the absence is never rendered as agreement.
+        "verdict_stability": stability,
+        "we_cannot_tell": _headline(best, pair_verdict, full_verdict, full_n, len(ranked),
+                                    stability),
         "controls": {
             # A wrong seed gives random labels and a ceiling of zero -- the answer the canon
             # predicts, from a measurement of nothing.
@@ -582,6 +795,11 @@ def measure(cells: int = 2, run_path: Path | None = None) -> dict:
             # today's answer. It is reported, on the surface, and it stops there.
             "held_out_exceeds_in_sample_on_the_reported_winner": _winner_inverts(best),
             "reported_winner_held_out_over_in_sample": _winner_ratio(best),
+            # DOES THE PUBLISHED VERDICT DESCRIBE THE WORLD OR THE FILE WE HAPPENED TO READ?
+            # `None` means unmeasured and must never be read as True: an unrun stability rung and a
+            # stable one are different claims, and only one of them earns the word "bound".
+            "the_verdict_is_the_same_on_every_draw_measured":
+                stability.get("unanimous") if stability else None,
         },
     }
 
@@ -596,7 +814,21 @@ def main(argv=None) -> int:
         run_path = Path(argv[argv.index("--run") + 1]).expanduser().resolve()
         if not run_path.is_file():
             raise SystemExit(f"REFUSED: --run {run_path} is not a file.")
-    result = measure(run_path=run_path)
+    # THE SERIES COMES FROM WHEREVER THE BOOK CAME FROM. `--run` exists because a linked worktree
+    # holds no gitignored run outputs; the stability rung needs the SIBLINGS of that file, so it
+    # reads the same directory rather than this tree's empty one.
+    stability_runs = None
+    if "--stability" in argv:
+        i = argv.index("--stability")
+        k = int(argv[i + 1]) if len(argv) > i + 1 and argv[i + 1].isdigit() else 8
+        reports = run_path.parent if run_path else PROJECT / "docs" / "reports"
+        stability_runs = recent_run_outputs(k, reports)
+        if len(stability_runs) < 2:
+            raise SystemExit(
+                f"REFUSED: --stability needs at least 2 run outputs and {reports} has "
+                f"{len(stability_runs)}. In a linked worktree this is what a missing gitignored "
+                "run output looks like -- pass --run <path> in the tree that holds the real ones.")
+    result = measure(run_path=run_path, stability_runs=stability_runs)
     c = result["controls"]
     print(f"run={result['run_output']}  seed={result['base_seed']}  households={result['households']}")
     print(f"observables used: {len(result['observable_fields_used'])}  pairs scored: {result['pairs_scored']}")
@@ -645,6 +877,19 @@ def main(argv=None) -> int:
         print(f"    chance matched or beat the real figure    : {ver['exceedances']}/{sel['draws']} "
               f"draws   p={ver['p_value']}  (alpha {ver['alpha']})")
     print(f"    clears                                   : {result['ceiling_clears_the_null']}")
+    stab = result.get("verdict_stability")
+    if stab:
+        print()
+        print(f"  THE SAME QUESTION ASKED OF {stab['runs_measured']} DRAWS OF THE SAME BOOK")
+        for r in stab["per_run"]:
+            if r.get("refused"):
+                print(f"    {r['run']}: REFUSED")
+                continue
+            print(f"    n={r['n']:>4}  ceiling {r['ceiling']:+.4f}  p95 {r['bound_p95']:+.4f}  "
+                  f"p={r['p_value']:<7} {'clears' if r['clears'] else 'CANNOT TELL':<12} "
+                  f"{r['run']}")
+        print(f"    unanimous: {stab['unanimous']}  "
+              f"({stab['clears_count']} clears / {stab['cannot_tell_count']} cannot tell)")
     print()
     print(f"  VERDICT: {result['we_cannot_tell']['statement']}")
     print(f"  {result['we_cannot_tell']['what_it_does_not_say']}")

@@ -665,6 +665,38 @@ function renderDeliveryCeiling(d) {
         "its own fit for the same reason — and it is why this is reported as the best of a search " +
         "rather than as a bound.</div>"
       : "") +
+    /* WOULD IT BE THE SAME NUMBER TOMORROW? A49 gates R3 and R4 on the figure above, so this is
+       the question a reader most needs answered, and until now it lived only in a staged finding
+       while the page carried a PREDICTION that the figure "will move". It has moved. The
+       unmeasured case renders as UNKNOWN and never as agreement: an unrun rung and a stable one
+       are different claims. */
+    (function (s) {
+      if (!s) { return ""; }
+      if (!s.measured) {
+        return '<div class="note"><strong>Whether this verdict survives a different draw of the ' +
+          "book is unknown.</strong> " + esc(s.why || "") + "</div>";
+      }
+      if (s.verdict_is_the_same_on_every_run) {
+        return '<div class="note"><strong>Re-measured on ' + n(s.runs_measured) +
+          " draws of the same book, the verdict holds on every one.</strong> That is a " +
+          "consistency check and not a bound — these are draws of one book, not independent " +
+          "books, so it cannot widen the claim.</div>";
+      }
+      var legs = (s.coverage_regimes || []).map(function (r) {
+        return "every run with " + n(r.households_in_rung) + " households in the rung reads <b>" +
+          esc(r.verdict) + "</b>";
+      }).join("; ");
+      return '<div class="note"><strong>The verdict is not a property of the world — it is ' +
+        "decided by which run output the instrument read.</strong> Re-running the whole " +
+        "instrument on " + n(s.runs_measured) + " consecutive draws of the same book returns " +
+        n(s.clears_count) + " &ldquo;clears&rdquo; and " + n(s.cannot_tell_count) +
+        " &ldquo;we cannot tell&rdquo;." +
+        (s.verdict_is_a_step_function_of_coverage
+          ? " And it is a step, not scatter: " + legs + ", with no disagreement inside either " +
+            "group. A couple of households in a book of over two hundred decide it."
+          : "") +
+        " <b>A number that changes side on that cannot gate a programme.</b></div>";
+    })(c.does_the_verdict_survive_a_redraw) +
     '<div class="note"><strong>What this does not say.</strong> ' +
     esc(c.what_it_does_not_say || "") + "</div>" +
     "<p>" + esc(c.why_both_figures_are_shown || "") + "</p>" +
