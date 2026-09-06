@@ -3,6 +3,23 @@
 
 # RESULT: one suite proves two of `fuel_mix`'s ten contracts, and nothing proves the other eight
 
+> **CORRECTION, 2026-09-06.** The title's *"one suite"* is exact and stays. What needs saying is
+> **which** suite: `test_grid_intensity_feed_and_explore_carbon.py` is a DIRECT importer of the
+> subject, not a caller — and this spec wrote `SUITES = DIRECT_SUITES + CALLER_SUITES`, so it sat
+> inside the verdict meant to answer *"did any CALLER prove this"*. **On the callers alone the
+> answer is ten of ten surviving, not eight**, and no row carries a machine verdict at all because
+> `test_ep13_embedded_generation_bound.py` — a member of `CALLER_SUITES` — was never graded. The
+> ten rows below are unchanged and correct. The prose already drew the distinction (it says "one
+> *suite*", never "one caller", and names the direct pair at the bottom); the machine field did
+> not.
+>
+> **The sweep table at the foot of this page has one wrong row.** `segment_vocabulary | 8 suites |
+> refutes it — no unproved contract` is true of that subject's ten-suite population and false of
+> its callers, where three of eight are unproved. Both subjects moved the same way — less caller
+> evidence than published, never more — and this page's closing conclusion survives it.
+> Re-reduced from the same cells, no test re-run:
+> `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`.
+
 **Measured 2026-09-06 01:35–02:05 BST, delivery seat, worktree `/var/tmp/se-gif-battery` at
 `6c92cc0c7` with `sim/cache` linked from the shared tree. Claim id
 `convergence-sweep-subject-4-grid-intensity-feed`. Results:
