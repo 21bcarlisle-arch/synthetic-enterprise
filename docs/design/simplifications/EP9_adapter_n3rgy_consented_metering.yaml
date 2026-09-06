@@ -1,6 +1,161 @@
 atom_id: EP9_adapter_n3rgy_consented_metering
 simplifications:
-- "2026-08-18 DISCOVER/FRAME ONLY (worker tick, LANE 3 idle draw). Level stays 0,\nloop_stage stays idle. No BUILD code, no adapter, no client, no fixture; `file_scope`\nis [] and nothing in it was touched -- this atom is epoch-3 BUILD-gated on\ndirector-reserved curriculum sequencing (R13), and EPOCH_GATING_AND_ATOM_AUTHORSHIP\nrule 7 makes DISCOVER/FRAME available while BUILD is not. Full output:\n`docs/design/EP9_CONSENTED_METERING_DISCOVER.md`. Measured at HEAD 4e79c4c8f; live\nartefacts parsed in full, not sampled (`docs/reports/run_output_latest.json`,\n4,154,361 bytes, mtime 2026-08-18 15:56:22; `company/data/registry.db`, 19 rows). No\nnetwork used and none attempted. Claims are observed-with-evidence unless labelled\ninferred (R9). Headlines:\n\n(1) THIS ATOM'S SINGLE CITED EVIDENCE PATH WAS DEAD and is repaired below -- the\ncounterparty-API research had moved to `docs/design/refs/`. EP8's 2026-08-15 pass\nrepaired its own copy of the same citation and recorded that this one belonged to\nthis atom's own draw; it does.\n\n(2) 'SANDBOX NOW' IS TRUE OF THE WORLD AND FALSE OF THIS LANE. No n3rgy host appears\nin `background/egress_allowlist.py` (13 hosts, enumerated in the doc), and widening\nit is a change to the agent's own sandbox profile -- director-console-only, a wall,\nand the correct one. The credential is an IHD MAC/CIN from a real household, i.e.\nreserved classes 2 and 4. EP8's origin note leans on this atom as its LIVE ORACLE;\nthat argument does not hold. RECOMMENDATION (recorded, not asked): EP9's exit\ncriteria must be CONTRACT-shaped, not CONNECTION-shaped -- grade the adapter against\nthe documented response contract reproduced as a fixture, with a live call an\noptional director-authorised confirmation that no level rests on.\n\n(3) THE REGISTRATION KEY IS UNUSABLE. n3rgy registers by MPAN/MPRN, so the MPAN is\nthis adapter's primary key. 18 of 19 live MPANs fail the industry check digit (the\none that passes does so at the 1-in-10 chance rate; `customer_registry._mpan` is\n`f\"1{sum(ord(c)):012d}\"` with no check digit). `meter_points.validate_mpan` -- named\nfor exactly this property -- is a length regex, returns True for all 19, and has ZERO\nnon-test callers. And 6 of the 19 metered customers (C_IC1, C_IC2, C_IC3, C_IC3g,\nC_IC4, SYN-2021-001) have no registry row at all, so no identifier exists for them.\nQUEUED as a finding, not fixed (SELF_INTERRUPT_DISCIPLINE; the fix is a live CRM +\nbilling change a doc-only draw does not carry).\n\n(4) WHO IS ADDRESSABLE IS ANSWERED TWICE AND THE ANSWERS DISAGREE. n3rgy serves smart\nmeters. `registry.db.smart_meter` says 3 of 19 accounts; the published\n`meter_read_log.meter_type` says 1,227 of 1,600 messages across 11 of 19 customers. 6\ncustomers disagree outright (registry 0, every log read smart). Inferred mechanism: a\nstatic creation-time column vs a penetration curve over time. The adapter's\naddressable population is therefore undefined, and the rollout curve is a simulation\ninternal the company may not read. RECOMMENDATION: EP9's first FRAME output is a\ntime-indexed company-side 'is this supply point smart as at date D' register derived\nfrom observed arrivals -- a prerequisite to the adapter, not part of it.\n\n(5) BOTH HALVES OF THE DAILY RESPONSE LAND ON DARK CONSUMERS, AND EP8 FINDING 5(a) IS\nCORRECTED. The HH usage file's destination (`smart_meter_analytics.HHReading` /\n`SmartMeterAnalytics.ingest`) has zero non-test importers. The index read's consumer\n(`smart_meter_reconciliation`) also has zero: EP8 counted 1 importer in\n`monthly_bill_assembly.py`, but both hits there are COMMENTS and line 197 says in\nterms 'kept as its own named constant here rather than imported'. Checked at EP8's\nown HEAD 0f2fab3c5 too -- same two comments, same absent import, so this was a\ngrep-hit read as an import, not a regression since (R9: the direct check exonerates\nthe intervening commits). CONSEQUENCE: EP8 concluded the risk was changing shape\nunder a live consumer; with both dark the risk is inverted -- an adapter could\ndeliver wrong data or none and nothing running would notice. No exit criterion for\nthis atom may rest on 'the consumer reconciles'.\n\n(6) THE NAMED FIDELITY GOLD STILL HAS NOWHERE TO LIVE, and the RE-REQUEST half has\nnever been looked for: grep for backfill/re-request/missing_day/gap_fill across\n`company/`, `simulation/`, `tools/` returns no hit on any meter-data path (the 8\n`backfill` hits are regulatory `effective_from` backfilling, an unrelated sense). So\nthe company has no notion of noticing a hole and asking again -- there is nothing to\nbe wrong with yet. EP8 finding 3 already established why a per-billing-period message\ncannot carry a missing DAY; not re-derived.\n\nFRAME (in the doc, not a promotion request): L1 = the response contract as a cited\nfixture with a delete-a-property falsifier; L2 = the single smart-as-at-date register\non an acceptable identifier covering all metered accounts, falsifier = today's\ndisagreement count as a red test; L3 = both halves delivered into consumers that\nEXECUTE, the missing-day hole representable, the triad gap measured, falsifier =\nsuppress N days and the gap must move. Prerequisites owned elsewhere: EP8 findings 1\nand 3 (the message-model cut and the granularity change) -- EP9 cannot reach L3\nbefore either."
+- '2026-08-18 DISCOVER/FRAME ONLY (worker tick, LANE 3 idle draw). Level stays 0,
+
+  loop_stage stays idle. No BUILD code, no adapter, no client, no fixture; `file_scope`
+
+  is [] and nothing in it was touched -- this atom is epoch-3 BUILD-gated on
+
+  director-reserved curriculum sequencing (R13), and EPOCH_GATING_AND_ATOM_AUTHORSHIP
+
+  rule 7 makes DISCOVER/FRAME available while BUILD is not. Full output:
+
+  `docs/design/EP9_CONSENTED_METERING_DISCOVER.md`. Measured at HEAD 4e79c4c8f; live
+
+  artefacts parsed in full, not sampled (`docs/reports/run_output_latest.json`,
+
+  4,154,361 bytes, mtime 2026-08-18 15:56:22; `company/data/registry.db`, 19 rows). No
+
+  network used and none attempted. Claims are observed-with-evidence unless labelled
+
+  inferred (R9). Headlines:
+
+
+  (1) THIS ATOM''S SINGLE CITED EVIDENCE PATH WAS DEAD and is repaired below -- the
+
+  counterparty-API research had moved to `docs/design/refs/`. EP8''s 2026-08-15 pass
+
+  repaired its own copy of the same citation and recorded that this one belonged to
+
+  this atom''s own draw; it does.
+
+
+  (2) ''SANDBOX NOW'' IS TRUE OF THE WORLD AND FALSE OF THIS LANE. No n3rgy host appears
+
+  in `background/egress_allowlist.py` (13 hosts, enumerated in the doc), and widening
+
+  it is a change to the agent''s own sandbox profile -- director-console-only, a wall,
+
+  and the correct one. The credential is an IHD MAC/CIN from a real household, i.e.
+
+  reserved classes 2 and 4. EP8''s origin note leans on this atom as its LIVE ORACLE;
+
+  that argument does not hold. RECOMMENDATION (recorded, not asked): EP9''s exit
+
+  criteria must be CONTRACT-shaped, not CONNECTION-shaped -- grade the adapter against
+
+  the documented response contract reproduced as a fixture, with a live call an
+
+  optional director-authorised confirmation that no level rests on.
+
+
+  (3) THE REGISTRATION KEY IS UNUSABLE. n3rgy registers by MPAN/MPRN, so the MPAN is
+
+  this adapter''s primary key. 18 of 19 live MPANs fail the industry check digit (the
+
+  one that passes does so at the 1-in-10 chance rate; `customer_registry._mpan` is
+
+  `f"1{sum(ord(c)):012d}"` with no check digit). `meter_points.validate_mpan` -- named
+
+  for exactly this property -- is a length regex, returns True for all 19, and has ZERO
+
+  non-test callers. And 6 of the 19 metered customers (C_IC1, C_IC2, C_IC3, C_IC3g,
+
+  C_IC4, SYN-2021-001) have no registry row at all, so no identifier exists for them.
+
+  QUEUED as a finding, not fixed (SELF_INTERRUPT_DISCIPLINE; the fix is a live CRM +
+
+  billing change a doc-only draw does not carry).
+
+
+  (4) WHO IS ADDRESSABLE IS ANSWERED TWICE AND THE ANSWERS DISAGREE. n3rgy serves smart
+
+  meters. `registry.db.smart_meter` says 3 of 19 accounts; the published
+
+  `meter_read_log.meter_type` says 1,227 of 1,600 messages across 11 of 19 customers. 6
+
+  customers disagree outright (registry 0, every log read smart). Inferred mechanism: a
+
+  static creation-time column vs a penetration curve over time. The adapter''s
+
+  addressable population is therefore undefined, and the rollout curve is a simulation
+
+  internal the company may not read. RECOMMENDATION: EP9''s first FRAME output is a
+
+  time-indexed company-side ''is this supply point smart as at date D'' register derived
+
+  from observed arrivals -- a prerequisite to the adapter, not part of it.
+
+
+  (5) BOTH HALVES OF THE DAILY RESPONSE LAND ON DARK CONSUMERS, AND EP8 FINDING 5(a) IS
+
+  CORRECTED. The HH usage file''s destination (`smart_meter_analytics.HHReading` /
+
+  `SmartMeterAnalytics.ingest`) has zero non-test importers. The index read''s consumer
+
+  (`smart_meter_reconciliation`) also has zero: EP8 counted 1 importer in
+
+  `monthly_bill_assembly.py`, but both hits there are COMMENTS and line 197 says in
+
+  terms ''kept as its own named constant here rather than imported''. Checked at EP8''s
+
+  own HEAD 0f2fab3c5 too -- same two comments, same absent import, so this was a
+
+  grep-hit read as an import, not a regression since (R9: the direct check exonerates
+
+  the intervening commits). CONSEQUENCE: EP8 concluded the risk was changing shape
+
+  under a live consumer; with both dark the risk is inverted -- an adapter could
+
+  deliver wrong data or none and nothing running would notice. No exit criterion for
+
+  this atom may rest on ''the consumer reconciles''.
+
+
+  (6) THE NAMED FIDELITY GOLD STILL HAS NOWHERE TO LIVE, and the RE-REQUEST half has
+
+  never been looked for: grep for backfill/re-request/missing_day/gap_fill across
+
+  `company/`, `simulation/`, `tools/` returns no hit on any meter-data path (the 8
+
+  `backfill` hits are regulatory `effective_from` backfilling, an unrelated sense). So
+
+  the company has no notion of noticing a hole and asking again -- there is nothing to
+
+  be wrong with yet. EP8 finding 3 already established why a per-billing-period message
+
+  cannot carry a missing DAY; not re-derived.
+
+
+  FRAME (in the doc, not a promotion request): L1 = the response contract as a cited
+
+  fixture with a delete-a-property falsifier; L2 = the single smart-as-at-date register
+
+  on an acceptable identifier covering all metered accounts, falsifier = today''s
+
+  disagreement count as a red test; L3 = both halves delivered into consumers that
+
+  EXECUTE, the missing-day hole representable, the triad gap measured, falsifier =
+
+  suppress N days and the gap must move. Prerequisites owned elsewhere: EP8 findings 1
+
+  and 3 (the message-model cut and the granularity change) -- EP9 cannot reach L3
+
+  before either.'
+- '2026-09-06 DISCOVER PASS 2 -- RECORDED LATE, by pass 3, on the day it ran. The pass landed `docs/design/EP9_CONSENTED_METERING_DISCOVER_PASS2_2026-09-06.md` (commit eca0b1341) and appended NO note here, so `tools.discovery_pass_ceiling` -- which counts passes as `len(notes)` from this store -- read this atom at 1 pass when 2 had landed. That undercount is why a third draw was available. Recording it here rather than leaving the count wrong; the doc is the pass''s own output and is unaltered. Its finding: nothing pass 1 named had moved in nineteen days, and the MPAN finding pass 1 queued (WORKER_FINDING_THE_REGISTRATION_KEY_FOR_A_REAL_COUNTERPARTY_IS_INVALID_IN_EIGHTEEN_OF_NINETEEN_ACCOUNTS_2026-08-18.md) had been swept into `docs/staging/done/` by a 419-file bulk backlog clearance (2766c8ca2), not dispositioned on its merits -- so the record reads ''closed'' and the code is byte-identical. FRAME unchanged; precondition EP9-P0 made explicit (L2 is unreachable while `_mpan` emits check-digit-invalid keys and `validate_mpan` cannot fail on them).'
+- '2026-09-06 DISCOVER PASS 3 -- NO INVESTIGATION OF THE SUBJECT. Level stays 0, loop_stage stays idle, `file_scope` stays [] and no BUILD code was written (EPOCH_GATING_AND_ATOM_AUTHORSHIP Rule 1). The draw itself was the finding, so the pass dispositioned the atom instead of investigating it a third time. THE ATOM IS FRAME-COMPLETE and is now marked `frame_saturated: true` on the map -- the documented R11 escape, for exactly its documented case: this atom''s L1/L2/L3 exit criteria and falsifiers exist (pass 1 doc §7, restated pass 2 §4) but live inside DISCOVER-NAMED docs, which `supervisor._atom_has_frame_doc` excludes BY DESIGN. Only BUILD work remains and BUILD is epoch-3 gated, which is the saturated condition exactly.
+
+
+  WHY THREE GUARDS DID NOT REFUSE THIS DRAW, measured on the live map this pass (336 atoms, 1,273 evidence entries), separating three mechanisms that look like one:
+
+  (a) NO FRAME-NAMED FILE (this atom). The guard is correct by its own rules and only the override can fix it. 18 idle atoms are drawable-for-ever today; 14 of them have no FRAME doc on disk at all, so keying the guard to disk would NOT reach them.
+
+  (b) FRAME DOC ON DISK, ABSENT FROM `evidence` (EP17''s sibling-2 defect, deliberately left unrepaired on 2026-09-06 for want of a blast-radius measurement). MEASURED: keying the guard to disk instead of the evidence list would flip exactly 4 atoms, NOT ''every framed atom in the map'' -- EP3, EP5, EP16, EP17. EP16 and EP17 are already out of the draw on the pass ceiling (5 and 6 passes), so the operational change is 2 atoms, and only EP3 needs a judgement call. The parked repair is a one-atom decision, not a map-wide gamble.
+
+  (c) ANNOTATION BLINDNESS, a third mechanism not previously named. An evidence entry written as `path (annotation)` never resolves to a file, so the guard cannot see a FRAME doc the map DOES cite. 225 of 1,273 entries are annotated-and-unresolvable; 86 resolve once the annotation is stripped; 3 of those are FRAME docs under `docs/design/`; and exactly ONE of those atoms is drawable-for-ever -- EP5_settlement_true_ups, whose `EP5_SETTLEMENT_TRUE_UPS_DISCOVER_FRAME.md` is listed and unreadable. Blast radius of that repair: one atom.
+
+
+  NOT DONE HERE, deliberately. EP5 was NOT given an override: its defect is (c), and an override would mask the annotation bug and make the real repair unverifiable. EP19_counterparty_qualification_paths carries two DISCOVER docs and was checked and DELIBERATELY LEFT DRAWABLE -- neither doc has a FRAME section and both carry open items forward, so marking it would STARVE a genuinely unframed atom, the fail-toward-starve direction the guard''s own docstring names as its expensive one. No control code was changed and no new finding document was minted (the existing one is the right room; a second copy is the two-rooms trap).'
 map_notes:
   origin_note: The 'missing days stay missing unless re-requested' behaviour is the valuable part and the part most likely to be smoothed away -- it is a permanent hole in the company's evidence unless the company notices and asks again, which is exactly the sort of thing a real supplier gets wrong. Build the gap, then let the company be wrong about it. C-S1 event-arrival tolerance is not optional here; it is the counterparty's actual contract.
   name: 'Adapter for a DCC Other User consented-metering API (n3rgy, with Hildebrand/Glow as the alternate): live AND sandbox services, auth by IHD MAC/CIN, registration by MPAN/MPRN. Access class SANDBOX NOW. Fidelity gold the SIM should reproduce, verified 2026-08-05: the supplier pull is ONCE DAILY PER METER, returning a midnight index read plus a half-hourly usage file -- and missing days STAY MISSING unless re-requested.'
@@ -8,6 +163,7 @@ map_records:
   evidence:
   - docs/design/refs/ADVISOR_RESEARCH_COUNTERPARTY_APIS_EPOCH3_2026-08-05.md
   - docs/design/EP9_CONSENTED_METERING_DISCOVER.md
+  - docs/design/EP9_CONSENTED_METERING_DISCOVER_PASS2_2026-09-06.md
   - docs/design/simplifications/EP8_adapter_dcc_duis.yaml
   - background/egress_allowlist.py
   - company/crm/customer_registry.py

@@ -1,0 +1,14 @@
+atom_id: W1_14_weather_cells_for_household_heat_load
+map_notes:
+  origin_note: 'DIRECTOR RULING 2026-09-05, docs/staging/DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05.md,
+    P1 product, transmitted as decisions. Director verbatim: ''What I am trying to do is divide the UK
+    up into clusters of similar primary weather drivers... how much granularity is needed to capture,
+    say 99%, versus 95 or 90% of the variation for households across these primary heat load variables.''
+    The weather hierarchy has defined four layers since 2026-07-13 and LAYER 2 HAS NEVER BEEN DEFINED
+    -- the SIM carries four nodes (London, Manchester, Glasgow, Cotswolds) chosen by convenience. THE
+    72-HOUR TOKEN CLOCK IS ALREADY DISCHARGED: the HadUK-Grid pull landed 2026-09-05 in 8016f7176 with
+    docs/market_research/haduk_grid_pull_receipt.json, so what remains is analysis and the knowledge page,
+    not the pull. The answer is a CURVE not a number, computed separately for level and shape; clustering
+    is blind to LDZ/GSP/SAP-21, which are comparators overlaid afterwards. Household weights come from
+    the censuses, NEVER from the SIM''s own drawn population, and validation is DESNZ sub-national gas
+    consumption -- generation and validation from separate sources.'
