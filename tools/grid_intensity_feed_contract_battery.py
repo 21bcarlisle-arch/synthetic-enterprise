@@ -202,6 +202,29 @@ MUTATIONS = (
     ),
 )
 
+#: The subject's `def` block, VERBATIM. Three of the four anchor strings below
+#: embed it, so it is held once: a one-character divergence between two copies of
+#: a nine-line signature is not findable by reading, and its only symptom is
+#: TARGET NOT UNIQUE -- reachability UNKNOWN, printed once and easy to skim past.
+#:
+#: NOT read from the subject at run time, which would make the anchor derive from
+#: the thing it anchors and grade nothing. It is a literal, and `poison_old`'s
+#: occurs-exactly-once refusal is what proves the literal still matches.
+#:
+#: It said `-> tuple[dict, dict, dict, dict]` here and in the subject until
+#: 2026-09-06, while the function returned seven members and all eight callers
+#: unpacked seven. Correcting the subject moves this spec's fingerprint, which is
+#: why the two edits are one commit and why this spec's results file starts empty.
+SUBJECT_DEF = """def fuel_mix() -> tuple[
+    dict[tuple[str, int], tuple[float, float]],  # imports: {(date, period): (MW, t/MWh)}
+    dict[int, float],                            # coal capacity: {year: demonstrated max MW}
+    dict[str, float],                            # import coverage: the priced fraction, measured
+    dict[int, dict[str, float]],                 # thermal floor: {year: {floor_mw, p1_mw, ...}}
+    dict[tuple[str, int], float],                # must-run: {(date, period): NUCLEAR+NPSHYD MW}
+    dict[str, float],                            # must-run coverage: measured vs flat fallback
+    dict[int, dict[str, float]],                 # biomass envelope: {year: {floor_mw, p99_mw...}}
+]:"""
+
 #: The reachability floor: an import-time raise. Unlike the previous subjects,
 #: EVERY caller here imports lazily inside a function body, so this reddens a
 #: suite only if the suite executes the calling path -- a stricter floor that
@@ -209,9 +232,9 @@ MUTATIONS = (
 #: module". Stated before the run, because afterwards a stricter floor and a
 #: broken one look identical, and the flattering reading of an unexpected
 #: NEVER REACHES is that the floor is working.
-POISON_OLD = "\ndef fuel_mix() -> tuple[dict, dict, dict, dict]:"
+POISON_OLD = "\n" + SUBJECT_DEF
 POISON_NEW = ('\nraise RuntimeError("POISON: generate_grid_intensity_feed reachability floor")'
-              "\n\n\ndef fuel_mix() -> tuple[dict, dict, dict, dict]:")
+              "\n\n\n" + SUBJECT_DEF)
 
 #: THE NULL ROUND, and this subject is the reason the engine has one. Six of the
 #: eight callers do `(PROJECT_DIR / "tools" / "generate_grid_intensity_feed.py")
@@ -228,7 +251,7 @@ POISON_NEW = ('\nraise RuntimeError("POISON: generate_grid_intensity_feed reacha
 #: search they claim not to. A red here does not say WHICH half caused it; that
 #: is a second run with the halves split, and it is only worth paying for if a
 #: suite reddens.
-NULL_OLD = "def fuel_mix() -> tuple[dict, dict, dict, dict]:"
+NULL_OLD = SUBJECT_DEF
 NULL_NEW = (
     "# NULL ROUND (tools/contract_battery.py): behaviour-preserving by construction.\n"
     "# It names ep13_input_ceiling and ep13_biomass_oracle_bound on purpose -- their own\n"
@@ -237,7 +260,7 @@ NULL_NEW = (
     "_NULL_ROUND_MARKER = None\n"
     "\n"
     "\n"
-    "def fuel_mix() -> tuple[dict, dict, dict, dict]:"
+    + SUBJECT_DEF
 )
 
 SPEC = BatterySpec(

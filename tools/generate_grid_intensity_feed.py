@@ -690,8 +690,18 @@ def build(shape: dict, demand: dict, *, window_days: int = RECORD_WINDOW_DAYS,
 BIOMASS_DISPATCH_WIRED = False
 
 
-def fuel_mix() -> tuple[dict, dict, dict, dict]:
-    """(imports by half hour, coal capacity by year, the measured import coverage, thermal floor).
+def fuel_mix() -> tuple[
+    dict[tuple[str, int], tuple[float, float]],  # imports: {(date, period): (MW, t/MWh)}
+    dict[int, float],                            # coal capacity: {year: demonstrated max MW}
+    dict[str, float],                            # import coverage: the priced fraction, measured
+    dict[int, dict[str, float]],                 # thermal floor: {year: {floor_mw, p1_mw, ...}}
+    dict[tuple[str, int], float],                # must-run: {(date, period): NUCLEAR+NPSHYD MW}
+    dict[str, float],                            # must-run coverage: measured vs flat fallback
+    dict[int, dict[str, float]],                 # biomass envelope: {year: {floor_mw, p99_mw...}}
+]:
+    """SEVEN members, in the order all eight callers unpack them: imports by half hour, coal
+    capacity by year, the measured import coverage, the thermal floor by year, the zero-carbon
+    must-run by half hour, that block's coverage, and the biomass envelope by year.
 
     THE ONE PLACE THE NEW INPUTS CANNOT BE FORGOTTEN, and that is its job. `build_shape` takes
     them all as optional keywords whose defaults reproduce the shape exactly as it was before
@@ -704,6 +714,14 @@ def fuel_mix() -> tuple[dict, dict, dict, dict]:
     diagnostic and has no path into the dispatch. The biomass envelope is unpacked the same way
     one layer down, in `build_shape`, and for a stronger version of the same reason: its
     `mean_mw` would fit the published series better than either honest end.
+
+    THIS SIGNATURE IS A BATTERY ANCHOR, so it is not free to drift.
+    `tools/grid_intensity_feed_contract_battery.py` holds this `def` block verbatim as its
+    reachability floor and its null-round insertion point. Change the signature without changing
+    it there, in the same commit, and the next run prints TARGET NOT UNIQUE -- which is
+    reachability UNKNOWN for every row, not a pass. Changing it there moves the spec fingerprint,
+    which is deliberate: it is what stops a stale results file being read against a spec that
+    never scored it, and it means the battery has to be re-run.
     """
     from sim import elexon_fuel_outturn as fuel
 
