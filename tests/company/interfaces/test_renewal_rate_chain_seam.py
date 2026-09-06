@@ -573,12 +573,109 @@ def test_a_customer_with_no_prior_term_pays_no_recovery_surcharge():
 
 
 # ---------------------------------------------------------------------------
+# The portfolio position: a reading the company holds continuously, which the
+# rate chain wrote down only where it happened to move a rate.
+# ---------------------------------------------------------------------------
+
+# A book earning EXACTLY its target margin. This is the case the defect lives in and it is not
+# an edge: the premium is `(target - mean) * half_life`, so a supplier that has hit its target
+# produces a premium of zero, writer 1 never fires, and `dynamic_pricing_log` records nothing —
+# while `mean_recent_margin_rate` of 0.08 is a perfectly real reading the company took.
+_ON_TARGET_BOOK = [0.08, 0.08, 0.08, 0.08, 0.08]
+
+
+def test_the_premium_that_moves_no_rate_still_leaves_a_position_to_record():
+    """BOTH LEGS OF THE PARTITION, because a position that exists for EVERY history would pass
+    any test that only asked the quiet leg.
+
+    Leg 1 (the reference book, under-earning): the premium fires, and the position is what the
+    chain logged. Leg 2 (a book on target): the premium is zero, writer 1 emits NOTHING, and the
+    position is still a reading — which is the whole defect. Before this, 15 of 164 households
+    carried no `mean_recent_margin_rate` because their premium rounded away, and
+    `tools/r1_inference_ceiling.py` read that as a book that got smaller.
+    """
+    fired = door.decide_renewal_rate(**{**REFERENCE, "settled_records": _settled("C1")})
+    quiet = door.decide_renewal_rate(**{
+        **REFERENCE, "portfolio_margin_rates": _ON_TARGET_BOOK,
+        "settled_records": _settled("C1"),
+    })
+    # REACHABILITY OF BOTH LEGS, asserted before anything is claimed about either.
+    assert fired.dynamic_pricing_entries, "leg 1 is vacuous: the premium never fired"
+    assert not quiet.dynamic_pricing_entries, (
+        "leg 2 is vacuous: the on-target book moved a rate, so there is no quiet case here and "
+        "this control proves nothing about the households the defect was measured on"
+    )
+
+    on_target = door.portfolio_position(_ON_TARGET_BOOK)
+    assert on_target is not None, (
+        "the reading the company took vanished with the rate move it did not make"
+    )
+    assert on_target["mean_recent_margin_rate"] == 0.08
+    assert on_target["portfolio_premium_pct"] == 0.0
+
+
+def test_the_position_is_the_same_reading_the_rate_was_struck_against():
+    """ONE IMPLEMENTATION, not two that agree today.
+
+    The world records this against the account and the desk multiplies the rate by it. If they
+    are computed twice they will disagree the first time the lookback depth moves, and the
+    account-state record would then be a plausible number rather than the supplier's position.
+    """
+    chain = door.decide_renewal_rate(**{**REFERENCE, "settled_records": _settled("C1")})
+    logged = chain.dynamic_pricing_entries[0]
+    position = door.portfolio_position(REFERENCE["portfolio_margin_rates"])
+    for key in ("recent_margin_rates", "mean_recent_margin_rate", "portfolio_premium_pct"):
+        assert position[key] == logged[key], (
+            f"{key} differs between the position the world records and the one the rate was "
+            f"struck against: {position[key]!r} vs {logged[key]!r}"
+        )
+
+
+def test_no_completed_term_is_an_absence_and_never_a_position_of_zero():
+    """`None`, not 0.0. A supplier with no completed term has taken no reading; a supplier whose
+    book earns its target has taken one and it reads zero. Collapsing those two would put a
+    fabricated 0.08-shortfall reading on every account in the company's first term, and it would
+    look exactly like data.
+    """
+    assert door.portfolio_position([]) is None
+    on_target = door.portfolio_position(_ON_TARGET_BOOK)
+    assert on_target is not None and on_target["portfolio_premium_pct"] == 0.0
+
+
+def test_the_position_reads_only_as_far_back_as_the_supplier_looks():
+    """Mutation-facing: the lookback is a supplier parameter that does not cross the door, so the
+    only way to catch it being ignored here is behaviourally. A history longer than the lookback
+    whose OLD entries would move the mean if they were read.
+    """
+    long_book = [-0.90, -0.90, -0.90] + _ON_TARGET_BOOK[:4]
+    position = door.portfolio_position(long_book)
+    assert position["mean_recent_margin_rate"] == 0.08, (
+        "the position read past the supplier's own lookback depth"
+    )
+    assert len(position["recent_margin_rates"]) < len(long_book)
+
+
+def test_the_door_still_hands_over_no_coefficient_with_the_position():
+    """The position crosses as a FUNCTION precisely so the coefficients behind it do not. This is
+    the same rule `test_the_door_exposes_only_the_decision_and_its_result` applies to the desk,
+    re-asked of the new surface because a returned dict is a second way to leak one.
+    """
+    position = door.portfolio_position(REFERENCE["portfolio_margin_rates"])
+    for leaked in ("target", "half_life", "lookback", "premium_min", "premium_max"):
+        assert leaked not in position, (
+            f"{leaked} rides across the wall inside the position payload"
+        )
+
+
+# ---------------------------------------------------------------------------
 # The door's own surface: no engine, no cap table, no coefficient.
 # ---------------------------------------------------------------------------
 
 
 def test_the_door_exposes_only_the_decision_and_its_result():
-    assert sorted(door.__all__) == ["RenewalRateChain", "decide_renewal_rate"]
+    assert sorted(door.__all__) == [
+        "RenewalRateChain", "decide_renewal_rate", "portfolio_position",
+    ]
     for leaked in (
         "CompanyTariffEngine",
         "compute_portfolio_premium",

@@ -31,7 +31,29 @@ from __future__ import annotations
 
 from company.pricing.renewal_rate_chain import RenewalRateChain
 
-__all__ = ["RenewalRateChain", "decide_renewal_rate"]
+__all__ = ["RenewalRateChain", "decide_renewal_rate", "portfolio_position"]
+
+
+def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
+    """Ask the company what its own recent margin on this commodity is, and what premium it implies.
+
+    THE SAME READING `decide_renewal_rate` TAKES, and that is why it crosses here rather than
+    being recomputed on the world's side. The world holds the supplier's realised margin history
+    (it is the supplier's own P&L, which is why it is already a parameter above); what that
+    history MEANS — how far back to look, and what shortfall against target implies — is supplier
+    model parameters of its market, and the docstring above is explicit that those coefficients
+    do not cross. A function crosses; the coefficients stay behind it.
+
+    WHY THE WORLD NEEDS IT SEPARATELY FROM THE RATE. `decide_renewal_rate` records this position
+    only where the premium moved a rate, so the world's account-state record carried a
+    continuously-held quantity as though it were an event, and 15 of 164 households had no value
+    for a figure the company held for all of them. Recording it per term is what makes the
+    coverage of `mean_recent_margin_rate` and `portfolio_premium_pct` a fact about the book
+    rather than about which rates happened to move.
+    """
+    from company.pricing.renewal_rate_chain import portfolio_position as _position
+
+    return _position(portfolio_margin_rates)
 
 
 def decide_renewal_rate(

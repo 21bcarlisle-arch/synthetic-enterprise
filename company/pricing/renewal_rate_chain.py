@@ -103,6 +103,47 @@ __all__ = ["RenewalRateChain", "decide_renewal_rate"]
 # `term_index >= 1` at two call sites; it is one supplier rule, named once.
 MIN_TERM_INDEX_FOR_LEARNED_ADJUSTMENT = 1
 
+def portfolio_position(portfolio_margin_rates: list[float]) -> dict | None:
+    """What the supplier's own P&L says about its recent margin on this commodity, and the
+    premium that reading implies — held CONTINUOUSLY, whether or not it moves a rate.
+
+    `None` where the supplier has no completed term of this commodity yet: there is no position
+    to hold, which is a different quantity from a position of zero, and a caller that wrote 0.0
+    here would be recording a reading nobody took.
+
+    SPLIT OUT OF WRITER 1, and the split is the point rather than tidiness. Both figures are
+    things the company knows about its own book at every priced term. Writer 1 wrote them down
+    only on the renewals where the premium happened to survive `abs(...) > 1e-6` and move the
+    rate, so the record of a continuously-held quantity carried the shape of an event.
+
+    Measured 2026-09-06 on `run_output_3851553ec`: `mean_recent_margin_rate` and
+    `portfolio_premium_pct` reached 149 of 164 households, and the fifteen missing are not
+    fifteen accounts the company knew nothing about — they are accounts where the premium
+    rounded to nothing. That is the same accounting accident as `company_eac_kwh`, which the
+    company computed for everyone and wrote down only at renewals, and which
+    `tools/r1_inference_ceiling.py::OBSERVABLE_FIELD_SCOPE` declares a DEFECT rather than a
+    truth about the field for exactly this reason.
+
+    ONE IMPLEMENTATION, called by both writers of it. `decide_renewal_rate` below reads this
+    function and so does the world's account-state record, through
+    `company/interfaces/renewal_rate_chain.py`. A second inlined `sum(lookback)/len(lookback)`
+    at the other call site is how one quantity becomes two that disagree.
+    """
+    if not portfolio_margin_rates:
+        return None
+    lookback = portfolio_margin_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
+    premium = compute_portfolio_premium(lookback)
+    return {
+        "recent_margin_rates": [round(r, 4) for r in lookback],
+        "mean_recent_margin_rate": round(sum(lookback) / len(lookback), 4),
+        "portfolio_premium_pct": round(premium * 100, 2),
+        # THE UNROUNDED FRACTION, kept beside the published percentage because it is what
+        # multiplies the rate. Rounding to 2dp first and dividing back would move the rate the
+        # customer contracts at, which is not a presentation decision.
+        "portfolio_premium_fraction": premium,
+    }
+
+
 # The supplier's reading of who the domestic price cap binds. A cap is a ceiling
 # on a standard domestic product; it is not the supplier's licence to ignore it
 # on everything else, and a supplier that reads this wrong is the failure mode
@@ -189,8 +230,8 @@ def decide_renewal_rate(
         and term_index >= MIN_TERM_INDEX_FOR_LEARNED_ADJUSTMENT
         and len(portfolio_margin_rates) >= 1
     ):
-        lookback = portfolio_margin_rates[-PORTFOLIO_PREMIUM_LOOKBACK:]
-        portfolio_prem = compute_portfolio_premium(lookback)
+        position = portfolio_position(portfolio_margin_rates)
+        portfolio_prem = position["portfolio_premium_fraction"]
         if abs(portfolio_prem) > 1e-6:
             rate_before = unit_rate
             unit_rate *= (1.0 + portfolio_prem)
@@ -198,9 +239,9 @@ def decide_renewal_rate(
                 "customer_id": customer_id,
                 "commodity": commodity,
                 "term_start": term_start,
-                "recent_margin_rates": [round(r, 4) for r in lookback],
-                "mean_recent_margin_rate": round(sum(lookback) / len(lookback), 4),
-                "portfolio_premium_pct": round(portfolio_prem * 100, 2),
+                "recent_margin_rates": position["recent_margin_rates"],
+                "mean_recent_margin_rate": position["mean_recent_margin_rate"],
+                "portfolio_premium_pct": position["portfolio_premium_pct"],
                 # This pair spans THIS writer's move only. The rate the customer
                 # contracted is `unit_rate_contracted`, stamped on below once the
                 # surcharge, the uplift and the cap have each had their turn.

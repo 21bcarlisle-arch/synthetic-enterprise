@@ -721,7 +721,29 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1319,  # lowered 2026-09-06 (one Elexon timetable): the settlement-timetable convergence
+    "I001": 1317,  # lowered 2026-09-06 (the gas SVT leg, landing): -2 from clean HEAD's 1319, and
+    #             BOTH ARE THIS COMMIT'S, attributed one file at a time in a `git archive HEAD`
+    #             extract overlaid with exactly this commit's files:
+    #               clean HEAD                                  13/13 green (census 1319)
+    #               + everything but `svt_rates.py`             1318
+    #               + `svt_rates.py` as well                    1317
+    #             `tests/simulation/test_svt_rates.py` is the first -1: it had `import pytest` and a
+    #             first-party `simulation.svt_rates` import in ONE unsorted block, and the gas tests
+    #             needed their imports at the top (mid-file blocks took E402 173 -> 175, above ITS
+    #             baseline), which sorted the header block as a side effect. `simulation/svt_rates.py`
+    #             is the second: its own `__future__`/`datetime` block was unsorted and this commit
+    #             opens that file anyway.
+    #
+    #             THE SHARED TREE READS 1316 AND THAT NUMBER IS NOT THIS COMMIT'S. The extra -1 is a
+    #             fix in flight in some other lane's uncommitted file; freezing 1316 would bank it
+    #             and red the live-tree control the moment that lane lands alone. The entry this one
+    #             replaces was written from the dirty tree and had already drifted the same way.
+    #             Do NOT read `ruff check --select I001 .` against this number either -- that scope
+    #             sits one above this census and mixing the two is the same mistake by another door.
+    #             SHRINK-ONLY.
+    #
+    #             Previous entry, kept for its measurement:
+    #             1319, lowered 2026-09-06 (one Elexon timetable): the settlement-timetable convergence
     #             opened `company/regulatory/settlement_reconciliation.py` (it gains the public
     #             ELEXON_RUN_MONTHS the register and the published feed now read instead of copying)
     #             and `tests/company/market/test_bsc_settlement_run_register.py` (it gains the
@@ -768,7 +790,17 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2298  # was 2300; -2 (I001) on 2026-09-06, one Elexon timetable: the sourced
+RUFF_BASELINE_TOTAL = 2296  # was 2298; -2 (I001) on 2026-09-06, the gas SVT leg: this commit opens
+                            # both `tests/simulation/test_svt_rates.py` (the gas tests needed their
+                            # imports at the top, since mid-file blocks took E402 above ITS
+                            # baseline, and hoisting sorted the header block) and
+                            # `simulation/svt_rates.py` (its own unsorted `__future__`/`datetime`
+                            # block). Measured in a `git archive HEAD` extract overlaid with exactly
+                            # this commit's files, one file at a time: clean HEAD green at 2298;
+                            # + everything but `svt_rates.py`, 2297; + `svt_rates.py`, 2296.
+                            # The shared tree reads 2295 — that further -1 is another lane's fix in
+                            # flight, and this entry deliberately does not bank it.
+                            # Was 2300; -2 (I001) on 2026-09-06, one Elexon timetable: the sourced
                             # run months became public so the register and the published feed could
                             # read them instead of copying, opening two import blocks that were
                             # unsorted at clean HEAD. Measured in the overlaid HEAD extract (2298),

@@ -64,7 +64,7 @@ from company.interfaces.renewal_offer import (
     request_company_forward_estimate,
     request_fixed_unit_rate,
 )
-from company.interfaces.renewal_rate_chain import decide_renewal_rate
+from company.interfaces.renewal_rate_chain import decide_renewal_rate, portfolio_position
 from company.interfaces.statutory_obligations import build_statutory_obligations
 from company.interfaces.supply_book import (
     acquired_supply_points,
@@ -855,6 +855,43 @@ def _company_eac_estimate(
     return estimated if estimated > 0 else base
 
 
+def _account_state_svt_rate(commodity: str, term_start_str: str) -> float | None:
+    """The default-tariff rate the account-state record carries for THIS leg's fuel.
+
+    PER FUEL, AND THAT IS THE HONEST SHAPE. The account-state writer read "ELECTRICITY ONLY ...
+    there is no gas equivalent in it" until 2026-09-06, which was true of `simulation/svt_rates`
+    and false of the world: the Ofgem cap covers both fuels (Domestic Gas and Electricity (Tariff
+    Cap) Act 2018), and the regulation commons has carried the gas leg per published window since
+    W3_1b. The cost of believing the gap: 449 of `account_state_log`'s 2,098 rows are gas and every
+    one carried `None`, so 105 households -- all of them gas-only -- had no value for the field in
+    any term, and `tools/r1_inference_ceiling.py` read that as the field's own truth rather than as
+    a missing read, on a rung A49 gates R3 and R4 on.
+
+    The original warning stands and is what the dispatch honours: writing the ELECTRICITY cap
+    against a gas leg would be a spread between two commodities. Writing the GAS cap against a gas
+    leg is the quantity the field was always meant to be.
+
+    A NAMED FUNCTION RATHER THAN THE INLINE CONDITIONAL IT REPLACES, because inside `_main`'s term
+    loop the only way to reach this dispatch is a decade-long run. `svt_rates` declines to publish
+    a `get_svt_rate(fuel, date)` of its own -- deliberately, so a caller always knows which of two
+    different instruments answered it -- so the dispatch belongs to the record that needs it, and
+    is named for that record.
+
+    An unknown commodity returns `None` rather than guessing a fuel: there is no default tariff for
+    a fuel we cannot name, and a rate written under the wrong one would be unfalsifiable.
+    """
+    from simulation.svt_rates import (
+        get_svt_elec_rate_gbp_per_mwh,
+        get_svt_gas_rate_gbp_per_mwh,
+    )
+
+    if commodity == "electricity":
+        return get_svt_elec_rate_gbp_per_mwh(term_start_str)
+    if commodity == "gas":
+        return get_svt_gas_rate_gbp_per_mwh(term_start_str)
+    return None
+
+
 def _domestic_flex_assets_by_date(
     household_register,
     report_years: list[str],
@@ -1527,6 +1564,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # applies to and the ORDER they fire in. They form one chain producing
         # one number, so they are one door: company/interfaces/renewal_rate_chain.py.
         # The world reports the renewal as it happened and records what came back.
+        # THE PORTFOLIO POSITION AS THE CHAIN BELOW WILL READ IT, taken here and carried down to
+        # the account-state record rather than re-read there. The two call sites are ~260 lines
+        # apart with the margin history mutable between them; taking one reading is what makes
+        # the recorded figure the one the rate was actually struck against, and not a second
+        # reading that agrees today.
+        _position = portfolio_position(
+            portfolio_elec_margin_rates if commodity == "electricity"
+            else portfolio_gas_margin_rates
+        )
         _chain = decide_renewal_rate(
             customer_id=cid,
             billing_account=billing_account,
@@ -1776,15 +1822,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         # gate can quietly narrow the book's own record; and it is above
         # `settled_fold.add(settled_this_term)` at the foot of this loop, so the EAC estimate sees
         # the twelve months BEFORE this term and never the term itself.
-        from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
         _state_unit_rate = unit_rate if isinstance(unit_rate, (int, float)) else None
-        # ELECTRICITY ONLY, and that is the honest shape rather than a gap: `svt_rates` publishes
-        # the electricity default-tariff cap and there is no gas equivalent in it. Writing the
-        # electricity cap against a gas leg's rate would produce a spread between two different
-        # commodities -- a number, and not a quantity.
-        _state_svt_rate = (
-            get_svt_elec_rate_gbp_per_mwh(term_start_str) if commodity == "electricity" else None
-        )
+        # PER FUEL. The dispatch and the reason it exists are in `_account_state_svt_rate`, module
+        # level, because the only route to this line is a decade-long run and a branch no control
+        # can reach is a branch that goes wrong quietly.
+        _state_svt_rate = _account_state_svt_rate(commodity, term_start_str)
         _state_rate_vs_svt_pct = (
             round((_state_unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
             if _state_unit_rate is not None and _state_svt_rate else None
@@ -1801,6 +1843,19 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             "svt_rate_gbp_per_mwh": _state_svt_rate,
             "rate_vs_svt_pct": _state_rate_vs_svt_pct,
             "company_eac_kwh": round(_company_eac_estimate(cid, term_start_str, settled_fold)),
+            # THE PORTFOLIO POSITION, WRITTEN FOR EVERY TERM AND NOT ONLY THE ONES IT MOVED.
+            # `dynamic_pricing_log` records these two only where the premium cleared 1e-6 and
+            # changed a rate, which made a continuously-held reading look like an event: 149 of
+            # 164 households carried them, and the fifteen missing were accounts whose premium
+            # rounded to nothing, not accounts the company had no position on. `None` where the
+            # supplier has no completed term of this commodity yet — an honest absence, and the
+            # one case where there genuinely is no reading to record.
+            "mean_recent_margin_rate": (
+                _position["mean_recent_margin_rate"] if _position else None
+            ),
+            "portfolio_premium_pct": (
+                _position["portfolio_premium_pct"] if _position else None
+            ),
             "data_regime": "historical",
         })
 
