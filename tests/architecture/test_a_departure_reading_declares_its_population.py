@@ -175,22 +175,22 @@ def test_a_cause_the_mix_cannot_observe_is_absent_rather_than_zero():
     """
     mix = _mix()
     interval = mix["interval"]
-    unobservable = mix.get("causes_not_observable_on_this_population")
+    unobservable = mix.get("causes_not_in_the_interval")
     assert isinstance(unobservable, dict), (
-        "the mix does not declare which causes its population cannot observe, so a reader has no "
+        "the mix does not declare which causes are absent from its interval, so a reader has no "
         "way to tell an absent cause from one that was measured at zero"
     )
     for cause in ORDERED_CAUSES:
         assert (cause in interval) != (cause in unobservable), (
             "cause {!r} is {} -- every cause in `ORDERED_CAUSES` must be exactly one of MEASURED "
-            "(in `interval`) or UNOBSERVABLE (in `causes_not_observable_on_this_population`). A "
+            "(in `interval`) or ABSENT (in `causes_not_in_the_interval`). A "
             "cause in neither has silently left the published mix; one in both is being reported "
             "twice.".format(cause, "in both" if cause in interval else "in neither")
         )
     for cause, value in unobservable.items():
         assert value is None, (
-            "cause {!r} is declared unobservable and still carries the value {!r}. An unobservable "
-            "share is unknown, and a number here is exactly the reading that made this "
+            "cause {!r} is declared absent from the interval and still carries the value {!r}. An "
+            "unmeasured share is unknown, and a number here is exactly the reading that made this "
             "repair necessary.".format(cause, value)
         )
 
@@ -203,15 +203,30 @@ def test_a_cause_the_mix_cannot_observe_is_absent_rather_than_zero():
     #
     # (a) THE MIX MUST AGREE WITH ITS OWN DECLARED POPULATION. Which causes are observable is a
     # property of the routes the capture covers, not of what the sweep chose to print.
+    #
+    # A SUBSET, NOT AN EQUALITY, AND THE DIRECTION IS THE WHOLE CONTROL (2026-09-06). Until C1b
+    # these two sets were the same set, so equality cost nothing and read as the stronger claim.
+    # The SVT route separated them: the capture's population can now observe `svt_inertia`, and
+    # this interval is a decomposition of the RENEWAL hazard alone and still cannot carry it — so
+    # equality now fails on an artefact that is MORE honest than the one it was written against,
+    # which is this project's named backwards-control shape. What must never happen is the other
+    # direction: the interval reporting a cause the population cannot see, because that number is
+    # a structural zero wearing a measurement's clothes. That is the subset below, and it is the
+    # leg that actually fires on the fail-open this test exists for.
     pop = mix.get("population") or {}
-    assert sorted(interval) == sorted(pop.get("causes_observable") or []), (
+    observable = set(pop.get("causes_observable") or [])
+    assert set(interval) <= observable, (
         "the published interval covers {} while the declared population can observe {}. A mix "
         "reporting a cause its own population cannot see is reporting a structural zero as a "
-        "measurement.".format(sorted(interval), sorted(pop.get("causes_observable") or []))
+        "measurement.".format(sorted(interval), sorted(observable))
     )
-    assert sorted(unobservable) == sorted(pop.get("causes_not_observable") or []), (
-        "the mix's unobservable list {} disagrees with its declared population's {}".format(
-            sorted(unobservable), sorted(pop.get("causes_not_observable") or []))
+    # And nothing the population cannot observe may go missing rather than being declared absent:
+    # every such cause has to be named in `causes_not_in_the_interval`, never merely omitted.
+    unreadable = set(pop.get("causes_not_observable") or [])
+    assert unreadable <= set(unobservable), (
+        "the declared population cannot observe {} and the mix does not name {} in "
+        "`causes_not_in_the_interval`. A cause the capture cannot see must be declared absent, "
+        "not dropped.".format(sorted(unreadable), sorted(unreadable - set(unobservable)))
     )
 
     # (b) A DEGENERATE RANGE IS NOT A MEASUREMENT. A cause whose share is 0-0 across every point of
@@ -223,27 +238,47 @@ def test_a_cause_the_mix_cannot_observe_is_absent_rather_than_zero():
         "cause(s) {} are published as a measured range of 0%-0% across the WHOLE feasible family. "
         "A share that cannot move anywhere in the family is not a measurement of zero, it is a "
         "cause the population cannot carry -- which belongs in "
-        "`causes_not_observable_on_this_population` as `None`.".format(sorted(degenerate))
+        "`causes_not_in_the_interval` as `None`.".format(sorted(degenerate))
     )
 
     if unobservable:
-        assert mix.get("causes_not_observable_reason"), (
+        assert mix.get("causes_not_in_the_interval_reason"), (
             "the mix names a cause it cannot observe and gives no reason. A refusal that does not "
             "say why is how a wrong refusal survives."
         )
 
 
-def test_the_declaration_can_tell_a_one_route_capture_from_a_two_route_one():
+def test_the_declaration_can_tell_a_one_route_capture_from_a_two_route_one(tmp_path):
     """THE NULL CONTROL. MUTATION: hard-code `covers_svt_route` either way and this fires.
 
     A declaration that says the same thing about a renewal-only capture and a two-route one
-    declares nothing. Both artefacts are real files in the tree, so this is a measurement and not
-    a fixture agreeing with itself.
+    declares nothing. Both sides are the real captures' real bytes, so this is a measurement and
+    not a fixture agreeing with itself.
+
+    THE NEGATIVE CASE IS STAGED, AND IT HAS TO BE (2026-09-06). It was `declare(ONE_ROUTE)` --
+    the committed `c2_departure_factors.json`, renewal-only because nothing had ever written an
+    SVT sibling beside it. Then a lane generated `c2_departure_factors_svt_segment_decisions.json`
+    into `docs/reports/`, and the one-route capture became a two-route one **without a line of
+    this file or of `declare` changing**. The null control's negative case simply left the tree,
+    and what it left behind was a control asserting `False is False` against a `True`.
+
+    A NULL CONTROL WHOSE NEGATIVE CASE IS A PATH ANOTHER WRITER CAN FILL IN IS NOT A CONTROL. So
+    the one-route side is now the same real bytes copied where no sibling can appear: the loader,
+    `svt_sibling` and `load_svt_decisions` all still run for real over a real capture, and the
+    only thing staged is the absence the case is about. `pytest` gives us `tmp_path` and this
+    needs nothing else.
     """
-    for path in (ONE_ROUTE, TWO_ROUTE):
-        if not path.is_file():
-            pytest.skip(f"{path.name} is not in the tree")
-    one, two = declare(ONE_ROUTE), declare(TWO_ROUTE)
+    if not TWO_ROUTE.is_file():
+        pytest.skip(f"{TWO_ROUTE.name} is not in the tree")
+    if not ONE_ROUTE.is_file():
+        pytest.skip(f"{ONE_ROUTE.name} is not in the tree")
+    renewal_only = tmp_path / ONE_ROUTE.name
+    renewal_only.write_text(ONE_ROUTE.read_text())
+    assert not svt_sibling(renewal_only).exists(), (
+        "the staged renewal-only capture has an SVT sibling, so the negative case is not negative "
+        "and this control cannot fail in the direction it exists for"
+    )
+    one, two = declare(renewal_only), declare(TWO_ROUTE)
 
     assert one["covers_svt_route"] is False and two["covers_svt_route"] is True, (
         "the declaration reports the same route coverage for a renewal-only capture and a "
@@ -671,3 +706,119 @@ def test_the_market_invariance_refusal_still_fires_on_a_market_blind_hazard():
         assert "no market term" in refusal
     finally:
         fit.svt_inertia_hazard = original
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+# A COMPARISON YEAR THAT CANNOT BE READ IS NAMED, NEVER DROPPED
+#
+# `world_realised_rate_pct` intersects the capture with `COMPARISON_YEARS`, and an intersection
+# reports a year it excluded and a year the run never produced identically: as absence. On the
+# committed capture 2022 is absent — interior to the span, zero renewal decisions — and every
+# consumer simply iterated the seven that remained.
+#
+# THESE LEGS ARE KEYED TO THE PROPERTY AND NOT TO SEVEN OR TO EIGHT. A count assertion goes red
+# when the code becomes MORE honest (a recovered year) and green when the subject rots further,
+# which is exactly backwards. The property is: every comparison year is either read or refused
+# BY NAME, with a reason, and the reason distinguishes a hole from an edge.
+# ═══════════════════════════════════════════════════════════════════════════════════════════
+
+def _capture_row(year: int, prob: float = 0.1, churned: bool = False) -> dict:
+    return {
+        "event_date": f"{year}-06-01",
+        "event_type": "churned" if churned else "renewed",
+        "realized_churn_probability": prob,
+    }
+
+
+def test_every_comparison_year_is_read_or_refused_by_name_and_never_merely_absent():
+    """MUTATION: drop the `else` branch in `realised_rate_coverage` so unread years just vanish.
+
+    This is the emptied-subject shape, on the real committed artefact. The band control's subject
+    is `world_realised_rate_pct`, whose years are whatever survives an intersection -- so a year
+    the run stopped producing leaves the subject without any surface saying so, and a control that
+    counts what it checked reports a smaller PASS instead of a failure. Coverage must PARTITION the
+    comparison window: read or refused, never neither, never both.
+
+    Deliberately NOT `len(readings) == 8`. Keying this to today's subject size is the pinned-to-
+    the-answer defect this file exists to avoid: it would fire the day 2022 came back.
+    """
+    from tools.measure_departure_level import COMPARISON_YEARS, realised_rate_coverage
+
+    readings, refusals = realised_rate_coverage()
+    for year in COMPARISON_YEARS:
+        held = (year in readings) + (year in refusals)
+        assert held == 1, (
+            f"{year} is in {'both' if held else 'NEITHER'} the readings and the refusals; the "
+            f"comparison window must partition, or a year can leave the subject silently"
+        )
+    for year, reason in refusals.items():
+        assert reason and str(year) in reason, (
+            f"the refusal for {year} is {reason!r}: a refusal that does not name its year and its "
+            f"cause cannot be acted on, and CLAUDE.md requires a refusal to say why"
+        )
+
+
+def test_a_year_missing_from_the_middle_of_a_capture_is_refused_differently_from_one_off_its_end(
+    tmp_path,
+):
+    """MUTATION: collapse the two refusal branches into one message and this fires.
+
+    THE TWO CAUSES WANT DIFFERENT REPAIRS AND THAT IS THE WHOLE POINT. A comparison year beyond the
+    capture's last year means the run was shorter -- unremarkable, re-capture for longer. A year
+    INSIDE the span with zero decisions means the run reached that year and produced nothing, which
+    is a fact about the world (2022: no household reaches a renewal roll in the crisis) and is not
+    fixed by capturing more. A single "no data" message sends the reader to the wrong repair, and
+    the seat spent a turn establishing which of the two 2022 was.
+
+    Fixtures are synthetic and self-contained: keying this to the committed capture would make it
+    a restatement of today's artefact rather than of the property.
+    """
+    from tools.measure_departure_level import realised_rate_coverage
+
+    hole = tmp_path / "hole.json"
+    hole.write_text(json.dumps(
+        [_capture_row(y) for y in (2017, 2018, 2019, 2021, 2022, 2023, 2024)]
+    ))
+    _, hole_refusals = realised_rate_coverage(hole)
+    assert set(hole_refusals) == {2020}, (
+        f"an interior year with no decisions was not refused: {sorted(hole_refusals)}"
+    )
+    assert "ZERO renewal decisions" in hole_refusals[2020], hole_refusals[2020]
+
+    edge = tmp_path / "edge.json"
+    edge.write_text(json.dumps([_capture_row(y) for y in (2017, 2018, 2019, 2020)]))
+    _, edge_refusals = realised_rate_coverage(edge)
+    assert set(edge_refusals) == {2021, 2022, 2023, 2024}
+    assert "outside the capture's span" in edge_refusals[2022], edge_refusals[2022]
+    assert edge_refusals[2022] != hole_refusals[2020], (
+        "a truncated capture and a hole in the middle of one produce the same refusal text, so the "
+        "reader cannot tell which repair the year needs"
+    )
+
+
+def test_the_instrument_prints_the_year_it_could_not_read_rather_than_nan(capsys):
+    """MUTATION: restore the bare `nan` row and drop the refusal block, and this fires.
+
+    A REFUSAL IN A RETURN VALUE NO SURFACE PRINTS IS NOT FAILING CLOSED. The unread year used to
+    reach the table as `nan` -- which reads as a rendering accident rather than a fact about the
+    run -- and then entered `fmean`, making the whole summary `nan`, and `min`/`max`, making the
+    resolution line order-dependent. One unread year silently destroyed every aggregate beneath it
+    instead of reducing their stated coverage.
+    """
+    import tools.measure_departure_level as instrument
+    from tools.measure_departure_level import realised_rate_coverage
+
+    _, refusals = realised_rate_coverage()
+    instrument.main(["measure_departure_level"])
+    text = capsys.readouterr().out
+
+    for year, reason in refusals.items():
+        assert f"{year}: {reason}" in text, (
+            f"the instrument does not print its refusal for {year}; a fail-closed verdict composed "
+            f"into an artefact no published surface reads is the R15 fail-silent shape"
+        )
+        assert "NO READING" in text
+    assert "nan" not in text.lower(), (
+        "an unread year is still reaching an aggregate or a row as `nan`; `nan` is not a refusal, "
+        "it is a refusal that forgot to say so"
+    )

@@ -217,8 +217,7 @@ def test_a_cause_the_mix_cannot_see_is_named_on_the_rendered_page():
     would legitimately have none, and a control that demands a caveat which is no longer true would
     go red exactly when the code became more honest.
     """
-    blind = list(json.loads(MIX.read_text()).get(
-        "causes_not_observable_on_this_population") or {})
+    blind = list(json.loads(MIX.read_text()).get("causes_not_in_the_interval") or {})
     if not blind:
         pytest.skip("the published mix declares no unobservable cause -- nothing to state")
     fragment = _rendered_row(_live_proof_feed(), width=2200)
@@ -232,6 +231,39 @@ def test_a_cause_the_mix_cannot_see_is_named_on_the_rendered_page():
         "the page names a cause it cannot see without saying its share is UNKNOWN. An omitted "
         "cause that is not called unknown reads as one measured at zero, which is the exact "
         "misreading this row exists to prevent. Rendered: {!r}".format(fragment)
+    )
+
+
+def test_the_size_of_the_unseen_route_on_the_page_is_the_one_the_artefact_declares():
+    """MUTATION: hand-write "50 of 82 departures" back into the generator and this fires.
+
+    THE DEFECT, and it is not the one above. `test_a_cause_the_mix_cannot_see_is_named_on_the_
+    rendered_page` proves the blind cause is NAMED; it says nothing about the figure that sizes
+    it, and for as long as that figure was a string constant in two modules it could not be
+    re-measured. It was copied from a capture that is not in this tree
+    (`docs/staging/WORKER_FINDING_A_PUBLISHED_CAPTURE_WAS_PRODUCED_BY_CODE_THAT_WAS_NEVER_COMMITTED_2026-08-31.md`)
+    and it survived a re-capture and a re-fit that moved the number underneath it. A caveat whose
+    magnitude is stale is worse than none: it tells the reader the blind spot has been measured.
+
+    KEYED TO THE PROPERTY -- *the page's count is the artefact's count* -- and not to today's
+    answer, so re-capturing the world moves both sides together and this stays green, while
+    re-transcribing either one reds it.
+
+    SKIPS when the reading cannot size the route at all. That is a legitimate state -- a capture
+    with no SVT sibling beside it -- and the page says so in words instead of a number; demanding
+    a count there would be demanding the invented figure this control exists to forbid.
+    """
+    pop = json.loads(MIX.read_text()).get("population") or {}
+    svt_seen = (pop.get("departures") or {}).get("svt_segment")
+    total_seen = pop.get("total_departures_visible")
+    if svt_seen is None or not total_seen:
+        pytest.skip("the reading cannot size the SVT route -- the page carries no count to check")
+    fragment = _rendered_row(_live_proof_feed(), width=2200)
+    assert "{} of {} departures".format(svt_seen, total_seen) in fragment, (
+        "the artefact declares {} of {} departures left by the route this mix cannot see, and the "
+        "rendered row does not say that. Either the page is carrying a transcribed count from "
+        "another run, or it sizes the blind spot from something other than the measurement beside "
+        "it. Rendered: {!r}".format(svt_seen, total_seen, fragment)
     )
 
 

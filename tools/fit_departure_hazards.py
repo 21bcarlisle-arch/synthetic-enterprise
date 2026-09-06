@@ -46,7 +46,7 @@ from simulation.departure_risks import (
     total_departure_probability,
 )
 from simulation.market_switching_propensity import market_departure_rate
-from tools.departure_population import ROUTE_CAUSES, ROUTE_RENEWAL, banner, declare
+from tools.departure_population import ROUTE_CAUSES, ROUTE_RENEWAL, ROUTE_SVT, banner, declare
 
 PROJECT = Path(__file__).resolve().parent.parent
 DEFAULT_TABLE = PROJECT / "docs" / "reports" / "c2_departure_factors.json"
@@ -128,43 +128,47 @@ def _anchor_for(rows: list[dict], pair: tuple[float, float], target: float) -> f
 #: that made the repair urgent. `build_departure_risks` defaults `svt_inertia` to 0.0 and no
 #: renewal row carries `sim_svt_inertia`, because a renewal decision is not an SVT segment. So
 #: sweeping over `ORDERED_CAUSES` would have published `svt_inertia: 0.0%` -- a well-formed number
-#: that every reader takes for "almost nobody leaves this way", when C1b measured it as 50 of 82
-#: departures on the same capture and `departure_risks` calls it the single largest departure route
-#: in a real domestic book. **A quantity this population cannot observe must arrive as `None` with
-#: a reason, never as a small number.**
+#: that every reader takes for "almost nobody leaves this way", when the SVT sibling beside this
+#: table measures it as the LARGER half of the book's departures and `departure_risks` calls it the
+#: single largest departure route in a real domestic book. **A quantity this population cannot
+#: observe must arrive as `None` with a reason, never as a small number.**
 MIX_CAUSES = ROUTE_CAUSES[ROUTE_RENEWAL]
 
-#: Why the causes outside `MIX_CAUSES` are absent, carried into the artefact so the page can say it
-#: rather than a reader having to know it.
-UNOBSERVABLE_REASON = (
-    "This mix is a decomposition of the RENEWAL hazard, taken over renewal decisions. C1b added a "
-    "second departure route -- an account drifting off the standard variable product at a segment "
-    "boundary -- which strikes no rate and reaches no renewal roll, so no row in this population "
-    "can carry it. Its share here is UNKNOWN, not zero."
-)
 
-#: THE ONLY NUMBER ANYONE HAS FOR THE SVT ROUTE, AND IT IS NOT A MEASUREMENT OF THIS WORLD.
-#:
-#: This sentence used to end `UNOBSERVABLE_REASON` as a bare *"on the two-route capture of
-#: 2026-08-31 it was 50 of 82 departures"*, sitting inside the published mix artefact with nothing
-#: to say where it came from. It came from `docs/reports/ladder_churn_factors_svt_segment_decisions
-#: .json`, which is committed and whose PRODUCER IS IN NO COMMIT: `run_phase2b` has no
-#: `_svt_decisions` recorder, `simulation/svt_product.py` says no roster assigns the product and
-#: that an account on it cannot leave, and `test_svt_product.py::test_no_account_is_on_the_svt_
-#: product_yet` holds that. So the figure describes a world with an SVT departure route -- not this
-#: one -- and a reader had no way to tell.
-#:
-#: Kept rather than deleted, because it is the only size estimate the route has and deleting it
-#: would leave the reader with no sense of scale at all. Separated and attributed, because an
-#: unattributed one reads as this world's answer. Finding:
-#: `docs/staging/WORKER_FINDING_A_FOREIGN_SVT_SIBLING_IS_WHAT_MAKES_THE_ACCOUNT_DENOMINATOR_CONTROL_PASS_2026-08-31.md`.
-UNOBSERVABLE_SCALE_HINT = (
-    "The only figure anyone has for this route's size is 50 of 82 departures, and it is NOT a "
-    "reading of this world: it comes from `docs/reports/ladder_churn_factors_svt_segment_"
-    "decisions.json`, an artefact that is committed but whose producer is in no commit. This "
-    "world has no SVT departure route for a capture to see. Treat it as an order of magnitude "
-    "from a tree that had one, never as a measured share here."
-)
+def unobservable_reason(decl: dict) -> str:
+    """Why the causes outside `MIX_CAUSES` are absent, and HOW BIG the route they leave by is.
+
+    DERIVED FROM THE DECLARATION, NEVER TRANSCRIBED, and that is the whole point of this being a
+    function. The sentence used to carry a hand-copied "50 of 82 departures" from a capture that
+    is not in this tree -- the exact figure
+    `docs/staging/WORKER_FINDING_A_PUBLISHED_CAPTURE_WAS_PRODUCED_BY_CODE_THAT_WAS_NEVER_COMMITTED_2026-08-31.md`
+    names as unreproducible. A constant cannot be re-measured, so it stayed put across every
+    re-capture and re-fit while the number beside it moved.
+
+    AND THE POPULATION CLAUSE IS SCOPED TO THE INTERVAL, NOT TO THE READING. Before the SVT
+    sibling existed the two were the same thing and the loose wording was harmless; now the
+    declared population DOES carry `svt_inertia` rows and only the swept interval does not.
+    "No row in this population can carry it" would be false in the artefact that just proved it
+    false one field up.
+    """
+    seen = decl.get("departures") or {}
+    svt = seen.get(ROUTE_SVT)
+    total = decl.get("total_departures_visible")
+    reach = decl.get("share_of_departures_visible")
+    if svt is None or not total or reach is None:
+        size = ("How many departures leave that way cannot be sized from this capture either: no "
+                "SVT segment-decision file sits beside this table, so what fraction of the book "
+                "these ranges describe is itself unknown.")
+    else:
+        size = (f"On the capture this interval was fitted on it was {svt} of {total} departures, "
+                f"so these ranges describe the {reach:.0%} of departures the renewal hazard "
+                f"can reach.")
+    return (
+        "This mix is a decomposition of the RENEWAL hazard, swept over renewal decisions only. "
+        "C1b added a second departure route -- an account drifting off the standard variable "
+        "product at a segment boundary -- which strikes no rate and reaches no renewal roll, so "
+        "no renewal row can carry it and its share IN THIS INTERVAL is UNKNOWN, not zero. " + size
+    )
 
 
 def expected_mix(rows: list[dict], pair: tuple[float, float]) -> dict[str, float]:
@@ -239,9 +243,7 @@ def main(table_path: Path) -> int:
         print(f"    {c:>16}: NOT OBSERVABLE on this population — not 0%, unknown")
     print()
     if unobservable:
-        print(f"  {UNOBSERVABLE_REASON}")
-        print()
-        print(f"  {UNOBSERVABLE_SCALE_HINT}")
+        print(f"  {unobservable_reason(decl)}")
         print()
     print("  The width is not noise and it is not a confidence interval. It is the range the")
     print("  reason mix takes across every value of `a_shock` the evidence cannot rule out --")
@@ -271,11 +273,16 @@ def main(table_path: Path) -> int:
         # three of four causes as if they were four of four, and nothing in the file said otherwise.
         "population": decl,
         "causes_in_the_interval": list(MIX_CAUSES),
-        "causes_not_observable_on_this_population": {c: None for c in unobservable},
-        "causes_not_observable_reason": UNOBSERVABLE_REASON if unobservable else None,
-        # ATTRIBUTED, NOT ASSERTED. See `UNOBSERVABLE_SCALE_HINT` for why the 50-of-82 figure is
-        # carried as a hint about a different tree rather than as a share of this capture.
-        "causes_not_observable_scale_hint": UNOBSERVABLE_SCALE_HINT if unobservable else None,
+        # `causes_not_in_the_interval`, AND THE NAME IS THE REPAIR. This key was
+        # `causes_not_observable_on_this_population` for as long as the reading WAS the renewal
+        # route -- the interval's population and the declared one were the same set, so the loose
+        # name cost nothing. The SVT sibling separated them: `population.causes_observable` now
+        # contains `svt_inertia` and this interval still cannot, so the old name had the artefact
+        # calling a cause unobservable on a population that the field directly above declares able
+        # to observe it. Two different claims sharing one word is how a reader takes the narrower
+        # one for the wider.
+        "causes_not_in_the_interval": {c: None for c in unobservable},
+        "causes_not_in_the_interval_reason": unobservable_reason(decl) if unobservable else None,
         "sweep": sweep,
         "interval": interval,
     }, indent=1))

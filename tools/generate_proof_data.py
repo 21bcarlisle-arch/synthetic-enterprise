@@ -1537,15 +1537,30 @@ def _why_households_leave():
         # carry that cause. The row said "bill shock / price / service" and a reader took three of
         # four causes for four of four. A blind spot stated on the surface is the whole point of
         # this row's own surface; one left implicit is the defect it was built to prevent.
-        blind = list(mix.get("causes_not_observable_on_this_population") or {})
+        blind = list(mix.get("causes_not_in_the_interval") or {})
+        # HOW BIG THE UNSEEN ROUTE IS, READ FROM THE ARTEFACT'S OWN DECLARATION. This sentence
+        # used to carry a hand-copied "50 of 82 departures" from a capture that is not in the
+        # tree; a transcribed figure cannot be re-measured, so it survived every re-capture while
+        # the number it claimed to report moved. If the reading cannot size the route, the page
+        # says THAT rather than a number — an unsized blind spot is still a blind spot.
+        pop = mix.get("population") or {}
+        reach = pop.get("share_of_departures_visible")
+        svt_seen = (pop.get("departures") or {}).get("svt_segment")
+        total_seen = pop.get("total_departures_visible")
+        blind_size = (
+            f"On the capture behind this interval it was {svt_seen} of {total_seen} departures, "
+            f"so the ranges above describe the {reach:.0%} of departures this measurement can "
+            "reach."
+            if reach is not None and svt_seen is not None and total_seen else
+            "How many departures leave that way is not readable beside this measurement, so what "
+            "share of the book the ranges above describe is itself unknown."
+        )
         blind_note = (
             (" AND IT IS NOT EVERY REASON. This is a decomposition of the RENEWAL hazard, and "
              f"there are causes it structurally cannot see — {', '.join(blind)}, drifting off the "
              "standard variable product — whose share is UNKNOWN here and not zero: that "
-             "household strikes no rate and reaches no renewal decision, so no row in this "
-             "population can carry it. On the two-route capture of 2026-08-31 it was 50 of 82 "
-             "departures, so the ranges above describe the minority of departures this "
-             "measurement can reach.")
+             "household strikes no rate and reaches no renewal decision, so no renewal row can "
+             f"carry it. {blind_size}")
             if blind else ""
         )
         note = (
