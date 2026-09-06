@@ -8,6 +8,54 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-06 — The startup anchors named the stalest documents and omitted every surface holding current reasoning
+
+<!-- head: 66dfc5de04df -->
+
+**What this stretch was about.** The set of documents a fresh session is told to read on startup —
+the "anchors" — had stopped describing how to orient. It named PROJECT_OVERVIEW, the annual report
+and ASSUMPTIONS: what the project *is*. It named nothing about what the project is currently *doing*
+or why, all of which arrived later — the delivery seat's direction record, the decisions log, the
+class registers, the stretch log.
+
+**The measurement.** Of the five surfaces named, two had zero commits in fourteen days. Of the
+surfaces the machine keeps current, the five most active were named nowhere: `PROJECT_STATE.txt`
+(270 modifications in 30 days), `DIRECTION.yaml`, `decisions.jsonl`, `knowledge_map.md`, and the
+stretch log. So the anchors pointed at the stalest documents and omitted the freshest.
+
+**Why the obvious fix was the wrong one.** Ranking `docs/` paths by edit frequency and calling the
+top ones anchors puts the *retired* `docs/shadow/` mirror pages above `knowledge_map.md`, and it
+would never have caught the stretch log — two commits old on the day it was missed. Frequency
+measures how busy a file is, not whether a reader needs it.
+
+The structural signal is that **a module declares a path to it**. A surface the machine maintains is
+one a reader can be sent to, however new. That finds eight published reader surfaces, five named and
+three not — and a landing is now refused while any of them is unnamed. The instance and the class
+close together.
+
+**Two exemptions, named rather than papered over.** `DIRECTION.yaml` and `decisions.jsonl` are
+assembled in two steps — a directory constant, then the filename — so an AST scan reading
+single-expression constants cannot see them. They are listed with that reason, and a control reds if
+either becomes discoverable, so the exemption cannot outlive its cause. This is the same shape as
+`finding_classes` in the derived-artefact register, handled the same way.
+
+**What the anchors now say.** Each entry carries a sentence saying what the surface is *for* rather
+than what it is called — "Assumptions" became "every sourced assumption the world is built on, with
+its anchor and its gaps". The rendered freshness table gained that as a column and an opening line
+telling a reader to start there. The label is taken from the same line the path came from, so the
+table cannot describe one anchor and age another.
+
+**A live defect the new control caught immediately.** `ASSUMPTIONS.md` claimed "Last seeded:
+2026-08-10" while another lane had committed rows to it on 2026-09-05 — 26 days out, and blocking
+every landing. Its header now states the true date *and* says the line is checked against git, so
+the next person adding a row is told what they owe rather than discovering it.
+
+**Where it stands.** Eleven anchors, none unnamed, the check clean. Stage 1 is unchanged and next:
+the fitted premise joint, the space-filling sample, and the people joint on small-area geography —
+all above billing correctness, which is above the supplier optimising.
+
+---
+
 ## 2026-09-06 — Stretch reports became a committed file on the mirror, and the lapse check shipped matching titles instead of paths
 
 <!-- head: 073bb159ec0d -->
