@@ -13,8 +13,43 @@ Maps Open-Meteo's daily variable names to this project's schema field names:
 """
 
 import csv
+import os
 
 import requests
+
+
+class WeatherArchiveRefusal(RuntimeError):
+    """The archive could not be retrieved or written, with the reason named.
+
+    A DISTINCT type (the `background/egress_allowlist.py` idiom), because the two callers
+    below want opposite things from a failure: the pull script must stop, and a test must
+    be able to assert the refusal fired rather than assert on an empty list that a silent
+    success also produces.
+    """
+
+
+def _existing_row_count(output_path: str) -> int | None:
+    """Data rows already at `output_path`, or None if there is nothing there to protect.
+
+    Counts DATA rows, not lines: a header-only file is 0, which is what makes an already
+    truncated archive replaceable by a real pull rather than permanently wedged.
+    """
+    if not os.path.exists(output_path):
+        return None
+    with open(output_path, newline="") as f:
+        return sum(1 for _ in csv.DictReader(f))
+
+
+def _response_reason(response) -> str:
+    """Open-Meteo's own `reason` string, or the raw body if it is not the shape we expect.
+
+    The reason is the load-bearing part: "Daily API request limit exceeded" is a wait,
+    and a bad bounding box is a bug, and an HTTP code alone cannot tell the two apart.
+    """
+    try:
+        return str(response.json().get("reason", response.text))
+    except (ValueError, AttributeError):
+        return str(getattr(response, "text", ""))
 
 
 def get_daily_weather(location_id: str, latitude: float, longitude: float,
@@ -46,7 +81,16 @@ def get_daily_weather(location_id: str, latitude: float, longitude: float,
     response = requests.get(base_url, params=params)
 
     if response.status_code != 200:
-        return []
+        # FAIL CLOSED, NAMING THE REASON. This returned `[]` until 2026-09-06, and
+        # `write_weather_csv` below then wrote a header-only CSV over the destination: a
+        # rate-limited pull DESTROYED ten years of real weather and exited 0. Found by
+        # running it — Open-Meteo answered 429 "Daily API request limit exceeded", the
+        # two new sites came back with 0 records, and nothing anywhere said so.
+        raise WeatherArchiveRefusal(
+            f"Open-Meteo refused the archive for {location_id!r} "
+            f"({latitude}, {longitude}) {start_date}..{end_date}: "
+            f"HTTP {response.status_code} — {_response_reason(response)}"
+        )
 
     data = response.json()
     daily_data = data["daily"]
@@ -80,6 +124,24 @@ def write_weather_csv(records: list[dict], output_path: str) -> None:
         "date", "location_id", "temperature_max_c", "temperature_min_c",
         "temperature_mean_c", "wind_speed_mean_ms", "cloud_cover_pct", "precipitation_mm"
     ]
+
+    # TWO REFUSALS, because they catch different failures and the first alone is not enough.
+    # An empty pull is never a legitimate archive: `mode='w'` truncates, so writing zero rows
+    # over `sim/weather_data/C1.csv` is how a transport error becomes data loss.
+    if not records:
+        raise WeatherArchiveRefusal(
+            f"refusing to write an EMPTY archive to {output_path!r} — an archive with no "
+            f"days is never a real answer, and this path may already hold a real one"
+        )
+    # A SHORT pull is the one the emptiness check misses: the API can answer 200 with a
+    # truncated range, and that silently shrinks ten years to three days.
+    existing = _existing_row_count(output_path)
+    if existing is not None and len(records) < existing:
+        raise WeatherArchiveRefusal(
+            f"refusing to SHRINK the archive at {output_path!r}: {existing} days on disk, "
+            f"{len(records)} days retrieved. Delete the file deliberately if the shorter "
+            f"pull is genuinely the one you want."
+        )
 
     with open(output_path, mode='w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
