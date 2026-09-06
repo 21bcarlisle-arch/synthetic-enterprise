@@ -351,6 +351,7 @@
     "tools.generate_hh_data",
     "tools.generate_judge_validation_data",
     "tools.generate_snapshot",
+    "tools.generate_weather_cells_data",
     "tools.lab_query",
     "tools.measure_churn_heterogeneity",
     "tools.migrate_atom_lists",
@@ -378,10 +379,7 @@
     "tools.synthetic_validation",
     "tools.tenure_adoption_sensitivity",
     "tools.tournament_runner",
-    "tools.weather_cell_derivation",
-    "tools.weather_cell_drivers",
     "tools.weather_cell_persistence",
-    "tools.weather_cell_weights",
     "tools.weather_driver_sensitivity"
   ]
 }
