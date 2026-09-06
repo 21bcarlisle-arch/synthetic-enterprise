@@ -88,9 +88,19 @@ from tools.contract_battery import BatterySpec, run
 #: cells was ever at risk. (A partial results file left in `/var/tmp` by an
 #: earlier attempt had it in the suite list; that is the grep-is-an-upper-bound
 #: hazard the pre-registration names, live in this very list.)
+#: THE THIRD ENTRY IS THERE BECAUSE `-x` HID A CONTROL, measured 2026-09-06 and not predicted.
+#: `_run_suite` runs every mutation round with `-x`. The two controls in
+#: `test_fuel_mix_reads_the_cache_each_member_names.py` were first written INSIDE
+#: `test_grid_intensity_feed_and_explore_carbon.py`, whose module-scoped `real_mix` /
+#: `real_publish` fixtures call `fuel_mix()` on the real caches at setup; M9 makes that raise, so
+#: the fixture errored, `-x` stopped at the first node, and the cell came back
+#: `DIED (SETUP ERROR -- no control body ran)` naming a control written for a different row. The
+#: control had not run and the cell could not say so. Splitting it into a file with no real-cache
+#: fixture is what makes the row measurable by this instrument rather than by hand.
 DIRECT_SUITES = (
     "tests/sim/test_elexon_fuel_outturn.py",
     "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
+    "tests/tools/test_fuel_mix_reads_the_cache_each_member_names.py",
 )
 
 #: The eight callers of `fuel_mix()` itself, one suite each. Every one of them
@@ -262,6 +272,30 @@ MUTATIONS = (
         "        series = fuel.to_settlement_periods(fuel.load_cached())\n"
         "    except Exception:\n"
         "        series = {}",
+    ),
+    (
+        # M12 IS M10 WITH A TYPE-CORRECT REPLACEMENT, and it is here for the reason M11 is here
+        # for M2. M10 substitutes a LIST where a mapping is expected; the `AttributeError:
+        # 'list' object has no attribute 'items'` that follows grades the type system, and it
+        # arrives through the module-scoped fixture so no control body runs a line
+        # (`died_by_setup_error_only` at `d892342119e8`). The substitution a real fail-open patch
+        # would write keeps the type and skips only the adapter: build the mapping inline.
+        #
+        # ON THE REAL RECORD THIS IS AN EQUIVALENCE, which is stated because it decides what a
+        # green cell here would mean. MEASURED 2026-09-06 over 143,057 cached rows: the biomass
+        # cache is 100% `BIOMASS`, every `settlementDate` is already 10 characters, every period
+        # is inside 1-50, and the 19 duplicate `(date, period)` keys resolve the way a dict
+        # comprehension resolves them. Three of `biomass_by_period`'s four legs therefore cannot
+        # be seen against the real cache at all, and the fourth -- the fuel-type filter -- has
+        # nothing to filter. The control written for this row supplies its own MIXED cache,
+        # because the state this contract exists for is the one where the biomass fetch is
+        # widened or the caches are merged, not the one on disk today.
+        "M12",
+        "the biomass rows are FILTERED TO BIOMASS before the envelope is taken (M10 with a "
+        "dict, not a list) -- an envelope over a mixed cache is another fleet's output",
+        "fuel.biomass_envelope_by_year(fuel.biomass_by_period(fuel.load_cached_biomass()))",
+        "fuel.biomass_envelope_by_year({(r[\"settlementDate\"], r[\"settlementPeriod\"]): "
+        "float(r[\"generation\"]) for r in fuel.load_cached_biomass()})",
     ),
 )
 
