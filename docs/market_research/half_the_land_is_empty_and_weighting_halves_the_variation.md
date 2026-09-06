@@ -62,6 +62,15 @@ And the occupied half is itself extremely concentrated:
 | annual wind | 1.388 m/s | 0.798 m/s | 0.58 |
 | annual sunshine | 203.0 h | 126.8 h | 0.62 |
 
+And the household-weighted spread itself, which is the span every later sensitivity is quoted over:
+
+| driver | 5th percentile | median | 95th percentile |
+|---|---:|---:|---:|
+| annual temperature | 9.00 °C | 10.45 | 11.69 |
+| winter temperature | **3.95 °C** | 4.95 | **6.13** |
+| annual wind | **2.98 m/s** | 3.85 | **5.61** |
+| annual sunshine | 1320 h | 1544 | 1734 |
+
 **The variation the cells have to span is roughly half what `W1_19`'s unweighted table implied**, on
 every driver. Britain's climatic extremes are in the uplands and the far north-west, and almost
 nobody lives there. Medians move the way that implies: the household median cell is 1.0 °C warmer,

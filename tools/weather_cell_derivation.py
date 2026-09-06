@@ -174,6 +174,36 @@ def choice_sensitivity(ks=DEFAULT_KS, space=None) -> dict:
     return out
 
 
+def per_driver_curve(ks=DEFAULT_KS, space=None) -> dict:
+    """One coverage curve PER DRIVER, each partitioning on that driver alone.
+
+    THE QUESTION THE JOINT CURVE CANNOT ANSWER, and the reason `measurement()`'s 987 was read as a
+    statement about wind. Asked one at a time, all three drivers want about 21 cells for 99% and
+    wind wants marginally the FEWEST -- its fine structure is terrain, coast and exposure, which is
+    the empty half of the country. The joint requirement is dimensionality, not any driver's own
+    roughness, and a reader who only ever sees the joint number cannot tell those apart.
+    """
+    import numpy as np
+    from sklearn.cluster import KMeans
+
+    z, native, weights, mean, sd = space if space is not None else _space(True)
+    out: dict[str, list[dict]] = {}
+    for i, name in enumerate(DRIVERS):
+        col = z[:, [i]]
+        total = float(np.sum(weights[:, None] *
+                             (col - np.average(col, axis=0, weights=weights)) ** 2))
+        rows = []
+        for k in ks:
+            km = KMeans(n_clusters=k, n_init=1, random_state=0).fit(col, sample_weight=weights)
+            centres = km.cluster_centers_[km.labels_]
+            within = float(np.sum(weights[:, None] * (col - centres) ** 2))
+            residual = native[:, i] - (centres[:, 0] * sd[i] + mean[i])
+            rows.append({"cells": k, "captured": round(1.0 - within / total, 4),
+                         "rms": round(float(np.sqrt(np.average(residual ** 2, weights=weights))), 3)})
+        out[name] = rows
+    return out
+
+
 def measurement(ks=DEFAULT_KS) -> dict:
     """W1_21's published table: the household curve, the area curve, and the targets."""
     household = coverage_curve(ks, household_weighted=True, space=_space(True))
@@ -195,7 +225,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--max-cells", type=int, default=None, help="stop the sweep at this k")
     ap.add_argument("--choice-sensitivity", action="store_true",
                     help="the same curve under three driver weightings")
+    ap.add_argument("--per-driver", action="store_true",
+                    help="one curve per driver, each partitioning on that driver alone")
     args = ap.parse_args(argv)
+
+    if args.per_driver:
+        ks = tuple(k for k in DEFAULT_KS if args.max_cells is None or k <= args.max_cells)
+        print(json.dumps(per_driver_curve(ks), indent=2))
+        return 0
     if args.choice_sensitivity:
         ks = tuple(k for k in DEFAULT_KS if args.max_cells is None or k <= args.max_cells)
         print(json.dumps(choice_sensitivity(ks), indent=2))

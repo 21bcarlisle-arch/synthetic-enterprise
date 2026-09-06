@@ -170,6 +170,57 @@ def test_a_metric_that_ZEROES_a_driver_actually_ignores_it(space):
     assert curves["equal"] != curves["temperature_dominant_4_1_1"]
 
 
+def test_the_PER_DRIVER_curve_partitions_on_ONE_DRIVER_and_not_on_all_three():
+    """THE CONTROL THE PUBLISHED CONCLUSION RESTS ON.
+
+    `W1_25` reports that all three drivers want about the same ~21 cells asked one at a time, and
+    that the joint 987 is dimensionality rather than any driver's own roughness. A `per_driver_curve`
+    that quietly clustered on the full matrix would return three copies of the JOINT curve — three
+    identical, plausible, monotone curves — and the finding would invert with nothing to show for it.
+
+    The fixture makes the two answers unmistakable: eight corners of a cube, so each driver alone is
+    a two-cluster problem and the three together are an eight-cluster problem.
+    """
+    corners = np.array([[x, y, z] for x in (-1.0, 1.0) for y in (-1.0, 1.0) for z in (-1.0, 1.0)])
+    standardised = np.repeat(corners, 40, axis=0)
+    # THE THREE SPREADS ARE DELIBERATELY DIFFERENT -- 1 degC, 2 m/s, 100 hours, the real drivers'
+    # order of magnitude. With three equal spreads a residual scored against the WRONG driver
+    # index is indistinguishable from one scored against the right one, and the control below
+    # would pass on a module that always reported driver 0.
+    mean = np.array([5.0, 4.0, 1500.0])
+    sd = np.array([1.0, 2.0, 100.0])
+    native = standardised * sd + mean
+    weights = np.ones(len(native))
+    space = (standardised, native, weights, mean, sd)
+
+    per_driver = wcd.per_driver_curve((2,), space=space)
+    joint = wcd.coverage_curve((2,), space=space)
+
+    assert set(per_driver) == set(wcd.DRIVERS)
+    for name, rows in per_driver.items():
+        assert rows[0]["captured"] > 0.99, (
+            f"{name} alone is a two-cluster problem and must be fully captured at k=2; "
+            f"got {rows[0]['captured']} — the partition is not one-dimensional")
+        # AND THE RESIDUAL MUST BE ~0 THERE. A centre left in standardised units — `centres + mean`
+        # instead of `centres * sd + mean` — still captures 100% of the variance, because variance
+        # is computed in standardised space. Only the native residual can see it.
+        assert rows[0]["rms"] < 0.05, (
+            f"{name} fits exactly at k=2, so its native residual must be ~0, not {rows[0]['rms']} "
+            "— the cluster centre was not converted back into the driver's own units")
+    assert joint[0]["captured"] < 0.5, (
+        "two cells cannot capture eight corners; if they do, the fixture is not discriminating")
+
+    # AND THE RMS COLUMN IS THE ONLY PART A PRACTITIONER CAN ARGUE WITH, so it must be a real
+    # residual in the driver's own units and not a placeholder. On this fixture two cells fit each
+    # driver exactly, so the RMS is ~0; widen to one cell and it must be the driver's own spread.
+    one = wcd.per_driver_curve((1,), space=space)
+    for name, expected in zip(wcd.DRIVERS, sd):
+        got = one[name][0]["rms"]
+        assert got == pytest.approx(expected, rel=0.05), (
+            f"{name} at one cell must carry ITS OWN spread ({expected}) in ITS OWN units, not "
+            f"{got} — a residual scored against another driver's column reads as a real number")
+
+
 def test_the_curve_runs_THE_WAY_A_COMMAND_LINE_RUNS_IT():
     """Sixth module in this repository where the script entry point could be dead while every test
     is green: pytest fixes `sys.path` before a test can import anything, so `from tools import

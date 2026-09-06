@@ -2204,3 +2204,21 @@
   file_scope: []
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the customer who thanks you warmly for the advice that cut their bill, recommends you to a neighbour, and has never once bought anything -- counted as engaged by every model that never asked the two questions separately."
+- id: W1_26_the_world_has_no_wind_term_and_the_belief_does
+  title: "the SIM's heat loss ignores wind while the company's belief can fit a wind-chill term against it"
+  gain: "simulation/fabric_physics.py computes infiltration from build era and insulation and nothing else -- no wind factor anywhere in the demand path -- while company/pricing/weather_normalisation_belief.py carries an optional HDD x excess-wind regressor a caller can switch on. The company can therefore fit a household wind-chill coefficient against a world in which household wind chill does not exist, and the fit will look healthy: real regressor, real data, reported r-squared. The repair is the published SAP factor, one multiplication; the cost is that every historical demand figure in the tree moves, which is a fidelity decision with its own evidence bar and is why this is an atom rather than a patch."
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: frame
+  dial_inherited: 60    # STAGE 1, and a coupled-triad defect rather than a fidelity nicety: a
+  #   belief carrying a term its truth does not have is the shape the triad gate exists to catch,
+  #   and it is currently invisible to it because the regressor is optional and off by default.
+  provenance: seat_finding
+  depends_on: []
+  couples_with: [W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for]
+  file_scope: ['simulation/fabric_physics.py', 'tests/simulation/', 'docs/market_research/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a weather-normalisation model with a wind coefficient nobody can explain, fitted on a decade of meter reads, sitting in the middle of every settlement reconciliation."

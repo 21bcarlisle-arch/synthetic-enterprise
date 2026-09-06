@@ -4194,3 +4194,33 @@
                'site/live_pixel_verify.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a backtest published with its own assumption stated on the same page -- 'this result assumes the market does not react to our trades' -- rather than in a methodology appendix nobody opens, because the assumption is the difference between a result and an artefact"
+
+- id: W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for
+  title: "the cells each driver needs ALONE, and what a household actually feels of each"
+  gain: "Per-driver coverage curves and the sensitivity behind them: wind is the SMOOTHEST of the three where people live, and its household mechanism (the SAP infiltration factor) is 0.8x the size of temperature's, not second-order. Replaces W1_21's single joint 987 as the recommendation without disturbing it as arithmetic."
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 3
+  level_target: 3
+  closed: >-
+    AT TARGET 2026-09-06, delivered with the mint. Per-driver at 21 cells: winter temp 99.3%, wind
+    99.4%, sunshine 99.4% -- all three alike, wind marginally the smoothest, because its fine
+    structure is terrain and coast and that is the empty half of the country. Wind's household
+    mechanism established from SAP 10.2/BREDEM (adjusted ACH = raw x shelter x wind/4) and measured
+    over 288 stock combinations at +14.9% median HLC change against -18.9% for the same percentile
+    span of winter temperature, so it is 0.79x temperature and NOT second-order. PV: 3.4% annual
+    yield RMS at the one national figure the company uses today, 0.95% at five cells. 8 controls, 8
+    mutation kills, one of which is the substring bug this module shipped (window answering for
+    wind). NOT COVERED: whether one grid serves two jobs -- a 21-cell temperature grid and a
+    21-cell wind grid are not the same 21 cells, and no overlay is measured.
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted 2026-09-06 on the director's challenge to W1_21's framing:
+  #   one grid was being asked to serve three jobs. His diagnosis was right and his stated mechanism
+  #   was wrong, and the measurement says both -- which is why this is an atom and not an erratum.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W1_21_the_cells_and_the_level_coverage_curve, W1_26_the_world_has_no_wind_term_and_the_belief_does]
+  file_scope: ['docs/market_research/', 'tools/weather_driver_sensitivity.py', 'tools/weather_cell_derivation.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that resolves its weather map to a thousand cells because one driver looked rough on a picture, and models none of that driver in its own demand engine."
