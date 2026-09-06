@@ -16,8 +16,13 @@ proving it, so every mutation runs against each suite SEPARATELY and the answer
 is a row, never a pass/fail. A converged module inherits whichever caller suite
 happened to be strongest, and the row is the only thing that says which.
 
-THE FIVE THINGS THAT ARE NOT DECORATION
----------------------------------------
+THE SIX THINGS THAT ARE NOT DECORATION
+--------------------------------------
+* **The results file is keyed to the SPEC, not to the subject's name.** Resume is
+  refused outright when the file on disk was written by different mutations. Every
+  spec in this family numbers its contracts `M1`..`M8`, so two specs for one
+  subject used to collide on the filename and the ids at once -- see
+  `fingerprint()` for the run that reported eight survivals it never applied.
 * **The reachability floor runs FIRST.** An import-time raise, before any
   mutation. A suite that stays green under it never reaches the subject, and
   every "survived" it reports afterwards means UNREACHABLE, not UNPROVED. Those
@@ -49,6 +54,7 @@ from __future__ import annotations
 
 import argparse
 import atexit
+import hashlib
 import json
 import re
 import shutil
@@ -296,9 +302,44 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
             row["caught_by_own_suite"] = repair["died"]
 
 
+def fingerprint(spec: BatterySpec) -> str:
+    """What this run would actually DO, hashed. The resume key, and the default filename.
+
+    THE DEFECT THIS CLOSES, 2026-09-06. `--out` defaulted to a path derived from the subject's
+    NAME, and the resume cache was keyed by mutation ID. Every spec in this family numbers its
+    mutations `M1`..`M8`, so two specs for one subject collided on both at once. A second lane had
+    written its own eight `ops_repo` contracts to the default path; a run of a DIFFERENT eight
+    contracts then found every id already present, ran nothing but one outstanding control suite,
+    and printed `SURVIVED ALL 3 CALLER SUITES: M1..M8` -- a complete verdict on mutations it had
+    never applied, with the other lane's contract TEXT attached to each row, because
+    `setdefault` keeps whichever contract string got there first.
+
+    That is precisely the class this instrument exists to find, committed by the instrument: a
+    result reported as evidence of running code that no run produced. It hashes the mutations'
+    OLD and NEW text rather than their ids, so a spec that changes one character cannot inherit
+    a cell scored against the previous one.
+    """
+    payload = json.dumps({
+        "subject": spec.subject,
+        "suites": list(spec.suites),
+        "repair_suite": spec.repair_suite,
+        "control_suites": list(spec.control_suites),
+        # ids INCLUDED, but never alone: a renumbered mutation and a rewritten one are both
+        # different work, and neither may adopt the other's cells.
+        "mutations": [[mid, old, new] for mid, _contract, old, new in spec.mutations],
+        "poison": [spec.poison_old, spec.poison_new],
+        "null": [spec.null_old, spec.null_new],
+    }, sort_keys=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:12]
+
+
 def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
+    fp = fingerprint(spec)
     ap = argparse.ArgumentParser(description=f"contract battery: {spec.subject}")
-    ap.add_argument("--out", default=f"/var/tmp/{spec.name}_battery_results.json")
+    # The fingerprint is IN the default filename, so two specs for one subject cannot collide by
+    # default at all. The refusal below is still there and is the part that can fail: a reader who
+    # passes `--out` explicitly, as both colliding runs did, walks straight past this.
+    ap.add_argument("--out", default=f"/var/tmp/{spec.name}_battery_{fp}.json")
     ap.add_argument("--pristine", default=f"/var/tmp/{spec.name}_pristine.py",
                     help="restore source, held OUTSIDE the tree on purpose")
     ap.add_argument("--only", nargs="*", default=None, help="mutation ids to run")
@@ -325,6 +366,18 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
         signal.signal(sig, lambda *_: sys.exit(130))
 
     results = json.loads(out_path.read_text()) if out_path.exists() else {}
+    stored = results.get("spec_fingerprint")
+    if results and stored != fp:
+        # FAIL CLOSED, and name the reason. An absent fingerprint is refused as hard as a wrong
+        # one: a file written before this check existed cannot say which spec scored it, and
+        # "cannot tell" is not "matches". Refusing costs one re-run; resuming costs a published
+        # verdict on mutations that were never applied, which is what happened on 2026-09-06.
+        print(f"REFUSED: {out_path} was written by a DIFFERENT spec for this subject "
+              f"(stored fingerprint {stored!r}, this spec {fp!r}). Its rows are not evidence "
+              f"about these mutations and resuming would report them as if they were. "
+              f"Use the default --out, or delete that file.", flush=True)
+        return 2
+    results["spec_fingerprint"] = fp
     results.setdefault("subject", spec.subject)
     results.setdefault("suites", list(spec.suites))
 

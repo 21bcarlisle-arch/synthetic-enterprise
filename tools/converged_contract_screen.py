@@ -131,6 +131,46 @@ def _print(rows: list[dict], show_all: bool) -> None:
               f"{r['module']}{flag}")
 
 
+def _as_module_name(spec: str) -> str:
+    """`tools/generate_company_data.py`, `tools/generate_company_data` and
+    `tools.generate_company_data` are one subject spelled three ways."""
+    if spec.endswith(".py"):
+        spec = spec[:-3]
+    return spec.replace("/", ".").strip(".")
+
+
+def _module_index() -> dict[str, str]:
+    module_to_file, _forward = build_graph(ROOT)
+    return module_to_file
+
+
+def _exists_as_module(wanted: str) -> bool:
+    return wanted in _module_index()
+
+
+def _why_not(wanted: str, given: str) -> str:
+    """THE ACTUAL REASON, which the old message could not say.
+
+    It offered two ("<3 callers, or not a repo module") and the cause that sent a seat looking for
+    a caller that had never disappeared was a THIRD: the lookup indexes dotted module names and it
+    had been handed a path. A refusal that lists plausible reasons instead of the true one is worse
+    than a bare one -- it is a wrong answer with a rationale attached.
+    """
+    index = _module_index()
+    if wanted not in index:
+        near = sorted(m for m in index if m.rsplit(".", 1)[-1] == wanted.rsplit(".", 1)[-1])
+        hint = f" Did you mean: {', '.join(near)}?" if near else ""
+        return (f"{given!r} does not resolve to a module in this repo "
+                f"(read as {wanted!r}).{hint}")
+    for row in screen(converged_at=1):
+        if row["module"] == wanted:
+            return (f"{wanted} is a repo module with {row['n_callers']} first-party caller(s), "
+                    f"below the CONVERGED_AT={CONVERGED_AT} threshold. "
+                    f"{row['n_direct']} direct test importer(s), "
+                    f"{row['n_reaching']} reaching suite(s).")
+    return f"{wanted} is a repo module with no first-party callers at all."
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--all", action="store_true",
@@ -141,11 +181,16 @@ def main(argv: list[str] | None = None) -> int:
 
     rows = screen()
     if args.module:
-        rows = [r for r in rows if r["module"] == args.module]
+        # A PATH and a DOTTED NAME are both what a reader has to hand -- the ranked table prints
+        # dotted, every finding and every commit message spells the same module as a path. Indexing
+        # on one and refusing the other is how a live subject reads as a vanished one.
+        wanted = _as_module_name(args.module)
+        rows = [r for r in rows if r["module"] == wanted]
         if not rows:
-            print(f"{args.module!r} is not a converged module "
-                  f"(<{CONVERGED_AT} first-party callers, or not a repo module)")
-            return 0
+            print(_why_not(wanted, args.module))
+            # 2, not 0. A lookup that could not be answered is not the answer "below the
+            # threshold"; a script asking for a subject's row must be able to tell them apart.
+            return 0 if _exists_as_module(wanted) else 2
         if not args.json:
             for r in rows:
                 print(f"{r['module']}  --  {r['n_callers']} callers, "
