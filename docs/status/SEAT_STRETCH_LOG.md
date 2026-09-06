@@ -8,6 +8,61 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-06 — Stretch reports became a committed file on the mirror, and the lapse check shipped matching titles instead of paths
+
+<!-- head: 073bb159ec0d -->
+
+**What this stretch was about.** Making the reasoning behind the work durable. The director's
+observation was that the prose written at the end of a piece of work — the corrections, the things
+stopped short of, why a call went one way — is the most useful thing produced and the only thing not
+kept: commits record what changed, and the why lived in a console window that gets cleared.
+
+**What was already there, which is most of it.** The delivery seat writes roughly 3,000 characters
+of stretch prose into `docs/direction/DIRECTION.yaml`'s `thesis_read` at every orientation, and
+`tools/generate_delivery_page.py` already renders it into `site/data/delivery.json` for the
+director's page. Three things were missing, not a mechanism:
+
+1. it is a YAML scalar rather than a document — nobody reads a config field months later;
+2. it is overwritten each orientation, so git holds the history and a reader does not;
+3. it reaches `site/` (Cloudflare) and never `docs/`, which is the tree the GitHub Pages mirror
+   publishes and the channel the advisor actually fetches.
+
+And a fourth the seat could never have covered: an interactive session's reports entered none of it.
+
+**What was built.** One file, `docs/status/SEAT_STRETCH_LOG.md`, newest entry first, published by the
+same push as `LATEST.md`. `tools/stretch_log.py` appends entries and checks for lapses. It computes
+nothing the existing renderer already computes.
+
+**The two properties, enforced rather than requested.** A lapse is a *finding*, not a refusal:
+`--check` counts the commits landed since the newest entry's recorded head and names their subjects,
+and it is wired into the publish path as a log line. A gate would be wrong for a structural reason —
+a report is written when a piece of work *finishes*, so refusing every commit in between would block
+the work it exists to describe. And an entry must stand alone: `append` refuses a subject that leans
+on the conversation it was written in ("as discussed", "per your last", "continuing") or one too
+short to name its subject, because a reader in six months has none of that context. The phrase check
+is on the subject only — a body may legitimately quote a console turn.
+
+**The defect it shipped with, found within the hour.** The exclusion that stops the log counting its
+own commit matched a *title* — subjects containing "stretch log". Its own landing commit was called
+"the why, kept: stretch reports land in a committed file on the mirror", which says "stretch
+reports", so it slipped through and the tool reported itself as owing a report for the commit that
+wrote it. That is the same shape as two wrong measurements the day before, where module callers were
+counted by text search and docstrings and dict keys counted as calls, and the same shape as a class
+register whose title-keyed classifier could not see 92 findings. It is now excluded by *path*: if a
+commit touched the log it is the report, whatever it is called.
+
+**One thing worth keeping about the fix.** The control that drives it must answer the two `git log`
+shapes differently — the commit range, and the range restricted to the log's path. A stub that
+returns the same text for both makes every commit look like it touched the log, so nothing is ever
+owed. A sibling test had exactly that stub and went red when the real behaviour arrived, which is how
+the gap surfaced at all.
+
+**Where it stands.** The log is live with two entries, published on the mirror, and `--check` is
+green. Stage 1 continues: the fitted joint, the space-filling sample and the people joint remain
+queued above billing correctness, which is above the supplier optimising.
+
+---
+
 ## 2026-09-06 — Stage 1 housing and people anchors from NEED, two budget dials raised for one window, and a corrected sample size
 
 <!-- head: b01b1dbe392e -->
