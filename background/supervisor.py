@@ -236,7 +236,26 @@ IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH = 2
 # orphan risk as well as tokens. Default is now SERIAL. A second fork is justified only by a
 # genuinely disjoint file_scope on work large enough to outweigh a whole extra context stream --
 # raise this deliberately for such a draw, do not leave it raised.
-MAX_CONCURRENT_FORKS = 1
+# WIDENED 1 -> 2 BY DIRECTOR DECISION, 2026-09-06 console, FOR THIS ALLOWANCE WINDOW ONLY:
+# "Widen MAX_CONCURRENT_FORKS to 2 for this window only, on the disjoint pair you named -- W1_14
+# against the housing joint. Not 3; you've said there's no third disjoint scope and I don't want a
+# fork sharing population_draw.py."
+#
+# The 3 -> 1 narrowing above was a BUDGET cut and that condition has inverted: the allowance resets
+# 2026-09-07 04:00 with roughly half unspent, and unspent is wasted. The narrowing's own escape
+# clause is what is being used -- "a second fork is justified only by a genuinely disjoint
+# file_scope ... raise this deliberately for such a draw, do not leave it raised."
+#
+# THE DISJOINT PAIR IS NAMED because the permission is specific to it: W1_14 (docs/market_research,
+# site/knowledge, tools/) against the housing and people joint (simulation/). Two, not three:
+# W2_19 and W2_21 both touch simulation/population_draw.py, so a third fork would share a file and
+# buy contention rather than throughput.
+#
+# REVERTS TO 1 at 02:50Z on 2026-09-07, before the allowance resets, by
+# `tick-cadence-restore.timer` -- a systemd timer rather than a sleeping shell, which this box
+# reaps at 90 minutes. The restore lands through surgical_land and moves this constant AND its
+# guard test together, because reverting one without the other reds the tree.
+MAX_CONCURRENT_FORKS = 2
 
 # THREE_LANES.md (2026-07-13, director-decided, "mechanise the three-lane
 # draw so the supervisor draws SITE and DISCOVERY every cycle regardless of
@@ -2575,8 +2594,15 @@ def _unconsumed_director_ruling_or_steer(staging_dir: Path | None = None) -> boo
 # DRAW first at rung 1 -- this makes the drawn turn MINT from its block, and flags
 # the §4 defect when the block is absent). R15-proven both ways in test_supervisor.py.
 # =============================================================================
+# The optional `7.` group was added 2026-09-05. Without it the pattern required the phrase to
+# sit immediately after the hashes, so a ruling that NUMBERS its sections -- `## 7. WORK THIS
+# CREATES` -- read as carrying no block at all. That is not a missed mint: it is a fabricated
+# §4 DEFECT, and the instruction attached to it is "request the block from the author", i.e.
+# go back to the director for something he already wrote. Both rulings he staged on 2026-09-05
+# (weather cells, housing value ceiling) number their sections, so on the day it was found
+# EVERY §4 defect report in the tree was false.
 _WORK_THIS_CREATES_RE = re.compile(
-    r"^#{1,6}\s*WORK\s+THIS\s+CREATES\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
+    r"^#{1,6}\s*(?:\d+(?:\.\d+)*[.)]?\s+)?WORK\s+THIS\s+CREATES\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
     re.IGNORECASE | re.DOTALL | re.MULTILINE,
 )
 # A named deliverable inside the block: a numbered ("1." / "1)") or bulleted ("-"/"*") line.

@@ -688,21 +688,64 @@ def test_self_refill_draw_bounds_fan_out_to_the_ceiling_not_twelve(monkeypatch):
     assert len(_forks_in(supervisor._self_refill_draw())) == 12   # -> the 12-fork bloom returns
 
 
-def test_live_fork_ceiling_is_serial_and_takes_the_single_atom_fast_path(monkeypatch):
-    """THE BUDGET DIAL ITSELF (director console, 2026-08-03, "fewer forks, only where genuinely
-    parallel"). Guards the SHIPPED value, which the mechanism tests above deliberately pin away:
-    at the live ceiling a 12-fork-eligible cycle grants exactly ONE atom, and the message is the
-    plain single-atom fast path -- no THREE-LANE fan-out preamble, no per-atom fork instruction.
-    If someone widens the dial back to >1 without a director decision, this fails."""
-    assert supervisor.MAX_CONCURRENT_FORKS == 1, "fork fan-out is serial by director decision"
+def test_live_fork_ceiling_matches_its_dated_fence_and_expires_with_it(monkeypatch):
+    """THE BUDGET DIAL ITSELF, and its fence expires on the clock rather than on someone's memory.
+
+    STANDING VALUE IS 1, narrowed 3 -> 1 on 2026-08-03 after fan-out measured as the dominant token
+    line ("18% of my weekly budget in under 10 hours"). WIDENED 1 -> 2 BY DIRECTOR DECISION,
+    2026-09-06 console, FOR ONE ALLOWANCE WINDOW: "Widen MAX_CONCURRENT_FORKS to 2 for this window
+    only, on the disjoint pair you named -- W1_14 against the housing joint. Not 3; you've said
+    there's no third disjoint scope and I don't want a fork sharing population_draw.py."
+
+    READ THIS AS FENCED, NOT AS DRIFT -- and the fence is enforced, not described. Before the expiry
+    the shipped value must be 2; after it, 1. So if the restore does not run, this test reds on its
+    own, which is what makes "for this window only" a fact rather than an intention.
+
+    Why the expiry lives HERE and not only in the restore script: the first draft had the script
+    sed this test back alongside the constant, and driving that revert on a copy left the tree RED
+    -- a restore that breaks what it restores. Pinning the expectation to the fence's own clock
+    means the revert only has to move the constant, and the two can no longer disagree.
+
+    The seat raised this dial once WITHOUT the decision, on its own reading of the budget, and
+    backed it out precisely because this control fences it -- the refusal is what produced the
+    decision rather than a fait accompli.
+
+    NOT `_forks_in` HERE, deliberately: that helper substring-scans the draw text, and at width 2
+    the doorbell carries "OPS12", whose "S1" reads as a granted SITE fork. The draw's own sentence
+    is what the supervisor actually states; the BOUNDED FAN-OUT count goes to the LOG rather than
+    into the returned draw, so asserting on it would be a control that can only ever be red.
+    """
+    import datetime as _dt
+
+    WINDOW_ENDS = _dt.datetime(2026, 9, 7, 2, 50, tzinfo=_dt.timezone.utc)
+    widened = _dt.datetime.now(_dt.timezone.utc) < WINDOW_ENDS
+    expected = 2 if widened else 1
+
+    assert supervisor.MAX_CONCURRENT_FORKS == expected, (
+        f"fork fan-out must be {expected} "
+        + ("inside the 2026-09-06 director window (ends 02:50Z 2026-09-07)"
+           if widened else
+           "-- the 2026-09-06 window has EXPIRED and the dial was not restored. "
+           "`tick-cadence-restore.timer` did not run; this is a defect, not a decision.")
+    )
     _stub_lanes(monkeypatch, 3, 3, 6)
     draw = supervisor._self_refill_draw()
-    assert _forks_in(draw) == ["B0"]                          # 12 eligible -> 1 granted
-    assert "THREE-LANE" not in draw and "CONCURRENT" not in draw
-    assert "one Agent fork per atom" not in draw
+
+    assert f"<={expected} concurrent Agent forks" in draw       # doorbell STATES the live ceiling
+    if widened:
+        assert "2 CONCURRENT disjoint atoms" in draw, draw[-300:]
+        assert draw.rstrip().endswith("B0; B1"), draw[-120:]    # BUILD priority fills the budget
+    else:
+        assert "CONCURRENT disjoint atoms" not in draw          # the serial fast path
+        assert draw.rstrip().endswith("B0"), draw[-120:]        # 12 eligible -> exactly ONE
 
     monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 99)   # mutation: neuter the ceiling
-    assert len(_forks_in(supervisor._self_refill_draw())) == 12   # -> the 12-fork bloom returns
+    bloom = supervisor._self_refill_draw()
+    # Keyed to the PROPERTY -- with the ceiling neutered the budget reaches past BUILD and SITE to
+    # DISCOVERY's last atom, which neither 1 nor 2 can ever do.
+    assert "<=99 concurrent Agent forks" in bloom
+    assert bloom.rstrip().endswith("D5"), bloom[-120:]
+
 
 
 def test_self_refill_draw_cap_fills_across_lanes_by_priority(monkeypatch):
@@ -2657,6 +2700,60 @@ def test_ruling_mint_instruction_mints_from_block_and_flags_missing_block():
     # a plain non-ruling doc contributes nothing -> None (so find_work's primary is unchanged)
     (supervisor.STAGING_DIR / "SOME_DOC.md").write_text("ordinary staged content, no tag")
     assert supervisor.ruling_mint_instruction(["SOME_DOC.md"]) is None
+
+
+_RULING_WITH_NUMBERED_BLOCK = (
+    "# [DIRECTOR-RULING] -- a ruling that numbers its sections\n\n"
+    "## 0. Zero-context orientation\n\nbody\n\n"
+    "## 6. Risk\n\nblast radius nil\n\n"
+    "## 7. WORK THIS CREATES\n\n"
+    "- One knowledge page (full depth) + four stubs, per §3.1.\n"
+    "- One research/analysis pass.\n"
+)
+
+
+def test_a_ruling_that_numbers_its_sections_still_has_its_work_block_found():
+    """A NUMBERED heading is not a missing block, and calling it one sends us back to him.
+
+    THE DEFECT, 2026-09-05. `_WORK_THIS_CREATES_RE` required the phrase to sit immediately
+    after the hashes, so `## 7. WORK THIS CREATES` did not match and the parser returned []
+    -- which IS the §4 defect signal. The consequence is not a missed mint. It is a
+    FABRICATED defect in the director's own document, and the instruction the doorbell
+    attaches to it is "request the block from the author": go back to him for something he
+    already wrote, which is the one thing the seat is told never to spend his attention on.
+
+    Both rulings he staged that day (weather cells, housing value ceiling) number their
+    sections, so every §4 defect report in the tree at that moment was false -- a 100%
+    false-positive rate on a surface whose whole job is to say "this document is defective".
+    The function's own docstring claimed it was "FAIL-SAFE toward no-phantom-defect" while
+    the regex above it manufactured exactly that.
+
+    MUTATION: drop the `(?:\\d+(?:\\.\\d+)*[.)]?\\s+)?` group from `_WORK_THIS_CREATES_RE`
+    and this fires; the unnumbered cases beside it stay green, which is why they never
+    caught it.
+    """
+    got = supervisor.work_this_creates_deliverables(_RULING_WITH_NUMBERED_BLOCK)
+
+    assert got == [
+        "One knowledge page (full depth) + four stubs, per §3.1.",
+        "One research/analysis pass.",
+    ], "a numbered WORK THIS CREATES heading was read as no block at all"
+
+    # ...and the defect surface must not name it. This is the leg that reaches him.
+    (supervisor.STAGING_DIR / "DIRECTOR_RULING_NUMBERED.md").write_text(
+        _RULING_WITH_NUMBERED_BLOCK
+    )
+    assert "DIRECTOR_RULING_NUMBERED.md" not in supervisor.ruling_steer_missing_work_block()
+
+    # The numbering styles a human actually writes, all one block, none of them a defect.
+    for heading in ("## 7. WORK THIS CREATES", "## 7) WORK THIS CREATES",
+                    "### 3.1 WORK THIS CREATES", "## 7 WORK THIS CREATES",
+                    "## WORK THIS CREATES"):
+        doc = f"# [DIRECTOR-RULING] x\n\n{heading}\n\n- only deliverable\n"
+        assert supervisor.work_this_creates_deliverables(doc) == ["only deliverable"], heading
+
+    # And the signal still works: a ruling with genuinely no block is still a §4 defect.
+    assert supervisor.work_this_creates_deliverables(_RULING_NO_BLOCK) == []
 
 
 def test_ruling_steer_missing_work_block_lists_only_blockless_rulings():
