@@ -7,13 +7,25 @@ the cell count and a finer partition fits better on its own. Or it can report no
 genuinely informative input, because the grid is too coarse or occupancy fallbacks ate the
 signal. Both are tested here, on synthetic worlds where the right answer is known by
 construction, because on the real series neither is knowable.
+
+AND THAT LEFT THE PRODUCER ITSELF UNRUN, which `TestTheProducerRunsAndReproducesWhatItPublished`
+at the foot of this file is the repair for. Synthetic worlds are the right way to grade the
+instrument and they cannot grade the one function that assembles the real inputs: `measure()`
+reads four caches, calls `generate_grid_intensity_feed.fuel_mix()`, builds the shipped shape and
+derives the third coordinate, and until 2026-09-06 its only caller was `main()` and no test ran
+`main()`. The name collision hid it -- this file's own `_measure` helper is a different function
+-- so a grep for coverage of "measure" was satisfied while the mechanism was untouched, and
+`tools/grid_intensity_feed_contract_battery.py` measured this suite as `reaches_subject: false`
+on exactly that path.
 """
 
 from __future__ import annotations
 
 import datetime
+import json
 import math
 import random
+from pathlib import Path
 
 import pytest
 
@@ -306,3 +318,164 @@ class TestThePopulationIsSharedAcrossRungs:
         row = _measure(world)
         n = row["control_scored_half_hours"] + row["control_fit_half_hours"]
         assert n == pytest.approx(len(thinned), rel=0.02)
+
+
+# --------------------------------------------------------------------------- #
+# The producer                                                                 #
+# --------------------------------------------------------------------------- #
+
+def _real_caches() -> list[Path]:
+    """The four caches `measure()` reads, taken from the modules that own them.
+
+    RESOLVED AGAINST `PROJECT_DIR`, because `neso_carbon_intensity.CACHE_PATH` is RELATIVE and a
+    bare `Path.is_file()` on it answers about the working directory rather than about the tree.
+    Under a runner started anywhere but the repo root that reads as "the caches are absent", and
+    this class would skip -- green, silent, and wrong about why.
+    """
+    from sim import neso_carbon_intensity as neso
+    from sim import neso_embedded_generation as embedded_gen
+    from tools.generate_grid_intensity_feed import AGWS_CACHE, DEMAND_CACHE
+
+    return [
+        bound.PROJECT_DIR / Path(p)
+        for p in (DEMAND_CACHE, AGWS_CACHE, neso.CACHE_PATH, embedded_gen.CACHE_PATH)
+    ]
+
+
+@pytest.fixture(scope="module")
+def produced(tmp_path_factory):
+    """One real run of the producer -- `main()`, not a paraphrase of it.
+
+    SKIPPED, NOT FAILED, WHEN THE CACHES ARE ABSENT, and the consequence is stated here rather
+    than discovered later: `sim/cache/` is gitignored, so in a `git archive HEAD` extract this
+    class skips and proves nothing. That is the shape this project has been bitten by before --
+    a suite that passes vacuously in an extract while every mutation survives -- so the skip
+    names the missing path, and any battery grading this file must read the skip as "not run"
+    rather than as "green".
+    """
+    missing = [p for p in _real_caches() if not p.is_file()]
+    if missing:
+        pytest.skip(f"the real caches are not present in this tree: {[str(p) for p in missing]}")
+    out = tmp_path_factory.mktemp("ep13") / "ep13_embedded_generation_bound.json"
+    rc = bound.main(["--out", str(out)])
+    return rc, out, json.loads(out.read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def published_artefact():
+    return json.loads(bound.OUT_PATH.read_text(encoding="utf-8"))
+
+
+class TestTheProducerRunsAndReproducesWhatItPublished:
+    """THE DEFECT: `docs/observability/ep13_embedded_generation_bound.json` is a published
+    artefact whose producer no test ran.
+
+    Everything else in this file grades `measure_year` on synthetic worlds. `measure()` is the
+    rung above it -- the one that opens the four caches, calls `fuel_mix()`, runs `build_shape`
+    and divides embedded MW by demand to make the coordinate the whole file is about -- and it
+    had exactly one caller, `main()`, which nothing executed. Every failure available to that
+    rung alone (a cache path that moved, `fuel_mix`'s seven-tuple unpacked in the wrong order, a
+    zero-demand half hour reaching the division, the year intersection collapsing) would have
+    shipped a wrong artefact or no artefact with every test in this file still green.
+
+    THE ASSERTION IS IN TWO TIERS, deliberately. The CONTRACT tier is keyed to the artefact's
+    structure and survives the caches gaining a year. The REPRODUCTION tier asserts that for the
+    years this run and the published artefact SHARE, the numbers are identical -- which is the
+    property "what is published is what this code produces from these caches", and is why it is
+    scoped to the intersection: a new year arriving in the caches must not red a control about
+    the code. Only the code changing, or data already covered changing, can.
+    """
+
+    def test_the_producer_returns_zero_and_writes_the_artefact(self, produced):
+        rc, out, _data = produced
+        assert rc == 0
+        assert out.is_file(), "main() returned 0 without writing the artefact"
+
+    def test_the_artefact_carries_every_key_the_published_one_does(
+        self, produced, published_artefact
+    ):
+        _rc, _out, data = produced
+        assert sorted(data) == sorted(published_artefact)
+
+    def test_every_year_row_carries_every_field_the_published_rows_do(
+        self, produced, published_artefact
+    ):
+        _rc, _out, data = produced
+        expected = sorted(next(iter(published_artefact["years"].values())))
+        assert data["years"], "the producer measured no year at all"
+        for year, row in sorted(data["years"].items()):
+            assert sorted(row) == expected, year
+            assert sorted(row["controls"]) == sorted(bound.verdicts(row)), year
+            assert row["control_scored_half_hours"] > 0, year
+            assert row["control_fit_half_hours"] > 0, year
+
+    def test_the_sweep_reports_every_resolution_the_module_declares(self, produced):
+        """A sweep silently short of a grid would make "the gain plateaus" an artefact of which
+        resolutions ran, which is the one thing the sweep exists to settle."""
+        _rc, _out, data = produced
+        assert sorted(data["resolution_sweep"]) == sorted(
+            "x".join(str(g) for g in grid) for grid in bound.SWEEP_GRIDS
+        )
+
+    def test_the_oracle_rung_is_recorded_as_unable_to_reach_the_published_feed(self, produced):
+        """The one rung in this artefact that may never reach a published number reports on
+        itself inside the artefact, and this asserts the producer actually computed that -- the
+        AST walk is run against the real feed's source INSIDE `measure()`."""
+        _rc, _out, data = produced
+        assert data["oracle_reaches_the_published_feed"] is False
+
+    def test_the_producer_reproduces_the_published_numbers_for_the_years_they_share(
+        self, produced, published_artefact
+    ):
+        """The tier that can catch a wrong answer rather than a wrong shape.
+
+        NOT `sorted(data['years']) == sorted(published['years'])`: that would red the moment the
+        caches gained 2025, which is the artefact being STALE and not the code being wrong. The
+        shared years are the ones both files make a claim about, and on those the claim must be
+        the same claim.
+
+        THE BASELINE RUNGS ARE NOT DECORATION HERE, and the mutation round is what established
+        it. Feeding `build_shape` a coal capacity of zero -- by unpacking `fuel_mix()`'s seven
+        values one position out, which is the single likeliest way this producer breaks -- moves
+        the shipped shape on EVERY half hour of every year, by up to 11% on some, and moved not
+        one of the gains or the five rung correlations. It cannot: the ceilings and placebos are
+        surfaces fitted to the PUBLISHED target over (u, v, w), and the shipped model enters this
+        artefact through `baseline` and `baseline_in_sample` and nowhere else. So those two are
+        the ONLY fields that grade anything `measure()` assembles for `build_shape` -- imports,
+        coal capacity, thermal floors, must-run -- and without them this control watched the
+        producer run and could not see three of its four inputs. The first draft of this test
+        omitted them and M1 survived.
+        """
+        _rc, _out, data = produced
+        shared = sorted(set(data["years"]) & set(published_artefact["years"]))
+        assert shared, (
+            "the producer and the published artefact share no year, so this control asserted "
+            "nothing -- regenerate the artefact or explain the gap"
+        )
+        for year in shared:
+            fresh, was = data["years"][year], published_artefact["years"][year]
+            assert fresh["control_scored_half_hours"] == was["control_scored_half_hours"], year
+            for field in ("embedded_gain_within_day", "embedded_gain_over_cells",
+                          "oracle_headroom_within_day", "naive_gain_vs_2d"):
+                assert fresh[field] == pytest.approx(was[field], abs=1e-12), f"{year} {field}"
+            # The shipped model's own two rungs FIRST, because they are the only ones the inputs
+            # `measure()` assembles can reach.
+            for rung in ("baseline", "baseline_in_sample"):
+                assert fresh[rung]["correlation"] == pytest.approx(
+                    was[rung]["correlation"], abs=1e-12
+                ), f"{year} {rung}"
+            for rung in ("ceiling_2d", "ceiling_3d", "placebo_shuffled", "placebo_day_mean",
+                         "oracle_probe"):
+                assert fresh[rung]["held_out"]["correlation"] == pytest.approx(
+                    was[rung]["held_out"]["correlation"], abs=1e-12
+                ), f"{year} {rung}"
+
+    def test_the_producer_does_not_write_the_published_artefact_when_told_where_to_write(
+        self, produced
+    ):
+        """`--out` is what lets this class run the real `main()` instead of a copy of it, so the
+        redirection is itself asserted -- a `--out` that was parsed and ignored would leave every
+        other test here passing while the run overwrote a tracked artefact."""
+        _rc, out, _data = produced
+        assert out != bound.OUT_PATH
+        assert out.read_text(encoding="utf-8") != ""
