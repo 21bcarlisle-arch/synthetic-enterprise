@@ -8,6 +8,41 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-06 — Closing the four weather atoms, and the two gate refusals the close ran into on the way
+
+<!-- head: 7668df76190c -->
+
+**A short addendum to the entry below**, covering the bookkeeping that finished it: `W1_19` through
+`W1_22` are now at target in the closed half of the map, with their evidence and — more usefully —
+what each does *not* cover recorded in the row itself, and all four ratified in
+`gate_authorizations.jsonl` as self-certified with their provenance.
+
+**Two gate refusals during that close are worth keeping.**
+
+The first: the map content was assembled from a HEAD that moved under it. Another lane landed
+`notes_rehomed` declarations for two atoms between the assembly and the land, and `--content`
+overwrites a whole file, so the stale assembly would have reverted their declaration while looking
+like a clean map edit. It was refused as a store/declaration mismatch. That refusal is the only
+reason it was visible as anything other than a silent revert — the second time this exact shape has
+been caught this week, and both times by a gate rather than by looking.
+
+The second was better. `W1_21`'s `file_scope` named `tools/generate_weather_cells_data.py`, which has
+never been written, and the scope-evidence gate refused the level: *a level is a claim about
+evidence, and a path that does not exist is not evidence*. The fix was to re-point rather than to
+build — the generator is the site lane, it is already in `W1_14`'s own scope, and the duplication was
+in how the atom was minted rather than in the work. Worth noting that the atom would have closed
+green on its tests alone; what caught it was a gate asking whether the row's own claim about where
+its work lives was true.
+
+**One observation about this log's own check, filed rather than fixed.** A commit that *closes*
+already-reported work will always trip the "work landed without a report" finding, because the check
+counts commits and cannot know that this one is bookkeeping for the entry above it. That is a false
+positive by construction. It is not worth a mechanism — the finding is cheap, it is a finding rather
+than a gate, and an exclusion rule would be one more thing to get wrong. Recorded so the next reader
+does not spend the same thought on it.
+
+---
+
 ## 2026-09-06 — Four bounded successors on the weather cells, and the answer to how much granularity Britain needs turns out to depend entirely on whether wind matters
 
 <!-- head: 2af241e0c94d -->
