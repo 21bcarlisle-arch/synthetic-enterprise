@@ -1,0 +1,12 @@
+atom_id: W1_20_household_weights_per_cell_from_the_census
+map_notes:
+  origin_note: 'The ruling''s decision 9, verbatim: ''Household weights come from the censuses (England
+    & Wales 2021, Scotland 2022) via postcode, NOT from the SIM''s drawn population.'' That prohibition
+    is the whole reason this is its own atom -- weighting the cells by the population the SIM drew would
+    make the coverage curve a statement about our own draw rather than about Britain, and the circularity
+    would be invisible in the output. HOUSEHOLD-WEIGHTED IS ALSO THE POINT of the exercise: the director
+    asked how much granularity captures the variation ''for households'', and an area-weighted answer
+    over-represents empty uplands, which is precisely the wrong direction for a supplier. NEEDS A PULL
+    this tree does not hold: census household counts by output area or postcode, plus a postcode-to-grid
+    mapping. The elevation correction to house height (ruling section 4, Ordnance Survey open terrain
+    or equivalent) attaches here, because both are postcode joins.'

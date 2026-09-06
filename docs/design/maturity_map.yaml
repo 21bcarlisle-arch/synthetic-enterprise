@@ -1907,6 +1907,89 @@
   file_scope: ['docs/market_research/', 'simulation/forward_curve.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a trading desk backtesting a strategy on prices that were only published after the trades it claims to have made."
+- id: W1_19_the_three_drivers_per_land_cell_from_the_normals
+  title: "the three phase-1 heat-load drivers per 1km land cell, and how they actually correlate"
+  gain: "Temperature, wind and sunshine per 1km land cell from the 30-year normals, with their pairwise correlations -- the first artefact every later step needs, and it requires nothing but the completed pull."
+  notes_rehomed: [origin_note]
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
+  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
+  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
+  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W1_14_weather_cells_for_household_heat_load]
+  file_scope: ['docs/market_research/', 'tools/weather_cell_drivers.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier picking four weather stations by convenience and discovering in a cold snap that none of them is upwind of its customers."
+- id: W1_20_household_weights_per_cell_from_the_census
+  title: "household weights per 1km cell, from the censuses via postcode, never from the SIM's own population"
+  gain: "Household weights per cell from the CENSUSES via postcode, never from the SIM's own draw: weighting by our own population would make the coverage curve a statement about the draw rather than about Britain."
+  notes_rehomed: [origin_note]
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
+  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
+  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
+  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W1_14_weather_cells_for_household_heat_load]
+  file_scope: ['docs/market_research/', 'tools/weather_cell_weights.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a national heating model weighted by hectares, in which the Cairngorms outvote Birmingham."
+- id: W1_21_the_cells_and_the_level_coverage_curve
+  title: "cluster the drivers into cells and publish the curve of household-weighted variation explained against cell count"
+  gain: "Cluster the drivers into cells and publish household-weighted variation explained against cell count -- the director's question answered as a CURVE, with 90/95/99% cell sets named and LDZ/GSP/SAP-21 overlaid afterwards as comparators."
+  notes_rehomed: [origin_note]
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
+  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
+  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
+  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  provenance: director_ruling
+  depends_on: [W1_19_the_three_drivers_per_land_cell_from_the_normals, W1_20_household_weights_per_cell_from_the_census]
+  couples_with: [W1_14_weather_cells_for_household_heat_load]
+  file_scope: ['docs/market_research/', 'tools/weather_cell_derivation.py', 'tools/generate_weather_cells_data.py']
+  # NOT `site/data/` -- a generator rewrites it, so the unmerged-work guard would find the
+  # path dirty on nearly every tick and deprioritise this atom silently, forever. Scope the
+  # GENERATOR. Second time this seat has made this exact mistake; the control caught both.
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a hedger buying shaped power for fourteen GSP groups because that is how it is settled, having never asked how many distinct weather regimes its customers live in."
+- id: W1_22_cold_spell_persistence_and_cross_cell_synchrony
+  title: "the shape half: how long cold spells last in a cell, and whether cells go cold together"
+  gain: "The SHAPE half the ruling keeps in phase 1: how long cold spells last in a cell, and whether cells go cold together -- synchrony is what turns household weather into portfolio risk."
+  notes_rehomed: [origin_note]
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 because W1_14 is ruling-sized and a bounded
+  #   tick reading "derive the weather cells" has no first move -- the third time that shape has
+  #   left an expensive prerequisite finished and its work undrawn. The HadUK pull completed
+  #   2026-09-05 (318 files, 19.8 GB, zero failures) and nothing was drawn for eighteen hours.
+  provenance: director_ruling
+  depends_on: [W1_19_the_three_drivers_per_land_cell_from_the_normals]
+  couples_with: [W1_14_weather_cells_for_household_heat_load]
+  file_scope: ['docs/market_research/', 'tools/weather_cell_persistence.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a portfolio hedged as if a cold week in Glasgow and a cold week in London were independent draws."
 - id: PB5_pounds_or_percent_resolved
   title: "P5: does the switching decision key on a percentage saving or on pounds a year, and what does the evidence say"
   gain: "Director, 2026-08-28 (P5): 'If the switching decision keys on percentage saving, every household is equally worth chasing per point of margin. If it keys on GBP, a large home is far cheaper to win because the same percentage buys more visible saving, and customer value scales with consumption in a way a percentage world misses entirely. GB comparison sites and the cap headline both present annual GBP. Establish what our world uses, what the evidence says, and reconcile.' PARTLY ANSWERED ALREADY and that is why this is small: simulation/customer_events.py's own comment records that the calibrated churn curve was always a function of an ABSOLUTE annual saving, and that the conversion into it used one market-average bill for every household until 2026-08-27, when it was changed to this household's own bill in pounds. So the world is now a GBP world at the point of decision. What is NOT established is whether the acquisition and retention decisions on the company side agree -- and a world that decides in pounds while the company targets in percent is a systematically distorting mismatch, not a rounding difference. This atom establishes both sides and reconciles them, with the external evidence (comparison-site presentation, the cap headline) cited."
