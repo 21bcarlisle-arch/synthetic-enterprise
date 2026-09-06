@@ -47,10 +47,23 @@ def test_the_feed_REFUSES_to_publish_without_the_fuel_mix_rather_than_reverting_
     original = fuel.CACHE_PATH
     try:
         fuel.CACHE_PATH = REPO / "sim" / "cache" / "definitely_not_a_cache_that_exists.json"
-        with pytest.raises(fuel.FuelOutturnUnavailable):
+        with pytest.raises(fuel.FuelOutturnUnavailable) as refusal:
             gif.fuel_mix()
     finally:
         fuel.CACHE_PATH = original
+
+    # AND THE REFUSAL HAS TO BE THE LOADER'S, which the bare `pytest.raises` above cannot tell.
+    # MEASURED 2026-09-06 by `tools/grid_intensity_feed_contract_battery.py` (M1): wrapping
+    # `fuel.load_cached()` in `try/except: series = {}` -- the fail-open fallback this test
+    # exists to forbid -- STILL raises FuelOutturnUnavailable, because `coal_capacity_by_year`
+    # independently refuses an empty series. Same class, different site, and the assertion above
+    # passed through the mutation entire. The BIOMASS twin below is proved only because nothing
+    # downstream of it re-refuses; until this line, this leg's green was an accident of ordering
+    # in `fuel_mix` and not a control.
+    assert "definitely_not_a_cache_that_exists.json" in str(refusal.value), (
+        "the refusal must name the cache that is missing -- a FuelOutturnUnavailable raised by "
+        f"some adapter downstream is the fail-open path, not the closed one: {refusal.value}"
+    )
 
 
 def test_the_published_import_coverage_is_the_MEASURED_one_and_not_a_sentence():
