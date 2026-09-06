@@ -977,21 +977,6 @@
   level_current: 0
   level_target: 3
   loop_stage: idle
-  frame_saturated: true   # SET 2026-09-06, on this atom's THIRD LANE 3 draw. THE DOCUMENTED R11
-  #   ESCAPE, used for exactly the case it was written for: `_atom_has_frame_doc` deliberately
-  #   excludes `*_DISCOVER.md` (its own docstring: "an earlier-stage DISCOVER doc ... still has
-  #   genuine FRAME work left") -- but THIS atom's FRAME work is complete and lives INSIDE its
-  #   DISCOVER-named docs: L1/L2/L3 with falsifiers in `EP9_CONSENTED_METERING_DISCOVER.md` §7,
-  #   restated and extended with precondition EP9-P0 in `..._DISCOVER_PASS2_2026-09-06.md` §4.
-  #   The supervisor docstring already records that the other live `frame_saturated: true` atoms
-  #   are this same shape ("carry DISCOVER-named docs"); nobody had set it here.
-  #   WHY IT WAS DRAWN A THIRD TIME -- both guards that should have refused are blind, differently:
-  #   the saturation check by DESIGN (no FRAME-named file exists), and `discovery_pass_ceiling` by
-  #   UNDERCOUNT (pass 2 landed its doc without appending a note, so the ceiling read 1 of 2 passes
-  #   against a ceiling of 5). Neither is repaired by this line; the measurement both repairs were
-  #   waiting on is appended to SEAT_FINDING_THE_PASS_CEILING_IS_ON_THE_DRAW_NOBODY_CALLS_2026-09-06.
-  #   NOT A HOLD, and not a level move: an R11 cache, reversible by deleting this line, and it
-  #   auto-clears when the BUILD gate opens (`loop_stage` leaves `idle`, atom re-enters via BUILD).
   block_reason: null    # LIFTED by DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §4, on the
   #   reading accepted for EP6 on 24 August: epoch position alone never reserves an atom,
   #   because typing an interface changes how the two sides speak, not what the company
@@ -1002,7 +987,7 @@
   couples_with: []
   records_rehomed: [evidence]
   file_scope: []
-  simplifications_count: 3
+  simplifications_count: 1
 - id: EP10_adapter_uk_link_xoserve
   title: "Gas, through UK Link"
   gain: "The gas half of the book gets the same industry-systems reality the electricity half has."
@@ -1707,8 +1692,7 @@
   real_world_twin: "an annual report whose 'about us' page still gives the headcount from three acquisitions ago. Everyone reads it, nobody owns it, and every outsider's first number is wrong."
 - id: W1_14_weather_cells_for_household_heat_load
   title: "phase 1: the smallest set of weather cells that captures household-weighted heat-load variation across GB"
-  gain: "Phase 1 of weather: the smallest set of cells capturing household-weighted heat-load variation across GB, answered as a curve. The HadUK pull is complete; the derivation is bounded into W1_19-W1_22."
-  notes_rehomed: [origin_note]
+  gain: "DIRECTOR RULING 2026-09-05, docs/staging/DIRECTOR_RULING_WEATHER_CELLS_HEAT_LOAD_SEGMENTATION_PHASE1_2026-09-05.md, P1 product, transmitted as decisions. Director verbatim: 'What I am trying to do is divide the UK up into clusters of similar primary weather drivers... how much granularity is needed to capture, say 99%, versus 95 or 90% of the variation for households across these primary heat load variables.' The weather hierarchy has defined four layers since 2026-07-13 and LAYER 2 HAS NEVER BEEN DEFINED -- the SIM carries four nodes (London, Manchester, Glasgow, Cotswolds) chosen by convenience. THE 72-HOUR TOKEN CLOCK IS ALREADY DISCHARGED: the HadUK-Grid pull landed 2026-09-05 in 8016f7176 with docs/market_research/haduk_grid_pull_receipt.json, so what remains is analysis and the knowledge page, not the pull. The answer is a CURVE not a number, computed separately for level and shape; clustering is blind to LDZ/GSP/SAP-21, which are comparators overlaid afterwards. Household weights come from the censuses, NEVER from the SIM's own drawn population, and validation is DESNZ sub-national gas consumption -- generation and validation from separate sources."
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -1729,8 +1713,7 @@
   real_world_twin: "a supplier that hedges and forecasts on 14 GSP groups because that is how it is settled, having never asked how many genuinely distinct weather regimes its customers actually live in."
 - id: W2_18_the_housing_joint_the_sample_and_the_ceiling
   title: "phase 1 of housing: the houses, the space-filling sample, and the technical ceiling on each value lever"
-  gain: "Phase 1 of housing: the fitted joint, the space-filling sample drawn for DIFFERENCE and rejected on OUTPUTS, and the technical ceiling per lever in physical units. Extends four live modules; does not fork a parallel premise generator."
-  notes_rehomed: [origin_note]
+  gain: "DIRECTOR RULING 2026-09-05, docs/staging/DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1_2026-09-05.md, P1 product. THE MISSION SENTENCE IS THE FRAME: 'creating enterprise value by automating ways to find individual customers we can create value for' -- to find them the world must CONTAIN them and the company must have to LOOK. So: draw for DIFFERENCE, not for proportion, and judge 'behaves the same' on OUTPUTS (usage level, shape, weather gradient, ceiling per lever) never on type/age/size labels. Two London terraces on one street teach the world nothing the first did not. The existing premise draw (EPC band x property type x build era x heating system, raked onto EHS) STANDS and is extended, never forked -- concept has one home. Its own register names the gaps this closes: floor area rests on an unpublished bedrooms table, PV/EV/loft/cavity are not drawn at premise level, bungalows are folded into detached, and the EPC's model-versus-metered gap is unrepresented. Ceilings in PHYSICAL units first (kWh, tonnes, customer effort) and monetised on top, because prices move. Heat pump is OUT of all three phases until the director says otherwise. PRIOR-ART CHECK 2026-09-05: closed atom W2_12_change_of_tenancy_debt_physics DID NOT DELIVER ITS HEADLINE and must not be read as covering the move mechanics the merit-order amendment puts at rung 2. Opened all five of its artefacts: change_of_tenancy_register.py (593 lines), account_closure.py (422) and final_bill_outcome.py (522) have ZERO production importers between them -- 1,537 lines reachable only from tests; arrears_engine.py is genuinely wired (9 importers) but arrears is not tenancy change; and home_move_win_rate.py runs, at simulation/customer_events.py:412, ONLY as a retention multiplier at renewal. So 'home move' is a name on a churn coefficient, not a modelled move: the live run emits 110 customer events, every one renewed or churned, no move, no property staying, no incoming occupier, no deemed contract. The atom is not dishonest -- its level_target was 1, which is DISCOVER -- but a closed atom reads as done, and this one framed the physics without building the emitter. SCOPE ADDED 2026-09-06 by the use-case register ruling section 3.1: the per-house USAGE OUTPUT must be a PER-ASSET decomposition (heating, hot water, EV, appliances, PV), not a total, with a control that the parts sum to the existing total so no published figure moves. Use case 4.5 scores disaggregation against per-asset truth and 4.1's business cases price a lever against the asset it moves; neither is measurable from a total. ANCHOR IT OR DECLARE IT -- the ruling's own failure mode (b) is a decomposition invented rather than anchored, and EFUS end-use splits and published disaggregation studies exist."
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1746,8 +1729,7 @@
   real_world_twin: "a supplier whose entire customer model is an average annual consumption figure, which is why every targeted offer it has ever made went to the households least able to act on it."
 - id: W2_19_who_lives_where_money_and_composition
   title: "phase 1 of people: money and who they are, as prior-plus-residual on small-area geography"
-  gain: "Phase 1 of people: money and who they are, as prior-plus-residual on small-area geography -- the household you would EXPECT given the postcode and the house, and how this one deviates. Scope extended twice on 2026-09-05/06 (merit order; use-case register)."
-  notes_rehomed: [origin_note]
+  gain: "DIRECTOR RULING 2026-09-05, docs/staging/DIRECTOR_RULING_PEOPLE_MONEY_AND_WHO_THEY_ARE_PHASE1_2026-09-05.md, P1 product, third axis of the portfolio draw. THE TWO-LAYER STRUCTURE IS THE RULING: layer one is the household you would EXPECT given the postcode and the house (published at small-area level, therefore guessable by the company from an address); layer two is how this household DEVIATES from that (the single pensioner in the four-bed, the five people in the two-bed flat) -- private, and what the company must DISCOVER. GEOGRAPHY IS THE COHERENCE KEY across all three axes; the correlations that matter come from small-area data, NOT from an invented correlation matrix. The machine's own D-SEGMENT pass (docs/market_research/segmentation_joint_structure.md) found the defect: twenty-one trait axes, overwhelmingly drawn INDEPENDENTLY, with only two couplings built. Build on the existing trait vector and docs/design/SEGMENTATION_WIRING_PLAN.md; do not mint a parallel one. Two named quantities STAY EMPTY as R13 curriculum slots -- the can't-pay/won't-pay split and household switching amplitude -- presented with evidence and a recommended default for the director to ratify, never filled. Carries the Spec-006 coverage test amendment from the July-steers ruling section 2. AMENDED AGAIN 2026-09-05 by DIRECTOR_RULING_AMENDMENT_MERIT_ORDER_PEOPLE_PHASES_AND_PRACTICE_BOOKS, which governs where it conflicts with the people ruling: phase 1 GAINS collections responses (the stressed standard-credit household is the largest per-customer swing in the book, minus 786 pounds badly managed against break-even well managed), vulnerability and disclosure (the flag GATES PAYG conversion and disconnection BY RULE, which makes C32_one_obligation_one_vulnerability_scorer a PRECONDITION rather than a sibling -- two scorers currently disagree on every shared term and the one deciding disconnection has no caller), moves and change of tenancy (the SIM emits NO move event at all and the change-of-tenancy register has no caller, yet renters churn by MOVING not switching), engagement archetype forward from phase 2, and expected length of stay. THIS ATOM IS NOW RUNG 1 of the fidelity-effort merit order; housing is rung 3 and the weather cells rung 3-4, which INVERTS the order all three were minted in this morning. SCOPE ADDED 2026-09-06 by DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY, section 3.1, which folds the use-case fidelity gaps into the phases that already exist rather than minting new ones: (a) PAYMENT-ALLOCATION RULES made explicit in the arrears engine -- does a payment clear current consumption while arrears persist, or oldest-first -- because use case 1.1's per-premise arrears trajectory is unmeasurable until the allocation is stated rather than implied; (b) GOING-COLD BEHAVIOUR, households under-heating relative to what their own physics says they need under stress, by vulnerability, which is the SIM-side truth use case 1.2 is scored against and the register marks as a straight gap; (c) PER-ASSET USAGE, jointly with the housing atom -- heating, hot water, EV, appliances, PV as a DECOMPOSITION of the existing totals, never a second model, with a sum-to-total control, because a bill explained by asset class cannot be scored against a total. THE DIRECTOR'S SEQUENCING, same day: the use cases themselves are STAGE 3 and none is built until the world and billing are done; this second half is STAGE 1 and proceeds now, and its purpose is to tell stage 1 what it is building FOR so the samples cover the variation the use cases will need rather than variation for its own sake. PRIOR-ART CHECK 2026-09-05, on the director's instruction, because this atom's NUMBER collided with closed atom W2_13_occupancy_consumption_volume_shape: THAT ATOM HOLDS AND THIS ONE EXTENDS IT, it does not rebuild it. Its two artefacts -- simulation/demand_model.py (753 lines) and simulation/dwelling_records.py (268 lines) -- are both imported by simulation/run_phase2b.py, the live run loop, verified by AST import scan rather than by grep (a grep counts docstrings and dict keys, which is how this seat mis-read the neighbouring atom twice today). Occupancy already reaches consumption. What is NOT there is the people JOINT on small-area geography -- today's traits are drawn independently -- so the work is conditioning what exists, and any commit here that forks a parallel demand model is the defect, not the deliverable."
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -2102,7 +2084,6 @@
   title: "phase 2 (decided, not authorised): cold-water/ground temperature, day length, summer temperature"
   gain: "Phase 1 cuts cells for HEAT load only, so those cells are unvalidated for hot water, lighting and summer load; phase 2 asks whether one cell set carries all four or each needs its own."
   notes_rehomed: [origin_note]
-  records_rehomed: [evidence]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
@@ -2144,7 +2125,6 @@
   title: "phase 2 (decided, not authorised): the observation layer -- EPC as a dated, modelled, partial snapshot; address as a free signal; what the meter reveals"
   gain: "Phase 1 builds the house's hidden truth; this is the only thing that says what a real supplier could ever LEARN of it -- the epistemic wall made concrete on the housing axis."
   notes_rehomed: [origin_note]
-  records_rehomed: [evidence]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3

@@ -4224,3 +4224,28 @@
   file_scope: ['docs/market_research/', 'tools/weather_driver_sensitivity.py', 'tools/weather_cell_derivation.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that resolves its weather map to a thousand cells because one driver looked rough on a picture, and models none of that driver in its own demand engine."
+
+- id: W1_27_the_cell_decision_and_the_solar_gain_check
+  title: "the cell answer as a BUILD DECISION, and whether solar gain is the same gap as wind"
+  gain: "21 cells per driver held separately, not one shared partition at 987, stated against what the world uses today: 4 sites for temperature and solar gain, NOTHING for wind, one national figure for PV."
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 3
+  level_target: 3
+  closed: >-
+    AT TARGET 2026-09-06, delivered with the mint. Decision and evidence in
+    docs/market_research/the_cell_decision_and_what_the_world_actually_uses.md. Solar gain checked
+    by RUNNING the model: aperture zeroed takes half-year fuel 7274 -> 9138 kWh, so gain offsets
+    20.4% and unlike wind it is wired. 12 controls, 12 kills; one fail-silent `reachable` boolean
+    deleted rather than guarded. NOT COVERED: a shared ~30-cell grid for both heat-load drivers,
+    orientation-blind gain, and cloud used where irradiance is meant.
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted 2026-09-06 on the director's instruction: state the curve
+  #   as a decision, and check solar gain rather than assume it "given the wind term's history".
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for, W1_26_the_world_has_no_wind_term_and_the_belief_does]
+  file_scope: ['docs/market_research/', 'tools/weather_driver_sensitivity.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that publishes a weather-cell methodology and cannot say, for any driver in it, whether its own demand engine reads that driver at all."
