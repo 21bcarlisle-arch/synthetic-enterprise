@@ -1173,3 +1173,226 @@ def test_the_page_is_not_told_the_ceiling_can_be_built_away():
     text = gif.ERROR_DIRECTION.lower()
     assert "forecast" in text and "ceiling" in text
     assert "cannot be built away" in text
+
+
+# --------------------------------------------------------------------------- #
+# The corrections that reach the feed ONLY through `fuel_mix()`'s tuple         #
+# (2026-09-06)                                                                  #
+#                                                                               #
+# `tools/grid_intensity_feed_contract_battery.py` graded eleven contracts of     #
+# `gif.fuel_mix` against nine suites at spec fingerprint `d7eb36a0b901` and      #
+# eight of them -- M3 to M10 -- were killed by NOTHING: not by any of the eight  #
+# first-party callers, and not by either of the subject's own direct suites.     #
+# `SEAT_RESULT_FUEL_MIXS_ELEVEN_CONTRACTS_ARE_MACHINE_GRADED_AT_A_COMMITTED_...`  #
+#                                                                               #
+# The three below close M5, M6 and M8: the thermal floor, the zero-carbon        #
+# must-run block and the biomass envelope each REACHING the published feed.      #
+# They are the three whose loss is invisible to everything else in this file --  #
+# the controls above prove that an unusable CACHE raises, and that `build()`     #
+# renders an envelope HANDED to it, and neither can see a member of the tuple    #
+# quietly replaced by `{}` between the two.                                      #
+#                                                                               #
+# Adding them does not move the spec's fingerprint -- it covers the subject,     #
+# the suite LIST, the mutations, the poison and the null round, never a suite's  #
+# contents -- so the rows they produce are directly comparable to the landed     #
+# grid.                                                                          #
+# --------------------------------------------------------------------------- #
+
+def _shape_generate_would_build(mix, demand, renewables, **knocked_out):
+    """`generate()`'s own `build_shape` call, with one correction optionally knocked out.
+
+    A REPLICA OF THE PUBLISHING CALL IS A MIRROR unless something ties it back, so every
+    control below asserts that the un-knocked-out shape is the one the published records
+    actually carry. If `generate()` ever stops passing a correction, the replica and the feed
+    disagree and these go red -- which is the point, and is why the knock-out is a keyword here
+    rather than a second hand-written call.
+    """
+    from sim.grid_carbon_intensity import build_shape
+
+    imports, coal_capacity, _coverage, floors, must_run, _mrc, biomass = mix
+    keywords = dict(
+        imports_by_period=imports,
+        coal_capacity_by_year=coal_capacity,
+        thermal_floor_by_year={year: row["floor_mw"] for year, row in floors.items()},
+        zero_carbon_must_run_by_period=must_run,
+        biomass_envelope_by_year=biomass if gif.BIOMASS_DISPATCH_WIRED else None,
+    )
+    keywords.update(knocked_out)
+    return build_shape(demand, renewables, **keywords)
+
+
+def _published_records_carry(feed, shape) -> bool:
+    return all(round(shape[(r["date"], r["period"])], 5) == r["shape"] for r in feed["records"])
+
+
+@pytest.fixture(scope="module")
+def real_publish(tmp_path_factory):
+    """ONE real publish off the real caches, shared by the three controls below.
+
+    ~15s: `fuel_mix()` is ~6s over 235 MB of outturn and `generate()` runs it again on the path
+    that publishes. Both are wanted -- the tuple is the subject and the feed is where it has to
+    arrive -- and paying for them once is the difference between a control that costs 15s and
+    three that cost 45s.
+
+    IT SKIPS WITHOUT THE CACHES, AND A SKIPPED ROUND OF THE BATTERY GRADES NOTHING. `sim/cache/`
+    is gitignored, so a `git archive HEAD` extract has none of it and every mutation below would
+    come back `survived` for a reason that has nothing to do with the contract. Any run of these
+    rows must state the suite's wall clock: with the caches it is tens of seconds, without them
+    the whole file is under a second.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    needed = (
+        gif.DEMAND_CACHE,
+        gif.AGWS_CACHE,
+        REPO / fuel.CACHE_PATH,
+        REPO / fuel.THERMAL_CACHE_PATH,
+        REPO / fuel.ZERO_CARBON_MUST_RUN_CACHE_PATH,
+        REPO / fuel.BIOMASS_CACHE_PATH,
+    )
+    absent = [path.name for path in needed if not path.is_file()]
+    if absent:
+        pytest.skip(f"not measured in this tree -- no {', '.join(absent)}")
+
+    demand = gif.aggregate_demand(json.loads(gif.DEMAND_CACHE.read_text(encoding="utf-8")))
+    renewables = gif.aggregate_renewable_generation(
+        json.loads(gif.AGWS_CACHE.read_text(encoding="utf-8")))
+    mix = gif.fuel_mix()
+    feed = gif.generate(out_path=tmp_path_factory.mktemp("feed") / "grid_intensity_feed.json")
+    return mix, demand, renewables, feed
+
+
+def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES_the_series(
+        real_publish):
+    """M5. The floor is the correction that stops the reconstruction dispatching the gas stack
+    down to zero on a windy night, and it reaches the feed through one member of one tuple.
+
+    WHY NOTHING ELSE CATCHES ITS LOSS. `fuel_mix()` returning `floors = {}` raises nothing:
+    `generate()` unpacks seven members either way, `build_shape` takes the floor as an optional
+    keyword whose default is the pre-correction shape, and both shapes are dimensionless and
+    both normalise to 1.0. The feed would be rewritten, a year shorter in one block, with
+    `named_gaps` still describing a floor that was no longer applied.
+
+    MUTATION (must fire): `floors = {}` in `fuel_mix()` -- battery row M5, killed by none of the
+    eight callers and neither direct suite at `d7eb36a0b901`.
+    """
+    mix, demand, renewables, feed = real_publish
+    floors = feed["thermal_floor_mw"]
+
+    # EVERY YEAR THE SERIES IS PUBLISHED FOR HAS ITS FLOOR PUBLISHED BESIDE IT. Keyed to the
+    # feed's own year coverage rather than to a list of years, so it stays true when the record
+    # extends and goes red if the floor stops covering what the shape covers.
+    assert set(floors) == set(feed["by_year"]), (
+        "the published thermal floor does not cover the years the series covers, so for "
+        f"{sorted(set(feed['by_year']) - set(floors))} the feed publishes a shape built with a "
+        "floor correction and no way for a reader to see what floor"
+    )
+    for year, row in floors.items():
+        assert row["half_hours"] > 0, f"{year}'s floor rests on no half hours"
+        assert 0 <= row["floor_mw"] <= row["p1_mw"], (
+            f"{year} publishes a floor above its own 1st percentile ({row}), which is not a "
+            "floor -- the two are measured over the same half hours and cannot cross"
+        )
+
+    # AND IT IS MATERIAL: the shape the feed publishes is the one built WITH the floor, and a
+    # feed built without it is a different series. Without this leg the block above would still
+    # pass if the floor were published as a decoration and never dispatched.
+    with_floor = _shape_generate_would_build(mix, demand, renewables)
+    without = _shape_generate_would_build(mix, demand, renewables, thermal_floor_by_year={})
+    assert with_floor != without, (
+        "knocking the thermal floor out of the publishing call changes nothing in the series, "
+        "so either the floor the mix measured is empty or the dispatch ignores it"
+    )
+    assert _published_records_carry(feed, with_floor), (
+        "the published records are not the shape built with the floor the mix measured"
+    )
+
+
+def test_the_ZERO_CARBON_MUST_RUN_BLOCK_the_MIX_MEASURES_is_the_ONE_THE_FEED_PUBLISHES(
+        real_publish):
+    """M6. The must-run block is the only one of the three corrections that reaches NO published
+    field of its own -- `zero_carbon_must_run_coverage` is a different member of the tuple -- so
+    the only place its loss can be seen is in the series itself.
+
+    THE SIZE OF WHAT IS LOST. The measured block moves between 544 MW and 9,831 MW; the fallback
+    is flat. Every megawatt of that difference is made up by the gas stack on a schedule of the
+    model's own invention, and the published shape is the only thing that would show it. The
+    coverage sentence beside it would go on saying the block was the fleet GB actually ran.
+
+    MUTATION (must fire): return `{}` in place of
+    `fuel.zero_carbon_must_run_by_period(must_run_rows)` -- battery row M6.
+    """
+    mix, demand, renewables, feed = real_publish
+    must_run = mix[4]
+
+    assert must_run, (
+        "`fuel_mix()` returns no must-run block at all, so the published series is the flat "
+        "fallback while the coverage published beside it describes a measured one"
+    )
+    # THE BLOCK COVERS THE DAYS THE FEED ACTUALLY PRICES, which "non-empty" does not show: a
+    # block measured only over years the records window has left behind would satisfy the line
+    # above and change nothing a reader can see.
+    assert any((r["date"], r["period"]) in must_run for r in feed["records"]), (
+        "no half hour the feed publishes a record for is covered by the must-run block, so "
+        "every record on the page is the flat fallback"
+    )
+
+    with_block = _shape_generate_would_build(mix, demand, renewables)
+    flat = _shape_generate_would_build(mix, demand, renewables,
+                                       zero_carbon_must_run_by_period={})
+    assert with_block != flat, (
+        "the series is identical with and without the measured must-run block, so the block the "
+        "mix returns is not the one being dispatched"
+    )
+    assert _published_records_carry(feed, with_block), (
+        "the published records are not the shape built with the measured must-run block"
+    )
+    assert not _published_records_carry(feed, flat), (
+        "the published records are ALSO what the flat fallback would have published, so this "
+        "control cannot tell the two apart and proves nothing about either"
+    )
+
+
+def test_the_BIOMASS_ENVELOPE_the_MIX_MEASURES_reaches_the_published_feed_TO_THE_LATEST_YEAR(
+        real_publish):
+    """M8. The envelope is deliberately NOT dispatched -- `BIOMASS_DISPATCH_WIRED` is False --
+    which is exactly why its publication is load-bearing: it is the only thing that lets a
+    reader size the error in the flat 2,400 MW block the series does use.
+
+    WHY THE TWO BIOMASS CONTROLS ABOVE DO NOT COVER THIS. One proves an unusable biomass CACHE
+    raises out of `fuel_mix()`; the other proves `build()` renders an envelope HANDED to it.
+    Between them sits the tuple, and `biomass` replaced by `{}` on the way out of `fuel_mix()`
+    passes both: the cache still loads, and `build()` still renders faithfully the nothing it
+    was given. That gap is battery row M8.
+
+    MUTATION (must fire): return `{}` in place of `biomass` from `fuel_mix()`.
+    """
+    _mix, _demand, _renewables, feed = real_publish
+    envelope = feed["biomass_envelope_mw"]
+
+    assert envelope, (
+        "the feed publishes no biomass envelope, so the basis line still says the fleet is held "
+        "at a constant 2,400 MW and nothing on the page says how wrong that is"
+    )
+    # THE DIAGNOSTIC HAS TO REACH THE LATEST YEAR THE SERIES DOES. An envelope that stops short
+    # sizes a gap for years nobody is reading and leaves today's flat block uncheckable. The
+    # first year is NOT asserted: the biomass cache starts after the demand record does, and
+    # pinning that would key this to today's coverage rather than to the property.
+    assert set(envelope) <= set(feed["by_year"]), (
+        f"the envelope covers {sorted(set(envelope) - set(feed['by_year']))}, years the series "
+        "does not -- it is not the same record"
+    )
+    assert max(envelope) == max(feed["by_year"]), (
+        f"the envelope stops at {max(envelope)} and the series runs to {max(feed['by_year'])}, "
+        "so the most recent flat-block claim is the one a reader cannot check"
+    )
+    for year, row in envelope.items():
+        assert row["half_hours"] > 0, f"{year}'s envelope rests on no half hours"
+        assert row["floor_mw"] <= row["p1_mw"] <= row["mean_mw"] <= row["p99_mw"], (
+            f"{year}'s envelope is not ordered ({row}) -- the ends and the mean are measured "
+            "over the same half hours and cannot cross"
+        )
+        assert row["p99_mw"] <= row["capacity_mw"], (
+            f"{year} publishes a 99th percentile above the capacity it was measured against "
+            f"({row}), so one of the two is not this fleet"
+        )
