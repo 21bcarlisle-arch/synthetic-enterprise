@@ -1,33 +1,54 @@
 {
-  "any_full_power_feature_clears_the_null": false,
+  "any_full_power_feature_clears_its_own_null_uncorrected": false,
+  "any_full_power_feature_clears_the_selection_corrected_null": false,
   "base_seed": 20260724,
   "best_pair": {
-    "held_out": 0.5661,
-    "in_sample": 0.1724,
-    "n": 71,
-    "null": 0.2762,
-    "null_mean": 0.1428,
+    "held_out": 0.6127,
+    "in_sample": 0.1674,
+    "n": 69,
+    "null_mean": 0.1501,
+    "null_this_pair_alone": 0.3099,
     "x": "perceived_bill_saving_gbp",
     "y": "portfolio_premium_pct"
   },
   "ceiling_clears_the_null": true,
+  "ceiling_clears_the_null_uncorrected_per_pair": true,
   "cells_per_axis": 2,
   "constant_fields_refused": [
     "unit_rate_gbp_per_mwh: degenerate fit: every household in one cell",
-    "resentment_score: degenerate fit: every household in one cell",
-    "discount_pct: degenerate fit: every household in one cell"
+    "resentment_score: degenerate fit: every household in one cell"
   ],
   "controls": {
     "cells_are_populations": true,
+    "held_out_exceeds_in_sample_on_most_pairs": false,
     "held_out_is_disjoint_from_fit": true,
-    "households_per_cell": 8.9,
+    "households_per_cell": 8.6,
     "no_ground_truth_in_features": true,
-    "trait_spread": 0.57572,
+    "the_null_ran_the_same_selection": true,
+    "trait_spread": 0.57691,
     "traits_are_the_worlds": true
   },
-  "full_coverage_households": 214,
-  "households": 214,
-  "null_floor_abs_max": 0.5019,
+  "full_coverage_households": 213,
+  "full_power_selection": {
+    "alpha": 0.05,
+    "bound_p95": 0.249,
+    "clears": false,
+    "exceedances": 170,
+    "margin_over_bound": -0.1981,
+    "null": {
+      "candidates_per_draw": 2,
+      "draws": 200,
+      "households_shuffled": 213,
+      "max": 0.3423,
+      "mean": 0.115,
+      "median": 0.1014,
+      "p95": 0.249
+    },
+    "observed": 0.0509,
+    "p_value": 0.8507
+  },
+  "households": 213,
+  "null_floor_abs_max": 0.4948,
   "observable_fields_used": [
     "unit_rate_gbp_per_mwh",
     "svt_rate_gbp_per_mwh",
@@ -41,24 +62,42 @@
     "portfolio_premium_pct"
   ],
   "pairs_scored": 45,
-  "run_output": "run_output_1beec7215_20260904T163914Z.json",
+  "run_output": "run_output_23cbe058b_20260906T141424Z.json",
+  "selection_corrected_null": {
+    "candidates_per_draw": 45,
+    "draws": 200,
+    "households_shuffled": 213,
+    "max": 0.7069,
+    "mean": 0.3831,
+    "median": 0.3673,
+    "p95": 0.5529
+  },
+  "selection_corrected_verdict": {
+    "alpha": 0.05,
+    "bound_p95": 0.5529,
+    "clears": true,
+    "exceedances": 4,
+    "margin_over_bound": 0.0598,
+    "observed": 0.6127,
+    "p_value": 0.0249
+  },
   "single_feature_ceilings": [
     {
       "clears": false,
       "feature": "mean_recent_margin_rate",
-      "held_out": 0.0874,
-      "in_sample": 0.184,
-      "n": 214,
-      "null": 0.1829,
+      "held_out": -0.0422,
+      "in_sample": 0.2679,
+      "n": 213,
+      "null": 0.2863,
       "refused": null
     },
     {
       "clears": false,
       "feature": "portfolio_premium_pct",
-      "held_out": 0.1506,
-      "in_sample": 0.128,
-      "n": 214,
-      "null": 0.2057,
+      "held_out": -0.0509,
+      "in_sample": 0.2087,
+      "n": 213,
+      "null": 0.1692,
       "refused": null
     },
     {
@@ -66,44 +105,44 @@
       "feature": "unit_rate_gbp_per_mwh",
       "held_out": null,
       "in_sample": null,
-      "n": 102,
+      "n": 100,
       "null": null,
       "refused": "degenerate fit: every household in one cell"
     },
     {
       "clears": false,
       "feature": "svt_rate_gbp_per_mwh",
-      "held_out": -0.1594,
-      "in_sample": 0.2086,
-      "n": 71,
-      "null": 0.3479,
+      "held_out": -0.1263,
+      "in_sample": 0.2467,
+      "n": 69,
+      "null": 0.412,
       "refused": null
     },
     {
-      "clears": false,
+      "clears": true,
       "feature": "rate_vs_svt_pct",
-      "held_out": 0.2619,
-      "in_sample": 0.1053,
-      "n": 71,
-      "null": 0.3775,
+      "held_out": -0.353,
+      "in_sample": 0.0151,
+      "n": 69,
+      "null": 0.3345,
       "refused": null
     },
     {
       "clears": false,
       "feature": "company_eac_kwh",
-      "held_out": -0.0558,
-      "in_sample": 0.1324,
-      "n": 71,
-      "null": 0.232,
+      "held_out": -0.0645,
+      "in_sample": 0.1261,
+      "n": 69,
+      "null": 0.4177,
       "refused": null
     },
     {
       "clears": false,
       "feature": "company_churn_estimate",
-      "held_out": 0.4581,
-      "in_sample": 0.1197,
-      "n": 71,
-      "null": 0.498,
+      "held_out": 0.2362,
+      "in_sample": 0.1428,
+      "n": 69,
+      "null": 0.3459,
       "refused": null
     },
     {
@@ -111,110 +150,108 @@
       "feature": "resentment_score",
       "held_out": null,
       "in_sample": null,
-      "n": 71,
+      "n": 69,
       "null": null,
       "refused": "degenerate fit: every household in one cell"
     },
     {
       "clears": true,
       "feature": "perceived_bill_saving_gbp",
-      "held_out": 0.4291,
-      "in_sample": 0.1566,
-      "n": 71,
-      "null": 0.3163,
+      "held_out": 0.4799,
+      "in_sample": 0.1494,
+      "n": 69,
+      "null": 0.4338,
       "refused": null
     },
     {
       "clears": false,
       "feature": "expected_term_margin_gbp",
-      "held_out": -0.0521,
-      "in_sample": 0.1932,
-      "n": 64,
-      "null": 0.3989,
+      "held_out": -0.0061,
+      "in_sample": 0.1012,
+      "n": 56,
+      "null": 0.4897,
       "refused": null
-    },
-    {
-      "clears": false,
-      "feature": "discount_pct",
-      "held_out": null,
-      "in_sample": null,
-      "n": 45,
-      "null": null,
-      "refused": "degenerate fit: every household in one cell"
     }
   ],
   "top_pairs": [
     {
-      "held_out": 0.5661,
-      "in_sample": 0.1724,
-      "n": 71,
-      "null": 0.2762,
-      "null_mean": 0.1428,
+      "held_out": 0.6127,
+      "in_sample": 0.1674,
+      "n": 69,
+      "null_mean": 0.1501,
+      "null_this_pair_alone": 0.3099,
       "x": "perceived_bill_saving_gbp",
       "y": "portfolio_premium_pct"
     },
     {
-      "held_out": 0.5093,
-      "in_sample": 0.1197,
-      "n": 71,
-      "null": 0.4107,
-      "null_mean": 0.1855,
-      "x": "company_churn_estimate",
-      "y": "resentment_score"
+      "held_out": 0.5913,
+      "in_sample": 0.1822,
+      "n": 69,
+      "null_mean": 0.1021,
+      "null_this_pair_alone": 0.2152,
+      "x": "perceived_bill_saving_gbp",
+      "y": "mean_recent_margin_rate"
     },
     {
-      "held_out": 0.5022,
-      "in_sample": 0.1665,
-      "n": 71,
-      "null": 0.3561,
-      "null_mean": 0.1016,
-      "x": "rate_vs_svt_pct",
+      "held_out": -0.5603,
+      "in_sample": 0.2891,
+      "n": 69,
+      "null_mean": 0.1788,
+      "null_this_pair_alone": 0.3238,
+      "x": "company_churn_estimate",
       "y": "perceived_bill_saving_gbp"
     },
     {
-      "held_out": 0.4864,
-      "in_sample": 0.1242,
-      "n": 71,
-      "null": 0.4543,
-      "null_mean": 0.1758,
-      "x": "company_churn_estimate",
-      "y": "portfolio_premium_pct"
-    },
-    {
-      "held_out": 0.4699,
-      "in_sample": 0.1384,
-      "n": 71,
-      "null": 0.5019,
-      "null_mean": 0.1639,
-      "x": "rate_vs_svt_pct",
-      "y": "company_churn_estimate"
-    },
-    {
-      "held_out": 0.4154,
-      "in_sample": 0.1566,
-      "n": 71,
-      "null": 0.3625,
-      "null_mean": 0.1421,
+      "held_out": 0.4799,
+      "in_sample": 0.168,
+      "n": 69,
+      "null_mean": 0.1604,
+      "null_this_pair_alone": 0.2679,
       "x": "resentment_score",
       "y": "perceived_bill_saving_gbp"
     },
     {
-      "held_out": 0.4142,
-      "in_sample": 0.2649,
-      "n": 71,
-      "null": 0.2409,
-      "null_mean": 0.1126,
-      "x": "perceived_bill_saving_gbp",
+      "held_out": 0.4236,
+      "in_sample": 0.1628,
+      "n": 69,
+      "null_mean": 0.1096,
+      "null_this_pair_alone": 0.2193,
+      "x": "company_eac_kwh",
       "y": "mean_recent_margin_rate"
     },
     {
-      "held_out": 0.411,
-      "in_sample": 0.2213,
-      "n": 71,
-      "null": 0.3937,
-      "null_mean": 0.1728,
+      "held_out": 0.4236,
+      "in_sample": 0.1396,
+      "n": 69,
+      "null_mean": 0.0888,
+      "null_this_pair_alone": 0.3274,
+      "x": "resentment_score",
+      "y": "mean_recent_margin_rate"
+    },
+    {
+      "held_out": 0.4112,
+      "in_sample": 0.1652,
+      "n": 69,
+      "null_mean": 0.0895,
+      "null_this_pair_alone": 0.2889,
       "x": "company_churn_estimate",
       "y": "mean_recent_margin_rate"
+    },
+    {
+      "held_out": 0.3549,
+      "in_sample": 0.1039,
+      "n": 69,
+      "null_mean": 0.1553,
+      "null_this_pair_alone": 0.2979,
+      "x": "resentment_score",
+      "y": "portfolio_premium_pct"
     }
-  ]
+  ],
+  "we_cannot_tell": {
+    "bound_p95": 0.5529,
+    "p_value": 0.0249,
+    "statement": "The best function of the company's own observables recovers +0.6127 of a household's true price sensitivity, and it SURVIVES the correction on this book: after re-running the whole best-of-45 selection against 200 shuffled worlds, chance reached that high in 4 of them (p=0.0249). It clears by +0.0598 \u2014 about a tenth of the figure itself \u2014 so this is a marginal pass, not a bound.",
+    "verdict": "clears",
+    "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0598, and a figure that clears by a tenth of itself will move with the next draw of the book. The pair rung carries 69 households, and at that size only a ceiling above +0.5529 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=213) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely."
+  }
 }

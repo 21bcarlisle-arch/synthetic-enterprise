@@ -107,3 +107,15 @@ build works, full-coverage features clear the null; if it does not, they will no
 verdict line will say so.
 
 Not written as a **Discharged:** field, deliberately — that field is a claim the repair has landed.
+
+---
+
+## Correction, 2026-09-06 — the pairwise figures above were graded against the wrong null
+
+The pair rung's nulls quoted here (`null(max/48)`, and the +0.57 vs +0.50 reading) were drawn **for
+one pair at a time**, while the reported figure was the winner of a 45-way search. The verdict this
+document draws — from the 1-D full-coverage rung — is unaffected and still stands. The pairwise
+numbers are not: `+0.5661` does not survive the selection-corrected null (p = 0.0746), and on a
+later run of the same population the ceiling clears it (p = 0.0249). The correction, the cross-run
+table and what it means for `A49` are in
+`SEAT_FINDING_R1S_CEILING_WAS_A_SELECTED_MAXIMUM_AND_THE_CORRECTED_VERDICT_FLIPS_ON_TWO_HOUSEHOLDS_2026-09-06.md`.

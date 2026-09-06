@@ -8,6 +8,9 @@ otherwise "noise" is what it says regardless of the world and R1's claim is unfa
 from __future__ import annotations
 
 import random
+from pathlib import Path
+
+import pytest
 
 from tools import r1_inference_ceiling as r
 
@@ -115,3 +118,168 @@ def test_no_ground_truth_field_can_reach_the_feature_set():
     """The ceiling bounds what a SUPPLIER could build. A simulation internal in the feature set
     would make it bound nothing, while still producing a confident number."""
     assert not (set(r.OBSERVABLE_FIELDS) & set(r.GROUND_TRUTH_FIELDS))
+
+
+# ---------------------------------------------------------------------------------------------
+# THE SELECTION CORRECTION. Everything below was written against a WRONG PUBLISHED HEADLINE: the
+# sweep ranked 45 pairs by `abs(held_out)`, reported the winner as the input ceiling, and graded it
+# against a null drawn for that pair alone. Held-out +0.5661 against in-sample +0.1724 reached
+# `site/data/delivery.json` under Poesys's name.
+# ---------------------------------------------------------------------------------------------
+
+
+def _noise_book(features: int, households: int, seed: int):
+    """A book where NOTHING is learnable: every feature and the target are independent noise.
+
+    Built through `_pair_grid` rather than by hand so the test exercises the same grid the sweep
+    scores. Under this book every held-out figure is chance, so a correct instrument must refuse
+    the winner however high it reaches.
+    """
+    rng = random.Random(seed)
+    fields = [f"f{i}" for i in range(features)]
+    obs = {f"c{h}": {f: rng.uniform(0.0, 100.0) for f in fields} for h in range(households)}
+    traits = {c: rng.gauss(0.0, 1.0) for c in obs}
+    return r._pair_grid(obs, fields), traits
+
+
+def _shuffled(values, seed):
+    out = list(values)
+    random.Random(seed).shuffle(out)
+    return out
+
+
+def test_the_one_pair_null_accepts_a_book_with_nothing_in_it_and_the_corrected_null_does_not():
+    """THE DEFECT AND ITS FIX, measured as a FALSE-POSITIVE RATE over ten books with no signal.
+
+    This is the shape that published +0.5661 as R1's ceiling. On a book where every feature and the
+    target are independent noise, the winner of a 45-way search clears the null drawn for its OWN
+    pair almost every time -- that null answers "could THIS pair have arisen by chance" and the
+    winner was chosen for being the most extreme of forty-five.
+
+    WHY A RATE OVER TEN BOOKS RATHER THAN ONE ASSERTION ON ONE SEED. The statistic is uniform under
+    the null by construction, so any single book can come out either way and a seed that shows the
+    contrast is a seed that was fished for. The rate cannot be fished: the uncorrected null must
+    accept the great majority of empty books, and the corrected null must accept them at about its
+    own alpha. Delete the correction and this reds; weaken it and this reds.
+    """
+    accepted_uncorrected, accepted_corrected = 0, 0
+    books = 10
+    for seed in range(books):
+        grid, traits = _noise_book(features=10, households=71, seed=700 + seed)
+        assert len(grid) == 45, "the fixture must reproduce the published sweep's width"
+        best_held, best_own_null = 0.0, 0.0
+        for cand in grid:
+            ts = [traits[c] for c in cand["ids"]]
+            held = abs(r._cellwise_ceiling(cand["xs"], cand["ys"], ts, 2)[0])
+            if held > best_held:
+                best_held = held
+                best_own_null = max(
+                    abs(r._cellwise_ceiling(cand["xs"], cand["ys"], _shuffled(ts, d), 2)[0])
+                    for d in range(r.NULL_DRAWS))
+        accepted_uncorrected += best_held > best_own_null
+        verdict = r.graded_against_selection(
+            best_held, r.selection_corrected_null(grid, traits, 2, draws=100))
+        accepted_corrected += bool(verdict["clears"])
+
+    assert accepted_uncorrected >= 7, (
+        "the fixture no longer reproduces the defect, so nothing here is testing the fix: the "
+        f"one-pair null accepted only {accepted_uncorrected}/{books} books with no signal")
+    assert accepted_corrected <= 3, (
+        f"the corrected null accepted {accepted_corrected}/{books} books with NOTHING in them, "
+        f"which is not a 5% false-positive rate however the arithmetic reads")
+    assert accepted_corrected < accepted_uncorrected, (
+        "the two nulls agreed on every empty book, so the correction is not doing anything: "
+        f"{accepted_uncorrected} vs {accepted_corrected}")
+
+
+def test_a_learnable_target_still_clears_so_cannot_tell_is_a_finding_not_a_default():
+    """REACHABILITY, and it is the load-bearing leg.
+
+    A correction that refuses everything is not a correction, it is a mute button -- and it would
+    read on the page exactly like R1's claim being confirmed. One feature genuinely carries the
+    target here, so the selected winner must clear the selected-maximum null.
+    """
+    rng = random.Random(202)
+    fields = [f"f{i}" for i in range(10)]
+    obs = {f"c{h}": {f: rng.uniform(0.0, 100.0) for f in fields} for h in range(214)}
+    traits = {c: obs[c]["f0"] * 0.01 + rng.gauss(0.0, 0.05) for c in obs}
+    grid = r._pair_grid(obs, fields)
+    observed = max(abs(r._cellwise_ceiling(c["xs"], c["ys"], [traits[i] for i in c["ids"]], 2)[0])
+                   for c in grid)
+
+    verdict = r.graded_against_selection(observed, r.selection_corrected_null(grid, traits, 2, 200))
+
+    assert verdict["clears"] is True, (
+        f"a target that IS a function of an observable must survive the correction: {verdict}")
+
+
+def test_the_null_rises_with_the_number_of_candidates_searched():
+    """The property the whole correction rests on, asserted directly rather than inferred.
+
+    The reported statistic is a MAXIMUM over candidates, so its null must grow as the search
+    widens. A `_sweep_winner` that returned the first candidate's score, or one candidate's own
+    null, would leave this flat -- and that is precisely the defect being repaired.
+    """
+    grid, traits = _noise_book(features=10, households=71, seed=303)
+
+    one = r.selection_corrected_null(grid[:1], traits, 2, draws=120)
+    many = r.selection_corrected_null(grid, traits, 2, draws=120)
+
+    assert many["p95"] > one["p95"], (
+        "searching 45 candidates must raise the noise floor above searching one: "
+        f"{many['p95']:.4f} vs {one['p95']:.4f}")
+    assert many["candidates_per_draw"] == len(grid) and one["candidates_per_draw"] == 1
+
+
+def test_every_candidate_in_a_draw_sees_the_same_shuffled_world():
+    """Shuffling each candidate's target independently is a DIFFERENT null and a weaker one.
+
+    It breaks the correlation between candidates that share households, which is what makes the
+    real sweep's maximum reach as high as it does. Detected structurally: two candidates built on
+    the same households must receive the same permuted trait for the same household, so a draw in
+    which every candidate scores identically to a world-wide shuffle is the only shape that passes.
+    """
+    grid, traits = _noise_book(features=4, households=60, seed=404)
+    ids = sorted({c for cand in grid for c in cand["ids"]})
+    values = [traits[c] for c in ids]
+    permuted = list(values)
+    random.Random(90_000).shuffle(permuted)          # the first draw's own world
+    world = dict(zip(ids, permuted))
+
+    from_the_module = r.selection_corrected_null(grid, traits, 2, draws=1)
+    by_hand = r._sweep_winner(grid, world, 2)
+
+    assert abs(from_the_module["max"] - round(by_hand, 4)) < 5e-5, (
+        "the module's first draw is not the world-wide shuffle it documents: "
+        f"{from_the_module['max']} vs {by_hand:.4f}")
+
+
+def test_a_permutation_p_value_can_never_be_published_as_zero():
+    """`exceedances / draws` returns 0.0 when nothing beats the observed, which claims a certainty
+    200 draws cannot buy -- and 0.0 is what would reach the page."""
+    grid, traits = _noise_book(features=4, households=60, seed=505)
+    null = r.selection_corrected_null(grid, traits, 2, draws=50)
+
+    verdict = r.graded_against_selection(99.0, null)     # unbeatable by construction
+
+    assert verdict["exceedances"] == 0
+    assert verdict["p_value"] == round(1 / 51, 4) > 0.0
+
+
+def test_a_book_too_small_to_measure_is_refused_rather_than_scored_as_a_ceiling_of_zero():
+    """FAIL CLOSED on the empty book. In a linked worktree the gitignored run outputs are absent,
+    `newest_run_output` picked a tracked stand-in with no usable rows, and the instrument returned
+    `households: 0, ceiling +0.0000, clears False` -- which reads as "measured the book, found
+    nothing" and is the opposite claim to "measured nothing"."""
+    import json as _json
+    import tempfile
+
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as fh:
+        _json.dump({"rows": [{"customer_id": f"c{i}", "company_eac_kwh": float(i)}
+                             for i in range(5)]}, fh)
+        path = Path(fh.name)
+
+    with pytest.raises(SystemExit) as caught:
+        r.measure(run_path=path)
+
+    assert "REFUSED" in str(caught.value) and "households" in str(caught.value)

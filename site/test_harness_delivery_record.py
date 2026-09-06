@@ -45,7 +45,7 @@ FEED_FILES = {
 }
 
 PANELS = ("delivery-kpis", "delivery-did", "delivery-decided", "delivery-wrong",
-          "delivery-next", "director-delta")
+          "delivery-next", "delivery-ceiling", "director-delta")
 
 
 def _text(html: str) -> str:
@@ -341,3 +341,65 @@ def _find_gap_block(obj):
             if found is not None:
                 return found
     return None
+
+
+def test_the_gating_FIGURE_arrives_with_the_correction_that_moved_it(rendered):
+    """R1's ceiling gates a whole programme (`A49`), and for two days it was published as a bound
+    while being the winner of a 45-way search graded against the null of ONE comparison.
+
+    MUTATION (must fire): render only the corrected number. A reader who is shown the right figure
+    and not the wrong one cannot tell that the wrong one was ever published, and the panel's whole
+    reason for existing is that it was.
+    """
+    body = _text(rendered["delivery-ceiling"]["innerHTML"])
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    c = live.get("the_number_the_programme_rests_on") or {}
+    if not c.get("available"):
+        assert "not the same as the bound being zero" in body, (
+            "an absent ceiling must say so in a way that cannot be read as a measured zero")
+        return
+
+    assert "As published (wrong)" in rendered["delivery-ceiling"]["innerHTML"]
+    assert "Corrected" in rendered["delivery-ceiling"]["innerHTML"]
+    for figure in (c["reported_ceiling"], c["bound_p95"], c["p_value"]):
+        assert f"{float(figure):.4f}" in body, (
+            f"{figure} is in the feed and not on the page a reader gets")
+    assert str(c["candidates_searched"]) in body, (
+        "the number of candidates searched is what makes the correction legible, and it is absent")
+
+
+def test_the_ceiling_panel_states_WHAT_THE_VERDICT_DOES_NOT_SAY(rendered):
+    """Fail closed, on the surface. A refusal read as "there is nothing there", and a marginal pass
+    read as "the bound is established", are the same failure from opposite sides.
+
+    MUTATION (must fire): drop `what_it_does_not_say` from the render.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    c = live.get("the_number_the_programme_rests_on") or {}
+    if not c.get("available"):
+        pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
+    body = _text(rendered["delivery-ceiling"]["innerHTML"])
+
+    assert "What this does not say" in body
+    # The caveat BRANCHES with the verdict -- one sentence cannot carry both readings.
+    assert (("does not establish a bound" in body) if c["corrected_verdict"]
+            else ("refusal to distinguish" in body)), (
+        "the caveat on the page does not match the verdict beside it")
+
+
+def test_an_absent_ceiling_measurement_does_not_render_as_a_measured_zero():
+    """The state a fresh clone and every linked worktree is actually in: the instrument's artefact
+    is absent, and "no bound was measured" must not read as "the bound is zero".
+
+    MUTATION (must fire): render `0.0000` (or an empty panel) when the feed says unavailable.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    live["the_number_the_programme_rests_on"] = {
+        "available": False,
+        "why": "the inference-ceiling instrument has not been run in this tree, so no bound is "
+               "shown. That is not the same as the bound being zero.",
+    }
+    body = _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
+
+    assert "not the same as the bound being zero" in body
+    assert "0.0000" not in body

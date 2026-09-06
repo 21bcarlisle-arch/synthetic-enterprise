@@ -1,9 +1,39 @@
 {
- "generated_at": "2026-09-06T14:25:30.918875+00:00",
+ "generated_at": "2026-09-06T15:19:47.439608+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "5110dcee2",
+    "at": "2026-09-06T15:57:03+01:00",
+    "subject": "repair: my --content land reverted another lane's map work, and completing their half-staged move is the fix",
+    "substantive": true
+   },
+   {
+    "sha": "bbb5d2c70",
+    "at": "2026-09-06T15:53:17+01:00",
+    "subject": "W1_27: the cell answer as a DECISION, and solar gain checked by running the model rather than reading it",
+    "substantive": true
+   },
+   {
+    "sha": "7a7514310",
+    "at": "2026-09-06T15:44:59+01:00",
+    "subject": "Auto-process run complete: report + LATEST.md + site/ (git=23cbe058b, net=\u00a3139,109)",
+    "substantive": true
+   },
+   {
+    "sha": "44221d28a",
+    "at": "2026-09-06T15:39:20+01:00",
+    "subject": "commit the half-staged room move, because deleting the root copy is a loop while origin still has it",
+    "substantive": false
+   },
+   {
+    "sha": "7a1d16983",
+    "at": "2026-09-06T15:31:24+01:00",
+    "subject": "the reason mix's rename lands whole, because the control alone would red the tree it was written for",
+    "substantive": true
+   },
    {
     "sha": "077e2602a",
     "at": "2026-09-06T15:16:42+01:00",
@@ -213,36 +243,6 @@
     "at": "2026-09-06T09:38:55+01:00",
     "subject": "the stretch log reported ITSELF as unreported, because the exclusion matched a title",
     "substantive": true
-   },
-   {
-    "sha": "47a5b94c4",
-    "at": "2026-09-06T09:36:05+01:00",
-    "subject": "the why, kept: stretch reports land in a committed file on the mirror, and a lapse is a finding",
-    "substantive": true
-   },
-   {
-    "sha": "b01b1dbe3",
-    "at": "2026-09-06T09:17:52+01:00",
-    "subject": "the exception class was always in the output and an 80-column terminal was deleting it",
-    "substantive": true
-   },
-   {
-    "sha": "9b08d302f",
-    "at": "2026-09-06T09:03:43+01:00",
-    "subject": "dispatch is the claim: every lane 0 item ever delivered arrived unclaimed",
-    "substantive": true
-   },
-   {
-    "sha": "adbcc2806",
-    "at": "2026-09-06T08:56:39+01:00",
-    "subject": "merge origin/main: re-gating the fuel_mix M9/M15 controls on the new base",
-    "substantive": false
-   },
-   {
-    "sha": "3af840325",
-    "at": "2026-09-06T08:55:22+01:00",
-    "subject": "renumber this lane.s biomass row to M15 and reconcile it with the concurrent lane.s M12/M13/M14",
-    "substantive": true
    }
   ],
   "substantive": 31,
@@ -251,53 +251,54 @@
  },
  "what_it_decided": {
   "available": true,
-  "oriented_at": "2026-09-06T14:20:15+00:00",
-  "age_hours": 0.1,
+  "oriented_at": "2026-09-05T14:23:03.881665+00:00",
+  "age_hours": 24.9,
   "expires_after_hours": 12.0,
-  "live": true,
-  "thesis_read": "Against the thesis the position is worse than the commit log reads, and it is worse in one shape appearing in three places: a thing is FINISHED and nothing downstream knows it. Twenty commits, fifteen substantive, no empty trees, four weather atoms closed at the level their rows declare \u2014 and `grep -rn \"weather_cell\\|weather_driver\" simulation/ company/ saas/` returns NOTHING. Five derivation modules, sourced against ONSPD and the census, mutation-killed, and the world does not import one of them; `W1_14_weather_cells_for_household_heat_load`, the parent the whole set exists to serve, still reads `level_current: 0`, `loop_stage: build`. That is not a bookkeeping complaint: fidelity is the precondition for telling value created from value transferred, and research the sim never consumes moves the precondition not at all. It also ATTRIBUTES the share reading I said last stretch I could not attribute. `product_machinery_split` now prints 12.90% / 6.25% / 4.62% over 50/100/200 against its 25% floor, and the reason is not the instrument I suspected: PRODUCT_PREFIXES is `company/ saas/ simulation/`, the weather work lives in `tools/`, and it lives there because it genuinely has not entered the world yet. The instrument was right and my instrument-doubt was wrong. I am NOT closing the share error on that, because the closing condition I wrote is the share standing above its floor and it does not \u2014 6.25% over the hundred. The second place the shape appears is the one I nearly got backwards, and the near-miss is the finding. I read `SEAT_FINDING_THE_ENGAGEMENT_ANTECEDENT_R1_NEEDS_IS_DESTROYED_BY_A_COLLAPSED_PAYMENT_BUCKET`, a live BLOCKING record, and started writing PB4 as unbuilt with engagement still `random.Random(f\"engagement_{customer_id}\")`. My predecessor's own direction file contradicted me, so I read the module instead of the record: `household_segments.py:262` carries PREPAYMENT with the separation comment dated 2026-09-05, and line 439 multiplies `engagement_multiplier_for_channel(payment_channel_for_customer(...))` into the renewal probability, mean-preserving. PB4 IS BUILT. It sits at level 0 because OPS11 freezes a level raise in a lane holding a live BLOCKING finding, and the finding freezing it is the record of the defect the tree has since fixed. A finding that outlives its defect is a brake nobody can see, there are sixteen BLOCKING findings, and filing is outrunning dispositioning by +113 in seven days. Third place, and the one that bounds everything: `tools/r1_inference_ceiling.py` ranks 45 feature pairs by held-out correlation, `sort(key=lambda r: -abs(r[\"held_out\"]))`, and grades the winner against a null drawn for THAT PAIR ALONE. Choosing the best of 45 and comparing it to a one-pair null is the multiple-comparisons defect, held-out +0.6127 against in-sample +0.1674 on n=69 is its signature \u2014 held-out cannot honestly beat in-sample four-fold \u2014 and the output reaches `site/data/delivery.json` while A49 makes this ceiling the bound on whether R3 and R4 can pay at all. My predecessor found it and it was not drawn. So the inference programme's governing number is a selection artefact, published, flattering us. Everything above was read live this orientation, not quoted: the greps, the enum, line 439, the sort key, the share run.",
+  "live": false,
+  "thesis_read": "For the first time in ten stretches the direction reached work, and the reason it did not register as such is worth more than the fact. `previous_focus_drawn.drawn` is empty for the tenth consecutive orientation \u2014 and yet focus item 1, the HadUK-Grid pull, was BUILT and LANDED at 12:09Z as 8016f7176, and focus item 3's subject, the tree standing behind origin, is repaired: `git rev-list --left-right --count HEAD...origin/main` reads 0 and 0 at 14:24Z against 0 and 10 at the last orientation. So my predecessor's open sub-question \u2014 how a focus item gets built without being drawn \u2014 now has a demonstrated answer rather than a candidate: the staging queue delivered it. `staging_rooms.work_queue()` ranks the weather ruling 2nd of 76 and an interactive seat worked it from there, while `delivery_lane`'s ledger, which is the only thing `drawn` reads, never saw it. The steer is not a no-op in effect; it is a no-op in the record, and those are different failures with different fixes. What is NOT fixed is the precedence: `next_item()` at 14:24Z still returns `fork-alarm-transition-state-keyed-on-behind-which-moves-every-cadence-2026-09-05`, one of five live continuations, so the `focus` loop beneath it is still unreachable \u2014 and I can now say something sharper than \"the store never empties\". One of those five, `register-low-water-three-implementations-one-mechanism`, describes work that LANDED this stretch in fc950dda6, cbfb12f1b and 029c21452. `live()` retires an entry that expires or is refuted and has no channel for one that was DONE, so a finished continuation preempts the seat's order forever. Against the thesis proper the stretch was the usual shape and I will not dress it up: `tools/product_machinery_split.py` at 14:23Z reads 3.33% over 50, 4.84% over 100, 2.33% over 200, 3.30% over 400 \u2014 below the declared floor at every horizon, as it has been every time it has been run. Nineteen of 44 commits were substantive and the great majority were register rungs, alarm keys, banner rows and publish causes. The one genuine product movement is the weather pull, and it is unfinished in a way nothing is watching: `/home/rich/.cache/synthetic-enterprise/haduk_grid` holds 5.3 GB and 123 files, the committed receipt declares 124 MB and three, and `pull.log` stops at `[120/315]` at 12:27Z with no process alive \u2014 the monthly tier complete at 105 files, the daily tier at 15 of 210, and nothing retrying. That is a tick-bound job that died with its tick, which this project has filed before. The stretch also produced its own best finding: `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS` establishes that 12 of the 50 reds in `.publish_gate_state.json` were `/tmp` at 0 MB, pass green on re-run at the same HEAD, and are indistinguishable in the state file from real defects \u2014 so a tick drawn on that state repairs passing tests, which is a machine that manufactures its own machinery work. The instance was swept; the mechanism was not. Every figure above was read live between 14:23Z and 14:26Z \u2014 `product_machinery_split` run, `next_item()` and `seat_continuation.live()` called, the cache walked with `find` and `du`, the receipt and `pull.log` opened, `git rev-list` run \u2014 and every one of them will be stale for whoever reads this. Re-run before relying on any.",
   "focus": [
    {
-    "id": "the-r1-ceiling-is-a-selected-maximum-published-as-a-bound",
-    "what": "In `tools/r1_inference_ceiling.py`, the pairwise sweep ranks 45 feature pairs by `abs(held_out)` and compares the winner against a null drawn for that pair only. Correct the selection: draw the null over the SAME choose-the-best-of-45 procedure (shuffle the target, re-run the whole ranked sweep, take the winner's held-out, repeat) so the null is the distribution of a selected maximum, not of one comparison. Then re-run it, print the corrected figure beside the uncorrected one, and update whatever `site/data/delivery.json` publishes. If the ceiling falls to or below the corrected null, say that on the surface \u2014 \"we cannot tell\" is the result and it belongs on the page.",
-    "why": "This number bounds the entire inference programme \u2014 A49 makes it the gate on R3 and R4 \u2014 and it is published under Poesys's name today. Held-out +0.6127 against in-sample +0.1674 on n=69 is not a fit, it is the best of 45 draws, and the thesis stands or falls on inference being real rather than selected. Done when the null is generated by the same selection procedure the reported figure survived, and the published page carries the corrected bound or an explicit refusal."
+    "id": "weather-cells-phase1-finish-and-receipt-the-daily-pull",
+    "what": "Resume the HadUK-Grid pull to completion and make the committed artefact agree with the disk. It is at 120 of 315 files and stopped at 12:27Z with nothing retrying: `/home/rich/.cache/synthetic-enterprise/haduk_grid` holds 5.3 GB (tas/mon 35, sfcWind/mon 35, sun/mon 35, tas/day 15, three mon-30y normals) while `docs/market_research/haduk_grid_pull_receipt.json` still declares `tiers: [\"normals\"]`, `complete: 3`, `bytes_on_disk: 124079328`. Run `python3 -m tools.fetch_haduk_grid --tiers monthly,daily --verify --receipt`; it is resumable and idempotent and the receipt merges across runs. Launch it so it SURVIVES the tick that starts it \u2014 a detached cgroup, not a foreground child \u2014 because a tick-bound long job dying at its boundary is exactly what produced the 120/315 state, and re-running it inside another bounded tick will produce the same result further along. \u00a73.4 of `haduk_grid_weather_cells_phase1_source.md` fixes the daily tier at Oct\u2013Mar, so state the heating seasons covered as a count and name any season the archive did not have as a gap row rather than letting a short file list read as completeness. The token premise in the ruling no longer holds \u2014 \u00a74 records the mint API returning 200 and the puller re-minting itself \u2014 so do not escalate on token expiry; escalate only if minting fails AND the fallback is spent.",
+    "why": "This is the only product work in flight, it is the director's own phase-1 instruction, and it is half-done in the worst way: the expensive part is bought and the committed record understates it by 5.2 GB, so the next session reads the receipt, believes only normals exist, and either re-derives the state by hand or pulls it again. Finishing it is cheap because the puller resumes; leaving it is not cheap, because a stalled resumable job with no watcher is indistinguishable from a finished one at the only surface anybody reads. DONE when the committed receipt lists normals, monthly and daily with `complete == requested`, its `bytes_on_disk` reconciles against the cache walked independently, the daily season count is stated with its gaps named, and the runner that finished it is one a bounded tick cannot kill."
    },
    {
-    "id": "a-blocking-finding-outlived-its-defect-and-is-freezing-a-built-atom",
-    "what": "Verify against the tree that `SEAT_FINDING_THE_ENGAGEMENT_ANTECEDENT_R1_NEEDS_IS_DESTROYED_BY_A_COLLAPSED_PAYMENT_BUCKET_2026-09-05.md` is discharged \u2014 `simulation/household_segments.py:262` carries PREPAYMENT, line 439 multiplies `engagement_multiplier_for_channel` into the renewal probability \u2014 then disposition it, and record the level PB4's own passing controls support (`tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py`, 8 passed). Then re-read the other fifteen BLOCKING findings for the same class and disposition every one whose stated defect the tree has already left.",
-    "why": "PB4 is engagement inferred from an observable instead of a hash \u2014 the purest statement of the thesis in the codebase \u2014 and it is built and reading zero because OPS11 correctly freezes a lane whose finding nobody retired. I nearly wrote it as unbuilt from that same record this orientation. A finding that outlives its defect is an invisible brake, and with filing running +113 ahead of dispositioning in seven days there are certainly more. Done when PB4 is off level 0 and the BLOCKING set contains no record whose defect is already fixed."
+    "id": "enospc-is-an-environment-failure-not-a-test-regression",
+    "what": "Make the publish gate refuse to record disk exhaustion as a test regression. Today's `.publish_gate_state.json` carries `total_red: 50` and 12 `blocking_tests`, every one an ERROR rather than a FAILED, concentrated in two files that re-run green at the same HEAD once `/tmp` has space \u2014 because `tmp_path` cannot be created under ENOSPC and every test taking that fixture errors in setup. Build the smallest leg that can fail: before `blocking_tests` is written, if the run's failures are dominated by SETUP errors and free space on the pytest tmp root is below a stated bound, record `kind: \"environment\"` carrying the free-space figure, and do not write those node ids as blocking work. Key it to the property \u2014 the tmp root was exhausted \u2014 never to today's two filenames, and prove it can fire by injecting the exhausted condition rather than asserting it through the operator. Second leg, and only after the first: `/tmp/pytest-of-rich` reached 508 run dirs and 5.8 GB with no owner; give the scratch a reclaimer that names what it is reclaiming and spares the live run. A TTL is not enough \u2014 this repo already filed why (`A_TTL_CANNOT_BOUND_SCRATCH_WHOSE_MAKER_DIED_IN_THE_FIRST_HOUR`).",
+    "why": "This is the machine manufacturing the work that crowds out the mission. The loop is written down and self-feeding: a wedge makes the gate re-run every 20 minutes, each run fills `/tmp`, the next run errors, and 12 fabricated node ids go into the state file where the following tick draws them and starts repairing tests that pass. A four-hour wedge becomes a day of it, and the commits it produces all classify as machinery. The instance was swept by hand today; the mechanism is untouched and refires the moment `/tmp` refills, which it will. DONE when a gate run under an exhausted tmp root records `environment` with its free-space figure instead of a test-regression list, the branch is mutation-proven reachable, and the scratch has a named owner that reclaims it."
    },
    {
-    "id": "the-weather-cells-reach-the-world-or-w1-14-says-why-not",
-    "what": "Nothing in `simulation/`, `company/` or `saas/` imports `tools/weather_cell_derivation.py`, `weather_cell_drivers.py`, `weather_cell_weights.py`, `weather_cell_persistence.py` or `weather_driver_sensitivity.py`. Wire the derived cells behind the sim's weather seam so the world's household heat load is driven by them, and move `W1_14_weather_cells_for_household_heat_load` off `level_current: 0` / `loop_stage: build`. If the wiring is deliberately deferred to W1_23 and W1_24 (both level 0, `loop_stage: idle`), say that IN W1_14's row, naming the successor that owns it and what it waits on.",
-    "why": "W1_19 through W1_22 and W1_25 closed at the level their rows declare this stretch, on genuinely good sourced work, while the atom they exist to serve reads zero and the world consumes none of it. That is the interconnection question this seat is the only place able to ask, and it is also the whole of the product-share reading: 6.25% over the trailing hundred, because derivation in `tools/` is not the world changing. Done when either an import exists from the sim into the derivation, or W1_14's row names the successor that will build it."
+    "id": "weather-cells-phase1-derive-the-curve-and-the-page",
+    "what": "Compute what the pull was for. \u00a75 of `haduk_grid_weather_cells_phase1_source.md` states plainly that none of it exists yet, and it names its own missing inputs: Ordnance Survey open terrain for the elevation correction to house height, and 2021 E&W / 2022 Scotland census household counts by postcode for the weights \u2014 pull both before clustering, and never weight by the SIM's drawn population, which \u00a74 of the ruling forbids. Then cluster GB on the three phase-1 drivers, produce the two explained-variation curves the ruling asks for (level: annual heat load; shape: cold-and-still against mild-and-windy months), name the cell sets at 90/95/99% of household-weighted variation, and overlay LDZ, GSP and SAP-21 afterwards as comparators with a stated figure for how well each approximates the derived cells. Report cold-spell persistence and cross-cell synchrony per cell (\u00a72.4 \u2014 this is why the daily tier exists). Validate against DESNZ sub-national gas consumption at small-area level, which is a different source from the one that generated the cells. Then the knowledge page, with cells as a versioned Choice-class claim and an expected-shape block stating the findings falsifiably. Where the data cannot answer \u2014 \u00a73.1 records there is no irradiance product, only sunshine duration \u2014 carry the gap on the surface with its reason, not a substitute.",
+    "why": "The pull is a precondition and nothing more; this item is the product. A weather cell is a thing the company can INFER a household's heat load from using only what a supplier could see, which is the thesis stated in one artefact, and it is the first of the director's three segmentation phase-1s to reach a computable state. Sequenced third because it is blocked on the pull finishing and on two source pulls it does not yet have, not because it matters less. DONE when the two curves exist with their cell sets named, the comparator figures are stated, persistence and synchrony are reported per cell, the DESNZ validation has run against a source the cells did not come from, and the knowledge page publishes all of it including what is still not established."
    },
    {
-    "id": "the-level-zero-check-is-blind-to-twenty-nine-of-the-rows-it-grades",
-    "what": "`tools/level_zero_contradicted_by_its_own_controls.py` grades 2 contradicted rows and skips 29 as ungradable because their `file_scope` names no `test_*.py` a runner can execute; a further row, `PB5_pounds_or_percent_resolved`, names `tests/simulation/test_the_decision_scale_is_pounds_on_both_sides.py`, which is not on disk. Repoint PB5 at the control that exists. Then make the ungradable rows a REPORTED refusal class the orientation surfaces by name rather than a silent skip, and give the rows that have controls a `file_scope` that names them.",
-    "why": "PB4 is proof this check works and proof of what its blindness costs: a built atom reading zero is invisible to the draw, which reads exactly `level_current` and `loop_stage` to choose work. Twenty-nine rows are currently outside the only control that can catch that, and a check silently skipping the majority reads on the page like a check that found almost nothing wrong. Done when no row is skipped without being named, and PB5 grades against a control that exists."
+    "id": "C31_one_obligation_one_vulnerability_scorer",
+    "what": "Settle which vulnerability assessment the company obeys, from the published obligation rather than by picking. `company/crm/vulnerability_register.py` is live \u2014 `self_rationing_detector`, `life_event_detector`, `portal/app.py`, `warm_home_discount` all call it \u2014 and `company/crm/vulnerability_index.py` has no production caller at all, yet the dead one is the half that decides `disconnection_protected` and `is_priority_services`. They disagree on every overlapping term (`MEDICAL_EQUIPMENT` weight 5 against `HOME_OXYGEN` score 60 forcing CRITICAL; `ELDERLY` with no age threshold at all against `ELDERLY_75`) and each holds terms the other lacks. Read the Ofgem PSR obligation out of the regulation commons in `docs/domain_artefact_library/` first, make ONE scorer decide, have each surviving term and weight cite the clause it implements or carry an honest gap with its reason, reduce the other to an adapter or delete it, re-point every current caller, and leave a control that reds if a second independent scorer appears.",
+    "why": "This is the VAT shape CLAUDE.md names \u2014 one legal requirement, more than one implementation, and nothing able to notice they disagree \u2014 with the aggravation that the unreachable half is the one governing disconnection protection. It is also the third instance found in a single session, after the two CLAUDE.md build parsers and the two independent payment-method draws that agreed 58.8% of the time. And it is thesis work, not tidying: deciding customer-by-customer whether someone is protected is exactly the per-customer judgement the company is supposed to make, and it currently makes it twice, differently. The filed finding refused to wire the dead index on instruction precisely because wiring picks a winner by convenience \u2014 honour that refusal by answering it from the obligation. DONE when one scorer decides, its terms cite what they implement, no caller reaches a second one, and the control that forbids a second exists and has been proven able to fail."
+   },
+   {
+    "id": "a-finished-continuation-must-retire-itself",
+    "what": "Give `seat_continuation.live()` the retirement channel it is missing: an entry whose work has LANDED. It retires on expiry and on refutation and has no third case, so `register-low-water-three-implementations-one-mechanism` is still live at 14:24Z describing a re-point that landed this stretch in fc950dda6, cbfb12f1b and 029c21452. Because `delivery_lane.next_item()` walks `live()` first and returns the first unclaimed entry unconditionally, a finished continuation preempts the seat's whole ordered focus for as long as it survives. The tombstone channel already exists and survives `--release`: `delivery_lane.last_landing(focus_id)` returns the commit instant and paths of a landing bound to an id. Retire a continuation whose id carries a landing later than the continuation was written. Prove all three retirement branches are REACHABLE in one control over the partition \u2014 expired, refuted, landed \u2014 not a leg each, because a retirer that retires everything passes every per-branch test.",
+    "why": "Ranked last deliberately, and this is a correction to three stretches of my predecessors' reasoning including my own: the focus channel being unreachable has NOT been stopping the director's priorities from being delivered \u2014 the staging queue delivered the weather pull this stretch while `drawn` stayed empty. What it costs is narrower and still real: my ORDER is invisible to every autonomous tick, so what gets worked is whatever ranks first in a different queue, and a tick can be handed an instruction whose work is already in git. DONE when a continuation with a landing bound to its id is not returned by `next_item()`, the three retirement branches are shown reachable together, and a stretch's `drawn` can contain a Lane 0 slug at all."
    }
   ],
   "not_now": [
    {
-    "what": "A disposition route or channel limit for the staging queue \u2014 336 filed against 223 dispositioned in seven days, net +113, 96 deep.",
-    "why": "The sediment is real and unbounded, but it is a mechanism that watches the work, and this project's own evidence (117 harness atoms, 34 alarm documents) is that a file made of rules breeds rules. Focus item two does the thing the queue exists for \u2014 discharging the findings that are actually freezing atoms \u2014 and if that pass shows most of the sixteen BLOCKING records are stale, the queue's problem was never its size."
+    "what": "The housing and people phase-1 rulings (`DIRECTOR_RULING_HOUSING_VALUE_CEILING_AND_SAMPLE_PHASE1` and `DIRECTOR_RULING_PEOPLE_MONEY_AND_WHO_THEY_ARE_PHASE1`), ranked 3rd and 4th of 76 in the work queue and landed this stretch.",
+    "why": "Three segmentation phase-1s started and none finished is a worse position than one finished, and weather cells is the only one with 5.3 GB already on disk, a named gap list and a stated next computation \u2014 the lowest marginal cost to a completed phase by a wide margin. They keep their queue rank and lose nothing by waiting a stretch; starting them now would guarantee the same half-built shape three times over, which is the state item 1 exists to get us out of."
    },
    {
-    "what": "Re-classifying `tools/` world-derivation as product in `product_machinery_split.PRODUCT_PREFIXES` so the share reads honestly against the weather work.",
-    "why": "This is the transfer-not-creation failure in miniature: it moves the number without moving the thing the number measures. I checked and the instrument is right \u2014 the cells reach no consumer, so no product landed. Focus item three fixes the world; the share will follow or it will keep telling the truth."
+    "what": "Reconciling the tree by hand, or otherwise acting directly on the transport error's condition.",
+    "why": "The condition is two consecutive orientations finding the tree level with no hand reconciliation in between, and closing the gap by hand destroys exactly the evidence it exists to gather. The tree is level at 14:24Z without my touching it, which is the first half honestly earned; the second half is next orientation's to find, not mine to manufacture."
    },
    {
-    "what": "H47, the orientation header that states figures it should compute \u2014 my named structural fix for the perishable-state error, and my focus item three last stretch.",
-    "why": "Third stretch it has not drawn, and the reason is legible: `dial_inherited: 12`, ranked below the R-set on the row's own note because the header is currently correct and staleness-gated. It prevents a FUTURE wrong figure; focus item one corrects a wrong figure published today. I am recording that I chose the live defect over the mechanism again, which is why the error below stays open."
+    "what": "A disposition route for the staging root, against the recorded sediment of 292 filed and 198 dispositioned over seven days, a net +94, and a work queue standing at 76.",
+    "why": "This is the file-made-of-rules shape CLAUDE.md warns about, and the queue's length is not what is costing us: its top five are the director's own inputs and four of them are being worked or are in this file. Building the queue's queue would be a control over our own controls while the thing the queue points at goes unfinished. If the net stays positive over the next several stretches with the top ranks moving, that is the moment \u2014 not now."
    },
    {
-    "what": "`SITE4_ia_register_and_nav`, the other row the level-zero check flags as contradicted (38 passed in 0.69s against a level 0).",
-    "why": "Same defect class as PB4 and a cheaper fix, but it is site information architecture \u2014 presentation, not product \u2014 and it is not frozen by anything. It will be swept up by focus item four's pass over the map or by an ordinary draw; PB4 carries the thesis and a live freeze."
-   },
-   {
-    "what": "Any further work on the transport and tree-level machinery.",
-    "why": "Level with origin at this orientation as at the last four, and declining to improve it a fifth stretch is the only thing keeping that error closed."
+    "what": "Rebuilding the delivery channel properly so ticks read `DIRECTION.yaml` ahead of every other queue.",
+    "why": "A month of predecessors' reasoning went into the theory that the focus channel was the binding constraint, and this stretch refuted it \u2014 the work reached the tree through staging anyway. The narrow retirement fix in item 5 costs a fraction of a rebuild and addresses what is actually broken; a rebuild would be a large machinery commit justified by a diagnosis I have just recorded as wrong."
    }
   ],
   "for_the_director": [],
@@ -307,181 +308,6 @@
  },
  "what_it_got_wrong": {
   "entries": [
-   {
-    "at": "2026-09-06T14:20:15.581361+00:00",
-    "what": "The share-shaped condition \u2014 closed when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick. STILL OPEN and it went the wrong way at depth: 6.06% to 6.25% over 100, 4.65% to 4.62% over 200, against a 25% floor, with the 50-window at 12.90% only because four weather atoms landed. What I CAN now do is attribute it, which is what I said last stretch I could not: I suspected the instrument, and the instrument is right. PRODUCT_PREFIXES is `company/ saas/ simulation/`; the weather derivation sits in `tools/`; and it sits there because nothing in the world imports it. Fifteen substantive commits and the world changed twice. The diagnosis I filed was wrong and the number was honest.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T14:20:15.581361+00:00",
-    "what": "Writing direction that asserts perishable state as established fact. Twelfth instance, still no mechanism, and this stretch it very nearly landed IN THE FILE rather than being caught before it: I read a live BLOCKING finding dated yesterday and began writing PB4 as unbuilt with engagement still a hash. It was my predecessor's own DIRECTION.yaml disagreeing with me that sent me to the module, where PREPAYMENT has been separated since 2026-09-05 and line 439 wires the multiplier. A staged finding is a record of a moment, not a reading of the tree, and I treated it as current state. The practice caught it; the practice is not the mechanism. H47 is still the mechanism and I declined it again this stretch for the reason recorded in `not_now`, so this stays false by my choice rather than by neglect.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T14:20:15.581361+00:00",
-    "what": "I wrote two of four focus items as maturity-map atom ids (PB4, H47) and two as lane-0 instructions. Both lane-0 items were drawn and landed; neither atom item was drawn. I knew the channel difference \u2014 the brief states it plainly \u2014 and used the weaker one for the item I ranked first. The mechanism is not that atom items are unreachable but that they enter a dial-weighted draw, and H47 sits at `dial_inherited: 12`, so naming it biases a queue that outranks it anyway. All four items above are lane-0 keys, with the atom named in the text where one is the subject. Closes when a brief shows these drawn.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T11:20:28.138638+00:00",
-    "what": "I graded a finished atom as unstarted and made it my first instruction, because I asked the question as a grep when the live decision path was elsewhere, and because the map agreed with my grep. CLOSED AS A CLASS THIS STRETCH, on the condition I set for it and not on a softer one: I said it closes \"when a check refuses the zero, not when I remember to run the tests\". `tools/level_zero_contradicted_by_its_own_controls.py` landed at `e6c6ea178` with its own suite, and `background/delivery_seat.py:470` imports it, so it runs inside the orientation rather than at my discretion \u2014 this brief carried its verdict without my asking for it. It fired on PB6, PB6's `gain` no longer asserts the opposite of what the code does, and PB6 reads level 1. The residual is real and is NEW work rather than this error persisting: 28 of 34 level-0 rows name no control a runner can execute, so the check is blind to the majority, and that is focus item four.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-06T11:20:28.138638+00:00",
-    "what": "My order does not reach the lane that does the work. CLOSED, and I am correcting the closing condition rather than holding it open on a bar the architecture cannot meet. The evidence: 3 of 4 focus ids drawn, all 4 subjects advanced, PB6 0 to 1, PB7 0 to 2, C32 0 to 2, `SELF_HANDOFF_CHAIN_LIMIT` reads 3 at HEAD and in the working tree, and `seat_continuation.live()` returns ZERO \u2014 the drain I ordered as step one, done, and the lane went past the instruction to find the door I had missed, that `--release` frees the claim while the offer stands and gets re-promoted. Director not at the keyboard for any of it. My error is the condition itself: I required the work to follow my stated ORDER, and the lane is concurrent bounded ticks that cannot serialise a list. Demanding serialisation of a parallel machine is a bar nothing could have cleared, and holding an error open on an unmeetable condition is the same failure as dropping one that is still live. I am closing it on the substance \u2014 direction reaches the lane and moved every subject it named \u2014 and recording the mis-specified condition as the error rather than the machine's behaviour.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-06T11:20:28.138638+00:00",
-    "what": "The share-shaped condition \u2014 closed when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick, with no stretch in between where I chose the commits to make it so. Still open, and it MOVED: 0.00% to 9.68% over 50, 3.08% to 6.06% over 100, 3.10% to 4.65% over 200, against a 25% floor. I predicted last stretch that if minting PB6 and W2_19 moved the share my instrument diagnosis was right, and it moved \u2014 but I am not taking the confirmation, because the 50-commit window rolled and W1_19's three weather commits are independent product that landed in the same stretch. More than one thing changed, so I cannot attribute it, and by my own rule that means \"I cannot yet say\". The clean reading is next stretch, with the minting behind me and no commits chosen by me to make it so.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T11:20:28.138638+00:00",
-    "what": "The transport error \u2014 held open until two consecutive orientations found the tree level with no hand reconciliation between. Met and still met: `git rev-list --left-right --count HEAD...origin/main` returns 0 and 0 at this orientation as at 08:22Z, 05:24Z and 02:23Z, and all 16 commits in this window carry work with none matching a parent's tree. Four consecutive orientations, and I have touched none of it for a fourth stretch, which is the only thing keeping it closed. Declining to improve it again is the entry.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-06T11:20:28.138638+00:00",
-    "what": "Writing direction that asserts perishable state as established fact. Eleventh instance, and still no mechanism \u2014 which is why it stays false while two others close. The instance this stretch: the `SELF_HANDOFF_CHAIN_LIMIT = 10**9` I read last time was indeed a poison round in flight and reads 3 today at HEAD and in the tree, and the continuation store I reported as five entries returned ZERO when I called `seat_continuation.live()` this orientation. Both sentences I declined to write would have been wrong in the file, which is the practice working and is NOT the mechanism. Everything load-bearing above was read live: the falsifier was executed rather than quoted, the two payment draws were measured at 431 of 800, the share figures came from a run, and the level_zero check's wiring was read at `background/delivery_seat.py:470`. All of it is perishable within the hour. The structural fix is focus item three, H47, which makes a read header compute its own figures instead of asserting typed ones \u2014 the first time I have had a mechanism to point at rather than a habit.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T08:22:46.086115+00:00",
-    "what": "I graded a finished atom as unstarted and made it my first instruction, because I asked the question as a grep for `get_payment_method` under `company/` and `saas/` when the live decision path is `tools/run_live_decisions.py`, and because the map agreed with my grep. CORRECTED AS AN INSTANCE, NOT AS A CLASS: this orientation I graded PB6 by executing its controls \u2014 45 pass in 30.76s \u2014 and found the map's `gain` still asserting the opposite of what the code does, and I found the same shape a second time in W2_19. But nothing yet stops the next orientation reading prose instead of running the row, which is why that mechanism is focus item four. It closes when a check refuses the zero, not when I remember to run the tests.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T08:22:46.086115+00:00",
-    "what": "My order does not reach the lane that does the work. GENUINELY MOVED THIS STRETCH, for the first time: `seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself` appears once in the draw ledger \u2014 the first focus id of mine ever drawn against 100 rows \u2014 and `9b08d302f` landed off it. Not yet closed, and I am not grading it closed on the strength of the draw alone, because the item specified two acts in order and the lane did a third thing instead: the four battery continuations were not dropped (the store went four to five), and the ordering repair is 111 uncommitted lines that do not exist at HEAD. The closing condition is unchanged and deliberately unchanged \u2014 a stretch whose work matches my stated ORDER, not merely my stated subject, with the director not at the keyboard.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T08:22:46.086115+00:00",
-    "what": "The share-shaped condition \u2014 closed when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick, with no stretch in between where I chose the commits to make it so. Not met and worse: 0.00% over 50 (from 2.86%), 3.08% over 100, 3.10% over 200, 1.90% over 400. I am correcting my own diagnosis rather than repeating it for a third time. I said the cause was a lane that would not read the queue; I now have two measured instances saying a large part of it is that the instrument cannot SEE product that landed \u2014 PB6's build and W2_19's three research commits are credited to nobody because their atoms read zero. Focus items one and four test that claim, and if minting those rows does not move the share, my diagnosis was wrong and I will say so beside this entry.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T08:22:46.086115+00:00",
-    "what": "The transport error \u2014 held open until two consecutive orientations found the tree level with no hand reconciliation between. MET last stretch and STILL MET: `git rev-list --left-right --count HEAD...origin/main` returns 0 and 0 at this orientation as at 05:24Z and 02:23Z, and of the 30 commits in this window all 30 carry work with none matching a parent's tree. I have touched none of it for a third stretch, which is the only way it stays closed, and declining to improve it again is the entry.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-06T08:22:46.086115+00:00",
-    "what": "Writing direction that asserts perishable state as established fact \u2014 the tenth instance, and the first one caught BEFORE it reached the file. I read `SELF_HANDOFF_CHAIN_LIMIT = 10**9` from the working tree and had the sentence \"the repair to my longest-open error shipped dead\" half composed; `git show HEAD:background/delivery_lane.py` finds no such constant at all, and the running battery holds `background/direction.py`, not this file. So the billion is a third lane's poison round in flight and both of my available conclusions were wrong. That is progress of a kind and it is NOT the mechanism: still no structural fix, and \"read it live\" remains an exhortation of exactly the shape CLAUDE.md says breeds rules. Everything load-bearing above was read live during this orientation; the continuation ids, the 111 uncommitted lines, the running pid and the share figures are all perishable within the hour, and the uncommitted delivery_lane state is perishable within minutes \u2014 which is why focus item three is written to re-read the tree rather than to act on what I saw.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T05:23:44.832116+00:00",
-    "what": "I graded a finished atom as unstarted and made it my first instruction. PB6's build landed at 14:05 on 2026-09-05 in `9eef699ab` with six controls that pass in 0.33s, and at 02:22Z I directed a worker to go and build it \u2014 because I asked the question as a grep for `get_payment_method` under `company/` and `saas/`, and the live decision path is `tools/run_live_decisions.py`. The map agreed with my grep: PB6 still reads `level_current: 0` and its `gain` field still asserts the seam does not pass payment method. Two failures compounding \u2014 a name-shaped search blind to the mechanism, and built-but-never-minted \u2014 and the second is what made the first survive two orientations instead of one. Corrected here by re-running the controls rather than re-grepping, and the repair is focus item one. It closes when an orientation grades an atom by executing its controls and not by reading the map's prose about it.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T05:23:44.832116+00:00",
-    "what": "My order does not reach the lane that does the work, and it moved further away. Zero of four focus items drawn again; the draw ledger is now 94 rows and none of my ids has ever been in any of them; the continuation store went from two live entries to FOUR at 05:26Z, all four issued by the battery lane to itself. The diagnosis from last stretch stands unchanged and is now confirmed by its own prediction: I wrote that the repair was unreachable by the defect it repairs until the store emptied, and the store did not empty, and it was not drawn. What I add is the arithmetic that makes it structural rather than unlucky \u2014 `STALE_AFTER_SECONDS` is six hours against a lane that refills every turn, so `unreachable_focus` is not reached late, it is not reached. The closing condition is unchanged: a stretch whose work matches my stated order with the director not at the keyboard.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T05:23:44.832116+00:00",
-    "what": "The share-shaped condition \u2014 it closes when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick, with no stretch in between where I chose the commits to make it so. Not met, and still moving the wrong way. `tools/product_machinery_split.py` at 05:24Z reads 2.86% over 50, 2.90% over 100, 3.82% over 200 and 2.23% over 400 against a 25% floor; the 400 horizon fell from 2.59%. I am adding one correction to my own diagnosis rather than repeating it: I have been saying \"there is drawable product and the lane will not read the queue\", and this stretch shows a second cause sitting underneath it \u2014 some of the product IS being built and is invisible to the share because the atom that would record it stays at zero. PB6's build is real product work that no horizon of this measurement credits to anybody.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T05:23:44.832116+00:00",
-    "what": "The transport error \u2014 held open until two consecutive orientations found the tree level with no hand reconciliation in between. MET, and the evidence is in `thesis_read`: `git rev-list --left-right --count HEAD...origin/main` returns 0 and 0 at 05:24Z as it did at 02:23Z, three hours apart; of the 27 commits in the window ZERO have a tree identical to any parent, and each of the seven merges carries work \u2014 I checked all seven by tree hash rather than by subject line. I touched none of it, which was the only way it could ever close, and declining to \"improve\" it now is the first entry that keeps it closed.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-06T05:23:44.832116+00:00",
-    "what": "Writing direction that asserts perishable state as established fact \u2014 eight prior instances, and this is the ninth, knowingly. Still no mechanism, and \"read it live\" is still an exhortation of exactly the shape CLAUDE.md says breeds rules instead of fixing anything. This stretch gives the error a sharper edge than the previous eight: the harm is no longer only that a figure goes stale between writing and reading, it is that a STALE FIELD IN A SHARED FILE \u2014 PB6's `gain` \u2014 fed my own orientation a false premise and I acted on it for two stretches. That is the same failure with a longer fuse, and focus item one repairs the instance while leaving the class open. Everything load-bearing above was re-measured live between 05:24Z and 05:35Z, including running PB6's controls rather than reading about them; the four continuation ids and the 05:24Z counts remain perishable within the hour.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T02:22:31.335149+00:00",
-    "what": "My order does not reach the lane that does the work. Worse than last stretch and now fully diagnosed: zero of four focus items drawn, and the draw ledger shows none of the four has EVER been drawn across 88 rows. The cause is not the ranking I blamed last time \u2014 `next_item` walks `seat_continuation.live()` to exhaustion before the focus list, and the battery lane refilled that store every turn, so control never reached the rung I directed a repair to. I have corrected the diagnosis in `thesis_read` beside the wrong one rather than replacing it, and the repair is now focus item two, with its own bootstrap problem stated: it is unreachable by the defect it fixes until the continuation store empties. The closing condition is unchanged \u2014 a stretch whose work matches my stated order with me not at the keyboard.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T02:22:31.335149+00:00",
-    "what": "The share-shaped condition \u2014 it closes when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick, with no stretch in between where I chose the commits to make it so. Not met, and it moved the wrong way. `tools/product_machinery_split.py` at 02:24Z reads 5.88% over 50, 2.99% over 100, 3.79% over 200 and 2.59% over 400 against a 25% floor. The 100-commit horizon fell from 4.55% to 2.99% and the 400 from 2.96% to 2.59%: seventeen commits of machinery pushed PB4 and C32 out of the window. The diagnosis stands and is sharper \u2014 there is drawable product, and the lane that draws is handing work to itself before the queue holding it is ever read.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T02:22:31.335149+00:00",
-    "what": "The transport error \u2014 held open until two consecutive orientations find the tree level with no hand reconciliation in between. Half met for the first time: `git rev-list --left-right --count HEAD...origin/main` returns 0 and 0 at 02:23Z, so the tree is level and the daemons on this checkout are running the branch's code. The other half fails: the window carries three automatic isolated-worktree reconciliation merges (69f0a59a1, 78b309d19, 6c92cc0c7), each with a tree identical to one of its parents, so the clock restarts. I am still declining to touch it, which remains the only way it can close.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-06T02:22:31.335149+00:00",
-    "what": "Writing direction that asserts perishable state as established fact \u2014 seven prior instances, and I am adding an eighth here knowingly. There is still no mechanism and \"read it live\" is still an exhortation, which is exactly the shape CLAUDE.md says breeds rules rather than fixing anything. What is different this time is small and worth recording: every load-bearing claim above was re-measured in this session rather than quoted from the brief \u2014 the share, the divergence, the caller grep, the atom levels, the draw ledger and the live continuation store \u2014 and the one figure I did NOT re-run, R1's ceiling, I have dropped from the reading entirely rather than repeat it unlabelled. The perishable claims that remain are the two live continuation ids and the 02:22\u201302:27Z counts, all of which can change within the hour.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T23:23:45.083585+00:00",
-    "what": "My order does not reach the lane that does the work. It moved this stretch for the first time: C32, which I ranked second, was drawn AND built (3881f47da). But W2_19 \u2014 my first \u2014 went undrawn for the second stretch running, and so did the third and fourth items, while seven of thirteen commits went to a column I had not named at all. The closing condition stands: a stretch whose work matches my stated order with me not at the keyboard. The cause is no longer a mystery, it is written up in `SEAT_FINDING_BEING_REACHABLE_IS_NOT_BEING_CHOSEN_THE_SELECTOR_FIX_STOPS_EXCLUSION_NOT_RANKING` \u2014 candidacy was repaired and ranking was not \u2014 which is why it is now focus item four rather than a complaint.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T23:23:45.083585+00:00",
-    "what": "The share-shaped condition \u2014 it closes when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick, with no stretch in between where I chose the commits to make it so. Not met. `tools/product_machinery_split.py` at 23:23Z reads 5.71% over 50 (2 product, 33 machinery), 4.55% over 100, 3.76% over 200 and 2.96% over 400 against a 25% floor \u2014 below it at every horizon, and up on all four horizons from three hours ago. The lift is PB4 and C32, both product, both real. The diagnosis holds: there is drawable product and almost nobody drawing it.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T23:23:45.083585+00:00",
-    "what": "The transport error \u2014 held open until two consecutive orientations find the tree level with no hand reconciliation in between. Both halves fail this time, worse than last. `git rev-list --left-right --count HEAD...origin/main` returns 0 and 1 at 23:23Z, so the tree is not level and daemons on this checkout are behind the branch; and the window carries two automatic isolated-worktree reconciliation merges (6b962c86d, 7ec64a0ba), so the clock restarts again. I am still declining to touch it, which remains the only way it can close.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T23:23:45.083585+00:00",
-    "what": "Writing direction that asserts perishable state as established fact \u2014 six prior instances, and I have added a seventh in this file knowingly: the thesis_read quotes PB6's map entry for the R1 ceiling clearing (+0.1192 against a null of 0.0403) which I did not re-run, and I have labelled it rather than suppressed it. There is still no mechanism and \"read it live\" is still an exhortation. Every count here was read between 23:23Z and 23:26Z; the divergence, the share, the staging counts and the caller counts can all move within the hour, and the only thing in this file that cannot is that `company/crm/vulnerability_index.py` no longer exists.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T20:20:49.338551+00:00",
-    "what": "My order does not reach the lane that actually does the work. Stated last stretch as \"a non-atom focus key is unreachable by any draw\", and it is wider than that: this stretch BOTH W-atoms I named went undrawn, the non-atom item went undrawn again, and the item I explicitly rejected is the one that got built \u2014 by an interactive seat reading the staging root, where the three rulings sit with equal standing and no order between them. The continuation direction-contract-battery-per-caller still holds the claim in both stores. It closes when a stretch's work matches my stated order without me being the one at the keyboard.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T20:20:49.338551+00:00",
-    "what": "The share-shaped condition \u2014 it closes when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick, with no stretch in between where I chose the commits to make it so. Not met. tools/product_machinery_split.py at 20:22Z reads 3.03% over 50 (1 product, 32 machinery), 3.23% over 100, 3.10% over 200 and 2.62% over 400 \u2014 below the floor at every horizon. It moved off zero, and the one product commit was the floor-area anchor, which is the axis I ranked third. The cause diagnosed last stretch holds: there is now drawable product to do and almost nobody doing it.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T20:20:49.338551+00:00",
-    "what": "The transport error \u2014 held open until two consecutive orientations find the tree level with no hand reconciliation in between. Half met for the first time: git rev-list --left-right --count HEAD...origin/main returns 0 and 0 at 20:21Z. The other half fails, because the window holds the seat merge c69089f22 and three SALVAGE(auto) commits (b5ee03da9, 016a09bad, 7b423e2f4), so the run restarts at this orientation rather than completing. I am declining to touch it again, which is the only way it can close.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T20:20:49.338551+00:00",
-    "what": "Writing direction that asserts perishable state as established fact \u2014 five prior instances. The instance document moved to docs/staging/done/ this stretch, which disposes of the case and not the class: there is still no mechanism, and \"read it live\" is an exhortation. Every figure here was read between 20:21Z and 20:26Z, and I have tried to quote only terminal states \u2014 the HadUK receipt at 318 of 318 with 0 failed cannot move, the divergence count and the share can and will. Treat every count in this file as of the minute it was read.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T17:20:54.852844+00:00",
-    "what": "Ten stretches of direction with previous_focus_drawn.drawn empty \u2014 my order invisible to autonomous ticks. CLOSED on its own stated test, which was that a stretch's drawn becomes non-empty: it holds C31_one_obligation_one_vulnerability_scorer, and steered is true. The diagnosis is confirmed rather than merely the count: the one focus item that named a maturity-map atom was drawn, and the item that was built without ever being drawn (the HadUK pull) was again built by an interactive seat off the staging queue. What closed is narrower than the row claimed for eleven stretches, and the residual is filed as its own row below.",
-    "corrected": true
-   },
-   {
-    "at": "2026-09-05T17:20:54.852844+00:00",
-    "what": "Naming a focus item that is NOT a maturity-map atom leaves it unreachable by any autonomous draw. Three of the previous five \u2014 the two weather-cell keys and the continuation key \u2014 were never drawn, while the atom was. Continuations pre-empt lane 0 and next_item() still returns one. This is the residual of the row above, stated as its own testable claim: it closes when a non-atom focus key appears in drawn. Focus item 4 attacks it; three of my four items are atom ids because I do not trust it to be fixed this stretch.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T17:20:54.852844+00:00",
-    "what": "The share-shaped condition \u2014 it closes when the trailing-100 product share stands above its declared floor at an orientation I did not hand-pick, with no stretch in between where I chose the commits to make it so. Not met, and worse. tools/product_machinery_split.py at 17:21Z reads 0.00% over 50 (0 product, 34 machinery), 3.12% over 100, 2.33% over 200 and 2.60% over 400 \u2014 below the floor at every horizon, and the trailing fifty now contains no product commit at all, against 3.33% last orientation. Last stretch I learned the selector was not the whole cause; this stretch says the cause is simply that nobody is doing product work, and the three atoms minted today are the first time in months that there has been drawable product to do.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T17:20:54.852844+00:00",
-    "what": "The transport error \u2014 held open until two consecutive orientations find the tree level with no hand reconciliation in between. Fails on both halves now, having half-passed last time. git rev-list --left-right --count HEAD...origin/main returns 1 and 3 at 17:21Z, so the tree is diverged as I write and the daemons running from this checkout are executing code the branch has moved past. The window also holds roughly eight seat-made merge commits (ad3cd9d4d, 4b5a75bd5, 5ab0af684, f82f1645f, 48e0f20b4, 05b2f7fe0, 179a6e042, 42d253da5), which is exactly the reconciliation the condition excludes. I am declining to reconcile by hand this time, which is the only way the condition can ever be met.",
-    "corrected": false
-   },
-   {
-    "at": "2026-09-05T17:20:54.852844+00:00",
-    "what": "Writing direction that asserts perishable state as established fact \u2014 four prior instances. Every figure here was read live between 17:21Z and 17:23Z rather than recalled, but the class bit inside this very orientation: I read docs/market_research/haduk_grid_pull_receipt.json twice, a hundred seconds apart, and complete moved 270 to 275 and bytes_on_disk 16.34 GB to 16.70 GB, so any number I quote for that pull is false by the time it is read. Separately .publish_gate_state.json now reports total_red 0 and blocking_tests empty while carrying last_clean_publish null and a live gate_refusal on new_file_over_cap \u2014 the exact shape that reads as green and is not. The failure mode remains structural and unfixed: saying so on the surface is an exhortation, not a mechanism, and SEAT_FINDING_A_PREREGISTRATION_FIXED_AN_OBSERVATION_OF_MUTABLE_STATE_AND_IT_WAS_FALSE_BEFORE_THE_TURN_READ_IT_2026-09-03.md is still undispositioned in the staging root in its thirteenth stretch.",
-    "corrected": false
-   },
    {
     "at": "2026-09-05T14:23:03.881665+00:00",
     "what": "Ten stretches of direction and `previous_focus_drawn.drawn` still empty. It stays open on the unchanged test, which is not mine to grade \u2014 it closes when a stretch's `drawn` is non-empty \u2014 but the diagnosis behind it was partly wrong and I am correcting it rather than restating it. Focus item 1, the HadUK pull, WAS built and landed (8016f7176), and focus item 3's subject is repaired (HEAD and origin level at 14:24Z), both without ever appearing in `drawn`. My predecessor's open sub-question \u2014 how a focus item is BUILT without being DRAWN \u2014 is answered by demonstration rather than candidate: the staging queue ranks the same work and an interactive seat takes it from there, while `delivery_lane`'s ledger, the only thing `drawn` reads, never sees it. So the harm is narrower than four stretches of us claimed: my ORDER is invisible to autonomous ticks, not my direction. The precedence itself is still unfixed \u2014 `next_item()` at 14:24Z returns a continuation \u2014 and there is now a sharper cause than \"the store never empties\": `live()` has no retirement branch for an entry whose work has LANDED, and one of the five live entries describes a convergence that landed this stretch. Item 5 carries it, deliberately last.",
@@ -1366,153 +1192,246 @@
     "at": "2026-09-01T17:23:29.383752+00:00",
     "what": "**A repair landed on a signed quantity and no completed run has exercised it.** `da0431897` made the shock signed at ~15:00; the only run since, `318066998`, was produced at `98db658f2` \u2014 before it. The `ValueError: bill_shock_pct must be finite and >= 0, got -1.4434469164399073` alarm from 09:16 UTC is still LATENT, and *\"the diff looks right\"* is not evidence it stopped firing. Folded into item two (c) with an explicit instruction not to close it by reading the diff.",
     "corrected": null
+   },
+   {
+    "at": "2026-09-01T14:24:29.343550+00:00",
+    "what": "**I ranked the executor repair fourth for a third consecutive time, on an argument this stretch refuted.** The argument was *\"the steer reaches the trunk anyway, so a broken executor degrades rather than severs\"*. What actually happened: one writer, two substantive commits, all on item one; items two, three and four received nothing, and item two's entire instruction was a single command that takes seconds to type. The stand-downs went **twenty-four \u2192 thirty-one**, unbroken since 2026-08-31 23:35, the last six naming the item the interactive seat was working alone. The correct reading is that the executor is not degrading the steer \u2014 **it is the reason three of four focus items receive zero work every stretch**, and it also gates them structurally, since a non-atom focus item reaches a worker only as LANE 0. It is first this time, and that is a correction to my ranking, not new information about the defect.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T14:24:29.343550+00:00",
+    "what": "**A named, mechanical, one-command instruction sat in focus for a full stretch and was never executed.** Item two said *relaunch the SVT capture under `systemd-run --user --unit=`*. `/tmp/svtcap/capture.log` has not been written since 11:47 UTC and still ends at 2020-10. Five predictions filed at 10:43 UTC before any output was read remain unscored on a dead run for a second consecutive stretch, and P1 \u2014 the one the prereg said it was least sure of \u2014 is still unmeasured rather than refuted. Writing the instruction more clearly is not the repair; there was nobody to read it.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T14:24:29.343550+00:00",
+    "what": "**The bill-shock item landed its wiring and not its measurement, and I would have read the commits as closing it.** `fc1c9a65c` passes the payment channel into the shock measure and labels each bill with its population; `8e395664e` publishes the bound. Both are real improvements and the live worst month falls 17,284.3% \u2192 315.6%. But the item's stated exit condition was *two definitions measured separately, never averaged into one percentage*, and `monthly_ops.monthly[].avg_shock_pct` is still one mean across both populations. **The label exists one field away from the mean that ignores it**, which reads as evidence the split happened. Caught by checking the published artefact rather than the commit subjects.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T14:24:29.343550+00:00",
+    "what": "**A control this project built to alarm is alarming, and nothing on disk can say why.** `test_crisis_year_2022_worse_than_2020` is `xfail(strict=True)` and is XPASSing at clean HEAD; both years fell and 2020 fell far further (\u221264% against \u221217%), so the guarded relationship has inverted. The worker ran the obvious cause \u2014 the baseline floor \u2014 across two artefacts differing only in it, and **killed its own hypothesis**, which is the process working. What is wrong is that the next question is unanswerable: `docs/reports/` holds no run artefact older than today, so the one-variable comparison that would attribute a whole-book population change cannot be built at all. *\"I cannot yet say\"* is the honest answer and it is also a capability we do not have.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T14:24:29.343550+00:00",
+    "what": "**A producer went fail-closed on a signed quantity while its consumers still assume unsigned, and it is crashing runs.** `ValueError: bill_shock_pct must be finite and >= 0, got -1.4434469164399073`, fired three times from 09:16 UTC. Separately, 42% of shocks \u226530% are bills that went **down**, including 315 catch-up refunds the world scores as satisfaction- reducing events. The sign question was known and filed and was left out of the shock work that landed, so the measure now knows how the household pays and still does not know whether the household was charged more or refunded.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T11:21:29.337530+00:00",
+    "what": "**The live site has been publishing `avg_shock_pct = 17,284.3` for 2022-04, with 29 of 113 months above 200% and a median month of 126%**, and no direction and no control noticed. It was found only because a worker who had just introduced a similar defect went looking for whether its own bug had older siblings \u2014 and the sibling was older, larger in reach, and already public. The published run is `fb6e29e6d`, which predates every change made today, so this is not a consequence of moving the bill-shock baseline. Nothing on the surface carried a bound, and a mean whose worst month is 137\u00d7 its median was published as if it summarised the rows it claims to summarise.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T11:21:29.337530+00:00",
+    "what": "**A pre-registration was filed on a run that was already dying, and thirty-seven minutes later nothing had noticed.** `WORKER_PREREGISTRATION_WHAT_A_NATIVE_SVT_CAPTURE_MUST_SHOW` was committed at `cb28ad34f` stating the run was in flight; `/tmp/svtcap/capture.log` stopped writing at 10:47 UTC at **2020-10** of a 2016\u20132025 sweep, no process survives, and no sibling was written. The class \u2014 *a job launched from a bounded tick dies with it unless it is given its own unit* \u2014 is one this project has already written down and paid for. The prereg is correct and honest; what is wrong is that the discipline was applied to the prediction and not to the process that was supposed to answer it.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T11:21:29.337530+00:00",
+    "what": "**I built a finding on a mechanism that does not exist**, reading a first billing period of half a month and treating it as the direct debit amount. The director corrected it from the console: an annualised plan divides estimated annual cost by twelve whatever the start date. The knowledge-first process ran properly, the Ofgem evidence was real and the code reading was correct \u2014 and the frame was still wrong, because no published source writes down that a half-month direct debit does not exist. The correction landed as a standing rule in CLAUDE.md (knowledge has three sides, and the third is a practitioner) and the real defect was named: the DD is only as good as the estimated annual consumption behind it, which our world does not model at all.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T11:21:29.337530+00:00",
+    "what": "**A control asserting the model stays bad was live and had to be inverted.** `test_the_fit_refuses_while_the_svt_route_cannot_see_the_market` asserted the refusal must be **up** \u2014 keyed that way it goes red on the repair and green on the defect, which is exactly backwards. It is now `test_the_svt_route_can_see_the_market_so_the_fit_no_longer_refuses`, with its can-fire leg preserved by injecting the market-blind hazard the world ran until today. Caught during the repair rather than by anything watching for it.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T11:21:29.337530+00:00",
+    "what": "**The executor stand-downs went from seventeen to twenty-four**, unbroken since 2026-08-31 23:35, six of them naming a top item that then closed through another route entirely. I diagnosed the layer correctly two orientations ago, ranked the repair third, then fourth, and nothing reached it either time. Ranking it fourth again is a decision I am making with that history in view rather than in spite of it \u2014 the evidence is that it degrades the steer rather than severing it, and three things that move the world or the public surface genuinely outrank it.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T11:21:29.337530+00:00",
+    "what": "The brief reports `previous_focus_drawn: []` and `steered: false` for a **seventh** consecutive stretch, while the top item demonstrably closed in three commits (`c628cb37d`, `7df525a10`, `cb28ad34f`). The instrument reads local draw records; it does not read `seat-executor-log.md` and does not attribute commits titled after focus items, so it reports zero against work that happened. This has now been recorded six times without changing. I am no longer treating it as the headline: the fault it points at is real and is item four, and the field itself is a reporting gap that the next orientation should read past by checking the commits.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T08:24:08.012416+00:00",
+    "what": "**I steered a worker at the end-to-end journey walk when it had already landed on origin.** `tests/architecture/test_the_journey_walk.py` was committed `2f45c3b9c` at 2026-08-31 14:36 UTC and work item 2's statement, `docs/design/WHAT_THE_JOURNEY_WALK_FOUND_2026-08-31.md`, at `7a995e2b1` \u2014 both ancestors of `origin/main`, both fifteen hours before I wrote *\"Do work item 1\"* as a focus item. The walk had already corrected its own headline finding in place, measured the catch-up defect at book scale (959 of 11,167 bills, 178 invoices carrying a negative unit rate), and fixed the commodity-versus-effective rate on the published surface. I wrote a paragraph of instruction about work that was done, and the check that would have caught it is one `find` on the word in the canon's own title.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T08:24:08.012416+00:00",
+    "what": "**The tree cannot commit and no direction noticed.** `python3 -m background.finding_severity` returns **1** \u2014 `docs/staging/maintenance_due_202609.md` carries no severity header. That gate fires early in a serial pre-commit chain, so every lane in this tree is wedged behind a missing one-line classification, and the brief handed me `UNCLASSIFIED: 1` in plain text at the last two orientations while I wrote about untracked files instead. I also nearly recorded it as passing, because I read `$?` after a pipe \u2014 which reads the pipe, and is a lesson this project has already written down.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T08:24:08.012416+00:00",
+    "what": "**`svt_inertia_hazard`'s signature is byte-identical for a sixth orientation**, having written at the fourth that a fifth would be my drift and at the fifth that a sixth would be. Each time the reason was true in isolation and each time the ranking was mine. The plumbing I ranked above it has now closed, so there is nothing left for it to lose to.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T08:24:08.012416+00:00",
+    "what": "**The executor stand-downs went from eleven to seventeen** \u2014 2026-08-31 23:35 through 2026-09-01 08:06, six of them naming my own top item, which then closed anyway through another route. I diagnosed the layer correctly last orientation and then ranked the repair third, where nothing reached it.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T08:24:08.012416+00:00",
+    "what": "The brief reports `previous_focus_drawn: []` and `steered: false` for a sixth consecutive stretch while the top item demonstrably closed in three commits (`ea5e66c60`, `522f8b540`, `2f7ea8dd4`). The instrument reads local draw records; it does not read `seat-executor-log.md` and does not attribute commits titled after focus items, so it reports zero against work that happened. I have now recorded this five times without it changing, and recording it a sixth time is not a plan \u2014 it is named here so that the next orientation reads the commits rather than the field.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T05:22:30.993067+00:00",
+    "what": "**The repair that closed item one is in no commit.** `git show HEAD:background/process_run_complete.py | grep -c _divergence_refusal` returns 0 and `git log --all -S_divergence_refusal` returns nothing, while the working-tree copy carries the exact 3-and-23 narrative I wrote into the instruction. Its control, `tests/background/test_a_behind_origin_publish_refuses_instead_of_deepening_the_fork.py`, is untracked. The publish gate grades HEAD through a `git archive` checkout, so the committed publisher does not have the guard \u2014 only the daemon reading the dirty tree does. My instruction said \"confirm with the only evidence that counts\" and listed three checks, all of which pass; **none of them asks whether the leg is in a commit**, and I wrote that instruction in the same file, three items above one that was entirely about untracked work.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T05:22:30.993067+00:00",
+    "what": "**I ranked the untracked control second, called it \"minutes, not a stretch\", and it was not done at all** \u2014 three hours later `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input.py` and its disposition are still untracked, and the class has grown from one file to five. I put it behind an item that another lane closed without the steer, so the cheap permanent fix waited on the expensive one and neither ordering was tested.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T05:22:30.993067+00:00",
+    "what": "**I wrote \"if item three is still here at the next orientation, the drift is me.\"** It is here, unchanged, for a fifth orientation, and it is. `svt_inertia_hazard`'s signature is byte-identical to the one I quoted last time.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T05:22:30.993067+00:00",
+    "what": "**I diagnosed the stand-down loop one layer too shallow.** I called it \"a guard asserting a hypothesis it has never checked\" and asked for a termination after N declines. Reading `seat_executor.py:355` this orientation: the presence check was already narrowed on 2026-08-31 to ask about contention rather than presence **for continuations**, and focus items were deliberately left outside that narrowing. `_interactive_seat_is_live` is true whenever any session runs and one always does, so a focus item has no reachable path at all. It is not a missing termination; there is nothing to terminate. Eleven consecutive identical stand-downs followed, six of them naming my own top item.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T05:22:30.993067+00:00",
+    "what": "The brief reports `previous_focus_drawn: []` and `steered: false` for a fifth consecutive stretch, and item one demonstrably moved. The instrument reads local draw records and does not read `seat-executor-log.md` or attribute commits titled after focus items, so it reports zero against work that happened. I quoted it as instructed; it is honest about what it measures and not about what occurred, and I have now recorded that four times without it changing.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "**I ordered the fork landed and did not order the engine stopped, so the landing target moved every twelve minutes.** My last direction's item one said \"land the 14 local commits onto the trunk that already holds the 20\". The diagnosis was worked and three commits carrying it are on `origin/main`. The reconciliation was not, and in the interval the publisher committed and was rejected non-fast-forward on every cycle \u2014 so the divergence is now 3-and-23 with two of the three local commits being auto-publish commits the loop itself produced. The instruction was correct about the destination and silent about the thing filling the gap behind it.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "**I carried item three as \"a tick is holding it, verify rather than re-derive\" and the tick's disposition claims a control landed, mutation-proven three ways, that is in no commit on any ref.** `tests/tools/test_a_published_surface_is_reproducible_from_its_committed_input.py` and the disposition asserting it are both untracked. The BLOCKING finding is still live, still on the public page. I would have carried the disposition forward as done \u2014 the only reason I did not is that the same class was already in the memory and I went and looked. My instruction told the worker to \"verify the leg exists and is mutation-proven\"; the worker verified it against the working tree.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "**The brief reports `previous_focus_drawn: []` for the fourth stretch running, and this time it is demonstrably wrong in a way I can name.** `seat-executor-log.md` records all three of last orientation's focus items handed to ticks and one DISCHARGED at 23:26, and `origin/main` holds commits titled after two of them. The instrument that grades my own steer reads only local history and does not read the executor log at all, so it reported zero against three. I quoted its numbers as instructed and they are honest about what they measured; they are not honest about what happened.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "Six consecutive identical stand-downs on the top-ranked item, over two and a half hours, with nothing counting the repetition \u2014 and it did not page, appear on a surface, or reach this orientation through any channel except reading the log by hand. I named \"nothing converts a focus item into a handoff\" as the mechanism two orientations ago and treated its repair as the end of that class. It was one gate of at least two.",
+    "corrected": null
+   },
+   {
+    "at": "2026-09-01T02:20:15.753683+00:00",
+    "what": "Last orientation I recorded that publishing was wedged by the orphan-ratchet refusing `tools.promote_worktree_landing` as work nothing runs, and named the two legal moves. That was right and it was taken \u2014 `64bea0ba0`, *\"the promotion route's only runner is a prompt, and I was told to write it a subprocess\"*, is on the trunk and the ratchet no longer refuses. The publish is still down, for an entirely different reason. Clearing one wedge cause revealed the next gate rather than a green publish, which is a class this project has recorded before and which I did not anticipate in the instruction.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T23:24:42.239230+00:00",
+    "what": "**The tree has two histories and I did not know it while writing direction against one of them.** Local HEAD is 14 ahead of `origin/main` and 20 behind; all eight of this stretch's commits are local-only. My last direction ordered a worker to land-or-park an \"uncommitted\" widening in `tests/production_surface_guard.py` that had been on the trunk as `22aaaa494` for hours. The tick checked the premise before acting \u2014 which is the only reason this was caught \u2014 and spent its turn proving my instruction false instead of doing work. The same shape is live in `background/fork_salvage.py` and `background/fork_reconciler.py`, which read as modified here and carry their live-writer fix on origin already.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T23:24:42.239230+00:00",
+    "what": "**Publishing has been wedged since 16:03 UTC and the site is serving a snapshot 9.9h old**, and the refusing gate is the orphan-ratchet declaring `tools.promote_worktree_landing` to be work nothing runs \u2014 the landing tool that `background/seat-executor.service` invokes on every turn. A route whose entire purpose is getting work onto the trunk is being refused for looking unreached, by a check that cannot see a subprocess. Nothing paged this as the cause; it was found by reading the publisher's own log tail.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T23:24:42.239230+00:00",
+    "what": "Three stretches running I reported focus items named and zero drawn, and last orientation I named the mechanism rather than guessing: `seat_executor.run_once` stood a focus item down whenever an interactive seat was live, and nothing converted a focus item into a handoff. `adb287f1f` landed the conversion and `seat-executor-log.md` names a focus item at 23:03 and runs one at 23:06. The brief handed to this orientation still reports `previous_focus_drawn` as empty \u2014 which is the stale-base defect again, in the instrument that grades my own steer.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T23:24:42.239230+00:00",
+    "what": "An **ungated commit reached `main`** through the promotion route whose entire purpose is preventing that. `_refuse_if_ungated` verified `HEAD` alone when a push moves a ref and the subject is `origin/main..HEAD`, so `139332d90 SALVAGE(auto)` sits on the trunk beneath a gated landing, on the route's first unattended use. Its content is two observability files and needs no revert; the route now verifies the whole range and `fork_salvage`/`fork_reconciler` both refuse a live writer's worktree, delegating the liveness question to its one owner.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T23:24:42.239230+00:00",
+    "what": "Every figure in this orientation's brief \u2014 10 commits, 7 substantive, and the whole `previous_focus_drawn` field \u2014 counts one history of two. Twenty commits of real work (`18a09617d`'s three-prediction SVT measurement and its property-keyed refusal among them) are on the trunk and invisible to the instrument that assembles the stretch. I have quoted the brief's numbers as instructed and they are honest about what they measured; they are not honest about what happened, and no surface here says which.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T23:24:42.239230+00:00",
+    "what": "A finding filed with `Severity: BLOCKING` still reads downstream as nothing while it is unclassified \u2014 the register reports two blocking findings now, so the instance cleared, but the fail-open shape did not change: \"not yet classified\" and \"nothing blocking\" remain the same answer to a reader.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T20:22:09.506889+00:00",
+    "what": "`background/seat_executor.py` and its systemd units are **untracked**. The route the director armed this afternoon ran six turns, committed inside a worktree, promoted, and pushed to `origin/main` \u2014 from a file that exists in no commit and that `fork_salvage` or a stray `git clean` would delete with no reflog entry. Nobody can reproduce what pushed to the trunk.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T20:22:09.506889+00:00",
+    "what": "The publish annotation stamped **1,786 non-blocking reds** onto the live page beside commit `fd8c78303`, and that commit does not contain the change that causes them. The widening of `docs/observability` into a whole protected surface in `tests/production_surface_guard.py` is uncommitted in the shared tree; verified this orientation that it is what reds `tests/sim/test_cache_store.py::test_log_cache_access_does_not_raise` (green at HEAD, red in the tree). The count went 1 on Saturday, 14 this morning, 26 at 10:57, 1,786 at 19:00. Nothing noticed, because the remainder run is a non-blocking observer and its number is measured on a tree that is in no commit.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T20:22:09.506889+00:00",
+    "what": "The obvious union of the two departure routes \u2014 a mean of `realized_churn_probability` over *decisions* \u2014 would have published the world departing at 3.56% in 2022 against a 2.9\u20134.3% band, i.e. *\"the world departs far below the record\"*, when on the account-year denominator it departs three times **above** it. The two readings disagree about the **sign** of the error in the year that matters most. Caught before publication by asking what each figure counts, which is the rule that exists for exactly this; the pre-registration's own result tables also combined an account's decisions additively and ran every fitted anchor ~12% low, corrected beside them rather than restated.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T20:22:09.506889+00:00",
+    "what": "My own direction, third stretch running: three focus items named, **zero** drawn. This time the cause is measured rather than guessed \u2014 `seat_executor.run_once` stands a focus item down whenever an interactive seat is live (`seat-executor-log.md`, 14:16, in those words) while a continuation is taken, and all six of the executor's turns this stretch ran continuations. The stand-down is correct; the gap is that nothing converts a focus item into a handoff. Naming it is not fixing it, so this stays false until a tick's log names an item from this file.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T20:22:09.506889+00:00",
+    "what": "A finding filed with `Severity: BLOCKING` sat UNCLASSIFIED for a second stretch, so the severity register can report zero blocking findings while a self-declared blocking one is in the queue. The register now reports two, so this one cleared \u2014 but the fail-open shape did not change: \"not yet classified\" still reads downstream as \"nothing blocking\".",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T17:22:10.515570+00:00",
+    "what": "A pre-registered withdrawal clause keyed on two null verdicts fired on a premise its own measurement refutes \u2014 it asserted \"the payment observable carries nothing\" and \"v2 is the same reading as v1\" while the same run measured **+0.0791** and a term-alone arm outranking the whole of v1. A null verdict is a statement about one arm against chance; it is not a statement about the difference between two arms, and an AND of two of them is not one either. This is the fourth catalogued shape of controls-keyed-to-today's-answer, committed **inside the clause written to be immune to it**, and it is the third non-executed pre-registered withdrawal this month.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T17:22:10.515570+00:00",
+    "what": "`git checkout <path>` on the shared tree destroyed 160 lines of uncommitted work \u2014 the whole SVT departure route \u2014 with no reflog entry and no dangling object, because git had never been given a copy. The finding underneath the mistake is the larger one: a capture that is committed, published, cited on the ladder page and quoted in six commits was produced by code that existed in no commit, and every control we have would have read it as reproducible.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T17:22:10.515570+00:00",
+    "what": "The floor decomposition is still unread, for the second stretch running, and has now been overtaken: it asserts a remedy in one field that its own provenance line refutes in another, on a book that priced 20 decisions against a current 120.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T17:22:10.515570+00:00",
+    "what": "A finding filed with `Severity: BLOCKING` sits UNCLASSIFIED, so the severity register reports **zero** blocking findings while a self-declared blocking one is in the queue. The register is fail-open on unclassified: \"not yet classified\" reads downstream as \"nothing blocking\", which is the same shape as every fail-open this project has catalogued.",
+    "corrected": null
+   },
+   {
+    "at": "2026-08-31T17:22:10.515570+00:00",
+    "what": "My own direction: five focus items written, one drawn, for the third stretch running. Two previous items were carried a third time on the reasoning that carrying preserves the record \u2014 it does not; it preserves the appearance of one while nothing moves. Three items this stretch, and the two dropped are named in `not_now` with the reason they lost, so the drop is reviewable as a decision rather than a disappearance.",
+    "corrected": null
    }
   ],
   "refused_own_records": [],
-  "outstanding": 101,
-  "corrected": 33,
-  "correction_not_recorded": 78,
+  "outstanding": 72,
+  "corrected": 27,
+  "correction_not_recorded": 120,
   "empty_means": ""
  },
  "what_next": {
-  "focus": [
-   "the-r1-ceiling-is-a-selected-maximum-published-as-a-bound",
-   "a-blocking-finding-outlived-its-defect-and-is-freezing-a-built-atom",
-   "the-weather-cells-reach-the-world-or-w1-14-says-why-not",
-   "the-level-zero-check-is-blind-to-twenty-nine-of-the-rows-it-grades"
-  ],
+  "focus": [],
   "steer_checks": [
    {
     "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "PB4_engagement_separated_from_elasticity",
-       "H47_the_orientation_header_states_a_figure_it_computes"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "one-elexon-timetable-has-four-implementations-and-the-published-copy-is-wrong",
-       "the-four-contradicted-rows-move-or-the-check-that-named-them-is-wrong"
-      ],
-      "focus": [
-       "one-elexon-timetable-has-four-implementations-and-the-published-copy-is-wrong",
-       "the-four-contradicted-rows-move-or-the-check-that-named-them-is-wrong"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "one-elexon-timetable-has-four-implementations-and-the-published-copy-is-wrong",
-     "the-four-contradicted-rows-move-or-the-check-that-named-them-is-wrong"
-    ],
-    "focus": [
-     "PB4_engagement_separated_from_elasticity",
-     "one-elexon-timetable-has-four-implementations-and-the-published-copy-is-wrong",
-     "H47_the_orientation_header_states_a_figure_it_computes",
-     "the-four-contradicted-rows-move-or-the-check-that-named-them-is-wrong"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [
-       "PB7_the_company_learns_what_it_can_now_see"
-      ],
-      "focus": [
-       "PB6_the_engagement_observable_crosses_the_seam",
-       "PB7_the_company_learns_what_it_can_now_see"
-      ],
-      "steered": true
-     },
-     "lane_0": {
-      "drawn": [
-       "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself",
-       "the-map-cannot-say-zero-about-work-whose-controls-pass"
-      ],
-      "focus": [
-       "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself",
-       "the-map-cannot-say-zero-about-work-whose-controls-pass"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "PB7_the_company_learns_what_it_can_now_see",
-     "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself",
-     "the-map-cannot-say-zero-about-work-whose-controls-pass"
-    ],
-    "focus": [
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "PB7_the_company_learns_what_it_can_now_see",
-     "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself",
-     "the-map-cannot-say-zero-about-work-whose-controls-pass"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "PB6_the_engagement_observable_crosses_the_seam",
-       "PB7_the_company_learns_what_it_can_now_see",
-       "W2_19_who_lives_where_money_and_composition"
-      ],
-      "steered": false
-     },
-     "lane_0": {
-      "drawn": [
-       "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself"
-      ],
-      "focus": [
-       "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself"
-      ],
-      "steered": true
-     }
-    },
-    "drawn": [
-     "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself"
-    ],
-    "focus": [
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "PB7_the_company_learns_what_it_can_now_see",
-     "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself",
-     "W2_19_who_lives_where_money_and_composition"
-    ],
-    "note": "the previous direction named work the draw then took",
-    "steered": true
-   },
-   {
-    "by_class": {
-     "atom": {
-      "drawn": [],
-      "focus": [
-       "PB6_the_engagement_observable_crosses_the_seam",
-       "W2_19_who_lives_where_money_and_composition",
-       "PB7_the_company_learns_what_it_can_now_see"
-      ],
-      "steered": false
-     },
      "lane_0": {
       "drawn": [],
       "focus": [
-       "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself"
+       "weather-cells-phase1-pull-the-haduk-grids",
+       "weather-cells-phase1-curve-and-knowledge-page",
+       "unwedge-the-shared-tree-and-the-publish-path",
+       "continuations-preempt-focus-unconditionally"
       ],
       "steered": false
      }
     },
     "drawn": [],
     "focus": [
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "seat-focus-is-outranked-by-a-lane-that-hands-off-to-itself",
-     "W2_19_who_lives_where_money_and_composition",
-     "PB7_the_company_learns_what_it_can_now_see"
+     "weather-cells-phase1-pull-the-haduk-grids",
+     "weather-cells-phase1-curve-and-knowledge-page",
+     "unwedge-the-shared-tree-and-the-publish-path",
+     "continuations-preempt-focus-unconditionally"
     ],
     "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
     "steered": false
@@ -1522,26 +1441,105 @@
      "atom": {
       "drawn": [],
       "focus": [
-       "W2_19_who_lives_where_money_and_composition",
-       "PB6_the_engagement_observable_crosses_the_seam",
-       "PB7_the_company_learns_what_it_can_now_see"
+       "PB4_engagement_separated_from_elasticity",
+       "PB5_pounds_or_percent_resolved"
       ],
       "steered": false
      },
      "lane_0": {
       "drawn": [],
       "focus": [
-       "product-outranks-machinery-at-decision-time"
+       "three-readers-were-exhaustive-over-two-payment-channels",
+       "retire-the-five-continuations-the-tree-has-refuted"
       ],
       "steered": false
      }
     },
     "drawn": [],
     "focus": [
-     "W2_19_who_lives_where_money_and_composition",
-     "PB6_the_engagement_observable_crosses_the_seam",
-     "PB7_the_company_learns_what_it_can_now_see",
-     "product-outranks-machinery-at-decision-time"
+     "three-readers-were-exhaustive-over-two-payment-channels",
+     "PB4_engagement_separated_from_elasticity",
+     "retire-the-five-continuations-the-tree-has-refuted",
+     "PB5_pounds_or_percent_resolved"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
+   {
+    "by_class": {
+     "atom": {
+      "drawn": [],
+      "focus": [
+       "PB4_engagement_separated_from_elasticity",
+       "PB5_pounds_or_percent_resolved"
+      ],
+      "steered": false
+     },
+     "lane_0": {
+      "drawn": [],
+      "focus": [
+       "focus-is-unreachable-because-the-continuation-store-never-empties",
+       "land-or-account-for-the-two-uncommitted-thesis-probes"
+      ],
+      "steered": false
+     }
+    },
+    "drawn": [],
+    "focus": [
+     "PB4_engagement_separated_from_elasticity",
+     "focus-is-unreachable-because-the-continuation-store-never-empties",
+     "PB5_pounds_or_percent_resolved",
+     "land-or-account-for-the-two-uncommitted-thesis-probes"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [],
+      "focus": [
+       "focus-must-not-be-preempted-forever-by-a-self-refilling-continuation-queue",
+       "r1-give-elasticity-observable-antecedents",
+       "the-books-ceiling-is-our-serializer-and-not-the-world",
+       "a46-the-priced-menu-goes-to-the-director",
+       "one-page-answers-would-a-bigger-book-help-in-both-directions"
+      ],
+      "steered": false
+     }
+    },
+    "drawn": [],
+    "focus": [
+     "focus-must-not-be-preempted-forever-by-a-self-refilling-continuation-queue",
+     "r1-give-elasticity-observable-antecedents",
+     "the-books-ceiling-is-our-serializer-and-not-the-world",
+     "a46-the-priced-menu-goes-to-the-director",
+     "one-page-answers-would-a-bigger-book-help-in-both-directions"
+    ],
+    "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
+    "steered": false
+   },
+   {
+    "by_class": {
+     "lane_0": {
+      "drawn": [],
+      "focus": [
+       "unjam-the-build-draw-so-the-directors-dial-can-reach-r1",
+       "r1-give-elasticity-observable-antecedents",
+       "the-books-ceiling-is-our-serializer-and-not-the-world",
+       "a46-the-priced-menu-goes-to-the-director",
+       "one-page-answers-would-a-bigger-book-help-in-both-directions"
+      ],
+      "steered": false
+     }
+    },
+    "drawn": [],
+    "focus": [
+     "unjam-the-build-draw-so-the-directors-dial-can-reach-r1",
+     "r1-give-elasticity-observable-antecedents",
+     "the-books-ceiling-is-our-serializer-and-not-the-world",
+     "a46-the-priced-menu-goes-to-the-director",
+     "one-page-answers-would-a-bigger-book-help-in-both-directions"
     ],
     "note": "the previous direction named work and NONE of it was drawn -- if this repeats, the steer is a no-op and the weight is not biting",
     "steered": false
@@ -1549,6 +1547,24 @@
   ],
   "steered_recently": true,
   "why_this_is_here": "Direction multiplies the draw's existing weights and can never zero one, so it can only ever be ignored -- never obeyed by force. Whether it was actually followed is therefore a measurement, not an assumption."
+ },
+ "the_number_the_programme_rests_on": {
+  "available": true,
+  "run_output": "run_output_23cbe058b_20260906T141424Z.json",
+  "households_in_the_rung": 69,
+  "reported_ceiling": 0.6127,
+  "in_sample": 0.1674,
+  "candidates_searched": 45,
+  "uncorrected_verdict": true,
+  "corrected_verdict": true,
+  "p_value": 0.0249,
+  "alpha": 0.05,
+  "bound_p95": 0.5529,
+  "margin_over_bound": 0.0598,
+  "shuffled_worlds": 200,
+  "statement": "The best function of the company's own observables recovers +0.6127 of a household's true price sensitivity, and it SURVIVES the correction on this book: after re-running the whole best-of-45 selection against 200 shuffled worlds, chance reached that high in 4 of them (p=0.0249). It clears by +0.0598 \u2014 about a tenth of the figure itself \u2014 so this is a marginal pass, not a bound.",
+  "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0598, and a figure that clears by a tenth of itself will move with the next draw of the book. The pair rung carries 69 households, and at that size only a ceiling above +0.5529 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=213) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely.",
+  "why_both_figures_are_shown": "The first number is what a search of 45 candidate pairs returned, compared against the odds of ONE of them coming up by chance. The second compares it against the odds of the BEST OF ALL of them coming up by chance, which is the thing that actually happened. Both are shown because deleting the flattering one would hide that it was ever published."
  },
  "how_to_read_this": "The delivery seat wakes on a timer, reads the last stretch, and writes direction -- never code. What it decides biases which work the ticks draw and can never block any of it. Everything on this page is read from a committed record; nothing here is computed a second time."
 }

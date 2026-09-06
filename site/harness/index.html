@@ -113,6 +113,15 @@ a { color: var(--teal); }
 
     <h3>What it is doing next</h3>
     <div id="delivery-next"></div>
+
+    <h3>The number the inference programme rests on</h3>
+    <p class="sub">
+      One figure decides whether a whole line of work can pay: how much of a household's real price
+      sensitivity the best possible model could recover from what we can actually see. It was
+      published as a bound, and it was the best of a 45-way search graded as though only one thing
+      had been tried. Both readings are below.
+    </p>
+    <div id="delivery-ceiling"></div>
   </section>
 
   <section>
@@ -614,9 +623,46 @@ function renderDeliveryNext(d) {
       : "");
 }
 
+/* THE ONE FIGURE A PROGRAMME IS GATED ON, and the correction that moved it. A search over 45
+   candidate pairs reported its winner as a ceiling and graded that winner against the odds of ONE
+   pair coming up by chance. Both readings are rendered, side by side and labelled, because a page
+   that shows only the corrected number hides that the other one was published for two days. */
+function renderDeliveryCeiling(d) {
+  var c = d.the_number_the_programme_rests_on || {};
+  if (!c.available) {
+    $("delivery-ceiling").innerHTML = '<div class="note">' +
+      esc(c.why || "No inference-ceiling measurement is available, so no bound is shown here. " +
+                   "That is not the same as the bound being zero.") + "</div>";
+    return;
+  }
+  var num = function (v, dp) {
+    return (v === null || v === undefined) ? "—" : Number(v).toFixed(dp === undefined ? 4 : dp);
+  };
+  var verdictWord = c.corrected_verdict === true ? "clears, marginally"
+    : c.corrected_verdict === false ? "we cannot tell" : "no verdict";
+  $("delivery-ceiling").innerHTML =
+    kpi(num(c.reported_ceiling), "what the best of " + n(c.candidates_searched) +
+        " searches recovered") +
+    kpi(num(c.bound_p95), "what chance reaches when the same search is re-run on scrambled data") +
+    kpi(verdictWord, "the verdict once the search itself is in the null") +
+    '<div class="wasnow"><div><div class="k">As published (wrong)</div>' +
+    "<p>Compared against the odds of <b>one</b> pair scoring this high by chance. On that reading " +
+    "it " + (c.uncorrected_verdict ? "cleared" : "did not clear") + ".</p></div>" +
+    '<div><div class="k">Corrected</div><p>Compared against the odds of the <b>best of ' +
+    n(c.candidates_searched) + "</b> scoring this high by chance, over " + n(c.shuffled_worlds) +
+    " scrambled worlds. p = " + num(c.p_value) + " against a threshold of " + num(c.alpha, 2) +
+    ".</p></div></div>" +
+    "<p>" + esc(c.statement || "") + "</p>" +
+    '<div class="note"><strong>What this does not say.</strong> ' +
+    esc(c.what_it_does_not_say || "") + "</div>" +
+    "<p>" + esc(c.why_both_figures_are_shown || "") + "</p>" +
+    '<div class="meta">Measured on ' + esc(String(c.run_output || "an unnamed run")) +
+    ", on " + n(c.households_in_the_rung) + " households.</div>";
+}
+
 fetch("../data/delivery.json").then(function (r) { return r.json(); }).then(function (d) {
   renderDeliveryKpis(d); renderDeliveryDid(d); renderDeliveryDecided(d);
-  renderDeliveryWrong(d); renderDeliveryNext(d);
+  renderDeliveryWrong(d); renderDeliveryNext(d); renderDeliveryCeiling(d);
 }).catch(function () {
   $("delivery-kpis").innerHTML = "";
   $("delivery-did").innerHTML = "<p>The delivery record could not be loaded, so nothing is shown here.</p>";

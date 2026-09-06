@@ -179,6 +179,69 @@ def what_next() -> dict:
     }
 
 
+def the_number_the_programme_rests_on() -> dict:
+    """R1's inference ceiling, READ from the instrument's committed artefact.
+
+    WHY THIS PANEL EXISTS AND WHY IT IS ON THIS PAGE. `A49` makes this one figure the gate on
+    whether R3 and R4 can pay at all, and for two days it was published as a bound while being the
+    winner of a 45-way search graded against the null of a single comparison. The number moved when
+    the null was corrected to run the same selection, and a page that carried the first figure and
+    not the second would be the machine reporting its own best draw.
+
+    IT COMPUTES NOTHING, which is this generator's whole discipline: every value is lifted from
+    `docs/observability/r1_inference_ceiling.json`, written by `tools/r1_inference_ceiling.py`. If
+    the artefact is absent the panel says so rather than showing an old figure -- an ABSENT bound
+    and an UNCLEARED one are different claims and both are different from a stale one.
+    """
+    path = PROJECT / "docs" / "observability" / "r1_inference_ceiling.json"
+    if not path.is_file():
+        return {"available": False,
+                "why": "the inference-ceiling instrument has not been run in this tree, so no "
+                       "bound is shown. That is not the same as the bound being zero."}
+    try:
+        got = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {"available": False,
+                "why": "the inference-ceiling artefact could not be read, so no bound is shown."}
+    if "selection_corrected_verdict" not in got:
+        # AN ARTEFACT FROM BEFORE THE CORRECTION IS NOT A HALF-FILLED PANEL. Rendering it would put
+        # the selected maximum back on the page with every corrected field blank, which is the
+        # exact publication this repair exists to undo.
+        return {"available": False,
+                "why": "the inference-ceiling artefact in this tree predates the selection "
+                       "correction, so its figure is the winner of a 45-way search graded against "
+                       "the odds of one comparison. It is withheld rather than shown: re-run "
+                       "`python3 -m tools.r1_inference_ceiling` to publish a corrected bound."}
+    headline = got.get("we_cannot_tell") or {}
+    verdict = got.get("selection_corrected_verdict") or {}
+    null = got.get("selection_corrected_null") or {}
+    best = got.get("best_pair") or {}
+    return {
+        "available": True,
+        "run_output": got.get("run_output"),
+        "households_in_the_rung": best.get("n"),
+        "reported_ceiling": best.get("held_out"),
+        "in_sample": best.get("in_sample"),
+        "candidates_searched": got.get("pairs_scored"),
+        "uncorrected_verdict": got.get("ceiling_clears_the_null_uncorrected_per_pair"),
+        "corrected_verdict": got.get("ceiling_clears_the_null"),
+        "p_value": verdict.get("p_value"),
+        "alpha": verdict.get("alpha"),
+        "bound_p95": verdict.get("bound_p95"),
+        "margin_over_bound": verdict.get("margin_over_bound"),
+        "shuffled_worlds": null.get("draws"),
+        "statement": headline.get("statement"),
+        "what_it_does_not_say": headline.get("what_it_does_not_say"),
+        "why_both_figures_are_shown": (
+            "The first number is what a search of "
+            f"{got.get('pairs_scored')} candidate pairs returned, compared against the odds of ONE "
+            "of them coming up by chance. The second compares it against the odds of the BEST OF "
+            "ALL of them coming up by chance, which is the thing that actually happened. Both are "
+            "shown because deleting the flattering one would hide that it was ever published."
+        ),
+    }
+
+
 def build() -> dict:
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -187,6 +250,7 @@ def build() -> dict:
         "what_it_decided": what_it_decided(),
         "what_it_got_wrong": what_it_got_wrong(),
         "what_next": what_next(),
+        "the_number_the_programme_rests_on": the_number_the_programme_rests_on(),
         "how_to_read_this": (
             "The delivery seat wakes on a timer, reads the last stretch, and writes direction -- "
             "never code. What it decides biases which work the ticks draw and can never block "
