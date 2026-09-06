@@ -8,6 +8,83 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-06 — The director challenged the cell framing: wind turns out to be the smoothest driver and the largest unmodelled one
+
+<!-- head: f58753811f9b -->
+
+**What this stretch was about.** The director challenged `W1_21`'s framing rather than its arithmetic:
+one cell grid was being asked to serve three different jobs, and he put a specific hypothesis to it —
+that wind is genuinely fine-grained but reaches a household only through wind chill on heat loss,
+which is second-order, so wind may need no household resolution at all and the 987 is an artefact.
+
+**His diagnosis was right and his mechanism was wrong**, and the difference is what decides the build.
+
+**Wind is the smoothest of the three drivers where people live.** Asked one at a time,
+household-weighted, all three want about the same number of cells — 21 gets winter temperature to
+99.3%, wind to 99.4%, sunshine to 99.4%. Wind's fine structure comes from terrain, coast and
+exposure, and `W1_20` had already established that half of GB's land cells hold nobody: the ridges
+and headlands that make a wind map look nuanced are the empty half.
+
+So the 987 is not a wind artefact. It is the price of one partition resolving three drivers
+*simultaneously* — dimensionality, not roughness. Which is his diagnosis, arrived at from the
+opposite direction.
+
+**But wind is not second-order in the bill.** The mechanism is published and it is linear: SAP 10.2
+and BREDEM adjust infiltration as `raw ACH × shelter × (wind ÷ 4 m/s)`, straight into ventilation
+loss. Measured over this project's own stock — 288 era × type × insulation × size combinations —
+ventilation is 15–51% of the heat loss coefficient, and moving across the household wind spread
+changes it by +2.7% to +29.7%, median **+14.9%**. The comparator, over the same percentile span of
+the same population: winter temperature changes degree days by **−18.9%**. Wind is 0.79× temperature,
+not a rounding error.
+
+**Importance and resolution are separate questions, and conflating them produced both the 987 and
+the challenge to it.** Wind matters as much as temperature *and* needs no more cells than
+temperature. Neither of those implies the other, and I had been reading the joint curve as though it
+did.
+
+**The finding underneath, and it is the one worth keeping.** `simulation/fabric_physics.py` computes
+infiltration from build era and insulation and nothing else — there is no wind factor anywhere in the
+SIM's demand path, and `wind_speed_mean_ms` sits in that module's own docstring as an archive field
+consumed by nothing. Meanwhile `company/pricing/weather_normalisation_belief.py` carries an optional
+`HDD × excess wind` regressor a caller can switch on. **The company can fit a household wind-chill
+coefficient against a world in which household wind chill does not exist**, and the fit will look
+entirely healthy: real regressor, real data, reported r². That is a coupled-triad defect — a belief
+carrying a term its truth does not have — and it is invisible to the triad gate because the regressor
+is off by default. Minted as `W1_26` rather than patched: the repair is one multiplication, but it
+moves every historical demand figure in the tree, which is a fidelity decision with its own evidence
+bar.
+
+**PV needs three to five cells against the one the company has.** `seg_export_estimator` applies 850
+kWh/kWp to every household. Sunshine duration converts to irradiation by Ångström–Prescott, and
+because the intercept is positive the relative spread in irradiation is *strictly* smaller than in
+duration — elasticity 0.41, and 0.43–0.49 across the published coefficient range, so the conclusion
+does not turn on the choice. One national figure carries 3.4% RMS error in annual generation; three
+cells gets it to 1.5%, five to under 1%.
+
+**What went wrong.** `_sim_has_a_wind_term` asked `"wind" in name.lower()` and returned **True** — on
+`window_area`, `_WINDOW_U_BY_ERA`, `_WINDOW_AREA_RATIO`. It would have published "the SIM models
+wind" on the strength of the glazing, in the one place where the entire finding is that it does not.
+Caught by printing the number, not by a test; the test exists now and asserts both directions of the
+segment match.
+
+And `per_driver_curve` had no control at all until a mutation asked for one. A version that quietly
+clustered on the full matrix returns three copies of the joint curve — three identical, plausible,
+monotone curves — and the headline inverts with nothing to show for it. Its fixture is the eight
+corners of a cube with three *different* native spreads, because with equal spreads a residual scored
+against the wrong driver index is indistinguishable from one scored against the right one.
+
+**One ordering lesson.** A `--content` land never touches the working tree, and
+`record_level_up_self_certified` resolves an atom's lane from the *live* map file. So a level move
+recorded straight after a content land is refused with `<lane-unknown>` — an atom that exists at
+HEAD, is published, and is invisible to the ledger. The refusal was right and its message read like a
+governance block on a blocked lane. The order is: land, reconcile the tree, then record.
+
+**Where it stands.** `W1_21`'s 987 stands as arithmetic and falls as a recommendation. Heat load
+wants ~21 cells on temperature *and* wind; PV wants 3–5 on sunshine; wholesale price wants one,
+national, and is already wired that way. `W1_26` is next.
+
+---
+
 ## 2026-09-06 — Closing the four weather atoms, and the two gate refusals the close ran into on the way
 
 <!-- head: 7668df76190c -->
