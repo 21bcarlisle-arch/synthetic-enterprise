@@ -513,33 +513,8 @@ def sweep(
     return out
 
 
-def measure(
-    *,
-    only_years: Sequence[str] | None = None,
-    grids: Sequence[tuple[int, int, int]] = SWEEP_GRIDS,
-    null_seeds: Sequence[int] = NULL_SEEDS,
-) -> dict:
-    """The bound, over every year the series share. Loads the real caches.
-
-    THE THREE ARGUMENTS EXIST SO A CONTROL CAN EXECUTE THIS FUNCTION AT ALL, and the shape of
-    each is chosen so that narrowing the work cannot narrow what is being proved. Until
-    2026-09-06 `measure` took none, its only caller was `main`, and no test ran `main` — so the
-    one path on which this module loads the real caches, calls `generate_grid_intensity_feed
-    .fuel_mix` and produces the published artefact was executed by nothing. The 623-second suite
-    beside it calls `measure_year` on synthetic worlds through a helper named `_measure`, which
-    is how a grep for coverage of "measure" came back satisfied for months.
-
-    `only_years` FILTERS the year intersection AFTER it is taken, and never replaces it. A
-    caller therefore cannot conjure a year the three series do not share — asking for one the
-    caches do not carry drops it silently, which is the property the control asserts by asking
-    for a year that cannot exist alongside one that must. Substituting the caller's list for the
-    intersection would have made the cheap control a control over its own argument.
-
-    `grids` and `null_seeds` are the knobs `sweep` and `measure_year` already carry, lifted one
-    level so the whole path can be walked without paying for every resolution and every seed.
-
-    `main` passes NONE of them, so the published artefact is byte-for-byte what it always was.
-    """
+def measure() -> dict:
+    """The bound, over every year the series share. Loads the real caches."""
     from sim import grid_carbon_intensity as gci
     from sim.generation_demand_history import aggregate_renewable_generation
     from sim.grid_carbon_intensity import aggregate_demand
@@ -587,11 +562,6 @@ def measure(
         & {k[0][:4] for k in shipped}
         & {k[0][:4] for k in embedded_intensive}
     )
-    # THE FILTER IS APPLIED TO THE INTERSECTION, never in place of it — see the docstring. A
-    # year the caches do not carry is dropped here whatever the caller asked for.
-    if only_years is not None:
-        wanted = set(only_years)
-        years = [year for year in years if year in wanted]
     rows: dict[str, dict] = {}
     for year in years:
         try:
@@ -602,7 +572,6 @@ def measure(
                 demand=demand,
                 base_coords=base_coords,
                 embedded_intensive=embedded_intensive,
-                null_seeds=null_seeds,
             )
         except (neso.NesoIntensityUnavailable, ValueError, embedded.EmbeddedGenerationUnavailable):
             continue
@@ -634,7 +603,7 @@ def measure(
             demand=demand,
             base_coords=base_coords,
             embedded_intensive=embedded_intensive,
-            grids=grids,
+            grids=SWEEP_GRIDS,
             years=sorted(rows),
         ),
         "years": rows,

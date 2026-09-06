@@ -76,3 +76,23 @@ Predictions, before the run:
 3. If any test outside those two reds, the file has a coupling I have not accounted for. If
    neither reds, the module-scoped fixture is not reaching the subject and the whole file is
    theatre.
+
+## OUTCOME, written beside the predictions rather than replacing them
+
+**Prediction 1 held and was the wrong question.** The unbounded run exceeded 3,000s and was
+killed by its own timeout. Prediction 2 (20–90s of cache loading) was REFUTED by poison round A:
+the four loads cost ~1s in total. Prediction 3 held in direction and was wrong in magnitude.
+
+**The refutation condition at the foot of this document did not fire, and a condition I did not
+register did.** The bounded control did execute the cache loads, the `fuel_mix()` unpack and the
+artefact write — so by this document's own terms it closed the gap. It was withdrawn anyway,
+because `eaac64f49` landed first with the cause: `_matched_scale` was a loop invariant called
+inside a comprehension over ~15,000 half hours, O(n²), and a full real pass is 23s once hoisted.
+The whole "over ~120s → the control must bound the work" branch of this pre-registration was a
+branch about a defect.
+
+The finding is in
+`docs/staging/SEAT_RESULT_I_BUILT_A_BOUNDED_API_AROUND_A_COST_THAT_WAS_A_DEFECT_AND_THE_OTHER_LANE_ASKED_WHY_2026-09-06.md`:
+**a cost you measure is a reading about the code, not a fact about the problem.** This document
+should have carried a fourth prediction — *what would make this number implausible?* — and did
+not.
