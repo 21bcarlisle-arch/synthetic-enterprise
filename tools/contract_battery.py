@@ -116,6 +116,25 @@ class BatterySpec:
     #: `survived_all` -- otherwise the pre-registered question becomes unanswerable the
     #: moment the repair lands.
     repair_suite: str | None = None
+    #: The subject's OWN dedicated test files -- the suites that import it directly and are the
+    #: only ones that can NAME one of its contracts. Scored as their own columns and, like
+    #: `repair_suite`, never folded into `survived_all`.
+    #:
+    #: Same mechanism, different reason, and both are named rather than merged: a repair suite is
+    #: written to close a gap the battery found, while these predate it. What they share is the
+    #: only thing that matters to the reduction -- neither is a CALLER, so neither belongs in the
+    #: population of "did anything OTHER than the subject's own tests prove this".
+    #:
+    #: THE DEFECT THIS CLOSES, 2026-09-06. Three of the five specs in this family wrote
+    #: `SUITES = DIRECT_SUITES + CALLER_SUITES` and had nowhere else to put the direct column, so
+    #: the subject graded itself and `survived_all`'s survivor count came out too LOW -- a
+    #: contract killed only by the subject's own suite was struck off the caller survivor list by
+    #: a suite no caller reaches through. Measured on both remaining subjects rather than argued:
+    #: `segment_vocabulary` published "no contract on the busiest converged module is unproved"
+    #: where three of eight are unproved by any caller, and `fuel_mix` published two of ten killed
+    #: where the caller answer is ten of ten.
+    #: `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`
+    direct_suites: tuple[str, ...] = field(default_factory=tuple)
     #: Suites with NO import path to the subject. The poison round must leave these GREEN;
     #: if it reddens everything including these, the floor is measuring the harness and not
     #: the subject, and the whole round is void.
@@ -138,7 +157,13 @@ class BatterySpec:
 
     @property
     def selectable(self) -> tuple[str, ...]:
-        return self.suites + ((self.repair_suite,) if self.repair_suite else ())
+        return (self.suites + self.direct_suites
+                + ((self.repair_suite,) if self.repair_suite else ()))
+
+    @property
+    def scored_outside_the_caller_population(self) -> tuple[str, ...]:
+        """Scored, reported, and never counted toward `survived_all`."""
+        return self.direct_suites + ((self.repair_suite,) if self.repair_suite else ())
 
     @property
     def subject_path(self) -> Path:
@@ -349,6 +374,19 @@ def _null_round(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_p
     return {s: r["grades_text"] for s, r in null.items()}
 
 
+def rows_without_a_caller_verdict(spec: BatterySpec, mutations: dict) -> list[str]:
+    """Mutations graded on fewer than ALL the caller suites -- no verdict on the standing question.
+
+    Counted over the CALLER cells, never over `per_suite`. `per_suite` also holds the direct and
+    repair columns, so a row that never graded one caller can still carry MORE cells than there
+    are callers, and a `len(per_suite) < len(spec.suites)` test would then stay silent about the
+    one row with no verdict. That is live on `fuel_mix`: eight callers, one of them never graded
+    at 655s a run, two direct columns, nine cells.
+    """
+    return [m for m, r in mutations.items()
+            if len([s for s in r.get("per_suite", {}) if s in spec.suites]) < len(spec.suites)]
+
+
 def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reaches: dict,
            grades_text: dict) -> None:
     """One mutation against each outstanding suite, scored as a row rather than a verdict."""
@@ -369,11 +407,18 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
               f"{'(TEXT-GRADER -- may not have run the line) ' if r['died_but_grades_text'] else ''}"
               f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
     # `survived_all` is the PRE-REGISTERED question and its population is the CALLER suites.
-    # The repair column is reported beside it and never folded into it.
+    # The repair column and the subject's own direct suites are reported beside it and never
+    # folded into it.
     callers = {s: r for s, r in row["per_suite"].items() if s in spec.suites}
     row["survived_all"] = (len(callers) == len(spec.suites)
                            and not any(r["died"] for r in callers.values()))
     row["killed_by"] = [s for s, r in callers.items() if r["died"]]
+    # Reported as its own field rather than left to be read off `killed_by`'s absences: a contract
+    # proved ONLY by the subject's own tests and a contract proved by nothing are different
+    # claims, and `killed_by: []` says both.
+    row["killed_by_own_suites_only"] = sorted(
+        s for s in spec.scored_outside_the_caller_population
+        if row["per_suite"].get(s, {}).get("died")) if not row["killed_by"] else []
     if spec.repair_suite is not None:
         repair = row["per_suite"].get(spec.repair_suite)
         if repair is not None:
@@ -400,6 +445,11 @@ def fingerprint(spec: BatterySpec) -> str:
     payload = json.dumps({
         "subject": spec.subject,
         "suites": list(spec.suites),
+        # The SPLIT is hashed, not just the union: moving a suite from `suites` to `direct_suites`
+        # leaves every cell measuring exactly what it measured before and changes what
+        # `survived_all` MEANS. A resumed row keeps the verdict it was written with, so a spec
+        # that re-splits its population must not be able to inherit one.
+        "direct_suites": list(spec.direct_suites),
         "repair_suite": spec.repair_suite,
         "control_suites": list(spec.control_suites),
         # ids INCLUDED, but never alone: a renumbered mutation and a rewritten one are both
@@ -514,9 +564,14 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
 
     restore()
     survivors = [m for m, r in results["mutations"].items() if r.get("survived_all")]
-    partial = [m for m, r in results["mutations"].items()
-               if len(r.get("per_suite", {})) < len(spec.suites)]
+    partial = rows_without_a_caller_verdict(spec, results["mutations"])
     print(f"\nSURVIVED ALL {len(spec.suites)} CALLER SUITES: {survivors or 'none'}", flush=True)
+    own_only = [m for m, r in results["mutations"].items() if r.get("killed_by_own_suites_only")]
+    if own_only:
+        # `killed_by: []` reads as "nothing proves this" and for these rows it is wrong: something
+        # proves them, and it is the subject's own test file rather than any caller.
+        print(f"PROVED ONLY BY THE SUBJECT'S OWN SUITES (no caller kills these): {own_only}",
+              flush=True)
     if partial:
         # NOT survivors. A mutation graded against a subset of suites has no verdict on the
         # standing prediction, and printing it beside the survivors is how a partial run gets

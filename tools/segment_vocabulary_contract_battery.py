@@ -2,8 +2,10 @@
 """R15 mutation battery for `simulation/segment_vocabulary.py`, scored PER SUITE.
 
 The third subject of the convergence-evidence sweep, and the top row of
-`tools/converged_contract_screen.py` by caller count: 8 first-party callers, 3
-test files that IMPORT it, 265 whose import closure reaches it.
+`tools/converged_contract_screen.py` by caller count: 8 first-party callers, 265
+whose import closure reaches it, and FOUR test files that import it -- the screen
+says three, and the fourth is `tests/sim/test_segment_debt_obligation.py`, whose
+import sits inside a function body where a module-level census does not look.
 
 This file is the SPEC -- the suites, the eight contracts and the reachability
 anchor. The procedure lives in `tools/contract_battery.py`; what it guarantees
@@ -28,11 +30,12 @@ from __future__ import annotations
 
 from tools.contract_battery import BatterySpec, run
 
-#: The three suites that IMPORT the module -- the only ones that can NAME a
-#: contract -- followed by one dedicated suite per caller that has one.
+#: The suites that IMPORT the module -- the only ones that can NAME a contract.
+#: Scored as their own columns and never folded into `survived_all`, which
+#: answers what the CALLERS prove.
 #:
-#: `grep -rl segment_vocabulary tests/` returns a FOURTH importer,
-#: `tests/tools/test_segment_case_guard.py`. It is not one: it carries the
+#: `grep -rl segment_vocabulary tests/` returns five files, and one of them is
+#: NOT an importer: `tests/tools/test_segment_case_guard.py`. It carries the
 #: module's name in fixture source strings and assertion messages and imports
 #: `tools.segment_case_guard` instead. It reaches the subject through that
 #: caller's own module-level import, so it is scored here as a reaching suite
@@ -42,25 +45,50 @@ DIRECT_SUITES = (
     "tests/sim/test_w2_15_segment_vocabularies.py",
     "tests/simulation/test_segment_case_normalisation.py",
     "tests/simulation/test_served_segments_curriculum.py",
+    # THE FOURTH, added 2026-09-06, and it was in `CALLER_SUITES` until then. The comment above
+    # said `grep -rl segment_vocabulary tests/` returns FOUR files and dismissed the extra as
+    # `test_segment_case_guard.py`; it returns FIVE, and this is the one nobody counted. It
+    # imports `normalise_segment` and `UnknownSegmentError` at line 152 -- inside a function
+    # body, which is why a module-level import census missed it and the screen said three.
+    #
+    # It matters more than a miscount. That test was written ON 2026-09-06, AFTER the battery
+    # ran, as the REPAIR for M3: its own docstring says "deleting the isinstance check in
+    # `normalise_segment` killed that one file and nothing else, this suite included". Left in
+    # the caller population it would kill M3 on the next run and the pre-registered question --
+    # does any CALLER prove this -- would be unanswerable the moment the repair landed, which is
+    # the exact hazard `repair_suite` exists for.
+    #
+    # No published number moves: in the recorded run it killed nothing at all, so the caller
+    # population going from seven to six leaves the survivor set {M3, M4, M8} unchanged. That is
+    # luck rather than a control, and it is why it is written down here.
+    "tests/sim/test_segment_debt_obligation.py",
 )
 
-#: One per caller with a dedicated suite. `simulation/sme_payment_behaviour.py`
-#: has none: its only test importer is `test_segment_case_normalisation.py`,
-#: already above. 265 suites reach this module and ten is what gets graded --
-#: stated as a BOUND on the answer, not hidden: a contract killed by none of
-#: these ten is unproved by the suites a reader would look in, which is not the
-#: same claim as unproved anywhere in the tree.
+#: One per caller with a dedicated suite, and none of them imports the subject.
+#: `simulation/sme_payment_behaviour.py` has none: its only test importer is
+#: `test_segment_case_normalisation.py`, already above. 265 suites reach this
+#: module and ten is what gets graded -- stated as a BOUND on the answer, not
+#: hidden: a contract killed by none of these ten is unproved by the suites a
+#: reader would look in, which is not the same claim as unproved anywhere in
+#: the tree.
 CALLER_SUITES = (
     "tests/simulation/test_arrears_engine.py",
     "tests/simulation/test_population_draw.py",
     "tests/simulation/test_live_population_seam.py",
     "tests/sim/test_w2_11_payment_behaviour_source.py",
-    "tests/sim/test_segment_debt_obligation.py",
     "tests/sim/test_w2_6_sme_distress.py",
     "tests/tools/test_segment_case_guard.py",
 )
 
-SUITES = DIRECT_SUITES + CALLER_SUITES
+#: `survived_all` is scored over exactly this -- the six REAL callers, and nothing the subject
+#: owns. The first spec wrote `SUITES = DIRECT_SUITES + CALLER_SUITES`, which put the three
+#: direct importers inside the caller verdict and made this module grade itself. The consequence
+#: was published: the result beside this file reports "no contract on the busiest converged module
+#: is unproved", and on the CALLER population three of the eight are -- M3, M4 and M8 are killed
+#: only by `W215`/`CASE`, suites no caller reaches through. The direct columns are still scored,
+#: as `direct_suites`, and reported beside the verdict rather than folded into it.
+#: `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`
+SUITES = CALLER_SUITES
 
 #: Two suites with no import path to the subject. The poison round must leave
 #: these GREEN. Without them, a floor that reddens every suite for a reason
@@ -150,6 +178,7 @@ SPEC = BatterySpec(
     name="segment_vocabulary",
     subject="simulation/segment_vocabulary.py",
     suites=SUITES,
+    direct_suites=DIRECT_SUITES,
     mutations=MUTATIONS,
     poison_old=POISON_OLD,
     poison_new=POISON_NEW,

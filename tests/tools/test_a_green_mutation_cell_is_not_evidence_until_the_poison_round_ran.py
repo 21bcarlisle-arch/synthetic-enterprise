@@ -5,21 +5,35 @@ writes, so `focus_weights` short-circuits and the mutated lines are never execut
 
 "the contract held" and "the suite never reached the line" are the SAME green. These tests are the
 control on the round that tells them apart, and each names the way it can silently fail.
+
+REPOINTED 2026-09-06. The engine was lifted out of `tools/direction_contract_battery.py` into
+`tools/contract_battery.py` and every name these controls reach for went with it -- `SUBJECT`,
+`POISON_OLD`, `_poison`, `_score` -- while the spec kept only its data. All six had been erroring
+on `AttributeError: module has no attribute 'SUBJECT'` from the extraction until now, which is the
+class this file exists to catch, committed against this file: a control whose subject moved is a
+control that proves nothing, and it says so in a colour nobody was reading.
 """
 from __future__ import annotations
 
 import pytest
 
-from tools import direction_contract_battery as battery
+from tools import contract_battery as battery
+from tools.direction_contract_battery import SPEC
 
 
 @pytest.fixture()
 def subject(tmp_path, monkeypatch):
-    """A stand-in subject, so nothing here can write the real `background/direction.py`."""
-    path = tmp_path / "direction.py"
-    path.write_text(battery.SUBJECT.read_text(encoding="utf-8"), encoding="utf-8")
-    monkeypatch.setattr(battery, "SUBJECT", path)
+    """A stand-in subject, so nothing here can write the real `background/direction.py`.
+
+    `subject_path` is a property over the module-level `PROJECT`, so the redirection is done there
+    rather than on the frozen spec -- and the stand-in is written at the SAME relative path, or
+    the engine would resolve past it and mutate the real file."""
+    path = tmp_path / SPEC.subject
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(SPEC.subject_path.read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(battery, "PROJECT", tmp_path)
     monkeypatch.setattr(battery, "_clear_pycache", lambda: None)
+    assert SPEC.subject_path == path, "the redirection must actually move the subject"
     return path
 
 
@@ -39,9 +53,9 @@ def test_the_POISON_is_a_real_poison_and_not_a_string_edit_that_changes_nothing(
     IMPORTED the way pytest would import it, not `exec`'d: the subject carries a `@dataclass`,
     and a bare `exec` fails on that for its own unrelated reason -- which would have passed this
     test for entirely the wrong reason."""
-    src = battery.SUBJECT.read_text(encoding="utf-8")
-    assert src.count(battery.POISON_OLD) == 1, "the poison target must be present exactly once"
-    poisoned = src.replace(battery.POISON_OLD, battery.POISON_NEW)
+    src = SPEC.subject_path.read_text(encoding="utf-8")
+    assert src.count(SPEC.poison_old) == 1, "the poison target must be present exactly once"
+    poisoned = src.replace(SPEC.poison_old, SPEC.poison_new)
     assert poisoned != src
 
     # The unpoisoned source must import CLEANLY by this same route, or the RuntimeError below
@@ -77,7 +91,7 @@ def test_a_suite_that_stays_GREEN_under_the_poison_is_recorded_as_NEVER_REACHING
     monkey = _fake_runs({suites[0]: 1, suites[1]: 0})
     import unittest.mock as mock
     with mock.patch.object(battery, "_run_suite", monkey):
-        poison = battery._poison(results, suites, tmp_path / "out.json",
+        poison = battery._poison(SPEC, results, suites, tmp_path / "out.json",
                                  {s: () for s in suites})
     assert poison[suites[0]]["reaches_subject"] is True
     assert poison[suites[1]]["reaches_subject"] is False
@@ -90,7 +104,7 @@ def test_the_poison_round_RESTORES_the_subject_whatever_the_verdicts(subject, tm
     suites = ("tests/a.py",)
     import unittest.mock as mock
     with mock.patch.object(battery, "_run_suite", _fake_runs({suites[0]: 1})):
-        battery._poison({}, suites, tmp_path / "out.json", {suites[0]: ()})
+        battery._poison(SPEC, {}, suites, tmp_path / "out.json", {suites[0]: ()})
     assert subject.read_text(encoding="utf-8") == before
 
 
@@ -102,7 +116,8 @@ def test_a_NON_UNIQUE_poison_target_reports_reachability_UNKNOWN_and_never_a_pas
     subject.write_text(subject.read_text(encoding="utf-8") + "\ndef append_decision(x):\n    pass\n",
                        encoding="utf-8")
     results: dict = {}
-    poison = battery._poison(results, ("tests/a.py",), tmp_path / "out.json", {"tests/a.py": ()})
+    poison = battery._poison(SPEC, results, ("tests/a.py",), tmp_path / "out.json",
+                             {"tests/a.py": ()})
     assert poison == {}
     assert "expected exactly 1" in results["poison_error"]
 
@@ -115,14 +130,14 @@ def test_a_survivor_is_stamped_UNREACHABLE_only_where_the_suite_is_BLIND(tmp_pat
     row: dict = {"per_suite": {}}
     import unittest.mock as mock
     with mock.patch.object(battery, "_run_suite", _fake_runs({reaching: 0, blind: 0})):
-        battery._score(row, [reaching, blind], {reaching: (), blind: ()},
-                       {reaching: True, blind: False})
+        battery._score(SPEC, row, [reaching, blind], {reaching: (), blind: ()},
+                       {reaching: True, blind: False}, {})
     assert row["per_suite"][reaching]["survived_but_unreachable"] is False
     assert row["per_suite"][blind]["survived_but_unreachable"] is True
 
     died: dict = {"per_suite": {}}
     with mock.patch.object(battery, "_run_suite", _fake_runs({blind: 1})):
-        battery._score(died, [blind], {blind: ()}, {blind: False})
+        battery._score(SPEC, died, [blind], {blind: ()}, {blind: False}, {})
     assert died["per_suite"][blind]["died"] is True
     assert died["per_suite"][blind]["survived_but_unreachable"] is False
 
@@ -135,5 +150,5 @@ def test_an_UNMEASURED_suite_is_not_treated_as_reaching_the_subject(tmp_path):
     row: dict = {"per_suite": {}}
     import unittest.mock as mock
     with mock.patch.object(battery, "_run_suite", _fake_runs({suite: 0})):
-        battery._score(row, [suite], {suite: ()}, {})
+        battery._score(SPEC, row, [suite], {suite: ()}, {}, {})
     assert row["per_suite"][suite]["survived_but_unreachable"] is False

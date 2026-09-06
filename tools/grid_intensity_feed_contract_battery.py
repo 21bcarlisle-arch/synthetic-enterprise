@@ -99,7 +99,14 @@ CALLER_SUITES = (
     "tests/background/test_process_run_complete.py",
 )
 
-SUITES = DIRECT_SUITES + CALLER_SUITES
+#: `survived_all` is scored over exactly this -- the eight REAL callers, and nothing the subject
+#: owns. The first spec wrote `SUITES = DIRECT_SUITES + CALLER_SUITES`, and the consequence here is
+#: the sharper of the two: M1 and M2 are killed by
+#: `tests/tools/test_grid_intensity_feed_and_explore_carbon.py` and by nothing else, and that suite
+#: is a DIRECT importer. On the caller population the answer is TEN of ten surviving, not eight.
+#: The direct columns are still scored, as `direct_suites`, and reported beside the verdict.
+#: `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`
+SUITES = CALLER_SUITES
 
 #: Two suites with no import path to the subject. The poison round must leave
 #: these GREEN; a floor that reddens everything for a reason unrelated to the
@@ -279,6 +286,7 @@ SPEC = BatterySpec(
     name="grid_intensity_fuel_mix",
     subject="tools/generate_grid_intensity_feed.py",
     suites=SUITES,
+    direct_suites=DIRECT_SUITES,
     mutations=MUTATIONS,
     poison_old=POISON_OLD,
     poison_new=POISON_NEW,

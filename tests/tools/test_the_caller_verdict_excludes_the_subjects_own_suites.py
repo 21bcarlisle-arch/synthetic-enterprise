@@ -1,0 +1,176 @@
+"""The defect: three of the five battery specs wrote `SUITES = DIRECT_SUITES + CALLER_SUITES`, so
+`survived_all` -- the field that answers the PRE-REGISTERED question "did any CALLER prove this
+contract" -- was scored over a population containing the subject's own dedicated test files. A
+contract killed only by the subject's own suite was struck off the caller survivor list by a suite
+no caller reaches through, and the survivor count came out too LOW.
+
+It is not hypothetical and it reached publication twice. `fuel_mix` published "two of ten killed"
+where the caller answer is ten of ten (both kills came from
+`test_grid_intensity_feed_and_explore_carbon.py`, a direct importer), and `segment_vocabulary`
+published "no contract on the busiest converged module is unproved" where three of eight are
+unproved by any caller.
+
+These are the controls on the reduction that tells the two apart, and each names the way it can
+silently fail. They are keyed to the PROPERTY -- what belongs in the population -- and not to
+either subject's current numbers, which change every time a contract is repaired.
+"""
+from __future__ import annotations
+
+import dataclasses
+
+import pytest
+
+from tools.contract_battery import (
+    BatterySpec,
+    _score,
+    fingerprint,
+    rows_without_a_caller_verdict,
+)
+
+CALLER_A = "tests/fake/test_caller_a.py"
+CALLER_B = "tests/fake/test_caller_b.py"
+OWN = "tests/fake/test_the_subjects_own_suite.py"
+REPAIR = "tests/fake/test_the_repair.py"
+
+
+def _spec(**over) -> BatterySpec:
+    base = dict(
+        name="fake",
+        subject="tools/fake_subject.py",
+        suites=(CALLER_A, CALLER_B),
+        direct_suites=(OWN,),
+        repair_suite=REPAIR,
+        mutations=(("M1", "a contract", "old", "new"),),
+        poison_old="old",
+        poison_new="raise",
+    )
+    base.update(over)
+    return BatterySpec(**base)
+
+
+def _row(spec: BatterySpec, dies: set[str], graded: list[str] | None = None) -> dict:
+    """Score one mutation, with `_run_suite` replaced by a table of verdicts.
+
+    Nothing here runs pytest or touches a subject: `survived_all` is a pure reduction over
+    `per_suite`, and the reduction is what is under test.
+    """
+    todo = list(spec.selectable) if graded is None else graded
+    row: dict = {"per_suite": {}}
+    reaches = dict.fromkeys(todo, True)
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(
+            "tools.contract_battery._run_suite",
+            lambda suite, deselect, stop_first: {
+                "suite": suite, "returncode": 1 if suite in dies else 0,
+                "failed": [], "seconds": 0.0, "tail": []},
+        )
+        _score(spec, row, todo, dict.fromkeys(todo, ()), reaches, {})
+    return row
+
+
+def test_the_three_states_of_a_row_are_all_REACHABLE_before_any_leg_asserts_what_they_do():
+    """THE PARTITION CONTROL, and it runs first. Every leg below asks "does the verdict refuse
+    correctly", and a reduction that answered `survived_all: False` to EVERYTHING would satisfy
+    the two negative legs and only fail the positive one -- while a reduction that answered True
+    to everything would fail only the negatives. One control over the whole partition is what
+    CLAUDE.md's rare-branch rule asks for instead of a leg per branch."""
+    spec = _spec()
+    killed_by_caller = _row(spec, {CALLER_A})
+    killed_by_own = _row(spec, {OWN, REPAIR})
+    killed_by_nobody = _row(spec, set())
+
+    assert killed_by_caller["survived_all"] is False
+    assert killed_by_own["survived_all"] is True
+    assert killed_by_nobody["survived_all"] is True
+    # ...and the two True rows are DISTINGUISHABLE, or the field would be answering a question
+    # nobody asked: one contract is proved by the subject's own tests and the other by nothing.
+    assert killed_by_own["killed_by_own_suites_only"] == sorted((OWN, REPAIR))
+    assert killed_by_nobody["killed_by_own_suites_only"] == []
+
+
+def test_a_kill_by_the_subjects_OWN_suite_does_not_remove_the_row_from_the_caller_survivors():
+    """THE DEFECT ITSELF. `survived_all`'s population is `spec.suites`; widen it to
+    `spec.selectable` -- which is what `SUITES = DIRECT_SUITES + CALLER_SUITES` did by hand -- and
+    this row goes False, on a kill by a suite no caller reaches through.
+
+    This is `fuel_mix` exactly: M1 and M2 killed by one direct importer and by nothing else."""
+    row = _row(_spec(), {OWN})
+    assert row["survived_all"] is True, "a direct suite's kill is not a caller's kill"
+    assert row["killed_by"] == [], "killed_by is the CALLER killers and nothing else"
+    assert row["killed_by_own_suites_only"] == [OWN]
+
+
+def test_a_kill_by_the_REPAIR_suite_does_not_remove_the_row_either():
+    """The same property through the other door. `repair_suite` and `direct_suites` are two names
+    for one exclusion, and a repair that only closed the first would leave this open -- the shape
+    where a sibling control stays green while its twin reds."""
+    row = _row(_spec(), {REPAIR})
+    assert row["survived_all"] is True
+    assert row["killed_by"] == []
+    assert row["caught_by_own_suite"] is True
+
+
+def test_a_row_missing_ONE_caller_cell_has_no_verdict_even_when_the_direct_cells_outnumber_it():
+    """THE FAIL-OPEN, and it is what made this worth a control rather than a comment.
+
+    `partial` was `len(per_suite) < len(spec.suites)`. `per_suite` also carries the direct and
+    repair columns, so a row that never graded one CALLER can still hold more cells than there are
+    callers -- and the check would stay quiet about the one row with no verdict. Live on
+    `fuel_mix`: eight callers, one of them (`test_ep13_embedded_generation_bound.py`, 655s) never
+    graded, two direct columns, nine cells."""
+    spec = _spec()
+    row = _row(spec, {OWN}, graded=[CALLER_A, OWN, REPAIR])
+    # The precondition the fail-open needs, asserted before the thing it defeats: MORE cells than
+    # there are callers, and a caller genuinely missing. Without both, the leg below would pass
+    # against the broken expression too.
+    assert len(row["per_suite"]) > len(spec.suites)
+    assert len([s for s in row["per_suite"] if s in spec.suites]) < len(spec.suites)
+
+    assert rows_without_a_caller_verdict(spec, {"M1": row}) == ["M1"]
+    assert row["survived_all"] is False, "a row graded on 1 of 2 callers is NOT a survivor"
+    # ...and a fully graded row is NOT reported, or the line would flag every run and mean nothing.
+    full = _row(spec, {OWN})
+    assert rows_without_a_caller_verdict(spec, {"M1": full}) == []
+
+
+def test_moving_a_suite_between_the_caller_and_direct_columns_CHANGES_the_fingerprint():
+    """A resumed row keeps the verdict it was written with -- `run()` skips a mutation whose cells
+    are all present and never re-reduces it. So a spec that re-splits its population must not be
+    able to inherit rows scored under the old split, and the fingerprint is the only thing standing
+    between the two. Drop `direct_suites` from the hashed payload and these collide.
+
+    Every cell is unchanged by the move, which is exactly why this is easy to get wrong: what
+    changes is not what was measured but what `survived_all` MEANS."""
+    mixed = _spec(suites=(CALLER_A, CALLER_B, OWN), direct_suites=())
+    split = _spec(suites=(CALLER_A, CALLER_B), direct_suites=(OWN,))
+    assert fingerprint(mixed) != fingerprint(split)
+    # ...and the DIRECT column alone must carry the hash, or that inequality proves only that
+    # `suites` changed and `direct_suites` could be dropped from the payload with nothing noticing.
+    # Measured, not assumed: dropping it survived this test until this leg was added. Declaring a
+    # newly-found direct importer -- `segment_vocabulary` gained a fourth on 2026-09-06 -- leaves
+    # `suites` untouched and changes both what is scored and `killed_by_own_suites_only`.
+    assert fingerprint(split) != fingerprint(_spec(suites=(CALLER_A, CALLER_B),
+                                                  direct_suites=(OWN, "tests/fake/test_extra.py")))
+    # ...and the guard is not just "any two specs differ": identical splits must still collide, or
+    # the fingerprint would be refusing every resume and proving nothing about this move.
+    assert fingerprint(split) == fingerprint(dataclasses.replace(split))
+
+
+def test_every_spec_in_the_family_keeps_its_two_populations_DISJOINT():
+    """The census, over the live specs rather than a fixture. A suite in both columns would be
+    scored once and counted in a population it was excluded from, and `selectable` would hand
+    `--suites` a duplicate.
+
+    Keyed to the partition and not to today's membership: it stays green as suites are added to
+    either column and reds the moment one is in both."""
+    import importlib
+
+    for name in ("company_data", "direction", "grid_intensity_feed", "ops_repo",
+                 "segment_vocabulary"):
+        spec = importlib.import_module(f"tools.{name}_contract_battery").SPEC
+        outside = set(spec.scored_outside_the_caller_population)
+        assert outside, f"{name}: no direct or repair column -- the exclusion is untestable here"
+        assert not outside & set(spec.suites), (
+            f"{name}: {sorted(outside & set(spec.suites))} is in the caller population AND "
+            f"declared as the subject's own")
+        assert len(spec.selectable) == len(set(spec.selectable)), f"{name}: duplicate suite"

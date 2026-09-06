@@ -3,6 +3,22 @@
 
 # RESULT: no contract on the busiest converged module is unproved, and two of the eight stand on one file each
 
+> **CORRECTION, 2026-09-06 — the title is true of the ten-suite population and FALSE of the caller
+> population, and the caller population is what the pre-registration asked about.** This battery's
+> spec wrote `SUITES = DIRECT_SUITES + CALLER_SUITES`, so the three suites that IMPORT the module
+> sat inside the verdict meant to answer *"did any CALLER prove this"* — the subject graded itself.
+> **On the callers alone, three of the eight contracts are unproved: M3, M4 and M8**, each killed
+> only by `W215` or `CASE`. M4 is the sharpest — three suites kill it and all three are the
+> subject's own. The eight rows below are unchanged and correct; what changed is which of their
+> killers count toward the question. Re-reduced from the same cells, no test re-run:
+> `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`.
+> The spec is repaired; `survived_all` here is now scored over six callers.
+>
+> A second correction to the same page: **`GUARD` is not the only miscount.**
+> `tests/sim/test_segment_debt_obligation.py`, listed below among the suites that "reach it through
+> a caller", imports `simulation.segment_vocabulary` directly at line 152 and is now declared a
+> direct suite. It killed nothing in this run, so no row below moves.
+
 **Measured 2026-09-06, delivery seat, isolated worktree at `e383c6328`. Claim id
 `register-low-water-evidence-convergence-sweep`. Grades
 `docs/staging/SEAT_PREREG_WHICH_SUITE_HOLDS_THE_SEGMENT_VOCABULARY_2026-09-06.md`, which was
