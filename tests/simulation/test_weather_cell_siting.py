@@ -10,7 +10,7 @@ import json
 import pytest
 
 from simulation import weather_cell_siting as wcs
-from simulation.weather_inputs import _weather_source_customer_id
+from simulation.weather_inputs import _WEATHER_SOURCE_CUSTOMERS, _weather_source_customer_id
 
 LONDON = {"lat": 51.5074, "lon": -0.1278, "region": "London"}
 BIRMINGHAM = {"lat": 52.4862, "lon": -1.8904, "region": "Birmingham"}
@@ -90,6 +90,74 @@ def test_an_unsited_coordinate_is_refused_and_never_placed_by_nearest_anything()
 
     # A premise with no coordinates at all — every drawn population customer, today.
     assert wcs.cell_matched_site({"lat": None, "lon": None, "region": "GB"}) is None
+
+
+def test_a_premise_with_no_coordinate_is_refused_for_that_reason_and_not_told_to_re_derive():
+    """DEFECT: a refusal naming a remedy that cannot work.
+
+    A location with `lat: None` and an unsited real coordinate both came back "regenerate with
+    `--derive`" until 2026-09-06. They are different failures with opposite fixes: re-deriving the
+    GB grid can site a real coordinate and can NEVER site a missing one. Every household the world
+    draws is the second case, so the seam's most common refusal pointed at the wrong lane.
+
+    Keyed to the PROPERTY (the two refusals are distinguishable and the no-coordinate one does not
+    prescribe `--derive`), not to today's wording, so it stays honest if the text is rewritten and
+    goes red if the branches are ever collapsed back together.
+    """
+    no_coordinate = {"lat": None, "lon": None, "region": "UNKNOWN_SYNTHETIC"}
+    unsited = {"lat": 52.0000, "lon": -1.0000, "region": "nowhere in particular"}
+
+    bare = wcs.siting_refusal(no_coordinate)
+    assert wcs.siting_refusal(unsited) != bare, "two different failures, one refusal"
+    assert "--derive" in wcs.siting_refusal(unsited), (
+        "a real unsited coordinate IS fixed by re-deriving and the refusal must still say so"
+    )
+    assert "coordinate" in bare and "None" in bare
+    assert "draw" in bare.lower(), "the refusal must name the lane that can actually fix it"
+    assert not bare.startswith(f"{no_coordinate['region']!r} has not been sited"), (
+        "the no-coordinate case is answering through the unsited branch again"
+    )
+
+
+def test_no_household_in_this_world_can_reach_the_cell_substitution_branch():
+    """DEFECT (the seat's own, 2026-09-06): reading W1_14's blocker off the supply book's LOCATIONS
+    when the atom's subject is its HOUSEHOLDS — so 'two pulls close it' was recorded as this atom's
+    precondition while buying nothing for household heat load.
+
+    Two independent reasons the branch is unreachable, asserted separately because they are fixed by
+    different lanes and either one could be closed alone:
+
+      1. every resi premise in the supply book answers at step 1 (its location has an archive), so
+         it never consults step 2 — the two un-archived locations hold only I&C premises;
+      2. every DRAWN household carries no coordinate, so step 2 refuses it whatever the archive.
+
+    This control is DELIBERATELY the shape that goes red when the world gets better: a resi premise
+    at a fifth location, or a coordinate at the draw, breaks it. That is the point — it is pinned to
+    the claim "the cells drive household heat load" being FALSE, and it must fail the moment that
+    stops being true. Do not weaken it; delete it and move W1_14's level.
+    """
+    from company.interfaces.supply_book import registered_supply_points
+    from simulation.population_draw import draw_population
+
+    resi = [p for p in registered_supply_points() if p["segment"] == "resi"]
+    assert resi, "the supply book holds no households at all — this measures nothing"
+    for premise in resi:
+        # The claim is about which STEP answers, not which CSV it lands on. Asserting the
+        # destination would pass if the cell branch started answering and returned the same site,
+        # which is precisely the change this control exists to notice.
+        assert any(s["location"] == premise["location"] for s in _WEATHER_SOURCE_CUSTOMERS), (
+            f"{premise['customer_id']} no longer has an exact-location archive, so it now reaches "
+            "the cell branch — W1_14's household gap has begun to close and this control has done "
+            "its job"
+        )
+        assert _weather_source_customer_id(premise) in ("C1", "C2", "C3", "C4")
+
+    drawn = [c.to_customer_dict() for c in draw_population(7, acquisitions_per_year_lambda=40.0)]
+    assert len(drawn) > 100, "too few drawn households for this to say anything"
+    assert all(wcs.cells_for_location(c["location"]) is None for c in drawn), (
+        "a drawn household is now sited in the derived cells — the coordinate reached the draw"
+    )
+    assert all(c["location"]["lat"] is None for c in drawn), "and that is why: no coordinate"
 
 
 def test_the_refusal_names_the_driver_that_disagreed():

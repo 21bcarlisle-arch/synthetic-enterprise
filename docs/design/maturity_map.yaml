@@ -1757,21 +1757,24 @@
   #   "draw it ahead of the next un-drawn product item"; sequencing against its siblings is carried
   #   structurally by depends_on rather than by inventing a 46th rung on a scale that has none.
   provenance: director_ruling
-  # WHAT THIS ATOM WAITS ON, named -- and it is NOT W1_23 or W1_24. Both of those DEPEND ON this
-  # atom and open when it reaches level 3, so deferring the wiring to them is circular. The blocker
-  # is ARCHIVE BREADTH -- and on 2026-09-06 both the COUNT and the REASON were corrected. "17 more
-  # pulls" counts the PARTITION (21 cells less the 4 occupied), which is W1_23's precondition, not
-  # this atom's. THIS atom waits on the BOOK: six distinct supply-book locations, four with
-  # archives, so it is TWO pulls. Both figures are real and count different sets.
+  # BLOCKER RESTATED 2026-09-06: "17 pulls" counted the partition, "two pulls" the supply book's
+  # LOCATIONS, and neither set is this atom's subject. The successor is the `depends_on` edge below,
+  # not `blocked_on`, which cannot name an atom id today (SEAT_FINDING_BLOCKED_ON_CANNOT_NAME_AN_
+  # ATOM_2026-09-06.md).
   blocked_on: null
-  block_reason: "L1->L2 needs weather ARCHIVE breadth, not more derivation, and TWO pulls close it:
-    `sim/weather_data/` holds 4 real Open-Meteo sites and the supply book has 6 distinct locations,
-    so Birmingham and Teesside are the whole gap. Attempted 2026-09-06, refused HTTP 429 'Daily API
-    request limit exceeded' -- external, clears on its own. That attempt found the header-only-CSV
-    data-loss defect fixed the same day (staged SEAT_FINDING, 2026-09-06). Measured by
-    `simulation/weather_cell_siting.derive()`, recorded in `sim/weather_cells/site_cells.json`. NOT
-    deferred to W1_23/W1_24 -- both depend_on this atom and open when it lands."
-  depends_on: []
+  block_reason: "L1->L2 needs a COORDINATE AT THE DRAW, not archive breadth, and W2_18 owns it
+    (file_scope already names `population_draw.py`); W1_24 is downstream. Of 18 supply points 14
+    resolve by exact location and 0 by the cell branch; all 4 refusals are I&C, no resi premise sits
+    at an un-archived location, so the two pulls move household coverage 100%->100%. And 100% of
+    drawn households carry `lat: None` from `population_draw.to_customer_dict`, so the cell branch
+    refuses every one whatever the archive holds -- even under `draw_region=True`, where ten real GB
+    regions are drawn and none carries a coordinate. That placeholder is protected
+    (`test_region_is_explicit_placeholder_not_fabricated`) and a coordinate must NOT be fabricated in
+    the weather seam. Held by `test_no_household_in_this_world_can_reach_the_cell_substitution_
+    branch`, keyed to the claim being FALSE so it reds when the world improves. Figures and poison
+    rounds: SEAT_FINDING_W1_14_WAITED_ON_THE_WRONG_GAP_2026-09-06.md. Still open, but no longer this
+    atom's precondition: the I&C gap is TWO pulls, HTTP 429 twice on 2026-09-06."
+  depends_on: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
   # `tools/generate_weather_cells_data.py` was in this scope until 2026-09-06 and HAS NEVER EXISTED
