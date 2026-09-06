@@ -95,6 +95,58 @@ _FAILED = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)", re.MULTILINE)
 #: no fingerprint in the family.
 _ERRORED = re.compile(r"^ERROR\s+(\S+)", re.MULTILINE)
 
+#: THE OTHER HALF OF THE SAME DOOR. `died_by_setup_error_only` watches ERROR-at-setup, where no
+#: control body ran at all. A wrong-class exception raised INSIDE a control body -- before it
+#: reaches any assertion -- is a FAILED, so it clears that stamp and the cell reads as a control
+#: firing when none did.
+#:
+#: MEASURED 2026-09-06 on `grid_intensity_fuel_mix` row M10 at fingerprint `aa5ce7785789`: DIED,
+#: `died_by_setup_error_only` FALSE, `errored` EMPTY, naming a control -- and BOTH control bodies
+#: were red on `AttributeError: 'list' object has no attribute 'items'` from
+#: `sim/elexon_fuel_outturn.py:845`, before either asserted anything. This is the family's known
+#: weak spot: M2/M11 and M10/M14/M15 exist BECAUSE a wrong-type substitution reddens a suite on
+#: the type system rather than on the property.
+#:
+#: WHY NO EXTRA PASS. The claim this work was drawn on said the class "is not in that output at
+#: all" and that the round therefore had to change. Measured, it is not so: `-rfE` already prints
+#: `FAILED <node> - <Class>: <message>`. What removes it is TERMINAL WIDTH -- pytest truncates the
+#: summary line to `COLUMNS`, which defaults to 80 when the output is captured, and every node id
+#: in this repository is longer than 80 characters on its own. So the class was being printed and
+#: then cut off, and the fix is to stop capturing at 80. `_WIDE_COLUMNS` below is that fix, and it
+#: costs nothing: no second pytest pass, which matters on a family whose slowest cell is 655s.
+#:
+#: A RESULT field, not a spec field: not in the hashed payload, so it moves no fingerprint.
+_RED_DETAIL = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)(?:\s+-\s+(.*?))?\s*$", re.MULTILINE)
+
+#: Wide enough that no node id in this repository plus its exception class can be truncated. The
+#: longest test path here is ~140 characters; 1,000 leaves the class intact with room to spare.
+_WIDE_COLUMNS = "1000"
+
+#: pytest's rewritten bare `assert x == y` prints as `assert x == y` with no class name at all.
+_BARE_ASSERT = re.compile(r"^assert(\s|$)")
+
+#: The classes that mean A CONTROL REACHED ITS VERDICT. `AssertionError` is an assert with a
+#: message; `Failed` is `pytest.fail(...)` and `pytest.raises(...)` not raising -- both are the
+#: control refusing on purpose. Every other class is the body dying before it could judge.
+_CONTROL_FIRED = frozenset({"AssertionError", "Failed"})
+
+#: `Name:` or a bare `Name` at the head of the summary detail.
+_RED_CLASS = re.compile(r"^([A-Za-z_][\w.]*)\s*(?::|$)")
+
+
+def _red_class(detail: str | None) -> str | None:
+    """The exception class behind one red, or `None` where the line could not say.
+
+    `None` IS NOT A CLEAN BILL. It is "the output did not carry the class", and every stamp built
+    on it fails closed to `None` rather than to the flattering `False`.
+    """
+    if not detail:
+        return None
+    if _BARE_ASSERT.match(detail):
+        return "AssertionError"
+    matched = _RED_CLASS.match(detail)
+    return matched.group(1) if matched else None
+
 
 @dataclass(frozen=True)
 class BatterySpec:
@@ -254,15 +306,30 @@ def _run_suite(suite: str, deselect: tuple[str, ...], stop_first: bool) -> dict:
     if stop_first:
         cmd.append("-x")
     started = time.time()
-    proc = subprocess.run(cmd, cwd=PROJECT, capture_output=True, text=True)
+    # COLUMNS IS LOAD-BEARING, not cosmetic. Captured output has no tty, so pytest truncates its
+    # short summary to 80 columns and every node id here is longer than that on its own -- which
+    # silently deletes the ` - <Class>: <message>` tail that `_red_class` reads.
+    env = {**os.environ, "COLUMNS": _WIDE_COLUMNS}
+    proc = subprocess.run(cmd, cwd=PROJECT, capture_output=True, text=True, env=env)
     out = proc.stdout + proc.stderr
+    # Last writer wins per node, which is what we want: one node reported twice is reported the
+    # same way twice, and a `None` detail never overwrites a class we already parsed.
+    red_classes: dict[str, str | None] = {}
+    for node, detail in _RED_DETAIL.findall(out):
+        found = _red_class(detail)
+        if found is not None or node not in red_classes:
+            red_classes[node] = found
     return {
         "suite": suite,
         "returncode": proc.returncode,
         "failed": sorted(set(_FAILED.findall(out))),
         "errored": sorted(set(_ERRORED.findall(out))),
+        "red_classes": dict(sorted(red_classes.items())),
         "seconds": round(time.time() - started, 1),
-        "tail": out.strip().splitlines()[-3:],
+        # SQUEEZED, because `COLUMNS` above pads pytest's progress and banner lines out to its
+        # full width -- and unsqueezed those three lines are ~3kB of spaces in every cell of
+        # every results file. The content is unchanged; only runs of padding are collapsed.
+        "tail": [re.sub(r"\s{3,}", "  ", line) for line in out.strip().splitlines()[-3:]],
     }
 
 
@@ -506,6 +573,33 @@ def rows_without_a_caller_verdict(spec: BatterySpec, mutations: dict) -> list[st
             if len([s for s in r.get("per_suite", {}) if s in spec.suites]) < len(spec.suites)]
 
 
+def _no_verdict_was_reached(r: dict) -> bool | None:
+    """Did this kill come only from control bodies that died before asserting anything?
+
+    THREE-VALUED, and the third value is the point. `None` means the run did not say what class
+    the red was, which is not evidence that a control fired -- `False` there would be the
+    flattering answer and the one a reader cannot tell from a real verdict.
+
+    Scoped to reds that RAN A BODY (`failed` minus `errored`). A setup error never entered a body,
+    so it is `died_by_setup_error_only`'s subject and not this one's, and a row cannot be stamped
+    by both. A cell whose kill was entirely setup errors is `False` here, correctly: nothing is
+    being said about bodies, because there were none.
+    """
+    # `r["died"]`, not `r.get("died")`: a cell without it is malformed, and a missing key must
+    # raise rather than resolve to the flattering "no, nothing to say here".
+    if not r["died"]:
+        return False
+    body_reds = set(r.get("failed") or ()) - set(r.get("errored") or ())
+    if not body_reds:
+        return False
+    classes = [(r.get("red_classes") or {}).get(node) for node in body_reds]
+    if any(cls in _CONTROL_FIRED for cls in classes):
+        return False        # a control reached its verdict; the kill is evidence.
+    if any(cls is None for cls in classes):
+        return None         # the output did not carry the class. Fail closed.
+    return True
+
+
 def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reaches: dict,
            grades_text: dict) -> None:
     """One mutation against each outstanding suite, scored as a row rather than a verdict."""
@@ -526,11 +620,18 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
         # red so the log cannot show it.
         r["died_by_setup_error_only"] = bool(
             r["died"] and r["failed"] and set(r["failed"]) == set(r["errored"]))
+        # THE SAME DOOR ONE ROOM OVER. Every red that RAN A BODY died on a class that is not an
+        # assertion, so the bodies executed and none of them ever reached a verdict -- the kill
+        # grades the type system, not the contract. Disjoint from the stamp above by construction:
+        # that one is about reds with no body at all, this one only looks at reds that had one.
+        r["died_by_wrong_class_in_a_control_body"] = _no_verdict_was_reached(r)
         row["per_suite"][suite] = r
         print(f"  {suite}: {'DIED' if r['died'] else 'survived'} "
               f"{'(UNREACHABLE -- proves nothing) ' if r['survived_but_unreachable'] else ''}"
               f"{'(TEXT-GRADER -- may not have run the line) ' if r['died_but_grades_text'] else ''}"
               f"{'(SETUP ERROR -- no control body ran) ' if r['died_by_setup_error_only'] else ''}"
+              f"{'(WRONG CLASS -- the body ran and never asserted) ' if r['died_by_wrong_class_in_a_control_body'] else ''}"
+              f"{'(CLASS UNREADABLE -- cannot say a control fired) ' if r['died_by_wrong_class_in_a_control_body'] is None else ''}"
               f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
     # `survived_all` is the PRE-REGISTERED question and its population is the CALLER suites.
     # The repair column and the subject's own direct suites are reported beside it and never
