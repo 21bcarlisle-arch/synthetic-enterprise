@@ -425,3 +425,110 @@ def test_the_confound_is_carried_and_the_cause_is_NOT_attributed():
     assert "cannot be attributed" not in quiet, (
         "the confound sentence is emitted regardless of the evidence, so it says nothing")
     assert "consistency check" in quiet
+
+    # THE THIRD LEG, and it is the one the real book now takes (2026-09-06). The 214-against-213
+    # that made the two inseparable was an artefact of counting a household's gas leg as a second
+    # household; keyed on the household the book is a CONSTANT 149 across the same 32 runs while
+    # the rung still steps. A refusal to attribute is only honest while something else moved -- if
+    # it survives into a window where nothing else did, it is a hedge, which is the shape this
+    # instrument has already published once.
+    stepped = _reduce([(71, 149, 0.5093, 0.2537, False), (69, 149, 0.6308, 0.0249, True)])
+    named = r._headline(best, verdict, {"clears": False}, 149, 45, stepped)["what_it_does_not_say"]
+    assert "cannot be attributed" not in named, (
+        "nothing but the rung moved, so the refusal to attribute is now a hedge: " + named)
+    assert "the same 149 households on every one" in named, named
+    assert "IS the cause" in named, named
+    # ...and the denominator is the book, not a literal. It read "over two hundred" against a book
+    # of 149 for as long as the miscount stood.
+    assert "over two hundred" not in named, named
+    assert "in a book of 149" in named, named
+
+
+def _payload_with_a_gas_leg() -> dict:
+    """A run output shaped like the real one: the two log families that key on different halves.
+
+    `dynamic_pricing_log` writes the SUPPLY POINT (`C1`, `C1g`); `churn_journey_log` writes the
+    household `run_phase2b` calls the billing account (`C1`). That split is the defect, so the
+    fixture has to carry both or the control is graded against a book that never had it.
+    """
+    return {
+        "dynamic_pricing_log": [
+            {"customer_id": "C1", "commodity": "electricity", "portfolio_premium_pct": 2.0},
+            {"customer_id": "C1g", "commodity": "gas", "portfolio_premium_pct": 4.0},
+            {"customer_id": "C5", "commodity": "electricity", "portfolio_premium_pct": 3.0},
+        ],
+        "churn_journey_log": [
+            {"customer_id": "C1", "perceived_bill_saving_gbp": 40.0},
+            {"customer_id": "C5", "perceived_bill_saving_gbp": 10.0},
+        ],
+    }
+
+
+def test_a_gas_leg_and_its_electricity_point_are_ONE_household_not_two():
+    """The defect: `households: 213` on a book of 149, because `C1` and `C1g` were counted apart.
+
+    Keying the feature vector on the raw `customer_id` split every dual-fuel household in two and
+    then handed each half to the elasticity lookup, which answers for any string -- so 82 of 213
+    rows on the real run output were graded against a target belonging to nobody. The join is the
+    fix, and this asserts the join, not the count it happened to produce that day.
+    """
+    got = r.observable_rows(_payload_with_a_gas_leg())
+
+    assert set(got) == {"C1", "C5"}, (
+        "the gas leg must fold into its electricity point's household, not stand as its own: "
+        f"{sorted(got)}")
+    # BOTH SIDES OF THE JOIN REACH ONE ROW. Asserting only the key count would pass on an
+    # implementation that dropped the gas leg's rows entirely, which is the other way to get two.
+    assert got["C1"]["perceived_bill_saving_gbp"] == 40.0, got["C1"]
+    assert got["C1"]["portfolio_premium_pct"] == 3.0, (
+        "the household's premium is the mean over its own supply points' priced terms "
+        f"(2.0 and 4.0): {got['C1']}")
+    # The household that never had a gas leg is untouched -- the other leg of the partition, so a
+    # fold that swallowed everything into one row cannot pass this.
+    assert got["C5"] == {"portfolio_premium_pct": 3.0, "perceived_bill_saving_gbp": 10.0}
+
+
+def test_the_target_column_REFUSES_a_supply_point_leg_rather_than_hashing_it_an_elasticity():
+    """The fail-open underneath: the lookup has no roster, so nothing below here can notice.
+
+    Both legs of the partition in one control, because a guard that refuses EVERYTHING passes every
+    test of a refusal. `C3_2` is the case that made a book-membership test wrong -- a successor
+    registration after a home move is a household this run created and the drawn book has never
+    heard of -- so it must pass the same guard `C1g` fails.
+    """
+    from simulation import live_population
+    from simulation.population_draw import price_elasticity_for_customer
+
+    live_population.live_population()
+    seed = live_population.run_base_seed()
+    # REACHABILITY OF THE DEFECT, asserted before the refusal that exists because of it: the lookup
+    # returns a perfectly ordinary elasticity for a leg id, and a different one from its household's.
+    # If this ever stops being true the refusal below is belt-and-braces rather than load-bearing.
+    leg = price_elasticity_for_customer("C1g", seed)
+    assert isinstance(leg, float) and leg > 0.0
+    assert leg != price_elasticity_for_customer("C1", seed)
+
+    with pytest.raises(SystemExit) as refused:
+        r.true_traits(["C1", "C1g", "C5"])
+    assert "C1g" in str(refused.value), str(refused.value)
+
+    traits, got_seed = r.true_traits(["C1", "C3_2", "C5"])
+    assert got_seed == seed
+    assert set(traits) == {"C1", "C3_2", "C5"}, (
+        "a successor registration is its own household and must survive the guard: " + str(traits))
+
+
+def test_the_fold_is_reported_so_a_book_that_shrank_by_a_third_is_visible():
+    """`households: 213` was wrong for two days and no surface could say so.
+
+    Reported and never asserted on: a book with no dual-fuel household in it folds nothing, and that
+    is a fact about the book rather than a failure. Both readings are exercised here so the census
+    cannot be a constant.
+    """
+    folded = r.leg_fold_census(_payload_with_a_gas_leg())
+    assert folded == {"supply_points_in_the_run_output": 3,
+                      "households_they_belong_to": 2,
+                      "supply_point_legs_folded_into_a_household": 1}, folded
+
+    elec_only = {"dynamic_pricing_log": [{"customer_id": "C1"}, {"customer_id": "C5"}]}
+    assert r.leg_fold_census(elec_only)["supply_point_legs_folded_into_a_household"] == 0

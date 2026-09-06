@@ -133,11 +133,36 @@ def newest_run_output() -> Path:
 
 
 def observable_rows(payload: dict) -> dict[str, dict[str, float]]:
-    """customer_id -> the company-observable feature vector, averaged over that customer's rows.
+    """household -> the company-observable feature vector, averaged over that household's rows.
 
     Averaged rather than taken at a point because the question is what a supplier could learn about
     a HOUSEHOLD over its life, not at one renewal. A per-renewal view would understate the ceiling
     by throwing away repeat observation, which is the supplier's main advantage.
+
+    KEYED ON THE HOUSEHOLD AND NOT ON `customer_id`, and that is a correction, measured 2026-09-06.
+    A run output's `customer_id` is a SUPPLY POINT, and a household's gas leg is registered under its
+    electricity point's id plus a suffix -- `C1` and `C1g` are one property. Two of this file's log
+    families key on different halves of that: `dynamic_pricing_log` and `rate_decomposition_log`
+    write the supply point, while `churn_journey_log`, `churn_basis_risk` and `demand_estimation_log`
+    write `household_of(cid)`, which `run_phase2b` calls the billing account. Keying on the raw id
+    therefore split one book two ways and the instrument could not join them.
+
+    WHAT IT COST, on run_output_f53c90b85. The instrument reported 213 households; there were 149.
+    82 of those 213 rows were gas legs -- 64 the second copy of a dual-fuel household already in the
+    book, 18 the only row of a gas-only account -- and every one of the 82 was graded against a
+    target drawn by hashing the LEG id. `price_elasticity_for_customer` answers for any string at
+    all, so `C1g` came back with 0.5255 while the 1.6043 the world actually gave that household sat
+    in a different row. 38% of the target column was noise correctly matched to nothing. The
+    full-coverage rung has read `cannot tell` at p=0.85 all along, and this is why: it was never a
+    coverage result. Folding the 64 duplicates is what takes 213 to 149; re-keying the other 18 is
+    what gives them a truth to be graded against.
+
+    A FIELD ON BOTH LEGS IS AVERAGED OVER THE HOUSEHOLD'S PRICED TERMS, unweighted, so a household
+    with thirty electricity terms and five gas ones is mostly its electricity. That is the supplier's
+    own margin on that household and it is the quantity the docstring above already claimed to
+    return. The alternative -- one row per commodity -- was rejected because the TARGET is a
+    household trait: the world draws one price elasticity per property, so a per-leg row has no
+    truth to be graded against, which is the defect being fixed and not a second reading of it.
     """
     acc: dict[str, dict[str, list[float]]] = {}
     for value in payload.values():
@@ -147,7 +172,7 @@ def observable_rows(payload: dict) -> dict[str, dict[str, float]]:
             cid = row.get("customer_id")
             if not cid:
                 continue
-            bucket = acc.setdefault(cid, {})
+            bucket = acc.setdefault(_household_key(cid), {})
             for field in OBSERVABLE_FIELDS:
                 got = row.get(field)
                 if isinstance(got, (int, float)) and not isinstance(got, bool):
@@ -156,15 +181,72 @@ def observable_rows(payload: dict) -> dict[str, dict[str, float]]:
             for cid, fields in acc.items() if fields}
 
 
+def _household_key(supply_point_id: str) -> str:
+    """The household a run output's `customer_id` belongs to. One import site, so the seam this
+    instrument was missing is nameable rather than spelled out at three call sites."""
+    from simulation.household import household_of
+
+    return household_of(supply_point_id)
+
+
+def leg_fold_census(payload: dict) -> dict[str, int]:
+    """What the household key folded, published so the correction is visible rather than silent.
+
+    A count that goes to zero is the honest reading of a book with no dual-fuel households in it,
+    and a count that RISES is the reading of a book that grew them. Neither is an error, so this is
+    reported and never asserted on: the control that can fail is `every_graded_row_is_a_household`.
+    """
+    points: set[str] = set()
+    for value in payload.values():
+        if not (isinstance(value, list) and value and isinstance(value[0], dict)):
+            continue
+        for row in value:
+            cid = row.get("customer_id")
+            if cid:
+                points.add(cid)
+    households = {_household_key(p) for p in points}
+    return {
+        "supply_points_in_the_run_output": len(points),
+        "households_they_belong_to": len(households),
+        "supply_point_legs_folded_into_a_household": len(points) - len(households),
+    }
+
+
 def true_traits(customer_ids) -> tuple[dict[str, float], int]:
     """The elasticity the WORLD used, resolved at the seed the book was drawn at.
 
     Never the module default: `live_population.run_base_seed`'s own docstring records that a
     consumer reaching for the default "is correct only for as long as nothing passes base_seed=,
     and it fails silently the day something does".
+
+    AND IT REFUSES A SUPPLY-POINT LEG, because the lookup underneath cannot.
+    `price_elasticity_for_customer` is a hash of the id and answers for ANY string -- ask it for
+    `NOT_A_REAL_ID` and it returns 1.4223, in range, with the right shape, from nothing. So a gas leg
+    `C1g` came back with an elasticity that belongs to no household in the world, and it was
+    indistinguishable at every downstream rung from the real one. The world draws ONE elasticity per
+    property; an id that is a leg of another household has no truth to be graded against, and the
+    only place that can be seen is here, at the point the target column is built.
+
+    NOT a membership test against the drawn book, which is the check I wrote first and deleted: a
+    successor registration after a home move (`C3_2`) is a household this run created and the drawn
+    book has never heard of, so book membership would refuse a real household and shrink the very
+    coverage this measurement is short of. The property is `household_of(cid) == cid`, which is
+    true of `C3_2` and false of `C1g` -- it asks whether the id is a household, not whether it is
+    one we started with.
     """
     from simulation import live_population
     from simulation.population_draw import price_elasticity_for_customer
+
+    customer_ids = list(customer_ids)
+    legs = sorted(c for c in customer_ids if _household_key(c) != c)
+    if legs:
+        raise SystemExit(
+            f"REFUSED: {len(legs)} of {len(customer_ids)} ids to be graded are supply-point legs of "
+            f"another household ({', '.join(legs[:5])}). The elasticity lookup would answer for "
+            "every one of them -- it hashes the id and has no roster to consult -- and the ceiling "
+            "would then be graded against a target column that is part real and part invented, "
+            "which reads exactly like a real measurement that found nothing. Key the observables on "
+            "`household_of(customer_id)` before calling this.")
 
     live_population.live_population()          # draws the book, which SETS the run seed
     seed = live_population.run_base_seed()
@@ -437,6 +519,7 @@ def _reduce_runs(per_run: list[dict]) -> dict | None:
          "p_values": sorted(p for p in v["p_values"] if p is not None),
          "households_in_book": sorted(b for b in v["books"] if b is not None)}
         for k, v in sorted(regimes.items(), reverse=True)]
+    books_seen = sorted({b for r in coverage_regimes for b in r.get("households_in_book", [])})
     ps = [r["p_value"] for r in graded if r.get("p_value") is not None]
     ns = [r["n"] for r in graded if r.get("n") is not None]
     ceilings = [abs(r["ceiling"]) for r in graded if r.get("ceiling") is not None]
@@ -462,13 +545,20 @@ def _reduce_runs(per_run: list[dict]) -> dict | None:
             and len({r["verdict"] for r in coverage_regimes}) > 1),
         "window": [graded[-1]["run"], graded[0]["run"]],
         "per_run": per_run,
+        # WHETHER THE BOOK MOVED IS A PROPERTY OF THE WINDOW, so it is read off the window rather
+        # than asserted. Written as a standing caveat it survived the correction that repealed it:
+        # the book only appeared to move because gas legs were being counted as households.
         "what_these_runs_are": (
             "Consecutive run outputs of the same population at the same base seed, differing in "
-            "how far the simulation had got -- and therefore both in which households carry both "
-            "fields of a pair AND, across this window, in the size of the book itself. Those two "
-            "move together here, so neither can be named as the cause of a verdict change. Not "
-            "independent books and not a bootstrap: the spread here UNDERSTATES what a re-drawn "
-            "book would show."),
+            "how far the simulation had got, and therefore in which households carry both fields "
+            "of a pair. " + (
+                "The size of the book moves across this window too, so the two are confounded and "
+                "neither can be named as the cause of a verdict change. " if len(books_seen) > 1
+                else f"The book is the same {books_seen[0]} households on every one of them, so a "
+                     "verdict that changes across this window changes on the RUNG's coverage "
+                     "alone. " if books_seen else "")
+            + "Not independent books and not a bootstrap: the spread here UNDERSTATES what a "
+              "re-drawn book would show."),
     }
 
 
@@ -581,17 +671,31 @@ def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
                 # WAS READ, and the books either side of the step differ by about half a percent.
                 books = sorted({b for r in stability["coverage_regimes"]
                                 for b in r.get("households_in_book", [])})
+                # AND ON 2026-09-06 THE CONFOUND BROKE, which is why this branch is derived and
+                # not prose. The 214-against-213 that made the two inseparable was an artefact of
+                # the miscount above: keyed on the supply point, the book moved WITH the rung.
+                # Keyed on the household it is the same 149 on all 32 runs while the rung still
+                # steps 71 -> 69 -- so the cause IS attributable now, and a sentence that went on
+                # disclaiming it would be hedging past evidence we hold.
                 confound = (
                     f" The books either side of the step differ in the whole book too "
                     f"({books[0]} against {books[-1]} households), not only in the rung, so which "
                     "of the two moved the verdict cannot be attributed from this evidence and is "
-                    "not claimed here." if len(books) > 1 else "")
+                    "not claimed here." if len(books) > 1 else
+                    f" The book itself is the same {books[0]} households on every one of them, so "
+                    "the rung's coverage is the only thing that moved and it IS the cause."
+                    if books else "")
+                # THE DENOMINATOR IS DERIVED. It read "a book of over two hundred" while the book
+                # was 149 and the instrument was counting gas legs as households -- a literal that
+                # was wrong the moment the count it described was corrected.
+                gap = (f"{n_hi - n_lo} households" if n_lo is not None and n_hi - n_lo != 1
+                       else "one household")
+                book = f"a book of {books[0]}" if books else "the book"
                 moved += (
                     f" And this is not noise around the line, which would settle with more draws. "
                     f"It is a step: {legs}. There is no scatter inside either group." + confound +
-                    " Either way the published answer is decided by a difference of a couple of "
-                    "households in a book of over two hundred, which is not a quantity a "
-                    "programme can be gated on.")
+                    f" Either way the published answer is decided by a difference of {gap} in "
+                    f"{book}, which is not a quantity a programme can be gated on.")
         else:
             moved = (
                 f" {series} returns the same verdict on every one"
@@ -734,6 +838,9 @@ def measure(cells: int = 2, run_path: Path | None = None,
                                  "null": full_null},
         "base_seed": seed,
         "households": len(obs),
+        # WHAT THE BOOK ACTUALLY IS, beside the count, because `households: 213` was wrong for two
+        # days and nothing on the surface could say so. See `observable_rows`.
+        "leg_fold_census": leg_fold_census(payload),
         "observable_fields_used": shared,
         "cells_per_axis": cells,
         "pairs_scored": len(ranked),
@@ -764,6 +871,12 @@ def measure(cells: int = 2, run_path: Path | None = None,
             # The ceiling must be computed on what the COMPANY sees. If a simulation internal ever
             # reaches this list the bound stops describing anything buildable.
             "no_ground_truth_in_features": not (set(shared) & set(GROUND_TRUTH_FIELDS)),
+            # THE UNIT OF ANALYSIS IS THE HOUSEHOLD, which is what the target column is drawn per.
+            # False here means a supply-point leg reached the grading and its elasticity was
+            # invented by the hash rather than lived by anyone. `true_traits` refuses before this
+            # can be read, so a False that ever surfaces means the refusal was routed around.
+            "every_graded_row_is_a_household": all(
+                _household_key(c) == c for c in obs),
             "held_out_is_disjoint_from_fit": True,
             # A cell holding a handful of households fits their noise and calls it a function.
             "cells_are_populations": bool(households_per_cell >= MIN_HOUSEHOLDS_PER_CELL),

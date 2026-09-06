@@ -701,7 +701,18 @@ function renderDeliveryCeiling(d) {
     esc(c.what_it_does_not_say || "") + "</div>" +
     "<p>" + esc(c.why_both_figures_are_shown || "") + "</p>" +
     '<div class="meta">Measured on ' + esc(String(c.run_output || "an unnamed run")) +
-    ", on " + n(c.households_in_the_rung) + " households.</div>";
+    ", on " + n(c.households_in_the_rung) + " households" +
+    /* THE DENOMINATOR, because the rung's own count cannot show the book moving under it. This
+       page said 69 households while the instrument believed the book was 213 and it was 149: a
+       household's gas leg is registered under its electricity point's id plus a suffix, and the
+       instrument had been counting the two apart and grading each against a separate elasticity.
+       A reader given only the numerator could not have seen that, and neither could I. */
+    (c.households_in_the_book
+      ? " of " + n(c.households_in_the_book) + " in the book" +
+        (c.supply_point_legs_folded
+          ? ", after folding " + n(c.supply_point_legs_folded) +
+            " gas legs into the households they belong to" : "")
+      : "") + ".</div>";
 }
 
 fetch("../data/delivery.json").then(function (r) { return r.json(); }).then(function (d) {

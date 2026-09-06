@@ -252,6 +252,15 @@ def the_number_the_programme_rests_on() -> dict:
         "available": True,
         "run_output": got.get("run_output"),
         "households_in_the_rung": best.get("n"),
+        # THE BOOK THE RUNG SITS IN, and it is here because it was WRONG on the page for two days.
+        # A run output's `customer_id` is a supply point, and a household's gas leg is registered
+        # under its electricity point's id plus a suffix -- so the instrument counted 64 dual-fuel
+        # households twice, mis-keyed 18 gas-only ones, reported 213 where there were 149, and
+        # graded all 82 gas-leg rows against an elasticity the lookup invented by hashing a leg id.
+        # A reader given "69 households in the rung" and no denominator cannot see that at all.
+        "households_in_the_book": got.get("households"),
+        "supply_point_legs_folded": (got.get("leg_fold_census") or {}).get(
+            "supply_point_legs_folded_into_a_household"),
         "reported_ceiling": best.get("held_out"),
         "in_sample": best.get("in_sample"),
         "candidates_searched": got.get("pairs_scored"),
