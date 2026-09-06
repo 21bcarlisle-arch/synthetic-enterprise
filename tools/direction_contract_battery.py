@@ -160,9 +160,13 @@ POISON_NEW = ('\nraise RuntimeError("POISON: direction.py reachability floor")'
 #: `dl.next_item(...) is None` two lines apart. Calling it a caller test understates it; putting it
 #: in `DIRECT_NODES` would discard real caller evidence. It is neither, and the row it kills gets
 #: `killed_by_a_mixed_test` instead of a verdict.
+#: ONE member, and the census had TWO until the merge that produced this file corrected it.
+#: `test_the_decision_log_is_APPEND_ONLY` reads as mixed to a taint pass that follows only return
+#: values -- it asserts on a file `d.append_decision` wrote through an ARGUMENT -- and the other
+#: lane's hand-built list had it right. It is in `DIRECT_NODES`, where it belongs. Two independent
+#: censuses disagreeing on exactly one row is how that was found.
 MIXED_NODES = (
     "tests/background/test_delivery_lane.py::test_EXPIRED_direction_offers_NOTHING",
-    "tests/background/test_delivery_seat.py::test_the_decision_log_is_APPEND_ONLY",
 )
 
 

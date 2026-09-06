@@ -179,7 +179,7 @@ def test_a_kill_by_a_MIXED_test_is_flagged_and_never_read_as_a_caller_verdict():
     `direct_suites` moves a whole FILE out of the caller population. `direction`'s contracts are
     tested INSIDE its callers' files -- 16 subject-asserting tests in `test_delivery_seat.py`
     beside 26 that exercise the seat -- so the file-level field can only choose between throwing
-    away real caller evidence and letting the subject grade itself. `subject_asserting_nodes`
+    away real caller evidence and letting the subject grade itself. `direct_nodes`
     deselects per node; `mixed_nodes` names the tests that do BOTH in one body, whose kills cannot
     be attributed either way.
 
@@ -189,7 +189,7 @@ def test_a_kill_by_a_MIXED_test_is_flagged_and_never_read_as_a_caller_verdict():
     MUTATION (must fire): return `[]` from the `killed_by_a_mixed_test` comprehension, or drop the
     `is_mixed` check so every caller kill is flagged.
     """
-    spec = _spec(mixed_nodes={CALLER_A: ("test_both_at_once",)})
+    spec = _spec(mixed_nodes=(f"{CALLER_A}::test_both_at_once",))
     row: dict = {"per_suite": {}}
     todo = list(spec.selectable)
     with pytest.MonkeyPatch.context() as mp:
@@ -214,25 +214,6 @@ def test_a_kill_by_a_MIXED_test_is_flagged_and_never_read_as_a_caller_verdict():
     assert not spec.is_mixed(CALLER_A, f"{CALLER_A}::test_both_at_once_elsewhere")
 
 
-def test_a_deselected_node_is_QUALIFIED_and_changes_the_fingerprint():
-    """Two ways this repair fails silently, and neither reddens anything on its own.
-
-    Pytest ignores `--deselect test_name` with no file path: it deselects nothing, says nothing,
-    and the run reports a full caller population it never had. And a row scored BEFORE a node was
-    deselected may carry that node's kill, so it must not be resumable into a run that claims the
-    node was excluded.
-
-    MUTATION (must fire): return the bare names from `deselected`, or drop
-    `subject_asserting_nodes` from the hashed payload.
-    """
-    spec = _spec(subject_asserting_nodes={CALLER_A: ("test_asserts_on_the_subject",)})
-
-    assert spec.deselected(CALLER_A) == (f"{CALLER_A}::test_asserts_on_the_subject",)
-    assert spec.deselected(CALLER_B) == ()
-    assert fingerprint(spec) != fingerprint(_spec())
-    assert fingerprint(spec) == fingerprint(dataclasses.replace(spec))
-
-
 def test_a_drifted_population_is_refused_at_RUN_time_and_not_only_by_a_test():
     """A test can be deselected, skipped, or simply not run before someone starts a battery. The
     run is the moment the declaration actually shrinks a population, so it checks there too.
@@ -250,26 +231,25 @@ def test_a_drifted_population_is_refused_at_RUN_time_and_not_only_by_a_test():
         "the shipped spec already disagrees with the tree, so every leg below is comparing two "
         "kinds of wrong")
 
-    seat = "tests/background/test_delivery_seat.py"
-    thinned = dict(live.subject_asserting_nodes)
-    thinned[seat] = tuple(n for n in thinned[seat]
-                          if n != "test_direction_can_NEVER_make_an_atom_harder_to_draw")
-    under = population_drift(dataclasses.replace(live, subject_asserting_nodes=thinned))
+    dropped = ("tests/background/test_delivery_seat.py"
+               "::test_direction_can_NEVER_make_an_atom_harder_to_draw")
+    thinned = tuple(n for n in live.direct_nodes if n != dropped)
+    assert len(thinned) == len(live.direct_nodes) - 1, "the node this leg removes is not declared"
+    under = population_drift(dataclasses.replace(live, direct_nodes=thinned))
     assert "test_direction_can_NEVER_make_an_atom_harder_to_draw" in under
 
     # Built from the LIVE declaration, never from `thinned`: a spec that is under-declared AND
     # over-declared reports the first problem it finds, and this leg would then be passing on the
     # other leg's message while proving nothing about over-declaration.
-    padded = dict(live.subject_asserting_nodes)
-    padded[seat] = (live.subject_asserting_nodes[seat]
-                    + ("test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all",))
-    over = population_drift(dataclasses.replace(live, subject_asserting_nodes=padded))
+    padded = live.direct_nodes + ("tests/background/test_delivery_seat.py"
+                                  "::test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all",)
+    over = population_drift(dataclasses.replace(live, direct_nodes=padded))
     assert "test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all" in over, (
         "over-declaring deselects real caller tests and reports 'no caller kills' about a "
         "population the run hollowed out itself")
 
     lane = "tests/background/test_delivery_lane.py"
-    no_mixed = population_drift(dataclasses.replace(live, mixed_nodes={}))
+    no_mixed = population_drift(dataclasses.replace(live, mixed_nodes=()))
     assert "test_EXPIRED_direction_offers_NOTHING" in no_mixed and lane in no_mixed
 
 

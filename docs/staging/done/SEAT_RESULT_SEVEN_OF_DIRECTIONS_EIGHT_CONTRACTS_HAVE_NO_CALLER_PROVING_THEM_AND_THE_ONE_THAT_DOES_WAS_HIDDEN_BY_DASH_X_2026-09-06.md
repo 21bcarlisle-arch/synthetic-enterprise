@@ -31,7 +31,7 @@ back.** `tools/subject_asserting_tests.py` is that census.
 
 So the answer to the drawn question is **neither of the two the item offered.** Not one column is
 "really the subject's own", and not all four are callers. Three are MIXED — `test_delivery_seat.py`
-holds 16 tests calling `d.validate`, `d.focus_multiplier`, `d.focus_weights`, `d.current_focus`,
+holds 17 tests calling `d.validate`, `d.focus_multiplier`, `d.focus_weights`, `d.current_focus`,
 `d.read_direction`, `d.focus_was_drawn` with `MUTATION (must fire)` docstrings restating the
 battery's own M1, M2, M3, M4, M6 and M7 — *beside* 26 that genuinely exercise the seat.
 
@@ -43,7 +43,7 @@ from the caller cell, so what remains in the cell is caller evidence and nothing
 
 ## 2. The caller-only verdict
 
-Three mixed columns re-run at fingerprint `2d872733982b` with 22 subject-asserting tests
+Three mixed columns re-run at fingerprint `2d872733982b` with the subject-asserting tests
 deselected. `test_supervisor.py` transfers without re-running: zero deselections, nothing about its
 cell changed, and `background/direction.py` and `test_supervisor.py` are byte-identical
 (`git rev-parse`) at the published run's commit `cfd4a5d4c`, at this turn's HEAD and on disk.
@@ -118,6 +118,18 @@ column carrying real caller evidence.
   item said and against the reasoning filed here. The `direct_suites` repairs at `b3938b313`
   already moved every file-level case out, and this is the residue those repairs structurally could
   not reach.
+
+> **CORRECTED 2026-09-06, after the merge with the other lane's independent census.** The counts
+> here read 16 in the seat file and 22 in total. Both were one low. A second lane measured this
+> concurrently and hand-built its list; the two agreed on 22 rows and disagreed on one --
+> `test_the_decision_log_is_APPEND_ONLY`, which this census filed as MIXED and theirs as the
+> subject's own. **Theirs was right.** The test does `d.append_decision(record, path)` and then
+> asserts on what `path` now contains, so the subject wrote through an ARGUMENT and a taint pass
+> following only RETURN values could not see it. The census now models out-parameters, the two
+> lists agree at 23, and the only remaining mixed row is
+> `test_EXPIRED_direction_offers_NOTHING`. **No measured cell moves** — the corrected row was
+> deselected under both readings, and the caller-only verdict re-runs identically on the merged
+> spec: M8 alone, on the same caller test.
 
 ## 6. What is now mechanical
 

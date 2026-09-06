@@ -158,7 +158,28 @@ def _tainted_locals(fn: ast.AST, mods: set[str], names: set[str],
     reads it once a loop or a fixture is in the way, and a census that depends on statement order
     is a census that is right about the file it was written against.
     """
-    tainted: set[str] = set()
+    # OUT-PARAMETERS, and the case that made this census disagree with a hand-built list and be
+    # WRONG. `test_the_decision_log_is_APPEND_ONLY` does
+    #
+    #     d.append_decision({...}, path)
+    #     assert len(path.read_text().splitlines()) == 2
+    #
+    # The assert names `path`, which was bound from `tmp_path` and never from the subject -- so a
+    # taint pass that follows only RETURN values reads it as caller evidence and files the test as
+    # MIXED. It is not mixed: nothing in it touches the module its file is named for. The subject
+    # wrote through the argument, and an argument the subject was handed is a channel out of it
+    # exactly as much as a return value is.
+    #
+    # Deliberately only bare NAMES passed positionally or by keyword -- the shape an out-parameter
+    # has. Tainting every expression that appears near a subject call would pull in the shared
+    # fixtures a genuine caller test also uses, and turn real caller evidence into the subject's.
+    tainted: set[str] = {
+        arg.id
+        for call in ast.walk(fn)
+        if isinstance(call, ast.Call) and _touches(call.func, mods, names)
+        for arg in list(call.args) + [kw.value for kw in call.keywords]
+        if isinstance(arg, ast.Name)
+    }
     binders = [n for n in ast.walk(fn)
                if isinstance(n, (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.For,
                                  ast.comprehension, ast.withitem, ast.NamedExpr))]

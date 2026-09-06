@@ -2,7 +2,7 @@
 
 THE DEFECT THIS GUARDS, 2026-09-06. `background/direction.py`'s battery scored four caller suites
 and published *"two contracts that no caller suite anywhere could fail on"*. Three of those four
-files are MIXED: `tests/background/test_delivery_seat.py` alone holds 16 tests that call
+files are MIXED: `tests/background/test_delivery_seat.py` alone holds 17 tests that call
 `direction`'s own API and assert on the result, with `MUTATION (must fire)` docstrings restating
 the battery's own M1, M2, M3, M4, M6 and M7. Every one of the six kills in the published table has
 a first-failure node in that set. The verdict was the subject grading itself, wearing a caller's
@@ -18,7 +18,7 @@ So the declaration is checked against the tree rather than trusted. `tools/subje
 is the census; this refuses any spec whose declaration has drifted from it.
 
 WHY THIS IS KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER: it asserts the spec MATCHES the
-census, never that direction has 22 subject-asserting tests. Adding a caller test to
+census, never that direction has 23 subject-asserting tests. Adding a caller test to
 `test_delivery_seat.py` must leave it green; moving a contract test into a caller's file without
 declaring it must turn it red.
 """
@@ -40,6 +40,11 @@ def _spec(slug: str):
     return importlib.import_module(f"tools.{slug}_contract_battery").SPEC
 
 
+def _declared(nodes: tuple[str, ...], suite: str) -> set[str]:
+    """The bare test names a spec declares for one suite, from its flat qualified-id tuple."""
+    return {n.split("::", 1)[1] for n in nodes if n.split("::")[0] == suite}
+
+
 @pytest.mark.parametrize("slug", SPECS)
 def test_every_subject_asserting_test_in_a_caller_suite_is_declared(slug):
     """MUTATION (must fire): drop one node from `SUBJECT_ASSERTING_NODES`, or empty the map."""
@@ -47,7 +52,7 @@ def test_every_subject_asserting_test_in_a_caller_suite_is_declared(slug):
     undeclared = {}
     for suite in spec.suites:
         found = set(census(spec.subject, suite).subject)
-        declared = set(spec.subject_asserting_nodes.get(suite, ()))
+        declared = _declared(spec.direct_nodes, suite)
         if found - declared:
             undeclared[suite] = sorted(found - declared)
 
@@ -69,7 +74,7 @@ def test_every_mixed_test_in_a_caller_suite_is_declared(slug):
     undeclared = {}
     for suite in spec.suites:
         found = set(census(spec.subject, suite).mixed)
-        declared = set(spec.mixed_nodes.get(suite, ()))
+        declared = _declared(spec.mixed_nodes, suite)
         if found - declared:
             undeclared[suite] = sorted(found - declared)
 
@@ -91,9 +96,9 @@ def test_nothing_is_deselected_that_the_census_does_not_name(slug):
     """
     spec = _spec(slug)
     over = {}
-    for suite, declared in spec.subject_asserting_nodes.items():
+    for suite in spec.suites:
         report = census(spec.subject, suite)
-        spurious = set(declared) - set(report.subject)
+        spurious = _declared(spec.direct_nodes, suite) - set(report.subject)
         if spurious:
             over[suite] = sorted(spurious)
 
@@ -109,19 +114,27 @@ def test_the_census_itself_can_tell_the_three_classes_apart():
     finding in its own guards. One control over the WHOLE partition, on the subject that has all
     three classes at once.
 
+    `test_delivery_lane.py` is the subject, because it is the file that holds one of each: one test
+    of `direction`, one of the lane, and one that is both. That is the whole reason the node grain
+    exists, and it makes this the only file where all three classes can be asserted at once.
+
     MUTATION (must fire): make `census` return an empty `subject`, or fold `mixed` into either
     neighbour.
     """
-    report = census("background/direction.py", "tests/background/test_delivery_seat.py")
+    report = census("background/direction.py", "tests/background/test_delivery_lane.py")
 
     assert report.subject and report.mixed and report.caller, (
         "the census cannot produce all three classes on a file that demonstrably has all three, "
         "so every comparison against it above is vacuous"
     )
-    assert "test_direction_can_NEVER_make_an_atom_harder_to_draw" in report.subject
-    assert "test_the_decision_log_is_APPEND_ONLY" in report.mixed
-    assert "test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all" in report.caller, (
-        "a test that asserts only on the seat's own API is being counted as subject evidence"
+    assert "test_a_MISSING_or_BROKEN_record_offers_nothing" in report.subject
+    assert "test_EXPIRED_direction_offers_NOTHING" in report.mixed, (
+        "the test that asserts `d.unreachable_focus(...) == []` AND `dl.next_item(...) is None` "
+        "two lines apart is being filed as one or the other"
+    )
+    assert "test_a_focus_item_with_NO_ATOM_becomes_drawable_work" in report.caller, (
+        "a test that asserts only on the lane's own API is being counted as subject evidence, "
+        "which would deselect real caller evidence from the population"
     )
 
 
@@ -170,6 +183,9 @@ def test_an_assert_made_through_a_HELPER_still_counts_as_the_subject(tmp_path):
         "def _problems(record):\n"
         "    return d.validate(record)\n"
         "\n"
+        "def _out_param(record, path):\n"
+        "    d.append_decision(record, path)\n"
+        "\n"
         "def _two_hops(record):\n"
         "    _refuses(record)\n"
         "\n"
@@ -189,6 +205,11 @@ def test_an_assert_made_through_a_HELPER_still_counts_as_the_subject(tmp_path):
         "def test_by_pytest_RAISES():\n"
         "    with pytest.raises(TypeError):\n"
         "        d.validate(None)\n"
+        "\n"
+        "def test_an_OUT_PARAMETER(tmp_path):\n"
+        "    log = tmp_path / 'decisions.jsonl'\n"
+        "    d.append_decision({'at': '1'}, log)\n"
+        "    assert log.read_text().count('at') == 1\n"
         "\n"
         "def test_a_real_caller_test():\n"
         "    assert seat.is_material({}) is not None\n",
@@ -211,6 +232,11 @@ def test_an_assert_made_through_a_HELPER_still_counts_as_the_subject(tmp_path):
     assert "test_via_TWO_hops" in report.subject, (
         "the reachability fixpoint stops at one hop, so `test -> _a -> _b(subject)` reads as "
         "caller evidence -- the exact shape the fixpoint exists for"
+    )
+    assert "test_an_OUT_PARAMETER" in report.subject, (
+        "an assert on state the subject wrote through an ARGUMENT reads as caller evidence. This "
+        "is not hypothetical: it is the one row on which this census and an independently "
+        "hand-built list disagreed, and the census was the one that was wrong"
     )
     assert "test_by_pytest_RAISES" in report.subject, (
         "a refusal proved with `pytest.raises` and no `assert` statement reads as a test with no "
@@ -247,7 +273,7 @@ def test_the_declaration_covers_every_published_kill_of_the_direction_battery():
     }
 
     for suite, nodes in published_kills.items():
-        declared = set(spec.subject_asserting_nodes.get(suite, ()))
+        declared = _declared(spec.direct_nodes, suite)
         assert set(nodes) <= declared, (
             f"{suite}: {sorted(set(nodes) - declared)} killed a mutation in the published caller "
             f"table and is not declared as asserting on the subject -- so that kill is still "
