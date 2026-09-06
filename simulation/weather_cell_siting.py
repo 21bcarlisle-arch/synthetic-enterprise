@@ -40,7 +40,30 @@ So the substitution branch below is real but narrow, and NEITHER of the two unco
 the supply book clears it: Birmingham shares Manchester's wind cell and neither its temperature nor
 its sunshine cell; Teesside shares nothing with anything. **The gap between the derivation and the
 world is archive breadth, not a lookup** -- four real pulls against a decision of twenty-one -- and
-no mapping written here can close it. That is what W1_14 waits on, and it is recorded in its row.
+no mapping written here can close it.
+
+AND THAT IS THE I&C GAP, NOT THE HOUSEHOLD ONE (measured 2026-09-06, pre-registered in
+`docs/staging/SEAT_PREREG_WEATHER_CELL_BRANCH_REACHABILITY_2026-09-06.md`)
+---------------------------------------------------------------------------------------------
+This atom's subject is *household* heat load, and the paragraph above was written from the supply
+book's LOCATIONS rather than from its HOUSEHOLDS. Asked of the households, the answer inverts:
+
+* Of the 18 registered supply points, 14 answer at **step 1** (exact location), 0 at **step 2**, and
+  4 refuse. All four refusals are `C_IC1`, `C_IC2`, `C_IC3`, `C_IC3g` -- **I&C**. Birmingham and
+  Teesside hold no resi premise at all, and **no resi premise sits at an un-archived location**.
+  So the two pulls W1_14 waits on move I&C coverage from 0/4 to 4/4 and household coverage from
+  100% to 100%.
+* Of a drawn population (210 customers, seed 7), **100%** carry `lat: None, lon: None`
+  (`population_draw.to_customer_dict`), so `cells_for_location` refuses every one. With
+  `draw_region=True` the curriculum draws ten REAL GB regions -- Wales, the North East, the East
+  Midlands -- and every one of them still has no coordinate. The world already knows the household
+  is in Wales and still cannot site it.
+
+**So step 2 is a branch no premise in this world can take**, from both ends at once: the named
+premises never need it, and the drawn premises can never satisfy it. Its only reachability evidence
+is `REACHABILITY_WITNESS` below, which says so of itself. The binding constraint on household heat
+load is a **coordinate at the draw**, which is W2_18's and W1_24's, not archive breadth -- and a
+coordinate must not be invented here to close it.
 
 The accept branch is not decorative and is not a proximity test. Seventeen 1 km cells share all
 three of London's cells, and the furthest of them is on the Cornish coast 304 km away
@@ -166,7 +189,23 @@ def siting_refusal(location: Mapping, path: Path | str = ARTEFACT) -> str:
     """Why this premise cannot take an archive site's weather — named, per R15.
 
     A refusal that says which driver disagreed is how the next pull gets prioritised; a bare None
-    would make the archive gap look like a coordinate typo."""
+    would make the archive gap look like a coordinate typo.
+
+    THREE refusals, not two, and the third was found by measuring rather than by reading. A premise
+    with NO COORDINATE is not an unsited coordinate: until 2026-09-06 both came back "regenerate
+    with `--derive`", which names a remedy that CANNOT work — re-deriving the whole GB grid puts
+    nothing in the artefact for a location whose lat is `None`. Every household this world draws is
+    in exactly that case (`population_draw.SyntheticCustomer.to_customer_dict`, 100% of 210 drawn
+    at seed 7, in both draw modes), so the most common refusal this seam can issue was the one
+    pointing at the wrong fix."""
+    if location.get("lat") is None or location.get("lon") is None:
+        return (f"{location.get('region', location)!r} carries no coordinate (lat/lon are None), so "
+                f"the derivation cannot site it. This is the DRAW's placeholder — not an archive "
+                f"gap and not a derivation gap: `simulation.population_draw.SyntheticCustomer."
+                f"to_customer_dict` renders every drawn household with lat=None, lon=None, and "
+                f"`--derive` cannot reach it. The remedy is a coordinate at the DRAW (W2_18, and "
+                f"W1_24 which waits on a population); fabricating one here is what "
+                f"`fabric_physics.latitude_for_weather_site` refuses one layer down")
     sited = cells_for_location(location, path)
     if sited is None:
         return (f"{location.get('region', location)!r} has not been sited against the derived "
