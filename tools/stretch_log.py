@@ -102,7 +102,15 @@ def commits_since_last_entry() -> tuple[int, list[str]]:
     rng = f"{head}..HEAD"
     out = _git("log", rng, "--no-merges", "--format=%h %s")
     lines = [ln for ln in out.splitlines() if ln.strip()]
-    lines = [ln for ln in lines if "stretch log" not in ln.lower()]
+
+    # EXCLUDE COMMITS THAT TOUCH THE LOG ITSELF, by PATH and not by title. The first version
+    # filtered subjects containing "stretch log", and its own landing commit -- "the why, kept:
+    # stretch reports land in a committed file..." -- said "stretch reports" and slipped through,
+    # so the log reported itself as unreported the moment it shipped. A grep for a concept's NAME
+    # is blind to the thing itself; the path cannot be dodged by phrasing.
+    rel = str(LOG.relative_to(PROJECT)) if LOG.is_absolute() else str(LOG)
+    own = {ln.split()[0] for ln in _git("log", rng, "--format=%h", "--", rel).splitlines() if ln.strip()}
+    lines = [ln for ln in lines if ln.split()[0] not in own]
     return len(lines), lines
 
 

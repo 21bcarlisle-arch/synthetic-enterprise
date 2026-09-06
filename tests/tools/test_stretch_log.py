@@ -66,7 +66,11 @@ def test_work_landed_with_no_report_is_a_FINDING_and_names_the_commits(log, monk
     subjects tell them what it is owed ABOUT, which is the difference between a nag and a prompt.
     """
     sl.append("A stretch about the premise joint and the correlations it must carry", "body")
-    monkeypatch.setattr(sl, "_git", lambda *a: "abc1234 land the fitted joint\ndef5678 fix its test")
+    # The stub must answer the RANGE query and the PATH-RESTRICTED one differently -- returning the
+    # same text for both means every commit reads as having touched the log and nothing is ever
+    # owed. Which is what a single-answer stub did on the first pass.
+    monkeypatch.setattr(sl, "_git", lambda *a: "" if "--" in a
+                        else "abc1234 land the fitted joint\ndef5678 fix its test")
 
     rc, msg = sl.check()
 
@@ -84,14 +88,33 @@ def test_a_stretch_with_nothing_landed_since_its_report_is_quiet(log, monkeypatc
     assert sl.check()[0] == 0
 
 
-def test_the_logs_OWN_commit_does_not_count_as_unreported_work(log, monkeypatch):
-    """A control that can only ever be red. The commit that WRITES the report lands after the entry
-    is composed, so counting it means the log is stale the instant it is written."""
-    sl.append("A stretch about the use-case register and how it sequences against the stages", "b")
-    monkeypatch.setattr(sl, "_git",
-                        lambda *a: "aaa1111 write the stretch log entry for this stretch")
+def test_the_logs_OWN_commit_does_not_count_and_is_excluded_BY_PATH(log, monkeypatch):
+    """A control that can only ever be red -- and the first version got the exclusion wrong in a way
+    that shipped.
 
-    assert sl.check()[0] == 0, "the log's own commit must not make the log read as stale"
+    It filtered commit SUBJECTS containing "stretch log". Its own landing commit was titled "the
+    why, kept: stretch reports land in a committed file on the mirror", which says "stretch
+    reports", so it slipped through and the log reported itself as unreported the moment it shipped.
+    A grep for a concept's NAME is blind to the thing itself.
+
+    Excluded by PATH now: whatever the commit is called, if it touched the log it is the report,
+    not work awaiting one. This drives the two `git log` shapes the function issues -- the range,
+    then the range restricted to the log's path -- so a title that mentions nothing still counts.
+    """
+    sl.append("A stretch about the use-case register and how it sequences against the stages", "b")
+
+    def fake_git(*args):
+        if "--" in args:                       # the path-restricted query
+            return "aaa1111"
+        return "aaa1111 the why, kept: reasoning lands somewhere durable\nbbb2222 an unrelated fix"
+
+    monkeypatch.setattr(sl, "_git", fake_git)
+    rc, msg = sl.check()
+
+    assert rc == 1, "the unrelated commit still owes a report"
+    assert "1 commit(s)" in msg, msg
+    assert "an unrelated fix" in msg
+    assert "the why, kept" not in msg, "the log's own commit must be excluded by path"
 
 
 def test_a_missing_log_is_a_finding_rather_than_silence(log):
