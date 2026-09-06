@@ -6,4 +6,13 @@ map_notes:
     THE OPENING CONDITION IS A MEASUREMENT, NOT A DATE, and that is the whole reason to register it. Each of the three drivers is inert until something else in the world exists to consume it. Humidity matters only through a defrost regime, and heat pump is OUT of all three HOUSING phases until the director says otherwise (housing ruling section 2 item 3) -- so limb (a) is gated on a curriculum decision that has not been taken and cannot be satisfied by anything this seat does. Wind direction needs property ORIENTATION, which the premise draw does not carry at all.
 
 
-    Registering it is what stops the drivers being pulled early ''while we are in there'', and stops them being forgotten when a limb finally is met. The failure mode without the row is not that the work happens too soon; it is that nobody is watching the condition.'
+    Registering it is what stops the drivers being pulled early ''while we are in there'', and stops them being forgotten when a limb finally is met. The failure mode without the row is not that the work happens too soon; it is that nobody is watching the condition.
+
+
+    CORRECTION 2026-09-06, kept beside the claim it corrects: the sentence above saying wind direction needs property ORIENTATION "which the premise draw does not carry at all" is WRONG. `Household.roof_aspect` exists (simulation/household.py:117) and is read in three places. What is true is narrower and more useful -- it is a ROOF ASPECT not a facade bearing, it is a deterministic lookup from home_type rather than a draw (household.py:371-382), its vocabulary carries no degrees, and premise_population.py:661 flattens it to "na" for flats and "east_west" for everything else, so it is effectively constant across the drawn population. Wind direction cannot be crossed with it today because it carries no bearing and no variation, NOT because the field is absent. Full working: docs/design/W1_24_WEATHER_PHASE3_FRAME.md section 3.
+
+
+    ALSO FOUND IN THE SAME PASS, and it is a gap in the RULING rather than in this row: of the three drivers, humidity''s consumer is opening limb (a) and driving rain''s is limb (b), but WIND DIRECTION''S stated precondition (orientation crossed with cells) is NEITHER limb. The phase can open with wind direction still inert, or its precondition can be met while the phase stays shut. Recommendation to the director, treated as adopted unless he objects, is in the frame section 4. Separately, limb (a) has an unstated second gate: heat pump is out of all three HOUSING phases, so a material share is necessary and not sufficient.'
+map_records:
+  evidence:
+  - docs/design/W1_24_WEATHER_PHASE3_FRAME.md

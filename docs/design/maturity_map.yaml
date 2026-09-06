@@ -2104,6 +2104,7 @@
   title: "phase 3 (decided, not authorised): relative humidity, wind direction, driving rain"
   gain: "Three weather drivers that stay inert until something else exists to consume them -- a heat-pump population, a fabric moisture layer, a property orientation."
   notes_rehomed: [origin_note]
+  records_rehomed: [evidence]
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
