@@ -1175,6 +1175,12 @@ def extract_report_data(run_output: dict) -> dict:
         "company_gas_churn_log": phase2b.get("company_gas_churn_log", []),
         "margin_feedback_log": phase2b.get("margin_feedback_log", []),
         "dynamic_pricing_log": phase2b.get("dynamic_pricing_log", []),
+        # THE ACCOUNT-SHAPED RECORD (2026-09-06), forwarded here for the same reason the QP note
+        # above exists: every log in this block is opt-in, and one computed by the run and not
+        # named here is silently empty in every published run. This is the only record in the run
+        # output that covers a household for a term in which NOTHING happened to it, which is the
+        # whole point of it -- `tools/r1_inference_ceiling.py` reads it as the full-coverage rung.
+        "account_state_log": phase2b.get("account_state_log", []),
         # EP2 sub-atom 3: the ONE decomposed rate span per renewal (original -> contracted).
         # The per-writer logs above are links in that chain, not spans in their own right.
         "rate_decomposition_log": phase2b.get("rate_decomposition_log", []),
