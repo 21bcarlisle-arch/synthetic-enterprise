@@ -64,10 +64,18 @@ from __future__ import annotations
 from tools.contract_battery import BatterySpec, run
 
 #: The dedicated suite. 16 tests, and the only one that NAMES contracts of this
-#: module (`_cost_to_serve_distribution`, `_arrears_distribution`). It is scored
-#: as a caller column because it is a real importer of the subject; its twin in
-#: `tools/` is not (see the module docstring).
-DIRECT_SUITES = ("tests/tools/test_generate_company_data.py",)
+#: module (`_cost_to_serve_distribution`, `_arrears_distribution`).
+#:
+#: It is the REPAIR column, not a caller column. The first spec put it in `suites`
+#: and that is a defect with a published consequence: `survived_all`'s population
+#: is `spec.suites`, so the subject's own tests entered the caller verdict, and the
+#: engine printed `SURVIVED ALL 4 CALLER SUITES: [M1..M7]` when the true
+#: caller-population answer is all TEN. M8-M10 were struck off the caller list by a
+#: suite no caller reaches through. The pre-registration argued this exact hazard
+#: and excluded the byte-identical twin in `tools/` for it -- and then the spec
+#: admitted the original through a different field.
+#: `SEAT_FINDING_THE_BATTERYS_OWN_SPEC_ENTERED_THE_SUBJECTS_TESTS_INTO_THE_CALLER_VERDICT_2026-09-06.md`
+REPAIR_SUITE = "tests/tools/test_generate_company_data.py"
 
 #: One suite per real caller.
 #:
@@ -83,7 +91,9 @@ CALLER_SUITES = (
     "tests/background/test_process_run_complete.py",
 )
 
-SUITES = DIRECT_SUITES + CALLER_SUITES
+#: `survived_all` is scored over exactly this -- the three REAL callers, and nothing
+#: the subject owns.
+SUITES = CALLER_SUITES
 
 #: Two suites with no import path to the subject. The poison rounds must leave
 #: these GREEN; a floor that reddens everything for a reason unrelated to the
@@ -96,10 +106,12 @@ CONTROL_SUITES = (
 #: (id, the contract as the module states it, old, new). Each `old` appears
 #: exactly once in the subject and the engine refuses the row if it does not.
 #:
-#: M1-M6 are `segment_revenue_mix` and `_book_mix` -- the converged surface, the
-#: one thing TWO callers import. M7-M10 are the distributions the dedicated suite
-#: was written for, included so the direct column can be told from the caller
-#: columns rather than assumed stronger.
+#: M1-M7 are `segment_revenue_mix` and `_book_mix` -- the converged surface, the
+#: one thing TWO callers import. M8-M10 are the distributions the dedicated suite
+#: was written for, included so the repair column can be told from the caller
+#: columns rather than assumed stronger. (The split is M1-M7 / M8-M10, as the
+#: pre-registration's table has it; an earlier draft of this comment said M1-M6 /
+#: M7-M10 and was wrong about M7, which is a `_book_mix` contract.)
 MUTATIONS = (
     (
         "M1",
@@ -244,6 +256,7 @@ SPEC = BatterySpec(
     poison_new=POISON_NEW,
     hard_poison_old=HARD_POISON_OLD,
     hard_poison_new=HARD_POISON_NEW,
+    repair_suite=REPAIR_SUITE,
     control_suites=CONTROL_SUITES,
     null_old=NULL_OLD,
     null_new=NULL_NEW,
