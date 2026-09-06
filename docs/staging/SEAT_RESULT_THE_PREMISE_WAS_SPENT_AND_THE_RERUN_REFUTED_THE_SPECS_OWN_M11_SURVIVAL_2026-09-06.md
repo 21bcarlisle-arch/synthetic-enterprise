@@ -71,15 +71,18 @@ not the contract prose or the module docstring, so this correction cannot orphan
 
 ## Where the subject actually stands
 
+*Two rows below were measured before the run finished and moved when it did — see
+**The tenth suite, settled** at the foot of this file. They are marked rather than overwritten.*
+
 | | |
 |---|---|
 | contracts mutated | **11** |
-| suites graded | **9** of 10 |
+| suites graded | **9** of 10 — ~~and the tenth ungraded entirely~~; the tenth now has its three floor rounds |
 | contracts killed by any suite | **3** — M1, M2, M11 |
 | of those, kills that grade the contract | **2** — M1 and M11 |
 | contracts killed by nobody | **8** |
 | suites that ever killed anything | **1** — `tests/tools/test_grid_intensity_feed_and_explore_carbon.py` |
-| suites that reach the subject | **3** of 9 |
+| suites that reach the subject | **3** of ~~9~~ **10** — the tenth does not reach either |
 | suites that reach it and prove nothing | **2** — `test_process_run_complete`, `test_elexon_fuel_outturn` |
 | rows carrying a `survived_all` verdict | **0** |
 
@@ -105,3 +108,42 @@ non-reaching, because they read the subject as text and walk it as an AST rather
 If the tenth is the same, the full run buys eleven green cells that prove nothing. **One poison
 round on that suite alone (~11 min) settles it**, and only if it reaches is the remaining ~2.5
 hours worth spending. That is the hand-off.
+
+---
+
+## The tenth suite, settled
+
+*Added 2026-09-06 04:00 BST by the seat that ran the battery, from the SHARED tree, into the same
+results file at fingerprint `95c9da4db380`. The hand-off above was written at 03:30 against stage 1
+of a two-stage run; stage 2 was the second stage of that same run and finished at 03:52. Nothing
+here was re-measured — it is the rest of the run the section above could not yet see.*
+
+The run was split on measured cost, and the split is the reason this file could be written before
+it: stage 1 took the nine cheap suites through every round and all eleven mutations; stage 2 took
+`tests/tools/test_ep13_embedded_generation_bound.py` through **baseline, poison and null only** —
+`--only NONE` selects no mutation id — because eleven mutation rounds on a suite that costs ten
+minutes a pass is two hours for cells the floor was expected to disqualify.
+
+| round | seconds | outcome |
+|---|---|---|
+| baseline | 602.1 | `rc=0`, no reds to deselect |
+| poison | 604.5 | **NEVER REACHES the subject** |
+| null | 613.0 | behaviour only — it does not grade this module's bytes |
+
+**The hand-off's condition is answered NO, so the ~2.5 hours is refused on evidence rather than on
+cost.** All seven `ep13_*` suites are non-reaching, not six of seven with one unknown; the tenth
+behaves exactly like its six siblings. Eleven mutation rounds there would have bought eleven green
+cells, every one of them `survived_but_unreachable`.
+
+Prediction 3 in the table above — *"the tenth suite has no cell anywhere"* — was scored CONFIRMED
+against stage 1 and is now **superseded, not wrong**: it has three floor cells and no mutation
+cells. The distinction matters, because those three are exactly what turns its absence from the
+mutation rounds into a *stated bound* rather than an unmeasured gap. Before them, "not graded"
+and "would prove nothing if graded" were the same sentence.
+
+**What is still not established, and the cost argument does not touch it.** No row carries a
+`survived_all` verdict, and the reason is unchanged: `contract_battery.py` scores it over all ten
+declared suites and the mutation rounds ran on nine. The tenth is now *proved* to be a suite whose
+cells could not have been at risk — which is a stronger statement than before and still not a
+verdict. The honest reading stays: **eleven contracts, three killed, one killer suite, zero rows
+with a verdict.**
