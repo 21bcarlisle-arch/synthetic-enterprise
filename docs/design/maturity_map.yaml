@@ -1737,19 +1737,45 @@
   lane: W1_market_weather
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 1   # 2026-09-06 L0->L1 SELF-CERTIFIED (PROPOSE-RECORD-ACT; ledger row in
+  #   gate_authorizations.jsonl). L1 = "exists, been BUILT in any form", and it now does:
+  #   `simulation/weather_cell_siting.py` is the sim-side seam that imports the derivation
+  #   (W1_19/W1_20/W1_21/W1_25) and sites a premise in the derived cells, and
+  #   `weather_inputs._weather_source_customer_id` consults it. Before this the five derivation
+  #   modules were imported by NOTHING in simulation/, company/ or saas/.
+  #
+  #   L2 IS NOT CLAIMED AND MUST NOT BE. L2 is "mechanically real"; the world's household heat load
+  #   is still not DRIVEN by the cells, and the seam is what measured why. The archive is four real
+  #   Open-Meteo pulls (C1-C4) against a decision of 21 cells per driver, and those four sites
+  #   cover 20.5% / 30.7% / 27.9% of GB households on winter temperature / wind / sunshine, and
+  #   3.5% on all three at once. So the substitution branch is live and correct and today accepts
+  #   nothing the supply book holds: Birmingham shares Manchester's wind cell and neither its
+  #   temperature nor its sunshine cell; Teesside shares nothing with anything.
   level_target: 3
   loop_stage: build
   dial_inherited: 60    # the product tier the director's own re-rank created. His ruling says
   #   "draw it ahead of the next un-drawn product item"; sequencing against its siblings is carried
   #   structurally by depends_on rather than by inventing a 46th rung on a scale that has none.
   provenance: director_ruling
+  # WHAT THIS ATOM WAITS ON, named -- and it is NOT W1_23 or W1_24. Both of those DEPEND ON this
+  # atom and open when it reaches level 3, so deferring the wiring to them is circular. The blocker
+  # is ARCHIVE BREADTH: 17 more real weather pulls, so a premise's cell has a site in it. No mapping
+  # written in this repository can close a gap of four points against twenty-one cells, and the seam
+  # above fires the moment a fifth pull lands.
+  blocked_on: null
+  block_reason: "L1->L2 needs weather ARCHIVE breadth, not more derivation: `sim/weather_data/` holds
+    4 real Open-Meteo sites against W1_27's decision of 21 cells per driver, so the derived cells
+    cover 3.5% of GB households on all three drivers at once. Measured by
+    `simulation/weather_cell_siting.derive()` and recorded in `sim/weather_cells/site_cells.json`.
+    NOT deferred to W1_23/W1_24 -- both depend_on this atom and open when it lands."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
-  file_scope: ['docs/market_research/', 'docs/institutional/knowledge_map.md', 'site/knowledge/', 'tools/generate_weather_cells_data.py']
-  # NOT `site/data/`: a generator rewrites it, so the unmerged-work guard would find the
-  # path dirty on nearly every tick and deprioritise this atom silently, forever. Scope the
-  # GENERATOR, not the generated -- the file named here is the one this atom will write.
+  file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
+  # `tools/generate_weather_cells_data.py` was in this scope until 2026-09-06 and HAS NEVER EXISTED
+  # in any commit -- a level-0 row's file_scope is checked by nothing, so it named a program no build
+  # ever wrote. Replaced with the three paths the seam actually lands in. NOT `sim/weather_cells/
+  # site_cells.json`: that is the derived OUTPUT, and scoping the generated file would find the path
+  # dirty on every re-derivation. Scope the generator, not the generated.
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that hedges and forecasts on 14 GSP groups because that is how it is settled, having never asked how many genuinely distinct weather regimes its customers actually live in."
 - id: W2_18_the_housing_joint_the_sample_and_the_ceiling
