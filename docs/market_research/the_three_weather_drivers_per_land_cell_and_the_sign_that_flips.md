@@ -69,6 +69,20 @@ Both are real. They answer different questions and they must not be pooled:
 - **For persistence, synchrony and hedging** (`W1_22`, and use case 3.1 later) the TEMPORAL
   correlation is the relevant one, and it is positive.
 
+> **QUALIFIED THE NEXT DAY, 2026-09-06, by `W1_20` — there is a THIRD value and it is zero.**
+> Weight the same land cells by the households the censuses put on them and winter temperature ×
+> winter wind is **+0.060**: among the places people actually live, the spatial relationship is
+> essentially absent. The −0.430 below is a fact about empty uplands, which are cold and windy and
+> hold almost nobody — and half of GB's land cells hold no households at all.
+>
+> So "REFUTED as written" is too strong for the reading that matters. The ruling's prediction is
+> not refuted for households; it is *undetectable* for them. What is refuted is a claim about
+> **land**, and that is not the claim cell derivation needs. The pair has three values — +0.507 in
+> time, −0.430 across land, +0.060 across households — and none of them can be quoted without
+> naming which question it answers. The rest of this document stands unchanged; the
+> household-weighted figures are in
+> `half_the_land_is_empty_and_weighting_halves_the_variation.md`.
+
 Quoting one where the other belongs would be this project's recurring definitional failure: two
 correct figures whose ratio, or whose sign, is not the quantity anybody wanted. The ruling's
 expected-shape line should be read as a claim about time and is **left standing for that reading**;
