@@ -4267,6 +4267,24 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         log("Generated site/data/premise_demand.json (Door 5 demand-arrow evidence)")
     except Exception as exc:
         log("premise_demand.json generation failed: {}".format(exc))
+    try:
+        # Knowledge/weather-cells: the derived-cell map and its two coverage curves. Wired here
+        # for the SAME reason as world.json above -- it reads the weather archive and the
+        # household placement, both of which move under it, so left unscheduled it freezes
+        # against its own sources and the page keeps publishing the last derivation anyone
+        # happened to run by hand. That is not hypothetical for this feed: the archive pull has
+        # already once written header-only CSVs over ten years of real data and exited zero
+        # (SEAT_FINDING_A_RATE_LIMITED_WEATHER_PULL_..._2026-09-06), which a frozen JSON would
+        # have hidden and a live regeneration surfaces as a failed step in this log.
+        # COSTS ~60s wall (~5 CPU-minutes, numpy over 245,077 land cells at 1 km) -- the most
+        # expensive generator on the cycle by an order of magnitude, and affordable only because
+        # the cycle's own pause is measured in tens of minutes. If the cycle ever tightens, this
+        # is the step to make conditional on its inputs rather than the one to drop.
+        from tools.generate_weather_cells_data import main as gen_weather_cells
+        gen_weather_cells(["--write"])
+        log("Generated site/data/weather_cells.json (Knowledge: the weather cells)")
+    except Exception as exc:
+        log("weather_cells.json generation failed: {}".format(exc))
     # (2026-07-20 v4 site rebuild) The combined "Method + Simplified" casebook surface
     # (site/method-casebook/) was RETIRED -- redundant with the separate canonical Method
     # (roles/rules/loop/retro/track-record) and Simplified (register) doors, which cover its
