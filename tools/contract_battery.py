@@ -16,19 +16,21 @@ proving it, so every mutation runs against each suite SEPARATELY and the answer
 is a row, never a pass/fail. A converged module inherits whichever caller suite
 happened to be strongest, and the row is the only thing that says which.
 
-THE SIX THINGS THAT ARE NOT DECORATION
---------------------------------------
-* **The results file is keyed to the SPEC, not to the subject's name.** Resume is
-  refused outright when the file on disk was written by different mutations. Every
-  spec in this family numbers its contracts `M1`..`M8`, so two specs for one
-  subject used to collide on the filename and the ids at once -- see
-  `fingerprint()` for the run that reported eight survivals it never applied.
+THE FIVE THINGS THAT ARE NOT DECORATION
+---------------------------------------
 * **The reachability floor runs FIRST.** An import-time raise, before any
   mutation. A suite that stays green under it never reaches the subject, and
   every "survived" it reports afterwards means UNREACHABLE, not UNPROVED. Those
   are the same green and the flattering one is the one that gets written down.
   Earned on `direction.py`'s fourth column: eight survivals, all eight
   unreachable, four turns of the column unable to tell.
+* **A SECOND floor runs for a subject whose callers catch the first one.** The
+  first raises an `Exception`; a call site written `try: from <subject> import x`
+  / `except Exception:` catches it and its suite stays green having run the
+  caller end to end. The second raises a `BaseException`, which that handler
+  does not catch, so green-then-red separates NEVER REACHES from
+  REACHES-AND-SWALLOWS. Earned on `generate_company_data`, where two of the
+  three callers are written exactly that way.
 * **The target string is asserted present EXACTLY ONCE before patching.** A
   surviving mutation is otherwise indistinguishable from a patch that never
   applied, and this project has recorded that exact false survivor.
@@ -92,6 +94,24 @@ class BatterySpec:
     #: import-time raise in front of it.
     poison_old: str
     poison_new: str
+    #: THE SECOND FLOOR, for a subject whose CALL SITES catch what the first floor raises.
+    #:
+    #: The standard poison raises an `Exception`. `tools/generate_company_data.py` has three
+    #: callers and TWO of them write `try: from tools.generate_company_data import ...` /
+    #: `except Exception:` -- so the floor is caught at the call site and the suite stays GREEN
+    #: while executing the caller end to end. That green is indistinguishable from a suite that
+    #: never runs the caller at all, and the engine was stamping both as `NEVER REACHES`.
+    #:
+    #: This raise must not be an `Exception`. A `BaseException` subclass passes straight through
+    #: `except Exception` and is still reported by pytest as a failure, so a suite green under
+    #: the first floor and RED under this one is proved to run the call site and swallow the
+    #: subject's failure -- `swallows_subject_failure`, a third state, and the one that reads
+    #: most like the good answer.
+    #:
+    #: Run ONLY over the suites the first floor left green: for the rest the question is already
+    #: answered and the round would cost a full pass to re-confirm it.
+    hard_poison_old: str | None = None
+    hard_poison_new: str | None = None
     #: A suite written AS THE REPAIR, scored as its own column and never folded into
     #: `survived_all` -- otherwise the pre-registered question becomes unanswerable the
     #: moment the repair lands.
@@ -223,6 +243,64 @@ def _poison(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_path:
         subject.write_text(original, encoding="utf-8")
         _clear_pycache()
     return poison
+
+
+def _hard_poison(spec: BatterySpec, results: dict, out_path: Path, known_red: dict,
+                 reaches: dict) -> dict:
+    """The second floor, run ONLY over the suites the first floor left green.
+
+    The first floor raises an `Exception` at import time. A caller that writes
+    `try: from <subject> import x` / `except Exception:` catches it, and its suite stays green
+    having executed the call site end to end. That is a THIRD state -- not `NEVER REACHES`, not
+    proved -- and the engine reported it as the first one, which is the flattering reading.
+
+    This floor raises a `BaseException` subclass, which `except Exception` does not catch. A
+    suite RED here after green above runs the call site and swallows the subject's failure.
+    Returns `{suite: swallows}` for the suites this round graded.
+
+    A suite still green under BOTH floors is genuinely blind, and `reaches` is left False.
+    """
+    if spec.hard_poison_old is None or spec.hard_poison_new is None:
+        return {}
+    todo_all = [s for s, hit in reaches.items() if not hit and s not in spec.control_suites]
+    hard = results.setdefault("hard_poison", {})
+    if not todo_all:
+        print("HARD POISON: the first floor reddened every caller suite -- not run", flush=True)
+        return {s: r["swallows_subject_failure"] for s, r in hard.items()}
+    subject = spec.subject_path
+    original = subject.read_text(encoding="utf-8")
+    occurrences = original.count(spec.hard_poison_old)
+    if occurrences != 1:
+        # UNKNOWN, never a pass: without this round every green above stays ambiguous, and
+        # saying so is the whole point of having it.
+        results["hard_poison_error"] = f"target present {occurrences} times, expected exactly 1"
+        print(f"HARD POISON: TARGET NOT UNIQUE ({occurrences}) -- swallowing UNKNOWN", flush=True)
+        out_path.write_text(json.dumps(results, indent=2))
+        return {}
+    todo = [s for s in todo_all if s not in hard]
+    if not todo:
+        return {s: r["swallows_subject_failure"] for s, r in hard.items()}
+    print("HARD POISON (BaseException -- passes through `except Exception` at the call site; "
+          "separates NEVER REACHES from REACHES-AND-SWALLOWS)", flush=True)
+    poisoned = original.replace(spec.hard_poison_old, spec.hard_poison_new)
+    subject.write_text(poisoned, encoding="utf-8")
+    _clear_pycache()
+    try:
+        if subject.read_text(encoding="utf-8") != poisoned:
+            results["hard_poison_error"] = "subject on disk is not the hard-poisoned text"
+            return {}
+        for suite in todo:
+            r = _run_suite(suite, known_red.get(suite, ()), stop_first=True)
+            r["swallows_subject_failure"] = r["returncode"] != 0
+            hard[suite] = r
+            print(f"  {suite}: "
+                  f"{'REACHES AND SWALLOWS the subjects failure' if r['swallows_subject_failure'] else 'genuinely blind (green under BOTH floors)'}"
+                  f" ({r['seconds']}s)", flush=True)
+            out_path.write_text(json.dumps(results, indent=2))
+    finally:
+        subject.write_text(original, encoding="utf-8")
+        _clear_pycache()
+    return {s: r["swallows_subject_failure"] for s, r in hard.items()}
 
 
 def _null_round(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_path: Path,
@@ -388,6 +466,15 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
     # column that needed exactly that.
     poison = _poison(spec, results, suites, out_path, known_red)
     reaches = {s: r["reaches_subject"] for s, r in poison.items()}
+    # The second floor, over the suites the first one left green. A caller that catches what the
+    # first floor raises makes its suite look blind, and blind and swallowing want opposite
+    # readings of the same green cell: one says the row proves nothing, the other says the row
+    # proves nothing AND the call site cannot propagate a failure of the subject at all.
+    swallows = _hard_poison(spec, results, out_path, known_red, reaches)
+    for suite, does in swallows.items():
+        if does:
+            reaches[suite] = True
+            results["poison"][suite]["swallows_subject_failure"] = True
     # After the floor and before the mutations: the floor says a suite CAN redden for this
     # subject, the null round says whether it only reddens for BEHAVIOUR.
     grades_text = _null_round(spec, results, suites, out_path, known_red)
@@ -442,6 +529,53 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
         # cell to every row above and not one of those cells was ever at risk.
         print(f"SUITES THAT NEVER REACH THE SUBJECT (their green cells prove nothing): {blind}",
               flush=True)
+        if spec.hard_poison_old is None:
+            # An `except Exception` at the call site produces this exact green. Without the
+            # second floor "never reached it" and "reached it and caught the failure" are one
+            # word, and only the first one is written down.
+            print("  -- NO SECOND FLOOR FOR THIS SUBJECT: whether any of those suites in fact "
+                  "RUN the call site and catch the subject's failure is UNKNOWN, not ruled out.",
+                  flush=True)
+    catchers = sorted(s for s, does in swallows.items() if does)
+    if catchers:
+        results["swallows_subject_failure"] = catchers
+        out_path.write_text(json.dumps(results, indent=2))
+        print("SUITES THAT RUN THE CALL SITE AND SWALLOW THE SUBJECT'S FAILURE (green under the "
+              f"first floor, red under the second -- reached, and no failure can propagate): "
+              f"{catchers}", flush=True)
+    if "hard_poison_error" in results:
+        print(f"SWALLOWING UNKNOWN -- {results['hard_poison_error']}", flush=True)
+    # THE FLOOR IS NECESSARY AND NOT SUFFICIENT, measured on subject 6 (`ops_repo`, 2026-09-06).
+    # All three of its caller suites reddened under the import-time poison -- and every one of the
+    # eight mutations survived all three, because each caller imports the subject at module scope
+    # and then patches `commit_and_push` BY NAME in its own namespace. There are three states here
+    # and the summary could print only two: never imports it (blind, above); imports it and never
+    # executes the contract (this); and executes it. The middle one is the more dangerous, because
+    # a blind column at least announces itself as blind while this one reads as the good answer.
+    #
+    # It was already in the record and unreported: subject 4 (`segment_vocabulary`) carried
+    # `tests/simulation/test_population_draw.py` and `tests/sim/test_segment_debt_obligation.py`
+    # in exactly this state, graded on eight mutations each, killing nothing.
+    #
+    # Stamped into the JSON as well as printed -- a caveat kept only in a summary line stops
+    # travelling the moment anyone reads the file.
+    def _cells(suite: str) -> list[dict]:
+        # Only the cells this suite ACTUALLY has. A suite with no graded cell is left out rather
+        # than counted as proving nothing: "not yet asked" is not "answered no", and a partial run
+        # is exactly when that conflation would be believed.
+        return [r["per_suite"][suite] for r in results["mutations"].values()
+                if not r.get("error") and suite in r.get("per_suite", {})]
+
+    inert = sorted(s for s in reaches
+                   if reaches[s] and s not in spec.control_suites
+                   and _cells(s) and not any(c["died"] for c in _cells(s)))
+    results["imports_but_proves_nothing"] = inert
+    for suite in inert:
+        results["poison"][suite]["imports_but_proves_nothing"] = True
+    out_path.write_text(json.dumps(results, indent=2))
+    if inert:
+        print("SUITES THAT REACH THE SUBJECT AND STILL PROVE NOTHING (imported, never executed -- "
+              f"the poison floor does NOT cover this): {inert}", flush=True)
     hot_controls = [s for s in spec.control_suites if reaches.get(s)]
     if hot_controls:
         print(f"CONTROL SUITES WENT RED UNDER THE POISON -- the floor did not discriminate and "
