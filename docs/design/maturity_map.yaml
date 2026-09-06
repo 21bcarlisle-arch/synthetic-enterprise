@@ -1614,9 +1614,9 @@
   lane: B_commercial
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 45    # R1 follow-on, minted 2026-09-05 by the commit that created the gap it
   #   names -- which is the point of the next-step gate landing in the same commit. Inherits the
   #   R-set rank because a company that cannot be wrong about an observable is not learning from
@@ -1624,7 +1624,21 @@
   provenance: seat_finding
   depends_on: [PB6_the_engagement_observable_crosses_the_seam]
   couples_with: [C29_decisions_stop_being_lookup_tables]
-  file_scope: ['company/crm/enriched_churn_estimate.py', 'company/crm/competitive_pressure.py']
+  # BUILT AND VERIFIED 2026-09-06, L0->L2 AND NOT L3. The CIM coefficient is now the PRIOR to a
+  # precision-weighted update on the company's own leavers by channel, sharing one ledger, one run
+  # scope and one update rule with the market-wide multiplier -- and the departure wire carries the
+  # channel, so the numerator is not the dead one PB6 shipped. L2 is "DISCOVER-lite + VERIFY": 9
+  # controls, 17-mutation battery all killed on a green null round, epistemic verifier PASS. L3
+  # additionally wants HARDEN and an Expert Hour, neither of which has been run, and the level is
+  # what those earn rather than what the build claims.
+  #
+  # SCOPE WIDENED BEYOND THE TWO CRM FILES ON PURPOSE. The row's planned scope would have left the
+  # learning mechanism correct and unreachable -- `run_phase2b` passed no payment method to any
+  # belief and no channel with any departure, which is why PB6's coefficient returned 1.0 on every
+  # account of every run. A mechanism whose only wire is absent is PB6's defect a second time.
+  file_scope: ['company/crm/enriched_churn_estimate.py', 'company/crm/competitive_pressure.py',
+               'company/crm/churn_desk.py', 'simulation/run_phase2b.py',
+               'tests/company/crm/test_the_company_learns_engagement_from_its_own_book.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier's own retention analytics. It has its own churn by payment method, measured on its own leavers, and it trusts that over a national survey the moment it has enough of them -- which is also when it starts beating the market rather than tracking it."
 - id: H46_the_consistency_gate_disagreement_before_the_next_publish

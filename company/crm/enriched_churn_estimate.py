@@ -17,6 +17,8 @@ All inputs are observable by the company. No SIM internals accessed.
 """
 from __future__ import annotations
 
+import math
+import statistics
 from typing import Optional
 
 from company.crm.churn_model import (
@@ -24,7 +26,11 @@ from company.crm.churn_model import (
     estimate_churn_probability,
     estimate_passive_churn_probability,
 )
-from company.crm.competitive_pressure import derived_market_pressure_multiplier
+from company.crm.competitive_pressure import (
+    EngagementReading,
+    active_pressure_ledger,
+    derived_market_pressure_multiplier,
+)
 from company.crm.market_conditions import market_rate_move_pct
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.crm.payment_churn_model import combined_churn_probability
@@ -75,9 +81,24 @@ _CIM_SWITCH_RATE_BY_METHOD = {
 }
 _CIM_POPULATION_BASE = 0.053
 
+#: The scale on which THIS BOOK's factor for a channel may differ from the national survey's,
+#: computed from the survey itself rather than asserted -- the dispersion the published rates show
+#: ACROSS the payment methods they cover, in log space. Exactly the argument
+#: `competitive_pressure.PRIOR_LOG_VARIANCE` makes across the ten years its series covers, with the
+#: axis the published evidence actually varies along swapped from time to channel.
+_CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE: float = statistics.pvariance(
+    [math.log(rate / _CIM_POPULATION_BASE) for rate in _CIM_SWITCH_RATE_BY_METHOD.values()]
+)
+
 
 def payment_method_engagement_factor(payment_method: str | None) -> float:
-    """The company's belief about how much this payment method shops, relative to the market.
+    """The PUBLISHED belief about how much this payment method shops, relative to the market.
+
+    THIS IS THE PRIOR, NOT THE COMPANY'S BELIEF (2026-09-06, PB7). It reads Ofgem and nothing else.
+    `derived_payment_method_engagement_factor` is what a churn estimate should call: it starts
+    here and updates on the company's own leavers, which is what a supplier with a book of its own
+    does and what makes the belief capable of being wrong. This function stays because the
+    posterior needs a prior to start from, and because outside a run scope the two agree exactly.
 
     None -- and any method this table does not know -- returns 1.0 exactly. That is the
     unchanged-behaviour path and it is the one nearly every existing caller takes, so adding this
@@ -91,6 +112,45 @@ def payment_method_engagement_factor(payment_method: str | None) -> float:
     if rate is None:
         return 1.0
     return rate / _CIM_POPULATION_BASE
+
+
+def payment_method_engagement_reading(
+    payment_method: str | None, renewal_year: int | None = None
+) -> EngagementReading:
+    """What the company believes about this channel's propensity to shop, and everything behind it.
+
+    The published CIM factor as the prior, updated by this book's own realised losses on this
+    channel against the book's own realised losses overall -- the same precision-weighted log-space
+    blend, and literally the same two functions, that `competitive_pressure` runs for the
+    market-wide multiplier.
+
+    OUTSIDE A RUN SCOPE, AND FOR A METHOD THE SURVEY DOES NOT COVER, THE READING IS THE PRIOR.
+    A caller with no ledger has observed nothing, so it gets Ofgem and exactly today's number; a
+    method the table has never heard of gets a prior of 1.0 and would learn a factor against it,
+    which is the honest thing to do with an unrecognised channel that nonetheless has leavers.
+    """
+    prior = payment_method_engagement_factor(payment_method)
+    ledger = active_pressure_ledger()
+    if ledger is None:
+        return EngagementReading(
+            payment_method, renewal_year, prior, prior,
+            "no run scope: published prior only")
+    return ledger.payment_method_engagement_reading(
+        payment_method, renewal_year,
+        prior=prior, prior_log_variance=_CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE)
+
+
+def derived_payment_method_engagement_factor(
+    payment_method: str | None, renewal_year: int | None = None
+) -> float:
+    """The engagement factor a churn estimate scales by -- the drop-in for the published table.
+
+    Same relationship to `payment_method_engagement_factor` as
+    `competitive_pressure.derived_market_pressure_multiplier` has to the year table: outside a run
+    scope, or before the company has seen a single leaver's payment channel, it returns the
+    published value unchanged, so nothing that does not opt in can observe a difference.
+    """
+    return payment_method_engagement_reading(payment_method, renewal_year).factor
 
 
 def enriched_churn_estimate(
@@ -132,6 +192,12 @@ def enriched_churn_estimate(
         Outside a run scope the update has no evidence and the value IS the table, so nothing
         that does not opt in sees a difference; inside a run the company can, for the first
         time, notice that a rival is competing harder than the national series says.
+
+    payment_method: scales the result by how much this channel shops relative to the book.
+        THAT BELIEF IS NO LONGER OFGEM'S PUBLISHED COEFFICIENT EITHER (2026-09-06, PB7). Same
+        shape, same ledger, same no-look-ahead rule: the CIM survey is the prior and the
+        company's own leavers by channel are the likelihood. None, an unrecognised method, or
+        no run scope all give exactly the published factor.
     """
     rate_est = estimate_churn_probability(
         old_rate_gbp_per_mwh,
@@ -150,7 +216,7 @@ def enriched_churn_estimate(
     payment_est = combined_churn_probability(bill_shock_count, behaviour_score, satisfaction_score)
     result = _apply_market_conditions(max(rate_est, payment_est),
                                       derived_market_pressure_multiplier(renewal_year))
-    result *= payment_method_engagement_factor(payment_method)
+    result *= derived_payment_method_engagement_factor(payment_method, renewal_year)
     return max(0.0, min(result, MAX_CHURN_PROBABILITY))
 
 

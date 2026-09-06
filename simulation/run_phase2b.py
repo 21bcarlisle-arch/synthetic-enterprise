@@ -1757,6 +1757,11 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             active_renewal = True
             passive_cap = None
             _engagement_level_str = None
+            # PB7: the company's own record of how this account pays, resolved once per term and
+            # reset here every term. Initialised at this level rather than inside the branch below
+            # because the DEPARTURE booking further down is outside that branch -- a name left over
+            # from the previous iteration would book one customer's channel against another's loss.
+            _company_payment_method = None
             if old_elec_rate is not None:
                 # Phase 2 Layer 1 (CORE_FIDELITY_PHASES.md): each household's
                 # engagement archetype is a persistent trait (keyed on the
@@ -1804,6 +1809,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     (c for c in _ALL_KNOWN_CUSTOMERS if c["customer_id"] == billing_account), None
                 )
                 segment_for_churn = cust_for_churn.get("segment", "resi") if cust_for_churn else "resi"
+                # PB7: THE OBSERVABLE THE COMPANY ALREADY HAS A SEAM FOR, ACTUALLY HANDED OVER.
+                # `SimInterface.get_payment_method` has exposed this since PB6 and no run passed
+                # it, so `payment_method_engagement_factor` returned 1.0 on every account in every
+                # run and the coefficient PB6 landed reached nothing. Resolved from the same
+                # `payment_channel_for_customer` convention the satisfaction gap below uses, and
+                # resi-only for the same reason: an I&C account pays by BACS or CHAPS and the CIM
+                # survey's household banners say nothing about it.
+                if segment_for_churn == "resi":
+                    from simulation.household_segments import payment_channel_for_customer
+                    _company_payment_method = payment_channel_for_customer(
+                        billing_account, "electricity").value
                 # Phase 33: passive renewers use SVT-inertia constants; active use full model.
                 # I&C customers are always active (brokers shop every renewal — no passive roll).
                 _renewal_year = int(term_start_str[:4])
@@ -1854,6 +1870,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     segment=segment_for_churn,
                     renewal_year=_renewal_year,
                     active_renewal=active_renewal,
+                    payment_method=_company_payment_method,
                 ))
                 if hangover_periods > 0:
                     hangover_remaining[cid] = hangover_periods - 1
@@ -2119,7 +2136,15 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     _pressure_ledger = active_pressure_ledger()
                     if _pressure_ledger is not None:
                         _pressure_ledger.arm_loss_reporting()
-                        _pressure_ledger.observe_competitive_loss(int(term_start_str[:4]))
+                        # THE CHANNEL TRAVELS WITH THE DEPARTURE (PB7). Booking the loss without
+                        # it would fill the book-wide numerator while leaving the per-channel one
+                        # empty, and the engagement belief would read "no prepayment customer has
+                        # ever left us" off a wire that never carried the field. The per-channel
+                        # arming is set BY this argument rather than by a call beside it, so it
+                        # cannot survive the argument being dropped.
+                        _pressure_ledger.observe_competitive_loss(
+                            int(term_start_str[:4]), payment_method=_company_payment_method
+                        )
                     print(
                         f"  [CHURN] {billing_account} at {term_start_str} — "
                         f"p_retain={event['effective_retention_probability']:.4f}  "

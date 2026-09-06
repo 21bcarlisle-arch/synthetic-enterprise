@@ -82,6 +82,11 @@ class RenewalObservation:
     segment: str = "resi"
     renewal_year: int | None = None
     active_renewal: bool = True
+    #: How this account pays, off the company's own CRM record (`SimInterface.get_payment_method`
+    #: is the approved seam; a supplier set the arrangement up and bills against it). None when
+    #: the record cannot resolve one -- an I&C account on BACS, say -- and None leaves the estimate
+    #: bit-for-bit unchanged rather than assuming the majority channel.
+    payment_method: str | None = None
 
 
 def estimate_renewal_churn(observation: RenewalObservation) -> float:
@@ -101,7 +106,14 @@ def estimate_renewal_churn(observation: RenewalObservation) -> float:
     # renewal log, the calibration report and the churn-basis surface all read.
     ledger = active_pressure_ledger()
     if ledger is not None:
-        ledger.observe_renewal_decision(observation.renewal_year, estimate)
+        # THE CHANNEL IS BOOKED ON EVERY RENEWAL, INCLUDING THE PASSIVE ONES whose estimator never
+        # applies the engagement factor. The denominator the engagement belief needs is "renewals
+        # of accounts paying this way"; restricting it to the branch that consumes the factor
+        # would measure the wiring rather than the book -- and passive rollers are 65% of resi
+        # renewals in most years and 100% of them in crisis years, so that is most of the book.
+        ledger.observe_renewal_decision(
+            observation.renewal_year, estimate, payment_method=observation.payment_method
+        )
     return estimate
 
 
@@ -138,6 +150,7 @@ def _estimate_renewal_churn(observation: RenewalObservation) -> float:
             hangover_periods_remaining=observation.hangover_periods_remaining,
             segment=observation.segment,
             renewal_year=observation.renewal_year,
+            payment_method=observation.payment_method,
         ),
         _ESTIMATE_DP,
     )
