@@ -79,6 +79,22 @@ _SOURCE_ROOTS = ("background", "tools", "tests", "company", "saas",
 
 _FAILED = re.compile(r"^(?:FAILED|ERROR)\s+(\S+)", re.MULTILINE)
 
+#: THE SAME REDS, KEPT APART. `_FAILED` unions pytest's two red words on purpose -- both are
+#: reds and both must be deselected from the baseline -- and that union is what made `died`
+#: unable to say what it had measured.
+#:
+#: MEASURED 2026-09-06 on `grid_intensity_fuel_mix`: rows M3, M4, M7, M9 and M10 all came back
+#: DIED against `tests/tools/test_grid_intensity_feed_and_explore_carbon.py`, and all five named
+#: the SAME node. Every one was `ERROR at setup` -- a module-scoped fixture that publishes off
+#: the real caches raising before a single control body ran -- so five different contracts were
+#: scored by one shared fixture and no control asserted anything about any of them. `-x` names
+#: only the first red, so the log read exactly like five contracts being proved.
+#:
+#: An ERROR is still a red and still a kill; what it is not is EVIDENCE THAT A CONTROL FIRED.
+#: This is a RESULT field, not a spec field: it is not in the hashed payload and adding it moves
+#: no fingerprint in the family.
+_ERRORED = re.compile(r"^ERROR\s+(\S+)", re.MULTILINE)
+
 
 @dataclass(frozen=True)
 class BatterySpec:
@@ -244,6 +260,7 @@ def _run_suite(suite: str, deselect: tuple[str, ...], stop_first: bool) -> dict:
         "suite": suite,
         "returncode": proc.returncode,
         "failed": sorted(set(_FAILED.findall(out))),
+        "errored": sorted(set(_ERRORED.findall(out))),
         "seconds": round(time.time() - started, 1),
         "tail": out.strip().splitlines()[-3:],
     }
@@ -503,10 +520,17 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
         # contract is proved -- it may be reading the subject's bytes. `None` where the null
         # round did not run: unknown, never a clean bill.
         r["died_but_grades_text"] = r["died"] and grades_text.get(suite)
+        # EVERY RED WAS A SETUP ERROR, so no control body executed and this kill grades a
+        # fixture rather than the contract. Stamped on the cell for the same reason the two
+        # above are: the caveat has to travel with the number, and `-x` shows only the first
+        # red so the log cannot show it.
+        r["died_by_setup_error_only"] = bool(
+            r["died"] and r["failed"] and set(r["failed"]) == set(r["errored"]))
         row["per_suite"][suite] = r
         print(f"  {suite}: {'DIED' if r['died'] else 'survived'} "
               f"{'(UNREACHABLE -- proves nothing) ' if r['survived_but_unreachable'] else ''}"
               f"{'(TEXT-GRADER -- may not have run the line) ' if r['died_but_grades_text'] else ''}"
+              f"{'(SETUP ERROR -- no control body ran) ' if r['died_by_setup_error_only'] else ''}"
               f"({r['seconds']}s) {r['failed'][:2]}", flush=True)
     # `survived_all` is the PRE-REGISTERED question and its population is the CALLER suites.
     # The repair column and the subject's own direct suites are reported beside it and never
