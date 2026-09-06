@@ -277,3 +277,69 @@ def test_the_record_carries_which_surface_and_which_commit_it_is_about(state_fil
     assert record["git_hash"] == "abc1234"
     assert record["ts"] > 0, \
         "a refusal with no clock cannot be told from one recorded last week"
+
+
+# ── the record kept 900 characters and they were the WRONG 900 ────────────────────────────────
+def _hook_chain_output(passing_lines):
+    """A hook chain's output shaped exactly like the real one: a long green prologue, then the
+    refusal on the last line. That ORDER is the defect's whole mechanism."""
+    return "\n".join(
+        ["[test-gate] {} test file(s) selected, all green".format(n) for n in range(passing_lines)]
+        + ["[site-lane] running whole site/ suite",
+           "[orphan-ratchet] REFUSED: docs/design/orphan_baseline.json is 3 behind the tree"])
+
+
+def test_a_truncated_refusal_keeps_the_END_of_the_hook_output_not_its_beginning(
+        state_file, tmp_path, monkeypatch):
+    """THE DEFECT, measured 2026-09-06 off the live `.publish_gate_state.json` at 0533a77ac.
+
+    The stored evidence was EXACTLY 900 characters and they were the FIRST 900 of a `stderr_tail`
+    -- last-40-lines, then head-truncated. Every line it kept said a gate had PASSED, and it cut
+    mid-progress-dots before the line that refused. A hook chain prints its refusal LAST, so
+    head-truncation drops precisely the one thing this field exists to hold: the wedge episode
+    reached 31 consecutive failures carrying `cause: unattributed` on its own record while the
+    answer sat, un-machine-readable, in the worker log.
+
+    KEYED TO THE PROPERTY, not to today's budget: the assertion is that the refusing line survives
+    and the green prologue is what gets dropped, at whatever `LIVENESS_REFUSAL_EVIDENCE_CHARS`
+    happens to be.
+
+    MUTATION: restore `str(evidence or "")[:LIMIT]` and the refusing line vanishes, reding leg 1.
+    Drop the cap entirely and leg 3 reds. Drop the elision marker and leg 4 reds.
+    """
+    limit = prc.LIVENESS_REFUSAL_EVIDENCE_CHARS
+    output = _hook_chain_output(passing_lines=200)
+    assert len(output) > limit * 2, \
+        "fixture invalid: the output must overflow the budget, or nothing is being truncated"
+
+    assert _drive(monkeypatch, tmp_path, commit_rc=1, commit_tail=output) is False
+    evidence = _record(state_file)["evidence"]
+
+    assert "[orphan-ratchet] REFUSED" in evidence, \
+        "the refusing line is the LAST line and it is the only line a reader needs; keeping the " \
+        "first 900 characters of a tail is keeping the part that says everything passed"
+    assert "[test-gate] 0 test file(s) selected, all green" not in evidence, \
+        "the green prologue is what the budget is meant to spend itself on last, not first"
+    assert len(evidence) <= limit, \
+        "a cap a caller cannot rely on is not a cap -- the elision marker comes out of the " \
+        "budget, never on top of it"
+    assert evidence.startswith(prc.LIVENESS_REFUSAL_EVIDENCE_ELISION), \
+        "a tail that does not say it is a tail reads as the whole output, which is how a reader " \
+        "concludes the chain simply stopped"
+
+
+def test_evidence_that_fits_is_stored_WHOLE_and_unmarked(state_file, tmp_path, monkeypatch):
+    """THE NULL CONTROL for the leg above, and it is not decorative: a truncator that always
+    prefixes its marker would pass every assertion in that test while corrupting the ordinary
+    case, which is the majority of real refusals (`nothing to commit`, a lock, a one-line gate).
+
+    MUTATION: make `_refusal_evidence_kept` unconditionally prefix the marker, or slice on `<`
+    instead of `<=`, and this reds while the truncation test stays green.
+    """
+    short = "[orphan-ratchet] REFUSED: one line, well inside the budget"
+    assert _drive(monkeypatch, tmp_path, commit_rc=1, commit_tail=short) is False
+    evidence = _record(state_file)["evidence"]
+
+    assert evidence.endswith(short), "short evidence must survive byte-for-byte"
+    assert prc.LIVENESS_REFUSAL_EVIDENCE_ELISION not in evidence, \
+        "claiming output was dropped when none was is a false statement about the record itself"

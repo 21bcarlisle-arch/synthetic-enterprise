@@ -6375,6 +6375,44 @@ def _write_publish_gate_state(state, *, episode_closed=False):
     PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
 
 
+#: How much of a refusal's evidence the record keeps, and it keeps the END of it -- see
+#: `_refusal_evidence_kept` for why the direction is the whole point of the number.
+LIVENESS_REFUSAL_EVIDENCE_CHARS = 900
+
+#: Prefixed when the budget above bit, so a reader never mistakes a tail for the whole output.
+LIVENESS_REFUSAL_EVIDENCE_ELISION = "[...earlier output dropped; this is the TAIL...]\n"
+
+
+def _refusal_evidence_kept(evidence, limit=LIVENESS_REFUSAL_EVIDENCE_CHARS):
+    """Keep the LAST `limit` characters of a refusal's evidence, never the first.
+
+    MEASURED 2026-09-06 off `.publish_gate_state.json` at 0533a77ac. The stored evidence was
+    exactly 900 characters and they were the FIRST 900 of a `stderr_tail` -- the last 40 lines of
+    the hook chain, then head-truncated. So the record read:
+
+        the pre-commit hook chain refused the commit (rc=1): [test-gate] 6 test file(s): ...
+        244 passed, 1 skipped in 70.95s
+        [test-gate] OK all targeted tests green
+        [site-lane] running whole site/ suite ...
+        .........................        <- cut, mid-progress-dots
+
+    Every line it kept says a gate PASSED. A hook chain prints its refusal LAST, so the one part
+    of the output the field exists to hold was the one part guaranteed to be dropped. That is why
+    the wedge episode ran to 31 consecutive failures with `cause: unattributed` on its own record
+    while the answer sat in the worker log, re-derived by hand each time.
+
+    The elision marker is inside the budget rather than added to it, so the stored string is never
+    longer than the number that bounds it -- a cap a caller cannot rely on is not a cap.
+    """
+    text = str(evidence or "")
+    if len(text) <= limit:
+        return text
+    marker = LIVENESS_REFUSAL_EVIDENCE_ELISION
+    if len(marker) >= limit:  # an absurd budget still gets the tail, just unlabelled
+        return text[-limit:]
+    return marker + text[-(limit - len(marker)):]
+
+
 def _record_liveness_surface_refusal(label, cause, evidence, git_hash="unknown", *, now=None):
     """Record WHY the liveness heartbeat or the provenance banner did not publish. Never raises.
 
@@ -6405,7 +6443,7 @@ def _record_liveness_surface_refusal(label, cause, evidence, git_hash="unknown",
             "ts": time.time() if now is None else float(now),
             "label": str(label),
             "cause": str(cause),
-            "evidence": str(evidence or "")[:900],
+            "evidence": _refusal_evidence_kept(evidence),
             "git_hash": str(git_hash),
         }
         _write_publish_gate_state(state)
