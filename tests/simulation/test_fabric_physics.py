@@ -94,6 +94,11 @@ def winter_week() -> list[DailyWeather]:
             temperature_max_c=6.2 + 0.4 * i,
             temperature_mean_c=3.1 + 0.35 * i,
             cloud_cover_pct=70.0 + 2.0 * i,
+            # THE CALM REFERENCE, so every expectation in this suite that predates the wind
+            # term reads exactly as it did: at 4 m/s the SAP factor is 1.0 and `with_wind` is
+            # the identity. The wind PATH is exercised by the tests written for it, not by
+            # silently re-baselining fifteen unrelated ones.
+            wind_speed_mean_ms=fabric_physics.SAP_REFERENCE_WIND_MS,
         )
         for i in range(7)
     ]
@@ -578,12 +583,14 @@ def test_colder_weather_raises_delivered_heat():
     household = make_household()
     mild = [
         DailyWeather(day_of_year=15 + i, temperature_min_c=8.0, temperature_max_c=13.0,
-                     temperature_mean_c=10.3, cloud_cover_pct=70.0)
+                     temperature_mean_c=10.3, cloud_cover_pct=70.0,
+                     wind_speed_mean_ms=fabric_physics.SAP_REFERENCE_WIND_MS)
         for i in range(5)
     ]
     cold = [
         DailyWeather(day_of_year=15 + i, temperature_min_c=-3.0, temperature_max_c=1.0,
-                     temperature_mean_c=-1.2, cloud_cover_pct=70.0)
+                     temperature_mean_c=-1.2, cloud_cover_pct=70.0,
+                     wind_speed_mean_ms=fabric_physics.SAP_REFERENCE_WIND_MS)
         for i in range(5)
     ]
     mild_heat = sum(
@@ -645,7 +652,8 @@ def test_heat_pump_electricity_rises_super_linearly_as_ambient_falls():
         week = [
             DailyWeather(day_of_year=15 + i, temperature_min_c=mean_c - 2.5,
                          temperature_max_c=mean_c + 2.5, temperature_mean_c=mean_c,
-                         cloud_cover_pct=80.0)
+                         cloud_cover_pct=80.0,
+                         wind_speed_mean_ms=fabric_physics.SAP_REFERENCE_WIND_MS)
             for i in range(5)
         ]
         runs = simulate_premise(
@@ -707,7 +715,8 @@ def test_solar_gain_reduces_delivered_heat_on_a_clear_day():
     def week(cloud_pct: float) -> list[DailyWeather]:
         return [
             DailyWeather(day_of_year=60 + i, temperature_min_c=1.0, temperature_max_c=7.0,
-                         temperature_mean_c=3.8, cloud_cover_pct=cloud_pct)
+                         temperature_mean_c=3.8, cloud_cover_pct=cloud_pct,
+                         wind_speed_mean_ms=fabric_physics.SAP_REFERENCE_WIND_MS)
             for i in range(5)
         ]
 

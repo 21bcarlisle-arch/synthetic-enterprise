@@ -4249,3 +4249,30 @@
   file_scope: ['docs/market_research/', 'tools/weather_driver_sensitivity.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that publishes a weather-cell methodology and cannot say, for any driver in it, whether its own demand engine reads that driver at all."
+- id: W1_26_the_world_has_no_wind_term_and_the_belief_does
+  title: "the SIM's heat loss ignores wind while the company's belief can fit a wind-chill term against it"
+  gain: "simulation/fabric_physics.py computes infiltration from build era and insulation and nothing else -- no wind factor anywhere in the demand path -- while company/pricing/weather_normalisation_belief.py carries an optional HDD x excess-wind regressor a caller can switch on. The company can therefore fit a household wind-chill coefficient against a world in which household wind chill does not exist, and the fit will look healthy: real regressor, real data, reported r-squared. The repair is the published SAP factor, one multiplication; the cost is that every historical demand figure in the tree moves, which is a fidelity decision with its own evidence bar and is why this is an atom rather than a patch."
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 3
+  level_target: 3
+  closed: >-
+    AT TARGET 2026-09-06. The SAP 10.2/BREDEM wind factor is in the world: DailyWeather carries a
+    REQUIRED wind_speed_mean_ms (the sixth archive column, skipped by the reader since the fetch),
+    FabricParameters.with_wind applies raw ACH x wind/4 and REFUSES on a vector built without its
+    ventilation components. At 4 m/s it is the identity and the 60-test fabric suite passes
+    unchanged, which makes it an extension not a re-calibration. 2023 replay: historical heating
+    demand moves +0.1% to +8.3% by site. THREE OF FOUR FILED PREDICTIONS REFUTED, kept beside the
+    result. NOT COVERED: SAP's shelter factor (a property attribute with no field, so every dwelling
+    reads as maximally exposed and the effect is OVERSTATED), and daily-mean rather than gust wind.
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1, and a coupled-triad defect rather than a fidelity nicety: a
+  #   belief carrying a term its truth does not have is the shape the triad gate exists to catch,
+  #   and it is currently invisible to it because the regressor is optional and off by default.
+  provenance: seat_finding
+  depends_on: []
+  couples_with: [W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for]
+  file_scope: ['simulation/fabric_physics.py', 'simulation/premise_trace.py', 'tests/simulation/', 'docs/market_research/', 'tools/weather_driver_sensitivity.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a weather-normalisation model with a wind coefficient nobody can explain, fitted on a decade of meter reads, sitting in the middle of every settlement reconciliation."

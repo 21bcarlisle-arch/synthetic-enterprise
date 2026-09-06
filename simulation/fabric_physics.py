@@ -159,7 +159,7 @@ import hashlib
 import math
 from functools import lru_cache
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import Enum
 
 from simulation.household import (
@@ -547,6 +547,31 @@ _INFILTRATION_ACH_BY_ERA: dict[BuildEra, float] = {
 }
 _MINIMUM_VENTILATION_ACH = 0.50
 
+# `domain-knowledge` — SAP 10.2 / BREDEM adjust a dwelling's infiltration rate by a WIND FACTOR:
+#
+#     adjusted infiltration ACH = raw ACH  x  shelter factor  x  (site wind speed / 4 m/s)
+#
+# A linear multiplier on the air change rate, normalised at 4 m/s. Ventilation loss is
+# `0.33 x ACH x volume`, so it flows straight into the heat loss coefficient.
+#
+# THIS WAS ABSENT UNTIL 2026-09-06 AND `DailyWeather` HAD NOWHERE TO PUT IT. `wind_speed_mean_ms`
+# has been the sixth column of every `sim/weather_data/*.csv` since the archive was fetched, sat
+# next to `cloud_cover_pct` in the reader, and was skipped. Meanwhile
+# `company/pricing/weather_normalisation_belief.py` carried an optional `HDD x excess wind`
+# regressor a caller could switch on -- so the company could fit a household wind-chill coefficient
+# against a world in which household wind chill did not exist, and the fit would look healthy.
+# W1_25 measured the size of what was missing: +14.9% median heat loss coefficient across the
+# household 5th-to-95th wind spread, against -18.9% for the same span of winter temperature.
+#
+# AT 4 m/s THIS IS THE IDENTITY. `with_wind(SAP_REFERENCE_WIND_MS)` reproduces the pre-2026-09-06
+# parameter vector exactly, which is what makes the change an extension rather than a re-calibration
+# and is asserted by `test_the_reference_wind_speed_reproduces_the_model_that_had_no_wind_term`.
+#
+# THE SHELTER FACTOR IS NOT APPLIED. It is `1 - 0.075 x sides_sheltered`, a property attribute this
+# model has no field for; omitting it makes every dwelling maximally exposed, which OVERSTATES the
+# wind effect uniformly. Registered as a residual rather than invented.
+SAP_REFERENCE_WIND_MS = 4.0
+
 # `domain-knowledge` — effective structural thermal capacity (kJ per m^2 of floor
 # area per K) by age band. THIS IS THE CHARACTER PARAMETER: solid masonry stores
 # heat for days, modern timber-frame for hours.
@@ -595,9 +620,37 @@ class FabricParameters:
     solar_aperture_m2: float
     internal_gain_kw: float
 
+    # The two halves of `r_ia`, kept separately so the ventilation half can be re-scaled by the
+    # day's wind without re-deriving the fabric. Defaulted so an existing hand-built parameter
+    # vector still constructs; `with_wind` REFUSES on the default rather than silently declining
+    # to apply the factor, which is the fail-silent shape this whole atom exists to remove.
+    fabric_w_per_k: float = 0.0
+    raw_infiltration_ach: float = 0.0
+    volume_m3: float = 0.0
+
     @property
     def heat_loss_coefficient_kw_per_k(self) -> float:
         return 1.0 / self.r_ia_k_per_kw
+
+    def with_wind(self, wind_speed_ms: float) -> "FabricParameters":
+        """This parameter vector at a given site wind speed, per SAP 10.2 / BREDEM.
+
+        Returns a NEW vector: the wind changes daily and the fabric does not, so re-deriving the
+        whole thing per day would be both wasteful and a chance to disagree with itself.
+        """
+        if self.volume_m3 <= 0.0 or self.raw_infiltration_ach <= 0.0:
+            raise ValueError(
+                "this FabricParameters was built without its ventilation components, so the wind "
+                "factor cannot be applied. Refusing rather than returning the unadjusted vector: "
+                "an unavailable adjustment is a FAILED adjustment, and returning `self` here is "
+                "exactly how a wind term stays absent while looking present."
+            )
+        if wind_speed_ms < 0.0:
+            raise ValueError(f"negative wind speed {wind_speed_ms}")
+        ach = max(self.raw_infiltration_ach * (wind_speed_ms / SAP_REFERENCE_WIND_MS),
+                  _MINIMUM_VENTILATION_ACH)
+        hlc_kw_per_k = (self.fabric_w_per_k + 0.33 * ach * self.volume_m3) / 1000.0
+        return replace(self, r_ia_k_per_kw=1.0 / hlc_kw_per_k)
 
     @property
     def mass_time_constant_hours(self) -> float:
@@ -662,9 +715,14 @@ def fabric_parameters(household: Household) -> FabricParameters:
         + window_area * _WINDOW_U_BY_ERA[era]
     )
     volume_m3 = area * _STOREY_HEIGHT_M
-    ach = _INFILTRATION_ACH_BY_ERA[era] * (
+    raw_ach = _INFILTRATION_ACH_BY_ERA[era] * (
         0.85 if household.insulation == InsulationLevel.FULL else 1.0
     )
+    # AT THE REFERENCE WIND THE FACTOR IS 1.0, so this line is what it always was. The raw rate is
+    # carried on the parameter vector so `with_wind` can re-apply the Part F floor AFTER scaling --
+    # applying the floor first and then the factor would let a calm day fall below the regulation
+    # minimum, which is the one thing the floor exists to prevent.
+    ach = raw_ach
     # `domain-knowledge` — Building Regulations Part F sets a whole-dwelling
     # ventilation requirement for indoor air quality. A dwelling cannot be sealed
     # below it, so airtightness improvements stop buying heat savings here.
@@ -684,6 +742,9 @@ def fabric_parameters(household: Household) -> FabricParameters:
         c_m_kwh_per_k=_MASS_CAPACITY_KJ_PER_M2K[era] * area / 3600.0,
         solar_aperture_m2=window_area * _SOLAR_TRANSMITTANCE * _FRAME_FACTOR,
         internal_gain_kw=_INTERNAL_GAIN_W_PER_M2 * area / 1000.0,
+        fabric_w_per_k=fabric_w_per_k,
+        raw_infiltration_ach=raw_ach,
+        volume_m3=volume_m3,
     )
 
 
@@ -1063,13 +1124,21 @@ def simulate_day(
 
 @dataclass(frozen=True)
 class DailyWeather:
-    """One row of the real daily archive (`sim/weather_data/{id}.csv`)."""
+    """One row of the real daily archive (`sim/weather_data/{id}.csv`).
+
+    `wind_speed_mean_ms` IS REQUIRED AND HAS NO DEFAULT, deliberately, and for the same reason
+    `latitude_deg` was made required in 2026-08: a caller that forgets it must fail loudly rather
+    than silently receive a world with no wind in it. The column has been in every archive CSV
+    since the fetch, sitting next to `cloud_cover_pct`, and the reader skipped it for a year.
+    A default here would restore exactly that state and make it invisible again.
+    """
 
     day_of_year: int
     temperature_min_c: float
     temperature_max_c: float
     temperature_mean_c: float
     cloud_cover_pct: float
+    wind_speed_mean_ms: float
 
 
 def simulate_premise(
@@ -1109,9 +1178,12 @@ def simulate_premise(
             day_of_year=day.day_of_year,
             latitude_deg=latitude_deg,
         )
+        # THE DAY'S WIND, per SAP 10.2 / BREDEM. The fabric is derived once and only its
+        # ventilation half moves, so a windy day and a still day at the same temperature are
+        # different days -- which they were not before 2026-09-06.
         result = simulate_day(
             household=household,
-            params=params,
+            params=params.with_wind(day.wind_speed_mean_ms),
             schedule=schedule,
             source=source,
             ambient_profile=profile,
