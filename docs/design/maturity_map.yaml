@@ -1415,7 +1415,8 @@
 # cleared for the real reason rather than the recorded one.
 - id: SITE4_ia_register_and_nav
   title: "One IA register in three states, and every page's nav renders from it"
-  gain: "The brief reads 'five tabs, in a ruled order' as one edit. It is sixteen hand edits against twelve distinct nav shapes -- and `site/evidence/index.html`, the largest content page after the wall exhibit, carries no `<nav>` element at all. Worse, the public surface is in THREE states, not two: 10 ADVERTISED (in sitemap.xml), 2 INTERNAL (served 200, deliberately absent from it, named in INTERNAL_DOORS), 5 RETIRED (301 to /proof/, kept in-repo per the retirement convention). The brief's §7 control #1 has no slot for the third state and so is red on twelve of sixteen areas, with deleting pages we chose to keep as its only green. This atom extends the sitemap-derived register in `site/live_pixel_verify.py` to all three states, derives every nav from it, and lands the failable form of that control -- red-listing the six real orphans (customers, now, glossary, evidence, knowledge, privacy) without yet fixing them. No reader-visible change; it is what makes every later step one edit instead of sixteen."
+  gain: "The brief reads 'five tabs, in a ruled order' as one edit."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1446,7 +1447,8 @@
   real_world_twin: "retiring a plant glossary into the operating manual, and accidentally decommissioning the tooltip system that quoted it"
 - id: SITE8_home_reordered_and_link_labels
   title: "Home opens with the claim, the diagram moves to the foot, and no link label repeats six times"
-  gain: "Six identical `Evidence behind this stage ->` labels on the homepage -- exactly six, word for word, confirmed against the committed source. No label tells a reader where it goes. The brief's §7 control #3 (a label used more than twice on a page fails) lands with this step, per §9.3's rule that controls arrive with the thing they govern. The model-on-one-page diagram is a good artefact in the wrong position: it moves to the foot as the payoff, not the greeting. Watch `site/test_home_door.py` (6 tests) -- it asserts the home nav and evidence links structurally and encodes prior migration decisions, so it is read before it is edited. REVISION 2026-08-18 (brief revised after this atom was minted, and this is the atom it changes most): Home's CLAIM IS REPLACED, not reordered. The live headline states the SIMULATED COMPANY's mission ('an energy company built and run by AI, to find the cheapest tonne of carbon left'); the brief now rules that is the mission of the thing being grown, not the experiment being run, and a reader currently meets the exhibit without being told what it is an exhibit of. Home must instead open with the PROJECT's claim in a ruled six-part order -- the question (can software be grown rather than written, can a system produce and maintain itself), the name and thesis (autopoiesis, Maturana and Varela, contrasted with allopoiesis), the experiment, why energy (the fitness function is the cheapest tonne abated and the domain punishes faking), what is measured, and the honest frame (a proof of concept for learning, not a product and not a pitch). Plus two structural claims stated as evidence: SELF-PRODUCTION (the system builds the controls that judge its own work, finds them unable to fail, rebuilds them, and mints the law that prevents the next instance) and SELF-MAINTAINED BOUNDARY (the epistemic wall, enforced by the system on itself, crossings measured and driven down -- a structural correspondence, explicitly NOT an analogy). CONTRADICTION TO RESOLVE BEFORE DRAWING, and it is in the revised text itself: the new paragraph says Home carries 'a route into Knowledge as the next step for a patient reader' while the retained bullet directly below still says 'One hero route into Explore -- a named household'. Both are written as THE hero route. §3 ruled Knowledge second precisely for the patient reader, so Knowledge is the likelier intent, but this is the director's editorial call and it is not the worker's to silently pick."
+  gain: "Six identical `Evidence behind this stage ->` labels on the homepage -- exactly six, word for word, confirmed against the committed source."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1461,7 +1463,8 @@
   real_world_twin: "an annual report whose contents page lists the same chapter title six times"
 - id: SITE9_harness_tab_and_director_record
   title: "Harness carries the methodology account -- and the director record is not advertised until a stranger's view of it has been read"
-  gain: "The tab that carries the two-seat model, the named failure classes, the honest count of what broke and why, and the known-limitations section re-homed from Proof. REVISION 2026-08-18 (brief revised after this atom was minted): it gains four things and stops being one tab's worth of work -- (a) THE METHOD ITSELF, legible to an outsider: how work is chosen and sequenced, what the lanes and the work-item map are, how maturity levels are claimed and proven, and how a claim is REFUSED when its evidence is missing; (b) HOW DISCOVERY FEEDS KNOWLEDGE, the loop from finding to measurement to repair to a landed Knowledge page, with the link between the two tabs visible, because a self-producing system that also produces its own domain knowledge is a stronger claim than either alone; (c) OBSERVABILITY including the classes of blindness the system has found in its OWN instruments; (d) CODEBASE TRACKING for SIM and Company SEPARATELY -- modules, tests, coverage of what ships, wall crossings over time, orphaned work, and the split between built-new and repaired -- which the brief is explicit is not housekeeping but the direct measurement of the growth being claimed. Note (a) collides with §6.2's no-internal-vocabulary rule, and the revision grants Harness its SINGLE named exception for exactly that reason. Hidden inside the brief's §4 is a publication act it does not name: `/director/` is currently INTERNAL -- deployed, noindex, off-nav BY CHOICE, named in `INTERNAL_DOORS`. Folding it into an advertised tab publishes the director record to crawlers for the first time. The director accepted publishing it (proposal §6 Q3) AND attached the programme's single condition."
+  gain: "The tab that carries the two-seat model, the named failure classes, the honest count of what broke and why, and the known-limitations section re-homed from Proof."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1478,7 +1481,8 @@
   real_world_twin: "a board minute book that was always technically available on request, being moved to the front of the public shelf"
 - id: SITE11_proof_dissolved
   title: "/proof/ is DISSOLVED, not deleted -- and the five redirects it answers move with it"
-  gain: "The dangerous one, and the correction the director accepted back up the chain in his own words ('my instruction would have broken five live redirects'). The brief's §3 says proof is 'deleted, not moved'. /proof/ is where method, project, simplified, tours and wip-flow were re-homed by two prior IA migrations (Campaign A 2026-07-18, SITE_V5 2026-07-23), and it renders their absorbed content at #method-anchor, #project-anchor, #simplified-anchor, #economics-anchor, #timeline-anchor. Deleting it points five live 301s at a 404 and destroys the only rendered copy of five retired areas' content. Instead: /proof/ becomes a redirect SOURCE like the five before it (/proof -> /harness/ 301), the five existing 301s are re-pointed to their new homes IN THE SAME COMMIT, the anchor content moves BEFORE the redirect lands, and nothing leaves the tree -- which is the convention site/_redirects already states in its own comments, and satisfies §9.1 ('nothing is deleted until its replacement is live') more literally than deletion does. Must be last: it re-points at homes that have to already exist. Six pages carry in-page links to /proof/#*-anchor today."
+  gain: "The dangerous one, and the correction the director accepted back up the chain in his own words ('my instruction would have broken five live redirects')."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1493,7 +1497,8 @@
   real_world_twin: "closing a records office whose address is printed on five statutory notices, and forwarding the post before you turn off the lights"
 - id: SITE12_evidence_a_reader_can_use
   title: "The evidence surface answers a sceptic, not a maintainer"
-  gain: "Director, 2026-08-18, on the Capabilities door's evidence links: 'the evidence links land a reader in the machine's own vocabulary -- atom ids, levels, lane names, file paths ... the outcome I want: a sceptic can get from a claim to the thing that justifies it and understand what they're looking at, without knowing any of our internal language.' MEASURED: /evidence/ renders, per architecture node, a block per work item consisting of a raw id (`D1_bill_correctness`), a level pair (`L3/3`), a lane name (`D_billing_metering`), a loop stage, repo file paths and a ledger entry. Every one of those is on section 6.2's forbidden list, on a page a reader is now sent to FROM a public tab -- so the link satisfies the letter of 'route to evidence' and breaks the rule the whole brief rests on. It also covers only 46 of the record's 314 work items, which is why six built capabilities have no route at all. THIS ATOM IS THE OTHER HALF of a decision already taken on the Capabilities door: the machine links are NOT shipping until this exists, and the page states in plain words what checks a claim instead. What replaces them: a reader-facing answer to 'how do you know?' -- what was checked, how many independent checks, when they last ran, and what would have to be true for the claim to be wrong -- with the machine record behind a 'show the underlying record' control, which is exactly where the brief section 4 puts it. Not a rename of the existing page: its subject is the architecture diagram's nodes, and a sceptic arrives from a CLAIM."
+  gain: "Director, 2026-08-18, on the Capabilities door's evidence links: 'the evidence links land a reader in the machine's own vocabulary -- atom ids, levels, lane names, file paths ... the outcome I want: a sceptic can get from a claim to the thing that justifies it and understand what they're looking at, without knowing any of our internal language.' MEASURED: /evidence/ renders, per architecture node, a block per work item consisting of a raw id (`D1_bill_correctness`), a level pair (`L3/3`), a lane name (`D_billing_metering`), a loop stage, repo file paths and a ledger entry."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1509,7 +1514,8 @@
   real_world_twin: "an auditor's working papers published verbatim as the annual report's evidence section -- every figure traceable and not one sentence written for the person reading it"
 - id: H43_birth_certificate_law_remaining_instantiations
   title: "The Birth Certificate law's four unbuilt instantiations: a governance-data schema validator, organ output budgets, reconciliation-must-fail, and a migration ledger"
-  gain: "The 2026-08-05 advisor retro (ADVISOR_RETRO_FAILURE_MODES_AND_BIRTH_CERTIFICATE_LAW_2026-08-05) named one law -- anything that persists declares its reader/writer/bound/death, and checks additionally declare a proven failure -- as the lateral fix for five clustered failure modes (write-time blindness, stores born without lifecycles, fields without contracts, checks that pass emptily, migrations without a finish line). Instantiation 1 (lifecycle certificates for the five known rotters) is done and self-applied: the simplifications store this atom's own note lives in (docs/design/simplifications/README.md) carries a Birth Certificate section for itself. The system-level 'bound' amendment graduated separately and was ratified (DIRECTOR_RULING_TRAFFIC_FORECAST_AND_DEEPENING_REGISTER_2026-08-07, in_progress/). Confirmed by search on this tick (no matching module found for any of the four): instantiation 2 (a schema + validating test for maturity_map.yaml and sibling governance YAMLs -- type, id-grammar, edge-must-be-id, dated provenance), instantiation 3 (a dedup key + daily byte/item budget in every writing organ's certificate, naive organ first), instantiation 4 (extend the mutation-test discipline to reconciliation-class checks -- the credit-balance -GBP202-unreleased-for-3.5-years case is the retro's own specified first planted defect), and instantiation 5 (a migration ledger recording each cutover's retirement criterion at start, so 'started, not finished' becomes a standing reportable class) remain unbuilt."
+  gain: "The 2026-08-05 advisor retro (ADVISOR_RETRO_FAILURE_MODES_AND_BIRTH_CERTIFICATE_LAW_2026-08-05) named one law -- anything that persists declares its reader/writer/bound/death, and checks additionally declare a proven failure -- as the lateral fix for five clustered failure modes (write-time blindness, stores born without lifecycles, fields without contracts, checks that pass emptily, migrations without a finish line)."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -1525,7 +1531,8 @@
   real_world_twin: "a regulator's data-quality rulebook -- every register declares who reads it, who may write it, how it is bounded, and how a check on it was proven to catch a planted error, rather than trusting each new register to reinvent the same disciplines"
 - id: H45_the_queue_is_chained_to_the_map
   title: "P8: every staging work item carries a lane, an epoch and an atom, and the machine can say how many do not"
-  gain: "Director, 2026-08-28, having read all 49 files in docs/staging/: 'not one file carries a lane, an epoch or an atom id, so the queue is disconnected from the map entirely -- the same missing chain the guidance calls P8'. P8 in full: 'no systematic link from knowledge to discovery to atoms to epochs. Published evidence we already held sat unused while a 3.75x spread was invented. A July design document sat unread until a director question surfaced it. Discovery ran eight passes deep on atoms that could never build. Knowledge pages describe mechanisms with no link to the atoms implementing them, so page and code can disagree indefinitely and nothing notices.' PART LANDED 2026-08-28: background/staging_rooms.py parses the chain off the header finding_severity already owns, counts the items carrying none, and separates 'nobody looked' (absent) from 'looked, nothing yet' (an explicit `unminted`); alarm_repetition stamps the chain on every document it files. REMAINING: the other three joints -- a knowledge page (docs/design/knowledge/, not yet created) that names the atoms implementing it and fails when they move; a discovery pass that cannot run deeper than the atom it is about can build; and the epoch attachment, so work accretes rather than scatters."
+  gain: "Director, 2026-08-28, having read all 49 files in docs/staging/: 'not one file carries a lane, an epoch or an atom id, so the queue is disconnected from the map entirely -- the same missing chain the guidance calls P8'."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 2
@@ -1541,7 +1548,8 @@
   real_world_twin: "an engineering organisation where every ticket carries its component and its release train, so 'what is in flight for this subsystem' is a query rather than a conversation -- and where a design document that no longer matches any live component is flagged by the tooling rather than by whoever happens to reread it"
 - id: A45_the_canon_is_a_standing_subject
   title: "Something other than the director must ask what the page claims that the code no longer supports"
-  gain: "Director, 2026-08-28: 'Today's three corrections were found because the director and advisor happened to read the page -- no mechanism ever checks it, so the mission sits structurally outside the machine's field of view. That check would have caught C1 and C2 weeks ago, and it is the machine's job rather than the director's.' The three corrections cost nothing to find once someone looked: C1's traits were unread by any response function, C2's competitor was eleven design documents and no module, C3's collateral was a fixed cost line and never a call. All three were greppable. The atom is the standing check, not the three answers -- those are filed in WORKER_FINDING_THE_CANON_AND_THE_CODE_DISAGREE_ON_THREE_CLAIMS_2026-08-28. Note the direction runs both ways: C1 was found to be PARTLY SUPERSEDED, because a channel for price_sensitivity landed on 2026-08-27, the day before the guidance was drafted. A drift check that can only report the page over-claiming would have missed that."
+  gain: "Director, 2026-08-28: 'Today's three corrections were found because the director and advisor happened to read the page -- no mechanism ever checks it, so the mission sits structurally outside the machine's field of view."
+  notes_rehomed: [origin_note]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 2
@@ -1557,7 +1565,8 @@
   real_world_twin: "a regulated firm's control-attestation cycle: the statement of what the firm does is re-tested against what the systems do on a schedule, by someone whose job it is, rather than at the moment a board member happens to read it"
 - id: PB4_engagement_separated_from_elasticity
   title: "P4: whether a household enters a choice process at all is not how far price moves it once it does"
-  gain: "Director, 2026-08-28 (P4): 'A large share of GB households have never switched at any price -- an engagement fact, not an elasticity one -- and a disengaged household can be highly price-sensitive once a bill shock makes it look, which is exactly why bill shocks are predictive. Modelling one on the other's shape builds a world where never-switchers are also price-insensitive, and the company will learn a relationship that does not exist.' The current world has ONE axis: simulation/customer_events.py weights a single price differential by a single per-household elasticity drawn from price_sensitivity, so a household that never switches is expressed as one with a low elasticity, and the two facts are inseparable by construction. Two gates, not one weight: an ENGAGEMENT gate (does this household look at all this period, and what makes it look -- a bill shock, a renewal letter, a price rise past a threshold) and, conditional on looking, an ELASTICITY (how far the gap moves it). BUILD SO THAT P1 CHANGES ITS ANSWERS, NOT ITS STRUCTURE (the guidance's one genuine cul-de-sac): the gate takes a comparison offer as an argument, so a competitor that responds changes what is on offer without changing the shape of the decision."
+  gain: "Director, 2026-08-28 (P4): 'A large share of GB households have never switched at any price -- an engagement fact, not an elasticity one -- and a disengaged household can be highly price-sensitive once a bill shock makes it look, which is exactly why bill shocks are predictive."
+  notes_rehomed: [origin_note]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
@@ -1582,7 +1591,8 @@
   real_world_twin: "the GB retail market's actual switching record: roughly half the domestic book has never switched supplier, and a large part of that half moves when a bill shock or a cap headline makes them look -- disengagement is an attention fact and the price response underneath it is a separate, and often large, quantity"
 - id: PB6_the_engagement_observable_crosses_the_seam
   title: "P6: the antecedent the world now carries has to reach the company, or R1 bought a world nobody can learn from"
-  gain: "PB4 gave engagement an observable antecedent -- payment channel, anchored on Ofgem CIM w6 (standard credit 5.7%, prepayment 3.1%, base 5.3%) -- and measured it recoverable: held-out +0.1192 against a null of 0.0403, where the same instrument on the pre-PB4 world scored -0.0106 and did not clear. NONE OF THAT REACHES THE COMPANY. `company/interfaces/sim_interface.py` does not pass payment method; `company/crm/vulnerability_index.assess` takes a `has_ppm` argument and has NO CALLER anywhere in the tree. So the world knows something a real supplier plainly knows about its own billing arrangement, and the company cannot see it. R1s claim is that the company faces a world it could in principle learn from; a trait that stops at the wall satisfies the letter of that and none of it. THE EPISTEMIC QUESTION IS SETTLED AND EASY: how a customer pays IS the suppliers own record, not simulation ground truth -- a direct debit mandate is set up WITH the supplier. It crosses as an observable, through the seam, never by import."
+  gain: "PB4 gave engagement an observable antecedent -- payment channel, anchored on Ofgem CIM w6 (standard credit 5.7%, prepayment 3.1%, base 5.3%) -- and measured it recoverable: held-out +0.1192 against a null of 0.0403, where the same instrument on the pre-PB4 world scored -0.0106 and did not clear."
+  notes_rehomed: [origin_note]
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
@@ -1610,7 +1620,8 @@
   real_world_twin: "a real supplier's own billing record. It knows how every customer pays because it set the arrangement up, bills against it, and prices for it -- payment method is on the tariff table itself. A supplier that could not see its own payment channels would be unable to bill."
 - id: PB7_the_company_learns_what_it_can_now_see
   title: "P7: the company is handed Ofgem's coefficient; it should discover the relationship from its own book"
-  gain: "PB6 let the company condition its churn belief on payment method, using Ofgem's published CIM w6 rates as the coefficient. That is legitimate -- a regulator's public survey is exactly what a real supplier reads -- but it is a PRIOR, not a discovery, and the D-SEGMENT wall ruling is explicit that the company 'discovers everything else exclusively through acquisition and ongoing interaction, scored on the belief-vs-truth gap'. A supplier with a book of its own does not keep quoting the national survey at its own customers: it measures ITS OWN switching rate by payment method and updates. Until it does, the company's belief cannot be WRONG, so the belief-vs-truth gap this project scores itself on has nothing to bite on -- and the enterprise value is the METHOD of finding customers, which a hardcoded constant is not. The prior-and-update shape already exists one module away: `enriched_churn_estimate` does exactly this for competitive pressure, where the published year table is used as a prior and updated by the company's own realised losses against what it predicted."
+  gain: "PB6 let the company condition its churn belief on payment method, using Ofgem's published CIM w6 rates as the coefficient."
+  notes_rehomed: [origin_note]
   lane: B_commercial
   value_stream: meter_to_cash
   epoch: 3
@@ -1643,7 +1654,8 @@
   real_world_twin: "a supplier's own retention analytics. It has its own churn by payment method, measured on its own leavers, and it trusts that over a national survey the moment it has enough of them -- which is also when it starts beating the market rather than tracking it."
 - id: H46_the_consistency_gate_disagreement_before_the_next_publish
   title: "the consistency gate failed on a headline number, and weekly publishing means it sits in a file instead of on a page"
-  gain: "Director, 2026-09-05: 'The consistency gate failed at 08:43Z, dashboard against exec-summary on a headline number. Under weekly publishing that sits in a file rather than on a page, so fix it before the next publish rather than now.' TWO SURFACES DISAGREEING ABOUT ONE FIGURE is the class `_check_population_consistency` exists for -- its own docstring names it: 'two different populations rendered on one page, both called accounts/households, silently diverging'. THE DEADLINE IS THE POINT: weekly cadence converted this from a live wrong page into a wrong FILE, which buys days and removes urgency without removing the defect. It must be discharged BEFORE the next weekly publish or the cadence has done nothing but hide it. Reproduce the 08:43Z failure first rather than reasoning from the gate's name -- this seat has twice this week published a cause derived from a control's title instead of its output."
+  gain: "Director, 2026-09-05: 'The consistency gate failed at 08:43Z, dashboard against exec-summary on a headline number."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: price_to_bill
   epoch: 3
@@ -1661,7 +1673,8 @@
   real_world_twin: "a supplier whose regulatory return and whose board pack quote different customer counts. Nobody notices until someone reads both, and then nobody can say which was ever right."
 - id: H47_the_orientation_header_states_a_figure_it_computes
   title: "the first thing every session reads is a hand-typed sentence, and it was 15x wrong"
-  gain: "2026-09-05, from the director's console: another session's startup read PROJECT_OVERVIEW.md from the published mirror and oriented on it. Its header said '2,500+ commits, 23,826 tests, ~55,700 lines across 360+ Python modules'. Measured the same day: 9,385 commits, 26,731 tests, 826,700 lines across 2,701 modules -- 3.7x out on commits and 15x on lines, so a session started from it was reasoning about a project a fifteenth of this one's size, and every judgement about what is expensive or risky here scales with that. `tools/startup_anchor_freshness.py` now REFUSES a commit that leaves this document's DATE disagreeing with its real age, which closes the staleness half. IT DOES NOT TOUCH THE FIGURES: they are still hand-typed, still rot the day after they are written, and nothing can notice -- the same shape one layer in. The four counts are all mechanically derivable (`git rev-list --count`, `git ls-files '*.py'`, CLAUDE.md's own Build stamp, which is already parsed for the live site). Derive them at publish and the recurring defect is gone rather than corrected-for-today."
+  gain: "2026-09-05, from the director's console: another session's startup read PROJECT_OVERVIEW.md from the published mirror and oriented on it."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: price_to_bill
   epoch: 3
@@ -1752,7 +1765,8 @@
   real_world_twin: "a change board with a hundred items parked pending decisions that were taken last quarter, where the parking itself is what stops anyone noticing."
 - id: C32_one_obligation_one_vulnerability_scorer
   title: "two vulnerability scorers implement one Ofgem obligation, disagree on every shared term, and the dead one decides disconnection"
-  gain: "SEAT FINDING 2026-09-05, docs/staging/SEAT_FINDING_ONE_OFGEM_OBLIGATION_HAS_TWO_VULNERABILITY_SCORERS_THAT_DISAGREE_AND_THE_DEAD_ONE_DECIDES_DISCONNECTION_2026-09-05.md, found while carrying out the director's own instruction to give vulnerability_index.assess_vulnerability the caller it lacks. company/crm/vulnerability_register.py is LIVE (12 flags, weights 1-5, required actions) and company/crm/vulnerability_index.py has NO production caller (6 indicators, scores 10-60, bands, is_priority_services, disconnection_protected). They disagree on every overlapping term -- ELDERLY weight 2 vs ELDERLY_75 score 20 with no age threshold on the register side at all; MEDICAL_EQUIPMENT weight 5 vs HOME_OXYGEN score 60 forcing CRITICAL -- and each holds terms the other lacks entirely. THE AGGRAVATION IS THAT THEY ARE NOT EQUALLY ALIVE: the register collects flags and the index scores them, which is so plainly the intended pairing that its absence IS the defect, and the half that decides disconnection protection is the half that has never run. THE REASON THIS IS AN ATOM AND NOT A COMMIT: wiring them means choosing one of two disagreeing implementations and burying the choice in a mapping table -- ELDERLY to ELDERLY_75 invents an age threshold, MEDICAL_EQUIPMENT to HOME_OXYGEN promotes every such flag to disconnection protection or does not, and either is a regulatory position taken by a dict. Neither module cites a source for any weight it holds. Knowledge first: PSR eligibility and the licence conditions on disconnection are a PUBLISHED question, established from the record and filed in the commons, and only then is there one scorer with the other DELETED. Third instance of the VAT shape in one session, after the two CLAUDE.md build parsers and the two independent payment-method draws that agreed 58.8% of the time."
+  gain: "SEAT FINDING 2026-09-05, docs/staging/SEAT_FINDING_ONE_OFGEM_OBLIGATION_HAS_TWO_VULNERABILITY_SCORERS_THAT_DISAGREE_AND_THE_DEAD_ONE_DECIDES_DISCONNECTION_2026-09-05.md, found while carrying out the director's own instruction to give vulnerability_index.assess_vulnerability the caller it lacks."
+  notes_rehomed: [origin_note]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 3
@@ -1774,7 +1788,8 @@
   real_world_twin: "a supplier with a vulnerability team working one list and a collections system scoring another, where the customer on home oxygen is priority on one and ordinary on the other, and nobody finds out until the disconnection."
 - id: D46_the_validator_holds_against_the_varied_population
   title: "the bill validator reconstructed a small homogeneous book to the penny; it must hold against the population the segments produce"
-  gain: "DIRECTOR SEQUENCING, 2026-09-05 console, STAGE 2 of three and it supersedes the ranking where they conflict: 'Second: bill it correctly. Every one of those varied customers, across payment methods, estimated and actual reads, catch-ups, moves and deemed contracts. The bill validator is the test -- it reconstructed 11,549 periods to the penny on a small homogeneous book, and it needs to hold against the population the segments produce. WHERE IT DISAGREES, THE VALIDATOR WINS.' That last clause is the ruling: the validator is not a report on the biller, it is the arbiter over it. THE ATOM HAD NO EXISTENCE UNTIL NOW -- the nearest rows were D4_loyalty_incentive_billing at dial 1 and the DCC/n3rgy adapters at 3 -- which is the same defect as the phase-1 rulings this morning: a thing ranked first that was not in the queue. WHAT MAKES THIS HARD is exactly what stage 1 produces: today's book is homogeneous, so estimated-versus-actual reads, catch-up bills after a long estimate, a change of tenancy mid-period, a deemed contract on an incoming occupier and three payment methods with different charging mechanics are all either absent or rare. Each is a billing path the reconstruction has never met. AND THE HONEST BOUND MUST TRAVEL WITH THE RESULT: tools/independent_bill_validator.py's own header says the levy line is UNCHECKABLE (the exported figure bundles DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and smart metering against a cited-but-unfetchable source) and the VAT AMOUNT is unreconstructible because its base contains that line. docs/design/WHAT_THE_BILL_VALIDATION_CANNOT_CATCH.md exists so that '11,549 of 11,549' is never quoted without it. A green validator is not a green bill; it is a bill whose reconstructible lines agree."
+  gain: "DIRECTOR SEQUENCING, 2026-09-05 console, STAGE 2 of three and it supersedes the ranking where they conflict: 'Second: bill it correctly."
+  notes_rehomed: [origin_note]
   lane: D_billing_metering
   value_stream: meter_to_cash
   epoch: 3
@@ -1793,7 +1808,8 @@
   real_world_twin: "a supplier whose billing engine was proved correct against the customers it already had, meeting its first prepayment change-of-tenancy with an estimated opening read."
 - id: W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system
   title: "whether a property has a mains gas connection is a drawn attribute, from the same NEED rows floor area came from"
-  gain: "HOUSING RULING section 3.1 names 'heating system and fuel INCLUDING NO MAINS GAS'. Measured 2026-09-05: neither the DrawnPremise nor the Household carries any gas field at all, so off-gas is today INFERRED from the heating system -- which gets it backwards, because a property off the gas grid has no gas option to choose from and the causation runs connection -> system, not system -> connection. THE ANCHOR IS ALREADY PULLED: docs/market_research/floor_area_anchor_need_2026_hmrc_bands.md established DESNZ NEED anon2026_50k as open, account-free and HMRC-sourced, and the same 50,000 rows carry the gas/electricity split per dwelling. EXIT: a drawn mains-gas attribute whose marginal recovers the published off-gas share, with the existing heating-system marginals unmoved (a fidelity change to either is decided blind to P&L, never a side effect). WATCH THE CENSORING: NEED blanks gas readings under 1,000 kWh, so 'no gas reading' and 'no gas connection' are DIFFERENT and the first must not be read as the second -- that conflation would manufacture an off-gas population out of small flats."
+  gain: "HOUSING RULING section 3.1 names 'heating system and fuel INCLUDING NO MAINS GAS'."
+  notes_rehomed: [origin_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1812,7 +1828,8 @@
   real_world_twin: "a supplier that decides a household is off-grid because its gas meter read nothing this quarter."
 - id: W2_21_the_premise_joint_is_fitted_not_drawn_independently
   title: "the physical quantities are drawn from a fitted joint with their published correlations, not axis by axis"
-  gain: "HOUSING RULING section 3.1: the fitted joint of the quantities that carry the variance, WITH THEIR PUBLISHED CORRELATIONS -- flats are newer and smaller, pre-1919 is solid-wall, rural is detached and off-gas and has a drive. The machine's own D-SEGMENT pass found the defect this closes: twenty-one trait axes drawn overwhelmingly INDEPENDENTLY. DEPENDS ON W2_20 AND THE FLOOR-AREA ANCHOR because a joint needs its margins first. THE NEED 50k SAMPLE IS THE FITTING SOURCE and it carries PROP_TYPE x PROP_AGE_BAND x FLOOR_AREA_BAND x REGION x metered consumption on one row per dwelling, so the correlations are measured rather than asserted. EXIT: every existing marginal recovers to the tolerance its current test enforces, AND at least one published correlation the independent draw could not produce is reproduced. THE FAILURE MODE TO REFUSE: an invented correlation matrix where a published cross-tab exists -- the ruling forbids it and the small-area data is what makes it unnecessary."
+  gain: "HOUSING RULING section 3.1: the fitted joint of the quantities that carry the variance, WITH THEIR PUBLISHED CORRELATIONS -- flats are newer and smaller, pre-1919 is solid-wall, rural is detached and off-gas and has a drive."
+  notes_rehomed: [origin_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1831,7 +1848,8 @@
   real_world_twin: "a stock model that draws a 40 square metre detached house because nothing told it those two facts travel together."
 - id: W2_22_the_sample_is_space_filling_and_rejects_on_outputs
   title: "draw for difference: a candidate house is rejected when one already drawn would behave the same"
-  gain: "HOUSING RULING section 1 and 3.2, and the director's framing is the whole of it: 'Draw for DIFFERENCE, not for proportion. Two London terraces on one street teach the world nothing the first did not.' AND THE REJECTION IS JUDGED ON OUTPUTS, NOT INPUTS -- usage level, shape, weather gradient, and the ceiling on each lever -- never on type/age/size labels. That distinction is the atom: a similarity test run on inputs produces a sample matching every marginal and missing every joint corner, which is failure mode (a) the ruling names. DELIVERS the two coverage curves (distinct houses versus variance covered; tail coverage as the share of the population's top 1% on each output represented) and therefore N, which is REPORTED rather than chosen. Coverage is a property of the ENSEMBLE OF RUNS with a visited-corner ledger across lives -- the director explicitly does not want every house in every geography in one run."
+  gain: "HOUSING RULING section 1 and 3.2, and the director's framing is the whole of it: 'Draw for DIFFERENCE, not for proportion."
+  notes_rehomed: [origin_note]
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
@@ -1850,7 +1868,8 @@
   real_world_twin: "a research panel recruited to match the census on every margin, in which every respondent turns out to be the same person twice."
 - id: G14_half_hourly_grid_carbon_intensity_aligned_to_settlement
   title: "historical half-hourly grid carbon intensity, aligned to the settlement periods the world already runs on"
-  gain: "AUTHORISED 2026-09-06 by DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY section 3.2 -- one of two small discovery pulls, 'reversible, cheap, wall-clean'. Reaffirmed the same day in the sequencing ruling: 'The two authorised discovery pulls stand: grid carbon intensity and a forward-curve series. Both are INPUTS, not use cases.' RANKED BELOW STAGE 1 DELIBERATELY: it is authorised, and its consumer (use case 4.6, the carbon product) is stage 3, so it must not displace the world-fidelity work. It is also the mission's second currency -- CLAUDE.md records carbon as designed and unwired -- so the asset has standing beyond any one use case. THE FAILURE MODE THE RULING NAMES IS ALIGNMENT: carbon intensity pulled at a resolution that does not align with the settlement periods is worse than none, because a half-hourly claim resting on hourly data is a figure nobody can check. Align it or state the mismatch on the asset. Register with provenance as a data asset; no product build."
+  gain: "AUTHORISED 2026-09-06 by DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY section 3.2 -- one of two small discovery pulls, 'reversible, cheap, wall-clean'."
+  notes_rehomed: [origin_note]
   lane: G_data_learning
   # price_to_bill, not close_to_learn. The default was wrong and the hygiene control
   # said so: this asset exists so a household's CARBON can sit beside its money bill
@@ -1873,7 +1892,8 @@
   real_world_twin: "a supplier publishing a customer's carbon footprint from an annual national average, then being asked which hour it was saved in."
 - id: G15_forward_curve_series_to_backtest_hedging_by_physics
   title: "a published forward-curve or hedge-cost series good enough to backtest hedging by physics"
-  gain: "AUTHORISED 2026-09-06 by the use-case register ruling section 3.2, the second of the two pulls, and the register's own fidelity table marks it as the gap standing between use case 3.1 (hedging by physics) and any test of it: 'cell weather with synchrony; gradient distribution; HEDGE COST MODEL AND FORWARD CURVES'. It is also the held-batch forward-curve backtesting item, so this is a parked thing being unparked rather than new ground -- look for that batch before pulling. RANKED BELOW STAGE 1: 3.1 is stage 3 and the director has ruled no use case is built until the world and billing are done, so this buys the ability to TEST later, not to build now. WHAT MAKES IT HARD IS NOT THE PULL: a forward curve is a price for a delivery period as of a trade date, so it is bitemporal by nature, and a series stored without its as-of date is unusable for backtesting -- it would let the company hedge on prices it could not have seen, which is the point-in-time wall in its purest form."
+  gain: "AUTHORISED 2026-09-06 by the use-case register ruling section 3.2, the second of the two pulls, and the register's own fidelity table marks it as the gap standing between use case 3.1 (hedging by physics) and any test of it: 'cell weather with synchrony; gradient distribution; HEDGE COST MODEL AND FORWARD CURVES'."
+  notes_rehomed: [origin_note]
   lane: E_finance_treasury
   value_stream: wholesale_to_price
   epoch: 3
@@ -1943,7 +1963,8 @@
   real_world_twin: "a board deciding how many years of trading history a strategy is to be judged over -- a question about what the firm is being asked to prove, not one the analyst running the backtest gets to settle"
 - id: A49_the_ceiling_comes_before_the_programme_on_r3_and_r4
   title: "The ceiling-before-programme discipline reached R1 and stopped there: R3 and R4 would be built with no bound on what they could possibly be worth"
-  gain: "DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04, WORK THIS CREATES item 5: 'The ceiling-before-programme discipline from EP13 applied to R1-R4 before building', and §3: 'EP13's ceiling measurement was good work and the pattern it demonstrated -- measure the ceiling before the programme rather than after six passes -- should be applied to everything in R1-R4.' MINTED BECAUSE THE COVERAGE IS PARTIAL AND THE UNCOVERED HALF IS THE EXPENSIVE HALF. R1 has its ceiling (tools/r1_inference_ceiling.py, held-out per-cell mean against a max/48 null -- the best possible function of the coordinate, so no estimator can beat it) and R2's bound follows from R1's result rather than needing its own instrument, both recorded in SEAT_FINDING_R1S_INFERENCE_CEILING_IS_AT_THE_NULL_AND_R2_CANNOT_PAY_UNTIL_R1_LANDS_2026-09-04. R3 (the score -- PS/tCO2e, E5) and R4 (products beyond price -- advice, tariff fit, efficiency, solar, heat pumps, time-shifting) have NOTHING: grep over tools/ returns six ceiling instruments, five of them EP13's and one R1's, and none touching either. THE COST OF NOT DOING THIS IS MEASURED, NOT ASSERTED -- it is EP13's own record. That atom ran TWELVE passes without moving off L2; the ceiling discipline arrived at pass seven and RETIRED FIVE CANDIDATE PROGRAMMES (the outage model, the within-day axis, a publishable within-day CCGT proxy, biomass dispatch, and the daily-gas-level rung left undecided rather than falsely retired) -- each of which would otherwise have been built first and measured afterwards. R4 is the larger exposure of the two: it is the biggest unbuilt programme on the map and the mission is unreachable without it (§2 R4), so a programme-sized build with no prior bound is exactly the shape EP13 paid twelve passes to learn. WHAT DONE MEANS: a ceiling instrument per side, each answering 'what is the most this programme could be worth if it worked perfectly' against a stated null, with the honest end published whichever way it falls -- and, per EP13's hardest-won lesson, each one stating whether it is a true CEILING (perfect knowledge of the quantity a real method would approximate, so a negative retires the candidate outright) or a handicapped FLOOR (bounds from below, so a negative retires nothing). Conflating those two is the error EP13's tenth pass made and its eleventh corrected. NOT A NEW RANKING SYSTEM and not machinery about machinery (DIRECTOR_CANON_PRODUCT_AND_MACHINERY §4): the instruments measure the WORLD and the BOOK, which is product work in the canon's own test."
+  gain: "DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04, WORK THIS CREATES item 5: 'The ceiling-before-programme discipline from EP13 applied to R1-R4 before building', and \u00a73: 'EP13's ceiling measurement was good work and the pattern it demonstrated -- measure the ceiling before the programme rather than after six passes -- should be applied to everything in R1-R4.' MINTED BECAUSE THE COVERAGE IS PARTIAL AND THE UNCOVERED HALF IS THE EXPENSIVE HALF. R1 has its ceiling (tools/r1_inference_ceiling.py, held-out per-cell mean against a max/48 null -- the best possible function of the coordinate, so no estimator can beat it) and R2's bound follows from R1's result rather than needing its own instrument, both recorded in SEAT_FINDING_R1S_INFERENCE_CEILING_IS_AT_THE_NULL_AND_R2_CANNOT_PAY_UNTIL_R1_LANDS_2026-09-04."
+  notes_rehomed: [origin_note]
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
@@ -1964,7 +1985,8 @@
   real_world_twin: "an investment committee that requires a size-of-the-prize estimate before it funds a programme, rather than after the first three milestones -- the discipline that stops a team proving it can execute something that was never worth executing"
 - id: C29_decisions_stop_being_lookup_tables
   title: "P6: acquisition budget takes no customer id, dunning keys on segment and days overdue, retention is a fixed offer and fixed tiers"
-  gain: "Director, 2026-08-28 (P6): 'Acquisition budget takes no customer id; dunning keys on segment and days overdue while capacity_to_pay and the breathing-space register go unread; retention is a fixed offer and fixed tiers. A rich, competitive world cannot be exploited through a segment table.' DELIBERATELY IDLE AND NOT BUILD, which is the sequencing judgement rather than a shortage of will. A richer decision surface against a world that cannot react learns nothing: this seat has already measured that the decision surface the A/B actually has is NINE ACCOUNTS WIDE, and that the choosing is worth -£175 with an error bar 25x the estimate. Widening the surface before the world can reward the width would buy a better-instrumented null. depends_on the P1 atom and the two household atoms; it becomes the obvious next BUILD the moment they land, and everything before then is DISCOVER/FRAME work on it, which is available now (EPOCH_GATING_AND_ATOM_AUTHORSHIP: a parked atom is parked for BUILD only)."
+  gain: "Director, 2026-08-28 (P6): 'Acquisition budget takes no customer id; dunning keys on segment and days overdue while capacity_to_pay and the breathing-space register go unread; retention is a fixed offer and fixed tiers."
+  notes_rehomed: [origin_note]
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 4
@@ -1986,7 +2008,8 @@
   real_world_twin: "a supplier whose retention desk prices each save individually against that account's own value and its own probability of leaving, rather than reading three tiers off a segment table -- which is the difference between a book that compounds and one that leaks its best accounts at the same offer as its worst"
 - id: SITE14_the_front_door_schematic_carries_the_corrected_model
   title: "The published schematic still tells a reader the traits are coupled and the company can die; the canon page says neither"
-  gain: "THE FIRST LIVE FINDING OF THE CANON DRIFT CHECK ITSELF (A45, tools/canon_drift_check.py, 2026-08-28), which is the argument for the instrument as much as the work: THE_MODEL_ON_A_PAGE.md carried C1's and C3's corrections within hours, and site/index.html -- the rendered schematic a visitor actually reads, and the only version of the model most readers will ever see -- still describes a population 'drawn fresh every run with coupled hidden traits' and a company that 'can be wrong, and it can die'. Two claims, both OVER_CLAIM against the code: green_stance and channel_pref are read by no response function (so 'coupled' overstates two of three traits), and no collateral CALL exists anywhere in simulation/ (so nothing in the world can kill the company -- C3's director correction is 'it does not have to die; it has to not be guaranteed to live'). R11 is the whole atom: correcting a canon file does not correct what a reader sees, so done means the fetched live surface says something true. The two claims are already registered in docs/design/canon_claims.yaml against site/index.html, so the check goes green on this atom's completion and red again if the schematic drifts back."
+  gain: "THE FIRST LIVE FINDING OF THE CANON DRIFT CHECK ITSELF (A45, tools/canon_drift_check.py, 2026-08-28), which is the argument for the instrument as much as the work: THE_MODEL_ON_A_PAGE.md carried C1's and C3's corrections within hours, and site/index.html -- the rendered schematic a visitor actually reads, and the only version of the model most readers will ever see -- still describes a population 'drawn fresh every run with coupled hidden traits' and a company that 'can be wrong, and it can die'."
+  notes_rehomed: [origin_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
@@ -2081,3 +2104,123 @@
   file_scope: ['simulation/', 'company/crm/', 'docs/design/', 'tests/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the reason a household stays on a bad tariff for years while a better one is one form away -- the switch costs attention it will not spend, which is a real cost to a real person and appears in no supplier's P&L"
+- id: W1_23_weather_phase2_the_other_loads_the_cells_do_not_carry
+  title: "phase 2 (decided, not authorised): cold-water/ground temperature, day length, summer temperature"
+  gain: "Phase 1 cuts cells for HEAT load only, so those cells are unvalidated for hot water, lighting and summer load; phase 2 asks whether one cell set carries all four or each needs its own."
+  notes_rehomed: [origin_note]
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 60    # the phase-1 parent's, not decayed by phase number; order is
+  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "DECIDED, NOT AUTHORISED (weather ruling 2026-09-05 section 2 item 2). OPENING CONDITION, director verbatim: 'opens when phase 1 lands' -- W1_14 reaching level_target 3. Registration is not authorisation: DISCOVER and FRAME only, no BUILD code."
+  depends_on: [W1_14_weather_cells_for_household_heat_load]
+  couples_with: []
+  file_scope: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose regional model was fitted on winter gas and is then asked, in the first hot summer, to explain a cooling and appliance load its geography was never cut for."
+- id: W1_24_weather_phase3_the_drivers_that_wait_on_a_population
+  title: "phase 3 (decided, not authorised): relative humidity, wind direction, driving rain"
+  gain: "Three weather drivers that stay inert until something else exists to consume them -- a heat-pump population, a fabric moisture layer, a property orientation."
+  notes_rehomed: [origin_note]
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 60    # the phase-1 parent's, not decayed by phase number; order is
+  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "DECIDED, NOT AUTHORISED (weather ruling 2026-09-05 section 2 item 3). OPENING CONDITION is a DISJUNCTION, either limb opening it: (a) 'the drawn population's heat-pump share makes it material' -- itself gated on a director curriculum decision, since heat pump is excluded from all three housing phases; or (b) 'the fabric layer takes on solid-wall moisture'. Neither is a date. DISCOVER and FRAME only, and the seat records WHICH limb opened it."
+  depends_on: [W1_14_weather_cells_for_household_heat_load]
+  couples_with: []
+  file_scope: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the installer's rule of thumb that a heat pump in damp coastal cold performs nothing like its rating -- known to every practitioner and absent from every regional weather model built for gas."
+- id: W2_23_housing_phase2_what_the_company_can_see_of_a_house
+  title: "phase 2 (decided, not authorised): the observation layer -- EPC as a dated, modelled, partial snapshot; address as a free signal; what the meter reveals"
+  gain: "Phase 1 builds the house's hidden truth; this is the only thing that says what a real supplier could ever LEARN of it -- the epistemic wall made concrete on the housing axis."
+  notes_rehomed: [origin_note]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
+  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "DECIDED, NOT AUTHORISED (housing ruling 2026-09-05 section 2 item 1: 'Phases 2 and 3 are decided and registered, not authorised'). OPENING CONDITION: W2_18 lands -- there is no observation layer to build until there is a hidden truth for it to be a partial, dated, modelled view OF. DISCOVER and FRAME only."
+  depends_on: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  couples_with: [W2_19_who_lives_where_money_and_composition]
+  file_scope: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the supplier that knows an address, a meter number and a monthly total, buys an EPC file covering three houses in five and a decade old where it exists, and must decide from that whether this house is worth an offer."
+- id: W2_24_housing_phase3_houses_change_on_their_own_timeline
+  title: "phase 3 (decided, not authorised): the unprompted timeline -- boilers, PV and EV adoption, extensions, and the EPC falling behind"
+  gain: "A house that only ever changes because we sold it something cannot refute us; the unprompted timeline is what makes 'we saved them money' falsifiable."
+  notes_rehomed: [origin_note]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
+  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "DECIDED, NOT AUTHORISED (housing ruling 2026-09-05 section 2 item 1). OPENING CONDITION: phases 1 and 2 land -- a timeline needs a house to change (W2_18) and an observation layer to fall behind (W2_23). DISCOVER and FRAME only. CARRIES A STANDING EXCLUSION: heat pump is out until the director rules otherwise, so any adoption curve minted here that includes one is the defect."
+  depends_on: [W2_18_the_housing_joint_the_sample_and_the_ceiling, W2_23_housing_phase2_what_the_company_can_see_of_a_house]
+  couples_with: []
+  file_scope: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the boiler that died in February and was replaced by whoever could come on Tuesday, moving the house's whole heat demand without the supplier hearing a word about it."
+- id: W2_25_people_phase2_shape_and_attitudes
+  title: "phase 2 (decided, not authorised): elasticity, contact propensity and channel, presence residuals, consent to control, green stance and trust"
+  gain: "Consent to control is the new term and the one with product consequences: a battery or EV the household will not let us touch has a technical ceiling and no realisable value."
+  notes_rehomed: [origin_note]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
+  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "DECIDED, NOT AUTHORISED (people ruling 2026-09-05 section 2 item 1). OPENING CONDITION, in the ruling's own words for this phase: 'conditional on phase 1' -- W2_19 landing. DISCOVER and FRAME only. THE SCOPE IS THE AMENDED ONE: a build opening against the ORIGINAL ruling's phase-2 list would rebuild what the amendment pulled forward into phase 1."
+  depends_on: [W2_19_who_lives_where_money_and_composition]
+  couples_with: [W2_23_housing_phase2_what_the_company_can_see_of_a_house]
+  file_scope: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the household with a battery, a smart tariff and a flat refusal to let anyone else decide when it charges -- fully capable, and worth nothing to a flexibility product."
+- id: W2_26_people_phase3_the_residual_and_the_change
+  title: "phase 3 (decided, not authorised): life events and income shocks, children arriving and leaving, unprompted device purchases, and the value-add term"
+  gain: "Willingness to BUY and willingness to APPRECIATE being saved money are two different quantities; differencing them before defining them is this project's most expensive recurring shape."
+  notes_rehomed: [origin_note]
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: idle
+  dial_inherited: 50    # the phase-1 parent's, not decayed by phase number; order is
+  #   held by blocked_on, and dropping under the 45 product floor would strip the exemption.
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: "DECIDED, NOT AUTHORISED (people ruling 2026-09-05 section 2 item 1). OPENING CONDITION: phases 1 and 2 land -- the value-add term is conditional on the attitudes phase 2 draws, and a residual is only definable once there is something for it to be residual TO. DISCOVER and FRAME only. THE SCOPE IS THE AMENDED ONE, strictly smaller than the original ruling's phase 3."
+  depends_on: [W2_19_who_lives_where_money_and_composition, W2_25_people_phase2_shape_and_attitudes]
+  couples_with: [W2_24_housing_phase3_houses_change_on_their_own_timeline]
+  file_scope: []
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the customer who thanks you warmly for the advice that cut their bill, recommends you to a neighbour, and has never once bought anything -- counted as engaged by every model that never asked the two questions separately."
