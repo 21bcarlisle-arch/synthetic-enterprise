@@ -66,6 +66,13 @@ def test_the_THERMAL_FLOOR_is_read_from_the_THERMAL_CACHE_and_not_the_OUTTURN_on
 
     MUTATION (must fire): `fuel.load_cached_thermal()` -> `fuel.load_cached()` -- battery row M9,
     whose kill at `d892342119e8` was `real_publish` erroring at setup with no control body run.
+
+    M13, landed by a concurrent lane at `c477232ea`, is M9's type-correct twin and is killed from
+    the real-cache suite. It does not make this redundant and the reverse is also true: M13
+    substitutes the BIOMASS cache, which reduces to the same shape, so it grades that the floor is
+    reduced over gas-shaped rows. This grades which of two GAS-CARRYING caches is read, which is
+    the state a widened outturn fetch would create, and it is the only one of the two that can be
+    graded at all once the mutation breaks the real-cache path.
     """
     from sim import elexon_fuel_outturn as fuel
 
@@ -108,20 +115,26 @@ def test_the_THERMAL_FLOOR_is_read_from_the_THERMAL_CACHE_and_not_the_OUTTURN_on
 
 def test_the_BIOMASS_ROWS_are_FILTERED_TO_BIOMASS_before_the_ENVELOPE_is_taken_over_them(
         monkeypatch):
-    """M12, the type-correct twin of M10, and it is here for the reason M11 is here for M2.
+    """M15, a type-correct twin of M10, and it is here for the reason M11 is here for M2.
 
     M10 substitutes `biomass_envelope_by_year(load_cached_biomass())` -- a LIST where a mapping
     is expected -- and the `AttributeError: 'list' object has no attribute 'items'` that follows
     grades the type system, not the contract. The substitution a real fail-open patch would
     actually write keeps the type: build the mapping inline and skip `biomass_by_period`. That is
-    M12, and this control is what kills it.
+    M15, and this control is what kills it.
+
+    IT IS THE SECOND TWIN OF M10, NOT THE ONLY ONE. A concurrent lane on this same claim landed
+    M14 at `c477232ea`, which substitutes a mapping period-ised and then collapsed to one period
+    a day -- the GRAIN leg of the same call. This is the FILTER leg. Both are type-correct, both
+    still return, and neither control kills the other's row; the two were reconciled rather than
+    one dropped, because a call that loses either leg loses a different thing.
 
     WHY THE CACHE HERE IS MIXED, which is the only reason this can be graded at all. Of the four
     things `biomass_by_period` does, three are equivalences on the real record -- MEASURED
     2026-09-06 on 143,057 rows: every `settlementDate` is already 10 characters, every period is
     inside 1-50, and 19 duplicate `(date, period)` keys out of 143,038 resolve the same way a
     dict comprehension resolves them. The fourth is the fuel-type filter, and the real cache is
-    100% `BIOMASS`, so on the real record M12 is an EQUIVALENCE and no control over it could
+    100% `BIOMASS`, so on the real record M15 is an EQUIVALENCE and no control over it could
     fire. It stops being one the moment the biomass fetch is widened or the caches are merged --
     which is what the stub here is: a cache that carries a second fuel.
 
@@ -131,7 +144,7 @@ def test_the_BIOMASS_ROWS_are_FILTERED_TO_BIOMASS_before_the_ENVELOPE_is_taken_o
     MUTATION (must fire): `fuel.biomass_envelope_by_year(fuel.biomass_by_period(
     fuel.load_cached_biomass()))` -> the same call over
     `{(r["settlementDate"], r["settlementPeriod"]): float(r["generation"]) for r in
-    fuel.load_cached_biomass()}` -- battery row M12.
+    fuel.load_cached_biomass()}` -- battery row M15.
     """
     from sim import elexon_fuel_outturn as fuel
 

@@ -11,7 +11,9 @@ fingerprint `7edf1af33b37` with `--suites explore_carbon`, once at `aa5ce7785789
 `/var/tmp/grid_intensity_fuel_mix_battery_7edf1af33b37.json` and
 `…_aa5ce7785789.json`; logs `/var/tmp/fuel_mix_M9_M10_M12.log` and `…_split.log`. Both exit 0,
 subject restored (`git diff` clean on `tools/generate_grid_intensity_feed.py`). Prereg
-`docs/staging/records/SEAT_PREREG_CAN_M9_AND_M10_BE_CLOSED_WITHOUT_A_TWIN_MUTATION_2026-09-06.md`.**
+`docs/staging/records/SEAT_PREREG_CAN_M9_AND_M10_BE_CLOSED_WITHOUT_A_TWIN_MUTATION_2026-09-06.md`.
+The row run as `M12` is `M15` after the reconciliation at the foot of this document; the logs and
+results files above carry the number it had when it ran, and are not rewritten.**
 
 ## The drawn item's premise is spent, and this is the re-measurement rather than the citation
 
@@ -34,7 +36,7 @@ body run.
 | row | verdict at `aa5ce7785789` | named by | closed? |
 |---|---|---|---|
 | **M9** the thermal floor is read from the THERMAL cache | DIED, `died_by_setup_error_only` **false** | `test_the_THERMAL_FLOOR_is_read_from_the_THERMAL_CACHE_and_not_the_OUTTURN_one_beside_it` — the control written for it | **YES** |
-| **M12** the biomass rows are FILTERED TO BIOMASS (new row: M10 with a dict, not a list) | DIED, stamp false, 1 failed **1 passed** | `test_the_BIOMASS_ROWS_are_FILTERED_TO_BIOMASS_before_the_ENVELOPE_is_taken_over_them` — the control written for it | **YES** |
+| **M15** the biomass rows are FILTERED TO BIOMASS (new row: M10 with a dict, not a list) | DIED, stamp false, 1 failed **1 passed** | `test_the_BIOMASS_ROWS_are_FILTERED_TO_BIOMASS_before_the_ENVELOPE_is_taken_over_them` — the control written for it | **YES** |
 | **M10** the same contract with a LIST substituted | DIED, stamp **false** | the THERMAL control — *not its own* | **NO** |
 | **M3** the outturn is normalised to settlement periods | not re-run | — | **NO**, and see below |
 
@@ -75,8 +77,8 @@ different row and reported a kill that proves nothing about either.
 > red in front of every control in the file. The remedy is not a better assertion; it is a file
 > the fixture is not in.
 
-M12 escaped it for a reason worth keeping: **a type-correct mutation does not break the fixture.**
-M12 is an equivalence on the real caches, so `real_mix` and `real_publish` succeeded, every
+That row escaped it for a reason worth keeping: **a type-correct mutation does not break the fixture.**
+M15 is an equivalence on the real caches, so `real_mix` and `real_publish` succeeded, every
 fixture-based test passed, and `-x` reached the control. The property that makes a twin gradeable
 is the same one that makes it survive the fixture.
 
@@ -131,3 +133,23 @@ rows the claim opened with.
 - **Nothing here re-grades M1–M8 or M11.** The three fingerprints in this document
   (`d7eb36a0b901`, `7edf1af33b37`, `aa5ce7785789`) are three different specs, and only the last
   is live.
+
+
+## The reconciliation: a second lane did this increment at the same time
+
+**Landed while this one was gating.** `c477232ea` — *"the three fuel_mix rows no control could
+assert past are closed by their type-correct twins"* — adds **M12, M13 and M14**, twins of M3, M9
+and M10, graded at fingerprint `4c2f0abd38d4`. It is the same increment from the same result
+document, drawn by a second seat on the same claim. The merge conflicted on the spec, and the
+resolution here is a UNION rather than a choice, because the two lanes did not do the same thing:
+
+| their row | our work | why both |
+|---|---|---|
+| **M12** (M3's twin: period-ised then collapsed to one period a day) | none — this lane predicted M3 had no gradeable twin | **They were right and the prereg here was wrong.** The prediction filed above said M3's only type-correct twins re-implement the adapter; collapsing the GRAIN of a correctly-normalised series is a twin that does neither, and it grades M3. That prediction is kept above rather than revised. |
+| **M13** (M9's twin: the BIOMASS cache, which reduces to the same shape) | the M9 control here, in a fixture-free file | Different subjects. M13 grades that the floor is reduced over gas-shaped rows; the control here grades WHICH OF TWO GAS-CARRYING CACHES is read — the state a widened outturn fetch creates. And only the second can grade M9 itself, because M9 breaks the real-cache path that their suite runs on. |
+| **M14** (M10's twin: the GRAIN leg) | renumbered **M15** (M10's FILTER leg) | One call, two legs. A mix that loses the grain and a mix that loses the filter lose different things, and neither row's control kills the other's. |
+
+**Nothing was dropped and nothing was duplicated.** The spec now carries M1–M15 and three direct
+suites. The `-x` finding above stands on its own: their three twins all still return, so their
+controls were reached in the shared-fixture file — which is the same property this document names
+as the reason M12-as-then-numbered escaped, arrived at from the other side.
