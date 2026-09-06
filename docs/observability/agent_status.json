@@ -1,6 +1,6 @@
 {
   "_schema_version": "1",
-  "last_updated": "2026-09-06T22:07:04.750014+00:00",
+  "last_updated": "2026-09-06T22:47:03.308258+00:00",
   "agents": [
     {
       "name": "session-watchdog",
@@ -15,7 +15,7 @@
     {
       "name": "staging-watcher",
       "status": "idle",
-      "last_heartbeat": "2026-09-06T22:07:00.702939+00:00",
+      "last_heartbeat": "2026-09-06T22:46:38.310492+00:00",
       "last_action": "Watcher started",
       "last_action_ts": "2026-09-05T21:14:57.773569+00:00",
       "anomaly": null,
@@ -75,9 +75,9 @@
     {
       "name": "background-worker",
       "status": "idle",
-      "last_heartbeat": "2026-09-06T22:07:01.310848+00:00",
+      "last_heartbeat": "2026-09-06T22:47:00.572280+00:00",
       "last_action": "Worker started",
-      "last_action_ts": "2026-09-06T22:07:01.310848+00:00",
+      "last_action_ts": "2026-09-06T22:47:00.572280+00:00",
       "anomaly": null,
       "role": "Runs background automation tasks via local Qwen; respects 16-19 UTC peak hours",
       "produces": "docs/observability/background-worker-log.md"
@@ -105,9 +105,9 @@
     {
       "name": "supervisor",
       "status": "idle",
-      "last_heartbeat": "2026-09-06T22:07:04.750014+00:00",
+      "last_heartbeat": "2026-09-06T22:47:03.308258+00:00",
       "last_action": "Supervisor started",
-      "last_action_ts": "2026-09-06T22:07:04.750014+00:00",
+      "last_action_ts": "2026-09-06T22:47:03.308258+00:00",
       "anomaly": null,
       "role": "Sole authority for turn-granting: polls every 2min, grants one turn via the locked relay when idle+work exists, escalates if grants stop producing progress",
       "produces": "tmux turn-grants + stuck-state NTFY escalation"
@@ -115,9 +115,9 @@
     {
       "name": "sanity-daemon",
       "status": "idle",
-      "last_heartbeat": "2026-09-06T21:54:44.989854+00:00",
+      "last_heartbeat": "2026-09-06T22:24:45.278556+00:00",
       "last_action": "Cycle complete",
-      "last_action_ts": "2026-09-06T21:54:44.989854+00:00",
+      "last_action_ts": "2026-09-06T22:24:45.278556+00:00",
       "anomaly": null,
       "role": "Detective/sampling control: population-level consumption/unit-rate/estimated-read checks against domain_invariants.py every 30min",
       "produces": "sanity-daemon-log.md entries + one NTFY per new/changed finding set"
