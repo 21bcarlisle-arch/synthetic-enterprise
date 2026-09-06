@@ -68,6 +68,13 @@ def _record(state_file):
     return json.loads(state_file.read_text()).get("liveness_surface_refusal")
 
 
+def _publish_record(state_file):
+    """The publish record as it stands on disk, or None when nothing was written."""
+    if not state_file.exists():
+        return None
+    return json.loads(state_file.read_text()).get("liveness_surface_last_publish")
+
+
 def _drive(monkeypatch, tmp_path, *, ahead=0, provenance=True, commit_rc=0, commit_tail="",
            push_rc=0, remote_head="same", local_head="same", label="Liveness heartbeat"):
     """Run `_commit_and_push_paths` to one chosen exit. Returns its boolean."""
@@ -277,6 +284,113 @@ def test_the_record_carries_which_surface_and_which_commit_it_is_about(state_fil
     assert record["git_hash"] == "abc1234"
     assert record["ts"] > 0, \
         "a refusal with no clock cannot be told from one recorded last week"
+
+
+# ── and the refusal has to STOP being the answer once the surface publishes ───────────────────
+def test_the_surface_publishing_RETIRES_the_refusal_it_was_carrying(state_file, tmp_path,
+                                                                    monkeypatch):
+    """THE DEFECT, measured 2026-09-06 at 19:19Z off the live `.publish_gate_state.json`.
+
+    This function has five exits. The four above record a refusal; the fifth -- commit landed,
+    origin advanced -- wrote NOTHING. So `liveness_surface_refusal` was a LATCH: only a later
+    refusal could ever replace it, and the surface doing its job could not. On this day the field
+    held an orphan-ratchet refusal stamped 18:48Z, the same surface published to origin at 18:59Z,
+    and at 19:19Z a scheduled tick still read that spent refusal as the live cause of a publish
+    wedge -- while four commits had landed through the same hook chain in between. Every other
+    test in this file passed throughout.
+
+    THE REFUSAL IS RETIRED, NOT DELETED. It moves inside the publish record, so what was blocking
+    survives together with the timestamp proving when it stopped; the live field then means what
+    its name says.
+
+    REACHABILITY FIRST (R15 poison round): leg 1 proves there was a refusal standing to retire, so
+    a version of this that never records one cannot pass by having nothing to clear.
+
+    MUTATION: delete the `_record_liveness_surface_publish` call from the success exit and legs 2
+    and 3 red. Delete the `cleared_refusal` key and leg 4 reds.
+    """
+    assert _drive(monkeypatch, tmp_path, commit_rc=1, commit_tail="a gate said no") is False
+    standing = _record(state_file)
+    assert standing is not None, "reachability: there must be a refusal standing to retire"
+
+    assert _drive(monkeypatch, tmp_path, local_head="new11111", remote_head="new11111") is True
+
+    assert _record(state_file) is None, \
+        "the surface published, so no refusal is standing -- a field that keeps naming one is " \
+        "how a spent cause gets read as a live wedge"
+    published = _publish_record(state_file)
+    assert published is not None and published["ts"] > 0, \
+        "'no refusal standing' and 'nobody ever looked' are opposite facts, and only the publish " \
+        "record can tell them apart"
+    assert published["cleared_refusal"] == standing, \
+        "retiring a refusal must not destroy the evidence of what was blocking, or the reader " \
+        "loses the cause at the moment it is finally explicable"
+
+
+def test_a_later_failure_write_does_not_RESURRECT_the_retired_refusal(state_file, tmp_path,
+                                                                      monkeypatch):
+    """THE CARRY IS THE LATCH'S OTHER HALF, and this is the leg that would have made the repair a
+    no-op in production. `_write_publish_gate_state` carries a prior `liveness_surface_refusal`
+    forward whenever the incoming one is None -- which is exactly what retiring it looks like. So
+    the very next failure write, seconds later, would hand the spent refusal straight back.
+
+    MUTATION: drop `liveness_resolved` from the carry condition and this reds alone.
+    """
+    _drive(monkeypatch, tmp_path, commit_rc=1, commit_tail="a gate said no")
+    assert _record(state_file) is not None, "reachability: a refusal must be standing first"
+    _drive(monkeypatch, tmp_path, local_head="new11111", remote_head="new11111")
+
+    prc.record_publish_gate_failure("a red on the shared tree", rc=1, git_hash="abc1234",
+                                    now=1_788_000_000, send_ntfy_fn=lambda _m: "sent")
+
+    assert _record(state_file) is None, \
+        "a refusal the surface has already disproved must not come back through the carry -- " \
+        "that rebuilds the latch this repair exists to break"
+    assert _publish_record(state_file) is not None, \
+        "and the publish record itself must survive the fixed key list, for the same reason the " \
+        "refusal record needed its own carry"
+
+
+def test_a_liveness_publish_is_not_recorded_as_a_CONTENT_publish(state_file, tmp_path, monkeypatch):
+    """TWO SUBJECTS, and one figure measured across both is this project's most expensive
+    recurring shape. The heartbeat publishes precisely on the cycles where content did NOT, so
+    letting it touch `last_clean_publish`/`episode_clean_publishes` would tell the wedge router
+    the gate is passing at the exact moment the backlog is stuck -- fail-open, and invisible.
+
+    MUTATION: set `last_clean_publish` or bump `episode_clean_publishes` in
+    `_record_liveness_surface_publish` and this reds.
+    """
+    _drive(monkeypatch, tmp_path, commit_rc=1, commit_tail="a gate said no")
+    prc.record_publish_gate_failure("a red on the shared tree", rc=1, git_hash="abc1234",
+                                    now=1_788_000_000, send_ntfy_fn=lambda _m: "sent")
+    before = json.loads(state_file.read_text())
+    assert before["episode_failures"] >= 1, "reachability: an episode must be open to be lied to"
+
+    _drive(monkeypatch, tmp_path, local_head="new11111", remote_head="new11111")
+    after = json.loads(state_file.read_text())
+
+    assert after["last_clean_publish"] is None, \
+        "a heartbeat reaching origin says nothing about whether the run_complete backlog published"
+    assert after["episode_clean_publishes"] == before["episode_clean_publishes"]
+    assert after["wedge_since"] == before["wedge_since"], \
+        "and it must not close the content episode either -- only an evidenced content publish can"
+
+
+def test_a_publish_recording_failure_never_becomes_a_publish_failure(state_file, tmp_path,
+                                                                     monkeypatch):
+    """The mirror of the refusal path's own except, in the opposite direction: this runs AFTER the
+    commit landed and origin advanced, so its failure may cost the retirement of a spent refusal
+    and must never cost the publish that already happened.
+
+    MUTATION: remove the try/except from `_record_liveness_surface_publish` and this raises
+    instead of returning True.
+    """
+    def _explode(*_a, **_k):
+        raise OSError("the observability directory went away")
+
+    monkeypatch.setattr(prc, "_write_publish_gate_state", _explode)
+    assert _drive(monkeypatch, tmp_path, local_head="new11111", remote_head="new11111") is True, \
+        "the publish landed on origin; nothing this recorder does may unsay that"
 
 
 # ── the record kept 900 characters and they were the WRONG 900 ────────────────────────────────

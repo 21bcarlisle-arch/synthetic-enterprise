@@ -6171,6 +6171,10 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
         log("{} push verify: ls-remote failed ({})".format(label, exc))
     if _push_reached_origin(push.returncode, remote_head, local_head):
         log("{} published to origin.".format(label))
+        # THE FIFTH EXIT -- the only one that succeeds, and until 2026-09-06 the only one that
+        # wrote nothing. Four refusal recorders and no publish recorder made
+        # `liveness_surface_refusal` a latch: see `_record_liveness_surface_publish`.
+        _record_liveness_surface_publish(label, local_head or git_hash)
         return True
     log("{} push did NOT advance origin (rc={}, origin={}, head={}) -- retry next cycle.".format(
         label, push.returncode, (remote_head or '?')[:9], (local_head or '?')[:9]))
@@ -6346,7 +6350,7 @@ PUBLISH_GATE_SINCE_FIELDS = ("wedge_since",)
 PUBLISH_GATE_STREAK_FIELDS = ("episode_failures", "episode_clean_publishes")
 
 
-def _write_publish_gate_state(state, *, episode_closed=False):
+def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=False):
     """Persist the wedge state, with the PW2 guard on the episode-scoped fields.
 
     `episode_closed` is the CALLER'S EVIDENCED CLAIM that the wedge episode really ended. Every
@@ -6367,7 +6371,8 @@ def _write_publish_gate_state(state, *, episode_closed=False):
            "total_red": state.get("total_red", 0),
            "episode_clean_publishes": state.get("episode_clean_publishes", 0),
            "last_clean_publish": state.get("last_clean_publish"),
-           "liveness_surface_refusal": state.get("liveness_surface_refusal")}
+           "liveness_surface_refusal": state.get("liveness_surface_refusal"),
+           "liveness_surface_last_publish": state.get("liveness_surface_last_publish")}
     prior = _read_publish_gate_state() if PUBLISH_GATE_STATE_FILE.exists() else None
     # `last_clean_publish` is a LATEST-wins timestamp, which is the opposite ordering to
     # `since_fields` (earliest-wins), so the monotonic guard cannot express it and it is carried
@@ -6381,9 +6386,22 @@ def _write_publish_gate_state(state, *, episode_closed=False):
     # the next writer -- and the next writer is `record_publish_gate_failure`, which runs on
     # exactly the cycles this record is about. Without the carry the record would be erased
     # milliseconds after being written, by the failure it exists to explain.
-    if (not episode_closed and out.get("liveness_surface_refusal") is None
+    #
+    # `liveness_resolved` is the one caller that means None: the surface published, so the
+    # refusal is RETIRED and carrying it back would rebuild the latch this parameter exists to
+    # break. It is an evidenced claim in exactly the sense `episode_closed` is -- only the
+    # success path may pass it, and it is scoped to this ONE field rather than the whole record,
+    # because a heartbeat landing says nothing about the content publish.
+    if (not episode_closed and not liveness_resolved
+            and out.get("liveness_surface_refusal") is None
             and isinstance(prior, dict)):
         out["liveness_surface_refusal"] = prior.get("liveness_surface_refusal")
+    # And the publish record gets the SAME latest-wins carry as `last_clean_publish`, for the
+    # same reason: `out` is a fixed key list, so without it the next failure write erases the
+    # evidence that the surface was alive twenty minutes ago.
+    if (not episode_closed and out.get("liveness_surface_last_publish") is None
+            and isinstance(prior, dict)):
+        out["liveness_surface_last_publish"] = prior.get("liveness_surface_last_publish")
     out = guard_episode(prior,
                         out,
                         since_fields=PUBLISH_GATE_SINCE_FIELDS,
@@ -6472,6 +6490,53 @@ def _record_liveness_surface_refusal(label, cause, evidence, git_hash="unknown",
         # of a refusal that was happening anyway. Taking the cycle down instead would turn an
         # observation into a fault -- the shape this pipeline paid for at the commit in 2026-08-03.
         log("Liveness-surface refusal record skipped ({}: {})".format(type(exc).__name__, exc))
+        return False
+
+
+def _record_liveness_surface_publish(label, git_hash="unknown", *, now=None):
+    """Record that the liveness surface DID publish, and RETIRE any refusal it was carrying.
+
+    THE HOLE THIS FILLS (measured 2026-09-06, 19:19Z). `_commit_and_push_paths` has five exits.
+    Four of them record a refusal; the fifth -- the one where the commit lands and origin
+    advances -- recorded nothing at all. So `liveness_surface_refusal` could only ever be
+    replaced by a LATER refusal and never retired by the surface doing its job. On this day it
+    held an orphan-ratchet refusal stamped 18:48Z; the same surface committed at 18:57Z and
+    published to origin at 18:59Z; and at 19:19Z the scheduled tick still read that 18:48Z
+    refusal as the live cause of a publish wedge, because nothing in the file could contradict
+    it. A field named for a refusal that outlives the refusal is the fail-silent shape this
+    record was built to end, and the reader cannot tell a standing block from a spent one.
+
+    THE REFUSAL IS RETIRED, NOT DELETED: it moves inside this record as `cleared_refusal`, so
+    what was blocking survives together with the timestamp proving when it stopped.
+    `liveness_surface_refusal` then means what its name says -- the refusal STANDING NOW -- and
+    `None` reads as "none standing" rather than "none ever recorded".
+
+    SEPARATE FROM `last_clean_publish`, for the reason `_record_liveness_surface_refusal` gives
+    at length about its own field: the liveness surface and the content publish are two
+    subjects, and one figure measured across both is this project's most expensive recurring
+    shape. A heartbeat reaching origin does NOT mean the run_complete backlog published, and
+    this record must never be read as evidence that it did.
+
+    A byte-identical no-op ("nothing to commit") does not reach here and records nothing --
+    correctly: it is the steady state, and it is new evidence about neither side.
+    """
+    try:
+        state = _read_publish_gate_state()
+        standing = state.get("liveness_surface_refusal")
+        state["liveness_surface_refusal"] = None
+        state["liveness_surface_last_publish"] = {
+            "ts": time.time() if now is None else float(now),
+            "label": str(label),
+            "git_hash": str(git_hash),
+            "cleared_refusal": standing if isinstance(standing, dict) else None,
+        }
+        _write_publish_gate_state(state, liveness_resolved=True)
+        return True
+    except Exception as exc:  # noqa: BLE001 -- the argument `_record_liveness_surface_refusal`
+        # carries, in the opposite direction: this runs on a path that has already SUCCEEDED, so
+        # its own failure may cost the retirement of a spent refusal and must never cost the
+        # publish that just landed.
+        log("Liveness-surface publish record skipped ({}: {})".format(type(exc).__name__, exc))
         return False
 
 
