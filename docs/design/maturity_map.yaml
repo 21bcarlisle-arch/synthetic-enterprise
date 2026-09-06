@@ -1770,11 +1770,18 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 2    # L0->L2 recorded 2026-09-06; evidence + what is left, in
-  #   SEAT_RESULT_THE_TWO_REGULATORY_OUTCOMES_NOW_HAVE_ONE_DECIDER_...2026-09-06.md.
-  #   NOT CLOSED: the two DECISIONS converged, not the enums -- four vocabularies remain.
+  level_current: 2    # STAYS 2, AND THE REASON IS NOT THAT THE BUILD IS UNFINISHED. The
+  #   convergence is complete as of 2026-09-06 (third turn): four vocabularies are two, and two
+  #   is the finished state, not a waypoint -- PSRCategory is the regulator's words and
+  #   VulnerabilityFlag is what our own agents record, related by needs_code_for and by nothing
+  #   else. L3 is "passed the FULL loop incl. HARDEN; Expert Hour: 'this is real'" and
+  #   expert_hour below still reads not_attempted, so recording 3 here would be a level claimed
+  #   on a stage nobody ran. It is one cold-eyes pass away and that is the whole of what is left.
+  #   Evidence, per turn: SEAT_RESULT_THE_OBLIGATION_HAS_FIVE_IMPLEMENTATIONS_...2026-09-05.md,
+  #   SEAT_RESULT_THE_TWO_REGULATORY_OUTCOMES_NOW_HAVE_ONE_DECIDER_...2026-09-06.md, and
+  #   SEAT_RESULT_THE_FOUR_VOCABULARIES_ARE_TWO_...2026-09-06.md.
   level_target: 3
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 50    # product: it is what a real supplier does, and getting it wrong is a
   #   household disconnected who should not have been. Not machinery, despite looking like a
   #   de-duplication -- the deliverable is a sourced obligation, not a tidier module tree.
@@ -1783,7 +1790,13 @@
   couples_with: []
   # RE-POINTED 2026-09-06: `crm/vulnerability_index.py` was deleted by THIS ATOM'S own commit
   #   3881f47da. The work is now in priority_services_register.py and the two suites.
-  file_scope: ['company/crm/vulnerability_register.py', 'company/regulatory/priority_services_register.py', 'tests/company/regulatory/test_priority_services_register.py', 'tests/company/crm/test_one_obligation_one_vulnerability_vocabulary.py', 'docs/domain_artefact_library/']
+  # WIDENED 2026-09-06 (third turn) to the two vocabularies the atom's own result document named
+  #   as remaining, which were outside the scope it was drawn against: service_log's free-text
+  #   `flag_type` (the live one -- 4,557 rows on an off-vocabulary literal, and Warm Home Discount
+  #   candidacy reads it) and consumer_vulnerability_register's eight caller-less near-synonyms.
+  #   The admin template is in scope because it rendered the off-vocabulary string as an English
+  #   label, which is the defect reaching a surface.
+  file_scope: ['company/crm/vulnerability_register.py', 'company/crm/service_log.py', 'company/regulatory/priority_services_register.py', 'company/regulatory/consumer_vulnerability_register.py', 'company/portal/templates/admin_vulnerability.html', 'tests/company/regulatory/test_priority_services_register.py', 'tests/company/regulatory/test_consumer_vulnerability_register.py', 'tests/company/crm/test_one_obligation_one_vulnerability_vocabulary.py', 'tests/company/crm/test_service_log.py', 'docs/domain_artefact_library/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier with a vulnerability team working one list and a collections system scoring another, where the customer on home oxygen is priority on one and ordinary on the other, and nobody finds out until the disconnection."
 - id: D46_the_validator_holds_against_the_varied_population

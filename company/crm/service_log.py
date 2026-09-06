@@ -6,12 +6,28 @@ complaint/vulnerability flags. Optional SQLite persistence via db_path.
 Usage:
   ServiceLog()                       -- in-memory (tests, ephemeral)
   ServiceLog(db_path=DEFAULT_DB_PATH) -- persistent (production)
+
+THIS MODULE NO LONGER SPELLS ITS OWN VULNERABILITY TERM (atom C32). It held one of the four
+renderings of the supplier's vulnerability obligation, and it was the one that enumerated
+nothing: `flag_type` was `str`, so the column constrained no value at all. What that bought,
+measured in the live store: 4,557 active rows, one distinct `flag_type`, and that value was
+`financial_difficulty` -- a term in NONE of the four vocabularies, nearest neighbour
+`payment_difficulty` in the operational one. It got there as a hardcoded literal written from
+`ServiceEvent.vulnerability_flag`, a BOOLEAN, which carries no term to write.
+
+The term is now `company.crm.vulnerability_register.VulnerabilityFlag` or `None`, and `None`
+is what the boolean always meant: flagged, term not recorded. Nothing downstream may read an
+absence as a category.
 """
 
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
+
+# The ONE operational vocabulary. Imported, not restated: the defect this module carried was
+# a second spelling of the same concept, and an import cannot drift from its source.
+from company.crm.vulnerability_register import VulnerabilityFlag as OperationalFlag
 
 DEFAULT_DB_PATH = Path("company/data/service_log.db")
 
@@ -32,11 +48,32 @@ class ServiceEvent:
 
 @dataclass
 class VulnerabilityFlag:
+    """One register row: who, when, and WHICH TERM -- where a term was recorded at all.
+
+    `flag_type` is the shared operational vocabulary or `None`. `recorded_as` keeps exactly
+    what the column held, so a legacy value is preserved rather than translated away.
+    """
+
     customer_id: str
     flagged_date: str
-    flag_type: str
+    flag_type: OperationalFlag | None
     active: bool = True
     resolved_date: str = ""
+    recorded_as: str = ""
+
+    @property
+    def term_display(self) -> str:
+        """What a surface may print. "Not recorded" is a result and belongs on the page.
+
+        The admin register used to render `flag_type.replace('_', ' ').title()`, which
+        turned an off-vocabulary string into a confident-looking English label -- 4,557 rows
+        reading "Financial Difficulty" for a term nobody ever chose.
+        """
+        if self.flag_type is not None:
+            return self.flag_type.value.replace("_", " ").title()
+        if self.recorded_as:
+            return "Not recorded (stored as '{:s}')".format(self.recorded_as)
+        return "Not recorded"
 
 
 _CREATE_EVENTS = """
@@ -80,11 +117,28 @@ def _row_to_event(row) -> ServiceEvent:
     )
 
 
+def _term_from_stored(raw: str) -> OperationalFlag | None:
+    """The back-compat read path, and it coerces NOTHING.
+
+    The live store holds `financial_difficulty` on every row. It is tempting to map it to
+    `PAYMENT_DIFFICULTY` -- same rough concept, one row of a dict, done. That would be this
+    module taking a position the free-text column let it avoid making: the string was written
+    from a boolean, so it never named a term, and `fuel_poverty`, `payment_difficulty` and
+    `job_loss` are three different operational states it could equally have meant. An
+    unreadable value reads as "no term", with the original kept beside it.
+    """
+    try:
+        return OperationalFlag(raw)
+    except ValueError:
+        return None
+
+
 def _row_to_vuln(row) -> VulnerabilityFlag:
+    raw = row["flag_type"]
     return VulnerabilityFlag(
         customer_id=row["customer_id"], flagged_date=row["flagged_date"],
-        flag_type=row["flag_type"], active=bool(row["active"]),
-        resolved_date=row["resolved_date"],
+        flag_type=_term_from_stored(raw), active=bool(row["active"]),
+        resolved_date=row["resolved_date"], recorded_as=raw,
     )
 
 
@@ -124,7 +178,19 @@ class ServiceLog:
     def _c(self):
         return self._conn
 
-    def record_contact(self, event: ServiceEvent) -> None:
+    def record_contact(
+        self,
+        event: ServiceEvent,
+        *,
+        vulnerability_term: OperationalFlag | None = None,
+    ) -> None:
+        """Record a contact, and a register row where the contact was flagged.
+
+        `vulnerability_term` is keyword-only and optional because `ServiceEvent` carries a
+        BOOLEAN. A caller that knows the term passes it; a caller that only ticked the box
+        passes nothing and the row stores no term. The literal `financial_difficulty` that
+        used to be written here was a term invented from that boolean.
+        """
         c = self._c()
         c.execute(
             "INSERT INTO service_events"
@@ -140,7 +206,8 @@ class ServiceLog:
             c.execute(
                 "INSERT INTO vulnerability_flags (customer_id, flagged_date, flag_type)"
                 " VALUES (?, ?, ?)",
-                (event.customer_id, event.event_date, "financial_difficulty"),
+                (event.customer_id, event.event_date,
+                 vulnerability_term.value if vulnerability_term is not None else ""),
             )
         c.commit()
 

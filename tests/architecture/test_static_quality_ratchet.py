@@ -721,9 +721,15 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1323,  # lowered 2026-09-06: the delegation to the one decider opened three import
-    #             blocks (atom C32, see log). Was 1326, lowered 2026-09-05 when the dead
-    #             vulnerability scorer and its suite were deleted.
+    "I001": 1321,  # lowered 2026-09-06 (second C32 turn): converging the last two vocabularies
+    #             opened the two suites' import blocks. THE SHARED TREE READS 1320 AND THAT IS NOT
+    #             THIS COMMIT'S NUMBER — the third fix is another lane's uncommitted edit to
+    #             `tests/tools/test_generate_maturity_map_data.py`, and freezing 1320 would red
+    #             the live control the moment this landed alone. Measured in a `git archive HEAD`
+    #             extract overlaid with exactly this commit's files: 1321. Same trap, same method,
+    #             as the entry below. Was 1323, lowered earlier the same day: the delegation to the
+    #             one decider opened three import blocks (atom C32, see log). Was 1326, lowered
+    #             2026-09-05 when the dead vulnerability scorer and its suite were deleted.
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
@@ -752,7 +758,12 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2302  # was 2306; -3 (I001) and -1 (F401) on 2026-09-06, atom C32 again:
+RUFF_BASELINE_TOTAL = 2300  # was 2302; -2 (I001) on 2026-09-06, atom C32's second turn: the last
+                            # two vulnerability vocabularies converged and both suites' import
+                            # blocks were opened to do it. Measured in the overlaid HEAD extract
+                            # (2300), not the shared tree (2299) — a third I001 fix in flight
+                            # belongs to another lane.
+                            # Was 2306; -3 (I001) and -1 (F401) on 2026-09-06, atom C32 again:
                             # the delegation of both regulatory outcomes to
                             # `priority_services_register` opened three import blocks and one dead
                             # `dataclasses.field` went with them. Measured on the tree the commit
