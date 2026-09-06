@@ -73,15 +73,22 @@ def test_the_three_states_of_a_row_are_all_REACHABLE_before_any_leg_asserts_what
     correctly", and a reduction that answered `survived_all: False` to EVERYTHING would satisfy
     the two negative legs and only fail the positive one -- while a reduction that answered True
     to everything would fail only the negatives. One control over the whole partition is what
-    CLAUDE.md's rare-branch rule asks for instead of a leg per branch."""
+    CLAUDE.md's rare-branch rule asks for instead of a leg per branch.
+
+    THE PARTITION IS THREE-VALUED and was two-valued until 2026-09-06: `None` is the row with no
+    verdict, and it is asserted here rather than only in its own leg below for the reason this
+    control exists at all. A reduction that returned `None` unconditionally would pass a leg that
+    only checked the ungraded case."""
     spec = _spec()
     killed_by_caller = _row(spec, {CALLER_A})
     killed_by_own = _row(spec, {OWN, REPAIR})
     killed_by_nobody = _row(spec, set())
+    no_verdict = _row(spec, set(), graded=[CALLER_A, OWN, REPAIR])
 
     assert killed_by_caller["survived_all"] is False
     assert killed_by_own["survived_all"] is True
     assert killed_by_nobody["survived_all"] is True
+    assert no_verdict["survived_all"] is None
     # ...and the two True rows are DISTINGUISHABLE, or the field would be answering a question
     # nobody asked: one contract is proved by the subject's own tests and the other by nothing.
     assert killed_by_own["killed_by_own_suites_only"] == sorted((OWN, REPAIR))
@@ -127,10 +134,19 @@ def test_a_row_missing_ONE_caller_cell_has_no_verdict_even_when_the_direct_cells
     assert len([s for s in row["per_suite"] if s in spec.suites]) < len(spec.suites)
 
     assert rows_without_a_caller_verdict(spec, {"M1": row}) == ["M1"]
-    assert row["survived_all"] is False, "a row graded on 1 of 2 callers is NOT a survivor"
+    # `None`, and this leg said `is False` until 2026-09-06 -- a control pinned to the answer the
+    # code gave rather than to the property, which is the shape CLAUDE.md names. "Not a survivor"
+    # is true of this row and it is ALSO true of a row every caller killed, and the field cannot
+    # say both with one value. What is really known here is nothing: one caller was never asked.
+    assert row["survived_all"] is None, "a row graded on 1 of 2 callers has NO verdict"
+    assert row["ungraded_callers"] == [CALLER_B], "the null names the caller that was not asked"
     # ...and a fully graded row is NOT reported, or the line would flag every run and mean nothing.
     full = _row(spec, {OWN})
     assert rows_without_a_caller_verdict(spec, {"M1": full}) == []
+    # ...and it carries a real verdict with an EMPTY reason, not an absent one: "nothing missing"
+    # and "the key was never written" must not be one state at the JSON layer either.
+    assert full["survived_all"] is True
+    assert full["ungraded_callers"] == []
 
 
 def test_moving_a_suite_between_the_caller_and_direct_columns_CHANGES_the_fingerprint():

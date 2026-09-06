@@ -412,8 +412,23 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
     # The repair column and the subject's own direct suites are reported beside it and never
     # folded into it.
     callers = {s: r for s, r in row["per_suite"].items() if s in spec.suites}
-    row["survived_all"] = (len(callers) == len(spec.suites)
-                           and not any(r["died"] for r in callers.values()))
+    # THREE states, and the expression here wrote two of them. `len(callers) == len(spec.suites)
+    # and not any(died)` is False both for a row graded on every caller that one of them KILLED --
+    # a verdict, and the contract is proved -- and for a row that was never graded on some caller
+    # at all, which is no verdict about anything. `None` for the second, because JSON `null` is
+    # the one value a reader cannot mistake for an answer while `false` is the flattering one.
+    #
+    # LIVE, AND ON THIS SUBJECT. All eleven `fuel_mix` rows read `survived_all: false` at
+    # fingerprint 95c9da4db380 because `tests/tools/test_ep13_embedded_generation_bound.py` costs
+    # 605s a round and was excluded from the run -- so eleven rows said "proved" for a reason
+    # unrelated to any contract. The summary line already printed NOT YET GRADED ON EVERY SUITE
+    # honestly; only the JSON lied, and the JSON is what outlives the run.
+    row["survived_all"] = (None if len(callers) < len(spec.suites)
+                           else not any(r["died"] for r in callers.values()))
+    # Named rather than left to be derived, because a `null` that does not say WHICH caller is
+    # missing sends the reader back to diff two suite lists by hand. Always written, empty when
+    # the row has a verdict: an absent key and "nothing missing" must not look the same.
+    row["ungraded_callers"] = sorted(s for s in spec.suites if s not in callers)
     row["killed_by"] = [s for s, r in callers.items() if r["died"]]
     # Reported as its own field rather than left to be read off `killed_by`'s absences: a contract
     # proved ONLY by the subject's own tests and a contract proved by nothing are different
