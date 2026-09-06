@@ -21,9 +21,11 @@
   "controls": {
     "cells_are_populations": true,
     "held_out_exceeds_in_sample_on_most_pairs": false,
+    "held_out_exceeds_in_sample_on_the_reported_winner": true,
     "held_out_is_disjoint_from_fit": true,
     "households_per_cell": 8.6,
     "no_ground_truth_in_features": true,
+    "reported_winner_held_out_over_in_sample": 3.66,
     "the_null_ran_the_same_selection": true,
     "trait_spread": 0.57691,
     "traits_are_the_worlds": true
@@ -252,6 +254,6 @@
     "p_value": 0.0249,
     "statement": "The best function of the company's own observables recovers +0.6127 of a household's true price sensitivity, and it SURVIVES the correction on this book: after re-running the whole best-of-45 selection against 200 shuffled worlds, chance reached that high in 4 of them (p=0.0249). It clears by +0.0598 \u2014 about a tenth of the figure itself \u2014 so this is a marginal pass, not a bound.",
     "verdict": "clears",
-    "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0598, and a figure that clears by a tenth of itself will move with the next draw of the book. The pair rung carries 69 households, and at that size only a ceiling above +0.5529 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=213) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely."
+    "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0598, and a figure that clears by a tenth of itself will move with the next draw of the book. The pair rung carries 69 households, and at that size only a ceiling above +0.5529 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=213) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely. And the winning fit scores 0.6127 on households it never saw against 0.1674 on the ones it was built from -- 3.7 times better out of sample than in it. A fit does not do that; a search over 45 candidates ranked by the out-of-sample score finds one that does. This is not evidence the ceiling is chance -- the winner of a shuffled world overshoots its own fit for the same reason -- so the p-value above stands. It is the one thing that p-value cannot see, and it is why this figure is reported as the best of a search rather than as a bound."
   }
 }

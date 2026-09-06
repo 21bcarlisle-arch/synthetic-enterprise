@@ -283,3 +283,54 @@ def test_a_book_too_small_to_measure_is_refused_rather_than_scored_as_a_ceiling_
         r.measure(run_path=path)
 
     assert "REFUSED" in str(caught.value) and "households" in str(caught.value)
+
+
+def test_the_noise_signature_is_checked_on_the_winner_and_not_only_on_the_population():
+    """The population control reads GREEN while the published winner shows the signature.
+
+    THE DEFECT, live on the page from 2026-09-04 to 2026-09-06 and green the whole time.
+    `held_out_exceeds_in_sample_on_most_pairs` asks whether MOST of the 45 pairs score better out of
+    sample than in it. On the real book it is False. But the page does not carry most pairs -- it
+    carries the WINNER, and the winner scored +0.6127 held-out against +0.1674 in-sample. The exact
+    tell the module docstring names as "a fit scoring three times better on households it never saw,
+    which no real fit does" was inside the published figure, and the control named for that tell
+    could not see it, because an aggregate is blind to its own selected extreme.
+
+    Both legs are asserted over the same partition: a control that answered True for everything --
+    or False for everything -- would pass a single-leg version of this test and catch nothing.
+    """
+    inverted = {"held_out": 0.6127, "in_sample": 0.1674}
+    honest = {"held_out": 0.1674, "in_sample": 0.6127}
+
+    assert r._winner_inverts(inverted) is True, "the signature must be detectable on the winner"
+    assert r._winner_inverts(honest) is False, "a fit scoring better in-sample is not the signature"
+    assert r._winner_ratio(inverted) == 3.66, r._winner_ratio(inverted)
+    # An infinite ratio is not a number a reader can hold, and a large float would read as measured.
+    assert r._winner_ratio({"held_out": 0.5, "in_sample": 0.0}) is None
+
+
+def test_the_winner_signature_is_reported_and_never_flips_the_verdict():
+    """It is a REPORT, not a second grading, and the difference is the whole of its correctness.
+
+    Under the null the winner overshoots its own fit too -- both worlds rank on `abs(held_out)`, so
+    both find an overshoot. That makes inversion useless as evidence AGAINST the ceiling, and the
+    p-value already contains the selection. A future edit that reaches for `clears` from here would
+    be keying a control to today's answer, and this is the control that refuses it.
+    """
+    best = {"held_out": 0.6127, "in_sample": 0.1674, "n": 69}
+    verdict = {"clears": True, "p_value": 0.0249, "bound_p95": 0.5529, "margin_over_bound": 0.0598,
+               "exceedances": 4}
+
+    head = r._headline(best, verdict, {"clears": False}, 213, 45)
+
+    assert head["verdict"] == "clears", "the inversion must not move the verdict"
+    assert head["p_value"] == 0.0249
+    # ...and it must REACH THE READER, in the same object as the figure it qualifies.
+    assert "never saw" in head["what_it_does_not_say"], head["what_it_does_not_say"]
+    assert "3.7 times better" in head["what_it_does_not_say"], head["what_it_does_not_say"]
+
+    # The other side of the partition: no inversion, no sentence -- so the sentence is evidence of
+    # the property and not boilerplate the caveat always carries.
+    quiet = r._headline({"held_out": 0.1674, "in_sample": 0.6127, "n": 69}, verdict,
+                        {"clears": False}, 213, 45)
+    assert "never saw" not in quiet["what_it_does_not_say"], quiet["what_it_does_not_say"]

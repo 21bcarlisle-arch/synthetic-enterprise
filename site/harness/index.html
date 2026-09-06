@@ -653,6 +653,18 @@ function renderDeliveryCeiling(d) {
     " scrambled worlds. p = " + num(c.p_value) + " against a threshold of " + num(c.alpha, 2) +
     ".</p></div></div>" +
     "<p>" + esc(c.statement || "") + "</p>" +
+    /* THE TELL, rendered only when it is present, so its absence is information too. It is
+       deliberately NOT dressed as a verdict: the p-value above already contains the search. */
+    (c.winner_outscores_its_own_fit
+      ? '<div class="note"><strong>And the winning fit scores better on households it never ' +
+        "saw than on the ones it was built from" +
+        (c.winner_held_out_over_in_sample
+          ? " — " + num(c.winner_held_out_over_in_sample, 2) + " times better" : "") +
+        ".</strong> A fit does not do that; a search ranked on the out-of-sample score finds one " +
+        "that does. It does not overturn the p-value above — a scrambled world's winner overshoots " +
+        "its own fit for the same reason — and it is why this is reported as the best of a search " +
+        "rather than as a bound.</div>"
+      : "") +
     '<div class="note"><strong>What this does not say.</strong> ' +
     esc(c.what_it_does_not_say || "") + "</div>" +
     "<p>" + esc(c.why_both_figures_are_shown || "") + "</p>" +

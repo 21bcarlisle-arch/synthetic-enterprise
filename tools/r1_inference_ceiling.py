@@ -327,6 +327,24 @@ def graded_against_selection(observed: float, null: dict | None) -> dict:
     }
 
 
+def _winner_inverts(best: dict) -> bool:
+    """Did the REPORTED pair score better on households it never saw than on its own fit set?
+
+    Kept as a function rather than inlined because three surfaces need the same answer -- the
+    control block, the reader's caveat and the printed summary -- and a property computed three
+    times is a property that can disagree with itself.
+    """
+    held = abs(best.get("held_out") or 0.0)
+    return bool(held > abs(best.get("in_sample") or 0.0))
+
+
+def _winner_ratio(best: dict) -> float | None:
+    """How far the inversion goes. `None` when the in-sample score is zero: an infinite ratio is
+    not a number a reader can hold, and rounding one to a large float would read as measured."""
+    ins = abs(best.get("in_sample") or 0.0)
+    return round(abs(best.get("held_out") or 0.0) / ins, 2) if ins > 0 else None
+
+
 def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
               pairs: int) -> dict:
     """The sentence a reader gets, composed HERE so the page cannot compose a kinder one.
@@ -369,6 +387,20 @@ def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
              f"full-coverage rung (n={full_n}) reads "
              f"{'clears' if full_verdict.get('clears') else 'cannot tell'} on the same correction, "
              "and the two rungs disagreeing is itself a reason to hold the number loosely.")
+    # THE INVERSION TRAVELS WITH THE FIGURE OR IT IS NOT PUBLISHED AT ALL. A reader given
+    # "clears, marginally" and not this cannot judge the number, and the whole-population control
+    # that names this signature reads green while the published winner shows it.
+    if _winner_inverts(best):
+        ratio = _winner_ratio(best)
+        power += (
+            f" And the winning fit scores {abs(best.get('held_out') or 0.0):.4f} on households it "
+            f"never saw against {abs(best.get('in_sample') or 0.0):.4f} on the ones it was built "
+            f"from" + (f" -- {ratio:.1f} times better out of sample than in it" if ratio else "") +
+            ". A fit does not do that; a search over 45 candidates ranked by the out-of-sample "
+            "score finds one that does. This is not evidence the ceiling is chance -- the winner "
+            "of a shuffled world overshoots its own fit for the same reason -- so the p-value "
+            "above stands. It is the one thing that p-value cannot see, and it is why this figure "
+            "is reported as the best of a search rather than as a bound.")
     if clears:
         not_said = ("This does not establish a bound. It is a marginal pass on one book, clearing "
                     f"by {pair_verdict.get('margin_over_bound', 0.0):+.4f}, and a figure that "
@@ -534,6 +566,22 @@ def measure(cells: int = 2, run_path: Path | None = None) -> dict:
             "held_out_exceeds_in_sample_on_most_pairs": bool(
                 ranked and sum(1 for r in ranked
                                if abs(r["held_out"]) > abs(r["in_sample"])) > len(ranked) / 2),
+            # THE SAME SIGNATURE, KEYED TO THE FIGURE THAT IS ACTUALLY PUBLISHED (added 2026-09-06).
+            # The control above asks a POPULATION question and reads green on this book. The page
+            # does not carry the population; it carries the WINNER, and on this book the winner
+            # scores +0.6127 on households it never saw against +0.1674 on the ones it was built
+            # from. The tell the control above is named for was sitting inside the number that
+            # control was written to protect, and nothing could see it, because an aggregate is
+            # blind to its own selected extreme -- and `abs(held_out)` is exactly the criterion
+            # that finds an overshoot.
+            #
+            # IT IS NOT A SECOND VERDICT AND MUST NEVER BECOME ONE. Under the null the winner
+            # overshoots its own fit too, for the same reason it does here: both worlds select on
+            # held-out. So this cannot be evidence AGAINST the ceiling, the p-value already
+            # contains the selection, and flipping `clears` on it would be keying a control to
+            # today's answer. It is reported, on the surface, and it stops there.
+            "held_out_exceeds_in_sample_on_the_reported_winner": _winner_inverts(best),
+            "reported_winner_held_out_over_in_sample": _winner_ratio(best),
         },
     }
 
@@ -606,6 +654,10 @@ def main(argv=None) -> int:
     print(f"  the null ran the same selection: {c['the_null_ran_the_same_selection']}")
     print(f"  held-out beats in-sample on most pairs (the noise tell): "
           f"{c['held_out_exceeds_in_sample_on_most_pairs']}")
+    ratio = c.get("reported_winner_held_out_over_in_sample")
+    print(f"  ...and ON THE REPORTED WINNER, which is the figure published: "
+          f"{c['held_out_exceeds_in_sample_on_the_reported_winner']}"
+          + (f"  ({ratio}x better out of sample than in it)" if ratio else ""))
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUT_PATH.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(f"\nwrote {OUT_PATH}")

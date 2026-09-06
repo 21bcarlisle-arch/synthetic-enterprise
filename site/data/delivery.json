@@ -1,9 +1,45 @@
 {
- "generated_at": "2026-09-06T15:19:47.439608+00:00",
+ "generated_at": "2026-09-06T16:02:39.633823+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "5e0079d5e",
+    "at": "2026-09-06T16:55:24+01:00",
+    "subject": "merge origin/main into the binding-repair landing: re-gate on 8043f7896. Disjoint -- that commit dispositions three PB4 findings and archives my pre-registration into docs/staging/records/; this landing restores _merge_base_side and the since parameter in background/delivery_lane.py.",
+    "substantive": false
+   },
+   {
+    "sha": "8a7e5dfd8",
+    "at": "2026-09-06T16:54:08+01:00",
+    "subject": "a rewrite deleted the binding repair and left its nine controls red, so every promotion since 09:03 bound NOTHING",
+    "substantive": true
+   },
+   {
+    "sha": "8043f7896",
+    "at": "2026-09-06T16:44:20+01:00",
+    "subject": "two of the three findings freezing PB4 had outlived their defect; the third had not, and it is why PB4 stays at 0",
+    "substantive": true
+   },
+   {
+    "sha": "5b8f79767",
+    "at": "2026-09-06T16:24:43+01:00",
+    "subject": "merge origin/main into the R1 selection-correction landing: re-gate on the new base after origin moved to a6bcf76a0. Disjoint paths -- that commit touches background/delivery_seat.py, tools/level_zero_contradicted_by_its_own_controls.py and their tests; this landing touches the ceiling instrument, the delivery generator, the harness door and the findings.",
+    "substantive": false
+   },
+   {
+    "sha": "06fc90189",
+    "at": "2026-09-06T16:22:01+01:00",
+    "subject": "R1's ceiling was the best of 45 draws graded against the odds of one, and the corrected verdict flips on two households",
+    "substantive": true
+   },
+   {
+    "sha": "a6bcf76a0",
+    "at": "2026-09-06T16:18:42+01:00",
+    "subject": "the contradicted row that cannot move says so, instead of printing a remedy OPS11 refuses",
+    "substantive": true
+   },
    {
     "sha": "5110dcee2",
     "at": "2026-09-06T15:57:03+01:00",
@@ -207,42 +243,6 @@
     "at": "2026-09-06T10:30:33+01:00",
     "subject": "a released continuation was re-promoted by the machine within the hour, so --release bought sixty minutes",
     "substantive": true
-   },
-   {
-    "sha": "e6c6ea178",
-    "at": "2026-09-06T10:17:53+01:00",
-    "subject": "the map said zero about work its own controls prove is done, and four rows were doing it",
-    "substantive": true
-   },
-   {
-    "sha": "1c46d0199",
-    "at": "2026-09-06T10:05:00+01:00",
-    "subject": "stretch report: the anchors pointed at the stalest documents and omitted the freshest",
-    "substantive": false
-   },
-   {
-    "sha": "66dfc5de0",
-    "at": "2026-09-06T10:03:45+01:00",
-    "subject": "the anchor set said what the project IS and never where the current reasoning LIVES",
-    "substantive": true
-   },
-   {
-    "sha": "9210d8153",
-    "at": "2026-09-06T09:49:03+01:00",
-    "subject": "a lane that hands off to itself now yields to the seat's focus list after three links",
-    "substantive": true
-   },
-   {
-    "sha": "9145628a7",
-    "at": "2026-09-06T09:39:57+01:00",
-    "subject": "the stretch report for the stretch log's own build, which is the mechanism used on itself",
-    "substantive": false
-   },
-   {
-    "sha": "073bb159e",
-    "at": "2026-09-06T09:38:55+01:00",
-    "subject": "the stretch log reported ITSELF as unreported, because the exclusion matched a title",
-    "substantive": true
    }
   ],
   "substantive": 31,
@@ -252,7 +252,7 @@
  "what_it_decided": {
   "available": true,
   "oriented_at": "2026-09-05T14:23:03.881665+00:00",
-  "age_hours": 24.9,
+  "age_hours": 25.7,
   "expires_after_hours": 12.0,
   "live": false,
   "thesis_read": "For the first time in ten stretches the direction reached work, and the reason it did not register as such is worth more than the fact. `previous_focus_drawn.drawn` is empty for the tenth consecutive orientation \u2014 and yet focus item 1, the HadUK-Grid pull, was BUILT and LANDED at 12:09Z as 8016f7176, and focus item 3's subject, the tree standing behind origin, is repaired: `git rev-list --left-right --count HEAD...origin/main` reads 0 and 0 at 14:24Z against 0 and 10 at the last orientation. So my predecessor's open sub-question \u2014 how a focus item gets built without being drawn \u2014 now has a demonstrated answer rather than a candidate: the staging queue delivered it. `staging_rooms.work_queue()` ranks the weather ruling 2nd of 76 and an interactive seat worked it from there, while `delivery_lane`'s ledger, which is the only thing `drawn` reads, never saw it. The steer is not a no-op in effect; it is a no-op in the record, and those are different failures with different fixes. What is NOT fixed is the precedence: `next_item()` at 14:24Z still returns `fork-alarm-transition-state-keyed-on-behind-which-moves-every-cadence-2026-09-05`, one of five live continuations, so the `focus` loop beneath it is still unreachable \u2014 and I can now say something sharper than \"the store never empties\". One of those five, `register-low-water-three-implementations-one-mechanism`, describes work that LANDED this stretch in fc950dda6, cbfb12f1b and 029c21452. `live()` retires an entry that expires or is refuted and has no channel for one that was DONE, so a finished continuation preempts the seat's order forever. Against the thesis proper the stretch was the usual shape and I will not dress it up: `tools/product_machinery_split.py` at 14:23Z reads 3.33% over 50, 4.84% over 100, 2.33% over 200, 3.30% over 400 \u2014 below the declared floor at every horizon, as it has been every time it has been run. Nineteen of 44 commits were substantive and the great majority were register rungs, alarm keys, banner rows and publish causes. The one genuine product movement is the weather pull, and it is unfinished in a way nothing is watching: `/home/rich/.cache/synthetic-enterprise/haduk_grid` holds 5.3 GB and 123 files, the committed receipt declares 124 MB and three, and `pull.log` stops at `[120/315]` at 12:27Z with no process alive \u2014 the monthly tier complete at 105 files, the daily tier at 15 of 210, and nothing retrying. That is a tick-bound job that died with its tick, which this project has filed before. The stretch also produced its own best finding: `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS` establishes that 12 of the 50 reds in `.publish_gate_state.json` were `/tmp` at 0 MB, pass green on re-run at the same HEAD, and are indistinguishable in the state file from real defects \u2014 so a tick drawn on that state repairs passing tests, which is a machine that manufactures its own machinery work. The instance was swept; the mechanism was not. Every figure above was read live between 14:23Z and 14:26Z \u2014 `product_machinery_split` run, `next_item()` and `seat_continuation.live()` called, the cache walked with `find` and `du`, the receipt and `pull.log` opened, `git rev-list` run \u2014 and every one of them will be stale for whoever reads this. Re-run before relying on any.",
@@ -1562,8 +1562,10 @@
   "bound_p95": 0.5529,
   "margin_over_bound": 0.0598,
   "shuffled_worlds": 200,
+  "winner_outscores_its_own_fit": true,
+  "winner_held_out_over_in_sample": 3.66,
   "statement": "The best function of the company's own observables recovers +0.6127 of a household's true price sensitivity, and it SURVIVES the correction on this book: after re-running the whole best-of-45 selection against 200 shuffled worlds, chance reached that high in 4 of them (p=0.0249). It clears by +0.0598 \u2014 about a tenth of the figure itself \u2014 so this is a marginal pass, not a bound.",
-  "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0598, and a figure that clears by a tenth of itself will move with the next draw of the book. The pair rung carries 69 households, and at that size only a ceiling above +0.5529 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=213) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely.",
+  "what_it_does_not_say": "This does not establish a bound. It is a marginal pass on one book, clearing by +0.0598, and a figure that clears by a tenth of itself will move with the next draw of the book. The pair rung carries 69 households, and at that size only a ceiling above +0.5529 can be told from chance at all -- so a real effect of moderate size is invisible to this instrument either way. The separate full-coverage rung (n=213) reads cannot tell on the same correction, and the two rungs disagreeing is itself a reason to hold the number loosely. And the winning fit scores 0.6127 on households it never saw against 0.1674 on the ones it was built from -- 3.7 times better out of sample than in it. A fit does not do that; a search over 45 candidates ranked by the out-of-sample score finds one that does. This is not evidence the ceiling is chance -- the winner of a shuffled world overshoots its own fit for the same reason -- so the p-value above stands. It is the one thing that p-value cannot see, and it is why this figure is reported as the best of a search rather than as a bound.",
   "why_both_figures_are_shown": "The first number is what a search of 45 candidate pairs returned, compared against the odds of ONE of them coming up by chance. The second compares it against the odds of the BEST OF ALL of them coming up by chance, which is the thing that actually happened. Both are shown because deleting the flattering one would hide that it was ever published."
  },
  "how_to_read_this": "The delivery seat wakes on a timer, reads the last stretch, and writes direction -- never code. What it decides biases which work the ticks draw and can never block any of it. Everything on this page is read from a committed record; nothing here is computed a second time."

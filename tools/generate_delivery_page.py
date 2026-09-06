@@ -216,6 +216,7 @@ def the_number_the_programme_rests_on() -> dict:
     verdict = got.get("selection_corrected_verdict") or {}
     null = got.get("selection_corrected_null") or {}
     best = got.get("best_pair") or {}
+    controls = got.get("controls") or {}
     return {
         "available": True,
         "run_output": got.get("run_output"),
@@ -230,6 +231,14 @@ def the_number_the_programme_rests_on() -> dict:
         "bound_p95": verdict.get("bound_p95"),
         "margin_over_bound": verdict.get("margin_over_bound"),
         "shuffled_worlds": null.get("draws"),
+        # THE TELL THAT WAS INSIDE THE PUBLISHED FIGURE while the control named for it read green,
+        # because that control asks about MOST pairs and the page carries the WINNER. It is lifted
+        # like everything else here and it is NOT a verdict: the p-value already contains the
+        # selection, and a shuffled world's winner overshoots its own fit too.
+        "winner_outscores_its_own_fit": controls.get(
+            "held_out_exceeds_in_sample_on_the_reported_winner"),
+        "winner_held_out_over_in_sample": controls.get(
+            "reported_winner_held_out_over_in_sample"),
         "statement": headline.get("statement"),
         "what_it_does_not_say": headline.get("what_it_does_not_say"),
         "why_both_figures_are_shown": (
