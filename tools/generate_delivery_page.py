@@ -248,6 +248,8 @@ def the_number_the_programme_rests_on() -> dict:
     null = got.get("selection_corrected_null") or {}
     best = got.get("best_pair") or {}
     controls = got.get("controls") or {}
+    magnitude = got.get("magnitude_three_way_split") or {}
+    full_magnitude = got.get("magnitude_three_way_split_full_coverage") or {}
     return {
         "available": True,
         "run_output": got.get("run_output"),
@@ -281,6 +283,21 @@ def the_number_the_programme_rests_on() -> dict:
             "reported_winner_held_out_over_in_sample"),
         "statement": headline.get("statement"),
         "what_it_does_not_say": headline.get("what_it_does_not_say"),
+        # HOW BIG, WHICH IS NOT THE SAME CLAIM AS WHETHER, and the panel carried only the second.
+        # `reported_ceiling` above is the largest of a 45-way search ranked on the fold it is then
+        # reported from, so it is biased UP as an estimate even on a book where it clears. These
+        # fields are the de-biased reading, and `magnitude` is `None` whenever the rung cannot buy
+        # one -- which is the state A49's gate has to be able to see. Lifted, never computed.
+        "magnitude": magnitude.get("estimate"),
+        "magnitude_refused": magnitude.get("refused"),
+        "magnitude_under_powered_reading": magnitude.get("under_powered_reading"),
+        "magnitude_noise_floor": magnitude.get("bound_abs_p95"),
+        "magnitude_at_full_coverage": full_magnitude.get("estimate"),
+        # WHAT THE SEARCH ALONE WAS WORTH, at a fit fold held the same size so it is attributable to
+        # the selection and to nothing else.
+        "selection_inflation": (got.get("magnitude_three_way_split_detail") or {}).get(
+            "selection_inflation"),
+        "on_the_magnitude": headline.get("on_the_magnitude"),
         # DOES THIS VERDICT DESCRIBE THE WORLD, OR THE FILE THE INSTRUMENT HAPPENED TO READ?
         # Lifted, never computed, like everything else on this panel. `measured: False` is rendered
         # as UNMEASURED and never as agreement -- an unrun stability rung and a stable one are

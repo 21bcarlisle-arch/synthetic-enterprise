@@ -8,6 +8,7 @@ otherwise "noise" is what it says regardless of the world and R1's claim is unfa
 from __future__ import annotations
 
 import random
+import statistics
 from pathlib import Path
 
 import pytest
@@ -545,3 +546,177 @@ def test_the_fold_is_reported_so_a_book_that_shrank_by_a_third_is_visible():
 
     elec_only = {"dynamic_pricing_log": [{"customer_id": "C1"}, {"customer_id": "C5"}]}
     assert r.leg_fold_census(elec_only)["supply_point_legs_folded_into_a_household"] == 0
+
+
+def _learnable_book(features: int, households: int, seed: int, strength: float = 0.01):
+    """A book where f0 GENUINELY carries the target. The reachability fixture.
+
+    Same shape as `_noise_book` so the two can be put either side of one property: an estimator that
+    always returns zero passes every noise assertion in this file and is worthless, so nothing about
+    the three-way split may be asserted without this book beside it.
+    """
+    rng = random.Random(seed)
+    fields = [f"f{i}" for i in range(features)]
+    obs = {f"c{h}": {f: rng.uniform(0.0, 100.0) for f in fields} for h in range(households)}
+    traits = {c: obs[c]["f0"] * strength + rng.gauss(0.0, 0.05) for c in obs}
+    return r._pair_grid(obs, fields), traits
+
+
+def test_the_published_maximum_overshoots_an_empty_book_and_the_three_way_estimate_does_not():
+    """THE DEFECT THE THREE-WAY SPLIT REPAIRS, measured as a BIAS over ten empty books.
+
+    The selection-corrected null already grades WHETHER a ceiling is real and it does that job. It
+    cannot grade HOW BIG, because the published figure is `max(abs(held_out))` over 45 candidates
+    ranked on the very fold it is then reported from. On a book with nothing in it that maximum
+    lands around +0.35 every time -- it is a maximum of forty-five noisy zeroes -- and a reader is
+    told it is the recoverable share of a household's price sensitivity.
+
+    THE PROPERTY, and it is keyed to the property rather than to today's answer: over books with no
+    signal the two-way maximum must be far from zero and the three-way estimate must AVERAGE to
+    zero. Not "be small" -- a biased-down estimator would also be small. It must straddle: the mean
+    of the signed estimates sits near zero while the mean maximum does not.
+
+    Delete the third fold and report from the selection fold, and this reds. Take `abs()` of the
+    estimate instead of aligning its sign, and this reds -- which is the specific mistake this test
+    was written after nearly making.
+    """
+    maxima, estimates = [], []
+    for seed in range(10):
+        grid, traits = _noise_book(features=10, households=180, seed=900 + seed)
+        assert len(grid) == 45, "the fixture must reproduce the published sweep's width"
+        folds = r.global_folds(list({c for cand in grid for c in cand["ids"]}))
+        maxima.append(max(abs(r._cellwise_ceiling(c["xs"], c["ys"],
+                                                  [traits[i] for i in c["ids"]], 2)[0])
+                          for c in grid))
+        estimates.append(r.three_way_split(grid, traits, 2, folds)["estimate"])
+
+    mean_max = statistics.fmean(maxima)
+    mean_est = statistics.fmean(estimates)
+    assert mean_max > 0.25, (
+        "the fixture no longer reproduces the defect, so nothing here is testing the fix: the "
+        f"best-of-45 maximum averaged {mean_max:+.4f} on books with NOTHING in them")
+    assert abs(mean_est) < mean_max / 2, (
+        f"the three-way estimate averaged {mean_est:+.4f} over ten empty books against a published "
+        f"maximum of {mean_max:+.4f} -- it is carrying the selection bias it exists to remove")
+    assert min(estimates) < 0 < max(estimates), (
+        "every estimate over ten EMPTY books came out the same side of zero, which is a biased "
+        f"estimator however small its mean: {[round(e, 3) for e in estimates]}")
+
+
+def test_the_three_way_split_recovers_a_target_that_is_really_there():
+    """REACHABILITY, and it is the leg the test above is worthless without.
+
+    An estimator hard-wired to return 0.0 satisfies every assertion about empty books. This is the
+    control that says the instrument can still find something, so a small estimate on the real book
+    is a FINDING about the book and not a property of the estimator.
+    """
+    grid, traits = _learnable_book(features=10, households=180, seed=404)
+    folds = r.global_folds(list({c for cand in grid for c in cand["ids"]}))
+
+    split = r.three_way_split(grid, traits, 2, folds)
+    null = r.three_way_null(grid, traits, 2, folds, draws=60)
+    verdict = r.magnitude_verdict(split, null, 4)
+
+    assert split["estimate"] > 0.30, (
+        "a target that IS a function of an observable must survive the three-way split, or the "
+        f"split refuses everything and proves nothing: {split}")
+    assert verdict["exceeds_its_own_noise_floor"] is True, (
+        f"a real target must clear the estimator's own floor: {verdict}")
+    assert verdict["estimate"] is not None, (
+        f"a powered rung carrying a real signal must publish a number: {verdict}")
+
+
+def test_a_rung_too_small_to_estimate_REFUSES_and_a_rung_big_enough_ANSWERS():
+    """ONE CONTROL OVER THE WHOLE PARTITION, because a refusal that refuses everything passes every
+    test written for it -- and would read on the page exactly like R1's ceiling being unsupported.
+
+    Both legs are asserted here rather than in two tests, so a change that collapses the estimator
+    to "always refuse" or "always answer" cannot pass half of this file and be believed.
+    """
+    small_grid, small_traits = _learnable_book(features=10, households=60, seed=505)
+    big_grid, big_traits = _learnable_book(features=10, households=240, seed=505)
+    small_folds = r.global_folds(list({c for cand in small_grid for c in cand["ids"]}))
+    big_folds = r.global_folds(list({c for cand in big_grid for c in cand["ids"]}))
+
+    refused = r.magnitude_verdict(r.three_way_split(small_grid, small_traits, 2, small_folds),
+                                  None, 4)
+    answered = r.magnitude_verdict(r.three_way_split(big_grid, big_traits, 2, big_folds), None, 4)
+
+    assert refused["estimate"] is None and refused["refused"], (
+        f"a 60-household book cannot support a three-way split at 8 per cell: {refused}")
+    assert answered["estimate"] is not None and answered["refused"] is None, (
+        f"a 240-household book can, and a guard that refuses it refuses everything: {answered}")
+    # THE REFUSAL NAMES ITS OWN NUMBERS. A refusal that says why is how the refusal itself gets
+    # found to be wrong, and this one has to survive the constants moving.
+    assert str(r.MIN_HOUSEHOLDS_PER_CELL) in refused["refused"], refused["refused"]
+    assert refused["under_powered_reading"] is not None, (
+        "the direction of travel is evidence and is published beside the refusal, never instead "
+        f"of it: {refused}")
+    assert refused["fit_fold_holds_populations"] is False
+
+
+def test_a_household_gets_ONE_fold_for_the_whole_book_and_not_one_per_candidate():
+    """The selection ranges over all 45 candidates at once.
+
+    A fold drawn inside each candidate would put a household on the SELECTING side of one pair and
+    the ESTIMATING side of another, so its target would reach the estimate through a candidate it
+    had already helped choose. That leak is invisible in every aggregate and would show up only as
+    an estimate that stayed flatteringly high.
+    """
+    grid, traits = _noise_book(features=10, households=180, seed=606)
+    ids = sorted({c for cand in grid for c in cand["ids"]})
+    folds = r.global_folds(ids)
+
+    assert set(folds) == set(ids), "every household in the grid needs a fold"
+    assert set(folds.values()) == set(range(r.SPLIT_FOLDS))
+    sizes = [sum(1 for f in folds.values() if f == k) for k in range(r.SPLIT_FOLDS)]
+    assert max(sizes) - min(sizes) <= 1, f"the folds must be balanced, got {sizes}"
+    # THE FOLD MUST NOT BE A HASH OF THE ID. The target is itself a hash of the id, so a fold drawn
+    # by hashing the same string can correlate with the quantity being estimated. Asserted as the
+    # property -- fold membership carries no information about the trait -- rather than by reading
+    # the implementation, which would go stale the moment the implementation changed.
+    def gap(assignment):
+        means = [statistics.fmean([traits[c] for c in ids if assignment[c] == k])
+                 for k in range(r.SPLIT_FOLDS)]
+        return max(means) - min(means)
+
+    spread = statistics.pstdev(list(traits.values()))
+    assert gap(folds) < spread / 2, (
+        f"the folds differ in mean trait by {gap(folds):.4f} against a book-wide spread of "
+        f"{spread:.4f} -- the split is not independent of the target")
+    # AND THE ASSERTION ABOVE CAN FIRE, which is the whole of its value. On this fixture the trait
+    # is drawn independently of the id, so EVERY fold map satisfies it and it would be a tautology
+    # published as a control. Here is a fold map drawn from the trait itself: the same assertion
+    # must reject it, or it is testing nothing about the map it was written for.
+    ranked = sorted(ids, key=lambda c: traits[c])
+    drawn_from_the_target = {c: min(r.SPLIT_FOLDS - 1, i * r.SPLIT_FOLDS // len(ranked))
+                             for i, c in enumerate(ranked)}
+    assert gap(drawn_from_the_target) >= spread / 2, (
+        "the independence assertion above accepts a fold map built by SORTING ON THE TARGET, so it "
+        "would accept anything and proves nothing about the real one")
+
+
+def test_every_rotation_fits_selects_and_estimates_exactly_once():
+    """The estimate averages over rotations, and the null must run the IDENTICAL set.
+
+    If the two ever diverge the observed statistic is graded against the distribution of a different
+    statistic, which is the same class of defect as grading a best-of-45 against one pair's null.
+    """
+    assert len(r.SPLIT_ROTATIONS) == r.SPLIT_FOLDS, r.SPLIT_ROTATIONS
+    for role in range(r.SPLIT_FOLDS):
+        assert sorted(rot[role] for rot in r.SPLIT_ROTATIONS) == list(range(r.SPLIT_FOLDS)), (
+            f"every fold must play role {role} exactly once: {r.SPLIT_ROTATIONS}")
+
+
+def test_the_shrunk_figure_declares_that_it_is_not_unbiased():
+    """It is the number a reader would compute themselves from two figures already on the page, so
+    leaving it uncomputed invites someone to compute it and believe it. It is published WITH the
+    assumption that makes it wrong, and that pairing is the control."""
+    null = {"median": 0.3815}
+    shrunk = r.shrunk_toward_the_null(0.6308, null)
+
+    assert shrunk["value"] == pytest.approx(0.2493, abs=1e-4)
+    assert shrunk["is_unbiased"] is False, shrunk
+    assert "over-corrects" in shrunk["what_it_assumes"], shrunk
+    assert r.shrunk_toward_the_null(0.6308, None)["value"] is None, (
+        "with no null to shrink toward the figure is unavailable, not zero")

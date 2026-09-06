@@ -64,6 +64,7 @@ whose recovered traits are degenerate.
 from __future__ import annotations
 
 import glob
+import itertools
 import json
 import math
 import os
@@ -104,6 +105,13 @@ MIN_HOUSEHOLDS_PER_CELL = 8
 #: "measured, found nothing". The guard has to key on the DEGENERATE FIT, which is the actual
 #: failure, not on the constant feature, which was my guess at it.
 MIN_DISTINCT_PREDICTIONS = 2
+#: Folds in the split that estimates the MAGNITUDE. Three, and the third one is the whole point: two
+#: folds can fit and score, but the fold that SELECTS the winner is the fold that holds the maximum,
+#: so a figure reported from it is a maximum however honestly the fit was held out.
+SPLIT_FOLDS = 3
+#: Fewest households a fold may hold and still be scored at all. Matched to `_pair_grid`'s own
+#: `min_ids`: a candidate too small to enter the sweep is too small to estimate from.
+MIN_FOLD_HOUSEHOLDS = 20
 
 #: Fields a SUPPLIER COULD SEE. Every one is on the company's own book or its own decision record —
 #: consumption it meters, rates it set, arrears it observes, journeys it ran. Nothing here is a
@@ -262,16 +270,41 @@ def _cellwise_ceiling(xs, ys, targets, cells: int, want_distinct: bool = False):
     """
     if not xs:
         return (0.0, 0.0, 0) if want_distinct else (0.0, 0.0)
+    fit_i = [i for i in range(len(xs)) if i % 2 == 0]
+    score_i = [i for i in range(len(xs)) if i % 2 == 1]
+    preds = _cell_predictor(xs, ys, targets, cells, fit_i)
+
+    def scored(idx):
+        return _corr(preds(idx), [targets[i] for i in idx])
+    if want_distinct:
+        return scored(score_i), scored(fit_i), len(set(round(p, 12) for p in preds(score_i)))
+    return scored(score_i), scored(fit_i)
+
+
+def _cell_predictor(xs, ys, targets, cells: int, fit_i):
+    """The best cellwise function of (xs, ys) fitted on `fit_i` ALONE. Returns `preds(idx)`.
+
+    EXTRACTED FROM `_cellwise_ceiling`, not newly invented, because the three-way split needs the
+    SAME fitted table scored on two different held-out folds. Re-fitting per fold would give two
+    different functions, and then the fold that SELECTED a candidate would not be describing the fit
+    the estimating fold scores — which is the entire property the three-way split exists to buy.
+
+    Bin edges come from the whole column rather than from the fit fold, which is what this file has
+    always done and is kept deliberately: the edges read the FEATURE's range only, never the target,
+    so no label crosses the split. Narrowing them to the fit fold would change every existing figure
+    for a reason unrelated to the defect being repaired.
+    """
     def edges(v):
         lo, hi = min(v), max(v)
         return [lo + (hi - lo) * i / cells for i in range(cells + 1)] if hi > lo else [lo, lo + 1.0]
+
     ex, ey = edges(xs), edges(ys)
+
     def cell(x, y):
         bx = min(cells - 1, max(0, sum(1 for e in ex[1:-1] if x >= e)))
         by = min(cells - 1, max(0, sum(1 for e in ey[1:-1] if y >= e)))
         return bx, by
-    fit_i = [i for i in range(len(xs)) if i % 2 == 0]
-    score_i = [i for i in range(len(xs)) if i % 2 == 1]
+
     table: dict[tuple[int, int], list[float]] = {}
     for i in fit_i:
         table.setdefault(cell(xs[i], ys[i]), []).append(targets[i])
@@ -281,11 +314,7 @@ def _cellwise_ceiling(xs, ys, targets, cells: int, want_distinct: bool = False):
     def preds(idx):
         return [means.get(cell(xs[i], ys[i]), grand) for i in idx]
 
-    def scored(idx):
-        return _corr(preds(idx), [targets[i] for i in idx])
-    if want_distinct:
-        return scored(score_i), scored(fit_i), len(set(round(p, 12) for p in preds(score_i)))
-    return scored(score_i), scored(fit_i)
+    return preds
 
 
 def _corr(a, b) -> float:
@@ -406,6 +435,228 @@ def graded_against_selection(observed: float, null: dict | None) -> dict:
         # two days earlier. A margin worth a tenth of the figure is not a bound to gate a
         # programme on, and a reader who only gets `clears: true` cannot know that.
         "margin_over_bound": round(abs(observed) - null["p95"], 4),
+    }
+
+
+def global_folds(ids, folds: int = SPLIT_FOLDS) -> dict[str, int]:
+    """household -> fold, assigned ONCE for the whole book.
+
+    GLOBAL is the load-bearing word. Assigning folds inside each candidate would put a household on
+    the SELECTING side of one pair and the ESTIMATING side of another; the selection ranges over all
+    45 pairs at once, so that household's target would reach the estimate through a candidate it had
+    already helped choose. One assignment, honoured by every candidate, is what closes that.
+
+    By POSITION IN THE SORTED ID LIST, never by hashing the id. The target is itself a hash of the
+    id (`price_elasticity_for_customer`), so a fold drawn by hashing the same string is a fold that
+    can correlate with the very quantity being estimated.
+    """
+    return {c: i % folds for i, c in enumerate(sorted(ids))}
+
+
+#: The role assignments the estimate averages over: each fold fits once, selects once and estimates
+#: once. Not all six permutations — three is the set in which every fold plays every part exactly
+#: once, and the null below has to run the IDENTICAL set or it is grading a different statistic.
+SPLIT_ROTATIONS = tuple(r for r in itertools.permutations(range(SPLIT_FOLDS))
+                        if all((r[i] - r[0]) % SPLIT_FOLDS == i for i in range(SPLIT_FOLDS)))
+
+
+def _one_rotation(grid, traits: dict[str, float], cells: int, folds_of: dict[str, int],
+                  roles: tuple[int, int, int]) -> dict | None:
+    """One (fit, select, estimate) assignment: the winner chosen on SELECT, scored on ESTIMATE.
+
+    Returns both the honest estimate and the MATCHED selected maximum — the same fit, but chosen and
+    reported on the select and estimate folds TOGETHER, which is what the two-way procedure does.
+    Reporting the three-way figure alone would confound two changes: the fit fold shrank from a half
+    of the book to a third, AND the selection stopped being reported from. The matched maximum holds
+    the fit size fixed, so the difference between the two is the SELECTION and nothing else.
+    """
+    fit_f, sel_f, est_f = roles
+    best_sel, best = 0.0, None
+    matched_max = 0.0
+    scored = 0
+    for cand in grid:
+        ids = cand["ids"]
+        ts = [traits[c] for c in ids]
+        fit_i = [i for i, c in enumerate(ids) if folds_of[c] == fit_f]
+        sel_i = [i for i, c in enumerate(ids) if folds_of[c] == sel_f]
+        est_i = [i for i, c in enumerate(ids) if folds_of[c] == est_f]
+        # `_corr` returns a silent 0.0 under three points, and a 0.0 that means "too few to say"
+        # is indistinguishable from one that means "measured, found nothing". Skip instead.
+        if len(fit_i) < 1 or len(sel_i) < 3 or len(est_i) < 3:
+            continue
+        preds = _cell_predictor(cand["xs"], cand["ys"], ts, cells, fit_i)
+        sel_score = _corr(preds(sel_i), [ts[i] for i in sel_i])
+        est_score = _corr(preds(est_i), [ts[i] for i in est_i])
+        both = sel_i + est_i
+        matched_max = max(matched_max, abs(_corr(preds(both), [ts[i] for i in both])))
+        scored += 1
+        if abs(sel_score) > abs(best_sel):
+            # SIGN-ALIGNED, NOT ABSOLUTE, and this is the difference between an estimate and another
+            # selected maximum. `abs(est_score)` has a positive expectation under pure noise, so
+            # taking it would re-introduce exactly the upward bias this function exists to remove.
+            # The selection fold already decided which way the fit points; the estimate fold's job
+            # is only to agree or disagree with that, so it is scored against that decision.
+            best_sel = sel_score
+            best = {
+                "x": cand["x"], "y": cand["y"], "n": len(ids),
+                "select_score": round(sel_score, 4),
+                "estimate": round(est_score * (1.0 if sel_score >= 0 else -1.0), 4),
+                "fit_households": len(fit_i),
+                "select_households": len(sel_i),
+                "estimate_households": len(est_i),
+            }
+    if best is None:
+        return None
+    return {**best, "roles": list(roles), "candidates_scored": scored,
+            "matched_selected_maximum": round(matched_max, 4)}
+
+
+def three_way_split(grid, traits: dict[str, float], cells: int,
+                    folds_of: dict[str, int]) -> dict | None:
+    """The magnitude the sweep's selection ACTUALLY delivers, averaged over the rotations.
+
+    THE DEFECT THIS REPAIRS, and it is the one the selection-corrected null does NOT repair. That
+    null grades WHETHER the ceiling is real and answers it: p=0.03 on this book. It says nothing
+    about HOW BIG. The published figure is `max(abs(held_out))` over 45 candidates ranked on the
+    very fold it is then reported from, and the maximum of N noisy estimates overshoots the best
+    candidate's true value whether or not the winner is real. Clearing a null does not un-bias a
+    maximum; the two are different questions and only one of them had been asked.
+
+    The mean over rotations is still unbiased — a mean of unbiased estimators is one — and it is far
+    less noisy than any single split, which matters here because a third of 69 households is 23 and
+    one draw of that would tell the reader almost nothing. The SPREAD is published beside it so the
+    reader can see how much of the figure is the split.
+    """
+    if not grid:
+        return None
+    per = [r for r in (_one_rotation(grid, traits, cells, folds_of, roles)
+                       for roles in SPLIT_ROTATIONS) if r]
+    if not per:
+        return None
+    est = [r["estimate"] for r in per]
+    matched = [r["matched_selected_maximum"] for r in per]
+    return {
+        "rotations": len(per),
+        "estimate": round(statistics.fmean(est), 4),
+        "estimate_range": [round(min(est), 4), round(max(est), 4)],
+        "matched_selected_maximum": round(statistics.fmean(matched), 4),
+        # WHAT THE SEARCH ITSELF WAS WORTH, at a fit size held fixed so it is attributable. This is
+        # the quantity A49 needed and could not read off anything published before now.
+        "selection_inflation": round(statistics.fmean(matched) - statistics.fmean(est), 4),
+        "fit_households": per[0]["fit_households"],
+        "select_households": per[0]["select_households"],
+        "estimate_households": per[0]["estimate_households"],
+        "winners": [{"x": r["x"], "y": r["y"], "roles": r["roles"],
+                     "select_score": r["select_score"], "estimate": r["estimate"]} for r in per],
+        # DID THE ROTATIONS EVEN AGREE ON WHAT WON? When they do not, the "winner" of the published
+        # sweep is a property of which households happened to be on the ranking side, which is a
+        # fact about the split and not about the book.
+        "rotations_agree_on_the_winner": len({(r["x"], r["y"]) for r in per}) == 1,
+    }
+
+
+def three_way_null(grid, traits: dict[str, float], cells: int, folds_of: dict[str, int],
+                   draws: int = SELECTION_NULL_DRAWS) -> dict | None:
+    """The same three-way statistic against shuffled worlds — the estimator's own noise floor.
+
+    Without it a reader cannot tell a small estimate from zero, and "small" is the answer this is
+    most likely to return. Runs the IDENTICAL rotation set on the IDENTICAL fixed grid and the
+    IDENTICAL global fold assignment: the only thing that moves is the household -> trait pairing.
+
+    Two-sided, because the estimate is SIGNED. `p95` here is a percentile of the signed statistic
+    and the verdict uses `abs`, so a real negative estimate is graded as seriously as a positive one
+    rather than being scored against a floor it is trivially under.
+    """
+    ids = sorted({c for cand in grid for c in cand["ids"]})
+    if not grid or len(ids) < 3:
+        return None
+    values = [traits[c] for c in ids]
+    draws_out = []
+    for draw in range(draws):
+        permuted = list(values)
+        random.Random(70_000 + draw).shuffle(permuted)
+        got = three_way_split(grid, dict(zip(ids, permuted)), cells, folds_of)
+        if got:
+            draws_out.append(got["estimate"])
+    if not draws_out:
+        return None
+    absolute = sorted(abs(v) for v in draws_out)
+
+    def pct(p: float) -> float:
+        return absolute[max(0, min(len(absolute) - 1, math.ceil(p * len(absolute)) - 1))]
+
+    return {"draws": len(draws_out), "mean": round(statistics.fmean(draws_out), 4),
+            "abs_median": round(pct(0.5), 4), "abs_p95": round(pct(0.95), 4),
+            "abs_max": round(absolute[-1], 4), "_abs": absolute}
+
+
+def magnitude_verdict(split: dict | None, null: dict | None, cell_count: int) -> dict:
+    """The published magnitude: a number with its bound, or a REFUSAL that names its reason.
+
+    FAIL CLOSED AND SAY SO ON THE SURFACE. A49 gates R3 and R4 on this figure, so the one thing that
+    must never happen is a number appearing where an under-powered reading was all the book could
+    buy. When the fit fold cannot hold populations the estimate is still computed — it is the honest
+    direction of travel and suppressing it would hide the size of the correction — but it is
+    published under `under_powered_reading` and `estimate` stays `None`. A gate reading `estimate`
+    gets `None` and must refuse; a reader gets the number and its reason in the same object.
+    """
+    if split is None:
+        return {"estimate": None, "refused": "no candidate grid to split three ways",
+                "under_powered_reading": None}
+    # THE CELL COUNT IS THE CALLER'S, because the two rungs do not have the same one: a pair spans
+    # `cells * cells` and a single feature spans `cells`, its second axis being a constant. Deriving
+    # it here from `cells` alone would divide the full-coverage fit fold by four cells it does not
+    # have and refuse a rung that is in fact powered.
+    per_cell = split["fit_households"] / cell_count
+    powered = per_cell >= MIN_HOUSEHOLDS_PER_CELL and split["estimate_households"] >= MIN_FOLD_HOUSEHOLDS
+    reading = split["estimate"]
+    out = {
+        "households_per_cell_on_the_fit_fold": round(per_cell, 2),
+        "fit_fold_holds_populations": bool(per_cell >= MIN_HOUSEHOLDS_PER_CELL),
+        "estimate_fold_is_big_enough": bool(split["estimate_households"] >= MIN_FOLD_HOUSEHOLDS),
+    }
+    if null is not None:
+        exceed = sum(1 for w in null["_abs"] if w >= abs(reading))
+        out["p_value"] = round((1 + exceed) / (1 + len(null["_abs"])), 4)
+        out["bound_abs_p95"] = null["abs_p95"]
+        out["exceeds_its_own_noise_floor"] = bool(abs(reading) > null["abs_p95"])
+    if powered:
+        return {"estimate": reading, "refused": None, "under_powered_reading": None, **out}
+    return {
+        "estimate": None,
+        "under_powered_reading": reading,
+        "refused": (
+            f"three-way split needs {MIN_HOUSEHOLDS_PER_CELL} households per cell on the fit fold "
+            f"and {MIN_FOLD_HOUSEHOLDS} on the estimate fold; this rung gives {per_cell:.2f} per "
+            f"cell from a fit fold of {split['fit_households']} and an estimate fold of "
+            f"{split['estimate_households']}. The reading beside this refusal is reported because "
+            "the direction of travel is evidence; it is not an estimate and must not be gated on."),
+        **out,
+    }
+
+
+def shrunk_toward_the_null(observed: float, null: dict | None) -> dict:
+    """The other option on the table: the published maximum, less the null's own median maximum.
+
+    IT IS NOT UNBIASED AND THIS FUNCTION SAYS SO IN ITS OWN PAYLOAD. It assumes the inflation a
+    best-of-45 suffers under the alternative equals the inflation it suffers under the null, and
+    nothing measured here establishes that — under a real effect the winner is chosen more often on
+    signal than on noise, so the true inflation is smaller and this over-corrects. It is published
+    because it is cheap, it is the figure a reader would compute themselves from the two numbers
+    already on the page, and leaving it uncomputed invites someone to compute it and believe it.
+    """
+    if null is None:
+        return {"value": None, "why_not": "no selection-corrected null to shrink toward"}
+    return {
+        "value": round(abs(observed) - null["median"], 4),
+        "observed": round(abs(observed), 4),
+        "null_median_maximum": null["median"],
+        "is_unbiased": False,
+        "what_it_assumes": (
+            "that a best-of-N selection inflates a real effect by as much as it inflates pure "
+            "noise. Under a real effect the winner is chosen on signal more often, so the true "
+            "inflation is smaller and this figure over-corrects. Reported as a floor on the "
+            "magnitude, never as the magnitude."),
     }
 
 
@@ -562,8 +813,66 @@ def _reduce_runs(per_run: list[dict]) -> dict | None:
     }
 
 
+def _magnitude_sentence(magnitude: dict, full_magnitude: dict, detail: dict | None,
+                        observed: float) -> str:
+    """What the reader is owed about HOW BIG, which the verdict above does not answer.
+
+    Every number here is derived from the payload rather than written in. The last version of this
+    file's headline carried a literal ("a book of over two hundred") that was wrong the moment the
+    count it described was corrected, and this sentence would rot the same way.
+    """
+    est, forced = magnitude.get("estimate"), magnitude.get("under_powered_reading")
+    floor, p = magnitude.get("bound_abs_p95"), magnitude.get("p_value")
+    if est is not None:
+        clear = magnitude.get("exceeds_its_own_noise_floor")
+        return (
+            f" THE MAGNITUDE IS {est:+.4f}, not {observed:+.4f}. Split three ways — fit on one third "
+            f"of the book, choose the winner on a second, score it on a third that neither the fit "
+            f"nor the choosing has touched — the figure the selection actually delivers is "
+            f"{est:+.4f}"
+            + (f", which is {'above' if clear else 'inside'} its own noise floor of {floor:+.4f} "
+               f"(p={p})." if floor is not None else ".")
+            + " The published figure is the larger because it is a maximum, and a maximum overshoots"
+              " whatever it is the maximum of.")
+    said = (
+        f" AND THE SIZE OF IT IS NOT ESTABLISHED, which is a separate claim from whether it is real."
+        f" {observed:+.4f} is the largest of a search ranked on the very fold it is then reported"
+        f" from, so it is biased up as an estimate however cleanly it clears a null. De-biasing it"
+        f" needs a third fold — fit on one, choose on a second, score on a third — and this rung"
+        f" cannot carry one:"
+        f" {magnitude.get('households_per_cell_on_the_fit_fold')} households per cell on the fit"
+        f" fold against the {MIN_HOUSEHOLDS_PER_CELL} this instrument requires.")
+    if forced is not None:
+        said += (f" Forced through anyway it reads {forced:+.4f}"
+                 + (f", inside a noise floor of {floor:+.4f} (p={p})" if floor is not None else "")
+                 + " — the direction of travel, and not an estimate.")
+    fe, ff, fp = (full_magnitude.get("estimate"), full_magnitude.get("bound_abs_p95"),
+                  full_magnitude.get("p_value"))
+    if fe is not None:
+        said += (f" The full-coverage rung CAN carry the split, and there the estimate is {fe:+.4f}"
+                 + (f", inside its own noise floor of {ff:+.4f} (p={fp}) — indistinguishable from"
+                    " nothing." if ff is not None else "."))
+    if detail:
+        said += (
+            f" Holding the fit fold at the same size and separating ONLY the choosing from the"
+            f" reporting moves the figure from {detail['matched_selected_maximum']:+.4f} to"
+            f" {detail['estimate']:+.4f}, so {detail['selection_inflation']:+.4f} of it is the"
+            f" search and nothing else — one variable, measured, not inferred.")
+        if not detail.get("rotations_agree_on_the_winner"):
+            lo, hi = detail["estimate_range"]
+            said += (f" The rotations do not even agree on which candidate wins, and their estimates"
+                     f" run from {lo:+.4f} to {hi:+.4f}: which pair is 'best' is a fact about who"
+                     f" landed on the ranking side of the split.")
+    return said + (
+        f" So R1's ceiling clears its null on this book and its MAGNITUDE has no unbiased estimate"
+        f" here. A49 gates R3 and R4 on this instrument and must read the magnitude field, which is"
+        f" null — not {observed:+.4f}. What closes it is COVERAGE, not a re-run.")
+
+
 def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
-              pairs: int, stability: dict | None = None) -> dict:
+              pairs: int, stability: dict | None = None,
+              magnitude: dict | None = None, full_magnitude: dict | None = None,
+              detail: dict | None = None) -> dict:
     """The sentence a reader gets, composed HERE so the page cannot compose a kinder one.
 
     "We cannot tell" is a result and it belongs on the surface, not in a footnote -- and it is a
@@ -713,10 +1022,22 @@ def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
     else:
         not_said = ("This is not a finding that price sensitivity is unlearnable. It is a refusal "
                     "to distinguish, which is a different claim. " + power)
+    # WHETHER AND HOW BIG ARE TWO CLAIMS AND THE PAGE CARRIED ONE OF THEM. A reader given "recovers
+    # +0.63, and it survives the correction" reads a magnitude that nothing here established; the
+    # correction graded the existence. The sentence goes in `what_it_does_not_say` because that is
+    # the field the delivery page renders beside the headline, and a magnitude caveat filed anywhere
+    # a reader does not look is a caveat that was not published.
+    magnitude_said = ""
+    if magnitude is not None:
+        magnitude_said = _magnitude_sentence(magnitude, full_magnitude or {}, detail, observed)
+        not_said += magnitude_said
     return {
         "verdict": "clears" if clears else "cannot tell",
         "statement": statement,
         "what_it_does_not_say": not_said,
+        # LIFTABLE ON ITS OWN, so a surface can render the magnitude claim without having to find it
+        # inside a paragraph about something else.
+        "on_the_magnitude": magnitude_said.strip() or None,
         "bound_p95": bound,
         "p_value": p,
     }
@@ -812,6 +1133,21 @@ def measure(cells: int = 2, run_path: Path | None = None,
     full_observed = max((abs(r["held_out"]) for r in at_full_power
                          if r.get("held_out") is not None), default=0.0)
     full_verdict = graded_against_selection(full_observed, full_null)
+
+    # THE MAGNITUDE, which is a different question from the verdict above and had no answer until
+    # now. `pair_verdict` grades whether +0.63 could be chance; it cannot grade whether +0.63 is the
+    # right size, because the figure is the maximum of 45 candidates ranked on the very fold it is
+    # reported from. One global fold assignment serves both rungs so a household is on the same side
+    # of the split wherever it appears.
+    folds_of = global_folds(list(obs))
+    pair_split = three_way_split(grid, traits, cells, folds_of)
+    pair_magnitude = magnitude_verdict(
+        pair_split, three_way_null(grid, traits, cells, folds_of), cells * cells)
+    full_split = three_way_split(full_grid, traits, cells, folds_of)
+    full_magnitude = magnitude_verdict(
+        full_split, three_way_null(full_grid, traits, cells, folds_of), cells)
+    shrunk = shrunk_toward_the_null(best.get("held_out", 0.0), pair_null)
+
     for block in (pair_null, full_null):
         if block is not None:
             block.pop("_winners", None)
@@ -857,12 +1193,20 @@ def measure(cells: int = 2, run_path: Path | None = None,
             bool(abs(best.get("held_out", 0.0)) > null_floor),
         "selection_corrected_null": pair_null,
         "selection_corrected_verdict": pair_verdict,
+        # THE MAGNITUDE, PUBLISHED SEPARATELY FROM THE VERDICT because they are separate claims and
+        # were run together for two days. `estimate` is `None` whenever the rung cannot support one,
+        # and A49 must read THAT field: `under_powered_reading` beside it is evidence of direction,
+        # not a figure to gate on, and `magnitude_verdict` is where the two are kept apart.
+        "magnitude_three_way_split": pair_magnitude,
+        "magnitude_three_way_split_full_coverage": full_magnitude,
+        "magnitude_three_way_split_detail": pair_split,
+        "magnitude_shrunk_toward_the_null": shrunk,
         # WHETHER THE VERDICT SURVIVES A DIFFERENT DRAW OF THE SAME BOOK. `None` when the series was
         # not measured, which is a different claim from "measured, and stable" -- the page has to be
         # able to tell those apart, so the absence is never rendered as agreement.
         "verdict_stability": stability,
         "we_cannot_tell": _headline(best, pair_verdict, full_verdict, full_n, len(ranked),
-                                    stability),
+                                    stability, pair_magnitude, full_magnitude, pair_split),
         "controls": {
             # A wrong seed gives random labels and a ceiling of zero -- the answer the canon
             # predicts, from a measurement of nothing.
@@ -990,6 +1334,36 @@ def main(argv=None) -> int:
         print(f"    chance matched or beat the real figure    : {ver['exceedances']}/{sel['draws']} "
               f"draws   p={ver['p_value']}  (alpha {ver['alpha']})")
     print(f"    clears                                   : {result['ceiling_clears_the_null']}")
+    print()
+    print("  HOW BIG -- a separate question, and the one the correction above does NOT answer")
+    det = result.get("magnitude_three_way_split_detail")
+    for label, mag in (("pair rung", result["magnitude_three_way_split"]),
+                       ("full coverage", result["magnitude_three_way_split_full_coverage"])):
+        est, forced = mag.get("estimate"), mag.get("under_powered_reading")
+        shown = (f"{est:+.4f}" if est is not None else
+                 (f"REFUSED ({forced:+.4f} under-powered, NOT an estimate)"
+                  if forced is not None else "REFUSED"))
+        bound = mag.get("bound_abs_p95")
+        tail = (f"   vs its own noise floor {bound:+.4f} (p={mag.get('p_value')})"
+                if bound is not None else "")
+        print(f"    three-way split, {label:<14}: {shown}{tail}")
+        print(f"      fit fold holds {mag.get('households_per_cell_on_the_fit_fold')} households"
+              f"/cell (needs {MIN_HOUSEHOLDS_PER_CELL}) -- populations: "
+              f"{mag.get('fit_fold_holds_populations')}")
+        if mag.get("refused"):
+            print(f"      REFUSED: {mag['refused']}")
+    if det:
+        print(f"    the same fit, chosen AND reported on both held-out folds (matched control): "
+              f"{det['matched_selected_maximum']:+.4f}")
+        print(f"    so the SEARCH alone is worth                             : "
+              f"{det['selection_inflation']:+.4f}")
+        print(f"    rotations agree on which pair won: {det['rotations_agree_on_the_winner']}   "
+              f"estimate across rotations: {det['estimate_range']}")
+    sh = result["magnitude_shrunk_toward_the_null"]
+    if sh.get("value") is not None:
+        print(f"    shrunk toward the null median instead     : {sh['value']:+.4f}  "
+              f"(NOT unbiased -- {sh['observed']:+.4f} less the null's own median "
+              f"{sh['null_median_maximum']:+.4f})")
     stab = result.get("verdict_stability")
     if stab:
         print()
