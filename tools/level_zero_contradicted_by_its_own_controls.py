@@ -25,12 +25,42 @@ graded, and the row is reported as ungradable rather than given a verdict it did
 
 THREE VERDICTS, and the third is the one the first draft did not have.
 
-  CONTRADICTED  -- >=1 named control file, every one exists, and the whole set PASSES. Refuses.
+  CONTRADICTED  -- >=1 named control file, every one exists, every one was written no earlier
+                   than the row itself, and the whole set PASSES. Refuses.
   UNGRADABLE    -- reported, never refuses. The row names no control file at all, or names one
-                   that is not on disk, or the run could not be completed. "I cannot grade this"
-                   is a finding about the row, not a verdict about the work.
+                   that is not on disk, or names one OLDER THAN ITSELF, or the run could not be
+                   completed. "I cannot grade this" is a finding about the row, not a verdict
+                   about the work.
   (silent)      -- the named set exists and does not all pass. The map and the controls agree
                    that something is unbuilt. Nothing to say.
+
+A CONTROL OLDER THAN THE ROW IS NOT EVIDENCE ABOUT THE ROW, and this is the leg the live tree
+taught on 2026-09-06 -- the first draft did not have it and published a refusal because of that.
+`H41_the_map_ratchet_has_no_ongoing_drain` was minted on 2026-08-10 and names
+`tests/design/test_simplifications_store.py`, born 2026-08-05, four days earlier. All 41 of its
+tests pass, so the first draft called the row CONTRADICTED and demanded a level move. But that
+suite was passing before the atom existed: it grades the store's mechanics (roll, bounds,
+orphans, duplicate tenants) and H41's deliverable is an ONGOING DRAIN, which does not exist --
+measured, not argued, by the map refilling to 99.74% of its ceiling in the eleven days after the
+one-off drain and wedging every lane's commit. The suite is green through exactly the failure
+H41 exists to fix, because the narrative moved into `gain`, a field no tenant holds.
+
+So the question "does the named set pass" is only a question ABOUT THIS ATOM when the atom's own
+build is what wrote the set. Dating is how that is settled without trusting a commit-message
+convention: if the control was already on disk when the row was minted, its passing today carries
+no information about whether the row's work landed, and the row is UNGRADABLE ENTIRE for the same
+fail-closed reason an absent path is -- grading the remainder would publish a verdict about a set
+the row does not describe. On the live map the discriminator needs no tuning: SPINE_1's control was
+born 2h41m AFTER its row, SITE4's in the SAME COMMIT as its row, and H41's four days before.
+
+PROVENANCE THAT CANNOT BE ESTABLISHED DOES NOT DEGRADE TO REFUSING. No git history (a shallow
+clone, a `git archive` extract, an uncommitted control) means the ages are unknown, and unknown
+is UNGRADABLE, never CONTRADICTED -- the refusing verdict is the one that demands work, so it is
+the one that must be earned. `--follow` is deliberate: without it a renamed suite dates from its
+rename and reads as younger than it is, which fails in the refusing direction. Its known cost is
+that rename detection works by SIMILARITY, so a new control that closely resembles an older file
+can be followed back to it and read as older than it is -- that error direction is silence, not a
+false demand, which is the trade this control is willing to make in that order.
 
 A NAMED CONTROL THAT IS NOT ON DISK DOES NOT DEGRADE TO GRADING THE REST, and that is what the
 live tree taught. Of the 34 candidate rows, ten named a test file at all and FOUR of those ten
@@ -78,8 +108,15 @@ UNGRADABLE = "ungradable"
 #: row the budget never reached is re-run with a bigger one.
 NO_CONTROL_NAMED = "names no control file a runner can execute"
 NAMED_CONTROL_ABSENT = "names a control file that is not on disk"
+CONTROL_PREDATES_ROW = "names a control that was already on disk, and passing, before the row was"
+PROVENANCE_UNKNOWN = "the age of the row or of its named controls could not be established"
 RUN_UNAVAILABLE = "the named controls could not be run to a verdict"
 BUDGET_EXHAUSTED = "the run budget was spent before this row was reached"
+
+#: Both halves of the map. A row minted into the live half and later closed keeps its ORIGINAL
+#: minting commit only if both are searched, and dating it from the close would make every closed
+#: row look younger than the controls its own build wrote.
+MAP_PATHS = ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml")
 
 
 def named_controls(atom: dict) -> list[str]:
@@ -99,6 +136,59 @@ def named_controls(atom: dict) -> list[str]:
         if base.startswith("test_") and base.endswith(".py"):
             out.append(rel)
     return out
+
+
+def _oldest_commit_epoch(log_args: list[str], root: Path) -> float | None:
+    """Unix time of the OLDEST commit `git log <log_args>` reports, or None if it reports none.
+
+    None is "I cannot date this", never "it is infinitely old" -- the caller turns it into
+    UNGRADABLE, and a not-found that fell back to an extreme is the shape that fabricates
+    findings elsewhere in this repo.
+    """
+    try:
+        r = subprocess.run(["git", "log", "--format=%ct", *log_args],
+                           cwd=str(root), capture_output=True, text=True, timeout=60)
+    except Exception:  # noqa: BLE001 -- no git, no history, no provenance; never a refusal
+        return None
+    lines = [ln.strip() for ln in r.stdout.splitlines() if ln.strip()]
+    if r.returncode != 0 or not lines:
+        return None
+    try:
+        return float(lines[-1])
+    except ValueError:
+        return None
+
+
+def controls_older_than_the_row(atom_id: str, controls: list[str],
+                                root: Path = ROOT) -> tuple[list[str], list[str]]:
+    """`(predating, undatable)` -- which named controls were already on disk when the row was
+    minted, and which could not be dated at all.
+
+    THE TWO OUTPUTS ARE KEPT APART because they carry different instructions: a predating control
+    is repointed or the row is left alone as correctly-zero, while an undatable one means this
+    tree cannot answer the question and the row must be graded somewhere with history. Collapsing
+    them would print "older than the row" over a shallow clone, which is a claim nothing measured.
+
+    If the ROW cannot be dated, every control is undatable -- "no predating controls" must never
+    be readable out of "I could not look".
+
+    The row is dated by the oldest commit whose diff of either map half mentions the atom id --
+    `-S`, so a row moved between the halves or edited a hundred times still dates from its mint.
+    """
+    minted = _oldest_commit_epoch(["--diff-filter=AM", "-S{}".format(atom_id), "--", *MAP_PATHS],
+                                  root)
+    if minted is None:
+        return [], list(controls)
+    predating: list[str] = []
+    undatable: list[str] = []
+    for rel in controls:
+        # --follow, so a suite that was renamed dates from its birth and not from the rename.
+        born = _oldest_commit_epoch(["--follow", "--", rel], root)
+        if born is None:
+            undatable.append(rel)
+        elif born < minted:
+            predating.append(rel)
+    return predating, undatable
 
 
 def is_candidate(atom: dict) -> bool:
@@ -136,7 +226,7 @@ def run_controls(paths: list[str], root: Path = ROOT,
 
 def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
            timeout_s: int = DEFAULT_TIMEOUT_S, budget_s: float | None = None,
-           clock=time.monotonic) -> tuple[list[dict], list[dict]]:
+           clock=time.monotonic, ages=controls_older_than_the_row) -> tuple[list[dict], list[dict]]:
     """`(contradicted, ungradable)` over the candidate partition. Rows whose controls do not all
     pass appear in neither: the map and the controls agree, and agreement is not a finding.
 
@@ -167,6 +257,23 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
         if absent:
             ungradable.append({"id": aid, "reason": NAMED_CONTROL_ABSENT, "paths": absent,
                                "detail": "repoint the row at the control that exists"})
+            continue
+        # Dating runs BEFORE the budget check and before the run: it costs a fraction of a second
+        # against pytest's seconds-to-minutes, and a set that cannot be evidence about this atom
+        # should not spend the pass's budget proving it passes.
+        predating, undatable = ages(aid, controls, root)
+        if predating:
+            ungradable.append({
+                "id": aid, "reason": CONTROL_PREDATES_ROW, "paths": predating,
+                "detail": "these were passing before the atom was minted, so they say nothing "
+                          "about whether its work landed -- repoint the row at a control this "
+                          "atom's own build wrote, or leave the row at zero because it is right"})
+            continue
+        if undatable:
+            ungradable.append({
+                "id": aid, "reason": PROVENANCE_UNKNOWN, "paths": undatable,
+                "detail": "no commit history for the row or the control here -- grade this row "
+                          "in a tree that has one"})
             continue
         if budget_s is not None and clock() - started >= budget_s:
             ungradable.append({"id": aid, "reason": BUDGET_EXHAUSTED, "paths": controls,
@@ -219,8 +326,13 @@ def main(argv: list[str] | None = None) -> int:
                 len(ungradable)))
         for u in ungradable:
             sys.stderr.write("  {}\n      {}\n".format(u["id"], u["reason"]))
+            # The label has to track the reason: printing ABSENT over a control that is on disk
+            # and merely older than its row sends the reader to look for a missing file.
+            label = {NAMED_CONTROL_ABSENT: "ABSENT",
+                     CONTROL_PREDATES_ROW: "OLDER THAN THE ROW",
+                     PROVENANCE_UNKNOWN: "UNDATABLE"}.get(u["reason"], "NAMED")
             for p in u["paths"]:
-                sys.stderr.write("      ABSENT: {}\n".format(p))
+                sys.stderr.write("      {}: {}\n".format(label, p))
             if u["detail"]:
                 sys.stderr.write("      {}\n".format(u["detail"]))
 

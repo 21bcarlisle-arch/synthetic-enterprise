@@ -8,11 +8,19 @@ still buildable -- so the row keeps winning draws it has already been paid for.
 
 THE POISON ROUND IS FIRST AND IT IS NOT DECORATION. Every other test here is a NEGATIVE leg --
 "this row does not refuse" -- and a check that refuses NOTHING passes all of them. This project
-has shipped that shape repeatedly. `test_all_four_verdicts_are_reachable_in_one_pass` is the one
+has shipped that shape repeatedly. `test_all_six_verdicts_are_reachable_in_one_pass` is the one
 control over the whole partition: it asserts in a single `assess` call that the refusing branch
-FIRES, that both ungradable branches fire, and that the silent branch is silent. If the refusing
-branch is ever made unreachable, that assertion goes red and the negative legs below stay green
--- which is the whole point of writing it as one assertion rather than four.
+FIRES, that all four ungradable branches fire, and that the silent branch is silent. If the
+refusing branch is ever made unreachable, that assertion goes red and the negative legs below stay
+green -- which is the whole point of writing it as one assertion rather than six.
+
+THE DEFECT THE 2026-09-06 LEGS EXIST TO CATCH is the opposite failure and it was live: the check
+REFUSED a row on evidence older than the row. `H41_the_map_ratchet_has_no_ongoing_drain` names a
+suite born five days before the atom was minted, whose 41 tests pass, and whose subject -- an
+ongoing drain -- demonstrably does not exist. Dating is what tells "this atom's build wrote this
+control" from "this control was already green". `_ages` is injected for the same reason `_runner`
+is; `test_the_dating_function_reads_real_git_history_in_both_orders` is what proves the real one,
+because a stub cannot fail in the way the git query can.
 
 WHY THE UNGRADABLE BRANCHES MATTER AS MUCH AS THE REFUSAL. Of the 34 candidate rows in the live
 map, ten name a control file at all and four of those ten name one that is not on disk -- two of
@@ -23,6 +31,7 @@ likely to be "simplified" away by someone who reads the absent path as a false p
 """
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from tools import level_zero_contradicted_by_its_own_controls as lz
@@ -43,33 +52,60 @@ def _runner(verdicts: dict):
     return run
 
 
+def _ages(predating: dict | None = None, undatable: dict | None = None):
+    """An injected dating function, same reason as `_runner`: a tmp_path is not a git repository,
+    so the real one would report every row undatable and no test below could reach any other
+    branch. Default: every named control was written no earlier than its row."""
+    predating = predating or {}
+    undatable = undatable or {}
+    def ages(atom_id, controls, root=REPO):
+        return list(predating.get(atom_id, [])), list(undatable.get(atom_id, []))
+    return ages
+
+
 # --------------------------------------------------------------------------- #
 # The poison round: the refusing branch can FIRE                               #
 # --------------------------------------------------------------------------- #
 
-def test_all_four_verdicts_are_reachable_in_one_pass(tmp_path: Path):
+def test_all_six_verdicts_are_reachable_in_one_pass(tmp_path: Path):
     """One control over the whole partition. A guard that refuses nothing passes every negative
-    leg below; this is the assertion that cannot be satisfied by a dead refusing branch."""
+    leg below; this is the assertion that cannot be satisfied by a dead refusing branch.
+
+    IT GREW FROM FOUR TO SIX ON 2026-09-06 and that is the point of writing it as one assertion:
+    the two dating branches were added underneath it, and a partition control that kept saying
+    "four" would have gone on passing while a third of the branches went ungraded."""
     (tmp_path / "test_green.py").write_text("def test_x():\n    assert True\n")
     (tmp_path / "test_red.py").write_text("def test_x():\n    assert False\n")
+    (tmp_path / "test_old.py").write_text("def test_x():\n    assert True\n")
+    (tmp_path / "test_undated.py").write_text("def test_x():\n    assert True\n")
 
     atoms = [
         _atom("REFUSES", scope=["test_green.py"]),
         _atom("SILENT", scope=["test_red.py"]),
         _atom("UNGRADABLE_ABSENT", scope=["test_never_written.py"]),
         _atom("UNGRADABLE_NONE", scope=["tests/", "some/module.py"]),
+        _atom("UNGRADABLE_OLDER", scope=["test_old.py"]),
+        _atom("UNGRADABLE_UNDATED", scope=["test_undated.py"]),
     ]
     contradicted, ungradable = lz.assess(
         atoms, root=tmp_path,
         runner=_runner({("test_green.py",): (True, "1 passed"),
-                        ("test_red.py",): (False, "1 failed")}))
+                        ("test_red.py",): (False, "1 failed"),
+                        # Both dating branches must return BEFORE the run: were either to fall
+                        # through to the runner it would pass, and a passing set refuses.
+                        ("test_old.py",): (True, "1 passed"),
+                        ("test_undated.py",): (True, "1 passed")}),
+        ages=_ages(predating={"UNGRADABLE_OLDER": ["test_old.py"]},
+                   undatable={"UNGRADABLE_UNDATED": ["test_undated.py"]}))
 
     fired = {c["id"] for c in contradicted}
     could_not_grade = {u["id"]: u["reason"] for u in ungradable}
     assert (
         fired == {"REFUSES"}
         and could_not_grade == {"UNGRADABLE_ABSENT": lz.NAMED_CONTROL_ABSENT,
-                                "UNGRADABLE_NONE": lz.NO_CONTROL_NAMED}
+                                "UNGRADABLE_NONE": lz.NO_CONTROL_NAMED,
+                                "UNGRADABLE_OLDER": lz.CONTROL_PREDATES_ROW,
+                                "UNGRADABLE_UNDATED": lz.PROVENANCE_UNKNOWN}
     ), (
         "the partition is not fully reachable -- fired={} ungradable={}".format(
             fired, could_not_grade))
@@ -80,7 +116,8 @@ def test_a_row_at_zero_whose_named_controls_all_pass_is_REFUSED(tmp_path: Path):
     (tmp_path / "test_it.py").write_text("def test_x():\n    assert True\n")
     atoms = [_atom("PB6_shape", scope=["test_it.py"])]
     contradicted, _ = lz.assess(
-        atoms, root=tmp_path, runner=_runner({("test_it.py",): (True, "3 passed")}))
+        atoms, root=tmp_path, ages=_ages(),
+        runner=_runner({("test_it.py",): (True, "3 passed")}))
     assert [c["id"] for c in contradicted] == ["PB6_shape"]
 
 
@@ -104,7 +141,8 @@ def test_a_row_whose_named_controls_do_not_all_pass_says_nothing(tmp_path: Path)
     (tmp_path / "test_a.py").write_text("def test_x():\n    assert False\n")
     atoms = [_atom("HONEST_ZERO", scope=["test_a.py"])]
     contradicted, ungradable = lz.assess(
-        atoms, root=tmp_path, runner=_runner({("test_a.py",): (False, "1 failed")}))
+        atoms, root=tmp_path, ages=_ages(),
+        runner=_runner({("test_a.py",): (False, "1 failed")}))
     assert contradicted == [] and ungradable == []
 
 
@@ -118,7 +156,8 @@ def test_a_row_above_level_zero_is_outside_the_partition(tmp_path: Path):
     atoms = [_atom("ALREADY_MOVED", level=2, scope=["test_a.py"])]
     called = []
     contradicted, ungradable = lz.assess(
-        atoms, root=tmp_path, runner=lambda p, r=None, t=None: called.append(p) or (True, ""))
+        atoms, root=tmp_path, ages=_ages(),
+        runner=lambda p, r=None, t=None: called.append(p) or (True, ""))
     assert contradicted == [] and ungradable == [] and called == []
 
 
@@ -133,7 +172,8 @@ def test_an_idle_row_at_zero_is_outside_the_partition(tmp_path: Path):
     (tmp_path / "test_a.py").write_text("def test_x():\n    assert True\n")
     atoms = [_atom("PARKED_PROPOSAL", stage="idle", scope=["test_a.py"])]
     contradicted, ungradable = lz.assess(
-        atoms, root=tmp_path, runner=_runner({("test_a.py",): (True, "1 passed")}))
+        atoms, root=tmp_path, ages=_ages(),
+        runner=_runner({("test_a.py",): (True, "1 passed")}))
     assert contradicted == [] and ungradable == []
 
 
@@ -167,6 +207,117 @@ def test_a_directory_is_scope_and_never_a_named_control():
 
 
 # --------------------------------------------------------------------------- #
+# A control older than its row is not evidence about its row                    #
+# --------------------------------------------------------------------------- #
+
+def test_a_control_older_than_its_row_is_UNGRADABLE_and_never_a_contradiction(tmp_path: Path):
+    """H41's live shape. The named suite passes -- so the pre-2026-09-06 check called the row
+    CONTRADICTED and demanded a level move for work that had not happened.
+
+    The runner is rigged to (True, ...) ON PURPOSE: if the dating branch is ever moved to AFTER
+    the run, or deleted, this row lands in `contradicted` and the assertion below goes red. A
+    version of this test that stubbed the runner as unreachable would pass even then."""
+    (tmp_path / "test_older.py").write_text("def test_x():\n    assert True\n")
+    atoms = [_atom("H41_shape", scope=["test_older.py"])]
+    contradicted, ungradable = lz.assess(
+        atoms, root=tmp_path, runner=lambda *a, **k: (True, "41 passed"),
+        ages=_ages(predating={"H41_shape": ["test_older.py"]}))
+    assert contradicted == [], "a suite older than its row refused a level move on its strength"
+    assert [(u["reason"], u["paths"]) for u in ungradable] == [
+        (lz.CONTROL_PREDATES_ROW, ["test_older.py"])]
+
+
+def test_provenance_that_cannot_be_established_is_UNGRADABLE_and_never_a_contradiction(
+        tmp_path: Path):
+    """A shallow clone or a `git archive` extract can date nothing. Unknown must fall to the
+    non-refusing side: the refusing verdict is the one that demands work of someone."""
+    (tmp_path / "test_undated.py").write_text("def test_x():\n    assert True\n")
+    atoms = [_atom("NO_HISTORY", scope=["test_undated.py"])]
+    contradicted, ungradable = lz.assess(
+        atoms, root=tmp_path, runner=lambda *a, **k: (True, "1 passed"),
+        ages=_ages(undatable={"NO_HISTORY": ["test_undated.py"]}))
+    assert contradicted == []
+    assert [u["reason"] for u in ungradable] == [lz.PROVENANCE_UNKNOWN]
+
+
+def test_the_dating_function_reads_real_git_history_in_both_orders(tmp_path: Path):
+    """`_ages` proves `assess`; this proves `controls_older_than_the_row`, which nothing else here
+    executes. ONE repository, BOTH orders, so a function that answered "predating" unconditionally
+    -- or never -- fails on one half whichever way it is broken.
+
+    An UNDATABLE leg rides along in the same repo: a control on disk that git has never seen is a
+    third answer, and collapsing it into "predating" would print a claim about age that nothing
+    measured. So does the SAME-COMMIT leg, which is SITE4's live shape -- a build that mints its
+    row and writes its control in one commit is the healthy case and must not read as predating.
+
+    THE DATES ARE STAMPED EXPLICITLY, not taken from the wall clock. Git timestamps are whole
+    seconds and three commits made as fast as a test makes them share one, which made the first
+    draft of this test pass for the wrong reason -- everything looked simultaneous."""
+    import subprocess as sp
+
+    def git(*args, when: str | None = None):
+        env = None
+        if when:
+            env = {**os.environ, "GIT_AUTHOR_DATE": when, "GIT_COMMITTER_DATE": when}
+        sp.run(["git", *args], cwd=str(tmp_path), check=True,
+               capture_output=True, text=True, env=env)
+
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    (tmp_path / "docs" / "design").mkdir(parents=True)
+    mapfile = tmp_path / "docs" / "design" / "maturity_map.yaml"
+
+    # 1. The OLD control lands first, before any row exists.
+    # DISTINCT CONTENT per file, and that is not tidiness: `--follow` detects renames by
+    # SIMILARITY, so three byte-identical fixtures make git chase each new file back to the
+    # oldest one and every leg reads "predating". Measured -- the first draft did exactly that.
+    (tmp_path / "test_old.py").write_text("def test_the_old_one():\n    assert 1 == 1\n")
+    git("add", "test_old.py")
+    git("commit", "-qm", "a suite that predates every row", when="2026-01-01T00:00:00Z")
+
+    # 2. The rows are minted -- and TWIN_ROW's control is written in the SAME commit, as a build
+    #    that mints and builds together does.
+    mapfile.write_text("- id: LATE_ROW\n- id: EARLY_ROW\n- id: TWIN_ROW\n")
+    (tmp_path / "test_twin.py").write_text("def test_the_twin():\n    assert 2 + 2 == 4\n")
+    git("add", "-A")
+    git("commit", "-qm", "mint the rows; build TWIN_ROW", when="2026-02-01T00:00:00Z")
+
+    # 3. The NEW control is written afterwards, as an atom's own build would write it.
+    (tmp_path / "test_new.py").write_text(
+        "def test_the_new_one():\n    assert sorted([3, 1, 2]) == [1, 2, 3]\n")
+    git("add", "test_new.py")
+    git("commit", "-qm", "build(LATE_ROW): its own control", when="2026-03-01T00:00:00Z")
+
+    # 4. And one git has never seen at all.
+    (tmp_path / "test_untracked.py").write_text(
+        "def test_never_committed():\n    assert {'a': 1}['a'] == 1\n")
+
+    born_after = lz.controls_older_than_the_row("LATE_ROW", ["test_new.py"], root=tmp_path)
+    born_before = lz.controls_older_than_the_row("EARLY_ROW", ["test_old.py"], root=tmp_path)
+    born_with = lz.controls_older_than_the_row("TWIN_ROW", ["test_twin.py"], root=tmp_path)
+    never_seen = lz.controls_older_than_the_row("LATE_ROW", ["test_untracked.py"], root=tmp_path)
+
+    assert born_after == ([], []), "a control written AFTER its row was called older than it"
+    assert born_before == (["test_old.py"], []), (
+        "a control that existed before its row was minted was accepted as evidence about it")
+    assert born_with == ([], []), (
+        "SITE4's shape -- row and control in ONE commit -- must not read as predating")
+    assert never_seen == ([], ["test_untracked.py"]), (
+        "an undatable control must be its own answer, not folded into 'older than the row'")
+
+
+def test_an_unfindable_row_makes_every_control_undatable_rather_than_none_predating(
+        tmp_path: Path):
+    """The fail-open reading this forbids: "no predating controls" out of "I could not date the
+    row". An atom id no commit mentions must not come back as a clean bill of health."""
+    import subprocess as sp
+    sp.run(["git", "init", "-q", "-b", "main"], cwd=str(tmp_path), check=True, capture_output=True)
+    assert lz.controls_older_than_the_row(
+        "AN_ID_NO_COMMIT_MENTIONS", ["a.py", "b.py"], root=tmp_path) == ([], ["a.py", "b.py"])
+
+
+# --------------------------------------------------------------------------- #
 # No verdict is never a pass                                                   #
 # --------------------------------------------------------------------------- #
 
@@ -176,7 +327,8 @@ def test_a_run_that_reaches_no_verdict_is_ungradable_and_never_a_contradiction(t
     (tmp_path / "test_a.py").write_text("def test_x():\n    assert True\n")
     atoms = [_atom("TIMED_OUT", scope=["test_a.py"])]
     contradicted, ungradable = lz.assess(
-        atoms, root=tmp_path, runner=lambda *a, **k: (None, "timed out after 900s"))
+        atoms, root=tmp_path, ages=_ages(),
+        runner=lambda *a, **k: (None, "timed out after 900s"))
     assert contradicted == []
     assert [u["reason"] for u in ungradable] == [lz.RUN_UNAVAILABLE]
 
@@ -245,7 +397,7 @@ def test_a_row_the_budget_never_reached_is_UNGRADABLE_and_never_silently_dropped
 
     ticks = iter([0, 0, 10, 99])           # start, FIRST, SECOND, THIRD -- budget 50 bites third
     contradicted, ungradable = lz.assess(
-        atoms, root=tmp_path, runner=lambda *a, **k: (True, "1 passed"),
+        atoms, root=tmp_path, ages=_ages(), runner=lambda *a, **k: (True, "1 passed"),
         budget_s=50, clock=lambda: next(ticks))
 
     assert [c["id"] for c in contradicted] == ["FIRST", "SECOND"]
@@ -260,5 +412,5 @@ def test_no_budget_means_every_row_is_reached(tmp_path: Path):
         (tmp_path / name).write_text("def test_x():\n    assert True\n")
     atoms = [_atom("FIRST", scope=["test_a.py"]), _atom("SECOND", scope=["test_b.py"])]
     contradicted, ungradable = lz.assess(
-        atoms, root=tmp_path, runner=lambda *a, **k: (True, "1 passed"))
+        atoms, root=tmp_path, ages=_ages(), runner=lambda *a, **k: (True, "1 passed"))
     assert [c["id"] for c in contradicted] == ["FIRST", "SECOND"] and ungradable == []

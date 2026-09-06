@@ -450,11 +450,11 @@
   # 2026-07-29 W2_12 RE-ATTACHED [] -> [W2_12_change_of_tenancy_debt_physics] -- the documented "split-on-build-draw re-attach" is now DUE: every W2_12-independent sub-part is BUILT + consumer-verified this same day (DD1 level-collection 29f6e664f; DD3 held-credit liability, DD4a annual-review event, DD5 SITE live, DD-H solvency-gap organ; DD2 balance-carry built with a ZERO opening). The only residuals to L3 are (a) DD2's NON-ZERO opening balance, which genuinely needs W2_12 (level 0->1, blocked_on director_level_up), and (b) DD4b, held on its own C-S3 two-way-door architecture decision + R13 headline-shifting baseline change (see simplifications, NOT a bounded-tick edit). With depends_on: [] the whole atom drew as free BUILD every tick (single-draw verified = DD_seasonal_cashflow_physics) while having NO bounded-tick-drawable work -- a draw-gap treadmill. Re-attaching restores _dependencies_met=False so the loop stops re-handing worker-complete-but-gated work (H_draw_excludes_external_blocked_atoms sibling via _dependencies_met); when W2_12 advances, the atom redraws and a proper build session lands DD2-opening + DD4b together. R13 dependency-modelling, git-reversible, no wall/level touched (R16, no self-bump).
   depends_on: [W2_12_change_of_tenancy_debt_physics]
 - id: SPINE_1_scenario_world_state
-  notes_rehomed: [name]
+  notes_rehomed: [name, level_note]
   lane: W1_market_weather
   value_stream: wholesale_to_price
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
   loop_stage: build   # 2026-08-28: the second half of that sentence cited BUILD-open and fronts.yaml, both abolished 2026-07-29 and swept 2026-08-03, so this atom was parked on an act that no longer exists. The FIRST half stands and is why this is a BUILD and not a wait: the world-selection MECHANISM is the agent's; only the named worlds + their probabilities are R13 CURRICULUM. DECOMPOSE (CLAUDE.md): build the mechanism, leave the values as a declared director input. Head of the P7 chain -- SPINE_1 -> SPINE_3 -> B6_collateral_cash_death_loop.
   frame_saturated: true   # 2026-07-23 DISCOVER->FRAME complete in SCENARIO_SPINE_AND_TRADING_FRICTION_FRAME.md (section A: object, internal representation, wall, consumption seam, byte-identical baseline, launch-world proposal, tail-heavy sampling). Spine BUILD deliberately deferred.
@@ -1416,7 +1416,7 @@
 - id: SITE4_ia_register_and_nav
   title: "One IA register in three states, and every page's nav renders from it"
   gain: "The brief reads 'five tabs, in a ruled order' as one edit."
-  notes_rehomed: [origin_note]
+  notes_rehomed: [origin_note, level_hold_note]
   lane: H_harness
   value_stream: close_to_learn
   epoch: 3
