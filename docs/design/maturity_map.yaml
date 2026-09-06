@@ -1777,11 +1777,11 @@
   depends_on: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
-  # `tools/generate_weather_cells_data.py` was in this scope until 2026-09-06 and HAS NEVER EXISTED
-  # in any commit -- a level-0 row's file_scope is checked by nothing, so it named a program no build
-  # ever wrote. Replaced with the three paths the seam actually lands in. NOT `sim/weather_cells/
-  # site_cells.json`: that is the derived OUTPUT, and scoping the generated file would find the path
-  # dirty on every re-derivation. Scope the generator, not the generated.
+  # `tools/generate_weather_cells_data.py` left this scope 2026-09-06: it is a SITE publisher and
+  # this scope names where the SEAM lands. CORRECTION: the removal first reasoned that the file
+  # "HAS NEVER EXISTED in any commit". False -- it landed 4h23m earlier, in that commit's own
+  # tree, and it inverts the headline: nothing imports the derivation is true of the WORLD, never
+  # of the tree. SEAT_FINDING_W1_14_ROW_DENIED_A_FILE_IN_ITS_OWN_TREE_2026-09-06.md
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that hedges and forecasts on 14 GSP groups because that is how it is settled, having never asked how many genuinely distinct weather regimes its customers actually live in."
 - id: W2_18_the_housing_joint_the_sample_and_the_ceiling
