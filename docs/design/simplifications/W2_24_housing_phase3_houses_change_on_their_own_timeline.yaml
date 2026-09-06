@@ -9,4 +9,22 @@ map_notes:
     AND IT IS WHAT MAKES PHASE 2 BITE: the EPC ''falling behind'' is only a defect once the house moves underneath it, so the observation layer''s staleness is inert until this phase runs.
 
 
-    STANDING EXCLUSION, and it is a ruling rather than an oversight: heat pump is out of all three phases until the director says otherwise (section 2 item 3), which is why the boiler timeline returns CONDENSING.'
+    STANDING EXCLUSION, and it is a ruling rather than an oversight: heat pump is out of all three phases until the director says otherwise (section 2 item 3), which is why the boiler timeline returns CONDENSING.
+
+
+    FRAME PASS 2026-09-06 (docs/design/W2_24_HOUSING_PHASE3_FRAME.md) -- four findings, and three of them change what this atom is.
+
+
+    (1) THE ELEMENT THE ROW IS NAMED AFTER IS UNREACHABLE FOR 78% OF THE POPULATION IT DESCRIBES, and it is a live phase-0 defect rather than phase-3 work. In life_events.py:455 the boiler-replacement arm is an `elif` on the ELIGIBILITY condition of the heat-pump arm, not on whether the heat-pump draw fired -- so a gas-heated household that is not a flat and has 2+ bedrooms enters the 0.1-0.6%/yr heat-pump arm every year and its 9%/4%/1% boiler branch is never evaluated. Measured on draw_premise_population(3000, base_seed=42): 0 boiler replacements across 2,136 eligible gas households over ten years, against 0.362/household for the 591 ineligible ones -- 71% of ALL households. AND THE EXISTING DIAL IS NOT THE FIX: adoption_eligibility_multiplier=0.0 gives zero heat pumps and still zero boiler replacements, so honouring the standing exclusion by the obvious route would silently keep the boiler immortal. It costs a real counterfactual -- _BOILER_EFFICIENCY OLD 0.80 -> NEW 0.90 is an 11.1% unprompted cut in heating gas. Filed as its own finding, docs/staging/SEAT_FINDING_SEVENTY_ONE_PERCENT_OF_HOUSEHOLDS_HAVE_A_BOILER_THAT_CAN_NEVER_BE_REPLACED_AND_THE_DIAL_THAT_LOOKS_LIKE_THE_FIX_DOES_NOT_TOUCH_IT_2026-09-06.md, because the repair must not wait on this phase being authorised.
+
+
+    (2) THE EPC IS ALREADY FALLING BEHIND AND NOTHING MEASURES IT, so the deliverable is a measurement and not a mechanism. Household carries BOTH epc_rating and insulation; the draw sets them consistent (premise_population.py:640-643, mismatch 0 at 2016) and apply_events moves insulation and never writes epc_rating -- 318 of 3,000 households (10.6%) have diverged by 2025, entirely event-driven. The physics half of the same clause is likewise already built: fabric_parameters reads household.insulation and fabric_demand_path segments the demand path by household state at date. BUT BOTH FIELDS ARE SIM GROUND TRUTH, so today the staleness misleads nobody; making it a real observation gap is W2_23''s convergence work, which makes this element DOWNSTREAM of phase 2 rather than parallel to it. The clock it needs already exists and is nearly unused: DrawnPremise.epc_lodged has one non-test consumer in the whole tree.
+
+
+    (3) EXTENSIONS HAVE NO ROUTE, structurally. floor_area_m2 is a pure function of property_type and bedrooms and no event writes either; the twelve apply_events branches change what a household HAS and never what it IS. Same shape as W2_26''s children finding, in the same week, from the same "extend the existing stream" instruction -- two instances is a pattern the third ruling should be told about.
+
+
+    (4) THE STANDING EXCLUSION ABOVE AND THE ROW''S block_reason ARE NOT THE SAME INSTRUCTION. The ruling''s sentence sits inside the "Levers in phase 1 (technical ceiling per house)" clause; block_reason widens it to "any adoption curve minted here that includes one is the defect". The tree already emits an anchored heat-pump adoption curve with no company involvement. Recommendation to the director, treated as adopted unless he objects: the exclusion binds the LEVER and ceiling set -- the company may not offer, advise or price a heat pump -- and not the world''s own unprompted adoption, which is fidelity and is what distinguishes a heat pump we sold from one that arrived anyway. The stronger reading is his to take, and it costs finding (1)''s repair first. Not edited here, because rewriting his exclusion to match my reading of it before he has read the reading is the wrong order.'
+map_records:
+  evidence:
+  - docs/design/W2_24_HOUSING_PHASE3_FRAME.md
