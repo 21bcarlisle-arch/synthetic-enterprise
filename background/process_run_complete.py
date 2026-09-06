@@ -3994,6 +3994,16 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
         # document's date sentence is wrong would make the startup surface STALER, which is the
         # defect this exists to fix. The refusal lives at commit time instead
         # (`--gate` in tools/git-hooks/pre-commit), where the lane that broke a date can fix it.
+        from tools.stretch_log import check as _stretch_check
+        _rc_sl, _msg_sl = _stretch_check()
+        if _rc_sl:
+            # A FINDING, NEVER A REFUSAL -- the director's own framing. A report is written when a
+            # piece of work FINISHES, so blocking every publish in between would stop the work it
+            # is meant to describe.
+            log("STRETCH REPORT OWED -- " + _msg_sl.replace("\n", " | ")[:600])
+    except Exception as exc:
+        log("stretch-log check unavailable (non-fatal): {}".format(exc))
+    try:
         from tools.startup_anchor_freshness import main as _anchor_freshness
         _rc = _anchor_freshness([])
         log("Generated docs/status/STARTUP_ANCHORS.md"
@@ -4950,6 +4960,12 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     # PROJECT_STATE.txt because that route is the one already proven to reach the edge fresh --
     # and because this table's own row is the deadman for its generator: if the generator stops,
     # the row ages in public alongside the anchors it is reporting on.
+    # The seat's stretch reports. Ships by the same push as LATEST.md because the director asked
+    # for the reasoning to reach "somewhere my advisor reads without being told", and docs/status/
+    # is what the GitHub Pages mirror publishes and the advisor fetches.
+    docs_stretch_log = PROJECT_DIR / "docs" / "status" / "SEAT_STRETCH_LOG.md"
+    if docs_stretch_log.exists():
+        files.append(str(docs_stretch_log))
     docs_status_anchors = PROJECT_DIR / "docs" / "status" / "STARTUP_ANCHORS.md"
     if docs_status_anchors.exists():
         files.append(str(docs_status_anchors))
