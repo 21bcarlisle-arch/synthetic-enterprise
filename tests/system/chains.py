@@ -138,6 +138,11 @@ def run_work_loop_chain(
 
     from background import supervisor
 
+    # The writer's own bound, imported and never mirrored — the same rule the reader follows, for
+    # the same reason: a second copy of 3600 here drifts from the module that decides what
+    # "in-window" means, and this fixture stops describing a live wedge without anything saying so.
+    from background.process_run_complete import PUBLISH_GATE_WINDOW_SECONDS
+
     atoms = list(atoms if atoms is not None else [UNFINISHED_ATOM, FINISHED_ATOM])
     unfinished = [a for a in atoms if a.get("level_current", 0) < a.get("level_target", 0)]
     if not unfinished:
@@ -150,13 +155,34 @@ def run_work_loop_chain(
     clean_state.write_text(json.dumps({"failures": []}), encoding="utf-8")
 
     now = 1_700_000_000.0
+    # A LIVE WEDGE HAS TWO CLOCKS, AND THIS FIXTURE USED TO GIVE IT ONE.
+    #
+    # Until 2026-09-06 every failure here was stamped `now - wedge_age_seconds` — the same instant
+    # as `wedge_since` — so a "2h old wedge" was five failures all two hours old and nothing since.
+    # That was readable as a live wedge only because the reader counted `failures` raw. It no longer
+    # does: `supervisor._publish_gate_wedge_active` now applies the writer's 1h window to the COUNT,
+    # because a spent wedge's last failures sit in the file forever once the run-complete queue
+    # drains, and drew RUNG 1 at priority zero on a healthy pipeline. So this fixture described the
+    # one state that repair exists to declassify, and the whole chain 1 join went red with it.
+    #
+    # A wedge that is STILL wedged fails every ~10 min. Its AGE comes from `wedge_since` (deliberately
+    # un-trimmed, so a long wedge's true age stays measurable); its LIVENESS comes from failures
+    # inside the window. Spacing is derived from the writer's own bound rather than a literal cadence,
+    # so raising `wedge_failures` can never quietly walk the oldest one back out of the window and
+    # return this fixture to the spent shape it just came from.
+    spacing = (PUBLISH_GATE_WINDOW_SECONDS * 0.8) / max(wedge_failures, 1)
+    failure_stamps = [now - i * spacing for i in range(wedge_failures)]
+    if failure_stamps and (now - failure_stamps[-1]) > PUBLISH_GATE_WINDOW_SECONDS:
+        raise AssertionError(
+            "driver premise violated: the oldest fixture failure is outside the writer's window, "
+            "so this describes a SPENT wedge and 'a live wedge reaches the draw' cannot be observed"
+        )
     wedged_state = tmp_path / "publish_gate_wedged.json"
     wedged_state.write_text(
         json.dumps(
             {
                 "failures": [
-                    {"ts": now - wedge_age_seconds, "reason": "a red test wedged the gate"}
-                    for _ in range(wedge_failures)
+                    {"ts": ts, "reason": "a red test wedged the gate"} for ts in failure_stamps
                 ],
                 "wedge_since": now - wedge_age_seconds,
             }
