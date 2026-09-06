@@ -159,6 +159,37 @@ def test_the_re_promotion_a_reorientation_allows_carries_FRESH_PROSE_and_a_fresh
     )
 
 
+@pytest.mark.parametrize("orientation_now,expect_offered", [
+    (ORIENTATION, False),   # finished under the orientation still in force
+    (LATER, True),          # the seat oriented again and STILL names it: offer it
+])
+def test_the_FOCUS_route_honours_the_finish_too_or_the_id_comes_back_by_the_other_door(
+    store, monkeypatch, tmp_path, orientation_now, expect_offered
+):
+    """THE HALF THAT WAS MISSED FIRST TIME, and it was missed for a minute rather than a month
+    because the fix was checked against `next_item` on the live tree instead of against the store.
+
+    `_focus` reads `DIRECTION.yaml` directly, and a focus row does not disappear because a tick
+    finished it. So draining the continuation store changed which SOURCE answered and not what the
+    next tick was handed: the identical id, the identical prose, from the other door.
+
+    Row 2 is what keeps this from being a way to lose work: a seat that re-orients and still names
+    the row is restating it, and the retirement must spend.
+
+    MUTATION: drop the `finished` set from `_retired_ids` and row 1 fires.
+    """
+    claims = tmp_path / "claims.json"
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
+    _orientation(monkeypatch, ORIENTATION)
+    delivery_lane.hand_off_focus(FOCUS_ROW["id"], "d")
+    delivery_lane.retire_continuation(FOCUS_ROW["id"])
+
+    _orientation(monkeypatch, orientation_now)
+    offered = delivery_lane.next_item(path=claims)
+
+    assert (offered is not None and offered["id"] == FOCUS_ROW["id"]) is expect_offered, offered
+
+
 def test_a_retired_entry_is_still_READABLE_because_a_silent_filter_is_how_this_store_lies(
     store, monkeypatch
 ):

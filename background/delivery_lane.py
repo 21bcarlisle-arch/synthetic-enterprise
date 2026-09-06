@@ -865,9 +865,31 @@ def _retired_ids() -> set[str]:
     all, and a lane that silently stops delivering is the defect this module was built around
     (`draw`'s six-day walkover). A re-offered stale item is visible to the tick that reads it; an
     empty lane is visible to nobody.
+
+    A FINISH IS THE SAME KIND OF FACT AND IT BELONGS HERE TOO (2026-09-06). Retiring the OFFER was
+    only half the door: `_focus` reads `DIRECTION.yaml` directly, and a focus row does not vanish
+    because a tick finished it -- so `--release` drained the continuation store and `next_item`
+    handed the identical id straight back from the other source, measured on this repair's own turn
+    a minute after it landed. `seat_continuation.retire` records WHICH ORIENTATION the finish
+    happened under, and it is spent as soon as the seat orients again and still names the row,
+    which is the acceptance test the seat itself stated.
+
+    ITS ONE LIMIT, NAMED RATHER THAN LEFT TO BE DISCOVERED: the retirement is a mark on a
+    continuation ENTRY, so a focus id that was never handed over carries none, and `--release` on
+    one of those still leaves it offerable. Every id that reaches Lane 0 through the promoter has
+    an entry, so the live population is covered; a tombstone for the rest would have to say
+    "retired the continuation" about an id no continuation ever held, and a discharge that reports
+    work it did not do is the failure this whole route exists to stop.
     """
     try:
-        return {str(i.get("id")) for i in seat_continuation.superseded() if i.get("id")}
+        finished = {
+            str(i.get("id")) for i in seat_continuation.retired()
+            if i.get("id") and i.get("retired_at_orientation")
+            and str(i["retired_at_orientation"]) == current_orientation()
+        }
+        return finished | {
+            str(i.get("id")) for i in seat_continuation.superseded() if i.get("id")
+        }
     except Exception:
         return set()
 
