@@ -234,3 +234,66 @@ def test_the_real_anchor_block_still_parses_at_or_above_the_floor():
     assert len(paths) >= saf.MIN_ANCHORS
     assert "docs/PROJECT_OVERVIEW.md" in paths
     assert "docs/status/LATEST.md" in paths
+
+def test_a_maintained_surface_the_anchors_DO_NOT_NAME_is_refused(monkeypatch, tmp_path):
+    """THE CLASS, in the director's words: "every operating change we make is invisible to a fresh
+    session until it trips over it."
+
+    Measured 2026-09-06: the anchor block named PROJECT_OVERVIEW, LATEST and ASSUMPTIONS -- all of
+    which predate the delivery seat, DIRECTION.yaml, the class registers and the stretch log. Two of
+    the five named surfaces had ZERO commits in fourteen days while the five most actively
+    maintained reasoning surfaces were named nowhere. A week of daily prose was written, rendered
+    and published, and the advisor spent three tool calls hunting for it.
+    """
+    monkeypatch.setattr(saf, "discover_maintained_surfaces",
+                        lambda *a, **k: {"docs/status/A_NEW_SURFACE.md": {"tools/thing.py"}})
+
+    assert saf.unnamed_surfaces() == {"docs/status/A_NEW_SURFACE.md": {"tools/thing.py"}}
+    assert saf.main(["--check"]) == 1
+
+
+def test_a_surface_the_anchors_DO_name_is_not_flagged(monkeypatch):
+    """The negative leg. Without it a check that flagged everything would satisfy the test above
+    while making the anchor block impossible to satisfy."""
+    named = saf.anchor_paths()[0]
+    monkeypatch.setattr(saf, "discover_maintained_surfaces", lambda *a, **k: {named: {"x.py"}})
+
+    assert saf.unnamed_surfaces() == {}
+
+
+def test_discovery_finds_a_surface_by_ITS_MODULE_DECLARING_A_PATH_not_by_edit_frequency():
+    """FREQUENCY WAS TRIED FIRST AND IS THE WRONG DISCRIMINATOR, which is why this is structural.
+
+    Ranking `docs/` paths by commit count puts the RETIRED `docs/shadow/` mirror pages above
+    `knowledge_map.md`, and it would never have caught the stretch log -- two commits old on the day
+    it was missed. A surface the machine DECLARES A PATH TO is one a reader can be sent to, however
+    new it is.
+    """
+    found = saf.discover_maintained_surfaces()
+
+    assert "docs/status/SEAT_STRETCH_LOG.md" in found, "the surface that prompted this is not found"
+    assert any("stretch_log" in m for m in found["docs/status/SEAT_STRETCH_LOG.md"])
+    assert not any(p.startswith("docs/shadow/") for p in found), "the retired mirror is not a surface"
+    assert not any(p.endswith(".json") for p in found), "a JSON feed is machinery output, not reading"
+
+
+def test_the_named_exemptions_are_still_undiscoverable():
+    """`UNDISCOVERABLE` names surfaces the scan structurally cannot see -- a path assembled in two
+    steps. The exemption must not outlive its reason: if one becomes discoverable it belongs in the
+    ordinary set, and carrying it in both places would hide a real gap behind a hand-kept line."""
+    found = saf.discover_maintained_surfaces()
+
+    for rel in saf.UNDISCOVERABLE:
+        assert rel not in found, f"{rel} is now discoverable -- drop its exemption"
+
+
+def test_the_table_says_WHAT_EACH_ANCHOR_IS_FOR():
+    """An age table orients nobody. The director asked for "whatever a new reader needs to orient
+    today, in one place" -- so the rendered table carries the sentence beside each link, taken from
+    the SAME line the path came from so the two cannot describe different anchors."""
+    rows = saf.assess()
+    table = saf.render(rows)
+
+    assert "What it is for" in table
+    assert "the reasoning behind a call" in table, "the stretch log's purpose must reach the reader"
+    assert "orienting, read this table first" in table

@@ -77,6 +77,9 @@ OUT = PROJECT / "docs" / "status" / "STARTUP_ANCHORS.md"
 PAGES_ROOT = "https://21bcarlisle-arch.github.io/synthetic-enterprise/"
 DOCS_ROOT = "docs"
 
+#: rel path -> the sentence the anchor block uses to say what it is for. Filled by `anchor_paths`.
+_LABELS: dict[str, str] = {}
+
 #: Below this many parsed anchors the check is not measuring the startup surface, so it refuses.
 #: Four is the count the anchor block has carried since it was written; a fifth added later raises
 #: nothing, a deletion below four refuses. Keyed to "the block still describes a surface", not to
@@ -92,13 +95,89 @@ DECLARED_DATE_TOLERANCE_DAYS = 3
 #: Nothing refuses on it -- see the module docstring.
 REPORTED_STALE_AFTER_DAYS = 14
 
-_ANCHOR_LINE_RE = re.compile(r"^\s*-\s+[^:]+:\s*(" + re.escape(PAGES_ROOT) + r"\S+)\s*$", re.M)
+_ANCHOR_LINE_RE = re.compile(
+    r"^\s*-\s+(?P<label>[^:]+?):\s*(?P<url>" + re.escape(PAGES_ROOT) + r"\S+)\s*$", re.M)
 #: A document's own claim about when it was last touched. Deliberately narrow: only the leading
 #: lines are read, because a date deep in an append-log is a fact ABOUT the log, not about the file.
 _DECLARED_RE = re.compile(
     r"(?:last\s+updated|last\s+seeded|generated)\s*:?\s*"
     r"(\d{4}-\d{2}-\d{2})", re.I)
 _DECLARED_HEAD_LINES = 10
+
+
+#: Directories the GitHub Pages workflow's `paths-ignore` excludes, plus the retired shadow mirror.
+#: A path under these is not published, so a reader cannot be sent to it.
+_UNPUBLISHED = ("docs/observability/", "docs/staging/", "docs/market_data/", "docs/state/",
+                "docs/snapshots/", "docs/design/", "docs/instructions/", "docs/claude/",
+                "docs/domain_artefact_library/", "docs/review_gates/", "docs/shadow/")
+#: Extensions a person opens and reads. A JSON feed is machinery output, not an orientation surface.
+_READER_SUFFIXES = (".md", ".txt", ".yaml", ".yml", ".jsonl")
+
+#: Surfaces `discover_maintained_surfaces` structurally CANNOT see, each with the reason. Its scan
+#: reads module-level constants built in ONE expression from a "docs" segment; a path assembled in
+#: two steps is invisible to it. Named rather than papered over, and
+#: `test_the_named_exemptions_are_still_undiscoverable` reds if one becomes discoverable, so an
+#: exemption cannot outlive its reason.
+UNDISCOVERABLE = {
+    # background/direction.py: DIRECTION_DIR = PROJECT_DIR / "docs" / "direction"
+    #                          DIRECTION_PATH = DIRECTION_DIR / "DIRECTION.yaml"
+    "docs/direction/DIRECTION.yaml": "background/direction.py builds it in two steps",
+    "docs/direction/decisions.jsonl": "background/direction.py builds it in two steps",
+}
+
+
+def discover_maintained_surfaces(root: Path | None = None) -> dict[str, set[str]]:
+    """Published reader surfaces that MACHINERY declares a path to -> the modules declaring them.
+
+    THE CLASS THIS EXISTS TO CLOSE (director, 2026-09-06): "every operating change we make is
+    invisible to a fresh session until it trips over it." The anchor block was a hand-kept list
+    naming what the project IS -- PROJECT_OVERVIEW, LATEST, ASSUMPTIONS, all of which predate the
+    delivery seat, DIRECTION.yaml, the class registers and the stretch log. Measured the same day:
+    two of the five named surfaces had ZERO commits in fourteen days, while the five most actively
+    maintained reasoning surfaces were named nowhere. A week of daily prose was written, rendered
+    and published, and nobody outside the machine found it.
+
+    Frequency is the wrong discriminator and was tried first: it ranks the retired `docs/shadow/`
+    mirror pages above `knowledge_map.md`, and it would never have caught the stretch log, which
+    was two commits old on the day it was missed. The structural signal is that a TOOL DECLARES A
+    PATH TO IT -- a surface the machine maintains is one a reader can be sent to, however new.
+    """
+    import ast as _ast
+    import re as _re
+
+    root = root or PROJECT
+    found: dict[str, set[str]] = {}
+    for tree in ("tools", "background"):
+        for f in sorted((root / tree).glob("*.py")):
+            try:
+                text = f.read_text(encoding="utf-8", errors="replace")
+                parsed = _ast.parse(text)
+            except (OSError, SyntaxError):
+                continue
+            for node in _ast.walk(parsed):
+                if not isinstance(node, _ast.Assign):
+                    continue
+                src = _ast.get_source_segment(text, node) or ""
+                m = _re.search(r'"docs"\s*/\s*(.+)', src, _re.S)
+                if not m:
+                    continue
+                segs = _re.findall(r'"([^"]+)"', m.group(1))
+                if not segs:
+                    continue
+                rel = "docs/" + "/".join(segs)
+                if rel.startswith(_UNPUBLISHED) or not rel.endswith(_READER_SUFFIXES):
+                    continue
+                found.setdefault(rel, set()).add(f"{tree}/{f.name}")
+    return found
+
+
+def unnamed_surfaces(root: Path | None = None) -> dict[str, set[str]]:
+    """Machine-maintained published surfaces the anchor block does not send a reader to."""
+    try:
+        named = set(anchor_paths())
+    except AnchorRefusal:
+        return {}
+    return {k: v for k, v in discover_maintained_surfaces(root).items() if k not in named}
 
 
 class AnchorRefusal(RuntimeError):
@@ -128,10 +207,16 @@ def anchor_paths(overview_text: str | None = None) -> list[str]:
             raise AnchorRefusal(f"cannot read the anchor block at {OVERVIEW}: {exc}") from exc
 
     paths = []
-    for url in _ANCHOR_LINE_RE.findall(overview_text):
+    for m in _ANCHOR_LINE_RE.finditer(overview_text):
+        url = m.group("url")
         rest = url[len(PAGES_ROOT):].split("#", 1)[0].split("?", 1)[0]
         if rest and not rest.endswith("/"):
-            paths.append(f"{DOCS_ROOT}/{rest}")
+            rel = f"{DOCS_ROOT}/{rest}"
+            paths.append(rel)
+            # The label is the sentence beside the link. Taken from the SAME line the path came
+            # from, so the table cannot describe one anchor and age another, and so "what this is
+            # for" is never a second list to maintain.
+            _LABELS[rel] = m.group("label").strip()
     # Order-preserving dedup: the block lists PROJECT_OVERVIEW.md as "this document".
     seen, ordered = set(), []
     for p in paths:
@@ -256,14 +341,19 @@ def render(rows: list[dict], today: dt.date | None = None) -> str:
         "uploads the whole `docs/` tree as one artefact, so any publish restamps every file in it,",
         "and a document untouched for a month is served with today's date.",
         "",
-        "| Anchor | Last really changed | Age (days) | Says about itself | Verdict |",
+        "**If you are orienting, read this table first.** It is the whole set of surfaces the",
+        "machine keeps current, and what each one is for. Anything not here is either static or",
+        "not maintained -- so it tells you what the project IS, not what it is currently doing.",
+        "",
+        "| Anchor | What it is for | Last really changed | Age (days) | Verdict |",
         "|---|---|---|---|---|",
     ]
     for r in rows:
         out.append("| `{}` | {} | {} | {} | {} |".format(
-            r["path"], r["true_last_change"] or "not in HEAD",
+            r["path"], _LABELS.get(r["path"], "—"),
+            r["true_last_change"] or "not in HEAD",
             "?" if r["age_days"] is None else r["age_days"],
-            r["declared"] or "nothing", r["verdict"]))
+            r["verdict"]))
     out += [
         "",
         "`FRESH` recent · `OLD` genuinely old and honest about it (not a defect) · `UNDATED` states",
@@ -306,6 +396,16 @@ def main(argv: list[str] | None = None) -> int:
         OUT.parent.mkdir(parents=True, exist_ok=True)
         OUT.write_text(render(rows), encoding="utf-8")
         print(f"[startup-anchors] wrote {OUT.relative_to(PROJECT)} ({len(rows)} anchors)")
+
+    missing = unnamed_surfaces()
+    if missing:
+        for rel, mods in sorted(missing.items()):
+            print(f"[startup-anchors] REFUSED: {rel} is a published surface the machine maintains "
+                  f"({', '.join(sorted(mods))}) and the anchor block sends no reader to it.\n"
+                  "An operating change nobody is told about is invisible to every fresh session "
+                  "until it trips over it. Add it to PROJECT_OVERVIEW.md's anchor block with a "
+                  "sentence saying what it is for.", file=sys.stderr)
+        return 1
 
     bad = refusals(rows)
     for r in bad:

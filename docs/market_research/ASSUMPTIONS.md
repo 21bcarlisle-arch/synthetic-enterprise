@@ -3,7 +3,7 @@
 Living log of simulation assumptions validated against real UK energy market data.
 Updated by discovery agent and manually when phases change assumptions.
 
-Last seeded: 2026-08-10 from current codebase.
+Last updated: 2026-09-05. (Originally seeded 2026-08-10 from the codebase; rows have been added since, most recently the HadUK weather-cell source rows. This line is checked against git by `tools/startup_anchor_freshness.py` -- if you change this file, change this date.)
 
 **Runnable invariants library (2026-07-09, DOMAIN_SENSE_AND_COMPLIANCE.md Phase 2):**
 `company/compliance/domain_invariants.py` turns 24 of the anchors below (Bill

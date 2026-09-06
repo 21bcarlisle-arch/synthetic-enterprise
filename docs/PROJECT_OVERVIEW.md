@@ -16,10 +16,22 @@ lines across 2,701 tracked Python modules (all `*.py` in the index, tests includ
 
 **GitHub Pages (live):**
 - This document: https://21bcarlisle-arch.github.io/synthetic-enterprise/PROJECT_OVERVIEW.md
-- Annual report: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
-- Assumptions: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md
-- Status: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md
-- Anchor freshness: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/STARTUP_ANCHORS.md
+- The book's own annual report, regenerated each publish: https://21bcarlisle-arch.github.io/synthetic-enterprise/reports/ANNUAL_REPORT.md
+- Every sourced assumption the world is built on, with its anchor and its gaps: https://21bcarlisle-arch.github.io/synthetic-enterprise/market_research/ASSUMPTIONS.md
+- What just happened and what the machine is working on now: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/LATEST.md
+- The computed age of every anchor on this page, and what each is for: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/STARTUP_ANCHORS.md
+
+**Where the current reasoning lives** — these are the surfaces the machine keeps up to date, and
+they are what a new reader should open to orient *today*. The block above says what the project is;
+these say what it is currently doing and why. Every one is machine-maintained, so an entry that goes
+quiet is a signal rather than a gap in the list.
+
+- Why each stretch of work went the way it did — the corrections, what was stopped short of, the reasoning behind a call: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/SEAT_STRETCH_LOG.md
+- What the delivery seat is currently steering by, and what it has recorded as wrong: https://21bcarlisle-arch.github.io/synthetic-enterprise/direction/DIRECTION.yaml
+- The append-only record of decisions taken, oldest to newest: https://21bcarlisle-arch.github.io/synthetic-enterprise/direction/decisions.jsonl
+- Build state — current phase and test count, generated each publish: https://21bcarlisle-arch.github.io/synthetic-enterprise/status/PROJECT_STATE.txt
+- What we know and what we have NOT established, with the gaps named: https://21bcarlisle-arch.github.io/synthetic-enterprise/institutional/knowledge_map.md
+- The monthly maintenance runbook this machine operates under: https://21bcarlisle-arch.github.io/synthetic-enterprise/operations/MAINTENANCE.md
 
 > **The operating spine (ratified 2026-07-18): [`docs/design/ONE_FRAMEWORK.md`](design/ONE_FRAMEWORK.md).** The atom is the quantum; every map (horizons, epochs, value-cycle, lanes) is a projection of it; the DRAW is the sole arbiter of what/when/at-what-level. Self-governance (fronts/gates) enforces it.
 
@@ -5461,7 +5473,7 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 - `review()`: computes ADDR outcome. Variance = (actual - implied_annual) / implied_annual * 100. ±5% threshold triggers action. Recommended monthly = ceiling-rounded annual/12.
 - `DDReviewBook`: run_review() (records result), latest_review(customer_id), overdue_for_review(as_of, last_review_dates, months=12), summary() -> counts by action + avg_variance_pct.
 
-**Fidelity delta:** Ofgem SLC 27B requires suppliers to review all domestic DD amounts at least annually and adjust if the payment materially diverges from expected spend. Persistent underpaying leads to accumulated debt (bad debt risk); overpaying leads to credit positions that must be refunded. Previously DD management (Phase 88/113) tracked mandate status but had no annual review cycle. Phase 148 closes this: the company can now run systematic ADDR across the portfolio and track compliance.
+**Fidelity delta:** Ofgem **SLC 27.15** requires a fixed direct debit to be based on the best and most current information available (or which reasonably ought to be available), so a supplier must revisit an amount that has diverged from expected spend. (**There is no SLC 27B**, and no ±5% threshold appears in the licence at all — the ±5% band this repo applies is a modelling convention of ours. Corrected 2026-09-03; see `docs/market_research/what_a_supplier_holds_to_size_a_direct_debit.md`.) Persistent underpaying leads to accumulated debt (bad debt risk); overpaying leads to credit positions that must be refunded. Previously DD management (Phase 88/113) tracked mandate status but had no annual review cycle. Phase 148 closes this: the company can now run systematic ADDR across the portfolio and track compliance.
 
 **12 new tests (2,377 total).**
 
