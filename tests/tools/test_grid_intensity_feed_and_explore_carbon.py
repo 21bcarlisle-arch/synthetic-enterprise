@@ -1396,6 +1396,162 @@ def test_the_MUST_RUN_COVERAGE_measures_the_MUST_RUN_BLOCK_and_not_the_IMPORTS_b
     )
 
 
+def test_the_OUTTURN_stays_at_HALF_HOUR_GRAIN_all_the_way_to_the_derived_mix(real_mix):
+    """M12, the type-correct twin of M3. The outturn is normalised to settlement periods
+    BEFORE anything is derived from it, and it is still at that grain when it arrives.
+
+    WHY THIS ROW EXISTS AND M3 COULD NOT BE CLOSED. M3 substitutes `fuel.load_cached()` for
+    `fuel.to_settlement_periods(fuel.load_cached())` -- a `list` where a mapping is read. The
+    subject raises, the module fixture errors, and every test in this file errors with it: the
+    kill grades the type system and no control body runs a line. A real fail-open refactor
+    writes something that still returns, so M12 keeps the normalisation and re-keys the result
+    to one period per day.
+
+    KEYED TO THE GRAIN, NOT TO TODAY'S COUNT. A settlement day is 48 half hours (46 and 50 on
+    the clock changes), so the assertions below are absolute properties of the calendar and
+    would survive any honest extension of the caches. MEASURED 2026-09-06: 3,653 dates,
+    min/median/max 43/48/50 periods per date, 99.5% carrying 46 or more. The day-collapsed
+    mapping has exactly 1 everywhere -- three orders of magnitude of margin.
+
+    MUTATION (must fire): battery row M12.
+    """
+    imports = real_mix[0]
+
+    periods_by_date: dict[str, set[int]] = {}
+    for day, period in imports:
+        periods_by_date.setdefault(day, set()).add(period)
+    assert periods_by_date, "member 0 carries no half hours at all"
+
+    counts = sorted(len(periods) for periods in periods_by_date.values())
+    median = counts[len(counts) // 2]
+    assert median == 48, (
+        f"the median settlement day in member 0 carries {median} half hours, not 48. The "
+        f"outturn has lost its period dimension somewhere between the cache and the mix: "
+        f"{len(periods_by_date)} dates, min {counts[0]}, max {counts[-1]}"
+    )
+    thin = [count for count in counts if count < 40]
+    assert len(thin) <= 0.01 * len(counts), (
+        f"{len(thin)} of {len(counts)} dates carry fewer than 40 half hours. A day short of "
+        f"half its periods is a hole in the feed, not a short day"
+    )
+    # AND THE PERIODS THEMSELVES ARE THE CLOCK'S, not an index someone re-keyed. A collapsed
+    # mapping keeps a legal (date, period) shape and would satisfy every count above if the
+    # counts were taken per-date only.
+    seen = {period for _day, period in imports}
+    assert seen >= set(range(1, 49)), (
+        f"member 0 never carries settlement periods {sorted(set(range(1, 49)) - seen)} -- it "
+        f"is keyed by something that is not the half hour of the day. Seen: {sorted(seen)}"
+    )
+
+
+def test_the_THERMAL_FLOOR_is_reduced_over_the_THERMAL_CACHE_and_not_one_beside_it(real_mix):
+    """M13, the type-correct twin of M9. The floor is what the GAS fleet was never observed
+    below, so it has to be reduced over the gas cache -- not over another cache that happens
+    to reduce to the same `{(date, period): MW}` shape.
+
+    WHY THIS ROW EXISTS AND M9 COULD NOT BE CLOSED. M9 swaps `load_cached_thermal()` for
+    `load_cached()`; the fuel-outturn cache carries no CCGT or OCGT rows, so
+    `thermal_by_period` refuses and the subject raises before returning. Honest fail-closed
+    behaviour, and unassertable from here -- the fixture errors and no control body runs.
+    `biomass_by_period` returns the identical shape with positive values, so M13 gets a full
+    envelope out of the wrong cache and the subject returns.
+
+    THE TIE IS AN INDEPENDENT REDUCTION. The floor is re-derived here with a plain `min` over
+    the positive half hours of the thermal cache -- not by calling `thermal_floor_by_year`,
+    which would assert the function equals itself. MEASURED 2026-09-06: floors run 1,835 MW
+    (2016) down to 303 MW (2024) over ~17,500 half hours a year; the biomass-sourced twin
+    gives 73 MW for 2024 and has no 2016 row at all, because that cache starts in 2017.
+
+    MUTATION (must fire): battery row M13.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    floors = real_mix[3]
+    thermal_mw = fuel.thermal_by_period(fuel.load_cached_thermal())
+
+    positive_by_year: dict[int, list[float]] = {}
+    for (day, _period), megawatts in thermal_mw.items():
+        if megawatts > 0.0:
+            positive_by_year.setdefault(int(day[:4]), []).append(megawatts)
+
+    assert set(floors) == set(positive_by_year), (
+        f"the floor covers years {sorted(floors)} and the THERMAL cache covers "
+        f"{sorted(positive_by_year)}. It has been reduced over something else"
+    )
+    for year, values in sorted(positive_by_year.items()):
+        assert floors[year]["floor_mw"] == pytest.approx(min(values)), (
+            f"{year}: the published floor is {floors[year]['floor_mw']:.0f} MW and the "
+            f"smallest positive CCGT+OCGT half hour Elexon carries for {year} is "
+            f"{min(values):.0f} MW"
+        )
+        assert floors[year]["half_hours"] == float(len(values)), (
+            f"{year}: the floor was taken over {floors[year]['half_hours']:.0f} half hours "
+            f"and the thermal cache has {len(values)}"
+        )
+
+
+def test_the_BIOMASS_ROWS_reach_the_YEARLY_ENVELOPE_at_HALF_HOUR_GRAIN(real_mix):
+    """M14, the type-correct twin of M10. Period-ising the biomass rows and then collapsing
+    the periods loses exactly what not period-ising them loses.
+
+    WHY THIS ROW EXISTS AND M10 COULD NOT BE CLOSED. M10 hands the raw `list` straight to
+    `biomass_envelope_by_year`, which reads `.items()` on it; the subject raises and the
+    fixture errors. M14 keeps the period-isation and re-keys to one reading per day, which
+    still returns an envelope of the right shape and is what a refactor that lost the grain
+    would actually leave behind.
+
+    THE ENDS ARE RE-DERIVED INDEPENDENTLY, with plain `min`/`max`/`len` over the positive half
+    hours rather than by calling `biomass_envelope_by_year` again. MEASURED 2026-09-06: 2018
+    is 264 MW to 3,088 MW over 17,495 half hours; the day-collapsed twin reports 555 MW to
+    3,029 MW over 365. The grain leg below is what a reader can check without either number:
+    a full year of half hours cannot fit in 366.
+
+    MUTATION (must fire): battery row M14.
+    """
+    from sim import elexon_fuel_outturn as fuel
+
+    envelope = real_mix[6]
+    biomass_mw = fuel.biomass_by_period(fuel.load_cached_biomass())
+
+    positive_by_year: dict[int, list[float]] = {}
+    for (day, _period), megawatts in biomass_mw.items():
+        if megawatts > 0.0:
+            positive_by_year.setdefault(int(day[:4]), []).append(megawatts)
+
+    assert set(envelope) == set(positive_by_year), (
+        f"the envelope covers years {sorted(envelope)} and the biomass cache covers "
+        f"{sorted(positive_by_year)}"
+    )
+    for year, values in sorted(positive_by_year.items()):
+        assert envelope[year]["half_hours"] == float(len(values)), (
+            f"{year}: the envelope was taken over {envelope[year]['half_hours']:.0f} readings "
+            f"and the period-ised cache has {len(values)}. A year reduced over ~365 readings "
+            f"is a year reduced over DAYS"
+        )
+        assert envelope[year]["floor_mw"] == pytest.approx(min(values)), (
+            f"{year}: the envelope's floor is {envelope[year]['floor_mw']:.0f} MW and the "
+            f"smallest positive biomass half hour is {min(values):.0f} MW"
+        )
+        assert envelope[year]["capacity_mw"] == pytest.approx(max(values)), (
+            f"{year}: the envelope's capacity is {envelope[year]['capacity_mw']:.0f} MW and "
+            f"the largest biomass half hour is {max(values):.0f} MW"
+        )
+    # AND THE GRAIN ITSELF, checkable without either end: a calendar year holds ~17,520 half
+    # hours and at most 366 days, so a complete year reduced over fewer than 5,000 readings
+    # has been reduced over something coarser than the half hour.
+    complete = {year: values for year, values in positive_by_year.items()
+                if len(values) > 5_000}
+    assert complete, (
+        "no year in the biomass cache carries more than 5,000 positive half hours, so this "
+        "control cannot tell day grain from half-hour grain in this tree"
+    )
+    for year in sorted(complete):
+        assert envelope[year]["half_hours"] > 5_000, (
+            f"{year}: the envelope reduced {envelope[year]['half_hours']:.0f} readings where "
+            f"the cache has {len(complete[year])} positive half hours"
+        )
+
+
 def test_the_THERMAL_FLOOR_the_MIX_MEASURES_reaches_the_published_feed_and_MOVES_the_series(
         real_publish):
     """M5. The floor is the correction that stops the reconstruction dispatching the gas stack

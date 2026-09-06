@@ -263,6 +263,53 @@ MUTATIONS = (
         "    except Exception:\n"
         "        series = {}",
     ),
+    (
+        # M12, M13 AND M14 ARE THE TYPE-CORRECT TWINS OF M3, M9 AND M10, and they exist for
+        # the reason the M11 comment above states as a rule. Measured 2026-09-06 at
+        # fingerprint `d892342119e8`: M3, M9 and M10 all came back DIED and all three were
+        # stamped `died_by_setup_error_only` -- each substitutes a value of the WRONG TYPE,
+        # `fuel_mix()` raises before it returns, the module-scoped fixture that calls it
+        # errors, and every test in the file errors with it. Not one control body ran.
+        #
+        # No control can be written against those three, because no control that calls
+        # `fuel_mix()` can assert past a `fuel_mix()` that raises. So the originals are kept
+        # as live rows -- they are what would redden if the wrong-type crash ever stopped
+        # being a crash -- and the contract is closed by the substitution a real fail-open
+        # refactor would actually write: one that still RETURNS, leaving a value a control
+        # can grade.
+        # `docs/staging/records/SEAT_PREREG_THE_TYPE_CORRECT_TWINS_OF_THE_THREE_ROWS_THAT_RAISE_INSIDE_THE_SUBJECT_2026-09-06.md`
+        #
+        # RUN, at the fingerprint these three rows moved this spec to, `4c2f0abd38d4`: all three
+        # DIED, each naming a DIFFERENT node and each naming the control written for it, with
+        # `died_by_setup_error_only` FALSE and `errored` EMPTY on every row -- so unlike M3, M9 and
+        # M10 a control body ran and the kill is the property, not the type system. All six
+        # pre-registered predictions held. Baseline 51 passed in 30.1s (the data-present timing),
+        # poison reaches the subject with both control suites green, null round `behaviour only`.
+        # `docs/staging/SEAT_RESULT_THE_THREE_ROWS_NO_CONTROL_COULD_ASSERT_PAST_ARE_CLOSED_BY_THEIR_TYPE_CORRECT_TWINS_2026-09-06.md`
+        "M12",
+        "the outturn is normalised to SETTLEMENT PERIODS and stays at half-hour grain all "
+        "the way to the derived mix (M3 with a mapping, not a list)",
+        "    series = fuel.to_settlement_periods(fuel.load_cached())",
+        "    _raw = fuel.to_settlement_periods(fuel.load_cached())\n"
+        "    series = {(day, 1): row for (day, _period), row in _raw.items()}",
+    ),
+    (
+        "M13",
+        "the thermal floor is reduced over the THERMAL cache and not another cache beside it "
+        "that happens to reduce to the same shape (M9 with gas-shaped rows, not none)",
+        "fuel.thermal_floor_by_year(fuel.thermal_by_period(fuel.load_cached_thermal()))",
+        "fuel.thermal_floor_by_year(fuel.biomass_by_period(fuel.load_cached_biomass()))",
+    ),
+    (
+        "M14",
+        "the biomass rows reach the yearly envelope at HALF-HOUR grain -- period-ising them "
+        "and then collapsing the periods is the same loss (M10 with a mapping, not a list)",
+        "    biomass = fuel.biomass_envelope_by_year("
+        "fuel.biomass_by_period(fuel.load_cached_biomass()))",
+        "    _bio = fuel.biomass_by_period(fuel.load_cached_biomass())\n"
+        "    biomass = fuel.biomass_envelope_by_year(\n"
+        "        {(day, 1): mw for (day, _period), mw in _bio.items()})",
+    ),
 )
 
 #: The subject's `def` block, VERBATIM. Three of the four anchor strings below
