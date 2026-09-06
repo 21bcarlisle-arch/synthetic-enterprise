@@ -1130,10 +1130,39 @@ def price_elasticity_for_customer(
     measured, not assumed, and the pre-registration that predicted it is
     `docs/staging/records/SEAT_PREREGISTRATION_DOES_THE_GROUND_TRUTH_ELASTICITY_LOOKUP_EVER_GET_ASKED_FOR_A_SUPPLY_POINT_LEG_2026-09-06.md`.
 
-    WHAT THIS DOES NOT CLOSE, so a green guard is not over-read: `household_of` is a string
-    transform, not a roster lookup. Only the LEG class is caught. `NOT_A_REAL_ID` is its own
-    household by that rule and is still answered. Closing the fail-open needs the population roster
-    at the draw, which is a larger change and is not what this guard buys.
+    AND IT REFUSES AN ID ON NO BOOK, which is the fail-open the leg guard above left open and is
+    the larger half of the same defect. `household_of` is a STRING TRANSFORM, not a roster lookup:
+    it catches the leg class and nothing else, so `NOT_A_REAL_ID` was its own household by that
+    rule and went on being answered with 1.4223. A ground-truth lookup that fabricates a plausible
+    trait for any string is how R1 came to publish a ceiling over a target column where 87 of 264
+    rows belonged to no household -- and the leg fix alone would have met the next instrument the
+    same way, because the next instrument will mis-key differently.
+
+    THE ROSTER IS THE RUN'S LIVE BOOK, NEVER THE INITIAL DRAW, and that distinction is the whole
+    difficulty. `live_population.is_on_the_live_book` resolves against all four registration books
+    -- the hand-authored roster, successors, the run's fresh-market wins and the curriculum's drawn
+    points -- and the last two are RUNTIME ACCUMULATORS. A plain membership test
+    against the book as drawn would refuse a real household: a successor registration after a home
+    move (`C3_2`) is a household THIS RUN created that the initial draw has never heard of, and
+    `tools/r1_inference_ceiling.true_traits` records deleting exactly that check for exactly that
+    reason. Measured, not assumed: `SYN-2021-001` is absent before `live_population()` and present
+    after it, and every live entrypoint draws the book at module import, so a live decision point
+    always asks against a populated roster.
+
+    ORDER IS LOAD-BEARING: the leg guard runs FIRST because `C1g` IS on the book, so the roster
+    test alone would pass it. Neither guard subsumes the other and each has its own reachable
+    input -- `C1g` reaches the first, `NOT_A_REAL_ID` the second.
+
+    AN UNWON PROSPECT IS REFUSED AND A WON ONE IS NOT, and the difference is the whole reason this
+    was instrumented rather than reasoned about. Reading the call sites suggested prospects never
+    reach this draw at all -- `net_new_acquisition` has no reference to the symbol. THAT WAS WRONG,
+    and the prediction is kept here next to its refutation: a full `run_phase2b` with every ask
+    logged made 110 asks over 69 distinct ids, and most of them ARE `PROS-*` ids. A won prospect
+    keeps its prospect-shaped id and is registered onto the acquired book, so it is a household by
+    the time anything asks. The measurement that matters is the other column: ASKS NOT IN ROSTER =
+    0. Every id a real decade-long run asked about was already registered when it asked, so this
+    guard refuses nothing the world does today -- measured over a whole run, not inferred from the
+    call sites, which is what the call sites would have told me wrongly.
     """
     from simulation.household import household_of
 
@@ -1143,6 +1172,24 @@ def price_elasticity_for_customer(
             f"household {household_of(customer_id)!r}, not a household. The world draws one "
             "elasticity per property, so this id has no trait to return and a hash of it would be "
             "a fabricated one. Pass simulation.household.household_of(<id>).")
+
+    # THROUGH `live_population`, NEVER THE SEAM DIRECTLY, and the deferred form is required twice
+    # over. `test_module_does_not_import_company_or_saas` is a wall control: this module may not
+    # name `company` or `saas` anywhere, so the book lookup belongs in the sim module that already
+    # binds the seam. And `live_population` imports THIS module, so the edge can only be a
+    # call-time one -- the same deferred shape `customer_events` uses to take `run_base_seed`.
+    from simulation.live_population import is_on_the_live_book
+
+    if not is_on_the_live_book(customer_id):
+        raise ValueError(
+            f"price_elasticity_for_customer refuses {customer_id!r}: no supply point on this run's "
+            "live book is registered to it, so the world has drawn no elasticity for it and a hash "
+            "of the id would return a fabricated one -- in range, right shape, drawn from nothing. "
+            "The roster is the LIVE book (registered + successors + this run's wins + drawn "
+            "points), so a household this run created is present and only an id the world never "
+            "registered is refused. If the book has not been assembled in this process yet, call "
+            "simulation.live_population.live_population() first -- the id may be real and simply "
+            "not drawn yet.")
 
     c = curriculum if curriculum is not None else _load_cohort_curriculum()
     from simulation.market_switching_propensity import PRICE_SENSITIVITY_WEIGHT

@@ -57,7 +57,11 @@ import os
 from pathlib import Path
 from typing import List, Optional
 
-from company.interfaces.supply_book import register_drawn_points, registered_supply_points
+from company.interfaces.supply_book import (
+    get_customer,
+    register_drawn_points,
+    registered_supply_points,
+)
 from simulation.segment_vocabulary import (
     CANONICAL_SEGMENTS,
     UnknownSegmentError,
@@ -311,6 +315,36 @@ def run_base_seed() -> int:
     Proven both ways in `tests/simulation/test_price_sensitivity_reaches_the_price_response.py`.
     """
     return _DEFAULT_BASE_SEED if _RUN_BASE_SEED is None else _RUN_BASE_SEED
+
+
+def is_on_the_live_book(supply_point_id: str) -> bool:
+    """Has this run's book registered `supply_point_id`? The roster a ground-truth draw needs.
+
+    WHY THIS IS HERE AND NOT IN `population_draw`, which is the module that needs it.
+    `tests/simulation/test_population_draw.py::test_module_does_not_import_company_or_saas` is a
+    WALL control: `population_draw` may not name `company` or `saas` at all. The registration book
+    lives behind the seam, so the lookup has to happen in a module that is already allowed to reach
+    it -- this one, which binds `registered_supply_points()` at import for the same reason. The
+    dependency then runs draw -> sim -> seam, which is the layering `customer_events` already uses
+    when it takes `run_base_seed` from here rather than reaching for the book itself.
+
+    IT IS THE LIVE BOOK, NOT `live_population()`, and the difference is not cosmetic -- it is the
+    whole correctness of the thing. `live_population()` returns the drawn book, which holds neither
+    the I&C sites nor the successors: `C_IC1` and `C3_2` are both absent from it and both are real
+    households. `get_customer` resolves against all four registration books (hand-authored roster,
+    successors, this run's fresh-market wins, the curriculum's drawn points), and the last two are
+    RUNTIME ACCUMULATORS, so a household this run created is present the moment it is registered.
+    That is what makes this the run's LIVE population rather than the initial draw, and it is why
+    `tools/r1_inference_ceiling.true_traits` records deleting a plain book-membership test: a
+    successor registration after a home move is a household the initial draw never heard of, and
+    membership against it would refuse a real household.
+
+    TRUE FOR A GAS LEG, deliberately: `C1g` IS a registered supply point. This answers "is this id
+    on the book", not "is this id a household" -- the household question is `household_of`'s, and a
+    caller that needs both asks both. Collapsing them here would make one of the two guards in
+    `price_elasticity_for_customer` unreachable.
+    """
+    return get_customer(supply_point_id) is not None
 
 
 #: The years the campaign runs over. Named once because the stock, the campaign and the

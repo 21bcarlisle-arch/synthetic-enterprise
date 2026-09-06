@@ -638,18 +638,104 @@ def test_the_elasticity_refusal_names_the_household_it_should_have_been_asked_fo
     assert "household_of" in said, "the refusal must name the call that repairs it"
 
 
-def test_a_household_normalised_id_can_never_trip_the_elasticity_guard():
-    """The guard cannot break a caller that normalises, and that is a PROPERTY, not today's answer.
+def test_normalising_an_id_is_not_enough_the_household_must_also_be_on_the_live_book():
+    """THE PROPERTY CHANGED ON 2026-09-06, and the old one is written out rather than deleted.
 
-    `customer_events` and `run_phase2b` both take `household_of(cid)` before drawing. This asserts
-    the reason that is safe -- `household_of` is idempotent, so a normalised id is always its own
-    household -- rather than pinning the two call sites, which would go red the day a third one is
-    added correctly.
+    This test used to assert that ANY normalised id is answered -- `household_of` is idempotent, so
+    a normalised id is always its own household -- and it passed for `PROS-2016-0067` and
+    `NOT_A_REAL_ID` alike. That was the fail-open stated as a guarantee: the leg guard is a STRING
+    TRANSFORM, so normalising was sufficient, and a ground-truth draw that answers for any string it
+    can normalise is exactly how R1 graded 87 of 264 rows against elasticities belonging to no
+    household. Being normalised is necessary and was never sufficient.
+
+    THE NEW PROPERTY, and it is a property rather than today's answer: a normalised id is answered
+    IF AND ONLY IF this run's live book has registered it. Both directions are asserted from the
+    roster itself rather than from a hand-copied list of ids, so the day the book gains or loses a
+    household this follows it instead of going red.
     """
-    from simulation.household import GAS_LEG_ID_SUFFIX, household_of
+    from simulation.household import household_of
+    from simulation.live_population import is_on_the_live_book
 
-    for raw in ("C1", "C1" + GAS_LEG_ID_SUFFIX, "C_IC1", "SYN-2021-001", "C1_2",
-                "PROS-2016-0067" + GAS_LEG_ID_SUFFIX):
+    # ON the book -- and drawn from the four registration books, not written down here. `C_IC1` and
+    # `C3_2` matter: an I&C site and a successor registration are both absent from `live_population()`
+    # and both are real households, which is why the roster is the BOOK and not the drawn population.
+    for raw in ("C1", "C_IC1", "C1_2", "C3_2"):
         normalised = household_of(raw)
         assert household_of(normalised) == normalised
+        assert is_on_the_live_book(normalised), "fixture drifted: this id must be on the book"
         assert pd.price_elasticity_for_customer(normalised, 20260724) > 0.0
+
+    # NOT on the book -- normalised, idempotent, and still refused. This is the leg above's
+    # complement: `household_of` cannot tell these from a household, and only the roster can.
+    #
+    # THE PROSPECT ID IS DATED 1999 ON PURPOSE. A real `PROS-2016-*` id is a poor choice here: a
+    # won prospect keeps its prospect-shaped id and IS registered onto the acquired book (a full
+    # run makes 110 elasticity asks and most of them are `PROS-*`), so any id inside
+    # `live_population.CAMPAIGN_YEARS` can be on the book depending on what else ran in this
+    # process. 1999 is outside the campaign window, so no run mints it and the case stays about
+    # the roster rather than about test ordering.
+    for raw in ("NOT_A_REAL_ID", "PROS-1999-9999"):
+        normalised = household_of(raw)
+        assert household_of(normalised) == normalised, "must be normalised, or this proves nothing"
+        assert not is_on_the_live_book(normalised)
+        with pytest.raises(ValueError, match="no supply point"):
+            pd.price_elasticity_for_customer(normalised, 20260724)
+
+
+def test_the_elasticity_roster_guard_and_the_leg_guard_are_each_independently_reachable():
+    """TWO SEQUENTIAL GUARDS, and the first one answering is how the second stops being provable.
+
+    R15's shape: mutate the second of two guards and the mutation survives because the first one
+    already refused. Here they cannot collapse into each other, and this asserts the reason --
+    `C1g` IS on the live book, so the roster test alone would ANSWER it, and `NOT_A_REAL_ID` is its
+    own household, so the leg test alone would answer that. Each guard has an input the other lets
+    through, and the two refusals are told apart by their text rather than by their type.
+    """
+    from simulation.household import GAS_LEG_ID_SUFFIX
+    from simulation.live_population import is_on_the_live_book
+
+    leg = "C1" + GAS_LEG_ID_SUFFIX
+    assert is_on_the_live_book(leg), \
+        "the leg is a REGISTERED supply point -- if it were not, the roster guard would subsume " \
+        "the leg guard and one of the two would be unreachable"
+    with pytest.raises(ValueError, match="supply-point leg"):
+        pd.price_elasticity_for_customer(leg, 20260724)
+
+    from simulation.household import household_of
+    assert household_of("NOT_A_REAL_ID") == "NOT_A_REAL_ID", \
+        "the stranger must pass the leg test, or the roster guard is never reached"
+    with pytest.raises(ValueError, match="no supply point"):
+        pd.price_elasticity_for_customer("NOT_A_REAL_ID", 20260724)
+
+
+def test_a_household_this_run_registers_mid_run_is_answered_not_refused():
+    """THE TRAP THE OTHER LANE HIT AND DOCUMENTED, asserted as a live property rather than trusted.
+
+    `tools/r1_inference_ceiling.true_traits` records writing a book-membership test and DELETING it:
+    a household this run creates is not in the book as drawn, so membership against the initial draw
+    refuses a real household and shrinks the very coverage the measurement is short of. The roster
+    therefore has to be the LIVE book -- two of its four registers are runtime accumulators.
+
+    This proves the live half directly: an id absent from the book is refused, and the SAME id is
+    answered once the run registers it. A guard keyed to the initial draw fails this; a guard keyed
+    to the live book passes it. Registration is undone in teardown so the book is left as found.
+    """
+    from company.interfaces.supply_book import acquired_supply_points
+    from saas.customers import _clear_acquired_customers, make_acquired_customer
+    from simulation.live_population import is_on_the_live_book
+
+    newcomer = "C1_MIDRUN_PROBE"
+    assert not is_on_the_live_book(newcomer)
+    with pytest.raises(ValueError, match="no supply point"):
+        pd.price_elasticity_for_customer(newcomer, 20260724)
+
+    try:
+        from saas.customers import get_customer as _gc
+        acquired_supply_points().append(
+            make_acquired_customer(newcomer, _gc("C1"), "2021-06-01"))
+        assert is_on_the_live_book(newcomer), "the accumulator must be the LIVE object"
+        assert pd.price_elasticity_for_customer(newcomer, 20260724) > 0.0
+    finally:
+        _clear_acquired_customers()
+
+    assert not is_on_the_live_book(newcomer), "teardown must leave the book as it was found"

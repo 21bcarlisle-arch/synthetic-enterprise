@@ -44,6 +44,40 @@ _ACCOUNTS = [f"ACC-{i:04d}" for i in range(40)]
 _RUN_SEED = 4242
 
 
+@pytest.fixture(autouse=True, scope="module")
+def _accounts_are_on_the_book():
+    """REGISTER the stand-in accounts, because from 2026-09-06 the draw refuses an id on no book.
+
+    `price_elasticity_for_customer` used to answer for any string, which is what let this suite
+    invent forty account ids and draw against them. That fail-open is now closed: a ground-truth
+    lookup that fabricates a plausible trait for a stranger is how R1 graded 87 of 264 rows against
+    elasticities belonging to no household, so the draw consults the run's live registration book.
+
+    THE FIX IS TO MAKE THEM REAL, NOT TO EXEMPT THEM. `_ACCOUNTS` always stood in for a book; the
+    only change is that they are now registered on one, through the same runtime accumulator a
+    fresh-market win uses (`ACQUIRED_CUSTOMERS`, cleared in teardown by the function the seam's
+    IDENTITY note names for exactly this). The measured property is untouched -- the draw is a hash
+    of `(id, seed)` and these ids are unchanged, so every spread and floor below is the same number
+    it was. What would NOT be acceptable is passing the draw a flag to skip its own roster check:
+    that reopens the fail-open for every caller in order to keep one suite green.
+    """
+    from company.interfaces.supply_book import acquired_supply_points
+    from saas.customers import (
+        _clear_acquired_customers,
+        get_customer,
+        make_acquired_customer,
+    )
+
+    predecessor = get_customer("C1")
+    assert predecessor is not None, "the hand-authored roster must still carry C1 to clone from"
+    book = acquired_supply_points()
+    book.extend(make_acquired_customer(a, predecessor, "2021-06-01") for a in _ACCOUNTS)
+    try:
+        yield
+    finally:
+        _clear_acquired_customers()
+
+
 def _fake_runner() -> dict:
     """A three-arm result whose SELECTION leg depends on the drawn elasticity.
 
