@@ -332,6 +332,60 @@ def disagreement_with_centroid() -> dict:
             "share": round(moved / total, 4) if total else None}
 
 
+#: A land cell further than this from any live GB residential postcode is not GB land at all.
+#: NOT A ROUND NUMBER PICKED FOR TIDINESS -- the distance distribution over empty land cells is
+#: sharply bimodal and this sits in the gap: 108,533 empty cells lie within 10 km of a postcode,
+#: 965 in 10-20 km, and 13,207 beyond 50 km. The far mode is Northern Ireland, which the HadUK
+#: land mask covers and ONSPD gives no OSGB grid reference for.
+GB_REACH_KM = 20.0
+
+#: Published GB land area, England + Wales + Scotland, as the independent check on the mask this
+#: produces. ONS Standard Area Measurements: 130,279 + 20,779 + 77,933 km^2.
+GB_LAND_AREA_KM2 = 228_991
+
+
+def gb_reachable(drivers, threshold_km: float = GB_REACH_KM):
+    """(mask of land cells that are in GREAT BRITAIN, diagnostics).
+
+    THE DEFECT THIS EXISTS TO CLOSE. HadUK-Grid's mask is the UNITED KINGDOM, and 16,210 of its
+    245,077 land cells are Northern Ireland. ONSPD carries no OSGB grid reference for NI postcodes
+    and this company's market is GB, so every one of those cells arrives with zero households -- and
+    on a map it is indistinguishable from an empty Highland glen. Absence rendered as emptiness.
+
+    It also moved a published figure: "half of Britain's land holds nobody" was 49.6% counting NI as
+    empty British land, and is 52.9% occupied over GB alone.
+
+    THE DISCRIMINATOR IS DISTANCE TO THE NEAREST LIVE GB POSTCODE, not a drawn box, because a box
+    around NI is a judgement and the distance is a measurement. Cross-checked against the published
+    GB land area: the mask this returns is within half a percent of it.
+    """
+    import numpy as np
+    from scipy.spatial import cKDTree
+
+    if not ONSPD_CSV.is_file():
+        raise FileNotFoundError(f"{ONSPD_CSV} -- run `--pull` first")
+    points = []
+    with ONSPD_CSV.open(encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            points.append((int(row["east"]), int(row["north"])))
+    tree = cKDTree(np.array(points, dtype=float))
+    distance, _ = tree.query(np.column_stack([drivers["east"], drivers["north"]]), k=1)
+    mask = distance <= threshold_km * 1000.0
+
+    cells = int(mask.sum())
+    drift = abs(cells - GB_LAND_AREA_KM2) / GB_LAND_AREA_KM2
+    if drift > 0.03:
+        raise ValueError(
+            f"the GB mask holds {cells:,} 1 km cells against a published land area of "
+            f"{GB_LAND_AREA_KM2:,} km2 ({drift:.1%} out). The threshold is no longer separating "
+            "Great Britain from the rest of the mask; refusing rather than publishing a map of "
+            "somewhere else.")
+    return mask, {"gb_land_cells": cells,
+                  "not_gb_land_cells": int((~mask).sum()),
+                  "published_gb_land_km2": GB_LAND_AREA_KM2,
+                  "threshold_km": threshold_km}
+
+
 def aligned_to_land(drivers: dict) -> tuple["object", dict]:
     """(weight per land cell, in the driver arrays' order; the households that fall off the grid).
 

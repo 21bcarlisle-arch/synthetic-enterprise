@@ -62,6 +62,17 @@ CURVE_KS = (1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987)
 #: The driver the map is drawn on. Winter temperature is the one a heat-load reader came for.
 MAP_DRIVER = "winter_temp"
 
+#: Households per square kilometre of land in a block. Logarithmic, because GB spans four orders of
+#: magnitude and a linear ramp would render the whole country outside the cities as one colour.
+DENSITY_CUTS = (0.0, 1.0, 5.0, 20.0, 100.0, 400.0)
+DENSITY_LABELS = ("no households", "under 1", "1-5", "5-20", "20-100", "100-400", "400+")
+
+#: Two negative levels, and they mean different things. Sea is not land. NOT_GB is land the company
+#: has no household data for because it is not in its market -- and drawing those the same is how a
+#: reader learns that Northern Ireland is empty.
+SEA = -1
+NOT_GB = -2
+
 
 def downsample_modal(labels, rows, cols, shape, block=BLOCK_KM):
     """Coarsen a per-cell LABEL grid by taking each block's most common label.
@@ -108,6 +119,29 @@ def _rle(values) -> str:
     return ",".join(out)
 
 
+#: The bands the page quotes when it says Scotland's blanks are real. Northings in metres.
+LATITUDE_BANDS = (("south_of_the_mersey", 0, 400_000), ("northern_england", 400_000, 600_000),
+                  ("southern_scotland", 600_000, 800_000),
+                  ("highlands_and_north", 800_000, 1_300_000))
+
+
+def _empty_by_band(drivers, weights, gb_mask) -> dict:
+    """Share of GB land with no household on it, by latitude band.
+
+    OVER GB LAND ONLY. Including the non-GB part would put 14,911 cells with no household data into
+    the numerator and make the north look emptier than it is -- which is the confusion the whole
+    band is published to settle.
+    """
+    north = drivers["north"]
+    out = {}
+    for name, lo, hi in LATITUDE_BANDS:
+        band = gb_mask & (north >= lo) & (north < hi)
+        if band.sum():
+            out[name] = round(float((weights[band] <= 0).sum() / band.sum()), 4)
+            out[name + "_land_cells"] = int(band.sum())
+    return out
+
+
 def build() -> dict:
     import numpy as np
     from sklearn.cluster import KMeans
@@ -139,26 +173,39 @@ def build() -> dict:
     rows = ((north + 200_000) // 1000).astype(int)
     grid, out_h, out_w = downsample_modal(bands, rows, cols, drv.GRID_SHAPE)
 
-    # THE SAME GRID, over ALL land -- and as a DENSITY, not a flag.
+    # THE SAME GRID, AS HOUSEHOLDS PER SQUARE KILOMETRE.
     #
-    # A binary "does this 5 km block contain anyone" reads 81% occupied against the 49.6% truth at
-    # 1 km, because one populated square in twenty-five colours the whole block. The picture would
-    # then contradict the number printed beside it, which is the worst thing an explanatory chart
-    # can do. So each block carries how many of its 1 km cells are populated, banded 0-4, and the
-    # page shades by it. `test_the_population_map_agrees_with_the_published_1km_share` holds the
-    # picture to the figure.
+    # TWO WRONG VERSIONS PRECEDED THIS ONE and both were caught by looking at the picture. The first
+    # shaded a block by whether ANY of its twenty-five kilometres held a household: 81% occupied
+    # against the 49.6% printed beside it. The second used the PROPORTION of a block's cells that
+    # were occupied -- which saturates, so a dense city and a sparse village both read as fully
+    # covered and the map destroys the variation it exists to show.
+    #
+    # Households per km^2 spans four orders of magnitude across GB (0.45 at the 5th percentile of
+    # occupied blocks, 5,792 at the peak), so the bands are logarithmic and the map has range again.
     all_cols = ((d["east"] + 200_000) // 1000).astype(int)
     all_rows = ((d["north"] + 200_000) // 1000).astype(int)
-    land = np.zeros_like(grid)
+    land = np.zeros_like(grid, dtype=float)
+    households = np.zeros_like(grid, dtype=float)
     lr, lc = all_rows // BLOCK_KM, all_cols // BLOCK_KM
-    np.add.at(land, (lr, lc), 1)
+    np.add.at(land, (lr, lc), 1.0)
+    np.add.at(households, (lr, lc), weights_all)
 
-    populated = np.zeros_like(grid)
-    np.add.at(populated, (rows // BLOCK_KM, cols // BLOCK_KM), 1)
-    with np.errstate(invalid="ignore", divide="ignore"):
-        share = np.where(land > 0, populated / np.maximum(land, 1), 0.0)
-    # 0 = land with nobody on it; 1-4 = quartiles of occupancy within the block.
-    density = np.where(land == 0, -1, np.clip(np.ceil(share * 4), 0, 4)).astype(int)
+    # AND NORTHERN IRELAND IS NOT EMPTY BRITAIN. HadUK's mask is the UNITED KINGDOM; ONSPD gives no
+    # OSGB grid reference for NI postcodes and this company's market is GB, so 14,911 land cells
+    # arrive with zero households and render identically to a Highland glen. That is absence drawn
+    # as emptiness, and it is the reason this grid carries a level of its own for it.
+    gb_mask, gb_stats = wgt.gb_reachable(d)
+    gb_cells = np.zeros_like(grid, dtype=float)
+    np.add.at(gb_cells, (lr[gb_mask], lc[gb_mask]), 1.0)
+
+    per_km2 = np.where(land > 0, households / np.maximum(land, 1.0), 0.0)
+    density = np.full(grid.shape, SEA, dtype=int)
+    for level, cut in enumerate(DENSITY_CUTS):
+        density = np.where((land > 0) & (per_km2 > cut), level + 1, density)
+    density = np.where((land > 0) & (per_km2 <= DENSITY_CUTS[0]), 0, density)
+    # a block more than half of whose land is outside GB is drawn as NOT GB, whatever its density
+    density = np.where((land > 0) & (gb_cells < land / 2.0), NOT_GB, density)
 
     band_stats = []
     for b in range(DECISION_CELLS):
@@ -185,10 +232,11 @@ def build() -> dict:
             "note": "rows are south-to-north; -1 is sea or unpopulated land",
             "bands_rle": [_rle(row.tolist()) for row in grid],
             "density_rle": [_rle(row.tolist()) for row in density],
-            "density_note": "-1 sea, 0 land with no household, 1-4 quartiles of the block's "
-                            "1 km cells that hold households",
-            "populated_1km_cells": int(populated.sum()),
-            "land_1km_cells_in_map": int(land.sum()),
+            "density_labels": list(DENSITY_LABELS),
+            "density_note": "-2 land outside Great Britain (no household data), -1 sea, "
+                            "0 GB land with no household, 1+ households per km2 of land",
+            "populated_1km_cells": int((weights_all > 0).sum()),
+            "land_1km_cells_in_map": int(len(weights_all)),
         },
         "bands": band_stats,
         "coverage": {
@@ -198,11 +246,21 @@ def build() -> dict:
             "decision_cells": DECISION_CELLS,
         },
         "emptiness": {
-            "land_cells": coverage["land_cells"],
+            # THE UK MASK AND THE GB SUBSET ARE DIFFERENT DENOMINATORS and the page must not mix
+            # them. "Half of Britain's land holds nobody" was 49.6% over the UK mask, counting
+            # Northern Ireland as empty British land; over GB it is 52.9% occupied.
+            "uk_mask_land_cells": coverage["land_cells"],
+            "land_cells": gb_stats["gb_land_cells"],
+            "not_gb_land_cells": gb_stats["not_gb_land_cells"],
+            "published_gb_land_km2": gb_stats["published_gb_land_km2"],
             "land_cells_with_households": coverage["land_cells_with_households"],
             "households": coverage["households_placed"],
             "concentration": {f"{int(s * 100)}pc": int(np.searchsorted(cum, s)) + 1
                               for s in (0.5, 0.8, 0.9, 0.95, 0.99)},
+            # THE EMPTINESS BY LATITUDE BAND, over GB land only. The page states that Scotland's
+            # blanks are genuine terrain rather than a broken join, and this is the figure that
+            # claim rests on -- so it is published rather than typed into the prose.
+            "empty_share": _empty_by_band(d, weights_all, gb_mask),
         },
     }
 

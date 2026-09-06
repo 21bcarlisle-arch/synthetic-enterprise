@@ -1367,6 +1367,29 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     portfolio_elec_margin_rates: list[float] = []
     portfolio_gas_margin_rates: list[float] = []  # Phase 19a: separate gas tracking
     dynamic_pricing_log: list[dict] = []
+    # THE COMPANY'S RECORD OF ITS OWN BOOK, ACCOUNT-SHAPED (2026-09-06). Every other customer log
+    # in this run is EVENT-shaped: it exists because a renewal fired, an offer was made, a journey
+    # advanced. So the observables a supplier holds CONTINUOUSLY -- what it charges, what the
+    # default tariff costs, the gap between them, and its own estimate of the account's annual
+    # consumption -- were only ever written down for the minority of households that renewed on a
+    # fixed electricity term. On run_output_f53c90b85 that was 69 households of 177, and it is why
+    # `tools/r1_inference_ceiling.py` could not put a point estimate on the pair rung: it needed
+    # ~72 households carrying both fields of a pair and had ~62. That is a bookkeeping accident,
+    # not a fact about what a supplier can see -- withholding from the company an EAC IT COMPUTED
+    # and a rate IT SET makes us look weaker at inference than we are.
+    #
+    # ONE ROW PER (household leg, term) FOR EVERY TERM THE BOOK ACTUALLY SERVES, including gas
+    # legs, first terms, and indexed products that have no renewal decision at all. Written before
+    # the term is settled, so `company_eac_kwh` carries the same point-in-time blindfold the
+    # renewal estimate does.
+    #
+    # WHAT IS DELIBERATELY NOT HERE, because it is a decision artefact and not account state:
+    # `discount_pct` and `expected_term_margin_gbp` exist only where an offer was priced;
+    # `company_churn_estimate`, `resentment_score` and `perceived_bill_saving_gbp` exist only
+    # where a renewal window opened. Manufacturing any of them for a term that had no decision
+    # would be inventing the coverage rather than recording it. `OBSERVABLE_FIELD_SCOPE` in
+    # `tools/r1_inference_ceiling.py` states that per field so the reader sees the gap named.
+    account_state_log: list[dict] = []
 
     all_records: list[dict] = []
     # THE FOLD, fed at exactly one place -- the line that extends `all_records` below.
@@ -1746,6 +1769,40 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
                     f"years_on_svt={_years_on_svt:.2f}"
                 )
         _last_tariff_type[cid] = term_tariff_type
+
+        # ACCOUNT STATE, WRITTEN FOR EVERY TERM AND NOT ONLY FOR THE ONES THAT RENEWED.
+        # Placed HERE, above the renewal gate, for two reasons that are both properties and not
+        # conveniences: it is outside every branch below, so no future narrowing of the renewal
+        # gate can quietly narrow the book's own record; and it is above
+        # `settled_fold.add(settled_this_term)` at the foot of this loop, so the EAC estimate sees
+        # the twelve months BEFORE this term and never the term itself.
+        from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+        _state_unit_rate = unit_rate if isinstance(unit_rate, (int, float)) else None
+        # ELECTRICITY ONLY, and that is the honest shape rather than a gap: `svt_rates` publishes
+        # the electricity default-tariff cap and there is no gas equivalent in it. Writing the
+        # electricity cap against a gas leg's rate would produce a spread between two different
+        # commodities -- a number, and not a quantity.
+        _state_svt_rate = (
+            get_svt_elec_rate_gbp_per_mwh(term_start_str) if commodity == "electricity" else None
+        )
+        _state_rate_vs_svt_pct = (
+            round((_state_unit_rate - _state_svt_rate) / _state_svt_rate * 100.0, 2)
+            if _state_unit_rate is not None and _state_svt_rate else None
+        )
+        account_state_log.append({
+            "customer_id": cid,
+            "billing_account": billing_account,
+            "commodity": commodity,
+            "term_start": term_start_str,
+            "term_end": term_end_str,
+            "term_index": term_index,
+            "tariff_type": term_tariff_type,
+            "unit_rate_gbp_per_mwh": _state_unit_rate,
+            "svt_rate_gbp_per_mwh": _state_svt_rate,
+            "rate_vs_svt_pct": _state_rate_vs_svt_pct,
+            "company_eac_kwh": round(_company_eac_estimate(cid, term_start_str, settled_fold)),
+            "data_regime": "historical",
+        })
 
         if term_index >= 1 and commodity == "electricity" and not _indexed_tariff:
             company_est_pre = None
@@ -3306,6 +3363,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "demand_response_log": demand_response_log,   # Phase 52
         "hedge_var_log": hedge_var_log,
         "dynamic_pricing_log": dynamic_pricing_log,
+        "account_state_log": account_state_log,
         "rate_decomposition_log": rate_decomposition_log,   # EP2 sub-atom 3
         # Phase 12e: aggregated company-model divergence by year
         "company_divergence": _compute_company_divergence(

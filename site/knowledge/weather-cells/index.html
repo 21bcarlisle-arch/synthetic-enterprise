@@ -34,6 +34,12 @@ h2.sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-sp
 .bignum { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
 .bigrow { display: flex; gap: 26px; flex-wrap: wrap; margin-bottom: 6px; }
 .bigrow div { min-width: 140px; }
+.absence { border-left: 3px solid var(--amber); background: var(--bg); border-radius: 8px;
+  padding: 12px 16px; margin-top: 16px; font-size: 13px; }
+.absence p { margin: 8px 0 0; color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; font-size: 10px; color: var(--muted); margin-top: 6px; }
+.legend span { display: inline-flex; align-items: center; gap: 4px; }
+.legend i { width: 12px; height: 10px; border-radius: 2px; display: inline-block; }
 .bigrow .lab { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
 /* A table wider than a phone must scroll INSIDE itself, or it drags the whole page sideways.
    The site-wide mobile control checks for this rule by name. */
@@ -90,26 +96,46 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
           <div class="chart-src" id="map-src">&hellip;</div>
         </div>
         <div class="chartwrap">
-          <div class="chart-cap">The same land, shaded by how much of it holds households</div>
+          <div class="chart-cap">The same land, shaded by households per square kilometre</div>
           <div id="map-pop"></div>
           <div class="chart-src" id="map-pop-src">&hellip;</div>
         </div>
       </div>
     </div>
 
-    <h2 class="sec">2 &mdash; Half of Britain's land holds nobody</h2>
+    <h2 class="sec">2 &mdash; Nearly half of Britain's land holds nobody</h2>
     <div class="card">
       <div class="bigrow">
-        <div><div class="bignum" id="e-land">&hellip;</div><div class="lab">1 km land cells</div></div>
-        <div><div class="bignum" id="e-occ">&hellip;</div><div class="lab">with a household in them</div></div>
-        <div><div class="bignum" id="e-half">&hellip;</div><div class="lab">cells hold half the country</div></div>
+        <div><div class="bignum" id="e-land">&hellip;</div><div class="lab">km&sup2; of GB land</div></div>
+        <div><div class="bignum" id="e-occ">&hellip;</div><div class="lab">with a household on them</div></div>
+        <div><div class="bignum" id="e-half">&hellip;</div><div class="lab">km&sup2; hold half the country</div></div>
       </div>
       <p>The right-hand map is the reason the left-hand one looks complicated. The fine structure in
       any British weather map &mdash; the ridges, the exposed headlands, the upland edges &mdash; is
-      almost all in the empty half. <b>Weight by households and the picture simplifies sharply</b>,
+      almost all in the empty part. <b>Weight by households and the picture simplifies sharply</b>,
       because the variation a supplier is paid to resolve is not the variation the terrain
       produces.</p>
       <p class="muted">Concentration, household-weighted: <span id="e-conc">&hellip;</span></p>
+      <div class="absence">
+        <b>Two kinds of blank, and they are not the same thing.</b>
+        <p><b>Scotland is genuinely empty, and it was checked rather than assumed.</b> Southern
+        Scotland is <span id="a-south">&hellip;</span> empty and the Highlands and north
+        <span id="a-north">&hellip;</span>, against 28% south of the Mersey. Two other explanations
+        were tested and rejected: every remote town probed &mdash; Lerwick, Kirkwall, Stornoway,
+        Thurso, Ullapool, Fort William, Oban, Braemar &mdash; carries households across dozens of
+        cells, so the postcode-to-grid join has no holes north of the border; and Scotland's census
+        join loses 0.21% of its households against 0.014% for England and Wales, which is real but
+        far too small to show. Scotland holds 136 households per occupied km&sup2;, between England's
+        252 and Wales's 115 &mdash; if cells were missing, households would pile into the survivors
+        and that figure would be inflated.</p>
+        <p><b>Northern Ireland is not empty. It is not here.</b> The Met Office grid this map is
+        drawn on covers the whole United Kingdom, and
+        <span id="a-nigb">&hellip;</span> of its land cells lie outside Great Britain. The postcode
+        directory carries no British grid reference for them and this company's market is GB, so
+        they arrive with no household data at all. They are drawn in a colour of their own rather
+        than as empty land, because a reader who took them for depopulated Britain would be
+        learning something false.</p>
+      </div>
     </div>
 
     <h2 class="sec">3 &mdash; Granularity is a price list</h2>
@@ -149,8 +175,9 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       Source: Met Office HadUK-Grid 1&nbsp;km 1991&ndash;2020 monthly normals; household weights from
       the 2021 England &amp; Wales and 2022 Scotland censuses joined by postcode through the ONS
       Postcode Directory. 27,122,251 households on 121,668 occupied land cells. Every figure on this
-      page is computed at 1&nbsp;km; only the two maps are coarsened to 5&nbsp;km, by taking each
-      block's most common class &mdash; a class is a label, and the average of two labels is a third
+      page is computed at 1&nbsp;km over Great Britain &mdash; the Met Office grid covers the whole
+      UK and the non-GB part is excluded from every figure, not counted as empty. Only the two maps
+      are coarsened to 5&nbsp;km, by taking each block's most common class &mdash; a class is a label, and the average of two labels is a third
       label belonging to neither.
     </div>
   </main>
@@ -269,18 +296,31 @@ function render(d){
   // THE SAME GRID, SHADED BY DENSITY RATHER THAN BY A FLAG. A binary "is anyone here" reads 81%
   // occupied at 5 km against the 49.6% truth at 1 km, because one populated square in twenty-five
   // colours the whole block -- and the picture would then contradict the number beside it.
-  var POP = ["var(--border)","#2f4f4a","#356b60","#3a8a78","var(--teal)"];
+  // HOUSEHOLDS PER SQUARE KILOMETRE, on a log ramp. A proportion saturates -- a dense city and a
+  // sparse village both read as fully covered -- and destroys the variation the map exists to show.
+  var POP = ["#22312f","#2f4f4a","#356b60","#3a8a78","#46a98f","#6fc7a8","#a8e0c6"];
+  var NOT_GB_FILL = "#5b4a63";
   document.getElementById("map-pop").innerHTML = mapSvg(g.density_rle, function(v){
-    return v<0 ? null : POP[Math.min(v, POP.length-1)];
-  }, "How much of each 5 km square of Britain holds households");
-  document.getElementById("map-pop-src").textContent =
-    "Palest: land with no household in it. Darkest teal: every kilometre of the block occupied. " +
-    fmt(g.populated_1km_cells) + " of " + fmt(g.land_1km_cells_in_map) + " 1 km land cells (" +
-    Math.round(100 * g.populated_1km_cells / g.land_1km_cells_in_map) + "%) hold a household.";
+    if(v === -2) return NOT_GB_FILL;
+    if(v < 0) return null;
+    return POP[Math.min(v, POP.length-1)];
+  }, "Households per square kilometre in each 5 km square of Great Britain");
+  document.getElementById("map-pop-src").innerHTML =
+    '<span class="legend">' +
+    g.density_labels.map(function(lab, i){
+      return '<span><i style="background:'+POP[Math.min(i, POP.length-1)]+'"></i>'+esc(lab)+'</span>';
+    }).join("") +
+    '<span><i style="background:'+NOT_GB_FILL+'"></i>outside GB — no data</span></span>' +
+    '<div style="margin-top:6px">Households per km² of land in the block. ' +
+    fmt(e.land_cells_with_households) + " of " + fmt(e.land_cells) + " km² of GB land (" +
+    Math.round(100 * e.land_cells_with_households / e.land_cells) + "%) hold a household.</div>";
 
   document.getElementById("e-land").textContent=fmt(e.land_cells);
   document.getElementById("e-occ").textContent=fmt(e.land_cells_with_households);
   document.getElementById("e-half").textContent=fmt(e.concentration["50pc"]);
+  document.getElementById("a-south").textContent=Math.round(e.empty_share.southern_scotland*100)+"%";
+  document.getElementById("a-north").textContent=Math.round(e.empty_share.highlands_and_north*100)+"%";
+  document.getElementById("a-nigb").textContent=fmt(e.not_gb_land_cells);
   document.getElementById("e-conc").textContent =
     Object.keys(e.concentration).map(function(k){
       return k.replace("pc","%")+" of households in "+fmt(e.concentration[k])+" cells";
