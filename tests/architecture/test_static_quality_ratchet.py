@@ -116,6 +116,21 @@ BASELINE_DATE = "2026-08-06"
 # silence the suite — a new/rising code is a real new lint sin; fix it instead.
 #
 # SHRINK LOG — every downward move, with the reason (the ratchet's own remedy).
+#   2026-09-06  I001 1326 -> 1323, F401 265 -> 264  (one obligation gets one decider: atom C32)
+#     NOT A TIDYING PASS. Every file counted here is one this commit had open anyway. The three
+#     I001s are the import blocks the new cross-module delegation forced open:
+#     `company/crm/vulnerability_register.py` gains an import of
+#     `company.regulatory.priority_services_register` (it now delegates both regulatory outcomes
+#     rather than deciding them), and the two suites gain imports of the new decider's symbols.
+#     Sorting each block into place was the act of adding to it. The F401 is
+#     `dataclasses.field`, unused in `vulnerability_register.py` at HEAD and removed while that
+#     import block was open.
+#     MEASURED ON THE TREE THIS COMMIT WOULD CREATE, per this log's standing rule and NOT off the
+#     shared working tree: `git archive HEAD` checkout with this commit's seven files copied in
+#     reads I001 1323, F401 264.
+#     THE SHARED WORKING TREE READS I001 1322, one lower still, and that -1 is another lane's
+#     uncommitted work — DELIBERATELY NOT BANKED, per the 2026-09-01 and 2026-08-31 entries below.
+#     Banking it would leave a floor no committed tree can meet and wedge every lane.
 #   2026-09-05  F841 127 -> 126  (the staging bridge stops stripping origin's blob)
 #     ONE FILE, `tests/background/test_remote_staging_bridge.py`, and it is a side effect rather
 #     than a tidying pass. `test_check_remote_extracts_and_writes_advisor_file` bound
@@ -706,11 +721,16 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1326,  # lowered 2026-09-05: the dead vulnerability scorer and its suite deleted (see log)
+    "I001": 1323,  # lowered 2026-09-06: the delegation to the one decider opened three import
+    #             blocks (atom C32, see log). Was 1326, lowered 2026-09-05 when the dead
+    #             vulnerability scorer and its suite were deleted.
     # 2026-08-28  F401 268 -> 267. R3 rewrote `company/analytics/counterfactual_retention.py`'s
     #             header and its `from typing import Any` had no user, so the ratchet holds the
     #             lower floor. A ratchet that is only ever raised is a licence to accrete.
-    "F401": 265,
+    # 2026-09-06  F401 265 -> 264. `dataclasses.field`, unused in
+    #             `company/crm/vulnerability_register.py` at HEAD, removed while that file's
+    #             import block was open for the delegation (atom C32, see log).
+    "F401": 264,
     "E402": 173,  # lowered 2026-09-05 with the I001 entry above — same deletion, same attribution
     "F841": 126,
     "E741": 107,
@@ -732,7 +752,12 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2306  # was 2309; -2 (I001) and -1 (E402) on 2026-09-05 from atom C32,
+RUFF_BASELINE_TOTAL = 2302  # was 2306; -3 (I001) and -1 (F401) on 2026-09-06, atom C32 again:
+                            # the delegation of both regulatory outcomes to
+                            # `priority_services_register` opened three import blocks and one dead
+                            # `dataclasses.field` went with them. Measured on the tree the commit
+                            # would create, not the shared one — see the SHRINK LOG entry.
+                            # Was 2309; -2 (I001) and -1 (E402) on 2026-09-05 from atom C32,
                             # which DELETED `company/crm/vulnerability_index.py` (a scorer with no
                             # production caller whose `disconnection_protected` rule bore no
                             # relation to the published one), its dedicated suite, and the mid-file

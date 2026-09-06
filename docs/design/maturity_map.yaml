@@ -1756,7 +1756,9 @@
   lane: C_customer_ops
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 2    # L0->L2 recorded 2026-09-06; evidence + what is left, in
+  #   SEAT_RESULT_THE_TWO_REGULATORY_OUTCOMES_NOW_HAVE_ONE_DECIDER_...2026-09-06.md.
+  #   NOT CLOSED: the two DECISIONS converged, not the enums -- four vocabularies remain.
   level_target: 3
   loop_stage: build
   dial_inherited: 50    # product: it is what a real supplier does, and getting it wrong is a
@@ -1765,7 +1767,9 @@
   provenance: seat_finding
   depends_on: []
   couples_with: []
-  file_scope: ['company/crm/vulnerability_register.py', 'company/crm/vulnerability_index.py', 'docs/domain_artefact_library/']
+  # RE-POINTED 2026-09-06: `crm/vulnerability_index.py` was deleted by THIS ATOM'S own commit
+  #   3881f47da. The work is now in priority_services_register.py and the two suites.
+  file_scope: ['company/crm/vulnerability_register.py', 'company/regulatory/priority_services_register.py', 'tests/company/regulatory/test_priority_services_register.py', 'tests/company/crm/test_one_obligation_one_vulnerability_vocabulary.py', 'docs/domain_artefact_library/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier with a vulnerability team working one list and a collections system scoring another, where the customer on home oxygen is priority on one and ordinary on the other, and nobody finds out until the disconnection."
 - id: D46_the_validator_holds_against_the_varied_population

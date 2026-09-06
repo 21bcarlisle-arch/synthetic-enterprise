@@ -1,10 +1,21 @@
 """Tests for Priority Services Register (Phase DM)."""
 import datetime as dt
-import pytest
-from company.regulatory.priority_services_register import (
-    PSRCategory, PSRService, PSRRecord, PriorityServicesRegister,
-)
 
+import pytest
+
+from company.regulatory.priority_services_register import (
+    WINTER_MONTHS,
+    DisconnectionDetermination,
+    DisconnectionProtection,
+    HouseholdComposition,
+    NeedsCodeEvidence,
+    PriorityServicesRegister,
+    PSRCategory,
+    PSRRecord,
+    PSRService,
+    disconnection_protection,
+    needs_code_for,
+)
 
 TODAY = dt.date(2024, 6, 1)
 
@@ -142,8 +153,144 @@ class TestPriorityServicesRegister:
     def test_psr_penetration_zero_customers(self, reg):
         assert reg.psr_penetration_pct(0) == pytest.approx(0.0)
 
-    def test_uk_benchmark_constant(self):
-        assert PriorityServicesRegister.UK_PSR_RATE_PCT == pytest.approx(31.0)
+    def test_the_published_rate_travels_with_its_date_and_is_reached(self):
+        """`UK_PSR_RATE_PCT = 31.0  # UK benchmark` stood here with no citation and no date,
+        and the only control on it asserted its own value back. 13% is Ofgem's registered
+        share at a stated date; the point of the method is that the date cannot be dropped."""
+        reg = PriorityServicesRegister()
+        reg.register(make_record("C1"))
+        out = reg.penetration_against_published(10)
+        assert out["published_pct"] == pytest.approx(
+            PriorityServicesRegister.UK_PSR_REGISTERED_PCT_2016
+        )
+        assert out["published_as_of"] == dt.date(2016, 10, 25)
+        assert out["published_is_stale"] is True
+        assert out["our_pct"] == pytest.approx(10.0)
+
+
+class TestDisconnectionProtection:
+    """The published rule (commons §2), and the only place in `company/` that decides it."""
+
+    WINTER = dt.date(2024, 1, 15)
+    SUMMER = dt.date(2024, 7, 15)
+
+    def test_every_outcome_is_reachable(self):
+        """REACHABILITY OVER THE WHOLE PARTITION, in one control. A leg per branch passes on
+        a decider that answers CANNOT_DETERMINE to everything -- which is the shape a
+        fail-closed rewrite drifts into, and it would read exactly like caution."""
+        seen = {
+            disconnection_protection(
+                (PSRCategory.PENSIONABLE_AGE,), as_of=self.WINTER,
+                household=HouseholdComposition.LIVES_ALONE,
+            ).protection,
+            disconnection_protection(
+                (PSRCategory.PENSIONABLE_AGE,), as_of=self.WINTER,
+                household=HouseholdComposition.UNKNOWN,
+            ).protection,
+            disconnection_protection(
+                (PSRCategory.DISABILITY,), as_of=self.SUMMER,
+                household=HouseholdComposition.OTHER_ADULTS_PRESENT,
+            ).protection,
+            disconnection_protection(
+                (PSRCategory.LANGUAGE_SUPPORT,), as_of=self.SUMMER,
+                household=HouseholdComposition.LIVES_ALONE,
+            ).protection,
+        }
+        assert seen == set(DisconnectionProtection)
+
+    def test_the_winter_is_october_to_march_not_november_to_march(self):
+        """October is the month `consumer_vulnerability_register`'s docstring drops, in the
+        direction that removes protection from customers who have it. Asserted at the
+        boundary from both sides so a narrowed winter reds."""
+        protected = disconnection_protection(
+            (PSRCategory.PENSIONABLE_AGE,), as_of=dt.date(2024, 10, 1),
+            household=HouseholdComposition.LIVES_ALONE,
+        )
+        assert protected.protection is DisconnectionProtection.PROHIBITED
+        outside = disconnection_protection(
+            (PSRCategory.PENSIONABLE_AGE,), as_of=dt.date(2024, 9, 30),
+            household=HouseholdComposition.LIVES_ALONE,
+        )
+        assert outside.protection is DisconnectionProtection.REASONABLE_STEPS
+        assert 10 in WINTER_MONTHS and 4 not in WINTER_MONTHS
+
+    def test_the_composition_limb_is_load_bearing_in_winter(self):
+        """Same category, same month, three compositions, three answers. Without this the
+        household argument could be ignored entirely and every assertion above still pass."""
+        by_composition = {
+            h: disconnection_protection(
+                (PSRCategory.PENSIONABLE_AGE,), as_of=self.WINTER, household=h
+            ).protection
+            for h in HouseholdComposition
+        }
+        assert by_composition[HouseholdComposition.LIVES_ALONE] is (
+            DisconnectionProtection.PROHIBITED
+        )
+        assert by_composition[HouseholdComposition.ONLY_PENSIONABLE_OR_UNDER_18] is (
+            DisconnectionProtection.PROHIBITED
+        )
+        assert by_composition[HouseholdComposition.OTHER_ADULTS_PRESENT] is (
+            DisconnectionProtection.REASONABLE_STEPS
+        )
+        assert by_composition[HouseholdComposition.UNKNOWN] is (
+            DisconnectionProtection.CANNOT_DETERMINE
+        )
+
+    def test_only_not_established_permits_disconnection(self):
+        """`may_disconnect` must be False on CANNOT_DETERMINE. An unknown that reads as a
+        permission is the fail-open form of this whole mechanism."""
+        permits = {
+            p for p in DisconnectionProtection
+            if DisconnectionDetermination(p, "").may_disconnect
+        }
+        assert permits == {DisconnectionProtection.NOT_ESTABLISHED}
+
+    def test_medical_equipment_alone_confers_neither_protection_nor_permission(self):
+        """It matched neither published limb, and the deleted `no_disconnect_required` made it
+        absolute year-round from a table with no date in it."""
+        d = disconnection_protection(
+            (PSRCategory.MEDICAL_EQUIPMENT,), as_of=self.SUMMER,
+            household=HouseholdComposition.LIVES_ALONE,
+        )
+        assert d.protection is DisconnectionProtection.CANNOT_DETERMINE
+        assert d.may_disconnect is False
+
+    def test_every_refusal_names_its_reason(self):
+        """A refusal that says why is how the refusal itself gets found wrong."""
+        for categories, household in (
+            ((PSRCategory.PENSIONABLE_AGE,), HouseholdComposition.UNKNOWN),
+            ((PSRCategory.MEDICAL_EQUIPMENT,), HouseholdComposition.LIVES_ALONE),
+            ((PSRCategory.LANGUAGE_SUPPORT,), HouseholdComposition.LIVES_ALONE),
+        ):
+            d = disconnection_protection(categories, as_of=self.WINTER, household=household)
+            assert len(d.reason) > 40 and not d.reason.isupper()
+
+
+class TestNeedsCodeMapping:
+    def test_a_term_maps_only_where_it_is_the_same_concept(self):
+        """The three answers, together. `elderly` sits in the middle cell because the
+        published criterion is pensionable age and the term carries no age -- the invented 75
+        is refuted, not merely unsourced -- and `fuel_poverty` is not a needs code at all."""
+        assert needs_code_for("disabled").evidence is NeedsCodeEvidence.EVIDENCED
+        assert needs_code_for("disabled").category is PSRCategory.DISABILITY
+        assert needs_code_for("elderly").evidence is NeedsCodeEvidence.CANNOT_DETERMINE
+        assert needs_code_for("fuel_poverty").evidence is NeedsCodeEvidence.NOT_A_NEEDS_CODE
+        assert needs_code_for("fuel_poverty").category is None
+
+    def test_no_operational_term_silently_acquires_a_needs_code(self):
+        """A term nobody has graded returns NOT_A_NEEDS_CODE, so a thirteenth flag added to
+        `crm/` confers nothing until someone reads the record -- rather than crashing, which
+        would get it mapped in a hurry."""
+        m = needs_code_for("a_flag_invented_next_tuesday")
+        assert m.evidence is NeedsCodeEvidence.NOT_A_NEEDS_CODE
+        assert "not a published PSR needs code" in m.reason
+
+    def test_the_undetermined_cell_names_the_criterion_it_is_missing(self):
+        for term in ("elderly", "child_dependent", "serious_illness", "mental_health"):
+            m = needs_code_for(term)
+            assert m.evidence is NeedsCodeEvidence.CANNOT_DETERMINE
+            assert m.category is not None
+            assert len(m.reason) > 40
 
     def test_psr_summary_contains_key_fields(self, reg):
         reg.register(make_record("C1"))

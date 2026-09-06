@@ -25,6 +25,7 @@ and carries no citation rather than a plausible one.
 | S3 | Uswitch, *Priority Services Register (PSR)* guide (uswitch.com/gas-electricity/guides/priority-services-register/) | the eligibility category list, the core services list, and the explicit absence of any scoring system |
 | S4 | Citizens Advice / adviser guidance and UK Parliament written answers reached via search (citizensadvice.org.uk; questions-statements.parliament.uk/written-questions/detail/2022-03-23/145819) | winter months are October–March; the pensionable-age winter prohibition is cited to SLC 27.10 |
 | S5 | Energy UK, *Vulnerability Commitment* / "Safety Net" as described by S4 and Changeworks (changeworks.org.uk) | a **voluntary** supplier pledge, not a licence condition: never knowingly disconnect where welfare cannot be safeguarded due to age, health, disability or severe financial insecurity |
+| S6 | Ofgem press release, *More customers in vulnerable situations to receive help under the Priority Services Register*, **25 October 2016** (ofgem.gov.uk/press-release/more-customers-vulnerable-situations-receive-help-under-priority-services-register) | **fetched 2026-09-06**, closing the `UK_PSR_RATE_PCT` gap opened in §4. Verbatim: *"Around 3.6 million electricity and 3 million gas customers (13% of customers for both fuels) are signed up to suppliers' Priority Services Register."* Ofgem's *Consumer impacts of market conditions* survey (Jan–Feb 2024, reported in the Consumer Vulnerability Strategy Refresh consultation, Sept 2024) separately finds **~40% of households could access PSR support but have not signed up**. The 2025 Consumer Vulnerability Strategy decision PDF defeated automated extraction, as the licence conditions did — no current registered rate is sourced here. |
 
 ---
 
@@ -104,5 +105,15 @@ Three consequences, each of which decides a live question in the code:
   *any* type as WHD-eligible. WHD Core and Broader Group eligibility are defined by benefit receipt
   and property cost, not by PSR need — so that function is almost certainly wrong, and it decides
   a real payment on the live portal. It is named here as the next research question, not answered.
-- `UNSOURCED`: `PriorityServicesRegister.UK_PSR_RATE_PCT = 31.0`, described in the module as a "UK
-  benchmark", carries no citation.
+- ~~`UNSOURCED`: `PriorityServicesRegister.UK_PSR_RATE_PCT = 31.0`~~ — **CLOSED 2026-09-06, and the
+  number was wrong.** No published figure supports 31% of domestic customers being *registered*.
+  The sourced registered share is **13%** at 25 Oct 2016 (S6); the nearest thing to a 31 in the
+  record is the ~40% who *could* access PSR support and have not signed up, which is the **eligible**
+  share, not the registered one. Two different quantities, and the constant was named for neither —
+  the *before dividing two numbers, say what each one counts* shape, in the form of a benchmark
+  whose subject was never stated. Replaced by `UK_PSR_REGISTERED_PCT_2016` carrying
+  `UK_PSR_REGISTERED_PCT_AS_OF`, and reached by `penetration_against_published`, which returns the
+  date and a staleness flag beside the figure so the nine-year gap cannot be dropped in transit.
+- `UNSOURCED`, opened here: **the current registered rate.** The register has grown since 2016 and
+  Ofgem broadened eligibility again from January; the 2025 strategy PDF would answer it and did not
+  extract. Nothing in `company/` may quote a present-day PSR rate until it does.
