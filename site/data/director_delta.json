@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-05T13:58:37.972542+00:00",
+  "generated_at": "2026-09-06T14:31:14.178513+00:00",
   "stamp_version": 1,
   "stamp_file": "director_last_look.json",
   "stamp_status": "ok",
@@ -13,8 +13,8 @@
     "reserved_changed": 1,
     "reserved_added": 1,
     "reserved_cleared": 0,
-    "daemons_flipped": 1,
-    "daemons_newly_stale": 1,
+    "daemons_flipped": 3,
+    "daemons_newly_stale": 3,
     "daemons_recovered": 0,
     "daemons_appeared": 0,
     "daemons_disappeared": 0,
@@ -22,8 +22,8 @@
   },
   "changes": [
     "reserved queue: 1 added (publish_gate_wedged)",
-    "1 daemon(s) went stale: discovery-daemon",
-    "total_open_atoms: 55 -> 92"
+    "3 daemon(s) went stale: discovery-daemon, dispatcher, ntfy-responder",
+    "total_open_atoms: 55 -> 105"
   ],
   "detail": {
     "new_decisions": [],
@@ -32,7 +32,9 @@
     ],
     "reserved_cleared": [],
     "daemons_newly_stale": [
-      "discovery-daemon"
+      "discovery-daemon",
+      "dispatcher",
+      "ntfy-responder"
     ],
     "daemons_recovered": [],
     "daemons_appeared": [],
@@ -42,7 +44,7 @@
       {
         "field": "total_open_atoms",
         "from": 55,
-        "to": 92
+        "to": 105
       }
     ]
   },
@@ -57,8 +59,8 @@
       "staging-watcher": "live",
       "discovery-daemon": "stale",
       "sim-runner": "live",
-      "dispatcher": "live",
-      "ntfy-responder": "live",
+      "dispatcher": "stale",
+      "ntfy-responder": "stale",
       "autonomous-runner": "retired",
       "background-worker": "live",
       "epistemic-verifier": "live",
@@ -74,11 +76,11 @@
       "overturned": 0,
       "canon_version": 3
     },
-    "open_atoms": 92
+    "open_atoms": 105
   },
   "source_stamps": {
-    "reserved_generated_at": "2026-09-05T12:50:03.244913+00:00",
-    "health_last_updated": "2026-09-05T13:58:25.387200+00:00",
+    "reserved_generated_at": "2026-09-06T13:44:45.924391+00:00",
+    "health_last_updated": "2026-09-06T14:31:00.074807+00:00",
     "decisions_generated_at": "2026-07-19T06:25:33Z"
   }
 }

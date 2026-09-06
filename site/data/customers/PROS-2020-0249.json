@@ -4059,20 +4059,9 @@
     {
       "customer_id": "PROS-2020-0249",
       "date": "2021-07-26",
-      "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 44% churn risk, decided to offer a 3% discount (cost GBP24.38) against GBP416.09 expected term margin at risk -- expected value of offering GBP391.71. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.441,
-      "sim_truth": 0.211,
-      "amount_gbp": 391.71,
-      "outcome": "retained",
-      "framing_type": "gain_framed"
-    },
-    {
-      "customer_id": "PROS-2020-0249",
-      "date": "2021-07-26",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 44% churn risk at decision time, SIM realized probability was 21%.",
-      "company_belief": 0.441,
+      "description": "Renewal outcome: RENEWED -- company believed 18% churn risk at decision time, SIM realized probability was 21%.",
+      "company_belief": 0.175,
       "sim_truth": 0.211,
       "amount_gbp": null,
       "outcome": "renewed",

@@ -497,7 +497,7 @@
       "value_stream": "wholesale_to_price",
       "value_stream_label": "Wholesale to Price",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 4,
@@ -910,7 +910,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1069,
       "forward_attachments": []
     },
     {
@@ -923,7 +923,7 @@
       "level_current": 0,
       "level_target": 3,
       "loop_stage": "idle",
-      "dial_inherited": 45,
+      "dial_inherited": 50,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
@@ -959,7 +959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1027,7 +1027,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1049,7 +1049,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1095,7 +1095,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1161,7 +1161,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1203,7 +1203,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1235,7 +1235,7 @@
       "level_current": 0,
       "level_target": 3,
       "loop_stage": "idle",
-      "dial_inherited": 45,
+      "dial_inherited": 60,
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "EP16_anchored_generators"
@@ -1244,7 +1244,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": [
         {
           "source": "docs/staging/done/WORKER_FINDING_L1_TEXTURE_BAND_IS_GAS_SHAPED_2026-08-08.md",
@@ -1300,7 +1300,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1322,7 +1322,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1069,
       "forward_attachments": []
     },
     {
@@ -1457,7 +1457,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 16872,
+      "stall_consecutive_unchanged": 18075,
       "forward_attachments": []
     },
     {
@@ -1523,7 +1523,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1545,7 +1545,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1567,7 +1567,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1589,7 +1589,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1633,7 +1633,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1006,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -1712,7 +1712,7 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 45,
@@ -1737,9 +1737,9 @@
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 2,
       "level_target": 3,
-      "loop_stage": "build",
+      "loop_stage": "harden",
       "dial_inherited": 45,
       "expert_hour_status": "not_attempted",
       "depends_on": [
@@ -1750,12 +1750,12 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 62,
       "forward_attachments": []
     },
     {
-      "id": "H31_the_consistency_gate_disagreement_before_the_next_publish",
+      "id": "H46_the_consistency_gate_disagreement_before_the_next_publish",
       "name": "",
       "lane": "H_harness",
       "value_stream": "price_to_bill",
@@ -1775,7 +1775,7 @@
       "forward_attachments": []
     },
     {
-      "id": "H32_the_orientation_header_states_a_figure_it_computes",
+      "id": "H47_the_orientation_header_states_a_figure_it_computes",
       "name": "",
       "lane": "H_harness",
       "value_stream": "price_to_bill",
@@ -1791,11 +1791,11 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 21,
+      "stall_consecutive_unchanged": 17,
       "forward_attachments": []
     },
     {
-      "id": "W1_11_weather_cells_for_household_heat_load",
+      "id": "W1_14_weather_cells_for_household_heat_load",
       "name": "",
       "lane": "W1_market_weather",
       "value_stream": "price_to_bill",
@@ -1804,7 +1804,7 @@
       "level_current": 0,
       "level_target": 3,
       "loop_stage": "build",
-      "dial_inherited": 45,
+      "dial_inherited": 60,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [
@@ -1817,7 +1817,7 @@
       "forward_attachments": []
     },
     {
-      "id": "W2_12_the_housing_joint_the_sample_and_the_ceiling",
+      "id": "W2_18_the_housing_joint_the_sample_and_the_ceiling",
       "name": "",
       "lane": "W2_customer_generator",
       "value_stream": "price_to_bill",
@@ -1826,11 +1826,11 @@
       "level_current": 0,
       "level_target": 3,
       "loop_stage": "build",
-      "dial_inherited": 45,
+      "dial_inherited": 60,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [
-        "W1_11_weather_cells_for_household_heat_load"
+        "W1_14_weather_cells_for_household_heat_load"
       ],
       "chain": null,
       "at_target": false,
@@ -1839,7 +1839,7 @@
       "forward_attachments": []
     },
     {
-      "id": "W2_13_who_lives_where_money_and_composition",
+      "id": "W2_19_who_lives_where_money_and_composition",
       "name": "",
       "lane": "W2_customer_generator",
       "value_stream": "price_to_bill",
@@ -1848,13 +1848,12 @@
       "level_current": 0,
       "level_target": 3,
       "loop_stage": "build",
-      "dial_inherited": 45,
+      "dial_inherited": 60,
       "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W2_12_the_housing_joint_the_sample_and_the_ceiling"
-      ],
+      "depends_on": [],
       "couples_with": [
-        "W1_11_weather_cells_for_household_heat_load"
+        "W1_14_weather_cells_for_household_heat_load",
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
       ],
       "chain": null,
       "at_target": false,
@@ -1863,7 +1862,7 @@
       "forward_attachments": []
     },
     {
-      "id": "H33_the_parked_document_audit_is_the_idle_hole_at_scale",
+      "id": "H48_the_parked_document_audit_is_the_idle_hole_at_scale",
       "name": "",
       "lane": "H_harness",
       "value_stream": "close_to_learn",
@@ -1878,16 +1877,131 @@
       "couples_with": [],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 550,
       "forward_attachments": []
     },
     {
-      "id": "C31_one_obligation_one_vulnerability_scorer",
+      "id": "C32_one_obligation_one_vulnerability_scorer",
       "name": "",
       "lane": "C_customer_ops",
       "value_stream": "meter_to_cash",
       "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "harden",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 21,
+      "forward_attachments": []
+    },
+    {
+      "id": "D46_the_validator_holds_against_the_varied_population",
+      "name": "",
+      "lane": "D_billing_metering",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling",
+        "W2_19_who_lives_where_money_and_composition"
+      ],
+      "couples_with": [
+        "C32_one_obligation_one_vulnerability_scorer"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_21_the_premise_joint_is_fitted_not_drawn_independently",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system"
+      ],
+      "couples_with": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_22_the_sample_is_space_filling_and_rejects_on_outputs",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_21_the_premise_joint_is_fitted_not_drawn_independently"
+      ],
+      "couples_with": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",
+      "name": "",
+      "lane": "G_data_learning",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
       "epoch": 3,
       "level_current": 0,
       "level_target": 3,
@@ -1896,6 +2010,28 @@
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "G15_forward_curve_series_to_backtest_hedging_by_physics",
+      "name": "",
+      "lane": "E_finance_treasury",
+      "value_stream": "wholesale_to_price",
+      "value_stream_label": "Wholesale to Price",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement"
+      ],
       "chain": null,
       "at_target": false,
       "stalled": false,
@@ -1912,7 +2048,7 @@
       "level_current": 0,
       "level_target": 2,
       "loop_stage": "build",
-      "dial_inherited": 45,
+      "dial_inherited": 60,
       "expert_hour_status": "not_attempted",
       "depends_on": [],
       "couples_with": [
@@ -1967,8 +2103,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": 1,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
       "forward_attachments": []
     },
     {
@@ -1994,7 +2130,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1069,
       "forward_attachments": []
     },
     {
@@ -2021,29 +2157,6 @@
       "forward_attachments": []
     },
     {
-      "id": "SITE13_the_baseline_comparison_carries_its_bound",
-      "name": "The published baseline comparison states, on the rendered page, that it compares two internal policies in a market that could not react",
-      "lane": "H_harness",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 2,
-      "level_target": 2,
-      "loop_stage": "harden",
-      "dial_inherited": 1,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "B10_competitor_switching_response",
-        "A45_the_canon_is_a_standing_subject"
-      ],
-      "chain": null,
-      "at_target": true,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
       "id": "C30_advice_reaches_a_household",
       "name": "",
       "lane": "C_customer_ops",
@@ -2065,7 +2178,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1068,
       "forward_attachments": []
     },
     {
@@ -2090,7 +2203,169 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1007,
+      "stall_consecutive_unchanged": 1068,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_23_weather_phase2_the_other_loads_the_cells_do_not_carry",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_14_weather_cells_for_household_heat_load"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_24_weather_phase3_the_drivers_that_wait_on_a_population",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_14_weather_cells_for_household_heat_load"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 17,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_23_housing_phase2_what_the_company_can_see_of_a_house",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "couples_with": [
+        "W2_19_who_lives_where_money_and_composition"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_24_housing_phase3_houses_change_on_their_own_timeline",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling",
+        "W2_23_housing_phase2_what_the_company_can_see_of_a_house"
+      ],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 24,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_25_people_phase2_shape_and_attitudes",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_19_who_lives_where_money_and_composition"
+      ],
+      "couples_with": [
+        "W2_23_housing_phase2_what_the_company_can_see_of_a_house"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 31,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_26_people_phase3_the_residual_and_the_change",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "idle",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_19_who_lives_where_money_and_composition",
+        "W2_25_people_phase2_shape_and_attitudes"
+      ],
+      "couples_with": [
+        "W2_24_housing_phase3_houses_change_on_their_own_timeline"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 18,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_26_the_world_has_no_wind_term_and_the_belief_does",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "frame",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7166,6 +7441,145 @@
       "stalled": true,
       "stall_consecutive_unchanged": 23,
       "forward_attachments": []
+    },
+    {
+      "id": "W1_19_the_three_drivers_per_land_cell_from_the_normals",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_14_weather_cells_for_household_heat_load"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_20_household_weights_per_cell_from_the_census",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_14_weather_cells_for_household_heat_load"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_21_the_cells_and_the_level_coverage_curve",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_19_the_three_drivers_per_land_cell_from_the_normals",
+        "W1_20_household_weights_per_cell_from_the_census"
+      ],
+      "couples_with": [
+        "W1_14_weather_cells_for_household_heat_load"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_22_cold_spell_persistence_and_cross_cell_synchrony",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W1_19_the_three_drivers_per_land_cell_from_the_normals"
+      ],
+      "couples_with": [
+        "W1_14_weather_cells_for_household_heat_load"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "SITE13_the_baseline_comparison_carries_its_bound",
+      "name": "The published baseline comparison states, on the rendered page, that it compares two internal policies in a market that could not react",
+      "lane": "H_harness",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 1,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "B10_competitor_switching_response",
+        "A45_the_canon_is_a_standing_subject"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_21_the_cells_and_the_level_coverage_curve",
+        "W1_26_the_world_has_no_wind_term_and_the_belief_does"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     }
   ],
   "lanes": {
@@ -7248,7 +7662,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 320,
+  "total_atoms": 338,
   "epoch2_movements": [
     {
       "id": "M1",

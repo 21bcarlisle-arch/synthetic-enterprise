@@ -141,7 +141,7 @@ RAG: RED = immediate board action, AMBER = monitor closely, GREEN = on track.
 |----------------|-------|-----|-------------|
 | Revenue concentration | HHI 125, I&C 0% | **GREEN** | Single I&C departure removes 14-29%% of margin |
 | Gas segment ROC | 15.1x (net £45,441.82 on £3,000.01 capital) | **GREEN** | Gas legs destroy capital; electricity cross-subsidises |
-| Churn blind miss rate | 1/38 departures (3%) | **GREEN** | Company did not forecast these churns |
+| Churn blind miss rate | 2/38 departures (5%) | **GREEN** | Company did not forecast these churns |
 | Demand estimation error | Peak mean 0.7%, max 5.0% | **GREEN** | EAC drift from asset acquisitions; smart meters eliminate |
 | Pricing basis risk (worst year) | 2016: +10.0% mean over-estimate | **AMBER** | Over-priced contracts help margin but create churn risk |
 | Net margin % of revenue | 44.0% (benchmark: 2-5%) | **GREEN** | Within/above industry range |
@@ -240,7 +240,7 @@ Accounts lost before end of window: C1, C2, C3, C3_2, C4, C5, C6, C7, C8, C9, PR
 | PROS-2016-0042 | 2018-02-09 | renewed | 0.1100 | 0.5500 | 0.8218 | 0.3208 |
 | PROS-2017-0065 | 2018-02-16 | renewed | 0.0500 | 0.5500 | 0.8662 | 0.2525 |
 | SYN-2016-015 | 2018-02-27 | churned **CHURNED** | 0.4100 | 0.5500 | 0.5706 | 0.6402 |
-| SYN-2016-019 | 2018-03-11 | renewed | 0.1700 | 0.5500 | 0.8052 | 0.6517 |
+| SYN-2016-019 | 2018-03-11 | renewed | 0.1700 | 0.5500 | 0.8139 | 0.6517 |
 | SYN-2016-020 | 2018-03-11 | churned **CHURNED** | 0.4100 | 0.5500 | 0.6694 | 0.8147 |
 | C8 | 2018-04-01 | renewed | 0.2000 | 0.5500 | 0.8054 | 0.6055 |
 | SYN-2016-028 | 2018-04-08 | renewed | 0.4100 | 0.5500 | 0.5785 | 0.2810 |
@@ -248,7 +248,7 @@ Accounts lost before end of window: C1, C2, C3, C3_2, C4, C5, C6, C7, C8, C9, PR
 | SYN-2016-034 | 2018-05-03 | renewed | 0.3200 | 0.5500 | 0.8209 | 0.7821 |
 | SYN-2016-036 | 2018-05-07 | churned **CHURNED** | 0.4100 | 0.5500 | 0.5696 | 0.7546 |
 | SYN-2016-042 | 2018-05-30 | churned **CHURNED** | 0.4100 | 0.5500 | 0.5757 | 0.9735 |
-| PROS-2017-0185 | 2018-06-15 | renewed | 0.0500 | 0.5500 | 0.8793 | 0.8377 |
+| PROS-2017-0185 | 2018-06-15 | renewed | 0.0500 | 0.5500 | 0.8710 | 0.8377 |
 | C9 | 2018-07-01 | renewed | 0.2900 | 0.5500 | 0.6908 | 0.0794 |
 | SYN-2016-060 | 2018-08-24 | churned **CHURNED** | 0.4100 | 0.5500 | 0.5781 | 0.8034 |
 | C5 | 2018-12-31 | renewed | 0.1100 | 0.3500 | 0.6949 | 0.3096 |
@@ -285,7 +285,7 @@ Accounts lost before end of window: C1, C2, C3, C3_2, C4, C5, C6, C7, C8, C9, PR
 | SYN-2016-034 | 2021-05-02 | renewed | 0.0500 | 0.5500 | 0.8090 | 0.3165 |
 | PROS-2019-0164 | 2021-06-04 | renewed | 0.1700 | 0.5500 | 0.6135 | 0.1591 |
 | PROS-2020-0221 | 2021-07-05 | renewed | 0.0500 | 0.5500 | 0.8232 | 0.8215 |
-| PROS-2020-0249 | 2021-07-26 | renewed | 0.0500 | 0.5500 | 0.8035 | 0.3247 |
+| PROS-2020-0249 | 2021-07-26 | renewed | 0.0500 | 0.5500 | 0.7889 | 0.3247 |
 | PROS-2018-0238 | 2021-08-12 | churned **CHURNED** | 0.1400 | 0.5500 | 0.6982 | 0.9398 |
 | SYN-2016-057 | 2021-08-15 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8224 | 0.8746 |
 | PROS-2020-0287 | 2021-09-14 | churned **CHURNED** | 0.0500 | 0.5500 | 0.8430 | 0.8752 |
@@ -305,7 +305,7 @@ Accounts lost before end of window: C1, C2, C3, C3_2, C4, C5, C6, C7, C8, C9, PR
 | PROS-2022-0049 | 2024-02-17 | renewed | 0.4100 | 0.5500 | 0.5277 | 0.2441 |
 | PROS-2021-0060 | 2024-02-25 | renewed | 0.2900 | 0.5500 | 0.7169 | 0.4469 |
 | PROS-2020-0067 | 2024-02-26 | renewed | 0.3200 | 0.5500 | 0.6136 | 0.1027 |
-| PROS-2021-0105 | 2024-04-04 | renewed | 0.2300 | 0.5500 | 0.8015 | 0.1140 |
+| PROS-2021-0105 | 2024-04-04 | renewed | 0.2300 | 0.5500 | 0.8057 | 0.1140 |
 | SYN-2016-034 | 2024-05-01 | renewed | 0.2300 | 0.5500 | 0.7380 | 0.5404 |
 | SYN-2016-048 | 2024-06-18 | churned **CHURNED** | 0.2300 | 0.5500 | 0.7546 | 0.7784 |
 | PROS-2020-0221 | 2024-07-04 | renewed | 0.2300 | 0.5500 | 0.8057 | 0.6528 |
@@ -313,34 +313,34 @@ Accounts lost before end of window: C1, C2, C3, C3_2, C4, C5, C6, C7, C8, C9, PR
 | PROS-2021-0362 | 2024-11-22 | renewed | 0.4100 | 0.5500 | 0.6167 | 0.2219 |
 | PROS-2020-0391 | 2024-12-24 | renewed | 0.4100 | 0.5500 | 0.4865 | 0.0374 |
 | PROS-2023-0025 | 2025-01-20 | churned **CHURNED** | 0.4100 | 0.5500 | 0.4487 | 0.9905 |
-| PROS-2024-0040 | 2025-02-02 | renewed | 0.0500 | 0.5500 | 0.8376 | 0.8287 |
+| PROS-2024-0040 | 2025-02-02 | renewed | 0.0500 | 0.5500 | 0.8528 | 0.8287 |
 | PROS-2021-0060 | 2025-02-24 | renewed | 0.3800 | 0.5500 | 0.5985 | 0.4584 |
 | PROS-2020-0067 | 2025-02-25 | renewed | 0.3800 | 0.5500 | 0.4943 | 0.4290 |
 | PROS-2021-0105 | 2025-04-04 | renewed | 0.4100 | 0.5500 | 0.6433 | 0.4805 |
 | PROS-2024-0110 | 2025-04-11 | renewed | 0.0500 | 0.5500 | 0.8536 | 0.7998 |
 | PROS-2021-0133 | 2025-04-30 | renewed | 0.3800 | 0.5500 | 0.5091 | 0.4030 |
-| SYN-2016-034 | 2025-05-01 | renewed | 0.3800 | 0.5500 | 0.5745 | 0.2814 |
-| PROS-2021-0175 | 2025-06-07 | renewed | 0.2900 | 0.5500 | 0.6892 | 0.2997 |
+| SYN-2016-034 | 2025-05-01 | renewed | 0.3800 | 0.5500 | 0.5833 | 0.2814 |
+| PROS-2021-0175 | 2025-06-07 | renewed | 0.2900 | 0.5500 | 0.6830 | 0.2997 |
 
 ## Churn Prediction Basis Risk
 
 At each renewal the company estimated churn risk from observable signals (rate change %, customer tenure). The SIM used its bill-shock model (actual bill amount relative to customer-specific thresholds). The gap is epistemic: in crisis years the company sees a rate % while the SIM sees the household-level financial shock — the same failure mode that surprised real suppliers in 2021-22.
 
-- **Average absolute error:** 62.4%
-- **Average signed error:** +16.7% (over-estimates vs SIM)
+- **Average absolute error:** 70.2%
+- **Average signed error:** +20.4% (over-estimates vs SIM)
 - **Renewal events with estimates:** 110
 
 | Year | Renewals | Avg error (signed) | Avg abs error |
 |------|----------|--------------------|---------------|
 | 2016 | 1 | -39.8% | 39.8% |
-| 2017 | 21 | -43.4% | 43.4% |
-| 2018 | 19 | +66.1% | 68.8% |
-| 2019 | 12 | -24.6% | 39.9% |
-| 2020 | 15 | -26.3% | 55.2% |
-| 2021 | 14 | +81.2% | 94.2% |
-| 2023 | 6 | +137.7% | 144.8% |
-| 2024 | 13 | +16.1% | 56.5% |
-| 2025 | 9 | +5.7% | 41.6% |
+| 2017 | 21 | -43.1% | 43.1% |
+| 2018 | 19 | +67.3% | 75.2% |
+| 2019 | 12 | -26.7% | 47.4% |
+| 2020 | 15 | -27.3% | 63.7% |
+| 2021 | 14 | +84.3% | 101.3% |
+| 2023 | 6 | +158.5% | 178.9% |
+| 2024 | 13 | +33.7% | 66.4% |
+| 2025 | 9 | +8.4% | 52.0% |
 
 Positive error = company over-estimated churn vs SIM. Negative error = company under-estimated (more dangerous — expected retentions that were actually at risk).
 
@@ -349,20 +349,20 @@ Positive error = company over-estimated churn vs SIM. Negative error = company u
 ~35% of domestic/SME customers actively choose a new fixed deal at term end. ~65% roll to SVT by inaction — they are inert: low rate sensitivity, ~5% churn base. Crisis years (2022) force all renewals passive (no fixed deals available).
 
 - **Total renewal events:** 110
-- **Active renewers:** 94 (85%) — mean company estimate 30.3%, abs error 62.5%
-- **Passive SVT-rollers:** 16 (15%) — mean company estimate 17.3%, abs error 61.7%
+- **Active renewers:** 94 (85%) — mean company estimate 31.4%, abs error 71.6%
+- **Passive SVT-rollers:** 16 (15%) — mean company estimate 17.2%, abs error 61.7%
 
 | Year | Active | Passive | Active est | Passive est | Active abs err | Passive abs err |
 |------|--------|---------|-----------|------------|---------------|----------------|
 | 2016 | 0 | 1 | 0.0% | 9.6% | 0.0% | 39.8% |
-| 2017 | 17 | 4 | 14.8% | 5.9% | 35.5% | 76.9% |
-| 2018 | 18 | 1 | 39.6% | 34.0% | 60.8% | 213.5% |
-| 2019 | 9 | 3 | 20.8% | 23.6% | 32.8% | 61.3% |
-| 2020 | 12 | 3 | 20.8% | 21.9% | 61.9% | 28.2% |
-| 2021 | 12 | 2 | 40.9% | 23.8% | 104.7% | 30.6% |
-| 2023 | 6 | 0 | 34.7% | 0.0% | 144.8% | 0.0% |
-| 2024 | 11 | 2 | 40.6% | 12.7% | 58.0% | 48.3% |
-| 2025 | 9 | 0 | 33.1% | 0.0% | 41.6% | 0.0% |
+| 2017 | 17 | 4 | 15.0% | 5.9% | 35.1% | 76.9% |
+| 2018 | 18 | 1 | 40.3% | 34.0% | 67.5% | 213.3% |
+| 2019 | 9 | 3 | 19.6% | 23.4% | 42.8% | 61.1% |
+| 2020 | 12 | 3 | 20.8% | 21.9% | 72.6% | 28.1% |
+| 2021 | 12 | 2 | 41.3% | 23.8% | 113.1% | 30.6% |
+| 2023 | 6 | 0 | 36.9% | 0.0% | 178.9% | 0.0% |
+| 2024 | 11 | 2 | 47.2% | 12.6% | 69.7% | 48.6% |
+| 2025 | 9 | 0 | 33.9% | 0.0% | 52.0% | 0.0% |
 
 Passive renewers should show lower company estimates and lower SIM churn — high abs error for passive renewers indicates the passive model needs recalibration.
 
@@ -433,13 +433,13 @@ well-hedged and therefore not experiencing bill shocks during their last contrac
 |------|----------|-----------------------|---------------------|
 | 2016 | 1 | 0.40× | 0.40× |
 | 2017 | 21 | 0.43× | 0.86× |
-| 2018 | 19 | 0.69× | 2.14× |
-| 2019 | 12 | 0.40× | 0.72× |
-| 2020 | 15 | 0.55× | 1.54× |
-| 2021 | 14 | 0.94× | 2.82× |
-| 2023 | 6 | 1.45× | 4.41× |
-| 2024 | 13 | 0.56× | 2.18× |
-| 2025 | 9 | 0.42× | 1.11× |
+| 2018 | 19 | 0.75× | 2.18× |
+| 2019 | 12 | 0.47× | 0.71× |
+| 2020 | 15 | 0.64× | 1.79× |
+| 2021 | 14 | 1.01× | 3.51× |
+| 2023 | 6 | 1.79× | 5.33× |
+| 2024 | 13 | 0.66× | 2.71× |
+| 2025 | 9 | 0.52× | 1.37× |
 
 ### Demand Estimation Error (Phase AO)
 
@@ -504,52 +504,52 @@ Total events: **46** (38 churn, 8 acquisition)
 
 | Date | Event | Customer | Detail |
 |------|-------|----------|--------|
-| 2017-01-26 | CHURN | SYN-2016-008 | SIM p=0.26, company est=0.16 |
+| 2017-01-26 | CHURN | SYN-2016-008 | SIM p=0.26, company est=0.17 |
 | 2017-01-26 | ACQUISITION | SYN-2016-008_3 | market-acquisition (predecessor: SYN-2016-008) |
 | 2017-02-04 | CHURN | SYN-2016-009 | SIM p=0.20, company est=0.13 |
 | 2017-02-04 | ACQUISITION | SYN-2016-009_3 | market-acquisition (predecessor: SYN-2016-009) |
 | 2017-03-08 | CHURN | SYN-2016-018 | SIM p=0.20, company est=0.18 |
-| 2017-03-15 | CHURN | SYN-2016-022 | SIM p=0.20, company est=0.15 |
-| 2017-03-18 | CHURN | SYN-2016-023 | SIM p=0.22, company est=0.18 |
-| 2017-03-23 | CHURN | PROS-2016-0099 | SIM p=0.26, company est=0.13 |
+| 2017-03-15 | CHURN | SYN-2016-022 | SIM p=0.20, company est=0.16 |
+| 2017-03-18 | CHURN | SYN-2016-023 | SIM p=0.22, company est=0.19 |
+| 2017-03-23 | CHURN | PROS-2016-0099 | SIM p=0.26, company est=0.14 |
 | 2017-04-01 | CHURN | C6 | SIM p=0.22, company est=0.08 |
-| 2017-06-15 | CHURN | SYN-2016-044 | SIM p=0.25, company est=0.11 |
-| 2017-06-15 | CHURN | SYN-2016-045 | SIM p=0.24, company est=0.11 |
-| 2017-07-01 | CHURN | C3 | SIM p=0.25, company est=0.18 |
+| 2017-06-15 | CHURN | SYN-2016-044 | SIM p=0.25, company est=0.12 |
+| 2017-06-15 | CHURN | SYN-2016-045 | SIM p=0.24, company est=0.12 |
+| 2017-07-01 | CHURN | C3 | SIM p=0.25, company est=0.19 |
 | 2017-07-01 | ACQUISITION | C3_2 | home-move-win (predecessor: C3) |
-| 2017-12-31 | CHURN | C7 | SIM p=0.41, company est=0.21 |
-| 2018-01-26 | CHURN | SYN-2016-007 | SIM p=0.16, company est=0.22 |
-| 2018-01-27 | CHURN | PROS-2017-0038 | SIM p=0.15, company est=0.19 |
-| 2018-02-27 | CHURN | SYN-2016-015 | SIM p=0.44, company est=0.47 |
+| 2017-12-31 | CHURN | C7 | SIM p=0.41, company est=0.22 |
+| 2018-01-26 | CHURN | SYN-2016-007 | SIM p=0.16, company est=0.25 |
+| 2018-01-27 | CHURN | PROS-2017-0038 | SIM p=0.15, company est=0.22 |
+| 2018-02-27 | CHURN | SYN-2016-015 | SIM p=0.44, company est=0.54 |
 | 2018-02-27 | ACQUISITION | SYN-2016-015_3 | market-acquisition (predecessor: SYN-2016-015) |
-| 2018-03-11 | CHURN | SYN-2016-020 | SIM p=0.34, company est=0.48 |
-| 2018-05-07 | CHURN | SYN-2016-036 | SIM p=0.44, company est=0.58 |
-| 2018-05-30 | CHURN | SYN-2016-042 | SIM p=0.43, company est=0.49 |
-| 2018-08-24 | CHURN | SYN-2016-060 | SIM p=0.43, company est=0.48 |
-| 2019-03-11 | CHURN | SYN-2016-019 | SIM p=0.25, company est=0.17 |
+| 2018-03-11 | CHURN | SYN-2016-020 | SIM p=0.34, company est=0.54 |
+| 2018-05-07 | CHURN | SYN-2016-036 | SIM p=0.44, company est=0.66 |
+| 2018-05-30 | CHURN | SYN-2016-042 | SIM p=0.43, company est=0.55 |
+| 2018-08-24 | CHURN | SYN-2016-060 | SIM p=0.43, company est=0.55 |
+| 2019-03-11 | CHURN | SYN-2016-019 | SIM p=0.25, company est=0.20 |
 | 2019-04-14 | CHURN | SYN-2016-030 | SIM p=0.59, company est=0.17 |
-| 2020-05-01 | CHURN | PROS-2018-0137 | SIM p=0.62, company est=0.31 |
+| 2020-05-01 | CHURN | PROS-2018-0137 | SIM p=0.62, company est=0.36 |
 | 2020-05-05 | CHURN | PROS-2019-0135 | SIM p=0.25, company est=0.31 |
-| 2020-06-30 | CHURN | C9 | SIM p=0.57, company est=0.11 |
-| 2020-07-29 | CHURN | PROS-2018-0223 | SIM p=0.36, company est=0.11 |
-| 2020-08-25 | CHURN | PROS-2019-0255 | SIM p=0.28, company est=0.13 |
+| 2020-06-30 | CHURN | C9 | SIM p=0.57, company est=0.13 |
+| 2020-07-29 | CHURN | PROS-2018-0223 | SIM p=0.36, company est=0.13 |
+| 2020-08-25 | CHURN | PROS-2019-0255 | SIM p=0.28, company est=0.05 |
 | 2020-12-30 | CHURN | C5 | SIM p=0.96, company est=0.26 |
-| 2020-12-31 | CHURN | SYN-2016-001 | SIM p=0.78, company est=0.36 |
+| 2020-12-31 | CHURN | SYN-2016-001 | SIM p=0.78, company est=0.43 |
 | 2021-08-12 | CHURN | PROS-2018-0238 | SIM p=0.30, company est=0.15 |
 | 2021-08-12 | ACQUISITION | PROS-2018-0238_3 | market-acquisition (predecessor: PROS-2018-0238) |
-| 2021-08-15 | CHURN | SYN-2016-057 | SIM p=0.20, company est=0.54 |
-| 2021-09-14 | CHURN | PROS-2020-0287 | SIM p=0.17, company est=0.57 |
-| 2021-09-30 | CHURN | PROS-2020-0303 | SIM p=0.17, company est=0.47 |
+| 2021-08-15 | CHURN | SYN-2016-057 | SIM p=0.20, company est=0.57 |
+| 2021-09-14 | CHURN | PROS-2020-0287 | SIM p=0.17, company est=0.61 |
+| 2021-09-30 | CHURN | PROS-2020-0303 | SIM p=0.17, company est=0.56 |
 | 2021-09-30 | ACQUISITION | PROS-2020-0303_3 | market-acquisition (predecessor: PROS-2020-0303) |
-| 2021-10-08 | CHURN | PROS-2019-0310 | SIM p=0.16, company est=0.62 |
+| 2021-10-08 | CHURN | PROS-2019-0310 | SIM p=0.16, company est=0.73 |
 | 2021-10-08 | ACQUISITION | PROS-2019-0310_3 | market-acquisition (predecessor: PROS-2019-0310) |
-| 2021-10-24 | CHURN | PROS-2019-0329 | SIM p=0.49, company est=0.60 |
-| 2024-01-11 | CHURN | PROS-2019-0009 | SIM p=0.41, company est=0.48 |
+| 2021-10-24 | CHURN | PROS-2019-0329 | SIM p=0.49, company est=0.71 |
+| 2024-01-11 | CHURN | PROS-2019-0009 | SIM p=0.41, company est=0.56 |
 | 2024-01-11 | ACQUISITION | PROS-2019-0009_3 | market-acquisition (predecessor: PROS-2019-0009) |
 | 2024-01-26 | CHURN | PROS-2021-0029 | SIM p=0.30, company est=0.15 |
-| 2024-06-18 | CHURN | SYN-2016-048 | SIM p=0.25, company est=0.79 |
-| 2024-09-17 | CHURN | PROS-2021-0288 | SIM p=0.36, company est=0.17 |
-| 2025-01-20 | CHURN | PROS-2023-0025 | SIM p=0.55, company est=0.23 |
+| 2024-06-18 | CHURN | SYN-2016-048 | SIM p=0.25, company est=0.92 |
+| 2024-09-17 | CHURN | PROS-2021-0288 | SIM p=0.36, company est=0.20 |
+| 2025-01-20 | CHURN | PROS-2023-0025 | SIM p=0.55, company est=0.26 |
 
 **Year-end position in this event stream (one source, no cross-check):**
 
@@ -798,15 +798,15 @@ Threshold for elevated risk: >20% company gas churn estimate.
 
 | Metric | Value |
 |--------|-------|
-| Offers made | 45 |
-| Retained | 30 (67%) |
+| Offers made | 46 |
+| Retained | 31 (67%) |
 | Churned despite offer | 15 |
-| Total offer cost (foregone margin) | £1,134.58 |
-| Margin saved (retained customers' terms) | £11,950.89 |
-| Wasted offer cost (churned anyway) | £308.40 |
-| **Net ROI of retention strategy** | **£10,816.31** |
-| Acquisition cost avoided (retained customers) | £797.50 |
-| **Full economic ROI (margin + acq savings)** | **£11,613.81** |
+| Total offer cost (foregone margin) | £1,220.18 |
+| Margin saved (retained customers' terms) | £12,239.30 |
+| Wasted offer cost (churned anyway) | £371.03 |
+| **Net ROI of retention strategy** | **£11,019.12** |
+| Acquisition cost avoided (retained customers) | £825.00 |
+| **Full economic ROI (margin + acq savings)** | **£11,844.12** |
 
 Missed opportunities (churns with no offer): **23** (£9,076.13 expected margin lost without offer)
 - **Below threshold** (churn estimate under 30%): 23 (£9,076.13 margin lost) — Phase 13c bill burden signal reduces this for high-spend SME customers
@@ -816,63 +816,64 @@ Missed opportunities (churns with no offer): **23** (£9,076.13 expected margin 
 | Year | Offers | Retained | Offer Cost | Margin Saved | Net ROI | Missed Margin |
 |------|--------|----------|-----------|-------------|---------|---------------|
 | 2017 | 0 | 0 | £0.00 | £0.00 | £0.00 | £3884.70 |
-| 2018 | 14 | 9 | £331.10 | £3171.56 | £2840.46 | £363.28 |
+| 2018 | 14 | 9 | £368.82 | £3173.87 | £2805.05 | £363.28 |
 | 2019 | 2 | 2 | £24.61 | £461.81 | £437.20 | £398.06 |
-| 2020 | 4 | 1 | £38.46 | £130.50 | £92.04 | £3132.04 |
-| 2021 | 9 | 4 | £204.50 | £1114.21 | £909.70 | £261.19 |
+| 2020 | 4 | 1 | £41.89 | £130.50 | £88.61 | £3132.04 |
+| 2021 | 8 | 3 | £197.52 | £698.12 | £500.60 | £261.19 |
 | 2023 | 3 | 3 | £149.55 | £1826.96 | £1677.41 | £0.00 |
-| 2024 | 8 | 6 | £263.18 | £3411.06 | £3147.88 | £680.36 |
-| 2025 | 5 | 5 | £123.18 | £1834.80 | £1711.62 | £356.51 |
+| 2024 | 9 | 7 | £290.93 | £3802.00 | £3511.07 | £680.36 |
+| 2025 | 6 | 6 | £146.87 | £2146.05 | £1999.18 | £356.51 |
 
 ### Per-Offer Detail
 
 | Date | Customer | Est. churn | Discount | Offer Cost | Expected Margin | Acq Saved | Net | Outcome |
 |------|----------|-----------|---------|-----------|----------------|-----------|-----|---------|
 | 2018-01-01 | SYN-2016-001 | 0.34 | 3% | £8.32 | £163.77 | £28 | £155.45 | retained |
-| 2018-01-16 | SYN-2016-004 | 0.31 | 3% | £15.30 | £266.13 | £28 | £250.82 | retained |
-| 2018-02-09 | PROS-2016-0042 | 0.39 | 3% | £8.40 | £137.16 | £28 | £128.76 | retained |
-| 2018-02-16 | PROS-2017-0065 | 0.34 | 3% | £19.82 | £323.86 | £28 | £304.05 | retained |
-| 2018-02-27 | SYN-2016-015 | 0.47 | 3% | £17.16 | £278.80 | £28 | £-17.16 | churned_despite_offer |
-| 2018-03-11 | SYN-2016-020 | 0.48 | 3% | £19.69 | £321.68 | £28 | £-19.69 | churned_despite_offer |
-| 2018-04-08 | SYN-2016-028 | 0.40 | 3% | £14.59 | £278.04 | £28 | £263.45 | retained |
-| 2018-04-26 | SYN-2016-032 | 0.61 | 5% | £17.14 | £153.57 | £28 | £136.43 | retained |
-| 2018-05-03 | SYN-2016-034 | 0.52 | 5% | £15.76 | £149.52 | £28 | £133.75 | retained |
-| 2018-05-07 | SYN-2016-036 | 0.58 | 5% | £18.79 | £181.88 | £28 | £-18.79 | churned_despite_offer |
-| 2018-05-30 | SYN-2016-042 | 0.49 | 3% | £8.40 | £158.25 | £28 | £-8.40 | churned_despite_offer |
-| 2018-06-15 | PROS-2017-0185 | 0.36 | 3% | £6.05 | £118.14 | £28 | £112.09 | retained |
-| 2018-08-24 | SYN-2016-060 | 0.48 | 3% | £19.63 | £351.62 | £28 | £-19.63 | churned_despite_offer |
+| 2018-01-16 | SYN-2016-004 | 0.35 | 3% | £15.30 | £266.13 | £28 | £250.82 | retained |
+| 2018-02-09 | PROS-2016-0042 | 0.44 | 3% | £8.40 | £137.16 | £28 | £128.76 | retained |
+| 2018-02-16 | PROS-2017-0065 | 0.39 | 3% | £19.82 | £323.86 | £28 | £304.05 | retained |
+| 2018-02-27 | SYN-2016-015 | 0.54 | 5% | £28.60 | £278.80 | £28 | £-28.60 | churned_despite_offer |
+| 2018-03-11 | SYN-2016-019 | 0.30 | 3% | £7.37 | £120.45 | £28 | £113.07 | retained |
+| 2018-03-11 | SYN-2016-020 | 0.54 | 5% | £32.81 | £321.68 | £28 | £-32.81 | churned_despite_offer |
+| 2018-04-08 | SYN-2016-028 | 0.46 | 3% | £14.59 | £278.04 | £28 | £263.45 | retained |
+| 2018-04-26 | SYN-2016-032 | 0.31 | 3% | £10.28 | £153.57 | £28 | £143.29 | retained |
+| 2018-05-03 | SYN-2016-034 | 0.59 | 5% | £15.76 | £149.52 | £28 | £133.75 | retained |
+| 2018-05-07 | SYN-2016-036 | 0.66 | 5% | £18.79 | £181.88 | £28 | £-18.79 | churned_despite_offer |
+| 2018-05-30 | SYN-2016-042 | 0.55 | 5% | £13.99 | £158.25 | £28 | £-13.99 | churned_despite_offer |
+| 2018-08-24 | SYN-2016-060 | 0.55 | 5% | £32.72 | £351.62 | £28 | £-32.72 | churned_despite_offer |
 | 2018-12-31 | C5 | 0.53 | 5% | £142.06 | £1581.37 | £0 | £1439.31 | retained |
 | 2019-01-01 | SYN-2016-001 | 0.36 | 3% | £10.00 | £174.90 | £28 | £164.90 | retained |
-| 2019-05-02 | PROS-2018-0137 | 0.31 | 3% | £14.61 | £286.91 | £28 | £272.30 | retained |
-| 2020-05-01 | PROS-2018-0137 | 0.31 | 3% | £12.76 | £297.02 | £28 | £-12.76 | churned_despite_offer |
+| 2019-05-02 | PROS-2018-0137 | 0.36 | 3% | £14.61 | £286.91 | £28 | £272.30 | retained |
+| 2020-05-01 | PROS-2018-0137 | 0.36 | 3% | £12.76 | £297.02 | £28 | £-12.76 | churned_despite_offer |
 | 2020-05-05 | PROS-2019-0135 | 0.31 | 3% | £10.92 | £255.24 | £28 | £-10.92 | churned_despite_offer |
-| 2020-06-04 | PROS-2019-0164 | 0.48 | 3% | £5.14 | £130.50 | £28 | £125.36 | retained |
-| 2020-12-31 | SYN-2016-001 | 0.36 | 3% | £9.63 | £205.97 | £28 | £-9.63 | churned_despite_offer |
+| 2020-06-04 | PROS-2019-0164 | 0.53 | 5% | £8.57 | £130.50 | £28 | £121.94 | retained |
+| 2020-12-31 | SYN-2016-001 | 0.43 | 3% | £9.63 | £205.97 | £28 | £-9.63 | churned_despite_offer |
 | 2021-02-15 | PROS-2017-0065 | 0.32 | 3% | £22.09 | £379.13 | £28 | £357.04 | retained |
-| 2021-06-04 | PROS-2019-0164 | 0.32 | 3% | £6.95 | £133.11 | £28 | £126.16 | retained |
-| 2021-07-05 | PROS-2020-0221 | 0.43 | 3% | £11.10 | £185.88 | £28 | £174.77 | retained |
-| 2021-07-26 | PROS-2020-0249 | 0.44 | 3% | £24.38 | £416.09 | £28 | £391.71 | retained |
-| 2021-08-15 | SYN-2016-057 | 0.54 | 5% | £43.38 | £435.01 | £28 | £-43.38 | churned_despite_offer |
-| 2021-09-14 | PROS-2020-0287 | 0.57 | 5% | £22.16 | £196.65 | £28 | £-22.16 | churned_despite_offer |
-| 2021-09-30 | PROS-2020-0303 | 0.47 | 3% | £14.98 | £194.89 | £28 | £-14.98 | churned_despite_offer |
-| 2021-10-08 | PROS-2019-0310 | 0.62 | 5% | £28.00 | £231.73 | £28 | £-28.00 | churned_despite_offer |
-| 2021-10-24 | PROS-2019-0329 | 0.60 | 5% | £31.46 | £62.90 | £28 | £-31.46 | churned_despite_offer |
-| 2023-08-03 | SYN-2016-055 | 0.61 | 5% | £25.88 | £287.68 | £28 | £261.80 | retained |
-| 2023-11-23 | PROS-2021-0362 | 0.31 | 3% | £23.94 | £433.25 | £28 | £409.31 | retained |
-| 2023-12-25 | PROS-2020-0391 | 0.53 | 5% | £99.72 | £1106.03 | £28 | £1006.30 | retained |
-| 2024-01-11 | PROS-2019-0009 | 0.48 | 3% | £14.10 | £244.78 | £28 | £-14.10 | churned_despite_offer |
-| 2024-02-17 | PROS-2022-0049 | 0.38 | 3% | £28.93 | £575.05 | £28 | £546.12 | retained |
-| 2024-02-25 | PROS-2021-0060 | 0.50 | 5% | £38.56 | £456.59 | £28 | £418.03 | retained |
-| 2024-02-26 | PROS-2020-0067 | 0.62 | 5% | £45.20 | £531.46 | £28 | £486.26 | retained |
-| 2024-05-01 | SYN-2016-034 | 0.43 | 3% | £12.31 | £262.12 | £28 | £249.82 | retained |
-| 2024-06-18 | SYN-2016-048 | 0.79 | 8% | £37.33 | £324.41 | £28 | £-37.33 | churned_despite_offer |
-| 2024-11-22 | PROS-2021-0362 | 0.33 | 3% | £22.29 | £452.76 | £28 | £430.48 | retained |
-| 2024-12-24 | PROS-2020-0391 | 0.41 | 3% | £64.47 | £1133.07 | £28 | £1068.60 | retained |
-| 2025-02-24 | PROS-2021-0060 | 0.39 | 3% | £26.12 | £460.64 | £28 | £434.52 | retained |
-| 2025-04-04 | PROS-2021-0105 | 0.41 | 3% | £25.09 | £365.80 | £28 | £340.71 | retained |
-| 2025-04-11 | PROS-2024-0110 | 0.33 | 3% | £14.76 | £248.91 | £28 | £234.15 | retained |
-| 2025-04-30 | PROS-2021-0133 | 0.51 | 5% | £41.46 | £442.73 | £28 | £401.27 | retained |
-| 2025-06-07 | PROS-2021-0175 | 0.39 | 3% | £15.74 | £316.71 | £28 | £300.97 | retained |
+| 2021-06-04 | PROS-2019-0164 | 0.35 | 3% | £6.95 | £133.11 | £28 | £126.16 | retained |
+| 2021-07-05 | PROS-2020-0221 | 0.51 | 5% | £18.51 | £185.88 | £28 | £167.37 | retained |
+| 2021-08-15 | SYN-2016-057 | 0.57 | 5% | £43.38 | £435.01 | £28 | £-43.38 | churned_despite_offer |
+| 2021-09-14 | PROS-2020-0287 | 0.61 | 5% | £22.16 | £196.65 | £28 | £-22.16 | churned_despite_offer |
+| 2021-09-30 | PROS-2020-0303 | 0.56 | 5% | £24.97 | £194.89 | £28 | £-24.97 | churned_despite_offer |
+| 2021-10-08 | PROS-2019-0310 | 0.73 | 5% | £28.00 | £231.73 | £28 | £-28.00 | churned_despite_offer |
+| 2021-10-24 | PROS-2019-0329 | 0.71 | 5% | £31.46 | £62.90 | £28 | £-31.46 | churned_despite_offer |
+| 2023-08-03 | SYN-2016-055 | 0.71 | 5% | £25.88 | £287.68 | £28 | £261.80 | retained |
+| 2023-11-23 | PROS-2021-0362 | 0.35 | 3% | £23.94 | £433.25 | £28 | £409.31 | retained |
+| 2023-12-25 | PROS-2020-0391 | 0.62 | 5% | £99.72 | £1106.03 | £28 | £1006.30 | retained |
+| 2024-01-11 | PROS-2019-0009 | 0.56 | 5% | £23.50 | £244.78 | £28 | £-23.50 | churned_despite_offer |
+| 2024-02-17 | PROS-2022-0049 | 0.44 | 3% | £28.93 | £575.05 | £28 | £546.12 | retained |
+| 2024-02-25 | PROS-2021-0060 | 0.58 | 5% | £38.56 | £456.59 | £28 | £418.03 | retained |
+| 2024-02-26 | PROS-2020-0067 | 0.72 | 5% | £45.20 | £531.46 | £28 | £486.26 | retained |
+| 2024-04-04 | PROS-2021-0105 | 0.34 | 3% | £18.36 | £390.94 | £28 | £372.59 | retained |
+| 2024-05-01 | SYN-2016-034 | 0.50 | 3% | £12.31 | £262.12 | £28 | £249.82 | retained |
+| 2024-06-18 | SYN-2016-048 | 0.92 | 8% | £37.33 | £324.41 | £28 | £-37.33 | churned_despite_offer |
+| 2024-11-22 | PROS-2021-0362 | 0.37 | 3% | £22.29 | £452.76 | £28 | £430.48 | retained |
+| 2024-12-24 | PROS-2020-0391 | 0.48 | 3% | £64.47 | £1133.07 | £28 | £1068.60 | retained |
+| 2025-02-02 | PROS-2024-0040 | 0.30 | 3% | £24.78 | £366.04 | £28 | £341.26 | retained |
+| 2025-02-24 | PROS-2021-0060 | 0.44 | 3% | £26.12 | £460.64 | £28 | £434.52 | retained |
+| 2025-04-04 | PROS-2021-0105 | 0.46 | 3% | £25.09 | £365.80 | £28 | £340.71 | retained |
+| 2025-04-11 | PROS-2024-0110 | 0.37 | 3% | £14.76 | £248.91 | £28 | £234.15 | retained |
+| 2025-04-30 | PROS-2021-0133 | 0.57 | 5% | £41.46 | £442.73 | £28 | £401.27 | retained |
+| 2025-05-01 | SYN-2016-034 | 0.31 | 3% | £14.65 | £261.92 | £28 | £247.26 | retained |
 
 ## Retention Durability
 
@@ -885,20 +886,19 @@ Post-retention survival: how long did retained customers stay before churning or
 | PROS-2016-0042 | 2018-02-09 | (window end) | 95 | active |
 | PROS-2017-0065 | 2018-02-16 | (window end) | 94 | active |
 | SYN-2016-015 | 2018-02-27 | 2018-02-27 | 0 | churned |
+| SYN-2016-019 | 2018-03-11 | 2019-03-11 | 12 | churned |
 | SYN-2016-020 | 2018-03-11 | 2018-03-11 | 0 | churned |
 | SYN-2016-028 | 2018-04-08 | (window end) | 93 | active |
 | SYN-2016-032 | 2018-04-26 | (window end) | 92 | active |
 | SYN-2016-034 | 2018-05-03 | (window end) | 92 | active |
 | SYN-2016-036 | 2018-05-07 | 2018-05-07 | 0 | churned |
 | SYN-2016-042 | 2018-05-30 | 2018-05-30 | 0 | churned |
-| PROS-2017-0185 | 2018-06-15 | (window end) | 91 | active |
 | SYN-2016-060 | 2018-08-24 | 2018-08-24 | 0 | churned |
 | C5 | 2018-12-31 | 2020-12-30 | 24 | churned |
 | PROS-2018-0137 | 2019-05-02 | 2020-05-01 | 12 | churned |
 | PROS-2019-0135 | 2020-05-05 | 2020-05-05 | 0 | churned |
 | PROS-2019-0164 | 2020-06-04 | (window end) | 67 | active |
 | PROS-2020-0221 | 2021-07-05 | (window end) | 54 | active |
-| PROS-2020-0249 | 2021-07-26 | (window end) | 53 | active |
 | SYN-2016-057 | 2021-08-15 | 2021-08-15 | 0 | churned |
 | PROS-2020-0287 | 2021-09-14 | 2021-09-14 | 0 | churned |
 | PROS-2020-0303 | 2021-09-30 | 2021-09-30 | 0 | churned |
@@ -911,14 +911,14 @@ Post-retention survival: how long did retained customers stay before churning or
 | PROS-2022-0049 | 2024-02-17 | (window end) | 22 | active |
 | PROS-2021-0060 | 2024-02-25 | (window end) | 22 | active |
 | PROS-2020-0067 | 2024-02-26 | (window end) | 22 | active |
+| PROS-2021-0105 | 2024-04-04 | (window end) | 21 | active |
 | SYN-2016-048 | 2024-06-18 | 2024-06-18 | 0 | churned |
-| PROS-2021-0105 | 2025-04-04 | (window end) | 9 | active |
+| PROS-2024-0040 | 2025-02-02 | (window end) | 11 | active |
 | PROS-2024-0110 | 2025-04-11 | (window end) | 9 | active |
 | PROS-2021-0133 | 2025-04-30 | (window end) | 8 | active |
-| PROS-2021-0175 | 2025-06-07 | (window end) | 7 | active |
 
-**Eventually churned (16/36)**: SYN-2016-001, SYN-2016-015, SYN-2016-020, SYN-2016-036, SYN-2016-042, SYN-2016-060, C5, PROS-2018-0137, PROS-2019-0135, SYN-2016-057, PROS-2020-0287, PROS-2020-0303, PROS-2019-0310, PROS-2019-0329, PROS-2019-0009, SYN-2016-048 — avg 4 months post-retention before final churn.
-**Still active (20/36)**: SYN-2016-004, PROS-2016-0042, PROS-2017-0065, SYN-2016-028, SYN-2016-032, SYN-2016-034, PROS-2017-0185, PROS-2019-0164, PROS-2020-0221, PROS-2020-0249, SYN-2016-055, PROS-2021-0362, PROS-2020-0391, PROS-2022-0049, PROS-2021-0060, PROS-2020-0067, PROS-2021-0105, PROS-2024-0110, PROS-2021-0133, PROS-2021-0175 — survived to simulation end.
+**Eventually churned (17/35)**: SYN-2016-001, SYN-2016-015, SYN-2016-019, SYN-2016-020, SYN-2016-036, SYN-2016-042, SYN-2016-060, C5, PROS-2018-0137, PROS-2019-0135, SYN-2016-057, PROS-2020-0287, PROS-2020-0303, PROS-2019-0310, PROS-2019-0329, PROS-2019-0009, SYN-2016-048 — avg 5 months post-retention before final churn.
+**Still active (18/35)**: SYN-2016-004, PROS-2016-0042, PROS-2017-0065, SYN-2016-028, SYN-2016-032, SYN-2016-034, PROS-2019-0164, PROS-2020-0221, SYN-2016-055, PROS-2021-0362, PROS-2020-0391, PROS-2022-0049, PROS-2021-0060, PROS-2020-0067, PROS-2021-0105, PROS-2024-0040, PROS-2024-0110, PROS-2021-0133 — survived to simulation end.
 
 ## Retention as Deferral (H1 vs H2)
 
@@ -934,14 +934,15 @@ Every retention offer prices one renewal term margin (H1, assumed 12 months). Th
 | PROS-2017-0065 | 2018-02-16 | 12 mo | 36.0 mo | next_offer | no |
 | PROS-2017-0065 | 2021-02-15 | 12 mo | still active | none yet | no |
 | SYN-2016-015 | 2018-02-27 | 12 mo | 0.0 mo | churn | yes |
+| SYN-2016-019 | 2018-03-11 | 12 mo | 12.0 mo | churn | no |
 | SYN-2016-020 | 2018-03-11 | 12 mo | 0.0 mo | churn | yes |
 | SYN-2016-028 | 2018-04-08 | 12 mo | still active | none yet | no |
 | SYN-2016-032 | 2018-04-26 | 12 mo | still active | none yet | no |
 | SYN-2016-034 | 2018-05-03 | 12 mo | 71.9 mo | next_offer | no |
-| SYN-2016-034 | 2024-05-01 | 12 mo | still active | none yet | no |
+| SYN-2016-034 | 2024-05-01 | 12 mo | 12.0 mo | next_offer | no |
+| SYN-2016-034 | 2025-05-01 | 12 mo | still active | none yet | no |
 | SYN-2016-036 | 2018-05-07 | 12 mo | 0.0 mo | churn | yes |
 | SYN-2016-042 | 2018-05-30 | 12 mo | 0.0 mo | churn | yes |
-| PROS-2017-0185 | 2018-06-15 | 12 mo | still active | none yet | no |
 | SYN-2016-060 | 2018-08-24 | 12 mo | 0.0 mo | churn | yes |
 | C5 | 2018-12-31 | 12 mo | 24.0 mo | churn | no |
 | PROS-2018-0137 | 2019-05-02 | 12 mo | 12.0 mo | next_offer | no |
@@ -950,7 +951,6 @@ Every retention offer prices one renewal term margin (H1, assumed 12 months). Th
 | PROS-2019-0164 | 2020-06-04 | 12 mo | 12.0 mo | next_offer | no |
 | PROS-2019-0164 | 2021-06-04 | 12 mo | still active | none yet | no |
 | PROS-2020-0221 | 2021-07-05 | 12 mo | still active | none yet | no |
-| PROS-2020-0249 | 2021-07-26 | 12 mo | still active | none yet | no |
 | SYN-2016-057 | 2021-08-15 | 12 mo | 0.0 mo | churn | yes |
 | PROS-2020-0287 | 2021-09-14 | 12 mo | 0.0 mo | churn | yes |
 | PROS-2020-0303 | 2021-09-30 | 12 mo | 0.0 mo | churn | yes |
@@ -966,16 +966,17 @@ Every retention offer prices one renewal term margin (H1, assumed 12 months). Th
 | PROS-2021-0060 | 2024-02-25 | 12 mo | 12.0 mo | next_offer | no |
 | PROS-2021-0060 | 2025-02-24 | 12 mo | still active | none yet | no |
 | PROS-2020-0067 | 2024-02-26 | 12 mo | still active | none yet | no |
-| SYN-2016-048 | 2024-06-18 | 12 mo | 0.0 mo | churn | yes |
+| PROS-2021-0105 | 2024-04-04 | 12 mo | 12.0 mo | next_offer | no |
 | PROS-2021-0105 | 2025-04-04 | 12 mo | still active | none yet | no |
+| SYN-2016-048 | 2024-06-18 | 12 mo | 0.0 mo | churn | yes |
+| PROS-2024-0040 | 2025-02-02 | 12 mo | still active | none yet | no |
 | PROS-2024-0110 | 2025-04-11 | 12 mo | still active | none yet | no |
 | PROS-2021-0133 | 2025-04-30 | 12 mo | still active | none yet | no |
-| PROS-2021-0175 | 2025-06-07 | 12 mo | still active | none yet | no |
 
-15/25 resolved offers (60%) underperformed their assumed deferral window -- the next offer or churn arrived sooner than the term the discount was priced to buy.
+15/28 resolved offers (54%) underperformed their assumed deferral window -- the next offer or churn arrived sooner than the term the discount was priced to buy.
 
-Serial savers (8): PROS-2020-0391 (2 offers, £164), PROS-2021-0060 (2 offers, £65), PROS-2021-0362 (2 offers, £46), PROS-2017-0065 (2 offers, £42), SYN-2016-034 (2 offers, £28), SYN-2016-001 (3 offers, £28), PROS-2018-0137 (2 offers, £27), PROS-2019-0164 (2 offers, £12).
-EV-negative (2/8): SYN-2016-001, PROS-2018-0137 -- churned anyway after £55 of cumulative discount spend across repeat offers. Managed-exit territory, not another offer.
+Serial savers (9): PROS-2020-0391 (2 offers, £164), PROS-2021-0060 (2 offers, £65), PROS-2021-0362 (2 offers, £46), PROS-2021-0105 (2 offers, £43), SYN-2016-034 (3 offers, £43), PROS-2017-0065 (2 offers, £42), SYN-2016-001 (3 offers, £28), PROS-2018-0137 (2 offers, £27), PROS-2019-0164 (2 offers, £16).
+EV-negative (2/9): SYN-2016-001, PROS-2018-0137 -- churned anyway after £55 of cumulative discount spend across repeat offers. Managed-exit territory, not another offer.
 
 ## Enterprise Value Analysis (Phase 22a)
 
@@ -1820,11 +1821,11 @@ Board-level synthesis of CRM and flexibility intelligence derived from observabl
 
 ### 1. Retention Intelligence
 
-- **Retention offers made:** 45
-- **Offer acceptance rate:** 67% (30 retained / 15 churned despite offer)
-- **Estimated margin protected:** £11,950.89
+- **Retention offers made:** 46
+- **Offer acceptance rate:** 67% (31 retained / 15 churned despite offer)
+- **Estimated margin protected:** £12,239.30
 - **No-offer churns:** 23 total (0 blind miss / 0 deliberate pass)
-- **Retention coverage rate:** 66% of at-risk renewals received an offer
+- **Retention coverage rate:** 67% of at-risk renewals received an offer
 
 ### 2. Flexibility Revenue Intelligence
 
@@ -1849,74 +1850,74 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 | Account | Seg | Risk Band | Sim Churn | Co. Est. | Rate vs SVT | Lifetime Margin |
 |---------|-----|-----------|-----------|----------|-------------|-----------------|
 | C5 | SME | CRITICAL | 96% | 26% | -23.1% [competitive] | £-693.79 |
-| SYN-2016-001 | resi | CRITICAL | 78% | 36% | -22.0% [competitive] | £-73.75 |
-| PROS-2018-0137 | resi | CRITICAL | 62% | 31% | -33.8% [competitive] | £-76.25 |
+| SYN-2016-001 | resi | CRITICAL | 78% | 43% | -22.0% [competitive] | £-73.75 |
+| PROS-2018-0137 | resi | CRITICAL | 62% | 36% | -33.8% [competitive] | £-76.25 |
 | SYN-2016-030 | resi | CRITICAL | 59% | 17% | -25.7% [competitive] | £200.32 |
-| C9 | resi | CRITICAL | 57% | 11% | -39.5% [competitive] | £268.40 |
-| PROS-2023-0025 | resi | CRITICAL | 55% | 23% | -3.6% | £256.47 |
-| PROS-2020-0391 | resi | CRITICAL | 52% | 41% | -6.0% | £1,631.16 |
-| C8 | resi | CRITICAL | 52% | 11% | -33.8% [competitive] | £3,432.33 |
-| PROS-2020-0067 | resi | CRITICAL | 51% | 18% | -11.9% | £1,165.23 |
-| PROS-2021-0133 | resi | HIGH | 49% | 51% | -15.0% | £1,127.17 |
-| PROS-2019-0329 | resi | HIGH | 49% | 60% | +0.0% | £131.43 |
-| PROS-2022-0049 | resi | HIGH | 47% | 38% | -25.8% [competitive] | £501.14 |
-| SYN-2016-032 | resi | HIGH | 45% | 61% | +0.6% | £373.41 |
-| SYN-2016-015 | resi | HIGH | 44% | 47% | -9.2% | £161.20 |
-| SYN-2016-036 | resi | HIGH | 44% | 58% | -3.3% | £121.26 |
-| SYN-2016-042 | resi | HIGH | 43% | 49% | -15.7% | £102.74 |
-| SYN-2016-028 | resi | HIGH | 43% | 40% | -16.6% | £185.53 |
-| SYN-2016-060 | resi | HIGH | 43% | 48% | -10.0% | £-94.49 |
-| SYN-2016-034 | resi | HIGH | 43% | 28% | -15.3% | £1,132.16 |
-| PROS-2021-0060 | resi | HIGH | 41% | 39% | -7.2% | £1,192.25 |
-| PROS-2019-0009 | resi | HIGH | 41% | 48% | -15.3% | £716.02 |
-| C7 | resi | HIGH | 41% | 21% | -14.4% | £631.11 |
-| PROS-2019-0164 | resi | HIGH | 40% | 32% | -22.6% [competitive] | £834.57 |
-| PROS-2021-0362 | resi | HIGH | 39% | 33% | -18.4% | £716.78 |
-| PROS-2021-0105 | resi | HIGH | 36% | 41% | -2.8% | £1,059.10 |
-| PROS-2018-0223 | resi | HIGH | 36% | 11% | -37.7% [competitive] | £181.16 |
-| PROS-2021-0288 | resi | HIGH | 36% | 17% | -15.5% | £376.11 |
-| SYN-2016-020 | resi | HIGH | 34% | 48% | -9.7% | £162.53 |
-| PROS-2021-0175 | resi | HIGH | 32% | 39% | -24.6% [competitive] | £963.01 |
-| PROS-2018-0039 | resi | HIGH | 31% | 27% | -5.4% | £1,080.40 |
+| C9 | resi | CRITICAL | 57% | 13% | -39.5% [competitive] | £268.40 |
+| PROS-2023-0025 | resi | CRITICAL | 55% | 26% | -3.6% | £256.47 |
+| PROS-2020-0391 | resi | CRITICAL | 52% | 48% | -6.0% | £1,631.16 |
+| C8 | resi | CRITICAL | 52% | 4% | -33.8% [competitive] | £3,432.33 |
+| PROS-2020-0067 | resi | CRITICAL | 51% | 20% | -11.9% | £1,165.23 |
+| PROS-2021-0133 | resi | HIGH | 49% | 57% | -15.0% | £1,127.17 |
+| PROS-2019-0329 | resi | HIGH | 49% | 71% | +0.0% | £131.43 |
+| PROS-2022-0049 | resi | HIGH | 47% | 44% | -25.8% [competitive] | £501.14 |
+| SYN-2016-032 | resi | HIGH | 45% | 31% | +0.6% | £373.41 |
+| SYN-2016-015 | resi | HIGH | 44% | 54% | -9.2% | £161.20 |
+| SYN-2016-036 | resi | HIGH | 44% | 66% | -3.3% | £121.26 |
+| SYN-2016-042 | resi | HIGH | 43% | 55% | -15.7% | £102.74 |
+| SYN-2016-028 | resi | HIGH | 43% | 46% | -16.6% | £185.53 |
+| SYN-2016-060 | resi | HIGH | 43% | 55% | -10.0% | £-94.49 |
+| SYN-2016-034 | resi | HIGH | 43% | 31% | -15.3% | £1,132.16 |
+| PROS-2021-0060 | resi | HIGH | 41% | 44% | -7.2% | £1,192.25 |
+| PROS-2019-0009 | resi | HIGH | 41% | 56% | -15.3% | £716.02 |
+| C7 | resi | HIGH | 41% | 22% | -14.4% | £631.11 |
+| PROS-2019-0164 | resi | HIGH | 40% | 35% | -22.6% [competitive] | £834.57 |
+| PROS-2021-0362 | resi | HIGH | 39% | 37% | -18.4% | £716.78 |
+| PROS-2021-0105 | resi | HIGH | 36% | 46% | -2.8% | £1,059.10 |
+| PROS-2018-0223 | resi | HIGH | 36% | 13% | -37.7% [competitive] | £181.16 |
+| PROS-2021-0288 | resi | HIGH | 36% | 20% | -15.5% | £376.11 |
+| SYN-2016-020 | resi | HIGH | 34% | 54% | -9.7% | £162.53 |
+| PROS-2021-0175 | resi | HIGH | 32% | 14% | -24.6% [competitive] | £963.01 |
+| PROS-2018-0039 | resi | HIGH | 31% | 11% | -5.4% | £1,080.40 |
 | PROS-2021-0029 | resi | HIGH | 30% | 15% | -10.5% | £616.46 |
 | PROS-2018-0238 | resi | HIGH | 30% | 15% | -6.3% | £113.06 |
-| PROS-2016-0042 | resi | MEDIUM | 30% | 20% | -12.6% | £287.57 |
+| PROS-2016-0042 | resi | MEDIUM | 30% | 23% | -12.6% | £287.57 |
 | PROS-2017-0065 | resi | MEDIUM | 29% | 32% | -10.8% | £-1,863.62 |
-| PROS-2019-0255 | resi | MEDIUM | 28% | 13% | -37.2% [competitive] | £11.10 |
+| PROS-2019-0255 | resi | MEDIUM | 28% | 5% | -37.2% [competitive] | £11.10 |
 | SYN-2016-026 | resi | MEDIUM | 27% | 5% | -7.6% | £158.94 |
-| SYN-2016-008 | resi | MEDIUM | 26% | 16% | -4.7% | £16.76 |
-| PROS-2016-0099 | resi | MEDIUM | 26% | 13% | -8.6% | £58.72 |
+| SYN-2016-008 | resi | MEDIUM | 26% | 17% | -4.7% | £16.76 |
+| PROS-2016-0099 | resi | MEDIUM | 26% | 14% | -8.6% | £58.72 |
 | PROS-2019-0135 | resi | MEDIUM | 25% | 31% | -34.1% [competitive] | £-47.41 |
-| SYN-2016-048 | resi | MEDIUM | 25% | 79% | -28.2% [competitive] | £353.77 |
-| SYN-2016-019 | resi | MEDIUM | 25% | 17% | -15.6% | £68.79 |
-| SYN-2016-044 | resi | MEDIUM | 25% | 11% | -25.5% [competitive] | £25.90 |
-| C3 | resi | MEDIUM | 25% | 18% | -17.1% | £17.56 |
-| SYN-2016-045 | resi | MEDIUM | 24% | 11% | -25.5% [competitive] | £24.51 |
-| SYN-2016-023 | resi | MEDIUM | 22% | 18% | -8.5% | £-40.74 |
+| SYN-2016-048 | resi | MEDIUM | 25% | 92% | -28.2% [competitive] | £353.77 |
+| SYN-2016-019 | resi | MEDIUM | 25% | 20% | -15.6% | £68.79 |
+| SYN-2016-044 | resi | MEDIUM | 25% | 12% | -25.5% [competitive] | £25.90 |
+| C3 | resi | MEDIUM | 25% | 19% | -17.1% | £17.56 |
+| SYN-2016-045 | resi | MEDIUM | 24% | 12% | -25.5% [competitive] | £24.51 |
+| SYN-2016-023 | resi | MEDIUM | 22% | 19% | -8.5% | £-40.74 |
 | C6 | SME | MEDIUM | 22% | 8% | -13.2% | £-108.80 |
-| PROS-2019-0190 | resi | MEDIUM | 21% | 8% | -39.3% [competitive] | £1,060.11 |
-| PROS-2020-0249 | resi | MEDIUM | 21% | 44% | -11.5% | £1,308.60 |
-| SYN-2016-057 | resi | MEDIUM | 20% | 54% | -4.3% | £577.22 |
+| PROS-2019-0190 | resi | MEDIUM | 21% | 3% | -39.3% [competitive] | £1,060.11 |
+| PROS-2020-0249 | resi | MEDIUM | 21% | 17% | -11.5% | £1,308.60 |
+| SYN-2016-057 | resi | MEDIUM | 20% | 57% | -4.3% | £577.22 |
 | SYN-2016-018 | resi | MEDIUM | 20% | 18% | -9.1% | £42.69 |
-| SYN-2016-022 | resi | MEDIUM | 20% | 15% | -16.5% | £46.83 |
+| SYN-2016-022 | resi | MEDIUM | 20% | 16% | -16.5% | £46.83 |
 | SYN-2016-009 | resi | MEDIUM | 20% | 13% | -15.4% | £16.25 |
-| PROS-2019-0024 | resi | MEDIUM | 20% | 11% | -25.4% [competitive] | £1,331.39 |
-| PROS-2020-0347 | resi | MEDIUM | 20% | 26% | -27.1% [competitive] | £988.41 |
+| PROS-2019-0024 | resi | MEDIUM | 20% | 4% | -25.4% [competitive] | £1,331.39 |
+| PROS-2020-0347 | resi | MEDIUM | 20% | 9% | -27.1% [competitive] | £988.41 |
 | PROS-2020-0221 | resi | MEDIUM | 19% | 11% | -12.1% | £848.01 |
-| PROS-2020-0032 | resi | MEDIUM | 19% | 15% | -13.8% | £-342.40 |
-| PROS-2021-0324 | resi | MEDIUM | 19% | 15% | -25.6% [competitive] | £737.84 |
-| SYN-2016-062 | resi | MEDIUM | 17% | 7% | -25.4% [competitive] | £1,721.62 |
-| PROS-2020-0303 | resi | MEDIUM | 17% | 47% | +0.0% | £-123.06 |
-| PROS-2020-0287 | resi | MEDIUM | 17% | 57% | +0.0% | £-128.55 |
-| SYN-2016-007 | resi | MEDIUM | 16% | 22% | -10.4% | £-18.67 |
-| PROS-2024-0040 | resi | MEDIUM | 16% | 27% | +0.0% | £280.76 |
-| PROS-2019-0310 | resi | MEDIUM | 16% | 62% | +0.0% | £-110.41 |
-| PROS-2024-0110 | resi | MEDIUM | 16% | 33% | -10.4% | £213.50 |
-| PROS-2017-0038 | resi | LOW | 15% | 19% | -9.9% | £-36.06 |
-| PROS-2018-0016 | resi | LOW | 15% | 15% | -26.5% [competitive] | £1,520.94 |
-| PROS-2017-0185 | resi | LOW | 13% | 36% | -18.5% | £548.69 |
-| SYN-2016-004 | resi | LOW | 12% | 31% | -14.8% | £1,844.54 |
-| SYN-2016-055 | resi | LOW | 11% | 61% | -30.1% [competitive] | £1,115.21 |
+| PROS-2020-0032 | resi | MEDIUM | 19% | 18% | -13.8% | £-342.40 |
+| PROS-2021-0324 | resi | MEDIUM | 19% | 18% | -25.6% [competitive] | £737.84 |
+| SYN-2016-062 | resi | MEDIUM | 17% | 4% | -25.4% [competitive] | £1,721.62 |
+| PROS-2020-0303 | resi | MEDIUM | 17% | 56% | +0.0% | £-123.06 |
+| PROS-2020-0287 | resi | MEDIUM | 17% | 61% | +0.0% | £-128.55 |
+| SYN-2016-007 | resi | MEDIUM | 16% | 25% | -10.4% | £-18.67 |
+| PROS-2024-0040 | resi | MEDIUM | 16% | 30% | +0.0% | £280.76 |
+| PROS-2019-0310 | resi | MEDIUM | 16% | 73% | +0.0% | £-110.41 |
+| PROS-2024-0110 | resi | MEDIUM | 16% | 37% | -10.4% | £213.50 |
+| PROS-2017-0038 | resi | LOW | 15% | 22% | -9.9% | £-36.06 |
+| PROS-2018-0016 | resi | LOW | 15% | 18% | -26.5% [competitive] | £1,520.94 |
+| PROS-2017-0185 | resi | LOW | 13% | 18% | -18.5% | £548.69 |
+| SYN-2016-004 | resi | LOW | 12% | 35% | -14.8% | £1,844.54 |
+| SYN-2016-055 | resi | LOW | 11% | 71% | -30.1% [competitive] | £1,115.21 |
 
 **Risk Band Summary (latest renewal):**
 - CRITICAL (>=50%): 9 accounts
@@ -1925,87 +1926,90 @@ Latest renewal record per account. Risk bands: CRITICAL>=50% | HIGH>=30% | MEDIU
 - LOW (<15%): 5 accounts
 - Lifetime margin at risk (CRITICAL+HIGH): £18,494.25
 
+**Company blind spot:** 1 HIGH/CRITICAL account(s) where company churn estimate was <10%.
+  - C8: sim 52%, company est 4%
+
 ## Churn Root Cause Attribution
 
 Per-churned-account analysis: pricing journey, rate-vs-SVT positioning, and company vs SIM churn estimate at the point of departure.
 
 | Account | Seg | Churn Date | Tenure | Last Rate Shock | Rate vs SVT | Sim Risk | Co. Est. | Margin Lost |
 |---------|-----|------------|--------|-----------------|-------------|----------|----------|-------------|
-| SYN-2016-008 | resi | 2017-01-26 | 1.0yr | -5.0% | -4.7% | 26% | 16% | £16.76 |
+| SYN-2016-008 | resi | 2017-01-26 | 1.0yr | -5.0% | -4.7% | 26% | 17% | £16.76 |
 | SYN-2016-009 | resi | 2017-02-04 | 1.0yr | -5.0% | -15.4% | 20% | 13% | £16.25 |
 | SYN-2016-018 | resi | 2017-03-08 | 1.0yr | -5.0% | -9.1% | 20% | 18% | £42.69 |
-| SYN-2016-022 | resi | 2017-03-15 | 1.0yr | -5.0% | -16.5% | 20% | 15% | £46.83 |
-| SYN-2016-023 | resi | 2017-03-18 | 1.0yr | -5.0% | -8.5% | 22% | 18% | £-40.74 |
-| PROS-2016-0099 | resi | 2017-03-23 | 1.0yr | -5.0% | -8.6% | 26% | 13% | £58.72 |
+| SYN-2016-022 | resi | 2017-03-15 | 1.0yr | -5.0% | -16.5% | 20% | 16% | £46.83 |
+| SYN-2016-023 | resi | 2017-03-18 | 1.0yr | -5.0% | -8.5% | 22% | 19% | £-40.74 |
+| PROS-2016-0099 | resi | 2017-03-23 | 1.0yr | -5.0% | -8.6% | 26% | 14% | £58.72 |
 | C6 | SME | 2017-04-01 | 1.0yr | -5.0% | -13.2% | 22% | 8% | £-108.80 |
-| SYN-2016-044 | resi | 2017-06-15 | 1.0yr | -5.0% | -25.5% | 25% | 11% | £25.90 |
-| SYN-2016-045 | resi | 2017-06-15 | 1.0yr | -5.0% | -25.5% | 24% | 11% | £24.51 |
-| C3 | resi | 2017-07-01 | 1.0yr | -5.0% | -17.1% | 25% | 18% | £17.56 |
-| C7 | resi | 2017-12-31 | 2.0yr | -0.3% | -14.4% | 41% | 21% | £631.11 |
-| SYN-2016-007 | resi | 2018-01-26 | 2.0yr | -3.2% | -10.4% | 16% | 22% | £-18.67 |
-| PROS-2017-0038 | resi | 2018-01-27 | 1.0yr | -3.2% | -9.9% | 15% | 19% | £-36.06 |
-| SYN-2016-015 | resi | 2018-02-27 | 2.0yr | -5.0% | -9.2% | 44% | 47% | £161.20 |
-| SYN-2016-020 | resi | 2018-03-11 | 2.0yr | -5.0% | -9.7% | 34% | 48% | £162.53 |
-| SYN-2016-036 | resi | 2018-05-07 | 2.0yr | -5.0% | -3.3% | 44% | 58% | £121.26 |
-| SYN-2016-042 | resi | 2018-05-30 | 2.0yr | -5.0% | -15.7% | 43% | 49% | £102.74 |
-| SYN-2016-060 | resi | 2018-08-24 | 2.0yr | -4.1% | -10.0% | 43% | 48% | £-94.49 |
-| SYN-2016-019 | resi | 2019-03-11 | 3.0yr | -5.0% | -15.6% | 25% | 17% | £68.79 |
+| SYN-2016-044 | resi | 2017-06-15 | 1.0yr | -5.0% | -25.5% | 25% | 12% | £25.90 |
+| SYN-2016-045 | resi | 2017-06-15 | 1.0yr | -5.0% | -25.5% | 24% | 12% | £24.51 |
+| C3 | resi | 2017-07-01 | 1.0yr | -5.0% | -17.1% | 25% | 19% | £17.56 |
+| C7 | resi | 2017-12-31 | 2.0yr | -0.3% | -14.4% | 41% | 22% | £631.11 |
+| SYN-2016-007 | resi | 2018-01-26 | 2.0yr | -3.2% | -10.4% | 16% | 25% | £-18.67 |
+| PROS-2017-0038 | resi | 2018-01-27 | 1.0yr | -3.2% | -9.9% | 15% | 22% | £-36.06 |
+| SYN-2016-015 | resi | 2018-02-27 | 2.0yr | -5.0% | -9.2% | 44% | 54% | £161.20 |
+| SYN-2016-020 | resi | 2018-03-11 | 2.0yr | -5.0% | -9.7% | 34% | 54% | £162.53 |
+| SYN-2016-036 | resi | 2018-05-07 | 2.0yr | -5.0% | -3.3% | 44% | 66% | £121.26 |
+| SYN-2016-042 | resi | 2018-05-30 | 2.0yr | -5.0% | -15.7% | 43% | 55% | £102.74 |
+| SYN-2016-060 | resi | 2018-08-24 | 2.0yr | -4.1% | -10.0% | 43% | 55% | £-94.49 |
+| SYN-2016-019 | resi | 2019-03-11 | 3.0yr | -5.0% | -15.6% | 25% | 20% | £68.79 |
 | SYN-2016-030 | resi | 2019-04-14 | 3.0yr | -5.0% | -25.7% | 59% | 17% | £200.32 |
-| PROS-2018-0137 | resi | 2020-05-01 | 2.0yr | -5.0% | -33.8% | 62% | 31% | £-76.25 |
+| PROS-2018-0137 | resi | 2020-05-01 | 2.0yr | -5.0% | -33.8% | 62% | 36% | £-76.25 |
 | PROS-2019-0135 | resi | 2020-05-05 | 1.0yr | -5.0% | -34.1% | 25% | 31% | £-47.41 |
-| C9 | resi | 2020-06-30 | 4.0yr | -5.0% | -39.5% | 57% | 11% | £268.40 |
-| PROS-2018-0223 | resi | 2020-07-29 | 2.0yr | -5.0% | -37.7% | 36% | 11% | £181.16 |
-| PROS-2019-0255 | resi | 2020-08-25 | 1.0yr | -5.0% | -37.2% | 28% | 13% | £11.10 |
+| C9 | resi | 2020-06-30 | 4.0yr | -5.0% | -39.5% | 57% | 13% | £268.40 |
+| PROS-2018-0223 | resi | 2020-07-29 | 2.0yr | -5.0% | -37.7% | 36% | 13% | £181.16 |
+| PROS-2019-0255 | resi | 2020-08-25 | 1.0yr | -5.0% | -37.2% | 28% | 5% | £11.10 |
 | C5 | SME | 2020-12-30 | 5.0yr | -1.1% | -23.1% | 96% | 26% | £-693.79 |
-| SYN-2016-001 | resi | 2020-12-31 | 5.0yr | -1.9% | -22.0% | 78% | 36% | £-73.75 |
+| SYN-2016-001 | resi | 2020-12-31 | 5.0yr | -1.9% | -22.0% | 78% | 43% | £-73.75 |
 | PROS-2018-0238 | resi | 2021-08-12 | 3.0yr | +0.0% | -6.3% | 30% | 15% | £113.06 |
-| SYN-2016-057 | resi | 2021-08-15 | 5.0yr | +0.9% | -4.3% | 20% | 54% | £577.22 |
-| PROS-2020-0287 | resi | 2021-09-14 | 1.0yr | -1.8% | +0.0% | 17% | 57% | £-128.55 |
-| PROS-2020-0303 | resi | 2021-09-30 | 1.0yr | -6.1% | +0.0% | 17% | 47% | £-123.06 |
-| PROS-2019-0310 | resi | 2021-10-08 | 2.0yr | -1.7% | +0.0% | 16% | 62% | £-110.41 |
-| PROS-2019-0329 | resi | 2021-10-24 | 2.0yr | -23.9% | +0.0% | 49% | 60% | £131.43 |
-| PROS-2019-0009 | resi | 2024-01-11 | 5.0yr | -5.0% | -15.3% | 41% | 48% | £716.02 |
+| SYN-2016-057 | resi | 2021-08-15 | 5.0yr | +0.9% | -4.3% | 20% | 57% | £577.22 |
+| PROS-2020-0287 | resi | 2021-09-14 | 1.0yr | -1.8% | +0.0% | 17% | 61% | £-128.55 |
+| PROS-2020-0303 | resi | 2021-09-30 | 1.0yr | -6.1% | +0.0% | 17% | 56% | £-123.06 |
+| PROS-2019-0310 | resi | 2021-10-08 | 2.0yr | -1.7% | +0.0% | 16% | 73% | £-110.41 |
+| PROS-2019-0329 | resi | 2021-10-24 | 2.0yr | -23.9% | +0.0% | 49% | 71% | £131.43 |
+| PROS-2019-0009 | resi | 2024-01-11 | 5.0yr | -5.0% | -15.3% | 41% | 56% | £716.02 |
 | PROS-2021-0029 | resi | 2024-01-26 | 3.0yr | -5.0% | -10.5% | 30% | 15% | £616.46 |
-| SYN-2016-048 | resi | 2024-06-18 | 8.0yr | -5.0% | -28.2% | 25% | 79% | £353.77 |
-| PROS-2021-0288 | resi | 2024-09-17 | 3.0yr | -5.0% | -15.5% | 36% | 17% | £376.11 |
-| PROS-2023-0025 | resi | 2025-01-20 | 2.0yr | -4.5% | -3.6% | 55% | 23% | £256.47 |
+| SYN-2016-048 | resi | 2024-06-18 | 8.0yr | -5.0% | -28.2% | 25% | 92% | £353.77 |
+| PROS-2021-0288 | resi | 2024-09-17 | 3.0yr | -5.0% | -15.5% | 36% | 20% | £376.11 |
+| PROS-2023-0025 | resi | 2025-01-20 | 2.0yr | -4.5% | -3.6% | 55% | 26% | £256.47 |
 
 **Root Cause Summary:**
 - Total churned accounts: 38
 - Lifetime margin lost: £3,746.39
 - Average tenure at departure: 2.3 years
-- Company-warned churns (co. est. >=20%): 19 -- C7, SYN-2016-007, SYN-2016-015, SYN-2016-020, SYN-2016-036, SYN-2016-042, SYN-2016-060, PROS-2018-0137, PROS-2019-0135, C5, SYN-2016-001, SYN-2016-057, PROS-2020-0287, PROS-2020-0303, PROS-2019-0310, PROS-2019-0329, PROS-2019-0009, SYN-2016-048, PROS-2023-0025
+- Company-warned churns (co. est. >=20%): 20 -- C7, SYN-2016-007, PROS-2017-0038, SYN-2016-015, SYN-2016-020, SYN-2016-036, SYN-2016-042, SYN-2016-060, PROS-2018-0137, PROS-2019-0135, C5, SYN-2016-001, SYN-2016-057, PROS-2020-0287, PROS-2020-0303, PROS-2019-0310, PROS-2019-0329, PROS-2019-0009, SYN-2016-048, PROS-2023-0025
 - Crisis-era churns (2021-22): 6 -- absolute crisis price level, not rate-change delta, was the driver
 
 ## Counterfactual Retention Value
 
-What would company-initiated retention offers have been worth for the 23 accounts that churned without an offer? Calibrated from 45 actual offers (observed retention rate 67%).
+What would company-initiated retention offers have been worth for the 23 accounts that churned without an offer? Calibrated from 46 actual offers (observed retention rate 67%).
 
 | Account | Seg | Churn Date | Co. Est. | Term Margin | Disc Rate | Retention Cost | CF Net Benefit | Assessment |
 |---------|-----|------------|----------|-------------|-----------|----------------|----------------|------------|
-| SYN-2016-008 | resi | 2017-01-26 | 16% | £148.84 | 5% | £7.44 | £91.78 | MISSED OPP. |
-| SYN-2016-009 | resi | 2017-02-04 | 13% | £106.76 | 5% | £5.34 | £65.83 | MISSED OPP. |
-| SYN-2016-018 | resi | 2017-03-08 | 18% | £118.23 | 5% | £5.91 | £72.91 | MISSED OPP. |
-| SYN-2016-022 | resi | 2017-03-15 | 15% | £224.16 | 5% | £11.21 | £138.23 | MISSED OPP. |
-| SYN-2016-023 | resi | 2017-03-18 | 18% | £127.28 | 5% | £6.36 | £78.49 | MISSED OPP. |
-| PROS-2016-0099 | resi | 2017-03-23 | 13% | £111.43 | 5% | £5.57 | £68.71 | MISSED OPP. |
-| C6 | SME | 2017-04-01 | 8% | £1,582.89 | 8% | £126.63 | £928.63 | MISSED OPP. |
-| SYN-2016-044 | resi | 2017-06-15 | 11% | £178.28 | 5% | £8.91 | £109.94 | MISSED OPP. |
-| SYN-2016-045 | resi | 2017-06-15 | 11% | £207.87 | 5% | £10.39 | £128.19 | MISSED OPP. |
-| C3 | resi | 2017-07-01 | 18% | £156.95 | 5% | £7.85 | £96.79 | MISSED OPP. |
-| C7 | resi | 2017-12-31 | 21% | £922.01 | 5% | £46.10 | £568.57 | MISSED OPP. |
-| SYN-2016-007 | resi | 2018-01-26 | 22% | £184.44 | 5% | £9.22 | £113.74 | MISSED OPP. |
-| PROS-2017-0038 | resi | 2018-01-27 | 19% | £178.84 | 5% | £8.94 | £110.29 | MISSED OPP. |
-| SYN-2016-019 | resi | 2019-03-11 | 17% | £130.20 | 5% | £6.51 | £80.29 | MISSED OPP. |
-| SYN-2016-030 | resi | 2019-04-14 | 17% | £267.87 | 5% | £13.39 | £165.18 | MISSED OPP. |
-| C9 | resi | 2020-06-30 | 11% | £1,018.47 | 5% | £50.92 | £628.06 | MISSED OPP. |
-| PROS-2018-0223 | resi | 2020-07-29 | 11% | £392.29 | 5% | £19.61 | £241.91 | MISSED OPP. |
-| PROS-2019-0255 | resi | 2020-08-25 | 13% | £167.33 | 5% | £8.37 | £103.18 | MISSED OPP. |
-| C5 | SME | 2020-12-30 | 26% | £1,553.95 | 8% | £124.32 | £911.65 | MISSED OPP. |
-| PROS-2018-0238 | resi | 2021-08-12 | 15% | £261.19 | 5% | £13.06 | £161.06 | MISSED OPP. |
-| PROS-2021-0029 | resi | 2024-01-26 | 15% | £453.62 | 5% | £22.68 | £279.73 | MISSED OPP. |
-| PROS-2021-0288 | resi | 2024-09-17 | 17% | £226.74 | 5% | £11.34 | £139.82 | MISSED OPP. |
-| PROS-2023-0025 | resi | 2025-01-20 | 23% | £356.51 | 5% | £17.83 | £219.85 | MISSED OPP. |
+| SYN-2016-008 | resi | 2017-01-26 | 17% | £148.84 | 5% | £7.44 | £92.86 | MISSED OPP. |
+| SYN-2016-009 | resi | 2017-02-04 | 13% | £106.76 | 5% | £5.34 | £66.61 | MISSED OPP. |
+| SYN-2016-018 | resi | 2017-03-08 | 18% | £118.23 | 5% | £5.91 | £73.76 | MISSED OPP. |
+| SYN-2016-022 | resi | 2017-03-15 | 16% | £224.16 | 5% | £11.21 | £139.86 | MISSED OPP. |
+| SYN-2016-023 | resi | 2017-03-18 | 19% | £127.28 | 5% | £6.36 | £79.41 | MISSED OPP. |
+| PROS-2016-0099 | resi | 2017-03-23 | 14% | £111.43 | 5% | £5.57 | £69.52 | MISSED OPP. |
+| C6 | SME | 2017-04-01 | 8% | £1,582.89 | 8% | £126.63 | £940.10 | MISSED OPP. |
+| SYN-2016-044 | resi | 2017-06-15 | 12% | £178.28 | 5% | £8.91 | £111.23 | MISSED OPP. |
+| SYN-2016-045 | resi | 2017-06-15 | 12% | £207.87 | 5% | £10.39 | £129.70 | MISSED OPP. |
+| C3 | resi | 2017-07-01 | 19% | £156.95 | 5% | £7.85 | £97.93 | MISSED OPP. |
+| C7 | resi | 2017-12-31 | 22% | £922.01 | 5% | £46.10 | £575.25 | MISSED OPP. |
+| SYN-2016-007 | resi | 2018-01-26 | 25% | £184.44 | 5% | £9.22 | £115.07 | MISSED OPP. |
+| PROS-2017-0038 | resi | 2018-01-27 | 22% | £178.84 | 5% | £8.94 | £111.58 | MISSED OPP. |
+| SYN-2016-019 | resi | 2019-03-11 | 20% | £130.20 | 5% | £6.51 | £81.23 | MISSED OPP. |
+| SYN-2016-030 | resi | 2019-04-14 | 17% | £267.87 | 5% | £13.39 | £167.12 | MISSED OPP. |
+| C9 | resi | 2020-06-30 | 13% | £1,018.47 | 5% | £50.92 | £635.44 | MISSED OPP. |
+| PROS-2018-0223 | resi | 2020-07-29 | 13% | £392.29 | 5% | £19.61 | £244.75 | MISSED OPP. |
+| PROS-2019-0255 | resi | 2020-08-25 | 5% | £167.33 | 5% | £8.37 | £104.40 | MISSED OPP. |
+| C5 | SME | 2020-12-30 | 26% | £1,553.95 | 8% | £124.32 | £922.91 | MISSED OPP. |
+| PROS-2018-0238 | resi | 2021-08-12 | 15% | £261.19 | 5% | £13.06 | £162.96 | MISSED OPP. |
+| PROS-2021-0029 | resi | 2024-01-26 | 15% | £453.62 | 5% | £22.68 | £283.02 | MISSED OPP. |
+| PROS-2021-0288 | resi | 2024-09-17 | 20% | £226.74 | 5% | £11.34 | £141.47 | MISSED OPP. |
+| PROS-2023-0025 | resi | 2025-01-20 | 26% | £356.51 | 5% | £17.83 | £222.43 | MISSED OPP. |
 
 **Counterfactual Summary:**
 - No-offer churns assessed: 23
@@ -2013,7 +2017,7 @@ What would company-initiated retention offers have been worth for the 23 account
 - Missed opportunities (positive ETM, below detection): 23
 - Total term margin foregone: £9,076.13
 - Total retention cost (counterfactual): £547.91
-- Net counterfactual benefit: £5,502.84 (at 67% retention probability)
+- Net counterfactual benefit: £5,568.61 (at 67% retention probability)
 - Root cause: company churn detection below threshold for all missed cases -- churn model underestimated bill-shock risk
 
 ## Pricing Basis Risk Attribution
@@ -2456,31 +2460,31 @@ Customers who reached a renewal/churn trigger but received no retention offer.
 
 | Customer | Date | Churn Estimate | Margin at Risk £ | Reason |
 |----------|------|---------------|-----------------|--------|
-| SYN-2016-008 | 2017-01 | 15.7% | £149 | below threshold ⚑ |
-| SYN-2016-009 | 2017-02 | 12.6% | £107 | below threshold |
-| SYN-2016-018 | 2017-03 | 17.5% | £118 | below threshold ⚑ |
-| SYN-2016-022 | 2017-03 | 14.8% | £224 | below threshold |
-| SYN-2016-023 | 2017-03 | 18.1% | £127 | below threshold ⚑ |
-| PROS-2016-0099 | 2017-03 | 13.1% | £111 | below threshold |
+| SYN-2016-008 | 2017-01 | 16.6% | £149 | below threshold ⚑ |
+| SYN-2016-009 | 2017-02 | 13.3% | £107 | below threshold |
+| SYN-2016-018 | 2017-03 | 18.5% | £118 | below threshold ⚑ |
+| SYN-2016-022 | 2017-03 | 15.7% | £224 | below threshold ⚑ |
+| SYN-2016-023 | 2017-03 | 19.4% | £127 | below threshold ⚑ |
+| PROS-2016-0099 | 2017-03 | 13.8% | £111 | below threshold |
 | C6 | 2017-04 | 7.9% | £1,583 | below threshold |
-| SYN-2016-044 | 2017-06 | 11.0% | £178 | below threshold |
-| SYN-2016-045 | 2017-06 | 11.0% | £208 | below threshold |
-| C3 | 2017-07 | 18.2% | £157 | below threshold ⚑ |
-| C7 | 2017-12 | 20.9% | £922 | below threshold ⚑ |
-| SYN-2016-007 | 2018-01 | 21.9% | £184 | below threshold ⚑ |
-| PROS-2017-0038 | 2018-01 | 19.1% | £179 | below threshold ⚑ |
-| SYN-2016-019 | 2019-03 | 17.3% | £130 | below threshold ⚑ |
-| SYN-2016-030 | 2019-04 | 17.3% | £268 | below threshold ⚑ |
-| C9 | 2020-06 | 11.1% | £1,018 | below threshold |
-| PROS-2018-0223 | 2020-07 | 11.1% | £392 | below threshold |
-| PROS-2019-0255 | 2020-08 | 13.4% | £167 | below threshold |
+| SYN-2016-044 | 2017-06 | 11.7% | £178 | below threshold |
+| SYN-2016-045 | 2017-06 | 11.7% | £208 | below threshold |
+| C3 | 2017-07 | 19.2% | £157 | below threshold ⚑ |
+| C7 | 2017-12 | 22.0% | £922 | below threshold ⚑ |
+| SYN-2016-007 | 2018-01 | 24.9% | £184 | below threshold ⚑ |
+| PROS-2017-0038 | 2018-01 | 21.6% | £179 | below threshold ⚑ |
+| SYN-2016-019 | 2019-03 | 20.0% | £130 | below threshold ⚑ |
+| SYN-2016-030 | 2019-04 | 17.1% | £268 | below threshold ⚑ |
+| C9 | 2020-06 | 12.9% | £1,018 | below threshold |
+| PROS-2018-0223 | 2020-07 | 12.9% | £392 | below threshold |
+| PROS-2019-0255 | 2020-08 | 5.1% | £167 | below threshold |
 | C5 | 2020-12 | 25.7% | £1,554 | below threshold ⚑ |
 | PROS-2018-0238 | 2021-08 | 15.2% | £261 | below threshold ⚑ |
-| PROS-2021-0029 | 2024-01 | 14.6% | £454 | below threshold |
-| PROS-2021-0288 | 2024-09 | 16.8% | £227 | below threshold ⚑ |
-| PROS-2023-0025 | 2025-01 | 23.3% | £357 | below threshold ⚑ |
+| PROS-2021-0029 | 2024-01 | 14.5% | £454 | below threshold |
+| PROS-2021-0288 | 2024-09 | 19.6% | £227 | below threshold ⚑ |
+| PROS-2023-0025 | 2025-01 | 26.2% | £357 | below threshold ⚑ |
 
-**High-risk no-offer events (≥10% churn): 22** — £7,493 margin at risk.
+**High-risk no-offer events (≥10% churn): 21** — £7,326 margin at risk.
 
 ### Gas Renewal Risk — High-Churn Reprice Events (≥15% estimate)
 
@@ -2509,51 +2513,52 @@ Per-offer cost, expected margin protected, and ROI for each retention interventi
 | SYN-2016-004 | 2018-01 | £15 | £266 | 17.4× | 3% | retained |
 | PROS-2016-0042 | 2018-02 | £8 | £137 | 16.3× | 3% | retained |
 | PROS-2017-0065 | 2018-02 | £20 | £324 | 16.3× | 3% | retained |
-| SYN-2016-015 | 2018-02 | £17 | £279 | 16.2× | 3% | churned_despite_offer |
-| SYN-2016-020 | 2018-03 | £20 | £322 | 16.3× | 3% | churned_despite_offer |
+| SYN-2016-015 | 2018-02 | £29 | £279 | 9.7× | 5% | churned_despite_offer |
+| SYN-2016-019 | 2018-03 | £7 | £120 | 16.3× | 3% | retained |
+| SYN-2016-020 | 2018-03 | £33 | £322 | 9.8× | 5% | churned_despite_offer |
 | SYN-2016-028 | 2018-04 | £15 | £278 | 19.1× | 3% | retained |
-| SYN-2016-032 | 2018-04 | £17 | £154 | 9.0× | 5% | retained |
+| SYN-2016-032 | 2018-04 | £10 | £154 | 14.9× | 3% | retained |
 | SYN-2016-034 | 2018-05 | £16 | £150 | 9.5× | 5% | retained |
 | SYN-2016-036 | 2018-05 | £19 | £182 | 9.7× | 5% | churned_despite_offer |
-| SYN-2016-042 | 2018-05 | £8 | £158 | 18.8× | 3% | churned_despite_offer |
-| PROS-2017-0185 | 2018-06 | £6 | £118 | 19.5× | 3% | retained |
-| SYN-2016-060 | 2018-08 | £20 | £352 | 17.9× | 3% | churned_despite_offer |
+| SYN-2016-042 | 2018-05 | £14 | £158 | 11.3× | 5% | churned_despite_offer |
+| SYN-2016-060 | 2018-08 | £33 | £352 | 10.7× | 5% | churned_despite_offer |
 | C5 | 2018-12 | £142 | £1,581 | 11.1× | 5% | retained |
 | SYN-2016-001 | 2019-01 | £10 | £175 | 17.5× | 3% | retained |
 | PROS-2018-0137 | 2019-05 | £15 | £287 | 19.6× | 3% | retained |
 | PROS-2018-0137 | 2020-05 | £13 | £297 | 23.3× | 3% | churned_despite_offer |
 | PROS-2019-0135 | 2020-05 | £11 | £255 | 23.4× | 3% | churned_despite_offer |
-| PROS-2019-0164 | 2020-06 | £5 | £131 | 25.4× | 3% | retained |
+| PROS-2019-0164 | 2020-06 | £9 | £131 | 15.2× | 5% | retained |
 | SYN-2016-001 | 2020-12 | £10 | £206 | 21.4× | 3% | churned_despite_offer |
 | PROS-2017-0065 | 2021-02 | £22 | £379 | 17.2× | 3% | retained |
 | PROS-2019-0164 | 2021-06 | £7 | £133 | 19.2× | 3% | retained |
-| PROS-2020-0221 | 2021-07 | £11 | £186 | 16.7× | 3% | retained |
-| PROS-2020-0249 | 2021-07 | £24 | £416 | 17.1× | 3% | retained |
+| PROS-2020-0221 | 2021-07 | £19 | £186 | 10.0× | 5% | retained |
 | SYN-2016-057 | 2021-08 | £43 | £435 | 10.0× | 5% | churned_despite_offer |
 | PROS-2020-0287 | 2021-09 | £22 | £197 | 8.9× | 5% | churned_despite_offer |
-| PROS-2020-0303 | 2021-09 | £15 | £195 | 13.0× | 3% | churned_despite_offer |
+| PROS-2020-0303 | 2021-09 | £25 | £195 | 7.8× | 5% | churned_despite_offer |
 | PROS-2019-0310 | 2021-10 | £28 | £232 | 8.3× | 5% | churned_despite_offer |
 | PROS-2019-0329 | 2021-10 | £31 | £63 | 2.0× | 5% | churned_despite_offer |
 | SYN-2016-055 | 2023-08 | £26 | £288 | 11.1× | 5% | retained |
 | PROS-2021-0362 | 2023-11 | £24 | £433 | 18.1× | 3% | retained |
 | PROS-2020-0391 | 2023-12 | £100 | £1,106 | 11.1× | 5% | retained |
-| PROS-2019-0009 | 2024-01 | £14 | £245 | 17.4× | 3% | churned_despite_offer |
+| PROS-2019-0009 | 2024-01 | £23 | £245 | 10.4× | 5% | churned_despite_offer |
 | PROS-2022-0049 | 2024-02 | £29 | £575 | 19.9× | 3% | retained |
 | PROS-2021-0060 | 2024-02 | £39 | £457 | 11.8× | 5% | retained |
 | PROS-2020-0067 | 2024-02 | £45 | £531 | 11.8× | 5% | retained |
+| PROS-2021-0105 | 2024-04 | £18 | £391 | 21.3× | 3% | retained |
 | SYN-2016-034 | 2024-05 | £12 | £262 | 21.3× | 3% | retained |
 | SYN-2016-048 | 2024-06 | £37 | £324 | 8.7× | 8% | churned_despite_offer |
 | PROS-2021-0362 | 2024-11 | £22 | £453 | 20.3× | 3% | retained |
 | PROS-2020-0391 | 2024-12 | £64 | £1,133 | 17.6× | 3% | retained |
+| PROS-2024-0040 | 2025-02 | £25 | £366 | 14.8× | 3% | retained |
 | PROS-2021-0060 | 2025-02 | £26 | £461 | 17.6× | 3% | retained |
 | PROS-2021-0105 | 2025-04 | £25 | £366 | 14.6× | 3% | retained |
 | PROS-2024-0110 | 2025-04 | £15 | £249 | 16.9× | 3% | retained |
 | PROS-2021-0133 | 2025-04 | £41 | £443 | 10.7× | 5% | retained |
-| PROS-2021-0175 | 2025-06 | £16 | £317 | 20.1× | 3% | retained |
+| SYN-2016-034 | 2025-05 | £15 | £262 | 17.9× | 3% | retained |
 
-**Total retention spend: £1,135** | **Total margin protected: £15,692**
-**Portfolio retention ROI: 13.8×** | **Retained: 30/45**
-**Best ROI intervention: PROS-2019-0164 2020-06 (25.4×)**
+**Total retention spend: £1,220** | **Total margin protected: £15,980**
+**Portfolio retention ROI: 13.1×** | **Retained: 31/46**
+**Best ROI intervention: PROS-2019-0135 2020-05 (23.4×)**
 
 > ROI = expected remaining-term margin ÷ retention cost (discount given).
 > Churn probability weighted; 95% churn estimate used for I&C renewal trigger.
@@ -2821,47 +2826,47 @@ How well the company estimated churn probability versus actual simulation outcom
 
 | Customer | Date | Sim Probability | Company Estimate | Delta | Verdict |
 |----------|------|----------------|-----------------|-------|---------|
-| SYN-2016-008 | 2017-01 | 26.0% | 15.7% | -10.3pp | UNDERESTIMATED |
-| SYN-2016-009 | 2017-02 | 19.8% | 12.6% | -7.2pp | ACCURATE |
-| SYN-2016-018 | 2017-03 | 19.8% | 17.5% | -2.3pp | ACCURATE |
-| SYN-2016-022 | 2017-03 | 19.8% | 14.8% | -5.0pp | ACCURATE |
-| SYN-2016-023 | 2017-03 | 22.2% | 18.1% | -4.1pp | ACCURATE |
-| PROS-2016-0099 | 2017-03 | 25.9% | 13.1% | -12.9pp | UNDERESTIMATED |
+| SYN-2016-008 | 2017-01 | 26.0% | 16.6% | -9.4pp | ACCURATE |
+| SYN-2016-009 | 2017-02 | 19.8% | 13.3% | -6.5pp | ACCURATE |
+| SYN-2016-018 | 2017-03 | 19.8% | 18.5% | -1.3pp | ACCURATE |
+| SYN-2016-022 | 2017-03 | 19.8% | 15.7% | -4.1pp | ACCURATE |
+| SYN-2016-023 | 2017-03 | 22.2% | 19.4% | -2.8pp | ACCURATE |
+| PROS-2016-0099 | 2017-03 | 25.9% | 13.8% | -12.1pp | UNDERESTIMATED |
 | C6 | 2017-04 | 22.1% | 7.9% | -14.2pp | UNDERESTIMATED |
-| SYN-2016-044 | 2017-06 | 24.6% | 11.0% | -13.6pp | UNDERESTIMATED |
-| SYN-2016-045 | 2017-06 | 23.8% | 11.0% | -12.7pp | UNDERESTIMATED |
-| C3 | 2017-07 | 24.6% | 18.2% | -6.5pp | ACCURATE |
-| C7 | 2017-12 | 40.7% | 20.9% | -19.9pp | UNDERESTIMATED |
-| SYN-2016-007 | 2018-01 | 16.5% | 21.9% | +5.5pp | ACCURATE |
-| PROS-2017-0038 | 2018-01 | 14.9% | 19.1% | +4.1pp | ACCURATE |
-| SYN-2016-015 | 2018-02 | 43.8% | 47.5% | +3.6pp | ACCURATE |
-| SYN-2016-020 | 2018-03 | 33.7% | 47.8% | +14.0pp | OVERESTIMATED |
-| SYN-2016-036 | 2018-05 | 43.8% | 57.9% | +14.0pp | OVERESTIMATED |
-| SYN-2016-042 | 2018-05 | 43.3% | 48.5% | +5.2pp | ACCURATE |
-| SYN-2016-060 | 2018-08 | 42.8% | 48.1% | +5.3pp | ACCURATE |
-| SYN-2016-019 | 2019-03 | 24.7% | 17.3% | -7.5pp | ACCURATE |
-| SYN-2016-030 | 2019-04 | 58.9% | 17.3% | -41.6pp | UNDERESTIMATED |
-| PROS-2018-0137 | 2020-05 | 61.6% | 31.0% | -30.6pp | UNDERESTIMATED |
-| PROS-2019-0135 | 2020-05 | 25.4% | 31.0% | +5.6pp | ACCURATE |
-| C9 | 2020-06 | 57.3% | 11.1% | -46.2pp | UNDERESTIMATED |
-| PROS-2018-0223 | 2020-07 | 36.4% | 11.1% | -25.3pp | UNDERESTIMATED |
-| PROS-2019-0255 | 2020-08 | 28.2% | 13.4% | -14.8pp | UNDERESTIMATED |
-| C5 | 2020-12 | 95.7% | 25.7% | -70.0pp | UNDERESTIMATED |
-| SYN-2016-001 | 2020-12 | 78.3% | 36.5% | -41.8pp | UNDERESTIMATED |
+| SYN-2016-044 | 2017-06 | 24.6% | 11.7% | -13.0pp | UNDERESTIMATED |
+| SYN-2016-045 | 2017-06 | 23.8% | 11.7% | -12.1pp | UNDERESTIMATED |
+| C3 | 2017-07 | 24.6% | 19.2% | -5.4pp | ACCURATE |
+| C7 | 2017-12 | 40.7% | 22.0% | -18.7pp | UNDERESTIMATED |
+| SYN-2016-007 | 2018-01 | 16.5% | 24.9% | +8.4pp | ACCURATE |
+| PROS-2017-0038 | 2018-01 | 14.9% | 21.6% | +6.7pp | ACCURATE |
+| SYN-2016-015 | 2018-02 | 43.8% | 53.9% | +10.0pp | OVERESTIMATED |
+| SYN-2016-020 | 2018-03 | 33.7% | 54.2% | +20.4pp | OVERESTIMATED |
+| SYN-2016-036 | 2018-05 | 43.8% | 65.6% | +21.8pp | OVERESTIMATED |
+| SYN-2016-042 | 2018-05 | 43.3% | 55.0% | +11.8pp | OVERESTIMATED |
+| SYN-2016-060 | 2018-08 | 42.8% | 54.5% | +11.8pp | OVERESTIMATED |
+| SYN-2016-019 | 2019-03 | 24.7% | 20.0% | -4.8pp | ACCURATE |
+| SYN-2016-030 | 2019-04 | 58.9% | 17.1% | -41.8pp | UNDERESTIMATED |
+| PROS-2018-0137 | 2020-05 | 61.6% | 36.3% | -25.3pp | UNDERESTIMATED |
+| PROS-2019-0135 | 2020-05 | 25.4% | 30.9% | +5.6pp | ACCURATE |
+| C9 | 2020-06 | 57.3% | 12.9% | -44.4pp | UNDERESTIMATED |
+| PROS-2018-0223 | 2020-07 | 36.4% | 12.9% | -23.5pp | UNDERESTIMATED |
+| PROS-2019-0255 | 2020-08 | 28.2% | 5.1% | -23.0pp | UNDERESTIMATED |
+| C5 | 2020-12 | 95.7% | 25.7% | -70.1pp | UNDERESTIMATED |
+| SYN-2016-001 | 2020-12 | 78.3% | 42.6% | -35.7pp | UNDERESTIMATED |
 | PROS-2018-0238 | 2021-08 | 30.2% | 15.2% | -15.0pp | UNDERESTIMATED |
-| SYN-2016-057 | 2021-08 | 20.0% | 53.7% | +33.7pp | OVERESTIMATED |
-| PROS-2020-0287 | 2021-09 | 16.6% | 57.0% | +40.4pp | OVERESTIMATED |
-| PROS-2020-0303 | 2021-09 | 17.1% | 47.1% | +30.1pp | OVERESTIMATED |
-| PROS-2019-0310 | 2021-10 | 16.2% | 62.0% | +45.8pp | OVERESTIMATED |
-| PROS-2019-0329 | 2021-10 | 48.5% | 60.1% | +11.6pp | OVERESTIMATED |
-| PROS-2019-0009 | 2024-01 | 41.0% | 48.2% | +7.2pp | ACCURATE |
-| PROS-2021-0029 | 2024-01 | 30.2% | 14.6% | -15.6pp | UNDERESTIMATED |
-| SYN-2016-048 | 2024-06 | 24.9% | 79.1% | +54.2pp | OVERESTIMATED |
-| PROS-2021-0288 | 2024-09 | 36.0% | 16.8% | -19.1pp | UNDERESTIMATED |
-| PROS-2023-0025 | 2025-01 | 55.1% | 23.3% | -31.8pp | UNDERESTIMATED |
+| SYN-2016-057 | 2021-08 | 20.0% | 57.2% | +37.2pp | OVERESTIMATED |
+| PROS-2020-0287 | 2021-09 | 16.6% | 60.7% | +44.2pp | OVERESTIMATED |
+| PROS-2020-0303 | 2021-09 | 17.1% | 55.6% | +38.5pp | OVERESTIMATED |
+| PROS-2019-0310 | 2021-10 | 16.2% | 73.0% | +56.8pp | OVERESTIMATED |
+| PROS-2019-0329 | 2021-10 | 48.5% | 70.9% | +22.4pp | OVERESTIMATED |
+| PROS-2019-0009 | 2024-01 | 41.0% | 56.2% | +15.2pp | OVERESTIMATED |
+| PROS-2021-0029 | 2024-01 | 30.2% | 14.5% | -15.7pp | UNDERESTIMATED |
+| SYN-2016-048 | 2024-06 | 24.9% | 92.5% | +67.6pp | OVERESTIMATED |
+| PROS-2021-0288 | 2024-09 | 36.0% | 19.6% | -16.4pp | UNDERESTIMATED |
+| PROS-2023-0025 | 2025-01 | 55.1% | 26.2% | -29.0pp | UNDERESTIMATED |
 
-**Outcomes: 17 underestimated / 13 accurate / 8 overestimated**
-**Mean absolute error: 19.7pp**
+**Outcomes: 16 underestimated / 10 accurate / 12 overestimated**
+**Mean absolute error: 21.6pp**
 **Systematic bias: company consistently UNDER-predicted churn risk.**
 
 > Company churn estimates derived from company-observable signals (bill shock,
@@ -2871,7 +2876,7 @@ How well the company estimated churn probability versus actual simulation outcom
 ## Counterfactual Retention & Threshold Optimisation
 
 **Current threshold:** 30% | F1=0.357
-**Optimal threshold:** 10% | F1=0.529
+**Optimal threshold:** 5% | F1=0.535
 
 **RAG [!]:** RED — 20 unrecoverable high-value miss(es) — model underestimates churn: optimal threshold below current
 
@@ -2884,45 +2889,45 @@ How well the company estimated churn probability versus actual simulation outcom
 
 | Year | Customer | Est | SIM p | Recoverable? | Margin | Net value |
 |------|----------|-----|-------|-------------|--------|----------|
-| 2017 | SYN-2016-008 | 16% | 26% | No | £149 | £0 |
+| 2017 | SYN-2016-008 | 17% | 26% | No | £149 | £0 |
 | 2017 | SYN-2016-009 | 13% | 20% | Yes | £107 | £101 |
 | 2017 | SYN-2016-018 | 18% | 20% | No | £118 | £0 |
-| 2017 | SYN-2016-022 | 15% | 20% | No | £224 | £0 |
-| 2017 | SYN-2016-023 | 18% | 22% | No | £127 | £0 |
-| 2017 | PROS-2016-0099 | 13% | 26% | No | £111 | £0 |
+| 2017 | SYN-2016-022 | 16% | 20% | No | £224 | £0 |
+| 2017 | SYN-2016-023 | 19% | 22% | No | £127 | £0 |
+| 2017 | PROS-2016-0099 | 14% | 26% | No | £111 | £0 |
 | 2017 | C6 | 8% | 22% | No | £1,583 | £0 |
-| 2017 | SYN-2016-044 | 11% | 25% | No | £178 | £0 |
-| 2017 | SYN-2016-045 | 11% | 24% | Yes | £208 | £198 |
-| 2017 | C3 | 18% | 25% | No | £157 | £0 |
-| 2017 | C7 | 21% | 41% | No | £922 | £0 |
-| 2018 | SYN-2016-007 | 22% | 16% | No | £184 | £0 |
-| 2018 | PROS-2017-0038 | 19% | 15% | No | £179 | £0 |
-| 2019 | SYN-2016-019 | 17% | 25% | No | £130 | £0 |
+| 2017 | SYN-2016-044 | 12% | 25% | No | £178 | £0 |
+| 2017 | SYN-2016-045 | 12% | 24% | Yes | £208 | £198 |
+| 2017 | C3 | 19% | 25% | No | £157 | £0 |
+| 2017 | C7 | 22% | 41% | No | £922 | £0 |
+| 2018 | SYN-2016-007 | 25% | 16% | No | £184 | £0 |
+| 2018 | PROS-2017-0038 | 22% | 15% | No | £179 | £0 |
+| 2019 | SYN-2016-019 | 20% | 25% | No | £130 | £0 |
 | 2019 | SYN-2016-030 | 17% | 59% | No | £268 | £0 |
-| 2020 | C9 | 11% | 57% | Yes | £1,018 | £979 |
-| 2020 | PROS-2018-0223 | 11% | 36% | No | £392 | £0 |
-| 2020 | PROS-2019-0255 | 13% | 28% | No | £167 | £0 |
+| 2020 | C9 | 13% | 57% | Yes | £1,018 | £979 |
+| 2020 | PROS-2018-0223 | 13% | 36% | No | £392 | £0 |
+| 2020 | PROS-2019-0255 | 5% | 28% | No | £167 | £0 |
 | 2020 | C5 | 26% | 96% | No | £1,554 | £0 |
 | 2021 | PROS-2018-0238 | 15% | 30% | No | £261 | £0 |
 | 2024 | PROS-2021-0029 | 15% | 30% | No | £454 | £0 |
-| 2024 | PROS-2021-0288 | 17% | 36% | No | £227 | £0 |
-| 2025 | PROS-2023-0025 | 23% | 55% | No | £357 | £0 |
+| 2024 | PROS-2021-0288 | 20% | 36% | No | £227 | £0 |
+| 2025 | PROS-2023-0025 | 26% | 55% | No | £357 | £0 |
 
 ### Threshold sensitivity curve
 
 | Threshold | Recall | Precision | F1 |
 |-----------|--------|-----------|----|
 | 0% | 1.000 | 0.345 | 0.514 |
-| 5% | 1.000 | 0.352 | 0.521 |
-| 10% | 0.974 | 0.363 | 0.529 ← optimal |
-| 15% | 0.737 | 0.329 | 0.455 |
-| 20% | 0.500 | 0.297 | 0.373 |
-| 25% | 0.421 | 0.296 | 0.348 |
+| 5% | 1.000 | 0.365 | 0.535 ← optimal |
+| 10% | 0.947 | 0.371 | 0.533 |
+| 15% | 0.763 | 0.349 | 0.479 |
+| 20% | 0.526 | 0.333 | 0.408 |
+| 25% | 0.447 | 0.327 | 0.378 |
 | 30% | 0.395 | 0.326 | 0.357 |
-| 35% | 0.342 | 0.371 | 0.356 |
-| 40% | 0.316 | 0.429 | 0.364 |
-| 45% | 0.316 | 0.571 | 0.407 |
-| 50% | 0.158 | 0.429 | 0.231 |
+| 35% | 0.368 | 0.389 | 0.378 |
+| 40% | 0.342 | 0.448 | 0.388 |
+| 45% | 0.316 | 0.480 | 0.381 |
+| 50% | 0.316 | 0.571 | 0.407 |
 
 ### Lift-per-pound by intervention class (Part 4)
 
@@ -2971,11 +2976,11 @@ the model ever flag this customer, at any renewal, before they left?
 | Metric | Value |
 |--------|-------|
 | Churners | 38 |
-| Caught before departure (any renewal) | 16 |
-| Never flagged | 22 |
-| **Episode recall** | **42.1%** |
-| Decayed after a prior save | 3 |
-| Prevented-churn saves (retention offers that worked) | 30 |
+| Caught before departure (any renewal) | 17 |
+| Never flagged | 21 |
+| **Episode recall** | **44.7%** |
+| Decayed after a prior save | 4 |
+| Prevented-churn saves (retention offers that worked) | 31 |
 
 ### Per-Year Model Performance
 
@@ -2986,10 +2991,10 @@ the model ever flag this customer, at any renewal, before they left?
 | 2018 | 5 | 9 | 2 | 3 | 71% | 36% |
 | 2019 | 0 | 2 | 2 | 8 | 0% | 0% |
 | 2020 | 3 | 1 | 4 | 7 | 43% | 75% |
-| 2021 | 5 | 5 | 1 | 3 | 83% | 50% |
+| 2021 | 5 | 3 | 1 | 5 | 83% | 62% |
 | 2023 | 0 | 3 | 0 | 3 | 0% | 0% |
-| 2024 | 2 | 6 | 2 | 3 | 50% | 25% |
-| 2025 | 0 | 5 | 1 | 3 | 0% | 0% |
+| 2024 | 2 | 7 | 2 | 2 | 50% | 22% |
+| 2025 | 0 | 6 | 1 | 2 | 0% | 0% |
 
 ## Credit Risk & Capital Stress (Phase NR)
 
@@ -3005,17 +3010,17 @@ the model ever flag this customer, at any renewal, before they left?
 
 ## Scenario Sensitivity Analysis (Phase PZ)
 
-Live portfolio (147 active customers) under 12-month forward scenarios.
-Generated: 2026-09-05T06:56:02Z
+Live portfolio (145 active customers) under 12-month forward scenarios.
+Generated: 2026-09-06T13:31:43Z
 
 Closes CLAUDE.md known failure: regime-change blindness — board can now ask 'what if 2021-22 happened again?'
 
 | Scenario | Elec Fwd (£/MWh) | Gas Fwd (£/MWh) | Hedge Rec | Renewing | Exposure Delta |
 |----------|------------------|-----------------|-----------|----------|----------------|
 | Base | 86.7 | 55.1 | INCREASE | 0 | — |
-| Bull | 56.1 | 35.7 | INCREASE | 0 | £-9,712 |
-| Bear | 147.9 | 93.8 | INCREASE | 0 | +£19,424 |
-| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£30,677 |
+| Bull | 56.1 | 35.7 | INCREASE | 0 | £-9,361 |
+| Bear | 147.9 | 93.8 | INCREASE | 0 | +£18,722 |
+| Crisis | 217.3 | 110.2 | INCREASE | 0 | +£29,302 |
 
 **Scenario labels:**
 - **Base**: Base (normal OU, long-run mean start)
@@ -3215,15 +3220,15 @@ Shadow discount: 8% off next term. Assumes P(accept) = (1 - churn\_estimate) x 9
 
 | Year | No-Offer Churns | Margin Lost | Shadow Retained | Offer Cost | Shadow Net Gain |
 |------|----------------|------------|----------------|-----------|----------------|
-| 2017 | 11 | £3,885 | £2,789 | £243 | +£2,546 |
-| 2018 | 2 | £363 | £239 | £21 | +£218 |
-| 2019 | 2 | £398 | £273 | £24 | +£249 |
-| 2020 | 4 | £3,132 | £2,115 | £184 | +£1,931 |
-| 2021 | 1 | £261 | £183 | £16 | +£167 |
-| 2024 | 2 | £680 | £477 | £41 | +£435 |
-| 2025 | 1 | £357 | £226 | £20 | +£207 |
+| 2017 | 11 | £3,885 | £2,770 | £241 | +£2,529 |
+| 2018 | 2 | £363 | £231 | £20 | +£211 |
+| 2019 | 2 | £398 | £270 | £23 | +£247 |
+| 2020 | 4 | £3,132 | £2,105 | £183 | +£1,922 |
+| 2021 | 1 | £261 | £183 | £16 | +£168 |
+| 2024 | 2 | £680 | £472 | £41 | +£431 |
+| 2025 | 1 | £357 | £218 | £19 | +£199 |
 
-**Total opportunity cost vs actual: +£5,754 net** (gross £9,076 margin lost; £548 offer cost if all retained).
+**Total opportunity cost vs actual: +£5,706 net** (gross £9,076 margin lost; £543 offer cost if all retained).
 
 > The shadow strategy net gain is small because all no-offer churns were residential customers with low margins. I&C customers (large margins) already received retention offers — the current threshold strategy is near-optimal for the existing portfolio composition.
 
@@ -5641,29 +5646,29 @@ Total no-offer churns: **23** | Blind misses: **23** | Deliberate passes (unecon
 
 | Customer | Date | Reason | Co. est | SIM p | Detectable? | Margin at stake |
 |----------|------|--------|---------|-------|-------------|----------------|
-| SYN-2016-008 | 2017-01-26 | Blind miss | 0.16 | 0.26 | No | £148.84 |
+| SYN-2016-008 | 2017-01-26 | Blind miss | 0.17 | 0.26 | No | £148.84 |
 | SYN-2016-009 | 2017-02-04 | Blind miss | 0.13 | 0.20 | No | £106.76 |
 | SYN-2016-018 | 2017-03-08 | Blind miss | 0.18 | 0.20 | No | £118.23 |
-| SYN-2016-022 | 2017-03-15 | Blind miss | 0.15 | 0.20 | No | £224.16 |
-| SYN-2016-023 | 2017-03-18 | Blind miss | 0.18 | 0.22 | No | £127.28 |
-| PROS-2016-0099 | 2017-03-23 | Blind miss | 0.13 | 0.26 | No | £111.43 |
+| SYN-2016-022 | 2017-03-15 | Blind miss | 0.16 | 0.20 | No | £224.16 |
+| SYN-2016-023 | 2017-03-18 | Blind miss | 0.19 | 0.22 | No | £127.28 |
+| PROS-2016-0099 | 2017-03-23 | Blind miss | 0.14 | 0.26 | No | £111.43 |
 | C6 | 2017-04-01 | Blind miss | 0.08 | 0.22 | No | £1,582.89 |
-| SYN-2016-044 | 2017-06-15 | Blind miss | 0.11 | 0.25 | No | £178.28 |
-| SYN-2016-045 | 2017-06-15 | Blind miss | 0.11 | 0.24 | No | £207.87 |
-| C3 | 2017-07-01 | Blind miss | 0.18 | 0.25 | No | £156.95 |
-| C7 | 2017-12-31 | Blind miss | 0.21 | 0.41 | Yes | £922.01 |
-| SYN-2016-007 | 2018-01-26 | Blind miss | 0.22 | 0.16 | No | £184.44 |
-| PROS-2017-0038 | 2018-01-27 | Blind miss | 0.19 | 0.15 | No | £178.84 |
-| SYN-2016-019 | 2019-03-11 | Blind miss | 0.17 | 0.25 | No | £130.20 |
+| SYN-2016-044 | 2017-06-15 | Blind miss | 0.12 | 0.25 | No | £178.28 |
+| SYN-2016-045 | 2017-06-15 | Blind miss | 0.12 | 0.24 | No | £207.87 |
+| C3 | 2017-07-01 | Blind miss | 0.19 | 0.25 | No | £156.95 |
+| C7 | 2017-12-31 | Blind miss | 0.22 | 0.41 | Yes | £922.01 |
+| SYN-2016-007 | 2018-01-26 | Blind miss | 0.25 | 0.16 | No | £184.44 |
+| PROS-2017-0038 | 2018-01-27 | Blind miss | 0.22 | 0.15 | No | £178.84 |
+| SYN-2016-019 | 2019-03-11 | Blind miss | 0.20 | 0.25 | No | £130.20 |
 | SYN-2016-030 | 2019-04-14 | Blind miss | 0.17 | 0.59 | Yes | £267.87 |
-| C9 | 2020-06-30 | Blind miss | 0.11 | 0.57 | Yes | £1,018.47 |
-| PROS-2018-0223 | 2020-07-29 | Blind miss | 0.11 | 0.36 | Yes | £392.29 |
-| PROS-2019-0255 | 2020-08-25 | Blind miss | 0.13 | 0.28 | No | £167.33 |
+| C9 | 2020-06-30 | Blind miss | 0.13 | 0.57 | Yes | £1,018.47 |
+| PROS-2018-0223 | 2020-07-29 | Blind miss | 0.13 | 0.36 | Yes | £392.29 |
+| PROS-2019-0255 | 2020-08-25 | Blind miss | 0.05 | 0.28 | No | £167.33 |
 | C5 | 2020-12-30 | Blind miss | 0.26 | 0.96 | Yes | £1,553.95 |
 | PROS-2018-0238 | 2021-08-12 | Blind miss | 0.15 | 0.30 | Yes | £261.19 |
 | PROS-2021-0029 | 2024-01-26 | Blind miss | 0.15 | 0.30 | Yes | £453.62 |
-| PROS-2021-0288 | 2024-09-17 | Blind miss | 0.17 | 0.36 | Yes | £226.74 |
-| PROS-2023-0025 | 2025-01-20 | Blind miss | 0.23 | 0.55 | Yes | £356.51 |
+| PROS-2021-0288 | 2024-09-17 | Blind miss | 0.20 | 0.36 | Yes | £226.74 |
+| PROS-2023-0025 | 2025-01-20 | Blind miss | 0.26 | 0.55 | Yes | £356.51 |
 
 ## Dual-Fuel Account P&L (Phase 17d)
 

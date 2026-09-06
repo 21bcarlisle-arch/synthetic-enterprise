@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-05T13:58:47Z",
-  "wall_clock_today": "2026-09-05",
+  "generated_at": "2026-09-06T14:31:47Z",
+  "wall_clock_today": "2026-09-06",
   "clock_started": "2026-07-04",
-  "log_entry_count": 59,
+  "log_entry_count": 60,
   "unreadable_log_lines": 0,
   "renewal_tolerance_pct": 0.02,
   "renewal_grading": {
@@ -55,7 +55,7 @@
   },
   "hedge_grading": {
     "graded_count": 1,
-    "ungraded_count": 58,
+    "ungraded_count": 59,
     "current_market_data_stale_days": 1,
     "entries": [
       {
@@ -408,6 +408,12 @@
       },
       {
         "decision_run_at": "2026-09-05",
+        "hedge_recommendation": "INCREASE",
+        "market_data_stale_days_at_log_time": 1,
+        "outcome": "ungraded -- market data has not advanced"
+      },
+      {
+        "decision_run_at": "2026-09-06",
         "hedge_recommendation": "INCREASE",
         "market_data_stale_days_at_log_time": 1,
         "outcome": "ungraded -- market data has not advanced"
