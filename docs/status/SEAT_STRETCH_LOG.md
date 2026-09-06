@@ -8,6 +8,60 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-06 — The weather pull sat undrawn for eighteen hours because the atom was a programme, and the first measurement refutes a ruling prediction by a sign
+
+<!-- head: 5f5b8d74ebb8 -->
+
+**What this stretch was about.** The HadUK-Grid weather pull finished on Saturday evening — 318
+files, 19.8 GB, zero failures — and for eighteen hours nothing was drawn from it. The cause was the
+same one that had already cost two other stretches: `W1_14` is a ruling-sized atom, "derive the
+weather cells", and a bounded tick reading that has no first move, so it takes the machinery in
+front of it instead.
+
+**The fix, third time of asking.** Four bounded successors, each with a first move: `W1_19` the three
+drivers per land cell (needs nothing but the disk), `W1_20` household weights from the censuses,
+`W1_21` the clustering and the level coverage curve, `W1_22` cold-spell persistence and cross-cell
+synchrony. Then the first one was taken.
+
+**What W1_19 found.** The grid is 1450 × 900 and only 18.8% of it is land — 245,077 cells, matching
+the count the pull had already recorded, so the read is independently corroborated. A mean over the
+full array is a mean over the Atlantic.
+
+The ruling makes two falsifiable predictions. *"The north–south gradient dominates solar"* is
+confirmed, at −0.806 between latitude and sunshine. *"Winter temperature and wind are positively
+correlated"* is **refuted as written**: across land cells it is −0.430.
+
+**Both signs are right, and that is the actual finding.** The claim is true in *time* and false in
+*space*. This project had already measured the temporal half — winter temp/wind correlation +0.507,
+the cold-and-still joint tail with its 2.34× decile lift. In a given winter at a given place, cold
+snaps arrive with still air. Across *places*, the windiest cells are northern, upland and exposed,
+and those are the cold ones. Deriving cells partitions space, so the spatial figure is the one that
+governs there; persistence, synchrony and hedging live in time and take the positive one. Pooling
+them would be the definitional failure this project keeps paying for.
+
+The most consequential number was not one of the predictions: **annual temperature and sunshine
+correlate at +0.841 across space**, both dominated by the same north–south gradient. So clustering on
+three drivers is not clustering on three independent axes, and the coverage curve should be expected
+to rise faster than a three-dimensional argument suggests.
+
+**What the tree cost, and it is worth recording.** The mint took seven attempts to land. Two atom-number
+collisions with a concurrent lane minting the same ruling's phase-2 and phase-3 rows — they renumbered
+and recorded the collision in their own store file, so nothing was lost, and their orphaned files were
+removed only after checking their replacements were strict supersets. The map's size ratchet refused
+the landing twice: it counts both map halves together and sits close to its ceiling, so any atom
+addition can break it, and the long reasoning had to move into the simplifications store where the
+control says it belongs. `site/data/` appeared in a file_scope again — the second time, caught by the
+same guard both times. And the content file had to be rebuilt once because it was assembled against a
+HEAD that moved: `--content` overwrites a whole file, so landing a stale assembly would have reverted
+another lane's just-landed work. The gate caught that as a store/map mismatch rather than as a silent
+revert, which is the only reason it was visible.
+
+**Where it stands.** `W1_20` is next — household weights from the censuses via postcode, which the
+ruling forbids taking from the SIM's own population because that would make the coverage curve a
+statement about our draw rather than about Britain. It needs a pull this tree does not hold.
+
+---
+
 ## 2026-09-06 — The startup anchors named the stalest documents and omitted every surface holding current reasoning
 
 <!-- head: 66dfc5de04df -->
