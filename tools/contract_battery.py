@@ -137,6 +137,25 @@ class BatterySpec:
     #: where the caller answer is ten of ten.
     #: `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`
     direct_suites: tuple[str, ...] = field(default_factory=tuple)
+    #: The same exclusion at the NODE grain: individual tests, inside a file that is otherwise a
+    #: genuine caller suite, whose subject is THIS module. Deselected from every caller column.
+    #:
+    #: `direct_suites` assumes a file is all one thing. `direction` is the subject that showed it
+    #: need not be. All four of its caller columns import `background.direction` at module level
+    #: and all four are legitimately the dedicated suite of a module that calls it -- so the
+    #: file-grain question has no honest answer there, and `b3938b313` correctly shipped no gate
+    #: on "imports the subject". Asked per TEST it is decidable and was decided by AST census:
+    #: 23 tests across three of those files assert against `d.focus_multiplier`, `d.validate`,
+    #: `d.wrong_rows` and `d.focus_weights` and never call the module their file is named for,
+    #: while `test_EXPIRED_direction_offers_NOTHING` in the same file calls `dl.` and is a real
+    #: caller test. Both live in `test_delivery_lane.py`; no file-level split can keep both.
+    #:
+    #: WHY THE COST OF GETTING THIS WRONG IS ASYMMETRIC, and why it is a declared list rather
+    #: than the census run live: over-declaring hides real caller evidence and inflates the
+    #: survivor count, which is the flattering direction. The list is fixed in the spec so it is
+    #: reviewable beside the contracts it changes the meaning of, and the census that produced it
+    #: is `SEAT_PREREG_WHETHER_ANY_TEST_WHOSE_SUBJECT_IS_A_CALLER_PROVES_ANY_DIRECTION_CONTRACT_2026-09-06.md`.
+    direct_nodes: tuple[str, ...] = field(default_factory=tuple)
     #: Suites with NO import path to the subject. The poison round must leave these GREEN;
     #: if it reddens everything including these, the floor is measuring the harness and not
     #: the subject, and the whole round is void.
@@ -166,6 +185,17 @@ class BatterySpec:
     def scored_outside_the_caller_population(self) -> tuple[str, ...]:
         """Scored, reported, and never counted toward `survived_all`."""
         return self.direct_suites + ((self.repair_suite,) if self.repair_suite else ())
+
+    def deselect_for(self, suite: str, known_red: tuple[str, ...] = ()) -> tuple[str, ...]:
+        """What this suite runs WITHOUT: its baseline reds, plus -- for a CALLER column only --
+        the tests in it whose subject is the module under mutation.
+
+        The direct and repair columns keep their `direct_nodes`: those columns exist to report
+        what the subject's OWN tests prove, so deselecting the subject's own tests from them
+        would empty exactly the thing they measure.
+        """
+        nodes = self.direct_nodes if suite in self.suites else ()
+        return tuple(known_red) + tuple(n for n in nodes if n.split("::")[0] == suite)
 
     @property
     def subject_path(self) -> Path:
@@ -256,7 +286,15 @@ def _poison(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_path:
             return poison
         for suite in todo:
             is_control = suite in spec.control_suites
-            r = _run_suite(suite, known_red.get(suite, ()), stop_first=True)
+            # THE SAME DESELECTION THE MUTATION ROUNDS WILL USE, and the round is worthless
+            # without it. The floor must measure the population that is actually going to be
+            # scored: a caller column whose only direction-reaching tests are `direct_nodes`
+            # would otherwise be stamped `reaches` on the strength of tests no later round runs,
+            # and every survivor it went on to report would read as UNPROVED when the honest
+            # reading is UNREACHABLE -- the exact confusion this floor exists to prevent, let in
+            # through the floor itself.
+            r = _run_suite(suite, spec.deselect_for(suite, known_red.get(suite, ())),
+                           stop_first=True)
             r["reaches_subject"] = r["returncode"] != 0
             r["is_control"] = is_control
             poison[suite] = r
@@ -317,7 +355,8 @@ def _hard_poison(spec: BatterySpec, results: dict, out_path: Path, known_red: di
             results["hard_poison_error"] = "subject on disk is not the hard-poisoned text"
             return {}
         for suite in todo:
-            r = _run_suite(suite, known_red.get(suite, ()), stop_first=True)
+            r = _run_suite(suite, spec.deselect_for(suite, known_red.get(suite, ())),
+                           stop_first=True)
             r["swallows_subject_failure"] = r["returncode"] != 0
             hard[suite] = r
             print(f"  {suite}: "
@@ -361,7 +400,8 @@ def _null_round(spec: BatterySpec, results: dict, suites: tuple[str, ...], out_p
     _clear_pycache()
     try:
         for suite in todo:
-            r = _run_suite(suite, known_red.get(suite, ()), stop_first=True)
+            r = _run_suite(suite, spec.deselect_for(suite, known_red.get(suite, ())),
+                           stop_first=True)
             r["grades_text"] = r["returncode"] != 0
             null[suite] = r
             if r["grades_text"]:
@@ -393,7 +433,7 @@ def _score(spec: BatterySpec, row: dict, todo: list[str], known_red: dict, reach
            grades_text: dict) -> None:
     """One mutation against each outstanding suite, scored as a row rather than a verdict."""
     for suite in todo:
-        r = _run_suite(suite, known_red[suite], stop_first=True)
+        r = _run_suite(suite, spec.deselect_for(suite, known_red[suite]), stop_first=True)
         r["died"] = r["returncode"] != 0
         # A survivor in a suite the poison round could not redden is not evidence about the
         # contract. Stamped on the cell, because a caveat kept only in prose stops travelling with
@@ -467,6 +507,10 @@ def fingerprint(spec: BatterySpec) -> str:
         # `survived_all` MEANS. A resumed row keeps the verdict it was written with, so a spec
         # that re-splits its population must not be able to inherit one.
         "direct_suites": list(spec.direct_suites),
+        # ...and the NODE-grain half of the same split, for the identical reason: declaring one
+        # more test as the subject's own leaves `suites` and `direct_suites` both untouched,
+        # changes no cell's measurement, and changes what every `survived_all` in the file means.
+        "direct_nodes": list(spec.direct_nodes),
         "repair_suite": spec.repair_suite,
         "control_suites": list(spec.control_suites),
         # ids INCLUDED, but never alone: a renumbered mutation and a rewritten one are both

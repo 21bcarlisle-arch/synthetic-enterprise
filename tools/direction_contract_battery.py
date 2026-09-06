@@ -39,6 +39,48 @@ SUITES = (
 REPAIR_SUITE = "tests/background/test_direction_contracts.py"
 SELECTABLE = SUITES + (REPAIR_SUITE,)
 
+#: THE SUBJECT'S OWN TESTS, LIVING IN FILES NAMED FOR ITS CALLERS. Deselected from the caller
+#: columns; see `BatterySpec.direct_nodes` for the mechanism.
+#:
+#: `direction` is the spec that forced the node grain. `b3938b313`'s census asked the file
+#: question -- is this file the subject's own suite -- and found it has no honest answer here:
+#: all four columns import `background.direction` at module level AND all four are the dedicated
+#: suite of a module that calls it, so the obvious gate would have condemned a correct spec. No
+#: gate on that discriminator was shipped, and the question was left open as Lane 0 work.
+#:
+#: Asked per TEST it is decidable. Census by AST over the four files, 2026-09-06: a test is the
+#: subject's own if its assertions run against `direction`'s API and it never touches the module
+#: its file is named for. `test_delivery_lane.py` is why this cannot be done at the file grain --
+#: it holds one of each, and the caller test (`test_EXPIRED_direction_offers_NOTHING`, which calls
+#: `dl.`) is deliberately NOT here. `test_supervisor.py` contributes nothing: its only reference to
+#: the module is the fixture's `monkeypatch.setattr(DIRECTION_PATH, ...)`, which is what the poison
+#: round already proved it reaches the subject without ever proving anything about it.
+DIRECT_NODES = (
+    "tests/background/test_delivery_lane.py::test_a_MISSING_or_BROKEN_record_offers_nothing",
+    "tests/background/test_delivery_seat.py::test_direction_can_NEVER_make_an_atom_harder_to_draw",
+    "tests/background/test_delivery_seat.py::test_direction_cannot_shorten_the_candidate_list",
+    "tests/background/test_delivery_seat.py::test_a_named_atom_actually_becomes_more_likely_and_the_steer_BITES",
+    "tests/background/test_delivery_seat.py::test_focus_that_was_never_DRAWN_is_reported_rather_than_assumed",
+    "tests/background/test_delivery_seat.py::test_the_verdict_is_SPLIT_so_one_dead_channel_cannot_hide_behind_the_other",
+    "tests/background/test_delivery_seat.py::test_a_BROKEN_direction_record_leaves_the_draw_byte_identical",
+    "tests/background/test_delivery_seat.py::test_a_MISSING_record_is_not_an_error",
+    "tests/background/test_delivery_seat.py::test_direction_EXPIRES_so_stale_advice_stops_steering_on_its_own",
+    "tests/background/test_delivery_seat.py::test_a_record_carrying_a_TARGET_is_refused_whatever_it_is_called",
+    "tests/background/test_delivery_seat.py::test_the_refusal_reaches_ARBITRARY_depth",
+    "tests/background/test_delivery_seat.py::test_a_measurement_quoted_in_a_WHY_is_not_a_target",
+    "tests/background/test_delivery_seat.py::test_a_direction_that_REJECTED_NOTHING_is_refused",
+    "tests/background/test_delivery_seat.py::test_a_direction_that_NAMES_NO_WORK_is_refused",
+    "tests/background/test_delivery_seat.py::test_the_refusal_says_WHY_rather_than_returning_a_boolean",
+    "tests/background/test_delivery_seat.py::test_the_write_scope_is_CLOSED_and_holds_no_code_path",
+    "tests/background/test_delivery_seat.py::test_the_decision_log_is_APPEND_ONLY",
+    "tests/background/test_delivery_seat.py::test_a_CORRUPT_line_does_not_blank_the_record",
+    "tests/background/test_the_self_audit_declared_a_correction_and_nothing_carried_it.py::test_an_EMPTY_self_audit_row_is_refused_whatever_kind_of_empty_it_is",
+    "tests/background/test_the_self_audit_declared_a_correction_and_nothing_carried_it.py::test_an_error_with_NO_CORRECTION_STATE_is_refused",
+    "tests/background/test_the_self_audit_declared_a_correction_and_nothing_carried_it.py::test_a_POPULATED_self_audit_passes_and_an_ABSENT_one_is_not_an_error",
+    "tests/background/test_the_self_audit_declared_a_correction_and_nothing_carried_it.py::test_the_refusal_NAMES_the_row_so_the_seat_can_fix_the_one_that_is_wrong",
+    "tests/background/test_the_self_audit_declared_a_correction_and_nothing_carried_it.py::test_the_recorded_audit_reads_in_BOTH_shapes_and_never_invents_a_verdict",
+)
+
 #: (id, the contract as the module states it, old, new). Each is ONE edit to a
 #: named function; each `old` must appear exactly once in the subject.
 MUTATIONS = (
@@ -112,6 +154,7 @@ SPEC = BatterySpec(
     name="direction",
     subject="background/direction.py",
     suites=SUITES,
+    direct_nodes=DIRECT_NODES,
     repair_suite=REPAIR_SUITE,
     mutations=MUTATIONS,
     poison_old=POISON_OLD,
