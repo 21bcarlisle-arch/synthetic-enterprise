@@ -168,8 +168,18 @@ def test_the_EMPTY_PART_is_drawn_and_counted_OVER_GREAT_BRITAIN():
     assert abs(e["land_cells"] - e["published_gb_land_km2"]) / e["published_gb_land_km2"] < 0.03, (
         "the GB mask has drifted from the published GB land area")
 
+    # KEYED TO THE PROPERTY, not to today's figure -- this number has now moved twice, from 49.6%
+    # (counting Northern Ireland as empty Britain) to 52.9% to 76.1% (placing households on the
+    # address record rather than on postcode centroids). A pinned range would red on the third
+    # honest correction just as it did on the second.
     share = e["land_cells_with_households"] / e["land_cells"]
-    assert 0.50 < share < 0.56, f"the occupied share of GB land moved to {share:.1%}"
+    addr = e["addresses"]["share_with_any_address"]
+    assert 0.5 < share < addr, (
+        f"households are placed in {share:.1%} of GB land against {addr:.1%} that holds any address "
+        "at all. Above the address share is impossible -- a household needs an address -- and far "
+        "below it is the centroid undercount coming back.")
+    assert e["land_cells_with_households"] <= e["addresses"]["cells_with_any_address"], (
+        "more cells hold a household than hold an address, which cannot be true")
     assert _text(out, "e-land").replace(",", "") == str(e["land_cells"]), (
         "the page must print the GB denominator, not the UK one")
     assert _text(out, "e-occ").replace(",", "") == str(e["land_cells_with_households"])
@@ -273,12 +283,24 @@ def test_SCOTLANDS_BLANKS_ARE_ATTRIBUTED_and_the_figures_come_from_the_feed():
     bands = feed["emptiness"]["empty_share"]
 
     assert bands["highlands_and_north"] > bands["southern_scotland"] > bands["south_of_the_mersey"]
-    assert bands["highlands_and_north"] > 0.7, (
-        "if the north is not mostly empty, 'genuine terrain' is no longer the explanation and the "
-        "page is asserting something the data stopped supporting")
+    # RELATIVE, because the absolute level moved when the placement was corrected and the CLAIM was
+    # never about the level: the page says Scotland's blanks are terrain rather than a broken join,
+    # and what supports that is the north being emptier than the south by a wide margin.
+    assert bands["highlands_and_north"] > 5 * bands["south_of_the_mersey"], (
+        f"the north is {bands['highlands_and_north']:.1%} empty against "
+        f"{bands['south_of_the_mersey']:.1%} in lowland England -- too close together for "
+        "'genuine terrain' to be the explanation the page gives")
 
-    assert _text(out, "a-south") == f"{round(bands['southern_scotland'] * 100)}%"
-    assert _text(out, "a-north") == f"{round(bands['highlands_and_north'] * 100)}%"
+    # WITHIN ONE POINT, NOT EQUAL. Python's round() is banker's and JavaScript's Math.round() is
+    # half-up, so 0.505 renders as 50 here and 51 there -- a cross-language rounding difference, not
+    # a figure that failed to come from the feed. The claim being held is provenance: the sentence
+    # must track the published number, which a one-point tolerance still enforces and a stale
+    # hand-typed figure would still fail.
+    for element, key in (("a-south", "southern_scotland"), ("a-north", "highlands_and_north"),
+                         ("a-lowland", "south_of_the_mersey")):
+        rendered = int(_text(out, element).rstrip("%"))
+        assert abs(rendered - bands[key] * 100) <= 1, (
+            f"{element} renders {rendered}% against a published {bands[key]:.1%}")
 
     # AND THE BANDS MUST BE OVER GB ONLY. A version computing them over the whole UK mask keeps the
     # ordering and the 70% threshold -- both assertions above survive it -- while quietly putting

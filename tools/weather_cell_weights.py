@@ -40,12 +40,17 @@ Three sources, all open:
      direction that matters most.
 
 An output area holds several postcodes and the census does not say how its households divide between
-them. **THE CHOICE: households are split EQUALLY across the live residential postcodes of their
-output area.** The alternative -- putting the whole output area at its population-weighted centroid
--- was rejected because a rural output area can span tens of kilometres, and the centroid would post
-all of its households into one cell. Equal splitting is wrong at the postcode level and right at the
-kilometre level, which is the level being asked about. `disagreement_with_centroid()` measures what
-the choice costs rather than asserting it is small.
+them. **THE CHOICE, REPLACED 2026-09-06: households follow the ADDRESS RECORD within their output
+area**, in proportion to how many addressable properties each 1 km cell actually holds.
+
+The method it replaced split them equally across the area's postcode CENTROIDS, and a centroid is a
+point. The director asked whether it was really true that 47% of GB kilometres hold no address; OS
+Open UPRN says 15.3% do, and the centroid method was measuring "ten or more addressable properties"
+to within half a percent while sounding like "anybody at all". `placement_cost()` measures what the
+change is worth rather than asserting it, and the answer is two numbers pointing opposite ways:
+occupied cells 121,668 -> 175,188, and the household-weighted driver means moving by 1.2%, 1.0% and
+0.1% of a standard deviation. **The coverage claim was badly wrong and every answer resting on the
+weights was unmoved.**
 
 Postcodes with no grid reference, terminated postcodes, and large-user postcodes are excluded; each
 exclusion is counted and reported, because a silent drop here would move the weights.
@@ -267,15 +272,37 @@ def read_households() -> dict[str, int]:
 
 
 def census_weights() -> tuple[dict[tuple[int, int], float], dict[str, int]]:
-    """({(cell_x, cell_y): households}, drop counts).
+    """({(cell_x, cell_y): households}, drop counts), placed on the ADDRESS RECORD.
 
     Cell indices are floor(metres / 1000), which is the HadUK-Grid 1 km cell containing the point:
     the grid's x coordinates are cell CENTRES at 500 m, 1500 m, ... so index i spans [i*1000,
     (i+1)*1000).
+
+    THE PLACEMENT CHANGED ON 2026-09-06 AND THE DIRECTOR IS WHY. It used to split an output area's
+    households equally across its postcode CENTROIDS -- and a centroid is a point, so a cell holding
+    scattered dwellings whose postcode centroid fell next door read as empty. He asked whether it
+    was really true that 47% of GB kilometres hold no address. It was not:
+
+        GB land cells with at least one address (OS Open UPRN)   195,045   84.7%
+        ... with ten or more                                     120,464   52.3%
+        the centroid method's occupied cells                     121,668   52.9%
+
+    The centroid method was measuring "has ten or more addressable properties" to within half a
+    percent, and calling it "has anybody". Households are now spread across the cells an output
+    area's addresses actually occupy, in proportion to how many each holds.
+
+    THE COUNTS STILL COME FROM THE CENSUSES. A UPRN is an addressable property -- masts, barns and
+    substations included -- which is exactly right for "is there an address here" and wrong for "how
+    many households". UPRN density places; the census counts, and the census total for an output
+    area is conserved exactly.
     """
+
+    from tools import os_open_uprn as uprn
+
     if not ONSPD_CSV.is_file():
         raise FileNotFoundError(f"{ONSPD_CSV} -- run `--pull` first")
     households = read_households()
+    grid = uprn.cell_counts()
 
     by_oa: dict[str, list[tuple[int, int]]] = defaultdict(list)
     drops = {"no_output_area": 0, "output_area_not_in_census": 0}
@@ -285,51 +312,45 @@ def census_weights() -> tuple[dict[tuple[int, int], float], dict[str, int]]:
             if not oa:
                 drops["no_output_area"] += 1
                 continue
-            by_oa[oa].append((int(row["east"]) // 1000, int(row["north"]) // 1000))
+            by_oa[oa].append((int(row["east"]), int(row["north"])))
 
     weights: dict[tuple[int, int], float] = defaultdict(float)
-    for oa, cells in by_oa.items():
+    fell_back = 0
+    for oa, points in by_oa.items():
         n = households.get(oa)
         if n is None:
             drops["output_area_not_in_census"] += 1
             continue
-        share = n / len(cells)
-        for cell in cells:
-            weights[cell] += share
-    drops["census_areas_with_no_live_postcode"] = len(set(households) - set(by_oa))
-    return dict(weights), drops
-
-
-def disagreement_with_centroid() -> dict:
-    """WHAT THE EQUAL-SPLIT CHOICE COSTS, measured rather than asserted.
-
-    Puts each output area's whole household count at the mean of its postcode coordinates -- the
-    centroid alternative -- and reports the share of households the two methods place in different
-    cells. A small number means the choice is immaterial at this resolution; a large one means the
-    choice is load-bearing and belongs on the page.
-    """
-    if not ONSPD_CSV.is_file():
-        raise FileNotFoundError(f"{ONSPD_CSV} -- run `--pull` first")
-    households = read_households()
-    pts: dict[str, list[tuple[int, int]]] = defaultdict(list)
-    with ONSPD_CSV.open(encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            if row["oa"].strip():
-                pts[row["oa"].strip()].append((int(row["east"]), int(row["north"])))
-
-    total = moved = 0
-    for oa, coords in pts.items():
-        n = households.get(oa)
-        if not n:
+        # THE OUTPUT AREA'S REACH: the cells its postcodes land in AND their immediate neighbours,
+        # because the whole finding is that an area's addresses spill into cells no centroid
+        # occupies. Bounded at one cell so a dense urban area does not smear across a city.
+        reach = set()
+        for east, north in points:
+            col = (east + 200_000) // 1000
+            row_ = (north + 200_000) // 1000
+            for dc in (-1, 0, 1):
+                for dr in (-1, 0, 1):
+                    if 0 <= row_ + dr < grid.shape[0] and 0 <= col + dc < grid.shape[1]:
+                        reach.add((row_ + dr, col + dc))
+        counts = {rc: int(grid[rc]) for rc in reach}
+        total = sum(counts.values())
+        if total == 0:
+            # NO ADDRESS ANYWHERE NEAR a populated output area is a contradiction, not a state.
+            # It happens for a handful of areas whose postcodes are newer than the UPRN release;
+            # they fall back to centroids and are COUNTED, because a silent fallback here would be
+            # the defect this whole method replaced.
+            fell_back += 1
+            share = n / len(points)
+            for east, north in points:
+                weights[(east // 1000, north // 1000)] += share
             continue
-        cx = sum(c[0] for c in coords) / len(coords)
-        cy = sum(c[1] for c in coords) / len(coords)
-        centroid_cell = (int(cx) // 1000, int(cy) // 1000)
-        elsewhere = sum(1 for c in coords if (c[0] // 1000, c[1] // 1000) != centroid_cell)
-        total += n
-        moved += n * elsewhere / len(coords)
-    return {"households": total, "households_in_a_different_cell": round(moved),
-            "share": round(moved / total, 4) if total else None}
+        for (row_, col), k in counts.items():
+            if k:
+                weights[(col - 200, row_ - 200)] += n * k / total
+
+    drops["census_areas_with_no_live_postcode"] = len(set(households) - set(by_oa))
+    drops["output_areas_placed_on_centroids_for_want_of_an_address"] = fell_back
+    return dict(weights), drops
 
 
 #: A land cell further than this from any live GB residential postcode is not GB land at all.
@@ -342,6 +363,99 @@ GB_REACH_KM = 20.0
 #: Published GB land area, England + Wales + Scotland, as the independent check on the mask this
 #: produces. ONS Standard Area Measurements: 130,279 + 20,779 + 77,933 km^2.
 GB_LAND_AREA_KM2 = 228_991
+
+
+def placement_cost() -> dict:
+    """What moving households from postcode centroids onto the address record is worth.
+
+    TWO NUMBERS POINTING OPPOSITE WAYS, which is the whole finding and the reason both are
+    published. The COVERAGE claim was wrong by 23 percentage points. The WEIGHTS -- and therefore
+    every cell count, coverage curve and correlation derived from them -- barely moved, because the
+    addresses the centroid method missed are a long thin tail: 1.2% of Britain's, too few to shift a
+    weighted mean and more than enough to ruin a map.
+    """
+    import numpy as np
+
+    from tools import os_open_uprn as uprn
+    from tools import weather_cell_drivers as drv
+
+    households = read_households()
+    grid = uprn.cell_counts()
+    by_oa: dict[str, list[tuple[int, int]]] = defaultdict(list)
+    with ONSPD_CSV.open(encoding="utf-8") as fh:
+        for row in csv.DictReader(fh):
+            if row["oa"].strip():
+                by_oa[row["oa"].strip()].append((int(row["east"]), int(row["north"])))
+    centroid: dict[tuple[int, int], float] = defaultdict(float)
+    for oa, points in by_oa.items():
+        n = households.get(oa)
+        if n is None:
+            continue
+        share = n / len(points)
+        for east, north in points:
+            centroid[(east // 1000, north // 1000)] += share
+
+    # THE ADDRESS PLACEMENT, BUILT ONCE. `census_weights()` is not called here, and the reason is
+    # worth a line: the first draft wrote `[census_weights()[0].get(k, 0.0) for k in keys]`, which
+    # calls it ONCE PER CELL -- 245,077 times, each re-reading 1.67 million postcodes. It ran for
+    # twenty-five minutes at full CPU without finishing and would have taken weeks. A function call
+    # in a comprehension's expression is evaluated per element, and a slow one hides there
+    # perfectly: the code reads like a lookup.
+    address: dict[tuple[int, int], float] = defaultdict(float)
+    for oa, points in by_oa.items():
+        n = households.get(oa)
+        if n is None:
+            continue
+        reach = set()
+        for east, north in points:
+            col, row_ = (east + 200_000) // 1000, (north + 200_000) // 1000
+            for dc in (-1, 0, 1):
+                for dr in (-1, 0, 1):
+                    if 0 <= row_ + dr < grid.shape[0] and 0 <= col + dc < grid.shape[1]:
+                        reach.add((row_ + dr, col + dc))
+        counts = {rc: int(grid[rc]) for rc in reach}
+        total = sum(counts.values())
+        if total == 0:
+            share = n / len(points)
+            for east, north in points:
+                address[(east // 1000, north // 1000)] += share
+            continue
+        for (row_, col), k in counts.items():
+            if k:
+                address[(col - 200, row_ - 200)] += n * k / total
+
+    d = drv.drivers()
+    gb, _ = gb_reachable(d)
+    keys = list(zip((d["east"] // 1000).astype(int).tolist(),
+                    (d["north"] // 1000).astype(int).tolist()))
+    old = np.array([centroid.get(k, 0.0) for k in keys])
+    new = np.array([address.get(k, 0.0) for k in keys])
+
+    out = {"gb_land_cells": int(gb.sum()),
+           "occupied_on_centroids": int((gb & (old > 0)).sum()),
+           "occupied_on_addresses": int((gb & (new > 0)).sum()),
+           # CONSERVATION IS ABOUT WHAT WAS PLACED, NOT WHAT LANDED ON THE LAND GRID. The first
+           # version compared `old.sum()` to `new.sum()` -- both restricted to the 245,077 land
+           # cells -- and reported false, because address placement moves some coastal households
+           # ONTO the grid that centroid placement left in a sea square. That is the two methods
+           # differing, which is the point, not households going missing.
+           "households_placed_on_centroids": round(sum(centroid.values())),
+           "households_placed_on_addresses": round(sum(address.values())),
+           "households_conserved": abs(sum(centroid.values()) - sum(address.values())) < 1.0,
+           "households_on_land_grid": {"centroids": round(float(old.sum())),
+                                       "addresses": round(float(new.sum()))},
+           "driver_shift_in_sd": {}}
+    for name in ("winter_temp", "annual_wind", "annual_sun"):
+        v = d[name]
+        mo = float(np.average(v[gb & (old > 0)], weights=old[gb & (old > 0)]))
+        mn = float(np.average(v[gb & (new > 0)], weights=new[gb & (new > 0)]))
+        sd = float(np.sqrt(np.average((v[gb & (old > 0)] - mo) ** 2, weights=old[gb & (old > 0)])))
+        # A SHIFT IN STANDARD DEVIATIONS NEEDS A STANDARD DEVIATION. With one occupied cell there
+        # is none, and the honest answer is None rather than a crash or a flattering zero -- the
+        # whole point of this figure is to say whether the re-placement moved the weights, and
+        # "cannot tell" is a different answer from "did not".
+        out["driver_shift_in_sd"][name] = None if sd == 0.0 else round(abs(mn - mo) / sd, 4)
+    return out
 
 
 def gb_reachable(drivers, threshold_km: float = GB_REACH_KM):
@@ -474,7 +588,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pull", action="store_true", help="fetch ONSPD and TS041 into the cache")
     ap.add_argument("--summary", action="store_true", help="print the per-cell weight summary")
     ap.add_argument("--choice-cost", action="store_true",
-                    help="measure equal-split against the centroid alternative")
+                    help="measure address placement against the centroid method it replaced")
     ap.add_argument("--weighted", action="store_true",
                     help="recompute W1_20's table: weighting against W1_19's unweighted figures")
     args = ap.parse_args(argv)
@@ -489,7 +603,7 @@ def main(argv: list[str] | None = None) -> int:
         pull_onspd()
         return 0
     if args.choice_cost:
-        print(json.dumps(disagreement_with_centroid(), indent=2))
+        print(json.dumps(placement_cost(), indent=2))
         return 0
     if args.summary:
         print(json.dumps(summary(), indent=2))

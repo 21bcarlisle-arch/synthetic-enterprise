@@ -43,6 +43,28 @@ answer afterwards is this project's most expensive recurring failure.
 > discriminator is distance to the nearest live GB postcode, which is sharply bimodal — 108,533
 > empty cells within 10 km, 965 between 10 and 20, and 13,207 beyond 50.
 
+> **CORRECTED AGAIN 2026-09-06 — AND THIS TIME THE METHOD, NOT THE DENOMINATOR.** The director
+> asked whether it was really true that 47% of GB square kilometres hold no address. It is not.
+> Households were placed at **postcode centroids**, and a centroid is a point: a kilometre of
+> scattered dwellings whose postcode centroid fell in the next cell read as empty.
+>
+> **OS Open UPRN** — a published grid reference for all 41,629,393 addressable properties in GB —
+> settles it directly. **195,045 of 230,166 GB land cells (84.7%) hold at least one address.** What
+> the centroid method was measuring, to within half a percent, was *"ten or more addressable
+> properties"*: 120,464 cells, 52.3%, against its own 121,668. Of its occupied cells, exactly **two**
+> hold no UPRN — the placement was right where it put things; the absence overstated.
+>
+> Households now follow address density within each output area, with the census still fixing the
+> totals. **Occupied GB land: 175,188 cells, 76.1%.**
+>
+> **And every answer resting on the weights is unchanged.** Re-placing all 27,283,137 households
+> moves the household-weighted driver means by **1.2%, 1.0% and 0.1% of a standard deviation**, and
+> the cell counts are identical — 34, 89 and 987 for the shared partition, about 21 per driver. The
+> addresses the old method missed are 1.2% of Britain's: a long thin tail of isolated properties,
+> too few to move a weighted mean and more than enough to ruin a map. Measured, not hoped:
+> `python3 tools/weather_cell_weights.py --choice-cost`.
+
+
 
 ## The answer
 

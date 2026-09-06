@@ -110,11 +110,13 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       </div>
     </div>
 
-    <h2 class="sec">2 &mdash; Nearly half of Britain's land holds nobody</h2>
+    <h2 class="sec">2 &mdash; A quarter of Britain's land holds nobody &mdash; and the first
+    version of this page said half</h2>
     <div class="card">
       <div class="bigrow">
         <div><div class="bignum" id="e-land">&hellip;</div><div class="lab">km&sup2; of GB land</div></div>
         <div><div class="bignum" id="e-occ">&hellip;</div><div class="lab">with a household on them</div></div>
+        <div><div class="bignum" id="e-addr">&hellip;</div><div class="lab">with any address at all</div></div>
         <div><div class="bignum" id="e-half">&hellip;</div><div class="lab">km&sup2; hold half the country</div></div>
       </div>
       <p>The right-hand map is the reason the left-hand one looks complicated. The fine structure in
@@ -124,17 +126,36 @@ table.fig th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em
       produces.</p>
       <p class="muted">Concentration, household-weighted: <span id="e-conc">&hellip;</span></p>
       <div class="absence">
+        <b>This page said 53% until it was checked against the address record, and it was wrong.</b>
+        <p>Households were placed at <b>postcode centroids</b>, and a centroid is a point. A square
+        kilometre of scattered dwellings whose postcode centroid fell in the next cell along read as
+        empty. <b>OS Open UPRN</b> &mdash; a published grid reference for every one of Britain's
+        41,629,393 addressable properties &mdash; settles it directly:
+        <span id="a-addrshare">&hellip;</span> of GB land holds at least one address, not 53%.</p>
+        <p>The old method was not measuring &ldquo;is anyone here&rdquo;. It was measuring, to
+        within half a percent, <b>&ldquo;are there ten or more addressable properties here&rdquo;</b>
+        &mdash; a hamlet or larger. Households now follow address density within each output area,
+        the census still fixes the totals, and the occupied figure above is what that gives.</p>
+        <p><b>What the correction did NOT change is the point of the page.</b> Re-placing every
+        household moved the household-weighted driver averages by 1.2%, 1.0% and 0.1% of a standard
+        deviation, and every cell count on this page is identical: 34, 89 and 987 for the shared
+        partition, about 21 per driver. The addresses the old method missed are 1.2% of Britain's
+        &mdash; a long thin tail of isolated properties, too few to move a weighted mean and more
+        than enough to ruin a map.</p>
         <b>Two kinds of blank, and they are not the same thing.</b>
-        <p><b>Scotland is genuinely empty, and it was checked rather than assumed.</b> Southern
+        <p><b>Scotland is genuinely emptier, and it was checked rather than assumed.</b> Southern
         Scotland is <span id="a-south">&hellip;</span> empty and the Highlands and north
-        <span id="a-north">&hellip;</span>, against 28% south of the Mersey. Two other explanations
-        were tested and rejected: every remote town probed &mdash; Lerwick, Kirkwall, Stornoway,
-        Thurso, Ullapool, Fort William, Oban, Braemar &mdash; carries households across dozens of
-        cells, so the postcode-to-grid join has no holes north of the border; and Scotland's census
-        join loses 0.21% of its households against 0.014% for England and Wales, which is real but
-        far too small to show. Scotland holds 136 households per occupied km&sup2;, between England's
-        252 and Wales's 115 &mdash; if cells were missing, households would pile into the survivors
-        and that figure would be inflated.</p>
+        <span id="a-north">&hellip;</span>, against <span id="a-lowland">&hellip;</span> south of the
+        Mersey. Two other explanations were tested and rejected: every remote town probed &mdash;
+        Lerwick, Kirkwall, Stornoway, Thurso, Ullapool, Fort William, Oban, Braemar &mdash; carries
+        households across dozens of cells, so the postcode-to-grid join has no holes north of the
+        border; and Scotland's census join loses 0.21% of its households against 0.014% for England
+        and Wales, real but far too small to show.</p>
+        <p class="muted">The centroid error was not worst where you would expect. In proportion it
+        was worst in <b>lowland England</b>, where it called 28% of the land empty against a true
+        5%, because dense postcodes leave many interstitial squares holding a farm or two. In the
+        Highlands it overstated emptiness by a third. The mechanism was the sparse-rural one; the
+        geography was the other way round.</p>
         <p><b>Northern Ireland is not empty. It is not here.</b> The Met Office grid this map is
         drawn on covers the whole United Kingdom, and
         <span id="a-nigb">&hellip;</span> of its land cells lie outside Great Britain. The postcode
@@ -329,7 +350,11 @@ function render(d){
   document.getElementById("e-half").textContent=fmt(e.concentration["50pc"]);
   document.getElementById("a-south").textContent=Math.round(e.empty_share.southern_scotland*100)+"%";
   document.getElementById("a-north").textContent=Math.round(e.empty_share.highlands_and_north*100)+"%";
+  document.getElementById("a-lowland").textContent=Math.round(e.empty_share.south_of_the_mersey*100)+"%";
   document.getElementById("a-nigb").textContent=fmt(e.not_gb_land_cells);
+  document.getElementById("e-addr").textContent=fmt(e.addresses.cells_with_any_address);
+  document.getElementById("a-addrshare").textContent=
+    Math.round(e.addresses.share_with_any_address*100)+"%";
   document.getElementById("e-conc").textContent =
     Object.keys(e.concentration).map(function(k){
       return k.replace("pc","%")+" of households in "+fmt(e.concentration[k])+" cells";

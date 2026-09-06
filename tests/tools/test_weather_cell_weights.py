@@ -19,7 +19,33 @@ def cache(tmp_path, monkeypatch):
     monkeypatch.setattr(w, "ONSPD_CSV", tmp_path / "onspd.csv")
     monkeypatch.setattr(w, "TS041_CSV", tmp_path / "ts041.csv")
     monkeypatch.setattr(w, "SCOTLAND_CSV", tmp_path / "scotland.csv")
+    # The address grid the placement now stands on. Uniform by default, so a test that says
+    # nothing about addresses gets an even split -- which is what the old centroid method did, and
+    # keeps every fixture below about the thing it is actually testing.
+    import numpy as np
+
+    from tools import os_open_uprn as uprn
+    grid = np.ones((1450, 900), dtype=np.int32)
+    monkeypatch.setattr(uprn, "cell_counts", lambda dest=None: grid)
     return tmp_path
+
+
+@pytest.fixture()
+def addresses(monkeypatch):
+    """Put addresses in named 1 km cells and nowhere else."""
+    import numpy as np
+
+    from tools import os_open_uprn as uprn
+
+    def place(**per_cell):
+        grid = np.zeros((1450, 900), dtype=np.int32)
+        for key, count in per_cell.items():
+            x, y = (int(v) for v in key.split("_")[1:])
+            grid[y + 200, x + 200] = count
+        monkeypatch.setattr(uprn, "cell_counts", lambda dest=None: grid)
+        return grid
+
+    return place
 
 
 def _write(path, header, rows):
@@ -89,34 +115,43 @@ def test_SCOTLAND_MISSING_is_a_REFUSAL_and_not_a_smaller_answer(cache):
         w.census_weights()
 
 
-def test_households_are_SPLIT_across_an_output_areas_postcodes_not_piled_at_one_point(cache):
-    """THE CHOICE, asserted. A rural output area can span tens of kilometres; posting its whole
-    household count at a single centroid puts them all in one 1 km cell. Two postcodes of one area,
-    two cells, half each."""
-    _seed(cache, [
-        ["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"],
-        ["AA1 1AB", "E00000001", 405_500, 300_500, "E92000001"],
-    ], ew=(("E00000001", 100),), scot=())
+def test_households_FOLLOW_THE_ADDRESSES_and_not_the_postcode_centroids(cache, addresses):
+    """THE METHOD, AND THE DIRECTOR'S CORRECTION THAT PRODUCED IT.
+
+    A postcode centroid is a POINT. Splitting an output area's households across its centroids put
+    them all in the cells those points happened to land in, and a cell of scattered dwellings whose
+    centroid fell next door read as empty -- undercounting occupied GB by 23 percentage points.
+
+    Households now follow OS Open UPRN address density within the output area. Here the area's one
+    postcode sits at (400,300) while its addresses are three-to-one in the NEIGHBOURING cell, and
+    the households must go where the addresses are.
+    """
+    _seed(cache, [["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"]],
+          ew=(("E00000001", 100),), scot=())
+    addresses(cell_400_300=25, cell_401_300=75)
 
     weights, _ = w.census_weights()
 
-    assert weights[(400, 300)] == 50
-    assert weights[(405, 300)] == 50
-    assert sum(weights.values()) == 100, "splitting must conserve the household count"
+    assert weights[(401, 300)] == pytest.approx(75.0), (
+        "the neighbouring cell holds three quarters of the addresses and no postcode centroid at "
+        "all -- under the old method it held nothing")
+    assert weights[(400, 300)] == pytest.approx(25.0)
+    assert sum(weights.values()) == pytest.approx(100.0), (
+        "the census fixes the output area's total and re-placing must conserve it exactly")
 
 
-def test_two_postcodes_in_the_SAME_cell_ACCUMULATE(cache):
-    """The sibling defect to the one above: an implementation that ASSIGNED rather than added would
-    pass the split test and lose a household every time two postcodes shared a cell -- which is the
-    normal case in every town."""
+def test_TWO_OUTPUT_AREAS_sharing_a_cell_ACCUMULATE(cache, addresses):
+    """An implementation that ASSIGNED rather than added would lose an output area every time two
+    shared a cell -- the normal case in every town."""
     _seed(cache, [
         ["AA1 1AA", "E00000001", 400_100, 300_100, "E92000001"],
-        ["AA1 1AB", "E00000001", 400_900, 300_900, "E92000001"],
-    ], ew=(("E00000001", 100),), scot=())
+        ["AA1 1AB", "E00000002", 400_900, 300_900, "E92000001"],
+    ], ew=(("E00000001", 100), ("E00000002", 40)), scot=())
+    addresses(cell_400_300=10)
 
     weights, _ = w.census_weights()
 
-    assert weights == {(400, 300): 100}
+    assert weights == {(400, 300): pytest.approx(140.0)}
 
 
 def test_every_DROP_is_COUNTED_and_none_is_silent(cache):
@@ -135,26 +170,6 @@ def test_every_DROP_is_COUNTED_and_none_is_silent(cache):
     assert drops["output_area_not_in_census"] == 1
     assert drops["census_areas_with_no_live_postcode"] == 1
     assert sum(weights.values()) == 100, "only the placeable households are counted"
-
-
-def test_the_CHOICE_COST_is_measured_and_can_be_NON_ZERO(cache):
-    """A cost function that always returned zero would make the Choice look free. Two postcodes 5 km
-    apart: the centroid lands in one cell and half the households belong in the other."""
-    _seed(cache, [
-        ["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"],
-        ["AA1 1AB", "E00000001", 405_500, 300_500, "E92000001"],
-    ], ew=(("E00000001", 100),), scot=())
-
-    spread = w.disagreement_with_centroid()
-    assert spread["share"] > 0
-
-    _seed(cache, [
-        ["AA1 1AA", "E00000001", 400_100, 300_100, "E92000001"],
-        ["AA1 1AB", "E00000001", 400_900, 300_900, "E92000001"],
-    ], ew=(("E00000001", 100),), scot=())
-
-    together = w.disagreement_with_centroid()
-    assert together["share"] == 0, "postcodes inside one cell cannot disagree with their centroid"
 
 
 def test_the_SCOTTISH_TABLE_IS_CROSS_CHECKED_against_a_second_table(cache, monkeypatch):
@@ -177,7 +192,7 @@ def test_the_SCOTTISH_TABLE_IS_CROSS_CHECKED_against_a_second_table(cache, monke
     assert (cache / "scotland.csv").is_file(), "the agreeing case must be reachable"
 
 
-def test_households_OFF_THE_LAND_GRID_are_COUNTED_and_not_quietly_dropped(cache):
+def test_households_OFF_THE_LAND_GRID_are_COUNTED_and_not_quietly_dropped(cache, addresses):
     """A postcode's 1 km square is not always a HadUK land cell: coastal and estuary postcodes sit
     in squares the grid calls sea, and they hold real households. Aligning silently would drop them
     and leave a total that still looks like the census, because the census total is never the thing
@@ -186,8 +201,9 @@ def test_households_OFF_THE_LAND_GRID_are_COUNTED_and_not_quietly_dropped(cache)
 
     _seed(cache, [
         ["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"],   # on the fake land grid
-        ["AA1 1AB", "E00000002", 999_500, 999_500, "E92000001"],   # off it
+        ["AA1 1AB", "E00000002", 650_500, 400_500, "E92000001"],   # off it
     ], ew=(("E00000001", 100), ("E00000002", 60)), scot=())
+    addresses(cell_400_300=10, cell_650_400=10)
 
     drivers = {"east": np.array([400_500.0]), "north": np.array([300_500.0])}
     vec, off = w.aligned_to_land(drivers)
@@ -266,6 +282,90 @@ def _stub_gb_reachable(drivers):
     distance, _ = tree.query(np.column_stack([drivers["east"], drivers["north"]]), k=1)
     mask = distance <= w.GB_REACH_KM * 1000.0
     return mask, {"gb_land_cells": int(mask.sum()), "not_gb_land_cells": int((~mask).sum())}
+
+
+def test_the_PLACEMENT_COST_conserves_households_and_reports_BOTH_directions(cache, addresses):
+    """THE CHOICE, PRICED -- and it must price it in both directions, because the finding is that
+    they point opposite ways: the coverage claim was wrong by 23 points and the weights barely
+    moved. A cost function reporting only the first would read as a disaster and only the second as
+    a nicety.
+
+    Conservation is about what each method PLACED, not what landed on the land grid. The first
+    version compared the two land-grid totals and reported households lost, when what it had found
+    was address placement moving coastal households onto the grid -- the two methods differing,
+    which is the point.
+    """
+    _seed(cache, [["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"]],
+          ew=(("E00000001", 100),), scot=())
+    addresses(cell_400_300=25, cell_401_300=75)
+
+    import numpy as np
+
+    from tools import weather_cell_drivers as drv
+    fake = {"east": np.array([400_500.0, 401_500.0]), "north": np.array([300_500.0, 300_500.0]),
+            "winter_temp": np.array([5.0, 4.0]), "annual_wind": np.array([4.0, 5.0]),
+            "annual_sun": np.array([1500.0, 1400.0])}
+    import pytest as _p
+    monkey = _p.MonkeyPatch()
+    monkey.setattr(drv, "drivers", lambda: fake)
+    monkey.setattr(w, "gb_reachable", lambda d, threshold_km=None: (np.array([True, True]), {}))
+    try:
+        cost = w.placement_cost()
+    finally:
+        monkey.undo()
+
+    assert cost["households_conserved"] is True
+    assert cost["households_placed_on_centroids"] == cost["households_placed_on_addresses"] == 100
+    assert cost["occupied_on_addresses"] > cost["occupied_on_centroids"], (
+        "address placement must reach cells the centroid method left empty -- that is the finding")
+    assert set(cost["driver_shift_in_sd"]) == {"winter_temp", "annual_wind", "annual_sun"}
+    # AND A DEGENERATE SPREAD REPORTS None, NOT ZERO. This fixture leaves the centroid method with
+    # one occupied cell, so there is no standard deviation to express a shift in -- the first
+    # version divided by it and crashed, and a version returning 0.0 would have said "the weights
+    # did not move" when the truth is that it cannot tell.
+    assert all(v is None or v >= 0 for v in cost["driver_shift_in_sd"].values())
+
+
+def test_the_ADDRESS_RECORD_is_REQUIRED_and_absence_is_a_REFUSAL(monkeypatch, tmp_path):
+    """FAIL-CLOSED, and the direction is everything.
+
+    The whole finding is that postcode centroids undercount occupied cells by 23 points. A
+    placement that fell back to centroids when the address grid was missing would restore that
+    defect on any machine that had not pulled -- and restore it INVISIBLY, which is worse than not
+    having the fix at all.
+    """
+    from tools import os_open_uprn as uprn
+
+    monkeypatch.setattr(uprn, "GRID", tmp_path / "absent.npy")
+    with pytest.raises(FileNotFoundError, match="23 percentage points"):
+        uprn.cell_counts(tmp_path / "absent.npy")
+
+
+def test_the_ADDRESS_RECORD_AGREES_WITH_THE_PLACEMENT_it_produces():
+    """THE DIRECTOR'S CHECK, kept as a control rather than as a paragraph.
+
+    He asked whether 47% of GB kilometres really hold no address. They do not: 84.7% hold at least
+    one. What the old method was measuring, to within half a percent, was "ten or more addressable
+    properties". Both figures are asserted, because the second is what makes the first a defect
+    rather than a difference of opinion.
+    """
+    from tools import os_open_uprn as uprn
+    from tools import weather_cell_drivers as drv
+
+    if not uprn.GRID.is_file() or not (drv.CACHE / "tas" / "mon-30y").is_dir():
+        pytest.skip("the address grid or the HadUK normals are not on this machine")
+
+    d = drv.drivers()
+    gb, _ = w.gb_reachable(d)
+    cov = uprn.coverage(d, gb)
+
+    assert cov["share_with_any_address"] > 0.80, (
+        f"only {cov['share_with_any_address']:.1%} of GB land holds an address; the finding that "
+        "the centroid method undercounts rests on this being high")
+    at_ten = cov["cells_with_at_least"]["10"] / cov["gb_land_cells"]
+    assert 0.45 < at_ten < 0.60, (
+        f"'ten or more addresses' now covers {at_ten:.1%} of GB land. The claim that the old "
+        "centroid method was measuring THIS rather than 'has anybody' no longer holds.")
 
 
 def test_the_live_gb_mask_matches_the_published_land_area():

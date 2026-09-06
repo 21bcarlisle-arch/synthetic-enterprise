@@ -204,6 +204,8 @@ def build() -> dict:
     # arrive with zero households. They have temperatures like anywhere else, so they would now be
     # CLASSED -- and a class map showing Northern Ireland would imply a cell set that covers it.
     gb_mask, gb_stats = wgt.gb_reachable(d)
+    from tools import os_open_uprn as uprn
+    uprn_cov = uprn.coverage(d, gb_mask)
     not_gb_block = np.zeros(grid.shape, dtype=float)
     land_block = np.zeros(grid.shape, dtype=float)
     br, bc = all_rows // BLOCK_KM, all_cols // BLOCK_KM
@@ -277,6 +279,15 @@ def build() -> dict:
             "not_gb_land_cells": gb_stats["not_gb_land_cells"],
             "published_gb_land_km2": gb_stats["published_gb_land_km2"],
             "land_cells_with_households": coverage["land_cells_with_households"],
+            # THE ADDRESS RECORD, published beside the household placement it corrected. "No
+            # household placed here" and "no address here" are different claims and this page made
+            # the first while sounding like the second.
+            "addresses": {
+                "cells_with_any_address": uprn_cov["cells_with_at_least"]["1"],
+                "cells_with_ten_or_more": uprn_cov["cells_with_at_least"]["10"],
+                "share_with_any_address": uprn_cov["share_with_any_address"],
+                "total": uprn_cov["addresses"],
+            },
             "households": coverage["households_placed"],
             "concentration": {f"{int(s * 100)}pc": int(np.searchsorted(cum, s)) + 1
                               for s in (0.5, 0.8, 0.9, 0.95, 0.99)},
