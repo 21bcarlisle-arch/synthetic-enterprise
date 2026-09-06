@@ -98,29 +98,40 @@ DIRECT_SUITES = (
 #: `background/process_run_complete.py:7575`, and the rest -- so the poison
 #: round below grades something stricter here than on the previous subjects.
 #:
-#: DO NOT BUY THE TENTH COLUMN. `tests/tools/test_ep13_embedded_generation_bound.py` costs ~610s
-#: per round -- 112 minutes to grade the eleven mutations, against ~90s for the other seven
-#: callers together -- and it is MEASURED NON-REACHING: `reaches_subject: false`, rc=0, 609.3s,
-#: at THIS spec's fingerprint `d7eb36a0b901`, with both control suites green under the same
+#: THE TENTH COLUMN IS NOW WORTH BUYING, and this note is kept in full rather than replaced
+#: because the reason it was not is the finding. WHAT WAS MEASURED, at this spec's fingerprint
+#: `d7eb36a0b901`: `tests/tools/test_ep13_embedded_generation_bound.py` cost ~610s per round --
+#: 112 minutes for the eleven mutations, against ~90s for the other seven callers together -- and
+#: was `reaches_subject: false`, rc=0, 609.3s, with both control suites green under the same
 #: poison so the floor was discriminating rather than reddening nothing. Every one of those
-#: eleven cells would arrive stamped `survived_but_unreachable`, which is the engine's own words
-#: for "proves nothing". Recorded here rather than in a staged document because the next lane
-#: reads this list and not that document.
+#: eleven cells would have arrived stamped `survived_but_unreachable`, the engine's own words for
+#: "proves nothing". The conclusion drawn was that `survived_all` would be `None` for every row
+#: of this spec PERMANENTLY, and that closing it was not worth 112 minutes.
 #: `docs/staging/SEAT_RESULT_THE_TENTH_SUITE_CANNOT_SEE_THE_SUBJECT_AND_THE_CALLER_IT_TESTS_HAS_NO_TEST_OF_THE_PATH_THAT_CALLS_IT_2026-09-06.md`
 #:
-#: WHY it cannot reach, which is the part worth keeping: `tools/ep13_embedded_generation_bound`
-#: imports `fuel_mix` in exactly one place -- inside `measure()`, line 521, calling it at 527 --
-#: and `measure` is in the transitive call closure of NO entry point that suite touches. Its only
-#: caller is `main()` (line 614) and no test runs `main`. The suite's own `_measure` helper
-#: (test line 88, six call sites, 623s of runtime) calls `measure_year` on synthetic worlds and is
-#: a different function; that name collision is why a grep for coverage of `measure` is satisfied
-#: while the mechanism is untouched.
+#: BOTH HALVES OF THAT WERE FIXED ON 2026-09-06 BY THE SAME CHANGE, and neither was fixed on
+#: purpose -- the direction was only "run the producer once".
 #:
-#: IT STAYS IN THIS TUPLE ANYWAY, and the consequence is deliberate. It IS a caller, so removing
-#: it would delete exactly the finding above and leave a seven-caller verdict reading as eight.
-#: The price is that `survived_all` is `None` for every row of this spec, permanently, with
-#: `ungraded_callers` naming this suite -- which is the honest report of a caller whose one path
-#: to the subject has no test, and not a gap to be closed by spending the 112 minutes.
+#: REACH. `tools/ep13_embedded_generation_bound` imports `fuel_mix` in exactly one place, inside
+#: `measure()`, and `measure()` had one caller -- `main()` -- that no test ran. The suite's own
+#: `_measure` helper calls `measure_year` on synthetic worlds and is a different function; that
+#: name collision is why a grep for coverage of `measure` was satisfied while the mechanism was
+#: untouched. `TestTheProducerRunsAndReproducesWhatItPublished` now runs `main()` on the real
+#: caches, so the single import site is executed on a path this suite takes. PROVEN BY ITS OWN
+#: POISON ROUND, not by reading the call graph: `raise` on entry to `measure()` errors all seven
+#: of that class's tests in 0.2s. NOT YET RE-MEASURED BY THIS BATTERY at this fingerprint -- the
+#: engine's own `reaches_subject` verdict is what belongs in the results file, and nothing here
+#: should be read as having produced one.
+#:
+#: PRICE. The 610s was never the size of the fixture. `measure_year` called `_matched_scale`
+#: INSIDE a comprehension over the year's ~15,000 half hours, and each call walked all of them --
+#: a loop-invariant recomputed n times, O(n^2), dominating everything. Hoisted (an equivalence:
+#: the row is byte-identical), the whole suite is 29 tests in 31s, of which 25s is the new real-
+#: cache class. Eleven mutations is therefore ~6 minutes, not 112.
+#:
+#: SO THE NEXT LANE HERE HAS A CHOICE THIS ONE DID NOT: grade the tenth column and replace the
+#: `None` in `survived_all` with a real verdict. It stays in this tuple either way -- it IS a
+#: caller, and removing it would leave a seven-caller verdict reading as eight.
 CALLER_SUITES = (
     "tests/tools/test_ep13_biomass_oracle_bound.py",
     "tests/tools/test_ep13_ccgt_level_ceiling.py",

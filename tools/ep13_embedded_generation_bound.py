@@ -83,6 +83,7 @@ unreachability walk, and only it does.
 
 from __future__ import annotations
 
+import argparse
 import ast
 import json
 from pathlib import Path
@@ -369,8 +370,15 @@ def measure_year(
     # `day_mean_series(w_oracle)` is `w_day_mean` exactly, because a within-day deviation has
     # zero mean within every day, which is what makes the control rung literally shared.
     oracle_deviation = within_day_deviation({k: published[k] for k in year_keys})
+    # HOISTED, and it is an equivalence rather than a change of answer: none of `_matched_scale`'s
+    # three arguments depend on `k`, so the call returned the same float on every one of the
+    # year's ~15,000 half hours and each call walks all of them. Inside the comprehension the
+    # scale cost O(n^2) and DOMINATED the whole measurement -- one real year did not finish in
+    # seven minutes, and it is why this file's own suite takes ten. Found by writing the control
+    # that runs `measure()` on the real caches, which is the first thing ever to run it.
+    oracle_scale = _matched_scale(w_real, oracle_deviation, year_keys)
     w_oracle = {
-        k: w_day_mean[k] + _matched_scale(w_real, oracle_deviation, year_keys) * oracle_deviation[k]
+        k: w_day_mean[k] + oracle_scale * oracle_deviation[k]
         for k in year_keys
     }
 
@@ -514,7 +522,15 @@ def sweep(
 
 
 def measure() -> dict:
-    """The bound, over every year the series share. Loads the real caches."""
+    """The bound, over every year the series share. Loads the real caches.
+
+    THIS IS THE RUNG NO TEST RAN, and it stayed that way for a reason worth recording rather
+    than a slip: everything above it is measured on synthetic worlds where the answer is known
+    by construction, which is the right way to grade an instrument — and it left the one function
+    that reads the real caches, calls `fuel_mix`, builds the shipped shape and assembles the
+    coordinate graded by nothing at all. A whole pass costs ~23s (measured 2026-09-06, after the
+    hoist in `measure_year`), so the reason it was never a control was never the price.
+    """
     from sim import grid_carbon_intensity as gci
     from sim.generation_demand_history import aggregate_renewable_generation
     from sim.grid_carbon_intensity import aggregate_demand
@@ -611,9 +627,22 @@ def measure() -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # THE ONE ARGUMENT, and it is here so a control can run this function rather than a paraphrase
+    # of it. A test that wrote to `OUT_PATH` would either overwrite a published artefact or have
+    # to be a copy of `main` with the write left out, and a copy is not the thing under test.
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=OUT_PATH,
+        help="where to write the artefact (default: the published path)",
+    )
+    args = parser.parse_args(argv)
+
     data = measure()
-    OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PATH.write_text(json.dumps(data, indent=1, default=str) + "\n", encoding="utf-8")
+    out_path = args.out
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(data, indent=1, default=str) + "\n", encoding="utf-8")
     for year, row in sorted(data["years"].items()):
         c = row["controls"]
         print(
@@ -644,7 +673,7 @@ def main(argv: list[str] | None = None) -> int:
             f"over-cells={grid['mean_embedded_gain_over_cells']:+.4f}  "
             f"oracle={grid['mean_oracle_headroom']:+.4f}"
         )
-    print(f"wrote {OUT_PATH}")
+    print(f"wrote {out_path}")
     return 0
 
 
