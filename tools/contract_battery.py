@@ -594,12 +594,109 @@ def release_the_results_file(handle: object) -> None:
     handle.close()
 
 
-def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
-    """Parse, take the exclusive claim on the results file, and grade under it.
+def _the_kernel_names_the_holder(handle: object) -> str:
+    """Who holds the `flock` on this handle's inode, asked of `/proc/locks`. `""` when it cannot say.
 
-    The claim is taken BEFORE the subject is read or the pristine copy is written, so a refused
-    run has touched nothing: the losing run of a same-spec pair must not leave a pristine copy of
-    a source the winner may have mutated at the moment it read it.
+    NOT a second store. The subject is a source file, so there is nowhere to write an identity
+    record the way `claim_the_results_file` writes one beside the results file -- and inventing a
+    sidecar for it would be two stores for one claim, which is a shape that can disagree with
+    itself. The kernel's lock table cannot disagree with the lock, because it IS the lock.
+
+    It can decline to answer: a filesystem that reports no inode, a format change, no `/proc`. That
+    is reported as `""` and the refusal then says plainly that the holder could not be named,
+    rather than guessing. An unavailable check must report itself unavailable.
+    """
+    try:
+        st = os.fstat(handle.fileno())
+        want = f"{os.major(st.st_dev):02x}:{os.minor(st.st_dev):02x}:{st.st_ino}"
+        rows = Path("/proc/locks").read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return ""
+    for row in rows:
+        fields = row.split()
+        # A BLOCKED WAITER is printed as `1: -> FLOCK ...`, one field wider than a holder. Nobody
+        # waits on this lock while LOCK_NB stands, but a parser that silently misreads a row is
+        # how "cannot tell" becomes permanent without anyone noticing.
+        if len(fields) > 1 and fields[1] == "->":
+            fields = fields[:1] + fields[2:]
+        if len(fields) >= 6 and fields[1] == "FLOCK" and fields[5] == want:
+            return f"pid {fields[4]}"
+    return ""
+
+
+def claim_the_subject_file(subject: Path) -> tuple[object | None, str]:
+    """Take an exclusive claim on the SUBJECT, or say who holds it. `(handle, held_by)`.
+
+    THE SECOND RESOURCE, AND THE SECOND SCOPE, 2026-09-06. `claim_the_results_file` guards a
+    global `/var/tmp` path shared across working trees. The subject is the other resource and it
+    is per-tree: every battery PATCHES IT IN PLACE and restores it at the end, so two runs over
+    one subject interleave a mutation of one with the restore of the other, and each grades cells
+    against a file the other wrote.
+
+    The results lock cannot cover it, and correctly does not try. Two runs collide on the subject
+    while their results files differ whenever the fingerprints differ -- two specs for one subject
+    -- and, live today rather than latent, whenever a reader takes the results refusal's own
+    documented escape: *"or pass a --out of your own"*. Follow that advice in the tree the other
+    run is already grading and both runs write one source file, each holding a claim on a results
+    file nobody is contesting.
+
+    It was never unguarded, but the guard was `held_through_run`, which VOIDS a row whose subject
+    did not hold. That is detection after the fact: the cost is a whole battery run discarded,
+    where a refusal costs a wait. A control that can only report the damage is not the control.
+
+    WHY THE SUBJECT ITSELF AND NOT A LOCK FILE BESIDE IT. Two reasons, and the first is the
+    finding that produced this work: the design this repairs had a fail-open branch in it that its
+    author did not see. A lock on a DERIVED path is open to exactly that -- any future caller that
+    derives the name a hair differently (an unresolved symlink, a relative path, a `--subject`
+    override) takes an uncontested claim on a name nobody else uses and proceeds. The inode cannot
+    be derived wrongly, because it is not derived. The second: the tree-scoping falls out for free.
+    Two worktrees hold two inodes for one repo path, and that is precisely the scope wanted -- a
+    per-tree file, unlike the results file, is not contended across trees at all.
+
+    `"r"`, and not a mode that could truncate: `flock` places no requirement on the open mode, and
+    a claim that could damage its own subject on the way to being refused is worse than no claim.
+    The mutation writes that follow open their own descriptor and truncate in place, which leaves
+    the inode -- and so this claim -- exactly where it was.
+
+    KNOWN LIMIT, stated rather than guarded: a claim follows the inode, so a `git` operation that
+    REPLACES the subject by rename mid-run leaves this holding an unlinked file. That run's rows
+    are void for a much louder reason than the lock, and `held_through_run` is what catches it.
+    """
+    # LOCK_NB for the reason `claim_the_results_file` gives at length, and it earns it twice here:
+    # a battery is routinely started, backgrounded and forgotten, so a blocking acquire at the top
+    # is silence that reads exactly like grading.
+    handle = subject.open("r", encoding="utf-8")
+    try:
+        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        held_by = _the_kernel_names_the_holder(handle) or "a run the kernel would not name"
+        handle.close()
+        return None, held_by
+    return handle, ""
+
+
+def release_the_subject_file(handle: object) -> None:
+    """Drop the claim on the subject. In a `finally`, for `release_the_results_file`'s reason:
+    a run that RAISES leaves its frame, and this handle in it, alive on the traceback the
+    reporting layer holds, so the run that most needs a re-run to be possible is the one that
+    would otherwise lock the subject out. The clean-exit path is done for us by refcounting and
+    proves nothing about this line.
+    """
+    fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    handle.close()
+
+
+def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
+    """Parse, take the exclusive claims on the results file AND the subject, and grade under both.
+
+    Both claims are taken BEFORE the subject is read or the pristine copy is written, so a refused
+    run has touched nothing: the losing run of a pair must not leave a pristine copy of a source
+    the winner may have mutated at the moment it read it.
+
+    TWO RESOURCES AT TWO SCOPES, so two claims -- the results file globally, the subject per tree.
+    Neither implies the other in either direction, which is the whole reason the first one alone
+    left the collision open. `LOCK_NB` on both means the order below cannot deadlock: a run that
+    cannot have the second gives the first back and says so.
     """
     fp = fingerprint(spec)
     ap = argparse.ArgumentParser(description=f"contract battery: {spec.subject}")
@@ -626,7 +723,23 @@ def run(spec: BatterySpec, argv: list[str] | None = None) -> int:
               f"--out of your own.", flush=True)
         return 3
     try:
-        return _grade_under_the_claim(spec, args, fp, out_path)
+        subject_handle, subject_held_by = claim_the_subject_file(spec.subject_path)
+        if subject_handle is None:
+            # A THIRD refusal and a third exit code, because the remedy is a third thing again.
+            # The fingerprint's says use a different file; the results lock's says wait or use a
+            # --out of your own; this one says that a --out of your own is exactly what will NOT
+            # help, because the contended thing is the source.
+            print(f"REFUSED: {spec.subject} is already being mutated by a battery run in this "
+                  f"tree ({subject_held_by}). Every battery patches its subject IN PLACE and "
+                  f"restores it at the end, so two runs over one subject grade cells against a "
+                  f"file the other wrote and each undoes the other's mutations. A --out of your "
+                  f"own does NOT make this safe -- the results file is not what you are sharing. "
+                  f"Wait for that run, or grade from a separate worktree.", flush=True)
+            return 4
+        try:
+            return _grade_under_the_claim(spec, args, fp, out_path)
+        finally:
+            release_the_subject_file(subject_handle)
     finally:
         release_the_results_file(handle)
 
