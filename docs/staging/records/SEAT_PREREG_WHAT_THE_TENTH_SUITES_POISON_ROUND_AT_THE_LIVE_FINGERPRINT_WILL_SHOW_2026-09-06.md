@@ -58,3 +58,54 @@ established is *"this suite does not run any path that imports the subject"*, an
 cannot catch the subject failing"*: the spec declares no `hard_poison`, so the second floor does
 not exist for `fuel_mix` and the engine says so in its own summary. The control suites staying
 green under the poison is what separates a discriminating floor from one that reddens nothing.
+
+---
+
+## ADDENDUM 2026-09-06 04:45 BST — the MECHANISM, established statically before the poison answered
+
+*Added while the poison pass was running: the baseline had returned `rc=0 failed=0 623.1s`,
+confirming prediction 4, and no `reaches_subject` value existed yet.*
+
+Prediction 1 above is an inference from a family resemblance — six sibling `ep13_*` suites read the
+subject as text, so this one probably does too. That is a prior, and it is weaker than what the
+source will simply tell you. Two static facts, checkable in seconds, say the same thing without
+running anything:
+
+1. **The suite cannot execute the subject on any path it takes.**
+   `tools/ep13_embedded_generation_bound.py` imports `fuel_mix` in exactly one place — inside
+   `measure()` at line 521, calling it at 527. The suite's entry points into the module are
+   `measure_year`, `day_mean_series`, `fit_surface_nd`, `apply_surface_nd`, `build_coordinates`,
+   `verdicts`, `within_day_deviation`, `oracle_is_unreachable_from` and the `held_out` fixture.
+   **`measure` is in the transitive call closure of none of them.** It is the rung `main()` runs,
+   and no test runs `main`. The suite calls `measure_year`, which is a different function.
+2. **Its one reference to the subject reads it as bytes.**
+   `tests/tools/test_ep13_embedded_generation_bound.py:289-293` does
+   `(bound.PROJECT_DIR / "tools" / "generate_grid_intensity_feed.py").read_text()` and hands the
+   result to `bound.oracle_is_unreachable_from` — an AST walk asserting the published feed does not
+   import the oracle.
+
+This sharpens what a `false` will and will not license. **Poison-green does not imply
+mutation-green in general**: a suite that never imports the subject cannot be reddened by anything
+done to it, but a suite that reads the subject's TEXT can redden for an edit the poison never made.
+This suite is both. What closes the gap here is fact 2 and not the poison round: the only text
+assertion is *"the feed does not import the oracle"*, and no mutation in `MUTATIONS` adds such an
+import. So the eleven unbought cells are green by construction, and that is a per-mutation argument
+against this spec's eleven contracts — not a theorem about blind suites, and it would have to be
+re-made for any twelfth.
+
+**And the null round's green is weak evidence, not a clean bill.** A suite that is green in every
+round is green in the null round too. `grades_text: false` here says the null marker is not an
+import of the oracle; it does not say the suite ignores the subject's bytes, and fact 2 says it
+does not.
+
+### Why this addendum exists rather than a second document
+
+A second pre-registration for this same round was written at 04:39 BST from the isolated worktree
+`/var/tmp/se-seat-executor` and landed as
+`docs/staging/records/SEAT_PREREG_WHAT_THE_TENTH_SUITES_POISON_ROUND_WILL_SHOW_AND_WHAT_I_WILL_DO_WITH_EITHER_ANSWER_2026-09-06.md`.
+**This document was invisible to it.** It was committed in the shared tree at `1c9a08792` and never
+pushed, so `origin/main` — the only thing an isolated worktree can see — did not carry it, and
+neither did the worktree's own `git log`. *Unpushed is still imported, and it is also still
+unfindable: a lane that files work locally and does not promote it has not just kept it out of the
+record, it has armed the next lane to redo it.* The duplicate is withdrawn and its one novel part
+is the section above.
