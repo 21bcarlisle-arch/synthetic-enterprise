@@ -2,6 +2,24 @@
 
 # The leg contamination never touched the published ceiling — it was the full-coverage rung
 
+> **CORRECTED 2026-09-06 by the one-variable re-run this finding itself handed on.** See
+> `SEAT_FINDING_THE_CEILINGS_MOVE_WAS_THE_KEYING_AND_THE_FULL_COVERAGE_RUNGS_MOVE_WAS_THE_BOOK_2026-09-06.md`.
+> The headline above is right that the pair rung is not where the fabricated target column did its
+> damage. **Two of the causal claims below are refuted**, and in opposite directions:
+>
+> 1. **"the ceiling moved 0.0181 … NOT ATTRIBUTED"** — it is now attributed, and it is **entirely
+>    the keying**. On the same book, `+0.6127 → +0.6308`. The account below ("the pair rung is their
+>    intersection — n=69 before and after … the winner barely moved") reads an **n** column and
+>    concludes the winner's inputs did not change. They did: the winning pair's second axis is
+>    `portfolio_premium_pct`, an account-state field whose **values** are re-averaged by folding even
+>    though its coverage of those 69 households is not. Coverage identity is not value identity.
+> 2. **"its p has moved from 0.8507 to 0.4328 now the fabricated share of its target column is
+>    gone"** — refuted. Re-keying alone moves that p to **0.8657**, the wrong way. The fall to
+>    0.4328 is **entirely the later book's account-state logging**.
+>
+> The increases (69→146, 100→164, 69→164) that this finding refused to attribute are **the book**,
+> as it suspected; folding cannot raise a per-field count at all. Everything else below stands.
+
 **Found:** 2026-09-06, delivery seat, claim
 `the-r1-ceiling-is-a-selected-maximum-published-as-a-bound`.
 Pre-registration:
