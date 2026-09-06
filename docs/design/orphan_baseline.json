@@ -1,7 +1,7 @@
 {
   "_doc": "THE RATCHET FLOOR for the no-caller class. Every module here is unreachable from the committed schedule TODAY and is grandfathered: nobody must fix them to commit. What the gate refuses is a module that is NOT on this list becoming unreachable -- i.e. the moment a new one is created. Shrink it freely; growing it requires saying why in the commit that grows it.",
   "entrypoint_count": 55,
-  "module_count": 1085,
+  "module_count": 1087,
   "orphans": [
     "background.bad_debt_reconciliation_run",
     "background.cascade_correlation_estimation",
@@ -328,6 +328,7 @@
     "tools.brand_compliance",
     "tools.build_battery_register",
     "tools.closed_atom_delivery",
+    "tools.company_data_contract_battery",
     "tools.compare_chase_belief",
     "tools.contract_battery",
     "tools.converged_contract_screen",
