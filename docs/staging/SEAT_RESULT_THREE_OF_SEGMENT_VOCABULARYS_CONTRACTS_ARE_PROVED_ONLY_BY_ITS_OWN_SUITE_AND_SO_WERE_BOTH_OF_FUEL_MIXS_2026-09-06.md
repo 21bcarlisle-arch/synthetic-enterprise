@@ -129,13 +129,43 @@ nothing, and it says so in a colour nobody was reading. Repointed and re-proved 
   fingerprint payload survived, because the only pair being compared also differed in `suites`. The
   leg that closes it compares two specs differing in `direct_suites` alone.
 
+## ADDENDUM: `segment_vocabulary` re-run live, and the hazard was not hypothetical
+
+**Run 2026-09-06 after the repair landed at `b3938b313`, in this worktree, at the corrected
+fingerprint `a8df36398b6a`. 526s. Results `/var/tmp/segment_vocabulary_battery_a8df36398b6a.json`,
+log `/var/tmp/segvocab_rerun_caller_population.log`. Subject restored byte-identical.**
+
+The instrument reproduces the offline re-reduction exactly:
+
+```
+SURVIVED ALL 6 CALLER SUITES: ['M3', 'M4', 'M8']
+PROVED ONLY BY THE SUBJECT'S OWN SUITES (no caller kills these): ['M3', 'M4', 'M8']
+```
+
+Both control suites stayed green under the poison and all ten scored suites reddened, so the floor
+still discriminates and every survival above is a real one.
+
+**The fourth direct importer now kills M3, and it did not when the battery first ran.**
+`test_segment_debt_obligation.py::test_what_this_module_mints_is_refused_by_the_world_true_canon`
+DIED on M3 in this run. Had that suite stayed in `CALLER_SUITES` — where it was until this commit —
+M3's `survived_all` would have flipped to `False` and the pre-registered question *"does any CALLER
+prove this"* would have been answered **yes, by its own repair**, with nothing on the page able to
+say so. That is the hazard the reclassification was argued from, fired on the very next run rather
+than left as an argument. The prediction was written into the spec before this run and is kept here
+beside the evidence that confirmed it.
+
+One thing did change from the re-reduction, and it is a correction to this page's own numbers:
+`imports_but_proves_nothing` is now **one** suite (`test_population_draw.py`) where the published
+run said two. The second was `test_segment_debt_obligation.py`, which is no longer inert — it
+proves M3. The module gained a control between the two runs and the instrument can see it.
+
 ## What this does not settle
 
-**Neither results file was rebuilt.** Both fingerprints moved (`segment_vocabulary`
+**`fuel_mix`'s results file was not rebuilt.** Both fingerprints moved (`segment_vocabulary`
 → `a8df36398b6a`, `grid_intensity_fuel_mix` → `d7eb36a0b901`), correctly — the split changed, and
-the fingerprint is what stops a stale verdict being inherited. The corrected verdicts above come
-from cells already scored and are not affected. A re-run writes the machine field to match; it is
-named as follow-on, not assumed done, and `fuel_mix`'s is ten suites by eleven mutations.
+the fingerprint is what stops a stale verdict being inherited. `segment_vocabulary`'s is rebuilt in
+the addendum above; `fuel_mix`'s is ten suites by eleven mutations and is named as follow-on rather
+than assumed done. The corrected verdicts above come from cells already scored either way.
 
 **The eighth caller is still ungraded.** `test_ep13_embedded_generation_bound.py` at 655.1s is
 where `fuel_mix`'s remaining doubt lives, and no row can carry a verdict until it is run.
