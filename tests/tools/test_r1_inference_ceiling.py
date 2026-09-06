@@ -501,12 +501,25 @@ def test_the_target_column_REFUSES_a_supply_point_leg_rather_than_hashing_it_an_
 
     live_population.live_population()
     seed = live_population.run_base_seed()
-    # REACHABILITY OF THE DEFECT, asserted before the refusal that exists because of it: the lookup
-    # returns a perfectly ordinary elasticity for a leg id, and a different one from its household's.
-    # If this ever stops being true the refusal below is belt-and-braces rather than load-bearing.
-    leg = price_elasticity_for_customer("C1g", seed)
-    assert isinstance(leg, float) and leg > 0.0
-    assert leg != price_elasticity_for_customer("C1", seed)
+    # REACHABILITY OF THE DEFECT, AND IT MOVED ON 2026-09-06 -- the line above anticipated this in
+    # so many words ("if this ever stops being true the refusal below is belt-and-braces"), so the
+    # premise is updated here rather than the anticipation being quietly deleted.
+    #
+    # This probe used to call the lookup for `C1g` and assert it came back an ordinary elasticity,
+    # different from `C1`'s -- the fail-open this refusal exists because of. The draw itself now
+    # refuses a supply-point leg (`simulation.population_draw.price_elasticity_for_customer`, the
+    # CLASS fix one rung up from this instrument's call site), so the fabrication is no longer
+    # reachable to assert live. The evidence that it was real is the finding, not this line.
+    #
+    # THE GUARD BELOW IS THEREFORE THE SECOND OF TWO, AND IT IS STILL LOAD-BEARING RATHER THAN DEAD.
+    # It fires FIRST on this path -- `true_traits` partitions the ids before any draw call -- and it
+    # raises SystemExit where the draw raises ValueError. So deleting it does not fall through to an
+    # equivalent refusal: the exception type changes and this control reds. That is the difference
+    # between two guards on one property and a second guard that can never fail, which is a trap
+    # this repo has paid for before.
+    with pytest.raises(ValueError):
+        price_elasticity_for_customer("C1g", seed)
+    assert price_elasticity_for_customer("C1", seed) > 0.0
 
     with pytest.raises(SystemExit) as refused:
         r.true_traits(["C1", "C1g", "C5"])

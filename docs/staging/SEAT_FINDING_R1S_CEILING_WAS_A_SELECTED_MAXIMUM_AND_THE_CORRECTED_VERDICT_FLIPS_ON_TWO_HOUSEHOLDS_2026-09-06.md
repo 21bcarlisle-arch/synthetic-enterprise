@@ -119,6 +119,50 @@ moderate ceiling to be visible. **The instrument is unchanged as the falsifier**
 book where the pair fields are populated on every household and the answer stops depending on which
 two households dropped out.
 
+### ↑ THAT PRESCRIPTION IS REFUTED — 2026-09-06, later the same day, and it is left above unedited
+
+**"213 households" was never 213 households.** A run output's `customer_id` is a **supply point**,
+and a household's gas leg is registered under its electricity point's id plus `GAS_LEG_ID_SUFFIX`
+(`simulation/household.py:485`) — `C1` and `C1g` are one property. The instrument keyed its target
+column on the raw id, so it split one book two ways and could not join it. Counted on
+`run_output_f53c90b85`: **264 supply points belonging to 177 households — 87 legs.**
+
+And the target those legs were graded against is fabricated.
+`price_elasticity_for_customer` is a hash of the id and answers for *any* string:
+`price_elasticity_for_customer("NOT_A_REAL_ID", 20260724)` returns **1.4223**, in range, right
+shape, drawn from nothing. So `C1g` came back **0.5255** while the world had given household `C1`
+a **1.6043**. A large share of the target column was noise correctly matched to nothing.
+
+So the two things this finding published as its causal story are both wrong:
+
+- **"Coverage closes it"** — the full-coverage rung's `cannot tell` at p=0.85 was never a coverage
+  result. It is what a rung reads when a share of its target column belongs to no household.
+- **"The verdict is a step function of coverage"**, the `does_the_verdict_survive_a_redraw` block
+  now on `/harness/`, groups runs by n=69 vs n=71 and by 213 vs 214 "households in the book". Those
+  are **supply-point counts**. The grouping may survive re-keying, but nothing here establishes
+  that it does, and the published block currently asserts a cause it has not earned.
+
+**Credit and scope:** the keying defect was found by another lane, which holds the whole R1
+publication chain dirty in the shared tree (the instrument, `tools/generate_delivery_page.py`,
+`site/data/delivery.json` and both test files) and is repairing it. I verified their claim
+independently from this worktree before relying on it — the census and the `C1`/`C1g` elasticities
+above are my own measurement, not a reading of their diff — and I have touched none of those files.
+
+**What this seat did instead, because it is the class and not the instance.** Their fix refuses a
+leg at the instrument's call site. The reason the defect was invisible is one rung up: a
+ground-truth draw that cannot refuse a question it has no answer to will do this to the *next*
+instrument too. So the guard now lives at the draw
+(`simulation/population_draw.price_elasticity_for_customer`), refuses a supply-point leg, and names
+the household that should have been asked for. It is a **tripwire and fires nowhere in the world
+today** — `customer_events.py:403` and `run_phase2b.py:1479` both normalise with `household_of`
+first, and `run_phase2b.py:947`'s raw `prospect_id` was traced and feeds `book_acquisition_spend`,
+not the draw. That trace was pre-registered as the thing I was least sure of and was confirmed:
+`SEAT_PREREGISTRATION_DOES_THE_GROUND_TRUTH_ELASTICITY_LOOKUP_EVER_GET_ASKED_FOR_A_SUPPLY_POINT_LEG_2026-09-06.md`.
+
+**It narrows the fail-open, it does not close it.** `household_of` is a string transform, not a
+roster lookup, so only the leg class is caught; `NOT_A_REAL_ID` is still answered with 1.4223.
+Closing it needs the population roster at the draw. That is the next piece and it is handed on.
+
 ## Also fixed here, because it was fail-open on the same instrument
 
 `newest_run_output()` picks by mtime, and a linked worktree carries **no gitignored run outputs**.
