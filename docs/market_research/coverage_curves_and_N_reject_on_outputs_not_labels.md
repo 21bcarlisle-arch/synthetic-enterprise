@@ -27,7 +27,16 @@ drawn house is within 5% of the normalised gas×electricity range.
 | **101** | **99.6%** |
 | 151 | 100.0% |
 
-**N ≈ 100 houses covers 99.6% of the metered output space.** The ruling's target is 99% of variance
+**N ≈ 100 houses covers 99.6% of the metered output space.**
+
+> **CORRECTED the same day, 2026-09-06 — do not quote the 100.** Adding ONE further output
+> dimension the use cases actually need (inter-year consumption volatility, i.e. bill-shock
+> exposure, which use case 2.1 exists to remove) takes N = 100 from 99.2% coverage to
+> **32.7%**; at N = 250 it is 87.7% and still short of 99. The figure below was an artefact
+> of measuring the two dimensions that were easiest to obtain, not a lower bound with
+> headroom. See `N_was_a_hundred_because_the_sample_was_blind_to_what_the_use_cases_need.md`.
+> The rest of this document — the shape of the curve, and the label-versus-output finding —
+> stands unchanged. The ruling's target is 99% of variance
 including tails, so this is the number it asked for, and it is reported rather than chosen.
 
 The curve is not linear and the shape matters: the first fifty houses buy less than the next
