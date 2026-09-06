@@ -396,6 +396,23 @@ def choose_model(reason: str) -> "tuple[str, object | None]":
         return MODEL, None
 
 
+def _claim_dispatched(reason: str) -> "str | None":
+    """Take the Lane 0 claim for the doorbell about to be dispatched. Lazily imported, like every
+    other non-cheap dependency here, so the disabled/dark path stays a pure file read.
+
+    NEVER RAISES: a lane that cannot import must not take the tick down -- the same rule
+    `supervisor._delivery_lane_draw` states for the draw itself, and the asymmetry is the same. The
+    cost of no claim is bookkeeping; the cost of no tick is the work."""
+    try:
+        from background import delivery_lane
+    except Exception:  # noqa: BLE001 - see the docstring
+        return None
+    claimed = delivery_lane.claim_dispatched(reason)
+    if claimed:
+        _log(f"lane-0 claim taken at dispatch: {claimed}")
+    return claimed
+
+
 def spawn_invocation(reason: str) -> "subprocess.Popen | None":
     """Spawn ONE headless bounded `claude -p` worker invocation. Returns the Popen (still running),
     or None if it could not be launched. The invocation is marked SE_SBI_WORKER=1 (the Stop hook's
@@ -469,6 +486,13 @@ def run_tick() -> TickDecision:
         # _draw() already imported supervisor, so the enumeration read is free here.
         _write_heartbeat(d, _enumeration_line())
         if d.spawn:
+            # DISPATCH IS THE CLAIM (2026-09-06). BEFORE the spawn, so the invocation finds its own
+            # item already in hand and its doorbell's `--landed` can bind. The compose happens under
+            # `delivery_lane.draw(claim=False)` -- correct, because that same call is the escalation
+            # watchdog's read -- and this is the first point in the chain that is dispatch and only
+            # dispatch. Returns None for a doorbell naming no Lane 0 id (the ordinary map draw), and
+            # never raises: see `claim_dispatched`.
+            _claim_dispatched(d.reason)
             proc = spawn_invocation(d.reason)
             if proc is not None:
                 _write_lock(proc.pid, d.reason)   # hand the claim we already hold to the child
