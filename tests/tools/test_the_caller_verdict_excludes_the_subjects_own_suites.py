@@ -24,6 +24,7 @@ from tools.contract_battery import (
     BatterySpec,
     _score,
     fingerprint,
+    population_drift,
     rows_without_a_caller_verdict,
 )
 
@@ -170,6 +171,86 @@ def test_moving_a_suite_between_the_caller_and_direct_columns_CHANGES_the_finger
     # ...and the guard is not just "any two specs differ": identical splits must still collide, or
     # the fingerprint would be refusing every resume and proving nothing about this move.
     assert fingerprint(split) == fingerprint(dataclasses.replace(split))
+
+
+def test_a_kill_by_a_MIXED_test_is_flagged_and_never_read_as_a_caller_verdict():
+    """THE THIRD ANSWER, and the branch that fires rarely enough to need proving it fires at all.
+
+    `direct_suites` moves a whole FILE out of the caller population. `direction`'s contracts are
+    tested INSIDE its callers' files -- 16 subject-asserting tests in `test_delivery_seat.py`
+    beside 26 that exercise the seat -- so the file-level field can only choose between throwing
+    away real caller evidence and letting the subject grade itself. `direct_nodes`
+    deselects per node; `mixed_nodes` names the tests that do BOTH in one body, whose kills cannot
+    be attributed either way.
+
+    THE WHOLE PARTITION IN ONE CONTROL, per CLAUDE.md's rare-branch rule: a reduction that flagged
+    EVERY kill, or none, satisfies a single leg and is caught here.
+
+    MUTATION (must fire): return `[]` from the `killed_by_a_mixed_test` comprehension, or drop the
+    `is_mixed` check so every caller kill is flagged.
+    """
+    spec = _spec(mixed_nodes=(f"{CALLER_A}::test_both_at_once",))
+    row: dict = {"per_suite": {}}
+    todo = list(spec.selectable)
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(
+            "tools.contract_battery._run_suite",
+            lambda suite, deselect, stop_first: {
+                "suite": suite, "returncode": 1, "failed": [
+                    f"{CALLER_A}::test_both_at_once[a-param]" if suite == CALLER_A
+                    else f"{suite}::test_an_ordinary_caller_test"],
+                "seconds": 0.0, "tail": []},
+        )
+        _score(spec, row, todo, dict.fromkeys(todo, ()), dict.fromkeys(todo, True), {})
+
+    assert row["killed_by_a_mixed_test"] == [CALLER_A], (
+        "a kill landing on a test that asserts on the subject AND on a caller is being published "
+        "as caller evidence")
+    # ...and the OTHER side of the partition, or a reduction flagging everything would pass.
+    assert CALLER_B in row["killed_by"] and CALLER_B not in row["killed_by_a_mixed_test"]
+    # The parametrised node id must still match the bare declared name, or the flag would be
+    # silently off for every parametrised test -- the commonest shape in this tree.
+    assert spec.is_mixed(CALLER_A, f"{CALLER_A}::test_both_at_once[a-param]")
+    assert not spec.is_mixed(CALLER_A, f"{CALLER_A}::test_both_at_once_elsewhere")
+
+
+def test_a_drifted_population_is_refused_at_RUN_time_and_not_only_by_a_test():
+    """A test can be deselected, skipped, or simply not run before someone starts a battery. The
+    run is the moment the declaration actually shrinks a population, so it checks there too.
+
+    THE WHOLE PARTITION: clean, under-declared, and over-declared. A drift check that returned a
+    message for everything would satisfy the two failure legs and only fail the clean one.
+
+    MUTATION (must fire): return `""` unconditionally from `population_drift`, or drop either
+    direction of the comparison.
+    """
+    import importlib
+
+    live = importlib.import_module("tools.direction_contract_battery").SPEC
+    assert population_drift(live) == "", (
+        "the shipped spec already disagrees with the tree, so every leg below is comparing two "
+        "kinds of wrong")
+
+    dropped = ("tests/background/test_delivery_seat.py"
+               "::test_direction_can_NEVER_make_an_atom_harder_to_draw")
+    thinned = tuple(n for n in live.direct_nodes if n != dropped)
+    assert len(thinned) == len(live.direct_nodes) - 1, "the node this leg removes is not declared"
+    under = population_drift(dataclasses.replace(live, direct_nodes=thinned))
+    assert "test_direction_can_NEVER_make_an_atom_harder_to_draw" in under
+
+    # Built from the LIVE declaration, never from `thinned`: a spec that is under-declared AND
+    # over-declared reports the first problem it finds, and this leg would then be passing on the
+    # other leg's message while proving nothing about over-declaration.
+    padded = live.direct_nodes + ("tests/background/test_delivery_seat.py"
+                                  "::test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all",)
+    over = population_drift(dataclasses.replace(live, direct_nodes=padded))
+    assert "test_a_LANE_0_SLUG_CAN_REACH_the_drawn_set_at_all" in over, (
+        "over-declaring deselects real caller tests and reports 'no caller kills' about a "
+        "population the run hollowed out itself")
+
+    lane = "tests/background/test_delivery_lane.py"
+    no_mixed = population_drift(dataclasses.replace(live, mixed_nodes=()))
+    assert "test_EXPIRED_direction_offers_NOTHING" in no_mixed and lane in no_mixed
 
 
 def test_every_spec_in_the_family_keeps_its_two_populations_DISJOINT():

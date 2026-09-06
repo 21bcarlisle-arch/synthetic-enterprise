@@ -21,10 +21,15 @@ from __future__ import annotations
 
 from tools.contract_battery import BatterySpec, run
 
-#: The four caller suites. `tools/generate_delivery_page.py` is the fourth
-#: first-party caller and has no suite that imports it AND direction, so the
-#: fourth row here is the self-audit suite -- the closest thing the module has
-#: to one of its own.
+#: The four caller suites.
+#:
+#: CORRECTED 2026-09-06. This comment used to read: *"`tools/generate_delivery_page.py` is the
+#: fourth first-party caller and has no suite that imports it AND direction, so the fourth row
+#: here is the self-audit suite -- the closest thing the module has to one of its own."* Wrong,
+#: and wrong in the way that mattered. The self-audit suite DOES exercise `generate_delivery_page`
+#: as a caller, at `test_the_published_panel_SPLITS_open_from_corrected_from_not_recorded`, and on
+#: a caller-only population that test is the source of the ONLY genuine caller kill in the whole
+#: battery (M8). The column written off here as a near-own-suite is the one carrying real evidence.
 SUITES = (
     "tests/background/test_supervisor.py",
     "tests/background/test_delivery_lane.py",
@@ -150,11 +155,27 @@ POISON_NEW = ('\nraise RuntimeError("POISON: direction.py reachability floor")'
               "\n\n\ndef append_decision(")
 
 
+#: SUBJECT AND CALLER IN ONE BODY -- kept in the run, flagged on the row, never counted as proof.
+#: `test_EXPIRED_direction_offers_NOTHING` asserts `d.unreachable_focus(...) == []` AND
+#: `dl.next_item(...) is None` two lines apart. Calling it a caller test understates it; putting it
+#: in `DIRECT_NODES` would discard real caller evidence. It is neither, and the row it kills gets
+#: `killed_by_a_mixed_test` instead of a verdict.
+#: ONE member, and the census had TWO until the merge that produced this file corrected it.
+#: `test_the_decision_log_is_APPEND_ONLY` reads as mixed to a taint pass that follows only return
+#: values -- it asserts on a file `d.append_decision` wrote through an ARGUMENT -- and the other
+#: lane's hand-built list had it right. It is in `DIRECT_NODES`, where it belongs. Two independent
+#: censuses disagreeing on exactly one row is how that was found.
+MIXED_NODES = (
+    "tests/background/test_delivery_lane.py::test_EXPIRED_direction_offers_NOTHING",
+)
+
+
 SPEC = BatterySpec(
     name="direction",
     subject="background/direction.py",
     suites=SUITES,
     direct_nodes=DIRECT_NODES,
+    mixed_nodes=MIXED_NODES,
     repair_suite=REPAIR_SUITE,
     mutations=MUTATIONS,
     poison_old=POISON_OLD,
