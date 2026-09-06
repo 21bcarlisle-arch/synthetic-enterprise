@@ -754,3 +754,109 @@ def test_the_MAP_diff_is_kept_beside_the_ledger_rather_than_replaced_by_it():
     source = inspect.getsource(seat.build_brief)
 
     assert "levels_recorded" in source and "map_levels()" in source
+
+
+# ==========================================================================
+# The absence of a level move that the evidence already supports
+# ==========================================================================
+
+def test_the_brief_carries_rows_that_say_ZERO_while_their_own_controls_PASS(monkeypatch):
+    """`levels_moved` and `levels_recorded` both need a level to have CHANGED. The absence of a
+    move the evidence already supports is invisible to both -- which is how PB4 and PB6 sat at
+    `level_current: 0` with their modules landed and their tests green, while
+    `tools/lane_formation.py` kept reading them as buildable and the draw kept paying for them.
+
+    MUTATION (must fire): drop `self_contradicting_levels` from `build_brief`.
+    """
+    import inspect
+
+    assert "self_contradicting_levels()" in inspect.getsource(seat.build_brief)
+
+
+def test_an_unavailable_check_is_REPORTED_and_never_read_as_no_contradictions(monkeypatch):
+    """The fail-silent shape this would otherwise take: the check raises, the key is absent or
+    empty, and the orienting session reads a clean map. `available: False` with the reason is a
+    fact the seat can act on; a silently missing row is not."""
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    def boom(*a, **k):
+        raise RuntimeError("the map could not be read")
+
+    monkeypatch.setattr(lz, "assess", boom)
+    out = seat.self_contradicting_levels()
+
+    assert out["available"] is False
+    assert "could not be read" in out["why"]
+    assert "contradicted" not in out, (
+        "an unavailable check must not also present an empty contradiction list -- that is the "
+        "reading it is trying to prevent"
+    )
+
+
+def test_the_contradicted_rows_reach_the_brief_as_IDS_not_a_count(monkeypatch):
+    """A count is a number the seat cannot act on. The ids are the rows to go and move.
+
+    This is also the poison round for the wiring: it proves the seat surfaces a NON-EMPTY
+    contradiction list at all, which every other leg here would pass over in silence.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: (
+        [{"id": "PB4_shape"}, {"id": "PB6_shape"}],
+        [{"id": n, "reason": lz.NO_CONTROL_NAMED} for n in ("X", "Y", "Z")]))
+    out = seat.self_contradicting_levels()
+
+    assert out["contradicted"] == ["PB4_shape", "PB6_shape"]
+    assert out["ungradable_count"] == 3
+
+
+def test_the_orientation_check_is_bounded_so_a_slow_row_cannot_wedge_the_BRIEF(monkeypatch):
+    """The seat runs three-hourly and a brief that does not arrive is worse than one missing a
+    row. `KNIFE3_wall_crossing_paydown` names twelve architecture suites and a full pass costs
+    minutes, so the per-atom timeout handed to the check must be a TIGHT one -- not the module's
+    own 900s default, which would let one row hold the orientation for a quarter of an hour."""
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    seen = {}
+    monkeypatch.setattr(lz, "assess",
+                        lambda atoms, **kw: seen.update(kw) or ([], []))
+    seat.self_contradicting_levels()
+
+    assert seen["timeout_s"] == seat._LEVEL_ZERO_TIMEOUT_S
+    assert seat._LEVEL_ZERO_TIMEOUT_S < lz.DEFAULT_TIMEOUT_S
+
+
+def test_a_row_the_BOUND_cost_us_is_named_and_not_folded_into_the_ungradable_count(monkeypatch):
+    """NO SILENT CAP. `ungradable_count` cannot distinguish "names no control" from "has a
+    control and I ran out of time" -- and only the second means the seat is being told less than
+    the check could have told it.
+
+    This is the leg that would have caught the 120s budget: it returned zero contradictions with
+    every row unreached, which reads identically to a clean map.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: ([], [
+        {"id": "NO_CONTROL", "reason": lz.NO_CONTROL_NAMED},
+        {"id": "RAN_OUT_OF_BUDGET", "reason": lz.BUDGET_EXHAUSTED},
+        {"id": "TIMED_OUT", "reason": lz.RUN_UNAVAILABLE},
+    ]))
+    out = seat.self_contradicting_levels()
+
+    assert out["bounded_out"] == ["RAN_OUT_OF_BUDGET", "TIMED_OUT"]
+    assert "NO_CONTROL" not in out["bounded_out"], (
+        "a row that names no control was not lost to the bound -- folding it in here would make "
+        "the cap look more expensive than it is and hide the rows that actually cost us")
+
+
+def test_the_budget_is_large_enough_to_reach_the_rows_that_ANSWER(monkeypatch):
+    """Measured: four of the six gradable rows resolve in ~19s between them and produce every
+    verdict this check exists for; two exceed any sane cap and merely consume it. A budget that
+    the two expensive rows can exhaust before the four cheap ones are reached returns 'no
+    contradictions' -- indistinguishable from a healthy map.
+
+    The property, not today's number: the budget must fund more than the two expensive rows.
+    """
+    assert seat._LEVEL_ZERO_BUDGET_S > 2 * seat._LEVEL_ZERO_TIMEOUT_S, (
+        "the two rows that always time out can spend the whole budget, starving every row that "
+        "would actually answer")

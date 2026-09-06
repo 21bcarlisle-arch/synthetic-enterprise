@@ -423,6 +423,75 @@ def map_levels() -> dict:
             if isinstance(a, dict) and "id" in a}
 
 
+#: Per-atom wall clock for the level-zero contradiction check, TIGHT because this runs inside the
+#: seat's three-hourly orientation and a brief that does not arrive is worse than one missing a
+#: row. `KNIFE3_wall_crossing_paydown` names twelve architecture suites and will time out here --
+#: that is correct and it reports itself as ungradable rather than silently passing.
+#: MEASURED, and the first two guesses were both wrong in instructive ways. An unbudgeted pass
+#: took 259s. Of the six gradable rows, FOUR resolve in ~19s between them and produce every
+#: verdict this is here for; the other two -- `D27_belief_window_saturates_on_this_book` and
+#: `KNIFE3_wall_crossing_paydown` (twelve architecture suites) -- exceed any cap worth setting
+#: and simply consume it. So the per-atom cap's job is to give up on those two QUICKLY rather
+#: than to let them finish.
+_LEVEL_ZERO_TIMEOUT_S = 60
+
+#: And a budget over the WHOLE pass, because a per-atom cap is not a bound on a pass: six rows at
+#: 120s is a twelve-minute worst case, and this runs inside a three-hourly orientation whose brief
+#: has to arrive.
+#:
+#: WHY IT IS NOT ALSO 120. It was, for one measurement, and that is the interesting failure: the
+#: two expensive rows come FIRST in map order, ate the whole budget between them, and the pass
+#: returned ZERO contradictions with all 34 rows ungradable -- honest, self-describing, and
+#: completely useless. A budget tight enough to starve the rows that answer is worse than no
+#: check, because "no contradictions" is exactly what a healthy map looks like. At 60s/300s the
+#: two expensive rows time out, every other row is reached, and the four real verdicts land.
+#: Ceiling is budget + one timeout = 360s, since the budget is checked before a run starts and
+#: never interrupts one in flight.
+_LEVEL_ZERO_BUDGET_S = 300
+
+
+def self_contradicting_levels() -> dict:
+    """Atoms at `level_current: 0` / `loop_stage: build` whose OWN named controls all pass.
+
+    THIS IS AN ORIENTATION INPUT, NOT A GATE, and it belongs here rather than in a commit hook
+    for a measured reason: a full pass costs minutes, and a gate that costs minutes gets bypassed
+    (`background/head-green-census.timer` carries the same argument for the same reason).
+
+    WHY THE SEAT AND NOT THE DRAW. `tools/lane_formation.py::formation` derives `buildable_lanes`
+    from exactly these two fields, so a row stuck at zero keeps winning draws it has already been
+    paid for -- but the draw is a bounded tick and structurally cannot spend two minutes on it.
+    The seat re-orients every three hours and is the only place that can hold the whole map, so
+    this is where the corrupted input gets noticed.
+
+    Failure returns `available: False` with the reason. A brief that says "I could not check" is
+    a fact the orienting session can act on; a brief that silently omits the row is not.
+    """
+    try:
+        from tools import level_zero_contradicted_by_its_own_controls as lz
+        atoms = map_store.load_live_atoms(MATURITY_MAP)
+        contradicted, ungradable = lz.assess(atoms, timeout_s=_LEVEL_ZERO_TIMEOUT_S,
+                                             budget_s=_LEVEL_ZERO_BUDGET_S)
+    except Exception as exc:  # noqa: BLE001 -- an unavailable check is reported, never inferred
+        return {"available": False, "why": repr(exc)}
+    return {
+        "available": True,
+        # The IDS, not a count. A count tells the seat a number it cannot act on; the ids are the
+        # rows to go and move, and there have never been more than a handful.
+        "contradicted": [c["id"] for c in contradicted],
+        # Reported as a COUNT because it is the coverage limit, not a work list: 28 of 34 rows
+        # name no control a runner can execute
+        # (docs/staging/SEAT_FINDING_TWENTY_EIGHT_OF_THIRTY_FOUR_LEVEL_ZERO_ROWS_NAME_NO_CONTROL_A_RUNNER_CAN_EXECUTE_2026-09-06.md).
+        "ungradable_count": len(ungradable),
+        # NO SILENT CAP. The two counts above cannot distinguish "this row names no control" from
+        # "this row HAS a control and I ran out of time to run it" -- and only the second means
+        # the seat is being told less than the check could have told it. A 120s budget once
+        # returned zero contradictions with every row unreached, which reads identically to a
+        # clean map. These are the rows the bound cost us, by name.
+        "bounded_out": [u["id"] for u in ungradable
+                        if u["reason"] in (lz.BUDGET_EXHAUSTED, lz.RUN_UNAVAILABLE)],
+    }
+
+
 def publish_state() -> dict:
     try:
         from background.publish_freshness import describe, snapshot
@@ -536,6 +605,11 @@ def build_brief(now: datetime | None = None) -> dict:
         "findings": findings_now(),
         "levels_moved": moved,
         "levels_recorded": levels_recorded_since(since),
+        # A ROW THE MAP CANNOT SEE MOVING IS WORSE THAN ONE THAT DID NOT MOVE. `levels_moved` and
+        # `levels_recorded` above both need a level to have CHANGED to say anything; the absence
+        # of a move that the evidence already supports is invisible to both, and it is what made
+        # PB4 and PB6 sit at zero with their work landed and passing.
+        "self_contradicting_levels": self_contradicting_levels(),
         "publish": publish_state(),
         "director_inputs": director_inputs(since),
         # THE FOLDER, NOT ITS DOCUMENTS. `findings_now()` above reads what is IN the staging root;

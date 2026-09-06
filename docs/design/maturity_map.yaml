@@ -1572,7 +1572,12 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [B10_competitor_switching_response, B8_discovered_price_sensitivity_holdout, PB5_pounds_or_percent_resolved]
-  file_scope: ['simulation/population_draw.py', 'simulation/customer_events.py', 'tests/simulation/test_engagement_and_elasticity_are_separate.py']
+  # SCOPE REPOINTED 2026-09-06: the row named the control the build MEANT to write; 1fe160dc8
+  # wrote `test_payment_channel_carries_the_engagement_antecedent.py` instead, and the row was
+  # never updated. A named control that is not on disk is a row nothing can grade -- which is
+  # why this atom sat at level 0 with its work landed. `tools/level_zero_contradicted_by_its_
+  # own_controls.py` reports that shape rather than grading the survivors.
+  file_scope: ['simulation/household_segments.py', 'simulation/payment_behaviour_source.py', 'tests/simulation/test_payment_channel_carries_the_engagement_antecedent.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the GB retail market's actual switching record: roughly half the domestic book has never switched supplier, and a large part of that half moves when a bill shock or a cap headline makes them look -- disengagement is an attention fact and the price response underneath it is a separate, and often large, quantity"
 - id: PB6_the_engagement_observable_crosses_the_seam
@@ -1581,7 +1586,11 @@
   lane: W4_the_wall
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  # L0->L1 2026-09-06, recorded in docs/observability/gate_authorizations.jsonl. The work landed
+  # in 99d2befb4 and the row read 0 for a day; nothing could see it because the row named a
+  # control file no build ever wrote. L1 not L2: BUILT in any form is what the evidence carries,
+  # and no DISCOVER-lite/VERIFY pass is attested.
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 45    # R1 follow-on. Inherits PB4's rank because it is the second half of
@@ -1592,7 +1601,11 @@
   provenance: seat_finding
   depends_on: [PB4_engagement_separated_from_elasticity]
   couples_with: [C29_decisions_stop_being_lookup_tables, C30_advice_reaches_a_household]
-  file_scope: ['company/interfaces/sim_interface.py', 'company/crm/vulnerability_index.py', 'tests/company/test_the_engagement_observable_crosses.py']
+  # SCOPE REPOINTED 2026-09-06, same defect as PB4 above: 99d2befb4 wrote
+  # `test_the_engagement_observable_crosses_the_seam.py` and the row kept the shorter planned
+  # name. `company/crm/vulnerability_index.py` is dropped -- that commit touched
+  # `enriched_churn_estimate.py`, and the vulnerability scorer belongs to C32.
+  file_scope: ['company/interfaces/sim_interface.py', 'company/crm/enriched_churn_estimate.py', 'tests/company/test_the_engagement_observable_crosses_the_seam.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a real supplier's own billing record. It knows how every customer pays because it set the arrangement up, bills against it, and prices for it -- payment method is on the tariff table itself. A supplier that could not see its own payment channels would be unable to bill."
 - id: PB7_the_company_learns_what_it_can_now_see
