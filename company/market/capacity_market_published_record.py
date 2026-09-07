@@ -28,13 +28,35 @@ its own lookup named its parameter `delivery_year` -- a four-year offset with no
 it for delivery year 2023 returned GBP63.00, the price the 2023 auction set for delivery year
 2026/27, against GBP15.97 for the year actually asked about. 3.9x, silently.
 
-A HOUSEHOLD CANNOT HOLD A CM AGREEMENT, and that is the substantive finding rather than a
-modelling convenience. The minimum Capacity Market Unit is 1 MW (reduced from 2 MW). A whole
-flexible house in this book is 3.0-15.4 kW, so the smallest unit that can prequalify is ~80
-households. A household reaches the CM only inside an aggregator's DSR CMU, and no publication
-states what an aggregator passes through to a member -- those terms are bilateral. So the
-domestic leg REFUSES here rather than returning a number, and `DOMESTIC_PARTICIPATION_REFUSAL`
-carries the reason to the surface that prints it.
+A HOUSEHOLD CANNOT HOLD A CM AGREEMENT IN ITS OWN RIGHT, and that half of the refusal survives:
+the minimum Capacity Market Unit is 1 MW, and the smallest awarded DSR CMU anywhere in the run
+window has a connection capacity of exactly 1.0000 MW, so the threshold binds in practice.
+
+BUT THE OTHER HALF WAS REFUTED BY THE PUBLISHER'S OWN REGISTER (2026-09-07, third pass). This
+docstring used to go on: a household reaches the CM only inside an aggregator's DSR CMU, therefore
+~80 households per unit, therefore the domestic leg refuses. The Capacity Market Register itself
+carries awarded DSR CMUs described by their own operators as "domestic demand turn down" and
+"aggregated components less than 30KW", from delivery year 2023 -- 633.5 MW of de-rated capacity by
+DY2025 across eight named GB operators including Octopus Energy. Domestic aggregation is not a
+hypothetical route; it is an observed and growing one, and a real supplier could read it.
+
+TWO CONSEQUENCES, and the second is the uncomfortable one:
+
+  * **The refusal now stands on ONE ground, not two.** What an aggregator passes through to a
+    member household is stated by no publication -- the register publishes capacities and
+    component counts, never a payment. That is the whole of it. `DOMESTIC_PARTICIPATION_REFUSAL`
+    says so and no longer says the household cannot get there.
+  * **The "~80 households" figure was the rated-vs-delivered error, inside the sentence that
+    names it.** It is 1,000 kW over a 12.4 kW whole-house RATED flex. The register publishes what
+    a domestic component actually contributes to an awarded CMU: 1.1655 kW capacity-weighted, so
+    ~858 households. 10.7x, from dividing by rated capacity where the publisher gives contracted
+    capacity -- which is the exact defect `derating_factor` was fetched to end, arriving inside
+    the refusal that was written to end it. NESO's DFS record agrees independently: 91% of
+    domestic delivery is below 1 kW.
+
+`HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED` carries the register's figure. `households_per_minimum_cmu`
+still divides by whatever flex a caller hands it, and its docstring now says which of the two a
+caller is asking for.
 
 DE-RATING WAS A NAMED GAP AND IS NOW FILLED FROM THE PUBLISHER (2026-09-07, second pass). The CM
 pays on DE-RATED capacity. `derating_factor()` used to return `None` for every class because no
@@ -232,15 +254,42 @@ LATEST_ESTABLISHED_T4_DELIVERY_YEAR = max(
     if year <= RUN_WINDOW_LAST_DELIVERY_YEAR and row.established("T-4")
 )
 
+_SHAPE = json.loads(_COMMONS.read_text())["dsr_cmu_shape"]["measured"]
+
+#: What a domestic component actually contributes to an awarded DSR CMU, capacity-weighted over
+#: every domestic-shaped awarded CMU-year in the run window. Origin: observed -- the publisher's
+#: own Capacity Market Register, joined CMU-to-Component, carried in the commons artefact above.
+#:
+#: THIS IS A CONTRACTED CAPACITY, NOT A RATED ONE, and that is the whole point of it. A whole
+#: flexible house in `flexibility_potential` is 3.0-15.4 kW of rated asset power; what an
+#: aggregator actually puts into a CMU per component is 1.17 kW.
+OBSERVED_DOMESTIC_COMPONENT_KW: float = float(_SHAPE["observed_component_scale_kw"])
+
+#: How many domestic components an awarded CMU actually takes, at the scale the register
+#: publishes. Replaces the "~80" the refusal used to assert, which divided by rated flex.
+HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED: float = float(_SHAPE["households_per_minimum_cmu_observed"])
+
+#: The first delivery year in which an awarded DSR CMU in the register describes itself as
+#: domestic. Before this year the refusal's participation claim was not refutable from the
+#: register; from it, the register refutes it.
+DOMESTIC_AGGREGATION_FIRST_OBSERVED_DELIVERY_YEAR: int = min(
+    row["delivery_year"] for row in _SHAPE["by_delivery_year"])
+
 #: Why the domestic leg refuses. Written to be PRINTED, not just raised: a refusal that names its
-#: reason is how the refusal itself gets found to be wrong.
+#: reason is how the refusal itself gets found to be wrong -- and this one WAS, on this sentence's
+#: second reading. It used to carry two grounds and the arithmetic one did not survive contact
+#: with the publisher's register. What is left is narrower, and true.
 DOMESTIC_PARTICIPATION_REFUSAL = (
-    "a GB domestic household cannot hold a Capacity Market agreement: whole-house flexible load "
-    f"is single-digit kW against a {MINIMUM_CMU_CAPACITY_KW:,.0f} kW minimum CMU, so ~80 "
-    "households are needed to reach the smallest unit that can prequalify. A household reaches "
-    "the CM only inside an aggregator's DSR CMU, and no publication states what an aggregator "
-    "passes through to a member -- those terms are bilateral. The published clearing prices do "
-    "not on their own support a per-household revenue figure."
+    "a GB domestic household cannot hold a Capacity Market agreement in its own right -- the "
+    f"minimum CMU is {MINIMUM_CMU_CAPACITY_KW:,.0f} kW and the smallest awarded DSR CMU in the "
+    "record sits at exactly that. It CAN reach the Capacity Market inside an aggregator's DSR "
+    "CMU, and the register shows that happening from delivery year "
+    f"{DOMESTIC_AGGREGATION_FIRST_OBSERVED_DELIVERY_YEAR}: awarded units built from tens of "
+    f"thousands of components averaging {OBSERVED_DOMESTIC_COMPONENT_KW:.2f} kW, under operators "
+    "including domestic suppliers. What no publication states is what an aggregator PASSES "
+    "THROUGH to a member household -- those terms are bilateral. That, and only that, is why "
+    "there is no per-household revenue figure here: not that the household cannot get there, but "
+    "that nobody publishes what it is paid when it does."
 )
 
 
@@ -361,8 +410,14 @@ def household_revenue_gbp_pa(flex_kw: float) -> Optional[float]:
 def households_per_minimum_cmu(flex_kw: float) -> Optional[float]:
     """How many households of this flex it takes to reach the smallest prequalifying CMU.
 
-    The refusal's arithmetic, exposed so it can be checked and so a surface can print the reason
-    with a number in it. `None` for a non-positive flex, which is not a household.
+    ASK WHICH FLEX YOU MEAN BEFORE YOU READ THE ANSWER. Handed a household's RATED asset power
+    (3.0-15.4 kW here) this returns ~65-333, and that is the arithmetic the old refusal published
+    as "~80". Handed what an aggregator actually contracts per component, it returns ~858 --
+    `HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED`, which is what the register says happens. The function
+    is right either way; the question it answers is not the same question, and the difference is
+    10.7x. Prefer the observed constant for any published figure.
+
+    `None` for a non-positive flex, which is not a household.
     """
     if flex_kw <= 0:
         return None

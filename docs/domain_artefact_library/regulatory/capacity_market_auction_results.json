@@ -1,6 +1,6 @@
 {
   "artefact": "capacity_market_auction_results",
-  "version": 2,
+  "version": 3,
   "published_by": "NESO / EMR Delivery Body -- the Capacity Market Register, the publisher's own record of every auction it has run",
   "what_this_is": "THE PUBLISHED AUCTION OUTCOME, NOT A READING OF IT. The GB Capacity Market clearing price for each delivery year, held SEPARATELY for the T-4 (four-years-ahead) and T-1 (one-year-ahead) auctions, in the unit the auctions clear in: GBP per kW per year of DE-RATED capacity -- together with the published DE-RATING FACTOR for every technology class in every auction. Nothing here interprets them. Which auction a given unit holds an agreement in, which technology class it falls in, whether it won an agreement at all, and what an aggregator passes through to a member are all READINGS, and each lane owns its own.",
   "basis": {
@@ -22,7 +22,10 @@
   "source_urls": {
     "clearing_prices_and_volumes": "https://api.neso.energy/dataset/0b3ab475-5622-4465-8825-9d35d03bb28b/resource/784fa703-1460-42cd-a8bb-fba4dcabac8d/download/capacity-market-auction-static-data.csv",
     "derating_factors": "https://api.neso.energy/dataset/0b3ab475-5622-4465-8825-9d35d03bb28b/resource/d94ff98d-39ba-40d6-9672-7433de0631ac/download/capacity-market-de-rating-factors.csv",
-    "dataset_landing_page": "https://www.neso.energy/data-portal/capacity-market-register"
+    "dataset_landing_page": "https://www.neso.energy/data-portal/capacity-market-register",
+    "cmu_register": "https://api.neso.energy/dataset/0b3ab475-5622-4465-8825-9d35d03bb28b/resource/25a5fa2e-873d-41c5-8aaf-fbc2b06d79e6/download/cmu_20260902.csv",
+    "component_register": "https://api.neso.energy/dataset/0b3ab475-5622-4465-8825-9d35d03bb28b/resource/790f5fa0-f8eb-4d82-b98d-0d34d3e404e8/download/component_20260902.csv",
+    "fetch_note": "THESE URLS 302 TO CLOUDFLARE R2 AND curl DOES NOT FOLLOW A REDIRECT WITHOUT -L. Without it you get an 8-line HTML redirect page written over your CSV and an EXIT CODE OF ZERO. The first attempt of this pass did exactly that and `wc -l` read 11 lines where 51,509 were expected. Use `curl -sL`."
   },
   "what_the_primary_pass_changed": [
     "DY 2021/22 T-1: GBP60.00 -> GBP45.00. Was NOT flagged contested and was wrong anyway.",
@@ -1220,7 +1223,74 @@
     "minimum_cmu_capacity_note": "The minimum capacity threshold for a Capacity Market Unit was reduced from 2 MW to 1 MW, reflecting the deployment of smaller distributed resources. A unit below the threshold cannot hold an agreement in its own right and can reach the auction only by being aggregated, as a Component, into a DSR CMU that meets it.",
     "minimum_cmu_capacity_source": "Electricity Capacity (Amendment) Regulations 2020 explanatory note (legislation.gov.uk) and CMS 'Capacity Market: consultation on future improvements'",
     "domestic_households_can_hold_an_agreement": false,
-    "domestic_households_note": "A GB domestic household cannot hold a Capacity Market agreement. Whole-house flexible load is single-digit kW against a 1,000 kW minimum CMU, so at least ~80 households are needed to reach the smallest unit that can prequalify. A household reaches the CM only inside an aggregator's DSR CMU, and NO PUBLICATION STATES WHAT AN AGGREGATOR PASSES THROUGH to a member household -- the commercial terms are bilateral. The clearing prices in this file therefore do not, on their own, support any per-household revenue figure.",
-    "derating": "THE DE-RATING FACTORS ARE NOW IN THIS ARTEFACT -- see the `derating_factors` block. The v1 note here said none had been fetched and that any consumer applying these prices to a rated power figure was overstating by the whole factor and must say so. That gap is closed for every technology class the publisher lists. What is still NOT here is what an aggregator passes through to a member, which is bilateral and unpublished, and remains the reason the domestic leg refuses."
+    "domestic_households_note": "A GB domestic household cannot hold a Capacity Market agreement IN ITS OWN RIGHT: the minimum CMU is 1,000 kW and the smallest awarded DSR CMU in the run window sits at exactly 1.0000 MW, so the threshold binds. THAT IS NOW THE WHOLE OF THE THRESHOLD CLAIM. What this note used to say beyond it -- that a household therefore does not reach the Capacity Market -- IS REFUTED BY THE PUBLISHER'S OWN REGISTER: see `dsr_cmu_shape`. Domestic demand turn-down holds awarded DSR agreements from delivery year 2023, 633.5 MW de-rated by DY2025, under eight named operators. The refusal survives on ONE ground and it is no longer arithmetic: NO PUBLICATION STATES WHAT AN AGGREGATOR PASSES THROUGH to a member household. The '~80 households' arithmetic this note carried is WITHDRAWN -- it divided by rated flex where the register publishes contracted flex, and the observed figure is ~858.",
+    "derating": "THE DE-RATING FACTORS ARE NOW IN THIS ARTEFACT -- see the `derating_factors` block. The v1 note here said none had been fetched and that any consumer applying these prices to a rated power figure was overstating by the whole factor and must say so. That gap is closed for every technology class the publisher lists. What is still NOT here is what an aggregator passes through to a member, which is bilateral and unpublished, and remains the reason the domestic leg refuses.",
+    "domestic_aggregation_is_observed": true
+  },
+  "dsr_cmu_shape": {
+    "what_this_is": "WHAT AN AGGREGATED DSR CMU IS ACTUALLY MADE OF, read off the publisher's own Capacity Market Register: 18,158 CMU rows and 51,509 Component rows, joined on (CMU ID, Delivery Year, Auction Name), filtered to CMU Technology == 'DSR' with Capacity Agreement Awarded == 'Yes'. This block exists because the domestic refusal rested on ONE DIVISION over two published constants and could not be wrong in an interesting way. The register can be, and it was.",
+    "it_refuted_the_participation_claim": "DOMESTIC AGGREGATION INTO AWARDED DSR CMUs IS OBSERVED, INSIDE THE RUN WINDOW, FROM DELIVERY YEAR 2023. The register carries awarded DSR CMUs whose own component descriptions read 'Aggregated components less than 30KW for DSR GTC' and 'domestic demand turn down', built from tens of thousands of components averaging around 1 kW each. By DY2025 there are 43 such awarded CMU-years, 633.5 MW of de-rated capacity and 713,838 components, held by EIGHT named GB operators including Octopus Energy and Ohme. The prior refusal said a household 'cannot' reach the Capacity Market except through an aggregator; the register says the aggregators exist, hold awarded agreements, and are domestic suppliers and EV-charger operators by name.",
+    "what_survives_the_register": "TWO THINGS, and only two. (1) A household still cannot hold a CMU in its own right: the smallest awarded DSR CMU in the whole run window has a connection capacity of exactly 1.0000 MW, so the 1 MW minimum BINDS in practice rather than being a formality. (2) What an aggregator passes through to a member household is still stated by no publication -- the register publishes capacities and component counts, never a payment. That second one is now the ONLY thing holding the domestic refusal up, where before it was one of two, and the other one has gone.",
+    "the_eighty_households_figure_is_withdrawn": "THE REFUSAL CONTAINED THE VERY ERROR IT WAS WRITTEN TO END. '~80 households per CMU' is 1,000 kW divided by a 12.4 kW whole-house RATED flex. The register publishes what a domestic component actually contributes to an awarded CMU: a capacity-weighted mean of 1.1655 kW, i.e. ~858 households per 1 MW CMU. The published figure was 10.7x low because it divided by rated capacity where the register publishes contracted capacity -- the rated-vs-delivered error, living inside the sentence that names it. Independently corroborated: NESO's DFS record says 91% of domestic delivery is below 1 kW, a different publisher measuring a different service and agreeing.",
+    "the_distribution_is_bimodal_and_the_median_is_useless": "In the run window, 57 of 1,448 awarded DSR CMU-years (3.9%) are domestic-shaped -- but those 57 hold 973,916 of the 988,138 components (98.6%). Nearly every DSR CMU is a handful of industrial sites (median 1 component, p90 20); nearly every DSR COMPONENT is a domestic premise. A statistic over 'the average DSR CMU' answers a question about industrial sites and says nothing about households, and one over 'the average DSR component' says the opposite. Say which you mean. By de-rated CAPACITY the domestic share is 911.8 MW of 14,860.1 MW, 6.1%.",
+    "what_a_component_is_not": "A COMPONENT IS NOT A CERTIFIED HOUSEHOLD. The register publishes a capacity and a count, not an occupancy. The descriptions say 'domestic demand turn down' and 'less than 30KW', and two of the eight operators (Ohme, Pod Point) are EV-charger businesses whose component is plausibly a charger rather than a dwelling. Every figure here is 'components in CMUs that describe themselves as domestic', which is the closest the publisher gets and is not the same claim.",
+    "method": "Domestic-shaped := an awarded DSR CMU-year whose (connection capacity / total component count) is <= 15.4 kW AND which has >= 80 components. 15.4 kW is the largest whole-house flex in `company/market/flexibility_potential.py`, so the filter is this book's own most generous domestic scale; 80 is the prior refusal's own household count, so the filter is stated in the terms of the claim it tests rather than in terms chosen after seeing the answer.",
+    "measured": {
+      "observed_component_scale_kw": 1.1655,
+      "households_per_minimum_cmu_observed": 858.0,
+      "run_window_awarded_dsr_cmu_years": 1448,
+      "run_window_domestic_shaped_cmu_years": 57,
+      "run_window_components_total": 988138,
+      "run_window_components_in_domestic_shaped": 973916,
+      "run_window_derated_mw_total": 14860.1,
+      "run_window_derated_mw_domestic_shaped": 911.8,
+      "components_per_awarded_dsr_cmu_median": 1.0,
+      "components_per_awarded_dsr_cmu_p90": 20.0,
+      "components_per_awarded_dsr_cmu_max": 49742,
+      "smallest_awarded_dsr_cmu_connection_mw": 1.0,
+      "by_delivery_year": [
+        {
+          "delivery_year": 2023,
+          "awarded_cmu_years": 4,
+          "connection_capacity_mw": 77.56,
+          "derated_capacity_mw": 55.44,
+          "components": 27897,
+          "mean_component_kw": 2.7803,
+          "operators": [
+            "Octopus Energy Limited"
+          ]
+        },
+        {
+          "delivery_year": 2024,
+          "awarded_cmu_years": 10,
+          "connection_capacity_mw": 275.82,
+          "derated_capacity_mw": 222.84,
+          "components": 232181,
+          "mean_component_kw": 1.188,
+          "operators": [
+            "Axle Energy Limited",
+            "Octopus Energy Limited"
+          ]
+        },
+        {
+          "delivery_year": 2025,
+          "awarded_cmu_years": 43,
+          "connection_capacity_mw": 781.73,
+          "derated_capacity_mw": 633.52,
+          "components": 713838,
+          "mean_component_kw": 1.0951,
+          "operators": [
+            "Attune Power Ltd",
+            "Axle Energy Limited",
+            "Gridbeyond Limited",
+            "Levelise Limited",
+            "Oaktree Power Limited",
+            "Octopus Energy Limited",
+            "Ohme Operations Uk Limited",
+            "Voltalis Uk Limited"
+          ]
+        }
+      ]
+    }
   }
 }

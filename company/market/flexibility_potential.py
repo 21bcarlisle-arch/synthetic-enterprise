@@ -14,11 +14,21 @@ THE CAPACITY MARKET LEG IS REFUSED FOR A HOUSEHOLD, and that refusal replaces a 
 figure. This docstring used to say "Capacity Market participants earn ~£75/kW/yr for committed
 flexibility", and `_CAPACITY_MARKET_GBP_PER_KW_YR = 75.0  # T-4 auction 2023` applied it to a
 household's RATED asset power. The £75 is real -- it is the **T-1** clearing price for **delivery
-year 2022/23**, which cleared at the price cap -- but it is not a T-4, not 2023, not an annual rate
-anybody earns for "committed flexibility", and above all not something a household can be paid,
-because the minimum Capacity Market Unit is 1 MW and a whole flexible house here is 3.0-15.4 kW.
-`capacity_market_published_record` holds the auction record and the refusal's reason.
+year 2022/23**, which cleared at the price cap -- but it is not a T-4, not 2023, and not an annual
+rate anybody earns for "committed flexibility". `capacity_market_published_record` holds the auction
+record and the refusal's reason, which is now that nobody publishes an aggregator's pass-through --
+NOT that a household cannot reach the market, which the publisher's own register refutes.
 DNO flexibility auctions (Flex Markets) pay £50-300/MWh depending on location.
+
+NO DE-RATING FACTOR BELONGS IN THIS MODULE, AND NONE EVER WILL. Asked deliberately on 2026-09-07,
+once `derating_factor()` began serving real published numbers, because this is one of the two places
+a future caller would re-introduce the rated-capacity error. The answer is no, and the reason is
+structural rather than a judgement about magnitude: **a de-rating factor is a multiplier below 1, so
+applying one to a refusal makes a number that does not exist smaller, and a number that does not
+exist has no size.** What is missing from the domestic leg is a published pass-through, not a
+factor, and no factor can supply one. A future reader who notices that `derating_factor()` now
+returns a DSR number for every year of the record and wonders why nothing here calls it has found
+this paragraph, which is what it is for.
 
 All inputs company-observable (asset flags from CRM, kwh from billing).
 Epistemic-compliant.
@@ -137,13 +147,16 @@ def _estimate_dfs_revenue(flex_kw: float, winter_start_year: int) -> Optional[fl
 def _estimate_capacity_revenue(flex_kw: float) -> Optional[float]:
     """CM revenue for one domestic household: `None`, always, with a reason on the record.
 
-    NOT an unimplemented lookup. A household cannot hold a Capacity Market agreement -- the
-    minimum CMU is 1 MW against a whole flexible house of 3.0-15.4 kW, so it takes ~80 of them to
-    reach the smallest unit that can prequalify, and what an aggregator passes through to a member
-    is bilateral and unpublished. The previous form returned `flex_kw * 75.0`, which credited an
-    EV-and-battery household with £930/year of availability payments for an agreement it never
-    won, at a price that was a capped T-1 result for delivery year 2022/23 rather than the "T-4
-    auction 2023" its comment named.
+    NOT an unimplemented lookup, and NOT a de-rating gap. A household cannot hold a CM agreement
+    in its own right -- the minimum CMU is 1 MW -- and it CAN reach the market inside an
+    aggregator's DSR CMU, which the register shows real GB operators doing from delivery year
+    2023. What is unpublished is the pass-through, and that is what refuses this leg.
+
+    The previous form returned `flex_kw * 75.0`, which credited an EV-and-battery household with
+    £930/year of availability payments for an agreement it never won, at a price that was a capped
+    T-1 result for delivery year 2022/23 rather than the "T-4 auction 2023" its comment named.
+    Multiplying that by the published DSR de-rating factor would have made it £737 and no less
+    invented: the defect was never the missing factor. See the module docstring.
     """
     return capacity_market_published_record.household_revenue_gbp_pa(flex_kw)
 

@@ -164,18 +164,32 @@ def test_a_household_cannot_hold_a_cm_agreement_at_any_size():
 
 
 def test_the_refusal_names_its_reason_and_the_reason_carries_the_threshold():
-    """A refusal that says why is how the refusal itself gets found to be wrong."""
+    """A refusal that says why is how the refusal itself gets found to be wrong.
+
+    AND IT WAS, BY THIS TEST, ON 2026-09-07 -- recorded here because the way it failed is the
+    point. This leg used to read `assert "1,000 kW minimum CMU" in reason`, and it went RED when
+    the refusal was rewritten to "the minimum CMU is 1,000 kW and the smallest awarded DSR CMU in
+    the record sits at exactly that", i.e. when the claim acquired evidence and got NARROWER. A
+    control keyed to today's word order goes red when the code becomes more honest and stays green
+    when the claim rots -- exactly backwards. It now asserts the THRESHOLD IS PRESENT AND IS THE
+    PUBLISHED ONE, which is the property, and says nothing about how the sentence is arranged.
+    """
     reason = rec.DOMESTIC_PARTICIPATION_REFUSAL
     assert "cannot hold a Capacity Market agreement" in reason
-    assert "1,000 kW minimum CMU" in reason
+    assert f"{rec.MINIMUM_CMU_CAPACITY_KW:,.0f} kW" in reason, (
+        "the refusal must carry the published threshold as a number a reader can check")
     assert "aggregator" in reason and "bilateral" in reason
 
 
 def test_the_threshold_arithmetic_is_exposed_and_checkable():
-    """~80 households per minimum CMU at the book's largest asset combination.
+    """The quantity is reachable rather than only asserted in prose.
 
-    The refusal's claim is quantitative, so the quantity is reachable rather than only asserted in
-    prose. 12.4 kW is EV (7.4) + battery (5.0), the largest household in `flexibility_potential`.
+    THESE ARE THE ANSWERS AT RATED FLEX AND THEY ARE NO LONGER WHAT THE REFUSAL PUBLISHES. 12.4 kW
+    is EV (7.4) + battery (5.0), the largest household in `flexibility_potential`, and 80.6 is
+    what the refusal used to assert. The register says an aggregator contracts ~1.17 kW per
+    domestic component, so the published figure is `HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED` (~858).
+    The function still answers the rated question correctly; kept green here so the withdrawal is
+    visible as a change of QUESTION rather than looking like a corrected division.
     """
     assert rec.households_per_minimum_cmu(12.4) == pytest.approx(80.6, abs=0.1)
     assert rec.households_per_minimum_cmu(3.0) == pytest.approx(333.3, abs=0.1)
@@ -372,3 +386,75 @@ def test_a_missing_commons_artefact_raises_rather_than_defaulting(tmp_path, monk
     monkeypatch.setattr(rec, "_COMMONS", empty)
     with pytest.raises(ValueError, match="no clearing_prices"):
         rec._load()
+
+
+# --- The DSR CMU shape pass, 2026-09-07 (a51). What the publisher's own register said about the
+# --- refusal, and the controls that stop it drifting back to the arithmetic it used to rest on.
+
+
+def test_the_refusal_no_longer_claims_a_household_cannot_reach_the_capacity_market():
+    """The defect: the refusal asserted a participation impossibility the register refutes.
+
+    Keyed to the PROPERTY -- the refusal must rest on the unpublished pass-through -- not to
+    today's wording. A refusal that says "cannot hold an agreement in its own right" is fine; one
+    that says a household does not reach the market at all is the refuted claim, and the register
+    names eight GB operators aggregating domestic turn-down into awarded CMUs.
+    """
+    refusal = rec.DOMESTIC_PARTICIPATION_REFUSAL.lower()
+    assert "in its own right" in refusal, (
+        "the threshold claim must be narrowed to holding an agreement DIRECTLY; the register "
+        "refutes the unqualified version")
+    assert "passes through" in refusal or "pass-through" in refusal, (
+        "the pass-through is now the ONLY ground the refusal stands on and must be stated")
+    assert "~80" not in rec.DOMESTIC_PARTICIPATION_REFUSAL, (
+        "the ~80 households figure divided by RATED flex and is withdrawn; the register's own "
+        f"figure is ~{rec.HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED:.0f}")
+
+
+def test_the_observed_component_scale_is_far_below_this_books_rated_household_flex():
+    """The defect: publishing a household count computed from rated asset power.
+
+    This is the whole finding in one assertion. `flexibility_potential` calls a whole flexible
+    house 3.0-15.4 kW of RATED power; the register says an aggregator contracts ~1.17 kW per
+    domestic component. Both numbers are right and their ratio is the error that was published.
+    """
+    rated_whole_house_kw = 15.4  # the largest in flexibility_potential (EV + ASHP + battery)
+    observed = rec.OBSERVED_DOMESTIC_COMPONENT_KW
+    assert 0.3 < observed < 3.0, (
+        f"observed domestic component scale {observed} kW is outside anything the register "
+        "supports; a value near the rated figure means the join picked up industrial CMUs")
+    assert observed < rated_whole_house_kw / 5, (
+        "the observed and rated figures must stay far apart -- if they converge, either the "
+        "register changed or this constant stopped measuring contracted capacity")
+    # ...and the household count moves the same way, by the same ratio.
+    at_rated = rec.households_per_minimum_cmu(rated_whole_house_kw)
+    assert rec.HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED > at_rated * 5, (
+        f"{rec.HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED} observed vs {at_rated} at rated flex -- the "
+        "gap between the two questions is the finding, and a control that let them converge "
+        "would go green exactly when the error came back")
+
+
+def test_the_observed_household_count_is_the_threshold_over_the_observed_scale():
+    """The defect: two published constants that could drift apart into disagreement.
+
+    Not a tautology -- the two are loaded from separate keys of the commons artefact, computed
+    from different aggregations of the register, and nothing in the loader ties them together.
+    """
+    implied = rec.MINIMUM_CMU_CAPACITY_KW / rec.OBSERVED_DOMESTIC_COMPONENT_KW
+    assert abs(implied - rec.HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED) < 1.0, (
+        f"{implied:.1f} implied vs {rec.HOUSEHOLDS_PER_MINIMUM_CMU_OBSERVED} published")
+
+
+def test_domestic_aggregation_is_observed_inside_the_run_window_not_only_after_it():
+    """The defect: refuting the refusal with evidence the company could not have seen.
+
+    If domestic DSR CMUs only appeared in DY2026+ the refutation would sit outside the 2016-2025
+    run window and a supplier living through it could not have read them. The register's first
+    domestic-shaped awarded CMU is DY2023, which is inside -- and that is what makes this a
+    finding about the company's world rather than about the future.
+    """
+    first = rec.DOMESTIC_AGGREGATION_FIRST_OBSERVED_DELIVERY_YEAR
+    assert first <= rec.RUN_WINDOW_LAST_DELIVERY_YEAR, (
+        f"first observed domestic aggregation is DY{first}, outside the run window ending "
+        f"{rec.RUN_WINDOW_LAST_DELIVERY_YEAR} -- the refutation would not be company-observable")
+    assert first >= rec.FIRST_DELIVERY_YEAR

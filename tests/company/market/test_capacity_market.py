@@ -2,12 +2,16 @@ import datetime as dt
 
 import pytest
 
+from company.market import capacity_market_published_record as _rec
 from company.market.capacity_market import (
+    _CLASS_NOT_DETERMINED_BY_TYPE,
+    _DERATING_CLASS_ALIASES,
     AuctionType,
     CapacityMarketBook,
     CMObligation,
     CMUnit,
     CMUnitType,
+    derated_kw_from_rated,
     get_cm_price,
 )
 
@@ -252,3 +256,91 @@ def test_cm_summary_has_clearing_price_key():
         "the un-suffixed key is the conflation this repair removed; a caller reading it would "
         "silently get one auction's price for a delivery year that had two"
     )
+
+
+# --- The de-rating caller pass, 2026-09-07 (a51). The deliberate answer for this module was NO
+# --- FACTOR (the input is already de-rated), so these controls guard the opposite hazard.
+
+
+def test_revenue_does_not_apply_the_derating_factor_a_second_time():
+    """The defect: 'the register serves factors now, so multiply by one here too'.
+
+    `derated_capacity_kw` is already de-rated, so revenue is exactly capacity x price. A factor
+    inside `annual_revenue_gbp` would understate by the whole of it. Pinned to the identity rather
+    than to a number, so it fails for ANY factor a future edit reaches for.
+    """
+    unit = CMUnit(unit_id="U1", unit_type=CMUnitType.DEMAND_RESPONSE,
+                  derated_capacity_kw=1000.0, registered_date=dt.date(2023, 1, 1))
+    ob = CMObligation(unit=unit, delivery_year=2023, auction_type=AuctionType.T4,
+                      clearing_price_gbp_per_kw=15.97)
+    assert ob.annual_revenue_gbp == pytest.approx(1000.0 * 15.97)
+    # ...and the factor that would be applied is real and materially below 1, so this control is
+    # measuring a live hazard rather than a hypothetical one.
+    factor = _rec.derating_factor(_rec.DSR_TECHNOLOGY_CLASS, 2023, "T-4")
+    assert factor is not None and factor < 0.95, (
+        "if the DSR factor were absent or ~1.0 the leg above would pass vacuously")
+
+
+def test_the_rated_to_derated_door_actually_reduces_and_matches_the_register():
+    """The defect: a conversion that silently returns the rated figure unchanged."""
+    rated = 1000.0
+    got = derated_kw_from_rated(CMUnitType.DEMAND_RESPONSE, rated, 2023, AuctionType.T4)
+    factor = _rec.derating_factor(_rec.DSR_TECHNOLOGY_CLASS, 2023, "T-4")
+    assert got == pytest.approx(rated * factor)
+    assert got < rated
+
+
+def test_the_door_resolves_the_substituted_t3_rather_than_the_suspended_t4():
+    """The defect: pairing DY2022/23's T-3 price with the suspended T-4's factor.
+
+    The two auctions' DSR factors differ (T-3 0.8614, suspended T-4 0.8428), so asking this door
+    for "the T-4" in 2022 must give the T-3's number -- the auction actually held.
+    """
+    held = _rec.auction_actually_held(2022, "T-4")
+    assert held == "T-3", "reachability: if the substitution is gone this control proves nothing"
+    t3 = _rec.derating_factor(_rec.DSR_TECHNOLOGY_CLASS, 2022, "T-4")
+    got = derated_kw_from_rated(CMUnitType.DEMAND_RESPONSE, 1000.0, 2022, AuctionType.T4)
+    assert got == pytest.approx(1000.0 * t3)
+
+
+def test_the_ocgt_alias_list_is_load_bearing_not_decoration():
+    """The defect: one class name per unit type, silently returning None on renamed years.
+
+    The publisher renamed OCGT mid-record. The T-4 for DY 2019/20 carries ONLY the old name, so a
+    single-string map returns None there and a caller reads "no factor established" for a year the
+    register covers. Both legs asserted: the old name works where the new one is absent.
+    """
+    new_name, old_name = _DERATING_CLASS_ALIASES[CMUnitType.OCGT]
+    assert _rec.derating_factor(new_name, 2019, "T-4") is None, (
+        "reachability: DY2019/20 T-4 must lack the modern name for this control to bite")
+    assert _rec.derating_factor(old_name, 2019, "T-4") is not None
+    assert derated_kw_from_rated(CMUnitType.OCGT, 1000.0, 2019, AuctionType.T4) is not None
+    # ...and the modern name is what answers in a year that has it, so order matters too.
+    assert _rec.derating_factor(new_name, 2024, "T-4") is not None
+
+
+def test_a_unit_type_the_publisher_does_not_class_refuses_and_says_why():
+    """The defect: picking a plausible neighbouring class for a duration-split technology.
+
+    A guard that refuses EVERYTHING passes every per-branch test, so the partition is asserted as
+    a whole: every CMUnitType falls on exactly one side, and both sides are non-empty.
+    """
+    assert set(_DERATING_CLASS_ALIASES) | set(_CLASS_NOT_DETERMINED_BY_TYPE) == set(CMUnitType)
+    assert not (set(_DERATING_CLASS_ALIASES) & set(_CLASS_NOT_DETERMINED_BY_TYPE))
+    assert _DERATING_CLASS_ALIASES and _CLASS_NOT_DETERMINED_BY_TYPE
+    for unit_type in _CLASS_NOT_DETERMINED_BY_TYPE:
+        with pytest.raises(ValueError) as excinfo:
+            derated_kw_from_rated(unit_type, 1000.0, 2023, AuctionType.T4)
+        assert "duration" in str(excinfo.value).lower() or "link" in str(excinfo.value).lower(), (
+            f"{unit_type.value} refuses without naming why it cannot be classed")
+
+
+def test_an_unestablished_year_returns_none_and_is_not_confused_with_a_refusal():
+    """The defect: collapsing 'the record does not cover this' into 'you asked wrongly'.
+
+    An evidence gap is None; a question with no answer raises. If both were None a caller could
+    not tell a missing year from a battery.
+    """
+    assert derated_kw_from_rated(CMUnitType.DEMAND_RESPONSE, 1000.0, 1999, AuctionType.T4) is None
+    with pytest.raises(ValueError):
+        derated_kw_from_rated(CMUnitType.BATTERY, 1000.0, 2023, AuctionType.T4)

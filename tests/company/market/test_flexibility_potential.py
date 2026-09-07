@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import pytest
 
+from company.market import capacity_market_published_record as rec
 from company.market.flexibility_potential import (
     FlexibilityAssetType,
     FlexibilityEstimate,
@@ -57,7 +58,11 @@ class TestFlexibilityEstimate:
         e = self._ev_estimate()
         assert e.capacity_market_revenue_gbp_pa is None
         assert "cannot hold a Capacity Market agreement" in e.capacity_market_refusal_reason
-        assert "1,000 kW minimum CMU" in e.capacity_market_refusal_reason
+        # KEYED TO THE PROPERTY, NOT THE WORDING. This leg read `"1,000 kW minimum CMU" in ...`
+        # and went red on 2026-09-07 when the refusal was rewritten to carry the register's
+        # evidence -- i.e. when the claim got narrower and better sourced. Second home of the
+        # identical pinned assertion; the other was in test_capacity_market_published_record.
+        assert f"{rec.MINIMUM_CMU_CAPACITY_KW:,.0f} kW" in e.capacity_market_refusal_reason
 
     def test_total_annual_revenue_is_sum(self):
         e = self._ev_estimate()
@@ -152,3 +157,52 @@ class TestFlexibilityPotentialBook:
         e1 = book.assess("C1", has_ev=True)
         e2 = book.assess("C2", has_battery=True)
         assert abs(book.total_portfolio_flex_kw - (e1.flex_kw + e2.flex_kw)) < 0.01
+
+
+# --- The de-rating caller pass, 2026-09-07 (a51). The deliberate answer here was NO FACTOR, EVER.
+
+
+def test_a_published_derating_factor_never_makes_the_domestic_leg_return_a_number():
+    """The defect: 'derating_factor() serves real numbers now, so wire the CM leg back up'.
+
+    The domestic leg refuses because nobody publishes an aggregator's pass-through, and a factor
+    is a multiplier -- it can make a number smaller and cannot make one exist. This control is
+    over the WHOLE run window rather than a sampled year, because the tempting edit is "wire it up
+    for the years we have a factor for", which a single-year leg would not catch.
+
+    REACHABILITY FIRST: the factor must exist for every year asserted, or "still None" is measuring
+    an empty register rather than a refusal that holds.
+    """
+    from company.market import capacity_market_published_record as rec
+
+    years = [y for y in range(rec.FIRST_DELIVERY_YEAR, rec.RUN_WINDOW_LAST_DELIVERY_YEAR + 1)]
+    with_factor = [y for y in years
+                   if rec.derating_factor(rec.DSR_TECHNOLOGY_CLASS, y, "T-4") is not None]
+    assert len(with_factor) >= 8, (
+        f"only {len(with_factor)} run-window years carry a published DSR factor; this control "
+        "would be asserting a refusal against an empty register")
+
+    book = FlexibilityPotentialBook()
+    for flex_kw in (3.0, 7.4, 12.4, 15.4):
+        assert rec.household_revenue_gbp_pa(flex_kw) is None
+    estimate = book.assess(account_id="C-DERATE", has_ev=True, has_ashp=True, has_battery=True)
+    assert estimate.capacity_market_revenue_gbp_pa is None
+    assert estimate.capacity_market_refusal_reason, "a refusal must carry its reason to the surface"
+    # The CM leg contributes nothing to the total -- the structural zero, not a small number.
+    assert estimate.total_annual_revenue_gbp == pytest.approx(estimate.dfs_revenue_gbp_pa)
+
+
+def test_the_refusal_reason_reaching_this_module_is_the_register_backed_one():
+    """The defect: the estimate's printed reason drifting from the record's own refusal.
+
+    The row carries the reason to whatever surface prints it, so the two must be the same string
+    and not two paraphrases that can disagree -- which is how this book got three homes for one
+    clearing price in the first place.
+    """
+    from company.market import capacity_market_published_record as rec
+
+    book = FlexibilityPotentialBook()
+    estimate = book.assess(account_id="C-REASON", has_ev=True)
+    assert estimate.capacity_market_refusal_reason == rec.DOMESTIC_PARTICIPATION_REFUSAL
+    assert "in its own right" in estimate.capacity_market_refusal_reason, (
+        "the surface must print the NARROWED claim; the register refutes the unqualified one")
