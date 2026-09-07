@@ -4281,3 +4281,40 @@
   file_scope: ['docs/market_research/', 'tools/demand_case_coverage.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that sizes its customer sample from how varied the weather is, and discovers its segments were never distinguishable in the only quantity it bills for."
+
+- id: W2_22_the_sample_is_space_filling_and_rejects_on_outputs
+  title: "draw for difference: a candidate house is rejected when one already drawn would behave the same"
+  notes_rehomed: [gain]
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 3
+  level_target: 3
+  loop_stage: build
+  closed: >-
+    AT TARGET 2026-09-07. The space-filling sample, its two coverage curves and therefore N,
+    over 24,662,309 England-and-Wales households, 143,511 cells and NEED's 274 house cases in a
+    five-axis output space. N = 233 houses for 99% of household-weighted variance; the optimal
+    k-means partition reaches it at 55, so drawing for DIFFERENCE costs 4.2x the houses and that
+    is the price the ruling knowingly pays. FOUR OF THE FIVE TAILS CLOSE AT 610 AND THE FIFTH
+    DOES NOT: solar_offset_share reaches 0.70 at 2,584 houses and would need roughly 6,700 for
+    0.90, so it is a STRATIFICATION problem and not a size one, named and not built. The
+    ruling's own premise measured rather than assumed: an INPUT-space draw matches the output
+    draw on variance to four decimal places (0.9926 against 0.9925) and leaves a hole 4.4x
+    wider, misses three of the 23 occupied corners, and loses 40% of the level tail -- right
+    about why it matters, wrong that it shows in the aggregate. Britain occupies 23 of 40
+    possible conjunctions of extremes. Nine controls, and two rejected tail measures recorded
+    beside the one that holds. NOT COVERED: shape and five of the seven levers, each blocked on
+    a premise attribute rather than on method; Scotland; and the draw is not yet wired into
+    simulation/population_draw.py, which is the half of this atom that changes what a run
+    contains rather than what we know about it.
+  dial_inherited: 60    # STAGE 1. Minted BEFORE the work that precedes it finished, because the
+  #   director's fifth instance of "the follow-on was not in the queue" was traced to a NEXT
+  #   trailer naming W2_18 -- the whole ruling deliverable -- which is true and undrawable. A
+  #   bounded tick cannot pick up "the housing joint"; it can pick up this.
+  provenance: director_ruling
+  depends_on: [W2_21_the_premise_joint_is_fitted_not_drawn_independently]
+  couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope: ['simulation/population_draw.py', 'tools/', 'docs/market_research/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a research panel recruited to match the census on every margin, in which every respondent turns out to be the same person twice."

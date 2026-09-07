@@ -8,6 +8,78 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-07 — four correct answers to questions nobody asked
+
+<!-- head: e4bedd260172 -->
+
+Sixty-nine commits, and the thread running through the ones that mattered is the same one: a figure
+that was correct as an answer to a question nobody had asked.
+
+WHAT WAS CORRECTED, IN ORDER, AND WHY EACH ONE WAS FOUND THE SAME WAY
+
+The wind term. W1_19 published a per-cell wind map and reasoned about its granularity. The director
+asked what wind is FOR, and the honest answer required looking at whether the world had a wind term
+at all. It did not: `fabric_physics` clamped infiltration at a constant, so the SAP wind factor --
+the only route by which wind reaches a household -- was missing. The map was granular about a
+quantity the simulation ignored. I had predicted the sensitivity would be small and it was wrong
+three ways, which is filed beside the measurement rather than revised.
+
+The household placement. Three successive methods, each an improvement and each still anchored on a
+postcode centroid. The director's "why not place dwellings directly?" was right and the version he
+was questioning was a better approximation of the same approximation: 20,959 cells holding addresses
+were unreachable from any postcode's 3x3 window, and 94.5% of addresses sat in cells claimed by five
+or more output areas each sizing its share from all of them. ONSUD removed the centroid entirely --
+70 seconds to build, half a second to place. The answer barely moved, which is the reassuring
+outcome and not a reason it was not worth doing: the point is that the error is now bounded rather
+than asserted.
+
+The tilt table. `premise_population` said in its own docstring that its magnitudes were not anchored
+and only their direction was. NEED had the cross-tab all along. One direction was wrong -- detached
+homes are 1.21x MORE likely to be A/B, not less, because detached is bimodal. The table's single
+claim was the thing it got wrong.
+
+The cell counts. And this is the one that reframes the rest. 21, 21 and 5 cells for 99% coverage of
+the three weather drivers is a correct partition of Britain's weather and it is not what sizes a
+sample. Coverage of DEMAND is, and demand is house and weather together. 13 cases -- against 273 if
+the two composed separably -- and the reason is not the correlation either of us expected but that
+demand is a SCALAR.
+
+WHAT I STOPPED SHORT OF, DELIBERATELY
+
+Scotland is out of both the stock joint and the demand-case measurement. NEED is a DESNZ product
+with no Scottish dwellings, and using the England-and-Wales mixture for the coldest 8% of the book
+would be an assumption in the worst possible place. It is named on the page rather than absorbed.
+
+The three-way interaction is in NEED and unused. The EPC-to-fabric map is a declared Choice whose
+cost is not priced. Both are residuals I could have quietly closed and did not.
+
+WHAT I GOT WRONG IN THE MECHANICS, BECAUSE IT KEEPS HAPPENING
+
+The population map was published three times before it was right -- a binary flag reading 81%
+against a 49.6% caption, then a proportion that saturated, then a 5 km picture carrying a 1 km
+claim. All three were caught by LOOKING at the picture, none by more thinking about it. That is the
+same lesson as printing the table at real inputs before shipping a formula, and I keep having to
+relearn it in whatever medium the output happens to be in.
+
+A mutation battery reported four false KILLs because its own runner had an unrecognised pytest flag
+and exited 4 for every cell, mutated or not. The fix is a baseline through the identical command,
+and the reason it matters is that "killed" and "the harness is broken" are indistinguishable from
+the outside.
+
+A `--content` land reverted another lane's map work, because my content was built from a HEAD that
+had moved and the gate passed -- the reverted side was internally consistent. Six store files to
+repair. After a `--content` land, diff against the commit you raced.
+
+THE HABIT THAT WOULD HAVE SAVED ALL OF IT
+
+Every one of these was found by asking what a number is an answer TO, rather than whether it is
+right. The wind map was right about wind. The placement was right about postcodes. The tilt table
+was right about magnitudes it never claimed. The cell counts were right about weather. Correct
+answers to unasked questions do not announce themselves, and none of the four would have been caught
+by checking the arithmetic.
+
+---
+
 ## 2026-09-06 — The cell answer became a build decision, the world got the wind term it never had, and the site got its first map
 
 <!-- head: 1ed1e7737af4 -->

@@ -102,8 +102,12 @@ AREA_MIDPOINT = {"1": 40.0, "2": 75.0, "3": 125.0, "4": 175.0, "5": 230.0}
 REFERENCE_SUNSHINE_H = 1535.0
 
 
-def _seasonal_hdd(winter_temp):
+def _seasonal_hdd(winter_temp, setpoint_c: float = SETPOINT_C):
     """Degree-days over the heating half-year for a cell whose DJF mean is `winter_temp`.
+
+    `setpoint_c` is a parameter because a TURN-DOWN CEILING is the difference between the same
+    cell's degree-days at two set-points, and computing the second one anywhere else would make
+    the ceiling a difference between two shapes rather than between two thermostat settings.
 
     One seasonal shape, shifted so its DJF mean is the cell's. The shape is the same for every cell
     -- what varies is its level -- which is the same information the weather-cell derivation uses
@@ -115,7 +119,7 @@ def _seasonal_hdd(winter_temp):
     base = 8.0 - 5.0 * np.cos(2 * np.pi * (doys - 15) / 365.0)
     djf = np.isin(doys, np.r_[np.arange(335, 366), np.arange(1, 60)])
     shift = np.asarray(winter_temp, dtype=float) - base[djf].mean()
-    return np.maximum(0.0, SETPOINT_C - (base[None, :] + shift[:, None])).sum(axis=1)
+    return np.maximum(0.0, setpoint_c - (base[None, :] + shift[:, None])).sum(axis=1)
 
 
 def _reference_solar_kwh_per_m2() -> float:
@@ -125,13 +129,19 @@ def _reference_solar_kwh_per_m2() -> float:
         cloud_cover_pct=60.0, day_of_year=int(d), latitude_deg=53.0)) * 0.5 for d in DOYS)
 
 
-def house_cases():
+def house_cases(insulation_override: str | None = None):
     """[(case key, fabric parameters)] and the per-region and national mixtures over them.
 
     THE UNRATED 30% ARE IMPUTED, NOT DROPPED. An EPC exists because a home was sold, let or newly
     built, so dropping the unrated biases the stock toward flats and new builds -- 0.39x and 0.24x
     respectively. They take a draw from the (type, age) conditional measured on the rated, which
     uses the association that is measured rather than inventing one.
+
+    `insulation_override` re-derives the SAME cases at a different insulation level, which is how
+    an insulation CEILING is measured: the difference between a case's demand as it stands and the
+    same case retrofitted. It exists as a parameter rather than as a second construction elsewhere
+    because two copies of this Household would drift, and the ceiling would then be the difference
+    between two models rather than between two fabric states.
     """
     import csv
 
@@ -184,7 +194,8 @@ def house_cases():
             boiler_age=BoilerAge.MID, has_solar=False, solar_kwp=0.0, solar_install_year=None,
             has_battery=False, battery_kwh=0.0, has_ev=False, ev_charger_kw=0.0,
             has_smart_meter=True, smart_meter_install_year=2020,
-            insulation=InsulationLevel[EPC_TO_INSULATION[epc]], has_driveway=True,
+            insulation=InsulationLevel[insulation_override or EPC_TO_INSULATION[epc]],
+            has_driveway=True,
             roof_aspect="south")
         p = fp.fabric_parameters(household)
         params[i] = (p.fabric_w_per_k, p.raw_infiltration_ach, p.volume_m3,

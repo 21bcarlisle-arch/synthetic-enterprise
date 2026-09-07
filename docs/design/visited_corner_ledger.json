@@ -1,0 +1,28 @@
+{
+  "runs": 1,
+  "visits": {
+    "annual_kwh+ & insulation_ceiling_kwh+": 1,
+    "annual_kwh+ & insulation_ceiling_kwh-": 1,
+    "annual_kwh+ & kwh_per_degree_day+": 1,
+    "annual_kwh+ & solar_offset_share-": 1,
+    "annual_kwh+ & turndown_ceiling_kwh+": 1,
+    "annual_kwh- & insulation_ceiling_kwh-": 1,
+    "annual_kwh- & kwh_per_degree_day-": 1,
+    "annual_kwh- & solar_offset_share+": 1,
+    "annual_kwh- & turndown_ceiling_kwh-": 1,
+    "insulation_ceiling_kwh+ & turndown_ceiling_kwh+": 1,
+    "insulation_ceiling_kwh- & turndown_ceiling_kwh+": 1,
+    "insulation_ceiling_kwh- & turndown_ceiling_kwh-": 1,
+    "kwh_per_degree_day+ & insulation_ceiling_kwh+": 1,
+    "kwh_per_degree_day+ & insulation_ceiling_kwh-": 1,
+    "kwh_per_degree_day+ & solar_offset_share-": 1,
+    "kwh_per_degree_day+ & turndown_ceiling_kwh+": 1,
+    "kwh_per_degree_day- & insulation_ceiling_kwh-": 1,
+    "kwh_per_degree_day- & solar_offset_share+": 1,
+    "kwh_per_degree_day- & turndown_ceiling_kwh-": 1,
+    "solar_offset_share+ & insulation_ceiling_kwh-": 1,
+    "solar_offset_share+ & turndown_ceiling_kwh-": 1,
+    "solar_offset_share- & insulation_ceiling_kwh+": 1,
+    "solar_offset_share- & turndown_ceiling_kwh+": 1
+  }
+}
