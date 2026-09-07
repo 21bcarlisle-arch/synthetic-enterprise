@@ -96,6 +96,16 @@ The premium break-even is **2.47× / 2.48× / 2.53×** across the three episodes
 the price level, because it is a property of the shape distribution and not of the level — which is
 the same lesson the landed panel closed the spread question with.
 
+> **SETTLED 2026-09-07, beside the claim.** The premium was measured against NESO's DFS and **does
+> not clear**. NESO's own live-vs-test comparison — the largest salience contrast the real product
+> ever ran — gives **1.20×** against the 2.53× needed, and **0.79×** per unit of price signal, since
+> the live events also paid £4,559/MWh against the tests' £3,000. A deliberately generous upper
+> bound reaches only 2.04×. **The MERELY RARER verdict is unchanged and is no longer a hedge.**
+> `SEAT_RESULT_THE_CALLED_DAY_PREMIUM_IS_1_POINT_2_AND_THE_BREAK_EVEN_NEEDED_2_POINT_5_2026-09-07.md`;
+> evidence in `docs/market_research/neso_dfs_called_day_response_2026-09-07.md`.
+> The one reading that *would* have flipped it (40% opted-in ÷ 10% invited = 4.0×) is not a premium
+> but one number and an opt-in rate.
+
 ## 3. What dominates all of it
 
 | | everyday | extreme top 10% |
