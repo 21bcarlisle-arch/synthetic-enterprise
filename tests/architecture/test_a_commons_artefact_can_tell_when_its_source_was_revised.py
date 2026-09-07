@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import copy
 import json
+import subprocess
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -39,6 +40,7 @@ import pytest
 from tools.commons_source_supersession import (
     COMMONS,
     TOKEN_KINDS,
+    UNRESOLVED_VERDICTS,
     VERDICTS,
     artefact_paths,
     check,
@@ -47,6 +49,25 @@ from tools.commons_source_supersession import (
 )
 
 TODAY = date(2026, 9, 7)
+
+REPO = Path(__file__).resolve().parents[2]
+
+#: Any finding that really is in the tree. The obligation is that the path RESOLVES, so this is a
+#: stand-in for "an act was performed", not a claim about this particular document.
+A_FILED_FINDING = (
+    "docs/staging/SEAT_FINDING_TWO_COMMONS_ARTEFACTS_CITE_A_PUBLICATION_THAT_HAS_MOVED"
+    "_AND_FOUR_OF_NINE_COULD_NOT_BE_ASKED_2026-09-07.md"
+)
+
+#: Every `cannot_tell` this commons ever COMMITTED, as (commit, artefact). Found by walking all 26
+#: commits touching `docs/domain_artefact_library/` on 2026-09-08; these are the real bytes the
+#: OWNED leg exists to refuse, and there are no others.
+EVERY_COMMITTED_CANNOT_TELL = (
+    ("5a2778d06", "ofgem_cap_unit_rate_composition"),
+    ("29b4dcd3b", "ofgem_cap_unit_rate_composition"),
+    ("619ce4993", "ofgem_default_tariff_cap_windows"),
+    ("a47792693", "gb_domestic_switching_rate"),
+)
 
 VALID = {
     "publication": "Ofgem Annex 9 'Levelisation allowance methodology and levelised cap levels'",
@@ -228,6 +249,127 @@ def test_the_actioned_leg_fires_when_the_named_finding_is_not_in_the_tree(
     assert "ACTIONED" in _legs(_write(tmp_path, block))
 
 
+# --------------------------------------------------------------------------------------
+# OWNED -- `cannot_tell` carries the same obligation as `superseded`
+# --------------------------------------------------------------------------------------
+
+
+def test_the_owned_leg_fires_when_a_cannot_tell_opens_nothing(tmp_path: Path) -> None:
+    """DEFECT: THE DEFECT THAT COST TWELVE OFGEM EDITIONS -- an unanswerable recipe, owned by nobody.
+
+    `ofgem_cap_unit_rate_composition`'s `how_to_recheck` sent the reader to a page that has never
+    linked the cap level model. The recipe terminated in `cannot_tell` every time it was run, and
+    would have forever, while reading exactly like a question that had been asked and answered.
+    """
+    block = _mutate()
+    block["checked_for_supersession"]["found"] = "cannot_tell"
+    assert "OWNED" in _legs(_write(tmp_path, block))
+
+
+def test_the_owned_leg_fires_when_the_named_finding_is_not_in_the_tree(tmp_path: Path) -> None:
+    """DEFECT: a `cannot_tell` discharged by naming a finding nobody filed, or one since archived."""
+    block = _mutate()
+    block["checked_for_supersession"].update(
+        {"found": "cannot_tell", "open_finding": "docs/staging/NEVER_WRITTEN.md"}
+    )
+    assert "OWNED" in _legs(_write(tmp_path, block))
+
+
+@pytest.mark.parametrize(("commit", "artefact"), EVERY_COMMITTED_CANNOT_TELL)
+def test_the_owned_leg_refuses_every_cannot_tell_this_commons_ever_committed(
+    tmp_path: Path, commit: str, artefact: str
+) -> None:
+    """THE REACHABILITY EVIDENCE, from the real bytes, out of the commits that carried them.
+
+    At HEAD nothing is `cannot_tell`, so the live pass is green and proves nothing about this leg --
+    a control green on an empty subject is not a control. These are the four real blocks.
+
+    OWNED must be the SOLE refusal on each. If a fixture were also refused by ASKABLE or COHERENT,
+    a passing test would not tell us which leg did the work, and this leg could be broken while the
+    test stayed green on the collateral.
+    """
+    raw = subprocess.run(
+        ["git", "show", f"{commit}:docs/domain_artefact_library/regulatory/{artefact}.json"],
+        capture_output=True, text=True, check=True, cwd=REPO,
+    ).stdout
+    block = json.loads(raw)["source_check"]
+
+    recorded = block["checked_for_supersession"]
+    assert recorded["found"] == "cannot_tell", (
+        f"{artefact} at {commit} no longer records `cannot_tell`; this fixture is spent and the "
+        "test proves nothing until it is re-pointed at bytes that still carry the defect"
+    )
+    assert "open_finding" not in recorded, (
+        "the pre-repair block already names an owner, so it is not the defect this leg catches"
+    )
+
+    assert _legs(_write(tmp_path, block, name=artefact)) == ["OWNED"]
+
+
+def test_a_reason_shaped_leg_would_have_passed_every_one_of_them(tmp_path: Path) -> None:
+    """DEFECT THIS LEG WAS DESIGNED AROUND: keying the obligation to a REASON instead of an ACT.
+
+    The obvious leg -- "a `cannot_tell` must say WHY" -- is satisfied by every instance it exists
+    to refuse. All four blocks carried articulate prose and two asserted their own honesty in it
+    ("An honest cannot_tell, with the missing thing named"; "recorded rather than a guess"). They
+    WERE honest; honesty was never the missing thing. A stuck block can always supply another
+    sentence, so the leg demands a filed finding instead -- something only an act can produce.
+
+    This test fails if a future session weakens OWNED back to a prose check: the notes are still
+    there, so the weaker leg would go green on all four and this assertion is what says so.
+    """
+    for commit, artefact in EVERY_COMMITTED_CANNOT_TELL:
+        raw = subprocess.run(
+            ["git", "show", f"{commit}:docs/domain_artefact_library/regulatory/{artefact}.json"],
+            capture_output=True, text=True, check=True, cwd=REPO,
+        ).stdout
+        note = json.loads(raw)["source_check"]["checked_for_supersession"].get("note", "")
+        assert isinstance(note, str) and len(note.strip()) > 80, (
+            f"{artefact} at {commit} carries no substantial note, so a reason-shaped leg WOULD have "
+            "caught it and this module's stated design reason is wrong"
+        )
+
+
+@pytest.mark.parametrize("verdict", sorted(UNRESOLVED_VERDICTS))
+@pytest.mark.parametrize("empty", ["", "   ", "\n"])
+def test_a_blank_open_finding_does_not_discharge_the_obligation(
+    tmp_path: Path, verdict: str, empty: str
+) -> None:
+    """DEFECT: FAIL-OPEN -- `open_finding: ""` joins to the REPO ROOT, which exists, so it passes.
+
+    Found by mutation on 2026-09-08: dropping the `.strip()` from the emptiness test left all 39
+    tests green. The existence check cannot catch it, because `REPO / ""` IS `REPO` and a directory
+    that exists reads as a finding that was filed. A whitespace path is the cheapest possible way to
+    silence either leg, and it would look like an author who meant to fill the field in later.
+
+    Parametrised over BOTH unresolved verdicts: the two legs share one implementation, and this hole
+    was in `ACTIONED` from the day it was written.
+    """
+    block = _mutate()
+    block["checked_for_supersession"].update({"found": verdict, "open_finding": empty})
+    leg = UNRESOLVED_VERDICTS[verdict][0]
+    assert _legs(_write(tmp_path, block)) == [leg]
+
+
+def test_only_the_unresolved_verdicts_owe_a_finding(tmp_path: Path) -> None:
+    """DEFECT: the obligation lands on the wrong partition -- on `current`, or on neither.
+
+    One control over the WHOLE partition rather than a leg per verdict: a rule that demanded a
+    finding from everything, or from nothing, would pass a per-verdict test written either way.
+    """
+    owing, free = {}, {}
+    for verdict in VERDICTS:
+        block = _mutate()
+        block["checked_for_supersession"]["found"] = verdict
+        (owing if _legs(_write(tmp_path, block, name=verdict)) else free)[verdict] = True
+
+    assert set(owing) == set(UNRESOLVED_VERDICTS) == {"superseded", "cannot_tell"}
+    assert set(free) == {"current"}, (
+        "`current` is the only verdict that settles anything, so it is the only one that owes "
+        "nothing; every other verdict leaves a debt somebody must hold"
+    )
+
+
 def test_the_honest_leg_fires_when_the_cited_version_is_not_the_one_in_its_own_url(
     tmp_path: Path,
 ) -> None:
@@ -306,11 +448,8 @@ def test_every_verdict_can_be_recorded(tmp_path: Path, verdict: str) -> None:
     """
     block = _mutate()
     block["checked_for_supersession"]["found"] = verdict
-    if verdict == "superseded":
-        block["checked_for_supersession"]["open_finding"] = (
-            "docs/staging/SEAT_FINDING_TWO_COMMONS_ARTEFACTS_CITE_A_PUBLICATION_THAT_HAS_MOVED"
-            "_AND_FOUR_OF_NINE_COULD_NOT_BE_ASKED_2026-09-07.md"
-        )
+    if verdict in UNRESOLVED_VERDICTS:
+        block["checked_for_supersession"]["open_finding"] = A_FILED_FINDING
     assert check_artefact(_write(tmp_path, block), TODAY) == []
 
 
