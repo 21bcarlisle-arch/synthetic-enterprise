@@ -498,3 +498,200 @@ def test_whether_the_gating_figure_SURVIVES_A_REDRAW_reaches_the_reader():
     assert "cannot gate a programme" not in unmeasured
     assert "consistency check and not a bound" not in unmeasured, (
         "an unrun rung rendered as a passed consistency check is the fail-open this control exists for")
+
+
+def test_the_generator_LIFTS_the_only_rung_that_can_carry_a_magnitude():
+    """The instrument's artefact held an unbiased magnitude and the panel A49 reads said `null`.
+
+    THE DEFECT, and it is a LIFT defect rather than a render one, which is why this control calls
+    the generator against the REAL artefact instead of a fixture. `whole_book_pair_rung` landed on
+    2026-09-06 carrying the same pair search restricted to the observables the company holds for
+    every account on supply -- so its population is the whole book rather than the winning pair's
+    renewing subset, and it is the only rung on this book whose fit fold can hold populations.
+    `tools/r1_inference_ceiling` computed it, printed it to stdout and wrote it to the artefact.
+    `the_number_the_programme_rests_on` lifted the two rungs beside it and not this one, so the
+    delivery feed published `magnitude: null` while the artefact on disk held +0.2513 at p=0.01.
+    A fixture-fed render test cannot see that at all: it would supply the field the generator never
+    produced and pass on both legs.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ANSWER. It asserts the panel carries WHAT THE ARTEFACT
+    HOLDS, whichever way that falls -- including a refusal. Pinning +0.2513 would go red the day the
+    book grows and green the day the lift silently returns a stale constant, which is backwards.
+
+    MUTATION (must fire): drop `the_whole_book_rung` from the returned panel, or lift the headline
+    rung's magnitude into it.
+    """
+    from tools.generate_delivery_page import PROJECT, the_number_the_programme_rests_on
+
+    artefact = PROJECT / "docs" / "observability" / "r1_inference_ceiling.json"
+    # TRACKED, so its absence is a defect and not a reason to skip. A skip here would be the
+    # fail-silent this control exists to catch: the panel would publish `null` and nothing would say
+    # whether that was the measurement or the lift.
+    assert artefact.is_file(), (
+        f"{artefact} is tracked and missing, so what the panel publishes cannot be checked against "
+        "what the instrument measured")
+    held = json.loads(artefact.read_text(encoding="utf-8"))
+    rung = held.get("whole_book_pair_rung")
+    if not rung:
+        pytest.skip("this artefact predates the whole-book rung; there is nothing to lift")
+
+    panel = the_number_the_programme_rests_on()
+    assert panel.get("available"), "the artefact is present and the panel withheld it"
+    lifted = panel.get("the_whole_book_rung")
+    assert lifted, "the artefact carries the whole-book rung and the panel does not lift it"
+
+    mag = rung.get("magnitude_three_way_split") or {}
+    assert lifted["magnitude"] == mag.get("estimate"), (
+        f"the artefact's whole-book magnitude is {mag.get('estimate')!r} and the panel publishes "
+        f"{lifted['magnitude']!r}")
+    assert lifted["magnitude_refused"] == mag.get("refused")
+    assert lifted["households"] == (rung.get("best_pair") or {}).get("n")
+    # THE RUNG'S OWN CEILING VERDICT HAS TO TRAVEL WITH ITS MAGNITUDE. On this book the two
+    # disagree -- the selected maximum cannot be told from chance while the de-biased estimate
+    # clears its floor -- and a magnitude published without it reads as a bound the rung has not
+    # earned.
+    assert lifted["corrected_verdict"] == rung.get("clears_the_selection_corrected_null")
+    # AND IT MUST NOT BE THE HEADLINE RUNG WEARING A NEW NAME. Same population, same number, and
+    # the panel would be publishing one measurement twice.
+    assert lifted["households"] != panel.get("households_in_the_rung") or (
+        lifted["magnitude"] == (held.get("magnitude_three_way_split") or {}).get("estimate")), (
+        "the whole-book rung and the headline rung report the same population, so the restriction "
+        "this panel claims to apply is not being applied")
+
+
+def test_the_WHOLE_BOOK_magnitude_and_its_disagreeing_verdict_reach_the_reader():
+    """Both legs, because a sentence the panel always emits is boilerplate rather than evidence.
+
+    The headline rung refuses a magnitude for want of households per cell, and for a day the page
+    carried that refusal alone -- so a reader was told R1 has no unbiased magnitude when the book
+    had bought one on a rung the page did not render. The honest publication is BOTH: the narrower
+    rung's estimate AND the fact that its own selected-maximum verdict disagrees with it, because
+    showing the estimate alone converts "a magnitude over this population" into "a bound".
+
+    MUTATION (must fire): render the estimate without the disagreement, or emit the block
+    unconditionally so a refused rung reads like an answered one.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    c = dict(live.get("the_number_the_programme_rests_on") or {})
+    if not c.get("available"):
+        pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
+
+    def shown(rung):
+        c["the_whole_book_rung"] = rung
+        live["the_number_the_programme_rests_on"] = c
+        return _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
+
+    # LEG 1 -- the rung carries a magnitude, and its ceiling verdict does NOT clear. Both figures
+    # and the disagreement have to be on the page.
+    answered = shown({
+        "fields": ["a", "b"], "pairs_scored": 15, "households": 164,
+        "reported_ceiling": 0.1963, "corrected_verdict": False, "p_value": 0.4726,
+        "magnitude": 0.2513, "magnitude_noise_floor": 0.1628, "magnitude_p_value": 0.01,
+        "magnitude_refused": None, "households_per_cell_on_the_fit_fold": 13.75,
+    })
+    assert "0.2513" in answered, "the only unbiased magnitude this book buys is not on the page"
+    assert "164" in answered, (
+        "a magnitude without the population it is over is not a judgeable figure")
+    assert "0.4726" in answered, (
+        "the rung's own ceiling verdict disagrees with its magnitude and the page does not say so")
+    # The discriminator is unique to this block: "readings disagree" appears nowhere else on the
+    # page, whereas "cannot be told from chance" and "noise floor" are emitted by the headline and
+    # by `what_it_does_not_say` on every branch.
+    assert "readings disagree" in answered, (
+        "the estimate is rendered as a bound: nothing on the page says the two readings of this "
+        "rung point opposite ways")
+
+    # LEG 2 -- the rung refuses too. The refusal must be the thing rendered, and no figure invented.
+    refused = shown({
+        "fields": ["a", "b"], "pairs_scored": 15, "households": 164,
+        "reported_ceiling": 0.1963, "corrected_verdict": False, "p_value": 0.4726,
+        "magnitude": None, "magnitude_noise_floor": None, "magnitude_p_value": None,
+        "magnitude_refused": "not enough households per cell on the fit fold",
+        "households_per_cell_on_the_fit_fold": 5.0,
+    })
+    assert "not enough households per cell" in refused
+    assert "readings disagree" not in refused, (
+        "the panel emits the disagreement regardless of whether there is a magnitude to disagree "
+        "with, so its presence says nothing")
+    assert "0.2513" not in refused
+
+    # LEG 3 -- an artefact with no whole-book rung at all renders nothing rather than an empty
+    # claim. Every tree holding a pre-2026-09-06 artefact is in this state.
+    absent = shown(None)
+    assert "restricted to what the company holds" not in absent, (
+        "a rung the artefact does not carry is being described to the reader anyway")
+
+
+def test_WHICH_RUNG_THE_PROGRAMME_IS_GATED_ON_reaches_the_reader():
+    """Both rungs were on this page and the CHOICE between them was still nobody's.
+
+    They answer different questions over different populations -- what can be recovered about every
+    account on supply, versus about the accounts that reached a priced renewal -- and only one of
+    them carries an unbiased magnitude on this book. A page that shows both and names neither as
+    the gate leaves the reader to pick, and in practice that means picking whichever one has a
+    number: the outcome-driven selection the scope mechanism exists to prevent. So the decision is
+    rendered, with its reason and its falsifier, beside whatever the chosen rung says.
+
+    ALL THREE STATES, because a block the panel always emits says nothing. A gate with headroom, a
+    gate that refuses, and an artefact carrying no gate at all are three different claims.
+
+    MUTATION (must fire): drop the gate block; render the reason without the reading; render the
+    reading without the reason; emit it unconditionally so an absent gate reads like a decided one.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    c = dict(live.get("the_number_the_programme_rests_on") or {})
+    if not c.get("available"):
+        pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
+
+    def shown(gate):
+        c["the_a49_gate"] = gate
+        live["the_number_the_programme_rests_on"] = c
+        return _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
+
+    base = {
+        "rung": "whole_book_pair_rung",
+        "why": "R3 and R4 are delivered to every account on supply.",
+        "what_would_move_it": "a change of SCOPE, never a change of reading.",
+        "population": 164, "book": 164,
+        "and_its_own_ceiling_verdict": {"clears": False, "p_value": 0.4726},
+        "the_rung_it_is_not": {"rung": "all_candidate_pair_rung", "population": 69,
+                               "answers": "what can be recovered about the households that "
+                                          "reached a priced renewal."},
+    }
+
+    # LEG 1 -- the gate is open. The rung, its population, the figure, the reason and the falsifier
+    # all have to be on the page: a named gate with no reason is an assertion, and a reason with no
+    # falsifier is not a decision anyone can overturn.
+    open_gate = shown({**base, "magnitude": 0.2513, "noise_floor": 0.1628, "p_value": 0.01,
+                       "refused": None, "exceeds_its_own_noise_floor": True,
+                       "consequence": "R3 and R4 are NOT retired by R1."})
+    assert "gated on, and why it is this rung" in open_gate, "the gate block is not rendered at all"
+    assert "whole_book_pair_rung" in open_gate, "the page does not name the rung it gates on"
+    assert "0.2513" in open_gate and "0.1628" in open_gate
+    assert "every account on supply" in open_gate, (
+        "the page names a gate and not the reason it is that one, which is an assertion")
+    assert "What would move it" in open_gate, (
+        "a decision published without its falsifier cannot be overturned by evidence")
+    assert "all_candidate_pair_rung" in open_gate and "69" in open_gate, (
+        "the losing rung is deleted rather than carried, so the choice is invisible")
+    assert "NOT retired" in open_gate
+    # THE GATING RUNG'S OWN VERDICT DISAGREES WITH ITS MAGNITUDE ON THIS BOOK, and the reader has
+    # to be told, or the magnitude reads as a bound this rung has not earned.
+    assert "0.4726" in open_gate and "does not clear" in open_gate
+
+    # LEG 2 -- the gating rung refuses. The refusal is what is rendered, and NO figure is invented
+    # from the rung that was not chosen.
+    shut = shown({**base, "magnitude": None, "noise_floor": None, "p_value": None,
+                  "refused": "three-way split needs 8 households per cell on the fit fold",
+                  "exceeds_its_own_noise_floor": False,
+                  "consequence": "WE CANNOT TELL what R3 and R4 could be worth."})
+    assert "carries no magnitude on this book" in shut
+    assert "8 households per cell" in shut
+    assert "WE CANNOT TELL" in shut
+    assert "0.2513" not in shut, "a figure the gating rung did not produce is on the page"
+
+    # LEG 3 -- an artefact with no gate renders nothing rather than a decided-looking blank. Every
+    # tree holding an artefact from before 2026-09-07 is in this state.
+    absent = shown(None)
+    assert "gated on, and why it is this rung" not in absent, (
+        "a gate the feed does not carry is being described to the reader anyway")

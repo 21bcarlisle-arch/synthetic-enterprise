@@ -31,10 +31,17 @@ the household share of GB they cover is:
 
 | driver | cells occupied | GB households covered |
 |---|---|---|
-| winter temperature | 4 / 21 | **20.5%** |
-| annual wind | 4 / 21 | 30.7% |
-| annual sunshine | 4 / 21 | 27.9% |
-| **all three at once** | — | **3.5%** |
+| winter temperature | 4 / 21 | **20.4%** |
+| annual wind | 4 / 21 | 27.8% |
+| annual sunshine | 4 / 21 | 17.3% |
+| **all three at once** | — | **2.0%** |
+
+RE-CUT 2026-09-07 on the OS Open UPRN placement (175,188 occupied 1 km cells). The figures this
+table carried until then — 20.5% / 30.7% / 27.9% / 3.5% — were the POSTCODE CENTROID method's
+(121,668 cells), and the placement moved on 2026-09-06 without the artefact being regenerated. They
+are kept here beside their correction because every one of them overstated the archive: annual
+sunshine read 27.9% against a true 17.3%, and `all_three` read 3.5% against 2.0%. Superseded
+figures, not a recalculation of the same thing.
 
 So the substitution branch below is real but narrow, and NEITHER of the two uncovered locations in
 the supply book clears it: Birmingham shares Manchester's wind cell and neither its temperature nor
@@ -53,20 +60,26 @@ book's LOCATIONS rather than from its HOUSEHOLDS. Asked of the households, the a
   Teesside hold no resi premise at all, and **no resi premise sits at an un-archived location**.
   So the two pulls W1_14 waits on move I&C coverage from 0/4 to 4/4 and household coverage from
   100% to 100%.
-* Of a drawn population (210 customers, seed 7), **100%** carry `lat: None, lon: None`
-  (`population_draw.to_customer_dict`), so `cells_for_location` refuses every one. With
-  `draw_region=True` the curriculum draws ten REAL GB regions -- Wales, the North East, the East
-  Midlands -- and every one of them still has no coordinate. The world already knows the household
-  is in Wales and still cannot site it.
+* Of a drawn population (210 customers, seed 7), the coordinate now depends on the region dial.
+  With the DEFAULT placeholder region, 100% still carry `lat: None, lon: None` -- correctly, since
+  `UNKNOWN_SYNTHETIC` is not a real region and has no household distribution. With
+  `draw_region=True`, **100% are sited** (measured 2026-09-07): W2_18 landed in `ec8a18710` and
+  `simulation/household_siting.coordinate_for_customer` draws a 1 km cell from the region's own
+  census household distribution.
 
-**So step 2 is a branch no premise in this world can take**, from both ends at once: the named
-premises never need it, and the drawn premises can never satisfy it. Its only reachability evidence
-is `REACHABILITY_WITNESS` below, which says so of itself. The binding constraint on household heat
-load is a **coordinate at the draw**, which is W2_18's and W1_24's, not archive breadth -- and a
-coordinate must not be invented here to close it.
+**And 0 of those 210 resolve here.** The coordinate is no longer the binding constraint; THIS
+MODULE'S ARTEFACT IS. `locations` is a precomputed TABLE, not a grid lookup: `derive()` sites only
+the locations handed to it, which by default is the seven in `KNOWN_LOCATIONS` +
+`REACHABILITY_WITNESS`, keyed to four decimals (~11 m). A drawn household's coordinate was never in
+that table and cannot collide with it, so `cells_for_location` returns None for every sited
+household and the substitution branch is STILL unreachable -- for a different reason than before,
+and one that lives here rather than in the draw. See the 2026-09-07 seat finding; the honest remedy
+is to cut the artefact over the population that will be looked up in it, which is a decision about
+artefact size, not a wiring fix, and must not be made by fabricating a nearest-anything here.
 
-The accept branch is not decorative and is not a proximity test. Seventeen 1 km cells share all
-three of London's cells, and the furthest of them is on the Cornish coast 304 km away
+The accept branch is not decorative and is not a proximity test. Twenty-eight 1 km cells share all
+three of London's cells (re-measured 2026-09-07 on the UPRN placement; seventeen on the superseded
+centroid one), and the furthest of them is on the Cornish coast 301 km away
 (`tests/simulation/test_weather_cell_siting.py`): the mechanism matches CLIMATE, and a control that
 only ever exercised a neighbouring postcode could not tell the two apart.
 
@@ -112,13 +125,20 @@ KNOWN_LOCATIONS: dict[str, tuple[float, float]] = {
 }
 
 #: A REACHABILITY WITNESS, not a premise: an occupied 1 km land cell on the north Cornish coast that
-#: the derivation puts in all three of London's cells, 304 km away. It is sited into the artefact so
+#: the derivation puts in all three of London's cells, 301 km away. It is sited into the artefact so
 #: that the accept branch below can be exercised from the committed answer, with no `~/.cache` and
 #: no k-means — because a branch this project cannot prove is REACHABLE is one it must assume is
 #: unreachable (R15). It also fixes what the branch means: a control that only ever tried a
 #: neighbouring postcode could not tell climate matching from a proximity test.
+#:
+#: MOVED 2026-09-07, from (50.5392, -4.2371). A WITNESS IS A MEASUREMENT AND EXPIRES WITH THE THING
+#: IT WITNESSES: when the placement moved from postcode centroids to the UPRN address record the old
+#: cell stopped sharing all three of London's, so the accept branch briefly had NO witness and was
+#: unreachable again — the exact R15 failure this constant exists to prevent, reintroduced by a
+#: re-derivation rather than by a code change. Re-measured against the current partition: 28 cells
+#: share all three of London's, and this is the furthest of them.
 REACHABILITY_WITNESS: dict[str, tuple[float, float]] = {
-    "Cornish coast (reachability witness, not a premise)": (50.5392, -4.2371),
+    "Cornish coast (reachability witness, not a premise)": (50.4689, -4.1492),
 }
 
 #: Which archive CSV each covered location's premises settle on.
@@ -194,10 +214,15 @@ def siting_refusal(location: Mapping, path: Path | str = ARTEFACT) -> str:
     THREE refusals, not two, and the third was found by measuring rather than by reading. A premise
     with NO COORDINATE is not an unsited coordinate: until 2026-09-06 both came back "regenerate
     with `--derive`", which names a remedy that CANNOT work — re-deriving the whole GB grid puts
-    nothing in the artefact for a location whose lat is `None`. Every household this world draws is
-    in exactly that case (`population_draw.SyntheticCustomer.to_customer_dict`, 100% of 210 drawn
-    at seed 7, in both draw modes), so the most common refusal this seam can issue was the one
-    pointing at the wrong fix."""
+    nothing in the artefact for a location whose lat is `None`.
+
+    2026-09-07: that split was right and its SECOND half was wrong. `--derive` was left prescribed
+    for an unsited REAL coordinate, on the reasoning that re-deriving CAN site one — but `derive()`
+    sites only the locations handed to it, and the CLI hands it the same seven every time. So bare
+    `--derive` re-sites the same seven and reaches no drawn household either. It went unnoticed
+    because when it was written NO real coordinate could reach this branch; W2_18 then landed and
+    100% of drawn households (with `draw_region=True`) now land on it. A refusal is only tested by
+    the population that actually receives it."""
     if location.get("lat") is None or location.get("lon") is None:
         return (f"{location.get('region', location)!r} carries no coordinate (lat/lon are None), so "
                 f"the derivation cannot site it. This is the DRAW's placeholder — not an archive "
@@ -208,8 +233,16 @@ def siting_refusal(location: Mapping, path: Path | str = ARTEFACT) -> str:
                 f"`fabric_physics.latitude_for_weather_site` refuses one layer down")
     sited = cells_for_location(location, path)
     if sited is None:
-        return (f"{location.get('region', location)!r} has not been sited against the derived "
-                f"weather cells — regenerate with `--derive` before settling it")
+        return (f"{location.get('region', location)!r} carries a real coordinate that is not in the "
+                f"derived artefact. `locations` is a precomputed TABLE over the locations `derive()` "
+                f"was handed — {len(load(path)['locations'])} of them, keyed to ~11 m — and NOT a "
+                f"grid "
+                f"lookup, so an arbitrary coordinate cannot match it. Bare `--derive` re-sites those "
+                f"same locations and will not reach this one: the artefact must be cut over the "
+                f"population that gets looked up in it (`derive(locations=...)`). Since W2_18 this "
+                f"is where every drawn household lands. Do NOT fall back to the nearest sited "
+                f"location — that is proximity standing in for climate, which this seam exists to "
+                f"refuse")
     data = load(path)
     disagreements = []
     for site_location, site in ARCHIVE_SITES.items():

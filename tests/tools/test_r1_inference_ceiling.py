@@ -720,3 +720,390 @@ def test_the_shrunk_figure_declares_that_it_is_not_unbiased():
     assert "over-corrects" in shrunk["what_it_assumes"], shrunk
     assert r.shrunk_toward_the_null(0.6308, None)["value"] is None, (
         "with no null to shrink toward the figure is unavailable, not zero")
+
+
+# ---------------------------------------------------------------------------
+# THE WHOLE-BOOK RUNG. A ranked sweep reports its WINNER, so the rung's household count is the
+# winner's and not the book's -- and one `decision_only` field in the candidate grid can win and
+# drag the whole rung down to the renewing subset however large the book gets. On 2026-09-06 the
+# book was 164, four observables had just been lifted to full coverage, and the magnitude still
+# refused at 69 with a message that read "the book is too small". The book was never the problem.
+# ---------------------------------------------------------------------------
+
+
+def test_every_observable_declares_a_scope_and_the_declaration_is_a_partition():
+    """The fail-closed exclusion in `whole_book_fields` must not be how a gap gets lived with.
+
+    An observable added to `OBSERVABLE_FIELDS` and not to the scope table is silently dropped from
+    the whole-book rung -- the rung quietly goes back to being renewal-shaped and nothing on the
+    surface says so. This is the control that makes that a red instead of a shrug.
+    """
+    undeclared = [f for f in r.OBSERVABLE_FIELDS if f not in r.OBSERVABLE_FIELD_SCOPE]
+    assert not undeclared, (
+        f"{undeclared} reach the sweep with no declared scope, so the whole-book rung drops them "
+        "silently and its population is set by an omission rather than a decision")
+    # A PARTITION, not a free-text column: a third value would split the book three ways and
+    # `whole_book_fields` would keep only one of them without saying which.
+    scopes = {v[0] for v in r.OBSERVABLE_FIELD_SCOPE.values()}
+    assert scopes == {"account_state", "decision_only"}, scopes
+    # BOTH SIDES ARE OCCUPIED. A table that declared everything `account_state` would make the
+    # whole-book rung identical to the all-candidate one and every assertion below vacuously true.
+    for scope in ("account_state", "decision_only"):
+        assert any(v[0] == scope for v in r.OBSERVABLE_FIELD_SCOPE.values()), scope
+    # EVERY DECLARATION NAMES ITS REASON. The scope is a judgement about what a supplier holds, and
+    # a judgement recorded without its reason cannot be found to be wrong.
+    for field, (_, why) in r.OBSERVABLE_FIELD_SCOPE.items():
+        assert why and len(why) > 20, f"{field} declares a scope with no reason: {why!r}"
+    # AND NOTHING GROUND-TRUTH SNEAKS IN THROUGH THE TABLE.
+    assert not (set(r.OBSERVABLE_FIELD_SCOPE) & set(r.GROUND_TRUTH_FIELDS))
+
+
+def test_the_whole_book_restriction_keys_on_DECLARED_SCOPE_and_never_on_coverage():
+    """THE ONE THING THAT KEEPS THIS FROM BEING A SECOND BITE AT THE SEARCH.
+
+    A rung restricted by "keep the pairs with the most households" is outcome-driven: it would pick
+    a different field set for every book and the reader could never tell the restriction from the
+    result. The restriction here is on a declaration made in the source before the run, so this
+    control puts the two criteria in DISAGREEMENT and asserts the declaration wins.
+    """
+    # `perceived_bill_saving_gbp` is `decision_only`; give it MORE households than anything else.
+    # `svt_rate_gbp_per_mwh` is `account_state`; give it the fewest.
+    assert r.OBSERVABLE_FIELD_SCOPE["perceived_bill_saving_gbp"][0] == "decision_only"
+    assert r.OBSERVABLE_FIELD_SCOPE["svt_rate_gbp_per_mwh"][0] == "account_state"
+
+    kept = r.whole_book_fields(["perceived_bill_saving_gbp", "svt_rate_gbp_per_mwh"])
+    assert kept == ["svt_rate_gbp_per_mwh"], (
+        f"the restriction followed coverage rather than the declaration: {kept}")
+    # FAIL CLOSED on a field nobody declared, and the leg that proves the filter is not "keep
+    # everything": an undeclared field is dropped even though nothing says it is decision-only.
+    assert r.whole_book_fields(["a_field_nobody_declared"]) == []
+    # AND THE FILTER CAN KEEP THINGS, so a filter that dropped everything cannot pass this file.
+    account_state = [f for f in r.OBSERVABLE_FIELDS
+                     if r.OBSERVABLE_FIELD_SCOPE[f][0] == "account_state"]
+    assert r.whole_book_fields(r.OBSERVABLE_FIELDS) == account_state
+    assert len(account_state) >= 2, (
+        "fewer than two whole-book fields means the whole-book PAIR rung has no pair to score and "
+        "the rung is unreachable by construction")
+
+
+def _two_scope_book(households: int, seed: int):
+    """A book whose winner is a `decision_only` pair on a MINORITY of households.
+
+    This is the shape the real book has and the reason the whole-book rung exists: the strong signal
+    sits on the field only the renewing accounts carry, so the sweep's winner -- and therefore the
+    magnitude's fit fold -- collapses to that subset while the book itself is four times larger.
+    """
+    rng = random.Random(seed)
+    obs, traits = {}, {}
+    renewing = households // 4
+    for h in range(households):
+        cid = f"c{h}"
+        obs[cid] = {"unit_rate_gbp_per_mwh": rng.uniform(0.0, 100.0),
+                    "rate_vs_svt_pct": rng.uniform(-30.0, 30.0),
+                    "company_eac_kwh": rng.uniform(1000.0, 9000.0)}
+        # A weak but real signal on what the whole book carries...
+        traits[cid] = obs[cid]["unit_rate_gbp_per_mwh"] * 0.004 + rng.gauss(0.0, 0.05)
+        if h < renewing:
+            # ...and a much stronger one on the field only the renewing quarter has.
+            obs[cid]["perceived_bill_saving_gbp"] = traits[cid] * 900.0 + rng.gauss(0.0, 8.0)
+            obs[cid]["discount_pct"] = rng.uniform(0.0, 15.0)
+    fields = ["unit_rate_gbp_per_mwh", "rate_vs_svt_pct", "company_eac_kwh",
+              "perceived_bill_saving_gbp", "discount_pct"]
+    return r._pair_grid(obs, fields), traits
+
+
+def test_a_decision_only_winner_collapses_the_magnitude_and_the_whole_book_rung_ANSWERS():
+    """ONE CONTROL OVER THE WHOLE PARTITION, and it is the defect this rung was built for.
+
+    Both legs are asserted together because each alone passes for the wrong reason: a rung that
+    ALWAYS refuses passes the first, and a rung that ALWAYS answers passes the second. The pair the
+    sweep reports must refuse for want of households while the scope-restricted rung, on the same
+    book and the same fold assignment, answers -- and if that ever stops being true the restriction
+    has stopped buying anything and should be deleted rather than believed.
+    """
+    grid, traits = _two_scope_book(households=240, seed=909)
+    folds = r.global_folds(sorted({c for cand in grid for c in cand["ids"]}))
+
+    ranked = []
+    for cand in grid:
+        held, _ = r._cellwise_ceiling(cand["xs"], cand["ys"],
+                                      [traits[c] for c in cand["ids"]], 2)
+        ranked.append({"x": cand["x"], "y": cand["y"], "n": len(cand["ids"]),
+                       "held_out": round(held, 4)})
+    ranked.sort(key=lambda row: -abs(row["held_out"]))
+    winner = ranked[0]
+
+    # THE PREMISE OF THE WHOLE RUNG, asserted rather than assumed: the sweep's winner really is
+    # built on the minority field. Without this the two legs below would be measuring nothing.
+    assert "perceived_bill_saving_gbp" in (winner["x"], winner["y"]), (
+        f"this fixture no longer reproduces the defect -- the winner is {winner}")
+    assert winner["n"] < len(traits) / 2, (
+        f"the winner carries {winner['n']} of {len(traits)} households; the collapse is the point")
+
+    all_candidates = r.magnitude_verdict(
+        r.three_way_split(grid, traits, 2, folds), None, 4)
+    book_grid = [c for c in grid
+                 if c["x"] in r.whole_book_fields([c["x"]])
+                 and c["y"] in r.whole_book_fields([c["y"]])]
+    whole_book = r.magnitude_verdict(r.three_way_split(book_grid, traits, 2, folds), None, 4)
+
+    assert all_candidates["estimate"] is None and all_candidates["refused"], (
+        "the all-candidate rung must still refuse -- its fit fold is the winner's subset: "
+        f"{all_candidates}")
+    assert whole_book["estimate"] is not None and whole_book["refused"] is None, (
+        "the scope-restricted rung sits on the whole book and must be able to answer, or the "
+        f"restriction buys nothing: {whole_book}")
+    assert whole_book["households_per_cell_on_the_fit_fold"] > \
+        all_candidates["households_per_cell_on_the_fit_fold"], (
+        "the restriction has to BUY power, not merely change the answer")
+    # NO `decision_only` FIELD REACHED THE RESTRICTED GRID. Keyed to the scope table rather than to
+    # today's field names, so it stays true when the table changes.
+    for cand in book_grid:
+        for axis in (cand["x"], cand["y"]):
+            assert r.OBSERVABLE_FIELD_SCOPE[axis][0] == "account_state", axis
+    assert book_grid, "the restricted grid is empty, so every assertion above is vacuous"
+
+
+def test_field_provenance_names_the_record_and_carries_the_scope_verdict():
+    """A coverage number alone cannot say whether it is a defect or a fact.
+
+    69 of 164 is a bookkeeping accident for a field the company holds continuously and the honest
+    truth for a field that only exists at a renewal. The record it came from is what lets a reader
+    check the declaration against the world instead of taking it on trust.
+    """
+    payload = {
+        "account_state_log": [
+            {"customer_id": "C1", "unit_rate_gbp_per_mwh": 140.0},
+            {"customer_id": "C1g", "unit_rate_gbp_per_mwh": 60.0},
+            {"customer_id": "C2", "unit_rate_gbp_per_mwh": 155.0},
+        ],
+        "churn_journey_log": [{"customer_id": "C1", "perceived_bill_saving_gbp": 42.0}],
+        # A second record carrying the SAME field: the households must union, not double-count.
+        "dynamic_pricing_log": [{"customer_id": "C2", "unit_rate_gbp_per_mwh": 150.0}],
+        "not_a_row_list": {"total": 3},
+    }
+    got = r.field_provenance(payload)
+
+    # THE GAS LEG IS NOT A SECOND HOUSEHOLD, here as everywhere else in this instrument.
+    assert got["unit_rate_gbp_per_mwh"]["households"] == 2, got["unit_rate_gbp_per_mwh"]
+    assert got["unit_rate_gbp_per_mwh"]["records"] == {"account_state_log": 2,
+                                                       "dynamic_pricing_log": 1}
+    assert got["unit_rate_gbp_per_mwh"]["scope"] == "account_state"
+    assert got["perceived_bill_saving_gbp"]["scope"] == "decision_only"
+    assert got["perceived_bill_saving_gbp"]["records"] == {"churn_journey_log": 1}
+    # A FIELD NO RECORD CARRIED IS REPORTED AT ZERO, not omitted: an absent key reads as "not
+    # asked", and the whole point of this block is to make a missing field visible.
+    assert got["discount_pct"]["households"] == 0 and got["discount_pct"]["records"] == {}
+
+
+def test_the_published_sentence_cannot_ASSERT_a_verdict_it_did_not_READ():
+    """Three literals in `_magnitude_sentence` asserted facts the function had no access to, and
+    all three were live on `/harness/` inside the note the page renders.
+
+    THE CLASS: a published cause authored as prose goes stale beside the measurement that refutes
+    it. Each of these was written on a run where it was true and stayed put when the run moved.
+
+      1. "So R1's ceiling clears its null on this book" -- emitted unconditionally, while the
+         paragraph it is appended to opens "WE CANNOT TELL". One note contradicting itself.
+      2. "inside its own noise floor -- indistinguishable from nothing" about the full-coverage
+         rung -- emitted whenever a floor existed at all, while that rung reads +0.2992 against a
+         floor of +0.1557 at p=0.005. It is ABOVE its floor, and the sentence understated R1.
+      3. "What closes it is COVERAGE, not a re-run" -- the coverage arrived on 2026-09-06 and did
+         not close it, because this rung's population is set by whichever pair WINS and the winner
+         reaches through a `decision_only` field. The cause was wrong, not merely stale.
+
+    BOTH LEGS OF EACH PARTITION, keyed to the property and not to today's answer. A control that
+    pinned the current wording would go green the day the sentence stopped reading the verdict.
+
+    MUTATION (must fire): restore any of the three literals as an unconditional string.
+    """
+    refused = {"estimate": None, "under_powered_reading": -0.0452, "bound_abs_p95": 0.2701,
+               "p_value": 0.7761, "households_per_cell_on_the_fit_fold": 5.0}
+    over_floor = {"estimate": 0.2992, "bound_abs_p95": 0.1557, "p_value": 0.005,
+                  "exceeds_its_own_noise_floor": True}
+    under_floor = {**over_floor, "estimate": 0.0641, "exceeds_its_own_noise_floor": False}
+    answered_book = {"estimate": 0.2513, "bound_abs_p95": 0.1628, "p_value": 0.01}
+
+    # 1. THE VERDICT CLAUSE follows `clears`, both ways.
+    cleared = r._magnitude_sentence(refused, over_floor, None, 0.576, True, answered_book, 164)
+    could_not = r._magnitude_sentence(refused, over_floor, None, 0.576, False, answered_book, 164)
+    assert "ceiling clears its null" in cleared
+    assert "ceiling clears its null" not in could_not, (
+        "the sentence claims the ceiling cleared on a run whose verdict is 'we cannot tell'")
+    assert "neither separate" in could_not
+
+    # 2. THE FULL-COVERAGE CLAUSE follows that rung's own floor verdict, both ways.
+    assert "indistinguishable from nothing" not in cleared, (
+        "+0.2992 is above its floor at p=0.005 and the sentence calls it nothing")
+    assert "above its own noise floor" in cleared
+    below = r._magnitude_sentence(refused, under_floor, None, 0.576, True, answered_book, 164)
+    assert "indistinguishable from nothing" in below, (
+        "a rung genuinely inside its floor must still be reported as such -- the repair must not "
+        "have deleted the honest reading along with the stale one")
+
+    # 3. THE CLOSING CAUSE follows whether the whole-book rung answered, both ways.
+    assert "MORE COVERAGE CANNOT CLOSE THIS RUNG" in could_not
+    assert "+0.2513" in could_not and "164" in could_not, (
+        "the rung that DOES carry a magnitude is named as the alternative and its figure is absent")
+    no_book = r._magnitude_sentence(refused, over_floor, None, 0.576, False, None, None)
+    assert "MORE COVERAGE CANNOT CLOSE THIS RUNG" not in no_book, (
+        "the correction is emitted even when there is no answering rung to point at, so it asserts "
+        "the same cause the old literal did")
+    assert "What closes it is COVERAGE" in no_book, (
+        "with no rung to point at, coverage IS still the honest cause and must not be dropped")
+
+
+def _result(book_magnitude: dict, pair_magnitude: dict) -> dict:
+    """A finished result shaped like the artefact, with the two rungs' magnitudes dialled by hand.
+
+    Hand-built rather than measured because the property under test is which rung the gate NAMES,
+    and the only way to show that is not read off the numbers is to invert the numbers.
+    """
+    return {
+        "households": 164,
+        "best_pair": {"n": 69, "x": "perceived_bill_saving_gbp", "y": "mean_recent_margin_rate"},
+        "magnitude_three_way_split": pair_magnitude,
+        "whole_book_pair_rung": {
+            "best_pair": {"n": 164, "x": "rate_vs_svt_pct", "y": "mean_recent_margin_rate"},
+            "clears_the_selection_corrected_null": False,
+            "selection_corrected_verdict": {"observed": 0.1963, "p_value": 0.4726,
+                                            "bound_p95": 0.3103},
+            "magnitude_three_way_split": book_magnitude,
+        },
+    }
+
+
+ANSWERED = {"estimate": 0.2513, "bound_abs_p95": 0.1628, "p_value": 0.01,
+            "exceeds_its_own_noise_floor": True, "refused": None}
+REFUSED = {"estimate": None, "bound_abs_p95": 0.2701, "p_value": 0.7761,
+           "exceeds_its_own_noise_floor": False,
+           "refused": "three-way split needs 8 households per cell on the fit fold"}
+AT_THE_FLOOR = {"estimate": 0.0641, "bound_abs_p95": 0.1628, "p_value": 0.31,
+                "exceeds_its_own_noise_floor": False, "refused": None}
+
+
+def test_the_gate_does_not_follow_whichever_rung_has_a_number():
+    """THE CONTROL THE WHOLE DECISION RESTS ON: the gate is chosen on scope, not on outcome.
+
+    A49 gates R3 and R4 on ONE of two rungs that answer different questions over different
+    populations. On this book only one of them carries an unbiased magnitude, so an implementation
+    that reads "the rung with an estimate" is indistinguishable from the honest one HERE and is the
+    outcome-driven selection the scope mechanism exists to prevent. The only way to tell them apart
+    is to invert the readings and check the gate does not move.
+
+    MUTATION (must fire): make `the_a49_gate` choose the rung whose `estimate` is not None, or fall
+    back to the all-candidate rung when the gating one refuses.
+    """
+    # THE INVERSION. The whole-book rung refuses; the all-candidate rung is the one with a figure.
+    inverted = r.the_a49_gate(_result(book_magnitude=REFUSED, pair_magnitude=ANSWERED))
+
+    assert inverted["rung"] == "whole_book_pair_rung", (
+        "the gate moved to the rung that happened to carry a number, which is the selection this "
+        "decision was recorded to prevent")
+    assert inverted["magnitude"] is None, (
+        f"the gating rung refused and the gate published {inverted['magnitude']!r} -- it is "
+        "reading the losing rung's estimate")
+    assert inverted["refused"] == REFUSED["refused"], "the refusal did not reach the gate"
+    assert inverted["population"] == 164, "the gate is reporting the losing rung's population"
+    assert "CANNOT TELL" in inverted["consequence"], (
+        "a refused gate must publish 'we cannot tell', which is a result -- neither retired nor "
+        "licensed")
+    # THE LOSING RUNG IS CARRIED, NOT DELETED, because a rung reported alone is a rung chosen.
+    assert inverted["the_rung_it_is_not"]["magnitude"] == ANSWERED["estimate"]
+    assert inverted["the_rung_it_is_not"]["population"] == 69
+
+    # AND THE OTHER WAY UP, so the assertion above is about the CHOICE and not about the fixture:
+    # the same gate on the readings the real book gives.
+    upright = r.the_a49_gate(_result(book_magnitude=ANSWERED, pair_magnitude=REFUSED))
+    assert upright["rung"] == "whole_book_pair_rung"
+    assert upright["magnitude"] == ANSWERED["estimate"]
+    assert upright["the_rung_it_is_not"]["magnitude"] is None
+
+
+def test_the_gates_CONSEQUENCE_is_derived_from_the_reading_on_every_branch():
+    """Three sentences on this panel asserted verdicts their function had never read (2026-09-07).
+
+    Each was true on the run it was written against and stayed put when the run moved. So the
+    gate's own sentence is computed from the reading every time, and all three branches are
+    asserted -- an unmeasured gate, a gate with headroom, and a gate at its floor are three
+    different claims and none of them may be rendered as another.
+
+    MUTATION (must fire): return the "NOT retired" sentence unconditionally, or collapse the
+    refused branch into the at-the-floor one.
+    """
+    over = r.the_a49_gate(_result(ANSWERED, REFUSED))["consequence"]
+    under = r.the_a49_gate(_result(AT_THE_FLOOR, REFUSED))["consequence"]
+    absent = r.the_a49_gate(_result(REFUSED, ANSWERED))["consequence"]
+    missing = r.the_a49_gate({"households": 164})["consequence"]
+
+    assert "NOT retired" in over and "no headroom" not in over
+    assert "no headroom" in under, (
+        "a magnitude inside its own noise floor is being published as headroom")
+    assert "NOT retired" not in under
+    assert "CANNOT TELL" in absent and "NOT retired" not in absent
+    # AN ABSENT RUNG AND A REFUSING ONE ARE DIFFERENT CLAIMS. An artefact predating the whole-book
+    # rung has not measured this gate at all, which is not the same as measuring and refusing.
+    assert "no whole-book rung" in missing and "not a bound of zero" in missing
+    assert missing != absent
+
+    # AND THE GATE NEVER LICENSES THE BUILD. R1 bounds INFERENCE; what a carbon score or an advice
+    # product is worth is A49's remaining work and needs a ceiling per side.
+    assert "does not license" in over, (
+        "the open branch reads as permission to build R3 and R4, which R1's ceiling cannot give")
+
+
+def test_the_gate_on_the_REAL_artefact_reads_the_rung_it_names():
+    """Keyed to the property and never to today's answer.
+
+    It asserts the gate's figures ARE the gating rung's figures, whichever way they fall, so it
+    goes red if the lift ever drifts onto the other rung and stays green when the book grows.
+    Pinning +0.2513 would do the opposite of both.
+
+    MUTATION (must fire): read `result["magnitude_three_way_split"]` -- the all-candidate rung --
+    into the gate's `magnitude`.
+    """
+    import json
+
+    artefact = r.OUT_PATH
+    assert artefact.is_file(), (
+        f"{artefact} is tracked and missing, so what the gate publishes cannot be checked against "
+        "what the instrument measured")
+    held = json.loads(artefact.read_text(encoding="utf-8"))
+    rung = held.get(r.A49_GATING_RUNG)
+    if not rung:
+        pytest.skip("this artefact predates the whole-book rung; there is no gating rung to read")
+
+    gate = r.the_a49_gate(held)
+    mag = rung.get("magnitude_three_way_split") or {}
+
+    assert gate["rung"] == r.A49_GATING_RUNG
+    assert gate["magnitude"] == mag.get("estimate")
+    assert gate["refused"] == mag.get("refused")
+    assert gate["noise_floor"] == mag.get("bound_abs_p95")
+    assert gate["population"] == (rung.get("best_pair") or {}).get("n")
+    # THE GATING RUNG'S OWN SELECTED-MAXIMUM VERDICT TRAVELS WITH ITS MAGNITUDE. On this book they
+    # disagree, and a magnitude published without it reads as a bound this rung has not earned.
+    assert gate["and_its_own_ceiling_verdict"]["clears"] == rung.get(
+        "clears_the_selection_corrected_null")
+    # AND IT IS NOT THE OTHER RUNG WEARING THE GATE'S NAME.
+    assert gate["the_rung_it_is_not"]["population"] == (held.get("best_pair") or {}).get("n")
+
+
+def test_the_gating_rung_is_declared_where_a_reading_cannot_reach_it():
+    """The decision has to be un-moveable by an outcome, which means it lives above every run.
+
+    `A49_GATING_RUNG` is a module constant beside `OBSERVABLE_FIELD_SCOPE`, and the rung it names
+    must be one built from `account_state` fields only -- otherwise the gate's population is set by
+    whichever pair wins and the whole argument for the choice collapses.
+
+    MUTATION (must fire): point `A49_GATING_RUNG` at the all-candidate rung; or widen
+    `whole_book_fields` to admit a `decision_only` field.
+    """
+    assert r.A49_GATING_RUNG == "whole_book_pair_rung"
+    book = r.whole_book_fields(r.OBSERVABLE_FIELDS)
+    assert book, "the gating rung has no fields, so it cannot be over the whole book"
+    assert all(r.OBSERVABLE_FIELD_SCOPE[f][0] == "account_state" for f in book), (
+        "a `decision_only` field reached the gating rung, so its population is again set by "
+        "whichever pair wins")
+    # THE FIELD THAT ACTUALLY DID THE COLLAPSING, named so this stays a control over the real case.
+    assert "perceived_bill_saving_gbp" not in book

@@ -697,6 +697,71 @@ function renderDeliveryCeiling(d) {
           : "") +
         " <b>A number that changes side on that cannot gate a programme.</b></div>";
     })(c.does_the_verdict_survive_a_redraw) +
+    /* THE SAME SEARCH OVER WHAT THE COMPANY HOLDS ON EVERY ACCOUNT. The figure above is the
+       winner of a search whose POPULATION is set by whichever pair won, and the winner reaches
+       through a field the company only has where a renewal fired — so it sits on the renewing
+       subset however large the book grows, and no amount of coverage moves it. Restricting the
+       same search to the observables held for every account on supply gives a rung the book can
+       actually power, and it is the only rung here that carries an unbiased magnitude. It is a
+       NARROWER claim over a DIFFERENT population, so it is rendered beside the headline and never
+       as a replacement for it. Its own ceiling verdict travels with it because the two disagree:
+       the selected maximum cannot be told from chance while the de-biased magnitude clears its
+       floor, and a reader shown only the second would read a bound this rung has not earned. */
+    (function (b) {
+      if (!b) { return ""; }
+      var head = '<div class="note"><strong>The same search, restricted to what the company ' +
+        "holds on every account on supply" +
+        (b.households ? " — all " + n(b.households) + " households" : "") + ".</strong> " +
+        "A narrower question over a different population: what can be recovered about <em>every</em> " +
+        "account, rather than about the ones that reached a renewal. Over " + n(b.pairs_scored) +
+        " pairs the best recovers " + num(b.reported_ceiling) + ", which " +
+        (b.corrected_verdict ? "clears" : "<b>cannot be told from chance</b>") +
+        " once the search is in the null (p = " + num(b.p_value) + "). ";
+      if (b.magnitude === null || b.magnitude === undefined) {
+        return head + "It cannot carry the three-way split either" +
+          (b.magnitude_refused ? ": " + esc(b.magnitude_refused) : ".") + "</div>";
+      }
+      return head + "But it <em>can</em> carry the three-way split the headline rung cannot — " +
+        n(b.households_per_cell_on_the_fit_fold) + " households per cell on the fit fold — and " +
+        "there the de-biased magnitude is <b>" + num(b.magnitude) + "</b> against its own noise " +
+        "floor of " + num(b.magnitude_noise_floor) + " (p = " + num(b.magnitude_p_value) + "). " +
+        "<b>That is the only unbiased magnitude this book buys, and the two readings disagree:</b> " +
+        "the selected maximum above cannot be separated from chance while this de-biased estimate " +
+        "clears its floor. They are different statistics against different nulls — removing the " +
+        "selection is what buys the power — so this is reported as a magnitude over the whole " +
+        "book, not as a bound on the figure above it.</div>";
+    })(c.the_whole_book_rung) +
+    /* WHICH OF THE TWO RUNGS ABOVE THE PROGRAMME IS ACTUALLY GATED ON. Both have been rendered
+       here since 2026-09-07 and the choice between them was still nobody's: two answers to two
+       questions, over two populations, and the reader left to pick — which in practice means
+       picking whichever one has a number, the outcome-driven selection the scope mechanism exists
+       to prevent. The choice is a CONSTANT in the instrument (`A49_GATING_RUNG`), decided on the
+       populations and prior to every reading, and this block renders it together with what that
+       rung says today — including a refusal, and including the losing rung, because a rung
+       reported alone is a rung chosen. */
+    (function (g) {
+      if (!g) { return ""; }
+      var not = g.the_rung_it_is_not || {};
+      return '<div class="note"><strong>What R3 and R4 are gated on, and why it is this rung.' +
+        "</strong> A49 gates them on <b>" + esc(String(g.rung || "")) + "</b>" +
+        (g.population ? ", over " + n(g.population) + " households" : "") +
+        (g.book ? " of " + n(g.book) + " in the book" : "") + ". " + esc(g.why || "") +
+        " The rung it is not is <b>" + esc(String(not.rung || "")) + "</b>" +
+        (not.population ? " (" + n(not.population) + " households)" : "") + ": " +
+        esc(not.answers || "") +
+        " <b>The choice is not read off the numbers.</b> What would move it: " +
+        esc(g.what_would_move_it || "") +
+        " <br><br>" +
+        (g.magnitude === null || g.magnitude === undefined
+          ? "<b>The gating rung carries no magnitude on this book</b>" +
+            (g.refused ? ": " + esc(g.refused) : ".")
+          : "It reads <b>" + num(g.magnitude) + "</b> against a noise floor of " +
+            num(g.noise_floor) + " (p = " + num(g.p_value) + "), while its own selected-maximum " +
+            "verdict " +
+            ((g.and_its_own_ceiling_verdict || {}).clears ? "clears" : "does not clear") +
+            " (p = " + num((g.and_its_own_ceiling_verdict || {}).p_value) + ").") +
+        " " + esc(g.consequence || "") + "</div>";
+    })(c.the_a49_gate) +
     '<div class="note"><strong>What this does not say.</strong> ' +
     esc(c.what_it_does_not_say || "") + "</div>" +
     "<p>" + esc(c.why_both_figures_are_shown || "") + "</p>" +

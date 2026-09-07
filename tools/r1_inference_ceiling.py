@@ -123,6 +123,52 @@ OBSERVABLE_FIELDS = (
     "perceived_bill_saving_gbp", "discount_pct", "expected_term_margin_gbp",
     "mean_recent_margin_rate", "portfolio_premium_pct",
 )
+#: WHERE EACH OBSERVABLE COMES FROM IN THE COMPANY'S OWN RECORD, and it is not one kind of thing.
+#: Declared per field, in view, BEFORE any run, because the difference decides what a low coverage
+#: number MEANS -- and reading it wrong is what kept this instrument's pair rung refusing for want
+#: of households while the book sat at 164.
+#:
+#:   `account_state`   the company holds it for every account on supply in every period, whether or
+#:                     not anything happened to that account. `simulation/run_phase2b.py` writes it
+#:                     to `account_state_log`. Coverage short of the whole book is a DEFECT.
+#:   `decision_only`   it exists only where a decision was reached, and for most of them that
+#:                     decision is a renewal on a fixed electricity term -- which most of this
+#:                     book's households never have. Coverage short of the whole book is the TRUTH
+#:                     about the field, and manufacturing a value for an account that never renewed
+#:                     would invent the coverage rather than record it.
+#:
+#: The distinction is the whole point of the record: `company_eac_kwh` at 69 of 164 households was
+#: an accounting accident (the company computed it, then only wrote it down at renewals), whereas
+#: `discount_pct` at 35 is what a discount IS. One is worth fixing and the other is worth naming.
+#: `run_phase2b`'s `account_state_log` comment points AT this table for exactly that reason.
+OBSERVABLE_FIELD_SCOPE = {
+    "unit_rate_gbp_per_mwh": ("account_state", "what the company charges this account now"),
+    "svt_rate_gbp_per_mwh": ("account_state",
+                             "the published default-tariff cap on the day, PER FUEL. Read this "
+                             "field's coverage against the run that produced it: until 2026-09-06 "
+                             "the world wrote it for electricity legs only, so 146-of-164 was a "
+                             "missing READ and not the field's own scope"),
+    "rate_vs_svt_pct": ("account_state", "the spread between the two above"),
+    "company_eac_kwh": ("account_state",
+                        "the company's own estimate of annual consumption, from twelve months of "
+                        "its own billing -- held continuously, previously written only at renewal"),
+    "company_churn_estimate": ("decision_only",
+                               "`estimate_renewal_churn` takes an old rate AND a new one, so it "
+                               "exists at a renewal and nowhere else"),
+    "resentment_score": ("decision_only",
+                         "the journey register advances in a renewal window; an account with no "
+                         "renewal has no journey to read"),
+    "perceived_bill_saving_gbp": ("decision_only",
+                                  "a renewal-window quantity: what THIS renewal appears to save "
+                                  "against the rate it replaced"),
+    "discount_pct": ("decision_only", "an offer artefact -- there is no discount without an offer"),
+    "expected_term_margin_gbp": ("decision_only",
+                                 "priced at the offer, against the offer's own term"),
+    "mean_recent_margin_rate": ("account_state",
+                                "the portfolio position the pricing chain reads at every priced "
+                                "term, carried by `account_state_log` since 2026-09-06"),
+    "portfolio_premium_pct": ("account_state", "likewise, per priced term"),
+}
 #: Explicitly NOT observable, listed so the exclusion is checkable rather than trusted. Each is the
 #: simulation's own hand: what the world rolled, not what the company saw.
 GROUND_TRUTH_FIELDS = (
@@ -217,6 +263,171 @@ def leg_fold_census(payload: dict) -> dict[str, int]:
         "supply_points_in_the_run_output": len(points),
         "households_they_belong_to": len(households),
         "supply_point_legs_folded_into_a_household": len(points) - len(households),
+    }
+
+
+def field_provenance(payload: dict) -> dict[str, dict]:
+    """Which record carried each observable, how many households it reached, and whether that
+    coverage is a DEFECT or a FACT.
+
+    Published rather than asserted on, because the number itself is not the finding: a field at 69
+    of 164 is a bookkeeping accident if its scope is `account_state` and the honest truth about the
+    field if its scope is `decision_only`. Naming the record it came from is what lets a reader
+    check the scope declaration against the world instead of taking it on trust.
+    """
+    per_field: dict[str, dict[str, set]] = {f: {} for f in OBSERVABLE_FIELDS}
+    for record_name, value in payload.items():
+        if not (isinstance(value, list) and value and isinstance(value[0], dict)):
+            continue
+        for row in value:
+            cid = row.get("customer_id")
+            if not cid:
+                continue
+            for field in OBSERVABLE_FIELDS:
+                got = row.get(field)
+                if isinstance(got, (int, float)) and not isinstance(got, bool):
+                    per_field[field].setdefault(record_name, set()).add(_household_key(cid))
+    out = {}
+    for field, records in per_field.items():
+        scope, why = OBSERVABLE_FIELD_SCOPE.get(field, ("undeclared", "no scope declared"))
+        union: set[str] = set()
+        for ids in records.values():
+            union |= ids
+        out[field] = {
+            "scope": scope,
+            "why": why,
+            "households": len(union),
+            "records": {name: len(ids) for name, ids in sorted(records.items())},
+        }
+    return out
+
+
+def whole_book_fields(fields) -> list[str]:
+    """Of `fields`, the ones the company holds for EVERY account on supply.
+
+    A named function and not an inline comprehension so the partition it draws can be driven by a
+    control. The distinction it applies is `OBSERVABLE_FIELD_SCOPE`'s and is declared in this file
+    above, before any run: a field whose scope is not `account_state` is one that exists only where
+    a decision fired, and a rung built on it can only ever carry the accounts that reached that
+    decision -- 69 of 164 on this book, however large the book gets.
+
+    AN UNDECLARED FIELD IS EXCLUDED, which is fail-closed and deliberate: a new observable added to
+    `OBSERVABLE_FIELDS` and not to the scope table would otherwise be silently treated as
+    whole-book, and the rung would quietly go back to being renewal-shaped with nothing to say so.
+    `test_every_observable_declares_a_scope_and_the_declaration_is_a_partition` is what stops that
+    exclusion from being how the gap gets lived with.
+    """
+    return [f for f in fields
+            if OBSERVABLE_FIELD_SCOPE.get(f, ("undeclared", ""))[0] == "account_state"]
+
+
+#: WHICH RUNG A49 GATES R3 AND R4 ON. Decided 2026-09-07 by the delivery seat and declared HERE, in
+#: the source, above every reading -- for the same reason `OBSERVABLE_FIELD_SCOPE` is declared here:
+#: a gate settled after the numbers are in is a gate settled BY its numbers, which is the
+#: outcome-driven selection the scope mechanism exists to prevent. Both rungs answer real questions
+#: and only one of them answers R3's and R4's.
+#:
+#: THE ARGUMENT IS ABOUT POPULATIONS AND IS PRIOR TO EVERY READING. R3 is the score (PS/tCO2e) and
+#: R4 is products beyond price -- advice, tariff fit, efficiency, solar, heat pumps, time-shifting.
+#: Both are delivered to EVERY ACCOUNT ON SUPPLY, so the bound that gates them has to be over that
+#: population. The all-candidate rung's population is set by whichever pair WINS, and on this book
+#: the winner reaches through `perceived_bill_saving_gbp`, whose scope is `decision_only` -- so it
+#: bounds what could be recovered about the households that reached a priced renewal and has no
+#: route to the rest of the book. Its denominator is not the programme's denominator. The whole-book
+#: rung asks the same question restricted to what the company holds for every account, so its
+#: population IS the programme's.
+#:
+#: IT WOULD BE THE SAME DECISION IF THE READINGS WERE THE OTHER WAY UP, and that is the test of it:
+#: were this rung the one refusing and the all-candidate rung the one carrying a magnitude, A49's
+#: honest answer would be "we cannot tell what R3 and R4 could be worth" -- a result, and one that
+#: belongs on the page. `the_a49_gate` therefore reads this constant and never the readings, and
+#: `test_the_gate_does_not_follow_whichever_rung_has_a_number` is what holds that.
+#:
+#: WHAT WOULD MOVE IT is a change of SCOPE, never a change of reading: an honest reclassification of
+#: a `decision_only` field to `account_state` (which collapses the two rungs onto one population),
+#: or R3/R4 being redefined as programmes delivered only into a renewal window.
+A49_GATING_RUNG = "whole_book_pair_rung"
+
+
+def the_a49_gate(result: dict) -> dict:
+    """The rung A49 gates R3 and R4 on, the reason, and whatever that rung says today.
+
+    ONE IMPLEMENTATION, TWO ROUTES. The instrument writes this into its own artefact and
+    `tools/generate_delivery_page` calls the same function on the artefact it reads, so the page and
+    the record cannot come to differ about which rung is the gate. A second implementation on the
+    publishing side is the VAT-rule shape: one rule, five implementations, one of them fixed.
+
+    IT SELECTS BY KEY AND NEVER BY READING. `A49_GATING_RUNG` is a module constant; nothing in this
+    function looks at a magnitude before choosing. The losing rung travels beside it under
+    `the_rung_it_is_not` rather than being dropped, because a rung reported alone is a rung chosen.
+
+    `consequence` IS DERIVED AND NOT A LITERAL. Three published sentences on this same panel
+    asserted verdicts their function had never read, each true on the run it was written against and
+    stale by the next one (2026-09-07). So the sentence is computed from the reading every time, and
+    the "we cannot tell" branch is a first-class answer rather than an empty string.
+    """
+    rung = result.get(A49_GATING_RUNG) or {}
+    magnitude = rung.get("magnitude_three_way_split") or {}
+    verdict = rung.get("selection_corrected_verdict") or {}
+    estimate = magnitude.get("estimate")
+    other = result.get("magnitude_three_way_split") or {}
+    if not rung:
+        consequence = ("the artefact carries no whole-book rung, so this gate has not been read at "
+                       "all. That is an ABSENT bound and not a bound of zero.")
+    elif estimate is None:
+        consequence = ("WE CANNOT TELL what R3 and R4 could be worth: the rung A49 gates them on "
+                       "cannot support an unbiased magnitude on this book. Neither retired nor "
+                       "licensed -- unmeasured.")
+    elif magnitude.get("exceeds_its_own_noise_floor"):
+        consequence = ("R3 and R4 are NOT retired by R1: there is household variation recoverable "
+                       "from what the company holds on every account on supply. It does not "
+                       "license building either of them -- R1 bounds INFERENCE, and what a carbon "
+                       "score or an advice product is worth needs its own ceiling per side.")
+    else:
+        consequence = ("R1 offers R3 and R4 no headroom on this book: the magnitude over every "
+                       "account on supply does not clear its own noise floor, so a programme "
+                       "conditioned on what the company observes has nothing to condition on.")
+    return {
+        "rung": A49_GATING_RUNG,
+        "reads": f"{A49_GATING_RUNG}.magnitude_three_way_split.estimate",
+        "decided": "2026-09-07",
+        "why": ("R3 and R4 are delivered to every account on supply, so the bound that gates them "
+                "must be over that population. This rung's is the book; the all-candidate rung's "
+                "is set by whichever pair wins, and a pair reaching through a `decision_only` "
+                "field carries only the accounts that reached a renewal."),
+        "what_would_move_it": ("a change of SCOPE -- a `decision_only` field honestly reclassified "
+                               "to `account_state`, or R3/R4 redefined as renewal-window "
+                               "programmes. Never a change of reading."),
+        "population": (rung.get("best_pair") or {}).get("n"),
+        "book": result.get("households"),
+        "magnitude": estimate,
+        "noise_floor": magnitude.get("bound_abs_p95"),
+        "p_value": magnitude.get("p_value"),
+        "refused": magnitude.get("refused"),
+        "exceeds_its_own_noise_floor": magnitude.get("exceeds_its_own_noise_floor"),
+        # THE GATING RUNG'S OWN SELECTED-MAXIMUM VERDICT, which on this book DISAGREES with the
+        # magnitude beside it -- it cannot be told from chance while the de-biased estimate clears
+        # its floor. Different statistics against different nulls, and the magnitude published
+        # without this beside it would read as a bound the rung has not earned.
+        "and_its_own_ceiling_verdict": {
+            "observed": verdict.get("observed"),
+            "clears": rung.get("clears_the_selection_corrected_null"),
+            "p_value": verdict.get("p_value"),
+            "bound_p95": verdict.get("bound_p95"),
+        },
+        # THE RUNG THIS IS NOT, carried so the choice is visible rather than the loser being
+        # deleted. It answers a real question -- what can be recovered about a household AT ITS
+        # RENEWAL WINDOW -- which is R2's population and not R3's or R4's.
+        "the_rung_it_is_not": {
+            "rung": "all_candidate_pair_rung",
+            "reads": "magnitude_three_way_split.estimate",
+            "population": (result.get("best_pair") or {}).get("n"),
+            "magnitude": other.get("estimate"),
+            "refused": other.get("refused"),
+            "answers": ("what can be recovered about the households that reached a priced renewal "
+                        "-- R2's population, and no route to the rest of the book."),
+        },
+        "consequence": consequence,
     }
 
 
@@ -814,12 +1025,25 @@ def _reduce_runs(per_run: list[dict]) -> dict | None:
 
 
 def _magnitude_sentence(magnitude: dict, full_magnitude: dict, detail: dict | None,
-                        observed: float) -> str:
+                        observed: float, clears: bool | None = None,
+                        book_magnitude: dict | None = None, book_n: int | None = None) -> str:
     """What the reader is owed about HOW BIG, which the verdict above does not answer.
 
     Every number here is derived from the payload rather than written in. The last version of this
     file's headline carried a literal ("a book of over two hundred") that was wrong the moment the
     count it described was corrected, and this sentence would rot the same way.
+
+    TWO LITERALS IN THIS FUNCTION DID ROT, and both were live on the page for a day (2026-09-07).
+    It asserted "So R1's ceiling clears its null on this book" with no access to the verdict, while
+    the paragraph it is appended to opened "WE CANNOT TELL" -- one rendered note contradicting
+    itself, because the sentence was written on a run where the ceiling cleared and the verdict
+    then moved under it. And it closed "What closes it is COVERAGE, not a re-run" after the
+    coverage had ARRIVED: `account_state_log` took four observables from 69 households to 164 on
+    2026-09-06, and the pair rung still refuses -- not because the book is small but because THIS
+    rung's population is set by whichever pair wins, and the winner reaches through a field that
+    exists only where a renewal fired. A published cause authored as prose goes stale beside the
+    measurement that refutes it, so `clears` and `book_magnitude` are arguments now and the two
+    claims are derived rather than remembered.
     """
     est, forced = magnitude.get("estimate"), magnitude.get("under_powered_reading")
     floor, p = magnitude.get("bound_abs_p95"), magnitude.get("p_value")
@@ -849,9 +1073,18 @@ def _magnitude_sentence(magnitude: dict, full_magnitude: dict, detail: dict | No
     fe, ff, fp = (full_magnitude.get("estimate"), full_magnitude.get("bound_abs_p95"),
                   full_magnitude.get("p_value"))
     if fe is not None:
+        # THE THIRD ROTTED LITERAL IN THIS FUNCTION, and the one that understated R1 rather than
+        # overstating it. This read "inside its own noise floor -- indistinguishable from nothing"
+        # on EVERY run that had a floor at all, and the full-coverage rung now reads +0.2992 against
+        # a floor of +0.1557 at p=0.005: above it, not inside it. The clause is keyed to the
+        # instrument's own `exceeds_its_own_noise_floor` verdict now, so it cannot disagree with the
+        # figure standing next to it in the same sentence.
         said += (f" The full-coverage rung CAN carry the split, and there the estimate is {fe:+.4f}"
-                 + (f", inside its own noise floor of {ff:+.4f} (p={fp}) — indistinguishable from"
-                    " nothing." if ff is not None else "."))
+                 + ((f", {'above' if full_magnitude.get('exceeds_its_own_noise_floor') else 'inside'}"
+                     f" its own noise floor of {ff:+.4f} (p={fp})"
+                     + ("." if full_magnitude.get("exceeds_its_own_noise_floor")
+                        else " — indistinguishable from nothing."))
+                    if ff is not None else "."))
     if detail:
         said += (
             f" Holding the fit fold at the same size and separating ONLY the choosing from the"
@@ -863,16 +1096,41 @@ def _magnitude_sentence(magnitude: dict, full_magnitude: dict, detail: dict | No
             said += (f" The rotations do not even agree on which candidate wins, and their estimates"
                      f" run from {lo:+.4f} to {hi:+.4f}: which pair is 'best' is a fact about who"
                      f" landed on the ranking side of the split.")
+    verdict_said = (" So R1's ceiling clears its null on this book and its MAGNITUDE has no"
+                    " unbiased estimate here." if clears else
+                    " So this rung can neither separate R1's ceiling from chance nor put an"
+                    " unbiased size on it." if clears is False else
+                    " So this rung has no unbiased estimate of the magnitude.")
+    said += verdict_said + (
+        f" A49 gates R3 and R4 on this instrument and must read the magnitude field, which is"
+        f" null — not {observed:+.4f}.")
+    # WHAT CLOSES IT, DERIVED. This used to read "what closes it is COVERAGE, not a re-run", and
+    # coverage arrived on 2026-09-06 without closing it -- so the cause was wrong, not merely
+    # stale. The pair rung's refusal is about the SELECTED PAIR'S population and not the book's.
+    be = (book_magnitude or {}).get("estimate")
+    if be is None:
+        return said + (" What closes it is COVERAGE on the fields the winning pair reaches, not a"
+                       " re-run.")
+    bf, bp = book_magnitude.get("bound_abs_p95"), book_magnitude.get("p_value")
     return said + (
-        f" So R1's ceiling clears its null on this book and its MAGNITUDE has no unbiased estimate"
-        f" here. A49 gates R3 and R4 on this instrument and must read the magnitude field, which is"
-        f" null — not {observed:+.4f}. What closes it is COVERAGE, not a re-run.")
+        " AND MORE COVERAGE CANNOT CLOSE THIS RUNG, which is the correction to what this sentence"
+        " used to say. Its population is not the book's: it is set by whichever pair wins, and the"
+        " winner reaches through a field the company holds only where a renewal fired, so the rung"
+        " collapses to the renewing subset however large the book grows. The SAME search"
+        " restricted to the fields the company holds on every account on supply does carry the"
+        " split — on"
+        + (f" all {book_n} households" if book_n else " the whole book")
+        + f" — and there the magnitude is {be:+.4f}"
+        + (f" against its own noise floor of {bf:+.4f} (p={bp})" if bf is not None else "")
+        + ". That is a NARROWER claim over a different population, not a better draw of this one,"
+          " and it is published beside this rung rather than instead of it.")
 
 
 def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
               pairs: int, stability: dict | None = None,
               magnitude: dict | None = None, full_magnitude: dict | None = None,
-              detail: dict | None = None) -> dict:
+              detail: dict | None = None, book_magnitude: dict | None = None,
+              book_n: int | None = None) -> dict:
     """The sentence a reader gets, composed HERE so the page cannot compose a kinder one.
 
     "We cannot tell" is a result and it belongs on the surface, not in a footnote -- and it is a
@@ -1029,7 +1287,8 @@ def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
     # a reader does not look is a caveat that was not published.
     magnitude_said = ""
     if magnitude is not None:
-        magnitude_said = _magnitude_sentence(magnitude, full_magnitude or {}, detail, observed)
+        magnitude_said = _magnitude_sentence(magnitude, full_magnitude or {}, detail, observed,
+                                             clears, book_magnitude, book_n)
         not_said += magnitude_said
     return {
         "verdict": "clears" if clears else "cannot tell",
@@ -1146,9 +1405,41 @@ def measure(cells: int = 2, run_path: Path | None = None,
     full_split = three_way_split(full_grid, traits, cells, folds_of)
     full_magnitude = magnitude_verdict(
         full_split, three_way_null(full_grid, traits, cells, folds_of), cells)
+    # THE PAIR RUNG THE WHOLE BOOK CARRIES, and it is what buys R1 a magnitude at all.
+    # The rung above ranks every pair and reports the winner, so ITS household count is set by
+    # whichever pair won -- and a pair built on a `decision_only` field collapses it to the renewing
+    # subset however large the book is. That is exactly what happens on this book: four observables
+    # went from 69 households to 164 when `account_state_log` landed, the book IS 164, and
+    # `magnitude_three_way_split` still refuses at 69 because the winner is
+    # `perceived_bill_saving_gbp x portfolio_premium_pct` and the first exists only where a renewal
+    # window opened. The instrument could not say that. Its refusal read "the book is too small",
+    # and the book was never the problem. MORE COVERAGE ON THE OTHER FIELDS CANNOT MOVE IT.
+    #
+    # THE RESTRICTION IS ON SCOPE AND NOT ON OUTCOME, which is the only thing that keeps this from
+    # being a second bite at the search. `OBSERVABLE_FIELD_SCOPE` declares which fields a supplier
+    # holds for every account on supply; that declaration is in the source, above, and is not
+    # adjustable by what wins. Both rungs are published side by side for the same reason the
+    # uncorrected null still is: a rung reported alone is a rung chosen.
+    #
+    # IT IS A NARROWER CLAIM, NOT A BETTER ONE. It answers "what can be recovered from what the
+    # company holds about EVERY account", which is the quantity a book-wide programme can act on.
+    # The all-candidate rung answers "what can be recovered about the households that renewed",
+    # which is a real question with a smaller population and no route to the rest of the book.
+    book_fields = whole_book_fields(shared)
+    book_grid = [c for c in grid if c["x"] in book_fields and c["y"] in book_fields]
+    book_ranked = [r for r in ranked if r["x"] in book_fields and r["y"] in book_fields]
+    book_best = book_ranked[0] if book_ranked else {"held_out": 0.0, "n": 0}
+    book_null = selection_corrected_null(book_grid, traits, cells)
+    book_verdict = graded_against_selection(book_best.get("held_out", 0.0), book_null)
+    # THE SAME `folds_of` as the rungs above, so a household sits on the same side of the split
+    # wherever it appears and the three magnitudes are comparable rather than three different draws.
+    book_split = three_way_split(book_grid, traits, cells, folds_of)
+    book_magnitude = magnitude_verdict(
+        book_split, three_way_null(book_grid, traits, cells, folds_of), cells * cells)
+
     shrunk = shrunk_toward_the_null(best.get("held_out", 0.0), pair_null)
 
-    for block in (pair_null, full_null):
+    for block in (pair_null, full_null, book_null):
         if block is not None:
             block.pop("_winners", None)
 
@@ -1158,7 +1449,7 @@ def measure(cells: int = 2, run_path: Path | None = None,
     # Half the households are the fit side; they are what the cell means are built from.
     households_per_cell = (best.get("n", 0) / 2) / (cells * cells) if cells else 0.0
 
-    return {
+    out = {
         "run_output": run.name,
         "single_feature_ceilings": single,
         "constant_fields_refused": constant_fields,
@@ -1177,6 +1468,28 @@ def measure(cells: int = 2, run_path: Path | None = None,
         # WHAT THE BOOK ACTUALLY IS, beside the count, because `households: 213` was wrong for two
         # days and nothing on the surface could say so. See `observable_rows`.
         "leg_fold_census": leg_fold_census(payload),
+        # WHICH RECORD CARRIED EACH OBSERVABLE, AND WHETHER ITS COVERAGE IS A DEFECT OR A FACT.
+        # See `field_provenance` and `OBSERVABLE_FIELD_SCOPE`.
+        "field_provenance": field_provenance(payload),
+        # THE ONE LINE THAT SAYS WHETHER THIS RUN'S BOOK IS ACCOUNT-SHAPED AT ALL. False means the
+        # run predates `account_state_log`, or that `extract_report_data` stopped forwarding it --
+        # and every account-state field silently falls back to its renewal-only coverage, which
+        # reads exactly like a book that got smaller.
+        "the_book_carries_an_account_shaped_record": bool(payload.get("account_state_log")),
+        # THE SAME PAIR SEARCH, RESTRICTED TO WHAT THE COMPANY HOLDS FOR EVERY ACCOUNT. See the
+        # block that builds it: the rung above reports a winner whose household count is set by the
+        # pair that won, so a `decision_only` field can win and drag it back to the renewing subset.
+        # `magnitude_three_way_split` here is the one that can be powered on this book.
+        "whole_book_pair_rung": {
+            "fields": book_fields,
+            "pairs_scored": len(book_ranked),
+            "best_pair": book_best,
+            "clears_the_selection_corrected_null": book_verdict.get("clears"),
+            "selection_corrected_verdict": book_verdict,
+            "selection_corrected_null": book_null,
+            "magnitude_three_way_split": book_magnitude,
+            "magnitude_three_way_split_detail": book_split,
+        },
         "observable_fields_used": shared,
         "cells_per_axis": cells,
         "pairs_scored": len(ranked),
@@ -1206,7 +1519,8 @@ def measure(cells: int = 2, run_path: Path | None = None,
         # able to tell those apart, so the absence is never rendered as agreement.
         "verdict_stability": stability,
         "we_cannot_tell": _headline(best, pair_verdict, full_verdict, full_n, len(ranked),
-                                    stability, pair_magnitude, full_magnitude, pair_split),
+                                    stability, pair_magnitude, full_magnitude, pair_split,
+                                    book_magnitude, book_best.get("n")),
         "controls": {
             # A wrong seed gives random labels and a ceiling of zero -- the answer the canon
             # predicts, from a measurement of nothing.
@@ -1259,6 +1573,14 @@ def measure(cells: int = 2, run_path: Path | None = None,
                 stability.get("unanimous") if stability else None,
         },
     }
+    # WHICH OF THE RUNGS ABOVE A49 GATES R3 AND R4 ON, written INTO the artefact rather than left
+    # for a reader to infer. Both rungs have been on `/harness/` since 2026-09-07 and the choice
+    # between them was still nobody's: the page showed two answers to two questions and the reader
+    # had to pick. `A49_GATING_RUNG` is a constant declared above every reading and this call
+    # happens last, on the finished result, so the gate can name what its rung SAYS without the
+    # saying having chosen it.
+    out["the_a49_gate"] = the_a49_gate(out)
+    return out
 
 
 def main(argv=None) -> int:
@@ -1337,8 +1659,10 @@ def main(argv=None) -> int:
     print()
     print("  HOW BIG -- a separate question, and the one the correction above does NOT answer")
     det = result.get("magnitude_three_way_split_detail")
+    book = result["whole_book_pair_rung"]
     for label, mag in (("pair rung", result["magnitude_three_way_split"]),
-                       ("full coverage", result["magnitude_three_way_split_full_coverage"])):
+                       ("full coverage", result["magnitude_three_way_split_full_coverage"]),
+                       ("whole book", book["magnitude_three_way_split"])):
         est, forced = mag.get("estimate"), mag.get("under_powered_reading")
         shown = (f"{est:+.4f}" if est is not None else
                  (f"REFUSED ({forced:+.4f} under-powered, NOT an estimate)"
@@ -1359,6 +1683,20 @@ def main(argv=None) -> int:
               f"{det['selection_inflation']:+.4f}")
         print(f"    rotations agree on which pair won: {det['rotations_agree_on_the_winner']}   "
               f"estimate across rotations: {det['estimate_range']}")
+    # THE RUNG RESTRICTED TO WHAT THE COMPANY HOLDS ON EVERY ACCOUNT, printed beside the one above
+    # and never instead of it. The two answer different questions over different populations, and
+    # the reason the numbers differ is the population, not the estimator.
+    print()
+    print(f"  THE SAME SEARCH OVER THE {len(book['fields'])} FIELDS THE WHOLE BOOK CARRIES "
+          f"({book['pairs_scored']} pairs)")
+    print(f"    fields                                   : {', '.join(book['fields'])}")
+    bb = book["best_pair"]
+    print(f"    best pair                                : {bb.get('x')} x {bb.get('y')}  "
+          f"held-out {bb.get('held_out', 0.0):+.4f}  n={bb.get('n', 0)}")
+    print(f"    clears the selection-corrected null      : "
+          f"{book['clears_the_selection_corrected_null']}  "
+          f"(p={book['selection_corrected_verdict'].get('p_value')})")
+
     sh = result["magnitude_shrunk_toward_the_null"]
     if sh.get("value") is not None:
         print(f"    shrunk toward the null median instead     : {sh['value']:+.4f}  "

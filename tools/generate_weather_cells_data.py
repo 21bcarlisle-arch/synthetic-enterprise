@@ -186,7 +186,8 @@ def build() -> dict:
     # THE WHITE HOLES IN THE PUBLISHED MAP -- in the Highlands, mid-Wales and around Manchester --
     # were 1,353 blocks of GB land carrying no class at all, and they were a RENDERING HOLE rather
     # than missing data: HadUK has a winter temperature for all 245,077 land cells, and the
-    # clustering ran over the 121,668 INHABITED ones. Uninhabited Britain had a perfectly good
+    # clustering ran over the 175,188 INHABITED ones (121,668 until the placement moved from
+    # postcode centroids to the OS Open UPRN address record, 2026-09-06). Uninhabited Britain had a perfectly good
     # temperature and no class.
     #
     # The classes are still FITTED on households -- that is the whole point of the derivation and
