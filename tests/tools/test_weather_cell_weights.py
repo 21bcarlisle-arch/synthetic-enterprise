@@ -20,31 +20,32 @@ def cache(tmp_path, monkeypatch):
     monkeypatch.setattr(w, "ONSPD_CSV", tmp_path / "onspd.csv")
     monkeypatch.setattr(w, "TS041_CSV", tmp_path / "ts041.csv")
     monkeypatch.setattr(w, "SCOTLAND_CSV", tmp_path / "scotland.csv")
-    # The address grid the placement now stands on. Uniform by default, so a test that says
-    # nothing about addresses gets an even split -- which is what the old centroid method did, and
-    # keeps every fixture below about the thing it is actually testing.
-    import numpy as np
-
-    from tools import os_open_uprn as uprn
-    grid = np.ones((1450, 900), dtype=np.int32)
-    monkeypatch.setattr(uprn, "cell_counts", lambda dest=None: grid)
-    return tmp_path
+    # `_seed` installs the address store through this handle once it knows what was seeded.
+    _SEEDED_PATCH["mp"] = monkeypatch
+    from tools import ons_uprn_directory as onsud
+    monkeypatch.setattr(onsud, "oa_cell_addresses", lambda dest=None: {})
+    yield tmp_path
+    _SEEDED_PATCH["mp"] = None
 
 
 @pytest.fixture()
 def addresses(monkeypatch):
-    """Put addresses in named 1 km cells and nowhere else."""
-    import numpy as np
+    """Seed the ADDRESS STORE: which output area's addresses sit in which 1 km cell, and how many.
 
-    from tools import os_open_uprn as uprn
+    This is what placement reads since 2026-09-07. It used to seed a bare per-cell address count and
+    let a postcode centroid choose the candidate cells; the whole point of the change is that the
+    output area now owns its own addresses, so the fixture has to say which area each cell's
+    addresses belong to.
+    """
+    from tools import ons_uprn_directory as onsud
 
-    def place(**per_cell):
-        grid = np.zeros((1450, 900), dtype=np.int32)
-        for key, count in per_cell.items():
-            x, y = (int(v) for v in key.split("_")[1:])
-            grid[y + 200, x + 200] = count
-        monkeypatch.setattr(uprn, "cell_counts", lambda dest=None: grid)
-        return grid
+    def place(**per_oa):
+        store = {}
+        for oa, cells in per_oa.items():
+            for (cx, cy), count in cells.items():
+                store[(oa, cx, cy)] = count
+        monkeypatch.setattr(onsud, "oa_cell_addresses", lambda dest=None: store)
+        return store
 
     return place
 
@@ -56,10 +57,33 @@ def _write(path, header, rows):
         out.writerows(rows)
 
 
-def _seed(cache, postcodes, ew=(("E00000001", 100),), scot=(("S00000001", 40),)):
+def _seed(cache, postcodes, ew=(("E00000001", 100),), scot=(("S00000001", 40),), monkeypatch=None):
+    """Write the three census/postcode files AND the address store they imply.
+
+    ONE ADDRESS PER POSTCODE, in that postcode's own cell, attributed to that postcode's output
+    area. That is the simplest world in which the new placement is well defined, and it makes a
+    test that says nothing about addresses behave the way the old equal-split did -- so each test
+    below stays about the thing it is testing. `addresses(...)` overrides it.
+    """
     _write(cache / "onspd.csv", ["pcds", "oa", "east", "north", "country"], postcodes)
     _write(cache / "ts041.csv", ["GEOGRAPHY_CODE", "OBS_VALUE"], ew)
     _write(cache / "scotland.csv", ["oa", "households"], scot)
+    store = {}
+    for row in postcodes:
+        _pcds, oa, east, north = row[0], row[1], int(row[2]), int(row[3])
+        if oa.strip():
+            store[(oa.strip(), east // 1000, north // 1000)] = (
+                store.get((oa.strip(), east // 1000, north // 1000), 0) + 1)
+    cache.joinpath("_address_store").write_text(repr(store), encoding="utf-8")
+    from tools import ons_uprn_directory as onsud
+    if _SEEDED_PATCH["mp"] is not None:
+        _SEEDED_PATCH["mp"].setattr(onsud, "oa_cell_addresses", lambda dest=None: store)
+    return store
+
+
+#: The monkeypatch handle the `cache` fixture installs, so `_seed` can point the address store at
+#: what it just wrote without every test having to pass one in.
+_SEEDED_PATCH: dict = {"mp": None}
 
 
 def test_a_SHORT_NOMIS_PAGE_is_refused_rather_than_written(cache, monkeypatch):
@@ -129,13 +153,13 @@ def test_households_FOLLOW_THE_ADDRESSES_and_not_the_postcode_centroids(cache, a
     """
     _seed(cache, [["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"]],
           ew=(("E00000001", 100),), scot=())
-    addresses(cell_400_300=25, cell_401_300=75)
+    addresses(E00000001={(400, 300): 25, (401, 300): 75})
 
     weights, _ = w.census_weights()
 
     assert weights[(401, 300)] == pytest.approx(75.0), (
-        "the neighbouring cell holds three quarters of the addresses and no postcode centroid at "
-        "all -- under the old method it held nothing")
+        "the neighbouring cell holds three quarters of the area's addresses and no postcode "
+        "centroid at all -- under the first method it held nothing")
     assert weights[(400, 300)] == pytest.approx(25.0)
     assert sum(weights.values()) == pytest.approx(100.0), (
         "the census fixes the output area's total and re-placing must conserve it exactly")
@@ -148,7 +172,7 @@ def test_TWO_OUTPUT_AREAS_sharing_a_cell_ACCUMULATE(cache, addresses):
         ["AA1 1AA", "E00000001", 400_100, 300_100, "E92000001"],
         ["AA1 1AB", "E00000002", 400_900, 300_900, "E92000001"],
     ], ew=(("E00000001", 100), ("E00000002", 40)), scot=())
-    addresses(cell_400_300=10)
+    addresses(E00000001={(400, 300): 6}, E00000002={(400, 300): 4})
 
     weights, _ = w.census_weights()
 
@@ -167,9 +191,14 @@ def test_every_DROP_is_COUNTED_and_none_is_silent(cache):
 
     weights, drops = w.census_weights()
 
-    assert drops["no_output_area"] == 1
-    assert drops["output_area_not_in_census"] == 1
-    assert drops["census_areas_with_no_live_postcode"] == 1
+    # THE DROP VOCABULARY CHANGED WITH THE METHOD, and the changed names are the point. Placement no
+    # longer reads postcodes, so "a postcode with no output area" is not a thing that can happen to
+    # it; what CAN is a census area the address directory has never heard of, which is 45 areas and
+    # 2,754 households in the live data.
+    assert drops["census_areas_with_no_address_in_the_directory"] == 1
+    assert drops["households_in_those_areas"] == 70
+    assert drops["households_placed"] == 100
+    assert drops["households_in_the_censuses"] == 170
     assert sum(weights.values()) == 100, "only the placeable households are counted"
 
 
@@ -204,7 +233,7 @@ def test_households_OFF_THE_LAND_GRID_are_COUNTED_and_not_quietly_dropped(cache,
         ["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"],   # on the fake land grid
         ["AA1 1AB", "E00000002", 650_500, 400_500, "E92000001"],   # off it
     ], ew=(("E00000001", 100), ("E00000002", 60)), scot=())
-    addresses(cell_400_300=10, cell_650_400=10)
+    addresses(E00000001={(400, 300): 10}, E00000002={(650, 400): 10})
 
     drivers = {"east": np.array([400_500.0]), "north": np.array([300_500.0])}
     vec, off = w.aligned_to_land(drivers)
@@ -298,7 +327,7 @@ def test_the_PLACEMENT_COST_conserves_households_and_reports_BOTH_directions(cac
     """
     _seed(cache, [["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"]],
           ew=(("E00000001", 100),), scot=())
-    addresses(cell_400_300=25, cell_401_300=75)
+    addresses(E00000001={(400, 300): 25, (401, 300): 75})
 
     import numpy as np
 
@@ -325,6 +354,90 @@ def test_the_PLACEMENT_COST_conserves_households_and_reports_BOTH_directions(cac
     # version divided by it and crashed, and a version returning 0.0 would have said "the weights
     # did not move" when the truth is that it cannot tell.
     assert all(v is None or v >= 0 for v in cost["driver_shift_in_sd"].values())
+
+
+def test_PLACEMENT_READS_NO_POSTCODE_AT_ALL(cache, addresses, monkeypatch):
+    """THE PROPERTY THE THIRD PLACEMENT EXISTS FOR: no centroid anywhere in it.
+
+    The first method put households AT postcode centroids. The second used centroids to choose the
+    candidate cells and addresses to weight within them -- better, and still centroid-anchored,
+    which is why 20,959 address-bearing cells stayed unreachable and 94.5% of GB's addresses sat in
+    cells claimed by five or more output areas at once.
+
+    This asserts the dependency is gone rather than the docstring saying so: the postcode file is
+    replaced by one that would raise if it were opened.
+    """
+    _seed(cache, [["AA1 1AA", "E00000001", 400_500, 300_500, "E92000001"]],
+          ew=(("E00000001", 100),), scot=())
+    addresses(E00000001={(400, 300): 3, (999, 999): 1})
+
+    class _Explode:
+        def open(self, *a, **k):
+            raise AssertionError("census_weights opened the postcode file -- a centroid is back")
+
+        def is_file(self):
+            return True
+
+    monkeypatch.setattr(w, "ONSPD_CSV", _Explode())
+    weights, _ = w.census_weights()
+
+    assert weights[(400, 300)] == pytest.approx(75.0)
+    assert weights[(999, 999)] == pytest.approx(25.0), (
+        "a cell far from any postcode of the area must still receive its share -- under the window "
+        "method it was unreachable")
+
+
+def test_OCCUPIED_AND_HAS_AN_ADDRESS_BECOME_THE_SAME_STATEMENT():
+    """THE IDENTITY THAT MAKES THE COVERAGE FIGURE MEAN SOMETHING.
+
+    Households now sit exactly where addresses are, so "this cell holds a household" and "this cell
+    holds an address of a census-known output area" are the same claim. Under the first method they
+    differed by 23 percentage points and the page presented the first while sounding like the
+    second; under the window method by 8.6. Asserted against the INDEPENDENT address record --
+    `os_open_uprn`, a different file built by a different route -- rather than against the store
+    the placement itself reads.
+    """
+    from tools import ons_uprn_directory as onsud
+    from tools import os_open_uprn as uprn
+    from tools import weather_cell_drivers as drv
+
+    if not (onsud.STORE.is_file() and uprn.GRID.is_file()
+            and (drv.CACHE / "tas" / "mon-30y").is_dir()):
+        pytest.skip("the address directory, the address grid or the normals are not on this machine")
+
+    weights, _ = w.census_weights()
+    d = drv.drivers()
+    gb, _ = w.gb_reachable(d)
+    keys = list(zip((d["east"] // 1000).astype(int).tolist(),
+                    (d["north"] // 1000).astype(int).tolist()))
+    import numpy as np
+    occupied = np.array([weights.get(k, 0.0) for k in keys]) > 0
+    cov = uprn.coverage(d, gb)
+
+    placed = int((gb & occupied).sum())
+    with_address = cov["cells_with_at_least"]["1"]
+    assert placed <= with_address, "households in more cells than hold an address is impossible"
+    assert placed / with_address > 0.98, (
+        f"{placed:,} occupied against {with_address:,} address-bearing -- a gap this wide means "
+        "placement has stopped following the addresses")
+
+
+def test_the_ADDRESS_DIRECTORY_is_REQUIRED_and_absence_is_a_REFUSAL(tmp_path):
+    """FAIL-CLOSED ON THE DEPENDENCY PLACEMENT ACTUALLY READS.
+
+    A SURVIVOR FOUND THIS. There was a refusal control for `os_open_uprn.cell_counts` -- the
+    dependency of the method that was REPLACED -- and none for `ons_uprn_directory`, which is what
+    placement reads now. Returning `{}` on absence passed the whole suite, and would have produced
+    a silent empty placement: no households anywhere, every coverage figure zero, and nothing
+    saying why.
+
+    Every fallback available here routes through a postcode centroid, which is the approximation
+    this method exists to remove, so absence must refuse rather than degrade.
+    """
+    from tools import ons_uprn_directory as onsud
+
+    with pytest.raises(FileNotFoundError, match="postcode centroid"):
+        onsud.oa_cell_addresses(tmp_path / "absent.pkl")
 
 
 def test_the_ADDRESS_RECORD_is_REQUIRED_and_absence_is_a_REFUSAL(monkeypatch, tmp_path):
@@ -412,7 +525,7 @@ def test_GROUPING_CONSERVES_THE_UNGROUPED_PLACEMENT(cache, addresses):
     Asserted cell for cell, not on the total: a total conserves under a placement that puts the
     same households in the wrong squares, which is the only mistake this can make.
     """
-    addresses(c_10_10=4, c_11_10=1)
+    addresses(E00000001={(10, 10): 4, (11, 10): 1}, W00000001={(10, 10): 4, (11, 10): 1})
     _seed(cache,
           [["E1 1AA", "E00000001", 10_500, 10_500, "E92000001"],
            ["W1 1AA", "W00000001", 10_500, 10_500, "W92000004"]],
@@ -440,11 +553,11 @@ def test_a_GROUP_OF_RETURNING_NONE_DROPS_THE_HOUSEHOLDS_AND_COUNTS_THEM(cache, a
     or dropped without a count. Scotland is the live instance -- it has no slot in the region
     marginal -- and 8% of GB households vanishing quietly would leave every English region's
     weather looking exactly as it should."""
-    addresses(c_10_10=1)
     _seed(cache,
           [["E1 1AA", "E00000001", 10_500, 10_500, "E92000001"],
            ["AB1 1AA", "S00000001", 10_500, 10_500, "S92000003"]],
           ew=(("E00000001", 100),), scot=(("S00000001", 40),))
+    addresses(E00000001={(10, 10): 1}, S00000001={(10, 10): 1})
 
     grouped, drops = w.census_weights(group_of=lambda oa: "keep" if oa.startswith("E") else None)
 

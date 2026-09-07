@@ -77,6 +77,28 @@ spends half of its effort on cells nobody lives in.
 > too few to move a weighted mean and more than enough to ruin a map. Measured, not hoped:
 > `python3 tools/weather_cell_weights.py --choice-cost`.
 
+> **CORRECTED A THIRD TIME 2026-09-07 — the centroid is gone entirely.** The director asked why
+> dwellings were not placed directly, and the version above was still centroid-anchored: households
+> went to the 3×3 neighbourhood of each postcode, weighted by address counts there. Two errors
+> survived that — **20,959 address-bearing cells lay outside every window**, and **94.5% of GB's
+> addresses sat in cells claimed by five or more output areas**, each sizing its share by all the
+> addresses present including its neighbours'.
+>
+> The **ONS UPRN Directory** carries every address's grid reference *and* its output area in one
+> row, so each area's households now go to the cells its own addresses occupy and nowhere else.
+> **Occupied GB land: 194,861 cells, 84.7%** — exactly the share that holds an address, because
+> households now sit where addresses are.
+>
+> **And it cost 70 seconds once and half a second per run.** Reducing 41,386,453 addresses to
+> 690,132 (output area, cell) pairs is the one-off; the placement is a dictionary join. Nothing here
+> was ever expensive.
+>
+> **The cell counts did not move: 34, 89 and 987 for the shared partition, about 21 per driver.**
+> The household-weighted driver means shifted by 1.28%, 1.07% and 0.11% of a standard deviation
+> between the second placement and this one — which is what makes the analysis above sound rather
+> than lucky, and is why it is stated as a measurement.
+
+
 
 
 And the occupied half is itself extremely concentrated:

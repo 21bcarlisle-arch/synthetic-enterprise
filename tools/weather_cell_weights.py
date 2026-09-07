@@ -272,103 +272,80 @@ def read_households() -> dict[str, int]:
 
 
 def census_weights(group_of=None) -> tuple[dict, dict[str, int]]:
-    """({(cell_x, cell_y): households}, drop counts), placed on the ADDRESS RECORD.
+    """({(cell_x, cell_y): households}, drop counts), placed ON THE ADDRESSES THEMSELVES.
+
+    Each output area's census households are split across the 1 km cells its OWN addresses occupy,
+    in proportion to how many are in each. **No postcode centroid appears anywhere in this
+    function.**
 
     WITH `group_of`, THE SAME PLACEMENT SPLIT BY A KEY OF THE OUTPUT AREA. `group_of(oa)` returns
     the group an output area belongs to (or None to drop it, counted as
     `output_area_outside_the_grouping`), and the weights come back as `{group: {cell: households}}`.
-    It is one grouping key threaded through the loop below rather than a second implementation,
-    because the whole hazard of a second one is that the two placements silently diverge and the
-    coverage figures published from each stop being comparable. `tools/household_siting_frame.py`
-    passes the ONS region and is the only caller that does; with `group_of=None` this returns
-    exactly what it always did, and `test_grouping_conserves_the_ungrouped_placement` is the
-    control that says the two agree cell for cell.
+    One grouping key threaded through the loop rather than a second implementation, because the
+    hazard of a second one is that the two placements silently diverge and the coverage figures
+    published from each stop being comparable. `tools/household_siting_frame.py` is the only caller
+    that passes it; with `group_of=None` this returns the ungrouped placement and
+    `test_grouping_conserves_the_ungrouped_placement` says the two agree cell for cell.
 
-    Cell indices are floor(metres / 1000), which is the HadUK-Grid 1 km cell containing the point:
-    the grid's x coordinates are cell CENTRES at 500 m, 1500 m, ... so index i spans [i*1000,
-    (i+1)*1000).
+    THIS IS THE THIRD PLACEMENT AND THE FIRST WITH NO CENTROID IN IT. Each of the two it replaced
+    looked right until it was checked, and both were checked because the director did not believe
+    the number:
 
-    THE PLACEMENT CHANGED ON 2026-09-06 AND THE DIRECTOR IS WHY. It used to split an output area's
-    households equally across its postcode CENTROIDS -- and a centroid is a point, so a cell holding
-    scattered dwellings whose postcode centroid fell next door read as empty. He asked whether it
-    was really true that 47% of GB kilometres hold no address. It was not:
+      1. **Households at postcode centroids.** A centroid is a point; a postcode covers about
+         fifteen addresses over an area. A kilometre of scattered dwellings whose centroid fell next
+         door read as EMPTY. It reported 52.9% of GB land occupied against an address record saying
+         84.7%, and what it actually measured -- to within half a percent -- was "ten or more
+         addressable properties".
+      2. **Addresses within the 3x3 window of each centroid.** Better and still centroid-anchored:
+         20,959 address-bearing cells lay outside every window, holding 61,351 addresses, and 94.5%
+         of GB's addresses sat in cells claimed by five or more output areas -- each sizing its
+         share by ALL the addresses present, its neighbours' included.
+      3. **This.** ONSUD carries every address's grid reference and its output area in one row.
 
-        GB land cells with at least one address (OS Open UPRN)   195,045   84.7%
-        ... with ten or more                                     120,464   52.3%
-        the centroid method's occupied cells                     121,668   52.9%
+    Moving from 2 to 3 shifted the household-weighted driver means by 1.28%, 1.07% and 0.11% of a
+    standard deviation and left every published cell count identical. That is what makes the earlier
+    analysis sound rather than lucky, and it is why the figure is stated as a measurement.
 
-    The centroid method was measuring "has ten or more addressable properties" to within half a
-    percent, and calling it "has anybody". Households are now spread across the cells an output
-    area's addresses actually occupy, in proportion to how many each holds.
+    THE CENSUS COUNTS AND THE ADDRESSES ONLY PLACE. A UPRN is an addressable property, not a
+    dwelling; the residual that leaves is stated in `tools/ons_uprn_directory.py`.
 
-    THE COUNTS STILL COME FROM THE CENSUSES. A UPRN is an addressable property -- masts, barns and
-    substations included -- which is exactly right for "is there an address here" and wrong for "how
-    many households". UPRN density places; the census counts, and the census total for an output
-    area is conserved exactly.
+    Cell indices are floor(metres / 1000), which is the HadUK-Grid 1 km cell containing the point.
     """
+    from tools import ons_uprn_directory as onsud
 
-    from tools import os_open_uprn as uprn
-
-    if not ONSPD_CSV.is_file():
-        raise FileNotFoundError(f"{ONSPD_CSV} -- run `--pull` first")
     households = read_households()
-    grid = uprn.cell_counts()
+    pairs = onsud.oa_cell_addresses()
 
-    by_oa: dict[str, list[tuple[int, int]]] = defaultdict(list)
-    drops = {"no_output_area": 0, "output_area_not_in_census": 0}
-    with ONSPD_CSV.open(encoding="utf-8") as fh:
-        for row in csv.DictReader(fh):
-            oa = row["oa"].strip()
-            if not oa:
-                drops["no_output_area"] += 1
-                continue
-            by_oa[oa].append((int(row["east"]), int(row["north"])))
+    per_oa: dict[str, int] = defaultdict(int)
+    for (oa, _cx, _cy), count in pairs.items():
+        per_oa[oa] += count
 
     weights: dict[tuple[int, int], float] = defaultdict(float)
     grouped: dict[str, dict[tuple[int, int], float]] = defaultdict(lambda: defaultdict(float))
-    drops["output_area_outside_the_grouping"] = 0
-    fell_back = 0
-    for oa, points in by_oa.items():
+    drops = {"output_area_outside_the_grouping": 0}
+    dropped_groups: set[str] = set()
+    placed = 0.0
+    for (oa, cell_x, cell_y), count in pairs.items():
         n = households.get(oa)
         if n is None:
-            drops["output_area_not_in_census"] += 1
             continue
         group = None
         if group_of is not None:
             group = group_of(oa)
             if group is None:
-                drops["output_area_outside_the_grouping"] += 1
+                dropped_groups.add(oa)
                 continue
         into = weights if group is None else grouped[group]
-        # THE OUTPUT AREA'S REACH: the cells its postcodes land in AND their immediate neighbours,
-        # because the whole finding is that an area's addresses spill into cells no centroid
-        # occupies. Bounded at one cell so a dense urban area does not smear across a city.
-        reach = set()
-        for east, north in points:
-            col = (east + 200_000) // 1000
-            row_ = (north + 200_000) // 1000
-            for dc in (-1, 0, 1):
-                for dr in (-1, 0, 1):
-                    if 0 <= row_ + dr < grid.shape[0] and 0 <= col + dc < grid.shape[1]:
-                        reach.add((row_ + dr, col + dc))
-        counts = {rc: int(grid[rc]) for rc in reach}
-        total = sum(counts.values())
-        if total == 0:
-            # NO ADDRESS ANYWHERE NEAR a populated output area is a contradiction, not a state.
-            # It happens for a handful of areas whose postcodes are newer than the UPRN release;
-            # they fall back to centroids and are COUNTED, because a silent fallback here would be
-            # the defect this whole method replaced.
-            fell_back += 1
-            share = n / len(points)
-            for east, north in points:
-                into[(east // 1000, north // 1000)] += share
-            continue
-        for (row_, col), k in counts.items():
-            if k:
-                into[(col - 200, row_ - 200)] += n * k / total
+        share = n * count / per_oa[oa]
+        into[(cell_x, cell_y)] += share
+        placed += share
 
-    drops["census_areas_with_no_live_postcode"] = len(set(households) - set(by_oa))
-    drops["output_areas_placed_on_centroids_for_want_of_an_address"] = fell_back
+    unplaced = sorted(set(households) - set(per_oa))
+    drops["output_area_outside_the_grouping"] = len(dropped_groups)
+    drops["census_areas_with_no_address_in_the_directory"] = len(unplaced)
+    drops["households_in_those_areas"] = sum(households[oa] for oa in unplaced)
+    drops["households_placed"] = round(placed)
+    drops["households_in_the_censuses"] = sum(households.values())
     if group_of is None:
         return dict(weights), drops
     return {g: dict(cells) for g, cells in grouped.items()}, drops

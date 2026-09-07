@@ -186,8 +186,7 @@ def build() -> dict:
     # THE WHITE HOLES IN THE PUBLISHED MAP -- in the Highlands, mid-Wales and around Manchester --
     # were 1,353 blocks of GB land carrying no class at all, and they were a RENDERING HOLE rather
     # than missing data: HadUK has a winter temperature for all 245,077 land cells, and the
-    # clustering ran over the 175,188 INHABITED ones (121,668 until the placement moved from
-    # postcode centroids to the OS Open UPRN address record, 2026-09-06). Uninhabited Britain had a perfectly good
+    # clustering ran over the 121,668 INHABITED ones. Uninhabited Britain had a perfectly good
     # temperature and no class.
     #
     # The classes are still FITTED on households -- that is the whole point of the derivation and
@@ -279,7 +278,13 @@ def build() -> dict:
             "land_cells": gb_stats["gb_land_cells"],
             "not_gb_land_cells": gb_stats["not_gb_land_cells"],
             "published_gb_land_km2": gb_stats["published_gb_land_km2"],
-            "land_cells_with_households": coverage["land_cells_with_households"],
+            # GB-RESTRICTED, like every other figure on the page. `aligned_to_land` counts every
+            # LAND cell with a household, and under address placement four of them sit outside the
+            # GB mask -- remote addresses more than 20 km from any postcode centroid. The map draws
+            # them as not-GB and the caption was counting them as British, a four-cell version of
+            # exactly the mismatch this panel has been corrected for twice.
+            "land_cells_with_households": int((gb_mask & (weights_all > 0)).sum()),
+            "households_outside_the_gb_mask": int((~gb_mask & (weights_all > 0)).sum()),
             # THE ADDRESS RECORD, published beside the household placement it corrected. "No
             # household placed here" and "no address here" are different claims and this page made
             # the first while sounding like the second.
