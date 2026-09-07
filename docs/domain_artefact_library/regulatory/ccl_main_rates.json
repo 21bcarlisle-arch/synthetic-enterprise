@@ -55,5 +55,19 @@
 
     {"from": "2026-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00801, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2026 to 31 March 2027'"},
     {"from": "2026-04-01", "commodity": "gas", "gbp_per_kwh": 0.00801, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2026 to 31 March 2027'"}
-  ]
+  ],
+  "source_check": {
+    "publication": "HMRC / gov.uk guidance 'Climate Change Levy rates' (main rates table), with FA amendments to FA2000 Sch.6 para.42 behind it",
+    "url": "https://www.gov.uk/guidance/climate-change-levy-rates",
+    "fetched": "2025-11-26",
+    "version_token": "2025-11-27T14:23:14+00:00",
+    "version_token_is": "publisher_page_date",
+    "how_to_recheck": "GET https://www.gov.uk/api/content/guidance/climate-change-levy-rates and read `public_updated_at`. gov.uk stamps that field on every substantive edit, so it is a reliable supersession key for this and every other gov.uk guidance page. Compare it to the token recorded here; a later value means the rate table has been edited, and CCL rates are extended by a further April column at each Budget.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "superseded",
+      "open_finding": "docs/staging/SEAT_FINDING_TWO_COMMONS_ARTEFACTS_CITE_A_PUBLICATION_THAT_HAS_MOVED_AND_FOUR_OF_NINE_COULD_NOT_BE_ASKED_2026-09-07.md",
+      "note": "The page now carries a 'Rate from 1 April 2027' column (electricity and gas GBP0.00827/kWh) that this artefact does not hold; it stops at 2026-04-01. Everything this artefact DOES hold agrees with the live page to the digit for 2023-2026, so this is the CM levy's shape exactly: a correct reading of a publication that has since been extended. `fetched` is recorded as 2025-11-26, the day BEFORE the page's own `public_updated_at`, because no fetch date was ever stored and that is the latest date consistent with the artefact missing the 2027 column. It is a bound, not a record, and it is deliberately conservative."
+    }
+  }
 }

@@ -31,5 +31,18 @@
     "why_it_is_not_in_the_band": "ElectraLink's headline CoS count could not be resolved this pass to a single fuel. Its domestic segmentation is by MPAN, which is electricity; but its Data Transfer Network carries both fuels and the headline describes 'households and businesses'. Read as electricity, 2024 is 11.5% and sits just below the band's low end. Read as both fuels, the electricity share is roughly 1.8m and 2024 is ~6.5%, which is half the band. The two readings differ by a factor of 1.8 and picking one to widen the band with would be choosing a number because a number was needed. The band therefore stays on the one series whose numerator definition is settled, and this sits beside it as the open question.",
     "what_would_settle_it": "The ElectraLink DTS annual report, or Ofgem's Retail Market Indicators switching series downloaded per fuel rather than read off the chart. Ofgem's portal states April 2026 at 243,754 electricity and 183,180 gas domestic switches -- a per-fuel split that, annualised, would settle both the definition and the recent level."
   },
-  "reserved": "The band is evidence and is not the director's. WHERE INSIDE THE BAND the world is aimed is a curriculum value under the mission brief of 2026-08-30 section 7, whose tie-break is 'choose the option that makes the company's advantage harder to demonstrate' -- the high end. Recorded in docs/market_research/gb_switching_rate_denominators.md, not decided in code."
+  "reserved": "The band is evidence and is not the director's. WHERE INSIDE THE BAND the world is aimed is a curriculum value under the mission brief of 2026-08-30 section 7, whose tie-break is 'choose the option that makes the company's advantage harder to demonstrate' -- the high end. Recorded in docs/market_research/gb_switching_rate_denominators.md, not decided in code.",
+  "source_check": {
+    "publication": "DESNZ Quarterly Domestic Energy Switching Statistics and Energy UK switching statistics, via the in-repo derivation in docs/market_research/churn_price_elasticity.md",
+    "url": "https://www.gov.uk/government/collections/domestic-energy-switching-statistics",
+    "fetched": "2026-08-31",
+    "version_token": null,
+    "version_token_is": "none_published",
+    "how_to_recheck": "THIS ARTEFACT CITES A DERIVATION, NOT AN EDITION, and that is the thing to fix rather than to check around. The rates here come from docs/market_research/churn_price_elasticity.md section 1, itself built from a DESNZ quarterly series. To put the supersession question properly, the artefact needs the specific DESNZ release each rate was read from; until then the best available check is whether the collection above has published a quarter covering a year later than the last `rates` entry.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "cannot_tell",
+      "note": "Not established. The citation names an in-repo derivation and a publisher's series, but no specific release, so there is no edition to compare against. An honest cannot_tell, with the missing thing named."
+    }
+  }
 }

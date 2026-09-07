@@ -36,5 +36,18 @@
     {"from": "2025-04-01", "to": "2025-06-30", "elec": 270.3, "gas": 69.9},
     {"from": "2025-07-01", "to": "2025-09-30", "elec": 257.3, "gas": 63.3},
     {"from": "2025-10-01", "to": "2025-12-31", "elec": 263.5, "gas": 62.9}
-  ]
+  ],
+  "source_check": {
+    "publication": "Ofgem 'Energy price cap: default tariff levels' (window boundaries) and a third-party cap-history compilation (typical-household unit rates)",
+    "url": "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels",
+    "fetched": "2026-08-31",
+    "version_token": null,
+    "version_token_is": "none_published",
+    "how_to_recheck": "GET the URL above and check whether cap periods later than the last `windows` entry are published; Ofgem announces each quarterly period about six weeks ahead. SEPARATELY, and this is the weaker leg: the unit rates are NOT from that page but from electricityprices.org.uk's cap history, corroborated at two points against House of Commons Library CBP-9714. A third-party compilation carries no edition marker and cannot be supersession-checked at all -- re-siting the unit rates onto Ofgem's own published levels is the fix, not a better check.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "cannot_tell",
+      "note": "Not re-checked against the publisher this pass. The window boundaries could be checked; the unit rates could not be, because their source publishes no edition. Recorded as cannot_tell rather than split, because the artefact is only as fresh as its weakest column."
+    }
+  }
 }

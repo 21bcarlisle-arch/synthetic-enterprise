@@ -32,5 +32,18 @@
     "The temporary reduced rate applied to hospitality in 2020-2021 is irrelevant to fuel and power and is not modelled; noted so a reader does not think it was missed."
   ],
   "r13_wall": "BASELINE. External published law. It does not change because a company result looks wrong.",
-  "portability": "Any lane may read this. It answers 'what is the reduced rate', never 'does this supply get it'."
+  "portability": "Any lane may read this. It answers 'what is the reduced rate', never 'does this supply get it'.",
+  "source_check": {
+    "publication": "gov.uk 'VAT rates on different goods and services'",
+    "url": "https://www.gov.uk/vat-rates",
+    "fetched": "2026-08-31",
+    "version_token": "2014-12-12T14:55:23+00:00",
+    "version_token_is": "publisher_page_date",
+    "how_to_recheck": "GET https://www.gov.uk/api/content/vat-rates and read `public_updated_at`. A value later than the token here means the headline VAT rates have been edited.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "current",
+      "note": "`public_updated_at` is 2014-12-12, nearly twelve years before this artefact was read. The standard and reduced rates have not moved since. Old and honest about it, which is not a defect."
+    }
+  }
 }

@@ -1605,6 +1605,26 @@ _NOT_A_LEVEL_READING: dict[str, str] = {
         "the published BAND itself, `published_bands()` verbatim -- the record, not a reading "
         "of it. Holding it to the band would compare the commons with itself, which is the "
         "tautology shape; leg (a) and mutation (b) are what hold the record.",
+    # --- company/crm/enriched_churn_estimate: a PER-CHANNEL relative factor, not a book level ---
+    # Classified 2026-09-07 by the delivery seat. These three landed with `fdfa0c94f` and were
+    # discovered-but-unclassified, which is a standing red at HEAD that wedges every commit
+    # selecting this file. Same shape as `admissible_svt_churn` above: a within-segment quantity,
+    # not a rate over the book.
+    "company.crm.enriched_churn_estimate:payment_method_engagement_reading":
+        "a RELATIVE factor for one payment channel -- how much more or less this channel shops "
+        "than the market -- blended from the published CIM prior and this book's own realised "
+        "losses. It is a MULTIPLIER around 1.0, not a rate: holding it to the published band "
+        "would compare a dimensionless ratio with a per-cent level, which is the "
+        "say-what-each-number-counts defect this file exists over. The level it scales IS "
+        "registered; this is the scaling.",
+    "company.crm.enriched_churn_estimate:derived_payment_method_engagement_factor":
+        "the drop-in accessor over `payment_method_engagement_reading` above, returning that "
+        "same multiplier. Outside a run scope it returns the published prior unchanged, so it "
+        "carries no book level of its own at all.",
+    "company.crm.enriched_churn_estimate:_CIM_ENGAGEMENT_PRIOR_LOG_VARIANCE":
+        "a VARIANCE in log space -- the dispersion the published CIM survey shows ACROSS payment "
+        "methods, used as the prior's precision when blending. It is a second moment of a set of "
+        "ratios and there is no level in it to hold; the band is a first moment of a rate.",
 }
 
 #: HELD INDIRECTLY, and named here rather than in `_NOT_A_LEVEL_READING` because it IS

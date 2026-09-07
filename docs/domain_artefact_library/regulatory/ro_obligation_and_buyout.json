@@ -185,5 +185,19 @@
     "2021-22 and 2022-23 obligation levels are `secondary`: read from the comparison tables inside the 2023-24 and 2024-25 notices rather than from their own notices, which were not located this pass. Promote to `primary` when the own-year notices are fetched.",
     "Northern Ireland obligation levels are not carried. The company supplies GB only; a NI segment would need its own series, not a reuse of these.",
     "The buy-out fund recycle (~GBP3.87/ROC in 2020-21) is NOT netted off any figure here. It is a READING -- the recycle is redistributed pro rata to ROCs presented, so both compliance routes arbitrage to obligation x buy-out -- and it belongs in the consumer, not the commons."
-  ]
+  ],
+  "source_check": {
+    "publication": "Ofgem 'Renewables Obligation (RO) - Suppliers' (buy-out price and obligation level table) and the DESNZ/BEIS obligation level notices",
+    "url": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
+    "fetched": "2026-08-19",
+    "version_token": null,
+    "version_token_is": "none_published",
+    "how_to_recheck": "GET the URL above and read the 'Obligation period' table. IT IS A ROLLING WINDOW AND IT RETRACTS AS WELL AS EXTENDS -- on 2026-09-07 it ended at 2023-24, two years BEHIND this artefact, so rows we hold as `primary` from this URL can no longer be verified at it. For any year the window has dropped, the citable source is Ofgem's per-year transparency document 'Renewables Obligation: buy-out price and mutualisation threshold and ceilings YYYY to YYYY'; for obligation levels it is the gov.uk publication 'Calculating the level of the Renewables Obligation for YYYY to YYYY'.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "superseded",
+      "open_finding": "docs/staging/SEAT_FINDING_TWO_COMMONS_ARTEFACTS_CITE_A_PUBLICATION_THAT_HAS_MOVED_AND_FOUR_OF_NINE_COULD_NOT_BE_ASKED_2026-09-07.md",
+      "note": "OY 2026/27 is published and absent here: obligation level 0.472 ROC/MWh GB (gov.uk 'Calculating the level of the Renewables Obligation for 2026 to 2027') and buy-out GBP69.34/ROC (Ofgem, published 2026-03-31). BOTH series in this artefact stop at OY 2025. TWO FURTHER PROBLEMS, both in the open finding: the cited page's window now ends at 2023-24 so the `primary` provenance of OY 2024 and OY 2025 no longer verifies at their own cited URL; and 2026/27 is the first year indexed to CPI rather than the RPI rule this artefact's `basis` states."
+    }
+  }
 }

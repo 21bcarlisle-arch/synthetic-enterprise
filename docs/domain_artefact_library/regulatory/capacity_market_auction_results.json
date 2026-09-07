@@ -1292,5 +1292,18 @@
         }
       ]
     }
+  },
+  "source_check": {
+    "publication": "NESO / EMR Delivery Body Capacity Market Register (CKAN dataset 0b3ab475-5622-4465-8825-9d35d03bb28b)",
+    "url": "https://api.neso.energy/api/3/action/package_show?id=0b3ab475-5622-4465-8825-9d35d03bb28b",
+    "fetched": "2026-09-07",
+    "version_token": "2026-09-02T09:55:35",
+    "version_token_is": "publisher_api_timestamp",
+    "how_to_recheck": "GET the package_show URL above and compare each resource's `last_modified` to the timestamps recorded here. THE DANGER IS NOT A DEAD LINK: the CMU and Component resources are date-stamped in the filename (`cmu_20260902.csv`), so when NESO publishes a newer register the OLD url keeps serving the OLD file indefinitely. A resolving URL is not evidence of currency here; only the API timestamp is.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "current",
+      "note": "Auction Static Data last_modified 2026-04-29, De-Rating Factors 2026-05-14, CMU and Components 2026-09-02 -- all at or before the 2026-09-07 read, so every figure in this artefact is from the current publication."
+    }
   }
 }

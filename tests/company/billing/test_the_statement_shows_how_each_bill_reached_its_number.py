@@ -231,6 +231,17 @@ def test_every_issued_bill_agrees_with_the_sum_of_its_own_printed_components():
 
     A dated population floor, because a scanning control over an emptied ledger passes quietly
     (`population_floors_and_split_seams`): 11,549 bills over 251 accounts on 2026-09-02.
+
+    THE FLOOR IS ON ACCOUNTS, AND THE BILL FLOOR IS DELIBERATELY SLACK (re-keyed 2026-09-07). It
+    was `bills >= 11_000`, pinned to one run's exact output, and it went red at HEAD when the
+    ledger was regenerated: `process_run_complete` rewrites this file every run and the bill count
+    drifts with the run window -- 11,549 then 11,019 then 10,909 across consecutive auto-commits,
+    while ACCOUNTS stayed at 251 throughout. Nothing was lost; the run was shorter. A floor keyed
+    to a drifting output goes red because the world moved and not because the subject broke, which
+    is the failure this repo keeps paying for, and it wedged every lane whose commit selected this
+    file. Accounts is the stable population and carries the anti-emptiness guarantee; the bill
+    floor stays only as a coarse "the invoices did not vanish" check, set well below the observed
+    run-to-run range rather than at the top of it.
     """
     ledger = _real_ledger()
     bills = 0
@@ -245,7 +256,10 @@ def test_every_issued_bill_agrees_with_the_sum_of_its_own_printed_components():
             if doc["internal_discrepancy_gbp"] is not None:
                 accused.append("{}/{} out by {}".format(
                     cid, inv.get("invoice_number"), doc["internal_discrepancy_gbp"]))
-    assert bills >= 11_000, "only {} bills: this control would pass on an emptied ledger".format(bills)
+    accounts = len(ledger.get("customers") or {})
+    assert accounts >= 240, (
+        "only {} accounts: this control would pass on an emptied ledger".format(accounts))
+    assert bills >= 8_000, "only {} bills: the invoices have vanished".format(bills)
     assert not accused, (
         "{} of {} bills do not equal the sum of their own printed components. Before reporting "
         "that as a billing defect, check whether a COMPONENT IS MISSING FROM THIS READER -- the "

@@ -271,3 +271,24 @@ python3 -m tools.running_total_order --gate || exit 1
 # file_scope for three atoms, and an empty scope means "nothing to check" -- and the guard that a
 # git probe which cannot run degrades to existence-only instead of inventing an uncommitted find.
 python3 -m tools.scope_evidence_ratchet || exit 1
+
+# A COMMONS ARTEFACT MUST BE ABLE TO BE ASKED WHETHER ITS SOURCE HAS BEEN REVISED (2026-09-07).
+#
+# The CM supplier levy's 2024/25 row was 4.0% wrong in BOTH lanes and no values-vs-source control
+# could have caught it: it was a CORRECT reading of Ofgem Annex 9 v1.8, which published only
+# Apr-Sep 2024. The artefact carried an honest caveat saying exactly that, and the caveat travelled
+# as prose while the number travelled as law. The defect was neither the number nor the citation --
+# it was that no machine could put the question "has this moved?", so nothing could enumerate what
+# needed re-reading. Four of the nine artefacts carried no fetch date in ANY form, so for those
+# there was not even a "since" to measure "revised since" from.
+#
+# WHY IT IS HERE AND NOT ONLY IN PYTEST. The architecture test is the R15-proven falsifier (31
+# tests, per-leg poison rounds); this line is what makes it fire at the MOMENT a tenth artefact is
+# added. Test selection reaches a commons artefact through the data-surface graph -- which is how
+# an unrelated lane inherited a billing red the same day -- and an artefact whose readers are not
+# yet written selects nothing at all. The check is a few milliseconds of JSON parsing.
+#
+# REFUSES THE LIE, NEVER THE AGE. An old check is a thing to schedule, not a thing to block a
+# commit on: a control keyed to a calendar goes red for a reason nobody can act on inside the
+# commit that trips it, and gets turned off. `--report` is where age lives.
+python3 -m tools.commons_source_supersession --check || exit 1

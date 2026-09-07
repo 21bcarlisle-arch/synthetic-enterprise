@@ -275,5 +275,18 @@
       "note": "NEWLY ESTABLISHED 2026-09-07. Annex 9 v1.8 did not carry this year and the artefact recorded it as not established; v1.11 publishes all four quarters of Apr 2025 - Mar 2026."
     }
   ],
-  "what_is_not_established": "2026/27 ONWARDS, AND THE RULE IS ENFORCED RATHER THAN PROMISED. v1.11 publishes Apr-Jun, Jul-Sep and Oct-Dec 2026 (9 of 12 months) and those three cap periods ARE carried in `annex9_cap_periods` -- this file holds the publisher's rows verbatim, including ones no levy row is derived from. Jan-Mar 2027 is not yet set, so 2026/27 cannot be duration-weighted and gets NO row in `levy_gbp_per_mwh`: a 9-month mean would be a real-looking number for a year nobody has published. The derivation control asserts BOTH halves of that -- every obligation year with 12 months of cap periods HAS a levy row, and every year with fewer has none -- so the partial year cannot be quietly promoted and a completed year cannot be quietly forgotten. There is no extrapolation and no carry-forward here: a caller asking for a year outside this record gets None. THIS CLAUSE PREVIOUSLY SAID '2025/26 onwards ... Annex 9 has not published it', which was true of v1.8 and false of v1.11; a not-established claim in the commons is itself a dated reading and rots exactly like a figure."
+  "what_is_not_established": "2026/27 ONWARDS, AND THE RULE IS ENFORCED RATHER THAN PROMISED. v1.11 publishes Apr-Jun, Jul-Sep and Oct-Dec 2026 (9 of 12 months) and those three cap periods ARE carried in `annex9_cap_periods` -- this file holds the publisher's rows verbatim, including ones no levy row is derived from. Jan-Mar 2027 is not yet set, so 2026/27 cannot be duration-weighted and gets NO row in `levy_gbp_per_mwh`: a 9-month mean would be a real-looking number for a year nobody has published. The derivation control asserts BOTH halves of that -- every obligation year with 12 months of cap periods HAS a levy row, and every year with fewer has none -- so the partial year cannot be quietly promoted and a completed year cannot be quietly forgotten. There is no extrapolation and no carry-forward here: a caller asking for a year outside this record gets None. THIS CLAUSE PREVIOUSLY SAID '2025/26 onwards ... Annex 9 has not published it', which was true of v1.8 and false of v1.11; a not-established claim in the commons is itself a dated reading and rots exactly like a figure.",
+  "source_check": {
+    "publication": "Ofgem Annex 9 'Levelisation allowance methodology and levelised cap levels', sheet '1b Historical level tables'",
+    "url": "https://www.ofgem.gov.uk/sites/default/files/2026-08/Annex-9-Levelisation-allowance-methodology-and-levelised-cap-levels-v1.11.xlsx",
+    "fetched": "2026-09-07",
+    "version_token": "v1.11",
+    "version_token_is": "in_url",
+    "how_to_recheck": "GET the Ofgem default tariff cap landing page https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap and read the version in the Annex 9 filename it links. If it is above v1.11, a later cap period has been published and the LAST obligation year in `levy_gbp_per_mwh` may have been derived from a partial year -- which is exactly how the 2024/25 row came to be 4.0% wrong.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "current",
+      "note": "The landing page serves v1.11 ('Final levelised cap rates model (Annex 9): 1 October to 31 December 2026'), which is the edition this artefact was built from the same day. This verdict is worth little precisely because it was fetched and checked on one day; it is recorded so the NEXT check has a 'since'."
+    }
+  }
 }

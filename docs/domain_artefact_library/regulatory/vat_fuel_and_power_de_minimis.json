@@ -38,5 +38,18 @@
     "The averaging rule the 'average rate per day' is computed over -- billing period, month, or a rolling window. This artefact carries the limit; the reading that decides what to average is the lane's."
   ],
   "r13_wall": "BASELINE. This is external published law, not a curriculum value. It does not change because a company result looks wrong.",
-  "portability": "Any lane may read this. A lane needing a VAT RATE needs a different artefact; this one answers only 'which side of the de minimis is this supply on'."
+  "portability": "Any lane may read this. A lane needing a VAT RATE needs a different artefact; this one answers only 'which side of the de minimis is this supply on'.",
+  "source_check": {
+    "publication": "HMRC VAT Notice 701/19: Fuel and power (sections 4.2 gas, 5.2 electricity)",
+    "url": "https://www.gov.uk/guidance/vat-on-fuel-and-power-notice-70119",
+    "fetched": "2026-08-31",
+    "version_token": "2025-02-05T12:30:43+00:00",
+    "version_token_is": "publisher_page_date",
+    "how_to_recheck": "GET https://www.gov.uk/api/content/guidance/vat-on-fuel-and-power-notice-70119 and read `public_updated_at`. This artefact ALREADY stored the same date as `source.last_updated_on_the_page` before this block existed -- correct information, in the right file, in a shape no machine could read, doing no work for months. That is why the block is normalised rather than left to each artefact's own spelling.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "current",
+      "note": "`public_updated_at` is 2025-02-05, matching the artefact's own stored page date to the day and predating the 2026-08-31 read."
+    }
+  }
 }

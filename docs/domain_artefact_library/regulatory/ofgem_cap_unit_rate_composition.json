@@ -815,5 +815,18 @@
     }
    ]
   }
- }
+ },
+  "source_check": {
+    "publication": "Ofgem Default Tariff Cap level model, Default_tariff_cap_level_v1.19.xlsx",
+    "url": "https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap",
+    "fetched": "2026-08-31",
+    "version_token": "v1.19",
+    "version_token_is": "in_filename_only",
+    "how_to_recheck": "THE STORED URL IS A LANDING PAGE, NOT THE WORKBOOK. It will keep resolving and will serve whatever model version is current, so fetching it successfully proves nothing. Open it, find the cap level model link, and read the version out of the FILENAME; if it is above v1.19 the component shares in this artefact were derived from a superseded model.",
+    "checked_for_supersession": {
+      "on": "2026-09-07",
+      "found": "cannot_tell",
+      "note": "The landing page was fetched on 2026-09-07 and the cap LEVEL model's current version was not established -- the read surfaced the Annex 9 levelisation workbook (v1.11) instead, which is a different publication. `cannot_tell` is the honest verdict and is recorded rather than a guess. This is the highest-risk of the nine: a versioned model behind an unversioned URL, where a dead link would announce itself and this cannot."
+    }
+  }
 }
