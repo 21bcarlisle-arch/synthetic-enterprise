@@ -4,6 +4,25 @@ Research completed: 2026-07-03. Source: discovery agent, Ofgem/DESNZ/HoC Library
 
 ## 1. Annual Switching Rates vs. Savings Available
 
+> **REFUTED 2026-09-07 — the SWITCHES and RATE columns below are wrong in 8 of 10 years.** Read
+> against the publisher's own release (DESNZ *Quarterly domestic energy switching statistics*, QEP
+> table **2.7.1**, released 2026-06-30), the true electricity counts are 2016 4.420m · 2017 **5.118m**
+> · 2018 5.402m · 2019 5.946m · 2020 5.811m · 2021 4.502m · 2022 0.893m · 2023 1.867m · 2024 2.681m ·
+> 2025 3.146m. Only 2019 and 2022 fall inside the ranges below.
+>
+> **The likeliest root cause is the source line under this table.** It names *"DESNZ Quarterly Energy
+> Prices Table 2.1"* — a domestic **price** table. The switching series is table **2.7.1**. On the
+> evidence of the numbers this series was never read from the switching table at all, which is
+> consistent with a 2017 "consolidation" trough that exists in no published source (2017 was *up* on
+> 2016) and with a peak placed in 2020 when the record's peak is 2019.
+>
+> **Left in place rather than rewritten**, because the numbers below travelled into the regulation
+> commons and into six committed world verdicts, and a silent correction here would leave every one
+> of them citing a source that no longer says what they were built on. Full evidence, the corrected
+> table and what the repair costs:
+> `docs/staging/SEAT_FINDING_THE_SWITCHING_RATE_ARTEFACT_IS_REFUTED_BY_ITS_OWN_PUBLISHER_IN_EIGHT_OF_TEN_YEARS_2026-09-07.md`.
+> **The SAVINGS column is a different quantity and is not touched by this refutation.**
+
 Year, Switches, Rate, Savings, Notes:
 2015: 4.2m, 15%, 250-300 GBP -- Moderate competition
 2016: 4.82m, 17.5%, 250-350 GBP -- Peak challenger era

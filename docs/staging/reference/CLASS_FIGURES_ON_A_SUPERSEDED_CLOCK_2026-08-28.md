@@ -22,6 +22,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
+- `SEAT_FINDING_THE_SWITCHING_BANDS_OWN_PUBLISHER_DISAGREES_WITH_IT_IN_EIGHT_OF_TEN_YEARS_2026-09-07.md` — lane `A_strategy_governance`
 - `WORKER_FINDING_THE_LIVE_SITE_PUBLISHES_A_200_PERCENT_AVERAGE_BILL_SHOCK_2026-09-01.md` — lane `D_billing_metering`
 
 ## Disposition
