@@ -5,8 +5,10 @@ Given company-observable asset data (EV flag, ASHP flag, battery flag),
 estimates each customer's flexibility capacity (kW) and potential DSR
 revenue if enrolled.
 
-Real UK context: NESO Demand Flexibility Service (DFS) launched Oct 2022;
-suppliers can earn £3-6/kWh for demand reduction during stress events.
+Real UK context: NESO Demand Flexibility Service (DFS) launched Oct 2022. Its rate is NOT a
+constant and is not carried here -- `dfs_published_record` holds the published per-winter record and
+is the single home for it. The realised rate was £3,316/MWh in 2022/23 under a guaranteed acceptance
+price and £241/MWh in 2024/25 once the service had to compete.
 Capacity Market participants earn ~£75/kW/yr for committed flexibility.
 DNO flexibility auctions (Flex Markets) pay £50-300/MWh depending on location.
 
@@ -19,6 +21,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
+from company.market import dfs_published_record
+
 
 # UK calibrated flexibility estimates per asset type
 _EV_FLEX_KW = 7.4  # typical 7.4 kW home charger (32A)
@@ -26,10 +30,10 @@ _ASHP_FLEX_KW = 3.0  # air source heat pump space heating load
 _BATTERY_FLEX_KW = 5.0  # typical 5 kWh/h battery discharge rate
 _BATTERY_FLEX_HOURS = 1.5  # usable discharge window (evening peak)
 
-# DSR revenue benchmarks (£/MWh delivered or £/kW/yr)
-_DFS_RATE_GBP_PER_MWH = 4.5  # NESO DFS average 2022-24
+# DSR revenue benchmarks (£/kW/yr). The DFS rate and event count are NOT here: they are published
+# per winter and live in `dfs_published_record`, because two copies of one fact is how this book
+# carried a rate that was 737x low for three months without anything able to notice.
 _CAPACITY_MARKET_GBP_PER_KW_YR = 75.0  # T-4 auction 2023
-_DISPATCH_EVENTS_PER_YR = 20  # DFS: ~20 events per winter (Oct-Mar)
 _DISPATCH_DURATION_HRS = 1.0  # 1-hour events standard
 
 
@@ -58,6 +62,9 @@ class FlexibilityEstimate:
     flex_kwh_per_event: float
     dfs_revenue_gbp_pa: float
     capacity_market_revenue_gbp_pa: float
+    dfs_established: bool = True
+    """False means the winter is not in the published record, so `dfs_revenue_gbp_pa` is 0.0 for
+    want of evidence and NOT because the service paid nothing. 2023/24 is the live case."""
 
     @property
     def total_annual_revenue_gbp(self) -> float:
@@ -94,13 +101,15 @@ def _estimate_flex_kw(has_ev: bool, has_ashp: bool, has_battery: bool) -> float:
     return round(total, 2)
 
 
-def _estimate_dfs_revenue(flex_kw: float) -> float:
-    # MWh per event = flex_kw * duration_hrs / 1000; multiply by rate and events
-    flex_mw = flex_kw / 1000.0
-    return round(
-        flex_mw * _DISPATCH_DURATION_HRS * _DFS_RATE_GBP_PER_MWH * _DISPATCH_EVENTS_PER_YR,
-        2,
-    )
+def _estimate_dfs_revenue(flex_kw: float, winter_start_year: int) -> Optional[float]:
+    """DFS revenue for one winter, or None where the published record does not establish it.
+
+    Anchored on what DFS paid PER REGISTERED PARTICIPANT and weighted by this customer's flex against
+    the published domestic delivery size -- not on rated asset power at every event. The previous
+    form credited a 7.4 kW charger with 7.4 kWh of turn-down 20 times a year; NESO's record says 91%
+    of domestic delivery is below 1 kW, and that at best 22.4% of registrants show up to any event.
+    """
+    return dfs_published_record.revenue_gbp_for_flex_kw(flex_kw, winter_start_year)
 
 
 def _estimate_capacity_revenue(flex_kw: float) -> float:
@@ -127,6 +136,7 @@ class FlexibilityPotentialBook:
         has_ev: bool = False,
         has_ashp: bool = False,
         has_battery: bool = False,
+        winter_start_year: int = dfs_published_record.LATEST_ESTABLISHED_WINTER,
     ) -> Optional[FlexibilityEstimate]:
         """Assess one customer's flexibility potential.
 
@@ -145,7 +155,9 @@ class FlexibilityPotentialBook:
             has_battery=has_battery,
             flex_kw=flex_kw,
             flex_kwh_per_event=flex_kwh,
-            dfs_revenue_gbp_pa=_estimate_dfs_revenue(flex_kw),
+            dfs_revenue_gbp_pa=(_estimate_dfs_revenue(flex_kw, winter_start_year) or 0.0),
+            dfs_established=(
+                _estimate_dfs_revenue(flex_kw, winter_start_year) is not None),
             capacity_market_revenue_gbp_pa=_estimate_capacity_revenue(flex_kw),
         )
         self._estimates.append(estimate)

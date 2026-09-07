@@ -144,11 +144,15 @@ _CONCEPT_SUFFIXES = ("_ANNUAL", "_PER_YEAR", "_PCT", "_PERCENT", "_FRACTION",
 #: Concept+value pairs living in more than one module TODAY, each with why it is still there.
 #: Same discipline as `KNOWN_NAME_COLLISIONS`: when one is fixed it comes off this list in the
 #: commit that fixed it, and that edit is the record the work happened.
-KNOWN_CONCEPT_DUPLICATES = frozenset({
-    # 4.5 GBP/MWh, `origin=cited` on BOTH sides -- the lowest-severity case here, since neither is
-    # an invented number. Still two homes for one published rate.
-    ("DFS_RATE_GBP", "4.5"),
-})
+KNOWN_CONCEPT_DUPLICATES = frozenset()
+#: ("DFS_RATE_GBP", "4.5") came off 2026-09-07. Both homes are gone: the rate now lives once, in
+#: `company/market/dfs_published_record.py`, per winter. The note above called it "the
+#: lowest-severity case here, since neither is an invented number" -- and BOTH cited values were
+#: wrong by 737x (2022/23, GBP3,316/MWh realised) and 54x (2024/25, GBP241/MWh). `origin=cited` says
+#: a source was named, never that the value matches it: `flexibility_potential.py`'s own docstring
+#: read "GBP3-6/kWh", which IS GBP3,000-6,000/MWh, so the file disagreed with itself by ~1,000x.
+#: Duplication was the lesser defect and it was the only one this gate could see.
+#: Evidence: `docs/market_research/neso_dfs_called_day_response_2026-09-07.md`.
 
 
 def _concept(name: str) -> str:

@@ -1,0 +1,1081 @@
+{
+ "artefact": "tou_extreme_day_concentration",
+ "question": "Is a time-of-use tariff that pays only on EXTREME days a different and better product than one that pays every day, or merely a rarer one?",
+ "preregistration": "docs/staging/SEAT_PREDICTION_WHAT_AN_EXTREME_DAY_ONLY_TOU_TARIFF_CAN_AND_CANNOT_BE_WORTH_2026-09-07.md -- eight predictions and the verdict rule, filed before this module existed",
+ "method": {
+  "price_series": "Elexon MID, volume-weighted, via sim/market_index_history.py",
+  "day_builder": "tools/r3_carbon_score_ceiling.whole_days -- the landed panel's own",
+  "shift_window_half_hours": 6,
+  "value_per_day": "tools/r3_carbon_score_ceiling.achievable_saving_per_kwh, GBP/MWh",
+  "kwh_allocation": "PC1 -- each day weighted by the real published Elexon Profile Class 1 domestic Group Average Demand for its season and day type (sim/profile_class_1.py). The landed panel's FLAT allocation is reported beside it so the columns reconcile.",
+  "response": "SLOPE-ONLY is the primary: the fitted Arcturus intercept credits a household shown a flat price with a 1.1% reduction, and the everyday product collects that 365 times a year against the extreme product's few dozen, which would make the comparison a count of days rather than a comparison of products. The fitted response is reported beside it.",
+  "days_the_model_cannot_price": "days whose cheapest window is non-positive are CARRIED in the concentration and EXCLUDED from the products, with the money on them stated both times",
+  "foresight": "every product figure assumes perfect foresight of which days are extreme and is a ceiling; skill-free callers bound it from below",
+  "cac": "saas.opex_ledger.acquisition_cost_gbp('pcs_aggregator', is_dual_fuel=False) = GBP 27.5 -- sourced, CMA Energy market investigation Appendix 8.3 via docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md",
+  "no_per_event_cost_is_invented": "nothing in the knowledge layer establishes a per-notification or per-event compliance cost, so it is carried as a break-even rather than filled"
+ },
+ "episodes": [
+  {
+   "episode": "2016-2020",
+   "available": true,
+   "years": [
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2020"
+   ],
+   "concentration_pc1_weighted": {
+    "days": 1520,
+    "gross_value_gbp_per_household_year": 51.83,
+    "curve": {
+     "top_1pc_of_days": {
+      "days": 15,
+      "share_of_gross_value": 0.0509
+     },
+     "top_5pc_of_days": {
+      "days": 76,
+      "share_of_gross_value": 0.1647
+     },
+     "top_10pc_of_days": {
+      "days": 152,
+      "share_of_gross_value": 0.2646
+     },
+     "top_25pc_of_days": {
+      "days": 380,
+      "share_of_gross_value": 0.4733
+     },
+     "top_50pc_of_days": {
+      "days": 760,
+      "share_of_gross_value": 0.7123
+     }
+    },
+    "the_days_the_response_model_cannot_price": {
+     "days": 37,
+     "share_of_days": 0.0243,
+     "share_of_gross_value": 0.0657,
+     "share_of_them_that_are_in_the_top_decile_by_value": 0.8378,
+     "why": "Their cheapest window is non-positive -- a negative wholesale price. The SAVING on such a day is well defined and large; the RATIO is meaningless rather than large, and Arcturus 2.0 is a function of the log of that ratio. These are the days a shifting tariff would most want to call and they are the days it cannot be priced on. Counted here in money, never dropped silently."
+    },
+    "top_decile_by_value_against_top_decile_by_ratio": {
+     "available": true,
+     "days_in_each_selection": 148,
+     "days_in_both": 90,
+     "jaccard": 0.4369,
+     "note": "Value ranks on level x shape; the ratio ranks on shape alone. A tariff triggering on a published spread selects the second set and earns on the first."
+    }
+   },
+   "concentration_flat_weighted_landed_panel_convention": {
+    "days": 1520,
+    "gross_value_gbp_per_household_year": 51.36,
+    "curve": {
+     "top_1pc_of_days": {
+      "days": 15,
+      "share_of_gross_value": 0.0479
+     },
+     "top_5pc_of_days": {
+      "days": 76,
+      "share_of_gross_value": 0.1585
+     },
+     "top_10pc_of_days": {
+      "days": 152,
+      "share_of_gross_value": 0.2538
+     },
+     "top_25pc_of_days": {
+      "days": 380,
+      "share_of_gross_value": 0.4611
+     },
+     "top_50pc_of_days": {
+      "days": 760,
+      "share_of_gross_value": 0.6998
+     }
+    },
+    "the_days_the_response_model_cannot_price": {
+     "days": 37,
+     "share_of_days": 0.0243,
+     "share_of_gross_value": 0.0646,
+     "share_of_them_that_are_in_the_top_decile_by_value": 0.8378,
+     "why": "Their cheapest window is non-positive -- a negative wholesale price. The SAVING on such a day is well defined and large; the RATIO is meaningless rather than large, and Arcturus 2.0 is a function of the log of that ratio. These are the days a shifting tariff would most want to call and they are the days it cannot be priced on. Counted here in money, never dropped silently."
+    },
+    "top_decile_by_value_against_top_decile_by_ratio": {
+     "available": true,
+     "days_in_each_selection": 148,
+     "days_in_both": 97,
+     "jaccard": 0.4874,
+     "note": "Value ranks on level x shape; the ratio ranks on shape alone. A tariff triggering on a published spread selects the second set and earns on the first."
+    }
+   },
+   "where_the_ratio_tail_comes_from": {
+    "available": true,
+    "days_with_a_defined_ratio": 1483,
+    "the_dearest_window_over_the_day_mean": {
+     "median": 1.33,
+     "p90": 1.618,
+     "what_it_is": "the numerator of the ratio -- how expensive the peak gets"
+    },
+    "the_cheapest_window_over_the_day_mean": {
+     "median": 0.761,
+     "p10": 0.463,
+     "what_it_is": "the denominator of the ratio -- how far the trough collapses"
+    },
+    "variance_of_the_log_ratio": {
+     "total": 0.27574,
+     "from_the_peak": 0.02221,
+     "from_the_trough": 0.19418,
+     "minus_twice_the_covariance": 0.05934,
+     "trough_share_of_the_two_variances": 0.8974
+    },
+    "the_gain_is_bounded_where_the_ratio_is_not": {
+     "median_saving_over_day_mean": 0.239,
+     "p90_saving_over_day_mean": 0.537,
+     "ceiling_on_a_day_with_a_non_negative_trough": 1.0,
+     "days_whose_trough_went_negative_and_so_exceed_it": 37,
+     "reading": "saving/mean = 1 - off_rel, so it cannot pass 1.0 while the trough stays non-negative, however far the ratio runs. The ratio has no such ceiling."
+    }
+   },
+   "products_slope_only_response": {
+    "everyday": {
+     "available": true,
+     "days_paid_on": 1483,
+     "days_paid_on_per_year": 356.4,
+     "share_of_gross_value_reachable": 0.9343,
+     "argmax_alpha": 0.5,
+     "company_gbp_per_household_year": 0.2861,
+     "household_gbp_per_household_year": 0.2861,
+     "mean_response_on_paid_days": 0.0094
+    },
+    "extreme_top_1pc": {
+     "available": true,
+     "days_paid_on": 15,
+     "days_paid_on_per_year": 3.6,
+     "share_of_gross_value_reachable": 0.0472,
+     "argmax_alpha": 0.48,
+     "company_gbp_per_household_year": 0.0332,
+     "household_gbp_per_household_year": 0.0306,
+     "mean_response_on_paid_days": 0.0259
+    },
+    "extreme_top_5pc": {
+     "available": true,
+     "days_paid_on": 74,
+     "days_paid_on_per_year": 17.8,
+     "share_of_gross_value_reachable": 0.145,
+     "argmax_alpha": 0.49,
+     "company_gbp_per_household_year": 0.0798,
+     "household_gbp_per_household_year": 0.0767,
+     "mean_response_on_paid_days": 0.0195
+    },
+    "extreme_top_10pc": {
+     "available": true,
+     "days_paid_on": 148,
+     "days_paid_on_per_year": 35.6,
+     "share_of_gross_value_reachable": 0.2334,
+     "argmax_alpha": 0.495,
+     "company_gbp_per_household_year": 0.1158,
+     "household_gbp_per_household_year": 0.1135,
+     "mean_response_on_paid_days": 0.0176
+    },
+    "extreme_top_25pc": {
+     "available": true,
+     "days_paid_on": 371,
+     "days_paid_on_per_year": 89.1,
+     "share_of_gross_value_reachable": 0.4287,
+     "argmax_alpha": 0.495,
+     "company_gbp_per_household_year": 0.1798,
+     "household_gbp_per_household_year": 0.1762,
+     "mean_response_on_paid_days": 0.0145
+    }
+   },
+   "products_fitted_response_landed_panel_convention": {
+    "everyday": {
+     "available": true,
+     "days_paid_on": 1483,
+     "days_paid_on_per_year": 356.4,
+     "share_of_gross_value_reachable": 0.9343,
+     "argmax_alpha": 0.265,
+     "company_gbp_per_household_year": 0.6158,
+     "household_gbp_per_household_year": 0.222,
+     "mean_response_on_paid_days": 0.016
+    },
+    "extreme_top_1pc": {
+     "available": true,
+     "days_paid_on": 15,
+     "days_paid_on_per_year": 3.6,
+     "share_of_gross_value_reachable": 0.0472,
+     "argmax_alpha": 0.38,
+     "company_gbp_per_household_year": 0.0485,
+     "household_gbp_per_household_year": 0.0297,
+     "mean_response_on_paid_days": 0.0318
+    },
+    "extreme_top_5pc": {
+     "available": true,
+     "days_paid_on": 74,
+     "days_paid_on_per_year": 17.8,
+     "share_of_gross_value_reachable": 0.145,
+     "argmax_alpha": 0.36,
+     "company_gbp_per_household_year": 0.1272,
+     "household_gbp_per_household_year": 0.0716,
+     "mean_response_on_paid_days": 0.0254
+    },
+    "extreme_top_10pc": {
+     "available": true,
+     "days_paid_on": 148,
+     "days_paid_on_per_year": 35.6,
+     "share_of_gross_value_reachable": 0.2334,
+     "argmax_alpha": 0.35,
+     "company_gbp_per_household_year": 0.1927,
+     "household_gbp_per_household_year": 0.1037,
+     "mean_response_on_paid_days": 0.0235
+    },
+    "extreme_top_25pc": {
+     "available": true,
+     "days_paid_on": 371,
+     "days_paid_on_per_year": 89.1,
+     "share_of_gross_value_reachable": 0.4287,
+     "argmax_alpha": 0.325,
+     "company_gbp_per_household_year": 0.3236,
+     "household_gbp_per_household_year": 0.1558,
+     "mean_response_on_paid_days": 0.0205
+    }
+   },
+   "break_evens_slope_only": {
+    "available": true,
+    "everyday_company_gbp_per_household_year": 0.2861,
+    "by_trigger": {
+     "extreme_top_1pc": {
+      "company_gbp_per_household_year": 0.0332,
+      "value_forgone_gbp_per_household_year": 0.2529,
+      "household_days_avoided_per_year": 361.6,
+      "running_cost_break_even_pence_per_household_day": 0.0699,
+      "attention_premium_break_even_multiple": 8.62,
+      "cac_payback_years": 828.3
+     },
+     "extreme_top_5pc": {
+      "company_gbp_per_household_year": 0.0798,
+      "value_forgone_gbp_per_household_year": 0.2063,
+      "household_days_avoided_per_year": 347.4,
+      "running_cost_break_even_pence_per_household_day": 0.0594,
+      "attention_premium_break_even_multiple": 3.59,
+      "cac_payback_years": 344.6
+     },
+     "extreme_top_10pc": {
+      "company_gbp_per_household_year": 0.1158,
+      "value_forgone_gbp_per_household_year": 0.1703,
+      "household_days_avoided_per_year": 329.6,
+      "running_cost_break_even_pence_per_household_day": 0.0517,
+      "attention_premium_break_even_multiple": 2.47,
+      "cac_payback_years": 237.5
+     },
+     "extreme_top_25pc": {
+      "company_gbp_per_household_year": 0.1798,
+      "value_forgone_gbp_per_household_year": 0.1063,
+      "household_days_avoided_per_year": 276.1,
+      "running_cost_break_even_pence_per_household_day": 0.0385,
+      "attention_premium_break_even_multiple": 1.59,
+      "cac_payback_years": 152.9
+     }
+    },
+    "everyday_cac_payback_years": 96.1,
+    "cac_gbp": 27.5
+   },
+   "break_evens_fitted": {
+    "available": true,
+    "everyday_company_gbp_per_household_year": 0.6158,
+    "by_trigger": {
+     "extreme_top_1pc": {
+      "company_gbp_per_household_year": 0.0485,
+      "value_forgone_gbp_per_household_year": 0.5673,
+      "household_days_avoided_per_year": 361.6,
+      "running_cost_break_even_pence_per_household_day": 0.1569,
+      "attention_premium_break_even_multiple": 12.7,
+      "cac_payback_years": 567.0
+     },
+     "extreme_top_5pc": {
+      "company_gbp_per_household_year": 0.1272,
+      "value_forgone_gbp_per_household_year": 0.4886,
+      "household_days_avoided_per_year": 347.4,
+      "running_cost_break_even_pence_per_household_day": 0.1406,
+      "attention_premium_break_even_multiple": 4.84,
+      "cac_payback_years": 216.2
+     },
+     "extreme_top_10pc": {
+      "company_gbp_per_household_year": 0.1927,
+      "value_forgone_gbp_per_household_year": 0.4231,
+      "household_days_avoided_per_year": 329.6,
+      "running_cost_break_even_pence_per_household_day": 0.1283,
+      "attention_premium_break_even_multiple": 3.2,
+      "cac_payback_years": 142.7
+     },
+     "extreme_top_25pc": {
+      "company_gbp_per_household_year": 0.3236,
+      "value_forgone_gbp_per_household_year": 0.2922,
+      "household_days_avoided_per_year": 276.1,
+      "running_cost_break_even_pence_per_household_day": 0.1058,
+      "attention_premium_break_even_multiple": 1.9,
+      "cac_payback_years": 85.0
+     }
+    },
+    "everyday_cac_payback_years": 44.7,
+    "cac_gbp": 27.5
+   },
+   "callability": {
+    "definition_of_extreme": "the dearest 10% of days by value",
+    "extreme_days": 152,
+    "callers": [
+     {
+      "caller": "persistence",
+      "days_called_per_year": 36.5,
+      "recall_of_extreme_days": 0.3224,
+      "precision": 0.3224,
+      "share_of_extreme_day_value_captured": 0.3515,
+      "note": "call tomorrow iff today was extreme"
+     },
+     {
+      "caller": "winter",
+      "days_called_per_year": 122.8,
+      "recall_of_extreme_days": 0.5263,
+      "precision": 0.1566,
+      "share_of_extreme_day_value_captured": 0.5228,
+      "note": "call every day from November to February"
+     }
+    ],
+    "what_this_bounds": "Every product figure in this artefact assumes PERFECT foresight of which days are extreme, and is therefore a ceiling. These are skill-free floors. We hold no day-ahead auction series, so the real skill is not measured here and is a NAMED GAP, not a number: the honest statement is that the truth lies between these callers and the ceiling, and the ceiling is already worth pennies."
+   }
+  },
+  {
+   "episode": "2021-2023",
+   "available": true,
+   "years": [
+    "2021",
+    "2022",
+    "2023"
+   ],
+   "concentration_pc1_weighted": {
+    "days": 1078,
+    "gross_value_gbp_per_household_year": 181.6,
+    "curve": {
+     "top_1pc_of_days": {
+      "days": 11,
+      "share_of_gross_value": 0.0519
+     },
+     "top_5pc_of_days": {
+      "days": 54,
+      "share_of_gross_value": 0.1661
+     },
+     "top_10pc_of_days": {
+      "days": 108,
+      "share_of_gross_value": 0.2824
+     },
+     "top_25pc_of_days": {
+      "days": 270,
+      "share_of_gross_value": 0.5243
+     },
+     "top_50pc_of_days": {
+      "days": 539,
+      "share_of_gross_value": 0.7715
+     }
+    },
+    "the_days_the_response_model_cannot_price": {
+     "days": 61,
+     "share_of_days": 0.0566,
+     "share_of_gross_value": 0.1002,
+     "share_of_them_that_are_in_the_top_decile_by_value": 0.3443,
+     "why": "Their cheapest window is non-positive -- a negative wholesale price. The SAVING on such a day is well defined and large; the RATIO is meaningless rather than large, and Arcturus 2.0 is a function of the log of that ratio. These are the days a shifting tariff would most want to call and they are the days it cannot be priced on. Counted here in money, never dropped silently."
+    },
+    "top_decile_by_value_against_top_decile_by_ratio": {
+     "available": true,
+     "days_in_each_selection": 102,
+     "days_in_both": 42,
+     "jaccard": 0.2593,
+     "note": "Value ranks on level x shape; the ratio ranks on shape alone. A tariff triggering on a published spread selects the second set and earns on the first."
+    }
+   },
+   "concentration_flat_weighted_landed_panel_convention": {
+    "days": 1078,
+    "gross_value_gbp_per_household_year": 178.59,
+    "curve": {
+     "top_1pc_of_days": {
+      "days": 11,
+      "share_of_gross_value": 0.0503
+     },
+     "top_5pc_of_days": {
+      "days": 54,
+      "share_of_gross_value": 0.1616
+     },
+     "top_10pc_of_days": {
+      "days": 108,
+      "share_of_gross_value": 0.2716
+     },
+     "top_25pc_of_days": {
+      "days": 270,
+      "share_of_gross_value": 0.5105
+     },
+     "top_50pc_of_days": {
+      "days": 539,
+      "share_of_gross_value": 0.7587
+     }
+    },
+    "the_days_the_response_model_cannot_price": {
+     "days": 61,
+     "share_of_days": 0.0566,
+     "share_of_gross_value": 0.096,
+     "share_of_them_that_are_in_the_top_decile_by_value": 0.3279,
+     "why": "Their cheapest window is non-positive -- a negative wholesale price. The SAVING on such a day is well defined and large; the RATIO is meaningless rather than large, and Arcturus 2.0 is a function of the log of that ratio. These are the days a shifting tariff would most want to call and they are the days it cannot be priced on. Counted here in money, never dropped silently."
+    },
+    "top_decile_by_value_against_top_decile_by_ratio": {
+     "available": true,
+     "days_in_each_selection": 102,
+     "days_in_both": 40,
+     "jaccard": 0.2439,
+     "note": "Value ranks on level x shape; the ratio ranks on shape alone. A tariff triggering on a published spread selects the second set and earns on the first."
+    }
+   },
+   "where_the_ratio_tail_comes_from": {
+    "available": true,
+    "days_with_a_defined_ratio": 1017,
+    "the_dearest_window_over_the_day_mean": {
+     "median": 1.307,
+     "p90": 1.581,
+     "what_it_is": "the numerator of the ratio -- how expensive the peak gets"
+    },
+    "the_cheapest_window_over_the_day_mean": {
+     "median": 0.736,
+     "p10": 0.425,
+     "what_it_is": "the denominator of the ratio -- how far the trough collapses"
+    },
+    "variance_of_the_log_ratio": {
+     "total": 0.32895,
+     "from_the_peak": 0.0222,
+     "from_the_trough": 0.22987,
+     "minus_twice_the_covariance": 0.07688,
+     "trough_share_of_the_two_variances": 0.9119
+    },
+    "the_gain_is_bounded_where_the_ratio_is_not": {
+     "median_saving_over_day_mean": 0.264,
+     "p90_saving_over_day_mean": 0.575,
+     "ceiling_on_a_day_with_a_non_negative_trough": 1.0,
+     "days_whose_trough_went_negative_and_so_exceed_it": 61,
+     "reading": "saving/mean = 1 - off_rel, so it cannot pass 1.0 while the trough stays non-negative, however far the ratio runs. The ratio has no such ceiling."
+    }
+   },
+   "products_slope_only_response": {
+    "everyday": {
+     "available": true,
+     "days_paid_on": 1017,
+     "days_paid_on_per_year": 344.6,
+     "share_of_gross_value_reachable": 0.8998,
+     "argmax_alpha": 0.505,
+     "company_gbp_per_household_year": 1.3253,
+     "household_gbp_per_household_year": 1.3521,
+     "mean_response_on_paid_days": 0.0131
+    },
+    "extreme_top_1pc": {
+     "available": true,
+     "days_paid_on": 10,
+     "days_paid_on_per_year": 3.4,
+     "share_of_gross_value_reachable": 0.0486,
+     "argmax_alpha": 0.485,
+     "company_gbp_per_household_year": 0.1323,
+     "household_gbp_per_household_year": 0.1245,
+     "mean_response_on_paid_days": 0.0277
+    },
+    "extreme_top_5pc": {
+     "available": true,
+     "days_paid_on": 51,
+     "days_paid_on_per_year": 17.3,
+     "share_of_gross_value_reachable": 0.1531,
+     "argmax_alpha": 0.5,
+     "company_gbp_per_household_year": 0.3417,
+     "household_gbp_per_household_year": 0.3417,
+     "mean_response_on_paid_days": 0.0232
+    },
+    "extreme_top_10pc": {
+     "available": true,
+     "days_paid_on": 102,
+     "days_paid_on_per_year": 34.6,
+     "share_of_gross_value_reachable": 0.2573,
+     "argmax_alpha": 0.505,
+     "company_gbp_per_household_year": 0.5344,
+     "household_gbp_per_household_year": 0.5452,
+     "mean_response_on_paid_days": 0.022
+    },
+    "extreme_top_25pc": {
+     "available": true,
+     "days_paid_on": 254,
+     "days_paid_on_per_year": 86.1,
+     "share_of_gross_value_reachable": 0.4697,
+     "argmax_alpha": 0.505,
+     "company_gbp_per_household_year": 0.8512,
+     "household_gbp_per_household_year": 0.8684,
+     "mean_response_on_paid_days": 0.0187
+    }
+   },
+   "products_fitted_response_landed_panel_convention": {
+    "everyday": {
+     "available": true,
+     "days_paid_on": 1017,
+     "days_paid_on_per_year": 344.6,
+     "share_of_gross_value_reachable": 0.8998,
+     "argmax_alpha": 0.33,
+     "company_gbp_per_household_year": 2.3738,
+     "household_gbp_per_household_year": 1.1692,
+     "mean_response_on_paid_days": 0.0195
+    },
+    "extreme_top_1pc": {
+     "available": true,
+     "days_paid_on": 10,
+     "days_paid_on_per_year": 3.4,
+     "share_of_gross_value_reachable": 0.0486,
+     "argmax_alpha": 0.39,
+     "company_gbp_per_household_year": 0.1869,
+     "household_gbp_per_household_year": 0.1195,
+     "mean_response_on_paid_days": 0.0335
+    },
+    "extreme_top_5pc": {
+     "available": true,
+     "days_paid_on": 51,
+     "days_paid_on_per_year": 17.3,
+     "share_of_gross_value_reachable": 0.1531,
+     "argmax_alpha": 0.385,
+     "company_gbp_per_household_year": 0.5126,
+     "household_gbp_per_household_year": 0.3209,
+     "mean_response_on_paid_days": 0.0289
+    },
+    "extreme_top_10pc": {
+     "available": true,
+     "days_paid_on": 102,
+     "days_paid_on_per_year": 34.6,
+     "share_of_gross_value_reachable": 0.2573,
+     "argmax_alpha": 0.38,
+     "company_gbp_per_household_year": 0.8216,
+     "household_gbp_per_household_year": 0.5036,
+     "mean_response_on_paid_days": 0.0275
+    },
+    "extreme_top_25pc": {
+     "available": true,
+     "days_paid_on": 254,
+     "days_paid_on_per_year": 86.1,
+     "share_of_gross_value_reachable": 0.4697,
+     "argmax_alpha": 0.365,
+     "company_gbp_per_household_year": 1.3829,
+     "household_gbp_per_household_year": 0.7949,
+     "mean_response_on_paid_days": 0.0244
+    }
+   },
+   "break_evens_slope_only": {
+    "available": true,
+    "everyday_company_gbp_per_household_year": 1.3253,
+    "by_trigger": {
+     "extreme_top_1pc": {
+      "company_gbp_per_household_year": 0.1323,
+      "value_forgone_gbp_per_household_year": 1.193,
+      "household_days_avoided_per_year": 361.9,
+      "running_cost_break_even_pence_per_household_day": 0.3297,
+      "attention_premium_break_even_multiple": 10.02,
+      "cac_payback_years": 207.9
+     },
+     "extreme_top_5pc": {
+      "company_gbp_per_household_year": 0.3417,
+      "value_forgone_gbp_per_household_year": 0.9836,
+      "household_days_avoided_per_year": 347.9,
+      "running_cost_break_even_pence_per_household_day": 0.2827,
+      "attention_premium_break_even_multiple": 3.88,
+      "cac_payback_years": 80.5
+     },
+     "extreme_top_10pc": {
+      "company_gbp_per_household_year": 0.5344,
+      "value_forgone_gbp_per_household_year": 0.7909,
+      "household_days_avoided_per_year": 330.6,
+      "running_cost_break_even_pence_per_household_day": 0.2392,
+      "attention_premium_break_even_multiple": 2.48,
+      "cac_payback_years": 51.5
+     },
+     "extreme_top_25pc": {
+      "company_gbp_per_household_year": 0.8512,
+      "value_forgone_gbp_per_household_year": 0.4741,
+      "household_days_avoided_per_year": 279.1,
+      "running_cost_break_even_pence_per_household_day": 0.1698,
+      "attention_premium_break_even_multiple": 1.56,
+      "cac_payback_years": 32.3
+     }
+    },
+    "everyday_cac_payback_years": 20.8,
+    "cac_gbp": 27.5
+   },
+   "break_evens_fitted": {
+    "available": true,
+    "everyday_company_gbp_per_household_year": 2.3738,
+    "by_trigger": {
+     "extreme_top_1pc": {
+      "company_gbp_per_household_year": 0.1869,
+      "value_forgone_gbp_per_household_year": 2.1869,
+      "household_days_avoided_per_year": 361.9,
+      "running_cost_break_even_pence_per_household_day": 0.6044,
+      "attention_premium_break_even_multiple": 12.7,
+      "cac_payback_years": 147.1
+     },
+     "extreme_top_5pc": {
+      "company_gbp_per_household_year": 0.5126,
+      "value_forgone_gbp_per_household_year": 1.8612,
+      "household_days_avoided_per_year": 347.9,
+      "running_cost_break_even_pence_per_household_day": 0.5349,
+      "attention_premium_break_even_multiple": 4.63,
+      "cac_payback_years": 53.6
+     },
+     "extreme_top_10pc": {
+      "company_gbp_per_household_year": 0.8216,
+      "value_forgone_gbp_per_household_year": 1.5522,
+      "household_days_avoided_per_year": 330.6,
+      "running_cost_break_even_pence_per_household_day": 0.4694,
+      "attention_premium_break_even_multiple": 2.89,
+      "cac_payback_years": 33.5
+     },
+     "extreme_top_25pc": {
+      "company_gbp_per_household_year": 1.3829,
+      "value_forgone_gbp_per_household_year": 0.9909,
+      "household_days_avoided_per_year": 279.1,
+      "running_cost_break_even_pence_per_household_day": 0.355,
+      "attention_premium_break_even_multiple": 1.72,
+      "cac_payback_years": 19.9
+     }
+    },
+    "everyday_cac_payback_years": 11.6,
+    "cac_gbp": 27.5
+   },
+   "callability": {
+    "definition_of_extreme": "the dearest 10% of days by value",
+    "extreme_days": 108,
+    "callers": [
+     {
+      "caller": "persistence",
+      "days_called_per_year": 36.6,
+      "recall_of_extreme_days": 0.3611,
+      "precision": 0.3611,
+      "share_of_extreme_day_value_captured": 0.3633,
+      "note": "call tomorrow iff today was extreme"
+     },
+     {
+      "caller": "winter",
+      "days_called_per_year": 119.3,
+      "recall_of_extreme_days": 0.6389,
+      "precision": 0.196,
+      "share_of_extreme_day_value_captured": 0.6331,
+      "note": "call every day from November to February"
+     }
+    ],
+    "what_this_bounds": "Every product figure in this artefact assumes PERFECT foresight of which days are extreme, and is therefore a ceiling. These are skill-free floors. We hold no day-ahead auction series, so the real skill is not measured here and is a NAMED GAP, not a number: the honest statement is that the truth lies between these callers and the ceiling, and the ceiling is already worth pennies."
+   }
+  },
+  {
+   "episode": "2024-2025",
+   "available": true,
+   "years": [
+    "2024",
+    "2025"
+   ],
+   "concentration_pc1_weighted": {
+    "days": 731,
+    "gross_value_gbp_per_household_year": 106.92,
+    "curve": {
+     "top_1pc_of_days": {
+      "days": 7,
+      "share_of_gross_value": 0.0442
+     },
+     "top_5pc_of_days": {
+      "days": 37,
+      "share_of_gross_value": 0.1474
+     },
+     "top_10pc_of_days": {
+      "days": 73,
+      "share_of_gross_value": 0.2449
+     },
+     "top_25pc_of_days": {
+      "days": 183,
+      "share_of_gross_value": 0.4764
+     },
+     "top_50pc_of_days": {
+      "days": 366,
+      "share_of_gross_value": 0.7318
+     }
+    },
+    "the_days_the_response_model_cannot_price": {
+     "days": 81,
+     "share_of_days": 0.1108,
+     "share_of_gross_value": 0.1748,
+     "share_of_them_that_are_in_the_top_decile_by_value": 0.2963,
+     "why": "Their cheapest window is non-positive -- a negative wholesale price. The SAVING on such a day is well defined and large; the RATIO is meaningless rather than large, and Arcturus 2.0 is a function of the log of that ratio. These are the days a shifting tariff would most want to call and they are the days it cannot be priced on. Counted here in money, never dropped silently."
+    },
+    "top_decile_by_value_against_top_decile_by_ratio": {
+     "available": true,
+     "days_in_each_selection": 65,
+     "days_in_both": 35,
+     "jaccard": 0.3684,
+     "note": "Value ranks on level x shape; the ratio ranks on shape alone. A tariff triggering on a published spread selects the second set and earns on the first."
+    }
+   },
+   "concentration_flat_weighted_landed_panel_convention": {
+    "days": 731,
+    "gross_value_gbp_per_household_year": 106.93,
+    "curve": {
+     "top_1pc_of_days": {
+      "days": 7,
+      "share_of_gross_value": 0.0404
+     },
+     "top_5pc_of_days": {
+      "days": 37,
+      "share_of_gross_value": 0.1379
+     },
+     "top_10pc_of_days": {
+      "days": 73,
+      "share_of_gross_value": 0.2369
+     },
+     "top_25pc_of_days": {
+      "days": 183,
+      "share_of_gross_value": 0.4734
+     },
+     "top_50pc_of_days": {
+      "days": 366,
+      "share_of_gross_value": 0.7272
+     }
+    },
+    "the_days_the_response_model_cannot_price": {
+     "days": 81,
+     "share_of_days": 0.1108,
+     "share_of_gross_value": 0.1857,
+     "share_of_them_that_are_in_the_top_decile_by_value": 0.3951,
+     "why": "Their cheapest window is non-positive -- a negative wholesale price. The SAVING on such a day is well defined and large; the RATIO is meaningless rather than large, and Arcturus 2.0 is a function of the log of that ratio. These are the days a shifting tariff would most want to call and they are the days it cannot be priced on. Counted here in money, never dropped silently."
+    },
+    "top_decile_by_value_against_top_decile_by_ratio": {
+     "available": true,
+     "days_in_each_selection": 65,
+     "days_in_both": 37,
+     "jaccard": 0.3978,
+     "note": "Value ranks on level x shape; the ratio ranks on shape alone. A tariff triggering on a published spread selects the second set and earns on the first."
+    }
+   },
+   "where_the_ratio_tail_comes_from": {
+    "available": true,
+    "days_with_a_defined_ratio": 650,
+    "the_dearest_window_over_the_day_mean": {
+     "median": 1.29,
+     "p90": 1.6,
+     "what_it_is": "the numerator of the ratio -- how expensive the peak gets"
+    },
+    "the_cheapest_window_over_the_day_mean": {
+     "median": 0.764,
+     "p10": 0.241,
+     "what_it_is": "the denominator of the ratio -- how far the trough collapses"
+    },
+    "variance_of_the_log_ratio": {
+     "total": 0.57753,
+     "from_the_peak": 0.02212,
+     "from_the_trough": 0.42507,
+     "minus_twice_the_covariance": 0.13034,
+     "trough_share_of_the_two_variances": 0.9505
+    },
+    "the_gain_is_bounded_where_the_ratio_is_not": {
+     "median_saving_over_day_mean": 0.236,
+     "p90_saving_over_day_mean": 0.759,
+     "ceiling_on_a_day_with_a_non_negative_trough": 1.0,
+     "days_whose_trough_went_negative_and_so_exceed_it": 81,
+     "reading": "saving/mean = 1 - off_rel, so it cannot pass 1.0 while the trough stays non-negative, however far the ratio runs. The ratio has no such ceiling."
+    }
+   },
+   "products_slope_only_response": {
+    "everyday": {
+     "available": true,
+     "days_paid_on": 650,
+     "days_paid_on_per_year": 324.8,
+     "share_of_gross_value_reachable": 0.8252,
+     "argmax_alpha": 0.505,
+     "company_gbp_per_household_year": 0.7392,
+     "household_gbp_per_household_year": 0.7541,
+     "mean_response_on_paid_days": 0.0128
+    },
+    "extreme_top_1pc": {
+     "available": true,
+     "days_paid_on": 6,
+     "days_paid_on_per_year": 3.0,
+     "share_of_gross_value_reachable": 0.039,
+     "argmax_alpha": 0.49,
+     "company_gbp_per_household_year": 0.0733,
+     "household_gbp_per_household_year": 0.0704,
+     "mean_response_on_paid_days": 0.0282
+    },
+    "extreme_top_5pc": {
+     "available": true,
+     "days_paid_on": 32,
+     "days_paid_on_per_year": 16.0,
+     "share_of_gross_value_reachable": 0.123,
+     "argmax_alpha": 0.505,
+     "company_gbp_per_household_year": 0.1892,
+     "household_gbp_per_household_year": 0.193,
+     "mean_response_on_paid_days": 0.0265
+    },
+    "extreme_top_10pc": {
+     "available": true,
+     "days_paid_on": 65,
+     "days_paid_on_per_year": 32.5,
+     "share_of_gross_value_reachable": 0.2059,
+     "argmax_alpha": 0.51,
+     "company_gbp_per_household_year": 0.2916,
+     "household_gbp_per_household_year": 0.3035,
+     "mean_response_on_paid_days": 0.0251
+    },
+    "extreme_top_25pc": {
+     "available": true,
+     "days_paid_on": 162,
+     "days_paid_on_per_year": 80.9,
+     "share_of_gross_value_reachable": 0.3922,
+     "argmax_alpha": 0.51,
+     "company_gbp_per_household_year": 0.4947,
+     "household_gbp_per_household_year": 0.5149,
+     "mean_response_on_paid_days": 0.0224
+    }
+   },
+   "products_fitted_response_landed_panel_convention": {
+    "everyday": {
+     "available": true,
+     "days_paid_on": 650,
+     "days_paid_on_per_year": 324.8,
+     "share_of_gross_value_reachable": 0.8252,
+     "argmax_alpha": 0.335,
+     "company_gbp_per_household_year": 1.3007,
+     "household_gbp_per_household_year": 0.6552,
+     "mean_response_on_paid_days": 0.0195
+    },
+    "extreme_top_1pc": {
+     "available": true,
+     "days_paid_on": 6,
+     "days_paid_on_per_year": 3.0,
+     "share_of_gross_value_reachable": 0.039,
+     "argmax_alpha": 0.41,
+     "company_gbp_per_household_year": 0.0984,
+     "household_gbp_per_household_year": 0.0684,
+     "mean_response_on_paid_days": 0.0345
+    },
+    "extreme_top_5pc": {
+     "available": true,
+     "days_paid_on": 32,
+     "days_paid_on_per_year": 16.0,
+     "share_of_gross_value_reachable": 0.123,
+     "argmax_alpha": 0.405,
+     "company_gbp_per_household_year": 0.268,
+     "household_gbp_per_household_year": 0.1824,
+     "mean_response_on_paid_days": 0.0321
+    },
+    "extreme_top_10pc": {
+     "available": true,
+     "days_paid_on": 65,
+     "days_paid_on_per_year": 32.5,
+     "share_of_gross_value_reachable": 0.2059,
+     "argmax_alpha": 0.4,
+     "company_gbp_per_household_year": 0.4237,
+     "household_gbp_per_household_year": 0.2825,
+     "mean_response_on_paid_days": 0.0305
+    },
+    "extreme_top_25pc": {
+     "available": true,
+     "days_paid_on": 162,
+     "days_paid_on_per_year": 80.9,
+     "share_of_gross_value_reachable": 0.3922,
+     "argmax_alpha": 0.39,
+     "company_gbp_per_household_year": 0.7492,
+     "household_gbp_per_household_year": 0.479,
+     "mean_response_on_paid_days": 0.028
+    }
+   },
+   "break_evens_slope_only": {
+    "available": true,
+    "everyday_company_gbp_per_household_year": 0.7392,
+    "by_trigger": {
+     "extreme_top_1pc": {
+      "company_gbp_per_household_year": 0.0733,
+      "value_forgone_gbp_per_household_year": 0.6659,
+      "household_days_avoided_per_year": 362.2,
+      "running_cost_break_even_pence_per_household_day": 0.1838,
+      "attention_premium_break_even_multiple": 10.08,
+      "cac_payback_years": 375.2
+     },
+     "extreme_top_5pc": {
+      "company_gbp_per_household_year": 0.1892,
+      "value_forgone_gbp_per_household_year": 0.55,
+      "household_days_avoided_per_year": 349.2,
+      "running_cost_break_even_pence_per_household_day": 0.1575,
+      "attention_premium_break_even_multiple": 3.91,
+      "cac_payback_years": 145.3
+     },
+     "extreme_top_10pc": {
+      "company_gbp_per_household_year": 0.2916,
+      "value_forgone_gbp_per_household_year": 0.4476,
+      "household_days_avoided_per_year": 332.8,
+      "running_cost_break_even_pence_per_household_day": 0.1345,
+      "attention_premium_break_even_multiple": 2.53,
+      "cac_payback_years": 94.3
+     },
+     "extreme_top_25pc": {
+      "company_gbp_per_household_year": 0.4947,
+      "value_forgone_gbp_per_household_year": 0.2445,
+      "household_days_avoided_per_year": 284.4,
+      "running_cost_break_even_pence_per_household_day": 0.086,
+      "attention_premium_break_even_multiple": 1.49,
+      "cac_payback_years": 55.6
+     }
+    },
+    "everyday_cac_payback_years": 37.2,
+    "cac_gbp": 27.5
+   },
+   "break_evens_fitted": {
+    "available": true,
+    "everyday_company_gbp_per_household_year": 1.3007,
+    "by_trigger": {
+     "extreme_top_1pc": {
+      "company_gbp_per_household_year": 0.0984,
+      "value_forgone_gbp_per_household_year": 1.2023,
+      "household_days_avoided_per_year": 362.2,
+      "running_cost_break_even_pence_per_household_day": 0.3319,
+      "attention_premium_break_even_multiple": 13.22,
+      "cac_payback_years": 279.5
+     },
+     "extreme_top_5pc": {
+      "company_gbp_per_household_year": 0.268,
+      "value_forgone_gbp_per_household_year": 1.0327,
+      "household_days_avoided_per_year": 349.2,
+      "running_cost_break_even_pence_per_household_day": 0.2957,
+      "attention_premium_break_even_multiple": 4.85,
+      "cac_payback_years": 102.6
+     },
+     "extreme_top_10pc": {
+      "company_gbp_per_household_year": 0.4237,
+      "value_forgone_gbp_per_household_year": 0.877,
+      "household_days_avoided_per_year": 332.8,
+      "running_cost_break_even_pence_per_household_day": 0.2636,
+      "attention_premium_break_even_multiple": 3.07,
+      "cac_payback_years": 64.9
+     },
+     "extreme_top_25pc": {
+      "company_gbp_per_household_year": 0.7492,
+      "value_forgone_gbp_per_household_year": 0.5515,
+      "household_days_avoided_per_year": 284.4,
+      "running_cost_break_even_pence_per_household_day": 0.194,
+      "attention_premium_break_even_multiple": 1.74,
+      "cac_payback_years": 36.7
+     }
+    },
+    "everyday_cac_payback_years": 21.1,
+    "cac_gbp": 27.5
+   },
+   "callability": {
+    "definition_of_extreme": "the dearest 10% of days by value",
+    "extreme_days": 73,
+    "callers": [
+     {
+      "caller": "persistence",
+      "days_called_per_year": 36.5,
+      "recall_of_extreme_days": 0.274,
+      "precision": 0.274,
+      "share_of_extreme_day_value_captured": 0.2828,
+      "note": "call tomorrow iff today was extreme"
+     },
+     {
+      "caller": "winter",
+      "days_called_per_year": 120.4,
+      "recall_of_extreme_days": 0.5205,
+      "precision": 0.1577,
+      "share_of_extreme_day_value_captured": 0.5687,
+      "note": "call every day from November to February"
+     }
+    ],
+    "what_this_bounds": "Every product figure in this artefact assumes PERFECT foresight of which days are extreme, and is therefore a ceiling. These are skill-free floors. We hold no day-ahead auction series, so the real skill is not measured here and is a NAMED GAP, not a number: the honest statement is that the truth lies between these callers and the ceiling, and the ceiling is already worth pennies."
+   }
+  }
+ ],
+ "rarity_by_year": {
+  "fixed_trigger_gbp_per_mwh": 58.452,
+  "how_the_trigger_was_set": "the 90th percentile of daily achievable saving over the WHOLE record, so one threshold is applied to every year rather than a rank recomputed inside each",
+  "years": {
+   "2016": {
+    "days": 105,
+    "days_over_the_fixed_trigger": 3,
+    "gross_value_on_those_days_gbp_per_household_year": 7.207,
+    "share_of_the_years_gross_value": 0.1056
+   },
+   "2017": {
+    "days": 356,
+    "days_over_the_fixed_trigger": 1,
+    "gross_value_on_those_days_gbp_per_household_year": 0.625,
+    "share_of_the_years_gross_value": 0.0141
+   },
+   "2018": {
+    "days": 360,
+    "days_over_the_fixed_trigger": 2,
+    "gross_value_on_those_days_gbp_per_household_year": 1.658,
+    "share_of_the_years_gross_value": 0.0336
+   },
+   "2019": {
+    "days": 356,
+    "days_over_the_fixed_trigger": 1,
+    "gross_value_on_those_days_gbp_per_household_year": 0.87,
+    "share_of_the_years_gross_value": 0.0183
+   },
+   "2020": {
+    "days": 343,
+    "days_over_the_fixed_trigger": 2,
+    "gross_value_on_those_days_gbp_per_household_year": 1.74,
+    "share_of_the_years_gross_value": 0.0284
+   },
+   "2021": {
+    "days": 349,
+    "days_over_the_fixed_trigger": 78,
+    "gross_value_on_those_days_gbp_per_household_year": 89.905,
+    "share_of_the_years_gross_value": 0.5486
+   },
+   "2022": {
+    "days": 364,
+    "days_over_the_fixed_trigger": 154,
+    "gross_value_on_those_days_gbp_per_household_year": 156.665,
+    "share_of_the_years_gross_value": 0.6433
+   },
+   "2023": {
+    "days": 365,
+    "days_over_the_fixed_trigger": 49,
+    "gross_value_on_those_days_gbp_per_household_year": 43.777,
+    "share_of_the_years_gross_value": 0.3203
+   },
+   "2024": {
+    "days": 366,
+    "days_over_the_fixed_trigger": 17,
+    "gross_value_on_those_days_gbp_per_household_year": 13.163,
+    "share_of_the_years_gross_value": 0.1275
+   },
+   "2025": {
+    "days": 365,
+    "days_over_the_fixed_trigger": 26,
+    "gross_value_on_those_days_gbp_per_household_year": 20.886,
+    "share_of_the_years_gross_value": 0.1887
+   }
+  },
+  "largest_single_years_share_of_the_decades_extreme_day_value": 0.4656,
+  "years_below_half_the_median": 4,
+  "median_year_gbp_per_household_year": 10.185,
+  "worst_year_gbp_per_household_year": 0.625,
+  "best_year_gbp_per_household_year": 156.665
+ },
+ "verdict": {
+  "answer": "MERELY RARER",
+  "why": "The concentration is real and large, and it buys nothing on its own. An extreme-day tariff pays on a SUBSET of the everyday tariff's days and every day's contribution is non-negative, so it cannot create more value -- only avoid cost. Neither of the two things that could make it the better product is established anywhere in the knowledge layer, and neither is invented here.",
+  "top_decile_share_of_gross_value_2024_2025": 0.2449,
+  "everyday_company_gbp_per_household_year": 0.7392,
+  "extreme_top_10pc_company_gbp_per_household_year": 0.2916,
+  "what_would_have_to_be_true_for_BETTER": {
+   "running_cost_of_the_everyday_tariff_above_pence_per_household_day": 0.1345,
+   "or_a_called_day_attention_premium_above": 2.53,
+   "neither_is_established": "No sourced per-household-day running cost for a domestic TOU tariff exists in docs/market_research/ or docs/domain_artefact_library/, and Arcturus 2.0 does not model a called-day attention effect. NESO's Demand Flexibility Service is the real GB product that pays only on called days and is where the premium could be settled."
+  },
+  "the_answer_that_dominates_both": {
+   "cac_gbp": 27.5,
+   "everyday_cac_payback_years": 37.2,
+   "extreme_cac_payback_years": 94.3,
+   "reading": "Both products are worth a small number of pence per household-year against a sourced GBP 27.50 acquisition cost. Choosing between them is a rounding error inside a product that does not clear recruitment on this book at this price shape under perfect foresight."
+  }
+ }
+}
