@@ -1,0 +1,163 @@
+{
+  "subject": "Domestic electricity shift response as a function of the peak-to-off-peak price ratio, and the bridge from a pass-through share to that ratio.",
+  "read_on": "2026-09-07",
+  "claim": "a49-shift-response-as-a-function-of-pass-through",
+  "working": "docs/market_research/domestic_shift_response_as_a_function_of_pass_through.md",
+  "fills_named_gap_in": "docs/observability/tou_sharing_ceiling.json",
+
+  "response_function": {
+    "form": "y = a + b*ln(price_ratio) + c*ln(price_ratio)*tech, where y is peak demand reduction as a NEGATIVE proportion and tech is 1 when enabling technology is supplied with the price",
+    "source": "Faruqui, A. & Sergici, S., 'Arcturus 2.0: A Meta-Analysis of Time-Varying Rates for Electricity', The Electricity Journal, 2017. CPUC 2017 Electric Rate Forum copy.",
+    "url": "https://www.cpuc.ca.gov/-/media/cpuc-website/divisions/energy-division/documents/electric-rates/2017-electric-rate-forum/2017-arcturus-2-0-10122017.pdf",
+    "basis": "337 pricing treatments from 63 pilots in nine countries on four continents. Robust MM-estimation (robustbase in R). Two pilots testing ratios above 35:1 dropped as extreme.",
+
+    "primary_specification": {
+      "table": "Figure 12",
+      "constant": -0.011,
+      "constant_std_error": 0.007,
+      "constant_significant": false,
+      "ln_price_ratio": -0.065,
+      "ln_price_ratio_std_error": 0.007,
+      "ln_price_ratio_x_technology": -0.046,
+      "ln_price_ratio_x_technology_std_error": 0.008,
+      "observations": 335,
+      "r_squared": 0.569
+    },
+
+    "opt_out_specification": {
+      "table": "Figure 13, column 2",
+      "why_this_one_matters_here": "A supplier moving its EXISTING book onto a time-of-use tariff is doing the opt-out thing. 84% of Arcturus treatments are opt-in, i.e. self-selected volunteers, so every unqualified ToU headline is an opt-in headline. The published penalty for opt-out is +3.9 percentage points of peak usage RETAINED, which roughly halves the response at the ratios in play.",
+      "constant": -0.028,
+      "constant_std_error": 0.009,
+      "ln_price_ratio": -0.058,
+      "ln_price_ratio_std_error": 0.007,
+      "ln_price_ratio_x_technology": -0.047,
+      "ln_price_ratio_x_technology_std_error": 0.008,
+      "opt_out_binary": 0.039,
+      "opt_out_binary_std_error": 0.009,
+      "observations": 335,
+      "r_squared": 0.588
+    },
+
+    "estimation_range_price_ratio": [2.0, 35.0],
+    "estimation_range_note": "2:1 is the lowest ratio the paper illustrates; 35:1 is the stated exclusion threshold. EVALUATING THIS ARC BELOW 2:1 IS AN EXTRAPOLATION OUTSIDE ITS SAMPLE and any caller doing so must say so on its own surface.",
+
+    "verified_against_the_papers_own_points": [
+      {"price_ratio": 2, "tech": 0, "model_reduction": 0.0561, "paper_says": "drop demand by 5% and consume 95%"},
+      {"price_ratio": 4, "tech": 0, "model_reduction": 0.1011, "paper_says": "will consume 90%"},
+      {"price_ratio": 2, "tech": 1, "model_reduction": 0.0879, "paper_says": "will consume 91%"},
+      {"price_ratio": 4, "tech": 1, "model_reduction": 0.1649, "paper_says": "will consume 84%"}
+    ]
+  },
+
+  "gb_corroboration": [
+    {
+      "trial": "Customer-Led Network Revolution (CLNR), Northern Powergrid, closedown 2015",
+      "design": "static three-band domestic ToU tariff with in-home display, 628 participants",
+      "tariff_relative_to_flat": {"peak_1600_2000": 0.99, "day_0700_1600": -0.04, "off_peak_2000_0700": -0.31},
+      "price_ratio": 2.88,
+      "observed": "approximately 10% average peak load shift; annual maximum household peak lower by 261 W of 4188 W = 6.2%",
+      "arc_predicts_opt_in": 0.080,
+      "arc_predicts_opt_out": 0.050,
+      "verdict": "The observed 6.2%-10% BRACKETS the arc's 8.0% at a ratio inside the estimation range. Strongest corroboration available."
+    },
+    {
+      "trial": "Low Carbon London (LCL), UK Power Networks / EDF Energy / Imperial College, closedown 2015",
+      "design": "dynamic ToU, 1119 households, whole of 2013, 185 price events, day-ahead notification",
+      "rates_pence_per_kwh": {"high": 67.20, "default": 11.76, "low": 3.99},
+      "price_ratio_high_over_default": 5.71,
+      "price_ratio_high_over_low": 16.84,
+      "observed": "56 W mean per-household load reduction in high-price events in winter, 34 W in summer. THE SOURCE PUBLISHES WATTS, NOT A PERCENTAGE, and does not give the denominator.",
+      "implied_percentage_range": [0.043, 0.080],
+      "implied_percentage_basis": "56 W over a winter-evening demand of 1.3 kW down to 0.7 kW. DERIVED HERE, not published.",
+      "arc_predicts_opt_in_at_5_71": 0.124,
+      "verdict": "LCL sits at roughly HALF the arc. Recorded as a disagreement, not smoothed. Direction is the conservative one."
+    }
+  ],
+
+  "gb_local_elasticities": {
+    "source": "Ofgem, 'Distributional Impact of Time of Use Tariffs', 2017, Annex D Table D.1",
+    "url": "https://www.ofgem.gov.uk/sites/default/files/docs/2017/07/distributional_impact_of_time_of_use_tariffs_1.pdf",
+    "kind": "elasticity of substitution between LCL price points, resolved to each half hour",
+    "magnitude_range": [0.03, 0.16],
+    "peak_value_and_time": {"value": 0.16, "half_hour": "15:00"},
+    "why_this_is_NOT_the_response_function": "It is LOCAL and linear in the relative price change, so reduction = eps*(ratio-1) reaches 100% by a ratio of 7.7:1 and exceeds it beyond. It cannot be extrapolated and Ofgem does not extrapolate it.",
+    "ofgem_threshold_statement": "In experiments with two prices, it is generally found that a price difference of a factor of about three is required to produce a material behavioural response.",
+    "sociodemographic_direction": "Response is highest among middle-income groups and LOWER at both ends -- wealthy households and the most constrained ('Struggling Estate', 'Young Hardship', 'Difficult Circumstances'), whose discretionary consumption is already squeezed out. A uniform response applied across a book over-predicts for exactly the households whose bills we most want to move."
+  },
+
+  "upper_witness_not_used_as_a_level": {
+    "source": "Octopus Energy, 'Agile Octopus -- A consumer-led shift to a low carbon future', 2018",
+    "url": "https://octoenergy-production-media.s3.amazonaws.com/documents/agile-report.pdf",
+    "claim": "28.19% of peak use shifted after six months",
+    "why_not_used": "Self-selected, opt-in, high-engagement population that actively chose a half-hourly wholesale-tracking tariff, with heavy EV representation. Under Arcturus's own decomposition that is the opt-in, with-enabling-technology, high-price-ratio corner. Recorded as an upper witness and carried into no figure."
+  },
+
+  "bridge_pass_through_to_price_ratio": {
+    "why_it_is_needed": "NO SOURCE MEASURES RESPONSE AGAINST PASS-THROUGH. The literature is keyed on a price ratio; the sharing frontier is keyed on a share of created value. These are different quantities and the join is arithmetic on this repository's own price series, not a number picked to fill the slot.",
+    "tariff_form": "rate(t) = R * [1 + alpha * s * (P(t)/Pbar - 1)] -- revenue-neutral at an unchanged consumption shape",
+    "ratio_form": "ratio(alpha, s) = [1 + alpha*s*(peak_rel - 1)] / [1 + alpha*s*(off_rel - 1)]",
+    "alpha": "the pass-through share, the sharing frontier's own parameter",
+    "s": "the COMMODITY SHARE of the domestic electricity unit rate. PARTLY ANCHORED, NOT INVENTED. docs/institutional/knowledge_map.md 'Cap formula' row (confidence H) carries 'wholesale (~40%)' of the cap, which makes s = 0.40 the best-supported row of the grid below rather than an arbitrary middle one.",
+    "s_residual_gap_and_its_SIGN": "The ~40% is wholesale as a share of the cap AS A WHOLE; s is the commodity share of the UNIT RATE ALONE. The standing charge carries network residual and other fixed costs the unit rate then does not, so the unit-rate commodity share is HIGHER than 0.40 -- which pushes the faced ratio, and every optimum figure, UP. The s = 0.55 row is carried for that reason. Reading the cap's unit-rate composition directly is the cheapest open job named here.",
+    "s_best_supported_row": 0.40,
+
+    "measured_price_shape": {
+      "panel": "Elexon MID via sim/market_index_history.py",
+      "coverage": "2016-09 to 2020-12",
+      "whole_days": 1520,
+      "days_with_a_positive_cheapest_window": 1483,
+      "shift_window_half_hours": 6,
+      "note": "The SAME panel and the SAME window as docs/observability/tou_sharing_ceiling.json, so the two describe one act.",
+      "within_day_wholesale_ratio_dearest_6hh_over_cheapest_6hh": {
+        "p10": 1.44, "p25": 1.56, "median": 1.77, "p75": 2.27, "p90": 3.36
+      },
+      "median_dearest_window_over_day_mean": 1.330,
+      "median_cheapest_window_over_day_mean": 0.761,
+      "THE_FINDING": "The RAW wholesale spread on this panel is 1.77:1 at the median day -- already below the 2:1 that is the lowest ratio Arcturus illustrates, and well below Ofgem's factor of three, BEFORE any retail dilution at all."
+    },
+
+    "faced_ratio_and_response": {
+      "method": "response computed PER DAY and then averaged, not the response at the average ratio -- those are different quantities through a concave function",
+      "rows": [
+        {"s": 0.40, "alpha": 0.50, "faced_ratio_p50": 1.12, "faced_ratio_p90": 1.25, "days_at_or_above_2to1": 0.001, "mean_response_opt_in": 0.0198, "mean_response_opt_out": 0.0007},
+        {"s": 0.40, "alpha": 1.00, "faced_ratio_p50": 1.26, "faced_ratio_p90": 1.56, "days_at_or_above_2to1": 0.020, "mean_response_opt_in": 0.0286, "mean_response_opt_out": 0.0053},
+        {"s": 1.00, "alpha": 0.50, "faced_ratio_p50": 1.33, "faced_ratio_p90": 1.75, "days_at_or_above_2to1": 0.053, "mean_response_opt_in": 0.0331, "mean_response_opt_out": 0.0089},
+        {"s": 1.00, "alpha": 1.00, "faced_ratio_p50": 1.77, "faced_ratio_p90": 3.36, "days_at_or_above_2to1": 0.344, "mean_response_opt_in": 0.0580, "mean_response_opt_out": 0.0310}
+      ],
+      "s_1_0_is_unphysical": "s = 1.00 is the bound where the ENTIRE unit rate tracks wholesale. Carried to show the ceiling of the bridge itself, never as a candidate."
+    }
+  },
+
+  "the_interior_optimum": {
+    "objective": "company(alpha) = created_value * response(alpha) * (1 - alpha), at shiftable share 1.0",
+    "created_value_gbp_per_household_year": 51.36,
+    "created_value_source": "docs/observability/tou_sharing_ceiling.json headline, at shiftable share 1.0",
+    "rows": [
+      {"s": 0.30, "recruitment": "opt_in",  "argmax_alpha": 0.090, "company_gbp": 0.570, "household_gbp": 0.056, "response_at_optimum": 0.0122},
+      {"s": 0.30, "recruitment": "opt_out", "argmax_alpha": 0.765, "company_gbp": 0.013, "household_gbp": 0.043, "response_at_optimum": 0.0011},
+      {"s": 0.40, "recruitment": "opt_in",  "argmax_alpha": 0.190, "company_gbp": 0.598, "household_gbp": 0.140, "response_at_optimum": 0.0144},
+      {"s": 0.40, "recruitment": "opt_out", "argmax_alpha": 0.740, "company_gbp": 0.032, "household_gbp": 0.091, "response_at_optimum": 0.0024},
+      {"s": 0.55, "recruitment": "opt_in",  "argmax_alpha": 0.270, "company_gbp": 0.659, "household_gbp": 0.244, "response_at_optimum": 0.0176},
+      {"s": 0.55, "recruitment": "opt_out", "argmax_alpha": 0.715, "company_gbp": 0.075, "household_gbp": 0.187, "response_at_optimum": 0.0051},
+      {"s": 1.00, "recruitment": "opt_in",  "argmax_alpha": 0.375, "company_gbp": 0.883, "household_gbp": 0.530, "response_at_optimum": 0.0275},
+      {"s": 1.00, "recruitment": "opt_out", "argmax_alpha": 0.645, "company_gbp": 0.266, "household_gbp": 0.483, "response_at_optimum": 0.0146}
+    ],
+    "interior_in_every_case": true,
+    "interiority_is_not_news": "The landed ceiling already proved the optimum is strictly interior from the two endpoints alone, with no elasticity. This confirms it and adds nothing there.",
+    "the_location_is_NOT_established": "argmax alpha ranges 0.09 to 0.77 across assumptions nobody has settled -- a factor of eight on the one number that was asked for. That is the difference between a tariff sharing a tenth of what it creates and one sharing three quarters.",
+    "the_level_is_negligible_on_this_panel": "GBP 0.01 to GBP 0.88 per household-year against a GBP 51.36 ceiling, and that is STILL at shiftable share 1.0 (R3's own gap, which multiplies). A realistic shiftable share takes the opt-out cases below a penny.",
+    "a_tautology_recorded_because_it_looked_like_a_result": "Scaling the whole arc by any constant leaves argmax alpha exactly unchanged -- run across x0.25 to x4, it returned 0.190 every time and reads like a robustness finding. It is arithmetic: argmax of k*f is argmax of f for any k > 0. It says nothing about the world. The location's real sensitivity is to the arc's CURVATURE, to s, and to opt-in versus opt-out, and it is not stable in any of them.",
+    "AND_THE_WHOLE_TABLE_IS_AN_EXTRAPOLATION": "Every faced ratio above except the tail of the last row is under 2:1, where Arcturus has no observations and where Ofgem says no material response should be expected. These are what the fitted arc SAYS down there, not what anybody has measured."
+  },
+
+  "verdict": "THE RESPONSE FUNCTION IS ESTABLISHED. THE INTERIOR OPTIMUM IS NOT LOCATABLE ON THIS PANEL, and the reason is named: this book's own within-day wholesale spread (median 1.77:1, and 1.26:1 at the household after realistic retail dilution at FULL pass-through) sits BELOW the range over which every published response was estimated. The binding constraint is the price shape, not the household's willingness. This does not retire the time-of-use product -- the panel ends 2020-12 by construction, before the episode when within-day spreads were widest.",
+
+  "named_gaps": [
+    "s, THE COMMODITY SHARE OF THE DOMESTIC ELECTRICITY UNIT RATE -- now PARTLY ANCHORED. The knowledge map already carries wholesale ~40% of the cap at confidence H, so s = 0.40 is the row to read. Still owed: the cap's UNIT-RATE composition rather than its bill-level split. The true s is ABOVE 0.40, so every optimum figure here is UNDERSTATED. The cheapest open job named in this file.",
+    "WHETHER THE 2021-2023 EPISODE PUTS THE RATIO INSIDE THE EVIDENCE RANGE. The panel ends 2020-12 by construction and the sharing ceiling already names this. If within-day spreads in those years reach 3:1 after retail dilution, every figure here is superseded and the product is a different question. HIGHEST-VALUE MEASUREMENT NAMED IN THIS FILE.",
+    "PERSISTENCE. LCL ran one year; 70% of its participants reported some practices persisting past the trial, which is stated preference and not a measurement. Ofgem embedded short-term elasticities only and said so.",
+    "SHIFTABLE SHARE of domestic load -- R3's gap, unchanged by this work, and it MULTIPLIES with everything here.",
+    "ANY RESPONSE TO A CARBON SIGNAL AT ZERO PASS-THROUGH. The sharing ceiling names carbon as the one thing that still moves at alpha = 0. No source read here measures a money-free domestic carbon shift response, and none is invented."
+  ]
+}
