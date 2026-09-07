@@ -132,3 +132,23 @@ def test_THE_OPEN_TOP_CATEGORY_IS_DECLARED_not_taken_as_exact():
     assert ppl.TOP_CATEGORY_IS_OPEN is True
     assert "the true mean of that tail is higher and unpublished" in flat, (
         "the open top category must say what it understates, beside the constant that does it")
+
+
+def test_THE_WORLD_CAN_CONDITION_OCCUPANCY_ON_AN_ADDRESS_and_says_when_it_did_not():
+    """The wiring, and the visible fallback that keeps it honest.
+
+    A national draw wearing a local draw's name is the independent-draw defect this whole atom
+    replaces, so `people_count_source` reports which distribution a headcount actually came from.
+    Without it a conditioned population and a national one are indistinguishable in the headcount
+    and claim entirely different things."""
+    from simulation.dwelling_records import people_count_for_area, people_count_source
+
+    assert people_count_source(None) == "national"
+    assert people_count_source("E99999999") == "national", (
+        "an area the census does not carry must report the national fallback, not claim to be "
+        "conditioned")
+    for area in (None, "E99999999"):
+        assert 1 <= people_count_for_area("C1", area) <= 8
+
+    if people_count_source("E00060274") == "output_area":
+        assert 1 <= people_count_for_area("C1", "E00060274") <= 8

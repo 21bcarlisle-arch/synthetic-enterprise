@@ -28,6 +28,7 @@ def _grid(n=4000, seed=0):
         "annual_electricity_kwh": rng.lognormal(7.9, 0.5, size=n),
         "seasonal_swing": rng.uniform(0.55, 0.75, size=n),
         "weather_sensitivity_kwh_per_degree_day": gas * rng.uniform(0.0002, 0.0006, size=n),
+        "peak_window_share": rng.uniform(0.19, 0.26, size=n),
         "insulation_ceiling_kwh": gas * rng.uniform(0.05, 0.45, size=n),
         "turndown_ceiling_kwh": gas * rng.uniform(0.04, 0.09, size=n),
     }
@@ -154,7 +155,11 @@ def test_ONLY_THE_HALF_HOURLY_SHAPE_IS_STILL_ABSENT():
 
     So electricity must now be IN, and exactly one axis may remain declared blind."""
     assert dvc.UNCOUNTED_AXES, "the uncounted axes must be enumerated, not left to prose"
-    assert "half_hourly_electricity_shape" in dvc.UNCOUNTED_AXES
+    assert "half_hourly_electricity_shape" not in dvc.UNCOUNTED_AXES, (
+        "the half-hourly shape is now an axis; leaving it on the uncounted list would understate "
+        "what the figure covers as badly as overstating it")
+    assert dvc.REDUCES_OVER.blind_to == (), (
+        "every component of the canon's subject vector must now enter the measurement")
     assert "annual_electricity_kwh" in dvc.AXES, (
         "annual electricity is observed in NEED and has no W2_19 dependency; deferring it is what "
         "kept the answer a floor")

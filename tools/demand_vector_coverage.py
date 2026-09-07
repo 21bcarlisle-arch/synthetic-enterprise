@@ -68,7 +68,7 @@ if str(PROJECT) not in sys.path:
 #: The axes that describe what a household USES. Reproducing their joint distribution is the
 #: canon's first number.
 DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh", "seasonal_swing",
-                     "weather_sensitivity_kwh_per_degree_day")
+                     "weather_sensitivity_kwh_per_degree_day", "peak_window_share")
 
 #: The axes that describe what could be DONE for a household. The canon's second number adds these,
 #: and calls it the real one: a sample that reproduces consumption perfectly can still be unable to
@@ -76,6 +76,57 @@ DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh", "seasonal_swing
 RESPONSE_AXES = ("insulation_ceiling_kwh", "turndown_ceiling_kwh")
 
 AXES = DISTRIBUTION_AXES + RESPONSE_AXES
+
+from tools.reduction_dimension import DEMAND_VECTOR, declare  # noqa: E402  (after the path fix)
+
+#: WHAT THIS INSTRUMENT'S N IS AN N FOR. The canon's section 2 vector plus the two response axes it
+#: adds, because "two households with identical gas, electricity, shape and fuel can have opposite
+#: insulation ceilings" -- so response is a component of the subject here, not a derived view of it.
+_SUBJECT = DEMAND_VECTOR + ("insulation_headroom", "turndown_headroom")
+
+#: THE DECLARATION IS WHY EVERY N HERE IS A FLOOR, and it now says something narrower than it did.
+#:
+#: IT USED TO DECLARE ANNUAL ELECTRICITY BLIND, on the reasoning that there is no non-heat electrical
+#: base in the demand model until `W2_19` lands. That bundled two axes with different dependencies:
+#: the HALF-HOURLY SHAPE needs a presence pattern and genuinely waits for `W2_19`, while ANNUAL
+#: ELECTRICITY is carried per dwelling by NEED -- 46,234 observed rows -- and waits for nothing. The
+#: director named the consequence: a floor deferred is a number not taken.
+#:
+#: `heating_fuel` leaves `blind_to` for a different reason. It is not an axis a distance is measured
+#: along -- "how far is gas from electric" is not a quantity -- but the acceptance is now run WITHIN
+#: EACH FUEL STRATUM and every stratum must pass, so the figure does distinguish fuel and saying it
+#: is blind would be false.
+#:
+#: What remains blind is the half-hourly electricity shape, and that is the whole of why this N is
+#: still a floor.
+REDUCES_OVER = declare(
+    "the sample size that reproduces the observed demand distribution and spans response",
+    kind="sufficiency",
+    of=_SUBJECT,
+    reduces_over=AXES + ("heating_fuel",),
+    derived_from={"seasonal_swing": ("seasonal_gas_shape",),
+                  # Sensitivity is how much the gas total MOVES with the weather, so it is built
+                  # from the level and the shape together rather than being a fifth thing.
+                  "weather_sensitivity_kwh_per_degree_day": ("annual_gas_kwh", "seasonal_gas_shape"),
+                  # The peak-window share IS the half-hourly shape, reduced to the statistic the
+                  # price acts on. Declared as derived from it rather than as a new component, so
+                  # the subject vector stays the canon's.
+                  "peak_window_share": ("half_hourly_electricity_shape",),
+                  "insulation_ceiling_kwh": ("insulation_headroom",),
+                  "turndown_ceiling_kwh": ("turndown_headroom",)},
+    # THE BILLING AXES CANNOT APPEAR HERE, and that absence is itself the finding. `blind_to` may
+    # only name components of the SUBJECT vector, and payment method, read pattern, arrears, moves
+    # and credit position are not in the demand vector at all -- so the declaration cannot express
+    # that this N does not span them. `UNCOUNTED_AXES` carries them instead, and the gap between
+    # what the declaration can say and what is actually missing is why the figure is published as a
+    # FLOOR rather than as a size.
+    # NOTHING IN THE SUBJECT VECTOR IS BLIND ANY MORE. Every component the canon names -- gas,
+    # electricity, seasonal shape, half-hourly shape, heating fuel -- now enters the measurement.
+    # What remains uncounted is outside the demand vector entirely (`UNCOUNTED_AXES`), which the
+    # declaration cannot express and the floor label carries instead.
+    blind_to=(),
+    joint=True,
+)
 
 #: THE TOLERANCE, AND IT IS A DECLARED CHOICE. The sample's empirical distribution must lie within
 #: this distance of the population's, everywhere, on every axis: no point of any distribution is
@@ -89,6 +140,19 @@ AXES = DISTRIBUTION_AXES + RESPONSE_AXES
 #: sample-size rule.
 DISTRIBUTION_TOLERANCE = 0.05
 
+#: The half-hourly shape, reduced to the statistic the PRICE cares about: the share of a day's
+#: electricity consumed in the 16:00-19:00 window. The canon sets the resolution by price rather
+#: than physics, and this is that resolution -- two households with identical annual kWh, one with
+#: a sharp evening peak and one flat, are a different cost to serve and a different hedge.
+#:
+#: MEASURED BEFORE IT WAS BELIEVED, and the canon's premise turned out half wrong. It says "the
+#: world rescales one national profile, so every household has the same half-hourly shape". The
+#: world does vary it: across occupancy patterns and household sizes the peak share runs 0.196 to
+#: 0.253, a 29% relative spread. But `single` and `family` come out identical to four decimals and
+#: only `elderly` differs, so THE SHAPE VARIES ON EFFECTIVELY ONE BINARY rather than on a
+#: continuum. The concern was directionally right and the literal claim was not.
+PEAK_WINDOW = slice(32, 38)
+
 #: WHAT THIS N IS BLIND TO, ENUMERATED, so no reader can take it for the size of the book. The
 #: director, 2026-09-07, refusing the figure: *"It's the number for a partial vector... the number
 #: has moved an order of magnitude every time an axis arrived: 800 with retrofit flags, 8,500 when
@@ -99,8 +163,8 @@ DISTRIBUTION_TOLERANCE = 0.05
 #: which two households can differ while matching on everything measured, and each is therefore a
 #: direction the sample is currently NOT required to span.
 UNCOUNTED_AXES = (
-    "half_hourly_electricity_shape",     # needs a presence pattern; W2_19's remaining half
-    "payment_method",                    # direct debit, standard credit, prepayment: different book
+    "payment_method_third_category",     # DD is anchored; the PPM/standard-credit split is a
+                                         # NAMED GAP in ASSUMPTIONS.md, not a rounding
     "meter_read_pattern",                # quarterly estimate against half-hourly settlement
     "arrears_position",
     "move_history",
@@ -225,6 +289,48 @@ def _fabric_for(row, *, retrofitted: bool):
             p.solar_aperture_m2, p.internal_gain_kw)
 
 
+def _peak_window_share(points: int, rng):
+    """Each household's share of daily electricity in the 16:00-19:00 window.
+
+    Computed from the world's OWN shape builder rather than invented here: `demand_model.
+    build_demand_shape` applied to the published Profile Class 1 base, per occupancy pattern and
+    household size. The three patterns are drawn at the shares `household_segments` already uses,
+    so the distribution of shapes is the world's and not a second opinion about it.
+
+    FAILS TO A CONSTANT, VISIBLY. If the profile data is absent the axis is a constant, which makes
+    it contribute nothing to any distance rather than contributing a fabricated spread -- and a
+    constant axis is detectable in the output, where an invented one would not be.
+    """
+    import numpy as np
+
+    try:
+        from sim.profile_class_1 import load_pc1_shape
+        from simulation import demand_model as dm
+        base = load_pc1_shape("2024-01-15")
+    except Exception:      # noqa: BLE001 -- see the docstring
+        return np.full(points, 0.2059)
+
+    table = {}
+    for pattern in ("single", "family", "elderly"):
+        for people in (1, 2, 3, 4, 5):
+            prop = {"heating_system": "gas_boiler", "occupancy_pattern": pattern,
+                    "assets": {}, "people_count": people}
+            try:
+                shape = dm.build_demand_shape(list(base), 8.0, "electricity", prop)
+                table[(pattern, people)] = float(sum(shape[PEAK_WINDOW]) / sum(shape))
+            except Exception:      # noqa: BLE001
+                continue
+    if not table:
+        return np.full(points, 0.2059)
+
+    keys = sorted(table)
+    #: Occupancy-pattern shares as `household_segments` holds them; sizes from the TS017 anchor.
+    weights = np.array([(0.30 if k[0] == "single" else 0.50 if k[0] == "family" else 0.20)
+                        * (0.301, 0.340, 0.160, 0.129, 0.070)[k[1] - 1] for k in keys])
+    pick = rng.choice(len(keys), size=points, replace=True, p=weights / weights.sum())
+    return np.array([table[keys[i]] for i in pick])
+
+
 def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     """A GENERATED population: modelled houses, each placed in a real GB weather cell.
 
@@ -347,10 +453,26 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
     # WEATHER SENSITIVITY IS AN AXIS, not an assumption that it is spanned. The director named it
     # among the things this figure did not confirm; it is the heat-loss coefficient in kWh per
     # degree-day, which the physics already computes, so there was no reason to leave it implicit.
-    values = np.stack([gas, elec_obs, swing, hlc * 24.0,
+    peak_share = _peak_window_share(points, rng)
+    values = np.stack([gas, elec_obs, swing, hlc * 24.0, peak_share,
                        np.maximum(0.0, gas - gas_retrofit),
                        np.maximum(0.0, gas - gas_turndown)], axis=1)
+    # PAYMENT METHOD, DRAWN AND CARRIED BUT NOT GIVEN A CONSUMPTION EFFECT. The canon keeps the
+    # physical and commercial layers separate, and this is the commercial one; inventing an
+    # under-heating effect to make it "matter" would merge them and would also be unsourced.
+    # Carried so it can STRATIFY the acceptance -- which is the whole test of whether a stratum
+    # multiplies the count even when it moves no measured axis.
+    #
+    # TWO CATEGORIES, NOT THREE, and the third is a known gap rather than a rounding. DESNZ QEP
+    # anchors the direct-debit share (72% electricity, 75% gas); ASSUMPTIONS.md records the
+    # prepayment-versus-standard-credit split of the remainder as NOT FOUND in the published
+    # commentary. Splitting it here would be inventing the number this project keeps being burnt by.
+    from simulation.population_draw import DD_SHARE_ELEC
+
+    payment = np.where(rng.random(points) < DD_SHARE_ELEC, "direct_debit", "not_direct_debit")
+
     return {"values": values, "axes": AXES, "fuel": fuel, "observed_gas": gas_obs,
+            "payment_method": payment,
             "cells": cell_pick, "cell_nation": cell_nation[cell_pick],
             "distinct_cells": int(len(set(cell_pick.tolist()))),
             "generated": True, "n_need_rows": len(rows)}
@@ -431,7 +553,7 @@ def population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     # from `W2_19`. Only the HALF-HOURLY SHAPE does, which is the dependency that was mistakenly
     # taken to cover both.
     elec = np.array([rows[ri]["_elec"] for ri in row_pick])
-    values = np.stack([gas, elec, swing, hlc * 24.0,
+    values = np.stack([gas, elec, swing, hlc * 24.0, _peak_window_share(len(gas), rng),
                        np.maximum(0.0, gas - gas_retrofit),
                        np.maximum(0.0, gas - gas_turndown)], axis=1)
     fuel = np.array([rows[ri].get("MAIN_HEAT_FUEL", "?") for ri in row_pick])
@@ -569,6 +691,29 @@ def accepts_against(sample, reference, tolerance: float = DISTRIBUTION_TOLERANCE
     return out
 
 
+def _stratum_labels(pop, n):
+    """The cross of every stratifying attribute the population carries, as one label per household.
+
+    STRATIFY ON THE CROSS RATHER THAN ON EACH ATTRIBUTE IN TURN. Requiring each fuel to pass and
+    each payment method to pass is a weaker demand than requiring each COMBINATION to pass, and the
+    combination is what a supplier actually serves: an electrically-heated prepayment household is
+    not the average of "electric" and "prepayment".
+    """
+    import numpy as np
+
+    parts = []
+    for key in ("fuel", "payment_method"):
+        value = pop.get(key)
+        if value is not None:
+            parts.append(np.asarray(value).astype(str))
+    if not parts:
+        return None
+    out = parts[0]
+    for extra in parts[1:]:
+        out = np.char.add(np.char.add(out, "|"), extra)
+    return out
+
+
 def smallest_n(pop, axes, ns=NS, replicates: int = REPLICATES, seed: int = 0,
                tolerance: float = DISTRIBUTION_TOLERANCE, reference=None):
     """The smallest n whose draw reproduces the population to within `tolerance` on every axis AND
@@ -581,11 +726,16 @@ def smallest_n(pop, axes, ns=NS, replicates: int = REPLICATES, seed: int = 0,
     # FUEL IS A STRATUM, NOT A COORDINATE. Standardising a three-level category and mixing it into
     # a distance would make "how far is gas from electric" a number, which it is not. Stratified,
     # the minority fuel must be reproduced in its own right rather than swamped by the 81%.
-    fuel = np.asarray(pop.get("fuel")) if pop.get("fuel") is not None else None
+    # THE STRATUM KEY IS THE CROSS, not one attribute. Two fuels x two payment methods is four
+    # groups and each must be reproduced in its own right -- which is exactly the claim under test:
+    # a stratum multiplies the count even when it moves no measured axis, because coverage is owed
+    # per group rather than per population.
+    labels = _stratum_labels(pop, len(values))
     strata = None
-    if fuel is not None and len(set(fuel.tolist())) > 1:
-        strata = {f: (_Reference(values[fuel == f][:, keep], axes), np.flatnonzero(fuel == f))
-                  for f in sorted(set(fuel.tolist()))}
+    if labels is not None and len(set(labels.tolist())) > 1:
+        strata = {f: (_Reference(values[labels == f][:, keep], axes), np.flatnonzero(labels == f))
+                  for f in sorted(set(labels.tolist()))}
+    fuel = labels
     rng = np.random.default_rng(seed)
     verdicts, answer = {}, None
     for n in ns:
@@ -771,6 +921,18 @@ def accepts_weighted(sample, weights, reference, tolerance: float = DISTRIBUTION
     return out
 
 
+def _positions(members, chosen):
+    """Indices of `chosen` WITHIN `members` -- `fit_weights` indexes the array it is given.
+
+    A stratum's fit runs over that stratum's own rows, so the chosen cases must be addressed by
+    their position inside it rather than by their position in the population.
+    """
+    import numpy as np
+
+    lookup = {int(m): i for i, m in enumerate(members)}
+    return np.array([lookup[int(c)] for c in chosen])
+
+
 def smallest_n_chosen(pop, axes, ns=CHOSEN_NS, seed: int = 0,
                       tolerance: float = DISTRIBUTION_TOLERANCE, reference=None):
     """The smallest DELIBERATELY-CHOSEN, WEIGHTED sample that reproduces the population.
@@ -791,14 +953,60 @@ def smallest_n_chosen(pop, axes, ns=CHOSEN_NS, seed: int = 0,
     subset = values[:, keep]
     reference = reference if reference is not None else _Reference(subset, axes)
     verdicts, answer = {}, None
+    labels = _stratum_labels(pop, len(values))
+    # PER-STRATUM REFERENCES BUILT ONCE, not per ladder step. Each one projects its stratum onto 64
+    # directions, and the first version rebuilt all four inside the loop -- the same defect this
+    # module already fixed for the population reference, committed again one level down. It ran for
+    # twenty-five minutes without finishing.
+    stratum_refs = {}
+    if labels is not None and len(set(labels.tolist())) > 1:
+        for f in sorted(set(labels.tolist())):
+            members = np.flatnonzero(labels == f)
+            stratum_refs[f] = (_Reference(subset[members], axes), members)
     for k in ns:
         if k >= len(subset):
             break
-        chosen = choose_for_difference(subset, k, seed=seed, fuel=pop.get("fuel"))
-        weights = fit_weights(subset, chosen, reference)
+        chosen = choose_for_difference(subset, k, seed=seed, fuel=labels)
+        if stratum_refs:
+            # WEIGHTS FITTED WITHIN EACH STRATUM, and the first version's were not. It fitted ONE
+            # global weight vector to reproduce the population, then scored each stratum's
+            # sub-sample against that stratum's own distribution -- asking a sub-sample to match a
+            # distribution its weights were never fitted to, which it can only do by luck. It
+            # returned "no size accepts" at every tolerance, and that would have read as a
+            # gigantic sample requirement rather than as a broken criterion.
+            #
+            # Fitting per stratum is also the CORRECT reading of "the mass it stands for": strata
+            # partition the population, so a set of within-stratum weights aggregates to the
+            # population weights exactly.
+            weights = np.zeros(len(chosen), dtype=float)
+            for f, (ref_f, members) in stratum_refs.items():
+                where = labels[chosen] == f
+                inside = chosen[where]
+                if len(inside) < 2:
+                    continue
+                share = len(members) / len(subset)
+                w_f = fit_weights(subset[members], _positions(members, inside), ref_f)
+                total = w_f.sum() or 1.0
+                weights[where] = w_f / total * share
+        else:
+            weights = fit_weights(subset, chosen, reference)
         result = accepts_weighted(subset[chosen], weights, reference, tolerance=tolerance)
         worst = max(v["d"] for v in result.values())
         ok = all(v["accepts"] for v in result.values())
+        # EVERY STRATUM IN ITS OWN RIGHT, for the chosen design too. Without this the chosen path
+        # would be scored against the population only, while the random comparator is scored per
+        # stratum -- and the two numbers would not be answering the same question.
+        if stratum_refs:
+            for f, (ref_f, _members) in stratum_refs.items():
+                inside = chosen[labels[chosen] == f]
+                if len(inside) < 2:
+                    ok = False
+                    worst = max(worst, 1.0)
+                    continue
+                w_f = weights[labels[chosen] == f]
+                r_f = accepts_weighted(subset[inside], w_f, ref_f, tolerance=tolerance)
+                ok = ok and all(v["accepts"] for v in r_f.values())
+                worst = max(worst, max(v["d"] for v in r_f.values()))
         verdicts[len(chosen)] = {"worst_ks_distance": round(worst, 4), "accepts": ok,
                                  "carrying_weight": int((weights > 1e-9).sum()),
                                  "tolerance": tolerance}

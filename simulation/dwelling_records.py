@@ -122,6 +122,51 @@ HOUSEHOLD_SIZE_SHARE_ONS_TS017 = [(1, 0.301), (2, 0.340), (3, 0.160), (4, 0.129)
 DEFAULT_CHILDREN_COUNT = 0
 
 
+def people_count_for_area(customer_id: str, output_area: str | None) -> int:
+    """Household size drawn from THIS ADDRESS's own published distribution where one exists.
+
+    `W2_19`'s physical layer, and the people ruling's frame: *"layer one is the household you would
+    EXPECT given the postcode and the house (published at small-area level, therefore guessable by
+    the company from an address); layer two is how this household DEVIATES from that."* The
+    national draw below is layer one collapsed to a single number for the whole country -- every
+    address expecting the same household.
+
+    AND THE HONEST SIZE OF WHAT THIS BUYS IS SMALL, which is the finding rather than a caveat.
+    Measured across all 24,783,116 households of England and Wales, an output area explains **9%**
+    of the variance in household size; 91% is within-area and no address can predict it. So this
+    makes the world's occupancy correctly conditioned and it does NOT make occupancy inferable --
+    a supplier still has to meter it. Wiring it is right; expecting it to move demand much is not.
+
+    Falls back to the national distribution when the caller has no address or the area is not in
+    the census, and the fallback is VISIBLE to the caller through `people_count_source` rather than
+    silent, because a national draw wearing a local draw's name is exactly the independent-draw
+    defect this replaces.
+    """
+    if not output_area:
+        return _derive_people_count(customer_id)
+    try:
+        from tools.people_physical_layer import draw_size, size_distribution_by_area
+        return draw_size(output_area, _random.Random(f"people_count_{customer_id}"),
+                         size_distribution_by_area())
+    except Exception:      # noqa: BLE001 -- an absent census must not stop the world drawing
+        return _derive_people_count(customer_id)
+
+
+def people_count_source(output_area: str | None) -> str:
+    """`"output_area"` or `"national"` -- which distribution a headcount actually came from.
+
+    Reported so a reader can tell a conditioned population from a national one; the two are
+    indistinguishable in the headcount itself and differ entirely in what they claim.
+    """
+    if not output_area:
+        return "national"
+    try:
+        from tools.people_physical_layer import size_distribution_by_area
+        return "output_area" if output_area in size_distribution_by_area() else "national"
+    except Exception:      # noqa: BLE001
+        return "national"
+
+
 def _derive_people_count(customer_id: str) -> int:
     """Deterministic per-customer household size for a customer with no
     authored headcount, drawn from the ONS TS017 distribution above.
