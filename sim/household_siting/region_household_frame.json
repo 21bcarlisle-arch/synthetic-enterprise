@@ -1,16 +1,16 @@
 {
   "source": "Census 2021 TS041 + OS Open UPRN + ONSPD (RGN25CD) + HadUK-Grid 1 km normals",
   "placement": "tools.weather_cell_weights.census_weights(group_of=ONS region)",
-  "cells": 144542,
-  "households": 24664503,
+  "cells": 179931,
+  "households": 27129010,
   "diagnostics": {
     "no_output_area": 0,
     "output_area_not_in_census": 0,
-    "output_area_outside_the_grouping": 46270,
+    "output_area_outside_the_grouping": 0,
     "census_areas_with_no_live_postcode": 128,
     "output_areas_placed_on_centroids_for_want_of_an_address": 0,
-    "cells_off_the_land_grid": 1918,
-    "households_off_the_land_grid": 115364,
+    "cells_off_the_land_grid": 3812,
+    "households_off_the_land_grid": 154127,
     "per_region": {
       "East": {
         "cells": 19057,
@@ -36,6 +36,11 @@
         "cells": 12372,
         "households": 3143477,
         "households_off_the_land_grid": 9657
+      },
+      "Scotland": {
+        "cells": 35389,
+        "households": 2464507,
+        "households_off_the_land_grid": 38763
       },
       "South East": {
         "cells": 19417,
@@ -69,11 +74,15 @@
       "London",
       "North East",
       "North West",
+      "Scotland",
       "South East",
       "South West",
       "Wales",
       "West Midlands",
       "Yorkshire and The Humber"
+    ],
+    "regions_the_curriculum_does_not_draw": [
+      "Scotland"
     ]
   }
 }
