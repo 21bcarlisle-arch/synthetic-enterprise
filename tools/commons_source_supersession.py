@@ -38,6 +38,9 @@ REFUSED -- all offline, all deterministic, none needing a network:
   ENUMERATED   a verdict outside {current, superseded, cannot_tell}.
   ACTIONED     a `superseded` verdict that names no open finding. Recording that a source has moved
                and then doing nothing is the CM levy failure with extra paperwork.
+  OWNED        a `cannot_tell` verdict that names no open finding. THE SAME OBLIGATION, on the
+               verdict that had none until 2026-09-08, and it is the one that actually cost us. See
+               below.
   HONEST       a version token that disagrees with the version in its own URL, or a token claimed
                where the source publishes none. This is the prose-vs-record drift that let "v1.8"
                sit beside a record that had moved to v1.11, mechanised.
@@ -45,6 +48,29 @@ REFUSED -- all offline, all deterministic, none needing a network:
                to put the question -- for one source it is a filename token, for another a CKAN
                `metadata_modified`, for a third a page's own "last updated". Nobody should have to
                work that out twice.
+
+WHY `cannot_tell` CARRIES THE SAME OBLIGATION AS `superseded`, ADDED 2026-09-08
+-------------------------------------------------------------------------------
+Until this leg existed, `cannot_tell` was enumerated as legal and required to carry nothing at all:
+no reason, no diagnosis, no owner. It was exactly as acceptable as `current`. That is how
+`ofgem_cap_unit_rate_composition` sat TWELVE Ofgem editions stale -- its `how_to_recheck` sent the
+reader to a page that has never linked the cap level model, so the recipe terminated in
+`cannot_tell` every time it was run, forever, while reading as though the question had been asked.
+RECHECKABLE did not catch it either: that leg refuses only an EMPTY recipe, and this one was
+detailed, careful and unrunnable.
+
+**"We cannot tell" is a finding about our own instrument, and it must be filed like one.** A source
+that has moved and a source we cannot ask are the same debt: both mean the number travels as law
+while the doubt travels as prose, which is the CM levy failure in one sentence.
+
+A WEAKER LEG WAS CONSIDERED AND REJECTED ON EVIDENCE, not on taste. The obvious version -- "a
+`cannot_tell` must name a REASON" -- is satisfied by every instance it exists to refuse. All four
+`cannot_tell` blocks ever committed to this commons carried articulate prose, and two of them
+asserted their own honesty in it ("An honest cannot_tell, with the missing thing named"; "recorded
+rather than a guess"). They were honest. Honesty was never the missing thing. So the leg demands an
+ACT -- a filed finding, present in the tree -- because a stuck block can always supply another
+sentence and cannot supply that. None of the four carried an `open_finding`; the leg refuses all
+four, which is its reachability evidence on real bytes.
 
 NOT REFUSED: age. An artefact whose last check is old is a thing to schedule, not a thing to block a
 commit on. A control keyed to age goes red for a reason nobody can act on inside the commit that
@@ -69,6 +95,23 @@ from pathlib import Path
 COMMONS = Path(__file__).resolve().parent.parent / "docs" / "domain_artefact_library"
 
 VERDICTS = ("current", "superseded", "cannot_tell")
+
+#: The verdicts that leave a DEBT, and the leg that refuses one recorded without an owner. Both mean
+#: the artefact's number travels as law while the doubt travels as prose; they differ only in whether
+#: we know the source moved or cannot find out. `current` is the only verdict that settles anything,
+#: so it is the only one that owes nothing.
+UNRESOLVED_VERDICTS: dict[str, tuple[str, str]] = {
+    "superseded": (
+        "ACTIONED",
+        "knowing the source moved and doing nothing is the CM levy failure with extra paperwork",
+    ),
+    "cannot_tell": (
+        "OWNED",
+        "a recipe that does not terminate reads exactly like a question that was answered, and "
+        "this is the verdict `ofgem_cap_unit_rate_composition` sat at for twelve Ofgem editions. "
+        "Not being able to ask is a finding about our own instrument and is filed like one",
+    ),
+}
 
 TOKEN_KINDS = (
     # the version is written into the source URL itself, so a revision changes the URL
@@ -259,23 +302,24 @@ def check_artefact(path: Path, today: date) -> list[Refusal]:
         out.append(
             Refusal(name, "ENUMERATED", f"verdict {found_verdict!r} is not one of {VERDICTS}")
         )
-    elif found_verdict == "superseded":
+    elif found_verdict in UNRESOLVED_VERDICTS:
+        leg, why = UNRESOLVED_VERDICTS[found_verdict]
         finding = checked.get("open_finding")
         if not isinstance(finding, str) or not finding.strip():
             out.append(
                 Refusal(
                     name,
-                    "ACTIONED",
-                    "recorded `superseded` and names no `open_finding` -- knowing the source moved "
-                    "and doing nothing is the CM levy failure with extra paperwork",
+                    leg,
+                    f"recorded `{found_verdict}` and names no `open_finding` -- {why}",
                 )
             )
         elif not (COMMONS.parent.parent / finding).exists():
             out.append(
                 Refusal(
                     name,
-                    "ACTIONED",
-                    f"`open_finding` names {finding}, which is not in the tree",
+                    leg,
+                    f"recorded `{found_verdict}` and its `open_finding` names {finding}, which is "
+                    "not in the tree",
                 )
             )
 
