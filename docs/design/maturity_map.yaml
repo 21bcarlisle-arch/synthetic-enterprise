@@ -1780,19 +1780,24 @@
   # because C1/C2/C3 precede them in book ORDER. Every live premise resolves exactly as before
   # (18/18 unchanged); three mutations of the new guards are killed by the two controls added.
   # THE PULL IS THEREFORE THE WHOLE GAP AGAIN, which is what block_reason says.
-  block_reason: "L1->L2 is blocked ON THE ARCHIVE, and this is the first restatement whose subject
-    is not a lookup. The three that preceded it are kept in the note above because each was true
-    when written and each was closed: the partition (W1_23's precondition, not this atom's), the
-    supply book's locations (all I&C), the drawn coordinate (W2_18, ec8a18710), and this atom's own
-    seven-key artefact (348017b1e, 2026-09-07). Measured after the re-cut, seed 7,
-    draw_region=True: 210/210 drawn households RESOLVE and 2 match an archive site, so the accept
-    branch is reachable from the world's own population. The other 208 resolve and match nothing --
-    four Open-Meteo pulls (C1-C4) against 21 cells per driver covers 2.0% of GB households on all
-    three drivers at once. MORE PULLS IS THE WHOLE GAP, and it is externally blocked, not
-    sequenced: Birmingham re-probed 2026-09-06, still HTTP 429 'Daily API request limit exceeded'.
-    Held by `test_both_legs_of_the_substitution_are_reachable_from_the_population_that_uses_it`,
-    which goes red if the accept branch ever empties out of the drawn population, and by
-    `test_the_two_artefacts_were_cut_by_the_same_partition`. Staged SEAT_RESULT 2026-09-07."
+  block_reason: "ARCHIVE BREADTH, and for the first time nothing is in front of it. This field is
+    REPLACED 2026-09-07 (later tick) and the version it replaces is kept below, because it named a
+    precondition that was already spent when it was read and it sent a draw at work HEAD had done.
+    It read: 210/210 drawn households SITED and 0/210 RESOLVE, `locations` is a 7-entry table keyed
+    to ~11 m, so the move is to cut the artefact over the looked-up population.
+    THAT IS DONE, at HEAD, by the OTHER of two lanes that each built it: `3ea2bd641` cuts over
+    `occupied_land_cells.csv`, all 175,188 occupied 1 km GB land cells. RE-MEASURED at clean HEAD
+    against committed data, seed 7, draw_region=True: 210/210 sited AND 210/210 resolve, including
+    17/17 Scottish -- so the curriculum's eleventh region needed nothing from this atom. The
+    competing frame-cut build (139,938 `frame_locations`) was uncommitted, could not collect, and is
+    preserved in salvage `16a127b74`; the shared tree is restored to HEAD's design and green at 14.
+    WHAT REMAINS IS A DATA PULL, NOT CODE HERE: four real archive sites against 21 cells per driver
+    cover 2.0% of GB households on all three drivers at once, and 203 of 175,188 land cells reach a
+    site. THE OPEN-METEO 429 HAS CLEARED -- re-probed by hand 2026-09-07, 2 records returned at
+    Birmingham, against 'try again tomorrow' on 2026-09-06. Sequence: re-land `_has_archive` from
+    `16a127b74` FIRST (HEAD's resi-electricity predicate cannot resolve the second premise of each
+    I&C coordinate pair, and admits C7/C8/C9 which hold no CSV -- correct today only by book ORDER),
+    then pull. Staged SEAT_FINDING_TWO_LANES_BUILT_W1_14S_ARTEFACT_CUT_TWICE 2026-09-07."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']
