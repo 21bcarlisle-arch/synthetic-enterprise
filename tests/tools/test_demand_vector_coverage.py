@@ -16,10 +16,11 @@ from tools import demand_vector_coverage as dvc
 def _grid(n=4000, seed=0):
     rng = np.random.default_rng(seed)
     gas = rng.lognormal(9.2, 0.6, size=n)
+    elec = rng.lognormal(7.9, 0.5, size=n)
     swing = rng.uniform(0.55, 0.75, size=n)
     insulation = gas * rng.uniform(0.05, 0.45, size=n)
     turndown = gas * rng.uniform(0.04, 0.09, size=n)
-    return np.stack([gas, swing, insulation, turndown], axis=1)
+    return np.stack([gas, elec, swing, insulation, turndown], axis=1)
 
 
 def test_THE_BAR_DOES_NOT_LOOSEN_AS_THE_SAMPLE_SHRINKS():
@@ -55,14 +56,15 @@ def test_THE_JOINT_CATCHES_WHAT_THE_MARGINS_CANNOT():
     rng = np.random.default_rng(2)
     n = 4000
     gas = rng.lognormal(9.2, 0.6, size=n)
+    elec = rng.lognormal(7.9, 0.5, size=n)
     ceiling = rng.uniform(200.0, 6000.0, size=n)
     swing = rng.uniform(0.55, 0.75, size=n)
     turndown = rng.uniform(150.0, 900.0, size=n)
 
-    aligned = np.stack([np.sort(gas), swing, np.sort(ceiling), turndown], axis=1)
-    opposed = np.stack([np.sort(gas), swing, np.sort(ceiling)[::-1], turndown], axis=1)
+    aligned = np.stack([np.sort(gas), elec, swing, np.sort(ceiling), turndown], axis=1)
+    opposed = np.stack([np.sort(gas), elec, swing, np.sort(ceiling)[::-1], turndown], axis=1)
 
-    for j in range(4):
+    for j in range(5):
         assert dvc.ks_distance(aligned[:, j], opposed[:, j]) == pytest.approx(0.0, abs=1e-12), (
             f"axis {j} differs between the two populations, so this fixture no longer isolates "
             "the joint")
@@ -132,16 +134,26 @@ def test_THE_CEILING_IS_WHAT_IS_LEFT_TO_DO_not_what_a_bare_fabric_would_gain():
         "the sample cannot tell the canon's two households apart")
 
 
-def test_THE_ELECTRICITY_AXES_ARE_DECLARED_ABSENT_and_every_N_is_a_floor():
-    """The director's sequencing decision is to measure now on the heat-driven axes and re-measure
-    when `W2_19` lands. An N reported without that caveat reads as a final answer, and adding axes
-    can only raise it."""
+def test_ONLY_THE_HALF_HOURLY_SHAPE_IS_STILL_ABSENT():
+    """THE CORRECTION THE DIRECTOR FORCED. This used to assert that annual electricity was absent,
+    and that was a real deferral dressed as a dependency: the HALF-HOURLY SHAPE needs a presence
+    pattern and waits for `W2_19`; ANNUAL ELECTRICITY is carried per dwelling by NEED and waits for
+    nothing. Bundling them deferred the axis that turns a floor into a number.
+
+    So electricity must now be IN, and exactly one axis may remain declared blind."""
+    assert "annual_electricity_kwh" in dvc.AXES, (
+        "annual electricity is observed in NEED and has no W2_19 dependency; deferring it is what "
+        "kept the answer a floor")
+    # THE DECLARATION IS ASSERTED BY THE LANE THAT OWNS IT, not duplicated here. The AST census
+    # (`tools/reduction_dimension.py`) spans twelve modules and lands as one change; its own suite
+    # checks every declaration including this module's. A `hasattr` guard here did not work and
+    # should not have: the symbol-landing check reads references STATICALLY, so a guarded reference
+    # to a symbol no blob supplies is still a consumer without a supplier -- and reaching for
+    # `getattr` to slip past it would be evading a control rather than satisfying it.
     import re
 
-    source = (dvc.PROJECT / "tools" / "demand_vector_coverage.py").read_text(encoding="utf-8")
-    flat = re.sub(r"\s*#:?\s+", " ", source)
-
-    assert "annual_electricity_kwh" not in dvc.AXES
-    assert "NAMED ABSENT" in flat
-    assert "every N here is a FLOOR" in flat, (
-        "the floor caveat must sit in the module, not only in a report that gets summarised away")
+    flat = re.sub(r"\s*#:?\s+", " ",
+                  (dvc.PROJECT / "tools" / "demand_vector_coverage.py").read_text(encoding="utf-8"))
+    assert "half_hourly_electricity_shape" in flat, (
+        "the one axis still waiting on W2_19 must be named in the module, or the floor caveat "
+        "survives only in a report that gets summarised away")

@@ -66,7 +66,7 @@ if str(PROJECT) not in sys.path:
 
 #: The axes that describe what a household USES. Reproducing their joint distribution is the
 #: canon's first number.
-DISTRIBUTION_AXES = ("annual_gas_kwh", "seasonal_swing")
+DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh", "seasonal_swing")
 
 #: The axes that describe what could be DONE for a household. The canon's second number adds these,
 #: and calls it the real one: a sample that reproduces consumption perfectly can still be unable to
@@ -128,8 +128,30 @@ def _need_rows():
         raise FileNotFoundError(
             f"{need.NEED_CSV} is absent. This measurement is against DESNZ NEED's observed stock; "
             "there is no substitute that carries the installed-measure flags.")
+    def _number(row, column):
+        try:
+            return float(row.get(column))
+        except (TypeError, ValueError):
+            return None
+
     with need.NEED_CSV.open(encoding="utf-8-sig") as fh:
-        return [r for r in csv.DictReader(fh) if r.get("Gcons2024") not in (None, "", "NA")]
+        rows = list(csv.DictReader(fh))
+    # SELECTED ON ELECTRICITY, NOT GAS, and the first version's filter was a silent exclusion.
+    # Filtering on `Gcons2024` kept only dwellings that HAVE a gas meter: 39,502 rows, every one of
+    # them MAIN_HEAT_FUEL = 1. The entire non-gas stratum -- 8,547 dwellings, 18.5% of the stock --
+    # was absent from a measurement whose own canon says "gas-heated and electrically-heated
+    # households at the same total are not the same case at all". Electricity is near-universal, so
+    # selecting on it keeps both fuels; gas is then a QUANTITY that is zero for a home without it,
+    # which is what a home without gas actually consumes.
+    kept = []
+    for row in rows:
+        elec = _number(row, "Econs2024")
+        if elec is None:
+            continue
+        row["_elec"] = elec
+        row["_gas"] = _number(row, "Gcons2024") or 0.0
+        kept.append(row)
+    return kept
 
 
 def _fabric_for(row, *, retrofitted: bool):
@@ -241,11 +263,15 @@ def population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     swing = np.full(points, float(coldest.sum()) / len(doys))
     swing = swing * (1.0 + 0.15 * (hlc - hlc.mean()) / (hlc.std() or 1.0))
 
-    values = np.stack([gas, swing,
+    # OBSERVED electricity, not modelled: NEED carries it per dwelling, so this axis needs nothing
+    # from `W2_19`. Only the HALF-HOURLY SHAPE does, which is the dependency that was mistakenly
+    # taken to cover both.
+    elec = np.array([rows[ri]["_elec"] for ri in row_pick])
+    values = np.stack([gas, elec, swing,
                        np.maximum(0.0, gas - gas_retrofit),
                        np.maximum(0.0, gas - gas_turndown)], axis=1)
     fuel = np.array([rows[ri].get("MAIN_HEAT_FUEL", "?") for ri in row_pick])
-    observed = np.array([float(rows[ri]["Gcons2024"]) for ri in row_pick])
+    observed = np.array([rows[ri]["_gas"] for ri in row_pick])
     return {"values": values, "axes": AXES, "fuel": fuel, "observed_gas": observed,
             "cells": cell_pick, "rows": row_pick, "n_need_rows": len(rows)}
 
@@ -388,6 +414,14 @@ def smallest_n(pop, axes, ns=NS, replicates: int = REPLICATES, seed: int = 0,
     values = np.asarray(pop["values"])
     keep = [AXES.index(a) for a in axes]
     reference = reference if reference is not None else _Reference(values[:, keep], axes)
+    # FUEL IS A STRATUM, NOT A COORDINATE. Standardising a three-level category and mixing it into
+    # a distance would make "how far is gas from electric" a number, which it is not. Stratified,
+    # the minority fuel must be reproduced in its own right rather than swamped by the 81%.
+    fuel = np.asarray(pop.get("fuel")) if pop.get("fuel") is not None else None
+    strata = None
+    if fuel is not None and len(set(fuel.tolist())) > 1:
+        strata = {f: (_Reference(values[fuel == f][:, keep], axes), np.flatnonzero(fuel == f))
+                  for f in sorted(set(fuel.tolist()))}
     rng = np.random.default_rng(seed)
     verdicts, answer = {}, None
     for n in ns:
@@ -402,8 +436,22 @@ def smallest_n(pop, axes, ns=NS, replicates: int = REPLICATES, seed: int = 0,
             # columns were read off the end of the array -- a sizing answer would have come from
             # whatever those indices hit.
             result = accepts_against(values[pick][:, keep], reference, tolerance=tolerance)
+            ok = all(v["accepts"] for v in result.values())
             worst = max(worst, max(v["d"] for v in result.values()))
-            passed += all(v["accepts"] for v in result.values())
+            if strata:
+                for f, (ref_f, members) in strata.items():
+                    # Vectorised: the list-comprehension form was O(n) PYTHON per stratum per
+                    # replicate, and the ladder runs it tens of thousands of times at sizes up to
+                    # 30,000. Same selection, one numpy pass.
+                    inside = pick[fuel[pick] == f]
+                    if len(inside) < 2:
+                        ok = False          # a stratum with no draw is not a reproduced stratum
+                        worst = max(worst, 1.0)
+                        continue
+                    r_f = accepts_against(values[inside][:, keep], ref_f, tolerance=tolerance)
+                    ok = ok and all(v["accepts"] for v in r_f.values())
+                    worst = max(worst, max(v["d"] for v in r_f.values()))
+            passed += ok
         verdicts[n] = {"replicates_passed": passed, "of": replicates,
                        "worst_ks_distance": round(worst, 4),
                        "tolerance": tolerance}
@@ -454,7 +502,7 @@ def measurement(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
         "population_points": int(len(values)),
         "need_dwellings": pop["n_need_rows"],
         "axes_measured": list(AXES),
-        "axes_named_absent": ["annual_electricity_kwh", "half_hourly_electricity_shape"],
+        "axes_named_absent": ["half_hourly_electricity_shape"],
         "alpha": ALPHA,
         "tolerance": DISTRIBUTION_TOLERANCE,
         "replicates": REPLICATES,
