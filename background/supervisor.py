@@ -255,7 +255,7 @@ IDLE_DISCOVER_FRAME_CONCURRENT_WIDTH = 2
 # `tick-cadence-restore.timer` -- a systemd timer rather than a sleeping shell, which this box
 # reaps at 90 minutes. The restore lands through surgical_land and moves this constant AND its
 # guard test together, because reverting one without the other reds the tree.
-MAX_CONCURRENT_FORKS = 2
+MAX_CONCURRENT_FORKS = 1
 
 # THREE_LANES.md (2026-07-13, director-decided, "mechanise the three-lane
 # draw so the supervisor draws SITE and DISCOVERY every cycle regardless of

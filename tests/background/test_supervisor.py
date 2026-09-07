@@ -731,12 +731,20 @@ def test_live_fork_ceiling_matches_its_dated_fence_and_expires_with_it(monkeypat
     _stub_lanes(monkeypatch, 3, 3, 6)
     draw = supervisor._self_refill_draw()
 
-    assert f"<={expected} concurrent Agent forks" in draw       # doorbell STATES the live ceiling
+    # The ceiling SENTENCE belongs to the THREE-LANE section path, NOT to every width. At width 1 a
+    # lone BUILD atom takes the byte-preserved single-atom fast path (supervisor.py ~5580), which
+    # states no fork budget at all because existing NTFY parsing pins it byte-for-byte. The first
+    # draft of this fence hoisted the sentence above the branch: true at 2, and unreachable-false at
+    # 1, so the post-expiry leg had never been run when it was written and it red on the restore
+    # rather than on the defect it fences. What each width actually STATES is asserted below.
     if widened:
+        assert "<=2 concurrent Agent forks" in draw             # doorbell STATES the live ceiling
         assert "2 CONCURRENT disjoint atoms" in draw, draw[-300:]
         assert draw.rstrip().endswith("B0; B1"), draw[-120:]    # BUILD priority fills the budget
     else:
-        assert "CONCURRENT disjoint atoms" not in draw          # the serial fast path
+        assert draw.startswith("self-refill from maturity map (dial-weighted): ")  # the fast path
+        assert "CONCURRENT" not in draw and "THREE-LANE" not in draw
+        assert "one Agent fork per atom" not in draw
         assert draw.rstrip().endswith("B0"), draw[-120:]        # 12 eligible -> exactly ONE
 
     monkeypatch.setattr(supervisor, "MAX_CONCURRENT_FORKS", 99)   # mutation: neuter the ceiling
