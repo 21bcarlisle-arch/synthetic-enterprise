@@ -107,9 +107,20 @@ class TestCCLLedgerRateForYear:
         assert ledger.rate_for_year(2022, CCLFuel.GAS) == pytest.approx(0.465)
 
     def test_rate_for_unknown_year_closest(self):
+        """A year past the table's end is served the LAST TABULATED rate.
+
+        RE-KEYED 2026-09-07 TO THE PROPERTY, NOT TO TODAY'S ANSWER. This asserted
+        `_CCL_ELECTRICITY_P_KWH[2025]` by literal year, so it went RED the moment the table
+        was extended to the published 2026 and 2027 columns -- red because the table became
+        MORE honest, which is exactly backwards, and it would have stayed green if the clamp
+        had silently stopped working. The clamp's contract is "the newest rate we hold", and
+        `max(...)` is what states it.
+        """
         ledger = CCLLedger()
+        last_tabulated = max(_CCL_ELECTRICITY_P_KWH)
+        assert 2030 > last_tabulated, "2030 must be past the table's end for this to test a clamp"
         rate = ledger.rate_for_year(2030, CCLFuel.ELECTRICITY)
-        assert rate == pytest.approx(_CCL_ELECTRICITY_P_KWH[2025])
+        assert rate == pytest.approx(_CCL_ELECTRICITY_P_KWH[last_tabulated])
 
 
 class TestCCLChargeCalculation:

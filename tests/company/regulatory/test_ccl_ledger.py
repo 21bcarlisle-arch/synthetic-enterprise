@@ -1,7 +1,8 @@
 import datetime as dt
 import pytest
 from company.regulatory.ccl_ledger import (
-    CCLFuel, CCLExemptReason, CCLCharge, CCLQuarterlyReturn, CCLLedger
+    CCLFuel, CCLExemptReason, CCLCharge, CCLQuarterlyReturn, CCLLedger,
+    _CCL_ELECTRICITY_P_KWH,
 )
 
 
@@ -28,8 +29,19 @@ def test_gas_rate_2022():
 
 
 def test_unknown_year_falls_back_to_nearest():
-    rate = CCLLedger.rate_for_year(2026, CCLFuel.ELECTRICITY)
-    assert rate == CCLLedger.rate_for_year(2025, CCLFuel.ELECTRICITY)
+    """A year past the table's end is served the LAST TABULATED rate.
+
+    RE-KEYED 2026-09-07 TO THE PROPERTY, NOT TO TODAY'S ANSWER. This named 2026 and 2025 as
+    literals, so it went RED the moment the table was extended to the published 2026 and 2027
+    columns -- red because the table became MORE honest, which is exactly backwards, and it
+    would have stayed green if the clamp had silently stopped working. `max(...)` is what
+    states the clamp's actual contract: the newest rate we hold.
+    """
+    last = max(_CCL_ELECTRICITY_P_KWH)
+    beyond = last + 1
+    assert beyond not in _CCL_ELECTRICITY_P_KWH, "the probe year must be past the table's end"
+    rate = CCLLedger.rate_for_year(beyond, CCLFuel.ELECTRICITY)
+    assert rate == CCLLedger.rate_for_year(last, CCLFuel.ELECTRICITY)
 
 
 def test_business_electricity_charge():

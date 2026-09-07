@@ -49,6 +49,13 @@ _RO_COST_BY_OY_START: dict[int, float] = {
     # buy-out price and mutualisation threshold 2025 to 2026); obligation level published
     # 30 Sep 2024 (DESNZ). +4.0% on 2024 -- the only one of the three rates that MOVES.
     2025: 33.06,  # OY 2025-26: 0.493 × £67.06
+    # OY 2026-27 landed 2026-09-07, both inputs re-read from their own publishers that day.
+    # THE LEVEL FALLS (0.493 -> 0.472) WHILE THE PRICE RISES (£67.06 -> £69.34), so the product
+    # goes DOWN — the first fall since 2023-24. A table extrapolating either series would have
+    # missed the sign. The buy-out rise is also the first on a CPI basis rather than RPI
+    # (DESNZ, announced 28 Jan 2026; CPI 3.4% over calendar 2025) — see the commons
+    # `basis.buy_out_indexation`, which is why nothing here extends the series by index.
+    2026: 32.73,  # OY 2026-27: 0.472 × £69.34
 }
 
 # CfD Interim Levy Rate annual average (£/MWh) by calendar year.
@@ -149,6 +156,13 @@ _CCL_ELECTRICITY_RATE_BY_YEAR: dict[int, float] = {
     # step was the 2024 repair, already taken on 2026-08-17. Statutory commons
     # (ccl_main_rates.json) carries 2025-04-01 electricity at 0.775 p/kWh, `primary`.
     2025: 7.75,    # gov.uk CCL rates, 1 Apr 2025 to 31 Mar 2026
+    # 2026/27 and 2027/28 landed 2026-09-07 from the same statutory commons, re-read from the
+    # gov.uk content API that day. The flat 7.75 ENDS: rates move again after five years.
+    # Reaching this table matters because everything past its last key CLAMPS (see the tail of
+    # get_ccl_per_mwh) -- until this edit a date in 2026-27 was served 7.75 against a published
+    # 8.01, a silent 3.4% understatement, and 2027-28 6.7%.
+    2026: 8.01,    # gov.uk CCL rates, 'Rate from 1 April 2026'
+    2027: 8.27,    # gov.uk CCL rates, 'Rate from 1 April 2027'
 }
 
 
@@ -431,6 +445,11 @@ _GAS_CCL_RATE_BY_YEAR: dict[int, float] = {
     # 2025/26 landed 2026-08-18: UNCHANGED at parity, as the decision doc states and the
     # statutory commons confirms (2025-04-01 gas, 0.775 p/kWh, `primary`).
     2025: 7.75,   # 0.775 p/kWh — 1 Apr 2025 to 31 Mar 2026
+    # 2026/27 and 2027/28 landed 2026-09-07. Gas HOLDS parity with electricity through both,
+    # so the two tables stay equal from 2024 on; that is the published outcome of the Budget-2016
+    # rebalancing, not a copy of the sibling table.
+    2026: 8.01,   # 0.801 p/kWh — 1 Apr 2026 to 31 Mar 2027
+    2027: 8.27,   # 0.827 p/kWh — 1 Apr 2027 to 31 Mar 2028
 }
 
 

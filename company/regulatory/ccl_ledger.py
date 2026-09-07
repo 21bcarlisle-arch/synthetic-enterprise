@@ -39,6 +39,9 @@ _CCL_ELECTRICITY_P_KWH: Dict[int, float] = {
     2016: 0.554, 2017: 0.568, 2018: 0.583,
     2019: 0.847,
     2020: 0.811, 2021: 0.775, 2022: 0.775, 2023: 0.775, 2024: 0.775, 2025: 0.775,
+    # 2026 and 2027 landed 2026-09-07 from the statutory commons, re-read from the gov.uk
+    # content API that day. The five-year plateau at 0.775 ends here.
+    2026: 0.801, 2027: 0.827,
 }
 
 # CORRECTED 2026-08-18 against the statutory commons
@@ -64,6 +67,9 @@ _CCL_GAS_P_KWH: Dict[int, float] = {
     2023: 0.672,   # was 0.465 -- gov.uk, 1 Apr 2023 to 31 Mar 2024
     2024: 0.775,   # was 0.465 -- gov.uk, 1 Apr 2024: gas reaches parity with electricity
     2025: 0.775,   # was 0.465 -- gov.uk, 1 Apr 2025 to 31 Mar 2026
+    # 2026 and 2027 landed 2026-09-07: gas HOLDS parity with electricity through both.
+    2026: 0.801,   # gov.uk, 1 Apr 2026 to 31 Mar 2027
+    2027: 0.827,   # gov.uk, 1 Apr 2027 to 31 Mar 2028
 }
 
 #: Years where this table and the statutory commons disagree and NEITHER side is
