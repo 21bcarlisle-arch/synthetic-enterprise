@@ -2,16 +2,18 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 28 · **Class:** `uncommitted_and_orphaned_work` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
+**Instances:** 30 · **Class:** `uncommitted_and_orphaned_work` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 28 instances
+## The 30 instances
 
+- `SEAT_FINDING_A_CONTENT_LANDED_RENAME_LEFT_THE_PRE_RENAME_DRAFT_IN_THE_TREE_AND_IT_WEDGED_EVERY_LANE_FOR_22_HOURS_2026-09-07.md` — LATENT
 - `SEAT_FINDING_FIVE_CONTROLS_ARE_GREEN_ONLY_BECAUSE_OF_UNCOMMITTED_WORK_AND_GATE_NOTHING_2026-09-03.md` — LATENT
 - `SEAT_FINDING_THE_MECHANICAL_ADVANCE_IS_BLOCKED_BY_THE_SAME_DIRTY_TREE_THAT_IS_ITS_REASON_FOR_EXISTING_2026-09-04.md` — LATENT
+- `SEAT_FINDING_THE_ORPHAN_RATCHET_ACCUSES_A_COMMITTED_REACHABLE_MODULE_BECAUSE_ANOTHER_LANES_DIRTY_FILE_BROKE_THE_CHAIN_2026-09-07.md` — BLOCKING
 - `SEAT_FINDING_THE_PUBLISH_DAEMON_COMMITTED_A_NOTE_DECLARATION_WITHOUT_ITS_CONTENT_SO_ONLY_AN_ISOLATED_WORKTREE_CAN_SEE_THE_RED_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_REPAIR_FOR_THE_WEDGE_WAS_SITTING_UNLANDED_INSIDE_THE_WEDGE_2026-09-04.md` — LATENT
 - `SEAT_FINDING_THE_TURN_RESET_DELETED_A_DETACHED_RUNS_FINISHED_ARTEFACT_SEVENTEEN_MINUTES_AFTER_IT_LANDED_2026-09-03.md` — LATENT
@@ -41,18 +43,20 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**55.0 recorded episode-hours** across 3 of the 28 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
+**77.0 recorded episode-hours** across 4 of the 30 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **24 hours** — `SEAT_FINDING_THE_MECHANICAL_ADVANCE_IS_BLOCKED_BY_THE_SAME_DIRTY_TREE_THAT_IS_ITS_REASON_FOR_EXISTING_2026-09-04.md`: …the precise `NOT_ADVANCED` shape the sibling finding measured over 24h. The next publish cycle will read `behind_origin` and discard a compl…
 - **24 hours** — `WORKER_FINDING_THE_SAME_TRUE_SENTENCE_IS_HONEST_SPELLED_OUT_AND_A_VIOLATION_ABBREVIATED_2026-08-19.md`: …ontrol born red is a control someone disables."* It has been red for ~24h against a record that is accurate, and the pressure that creates is t…
+- **22 hours** — `SEAT_FINDING_A_CONTENT_LANDED_RENAME_LEFT_THE_PRE_RENAME_DRAFT_IN_THE_TREE_AND_IT_WEDGED_EVERY_LANE_FOR_22_HOURS_2026-09-07.md`: …e left the pre-rename draft in the tree, and it wedged every lane for 22 hours **Found:** 2026-09-07, delivery seat, working the lane-0 orphan-ratc…
 - **7 hours** — `WORKER_FINDING_RUFF_BASELINE_IS_CALIBRATED_TO_UNCOMMITTED_WORK_2026-08-09.md`: …which is the most expensive possible way to find it (episode 2 cost ~7 hours and ten markers under a directly analogous mis-attribution). Note th…
 
 ## What is owed
 
-3 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
+- `SEAT_FINDING_THE_ORPHAN_RATCHET_ACCUSES_A_COMMITTED_REACHABLE_MODULE_BECAUSE_ANOTHER_LANES_DIRTY_FILE_BROKE_THE_CHAIN_2026-09-07.md`
 - `SEAT_FINDING_THE_PUBLISH_DAEMON_COMMITTED_A_NOTE_DECLARATION_WITHOUT_ITS_CONTENT_SO_ONLY_AN_ISOLATED_WORKTREE_CAN_SEE_THE_RED_2026-09-04.md`
 - `WORKER_FINDING_A_TEST_REWRITTEN_AHEAD_OF_ITS_API_DISABLED_413_ARCHITECTURE_CONTROLS_FOR_NINE_HOURS_2026-09-01.md`
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md`
