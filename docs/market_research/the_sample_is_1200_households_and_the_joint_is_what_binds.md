@@ -96,3 +96,22 @@ said, and the reason I gave was wrong.
   so a PV ceiling would be invented rather than computed.
 - **The AST census control** — refusing any coverage, ceiling or sufficiency claim that does not
   declare the dimension it reduces over — is commissioned by the canon and is not built here.
+
+---
+
+## SUPERSEDED 2026-09-07 — the population was missing 18.5% of the stock
+
+**Every number above is wrong and the corrected measurement is in
+`the_sample_is_8500_households_once_electricity_and_the_non_gas_stratum_are_in.md`.**
+
+`_need_rows` filtered on `Gcons2024` being present, which keeps only dwellings with a gas meter --
+39,502 rows, every one of them `MAIN_HEAT_FUEL = 1`. The entire non-gas stratum, 8,547 dwellings,
+was absent. Annual electricity was also declared absent on a `W2_19` dependency it does not have:
+NEED carries it per dwelling, and only the half-hourly SHAPE waits on the people joint.
+
+Corrected: 8,500 at tolerance 0.05, against the 1,200 below. **The grading of my prediction as
+"partly refuted, too high" is withdrawn with it** -- 8,500 is inside the range I predicted, and a
+refutation published from an instrument missing a fifth of its population is worse than none.
+
+Kept rather than deleted, because a wrong prediction beside its correction is the only evidence the
+measurement was designed before its answer was known.
