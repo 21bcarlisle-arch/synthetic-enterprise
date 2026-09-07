@@ -4224,3 +4224,60 @@
   file_scope: ['simulation/fabric_physics.py', 'simulation/premise_trace.py', 'tests/simulation/', 'docs/market_research/', 'tools/weather_driver_sensitivity.py']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a weather-normalisation model with a wind coefficient nobody can explain, fitted on a decade of meter reads, sitting in the middle of every settlement reconciliation."
+
+- id: A49_the_ceiling_comes_before_the_programme_on_r3_and_r4
+  title: "The ceiling-before-programme discipline reached R1 and stopped there: R3 and R4 would be built with no bound on what they could possibly be worth"
+  notes_rehomed: [gain, origin_note]
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 2
+  level_target: 2
+  loop_stage: harden
+  dial_inherited: 45    # Gates R3 and R4, which are R-set. Same weight as the atoms it sequences,
+  #   because a ceiling drawn AFTER the programme it was meant to bound is the defect this atom
+  #   exists to prevent -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5. A change of WEIGHTS,
+  #   not of machinery (§5).
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null   # NOT blocked, and deliberately so. Both ceilings are measurable against what already exists -- E5's event stream and factor register for R3, the book and the consumption feed for R4 -- so neither waits on a curriculum decision. R5's book-depth question (A46) bounds how much a ceiling can be DEMONSTRATED over, which is a caveat these instruments must state, not a reason to park them.
+  depends_on: []
+  couples_with: [E5_carbon_three_ledger, C30_advice_reaches_a_household, A46_book_depth_is_a_curriculum_question]
+  # Repointed 2026-09-07 at the program this atom's OWN build wrote (85e1463c5, bfd232ba0).
+  # It named `tools/` and `docs/design/` -- two DIRECTORIES, which are scope and never controls,
+  # so `tools/level_zero_contradicted_by_its_own_controls.py` reported it UNGRADABLE and could say
+  # nothing about it however much landed. Both instruments have existed and passed since
+  # 2026-09-07 05:33 and the row still read 0/build, which is the state that keeps re-winning a
+  # draw this atom has already been paid for.
+  file_scope: ['tools/r3_carbon_score_ceiling.py', 'tools/r4_product_ceiling.py',
+               'tests/tools/test_r3_carbon_score_ceiling.py', 'tests/tools/test_r4_product_ceiling.py',
+               'docs/design/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "an investment committee that requires a size-of-the-prize estimate before it funds a programme, rather than after the first three milestones -- the discipline that stops a team proving it can execute something that was never worth executing"
+
+- id: W2_27_how_many_household_cases_cover_demand
+  title: "how many household cases cover 99% of DEMAND variation, and how weather and house compose"
+  notes_rehomed: [gain]
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 3
+  level_target: 3
+  closed: >-
+    AT TARGET 2026-09-07, delivered with the mint. Over 24,662,309 E&W households, 143,511 occupied
+    cells and NEED's 274 house cases: 99% of DEMAND variation needs 13 cases against a separable
+    product of 273 -- 21x smaller. The cause is not correlation (region winter temperature vs stock
+    demand at fixed climate is only -0.314) but that DEMAND IS A SCALAR, shown on a synthetic grid
+    with independent inputs. 7 controls, 5 kills, 1 recorded equivalence. NOT COVERED: England and
+    Wales only (NEED has no Scottish dwellings); annual level with no shape; the EPC-to-fabric map
+    is a declared Choice with an unmeasured cost.
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1. Minted 2026-09-07 on the director's correction that the published
+  #   cell counts answered the wrong question -- a partition of Britain's weather rather than of its
+  #   demand -- and that the composition decides whether the sample is large or small.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [W2_21_the_premise_joint_is_fitted_not_drawn_independently, W1_21_the_cells_and_the_level_coverage_curve]
+  file_scope: ['docs/market_research/', 'tools/demand_case_coverage.py']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that sizes its customer sample from how varied the weather is, and discovers its segments were never distinguishable in the only quantity it bills for."
