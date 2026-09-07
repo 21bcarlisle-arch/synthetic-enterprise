@@ -15,11 +15,11 @@ import pytest
 from tools.ofgem_cap_unit_rate_composition import (
     CAP_IN_FORCE_FROM,
     CROSS_CHECK_TOLERANCE,
-    VAT_MULTIPLIER,
     CapModelUnavailable,
     _period_start,
     cross_check,
     latest_model,
+    vat_multiplier,
 )
 from tools.tou_price_shape_episode import (
     EPISODES,
@@ -173,7 +173,9 @@ class TestTheCrossCheckCanFail:
             (__import__("pathlib").Path("docs/domain_artefact_library/regulatory"
                                         "/ofgem_default_tariff_cap_windows.json")).read_text())
         window = next(w for w in published["windows"] if w["from"] == "2021-10-01")
-        derived = window["elec"] / 10.0 / VAT_MULTIPLIER
+        # `vat_multiplier(period)`, not a flat constant: electricity is zero-rated from
+        # October 2026, so the rate is a property of the period and not of the tax.
+        derived = window["elec"] / 10.0 / vat_multiplier("2021-10-01")
         result = cross_check([{"cap_period": "October 2021 - March 2022", "starts": "2021-10-01",
                                "unit_rate_p_per_kwh_ex_vat": derived}])
         assert result["periods_checked"] == 1

@@ -20,7 +20,7 @@
   "open_items": [
     "electricity + gas 2016-04-01 are `recalled`: the FA that set the 1 April 2016 rates was not located this pass (FA2014 s.94 and FA2016 s.144 were checked and are other subjects).",
     "gas 2022-04-01 is `recalled`: its neighbours differ (0.00465 -> 0.00672), so it cannot be bracketed. Electricity 2022 CAN be, both neighbours being 0.00775.",
-    "2025-04-01 and 2026-04-01 are pinned `primary` here but sit beyond the model tables' last key (2024), so the control does not require them. They are a sourced input already waiting for whoever draws the silent-clamping finding (WORKER_FINDING_THE_COST_STACK_CLAMPS_SILENTLY_INSIDE_ITS_OWN_RUN_WINDOW_2026-08-14)."
+    "SETTLED 2026-09-07: 2025, 2026 and 2027 are now tabulated by all four consuming tables (`simulation/policy_costs.py` _CCL_ELECTRICITY_RATE_BY_YEAR / _GAS_CCL_RATE_BY_YEAR and `company/regulatory/ccl_ledger.py` _CCL_ELECTRICITY_P_KWH / _CCL_GAS_P_KWH), so the equality leg now requires them. Before that landing every one of those tables ended at 2025 and CLAMPED, serving 0.00775 for dates in 2026-27 and 2027-28 against a published 0.00801 and 0.00827 - a silent 3.4% and 6.7% understatement, which is the shape WORKER_FINDING_THE_COST_STACK_CLAMPS_SILENTLY_INSIDE_ITS_OWN_RUN_WINDOW_2026-08-14 named. The clamp itself is unchanged and still bites beyond 2027."
   ],
   "rates": [
     {"from": "2016-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00559, "provenance": "recalled", "source": null, "source_label": "not fetched"},
@@ -54,20 +54,22 @@
     {"from": "2025-04-01", "commodity": "gas", "gbp_per_kwh": 0.00775, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2025 to 31 March 2026'"},
 
     {"from": "2026-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00801, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2026 to 31 March 2027'"},
-    {"from": "2026-04-01", "commodity": "gas", "gbp_per_kwh": 0.00801, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2026 to 31 March 2027'"}
+    {"from": "2026-04-01", "commodity": "gas", "gbp_per_kwh": 0.00801, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, '1 April 2026 to 31 March 2027'"},
+
+    {"from": "2027-04-01", "commodity": "electricity", "gbp_per_kwh": 0.00827, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, 'Rate from 1 April 2027' column"},
+    {"from": "2027-04-01", "commodity": "gas", "gbp_per_kwh": 0.00827, "provenance": "primary", "source": "https://www.gov.uk/guidance/climate-change-levy-rates", "source_label": "gov.uk CCL rates, 'Rate from 1 April 2027' column - gas holds parity with electricity"}
   ],
   "source_check": {
     "publication": "HMRC / gov.uk guidance 'Climate Change Levy rates' (main rates table), with FA amendments to FA2000 Sch.6 para.42 behind it",
     "url": "https://www.gov.uk/guidance/climate-change-levy-rates",
-    "fetched": "2025-11-26",
+    "fetched": "2026-09-07",
     "version_token": "2025-11-27T14:23:14+00:00",
     "version_token_is": "publisher_page_date",
     "how_to_recheck": "GET https://www.gov.uk/api/content/guidance/climate-change-levy-rates and read `public_updated_at`. gov.uk stamps that field on every substantive edit, so it is a reliable supersession key for this and every other gov.uk guidance page. Compare it to the token recorded here; a later value means the rate table has been edited, and CCL rates are extended by a further April column at each Budget.",
     "checked_for_supersession": {
       "on": "2026-09-07",
-      "found": "superseded",
-      "open_finding": "docs/staging/SEAT_FINDING_TWO_COMMONS_ARTEFACTS_CITE_A_PUBLICATION_THAT_HAS_MOVED_AND_FOUR_OF_NINE_COULD_NOT_BE_ASKED_2026-09-07.md",
-      "note": "The page now carries a 'Rate from 1 April 2027' column (electricity and gas GBP0.00827/kWh) that this artefact does not hold; it stops at 2026-04-01. Everything this artefact DOES hold agrees with the live page to the digit for 2023-2026, so this is the CM levy's shape exactly: a correct reading of a publication that has since been extended. `fetched` is recorded as 2025-11-26, the day BEFORE the page's own `public_updated_at`, because no fetch date was ever stored and that is the latest date consistent with the artefact missing the 2027 column. It is a bound, not a record, and it is deliberately conservative."
+      "found": "current",
+      "note": "REPAIRED 2026-09-07, same day, second pass. The supersession this block recorded earlier the same day - a 'Rate from 1 April 2027' column (electricity and gas GBP0.00827/kWh) the artefact did not hold - is now held. The whole table was re-read from the gov.uk content API on 2026-09-07 rather than transcribed from the finding: all five published columns (2023, 2024, 2025, 2026, 2027) agree with this artefact to the digit for both fuels, and `public_updated_at` is unmoved at 2025-11-27T14:23:14+00:00, so this artefact is now complete against that edition. `fetched` moves from 2025-11-26 to the real read date; the old value was never a record, only the conservative BOUND the first pass could justify (the latest date consistent with the 2027 column being absent), and a bound must not outlive the fetch that replaces it. NOT CLOSED by this repair: the three `recalled` rows (electricity and gas 2016-04-01, gas 2022-04-01) are a separate, older open item and are untouched."
     }
   }
 }

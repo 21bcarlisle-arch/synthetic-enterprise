@@ -17,6 +17,8 @@ from datetime import date
 import pytest
 
 from company.pricing.ofgem_price_cap import (
+    _CAP_WINDOWS,
+    _ELEC_CAP_FALLBACK,
     get_cap_unit_rate_for_date,
     get_cap_unit_rate_gbp_per_mwh,
 )
@@ -92,9 +94,19 @@ def test_epg_expiry_lets_the_ofgem_level_bind_again():
 
 def test_dates_past_the_schedule_carry_the_last_window_forward_never_uncapped():
     """Deliberately NOT None: returning None past the schedule would silently
-    un-cap every domestic customer (the FAIL-OPEN pattern)."""
-    assert get_cap_unit_rate_for_date("electricity", date(2030, 6, 1)) == 263.5
-    assert get_cap_unit_rate_for_date("gas", date(2030, 6, 1)) == 62.9
+    un-cap every domestic customer (the FAIL-OPEN pattern).
+
+    KEYED TO THE PROPERTY, NOT TO THE LAST WINDOW'S NUMBER. This test used to
+    pin 263.5 and 62.9 — the Oct-Dec 2025 levels — and it went RED on
+    2026-09-07 when `ofgem_default_tariff_cap_windows.json` was extended to
+    October-December 2026. That is exactly backwards: the artefact got MORE
+    current and the control that guards the carry-forward called it a
+    regression. The property is that a date past the schedule returns the LAST
+    PUBLISHED window's level, whatever that level is."""
+    last = _CAP_WINDOWS[-1]
+    past_the_end = date(last["to"].year + 4, 6, 1)
+    assert get_cap_unit_rate_for_date("electricity", past_the_end) == last["elec"]
+    assert get_cap_unit_rate_for_date("gas", past_the_end) == last["gas"]
 
 
 # ---------------------------------------------------------------------------
@@ -119,11 +131,28 @@ def test_the_annual_table_is_not_the_day_weighted_blend_of_the_windows():
 
 
 def test_the_two_lookups_diverge_sharply_past_the_published_schedule():
-    """SURPRISE (unit class): past 2025 the window lookup carries the last real
-    window forward (263.5) while the annual lookup drops to a hardcoded fallback
-    (190.0) — a £73.5/MWh disagreement about the same ceiling in the same year."""
-    assert get_cap_unit_rate_for_date("electricity", date(2026, 6, 1)) == 263.5
-    assert get_cap_unit_rate_gbp_per_mwh("electricity", 2026) == 190.0
+    """SURPRISE (unit class): past the published schedule the window lookup
+    carries the last real window forward while the annual lookup drops to a
+    hardcoded fallback — a large disagreement about the same ceiling in the same
+    year, decided by which accessor the caller happened to reach for.
+
+    KEYED TO THE PROPERTY. This pinned 263.5 against 190.0 at June 2026 and went
+    red on 2026-09-07 when the windows artefact was extended through 2026: June
+    2026 is now a PUBLISHED level (246.7), not a carry-forward, so the date no
+    longer exercised the divergence it was written to characterise. The surprise
+    is not those two numbers, it is that the two lookups disagree at all past the
+    schedule — and that survives every extension of the artefact."""
+    last_year = _CAP_WINDOWS[-1]["to"].year
+    beyond = date(last_year + 2, 6, 1)
+    window_side = get_cap_unit_rate_for_date("electricity", beyond)
+    annual_side = get_cap_unit_rate_gbp_per_mwh("electricity", beyond.year)
+    assert window_side == _CAP_WINDOWS[-1]["elec"]
+    assert annual_side == _ELEC_CAP_FALLBACK
+    assert abs(window_side - annual_side) > 25.0, (
+        "the two lookups have converged past the schedule; if that is real the "
+        "surprise this test characterises is gone and it should be deleted, not "
+        "loosened"
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -8,7 +8,8 @@
     "conversion": "consumers multiply: obligation_level (ROC/MWh) x buy_out_price (GBP/ROC) = GBP/MWh",
     "year_key": "obligation year beginning 1 April; each entry's key is the year the obligation year COMMENCES, so obligation_year 2023 is OY 2023-24 and runs 2023-04-01 to 2024-03-31. Ofgem and DESNZ both label these '2023 to 2024'.",
     "territory": "GREAT BRITAIN (England, Wales and Scotland). Northern Ireland has its own obligation level and is NOT in this file.",
-    "eii_adjustment": "levels are stated AS FINALLY SET for the year, including any Energy Intensive Industries exemption revision. Where a year was first set at one level and revised (2018-19: 0.452 -> 0.468; 2024-25: 0.487 -> 0.491), the REVISED level is the one carried, because it is the level suppliers were actually obligated at."
+    "eii_adjustment": "levels are stated AS FINALLY SET for the year, including any Energy Intensive Industries exemption revision. Where a year was first set at one level and revised (2018-19: 0.452 -> 0.468; 2024-25: 0.487 -> 0.491), the REVISED level is the one carried, because it is the level suppliers were actually obligated at.",
+    "buy_out_indexation": "THE BASIS CHANGES INSIDE THIS COLUMN, and it changes at OY 2026. Through OY 2025 Ofgem uprated the buy-out price (and the mutualisation ceilings) by the average monthly percentage change in the RETAIL Prices Index during the preceding calendar year. Following DESNZ's decision announced 28 January 2026, from 1 April 2026 the uprating is the monthly change in the CONSUMER Price Index during the preceding calendar year; the 2026/27 price of GBP69.34 was set from a CPI change of 3.4% over calendar 2025 (Ofgem, RO buy-out price 2026 to 2027, 'Annual updates'). BOTH REGIMES ARE IN THIS ONE COLUMN and they are not interchangeable: an RPI extrapolation past OY 2025 will run high, because RPI exceeds CPI by roughly a percentage point in normal conditions. Nothing in this file extrapolates; every entry is a published figure. The note exists so that nothing downstream extrapolates either without knowing which rule it is extending. R14: the basis travels with the figure."
   },
   "why_native_units": "The GBP/MWh effective RO cost is a DERIVED product of two series that no single publication states together. That derivation is exactly where the defect of 2026-08-19 lived: `company/regulatory/roc_ledger.py` carried both inputs as smooth annual ramps (+0.006/yr on the level, ~3.4%/yr on the price) through a decade in which the published level plateaus, DIPS to 0.469 in 2023/24 and returns, and the price went 52.88 -> 59.01 -> 64.73 -> 67.06. The published table understated the RO line by GBP486,458.88 (27.74%). If this file carried the GBP/MWh product, a control comparing it to the model's product would be a TAUTOLOGY in the R15 sense -- the checked value derived from the source it checks -- and worse, a wrong level could be cancelled by a wrong price and still land on the right product. Holding the two publishers' own series separately forces the control to perform the multiplication, so the derivation is itself under test. That is why the split here is deliberate and must not be 'tidied' into a single GBP/MWh table.",
   "provenance_legend": {
@@ -97,6 +98,14 @@
       "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2025-to-2026/calculating-the-level-of-the-renewables-obligation-for-2025-to-2026",
       "source_label": "Calculating the level of the RO for 2025 to 2026, GOV.UK",
       "quote": "0.493 ROCs per MWh in Great Britain (England, Wales and Scotland)"
+    },
+    {
+      "obligation_year": 2026,
+      "roc_per_mwh": 0.472,
+      "provenance": "primary",
+      "source": "https://www.gov.uk/government/publications/renewables-obligation-level-calculations-2026-to-2027/calculating-the-level-of-the-renewables-obligation-for-2026-to-2027",
+      "source_label": "Calculating the level of the RO for 2026 to 2027, GOV.UK (published 2025-09-29)",
+      "quote": "0.472 ROCs per MWh in Great Britain (England, Wales and Scotland); 0.184 ROCs per MWh in Northern Ireland"
     }
   ],
   "buy_out_prices": [
@@ -168,36 +177,44 @@
       "obligation_year": 2024,
       "gbp_per_roc": 64.73,
       "provenance": "primary",
-      "source": "https://www.ofgem.gov.uk/publications/renewables-obligation-ro-buy-out-price-mutualisation-threshold-and-mutualisation-ceilings-2024-2025",
-      "source_label": "RO buy-out price, mutualisation threshold and ceilings 2024 to 2025, Ofgem",
-      "quote": "GBP64.73 per Renewables Obligation Certificate (ROC)"
+      "source": "https://www.ofgem.gov.uk/transparency-document/renewables-obligation-ro-buy-out-price-mutualisation-threshold-and-mutualisation-ceilings-2024-2025",
+      "source_label": "RO buy-out price, mutualisation threshold and mutualisation ceilings for 2024 to 2025, Ofgem (transparency document; the /publications/ URL this entry carried until 2026-09-07 redirects here)",
+      "quote": "The buy-out price for the 2024-25 obligation period is GBP64.73 per Renewables Obligation Certificate (ROC)"
     },
     {
       "obligation_year": 2025,
       "gbp_per_roc": 67.06,
+      "provenance": "secondary",
+      "source": "https://www.ofgem.gov.uk/data/renewables-obligation-buy-out-price-and-mutualisation-threshold-and-ceilings-2026-2027",
+      "source_label": "quoted in the 2026 to 2027 notice's 'Buy-out prices and obligation levels for 2010 to 2027' table, Ofgem",
+      "quote": "2025 to 2026: GBP67.06"
+    },
+    {
+      "obligation_year": 2026,
+      "gbp_per_roc": 69.34,
       "provenance": "primary",
       "source": "https://www.ofgem.gov.uk/data/renewables-obligation-buy-out-price-and-mutualisation-threshold-and-ceilings-2026-2027",
-      "source_label": "RO buy-out price and mutualisation threshold and ceilings 2026 to 2027, Ofgem (states 2025-26 alongside 2026-27)",
-      "quote": "2025-26: GBP67.06"
+      "source_label": "Renewables Obligation: buy-out price and mutualisation threshold and ceilings 2026 to 2027, Ofgem (publication date 31 March 2026)",
+      "quote": "Buy-out price for 2026 to 2027 GBP69.34 per Renewables Obligation Certificate"
     }
   ],
   "open_items": [
+    "OY 2025's BUY-OUT PRICE is `secondary` as of 2026-09-07, DEMOTED from `primary`, and the demotion is the honest label rather than a defect discovered in the value. It cites the 2026-27 notice's ten-year history table, which by this file's own legend is 'another obligation year's notice quoting it in a comparison table'. Ofgem's own-year notice for 2025-26 was looked for on 2026-09-07 at the 2024-25 document's URL shape (/transparency-document/... and /publications/...), at the 2026-27 document's URL shape (/data/...), and through Ofgem's search and RO scheme pages: not located. The figure is not in doubt - GBP67.06 is stated identically by Ofgem in the 2026-27 notice and was already carried here - but the provenance claim was stronger than the citation supported. Promote when the own-year notice is found.",
     "2021-22 and 2022-23 obligation levels are `secondary`: read from the comparison tables inside the 2023-24 and 2024-25 notices rather than from their own notices, which were not located this pass. Promote to `primary` when the own-year notices are fetched.",
     "Northern Ireland obligation levels are not carried. The company supplies GB only; a NI segment would need its own series, not a reuse of these.",
     "The buy-out fund recycle (~GBP3.87/ROC in 2020-21) is NOT netted off any figure here. It is a READING -- the recycle is redistributed pro rata to ROCs presented, so both compliance routes arbitrage to obligation x buy-out -- and it belongs in the consumer, not the commons."
   ],
   "source_check": {
-    "publication": "Ofgem 'Renewables Obligation (RO) - Suppliers' (buy-out price and obligation level table) and the DESNZ/BEIS obligation level notices",
-    "url": "https://www.ofgem.gov.uk/environmental-and-social-schemes/renewables-obligation-ro/suppliers",
-    "fetched": "2026-08-19",
-    "version_token": null,
-    "version_token_is": "none_published",
-    "how_to_recheck": "GET the URL above and read the 'Obligation period' table. IT IS A ROLLING WINDOW AND IT RETRACTS AS WELL AS EXTENDS -- on 2026-09-07 it ended at 2023-24, two years BEHIND this artefact, so rows we hold as `primary` from this URL can no longer be verified at it. For any year the window has dropped, the citable source is Ofgem's per-year transparency document 'Renewables Obligation: buy-out price and mutualisation threshold and ceilings YYYY to YYYY'; for obligation levels it is the gov.uk publication 'Calculating the level of the Renewables Obligation for YYYY to YYYY'.",
+    "publication": "Ofgem 'Renewables Obligation: buy-out price and mutualisation threshold and ceilings YYYY to YYYY' -- the PER-YEAR transparency document, which also restates the full buy-out price and obligation level history -- and the DESNZ/BEIS obligation level notices 'Calculating the level of the Renewables Obligation for YYYY to YYYY'",
+    "url": "https://www.ofgem.gov.uk/data/renewables-obligation-buy-out-price-and-mutualisation-threshold-and-ceilings-2026-2027",
+    "fetched": "2026-09-07",
+    "version_token": "2026-2027",
+    "version_token_is": "in_url",
+    "how_to_recheck": "THE EDITION MARKER IS THE OBLIGATION YEAR IN THE URL, and that is why this artefact was RE-POINTED on 2026-09-07 away from Ofgem's 'Renewables Obligation (RO) - Suppliers' page. That page is a ROLLING window and IT RETRACTS AS WELL AS EXTENDS: on 2026-09-07 it ended at 2023-24, so it can never confirm the newest years and a provenance claim resting on it rots with nobody touching either the value or the citation. A per-year document does not retract, and supersession is detectable by CONSTRUCTION rather than by diff: build the successor URL for the next obligation year (swap `-2026-2027` for `-2027-2028`) and GET it. A 200 means the next year is published and this artefact is short a row; a 404 means it is not yet. Ofgem publishes it around 31 March, and it states the buy-out price for its own year plus a ten-year history table. For obligation levels do the same against gov.uk `/government/publications/renewables-obligation-level-calculations-YYYY-to-YYYY/calculating-the-level-of-the-renewables-obligation-for-YYYY-to-YYYY`, published around the end of September for the following April.",
     "checked_for_supersession": {
       "on": "2026-09-07",
-      "found": "superseded",
-      "open_finding": "docs/staging/SEAT_FINDING_TWO_COMMONS_ARTEFACTS_CITE_A_PUBLICATION_THAT_HAS_MOVED_AND_FOUR_OF_NINE_COULD_NOT_BE_ASKED_2026-09-07.md",
-      "note": "OY 2026/27 is published and absent here: obligation level 0.472 ROC/MWh GB (gov.uk 'Calculating the level of the Renewables Obligation for 2026 to 2027') and buy-out GBP69.34/ROC (Ofgem, published 2026-03-31). BOTH series in this artefact stop at OY 2025. TWO FURTHER PROBLEMS, both in the open finding: the cited page's window now ends at 2023-24 so the `primary` provenance of OY 2024 and OY 2025 no longer verifies at their own cited URL; and 2026/27 is the first year indexed to CPI rather than the RPI rule this artefact's `basis` states."
+      "found": "current",
+      "note": "REPAIRED 2026-09-07, same day, second pass. OY 2026/27 is now held on both series - obligation level 0.472 ROC/MWh GB and buy-out GBP69.34/ROC - and the RPI-to-CPI change is recorded in `basis.buy_out_indexation`, which is what stops a downstream extrapolation running high off the wrong index. Both values were re-read from their own publishers on 2026-09-07 rather than transcribed from the finding, and Ofgem's 2026-27 history table agrees to the penny with every buy-out row this artefact already held for 2010-2025. ONE CLAIM IN THE OPENING FINDING IS WRONG AND IS CORRECTED HERE: it said the rolling supplier page's retraction had invalidated the `primary` provenance of OY 2024 and OY 2025. It had not - neither row has cited that page since e9cdef112 - and the page still carries every row that DOES cite it (2016-17 through 2023-24, all eight verified against it on 2026-09-07). The real defect in that neighbourhood was a mislabel this artefact could have been asked about at any time: OY 2025's buy-out was marked `primary` while citing the NEXT year's notice, which this file's own legend defines as `secondary`. Demoted, with the search for the own-year notice recorded in `open_items`."
     }
   }
 }

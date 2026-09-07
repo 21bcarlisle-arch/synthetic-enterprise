@@ -292,3 +292,21 @@ python3 -m tools.scope_evidence_ratchet || exit 1
 # commit on: a control keyed to a calendar goes red for a reason nobody can act on inside the
 # commit that trips it, and gets turned off. `--report` is where age lives.
 python3 -m tools.commons_source_supersession --check || exit 1
+
+# A COMMONS CITATION MUST SUPPORT THE PROVENANCE LEVEL IT CLAIMS (2026-09-07).
+#
+# The DIFFERENT question, and it is here because the module above structurally cannot see it. The
+# repair of the two superseded artefacts found `ro_obligation_and_buyout`'s OY 2025 buy-out stamped
+# `primary` while citing the NEXT year's notice -- which that same file's own legend defines as
+# `secondary`. NO PUBLISHER WAS NEEDED: 2026 is after 2025, and it is visible from the artefact's
+# own bytes. "Has the source moved" and "does this citation support the strength claimed for it"
+# are different questions and only the first one had a module.
+#
+# WHY IT IS HERE AND NOT ONLY IN PYTEST, for the reason given above: test selection reaches a
+# commons artefact through the data-surface graph, and an artefact whose readers are not yet written
+# selects nothing at all. This line is what fires the moment a tenth artefact is added, or the
+# moment an existing one is promoted to `primary` on evidence that cannot bear it.
+#
+# ITS FIRST RUN OVER THE TREE REFUSED A LIVE ARTEFACT: `gb_domestic_switching_rate` stamped ten rows
+# `primary` while its own `how_to_recheck` said "THIS ARTEFACT CITES A DERIVATION, NOT AN EDITION".
+python3 -m tools.commons_citation_supports_provenance --check || exit 1
