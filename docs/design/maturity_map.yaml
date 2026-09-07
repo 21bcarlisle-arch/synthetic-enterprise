@@ -2070,9 +2070,9 @@
   lane: A_strategy_governance
   value_stream: close_to_learn
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: harden
   dial_inherited: 45    # Gates R3 and R4, which are R-set. Same weight as the atoms it sequences,
   #   because a ceiling drawn AFTER the programme it was meant to bound is the defect this atom
   #   exists to prevent -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5. A change of WEIGHTS,
