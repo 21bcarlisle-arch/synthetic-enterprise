@@ -1952,25 +1952,6 @@
   file_scope: ['simulation/population_draw.py', 'simulation/premise_population.py', 'docs/market_research/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a stock model that draws a 40 square metre detached house because nothing told it those two facts travel together."
-- id: W2_22_the_sample_is_space_filling_and_rejects_on_outputs
-  title: "draw for difference: a candidate house is rejected when one already drawn would behave the same"
-  notes_rehomed: [gain]
-  lane: W2_customer_generator
-  value_stream: price_to_bill
-  epoch: 3
-  level_current: 0
-  level_target: 3
-  loop_stage: build
-  dial_inherited: 60    # STAGE 1. Minted BEFORE the work that precedes it finished, because the
-  #   director's fifth instance of "the follow-on was not in the queue" was traced to a NEXT
-  #   trailer naming W2_18 -- the whole ruling deliverable -- which is true and undrawable. A
-  #   bounded tick cannot pick up "the housing joint"; it can pick up this.
-  provenance: director_ruling
-  depends_on: [W2_21_the_premise_joint_is_fitted_not_drawn_independently]
-  couples_with: [W2_18_the_housing_joint_the_sample_and_the_ceiling]
-  file_scope: ['simulation/population_draw.py', 'tools/', 'docs/market_research/']
-  expert_hour: {status: not_attempted, last: null, findings: []}
-  real_world_twin: "a research panel recruited to match the census on every margin, in which every respondent turns out to be the same person twice."
 - id: G14_half_hourly_grid_carbon_intensity_aligned_to_settlement
   title: "historical half-hourly grid carbon intensity, aligned to the settlement periods the world already runs on"
   notes_rehomed: [gain]
