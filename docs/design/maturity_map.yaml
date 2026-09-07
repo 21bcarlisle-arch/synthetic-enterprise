@@ -1971,6 +1971,34 @@
   file_scope: ['simulation/population_draw.py', 'tools/', 'docs/market_research/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a research panel recruited to match the census on every margin, in which every respondent turns out to be the same person twice."
+- id: W2_27_how_many_household_cases_cover_demand
+  title: "how many household cases cover demand variation, house and weather taken together"
+  notes_rehomed: [gain]
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 1    # MINTED AFTER its own work, which is the defect this row records rather than
+  #   repeats. The tool, its suite and the research doc were all written into the shared tree on
+  #   2026-09-07 and never committed, and the notes tenant carried an atom_id the map had no row
+  #   for. That is not a cosmetic mismatch: `tests/design/test_atom_notes_store.py` reads BOTH
+  #   halves of the map and refuses, so an UNTRACKED notes file wedged the design gate for every
+  #   lane working in the shared tree -- and no clean extract could reproduce it, because an
+  #   extract has no untracked files. L1 and not L0: the measurement reproduces from a named
+  #   command and its suite is green (7 passed), so this row names a control a runner can execute.
+  #   L1 and not higher: nothing in the world DRAWS on the 13 cases yet -- the count sizes a
+  #   sample nobody has taken.
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60    # STAGE 1, the same tier as W2_22, because it answers W2_22's own open
+  #   question -- what N is, on the quantity the director actually asked about. He rejected the
+  #   published cell counts as an answer about the wrong thing: "what I actually care about is
+  #   heat demand variation, which depends on the weather cell and the house together."
+  provenance: director_ruling
+  depends_on: [W2_22_the_sample_is_space_filling_and_rejects_on_outputs]
+  couples_with: [W1_14_weather_cells_for_household_heat_load, W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope: ['tools/demand_case_coverage.py', 'tests/tools/test_demand_case_coverage.py', 'docs/market_research/']
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a market researcher sizing a panel by multiplying the number of regions by the number of house types, and recruiting twenty-one times more people than the variation actually contains."
 - id: G14_half_hourly_grid_carbon_intensity_aligned_to_settlement
   title: "historical half-hourly grid carbon intensity, aligned to the settlement periods the world already runs on"
   notes_rehomed: [gain]
