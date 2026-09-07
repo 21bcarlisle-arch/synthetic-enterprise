@@ -27,6 +27,9 @@ is also exempt from electricity CCL. Phase 30b adds gas-side costs: gas CCL
 (for non-domestic gas), gas network charges (GDN + NTS), and Green Gas Levy.
 """
 
+import json
+from pathlib import Path
+
 # RO effective cost floor (£/MWh) by obligation year start.
 # Key = calendar year of April start of obligation year (Apr-Mar).
 # Formula: obligation_level_ROCs_per_MWh × buy_out_price_per_ROC.
@@ -242,20 +245,53 @@ def get_ccl_per_mwh(date_str: str, segment: str = "resi") -> float:
 
 # Phase 30a: Capacity Market (CM) levy for all electricity demand customers.
 # CM applies universally — domestic (resi), SME, and I&C all pay. No exemption.
-# Rate varies year-to-year based on auction clearing prices from 1-4 years prior.
 # Source: Ofgem Annex 9 v1.8 (November 2025), CM row, £/customer/year ÷ 3.1 MWh benchmark.
 # See docs/market_research/capacity_market_levy_2016_2024.md for full derivation.
-_CM_LEVY_BY_YEAR: dict[int, float] = {
-    2016: 0.5,   # 2016/17: TA auctions only, tiny volume. Pre-Annex 9 estimate.
-    2017: 1.10,  # 2017/18: £3.41/cust/yr ÷ 3.1 MWh. First year in Annex 9.
-    2018: 3.67,  # 2018/19: £11.36/cust/yr. First full T-4 delivery year.
-    2019: 4.79,  # 2019/20: £14.85/cust/yr. T-4 at £18.00/kW.
-    2020: 5.86,  # 2020/21: £18.18/cust/yr. T-4 at £22.50/kW.
-    2021: 4.67,  # 2021/22: £14.49/cust/yr. Cheapest year — T-4 only £8.40/kW (2017 auction).
-    2022: 3.37,  # 2022/23: £10.44/cust/yr. T-4 suspended; T-3 + small T-1 at £75/kW cap.
-    2023: 5.68,  # 2023/24: £17.61/cust/yr. T-4 £15.97/kW + T-1 £60/kW.
-    2024: 7.27,  # 2024/25: £22.54/cust/yr (H1 only). T-4 + T-1 at £35.79/kW.
-}
+#
+# THE LAW COMES FROM THE REGULATION COMMONS (2026-09-07). Until this date these were nine
+# literals here, transcribed from the same Annex 9 rows that
+# `docs/domain_artefact_library/regulatory/capacity_market_supplier_levy.json` now holds and
+# that `company/regulatory/capacity_market.py` reads. The two tables AGREED on all nine years
+# — by coincidence, not by construction. Nothing made them keep agreeing, and the annual
+# report now publishes both readings side by side with a live reconciliation, so a literal
+# drifting by one edit would have surfaced as a delta the page attributes to obligation-year
+# keying when it was really a stale constant. `company/regulatory/ro_commons.py` states the
+# rule: the two lanes may hold different READINGS and may not hold different LAW. Three
+# literal tables for two published RO series understated the RO line by £486,458.88 for months.
+#
+# WHAT STAYS THE WORLD'S OWN READING, which is why this is a data load and not an import of
+# the company's module (that would be a wall crossing; reading the published artefact is not):
+# the Apr-Mar bucketing of each record's own date, and the carry-forward past the published
+# record. Both live in `get_cm_levy_per_mwh` below and are stated there.
+_CM_LEVY_ARTEFACT = (
+    Path(__file__).resolve().parents[1]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "capacity_market_supplier_levy.json"
+)
+
+
+def _load_cm_levy() -> dict[int, float]:
+    """`{obligation year: £/MWh}` from the regulation commons.
+
+    NO FAIL-OPEN PATH (R15). A missing, empty or malformed artefact RAISES at import rather
+    than degrading to the literals this replaced or to a plausible default. Falling back to
+    the old table would have made this load cosmetic: the literals would still be the law,
+    and the drift this closes would still be possible one deletion away.
+    """
+    if not _CM_LEVY_ARTEFACT.exists():
+        raise FileNotFoundError(
+            f"Capacity Market supplier levy commons artefact missing: {_CM_LEVY_ARTEFACT}. "
+            "The published Annex 9 series is required; there is no invented default."
+        )
+    rows = json.loads(_CM_LEVY_ARTEFACT.read_text()).get("levy_gbp_per_mwh")
+    if not rows:
+        raise ValueError(
+            f"CM supplier levy commons artefact carries no series: {_CM_LEVY_ARTEFACT}"
+        )
+    return {int(row["obligation_year"]): float(row["gbp_per_mwh"]) for row in rows}
+
+
+_CM_LEVY_BY_YEAR: dict[int, float] = _load_cm_levy()
 
 
 def get_cm_levy_per_mwh(date_str: str) -> float:
@@ -263,6 +299,14 @@ def get_cm_levy_per_mwh(date_str: str) -> float:
 
     Applies to all segments (resi, SME, I&C) — no domestic exemption.
     Obligation year runs Apr-Mar, same as RO. Falls back to nearest known year.
+
+    THE CARRY-FORWARD IS THE WORLD'S READING AND IT DIFFERS FROM THE COMPANY'S DELIBERATELY.
+    `company/regulatory/capacity_market.cm_levy_gbp_per_mwh` returns None outside the
+    published record, because a supplier asking what it owes for an unpublished year must not
+    be handed a real-looking number. The world has the opposite obligation: every settlement
+    record in the run carries a date and every date must be priced, so a run reaching past
+    Annex 9's coverage clamps to the nearest published year rather than refusing to settle.
+    Same law, two readings — which is the split `ro_commons` exists to keep legible.
     """
     oy_year = _ro_oy_start_year(date_str)
     if oy_year in _CM_LEVY_BY_YEAR:

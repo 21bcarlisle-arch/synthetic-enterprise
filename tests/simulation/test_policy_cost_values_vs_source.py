@@ -90,6 +90,14 @@ _VERIFIED_TABLES: dict[str, str] = {
 # table. A pointer to a control that does not mention its subject is not a pin.
 _PINNED_ELSEWHERE: dict[str, str] = {
     "_RO_COST_BY_OY_START": "tests/architecture/test_year_keyed_rate_table_census.py",
+    # `_CM_LEVY_BY_YEAR` moved out of `_UNVERIFIED_TABLES` on 2026-09-07. It is not merely pinned
+    # there — it is no longer a literal at all: the module LOADS the Ofgem Annex 9 supplier levy
+    # from the regulation commons, which is the "stronger move" this file's own docstring names,
+    # and the census asserts the loaded table equals the artefact
+    # (`test_the_sim_cm_levy_reader_serves_the_commons`) and that it has not been re-inlined.
+    # Its old unverified reason — "the pin is the Annex 9 row and not the quotient" — was right
+    # and is now moot: the quotient is stated in the artefact's own `basis.derivation`.
+    "_CM_LEVY_BY_YEAR": "tests/architecture/test_year_keyed_rate_table_census.py",
 }
 
 # Tables with NO values-vs-source pin yet, each with the reason. Declared rather than omitted:
@@ -104,8 +112,6 @@ _UNVERIFIED_TABLES: dict[str, str] = {
     "_DUOS_IC_BY_YEAR": "the I&C-connected variant of the above: HV/EHV DUoS tariffs are published "
                         "per DNO with red/amber/green time bands, so no published figure has the "
                         "shape of this table's single annual £/MWh.",
-    "_CM_LEVY_BY_YEAR": "cites Ofgem Annex 9 v1.8 as £/customer/year ÷ 3.1 MWh; the divisor is a "
-                        "reading, so the pin is the Annex 9 row and not the quotient.",
     "_FIT_LEVY_BY_YEAR": "Ofgem FIT annual levelisation; published per levelisation period, not "
                          "per obligation year.",
     "_MUTUALIZATION_LEVY_BY_YEAR": "SoLR mutualisation recovery totals are published per event; "
@@ -132,7 +138,12 @@ _UNVERIFIED_TABLES: dict[str, str] = {
 # which is the blindness the census exists to remove. It is declared in `_PINNED_ELSEWHERE`
 # above, not merely deleted from here: a table that leaves this dict without arriving anywhere
 # is exactly how the ratchet moves down while coverage does not move up.
-_MAX_UNVERIFIED_TABLES = 10
+# 10 -> 9 on 2026-09-07: `_CM_LEVY_BY_YEAR` left, and it left by the strongest route available —
+# the module now LOADS the Annex 9 supplier levy from the commons, so drift is impossible rather
+# than merely detected. It is declared in `_PINNED_ELSEWHERE` above and not simply deleted, for
+# the reason the RO note gives: a table that leaves this dict without arriving anywhere is exactly
+# how the ratchet moves down while coverage does not move up.
+_MAX_UNVERIFIED_TABLES = 9
 _MAX_RECALLED_PINS = 3   # elec 2016, gas 2016, gas 2022 — each an open item in the commons
 
 

@@ -170,9 +170,19 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "simulation/policy_costs.py::_DUOS_IC_BY_YEAR":
         "the I&C-connected variant: HV/EHV DUoS tariffs are published per DNO with red/amber/"
         "green time bands, so no published figure has this table's single annual GBP/MWh shape.",
-    "simulation/policy_costs.py::_CM_LEVY_BY_YEAR":
-        "cites Ofgem Annex 9 v1.8 as GBP/customer/year divided by 3.1 MWh; the divisor is a "
-        "reading, so the pin is the Annex 9 row and not the quotient.",
+    # `simulation/policy_costs.py::_CM_LEVY_BY_YEAR` CAME OFF on 2026-09-07, and this edit is the
+    # record the work happened. Its entry said the pin "is the Annex 9 row and not the quotient" --
+    # correct, and it is now moot: the Annex 9 row IS the commons artefact, the quotient is stated
+    # in that artefact's own `basis.derivation`, and the module loads it instead of restating it.
+    #
+    # THE TWO TABLES AGREED ON ALL NINE YEARS BEFORE THIS, which is the part worth writing down.
+    # a53 landed the company-side half at f716b6eac and the sim kept its literals, so one published
+    # series had two homes that matched by coincidence: nothing made them keep matching, and the
+    # annual report publishes both readings side by side with a live reconciliation, so a drifting
+    # literal would have surfaced as a delta the page attributes to obligation-year keying. A
+    # register cannot see "agrees today, unconstrained tomorrow" -- only the load can close it.
+    # Held in `_MUST_NOT_BE_LITERALS_SUPPLIER_LEVY` below and equality-checked by
+    # `test_the_sim_cm_levy_reader_serves_the_commons`.
     "simulation/policy_costs.py::_FIT_LEVY_BY_YEAR":
         "Ofgem FIT annual levelisation; published per levelisation period, not per obligation "
         "year, so the pin must carry the period-to-year mapping as a stated reading.",
@@ -412,9 +422,16 @@ _BAND_PINNED: dict[str, str] = {
 # lane in the tree. Recorded as two separate movements rather than one net figure, because a
 # ratchet that only ever shows its net is a ratchet you cannot audit: this bucket was PAID DOWN by
 # two and CHARGED one, and the charge is somebody else's table.
-_MAX_PUBLISHED_UNPINNED = 37  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+_MAX_PUBLISHED_UNPINNED = 36  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
 # the point -- pinning a table is the only sanctioned way to move this number.
+#
+# 37 -> 36 later the same day: `simulation/policy_costs.py::_CM_LEVY_BY_YEAR` came off, the SIM
+# side of the same publication. Paid down the way the ratchet intends -- a table left because it
+# now loads the artefact, not because a bucket was re-labelled -- and note what this movement is
+# NOT: no publication was fetched for it, because a51 had already fetched it. The cost of the
+# second half was one loader, and the reason to do it is that the first half made the two homes
+# visible to each other on the annual report without making them agree by construction.
 
 # The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
 # into a dumping ground. Declared here rather than left implicit; see the test of that name.
@@ -723,6 +740,96 @@ def test_the_capacity_market_clearing_prices_have_not_been_re_inlined():
         "them that way, and see company/market/capacity_market_published_record.py for the T-4 / "
         "T-1 split that a single table cannot express."
     )
+
+
+# The Ofgem Annex 9 supplier levy, the SIM half of the pair a51/a53 opened (2026-09-07). Held
+# separately from `_MUST_NOT_BE_LITERALS_CM` above even though both say "capacity market": that
+# tuple is the auction CLEARING PRICE, which is what a capacity PROVIDER is paid, and this one is
+# the LEVY ON DEMAND, which is what a supplier pays. Conflating them is the exact error the levy
+# artefact exists to prevent, and a relapse message that named the wrong one would teach it.
+_MUST_NOT_BE_LITERALS_SUPPLIER_LEVY = (
+    "simulation/policy_costs.py::_CM_LEVY_BY_YEAR",
+)
+
+CM_LEVY_COMMONS = COMMONS_DIR / "capacity_market_supplier_levy.json"
+
+
+def test_the_supplier_levy_has_not_been_re_inlined():
+    """MUTATION: paste the nine literals back and this fires on that name.
+
+    They were literals here until 2026-09-07 and they AGREED with the commons on all nine years,
+    which is why only a control of this shape can hold it: a values-vs-source pin would have been
+    green the whole time it was possible for the two homes to diverge. "Absent from the census"
+    and "unchecked" look identical to a census, so this leg makes the absence load-bearing.
+    """
+    discovered = set(discover_year_keyed_tables())
+    relapsed = sorted(set(_MUST_NOT_BE_LITERALS_SUPPLIER_LEVY) & discovered)
+    assert not relapsed, (
+        f"{relapsed} is a literal table again. The CM supplier levy loads from "
+        "capacity_market_supplier_levy.json; keep it that way. The world's own reading -- the "
+        "Apr-Mar bucketing and the carry-forward past Annex 9's coverage -- lives in "
+        "simulation/policy_costs.get_cm_levy_per_mwh and does NOT need a second copy of the law."
+    )
+
+
+def test_the_sim_cm_levy_reader_serves_the_commons():
+    """The world's CM levy is the published series, not a restatement of it.
+
+    THIS LEG'S REACH, MEASURED 2026-09-07 RATHER THAN ASSUMED, because the flattering reading
+    of it is wrong. Poisoned three ways: re-inline the literals with a drifted 2021 and it
+    FIRES; re-inline them unchanged and it passes (the re-inline leg above owns that case);
+    edit the artefact itself and it passes, because both sides read the same bytes.
+
+    That last one is an EQUIVALENCE, not a missing test — while the load stands this leg cannot
+    fail, and that is what the load is for. What it is NOT is a check on the artefact's own
+    values: nothing here re-derives the levy from Annex 9's £/customer/year, so a wrong figure
+    in the commons is wrong in both lanes at once and silently. See
+    docs/staging/SEAT_FINDING_THE_CM_LEVY_ARTEFACTS_STATED_DERIVATION_DOES_NOT_REPRODUCE_ITS_2018_ROW_2026-09-07.md
+    — its 2018 row already does not.
+    """
+    from simulation import policy_costs
+
+    published = {
+        int(e["obligation_year"]): float(e["gbp_per_mwh"])
+        for e in _load_commons(CM_LEVY_COMMONS, "levy_gbp_per_mwh")
+    }
+    assert policy_costs._CM_LEVY_BY_YEAR == published
+
+
+def test_the_two_lanes_hold_one_law_and_keep_their_own_readings():
+    """The pair, stated as one control: same LAW, different READINGS, and both halves asserted.
+
+    The equality half is the point of the load. The DIVERGENCE half is here because it is the
+    thing a well-meaning later pass would delete: outside Annex 9's record the company returns
+    `None` (a supplier must not be handed a real-looking number for an unpublished year) while
+    the world clamps to the nearest published year (every settlement record carries a date and
+    every date must be priced). Collapsing the world onto the company's refusal would break every
+    run past the record, and collapsing the company onto the world's clamp would restore exactly
+    the `.get(year, _RATE[2025])` default a51 removed. `company/regulatory/ro_commons.py` names
+    the rule: different readings are allowed, different law is not.
+    """
+    from company.regulatory import capacity_market
+    from simulation import policy_costs
+
+    published = {
+        int(e["obligation_year"]): float(e["gbp_per_mwh"])
+        for e in _load_commons(CM_LEVY_COMMONS, "levy_gbp_per_mwh")
+    }
+    for year, rate in published.items():
+        assert capacity_market.cm_levy_gbp_per_mwh(year) == pytest.approx(rate)
+        assert policy_costs.get_cm_levy_per_mwh(f"{year}-06-15") == pytest.approx(rate)
+
+    beyond = max(published) + 1
+    assert capacity_market.cm_levy_gbp_per_mwh(beyond) is None
+    assert policy_costs.get_cm_levy_per_mwh(f"{beyond}-06-15") == pytest.approx(
+        published[max(published)]
+    )
+
+    # And the world's Apr-Mar bucketing, which the company does not do at all: it takes the
+    # obligation year as an argument, so a January date is the caller's problem there and the
+    # world's own reading here.
+    assert policy_costs.get_cm_levy_per_mwh("2022-01-15") == pytest.approx(published[2021])
+    assert policy_costs.get_cm_levy_per_mwh("2022-04-15") == pytest.approx(published[2022])
 
 
 def test_the_ro_readers_agree_with_the_commons():
