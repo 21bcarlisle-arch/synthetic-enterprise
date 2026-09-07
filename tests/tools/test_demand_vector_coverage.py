@@ -157,3 +157,84 @@ def test_ONLY_THE_HALF_HOURLY_SHAPE_IS_STILL_ABSENT():
     assert "half_hourly_electricity_shape" in flat, (
         "the one axis still waiting on W2_19 must be named in the module, or the floor caveat "
         "survives only in a report that gets summarised away")
+
+
+def test_THE_WEIGHTING_MUST_DO_WORK_or_the_design_has_reverted_to_representativeness():
+    """THE DIRECTOR'S OWN TELL, WRITTEN INTO THE CANON AND NOW INTO A CONTROL.
+
+    *"If N comes out at the scale a random sample would need, the weighting is doing no work and the
+    design has reverted to representativeness."* It did: the acceptance test drew
+    `rng.choice(len(values), size=n)` while the module's docstring quoted "each drawn case carries
+    the population mass it stands for". No weight entered the test at all, and the answer -- 8,500 --
+    was the size a random sample needs.
+
+    A deliberately-chosen weighted sample must beat a random one by a wide margin on the same
+    acceptance, or one of the two is not what its name says."""
+    values = _grid(n=6000, seed=7)
+    reference = dvc._Reference(values, dvc.AXES)
+
+    chosen = dvc.choose_for_difference(values, 120, seed=0)
+    weights = dvc.fit_weights(values, chosen, reference)
+    designed = max(v["d"] for v in
+                   dvc.accepts_weighted(values[chosen], weights, reference).values())
+
+    rng = np.random.default_rng(3)
+    same_size = values[rng.choice(len(values), size=len(chosen), replace=False)]
+    random_draw = max(v["d"] for v in dvc.accepts_against(same_size, reference).values())
+
+    assert designed < random_draw, (
+        f"the designed sample scored {designed:.4f} against a random draw's {random_draw:.4f} at "
+        "the same size -- the weighting is doing no work, which is the exact state the canon's tell "
+        "was written to catch")
+
+
+def test_THE_WEIGHTS_ARE_FITTED_ON_DIRECTIONS_THE_TEST_DOES_NOT_SCORE():
+    """FITTING TO THE ANSWER, and it is the obvious way to make this design look better than it is.
+    The weights are solved against `FIT_SLICES` directions; the acceptance scores `JOINT_SLICES`
+    others. If the two sets were the same, a passing sample would have learned the test rather than
+    the population."""
+    reference = dvc._Reference(_grid(n=500), dvc.AXES)
+    rng = np.random.default_rng(999)
+    fit_dirs = rng.normal(size=(dvc.FIT_SLICES, len(dvc.AXES)))
+    fit_dirs /= np.linalg.norm(fit_dirs, axis=1, keepdims=True)
+
+    for u in fit_dirs:
+        for v in reference.directions:
+            assert abs(float(np.dot(u, v))) < 0.9999, (
+                "a fit direction coincides with a test direction, so the weights were fitted to the "
+                "criterion that scores them")
+
+
+def test_A_NEGATIVE_WEIGHT_IS_A_HOUSEHOLD_COUNT_BELOW_ZERO():
+    """Non-negativity is not a solver convenience. A case that has to be SUBTRACTED to make the
+    distribution work is a case that should not have been chosen, and a sample carrying one cannot
+    be handed to anything that reads weights as households."""
+    values = _grid(n=3000, seed=8)
+    reference = dvc._Reference(values, dvc.AXES)
+    chosen = dvc.choose_for_difference(values, 60, seed=0)
+    weights = dvc.fit_weights(values, chosen, reference)
+
+    assert (weights >= 0).all(), "a chosen case carries negative mass"
+    assert weights.sum() > 0, "every weight is zero, so the sample stands for nothing"
+
+
+def test_CHOOSING_REJECTS_NEAR_DUPLICATES_and_keeps_the_tails():
+    """The canon's two requirements on the choosing, together: *"distinct cases spanning the output
+    variation, near-duplicates rejected, tails deliberately in"*. A cluster medoid is one household
+    per distinct region of behaviour, so two near-identical households cannot both be chosen; the
+    per-axis extremes are added explicitly because clustering alone would drop them."""
+    values = _grid(n=4000, seed=9)
+    chosen = dvc.choose_for_difference(values, 40, seed=0)
+
+    for j in range(values.shape[1]):
+        assert int(np.argmax(values[:, j])) in set(chosen.tolist()), (
+            f"the maximum of axis {j} was not deliberately included")
+        assert int(np.argmin(values[:, j])) in set(chosen.tolist()), (
+            f"the minimum of axis {j} was not deliberately included")
+
+    mean, sd = values.mean(axis=0), values.std(axis=0)
+    z = (values - np.where(sd == 0, 1.0, sd) * 0 - mean) / np.where(sd == 0, 1.0, sd)
+    picked = z[chosen]
+    gaps = [np.min(np.sum((picked - p) ** 2, axis=1)[np.arange(len(picked)) != i])
+            for i, p in enumerate(picked)]
+    assert min(gaps) > 0.0, "two chosen cases occupy the same point in the output space"
