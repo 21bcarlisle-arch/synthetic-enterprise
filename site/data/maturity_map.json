@@ -910,7 +910,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1069,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -959,7 +959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -1027,7 +1027,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 26,
       "forward_attachments": []
     },
     {
@@ -1095,7 +1095,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -1161,7 +1161,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -1300,7 +1300,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1136,
       "forward_attachments": []
     },
     {
@@ -1322,7 +1322,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1069,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -1342,7 +1342,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 2,
+      "stall_consecutive_unchanged": 464,
       "forward_attachments": []
     },
     {
@@ -1457,7 +1457,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 18075,
+      "stall_consecutive_unchanged": 19128,
       "forward_attachments": []
     },
     {
@@ -1523,7 +1523,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -1545,7 +1545,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1136,
       "forward_attachments": []
     },
     {
@@ -1567,7 +1567,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1136,
       "forward_attachments": []
     },
     {
@@ -1589,7 +1589,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1136,
       "forward_attachments": []
     },
     {
@@ -1633,7 +1633,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -1801,7 +1801,7 @@
       "value_stream": "price_to_bill",
       "value_stream_label": "Price to Bill",
       "epoch": 3,
-      "level_current": 0,
+      "level_current": 1,
       "level_target": 3,
       "loop_stage": "build",
       "dial_inherited": 60,
@@ -1812,8 +1812,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 465,
       "forward_attachments": []
     },
     {
@@ -1878,7 +1878,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 550,
+      "stall_consecutive_unchanged": 679,
       "forward_attachments": []
     },
     {
@@ -1962,30 +1962,6 @@
       "expert_hour_status": "not_attempted",
       "depends_on": [
         "W2_20_mains_gas_is_drawn_not_inferred_from_the_heating_system"
-      ],
-      "couples_with": [
-        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
-      "forward_attachments": []
-    },
-    {
-      "id": "W2_22_the_sample_is_space_filling_and_rejects_on_outputs",
-      "name": "",
-      "lane": "W2_customer_generator",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "build",
-      "dial_inherited": 60,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [
-        "W2_21_the_premise_joint_is_fitted_not_drawn_independently"
       ],
       "couples_with": [
         "W2_18_the_housing_joint_the_sample_and_the_ceiling"
@@ -2084,30 +2060,6 @@
       "forward_attachments": []
     },
     {
-      "id": "A49_the_ceiling_comes_before_the_programme_on_r3_and_r4",
-      "name": "",
-      "lane": "A_strategy_governance",
-      "value_stream": "close_to_learn",
-      "value_stream_label": "Close to Learn",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 2,
-      "loop_stage": "build",
-      "dial_inherited": 45,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "E5_carbon_three_ledger",
-        "C30_advice_reaches_a_household",
-        "A46_book_depth_is_a_curriculum_question"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": true,
-      "stall_consecutive_unchanged": 2,
-      "forward_attachments": []
-    },
-    {
       "id": "C29_decisions_stop_being_lookup_tables",
       "name": "",
       "lane": "C_customer_ops",
@@ -2130,7 +2082,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1069,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -2178,7 +2130,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -2203,7 +2155,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1068,
+      "stall_consecutive_unchanged": 1137,
       "forward_attachments": []
     },
     {
@@ -2344,28 +2296,6 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 18,
-      "forward_attachments": []
-    },
-    {
-      "id": "W1_26_the_world_has_no_wind_term_and_the_belief_does",
-      "name": "",
-      "lane": "W1_market_weather",
-      "value_stream": "price_to_bill",
-      "value_stream_label": "Price to Bill",
-      "epoch": 3,
-      "level_current": 0,
-      "level_target": 3,
-      "loop_stage": "frame",
-      "dial_inherited": 60,
-      "expert_hour_status": "not_attempted",
-      "depends_on": [],
-      "couples_with": [
-        "W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for"
-      ],
-      "chain": null,
-      "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
       "forward_attachments": []
     },
     {
@@ -7580,6 +7510,122 @@
       "stalled": false,
       "stall_consecutive_unchanged": null,
       "forward_attachments": []
+    },
+    {
+      "id": "W1_27_the_cell_decision_and_the_solar_gain_check",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for",
+        "W1_26_the_world_has_no_wind_term_and_the_belief_does"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_26_the_world_has_no_wind_term_and_the_belief_does",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_25_the_cells_per_driver_and_what_each_driver_is_actually_for"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "A49_the_ceiling_comes_before_the_programme_on_r3_and_r4",
+      "name": "",
+      "lane": "A_strategy_governance",
+      "value_stream": "close_to_learn",
+      "value_stream_label": "Close to Learn",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "harden",
+      "dial_inherited": 45,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "E5_carbon_three_ledger",
+        "C30_advice_reaches_a_household",
+        "A46_book_depth_is_a_curriculum_question"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 2,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_27_how_many_household_cases_cover_demand",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_21_the_premise_joint_is_fitted_not_drawn_independently",
+        "W1_21_the_cells_and_the_level_coverage_curve"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_22_the_sample_is_space_filling_and_rejects_on_outputs",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 3,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_21_the_premise_joint_is_fitted_not_drawn_independently"
+      ],
+      "couples_with": [
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": false,
+      "stall_consecutive_unchanged": null,
+      "forward_attachments": []
     }
   ],
   "lanes": {
@@ -7662,7 +7708,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 338,
+  "total_atoms": 340,
   "epoch2_movements": [
     {
       "id": "M1",

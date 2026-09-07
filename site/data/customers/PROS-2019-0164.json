@@ -38,10 +38,10 @@
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2019-0164g",
-    "gas_lifetime_net_gbp": 461.51,
-    "gas_lifetime_revenue_gbp": 2044.84,
-    "combined_net_gbp": 1626.75,
-    "combined_revenue_gbp": 5055.44
+    "gas_lifetime_net_gbp": 491.9,
+    "gas_lifetime_revenue_gbp": 2075.23,
+    "combined_net_gbp": 1657.13,
+    "combined_revenue_gbp": 5085.82
   },
   "annual_pnl": [
     {
@@ -5480,7 +5480,7 @@
       "date": "2020-06-04",
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 53% churn risk, decided to offer a 5% discount (cost GBP8.57) against GBP130.50 expected term margin at risk -- expected value of offering GBP121.93. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.53,
+      "company_belief": 0.529,
       "sim_truth": 0.19,
       "amount_gbp": 121.93,
       "outcome": "retained",
@@ -5491,7 +5491,7 @@
       "date": "2020-06-04",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 53% churn risk at decision time, SIM realized probability was 19%.",
-      "company_belief": 0.53,
+      "company_belief": 0.529,
       "sim_truth": 0.19,
       "amount_gbp": null,
       "outcome": "renewed",
@@ -5623,7 +5623,7 @@
       "date": "2021-06-04",
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 34% churn risk, decided to offer a 3% discount (cost GBP6.95) against GBP133.11 expected term margin at risk -- expected value of offering GBP126.16. Comms framed as a loss (you will lose the discount).",
-      "company_belief": 0.345,
+      "company_belief": 0.344,
       "sim_truth": 0.404,
       "amount_gbp": 126.16000000000001,
       "outcome": "retained",
@@ -5634,7 +5634,7 @@
       "date": "2021-06-04",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 34% churn risk at decision time, SIM realized probability was 40%.",
-      "company_belief": 0.345,
+      "company_belief": 0.344,
       "sim_truth": 0.404,
       "amount_gbp": null,
       "outcome": "renewed",

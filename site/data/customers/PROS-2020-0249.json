@@ -14,8 +14,8 @@
   "mprn": null,
   "lifetime_revenue_gbp": 6606.84,
   "lifetime_gross_gbp": 4238.07,
-  "lifetime_net_gbp": 1576.45,
-  "lifetime_net_after_cts_gbp": 1308.6,
+  "lifetime_net_gbp": 1576.44,
+  "lifetime_net_after_cts_gbp": 1308.59,
   "cost_to_serve_gbp": 267.85,
   "pricing_action": {
     "flag": "OK",
@@ -31,7 +31,7 @@
   "forward_looking_account_id": "PROS-2020-0249",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 1576.45,
+      "net_gbp": 1576.44,
       "revenue_gbp": 6606.84
     },
     "gas": null
@@ -58,7 +58,7 @@
       "year": 2022,
       "revenue_gbp": 0,
       "gross_gbp": 717.09,
-      "net_gbp": 206.52,
+      "net_gbp": 206.51,
       "tariff_min": 167.63,
       "tariff_max": 510.19
     },
@@ -4060,8 +4060,8 @@
       "customer_id": "PROS-2020-0249",
       "date": "2021-07-26",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 18% churn risk at decision time, SIM realized probability was 21%.",
-      "company_belief": 0.175,
+      "description": "Renewal outcome: RENEWED -- company believed 17% churn risk at decision time, SIM realized probability was 21%.",
+      "company_belief": 0.174,
       "sim_truth": 0.211,
       "amount_gbp": null,
       "outcome": "renewed",

@@ -9,10 +9,10 @@
   "meter_type": "Smart",
   "mpan": null,
   "mprn": "44016614",
-  "lifetime_revenue_gbp": 4117.13,
-  "lifetime_gross_gbp": 844.16,
-  "lifetime_net_gbp": -7.15,
-  "lifetime_net_after_cts_gbp": -252.16,
+  "lifetime_revenue_gbp": 4117.14,
+  "lifetime_gross_gbp": 844.17,
+  "lifetime_net_gbp": -7.14,
+  "lifetime_net_after_cts_gbp": -252.15,
   "cost_to_serve_gbp": 245.01,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
@@ -29,8 +29,8 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": -7.15,
-      "revenue_gbp": 4117.13
+      "net_gbp": -7.14,
+      "revenue_gbp": 4117.14
     }
   },
   "dual_fuel_combined": null,
@@ -71,15 +71,15 @@
       "year": 2024,
       "revenue_gbp": 0,
       "gross_gbp": 530.29,
-      "net_gbp": 302.68,
+      "net_gbp": 302.69,
       "tariff_min": 61.01,
       "tariff_max": 65.31
     },
     {
       "year": 2025,
       "revenue_gbp": 0,
-      "gross_gbp": 221.61,
-      "net_gbp": 106.29,
+      "gross_gbp": 221.62,
+      "net_gbp": 106.3,
       "tariff_min": 61.01,
       "tariff_max": 61.01
     }
@@ -95,7 +95,7 @@
       "date": "2023-12-25",
       "type": "renewed",
       "commodity": "electricity",
-      "detail": "Tariff renewed at 214.0 \u00a3/MWh",
+      "detail": "Tariff renewed at 212.0 \u00a3/MWh",
       "effect": "Unit rate stepped 10.32p/kWh -> 9.46p/kWh"
     },
     {
@@ -3685,10 +3685,10 @@
       "customer_id": "PROS-2020-0391",
       "date": "2023-12-25",
       "event_type": "retention_decision",
-      "description": "Renewal window: company estimated 62% churn risk, decided to offer a 5% discount (cost GBP99.72) against GBP1,106.03 expected term margin at risk -- expected value of offering GBP1,006.31. Comms framed as a loss (you will lose the discount).",
-      "company_belief": 0.624,
-      "sim_truth": 0.17,
-      "amount_gbp": 1006.31,
+      "description": "Renewal window: company estimated 61% churn risk, decided to offer a 5% discount (cost GBP98.76) against GBP1,086.81 expected term margin at risk -- expected value of offering GBP988.05. Comms framed as a loss (you will lose the discount).",
+      "company_belief": 0.614,
+      "sim_truth": 0.169,
+      "amount_gbp": 988.05,
       "outcome": "retained",
       "framing_type": "loss_framed"
     },
@@ -3696,9 +3696,9 @@
       "customer_id": "PROS-2020-0391",
       "date": "2023-12-25",
       "event_type": "outcome_renewed",
-      "description": "Renewal outcome: RENEWED -- company believed 62% churn risk at decision time, SIM realized probability was 17%.",
-      "company_belief": 0.624,
-      "sim_truth": 0.17,
+      "description": "Renewal outcome: RENEWED -- company believed 61% churn risk at decision time, SIM realized probability was 17%.",
+      "company_belief": 0.614,
+      "sim_truth": 0.169,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -3719,7 +3719,7 @@
       "date": "2024-12-24",
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 48% churn risk, decided to offer a 3% discount (cost GBP64.47) against GBP1,133.07 expected term margin at risk -- expected value of offering GBP1,068.60. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.478,
+      "company_belief": 0.485,
       "sim_truth": 0.525,
       "amount_gbp": 1068.6,
       "outcome": "retained",
@@ -3730,7 +3730,7 @@
       "date": "2024-12-24",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 48% churn risk at decision time, SIM realized probability was 52%.",
-      "company_belief": 0.478,
+      "company_belief": 0.485,
       "sim_truth": 0.525,
       "amount_gbp": null,
       "outcome": "renewed",

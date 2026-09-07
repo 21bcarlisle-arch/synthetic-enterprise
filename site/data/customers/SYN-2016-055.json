@@ -12,10 +12,10 @@
     "bottom_line": "13580645741"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 5534.53,
-  "lifetime_gross_gbp": 3703.46,
-  "lifetime_net_gbp": 1601.81,
-  "lifetime_net_after_cts_gbp": 1115.21,
+  "lifetime_revenue_gbp": 5534.5,
+  "lifetime_gross_gbp": 3703.43,
+  "lifetime_net_gbp": 1601.78,
+  "lifetime_net_after_cts_gbp": 1115.18,
   "cost_to_serve_gbp": 486.6,
   "pricing_action": {
     "flag": "OK",
@@ -31,8 +31,8 @@
   "forward_looking_account_id": "SYN-2016-055",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 1601.81,
-      "revenue_gbp": 5534.53
+      "net_gbp": 1601.78,
+      "revenue_gbp": 5534.5
     },
     "gas": null
   },
@@ -57,10 +57,10 @@
     {
       "year": 2018,
       "revenue_gbp": 0,
-      "gross_gbp": 272.96,
-      "net_gbp": 85.12,
+      "gross_gbp": 272.94,
+      "net_gbp": 85.1,
       "tariff_min": 106.9,
-      "tariff_max": 145.48
+      "tariff_max": 145.46
     },
     {
       "year": 2019,
@@ -81,17 +81,17 @@
     {
       "year": 2021,
       "revenue_gbp": 0,
-      "gross_gbp": 292.61,
+      "gross_gbp": 292.6,
       "net_gbp": 66.84,
       "tariff_min": 112.82,
-      "tariff_max": 221.15
+      "tariff_max": 221.14
     },
     {
       "year": 2022,
       "revenue_gbp": 0,
-      "gross_gbp": 422.28,
-      "net_gbp": 158.92,
-      "tariff_min": 235.33,
+      "gross_gbp": 422.27,
+      "net_gbp": 158.91,
+      "tariff_min": 235.34,
       "tariff_max": 492.95
     },
     {
@@ -1216,14 +1216,14 @@
       "period_end": "2018-10-31",
       "commodity": "electricity",
       "consumption_kwh": 182.2,
-      "unit_rate_p_per_kwh": 14.55,
-      "commodity_amount_gbp": 26.51,
+      "unit_rate_p_per_kwh": 14.544,
+      "commodity_amount_gbp": 26.5,
       "standing_charge_gbp": 8.05,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.2597,
       "non_commodity_amount_gbp": 9.66,
       "vat_gbp": 2.21,
-      "amount_gbp": 46.43,
+      "amount_gbp": 46.42,
       "status": "PAID",
       "meter_serial": "M00058280",
       "mpan": "1000000000695",
@@ -1236,8 +1236,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 182.2,
-          "amount_gbp": 26.51,
-          "unit_rate_p_per_kwh": 14.55
+          "amount_gbp": 26.5,
+          "unit_rate_p_per_kwh": 14.544
         }
       ],
       "catchup_applied": false,
@@ -1257,14 +1257,14 @@
       "period_end": "2018-11-30",
       "commodity": "electricity",
       "consumption_kwh": 182.2,
-      "unit_rate_p_per_kwh": 14.55,
-      "commodity_amount_gbp": 26.51,
+      "unit_rate_p_per_kwh": 14.544,
+      "commodity_amount_gbp": 26.5,
       "standing_charge_gbp": 7.8,
       "days_in_period": 30,
       "standing_charge_gbp_per_day": 0.26,
       "non_commodity_amount_gbp": 9.66,
       "vat_gbp": 2.2,
-      "amount_gbp": 46.17,
+      "amount_gbp": 46.16,
       "status": "PAID",
       "meter_serial": "M00058280",
       "mpan": "1000000000695",
@@ -1277,8 +1277,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 182.2,
-          "amount_gbp": 26.51,
-          "unit_rate_p_per_kwh": 14.55
+          "amount_gbp": 26.5,
+          "unit_rate_p_per_kwh": 14.544
         }
       ],
       "catchup_applied": false,
@@ -1298,14 +1298,14 @@
       "period_end": "2018-12-31",
       "commodity": "electricity",
       "consumption_kwh": 182.2,
-      "unit_rate_p_per_kwh": 14.55,
-      "commodity_amount_gbp": 26.51,
+      "unit_rate_p_per_kwh": 14.544,
+      "commodity_amount_gbp": 26.5,
       "standing_charge_gbp": 8.05,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.2597,
       "non_commodity_amount_gbp": 9.66,
       "vat_gbp": 2.21,
-      "amount_gbp": 46.43,
+      "amount_gbp": 46.42,
       "status": "PAID",
       "meter_serial": "M00058280",
       "mpan": "1000000000695",
@@ -1318,8 +1318,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 182.2,
-          "amount_gbp": 26.51,
-          "unit_rate_p_per_kwh": 14.55
+          "amount_gbp": 26.5,
+          "unit_rate_p_per_kwh": 14.544
         }
       ],
       "catchup_applied": false,
@@ -1633,7 +1633,7 @@
       "standing_charge_gbp_per_day": 0.2697,
       "non_commodity_amount_gbp": 9.58,
       "vat_gbp": 2.43,
-      "amount_gbp": 106.18,
+      "amount_gbp": 106.17,
       "status": "PAID",
       "meter_serial": "M00058280",
       "mpan": "1000000000695",
@@ -1655,8 +1655,8 @@
       "catchup_period_end": "2019-07-31",
       "catchup_periods_covered": 12,
       "catchup_direction": "undercharge",
-      "catchup_raw_delta_gbp": 60.06,
-      "catchup_adjustment_gbp": 55.11,
+      "catchup_raw_delta_gbp": 60.05,
+      "catchup_adjustment_gbp": 55.1,
       "catchup_written_off_gbp": 4.95,
       "catchup_back_billing_cap_applied": true
     },
@@ -3061,14 +3061,14 @@
       "period_end": "2022-07-31",
       "commodity": "electricity",
       "consumption_kwh": 184.5,
-      "unit_rate_p_per_kwh": 28.62,
-      "commodity_amount_gbp": 52.8,
+      "unit_rate_p_per_kwh": 28.61,
+      "commodity_amount_gbp": 52.79,
       "standing_charge_gbp": 14.26,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.46,
       "non_commodity_amount_gbp": 13.47,
       "vat_gbp": 4.03,
-      "amount_gbp": 84.56,
+      "amount_gbp": 84.55,
       "status": "PAID",
       "meter_serial": "M00058280",
       "mpan": "1000000000695",
@@ -3081,8 +3081,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 184.5,
-          "amount_gbp": 52.8,
-          "unit_rate_p_per_kwh": 28.62
+          "amount_gbp": 52.79,
+          "unit_rate_p_per_kwh": 28.61
         }
       ],
       "catchup_applied": false,
@@ -5088,17 +5088,17 @@
         "date": "2018-11-02",
         "type": "invoice_raised",
         "invoice_number": 10349,
-        "amount_gbp": 46.43,
+        "amount_gbp": 46.42,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV10349 raised",
-        "running_balance_gbp": 46.43
+        "running_balance_gbp": 46.42
       },
       {
         "date": "2018-11-16",
         "type": "payment_received",
         "invoice_number": 10349,
-        "amount_gbp": -46.43,
+        "amount_gbp": -46.42,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -5108,17 +5108,17 @@
         "date": "2018-12-01",
         "type": "invoice_raised",
         "invoice_number": 10350,
-        "amount_gbp": 46.17,
+        "amount_gbp": 46.16,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV10350 raised",
-        "running_balance_gbp": 46.17
+        "running_balance_gbp": 46.16
       },
       {
         "date": "2018-12-15",
         "type": "payment_received",
         "invoice_number": 10350,
-        "amount_gbp": -46.17,
+        "amount_gbp": -46.16,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -5128,17 +5128,17 @@
         "date": "2019-01-07",
         "type": "invoice_raised",
         "invoice_number": 10351,
-        "amount_gbp": 46.43,
+        "amount_gbp": 46.42,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV10351 raised",
-        "running_balance_gbp": 46.43
+        "running_balance_gbp": 46.42
       },
       {
         "date": "2019-01-21",
         "type": "payment_received",
         "invoice_number": 10351,
-        "amount_gbp": -46.43,
+        "amount_gbp": -46.42,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -5318,17 +5318,17 @@
         "date": "2019-09-01",
         "type": "invoice_raised",
         "invoice_number": 10359,
-        "amount_gbp": 106.18,
+        "amount_gbp": 106.17,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV10359 raised",
-        "running_balance_gbp": 106.18
+        "running_balance_gbp": 106.17
       },
       {
         "date": "2019-09-15",
         "type": "payment_received",
         "invoice_number": 10359,
-        "amount_gbp": -106.18,
+        "amount_gbp": -106.17,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -6018,17 +6018,17 @@
         "date": "2022-08-03",
         "type": "invoice_raised",
         "invoice_number": 10394,
-        "amount_gbp": 84.56,
+        "amount_gbp": 84.55,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV10394 raised",
-        "running_balance_gbp": 84.56
+        "running_balance_gbp": 84.55
       },
       {
         "date": "2022-08-17",
         "type": "payment_received",
         "invoice_number": 10394,
-        "amount_gbp": -84.56,
+        "amount_gbp": -84.55,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -6726,8 +6726,8 @@
       }
     ],
     "current_balance_gbp": 76.03,
-    "total_billed_gbp": 7273.55,
-    "total_collected_gbp": 7197.52,
+    "total_billed_gbp": 7273.5,
+    "total_collected_gbp": 7197.47,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
@@ -7183,7 +7183,7 @@
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 16% churn risk at decision time, SIM realized probability was 19%.",
       "company_belief": 0.157,
-      "sim_truth": 0.193,
+      "sim_truth": 0.192,
       "amount_gbp": null,
       "outcome": "renewed",
       "framing_type": null
@@ -7314,7 +7314,7 @@
       "date": "2023-08-03",
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 71% churn risk, decided to offer a 5% discount (cost GBP25.88) against GBP287.68 expected term margin at risk -- expected value of offering GBP261.80. Comms framed as a loss (you will lose the discount).",
-      "company_belief": 0.713,
+      "company_belief": 0.712,
       "sim_truth": 0.113,
       "amount_gbp": 261.8,
       "outcome": "retained",
@@ -7325,7 +7325,7 @@
       "date": "2023-08-03",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 71% churn risk at decision time, SIM realized probability was 11%.",
-      "company_belief": 0.713,
+      "company_belief": 0.712,
       "sim_truth": 0.113,
       "amount_gbp": null,
       "outcome": "renewed",

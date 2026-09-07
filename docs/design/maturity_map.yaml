@@ -1725,21 +1725,32 @@
   #   L2 IS NOT CLAIMED AND MUST NOT BE. L2 is "mechanically real"; the world's household heat load
   #   is still not DRIVEN by the cells, and the seam is what measured why. The archive is four real
   #   Open-Meteo pulls (C1-C4) against a decision of 21 cells per driver, and those four sites
-  #   cover 20.4% / 27.8% / 17.3% of GB households on winter temperature / wind / sunshine, and
+  #   cover 20.4% / 27.8% / 17.2% of GB households on winter temperature / wind / sunshine, and
   #   2.0% on all three at once (re-cut 2026-09-07 on the UPRN placement; the superseded centroid
   #   figures were 20.5% / 30.7% / 27.9% / 3.5% and every one overstated the archive). So the
   #   substitution branch is live and correct and today accepts
   #   nothing the supply book holds: Birmingham shares Manchester's wind cell and neither its
   #   temperature nor its sunshine cell; Teesside shares nothing with anything.
   #
-  #   2026-09-07 (later tick): THE ARTEFACT GAP IS CLOSED and L2 is still not claimed, for a
-  #   reason that has finally stopped moving. `sim/weather_cells/occupied_land_cells.csv` cuts the
-  #   partition over all 175,188 occupied 1 km land cells, so 210/210 drawn households RESOLVE
-  #   (0/210 before) and 2 of them match an archive site. The accept branch is now reachable from
-  #   the world's own population and not only from the planted witness. What L2 still waits on is
-  #   the ARCHIVE, unambiguously and for the first time: 208 of those 210 resolve and match
-  #   nothing, because four Open-Meteo pulls cannot cover a 21-cell partition. That is a pull, not
-  #   a lookup, and it is the only remaining move.
+  #   2026-09-07, LATER THE SAME DAY -- the artefact is now CUT over the drawn population (delivery
+  #   seat, lane 0). It held seven coordinates and was looked up by a population of 139,938: every
+  #   drawn household carried a real coordinate after W2_18 and 0/201 resolved. It is now cut over
+  #   the whole household siting frame -- 139,938/139,938 sited, 0 dropped, max 6.6 m to a cell
+  #   centre, a JOIN rather than a nearest-anything because frame and cells share the HadUK
+  #   auxiliary coordinates. 201/201, 195/195, 183/183 resolve at seeds 7/11/42.
+  #   (17.2% not 17.3%: the artefact holds 0.1725 and every surface that PRINTS it renders 17.2%.
+  #   Aligned to what the code emits so a reader diffing the two does not find a disagreement.)
+  #
+  #   L2 STILL NOT CLAIMED, and this is a judgement worth contesting.
+  #   `test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_it_up` said in its
+  #   own docstring "delete leg 3 and move the level" when this happened. Leg 3 is deleted; the
+  #   level is NOT moved, deliberately. The cut converted the refusal from "not sited" (a lookup
+  #   gap, ours) to "no archive site shares all three cells" (ARCHIVE BREADTH, a pull): 200 of
+  #   139,938 frame cells reach an archive site, so ~99% of drawn households still get no weather
+  #   from the cells. L2 is "mechanically real" and the world's heat load is still not DRIVEN by
+  #   the cells for essentially anyone. Moving it here would be the reachable-but-not-chosen error
+  #   this map keeps recording. If the next reader disagrees, the disagreement is about whether L2
+  #   means "the mechanism works" or "the world uses it" -- say which and move it.
   level_target: 3
   loop_stage: build
   dial_inherited: 60    # the product tier the director's own re-rank created. His ruling says
@@ -1751,13 +1762,11 @@
   # restated three times BY MEASUREMENT, each correction kept: "17 pulls" counted the PARTITION
   # (W1_23's precondition); "two pulls" counted the supply book's LOCATIONS, whose un-archived
   # premises are all I&C, so both move HOUSEHOLD coverage 100% -> 100% (2026-09-06); and the
-  # coordinate gap that replaced them was closed by W2_18 on 2026-09-07. The fourth restatement --
-  # this atom's OWN artefact, a seven-key table every drawn household missed -- was closed on
-  # 2026-09-07 by cutting it over the whole occupied grid (348017b1e). blocked_on stays null and is
-  # still correct: what remains is archive BREADTH, and the pulls are this atom's own, not another
-  # lane's. W1_23 and W1_24 depend on THIS atom and are additional weather DRIVERS (cold-water and
-  # ground temperature, day length, humidity), not additional archive sites -- do not read them as
-  # the source of the pulls.
+  # coordinate gap that replaced them was closed by W2_18 on 2026-09-07; and the artefact's own CUT,
+  # which replaced THAT, was closed on 2026-09-07. blocked_on is null and correct, and the blocker
+  # is now the one it was three restatements ago and for the first time with nothing in front of it:
+  # ARCHIVE BREADTH. Four Open-Meteo pulls against 21 cells per driver. That is a data pull, not
+  # code in this atom.
   blocked_on: null
   # RE-MEASURED 2026-09-06 (later tick), because a stated precondition is a proxy that expires and
   # 'clears on its own' is a prediction, not a reading. Probed the archive directly for Birmingham

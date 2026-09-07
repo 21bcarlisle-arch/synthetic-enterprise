@@ -12,10 +12,10 @@
     "bottom_line": "14600573552"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 704.33,
-  "lifetime_gross_gbp": 526.37,
-  "lifetime_net_gbp": 257.03,
-  "lifetime_net_after_cts_gbp": 133.34,
+  "lifetime_revenue_gbp": 703.55,
+  "lifetime_gross_gbp": 525.59,
+  "lifetime_net_gbp": 256.26,
+  "lifetime_net_after_cts_gbp": 132.56,
   "cost_to_serve_gbp": 123.69,
   "pricing_action": {
     "flag": "OK",
@@ -31,8 +31,8 @@
   "forward_looking_account_id": "C1",
   "commodity_split": {
     "electricity": {
-      "net_gbp": 257.03,
-      "revenue_gbp": 704.33
+      "net_gbp": 256.26,
+      "revenue_gbp": 703.55
     },
     "gas": null
   },
@@ -40,8 +40,8 @@
     "gas_account_id": "C1g",
     "gas_lifetime_net_gbp": 370.51,
     "gas_lifetime_revenue_gbp": 1426.38,
-    "combined_net_gbp": 627.54,
-    "combined_revenue_gbp": 2130.71
+    "combined_net_gbp": 626.76,
+    "combined_revenue_gbp": 2129.93
   },
   "annual_pnl": [
     {
@@ -63,10 +63,10 @@
     {
       "year": 2018,
       "revenue_gbp": 0,
-      "gross_gbp": 64.72,
-      "net_gbp": 32.52,
-      "tariff_min": 119.51,
-      "tariff_max": 228.15
+      "gross_gbp": 63.95,
+      "net_gbp": 31.75,
+      "tariff_min": 118.11,
+      "tariff_max": 225.47
     }
   ],
   "timeline": [],
@@ -1062,14 +1062,14 @@
       "period_end": "2018-01-31",
       "commodity": "electricity",
       "consumption_kwh": 145.1,
-      "unit_rate_p_per_kwh": 14.8,
-      "commodity_amount_gbp": 21.47,
+      "unit_rate_p_per_kwh": 14.62,
+      "commodity_amount_gbp": 21.21,
       "standing_charge_gbp": 8.06,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.26,
       "non_commodity_amount_gbp": 7.69,
-      "vat_gbp": 1.86,
-      "amount_gbp": 39.08,
+      "vat_gbp": 1.85,
+      "amount_gbp": 38.81,
       "status": "PAID",
       "meter_serial": "M00040331",
       "mpan": "1000000000116",
@@ -1082,8 +1082,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 145.1,
-          "amount_gbp": 21.47,
-          "unit_rate_p_per_kwh": 14.8
+          "amount_gbp": 21.21,
+          "unit_rate_p_per_kwh": 14.62
         }
       ],
       "catchup_applied": false,
@@ -1103,14 +1103,14 @@
       "period_end": "2018-02-28",
       "commodity": "electricity",
       "consumption_kwh": 146.8,
-      "unit_rate_p_per_kwh": 15.18,
-      "commodity_amount_gbp": 22.28,
+      "unit_rate_p_per_kwh": 15.0,
+      "commodity_amount_gbp": 22.02,
       "standing_charge_gbp": 7.28,
       "days_in_period": 28,
       "standing_charge_gbp_per_day": 0.26,
       "non_commodity_amount_gbp": 7.78,
-      "vat_gbp": 1.87,
-      "amount_gbp": 39.21,
+      "vat_gbp": 1.85,
+      "amount_gbp": 38.93,
       "status": "PAID",
       "meter_serial": "M00040331",
       "mpan": "1000000000116",
@@ -1123,8 +1123,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 146.8,
-          "amount_gbp": 22.28,
-          "unit_rate_p_per_kwh": 15.18
+          "amount_gbp": 22.02,
+          "unit_rate_p_per_kwh": 15.0
         }
       ],
       "catchup_applied": false,
@@ -1144,14 +1144,14 @@
       "period_end": "2018-03-31",
       "commodity": "electricity",
       "consumption_kwh": 153.2,
-      "unit_rate_p_per_kwh": 14.876,
-      "commodity_amount_gbp": 22.79,
+      "unit_rate_p_per_kwh": 14.7,
+      "commodity_amount_gbp": 22.52,
       "standing_charge_gbp": 8.05,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.2597,
       "non_commodity_amount_gbp": 8.12,
-      "vat_gbp": 1.95,
-      "amount_gbp": 40.91,
+      "vat_gbp": 1.93,
+      "amount_gbp": 40.62,
       "status": "PAID",
       "meter_serial": "M00040331",
       "mpan": "1000000000116",
@@ -1164,8 +1164,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 153.2,
-          "amount_gbp": 22.79,
-          "unit_rate_p_per_kwh": 14.876
+          "amount_gbp": 22.52,
+          "unit_rate_p_per_kwh": 14.7
         }
       ],
       "catchup_applied": false,
@@ -1666,17 +1666,17 @@
         "date": "2018-02-06",
         "type": "invoice_raised",
         "invoice_number": 25,
-        "amount_gbp": 39.08,
+        "amount_gbp": 38.81,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV25 raised",
-        "running_balance_gbp": 39.08
+        "running_balance_gbp": 38.81
       },
       {
         "date": "2018-02-20",
         "type": "payment_received",
         "invoice_number": 25,
-        "amount_gbp": -39.08,
+        "amount_gbp": -38.81,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1686,17 +1686,17 @@
         "date": "2018-03-06",
         "type": "invoice_raised",
         "invoice_number": 26,
-        "amount_gbp": 39.21,
+        "amount_gbp": 38.93,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV26 raised",
-        "running_balance_gbp": 39.21
+        "running_balance_gbp": 38.93
       },
       {
         "date": "2018-03-20",
         "type": "payment_received",
         "invoice_number": 26,
-        "amount_gbp": -39.21,
+        "amount_gbp": -38.93,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1706,17 +1706,17 @@
         "date": "2018-04-14",
         "type": "invoice_raised",
         "invoice_number": 27,
-        "amount_gbp": 40.91,
+        "amount_gbp": 40.62,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV27 raised",
-        "running_balance_gbp": 40.91
+        "running_balance_gbp": 40.62
       },
       {
         "date": "2018-04-28",
         "type": "payment_received",
         "invoice_number": 27,
-        "amount_gbp": -40.91,
+        "amount_gbp": -40.62,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -1724,8 +1724,8 @@
       }
     ],
     "current_balance_gbp": 0.0,
-    "total_billed_gbp": 957.25,
-    "total_collected_gbp": 957.25,
+    "total_billed_gbp": 956.41,
+    "total_collected_gbp": 956.41,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },

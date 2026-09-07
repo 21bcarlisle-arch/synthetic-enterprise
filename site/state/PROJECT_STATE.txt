@@ -1,19 +1,19 @@
 # PROJECT STATE -- Synthetic Enterprise
-Generated: 2026-09-06T14:31:17Z
+Generated: 2026-09-07T15:06:06Z
 
 ## Summary
 - Current Phase: not stated in CLAUDE.md
 - Test Suite: 26,731 tests passing (unit / fast suite ~10s)
-- Company Modules: 518+ Python modules across company/
+- Company Modules: 520+ Python modules across company/
 - Simulation Window: 2016-2025 (Elexon HH settlement data)
 - Architecture: sim/ | company/ | saas/ | site/ (dashboard at poesys.net)
 
-## Latest Simulation Results (auto-processed 2026-09-06)
-- Net Margin: GBP139,109 (10-year 2016-2025)
-- Gross Margin: GBP377,746
-- Capital at Risk: GBP6,694
-- Treasury: GBP250,000 -> GBP389,109
-- Enterprise Value: GBP124,867 | Net after CTS: GBP89,799
+## Latest Simulation Results (auto-processed 2026-09-07)
+- Net Margin: GBP140,144 (10-year 2016-2025)
+- Gross Margin: GBP375,779
+- Capital at Risk: GBP6,601
+- Treasury: GBP250,000 -> GBP390,144
+- Enterprise Value: GBP126,191 | Net after CTS: GBP90,833
 - Risk Committee Interventions: 0
 - Bills Issued: 10,924
 - Retention: 31/46 offers accepted | 23 no-offer churns | 77 total churned
@@ -51,5 +51,5 @@ Generated: 2026-09-06T14:31:17Z
 
 ## Key Metrics
 - Tests at start (Phase 0): 0 | Tests now: 26,731
-- Net margin all-time: GBP139,109 | Crisis survived: 2021-22
+- Net margin all-time: GBP140,144 | Crisis survived: 2021-22
 - Retention: 31/46 offers | 23 no-offer churns

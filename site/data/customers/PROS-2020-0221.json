@@ -12,7 +12,7 @@
     "bottom_line": "20971665329"
   },
   "mprn": null,
-  "lifetime_revenue_gbp": 3420.11,
+  "lifetime_revenue_gbp": 3420.12,
   "lifetime_gross_gbp": 2360.0,
   "lifetime_net_gbp": 1119.03,
   "lifetime_net_after_cts_gbp": 848.01,
@@ -32,16 +32,16 @@
   "commodity_split": {
     "electricity": {
       "net_gbp": 1119.03,
-      "revenue_gbp": 3420.11
+      "revenue_gbp": 3420.12
     },
     "gas": null
   },
   "dual_fuel_combined": {
     "gas_account_id": "PROS-2020-0221g",
-    "gas_lifetime_net_gbp": 265.39,
-    "gas_lifetime_revenue_gbp": 2126.21,
-    "combined_net_gbp": 1384.42,
-    "combined_revenue_gbp": 5546.33
+    "gas_lifetime_net_gbp": 300.19,
+    "gas_lifetime_revenue_gbp": 2161.02,
+    "combined_net_gbp": 1419.22,
+    "combined_revenue_gbp": 5581.13
   },
   "annual_pnl": [
     {
@@ -56,7 +56,7 @@
       "year": 2021,
       "revenue_gbp": 0,
       "gross_gbp": 275.93,
-      "net_gbp": 71.91,
+      "net_gbp": 71.92,
       "tariff_min": 88.24,
       "tariff_max": 246.86
     },
@@ -4185,7 +4185,7 @@
       "date": "2021-07-05",
       "event_type": "retention_decision",
       "description": "Renewal window: company estimated 51% churn risk, decided to offer a 5% discount (cost GBP18.51) against GBP185.88 expected term margin at risk -- expected value of offering GBP167.37. Comms framed as a gain (save with this discount).",
-      "company_belief": 0.508,
+      "company_belief": 0.506,
       "sim_truth": 0.191,
       "amount_gbp": 167.37,
       "outcome": "retained",
@@ -4196,7 +4196,7 @@
       "date": "2021-07-05",
       "event_type": "outcome_renewed",
       "description": "Renewal outcome: RENEWED -- company believed 51% churn risk at decision time, SIM realized probability was 19%.",
-      "company_belief": 0.508,
+      "company_belief": 0.506,
       "sim_truth": 0.191,
       "amount_gbp": null,
       "outcome": "renewed",

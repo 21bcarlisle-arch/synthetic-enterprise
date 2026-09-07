@@ -10,9 +10,9 @@
   "mpan": null,
   "mprn": "63905009",
   "lifetime_revenue_gbp": 1858.78,
-  "lifetime_gross_gbp": 470.69,
-  "lifetime_net_gbp": 141.73,
-  "lifetime_net_after_cts_gbp": -47.38,
+  "lifetime_gross_gbp": 470.7,
+  "lifetime_net_gbp": 141.74,
+  "lifetime_net_after_cts_gbp": -47.37,
   "cost_to_serve_gbp": 189.11,
   "pricing_action": {
     "flag": "NET_NEGATIVE",
@@ -29,7 +29,7 @@
   "commodity_split": {
     "electricity": null,
     "gas": {
-      "net_gbp": 141.73,
+      "net_gbp": 141.74,
       "revenue_gbp": 1858.78
     }
   },
@@ -1602,14 +1602,14 @@
       "period_end": "2025-01-31",
       "commodity": "gas",
       "consumption_kwh": 893.3,
-      "unit_rate_p_per_kwh": 6.178,
-      "commodity_amount_gbp": 55.19,
+      "unit_rate_p_per_kwh": 6.179,
+      "commodity_amount_gbp": 55.2,
       "standing_charge_gbp": 9.61,
       "days_in_period": 31,
       "standing_charge_gbp_per_day": 0.31,
       "non_commodity_amount_gbp": 8.93,
       "vat_gbp": 3.69,
-      "amount_gbp": 77.42,
+      "amount_gbp": 77.43,
       "status": "PAID",
       "meter_serial": "M00038502",
       "mpan": null,
@@ -1622,8 +1622,8 @@
           "register_id": "1",
           "label": "Anytime",
           "consumption_kwh": 893.3,
-          "amount_gbp": 55.19,
-          "unit_rate_p_per_kwh": 6.178
+          "amount_gbp": 55.2,
+          "unit_rate_p_per_kwh": 6.179
         }
       ],
       "catchup_applied": false,
@@ -2589,17 +2589,17 @@
         "date": "2025-02-01",
         "type": "invoice_raised",
         "invoice_number": 5412,
-        "amount_gbp": 77.42,
+        "amount_gbp": 77.43,
         "info_amount_gbp": null,
         "method": null,
         "description": "Invoice INV5412 raised",
-        "running_balance_gbp": 77.42
+        "running_balance_gbp": 77.43
       },
       {
         "date": "2025-02-15",
         "type": "payment_received",
         "invoice_number": 5412,
-        "amount_gbp": -77.42,
+        "amount_gbp": -77.43,
         "info_amount_gbp": null,
         "method": "direct_debit",
         "description": "Payment received",
@@ -2697,8 +2697,8 @@
       }
     ],
     "current_balance_gbp": 5.97,
-    "total_billed_gbp": 2275.06,
-    "total_collected_gbp": 2269.09,
+    "total_billed_gbp": 2275.07,
+    "total_collected_gbp": 2269.1,
     "total_written_off_gross_gbp": 0,
     "total_recovered_gbp": 0
   },
