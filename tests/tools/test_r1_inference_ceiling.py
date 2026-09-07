@@ -894,3 +894,60 @@ def test_field_provenance_names_the_record_and_carries_the_scope_verdict():
     # A FIELD NO RECORD CARRIED IS REPORTED AT ZERO, not omitted: an absent key reads as "not
     # asked", and the whole point of this block is to make a missing field visible.
     assert got["discount_pct"]["households"] == 0 and got["discount_pct"]["records"] == {}
+
+
+def test_the_published_sentence_cannot_ASSERT_a_verdict_it_did_not_READ():
+    """Three literals in `_magnitude_sentence` asserted facts the function had no access to, and
+    all three were live on `/harness/` inside the note the page renders.
+
+    THE CLASS: a published cause authored as prose goes stale beside the measurement that refutes
+    it. Each of these was written on a run where it was true and stayed put when the run moved.
+
+      1. "So R1's ceiling clears its null on this book" -- emitted unconditionally, while the
+         paragraph it is appended to opens "WE CANNOT TELL". One note contradicting itself.
+      2. "inside its own noise floor -- indistinguishable from nothing" about the full-coverage
+         rung -- emitted whenever a floor existed at all, while that rung reads +0.2992 against a
+         floor of +0.1557 at p=0.005. It is ABOVE its floor, and the sentence understated R1.
+      3. "What closes it is COVERAGE, not a re-run" -- the coverage arrived on 2026-09-06 and did
+         not close it, because this rung's population is set by whichever pair WINS and the winner
+         reaches through a `decision_only` field. The cause was wrong, not merely stale.
+
+    BOTH LEGS OF EACH PARTITION, keyed to the property and not to today's answer. A control that
+    pinned the current wording would go green the day the sentence stopped reading the verdict.
+
+    MUTATION (must fire): restore any of the three literals as an unconditional string.
+    """
+    refused = {"estimate": None, "under_powered_reading": -0.0452, "bound_abs_p95": 0.2701,
+               "p_value": 0.7761, "households_per_cell_on_the_fit_fold": 5.0}
+    over_floor = {"estimate": 0.2992, "bound_abs_p95": 0.1557, "p_value": 0.005,
+                  "exceeds_its_own_noise_floor": True}
+    under_floor = {**over_floor, "estimate": 0.0641, "exceeds_its_own_noise_floor": False}
+    answered_book = {"estimate": 0.2513, "bound_abs_p95": 0.1628, "p_value": 0.01}
+
+    # 1. THE VERDICT CLAUSE follows `clears`, both ways.
+    cleared = r._magnitude_sentence(refused, over_floor, None, 0.576, True, answered_book, 164)
+    could_not = r._magnitude_sentence(refused, over_floor, None, 0.576, False, answered_book, 164)
+    assert "ceiling clears its null" in cleared
+    assert "ceiling clears its null" not in could_not, (
+        "the sentence claims the ceiling cleared on a run whose verdict is 'we cannot tell'")
+    assert "neither separate" in could_not
+
+    # 2. THE FULL-COVERAGE CLAUSE follows that rung's own floor verdict, both ways.
+    assert "indistinguishable from nothing" not in cleared, (
+        "+0.2992 is above its floor at p=0.005 and the sentence calls it nothing")
+    assert "above its own noise floor" in cleared
+    below = r._magnitude_sentence(refused, under_floor, None, 0.576, True, answered_book, 164)
+    assert "indistinguishable from nothing" in below, (
+        "a rung genuinely inside its floor must still be reported as such -- the repair must not "
+        "have deleted the honest reading along with the stale one")
+
+    # 3. THE CLOSING CAUSE follows whether the whole-book rung answered, both ways.
+    assert "MORE COVERAGE CANNOT CLOSE THIS RUNG" in could_not
+    assert "+0.2513" in could_not and "164" in could_not, (
+        "the rung that DOES carry a magnitude is named as the alternative and its figure is absent")
+    no_book = r._magnitude_sentence(refused, over_floor, None, 0.576, False, None, None)
+    assert "MORE COVERAGE CANNOT CLOSE THIS RUNG" not in no_book, (
+        "the correction is emitted even when there is no answering rung to point at, so it asserts "
+        "the same cause the old literal did")
+    assert "What closes it is COVERAGE" in no_book, (
+        "with no rung to point at, coverage IS still the honest cause and must not be dropped")

@@ -250,6 +250,16 @@ def the_number_the_programme_rests_on() -> dict:
     controls = got.get("controls") or {}
     magnitude = got.get("magnitude_three_way_split") or {}
     full_magnitude = got.get("magnitude_three_way_split_full_coverage") or {}
+    # THE RUNG THAT CAN ACTUALLY BE POWERED ON THIS BOOK, and it reached no surface for a day.
+    # `whole_book_pair_rung` landed on 2026-09-06 carrying the only unbiased magnitude this book
+    # buys -- the same pair search restricted to the observables the company holds for EVERY
+    # account on supply, so its population is the book's 164 and not the winning pair's 69. The
+    # instrument computed it, printed it to stdout and wrote it to the artefact; this generator
+    # lifted the two rungs beside it and not this one, so the panel A49 reads published
+    # `magnitude: null` while the artefact held +0.2513 at p=0.01. Lifted, never computed.
+    book_rung = got.get("whole_book_pair_rung") or {}
+    book_magnitude = book_rung.get("magnitude_three_way_split") or {}
+    book_best = book_rung.get("best_pair") or {}
     return {
         "available": True,
         "run_output": got.get("run_output"),
@@ -293,6 +303,28 @@ def the_number_the_programme_rests_on() -> dict:
         "magnitude_under_powered_reading": magnitude.get("under_powered_reading"),
         "magnitude_noise_floor": magnitude.get("bound_abs_p95"),
         "magnitude_at_full_coverage": full_magnitude.get("estimate"),
+        # THE NARROWER RUNG, PUBLISHED BESIDE THE ONE ABOVE AND NEVER INSTEAD OF IT. It answers a
+        # DIFFERENT question over a DIFFERENT population -- "what can be recovered from what the
+        # company holds about every account" rather than "about the accounts that renewed" -- and
+        # the reason its numbers differ is the population, not the estimator. Its own ceiling
+        # verdict travels with it because the two disagree on this book: the selected-maximum
+        # verdict cannot tell (p=0.47) while the de-biased magnitude clears its floor (p=0.01), and
+        # a magnitude published without that beside it would read as a bound the rung has not
+        # earned. `whole_book_magnitude` is `None` whenever this rung cannot buy one either.
+        "the_whole_book_rung": {
+            "fields": book_rung.get("fields"),
+            "pairs_scored": book_rung.get("pairs_scored"),
+            "households": book_best.get("n"),
+            "reported_ceiling": book_best.get("held_out"),
+            "corrected_verdict": book_rung.get("clears_the_selection_corrected_null"),
+            "p_value": (book_rung.get("selection_corrected_verdict") or {}).get("p_value"),
+            "magnitude": book_magnitude.get("estimate"),
+            "magnitude_noise_floor": book_magnitude.get("bound_abs_p95"),
+            "magnitude_p_value": book_magnitude.get("p_value"),
+            "magnitude_refused": book_magnitude.get("refused"),
+            "households_per_cell_on_the_fit_fold": book_magnitude.get(
+                "households_per_cell_on_the_fit_fold"),
+        } if book_rung else None,
         # WHAT THE SEARCH ALONE WAS WORTH, at a fit fold held the same size so it is attributable to
         # the selection and to nothing else.
         "selection_inflation": (got.get("magnitude_three_way_split_detail") or {}).get(

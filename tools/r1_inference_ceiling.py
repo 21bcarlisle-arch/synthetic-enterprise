@@ -915,12 +915,25 @@ def _reduce_runs(per_run: list[dict]) -> dict | None:
 
 
 def _magnitude_sentence(magnitude: dict, full_magnitude: dict, detail: dict | None,
-                        observed: float) -> str:
+                        observed: float, clears: bool | None = None,
+                        book_magnitude: dict | None = None, book_n: int | None = None) -> str:
     """What the reader is owed about HOW BIG, which the verdict above does not answer.
 
     Every number here is derived from the payload rather than written in. The last version of this
     file's headline carried a literal ("a book of over two hundred") that was wrong the moment the
     count it described was corrected, and this sentence would rot the same way.
+
+    TWO LITERALS IN THIS FUNCTION DID ROT, and both were live on the page for a day (2026-09-07).
+    It asserted "So R1's ceiling clears its null on this book" with no access to the verdict, while
+    the paragraph it is appended to opened "WE CANNOT TELL" -- one rendered note contradicting
+    itself, because the sentence was written on a run where the ceiling cleared and the verdict
+    then moved under it. And it closed "What closes it is COVERAGE, not a re-run" after the
+    coverage had ARRIVED: `account_state_log` took four observables from 69 households to 164 on
+    2026-09-06, and the pair rung still refuses -- not because the book is small but because THIS
+    rung's population is set by whichever pair wins, and the winner reaches through a field that
+    exists only where a renewal fired. A published cause authored as prose goes stale beside the
+    measurement that refutes it, so `clears` and `book_magnitude` are arguments now and the two
+    claims are derived rather than remembered.
     """
     est, forced = magnitude.get("estimate"), magnitude.get("under_powered_reading")
     floor, p = magnitude.get("bound_abs_p95"), magnitude.get("p_value")
@@ -950,9 +963,18 @@ def _magnitude_sentence(magnitude: dict, full_magnitude: dict, detail: dict | No
     fe, ff, fp = (full_magnitude.get("estimate"), full_magnitude.get("bound_abs_p95"),
                   full_magnitude.get("p_value"))
     if fe is not None:
+        # THE THIRD ROTTED LITERAL IN THIS FUNCTION, and the one that understated R1 rather than
+        # overstating it. This read "inside its own noise floor -- indistinguishable from nothing"
+        # on EVERY run that had a floor at all, and the full-coverage rung now reads +0.2992 against
+        # a floor of +0.1557 at p=0.005: above it, not inside it. The clause is keyed to the
+        # instrument's own `exceeds_its_own_noise_floor` verdict now, so it cannot disagree with the
+        # figure standing next to it in the same sentence.
         said += (f" The full-coverage rung CAN carry the split, and there the estimate is {fe:+.4f}"
-                 + (f", inside its own noise floor of {ff:+.4f} (p={fp}) — indistinguishable from"
-                    " nothing." if ff is not None else "."))
+                 + ((f", {'above' if full_magnitude.get('exceeds_its_own_noise_floor') else 'inside'}"
+                     f" its own noise floor of {ff:+.4f} (p={fp})"
+                     + ("." if full_magnitude.get("exceeds_its_own_noise_floor")
+                        else " — indistinguishable from nothing."))
+                    if ff is not None else "."))
     if detail:
         said += (
             f" Holding the fit fold at the same size and separating ONLY the choosing from the"
@@ -964,16 +986,41 @@ def _magnitude_sentence(magnitude: dict, full_magnitude: dict, detail: dict | No
             said += (f" The rotations do not even agree on which candidate wins, and their estimates"
                      f" run from {lo:+.4f} to {hi:+.4f}: which pair is 'best' is a fact about who"
                      f" landed on the ranking side of the split.")
+    verdict_said = (" So R1's ceiling clears its null on this book and its MAGNITUDE has no"
+                    " unbiased estimate here." if clears else
+                    " So this rung can neither separate R1's ceiling from chance nor put an"
+                    " unbiased size on it." if clears is False else
+                    " So this rung has no unbiased estimate of the magnitude.")
+    said += verdict_said + (
+        f" A49 gates R3 and R4 on this instrument and must read the magnitude field, which is"
+        f" null — not {observed:+.4f}.")
+    # WHAT CLOSES IT, DERIVED. This used to read "what closes it is COVERAGE, not a re-run", and
+    # coverage arrived on 2026-09-06 without closing it -- so the cause was wrong, not merely
+    # stale. The pair rung's refusal is about the SELECTED PAIR'S population and not the book's.
+    be = (book_magnitude or {}).get("estimate")
+    if be is None:
+        return said + (" What closes it is COVERAGE on the fields the winning pair reaches, not a"
+                       " re-run.")
+    bf, bp = book_magnitude.get("bound_abs_p95"), book_magnitude.get("p_value")
     return said + (
-        f" So R1's ceiling clears its null on this book and its MAGNITUDE has no unbiased estimate"
-        f" here. A49 gates R3 and R4 on this instrument and must read the magnitude field, which is"
-        f" null — not {observed:+.4f}. What closes it is COVERAGE, not a re-run.")
+        " AND MORE COVERAGE CANNOT CLOSE THIS RUNG, which is the correction to what this sentence"
+        " used to say. Its population is not the book's: it is set by whichever pair wins, and the"
+        " winner reaches through a field the company holds only where a renewal fired, so the rung"
+        " collapses to the renewing subset however large the book grows. The SAME search"
+        " restricted to the fields the company holds on every account on supply does carry the"
+        " split — on"
+        + (f" all {book_n} households" if book_n else " the whole book")
+        + f" — and there the magnitude is {be:+.4f}"
+        + (f" against its own noise floor of {bf:+.4f} (p={bp})" if bf is not None else "")
+        + ". That is a NARROWER claim over a different population, not a better draw of this one,"
+          " and it is published beside this rung rather than instead of it.")
 
 
 def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
               pairs: int, stability: dict | None = None,
               magnitude: dict | None = None, full_magnitude: dict | None = None,
-              detail: dict | None = None) -> dict:
+              detail: dict | None = None, book_magnitude: dict | None = None,
+              book_n: int | None = None) -> dict:
     """The sentence a reader gets, composed HERE so the page cannot compose a kinder one.
 
     "We cannot tell" is a result and it belongs on the surface, not in a footnote -- and it is a
@@ -1130,7 +1177,8 @@ def _headline(best: dict, pair_verdict: dict, full_verdict: dict, full_n: int,
     # a reader does not look is a caveat that was not published.
     magnitude_said = ""
     if magnitude is not None:
-        magnitude_said = _magnitude_sentence(magnitude, full_magnitude or {}, detail, observed)
+        magnitude_said = _magnitude_sentence(magnitude, full_magnitude or {}, detail, observed,
+                                             clears, book_magnitude, book_n)
         not_said += magnitude_said
     return {
         "verdict": "clears" if clears else "cannot tell",
@@ -1361,7 +1409,8 @@ def measure(cells: int = 2, run_path: Path | None = None,
         # able to tell those apart, so the absence is never rendered as agreement.
         "verdict_stability": stability,
         "we_cannot_tell": _headline(best, pair_verdict, full_verdict, full_n, len(ranked),
-                                    stability, pair_magnitude, full_magnitude, pair_split),
+                                    stability, pair_magnitude, full_magnitude, pair_split,
+                                    book_magnitude, book_best.get("n")),
         "controls": {
             # A wrong seed gives random labels and a ceiling of zero -- the answer the canon
             # predicts, from a measurement of nothing.
