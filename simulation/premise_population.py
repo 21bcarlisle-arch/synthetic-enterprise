@@ -264,22 +264,53 @@ OLD_STOCK_MIN_SHARE_IN_BANDS_D_TO_G = 0.680
 # ---------------------------------------------------------------------------
 
 # Older stock rates worse. Multipliers on the independent product, per era.
+# `domain-knowledge` — MEASURED, NOT ASSERTED (W2_21, 2026-09-07). Lift of each EPC band over
+# independence, from DESNZ NEED's 34,914 EPC-rated dwellings, which carry PROP_TYPE x
+# PROP_AGE_BAND x EPC on one row each. Reproduce with `python3 tools/need_stock_joint.py --lifts`.
+#
+# WHAT THESE REPLACED, AND WHY IT MATTERED. Until today both tables were hand-written, and this
+# module said so: "THE TILT MAGNITUDES ARE NOT ANCHORED. Only their direction is." The housing
+# ruling forbids exactly that -- "an invented correlation matrix where a published cross-tab
+# exists" -- and the cross-tab existed. Measured against the hand table:
+#
+#     PRE-1919   band F/G   hand 5.0 and 8.0   measured 2.78    up to 2.9x too harsh
+#     PRE-1919   band C     hand 0.30          measured 0.59    2.0x too harsh
+#     POST-2000  band C     hand 1.90          measured 1.00    post-2000 is exactly average
+#     DETACHED   band A/B   hand 0.90          measured 1.21    THE DIRECTION WAS WRONG
+#
+# The last is the one that could not have been caught by inspection. Detached is bimodal -- old
+# rectories and new large houses in one category -- so it is over-represented at BOTH ends, and a
+# table whose only claim was its direction had a direction backwards.
+#
+# NEED's age bands are coarser than these eras (1 = before 1930, 2 = 1930-1972, 3 = 1973-1999,
+# 4 = 2000 or later). An era straddling a boundary takes the YEAR-WEIGHTED average of the bands it
+# spans, which is arithmetic on two published sets of boundaries rather than a judgement about
+# where a 1919-1944 house belongs. A/B and F/G are reported by NEED as pairs and their lift applies
+# to both members: splitting inside a bracket the source does not resolve would be the invention
+# the ruling refuses.
+#
+# RESIDUAL, DECLARED: 30.2% of NEED's dwellings have no EPC and they are not missing at random --
+# flats are 2.6x under-represented among them and post-2000 homes 4.2x. Because these are
+# CONDITIONAL lifts and the seed is raked onto the published marginals afterwards, a biased
+# marginal composition washes out. What does not is an unrated home rating differently from a rated
+# one of the same type and age, and NEED cannot answer that: an unrated home has no rating.
 _EPC_TILT_BY_ERA: dict[BuildEra, dict[str, float]] = {
-    BuildEra.PRE_1919: {"AB": 0.05, "C": 0.30, "D": 1.30, "E": 3.0, "F": 5.0, "G": 8.0},
-    BuildEra.ERA_1919_1944: {"AB": 0.10, "C": 0.45, "D": 1.40, "E": 2.4, "F": 3.5, "G": 4.5},
-    BuildEra.ERA_1945_1964: {"AB": 0.25, "C": 0.75, "D": 1.35, "E": 1.2, "F": 1.0, "G": 0.9},
-    BuildEra.ERA_1965_1980: {"AB": 0.50, "C": 1.05, "D": 1.20, "E": 0.7, "F": 0.5, "G": 0.4},
-    BuildEra.ERA_1981_2000: {"AB": 1.60, "C": 1.60, "D": 0.60, "E": 0.2, "F": 0.1, "G": 0.05},
-    BuildEra.POST_2000: {"AB": 6.00, "C": 1.90, "D": 0.20, "E": 0.05, "F": 0.02, "G": 0.01},
+    BuildEra.PRE_1919: {"AB": 0.0362, "C": 0.5940, "D": 1.3864, "E": 2.1151, "F": 2.7846, "G": 2.7846},
+    BuildEra.ERA_1919_1944: {"AB": 0.0522, "C": 0.8309, "D": 1.3575, "E": 1.5665, "F": 1.6938, "G": 1.6938},
+    BuildEra.ERA_1945_1964: {"AB": 0.0640, "C": 1.0047, "D": 1.3363, "E": 1.1642, "F": 0.8939, "G": 0.8939},
+    BuildEra.ERA_1965_1980: {"AB": 0.0980, "C": 1.2453, "D": 1.1915, "E": 0.8607, "F": 0.5784, "G": 0.5784},
+    BuildEra.ERA_1981_2000: {"AB": 0.3182, "C": 1.4618, "D": 1.0016, "E": 0.5322, "F": 0.2500, "G": 0.2500},
+    BuildEra.POST_2000: {"AB": 3.8538, "C": 1.0032, "D": 0.1435, "E": 0.0572, "F": 0.0064, "G": 0.0064},
 }
 
-# Flats rate better than houses of the same age (ONS 2023: flats and maisonettes
-# median 73 = band C, against semi-detached 65 = band D, the lowest English type).
+# Same source, same reproducer. The ONS 2023 median-SAP note the hand table cited (flats 73 = C
+# against semi-detached 65 = D) is consistent with what NEED measures and is kept as the
+# independent corroboration it always was, rather than as the anchor it was being used as.
 _EPC_TILT_BY_PROPERTY_TYPE: dict[PropertyType, dict[str, float]] = {
-    PropertyType.FLAT: {"AB": 1.8, "C": 1.35, "D": 0.80, "E": 0.65, "F": 0.55, "G": 0.50},
-    PropertyType.TERRACED: {"AB": 0.95, "C": 1.00, "D": 1.00, "E": 1.05, "F": 1.10, "G": 1.10},
-    PropertyType.SEMI_DETACHED: {"AB": 0.85, "C": 0.92, "D": 1.08, "E": 1.15, "F": 1.20, "G": 1.20},
-    PropertyType.DETACHED: {"AB": 0.90, "C": 0.90, "D": 1.05, "E": 1.20, "F": 1.35, "G": 1.45},
+    PropertyType.FLAT: {"AB": 1.3173, "C": 1.4296, "D": 0.6172, "E": 0.5549, "F": 0.3077, "G": 0.3077},
+    PropertyType.TERRACED: {"AB": 0.5872, "C": 0.9826, "D": 1.1524, "E": 1.1089, "F": 1.0460, "G": 1.0460},
+    PropertyType.SEMI_DETACHED: {"AB": 0.9139, "C": 0.7531, "D": 1.1904, "E": 1.2737, "F": 1.1039, "G": 1.1039},
+    PropertyType.DETACHED: {"AB": 1.2073, "C": 0.6813, "D": 1.1290, "E": 1.1863, "F": 1.8114, "G": 1.8114},
 }
 
 # ---------------------------------------------------------------------------

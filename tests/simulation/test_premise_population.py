@@ -577,3 +577,102 @@ def test_the_proposal_is_not_wired_into_the_live_draw():
         "simulation/premise_population.py",
         "tests/simulation/test_premise_population.py",
     }, f"the proposed target has acquired a live consumer: {found}"
+
+
+# ---------------------------------------------------------------------------
+# W2_21 — the joint is fitted, not asserted (2026-09-07)
+# ---------------------------------------------------------------------------
+
+
+def _lift(joint, row_predicate, epc_band):
+    """Lift of an EPC band within a subset over independence. 1.00 is no association."""
+    total = sum(joint.values())
+    row = sum(w for c, w in joint.items() if row_predicate(c)) / total
+    col = sum(w for c, w in joint.items() if c[2] == epc_band) / total
+    both = sum(w for c, w in joint.items() if row_predicate(c) and c[2] == epc_band) / total
+    return both / (row * col) if row and col else float("nan")
+
+
+def test_the_INDEPENDENT_JOINT_CANNOT_PRODUCE_ANY_ASSOCIATION_AT_ALL():
+    """THE NULL, stated so the next test means something. An independent product of three marginals
+    has lift exactly 1.00 in every cell BY CONSTRUCTION -- so any association the fitted joint
+    carries is one the independent draw could not have produced, which is the housing ruling's exit
+    criterion. Without this, "the fitted joint shows a correlation" is unfalsifiable."""
+    from simulation.premise_population import independent_joint
+
+    joint = independent_joint()
+    for predicate, band in ((lambda c: c[0] == PropertyType.DETACHED, "AB"),
+                            (lambda c: c[1] == BuildEra.PRE_1919, "F"),
+                            (lambda c: c[0] == PropertyType.FLAT, "AB")):
+        assert _lift(joint, predicate, band) == pytest.approx(1.0, abs=1e-9)
+
+
+def test_the_FITTED_JOINT_REPRODUCES_THE_MEASURED_ASSOCIATION():
+    """W2_21's exit criterion: at least one published correlation the independent draw could not
+    produce. Four are checked, and the first is the one that matters.
+
+    **DETACHED x A/B was the hand table's sign error.** It said detached homes were slightly LESS
+    likely to be A/B (tilt 0.90); NEED's 34,914 rated dwellings say 1.21x MORE, because detached is
+    bimodal -- old rectories and new large houses share the category. A tilt table whose only stated
+    claim was its direction had a direction backwards, and nothing without the cross-tab could have
+    seen it.
+
+    Keyed to DIRECTION and ORDER OF MAGNITUDE, not to today's fitted number: raking moves a
+    conditional and is allowed to, so a tolerance tight enough to pin the third decimal would red
+    every time a published marginal was updated.
+    """
+    from simulation.premise_population import raked_joint
+
+    joint = raked_joint()
+    for name, predicate, band, measured in (
+        ("detached x A/B", lambda c: c[0] == PropertyType.DETACHED, "AB", 1.207),
+        ("flat x A/B", lambda c: c[0] == PropertyType.FLAT, "AB", 1.317),
+        ("detached x F", lambda c: c[0] == PropertyType.DETACHED, "F", 1.811),
+        ("pre-1919 x F", lambda c: c[1] == BuildEra.PRE_1919, "F", 2.785),
+    ):
+        fitted = _lift(joint, predicate, band)
+        assert (fitted - 1.0) * (measured - 1.0) > 0, (
+            f"{name}: fitted lift {fitted:.3f} and measured {measured:.3f} fall on opposite sides "
+            "of 1.0 -- the association has the wrong sign, which is the defect this replaced")
+        assert 0.5 < fitted / measured < 2.0, (
+            f"{name}: fitted {fitted:.3f} against measured {measured:.3f} -- more than a factor of "
+            "two apart is not a reproduction")
+
+
+def test_the_TILT_TABLES_ARE_THE_MEASURED_ONES_and_not_a_hand_edit():
+    """The tables in the module must be what the reproducer produces. A hand edit to one cell would
+    otherwise sit there indefinitely looking sourced -- which is exactly the state this atom found
+    them in, with a citation to a direction and no anchor for the magnitude."""
+    from simulation import premise_population as pp
+
+    need = pytest.importorskip("tools.need_stock_joint")
+    if not need.NEED_CSV.is_file():
+        pytest.skip("the NEED sample is not on this machine")
+
+    lifts = need.measured_lifts()
+    for era, bands in lifts["by_era"].items():
+        for band, value in bands.items():
+            assert pp._EPC_TILT_BY_ERA[BuildEra[era]][band] == pytest.approx(value, abs=5e-4), (
+                f"{era}/{band} in the module is not what NEED measures")
+    for ptype, bands in lifts["by_property_type"].items():
+        for band, value in bands.items():
+            assert pp._EPC_TILT_BY_PROPERTY_TYPE[PropertyType[ptype]][band] == pytest.approx(
+                value, abs=5e-4), f"{ptype}/{band} in the module is not what NEED measures"
+
+
+def test_an_ERA_STRADDLING_A_BAND_BOUNDARY_is_split_by_YEARS():
+    """NEED's age bands are coarser than these eras and three of the six straddle a boundary. The
+    split is the share of the era's YEARS in each band -- arithmetic on two published sets of
+    boundaries -- because every alternative is an opinion about where a 1919-1944 house belongs.
+
+    1919-1944 is eleven years before 1930 and fifteen from 1930, so 0.423 / 0.577.
+    """
+    need = pytest.importorskip("tools.need_stock_joint")
+
+    weights = need.era_band_weights()
+    assert weights["PRE_1919"] == {"1": 1.0}
+    assert weights["POST_2000"] == {"4": 1.0}
+    assert weights["ERA_1919_1944"]["1"] == pytest.approx(11 / 26, abs=1e-3)
+    assert weights["ERA_1919_1944"]["2"] == pytest.approx(15 / 26, abs=1e-3)
+    for era, bands in weights.items():
+        assert sum(bands.values()) == pytest.approx(1.0), f"{era} loses or gains mass"
