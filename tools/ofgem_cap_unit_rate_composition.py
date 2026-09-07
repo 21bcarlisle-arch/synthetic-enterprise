@@ -66,6 +66,18 @@ OUT_PATH = (PROJECT / "docs" / "domain_artefact_library" / "regulatory"
 CAP_WINDOWS = (PROJECT / "docs" / "domain_artefact_library" / "regulatory"
                / "ofgem_default_tariff_cap_windows.json")
 
+#: WHERE THE MODEL ACTUALLY LIVES, and it is not where this artefact looked until 2026-09-07. The
+#: old URL (/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap) is a
+#: policy page: it returns 200 and carries exactly one workbook link, the Annex 9 levelisation
+#: model, which is a different publication. So the recorded recipe "go there and read the cap level
+#: model's version" could never terminate in anything but `cannot_tell`, and the artefact sat behind
+#: v1.19 for twelve cap periods while its supersession check ran and reported nothing. THIS page
+#: carries the full versioned history, v1.2 (2019-02) to v1.31 (2026-08).
+MODEL_INDEX_URL = (
+    "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules"
+    "/energy-price-cap/energy-price-cap-default-tariff-levels"
+)
+
 #: Ofgem's benchmark annual consumption for the single-rate electricity meter, in kWh. It is the
 #: denominator of the model's own per-kWh conversion and is named in the sheet title, so it is read
 #: back from the sheet rather than trusted from here — this is the expected value, not the source.
@@ -338,10 +350,7 @@ def measure() -> dict:
             "carried wholesale ~40% of the BILL -- a different denominator. This closes that gap."
         ),
         "source_model": model.name,
-        "source_url": (
-            "https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes"
-            "/default-tariff-cap"
-        ),
+        "source_url": MODEL_INDEX_URL,
         "basis": {
             "vat": "components are EX-VAT; shares are unaffected by a uniform rate, unit rates are",
             "meter": f"single-rate electricity, benchmark {BENCHMARK_KWH} kWh/year",
@@ -374,6 +383,43 @@ def measure() -> dict:
     }
 
 
+def _with_carried_source_check(result: dict) -> dict:
+    """The rebuilt artefact, keeping the `source_check` block the rebuild does not produce.
+
+    WITHOUT THIS, RE-RUNNING THE DERIVATION DELETES THE SUPERSESSION BLOCK. `measure()` reads a
+    workbook; it does not fetch a publisher, so it cannot honestly author a `fetched` date, a
+    version token or a verdict -- and it therefore emits none. Writing its output straight over the
+    artefact took the file from `superseded` to un-askable and wedged every lane on the ASKABLE leg
+    of `tools/commons_source_supersession.py`. The failure arrived through the one action a diligent
+    session would take, which is the worst shape a control can have.
+
+    The block is carried VERBATIM and never edited here, because everything in it is a claim about a
+    publisher that this module did not visit. The one thing a re-run does know is which workbook it
+    read, so a model name that no longer matches the recorded `version_token` is stated as an
+    inconsistency for the next reader rather than quietly reconciled.
+    """
+    if not OUT_PATH.exists():
+        return result
+    try:
+        previous = json.loads(OUT_PATH.read_text())
+    except json.JSONDecodeError:
+        return result
+    block = previous.get("source_check")
+    if not isinstance(block, dict):
+        return result
+    carried = dict(result)
+    carried["source_check"] = block
+    token = block.get("version_token")
+    if isinstance(token, str) and token and token not in result["source_model"]:
+        print(
+            f"NOTE: rebuilt from {result['source_model']}, while `source_check.version_token` still "
+            f"records {token}. The block is carried unedited -- only a pass that actually visited "
+            "the publisher may move it.",
+            file=sys.stderr,
+        )
+    return carried
+
+
 def main(argv=None) -> int:
     del argv
     try:
@@ -382,7 +428,7 @@ def main(argv=None) -> int:
         print(f"REFUSED: {exc}")
         return 2
     OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUT_PATH.write_text(json.dumps(result, indent=1) + "\n")
+    OUT_PATH.write_text(json.dumps(_with_carried_source_check(result), indent=1) + "\n")
     check = result["cross_check_against_published_cap_levels"]
     print(f"model: {result['source_model']}")
     print(f"cross-check: {check['periods_checked']} periods, worst error "

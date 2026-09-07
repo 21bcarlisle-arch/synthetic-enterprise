@@ -3,7 +3,7 @@
  "what_this_is": "The COMMODITY SHARE OF THE DOMESTIC ELECTRICITY UNIT RATE, derived from Ofgem's own published cap level model as (benchmark-consumption allowance minus nil-consumption allowance) / benchmark kWh, per component. The nil column IS the standing charge, so this is Ofgem's construction and not an apportionment invented here.",
  "why_it_was_needed": "The shift-response bridge converts a tariff pass-through into the price ratio a household faces, and needs the commodity share of the UNIT RATE. The knowledge map carried wholesale ~40% of the BILL -- a different denominator. This closes that gap.",
  "source_model": "Default_tariff_cap_level_v1.19.xlsx",
- "source_url": "https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap",
+ "source_url": "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels",
  "basis": {
   "vat": "components are EX-VAT; shares are unaffected by a uniform rate, unit rates are",
   "meter": "single-rate electricity, benchmark 3100 kWh/year",
@@ -816,17 +816,18 @@
    ]
   }
  },
-  "source_check": {
-    "publication": "Ofgem Default Tariff Cap level model, Default_tariff_cap_level_v1.19.xlsx",
-    "url": "https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap",
-    "fetched": "2026-08-31",
-    "version_token": "v1.19",
-    "version_token_is": "in_filename_only",
-    "how_to_recheck": "THE STORED URL IS A LANDING PAGE, NOT THE WORKBOOK. It will keep resolving and will serve whatever model version is current, so fetching it successfully proves nothing. Open it, find the cap level model link, and read the version out of the FILENAME; if it is above v1.19 the component shares in this artefact were derived from a superseded model.",
-    "checked_for_supersession": {
-      "on": "2026-09-07",
-      "found": "cannot_tell",
-      "note": "The landing page was fetched on 2026-09-07 and the cap LEVEL model's current version was not established -- the read surfaced the Annex 9 levelisation workbook (v1.11) instead, which is a different publication. `cannot_tell` is the honest verdict and is recorded rather than a guess. This is the highest-risk of the nine: a versioned model behind an unversioned URL, where a dead link would announce itself and this cannot."
-    }
+ "source_check": {
+  "publication": "Ofgem Default Tariff Cap level model, Default_tariff_cap_level_v1.19.xlsx",
+  "url": "https://www.ofgem.gov.uk/energy-regulation/domestic-and-non-domestic/energy-pricing-rules/energy-price-cap/energy-price-cap-default-tariff-levels",
+  "fetched": "2026-08-31",
+  "version_token": "v1.19",
+  "version_token_is": "in_filename_only",
+  "how_to_recheck": "THE URL ABOVE IS A VERSION HISTORY PAGE, NOT THE WORKBOOK, and it is NOT the page this artefact cited until 2026-09-07. That one (/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap) returns 200 and carries exactly one .xlsx link -- the Annex 9 levelisation workbook -- so the old recipe, 'find the cap level model link there', could never terminate in anything but cannot_tell. A 200 serving nothing on the subject reads exactly like a working check. GET the URL above and take the HIGHEST v<major>.<minor> across every link matching Default[-_]tariff[-_]cap[-_]level OR Energy-price-cap-levels-pre-levelised-rates-model: the series is published under BOTH names (v1.30 under the second), so a check keyed to the filename stem rather than to the version number misses editions. If the highest is above `version_token`, the shares here were derived from a superseded model.",
+  "checked_for_supersession": {
+   "on": "2026-09-07",
+   "found": "superseded",
+   "open_finding": "docs/staging/SEAT_FINDING_THE_CAP_COMPOSITION_CITES_A_MODEL_TWELVE_EDITIONS_STALE_AND_ITS_RECHECK_RECIPE_NAMED_THE_WRONG_PAGE_2026-09-07.md",
+   "note": "Settled from cannot_tell on 2026-09-07. Current edition is v1.31 (/sites/default/files/2026-08/Default-tariff-cap-level-v1.31.xlsx); this artefact was derived from v1.19 (2023-08), ten published editions back, and is short twelve cap periods (January 2024 through October-December 2026). THE VALUES ARE NOT IN DOUBT AND THE CITATION IS: all 21 periods published here were re-derived from v1.31 and every commodity share is identical to four decimal places, as is every benchmark-minus-nil annual allowance underneath it, so the shares did not agree by cancellation. What is stale is the coverage and the edition named, not the arithmetic. EXTENDING THIS TO v1.31 IS NOT A RE-RUN: v1.31 renames the sheet ElecSingle_Other_3100kWh to ElecSingle_Other_Benchmark and its header cell reads 2,500 kWh while its own note says every cap period up to P15b is still on 3,100 kWh, so a reader that trusts the header divides 29 of 33 periods by the wrong number and runs 24% high on the unit rate while every share stays right. The finding above carries the corroboration for the divisor rule."
   }
+ }
 }
