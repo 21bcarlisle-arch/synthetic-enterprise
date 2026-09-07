@@ -45,6 +45,7 @@ ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from company.crm import customer_profitability as cp  # noqa: E402
 from company.policy.decision_policy import (  # noqa: E402
     CURRENT_POLICY,
     VALUE_ARM_POLICY,
@@ -676,6 +677,94 @@ def test_every_commodity_the_arm_prices_can_reach_its_own_book_under_the_billing
             f"{commodity}: the chain refused this renewal for want of a book it settled "
             f"itself — stages {stages}"
         )
+
+
+def _dual_fuel_book_net_negative(account: str = "C1", *, year: int = 2020) -> list[dict]:
+    """The same two legs under the same two ids, with BOTH prior terms NET-NEGATIVE.
+
+    Writer 3 returns 0.0 for an account it judges profitable AND for an account whose book it
+    cannot see, so a control over the reach needs a book on which the policy MUST fire —
+    otherwise green says nothing. Derived from `_dual_fuel_book` rather than written out again,
+    so the supply-point ids stay the world's and this fixture cannot drift away from the one
+    the value arm's controls are keyed to.
+    """
+    return [
+        {**r, "net_margin_gbp": -abs(float(r["net_margin_gbp"])) - 1.0}
+        for r in _dual_fuel_book(account, year=year)
+    ]
+
+
+def test_every_commodity_writer_3_reprices_can_reach_the_book_it_settled_itself():
+    """WRITER 3, THE SAME CLASS ONE WRITER EARLIER — and it survived the value arm's fix.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-07). `renewal_rate_chain` calls
+    `renewal_unit_rate_uplift(account_id=billing_account, …)` — `household_of(cid)`, the BILLING
+    ACCOUNT — while both settlement writers stamp rows with the SUPPLY POINT.
+    `estimate_prior_term_net_margin` matched them with `==`, so every gas renewal resolved to
+    `None` and `compute_profitability_uplift` returned 0.0. That is also its answer for "this
+    account is profitable", so the supplier's own policy of repricing net-negative accounts was
+    structurally unreachable on half the book and no run output could say so.
+
+    KEYED TO THE PROPERTY, not to the uplift: it asserts a renewal the chain reprices can REACH
+    the book it settled itself. What the policy then decides is the policy's business — the
+    fixture is net-negative on both legs precisely so that 0.0 can only mean "cannot see it".
+
+    THE SAME `_WORLD_LEG_ID` MAP as the value arm's control, and the completeness leg is read
+    off `customer_profitability.UPLIFTABLE_COMMODITIES` — the module that OWNS writer 3's gate,
+    not the seam that re-exports it — so a third commodity admitted to either gate fails here
+    rather than quietly taking the electricity branch.
+    """
+    missing = set(cp.UPLIFTABLE_COMMODITIES) - set(_WORLD_LEG_ID)
+    assert not missing, (
+        f"writer 3 now reprices {sorted(missing)} and this control does not know which supply "
+        f"point the world files that leg under — add it to `_WORLD_LEG_ID` rather than letting "
+        f"the commodity go unchecked"
+    )
+    # THE TWO IDS REALLY DIFFER on at least one admitted commodity, or nothing below can tell a
+    # billing-account match from string equality and the whole control is vacuous.
+    assert len({_WORLD_LEG_ID[c]("C1") for c in cp.UPLIFTABLE_COMMODITIES}) > 1, (
+        "every commodity writer 3 admits is filed under the billing account itself, so the "
+        "defect this control guards cannot arise on this book — widen the fixture rather than "
+        "deleting the control"
+    )
+
+    book = _dual_fuel_book_net_negative()
+    for commodity in sorted(cp.UPLIFTABLE_COMMODITIES):
+        leg_id = _WORLD_LEG_ID[commodity]("C1")
+
+        # THE FIXTURE CAN PRODUCE AN UPLIFT AT ALL, established from the ROWS and not from the
+        # function under test: each leg's prior term is genuinely net-negative and genuinely
+        # carries enough records for the policy to form a view.
+        rows = [r for r in book
+                if r["customer_id"] == leg_id and r["commodity"] == commodity]
+        assert len(rows) >= cp.MIN_RECORDS_FOR_JUDGEMENT
+        assert sum(r["net_margin_gbp"] for r in rows) < 0.0
+
+        # THE FILTER, asked under the id the chain is really called with.
+        assert cp.estimate_prior_term_net_margin(
+            "C1", "2021-01-01", book, commodity) is not None, (
+            f"{commodity}: settled as {leg_id!r}, asked for as 'C1', and writer 3 cannot see "
+            f"the book this supplier settled itself"
+        )
+
+        # AND THE WHOLE CHAIN, because the id is chosen there and not in the writer. The two
+        # ids are passed as the world passes them: the leg as `customer_id`, the household's
+        # billing account as `billing_account`.
+        result = _drive(
+            customer_id=leg_id,
+            billing_account="C1",
+            commodity=commodity,
+            tariff_type="fixed",
+            term_index=2,
+            term_start="2021-01-01",
+            struck_unit_rate_gbp_per_mwh=(200.0 if commodity == "electricity" else 60.0),
+            settled_records=book,
+        )
+        assert result.profitability_uplift_entries, (
+            f"{commodity}: a net-negative prior term the supplier settled itself, and writer 3 "
+            f"logged nothing — 0.0 here is indistinguishable from 'this account is profitable'"
+        )
+        assert result.profitability_uplift_entries[0]["uplift_gbp_per_mwh"] > 0.0
 
 
 def test_a_gas_renewal_reads_the_gas_leg_and_not_the_electricity_one():

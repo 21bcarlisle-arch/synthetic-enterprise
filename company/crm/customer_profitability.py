@@ -15,6 +15,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+# THE SUPPLIER'S OWN BILLING GROUPING — which of its supply points bill as one account. Reused
+# rather than re-derived here, because a second copy of that rule is how one company comes to
+# hold two answers to it. Nothing about the world crosses with it.
+from saas.customer_reaction import _billing_account_id
+
 
 @dataclass(frozen=True)
 class CustomerProfitabilityRecord:
@@ -142,7 +147,7 @@ def estimate_prior_term_net_margin(
     """Estimate total net margin from the most recent prior completed term.
 
     Returns the sum of net_margin_gbp for records matching:
-      - customer_id == cid
+      - the record BILLS UNDER `cid` (see the filter below — not string equality)
       - commodity == commodity
       - settlement_date < term_start_str (point-in-time blindfold)
     grouped by term_start, using only the most recent such term.
@@ -153,7 +158,33 @@ def estimate_prior_term_net_margin(
     """
     eligible = [
         r for r in all_records
-        if (r.get("customer_id") == cid
+        # A RECORD BELONGS TO THIS ACCOUNT IF IT BILLS UNDER IT, and string equality is not
+        # that test (2026-09-07). Settled rows are stamped with the SUPPLY POINT
+        # (`simulation/hedged_settlement.py`, `simulation/gas_settlement.py`), and writer 3 is
+        # called with the BILLING ACCOUNT — `renewal_rate_chain` passes `billing_account`,
+        # which `simulation/run_phase2b.py:1539` fills from `household_of(cid)`. The two ids
+        # are the same string on every electricity-only supply point and differ by the gas
+        # suffix on every gas leg, so `==` answered `None` for every gas renewal and
+        # `compute_profitability_uplift` returned 0.0 — which is ALSO its answer for "this
+        # account is profitable", so no run output could tell the policy declining to fire
+        # from the policy being unable to see the book at all.
+        #
+        # `_billing_account_id` is the supplier's OWN grouping rule, reused rather than
+        # re-derived — the same repair `value_based_renewal.observed_account_state` took a
+        # writer along on the same day. It is emphatically not `household_of`: that is the
+        # world's fact about the property, and the supplier's billing grouping must stay free
+        # to disagree with it. No wall is crossed — a supplier knows how it groups its own
+        # bills.
+        #
+        # THE COMMODITY FILTER IS WHAT KEEPS THIS FROM WIDENING THE ELECTRICITY BOOK. Both
+        # legs of a dual-fuel account now reach the filter and the line below removes the
+        # other one. Its `"electricity"` default is a fallback for unstamped rows and not a
+        # policy: both settlement writers stamp `commodity` on every row they emit.
+        #
+        # THE as_of BOUND IS UNCHANGED AND STILL THE THIRD LINE HERE: nothing that settled on
+        # or after `term_start_str` reaches the answer. Widening WHICH supply points bill
+        # together does not widen the clock.
+        if (_billing_account_id(r.get("customer_id") or "") == cid
             and r.get("commodity", "electricity") == commodity
             and r.get("settlement_date", "") < term_start_str
             and r.get("net_margin_gbp") is not None)
