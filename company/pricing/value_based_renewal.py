@@ -96,6 +96,7 @@ from company.crm.enriched_churn_estimate import enriched_churn_estimate
 from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.regulatory.pricing_permissions import check_class_margin
 from saas.clv_model import DISCOUNT_RATE_ANNUAL, _annuity_factor
+from saas.customer_reaction import _billing_account_id
 from saas.payment_behaviour import DEFAULT_CREDIT_RISK, bad_debt_provision_gbp
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
@@ -1275,7 +1276,30 @@ def observed_account_state(
 
     prior = [
         r for r in settled_records
-        if r.get("customer_id") == account_id
+        # A RECORD BELONGS TO THIS ACCOUNT IF IT BILLS UNDER IT, and string equality is not
+        # that test (2026-09-07). Settled rows are stamped with the SUPPLY POINT
+        # (`simulation/hedged_settlement.py`, `simulation/gas_settlement.py` both write
+        # `customer_id=customer_id` unchanged), and the renewal chain is called with the
+        # BILLING ACCOUNT — `simulation/run_phase2b.py:1539` passes `household_of(cid)`, which
+        # strips the gas-leg suffix. The two ids agree on every electricity-only point and
+        # differ on every gas leg, so `==` silently answered `None` for all 337 gas renewals
+        # the moment the commodity gate stopped hiding them: 179 straight to
+        # `no_observed_history`, the arm's decision count unmoved at 94, and nothing in the
+        # renewal count able to tell that from a win
+        # (`SEAT_RESULT_ADMITTING_GAS_MOVED_THE_REFUSAL_AND_BOUGHT_ZERO_DECISIONS...`).
+        #
+        # `_billing_account_id` is the supplier's OWN grouping rule and reused rather than
+        # re-derived: a second copy of "which of my supply points bill together" is how one
+        # company comes to hold two answers. It is emphatically not `household_of` — that is
+        # the world's fact about the property, and the two must stay free to disagree.
+        # No wall is crossed: a supplier knows how it groups its own bills.
+        #
+        # THE COMMODITY FILTER IS WHAT KEEPS THIS FROM WIDENING THE ELECTRICITY BOOK. Both
+        # legs now reach the filter for a dual-fuel account, and the line below removes the
+        # other one. Its `r.get("commodity", commodity)` default is safe only because both
+        # settlement writers stamp `commodity` explicitly on every row they emit; if a writer
+        # ever stops, an unstamped gas row joins the electricity book here.
+        if _billing_account_id(r.get("customer_id") or "") == account_id
         and r.get("commodity", commodity) == commodity
         and r.get("settlement_date", "") < term_start
     ]

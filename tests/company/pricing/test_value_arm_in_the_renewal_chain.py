@@ -55,6 +55,11 @@ from company.pricing import value_based_renewal as vbr  # noqa: E402
 from company.pricing.ofgem_price_cap import get_cap_unit_rate_for_date  # noqa: E402
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH  # noqa: E402
 
+# THE WORLD'S OWN ID GRAMMAR, imported here and nowhere in `company/`. This file is a test and
+# may read both sides; the arm may not, and the point of the control below is precisely that
+# the company's billing grouping and the world's supply-point ids are two different things.
+from simulation.household import GAS_LEG_ID_SUFFIX  # noqa: E402
+
 
 def _settled(account: str = "C1", *, year: int = 2020,
              kwh_per_month: float = 250.0, revenue_per_month: float = 45.0) -> list[dict]:
@@ -568,15 +573,25 @@ def test_the_arm_NEVER_ASKS_for_a_rate_above_the_cap_it_was_given():
 
 
 def _dual_fuel_book(account: str = "C1", *, year: int = 2020) -> list[dict]:
-    """One account, two legs, DELIBERATELY DIFFERENT SIZES.
+    """One account, two legs, DELIBERATELY DIFFERENT SIZES, UNDER THE WORLD'S OWN TWO IDS.
 
     The sizes are what make the record filter falsifiable. Equal legs would let a filter that
     reads the wrong book return the right EAC, and the control would go green on the defect.
+
+    THE GAS LEG IS FILED UNDER `<account>g` AND UNTIL 2026-09-07 THIS FIXTURE FILED IT UNDER
+    `<account>`, which is not a shape the world ever produces. `simulation/hedged_settlement.py`
+    and `simulation/gas_settlement.py` stamp `customer_id` with the SUPPLY POINT, and
+    `simulation/run_phase2b.py` calls the chain with `household_of(cid)` — so on every real
+    renewal the two ids differ by exactly the suffix this fixture used not to carry. With the
+    ids collapsed, the four commodity controls below were green while not one of the 337 gas
+    renewals in a live run could reach its own book (`no_observed_history`, 179 of them). The
+    fixture was the only reason that was invisible; the ids are the world's now.
     """
     elec = _settled(account, year=year, kwh_per_month=250.0, revenue_per_month=45.0)
     gas = [
         {
-            "customer_id": account,
+            # The GAS LEG's own supply point, not the billing account it bills under.
+            "customer_id": f"{account}g",
             "commodity": "gas",
             "settlement_date": f"{year}-{m:02d}-15",
             "term_start": f"{year}-01-01",
@@ -597,6 +612,70 @@ def _dual_fuel_book(account: str = "C1", *, year: int = 2020) -> list[dict]:
         for m in range(1, 13)
     ]
     return elec + gas
+
+
+#: WHICH SUPPLY POINT THE WORLD FILES EACH LEG'S SETTLED ROWS UNDER, keyed by commodity, and
+#: taken from the world's own grammar rather than a literal `"g"` written here: a copy of the
+#: suffix in this file would keep agreeing with the arm after the roster changed it, which is a
+#: control keyed to today's answer. A commodity admitted to `UPLIFTABLE_COMMODITIES` without an
+#: entry here FAILS the control below rather than quietly taking the electricity branch.
+_WORLD_LEG_ID = {
+    "electricity": lambda account: account,
+    "gas": lambda account: account + GAS_LEG_ID_SUFFIX,
+}
+
+
+def test_every_commodity_the_arm_prices_can_reach_its_own_book_under_the_billing_account():
+    """THE CLASS, NOT THE GAS INSTANCE: the arm is called under one id and the book is filed
+    under another, and every commodity it admits has to survive that.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-07). `simulation/run_phase2b.py` calls the chain with
+    `household_of(cid)` — the BILLING ACCOUNT — while both settlement writers stamp rows with
+    the SUPPLY POINT. For electricity the two ids are the same string and nothing shows. For
+    gas they differ by a suffix, so `observed_account_state` matched nothing and returned
+    `None`: 179 of the 337 gas renewals refused at `no_observed_history`, `priced` unmoved at
+    94, accounts unmoved at 66 — a widened gate that bought zero decisions and that no renewal
+    count could distinguish from a win.
+
+    KEYED TO THE PROPERTY: it asserts a renewal can REACH its own book, never what the book
+    then says. A gas leg the arm declines for want of a lawful margin passes this — that is the
+    arm working — and a gas leg it cannot see does not, whatever the cap does afterwards.
+    """
+    missing = set(vbr.UPLIFTABLE_COMMODITIES) - set(_WORLD_LEG_ID)
+    assert not missing, (
+        f"the arm now prices {sorted(missing)} and this control does not know which supply "
+        f"point the world files that leg under — add it to `_WORLD_LEG_ID` rather than "
+        f"letting the commodity go unchecked"
+    )
+
+    book = _dual_fuel_book()
+    for commodity in sorted(vbr.UPLIFTABLE_COMMODITIES):
+        leg_id = _WORLD_LEG_ID[commodity]("C1")
+        # THE FILTER, asked under the id the chain is really called with.
+        observed = vbr.observed_account_state("C1", "2021-01-01", book, "resi", commodity)
+        assert observed is not None, (
+            f"{commodity}: settled as {leg_id!r}, asked for as 'C1', and the arm cannot see it"
+        )
+        assert observed["eac_kwh"] > 0.0
+
+        # AND THE WHOLE CHAIN, because the id is chosen there and not in the adapter. The two
+        # ids are passed as the world passes them: the leg as `customer_id`, the household's
+        # billing account as `billing_account`.
+        with policy_scope(VALUE_ARM_POLICY):
+            result = _drive(
+                customer_id=leg_id,
+                billing_account="C1",
+                commodity=commodity,
+                tariff_type="fixed",
+                struck_unit_rate_gbp_per_mwh=(
+                    200.0 if commodity == "electricity" else 60.0),
+                settled_records=book,
+            )
+        stages = [e["stage"] for e in result.arm_funnel_entries]
+        assert stages and vbr.STAGE_NO_OBSERVED_HISTORY not in stages, (
+            f"{commodity}: the chain refused this renewal for want of a book it settled "
+            f"itself — stages {stages}"
+        )
 
 
 def test_a_gas_renewal_reads_the_gas_leg_and_not_the_electricity_one():
