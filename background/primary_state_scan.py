@@ -125,14 +125,32 @@ def drawable_undrawn_mints(in_progress_dir: Path) -> list[tuple[str, str]]:
 # =============================================================================
 
 # Mirrors supervisor._WORK_THIS_CREATES_RE / _DELIVERABLE_LINE_RE exactly (drift-guarded).
+#
+# THE OPTIONAL SECTION-NUMBER GROUP IS LOAD-BEARING and was missing here for two days after the
+# supervisor gained it (2026-09-05). A ruling that numbers its sections -- `## 5. WORK THIS
+# CREATES`, which is how the director writes them -- parsed as FOUR deliverables through the
+# supervisor and ZERO through this mirror, so `named_but_unminted` reported no residue for it.
+# The fail direction is SILENT and it defeats the whole point of LAW C: the §0 class (a ruling
+# names work that was never minted) is exactly what this second source exists to catch, and it
+# was invisible here for every numbered ruling. Measured 2026-09-07 against the two staged
+# director docs: supervisor 4 and 5 deliverables, mirror 0 and 0.
 _WORK_THIS_CREATES_RE = re.compile(
-    r"^#{1,6}\s*WORK\s+THIS\s+CREATES\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
+    r"^#{1,6}\s*(?:\d+(?:\.\d+)*[.)]?\s+)?WORK\s+THIS\s+CREATES\b[^\n]*\n(.*?)(?=\n#{1,6}\s|\Z)",
     re.IGNORECASE | re.DOTALL | re.MULTILINE,
 )
 _DELIVERABLE_LINE_RE = re.compile(r"^\s*(?:\d+[.)]|[-*])\s+(.+?)\s*$", re.MULTILINE)
-# Mirrors supervisor._DIRECTOR_RULING_STEER_HEADER_RE + the filename-prefix convention.
-_RULING_STEER_HEADER_RE = re.compile(r"\[[A-Z0-9 _-]*(?:RULING|STEER)\]", re.IGNORECASE)
-_RULING_STEER_PREFIXES = ("DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_")
+# Mirrors supervisor._DIRECTOR_RULING_STEER_HEADER_RE + _DIRECTOR_DOC_PREFIXES.
+#
+# CANON IS THE SECOND HALF OF THE SAME DRIFT (2026-09-07). The supervisor widened this vocabulary
+# to admit [DIRECTOR-CANON] and gave its prefix tuple ONE home, with a comment naming the failure
+# it was fixing: "how a vocabulary widened in one place stays narrow in the other". It then
+# happened again, across the module boundary, to this mirror -- so a BLOCKING director canon
+# naming five deliverables was a mint source to the doorbell and invisible to LAW C's independent
+# read. Measured on DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07: supervisor True, mirror False.
+_RULING_STEER_HEADER_RE = re.compile(r"\[[A-Z0-9 _-]*(?:RULING|STEER|CANON)\]", re.IGNORECASE)
+_RULING_STEER_PREFIXES = (
+    "DIRECTOR_RULING_", "DIRECTOR_STEER_", "ADVISOR_STEER_", "DIRECTOR_CANON_",
+)
 
 # COVERAGE SIGNAL 1 -- a PLANNER_MINTED doc's `Source: <ruling>.md, deliverable N` line.
 _SOURCE_DELIVERABLE_RE = re.compile(r"deliverable\s*\*{0,2}\s*(\d+)", re.IGNORECASE)

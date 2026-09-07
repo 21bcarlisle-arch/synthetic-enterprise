@@ -156,9 +156,60 @@ def test_local_parser_agrees_with_supervisor_parser():
         "## Work This Creates\n\n1. **bold** item\n2. `code` item\n\n## Next section\n\n3. not counted\n",
         "### WORK THIS CREATES (per §4)\n\n1. only one\n",
         "prose\n\n#### work this creates\n- a\n- b\n" + "x" * 400 + "\n",
+        # THE SHAPE THIS GUARD WAS BLIND TO (added 2026-09-07). Every fixture above heads the
+        # block with the bare phrase, so the guard stayed green through the two days when the
+        # supervisor carried the numbered-heading repair and this module's mirror did not.
+        # The director numbers his sections; both staged rulings on 2026-09-06/07 used this
+        # shape, and the mirror returned [] for both while the supervisor returned 4 and 5.
+        "# [DIRECTOR-RULING] — t\n\n## 5. WORK THIS CREATES\n\n- alpha\n- beta\n",
+        "## 2.1 WORK THIS CREATES\n\n1. alpha\n",
+        "## 3) WORK THIS CREATES (canonical)\n\n1. alpha\n2. beta\n",
     ]
     for f in fixtures:
         assert pss._work_this_creates_deliverables(f) == sup(f), f"parser drift on:\n{f[:80]}"
+
+
+def test_the_director_doc_vocabulary_agrees_with_the_supervisors():
+    """The drift above happened TWICE in one module — the heading parser, and the vocabulary that
+    decides which docs are a mint source at all. Both were widened in `supervisor` and left narrow
+    here, and the sibling drift guard could not see the second one because it only feeds the two
+    parsers text, never asks which FILENAMES and HEADERS each side admits.
+
+    MUTATION that must red this: drop `"DIRECTOR_CANON_"` (or `CANON` in the header regex) from
+    this module's constants. Keyed to the PROPERTY — the two vocabularies are equal — not to
+    today's four members, so admitting a fifth doc class in `supervisor` alone reds here."""
+    from background import supervisor as sup
+
+    assert set(pss._RULING_STEER_PREFIXES) == set(sup._DIRECTOR_DOC_PREFIXES)
+    assert pss._RULING_STEER_HEADER_RE.pattern == sup._DIRECTOR_RULING_STEER_HEADER_RE.pattern
+    # And the property that matters at the seam: the two predicates agree on real doc shapes.
+    for name, head in [
+        ("DIRECTOR_CANON_X_2026-09-07.md", "# [DIRECTOR-CANON] — a canon\n"),
+        ("SEAT_FINDING_X.md", "# [DIRECTOR-CANON] — header only, no prefix\n"),
+        ("DIRECTOR_RULING_X.md", "# [DIRECTOR-RULING] — r\n"),
+        ("SEAT_RESULT_X.md", "# a plain result, neither\n"),
+    ]:
+        assert pss._is_ruling_or_steer(name, head) == sup._is_ruling_or_steer(name, head), name
+
+
+def test_a_numbered_heading_ruling_reaches_the_residue(tmp_path):
+    """The DEFECT this names, at the level that matters: not "the parsers agree" but "LAW C's
+    independent read can SEE a numbered ruling's unminted work at all". With the mirror's regex
+    missing its section-number group, `named_but_unminted` returned [] for a ruling naming two
+    unminted deliverables — the §0 failure class, silent, in the one source built to catch it.
+
+    MUTATION that must red this: drop `(?:\\d+(?:\\.\\d+)*[.)]?\\s+)?` from the module's
+    `_WORK_THIS_CREATES_RE`. The sibling drift guard above is necessary but not sufficient —
+    it proves the two parsers match, never that the residue is non-empty."""
+    root, ip, done = _dirs(tmp_path)
+    root.mkdir(parents=True, exist_ok=True)
+    (root / "DIRECTOR_RULING_NUMBERED_2026-09-07.md").write_text(
+        "# [DIRECTOR-RULING] — numbered sections\n\n## 5. WORK THIS CREATES\n\n"
+        "- the first named deliverable\n- the second named deliverable\n",
+        encoding="utf-8",
+    )
+    res = pss.named_but_unminted(root, ip, done)
+    assert sorted(r["index"] for r in res) == [1, 2], res
 
 
 def test_real_repo_work_definition_ruling_fully_covered():
