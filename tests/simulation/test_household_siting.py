@@ -109,13 +109,28 @@ def test_the_siting_of_one_household_does_not_depend_on_any_other(frame_csv):
     assert hs.coordinate_for_customer("C_042", 8, "London", path=frame_csv) is not None
 
 
-def test_the_frame_covers_exactly_the_regions_the_curriculum_draws():
+def test_the_frame_covers_every_region_the_curriculum_draws():
     """DEFECT: a frame that covers most of the curriculum's regions. The households drawn into the
     missing one go back to `lat: None` — for that slice alone, silently, in a book where every
-    other household is sited. This is the control that makes that impossible to miss."""
-    from tools.household_siting_frame import expected_regions
+    other household is sited. This is the control that makes that impossible to miss.
 
-    assert hs.regions() == expected_regions()
+    COVERAGE, NOT EQUALITY, SINCE 2026-09-07, AND THE DOCSTRING ABOVE IS WHY: the defect this test
+    names is a MISSING region, and equality also refused an EXTRA one — which is not that defect
+    and is what kept Scotland's 2.5 M sourced households discarded, because the frame was not
+    allowed to carry a real GB region until the world agreed to draw from it. The extra direction
+    is still guarded, by name rather than by count, one layer down in
+    `household_siting_frame.CARRIED_AHEAD_OF_THE_CURRICULUM`, so a MISSPELT region cannot hide in
+    the slack this relaxation creates."""
+    from tools.household_siting_frame import CARRIED_AHEAD_OF_THE_CURRICULUM, expected_regions
+
+    drawn, covered = expected_regions(), hs.regions()
+    assert not drawn - covered, (
+        f"the curriculum draws {sorted(drawn - covered)} and the frame cannot site them; those "
+        "households go back to lat: None while every other household in the book has a coordinate")
+    assert not covered - drawn - CARRIED_AHEAD_OF_THE_CURRICULUM, (
+        f"the frame carries {sorted(covered - drawn - CARRIED_AHEAD_OF_THE_CURRICULUM)}, which "
+        "nothing draws and nothing names -- a region no household reaches refuses nothing, so a "
+        "misspelt one is silent")
 
 
 def test_a_drawn_household_carries_a_coordinate_when_it_carries_a_real_region():

@@ -93,8 +93,34 @@ def test_an_unsited_coordinate_is_refused_and_never_placed_by_nearest_anything()
     resolving a premise the derivation has never seen by falling back to something plausible.
 
     A coordinate absent from the artefact must come back None, not the nearest site.
+
+    2026-09-07 — the subject was replaced when the artefact was re-cut over the whole occupied grid,
+    and the REPLACEMENT is stronger than what it replaced. This used to use (52.0000, -1.0000),
+    which is inland Warwickshire: it was unsited only because the table held seven locations, so it
+    tested the table's SIZE and not the refusal. It now resolves, correctly. Two subjects take its
+    place and neither can ever be closed by widening the artefact:
+
+      * a coordinate 0.0002° (~22 m) off a real land cell centre — the TIGHTEST possible case, and
+        the one a nearest-cell fallback would answer while looking entirely reasonable;
+      * a coordinate that is not GB land at all.
+
+    The near-miss leg is the one that matters. Every other refusal control here would still pass
+    against a mechanism that snapped to the nearest cell; this one is red the moment it does.
     """
-    unsited = {"lat": 52.0000, "lon": -1.0000, "region": "nowhere in particular"}
+    on_grid = next(iter(wcs.load_land_cells()[1]))
+    lat, lon = (float(v) for v in on_grid.split(","))
+    assert wcs.cells_for_location({"lat": lat, "lon": lon}) is not None, (
+        "the near-miss leg below proves nothing unless the cell it misses is really sited"
+    )
+
+    near_miss = {"lat": round(lat + 0.0002, 4), "lon": lon, "region": "22 m off a land cell"}
+    assert wcs.cells_for_location(near_miss) is None, (
+        "a coordinate 22 m off a land cell centre was sited — the lookup has acquired a "
+        "nearest-cell fallback, which is proximity standing in for climate"
+    )
+    assert wcs.cell_matched_site(near_miss) is None
+
+    unsited = {"lat": 48.8566, "lon": 2.3522, "region": "nowhere in particular"}
     assert wcs.cells_for_location(unsited) is None
     assert wcs.cell_matched_site(unsited) is None
     # Keyed to the PROPERTY, not the wording (which was rewritten 2026-09-07 when the refusal was
@@ -130,15 +156,24 @@ def test_a_premise_with_no_coordinate_is_refused_for_that_reason_and_not_told_to
     bare `--derive` as sufficient.
     """
     no_coordinate = {"lat": None, "lon": None, "region": "UNKNOWN_SYNTHETIC"}
-    unsited = {"lat": 52.0000, "lon": -1.0000, "region": "nowhere in particular"}
+    unsited = {"lat": 48.8566, "lon": 2.3522, "region": "nowhere in particular"}
 
     bare = wcs.siting_refusal(no_coordinate)
     unsited_refusal = wcs.siting_refusal(unsited)
     assert unsited_refusal != bare, "two different failures, one refusal"
-    assert "locations=" in unsited_refusal, (
-        "the unsited refusal must name the remedy that can actually reach it — re-cutting the "
-        "artefact over the population being looked up, not bare `--derive`, which re-sites the "
-        "same handful of locations"
+    # 2026-09-07, and the superseded assertion is kept beside it because it was RIGHT when written
+    # and is wrong now for a reason worth reading. It asserted `"locations=" in unsited_refusal` —
+    # that the refusal name re-cutting the artefact as the remedy. The artefact HAS been re-cut,
+    # over all 175,188 occupied land cells, so a coordinate that still fails to site is not one a
+    # wider artefact can reach: it is not GB land. A refusal still prescribing `derive(locations=)`
+    # would now be sending the reader to do work that cannot help, which is the same defect the
+    # `--derive` leg above was corrected for — one lane later.
+    assert "occupied 1 km land cells" in unsited_refusal, (
+        "the unsited refusal must say the coordinate is not a land cell of the derivation, which "
+        "is the only thing left that it can be"
+    )
+    assert "locations=" not in unsited_refusal, (
+        "the refusal is prescribing a re-cut that has already happened and cannot reach this case"
     )
     assert "coordinate" in bare and "None" in bare
     assert "draw" in bare.lower(), "the refusal must name the lane that can actually fix it"
@@ -147,7 +182,7 @@ def test_a_premise_with_no_coordinate_is_refused_for_that_reason_and_not_told_to
     )
 
 
-def test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_it_up():
+def test_a_drawn_household_has_a_coordinate_and_the_artefact_resolves_it():
     """DEFECT (the seat's own, 2026-09-07): a tripwire that could not see the event it was built for.
 
     Its predecessor — `test_no_household_in_this_world_can_reach_the_cell_substitution_branch` —
@@ -165,12 +200,14 @@ def test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_i
          the two un-archived locations hold only I&C premises (unchanged, 2026-09-06);
       2. with `draw_region=True` every drawn household DOES carry a coordinate — W2_18's delivery,
          and this leg goes red if it ever regresses;
-      3. and none of them resolves, because `locations` is a table over the seven locations
-         `derive()` was handed. The refusal they receive must say THAT, not "no coordinate".
+      3. and every one of them RESOLVES, because the artefact is now cut over all 175,188 occupied
+         land cells rather than over the seven locations `derive()` was handed.
 
-    Still deliberately the shape that goes red when the world gets better: leg 3 fails the moment
-    the artefact is cut over the drawn population, which is now W1_14's real remaining move. Do not
-    weaken it then — delete leg 3 and move the level.
+    Leg 3 was written as its own opposite ("and none of them resolves"), deliberately shaped to go
+    red when the world got better, with the instruction to replace rather than weaken it. It went
+    red on 2026-09-07 and this is the replacement. It is not a weaker control: the frame and the
+    artefact are built from the same two expressions over the same HadUK grid, so anything less
+    than 100% means they have diverged, which is a defect and not a coverage gap.
     """
     from company.interfaces.supply_book import registered_supply_points
     from simulation.population_draw import draw_population
@@ -201,20 +238,103 @@ def test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_i
         f"{len(unsited)} of {len(drawn)} drawn households lost their coordinate — W2_18 regressed"
     )
 
-    # Leg 3 — and it still buys no cell, for a reason that now lives in THIS module's artefact.
-    resolved = [c for c in drawn if wcs.cells_for_location(c["location"]) is not None]
-    assert not resolved, (
-        f"{len(resolved)} drawn households now resolve in the derived cells — the artefact has been "
-        "cut over the drawn population and W1_14's household gap has closed. Delete this leg and "
-        "move the level; do not weaken it"
+    # Leg 3 — EVERY drawn household now resolves. This leg was the inverse assertion until
+    # 2026-09-07 ("and none of them resolves"), written to go red the moment the artefact was cut
+    # over the drawn population, with its own instruction not to weaken it but to replace it. This
+    # is that replacement, and it is the same property read the other way round: the drawn
+    # population and the artefact's key space either agree or they do not.
+    unresolved = [c for c in drawn if wcs.cells_for_location(c["location"]) is None]
+    assert not unresolved, (
+        f"{len(unresolved)} of {len(drawn)} drawn households no longer resolve in the derived "
+        "cells. The frame draws HadUK land cell coordinates and the artefact is cut over all of "
+        "them, so this can only mean the two have stopped being built the same way — do not add a "
+        "nearest-cell fallback, find the divergence"
     )
-    refusal = wcs.siting_refusal(drawn[0]["location"])
-    assert "carries no coordinate" not in refusal, (
-        "a sited household is being refused as though it had no coordinate — the branches have been "
-        "collapsed back together and the refusal now names the wrong lane"
+
+
+def test_the_two_artefacts_were_cut_by_the_same_partition():
+    """DEFECT: the JSON's archive sites and the CSV's 175,188 land cells cut by DIFFERENT k-means
+    runs, so a premise and the site it matches carry labels that do not mean the same thing. That
+    would be invisible everywhere — both files parse, every lookup answers, and the substitution it
+    licences is simply wrong.
+
+    Four legs, and the last is the one with teeth: it RE-SITES all seven named locations out of the
+    CSV alone and checks the answer against the JSON, cells and distance. The two artefacts are not
+    keyed alike — a named location is keyed on the PREMISE's coordinate (London's
+    `km_to_cell_centre` is 0.42 km, so 51.5074,-0.1278 is not a cell centre and is deliberately not
+    a row of the CSV), so a key-equality check would be looking for something that should not be
+    there. Reproducing the nearest-cell siting is the check that actually binds the two.
+    """
+    import numpy as np
+
+    data = wcs.load()
+    drivers, cells = wcs.load_land_cells()
+
+    assert list(drivers) == data["drivers"], "the CSV's columns are not the JSON's drivers"
+    assert len(cells) == data["occupied_land_cells"], (
+        f"the land cell table holds {len(cells):,} cells and the JSON says the partition was cut "
+        f"over {data['occupied_land_cells']:,} — one of them was regenerated without the other"
     )
-    assert "locations=" in refusal, (
-        "the refusal a sited household receives must name the artefact's table as the cause"
+    for labels in cells.values():
+        assert all(0 <= c < data["cells_per_driver"] for c in labels)
+
+    keys = list(cells)
+    cell_lat = np.array([float(k.split(",")[0]) for k in keys])
+    cell_lon = np.array([float(k.split(",")[1]) for k in keys])
+    for named in data["locations"].values():
+        i, km = wcs._nearest_land_cell(named["lat"], named["lon"], cell_lat, cell_lon)
+        # Not equality: the CSV stores the cell coordinate to 4 dp and the JSON's distance was
+        # measured against the unrounded one, so the two differ by the quantisation — 11 m per
+        # axis, ~16 m on the diagonal. 20 m is that bound and not a fitted tolerance; a genuine
+        # grid disagreement is a whole cell, 1 km, and clears it by fifty times.
+        assert abs(km - named["km_to_cell_centre"]) < 0.02, (
+            f"{named['name']} sits {km:.3f} km from the nearest cell in the land table and the "
+            f"JSON recorded {named['km_to_cell_centre']} km — further apart than the 4 dp key can "
+            "explain, so the two artefacts were cut over different grids"
+        )
+        assert dict(zip(drivers, cells[keys[i]])) == named["cells"], (
+            f"{named['name']} carries different cells in the two artefacts — they were cut by "
+            "different partitions and every substitution across them is unsound"
+        )
+
+
+def test_both_legs_of_the_substitution_are_reachable_from_the_population_that_uses_it():
+    """DEFECT (R15, the trap CLAUDE.md names as entered three times in one afternoon): a rare
+    branch that no member of the real population can take, guarded by refusal tests that all pass
+    against a mechanism refusing everything.
+
+    `test_the_accept_branch_is_reachable...` proves the accept leg fires — but it fires for the
+    REACHABILITY WITNESS, a coordinate this module places into the artefact itself precisely so the
+    branch can be exercised. That is a control over the mechanism, not over the world: it would
+    stay green in a world where no household the draw can produce ever matched an archive site.
+
+    So this asserts the partition over the DRAWN population instead, both legs at once, which is
+    the one-control-over-the-whole-partition shape rather than a leg per branch. If the accept leg
+    empties, the substitution branch is unreachable for every real household and W1_14's mechanism
+    buys nothing — that is a finding to record and a witness to re-establish, NOT a control to
+    relax, exactly as `REACHABILITY_WITNESS`'s own note says.
+    """
+    from simulation.population_draw import draw_population
+
+    drawn = [c.to_customer_dict()["location"] for c in
+             draw_population(7, acquisitions_per_year_lambda=40.0, draw_region=True)]
+    matched = [loc for loc in drawn if wcs.cell_matched_site(loc) is not None]
+    refused = [loc for loc in drawn if wcs.cell_matched_site(loc) is None]
+
+    assert matched, (
+        f"none of {len(drawn)} drawn households matches an archive site on all three drivers, so "
+        "the accept branch is unreachable from the world's own population and only the planted "
+        "witness can fire it"
+    )
+    assert refused, (
+        f"all {len(drawn)} drawn households match an archive site — four CSVs cannot cover a "
+        "21-cell partition, so the comparison has been loosened off the all-three AND"
+    )
+    # The refusal a drawn household receives must be the ARCHIVE one, not the artefact one.
+    reason = wcs.siting_refusal(refused[0])
+    assert "shares no archive site's cells" in reason, (
+        "a resolved household is being refused as though its coordinate were missing — the "
+        "artefact gap and the archive gap have been collapsed into one refusal again"
     )
 
 
@@ -334,8 +454,18 @@ def test_derive_reproduces_the_committed_artefact():
     if not HADUK.exists() or not ONSPD_CSV.exists():
         pytest.skip(f"needs the HadUK normals ({HADUK}) and the ONSPD pull ({ONSPD_CSV})")
 
-    fresh = wcs.derive()
+    # ONE pass for both artefacts, because that is how `--derive` writes them: deriving them
+    # separately here would grade a shape the CLI cannot produce, and would cost a second 7 s read.
+    fresh, fresh_land = wcs._derived()
     committed = json.loads(wcs.ARTEFACT.read_text())
     assert fresh["coverage"] == committed["coverage"]
     assert fresh["archive_sites"] == committed["archive_sites"]
     assert fresh["locations"] == committed["locations"]
+
+    # And the 4.3 MB bulk table, which is otherwise the largest unfalsifiable claim in the tree:
+    # 175,188 rows nobody could regenerate would be numbers with no derivation behind them.
+    drivers, committed_land = wcs.load_land_cells()
+    assert len(fresh_land) == len(committed_land)
+    assert {f"{lat:.4f},{lon:.4f}": tuple(cells) for lat, lon, *cells in fresh_land} == (
+        committed_land
+    ), "the committed land cell table is not what the derivation produces"

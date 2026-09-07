@@ -116,10 +116,18 @@ def test_WALES_SURVIVES_A_NULL_REGION_COLUMN(monkeypatch, tmp_path):
     assert namer("E00000001") == "London"
 
 
-def test_the_NAMER_DROPS_SCOTLAND_rather_than_folding_it_into_a_region(monkeypatch, tmp_path):
-    """DEFECT: an output area outside the curriculum's ten regions being given the nearest name.
-    Scotland is 8% of GB households and it is the cold, windy 8% -- folded into the North East it
-    would move that region's weather and leave the national total looking right."""
+def test_the_NAMER_NEVER_FOLDS_SCOTLAND_INTO_ANOTHER_REGION(monkeypatch, tmp_path):
+    """DEFECT: an output area being given the nearest available name. Scotland is 9% of GB
+    households and it is the cold, windy 9% -- folded into the North East it would move that
+    region's weather and leave the national total looking right.
+
+    KEYED TO THE PROPERTY, AND IT WAS NOT BEFORE. Until 2026-09-07 this asserted `namer("S00...")
+    is None`, which is satisfied by two opposite worlds: Scotland correctly held apart, and
+    Scotland silently LOST. It was the second -- 46,270 Scottish output areas arrived from the
+    census join with their households counted and were discarded by this namer, and this control
+    was green throughout because `None` was the answer it wanted. What must be true is that a
+    Scottish area never wears an English or Welsh label; whether it wears its own is a separate
+    question, asserted separately below so neither leg can stand in for the other."""
     path = tmp_path / "oa.csv"
     with path.open("w", newline="", encoding="utf-8") as fh:
         out = csv.writer(fh)
@@ -128,7 +136,49 @@ def test_the_NAMER_DROPS_SCOTLAND_rather_than_folding_it_into_a_region(monkeypat
     namer = f.region_namer(path)
     assert namer("E00000001") == "London"
     assert namer("W00000001") == "Wales"
-    assert namer("S00000001") is None, "a Scottish output area was given an English region"
+
+    scottish = namer("S00000001")
+    not_scotland = set(f.REGION_NAMES.values()) | {f.WALES}
+    assert scottish not in not_scotland, (
+        f"a Scottish output area was folded into {scottish!r} -- its households would move that "
+        "region's weather and the GB total would still look right")
+    assert scottish == f.SCOTLAND, (
+        "a Scottish output area is no longer dropped: it carries its own region, because the "
+        "census join has counted its households all along")
+
+
+def test_THE_LABELLER_NAMES_EVERY_OUTPUT_AREA_THE_CENSUS_JOIN_COUNTED():
+    """DEFECT — THE ONE THAT ACTUALLY HAPPENED, and it ran for the frame's whole life. The
+    labeller returned None for a whole country, `census_weights` counted that in
+    `output_area_outside_the_grouping` exactly as designed, the number was written into the
+    committed manifest at 46,270, and nothing anywhere read it. A drop counter is not a control.
+
+    Read off the COMMITTED artefact, so it is a claim about what ships rather than about a fixture,
+    and it needs no census cache. Keyed to the property `the frame's population is the join's
+    population`, so it stays honest if the sources gain a country or the namer loses one."""
+    _assert_the_join_lost_nothing(json.loads(f.FRAME_MANIFEST.read_text(encoding="utf-8")))
+
+
+def _assert_the_join_lost_nothing(manifest: dict) -> None:
+    dropped = manifest["diagnostics"]["output_area_outside_the_grouping"]
+    assert dropped == 0, (
+        f"{dropped} output areas arrived from the census join with household counts and were "
+        "discarded for want of a region label. That is not a scope limit -- the join already "
+        "holds them -- it is a lost region, and the households vanish from the frame while every "
+        "published GB coverage figure still counts their cells")
+
+
+def test_the_lost_region_control_fires_on_the_manifest_that_shipped_for_weeks():
+    """The reachability leg: an assertion on a committed number proves nothing unless the number
+    could be something else and the assertion would then fire. The witness is not invented — it is
+    the frame's OWN manifest as it stood before 2026-09-07, when the counter read 46,270.
+
+    That the counter can MOVE is a separate property and belongs where the counter is written:
+    `test_weather_cell_weights.py::...output_area_outside_the_grouping == 1`. This leg is only
+    about whether the reader above can refuse."""
+    with pytest.raises(AssertionError, match="lost region"):
+        _assert_the_join_lost_nothing(
+            {"diagnostics": {"output_area_outside_the_grouping": 46_270}})
 
 
 def test_the_BUILD_REFUSES_A_FRAME_THAT_DOES_NOT_COVER_THE_CURRICULUMS_REGIONS(monkeypatch):
