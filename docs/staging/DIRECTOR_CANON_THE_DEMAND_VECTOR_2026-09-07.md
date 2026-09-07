@@ -30,6 +30,10 @@ The drawn population must reproduce the **observed distribution** of, per househ
 
 **A household is a vector, not a number.** The sample must span the range of those vectors across the stock, **including the tails**, not match their averages. Every coverage, ceiling and sufficiency claim is measured against that vector or it is measuring something else.
 
+**And the vector is a validation target, not a sufficient design target** — adopted from the delivery seat's challenge of 2026-09-07, which is right. Two households with identical gas, electricity, shape and fuel can have opposite insulation ceilings: one already retrofitted, one not. A sample that reproduces consumption perfectly can still be unable to rank interventions, and ranking interventions is the mission. NEED carries `LI_FLAG`, `CWI_FLAG` and `PV_FLAG`, so this is measurable today.
+
+**Two numbers are therefore reported, and the second is the real one:** N to reproduce the observed distribution, and N to also span intervention response.
+
 ---
 
 ## 3. The resolutions, and why they differ
@@ -64,18 +68,28 @@ People phase 1 as currently ruled mixes them. Merged, we cannot tell a household
 
 Where a coverage or sufficiency claim rests on a scalar and the thing being served is a vector, it is this defect and it has flattered us. Look for it rather than waiting for it.
 
-**Answers come as price lists, not single numbers.** 95% and 99%, with what dominates the count stated. If the honest answer is that the sample must be much larger than anything discussed so far, that is the answer: a large sample that reproduces the range beats a neat one that cannot.
+**Answers come as price lists, not single numbers.** With what dominates the count stated. If the honest answer is that the sample must be much larger than anything discussed so far, that is the answer: a large sample that reproduces the range beats a neat one that cannot.
+
+**Variance coverage is not the criterion, and a chosen percentage is not a test.** Also adopted from the seat's challenge: the goal here is distributional, and variance coverage is not a distributional statement. Span-the-support and reproduce-the-distribution are *opposed* criteria — a space-filling draw deliberately over-represents tails — and you get both only if **each drawn case carries the population mass it stands for**. So the sample is weighted, and N is set by a **weighted distributional acceptance test with a stated power**: the sample is statistically indistinguishable from observed at n. That is falsifiable, where a percentage chosen by the director was not.
+
+**The weather cell count is derived, not designed.** Once the sample is a set of (household, cell) cases, the number of cells is whatever the drawn sample lands in. The only reason to want it in advance is sizing a data pull, which is an engineering constraint rather than a modelling one. `W1_21`'s 987 was coverage of the three drivers' own variance on one shared partition — a partition of weather against itself, which knows nothing about fabric. Right shape, wrong subject.
 
 ---
 
-## 6. What this does not decide
+## 6. Two director decisions taken on the seat's challenge (2026-09-07)
+
+**Shape is modelled, not validated.** The only household shape artefact available is Elexon Profile Class 1 — one population-average curve on a 1997 reference year — and NEED is annual. SERL has half-hourly with EPC linkage but is accredited-access. So seasonal and half-hourly shape are **published as modelled and explicitly not validated**, said plainly on the page. SERL access is a real-world application with a long lead time and is not pursued; if it ever becomes worth having, that is a separate director decision.
+
+**Measure now on the heat-driven axes, with the electricity gap named.** Annual electricity is largely a people quantity — for the 81% of households on gas it is appliances, lights and EV rather than fabric — and there is no non-heat electrical base in the demand model until `W2_19` lands. Knowing whether the sample is 10³ or 10⁴ before spending on the people joint changes what gets built, and that information is cheap. The full vector is re-measured once `W2_19` exists.
+
+## 7. What this does not decide
 
 The mechanism, the partition method, the measurement design, and the number itself. All the delivery seat's. This says what must be reproduced and at what resolution, not how.
 
 ## WORK THIS CREATES (canonical, in-document)
-1. Coverage re-measured against the demand vector, reported at 95% and 99% with the dominant term named.
+1. Coverage re-measured against the demand vector under a weighted distributional acceptance test, with the dominant term named, and both N figures reported — distribution, and intervention response.
 2. The weather partition re-opened as a joint question over a stock with varying fabric.
-3. A sweep for the same scalar collapse in every other coverage, ceiling or sufficiency claim.
+3. A control refusing any coverage, ceiling or sufficiency claim that does not declare the dimension it reduces over.
 4. Per-household half-hourly electricity shape and seasonal gas shape as the demand deliverable.
 5. People phase 1 re-cut so the physical layer stands alone, with the commercial layer correlated rather than merged.
 
