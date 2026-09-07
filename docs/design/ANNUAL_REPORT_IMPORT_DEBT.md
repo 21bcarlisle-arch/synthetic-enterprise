@@ -15,9 +15,25 @@ deliberately later rather than drifting into it."*
 |---|---|
 | Production importers reading a COMPUTATION | **0** (was 1, moved out) |
 | Production importers frozen with a stated reason | **2** (the renderer's own runner; a publisher importing two path constants) |
-| Test files importing the report | **87** |
-| ...of which reach into private `_section_*` functions | **82** |
-| `saas/reporting/annual_report.py` | **10854 lines** |
+| Test files importing the report | **88** |
+| ...of which reach into private `_section_*` functions | **83** |
+| `saas/reporting/annual_report.py` | **10900 lines** |
+
+Re-measured 2026-09-07: **88 / 83 / 10,900**. The importer count moved 87 → 88 for one file
+and the private-reacher count moved 82 → 83 with it, for the same file. The new importer is
+`tests/saas/reporting/test_a_log_the_run_makes_and_a_section_reads_survives_the_reduction.py`, and
+it reaches `_section_profitability_uplift` deliberately: the property it controls is what that
+function PUTS ON THE PAGE when its log is absent as against empty. Those were the two states it
+collapsed into `""` until today, and that collapse is how three dropped logs
+(`profitability_uplift_log`, `triad_log`, `volume_tolerance_log`) went unnoticed through every run
+this repo has saved. **The property cannot be asserted from outside the renderer, because the whole
+defect was that the rendered output was byte-identical in both cases** — a control that did not
+render could not tell them apart either, which is the failure it exists to forbid. The file's other
+two controls are an AST census over source text and reach into nothing. The line count moved
+10,854 → 10,900: three forwarding lines in `extract_report_data`, the section's third state, and
+the comments naming why each is there. Corrected by hand rather than by `--write`, for the reason
+recorded below — the working tree held another lane's uncommitted edits to this very file, and a
+figure regenerated from it would have counted their tree as ours.
 
 Re-measured 2026-09-02 (second time that day): **87 / 82 / 10,854**. The importer count moved
 86 → 87 for one file and the other two did not move at all. The new importer is

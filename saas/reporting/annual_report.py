@@ -1185,6 +1185,20 @@ def extract_report_data(run_output: dict) -> dict:
         # The per-writer logs above are links in that chain, not spans in their own right.
         "rate_decomposition_log": phase2b.get("rate_decomposition_log", []),
         "demand_estimation_log": phase2b.get("demand_estimation_log", []),  # Phase 23a
+        # THE THREE LOGS THE REDUCTION DROPPED (2026-09-07). Each is computed by
+        # `simulation/run_phase2b.py`, read by a `_section_*` below, and was named in neither
+        # place between -- so its section returned "" in every run this repo has ever saved, and
+        # the emptiness was indistinguishable from "the policy did not fire".
+        #
+        # Found by writing the census as an AST guard rather than by reading this block:
+        # `tests/saas/reporting/test_a_log_the_run_makes_and_a_section_reads_survives_the_reduction.py`
+        # intersects the run's returned `*_log` keys with the keys the sections `data.get`, and
+        # asserts the difference against this dict is empty. It named THREE, not the one that was
+        # being chased -- writer 3's uplift was the reported instance, and Triad and volume
+        # tolerance had been dropped the same way with nobody looking for them.
+        "profitability_uplift_log": phase2b.get("profitability_uplift_log", []),
+        "triad_log": phase2b.get("triad_log", []),
+        "volume_tolerance_log": phase2b.get("volume_tolerance_log", []),
         # Phase NK: churn model calibration KPI (recall/precision/F1) from Phase NJ
         "churn_model_performance": phase2b.get("churn_model_performance", {}),
         # Phase 17c/17d: pre-aggregated per-customer P&L (all_records not persisted)
@@ -3304,10 +3318,36 @@ def _section_margin_feedback(data: dict) -> str:
 
 
 def _section_profitability_uplift(data: dict) -> str:
-    """Phase 44a: customer profitability uplift events — net-negative accounts repriced."""
-    log = data.get("profitability_uplift_log", [])
+    """Phase 44a: customer profitability uplift events — net-negative accounts repriced.
+
+    THREE STATES, NOT TWO (2026-09-07). Until today this returned "" for both "writer 3 fired on
+    nothing" and "writer 3's log never reached this payload", and those are the two facts this
+    whole class keeps confusing -- the same shape as `compute_profitability_uplift` returning 0.0
+    both for a profitable account and for a book it could not see. A missing key is now said out
+    loud on the page, because "we cannot tell" is a result and belongs on the surface.
+    """
+    log = data.get("profitability_uplift_log")
+    if log is None:
+        # Fail closed and NAME THE REASON. Reachable whenever `data` predates the forwarding
+        # repair in `extract_report_data` -- every payload saved before 2026-09-07 is this case.
+        return "\n".join([
+            "## Activity-Based Profitability Uplift (Phase 44a)",
+            "",
+            "**Cannot be reported for this run.** `profitability_uplift_log` is absent from the "
+            "payload, so this section cannot tell a run in which the policy never fired from a "
+            "run whose record of it was dropped before publication. No count is given rather "
+            "than a zero that would read as the former.",
+            "",
+        ])
     if not log:
-        return ""
+        # The OTHER state, said as a fact rather than as silence: the log arrived and is empty.
+        return "\n".join([
+            "## Activity-Based Profitability Uplift (Phase 44a)",
+            "",
+            "The policy was asked and repriced no customer-term in this run: the log reached "
+            "this report and holds no entries. This is a measured zero, not a missing record.",
+            "",
+        ])
 
     lines = [
         "## Activity-Based Profitability Uplift (Phase 44a)",
