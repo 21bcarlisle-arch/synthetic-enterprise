@@ -60,8 +60,21 @@ THE WORLD ALSO READS THIS LEVY, AND THAT IS DELIBERATE, NOT A DUPLICATE.
 the CM pass-through as it lands in the settlement and on the bill. The same pair
 already exists for all three of RO, FiT and CCL, and `ro_commons` states the rule
 it has to satisfy: the two lanes may hold different READINGS and may not hold
-different LAW. The readings here genuinely differ, in two ways that are visible
-in the output rather than buried:
+different LAW.
+
+THAT SECOND CLAUSE IS NOW SATISFIED BY CONSTRUCTION rather than by coincidence.
+When a53 was written the world still held nine literals; they agreed with the
+commons on all nine years and nothing made them keep agreeing, which mattered
+more here than anywhere else because this return publishes both readings side by
+side with a live reconciliation -- a drifting literal would have surfaced as a
+delta the reader attributes to bucketing. Later the same day
+`simulation/policy_costs.py` was wired to
+`docs/domain_artefact_library/regulatory/capacity_market_supplier_levy.json`, the
+same artefact `capacity_market.py` reads, so the delta below is now the reading
+difference and only the reading difference.
+
+The readings genuinely differ, in two ways that are visible in the output rather
+than buried:
 
   * BUCKETING. The world buckets each settled record into its Apr-Mar obligation
     year. This module keys by CALENDAR year, because `_annual_elec_mwh` is the

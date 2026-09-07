@@ -159,11 +159,54 @@ def test_reader_agrees_with_its_table_mid_year(table_name):
 
 _SLASH_YEAR = re.compile(r"\b20\d{2}/\d{2}\b")
 
+_ROOT = Path(__file__).resolve().parents[2]
 
-def _table_source_block(source: str, name: str) -> str:
-    match = re.search(rf"^{re.escape(name)}: dict\[.*?\] = \{{$(.*?)^\}}$", source, re.M | re.S)
-    assert match, f"could not locate the source block for {name}"
-    return match.group(1)
+# Tables that are no longer dict literals here: they LOAD from the regulation commons, so their
+# documentary evidence is the artefact's own basis statement rather than a row comment.
+#
+# WHY A REGISTER AND NOT A SKIP (2026-09-07, when `_CM_LEVY_BY_YEAR` became a load). The obvious
+# repair — return early when the source block is absent — retires leg (c) for that table
+# silently, and "loaded" and "renamed out from under this control" look identical to a regex.
+# So the register is RESOLVED below: the named artefact must exist, and the module must actually
+# be seen loading the table. A table in `YEAR_KEY_BASIS` with neither a literal block nor an
+# entry here FAILS, which is the fail-closed leg the skip would have thrown away.
+_LOADED_FROM_COMMONS: dict[str, str] = {
+    "_CM_LEVY_BY_YEAR":
+        "docs/domain_artefact_library/regulatory/capacity_market_supplier_levy.json",
+}
+
+
+def _table_documentary_source(source: str, name: str) -> str:
+    """The text that documents a table's charging year — its own rows, or its artefact.
+
+    THE ANNOTATION IS MATCHED WITH `[^\\n]*?`, NOT `.*?`. Under re.S a `.*?` crosses newlines, so
+    the header pattern for a name that is NO LONGER a dict literal walks down the file and pairs
+    that name with the NEXT table's opening brace — which is not a miss, it is a silent
+    substitution. Found 2026-09-07 the moment `_CM_LEVY_BY_YEAR` became a load: leg (c) went on
+    reading a block, and the block was `_FIT_LEVY_BY_YEAR`'s. Its own mutation leg is what
+    surfaced it, by not firing.
+    """
+    match = re.search(
+        rf"^{re.escape(name)}: dict\[[^\n]*?\] = \{{$(.*?)^\}}$", source, re.M | re.S
+    )
+    if match:
+        return match.group(1)
+    artefact = _LOADED_FROM_COMMONS.get(name)
+    assert artefact, (
+        f"could not locate the source block for {name}, and it is not registered in "
+        "_LOADED_FROM_COMMONS. Leg (c) reads a table's own documentation; a table with no "
+        "documentary source is UNCHECKED, not exempt."
+    )
+    assert re.search(rf"^{re.escape(name)}\b.*=\s*_load", source, re.M), (
+        f"{name} is registered as loaded from {artefact}, but policy_costs.py contains no "
+        "load assignment for it. A register entry is a claim; this resolves it."
+    )
+    path = _ROOT / artefact
+    assert path.exists(), (
+        f"{name} is registered as loaded from {artefact}, which does not exist. An "
+        "unavailable documentary source is a FAILED check, not an absent one."
+    )
+    return path.read_text()
 
 
 def test_a_table_documenting_charging_years_is_not_declared_calendar():
@@ -171,11 +214,15 @@ def test_a_table_documenting_charging_years_is_not_declared_calendar():
 
     This is the leg that would have caught the original defect from the source alone --
     _NETWORK_COST_RESI_SME_BY_YEAR's rows read '2022/23: £66.24/MWh'.
+
+    For a table loaded from the commons the documentary source is the ARTEFACT, which states
+    its own year key ("2023 is obligation year 2023/24"). Same question, same regex, one file
+    further out — see `_table_documentary_source`.
     """
     source = Path(policy_costs.__file__).read_text()
     checked = 0
     for name, basis in sorted(YEAR_KEY_BASIS.items()):
-        block = _table_source_block(source, name)
+        block = _table_documentary_source(source, name)
         if not _SLASH_YEAR.search(block):
             continue
         checked += 1
@@ -186,6 +233,44 @@ def test_a_table_documenting_charging_years_is_not_declared_calendar():
     assert checked >= 3, (
         f"only {checked} table(s) carried a 'YYYY/YY' comment — this leg has gone blind"
     )
+
+
+# ── (c) mutation: the resolver's three fail-closed branches actually fire ─────
+#
+# R15. `_LOADED_FROM_COMMONS` was added on 2026-09-07 so that a table leaving the source as a
+# literal does not leave leg (c) as well. A register that lets a table out of a control is worth
+# exactly what its resolution is worth, so each of the three ways that resolution can be false
+# is broken here and asserted to go red.
+
+def test_mutation_an_unregistered_non_literal_table_is_caught():
+    """The fail-open shape the load introduced: no block, no register entry, no complaint.
+
+    This is the shape the obvious repair would have had — return early when the regex misses.
+    A table renamed out of the module reaches this branch too, and must fail the same way.
+    """
+    source = Path(policy_costs.__file__).read_text()
+    with pytest.raises(AssertionError, match="UNCHECKED, not exempt"):
+        _table_documentary_source(source, "_A_TABLE_NO_LONGER_IN_THIS_MODULE")
+
+
+def test_mutation_a_register_entry_the_module_never_loads_is_caught(monkeypatch):
+    """"Loaded from the commons" claimed for a table nothing loads pins nothing."""
+    monkeypatch.setitem(
+        _LOADED_FROM_COMMONS,
+        "_A_TABLE_NO_LONGER_IN_THIS_MODULE",
+        "docs/domain_artefact_library/regulatory/capacity_market_supplier_levy.json",
+    )
+    source = Path(policy_costs.__file__).read_text()
+    with pytest.raises(AssertionError, match="no load assignment"):
+        _table_documentary_source(source, "_A_TABLE_NO_LONGER_IN_THIS_MODULE")
+
+
+def test_mutation_a_register_entry_naming_a_missing_artefact_is_caught(monkeypatch):
+    """An unavailable documentary source is a FAILED check, never a skipped one."""
+    monkeypatch.setitem(_LOADED_FROM_COMMONS, "_CM_LEVY_BY_YEAR", "docs/no/such/artefact.json")
+    source = Path(policy_costs.__file__).read_text()
+    with pytest.raises(AssertionError, match="does not exist"):
+        _table_documentary_source(source, "_CM_LEVY_BY_YEAR")
 
 
 # ── the instance, pinned ─────────────────────────────────────────────────────

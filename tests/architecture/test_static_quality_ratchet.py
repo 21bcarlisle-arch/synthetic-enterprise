@@ -721,7 +721,14 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1311,  # lowered 2026-09-07 (a51, the CM de-rating CALLERS): -2 more, both this
+    "I001": 1310,  # lowered 2026-09-07 (the CM levy commons derivation control): -1 more, in
+    # `tests/simulation/test_phase30a_cm_levy.py`, which this commit had open anyway to re-key
+    # `test_clamps_post_2024` off today's answer. Its block was unsorted AT HEAD -- proved with
+    # `git show HEAD:tests/simulation/test_phase30a_cm_levy.py | ruff check --select I001 -`,
+    # which reports the same 1 error -- so the repair is this commit's to bank and not a
+    # neighbouring lane's improvement being claimed. Standing per-file remedy, no tidying pass:
+    # the new control file `tests/architecture/test_cm_levy_commons.py` carries 0 on its own.
+    # (was 1311) lowered 2026-09-07 (a51, the CM de-rating CALLERS): -2 more, both this
     # commit's -- company/regulatory/capacity_market.py and its test file, whose import blocks were
     # rewritten when the module was re-founded on the commons. Proved mine by stashing exactly
     # those two paths and re-counting: 1311 -> 1313.
@@ -819,7 +826,8 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2289  # 2291 -> 2289 (a51): the two I001s above.
+RUFF_BASELINE_TOTAL = 2288  # 2289 -> 2288: the one I001 in test_phase30a_cm_levy.py above.
+                            # 2291 -> 2289 (a51): the two I001s above.
                             # `tests/company/test_phase_nx_ic_flexibility.py` -- a file already red
                             # at HEAD at COLLECTION, so this commit had to open it regardless. A
                             # detached HEAD extract totals 2292, the figure this line replaces, so
