@@ -74,6 +74,14 @@ Where a coverage or sufficiency claim rests on a scalar and the thing being serv
 
 **Variance coverage is not the criterion, and a chosen percentage is not a test.** Also adopted from the seat's challenge: the goal here is distributional, and variance coverage is not a distributional statement. Span-the-support and reproduce-the-distribution are *opposed* criteria — a space-filling draw deliberately over-represents tails — and you get both only if **each drawn case carries the population mass it stands for**. So the sample is weighted, and N is set by a **weighted distributional acceptance test with a stated power**: the sample is statistically indistinguishable from observed at n. That is falsifiable, where a percentage chosen by the director was not.
 
+**But the cases are chosen for difference, and the weights carry the representativeness. That ordering is the point and it is not optional.** (Clarified 2026-09-07 after the director caught the drift; the first draft of this section stated the acceptance test without the half that makes it compatible with §2, and a reader opening here would have taken representativeness as the goal.)
+
+The sample is **not** a random draw sized until it looks like the population. It is a deliberately chosen set of distinct cases spanning the variation in outputs — near-duplicates rejected, tails deliberately included — with each case weighted by the population mass it stands for, such that the *weighted* sample reproduces the observed distribution.
+
+**The practical tell:** if N comes out at the scale a random sample would need, the weighting is doing no work and the design has reverted to representativeness. A weighted, deliberately-chosen sample needs far fewer cases than a random draw to reproduce a distribution — that is the whole reason for choosing rather than drawing. A large N is not automatically wrong, but it is a signal to check which design is actually running.
+
+**What we do not want** is a faithful crowd of near-identical households. Two thousand houses that look like each other reproduce the distribution and teach the company nothing, because there is nothing in them to tell apart.
+
 **The weather cell count is derived, not designed.** Once the sample is a set of (household, cell) cases, the number of cells is whatever the drawn sample lands in. The only reason to want it in advance is sizing a data pull, which is an engineering constraint rather than a modelling one. `W1_21`'s 987 was coverage of the three drivers' own variance on one shared partition — a partition of weather against itself, which knows nothing about fabric. Right shape, wrong subject.
 
 ---
