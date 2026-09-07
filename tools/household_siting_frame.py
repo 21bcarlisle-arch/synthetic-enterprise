@@ -34,14 +34,18 @@ IT CAN BE SOURCED, AND THIS IS THE CHAIN
 Every link is published and every one of them is already pulled and cached by this repository for
 the weather-cell derivation. Nothing new is fetched except one column:
 
-  1. **Census 2021 TS041** — households per 2021 output area, England and Wales (188,880 areas).
-     *How many households are there.*
+  1. **Census 2021 TS041** — households per 2021 output area, England and Wales (188,880 areas) —
+     **and Scotland's Census 2022**, households per 2022 output area (46,351 areas). *How many
+     households are there.* Both are already merged by `weather_cell_weights.read_households`,
+     which fails closed on a missing Scotland; the frame lost Scotland at the REGION LABEL, one
+     step later, not here.
   2. **OS Open UPRN** — addressable properties per 1 km OSGB cell. *Where inside an output area
      the addresses are.* (`tools/os_open_uprn.py`; the placement decision and its cost are
      `weather_cell_weights.census_weights`'s, not re-litigated here.)
   3. **ONSPD** — every live residential GB postcode with its output area, its grid reference and,
      the one column this module adds, **`RGN25CD`** — the ONS region. *Which region an output area
-     is in.*
+     is in.* England and Wales only; Scotland is one region and is read off the `S00` output-area
+     code space instead, which is why it needs no row here.
   4. **HadUK-Grid normals** — the true latitude and longitude of each 1 km land cell, from the
      file's own auxiliary coordinates rather than an OSGB->WGS84 transform written here.
 
@@ -61,12 +65,31 @@ region's households occupy, against the one a centroid would give.
 
 WHAT IS OUT OF SCOPE, NAMED RATHER THAN SILENT
 ----------------------------------------------
-**Scotland.** The curriculum's `region_marginal_synthetic_acquisitions` holds ten regions — the nine
-English regions and Wales — and no Scottish one. The world draws no Scottish household, so the frame
-carries none. If the marginal ever gains Scotland, this module's `EXPECTED_REGIONS` refuses until
-the frame is rebuilt: `build()` asserts the frame's region set equals the curriculum's.
-
 **Northern Ireland.** Out of the company's market and carrying no OSGB grid reference in ONSPD.
+This is the only entry on this list that is genuinely the sources' scope.
+
+**SCOTLAND WAS ON THIS LIST UNTIL 2026-09-07 AND IT DID NOT BELONG HERE.** The note said the frame
+carried no Scottish region because the curriculum's marginal draws none — a true sentence about the
+curriculum, offered as the reason for a fact about the FRAME, and the two have different causes.
+The frame's own cause was `region_namer`: it resolved every output area through the
+England-and-Wales lookup, so all 46,270 Scottish output areas — **arriving with their household
+counts already joined**, because `weather_cell_weights` pulls Scotland's Census 2022 and fails
+closed without it — fell into `output_area_outside_the_grouping` and were discarded. That counter
+was in the committed manifest from the first build, reading 46,270 against Scotland's 46,351 areas,
+and nothing was watching it.
+
+The frame now covers **eleven regions** and holds Scotland's 2.5 M households. What is still true
+is the sentence about the curriculum: `region_marginal_synthetic_acquisitions` draws ten regions,
+so **the world draws no Scottish household yet** and the frame's Scottish rows site nobody today.
+That is deliberate and it is the next piece, not an oversight — the marginal is a ratified value
+whose own `basis` inherited the same England-and-Wales scope from the same join, and recomputing it
+over GB is a fidelity change to the world (R13), named and versioned, not a labelling fix. It is
+recorded in
+`docs/staging/SEAT_FINDING_SCOTLAND_WAS_NOT_OUTSIDE_THE_CENSUS_JOIN_IT_WAS_DROPPED_BY_THE_LABELLER_2026-09-07.md`.
+
+`build()` therefore asserts the frame **covers** the curriculum's regions rather than equalling
+them: the hazard is a drawn region that cannot be sited, and a frame region nobody draws is not
+that hazard. Extras are named in the manifest as `regions_the_curriculum_does_not_draw`.
 
 **A household's coordinate is a DRAW, not a discovery.** It is the world's ground truth for where
 the household is, drawn from the published distribution of where households are. It is not a claim
@@ -143,10 +166,41 @@ REGION_NAMES = {
 
 #: WALES IS A COUNTRY AND NOT A REGION, so the lookup carries the country code in its region
 #: column for every Welsh output area. The curriculum's marginal lists it beside the nine English
-#: regions, so it is named here and joined the same way. Scotland has no 2021 English/Welsh output
-#: area and no slot in the marginal -- see the scope note in the module docstring.
+#: regions, so it is named here and joined the same way.
 WALES_CODE = "W92000004"
 WALES = "Wales"
+
+#: SCOTLAND IS THE SAME SHAPE AS WALES -- one country, carried as one region -- and it needs no
+#: lookup row at all, which is why it was lost. `OA_LOOKUP` is the England-and-Wales output-area
+#: table, so `read_oa_regions` cannot hold a Scottish area and `region_namer` returned None for
+#: every one of them. The join itself was never the limit: `weather_cell_weights.read_households`
+#: merges Scotland's Census 2022 (46,351 areas) with TS041 and fails closed without it.
+#:
+#: MEASURED 2026-09-07 BEFORE THIS LINE EXISTED: of the 46,270 output areas the labeller dropped
+#: into `output_area_outside_the_grouping`, **46,270 carried the S00 prefix and none did not**, and
+#: they held 2,503,270 households -- 9.2% of the GB census total, counted by the join and discarded
+#: one step later. The frame's own manifest had been recording that number since it was first
+#: built.
+#:
+#: THE PREFIX IS THE CODE STANDARD, NOT AN INFERENCE. `S00` is NRS's output-area code space and is
+#: wholly within Scotland, exactly as `weather_cell_weights._scotland_table` already relies on when
+#: it reads the census pack. There is no Scottish equivalent of the London/South East straddle that
+#: `pull_oa_regions` refuses on, because the country boundary is not a region boundary any output
+#: area crosses.
+SCOTLAND_OA_PREFIX = "S00"
+SCOTLAND = "Scotland"
+
+#: REGIONS THE FRAME CARRIES THAT THE CURRICULUM DOES NOT YET DRAW, ENUMERATED SO THE RELAXATION
+#: BELOW IS BOUNDED. `build()` stopped demanding frame == curriculum on 2026-09-07, because that
+#: equality is what kept Scotland's sourced households discarded: the frame could not carry a real
+#: GB region until the world agreed to draw from it. Coverage (frame >= curriculum) is the property
+#: that actually protects a drawn household.
+#:
+#: But a bare `>=` would also wave through a MISSPELLED region -- `"Scotand"` in the frame, nobody
+#: drawn into it, no refusal anywhere -- which is a worse failure than the one being fixed because
+#: it looks like coverage. So the extras are named here and `build()` refuses any it does not
+#: recognise. Removing a name from this set is how the frame goes back to matching the world.
+CARRIED_AHEAD_OF_THE_CURRICULUM = frozenset({SCOTLAND})
 
 
 def _get(url: str, tries: int = 5) -> bytes:
@@ -247,17 +301,25 @@ def read_oa_regions(path: Path = OA_REGION_CSV) -> dict[str, str]:
 
 
 def region_namer(path: Path = OA_REGION_CSV):
-    """`oa -> curriculum region name`, or None for an output area outside the ten regions.
+    """`oa -> GB region name`, or None for an output area the frame cannot place.
 
-    None is the answer for every Scottish output area and for anything the lookup does not hold;
-    `census_weights` counts those as `output_area_outside_the_grouping` rather than absorbing them
-    into a region, because households quietly folded into the wrong region would move that region's
-    weather and leave the national total looking right.
+    ELEVEN REGIONS: the nine English ones, Wales, and Scotland. Scotland is answered from the `S00`
+    code space and never from `lookup`, because `OA_LOOKUP` is the England-and-Wales table and has
+    no Scottish row to hold -- see `SCOTLAND_OA_PREFIX` for the measurement that says this was a
+    lost region and not the join's scope.
+
+    None is still the answer for anything neither route names, and `census_weights` counts those as
+    `output_area_outside_the_grouping` rather than absorbing them into a region, because households
+    quietly folded into the wrong region would move that region's weather and leave the national
+    total looking right. That is how Scotland stayed lost: the counter was correct and nobody read
+    it.
     """
     codes = {**{c: n for c, n in REGION_NAMES.items()}, WALES_CODE: WALES}
     lookup = read_oa_regions(path)
 
     def region_of(oa: str) -> str | None:
+        if oa.startswith(SCOTLAND_OA_PREFIX):
+            return SCOTLAND
         code = lookup.get(oa)
         return codes.get(code) if code else None
 
@@ -344,12 +406,26 @@ def build(progress=print) -> dict:
     """Write the committed frame and its manifest. Refuses on a region set that does not match."""
     rows, diagnostics = frame()
     want = expected_regions()
-    if set(rows) != want:
+    missing = want - set(rows)
+    if missing:
         raise ValueError(
             f"the frame covers {sorted(rows)} and the curriculum's region marginal draws "
-            f"{sorted(want)}. Missing: {sorted(want - set(rows))}; extra: {sorted(set(rows) - want)}"
-            ". A household drawn into a region the frame does not cover cannot be sited, and the "
-            "coordinate would silently go back to None for that slice alone.")
+            f"{sorted(want)}. Missing: {sorted(missing)}. A household drawn into a region the "
+            "frame does not cover cannot be sited, and the coordinate would silently go back to "
+            "None for that slice alone.")
+    # COVERAGE, NOT EQUALITY, AND THE DIRECTION MATTERS. The hazard is a curriculum region the
+    # frame cannot site; a frame region the curriculum never draws sites nobody. But the extras are
+    # ENUMERATED and not merely counted -- see `CARRIED_AHEAD_OF_THE_CURRICULUM` for why a bare
+    # `>=` would be a worse control than the equality it replaced.
+    extra = set(rows) - want
+    unknown = extra - CARRIED_AHEAD_OF_THE_CURRICULUM
+    if unknown:
+        raise ValueError(
+            f"the frame carries {sorted(unknown)}, which the curriculum does not draw and "
+            f"`CARRIED_AHEAD_OF_THE_CURRICULUM` does not name. A region no household is ever "
+            "drawn into sites nobody and refuses nothing, so a misspelt one is invisible. Name it "
+            "there with its reason, or fix the label.")
+    diagnostics["regions_the_curriculum_does_not_draw"] = sorted(extra)
     ARTEFACT_DIR.mkdir(parents=True, exist_ok=True)
     with FRAME_CSV.open("w", newline="", encoding="utf-8") as fh:
         out = csv.writer(fh)
