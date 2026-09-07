@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -459,3 +460,31 @@ def test_the_rhythms_documents_are_drawable_work_and_sit_below_findings(tmp_path
     assert order == [finding, step], (
         f"the rhythm must sit below a live defect and be drawn at all; got {order}"
     )
+
+
+def test_the_step_document_carries_a_severity_so_it_cannot_wedge_every_lanes_commit(rhythm):
+    """The rhythm writes into the room a COMMIT GATE reads, and it read UNCLASSIFIED.
+
+    THE DEFECT, 2026-09-07. `finding_severity` scans `docs/staging/` root by FILESYSTEM, not by
+    filename, and exits 1 on any document with no severity header. `_finding_body` had one;
+    `_step_body` did not. So the Monday step document -- written by a daemon, on schedule, with
+    nothing wrong -- took the cheap gate to exit 1 and refused every lane's commit until somebody
+    noticed. The rhythm's own product wedged the tree it was written to organise.
+
+    GRADED BY THE REAL GATE, not by a regex of my own. A control that asserted the header string
+    would pass on a header the gate cannot parse, which is the whole failure mode.
+
+    RECORDED, not LATENT, and that leg is asserted too: an open step is scheduled work, and it is
+    `_finding_body` that raises the LATENT finding once the step is actually late. Classifying the
+    step doc as a defect puts a healthy rhythm in the latent count every single week.
+
+    MUTATION: drop the header line from `_step_body`, or write it as LATENT, and this fires.
+    """
+    from background import finding_severity as fs
+
+    for step in wr.STEPS:
+        body = wr._step_body(step, date(2026, 9, 7), [])
+        graded = fs.parse_severity_text(
+            body, Path(f"WEEKLY_RHYTHM_{step.upper()}_2026-09-07.md"))
+        assert graded.severity == fs.RECORDED, (
+            f"{step}: the gate that guards every commit read {graded.severity} ({graded.reason})")

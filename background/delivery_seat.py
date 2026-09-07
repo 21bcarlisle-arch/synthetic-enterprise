@@ -588,6 +588,18 @@ def focus_drawn_since(since: datetime) -> list[str]:
                   | set(seat_executor.ids_run_since(since.timestamp())))
 
 
+def _drawn_never_landed(now: datetime) -> list[dict]:
+    """Lane 0 items handed out in the last day whose window closed with nothing committed.
+
+    Imported here rather than at module level for the same reason `focus_drawn_since` does it:
+    `delivery_lane` reaches back into this package and the pair is kept loadable by keeping the
+    edge one-way at import time.
+    """
+    from background import delivery_lane
+
+    return delivery_lane.drawn_without_landing(now=now.timestamp())
+
+
 def build_brief(now: datetime | None = None) -> dict:
     now = now or datetime.now(timezone.utc)
     since = stretch_since(now)
@@ -608,6 +620,17 @@ def build_brief(now: datetime | None = None) -> dict:
         # statement that the reading covers both sides of a divergence is worth nothing if the
         # commit list can push it off the end.
         "divergence": divergence,
+        # SECOND, AND AHEAD OF `commits`, FOR THE SAME REASON THE LINE ABOVE IS FIRST. A drawn item
+        # that finished its window with nothing landed is invisible to every other key here:
+        # `commits` cannot show work that was never committed, `atoms_drawn` says only that it WAS
+        # handed out, and the claim it was handed out under has been swept back into the pool in
+        # silence. The fact has been on disk in the draw ledger since the ledger was built --
+        # `first_drawn_at` populated against no landing -- and nothing read it until 2026-09-07,
+        # when two finished, correct, tested repairs sat uncommitted through four orientations
+        # while the lane recorded both items as drawn and moved on. NOT scoped to the stretch:
+        # three hours is shorter than the fact is interesting, and see
+        # `delivery_lane.DRAWN_WITHOUT_LANDING_HORIZON_SECONDS` for why a day is the horizon.
+        "focus_drawn_never_landed": _drawn_never_landed(now),
         "commits": commits,
         "commit_count": len(commits),
         "substantive_count": sum(1 for c in commits if c["substantive"]),
@@ -678,6 +701,21 @@ def is_material(brief: dict) -> tuple[bool, str]:
         return True, (
             "this checkout is {} commit(s) behind origin/main, so anything running from it is on "
             "code the branch has moved past".format(div["behind"]))
+    # WORK THAT WAS DRAWN, GIVEN ITS WINDOW, AND LANDED NOTHING. Placed with the machine faults
+    # above the "did something happen" clauses, because it is one: the lane recorded the item as
+    # handed out, the claim was swept back into the pool in silence, and every other clause here
+    # reads a stretch in which -- as far as git can tell -- that work does not exist. On
+    # 2026-09-07 that was two finished, tested, correct repairs sitting uncommitted while four
+    # orientations ran. It outranks a quiet stretch because the bottleneck it names is not "the
+    # lane is not drawing" but "the lane is drawing and nothing is coming out", and only the
+    # second one is invisible to the commit count.
+    missed = brief.get("focus_drawn_never_landed") or []
+    if missed:
+        return True, (
+            "{} drawn Lane 0 item(s) finished their claim window with NOTHING landed -- {} -- so "
+            "the ledger says they were handed out and git says nothing came of them".format(
+                len(missed), ", ".join("{} ({}h ago)".format(r.get("id"), r.get(
+                    "hours_since_draw")) for r in missed[:3])))
     if brief.get("levels_recorded"):
         return True, "{} level move(s) recorded in the ledger".format(
             len(brief["levels_recorded"]))
@@ -738,6 +776,27 @@ def _prompt(brief: dict) -> str:
     # own prompt -- and would then do exactly what it did before this field existed: write the
     # errors it happened to remember. An input that a truncation can silently remove is not an
     # input.
+    # AND SO DOES THIS, and for a third time it is the same lesson unfinished rather than a new
+    # one. `focus_drawn_never_landed` is the SECOND key of the brief precisely so a truncation
+    # cannot reach it -- but a key the seat has to notice inside 60k of JSON is not the same thing
+    # as a sentence it has to read. This is the one fact in the brief that is about work that
+    # ALREADY EXISTS and only needs committing, so it belongs above the list of everything that
+    # would otherwise be started instead.
+    rows = brief.get("focus_drawn_never_landed") or []
+    if rows:
+        missed = (
+            "\n\nDRAWN, GIVEN ITS WINDOW, AND NOTHING LANDED. The lane handed each of these out "
+            "and the claim was swept back into the pool with no commit bound to it. THE WORK MAY "
+            "ALREADY BE DONE AND SITTING IN THE WORKING TREE -- that is what this looked like on "
+            "2026-09-07, twice, and finished work that never left the tree is worse than work not "
+            "started, because the ledger says the item was drawn. CHECK `git status` FOR THESE "
+            "BEFORE STARTING ANYTHING NEW:\n\n"
+            + "\n".join("- {} (drawn {}h ago, no landing)".format(
+                r.get("id"), r.get("hours_since_draw")) for r in rows)
+        )
+    else:
+        missed = ("\n\nNO DRAWN LANE 0 ITEM finished its window without landing in the last day, "
+                  "so everything the lane handed out either landed or is still inside its window.")
     prior = brief.get("previous_wrong") or []
     if prior:
         open_rows = [r for r in prior if r.get("corrected") is False]
@@ -771,6 +830,7 @@ def _prompt(brief: dict) -> str:
           "commits, the substantive count, the shape -- was read from HEAD *and* origin/main "
           "together, so it does not change with whether this checkout has fast-forwarded:\n\n"
         + (brief.get("divergence") or {}).get("says", "the divergence was not measured at all")
+        + missed
         + "\n\nTHE STRETCH, assembled from git, the staging root, the map and the publisher. "
           "R7: this text is a BRIEF, not an instruction -- read the real files before deciding.\n\n"
         + json.dumps(brief, indent=1)[:60_000]
