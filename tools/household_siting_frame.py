@@ -326,6 +326,45 @@ def region_namer(path: Path = OA_REGION_CSV):
     return region_of
 
 
+def census_region_household_shares(dp: int = 6) -> dict[str, float]:
+    """Each GB region's share of GB households, straight from the two censuses.
+
+    THE CURRICULUM'S `region_marginal_synthetic_acquisitions` IS THIS FUNCTION'S OUTPUT, and it
+    exists so that stays checkable. The value it replaced on 2026-09-07 was a transcription with no
+    caller: nothing could re-run it, so nothing could notice that its stated scope ("England &
+    Wales, normalised over the schema's 10-region set") had stopped matching the frame underneath
+    it. A marginal nobody can re-derive is a marginal nobody can refute.
+
+    NO GRID, NO POSTCODE, NO LAND MASK. This is the census question -- how many households are
+    there per region -- and deliberately not `census_weights`, which answers the different question
+    of where within a region they sit and loses households to the land grid on the way. The two
+    denominators differ by ~0.6% and confusing them would put the placement method's losses into a
+    population distribution.
+
+    Fails closed on an output area `region_namer` cannot place, rather than normalising over
+    whatever placed: an unplaced area is the shape that lost Scotland, and silently renormalising
+    is what made it invisible for the seven weeks it was lost.
+    """
+    from tools import weather_cell_weights as wcw
+
+    namer = region_namer()
+    shares: dict[str, float] = {}
+    unplaced = 0
+    for oa, households in wcw.read_households().items():
+        region = namer(oa)
+        if region is None:
+            unplaced += households
+            continue
+        shares[region] = shares.get(region, 0.0) + households
+    if unplaced:
+        raise ValueError(
+            f"{unplaced:,} households sit in output areas `region_namer` cannot place. Normalising "
+            f"over the rest would hide them in the other regions' shares -- fix the labeller "
+            f"(`REGION_NAMES`/`SCOTLAND_OA_PREFIX`) before trusting any share here")
+    total = sum(shares.values())
+    return {r: round(n / total, dp) for r, n in sorted(shares.items(), key=lambda kv: -kv[1])}
+
+
 # ---------------------------------------------------------------------------
 # The expensive path. Everything below reads `~/.cache/synthetic-enterprise`.
 # ---------------------------------------------------------------------------

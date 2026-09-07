@@ -1001,7 +1001,21 @@ _HEATING_FUEL_NATIONAL: Dict[str, float] = {
 # names a real tail effect for get a non-trivial tilt; every other region
 # stays at the near-uniform national shape (matching the evidenced aggregate
 # V=0.070 finding -- region barely moves the mains_gas bulk).
+#
+# SCOTLAND (added 2026-09-07 with the eleventh region) IS THE ONE MEASURED ROW AND THE OTHERS ARE
+# NOT, WHICH IS WHY IT SAYS SO HERE. The four English/Welsh tilts above are documented SHAPES; the
+# Scotland row is Scotland's Census 2022 UV407 (central heating by output area, the pack
+# `weather_cell_weights.pull_scotland` already caches), banded to these seven levels over the
+# 2,456,487 households with central heating and divided by `_HEATING_FUEL_NATIONAL`. Measured
+# Scottish shares: mains_gas 0.7499, mixed 0.0626, electric 0.0922, oil 0.0519, lpg 0.0135,
+# heat_network 0.0055, other_offgas 0.0243. Defaulting Scotland to the national shape -- which is
+# what `.get(region, {})` would have done silently -- would have understated its oil at 2.0%
+# against a measured 5.2% and its bottled gas at 0.5% against 1.35%, in the exact drivers the
+# weather cells exist to carry. That is not a gap; it is a measurement, and it moves 9.19% of the
+# book. E&W has no equivalent row here because TS046 is not in the cache pack -- filed, not assumed.
 _HEATING_FUEL_TILT_BY_REGION: Dict[str, Dict[str, float]] = {
+    "Scotland": {"mains_gas": 1.013, "mixed": 0.696, "electric": 1.152, "oil": 2.597,
+                 "lpg_bottled": 2.709, "heat_network": 0.185, "other_offgas": 0.695},
     "Wales": {"oil": 6.0, "lpg_bottled": 4.0, "other_offgas": 2.5, "mains_gas": 0.85, "heat_network": 0.3},
     "South West": {"oil": 4.0, "lpg_bottled": 3.0, "other_offgas": 2.0, "mains_gas": 0.9, "heat_network": 0.3},
     "North East": {"oil": 2.0, "lpg_bottled": 1.5, "mains_gas": 0.97, "heat_network": 0.5},

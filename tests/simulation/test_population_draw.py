@@ -8,6 +8,7 @@ isolation (C-S2), and deterministic replay (C-S2).
 from __future__ import annotations
 
 import datetime as dt
+import json
 import random
 from pathlib import Path
 
@@ -520,6 +521,53 @@ def test_heating_fuel_weights_sum_to_one_for_every_region():
     for region in curriculum["region_marginal_synthetic_acquisitions"]["value"]:
         weights = pd.heating_fuel_weights_for_region(region)
         assert abs(sum(weights.values()) - 1.0) < 1e-9
+
+
+def test_scotland_is_not_drawn_on_the_national_heating_shape():
+    """DEFECT: admitting a region to the marginal and leaving its fuel mix at the national default.
+
+    `heating_fuel_weights_for_region` fails OPEN -- `_HEATING_FUEL_TILT_BY_REGION.get(region, {})`
+    returns the national shape for any region with no row, silently, and the sum-to-one control
+    above passes for it either way. So a region can be admitted, drawn, sited and heated on a shape
+    nobody chose, and every existing control stays green. That is what this one refuses.
+
+    Keyed to the measured DIRECTION (Scotland's Census 2022 UV407), not to today's multipliers: the
+    tilts may be re-measured and this stays green, and it goes red the moment the row is dropped,
+    because then every share below is exactly the national one and no strict inequality holds.
+    """
+    national = pd._tilted_weights(pd._HEATING_FUEL_NATIONAL, {})
+    scotland = pd.heating_fuel_weights_for_region("Scotland")
+    # UV407: oil 5.2% and bottled gas 1.35% of Scottish central heating, against a 2.0%/0.5%
+    # national shape -- the off-gas tail the frame calls the cold, windy end.
+    assert scotland["oil"] > national["oil"]
+    assert scotland["lpg_bottled"] > national["lpg_bottled"]
+    # And in the other direction, which a tilt table written to make Scotland uniformly off-gas
+    # would fail: communal heat is 0.55% in Scotland against a London-inflated 3.0% national shape.
+    assert scotland["heat_network"] < national["heat_network"]
+
+
+def test_the_region_marginal_draws_exactly_the_regions_the_committed_frame_can_site():
+    """DEFECT: a curriculum region with no household distribution to site it from, or a frame
+    region no household is ever drawn into.
+
+    The first is silent at the draw -- `household_siting` hands back `lat: None` for that slice
+    alone and nothing on any surface distinguishes it from the honest placeholder. The second is
+    the defect this atom fixed: the frame covered Scotland from d331c255c and the marginal drew no
+    Scot, so 9.19% of GB households were in the coverage denominator and in no book.
+
+    Keyed to the property (the two region sets are the same set), so it fires on EITHER side moving
+    alone and stays green when both are rebuilt together. Both sides are COMMITTED artefacts -- no
+    census cache, so this cannot pass vacuously in a clean extract.
+    """
+    manifest = json.loads(
+        (Path(__file__).resolve().parents[2]
+         / "sim" / "household_siting" / "region_household_frame.json").read_text()
+    )
+    drawn = set(pd._load_cohort_curriculum()["region_marginal_synthetic_acquisitions"]["value"])
+    sited = set(manifest["diagnostics"]["regions"])
+    assert drawn == sited, f"drawn-not-sited {drawn - sited}; sited-not-drawn {sited - drawn}"
+    assert len(drawn) == 11, "GB is nine English regions, Wales and Scotland"
+    assert manifest["diagnostics"]["regions_the_curriculum_does_not_draw"] == []
 
 
 # ---------------------------------------------------------------------------

@@ -72,18 +72,19 @@
   },
   "region_marginal_synthetic_acquisitions": {
     "value": {
-      "South East": 0.152,
-      "London": 0.14,
-      "North West": 0.118,
-      "East": 0.107,
-      "South West": 0.101,
-      "West Midlands": 0.099,
-      "Yorkshire and The Humber": 0.094,
-      "East Midlands": 0.083,
-      "Wales": 0.057,
-      "North East": 0.049
+      "South East": 0.139525,
+      "London": 0.125454,
+      "North West": 0.115543,
+      "East": 0.096323,
+      "Scotland": 0.091915,
+      "South West": 0.089733,
+      "West Midlands": 0.089019,
+      "Yorkshire and The Humber": 0.085398,
+      "East Midlands": 0.074652,
+      "Wales": 0.04936,
+      "North East": 0.043078
     },
-    "basis": "Census 2021 England & Wales household counts by region, normalised over the schema's 10-region set. This is closer to FIDELITY than difficulty (a real population distribution) but is set here so synthetic acquisitions stop defaulting to the UNKNOWN_SYNTHETIC placeholder (population_draw.py:111). PROVISIONAL \u2014 shares sum to 1.0.",
+    "basis": "GB household counts by region: Census 2021 TS041 (England & Wales, 188,880 output areas, 24,783,304 households) + Scotland's Census 2022 (46,363 output areas, 2,508,542 households) = 27,291,846, normalised over the ELEVEN-region set. RE-DERIVABLE, not transcribed: `tools.household_siting_frame.census_region_household_shares()` recomputes exactly these figures from the same two census tables the siting frame reads, and every one of the 235,243 output areas places (zero unplaced). Shares sum to 1.0 at 6dp with no residual.\n\nSUPERSEDES the England-and-Wales value carried to 2026-09-07, which named its own scope ('normalised over the schema's 10-region set') and inherited it from the census join that dropped Scotland at the region LABEL -- measured and fixed in d331c255c, so the siting frame has covered all eleven regions since. Scotland is 9.19% of GB households, so every other region was overstated by a factor of 1.1012, and the omission was BIASED rather than merely absent: Scotland is the cold, windy end of GB, in exactly the drivers W1_14's weather cells exist to carry, and its off-gas tail is 2.6x the national shape (see `population_draw._HEATING_FUEL_TILT_BY_REGION`). R13 fidelity change to the curriculum -- named, versioned, and decided blind to any company result. This is closer to FIDELITY than difficulty (a real population distribution) but is set here so synthetic acquisitions stop defaulting to the UNKNOWN_SYNTHETIC placeholder (population_draw.py:111).",
     "hidden_truth_only": false,
     "note": "DISCOVERABLE, and unlike the attitude axes it is OBSERVED rather than INFERRED: region is a public prior the company holds at enrolment. Verified 2026-08-27 rather than asserted -- `population_draw.SyntheticCustomer.to_customer_dict()` renders it at `location.region`, and the live book is drawn with `draw_region=True` (`simulation/live_population.py::_drawn_trickle`), so the value reaches the saas-shaped observable stream on the shipped path rather than the UNKNOWN_SYNTHETIC placeholder. Proven by `test_discoverability_claims_are_enforced.py::_probe_region`, which reads the OBSERVABLE dict off the acquisition stream and never the hidden `cohort`. Note the probe bar this axis clears is the DIRECT one (the company can read it), which is strictly stronger than the inference bar price_sensitivity clears (the world's decision moves with it)."
   }
