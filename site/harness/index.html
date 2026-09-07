@@ -893,6 +893,7 @@ function renderProductCeiling(d) {
     return;
   }
   var arms = c.arms || [];
+  var sharing = c.the_sharing_ceiling || {};
   /* THE COLUMN THAT IS NOT POUNDS, AND WHY IT IS NOT. Time-shifting's carbon is valued at the
      traded price, which is NOT a bill saving — so it sits in its own column and is never summed
      with tariff fit's. Two currencies in one column is how a page publishes a number nobody owns. */
@@ -938,6 +939,31 @@ function renderProductCeiling(d) {
         "</strong> " + esc(c.why_time_shifting_has_no_pounds) + " Value is created and <em>then</em> " +
         "shared, so a lever with a carbon ceiling and no bill-saving ceiling at all is half a " +
         "product. That is a missing tariff, not a missing measurement.</div>"
+      : "") +
+    /* HOW BIG THE MISSING PRODUCT IS. A blank pounds column with a reason still leaves a reader
+       unable to tell a rounding error from the largest bounded figure on the page. The size is
+       a COUNTERFACTUAL about a tariff that does not exist and never fills the column above. */
+    (sharing && sharing.available && sharing.created_gbp_per_household_year !== null &&
+     sharing.created_gbp_per_household_year !== undefined
+      ? '<div class="note"><strong>And the missing tariff has now been sized: £' +
+        fmt(sharing.created_gbp_per_household_year) + " per household-year</strong> of wholesale " +
+        "cost it could create — a ceiling, at perfect foreknowledge of the day's price shape and " +
+        "every kWh moved" +
+        (sharing.times_the_carbon_value_of_the_same_act
+          ? ", which is <b>" + fmt(sharing.times_the_carbon_value_of_the_same_act, 1) +
+            "x</b> the carbon value of the very same act"
+          : "") +
+        ". The two are never summed — one is a cost avoided and the other is tonnes valued — but " +
+        "only the money can be <em>shared</em>, because only the money lands on a bill. " +
+        (sharing.reachable_households !== null && sharing.reachable_households !== undefined
+          ? "Half-hourly settlement needs a smart meter, so it could be sold to <b>" +
+            n(sharing.reachable_households) + "</b> households here" +
+            (sharing.reachable_book_gbp_per_year
+              ? " — £" + n(Math.round(sharing.reachable_book_gbp_per_year)) + " a year across the " +
+                "whole reachable book, before any cost of the product."
+              : ".")
+          : "") +
+        "</div>"
       : "") +
     '<div class="note"><strong>Why the answer is a split and not a number.</strong> ' +
     esc(c.bound_kind_reason || "") + "</div>" +

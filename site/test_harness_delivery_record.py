@@ -895,6 +895,95 @@ def test_the_MISSING_TARIFF_that_makes_time_shifting_half_a_product_reaches_the_
         "is not a product yet")
 
 
+def test_the_SIZE_of_the_missing_tariff_is_LIFTED_from_the_instrument_and_not_from_this_test():
+    """THE LIFT, not the render. A door test that builds its own feed proves the page can draw a
+    number; it proves nothing about whether that number ever leaves the instrument.
+
+    The blank pounds column beside time-shifting says a bill saving cannot exist on this book. It
+    says nothing about whether the tariff that would create one is worth a penny or fifty, and a
+    reader who cannot tell those apart reads the blank as an arm that was measured and came out at
+    nothing. So the SIZE has to travel: sharing instrument -> its artefact -> R4's arm -> the
+    delivery payload. This walks that chain against the committed artefacts.
+
+    MUTATION (must fire): stop lifting `if_a_time_of_use_tariff_existed` in the generator, or have
+    R4's arm invent the figure instead of reading it.
+    """
+    from tools.generate_delivery_page import the_most_the_products_beyond_price_could_be_worth
+    from tools.tou_sharing_ceiling import OUT_PATH as TOU_ARTEFACT
+
+    payload = the_most_the_products_beyond_price_could_be_worth()
+    if not payload.get("available"):
+        pytest.skip("R4's artefact is absent from this tree; the absence path is covered below")
+    sharing = payload.get("the_sharing_ceiling") or {}
+    if not TOU_ARTEFACT.is_file():
+        assert sharing.get("available") is not True, (
+            "the payload claims a sharing ceiling that no artefact in this tree could have "
+            "produced, which means the figure was invented somewhere on the way")
+        pytest.skip("the sharing-ceiling artefact is absent; the absence leg is asserted above")
+
+    instrument = json.loads(TOU_ARTEFACT.read_text(encoding="utf-8"))
+    assert sharing.get("created_gbp_per_household_year") == (
+        instrument["created_value"]["gbp_per_household_year"]), (
+        "the delivery payload's figure is not the instrument's — either it is not lifted at all, "
+        "or something between them is recomputing a quantity it does not own")
+    assert sharing.get("reachable_households") == instrument["reachable_book"]["households"]
+    # THE POUNDS COLUMN MUST STAY BLANK. The size is a COUNTERFACTUAL about a product that does
+    # not exist; filling the column with it would publish a bill saving no household can receive.
+    arm = next(a for a in payload["arms"] if a["product"] == "time_shifting")
+    assert arm["gbp_per_household_year"] is None, (
+        "sizing the missing tariff must not fill the arm's pounds column — on THIS book the bill "
+        "saving from shifting is zero, and that zero is the finding")
+
+
+def test_the_SIZE_of_the_missing_tariff_REACHES_THE_READER_and_its_absence_renders_nothing():
+    """THE RENDER, and BOTH legs of it over one control.
+
+    A note that only ever renders one way is a note no mutation can fail. So this drives the panel
+    twice from the same fixture: once with the sizing present, where the figure and the multiple
+    must both appear, and once with it absent, where nothing at all may be drawn — a "£undefined"
+    or a bare "0" under that heading would be worse than silence, because it would read as a
+    measured answer.
+
+    MUTATION (must fire): render the note unconditionally, or drop the multiple and leave the
+    reader with a number they cannot place beside the carbon column.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    key = "the_most_the_products_beyond_price_could_be_worth"
+    if not (live.get(key) or {}).get("available"):
+        pytest.skip("no product ceiling in this feed; the absence path is covered elsewhere")
+
+    with_size = json.loads(json.dumps(live))
+    with_size[key]["the_sharing_ceiling"] = {
+        "available": True,
+        "created_gbp_per_household_year": 51.36,
+        "times_the_carbon_value_of_the_same_act": 7.43,
+        "reachable_households": 22,
+        "reachable_book_gbp_per_year": 1125.22,
+    }
+    shown = _text(_render({"../data/delivery.json": with_size})["delivery-product-ceiling"][
+        "innerHTML"])
+    assert "51.36" in shown, "the size of the missing tariff does not reach the reader"
+    assert "7.4x" in shown, (
+        "the multiple against the carbon column is missing, so the reader cannot tell which "
+        "column the case for the tariff rests on")
+    assert "22" in shown and "smart meter" in shown, (
+        "who the tariff could actually be sold to is the binding constraint and is not shown")
+    assert "only the money can be" in shown, (
+        "the page does not say why only one of the two columns can be shared")
+
+    without = json.loads(json.dumps(live))
+    without[key]["the_sharing_ceiling"] = {
+        "available": False, "why": "the sharing instrument has not been run in this tree."}
+    hidden = _text(_render({"../data/delivery.json": without})["delivery-product-ceiling"][
+        "innerHTML"])
+    assert "51.36" not in hidden
+    assert "missing tariff has now been sized" not in hidden, (
+        "an unrun instrument must draw nothing under that heading rather than a placeholder a "
+        "reader would take for a measurement")
+    assert "no way to share the value" in hidden, (
+        "the gap itself must still be published when its size is not known")
+
+
 @pytest.mark.parametrize("panel,key,marker", [
     ("delivery-carbon-ceiling", "the_most_a_carbon_score_could_be_worth", "91.7"),
     ("delivery-product-ceiling", "the_most_the_products_beyond_price_could_be_worth", "tariff_fit"),

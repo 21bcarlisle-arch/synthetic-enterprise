@@ -53,6 +53,11 @@ THREE THINGS THIS INSTRUMENT REFUSES TO DO, each because doing it is how a ceili
    the traded price — not a bill saving at all, because this book holds no time-of-use tariff for a
    shifted kWh to be cheaper on. Two correct figures whose sum is not a quantity is this project's
    most expensive recurring shape, so the payload keeps them in separate columns and says why.
+   THE MISSING TARIFF IS NOW SIZED AND STILL NOT ADDED: `tools/tou_sharing_ceiling.py` bounds what
+   a time-of-use tariff could create, and the time-shifting arm carries that figure under
+   `if_a_time_of_use_tariff_existed` while its own pounds column stays `None`. The size is a
+   COUNTERFACTUAL about a product that does not exist; putting it in the column would publish a
+   bill saving no household on this book can receive.
 
 3. **It refuses to price a measure it has no property data for.** An engineering estimate — "this
    measure typically saves this much" — is defensible as a design input and never as a measured
@@ -81,6 +86,14 @@ from tools.r3_carbon_score_ceiling import (  # noqa: E402
     book_run_output,
     electricity_eac,
 )
+
+#: The SHARING ceiling's artefact path, taken from the instrument that owns it rather than
+#: restated here -- a second copy of a path is how an artefact comes to be written to one place
+#: and read from another. Its CONTENTS are read, never recomputed, for the same reason the carbon
+#: above is read from R3: two implementations of one quantity is how a figure gets two values and
+#: no owner. It never fills the pounds column, because on THIS book the bill saving from shifting
+#: really is zero and that is the finding.
+from tools.tou_sharing_ceiling import OUT_PATH as TOU_ARTEFACT  # noqa: E402
 
 OUT_PATH = PROJECT / "docs" / "observability" / "r4_product_ceiling.json"
 R3_ARTEFACT = PROJECT / "docs" / "observability" / "r3_carbon_score_ceiling.json"
@@ -300,6 +313,52 @@ def time_shifting_ceiling() -> dict:
             "R3's figure is at a shiftable share of 1.0 -- every kWh moved -- because no source "
             "establishes a domestic shiftable share. At a tenth of load moved it is a tenth."
         ),
+        "if_a_time_of_use_tariff_existed": the_sharing_ceiling(),
+    }
+
+
+def the_sharing_ceiling() -> dict:
+    """What the pounds column WOULD carry if this book held a time-of-use tariff.
+
+    IT DOES NOT FILL THE POUNDS COLUMN, and that is deliberate rather than timid. On this book the
+    bill saving from shifting is zero -- there is no tariff on which a shifted kWh is cheaper --
+    and that zero IS the finding. What was missing was the SIZE of the gap: a reader could see the
+    arm had no pounds and could not see whether the missing product was worth a penny or fifty.
+
+    READ, never recomputed, for the same reason the carbon above is read from R3.
+    """
+    if not TOU_ARTEFACT.exists():
+        return {
+            "available": False,
+            "why": (
+                f"{TOU_ARTEFACT.name} is not present, so the size of the missing product is not "
+                "known here. Run `python3 -m tools.tou_sharing_ceiling --save`. The pounds column "
+                "above is unaffected: it is None because this book holds no time-of-use tariff, "
+                "not because this artefact is absent."
+            ),
+        }
+    tou = json.loads(TOU_ARTEFACT.read_text(encoding="utf-8"))
+    created = tou.get("created_value") or {}
+    reachable = tou.get("reachable_book") or {}
+    carbon = tou.get("the_carbon_column") or {}
+    return {
+        "available": True,
+        "source": "tools/tou_sharing_ceiling.py — read, not recomputed",
+        "created_gbp_per_household_year": created.get("gbp_per_household_year"),
+        "times_the_carbon_value_of_the_same_act": carbon.get("money_over_carbon"),
+        "reachable_households": reachable.get("households"),
+        "reachable_book_gbp_per_year": reachable.get("book_gbp_per_year"),
+        "why_it_is_not_added_to_this_arm": (
+            "It is a COUNTERFACTUAL about a product that does not exist, and this arm reports what "
+            "THIS book can do. Adding it would publish a bill saving no household on this book can "
+            "receive. It is carried beside the None so the size of the missing product is visible: "
+            "the gap is not a rounding error, it is the largest bounded figure in R4."
+        ),
+        "and_only_this_column_can_be_shared": (
+            "The carbon lands on nobody's bill, so no tariff can share it. The money does. That "
+            "makes the tariff the PRECONDITION for the abatement rather than a way of monetising "
+            "it -- the money is what pays for the behaviour that abates."
+        ),
     }
 
 
@@ -422,7 +481,9 @@ def measure(run_path: Path | None = None) -> dict:
             "FLOORS into CEILINGS, and it is a data question rather than a modelling one.",
             "A TIME-OF-USE TARIFF. Without one a shifted kWh is not cheaper, so time-shifting has "
             "a carbon ceiling and no bill-saving ceiling at all. That is a product decision, and "
-            "it is what would let the household share in the value R3 measures.",
+            "it is what would let the household share in the value R3 measures. IT IS NOW SIZED: "
+            "`tools/tou_sharing_ceiling.py` bounds it, and the arm carries the figure under "
+            "`if_a_time_of_use_tariff_existed` -- the gap is the largest bounded number in R4.",
             "Book depth (A46) bounds how much any of this can be DEMONSTRATED over.",
         ],
     }

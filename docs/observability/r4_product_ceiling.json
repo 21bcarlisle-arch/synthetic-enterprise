@@ -38,7 +38,17 @@
       "source": "tools/r3_carbon_score_ceiling.py \u2014 read, not recomputed",
       "why_the_gbp_column_is_None": "R3's pounds are CARBON VALUED at the traded price, not a bill saving. A shifted kWh is cheaper only on a time-of-use tariff and this book holds none, so the BILL saving from shifting is zero here and the carbon value sits in its own column. Adding it to tariff fit's pounds would sum two different quantities.",
       "at_shiftable_share": 1.0,
-      "caveat": "R3's figure is at a shiftable share of 1.0 -- every kWh moved -- because no source establishes a domestic shiftable share. At a tenth of load moved it is a tenth."
+      "caveat": "R3's figure is at a shiftable share of 1.0 -- every kWh moved -- because no source establishes a domestic shiftable share. At a tenth of load moved it is a tenth.",
+      "if_a_time_of_use_tariff_existed": {
+        "available": true,
+        "source": "tools/tou_sharing_ceiling.py \u2014 read, not recomputed",
+        "created_gbp_per_household_year": 51.36,
+        "times_the_carbon_value_of_the_same_act": 7.43,
+        "reachable_households": 22,
+        "reachable_book_gbp_per_year": 1125.22,
+        "why_it_is_not_added_to_this_arm": "It is a COUNTERFACTUAL about a product that does not exist, and this arm reports what THIS book can do. Adding it would publish a bill saving no household on this book can receive. It is carried beside the None so the size of the missing product is visible: the gap is not a rounding error, it is the largest bounded figure in R4.",
+        "and_only_this_column_can_be_shared": "The carbon lands on nobody's bill, so no tariff can share it. The money does. That makes the tariff the PRECONDITION for the abatement rather than a way of monetising it -- the money is what pays for the behaviour that abates."
+      }
     },
     "efficiency_fabric": {
       "product": "efficiency_fabric",
@@ -120,7 +130,7 @@
   },
   "named_gaps": [
     "PROPERTY ATTRIBUTES. Nothing in the book distinguishes one home's fabric, roof or heating system from another's. This is the single acquisition that would turn three FLOORS into CEILINGS, and it is a data question rather than a modelling one.",
-    "A TIME-OF-USE TARIFF. Without one a shifted kWh is not cheaper, so time-shifting has a carbon ceiling and no bill-saving ceiling at all. That is a product decision, and it is what would let the household share in the value R3 measures.",
+    "A TIME-OF-USE TARIFF. Without one a shifted kWh is not cheaper, so time-shifting has a carbon ceiling and no bill-saving ceiling at all. That is a product decision, and it is what would let the household share in the value R3 measures. IT IS NOW SIZED: `tools/tou_sharing_ceiling.py` bounds it, and the arm carries the figure under `if_a_time_of_use_tariff_existed` -- the gap is the largest bounded number in R4.",
     "Book depth (A46) bounds how much any of this can be DEMONSTRATED over."
   ],
   "headline": "R4 SPLITS, AND THE SPLIT IS THE ANSWER. Of six products, 3 are true CEILINGS and 3 are FLOORS (efficiency_fabric, solar, heat_pump) -- because the property-attribute census over 29 logs found 0 attributes, so a measure cannot be sized for a specific home and a negative would retire nothing. THE PART WE CAN BOUND IS THE PART THAT CANNOT ABATE: tariff fit is worth \u00a32.19 per household-year and its carbon ceiling is EXACTLY ZERO by the director's own rule, because discounting moves money and changes no kWh and no hour. The part that abates -- time-shifting, at 91.7 kgCO2e per household-year -- carries no bill saving at all, because this book holds no time-of-use tariff for a shifted kWh to be cheaper on. So the canon's charge is confirmed by arithmetic rather than by assertion: the company can make a household cheaper and never greener. AND BOTH BOUNDED ARMS ARE SMALL: \u00a32.19 of bill saving and \u00a34.03 of carbon value per household-year, only 7 of 68 households priced above the market reference at all. So the whole of the part of R4 this book can bound is worth a few pounds a household-year, and any real value in the programme lives in the arms that are FLOORS. R4 IS NOT RETIRED -- nothing here bounds the measures from above -- but what stands between it and a bound is a DATA ACQUISITION, not a model."
