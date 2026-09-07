@@ -965,6 +965,21 @@ function renderProductCeiling(d) {
           : "") +
         "</div>"
       : "") +
+    /* AND HOW IT WOULD DIVIDE — the SHARING side, which is the half this thread was opened to
+       bound and the half no reader could see. NEVER render the frontier's rows here: the frontier
+       holds the created value fixed, so its zero-pass-through row says "the company keeps the
+       whole ceiling", which is not a take anyone could bank — at zero pass-through nothing moves,
+       so nothing is created. That row alone would publish value TRANSFERRED as value created. The
+       identity and the endpoints that bound it render together or not at all. */
+    (sharing && sharing.available && sharing.the_split_is_an_identity &&
+     sharing.the_optimum_is_interior
+      ? '<div class="note"><strong>And sharing it creates nothing.</strong> ' +
+        "The household's share and the company's share sum to the created value at every " +
+        "pass-through — an identity, not a measurement, so no point on it is a finding. " +
+        esc(sharing.the_optimum_is_interior) +
+        (sharing.where_the_optimum_sits ? " " + esc(sharing.where_the_optimum_sits) : "") +
+        "</div>"
+      : "") +
     '<div class="note"><strong>Why the answer is a split and not a number.</strong> ' +
     esc(c.bound_kind_reason || "") + "</div>" +
     ((c.named_gaps || []).length

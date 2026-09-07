@@ -341,6 +341,18 @@ def the_sharing_ceiling() -> dict:
     created = tou.get("created_value") or {}
     reachable = tou.get("reachable_book") or {}
     carbon = tou.get("the_carbon_column") or {}
+    frontier = tou.get("sharing_frontier") or []
+    interior = tou.get("the_interior_optimum") or {}
+    #: DERIVED, never restated: the two shares sum to the created value at every pass-through, or
+    #: this goes false and the page stops claiming an identity it no longer has. Keyed to the
+    #: property rather than to today's rows, which is the only version that can go red for the
+    #: right reason.
+    created_gbp = created.get("gbp_per_household_year")
+    the_split_is_an_identity = bool(frontier) and created_gbp is not None and all(
+        abs(row.get("household_gbp_per_household_year", 0.0)
+            + row.get("company_gbp_per_household_year", 0.0) - created_gbp) < 0.01
+        for row in frontier
+    )
     return {
         "available": True,
         "source": "tools/tou_sharing_ceiling.py — read, not recomputed",
@@ -358,6 +370,21 @@ def the_sharing_ceiling() -> dict:
             "The carbon lands on nobody's bill, so no tariff can share it. The money does. That "
             "makes the tariff the PRECONDITION for the abatement rather than a way of monetising "
             "it -- the money is what pays for the behaviour that abates."
+        ),
+        # THE SHARING SIDE ITSELF, which is the half the instrument was built to bound and the
+        # half that reached no reader: the size of the created value was published and how it
+        # DIVIDES was not. These three travel together or not at all, for the reason below.
+        "the_split_is_an_identity": the_split_is_an_identity,
+        "the_optimum_is_interior": interior.get("therefore"),
+        "where_the_optimum_sits": interior.get("what_it_does_NOT_say"),
+        "why_the_frontier_ROWS_are_not_published_here": (
+            "The frontier holds the created value FIXED, so its rows are conditional on the shift "
+            "happening at all. Its zero-pass-through row therefore reads `company keeps the whole "
+            "ceiling`, and that is not a take anyone could bank: at zero pass-through a household's "
+            "bill is identical whenever it draws, so nothing moves and nothing is created. "
+            "Published as a row it would read as value the company could keep for doing nothing -- "
+            "value TRANSFERRED dressed as value CREATED, which is the one substitution the mission "
+            "forbids. So the identity travels with the endpoints that bound it and never alone."
         ),
     }
 
