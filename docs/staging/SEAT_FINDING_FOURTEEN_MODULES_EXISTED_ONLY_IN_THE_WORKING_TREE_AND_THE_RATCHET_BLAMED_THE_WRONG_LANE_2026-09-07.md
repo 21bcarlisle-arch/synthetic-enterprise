@@ -6,8 +6,8 @@
 `tests/tools/test_orphan_ratchet.py::test_the_two_refusals_are_not_the_same_sentence`,
 `tests/tools/test_orphan_ratchet.py::test_an_unreadable_head_keeps_the_ordinary_refusal_rather_than_excusing`
 -- four controls, each named for a defect in this document, all four mutation-proven below. The
-census half is discharged by the disposition table; eight of fourteen paths remain held and each
-names what it is waiting on.
+census half is discharged by the disposition table; eight of fourteen paths were held, four of
+which landed within the hour -- see the CORRECTION at the foot of this document.
 
 # Fourteen modules existed only in the working tree, and the ratchet blamed the wrong lane
 
@@ -206,3 +206,41 @@ constants and why one control does nothing but assert they are different sentenc
 3. **Nothing counts this population.** The census here is a one-off by a seat. The cheap version is a
    line in the orientation: untracked `.py` count and the age of the oldest. Three of the fourteen
    were canon deliverables and would have been findable on day one.
+
+---
+
+## CORRECTION, written beside the claim — 2026-09-07, ~40 minutes after the landing above
+
+Three statements in this document were true when written and are not now. Kept rather than revised,
+because what moved is the finding's own subject.
+
+**1. `tools/stock_joint_generator.py` was not landed by this commit.** `9229cae46` carries **four**
+paths, not five. The canon lane landed the module itself in `122c08ec3` while my third gate cycle was
+running — `surgical_land` reported *"attempt 1/3 lost the race: HEAD 6605b78a2 -> a01c5766d"*, and by
+the time it re-gated, that path was already a no-op. The disposition stands; the attribution does not.
+
+**2. Four of the eight held paths are already tracked.** `tools/reduction_dimension.py`,
+`tests/architecture/test_a_coverage_claim_declares_what_it_reduces_over.py`,
+`tests/background/test_the_rows_that_concluded_on_a_sibling.py` and
+`tests/tools/test_settlement_ceiling_probe.py` all landed within the hour — each one carried by the
+lane that owned its uncommitted supplier, which is exactly the act this document said each was
+waiting on.
+
+**3. The count is four, not fourteen.** `git status --porcelain | grep '^??' | grep '\.py$'` now
+returns `background/standing_red.py`, `tests/background/test_standing_red.py`,
+`tests/saas/reporting/test_a_departure_route_carries_its_denominator.py` and
+`tests/architecture/test_no_document_asserts_a_licence_condition_that_does_not_exist.py`.
+
+### What the correction is evidence FOR
+
+The hold was not a stall, and this is the part worth keeping. Every path I refused to land cleared by
+its own named act, not by anybody re-running anything: **the diagnosis was per-path and each per-path
+prediction came true inside an hour.** Had I landed the six-path pathspec I first assembled, I would
+have carried three other lanes' half-finished suppliers inside my commit to make my own gate green —
+the precise move `_KNOWN_UNLANDED` refuses by name elsewhere in this tree.
+
+It also sharpens the "what is next" below. A census taken by a seat is a snapshot of a population
+that turns over in **under an hour**, so a one-off census is close to worthless as a control and the
+disposition of each item is where all the value was. The orientation line proposed below should
+therefore print the **age of the oldest** untracked path, not the count: fourteen items with a
+51-day tail and four items an hour old are the same number and nothing like the same fact.
