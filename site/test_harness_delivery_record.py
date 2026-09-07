@@ -45,7 +45,8 @@ FEED_FILES = {
 }
 
 PANELS = ("delivery-kpis", "delivery-did", "delivery-decided", "delivery-wrong",
-          "delivery-next", "delivery-ceiling", "director-delta")
+          "delivery-next", "delivery-ceiling", "delivery-carbon-ceiling",
+          "delivery-product-ceiling", "director-delta")
 
 
 def _text(html: str) -> str:
@@ -577,6 +578,19 @@ def test_the_WHOLE_BOOK_magnitude_and_its_disagreeing_verdict_reach_the_reader()
         pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
 
     def shown(rung):
+        # SCOPED TO THIS BLOCK, because the FIGURE is not unique to it (corrected 2026-09-07). Two
+        # other things on the same panel carry +0.2513: the sibling `the_a49_gate` block, which
+        # renders the magnitude of whichever rung it gates on -- and on this book that IS this rung
+        # -- and `on_the_magnitude`, a SENTENCE lifted verbatim from the instrument's own artefact.
+        # So LEG 2's `"0.2513" not in refused` was unsatisfiable the moment the feed carried a live
+        # gate, whatever this block rendered. It read green only because the committed
+        # `delivery.json` predated both fields; regenerating the feed is what surfaced it.
+        #
+        # The repair is in two parts and the second is the load-bearing one: blank the sibling so
+        # the panel holds one rendering of this rung, and assert on the BLOCK'S OWN PHRASE rather
+        # than on a number that prose can reintroduce. A control keyed to a figure it does not own
+        # is keyed to today's artefact text.
+        c["the_a49_gate"] = None
         c["the_whole_book_rung"] = rung
         live["the_number_the_programme_rests_on"] = c
         return _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
@@ -613,7 +627,12 @@ def test_the_WHOLE_BOOK_magnitude_and_its_disagreeing_verdict_reach_the_reader()
     assert "readings disagree" not in refused, (
         "the panel emits the disagreement regardless of whether there is a magnitude to disagree "
         "with, so its presence says nothing")
-    assert "0.2513" not in refused
+    # NO MAGNITUDE IS INVENTED FOR A RUNG THAT REFUSED ONE. Keyed to the block's own answered-branch
+    # wording rather than to `0.2513`: the figure appears in the instrument's prose too, so the
+    # number cannot discriminate, and this phrase is emitted only when this block renders an
+    # estimate. A mutation that renders some other rung's magnitude here brings the phrase with it.
+    assert "carry the three-way split the headline rung cannot" not in refused, (
+        "the block renders an estimate for a rung that refused one")
 
     # LEG 3 -- an artefact with no whole-book rung at all renders nothing rather than an empty
     # claim. Every tree holding a pre-2026-09-06 artefact is in this state.
@@ -644,6 +663,12 @@ def test_WHICH_RUNG_THE_PROGRAMME_IS_GATED_ON_reaches_the_reader():
         pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
 
     def shown(gate):
+        # SAME CORRECTION AS THE TEST ABOVE, from the other side (2026-09-07). `the_whole_book_rung`
+        # renders the same magnitude this gate reads, and `on_the_magnitude` carries it in prose, so
+        # LEG 2's `"0.2513" not in shut` was asking the whole panel a question only this block can
+        # answer. Blanking the sibling and keying LEG 2 to this block's own wording is what makes
+        # "a figure the gating rung did not produce" a claim about the gating rung.
+        c["the_whole_book_rung"] = None
         c["the_a49_gate"] = gate
         live["the_number_the_programme_rests_on"] = c
         return _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
@@ -688,10 +713,236 @@ def test_WHICH_RUNG_THE_PROGRAMME_IS_GATED_ON_reaches_the_reader():
     assert "carries no magnitude on this book" in shut
     assert "8 households per cell" in shut
     assert "WE CANNOT TELL" in shut
-    assert "0.2513" not in shut, "a figure the gating rung did not produce is on the page"
+    # Keyed to the open-gate branch's own wording, not to `0.2513` -- see `shown` above for why the
+    # number cannot discriminate. This phrase is emitted only when the gate renders a reading, so a
+    # mutation that supplies one from the rung that was NOT chosen still fires it.
+    assert "while its own selected-maximum verdict" not in shut, (
+        "a figure the gating rung did not produce is on the page")
 
     # LEG 3 -- an artefact with no gate renders nothing rather than a decided-looking blank. Every
     # tree holding an artefact from before 2026-09-07 is in this state.
     absent = shown(None)
     assert "gated on, and why it is this rung" not in absent, (
         "a gate the feed does not carry is being described to the reader anyway")
+
+
+# ── R3 and R4: the other two ceilings A49 exists for ─────────────────────────────────────────────
+#
+# Both instruments landed on 2026-09-07 and both wrote their readings into a file nobody opens: run
+# on demand, reachable from no committed schedule, reported as orphans. A bound that reaches no
+# reader cannot retire a candidate programme, which is the entire thing a ceiling is for -- EP13 ran
+# twelve passes and the discipline arrived at pass seven, retiring five programmes that would
+# otherwise have been built first and measured afterwards.
+#
+# Each control below drives the REAL door and asserts on the string a reader gets. The shape they
+# all share: a figure is never enough. A ceiling published without the kind of bound it is, the
+# population it is over, or the assumption its denominator rests on is a number a reader will quote
+# and cannot judge.
+
+
+def test_the_CARBON_ceiling_reaches_the_reader_with_the_assumption_it_rests_on(rendered):
+    """R3's headline is at a shiftable share of 1.0 -- EVERY kilowatt-hour in the home moved --
+    because no published source establishes a domestic shiftable share.
+
+    The figure alone is the misleading publication: 91.7 kgCO2e per household-year reads as what a
+    household would get, and it is what a household would get if it moved all of its load, which no
+    household does. So the curve has to be on the page beside it, and the missing number has to be
+    named as a gap rather than quietly filled.
+
+    MUTATION (must fire): render the headline without the share curve, or without the sentence
+    naming the share as unestablished.
+    """
+    body = _text(rendered["delivery-carbon-ceiling"]["innerHTML"])
+
+    assert "91.7" in body, "R3's ceiling figure is not on the page at all"
+    assert "4.03" in body, "the value of that carbon at the traded price is not on the page"
+    # THE ASSUMPTION, NOT ONLY THE NUMBER. This is the load-bearing half.
+    assert "every kilowatt-hour in the home can move" in body, (
+        "the ceiling is published without the assumption its denominator rests on, so it reads as "
+        "what a household would actually get")
+    assert "No published source establishes" in body, (
+        "the unestablished shiftable share is filled rather than named as a gap")
+    # The curve, so a reader can scale it themselves rather than take 1.0 or nothing.
+    assert "9.2" in body and "10%" in body, (
+        "the share curve is absent, so the only reading offered is the one no household achieves")
+
+
+def test_the_CARBON_ceiling_says_WHAT_KIND_of_bound_it_is_and_what_it_does_not_cover(rendered):
+    """A CEILING retires a candidate outright; a FLOOR retires nothing. Conflating them is the
+    error EP13's tenth pass made and its eleventh corrected, so the kind travels with the reading.
+
+    And the scope travels too: R3 bounds the TIMING lever on ELECTRICITY, and names six levers it
+    says nothing about. A reader shown "91.7 kg" without those would read a bound on the whole
+    carbon programme.
+
+    MUTATION (must fire): drop `bound_kind` from the render, or drop `not_bounded_by_this`.
+    """
+    body = _text(rendered["delivery-carbon-ceiling"]["innerHTML"])
+
+    assert "CEILING" in body, "the page does not say what kind of bound this is"
+    assert "what a bad reading would have proved" in body, (
+        "the kind is rendered as a label rather than as the claim it makes")
+    assert "TIMING lever on ELECTRICITY" in body, "the scope of the bound is not on the page"
+    assert "does not retire" in body, (
+        "the page does not say whether this reading retires the candidate")
+    # The levers it is silent about, or the bound reads as covering the whole programme.
+    assert "reduction -- using less" in body or "reduction — using less" in body, (
+        "the levers this bound does NOT cover are absent, so it reads wider than it is")
+
+
+def test_the_CARBON_ceiling_carries_the_HANDICAPS_and_the_TREND(rendered):
+    """Two things a reader cannot reconstruct from the headline and needs to judge it.
+
+    THE LADDER: perfect foreknowledge (40.7 g) -> what the published forecast actually captures
+    (85.85%) -> divided by the feed's own measured within-day overstatement (1.47x) -> 23.8 g. A
+    reader shown only the corrected figure cannot tell which step they disagree with.
+
+    THE TREND decides WHEN rather than WHETHER: a programme worth 42.1% less than it was in 2016 is
+    a different decision from a small one.
+
+    MUTATION (must fire): render the corrected figure without the ladder, or drop the trend block.
+    """
+    body = _text(rendered["delivery-carbon-ceiling"]["innerHTML"])
+
+    assert "40.7" in body, "the un-handicapped hindsight figure is not shown"
+    assert "85.9%" in body or "85.85" in body, "the forecast capture handicap is not shown"
+    assert "1.47" in body, "the within-day overstatement handicap is not shown"
+    assert "23.8" in body, "the figure the handicaps land on is not shown"
+    # The null, or "clears" is a claim against nothing a reader can see.
+    assert "8.5" in body and "4.82" in body, (
+        "the skill-free null and the margin over it are not both on the page")
+    assert "It is shrinking" in body and "42.1" in body, (
+        "the trend is absent, so a programme that is worth less every year reads as a static one")
+
+
+def test_the_PRODUCT_ceiling_shows_the_CEILING_FLOOR_SPLIT_and_not_a_list_of_numbers(rendered):
+    """R4's split IS the deliverable: three products we can bound from above, three we can only
+    bound from below because the company holds no property attribute at all.
+
+    A table of six numbers with no kind beside each one is exactly the publication A49 forbids --
+    a negative on a floor retires nothing, and a reader who cannot tell which is which will read
+    every small figure as a retirement.
+
+    MUTATION (must fire): render the arms without their `bound_kind` column, or render a floor's
+    `None` as 0.
+    """
+    body = _text(rendered["delivery-product-ceiling"]["innerHTML"])
+
+    for product in ("tariff_fit", "time_shifting", "advice",
+                    "efficiency_fabric", "solar", "heat_pump"):
+        assert product in body, f"{product} is missing from the product table"
+    assert "CEILING" in body and "FLOOR" in body, (
+        "the arms are rendered without the kind of bound each one is")
+    assert "3 / 6" in body, "the split is not shown as a count a reader can see at a glance"
+    # AN UNMEASURED ARM IS NOT A ZERO. This is the one substitution that would invert the finding.
+    assert "£0.00" not in body, (
+        "an arm we cannot bound is rendered as a measured zero, which is the opposite claim")
+    assert "no total" in body, (
+        "the page does not say it refuses to total, so a reader will add two currencies across "
+        "non-disjoint products")
+
+
+def test_the_PRODUCT_ceiling_publishes_THE_CANONS_OWN_CHARGE_as_arithmetic(rendered):
+    """*"The company can make a household cheaper and never greener."*
+
+    That is the canon's charge against this company, and R4 turns it into arithmetic: the bounded
+    arm that saves money (tariff fit) abates exactly zero by the director's standing rule, and the
+    bounded arm that abates (time-shifting) saves no money at all. Everything that would really cut
+    a household's carbon is a FLOOR for want of property data.
+
+    This is the single most decision-relevant sentence either instrument produced and it belongs
+    where he can read it, not in an artefact.
+
+    MUTATION (must fire): render the arms table without this block, or state one side of it only.
+    """
+    body = _text(rendered["delivery-product-ceiling"]["innerHTML"])
+
+    assert "the part that cannot cut carbon" in body, (
+        "the two-sided finding A49 was minted for is not on the page")
+    assert "tariff_fit" in body and "time_shifting" in body
+    assert "never from discounting" in body, (
+        "the reason tariff fit's carbon is zero is a RULE, and without it the zero reads as a "
+        "measurement that came out small")
+    # The acquisition, because it changes the shape of the programme rather than its size.
+    assert "a data acquisition, not a model" in body, (
+        "the page does not say what stands between R4 and a real bound")
+    assert "0" in body and "29 logs" in body, (
+        "the census behind the floor verdict is not shown, so the floors read as an opinion")
+
+
+def test_the_MISSING_TARIFF_that_makes_time_shifting_half_a_product_reaches_the_reader(rendered):
+    """The gap NEITHER instrument was looking for, and the reason it is published rather than filed.
+
+    This book holds NO time-of-use tariff, so a shifted kilowatt-hour is not cheaper. R3 measures
+    value CREATED and there is no instrument of SHARING it -- which is the mission's own
+    two-sidedness ("value is created and THEN shared") showing up as a missing product rather than
+    a missing measurement.
+
+    A reader who sees time-shifting's £ column as "—" and is told nothing will read it as an arm
+    that was measured and came out at nothing. It is the opposite: it was measured, it is worth
+    real carbon, and there is currently no way to turn any of that into money for anyone.
+
+    MUTATION (must fire): render the £ column as "—" without the explanation beside it.
+    """
+    body = _text(rendered["delivery-product-ceiling"]["innerHTML"])
+
+    assert "no way to share the value" in body, (
+        "the missing half of the mission's two-sidedness is not on the page")
+    assert "time-of-use tariff and this book holds none" in body, (
+        "the page does not say WHY time-shifting has no pounds, so the blank reads as a zero")
+    assert "half a product" in body, (
+        "the consequence is not stated: a lever with a carbon ceiling and no bill-saving ceiling "
+        "is not a product yet")
+
+
+@pytest.mark.parametrize("panel,key,marker", [
+    ("delivery-carbon-ceiling", "the_most_a_carbon_score_could_be_worth", "91.7"),
+    ("delivery-product-ceiling", "the_most_the_products_beyond_price_could_be_worth", "tariff_fit"),
+])
+def test_an_UNRUN_ceiling_instrument_renders_a_stated_absence_and_not_a_measured_zero(
+        panel, key, marker):
+    """FAIL CLOSED, AND SAY SO ON THE SURFACE. Both instruments are run on demand, so a tree
+    without their artefacts is the ordinary case, not the exotic one.
+
+    "We have not measured this" and "this is worth nothing" are opposite claims about a candidate
+    programme, and a blank panel under a live heading renders as the second. This is the same class
+    as the live door that served "Loading…" for eight days.
+
+    MUTATION (must fire): return an empty dict from the panel builder instead of an
+    `available: False` with a reason, or render the absence as an empty string.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    live[key] = {"available": False,
+                 "why": "the instrument has not been run in this tree, so no bound is shown."}
+    body = _text(_render({"../data/delivery.json": live})[panel]["innerHTML"])
+
+    assert body, "an unrun instrument leaves a live heading with nothing under it"
+    assert "has not been run in this tree" in body, (
+        "the panel does not say WHY it is empty, so absence reads as a measured zero")
+    assert marker not in body, (
+        "a figure from the live artefact is rendered even though the panel reports no measurement")
+
+
+def test_the_two_ceiling_panels_are_WIRED_and_not_merely_defined():
+    """The defect this whole file exists for, applied to the two panels added on 2026-09-07: a
+    render function that is defined and never called serves a live heading forever.
+
+    It is also the reason the generator IMPORTS both instruments rather than restating their
+    artefact paths -- until this landed, `tools/r3_carbon_score_ceiling.py` and
+    `tools/r4_product_ceiling.py` were reachable from no committed schedule and the orphan ratchet
+    listed both. An instrument whose reading nobody sees is an orphan in the sense that matters.
+
+    MUTATION (must fire): drop `renderCarbonCeiling(d)` from the fetch chain and this reds while
+    the function itself still parses.
+    """
+    door = DOOR.read_text(encoding="utf-8")
+
+    for fn in ("renderCarbonCeiling", "renderProductCeiling"):
+        assert f"function {fn}" in door, f"{fn} is not defined"
+        # Defined AND invoked: two occurrences minimum, the definition and at least one call.
+        assert door.count(fn) >= 2, f"{fn} is defined and never called"
+
+    from tools import generate_delivery_page as gen
+
+    assert gen.R3_ARTEFACT.name == "r3_carbon_score_ceiling.json"
+    assert gen.R4_ARTEFACT.name == "r4_product_ceiling.json"
