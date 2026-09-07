@@ -1,0 +1,127 @@
+{
+  "bound_kind": "MIXED \u2014 declared per product, and the split IS the finding",
+  "bound_kind_reason": "A49 requires each instrument to state whether it is a true CEILING (a negative retires the candidate outright) or a handicapped FLOOR (a negative retires nothing). R4 is not one programme, so it does not get one answer: the arms the company holds both sides of are CEILINGS, and the arms that need a property attribute are FLOORS because the company holds no property attribute at all.",
+  "book": {
+    "source_run": "run_output_latest.json",
+    "households": 68,
+    "median_eac_kwh": 2673.8
+  },
+  "property_attribute_census": {
+    "logs_scanned": 29,
+    "attributes_found": {}
+  },
+  "fabric_eligibility": {
+    "available": true,
+    "rows": 152,
+    "eligible": 4,
+    "share": 0.0263,
+    "reason_given": "domestic premise with fabric parameters and local weather"
+  },
+  "arms": {
+    "tariff_fit": {
+      "product": "tariff_fit",
+      "bound_kind": "CEILING",
+      "gbp_per_household_year": 2.19,
+      "kg_co2e_per_household_year": 0.0,
+      "carbon_is_zero_by_rule": "The director's standing rule: savings count only from reduced or time-shifted usage, never from discounting. A cheaper tariff moves money and changes no kWh and no hour, so its abatement is zero by rule and not by measurement.",
+      "households": 68,
+      "households_above_the_reference": 7,
+      "book_gbp_per_year": 148.72,
+      "why_a_ceiling": "The company holds both sides of the subtraction -- the rate it charged and the market reference its own pricing chain reads -- so putting every household on the better of the two is the best any targeting could do. A negative here would retire tariff fit outright."
+    },
+    "time_shifting": {
+      "product": "time_shifting",
+      "bound_kind": "CEILING",
+      "gbp_per_household_year": null,
+      "carbon_value_gbp_per_household_year": 4.0342,
+      "kg_co2e_per_household_year": 91.685,
+      "source": "tools/r3_carbon_score_ceiling.py \u2014 read, not recomputed",
+      "why_the_gbp_column_is_None": "R3's pounds are CARBON VALUED at the traded price, not a bill saving. A shifted kWh is cheaper only on a time-of-use tariff and this book holds none, so the BILL saving from shifting is zero here and the carbon value sits in its own column. Adding it to tariff fit's pounds would sum two different quantities.",
+      "at_shiftable_share": 1.0,
+      "caveat": "R3's figure is at a shiftable share of 1.0 -- every kWh moved -- because no source establishes a domestic shiftable share. At a tenth of load moved it is a tenth."
+    },
+    "efficiency_fabric": {
+      "product": "efficiency_fabric",
+      "bound_kind": "FLOOR",
+      "gbp_per_household_year": null,
+      "kg_co2e_per_household_year": null,
+      "why_a_floor_and_not_a_ceiling": "The company holds NO property attribute to target on -- the census over this run found 0 across 29 logs -- so no per-household bound can be computed. Whatever number a book-average engineering estimate produced would bound from below at best, and A NEGATIVE WOULD THEREFORE RETIRE NOTHING. That is the distinction A49 requires be stated, and it is the opposite of R3's.",
+      "missing_data": "floor area, wall and loft construction, and a heating system \u2014 the fabric parameters an engineering estimate is a function of",
+      "reachable_population": {
+        "available": true,
+        "rows": 152,
+        "eligible": 4,
+        "share": 0.0263,
+        "reason_given": "domestic premise with fabric parameters and local weather"
+      }
+    },
+    "solar": {
+      "product": "solar",
+      "bound_kind": "FLOOR",
+      "gbp_per_household_year": null,
+      "kg_co2e_per_household_year": null,
+      "why_a_floor_and_not_a_ceiling": "The company holds NO property attribute to target on -- the census over this run found 0 across 29 logs -- so no per-household bound can be computed. Whatever number a book-average engineering estimate produced would bound from below at best, and A NEGATIVE WOULD THEREFORE RETIRE NOTHING. That is the distinction A49 requires be stated, and it is the opposite of R3's.",
+      "missing_data": "roof area, pitch and orientation, plus a shading assessment. Nothing in the book distinguishes a south-facing roof from a north-facing one, and the whole value turns on it",
+      "reachable_population": {
+        "available": true,
+        "rows": 152,
+        "eligible": 4,
+        "share": 0.0263,
+        "reason_given": "domestic premise with fabric parameters and local weather"
+      }
+    },
+    "heat_pump": {
+      "product": "heat_pump",
+      "bound_kind": "FLOOR",
+      "gbp_per_household_year": null,
+      "kg_co2e_per_household_year": null,
+      "why_a_floor_and_not_a_ceiling": "The company holds NO property attribute to target on -- the census over this run found 0 across 29 logs -- so no per-household bound can be computed. Whatever number a book-average engineering estimate produced would bound from below at best, and A NEGATIVE WOULD THEREFORE RETIRE NOTHING. That is the distinction A49 requires be stated, and it is the opposite of R3's.",
+      "missing_data": "the incumbent heating system and fuel, plus the fabric above \u2014 a heat pump's saving is the difference against what it replaced, so without the incumbent there is no difference",
+      "reachable_population": {
+        "available": true,
+        "rows": 152,
+        "eligible": 4,
+        "share": 0.0263,
+        "reason_given": "domestic premise with fabric parameters and local weather"
+      }
+    },
+    "advice": {
+      "product": "advice",
+      "bound_kind": "CEILING",
+      "gbp_per_household_year": null,
+      "kg_co2e_per_household_year": null,
+      "not_additive": true,
+      "why": "Advice is the CHANNEL through which time-shifting and tariff fit reach a household, not a value pot beside them. Its ceiling IS their ceiling and adding it to theirs would count the same value twice. What advice can add beyond them is the measures -- and those are FLOORS for want of property data, so advice inherits that too.",
+      "delivers": [
+        "time_shifting",
+        "tariff_fit"
+      ],
+      "bounded_by": "the union of the arms it delivers, never their sum"
+    }
+  },
+  "refuses_to_total": "There is no total here and that is deliberate. The products are NOT disjoint (advice is the channel for the others; solar and a heat pump both change grid import) and the columns are NOT one currency (tariff fit's pounds are a bill saving, time-shifting's are carbon valued at the traded price). A sum would double-count across products and add two quantities across currencies, and it is the number a reader would quote.",
+  "verdict": {
+    "ceilings": [
+      "tariff_fit",
+      "time_shifting",
+      "advice"
+    ],
+    "floors": [
+      "efficiency_fabric",
+      "solar",
+      "heat_pump"
+    ],
+    "the_bounded_arm_that_abates": [
+      "time_shifting"
+    ],
+    "the_bounded_arm_that_does_not": [
+      "tariff_fit"
+    ]
+  },
+  "named_gaps": [
+    "PROPERTY ATTRIBUTES. Nothing in the book distinguishes one home's fabric, roof or heating system from another's. This is the single acquisition that would turn three FLOORS into CEILINGS, and it is a data question rather than a modelling one.",
+    "A TIME-OF-USE TARIFF. Without one a shifted kWh is not cheaper, so time-shifting has a carbon ceiling and no bill-saving ceiling at all. That is a product decision, and it is what would let the household share in the value R3 measures.",
+    "Book depth (A46) bounds how much any of this can be DEMONSTRATED over."
+  ],
+  "headline": "R4 SPLITS, AND THE SPLIT IS THE ANSWER. Of six products, 3 are true CEILINGS and 3 are FLOORS (efficiency_fabric, solar, heat_pump) -- because the property-attribute census over 29 logs found 0 attributes, so a measure cannot be sized for a specific home and a negative would retire nothing. THE PART WE CAN BOUND IS THE PART THAT CANNOT ABATE: tariff fit is worth \u00a32.19 per household-year and its carbon ceiling is EXACTLY ZERO by the director's own rule, because discounting moves money and changes no kWh and no hour. The part that abates -- time-shifting, at 91.7 kgCO2e per household-year -- carries no bill saving at all, because this book holds no time-of-use tariff for a shifted kWh to be cheaper on. So the canon's charge is confirmed by arithmetic rather than by assertion: the company can make a household cheaper and never greener. AND BOTH BOUNDED ARMS ARE SMALL: \u00a32.19 of bill saving and \u00a34.03 of carbon value per household-year, only 7 of 68 households priced above the market reference at all. So the whole of the part of R4 this book can bound is worth a few pounds a household-year, and any real value in the programme lives in the arms that are FLOORS. R4 IS NOT RETIRED -- nothing here bounds the measures from above -- but what stands between it and a bound is a DATA ACQUISITION, not a model."
+}

@@ -2082,7 +2082,15 @@
   block_reason: null   # NOT blocked, and deliberately so. Both ceilings are measurable against what already exists -- E5's event stream and factor register for R3, the book and the consumption feed for R4 -- so neither waits on a curriculum decision. R5's book-depth question (A46) bounds how much a ceiling can be DEMONSTRATED over, which is a caveat these instruments must state, not a reason to park them.
   depends_on: []
   couples_with: [E5_carbon_three_ledger, C30_advice_reaches_a_household, A46_book_depth_is_a_curriculum_question]
-  file_scope: ['tools/', 'docs/design/']
+  # Repointed 2026-09-07 at the program this atom's OWN build wrote (85e1463c5, bfd232ba0).
+  # It named `tools/` and `docs/design/` -- two DIRECTORIES, which are scope and never controls,
+  # so `tools/level_zero_contradicted_by_its_own_controls.py` reported it UNGRADABLE and could say
+  # nothing about it however much landed. Both instruments have existed and passed since
+  # 2026-09-07 05:33 and the row still read 0/build, which is the state that keeps re-winning a
+  # draw this atom has already been paid for.
+  file_scope: ['tools/r3_carbon_score_ceiling.py', 'tools/r4_product_ceiling.py',
+               'tests/tools/test_r3_carbon_score_ceiling.py', 'tests/tools/test_r4_product_ceiling.py',
+               'docs/design/']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "an investment committee that requires a size-of-the-prize estimate before it funds a programme, rather than after the first three milestones -- the discipline that stops a team proving it can execute something that was never worth executing"
 - id: C29_decisions_stop_being_lookup_tables
