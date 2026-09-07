@@ -9,7 +9,15 @@ Real UK context: NESO Demand Flexibility Service (DFS) launched Oct 2022. Its ra
 constant and is not carried here -- `dfs_published_record` holds the published per-winter record and
 is the single home for it. The realised rate was £3,316/MWh in 2022/23 under a guaranteed acceptance
 price and £241/MWh in 2024/25 once the service had to compete.
-Capacity Market participants earn ~£75/kW/yr for committed flexibility.
+
+THE CAPACITY MARKET LEG IS REFUSED FOR A HOUSEHOLD, and that refusal replaces a £930/household/year
+figure. This docstring used to say "Capacity Market participants earn ~£75/kW/yr for committed
+flexibility", and `_CAPACITY_MARKET_GBP_PER_KW_YR = 75.0  # T-4 auction 2023` applied it to a
+household's RATED asset power. The £75 is real -- it is the **T-1** clearing price for **delivery
+year 2022/23**, which cleared at the price cap -- but it is not a T-4, not 2023, not an annual rate
+anybody earns for "committed flexibility", and above all not something a household can be paid,
+because the minimum Capacity Market Unit is 1 MW and a whole flexible house here is 3.0-15.4 kW.
+`capacity_market_published_record` holds the auction record and the refusal's reason.
 DNO flexibility auctions (Flex Markets) pay £50-300/MWh depending on location.
 
 All inputs company-observable (asset flags from CRM, kwh from billing).
@@ -21,8 +29,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
-from company.market import dfs_published_record
-
+from company.market import capacity_market_published_record, dfs_published_record
 
 # UK calibrated flexibility estimates per asset type
 _EV_FLEX_KW = 7.4  # typical 7.4 kW home charger (32A)
@@ -30,10 +37,12 @@ _ASHP_FLEX_KW = 3.0  # air source heat pump space heating load
 _BATTERY_FLEX_KW = 5.0  # typical 5 kWh/h battery discharge rate
 _BATTERY_FLEX_HOURS = 1.5  # usable discharge window (evening peak)
 
-# DSR revenue benchmarks (£/kW/yr). The DFS rate and event count are NOT here: they are published
-# per winter and live in `dfs_published_record`, because two copies of one fact is how this book
-# carried a rate that was 737x low for three months without anything able to notice.
-_CAPACITY_MARKET_GBP_PER_KW_YR = 75.0  # T-4 auction 2023
+# DSR revenue benchmarks. Neither the DFS rate nor the CM clearing price is here: they are
+# published per winter and per delivery year and live in `dfs_published_record` and
+# `capacity_market_published_record`. Two copies of one fact is how this book carried a DFS rate
+# that was 737x low for three months; THREE copies is how it carried a CM price under two wrong
+# labels at once, and neither duplicate gate could see it, because the three homes disagreed about
+# the NAME as well as the value.
 _DISPATCH_DURATION_HRS = 1.0  # 1-hour events standard
 
 
@@ -51,7 +60,7 @@ class FlexibilityEstimate:
     flex_kw: peak demand reduction achievable
     flex_kwh_per_event: energy shifted per dispatch event
     dfs_revenue_gbp_pa: estimated NESO DFS revenue if enrolled
-    capacity_market_revenue_gbp_pa: capacity market value if contracted
+    capacity_market_revenue_gbp_pa: `None`, always -- a household holds no CM agreement
     """
     account_id: str
     asset_type: FlexibilityAssetType
@@ -61,14 +70,27 @@ class FlexibilityEstimate:
     flex_kw: float
     flex_kwh_per_event: float
     dfs_revenue_gbp_pa: float
-    capacity_market_revenue_gbp_pa: float
+    capacity_market_revenue_gbp_pa: Optional[float]
     dfs_established: bool = True
     """False means the winter is not in the published record, so `dfs_revenue_gbp_pa` is 0.0 for
     want of evidence and NOT because the service paid nothing. 2023/24 is the live case."""
+    capacity_market_refusal_reason: Optional[str] = (
+        capacity_market_published_record.DOMESTIC_PARTICIPATION_REFUSAL)
+    """Why `capacity_market_revenue_gbp_pa` is `None`. A refusal that names its reason is how the
+    refusal itself gets found to be wrong, so this is carried to any surface that prints the row
+    rather than left as a bare absent value."""
 
     @property
     def total_annual_revenue_gbp(self) -> float:
-        return round(self.dfs_revenue_gbp_pa + self.capacity_market_revenue_gbp_pa, 2)
+        """DFS only, because the CM leg is a refusal.
+
+        THE TWO ZEROS HERE MEAN OPPOSITE THINGS and the flags beside them are what tell them
+        apart. A `dfs_revenue_gbp_pa` of 0.0 with `dfs_established=False` means the service ran
+        and we cannot say what it paid. The CM leg contributes nothing because a household holds
+        no agreement to be paid under -- a structural zero, established rather than unknown.
+        """
+        cm = self.capacity_market_revenue_gbp_pa or 0.0
+        return round(self.dfs_revenue_gbp_pa + cm, 2)
 
     @property
     def is_dfs_eligible(self) -> bool:
@@ -112,8 +134,18 @@ def _estimate_dfs_revenue(flex_kw: float, winter_start_year: int) -> Optional[fl
     return dfs_published_record.revenue_gbp_for_flex_kw(flex_kw, winter_start_year)
 
 
-def _estimate_capacity_revenue(flex_kw: float) -> float:
-    return round(flex_kw * _CAPACITY_MARKET_GBP_PER_KW_YR, 2)
+def _estimate_capacity_revenue(flex_kw: float) -> Optional[float]:
+    """CM revenue for one domestic household: `None`, always, with a reason on the record.
+
+    NOT an unimplemented lookup. A household cannot hold a Capacity Market agreement -- the
+    minimum CMU is 1 MW against a whole flexible house of 3.0-15.4 kW, so it takes ~80 of them to
+    reach the smallest unit that can prequalify, and what an aggregator passes through to a member
+    is bilateral and unpublished. The previous form returned `flex_kw * 75.0`, which credited an
+    EV-and-battery household with £930/year of availability payments for an agreement it never
+    won, at a price that was a capped T-1 result for delivery year 2022/23 rather than the "T-4
+    auction 2023" its comment named.
+    """
+    return capacity_market_published_record.household_revenue_gbp_pa(flex_kw)
 
 
 class FlexibilityPotentialBook:
@@ -147,6 +179,7 @@ class FlexibilityPotentialBook:
 
         flex_kw = _estimate_flex_kw(has_ev, has_ashp, has_battery)
         flex_kwh = flex_kw * _DISPATCH_DURATION_HRS
+        dfs = _estimate_dfs_revenue(flex_kw, winter_start_year)
         estimate = FlexibilityEstimate(
             account_id=account_id,
             asset_type=_classify_asset(has_ev, has_ashp, has_battery),
@@ -155,9 +188,8 @@ class FlexibilityPotentialBook:
             has_battery=has_battery,
             flex_kw=flex_kw,
             flex_kwh_per_event=flex_kwh,
-            dfs_revenue_gbp_pa=(_estimate_dfs_revenue(flex_kw, winter_start_year) or 0.0),
-            dfs_established=(
-                _estimate_dfs_revenue(flex_kw, winter_start_year) is not None),
+            dfs_revenue_gbp_pa=(dfs or 0.0),
+            dfs_established=(dfs is not None),
             capacity_market_revenue_gbp_pa=_estimate_capacity_revenue(flex_kw),
         )
         self._estimates.append(estimate)

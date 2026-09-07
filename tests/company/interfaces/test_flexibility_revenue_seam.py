@@ -61,15 +61,24 @@ edge, the forbidden direction, and reds the suite. Four things it cannot see:
 Each `test_mutation_*` performs the named defect rather than asserting it is
 impossible.
 
-VACUITY, stated once for the whole file. The fixture years are 2021 and 2023,
-chosen because DFS revenue is zero in 2021 and non-zero in 2023 (NESO launched
+VACUITY, stated once for the whole file. The fixture years are 2021 and 2024,
+chosen because DFS revenue is zero in 2021 and non-zero in 2024 (NESO launched
 it in October 2022) and the I&C Capacity Market clearing price differs between
-them (£8.40 vs £15.97/kW/yr). A fixture wholly before 2022 would pass control 2
+them (£8.40 vs £18.00/kW/yr). A fixture wholly before 2022 would pass control 2
 with the DFS block deleted; one wholly after would pass with the launch gate
 deleted. The fixture also carries a NON-I&C customer ABOVE the 200 MWh
 eligibility floor — without one, dropping the segment filter would add nothing
 and control 4's mutation could not fail. The guards below assert all three
 properties rather than leaving them to the reader.
+
+THE POST-LAUNCH YEAR MOVED 2023 -> 2024 ON 2026-09-07, and the reason is the point of the guard.
+`dfs_published_record` records winter 2023/24 as NOT ESTABLISHED — no primary NESO report was
+retrieved and the secondary figures do not reconcile — so the 2023 fixture year paid £0.00 and
+this file's own vacuity guard went red naming exactly that. It was right: with both fixture years
+paying zero, control 2 could no longer see the DFS launch gate at all. Winter 2024/25 is
+established, so the fixture straddles the gate again. The red predates this change and arrived
+with the DFS pass at `f9c647f4c`; it is fixed here rather than left, because a vacuity guard that
+is red is a control nobody is reading.
 """
 
 from __future__ import annotations
@@ -88,16 +97,16 @@ from company.interfaces import flexibility_revenue as door
 from company.market import flexibility_revenue as impl
 from company.market.flexibility_revenue_book import FlexibilityRevenueBook
 from company.market.ic_flexibility_revenue import (
-    _CM_DELIVERY_GBP_PER_KW_YR,
     _IC_MIN_EAC_KWH,
     ICFlexibilityRevenueBook,
+    _cm_price,
 )
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
 RUN_MODULE_PATH = os.path.join(REPO_ROOT, "simulation", "run_phase2b.py")
 IMPL_PATH = os.path.join(REPO_ROOT, "company", "market", "flexibility_revenue.py")
 
-FIXTURE_YEARS = ["2021", "2023"]
+FIXTURE_YEARS = ["2021", "2024"]
 
 
 # ---------------------------------------------------------------------------
@@ -128,7 +137,7 @@ def _eac_by_cid() -> dict:
     }
 
 
-# Asset flags per customer per year end. E-RESI-1 gains a battery in 2023, so a
+# Asset flags per customer per year end. E-RESI-1 gains a battery in 2024, so a
 # snapshot frozen at one year would produce a different answer from a live one.
 _ASSETS: dict[str, dict[str, dict]] = {
     "2021-12-31": {
@@ -137,7 +146,7 @@ _ASSETS: dict[str, dict[str, dict]] = {
         "E-SME-1": {},
         "E-RESI-1": {"ev": True},
     },
-    "2023-12-31": {
+    "2024-12-31": {
         "E-IC-1": {},
         "E-IC-2": {},
         "E-SME-1": {"ashp": True},
@@ -187,9 +196,19 @@ def test_fixture_is_not_vacuous_dfs_gate_cm_prices_and_a_non_ic_above_the_floor(
 
     per_year = built.domestic_summary["per_year"]
     assert per_year[2021]["dfs_gbp"] == 0.0, "2021 must sit BEFORE the DFS launch gate"
-    assert per_year[2023]["dfs_gbp"] > 0.0, "2023 must sit AFTER the DFS launch gate"
+    assert per_year[2024]["dfs_gbp"] > 0.0, (
+        "2024 must sit AFTER the DFS launch gate AND be an ESTABLISHED winter — an unestablished "
+        "one pays 0.0 for want of evidence, which is indistinguishable here from the gate "
+        "blocking it, and that is what made 2023 unusable as the post-launch fixture year"
+    )
 
-    assert _CM_DELIVERY_GBP_PER_KW_YR[2021] != _CM_DELIVERY_GBP_PER_KW_YR[2023], (
+    # Reads the PUBLISHED record rather than a module-local table (2026-09-07): the table this
+    # used to index was one of three homes for the CM price, and a vacuity guard that reads the
+    # duplicate cannot notice the duplicate is wrong.
+    assert _cm_price(2021) is not None and _cm_price(2024) is not None, (
+        "a fixture year with no established CM price makes control 2 vacuous — both must price"
+    )
+    assert _cm_price(2021) != _cm_price(2024), (
         "the two fixture years share a CM clearing price — control 2 would pass "
         "with the year threaded through wrongly"
     )
@@ -228,8 +247,8 @@ _PROBE = textwrap.dedent(
     import {modname} as m
 
     m.build_flexibility_revenue(
-        report_years=["2023"],
-        domestic_assets_by_date={{"2023-12-31": {{"E-RESI-1": {{"ev": True}}}}}},
+        report_years=["2024"],
+        domestic_assets_by_date={{"2024-12-31": {{"E-RESI-1": {{"ev": True}}}}}},
         ic_elec_roster=[("E-IC-1", 2000000.0)],
     )
 
@@ -368,10 +387,38 @@ def test_the_domestic_book_is_skipped_when_the_world_has_no_register():
     assert total > 0, "the I&C half must still book — otherwise this proves nothing"
 
 
-def test_mutation_dropping_the_dfs_launch_gate_breaks_the_identity():
-    """The identity control fires when the moved code stops matching."""
-    # The defect: DFS revenue booked in every year, launch gate ignored — the
-    # shape of a transcription slip in a year-conditional block.
+def test_dropping_the_dfs_launch_gate_is_an_EQUIVALENCE_not_a_missing_control():
+    """This mutation STOPPED FIRING on 2026-09-07, and it is an equivalence, not a hole.
+
+    ESTABLISHED RATHER THAN ASSUMED, because "a mutation that does not fire is either a missing
+    test or an equivalence" and the flattering answer is the one to distrust. Measured: for every
+    winter before `dfs_published_record.FIRST_WINTER`, the record has no row, so
+    `revenue_gbp_for_flex_kw` returns `None` and the caller books 0.0 — the identical figure the
+    explicit `year >= _DFS_LAUNCH_YEAR` gate produces. There is no input on which the two differ.
+
+    So the gate is now defensive redundancy rather than the load-bearing branch it was when this
+    control was written, and the transcription slip it named cannot change a revenue figure. What
+    IS load-bearing is the record's refusal, so that is what this test now asserts. If a pre-2022
+    winter is ever added to `_RECORD`, the gate becomes load-bearing again and the first leg here
+    goes red — which is the signal to restore the mutation form of this control.
+    """
+    # LEG 1: the property the equivalence rests on. Keyed to the record, not to today's total.
+    from company.market import dfs_published_record
+
+    for year in range(2016, dfs_published_record.FIRST_WINTER):
+        assert dfs_published_record.revenue_gbp_for_flex_kw(7.4, year) is None, (
+            f"winter {year} now has a row in the published record, so the DFS launch gate is "
+            "load-bearing again and this control must go back to its mutation form"
+        )
+    assert dfs_published_record.revenue_gbp_for_flex_kw(
+        7.4, dfs_published_record.FIRST_WINTER) is not None, (
+        "the first launch winter must PAY — otherwise leg 1 above is satisfied by a record that "
+        "refuses everything, and proves nothing about the gate"
+    )
+
+    # LEG 2: and with that established, the ungated arithmetic reproduces production exactly.
+    # The defect this originally named: DFS revenue booked in every year, launch gate ignored —
+    # the shape of a transcription slip in a year-conditional block.
     from company.market.flexibility_potential import (
         _estimate_capacity_revenue,
         _estimate_dfs_revenue,
@@ -388,13 +435,23 @@ def test_mutation_dropping_the_dfs_launch_gate_breaks_the_identity():
             if not (has_ev or has_ashp or has_battery):
                 continue
             flex_kw = _estimate_flex_kw(has_ev, has_ashp, has_battery)
-            mutated_total += round(_estimate_capacity_revenue(flex_kw), 2)
-            mutated_total += round(_estimate_dfs_revenue(flex_kw), 2)  # <-- ungated
+            # The CM leg is a refusal (`None`) — a household holds no agreement — so the mutation
+            # is carried entirely by the ungated DFS leg below. Written out rather than dropped so
+            # the mutation still mirrors the production shape it is perturbing.
+            cm = _estimate_capacity_revenue(flex_kw)
+            mutated_total += 0.0 if cm is None else round(cm, 2)
+            dfs = _estimate_dfs_revenue(flex_kw, int(year_str))  # <-- ungated
+            mutated_total += 0.0 if dfs is None else round(dfs, 2)
 
     real_total = _build().domestic_summary["total_flexibility_revenue_gbp"]
-    assert round(mutated_total, 2) != real_total, (
-        "booking DFS revenue before its launch year did not move the domestic "
-        "figure — control 2 could not fail on this fixture"
+    assert round(mutated_total, 2) == real_total, (
+        "the ungated arithmetic no longer matches production, so dropping the DFS launch gate "
+        "HAS become observable — the equivalence documented above has broken and this control "
+        "should return to asserting `!=` on a mutation that can fail"
+    )
+    assert real_total > 0.0, (
+        "a total of zero would satisfy the equality above for free — the fixture must book real "
+        "DFS revenue in its post-launch year for this leg to mean anything"
     )
 
 
@@ -563,7 +620,7 @@ def test_a_snapshot_missing_the_books_query_date_raises_rather_than_repricing():
     misaligned = {"2021-12-31": _ASSETS["2021-12-31"]}
     with pytest.raises(KeyError):
         impl.build_flexibility_revenue(
-            report_years=FIXTURE_YEARS,  # asks for 2023-12-31 too
+            report_years=FIXTURE_YEARS,  # asks for 2024-12-31 too
             domestic_assets_by_date=misaligned,
             ic_elec_roster=_ic_roster(_elec_customers(), _eac_by_cid()),
         )

@@ -47,13 +47,22 @@ class TestFlexibilityEstimate:
         e = self._ev_estimate()
         assert e.dfs_revenue_gbp_pa > 0
 
-    def test_capacity_market_revenue_positive(self):
+    def test_capacity_market_revenue_is_refused_with_a_reason(self):
+        """Asserted `> 0` until 2026-09-07, which any price whatsoever would have satisfied.
+
+        The price it was satisfied by was GBP75/kW -- the capped T-1 result for delivery year
+        2022/23 -- times the household's RATED asset power, GBP930/year for an agreement no
+        household can hold. The refusal carries its reason so the reason can be argued with.
+        """
         e = self._ev_estimate()
-        assert e.capacity_market_revenue_gbp_pa > 0
+        assert e.capacity_market_revenue_gbp_pa is None
+        assert "cannot hold a Capacity Market agreement" in e.capacity_market_refusal_reason
+        assert "1,000 kW minimum CMU" in e.capacity_market_refusal_reason
 
     def test_total_annual_revenue_is_sum(self):
         e = self._ev_estimate()
-        assert abs(e.total_annual_revenue_gbp - (e.dfs_revenue_gbp_pa + e.capacity_market_revenue_gbp_pa)) < 0.01
+        cm = e.capacity_market_revenue_gbp_pa or 0.0
+        assert abs(e.total_annual_revenue_gbp - (e.dfs_revenue_gbp_pa + cm)) < 0.01
 
     def test_ev_battery_higher_revenue_than_ev_alone(self):
         book = FlexibilityPotentialBook()

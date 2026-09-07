@@ -1,22 +1,22 @@
 """Tests for FlexibilityRevenueBook -- Phase AF."""
 from __future__ import annotations
 
-import pytest
 from unittest.mock import MagicMock
 
+import pytest
+
+from company.market import dfs_published_record
+from company.market.flexibility_potential import (
+    _ASHP_FLEX_KW,
+    _BATTERY_FLEX_KW,
+    _DISPATCH_DURATION_HRS,
+    _EV_FLEX_KW,
+)
 from company.market.flexibility_revenue_book import (
+    _DFS_LAUNCH_YEAR,
     FlexibilityRevenueBook,
     FlexibilityRevenueRecord,
-    _DFS_LAUNCH_YEAR,
 )
-from company.market.flexibility_potential import (
-    _EV_FLEX_KW,
-    _BATTERY_FLEX_KW,
-    _ASHP_FLEX_KW,
-    _CAPACITY_MARKET_GBP_PER_KW_YR,
-    _DISPATCH_DURATION_HRS,
-)
-from company.market import dfs_published_record
 
 
 def _make_register(assets_by_cid: dict) -> MagicMock:
@@ -36,17 +36,28 @@ def test_no_assets_returns_empty():
     assert book.total_revenue_for_year(2020) == 0.0
 
 
-def test_ev_only_cm_pre_dfs():
-    """Before 2022: EV customer earns CM revenue only."""
+def test_ev_only_books_nothing_pre_dfs_because_the_cm_leg_is_refused():
+    """Before 2022 a household earns NOTHING here, and the CM leg is why.
+
+    This test used to be called `test_ev_only_cm_pre_dfs` and asserted
+    `_EV_FLEX_KW * _CAPACITY_MARKET_GBP_PER_KW_YR`, which is the production formula spelled
+    twice: a TAUTOLOGY that passed for every value of the constant, including the GBP75/kW that
+    was a capped T-1 result for delivery year 2022/23 mislabelled "T-4 auction 2023". The file's
+    own next test already carried that warning about the DFS leg; the CM leg beside it kept the
+    shape anyway.
+
+    It now asserts the REFUSAL, which cannot be satisfied by any price: a household holds no
+    Capacity Market agreement, so the pre-DFS years book zero.
+    """
     book = FlexibilityRevenueBook()
     reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
     result = book.compute_year(2021, reg, ["C1"])
-    assert "C1" in result
-    expected_cm = round(_EV_FLEX_KW * _CAPACITY_MARKET_GBP_PER_KW_YR, 2)
-    assert result["C1"] == expected_cm
+    assert "C1" in result, "the customer must still be assessed, not filtered out"
     rec = book.records_for_year(2021)[0]
+    assert rec.flex_kw == _EV_FLEX_KW, "the household still HAS flex — it just cannot sell it here"
+    assert rec.capacity_market_revenue_gbp == 0.0
     assert rec.dfs_revenue_gbp == 0.0
-    assert rec.capacity_market_revenue_gbp == expected_cm
+    assert result["C1"] == 0.0
 
 
 def test_ev_earns_dfs_from_2022():
@@ -83,13 +94,19 @@ def test_battery_and_ev_additive_flex():
     assert rec.flex_kw == pytest.approx(expected_flex_kw, abs=0.01)
 
 
-def test_ashp_only_cm_revenue():
+def test_ashp_only_books_no_cm_revenue():
+    """Same refusal for the smallest flexible asset, which is the harder direction.
+
+    An ASHP household is 3.0 kW: it takes 334 of them to reach the 1 MW minimum CMU, so if the
+    threshold argument holds anywhere it holds here. Asserted separately from the EV case because
+    a refusal keyed to asset SIZE rather than to the agreement would pass one and fail the other.
+    """
     book = FlexibilityRevenueBook()
     reg = _make_register({"C3": {"ev": False, "ashp": True, "battery": False}})
-    result = book.compute_year(2019, reg, ["C3"])
+    book.compute_year(2019, reg, ["C3"])
     rec = book.records_for_year(2019)[0]
-    expected_cm = round(_ASHP_FLEX_KW * _CAPACITY_MARKET_GBP_PER_KW_YR, 2)
-    assert rec.capacity_market_revenue_gbp == expected_cm
+    assert rec.flex_kw == _ASHP_FLEX_KW
+    assert rec.capacity_market_revenue_gbp == 0.0
     assert rec.dfs_revenue_gbp == 0.0
 
 
@@ -125,7 +142,10 @@ def test_multi_year_accumulates():
     book.compute_year(2020, reg, ["C1"])
     book.compute_year(2021, reg, ["C1"])
     book.compute_year(2023, reg, ["C1"])
-    assert book.total_revenue_all_years() > 0.0
+    # 2020 and 2021 book nothing (CM refused, pre-DFS); 2023's winter is the unestablished one,
+    # so this total rests on 2024 being absent rather than on any year paying. Asserted as a
+    # record count plus a non-negative total: `> 0.0` was true only because of the refused leg.
+    assert book.total_revenue_all_years() >= 0.0
     assert len(book.records_for_year(2020)) == 1
     assert len(book.records_for_year(2023)) == 1
 
@@ -140,12 +160,23 @@ def test_dfs_revenue_zero_before_2022():
     assert total_dfs == 0.0
 
 
-def test_cm_revenue_non_zero_from_start():
-    """CM revenue earned from simulation start (2016)."""
+def test_domestic_cm_revenue_is_zero_from_the_start_of_the_record():
+    """Inverted on 2026-09-07, and the inversion is the finding.
+
+    This asserted "CM revenue earned from simulation start (2016)". A GB household has never been
+    able to hold a Capacity Market agreement -- the minimum CMU is 1 MW -- so the book was
+    crediting every flexible household with availability payments in every year of the run, from
+    a constant that was a capped T-1 price for a single delivery year. The correct claim about
+    2016 is the opposite of the one that was asserted.
+    """
     book = FlexibilityRevenueBook()
     reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
     book.compute_year(2016, reg, ["C1"])
-    assert book.total_cm_revenue() > 0.0
+    assert book.total_cm_revenue() == 0.0
+    assert len(book.records_for_year(2016)) == 1, (
+        "the household must still be assessed — a zero that comes from nobody being measured "
+        "would pass this test while meaning something entirely different"
+    )
 
 
 def test_flexibility_summary_structure():

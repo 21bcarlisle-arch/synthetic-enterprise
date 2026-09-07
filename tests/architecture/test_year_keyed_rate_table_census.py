@@ -224,13 +224,25 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
         "its own comment says 'approximate rates calibrated to' the statutory instruments.",
     "company/regulatory/capacity_market.py::_CM_OBLIGATION_RATE_BY_YEAR":
         "NESO publishes CM auction clearing prices per delivery year; the supplier obligation "
-        "rate is a derived allocation of those, so the pin is the auction results.",
-    "company/market/capacity_market.py::_CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR":
-        "the auction clearing prices themselves, published by NESO per T-4/T-1 auction; "
-        "unpinned, and the cheapest CM pin of the three because it is the raw publication.",
-    "company/market/ic_flexibility_revenue.py::_CM_DELIVERY_GBP_PER_KW_YR":
-        "the same NESO auction results keyed by delivery-year start; a third CM table reading "
-        "one publication, which is what pinning it once would collapse.",
+        "rate is a derived ALLOCATION of those across supplied volume, not a clearing price, so "
+        "it stays a separate table. The auction results it derives from ARE now in the commons "
+        "(capacity_market_auction_results.json), so this is a cheaper pin than it was: what is "
+        "still missing is the allocation, not the prices.",
+    # `company/market/capacity_market.py::_CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR` and
+    # `company/market/ic_flexibility_revenue.py::_CM_DELIVERY_GBP_PER_KW_YR` CAME OFF on
+    # 2026-09-07, and this edit is the record the work happened. This register's own docstring had
+    # named them since 2026-08-19 -- "three of the Capacity Market auction results, each pair of
+    # which is two tables of the same law with different numbers" -- and the entry above said
+    # pinning the publication once "is what pinning it once would collapse". It did. Both tables
+    # now load from the commons through `company/market/capacity_market_published_record.py` and
+    # are held in `_MUST_NOT_BE_LITERALS_CM` below.
+    #
+    # WHAT THE CENSUS COULD NOT SEE, and it is worth writing down because it bounds this control.
+    # A THIRD home for the same price was the scalar `_CAPACITY_MARKET_GBP_PER_KW_YR = 75.0` in
+    # `company/market/flexibility_potential.py`. This census discovers year-keyed DICTS, so a
+    # single-value copy of one row of a published series is invisible to it -- and that copy was
+    # the one doing damage, at GBP930/household/year. Discovery must not be narrower than the
+    # thing it governs; here it was narrower in a dimension nobody had named.
     "company/regulatory/fit_book.py::_FIT_LEVELISATION_RATE_PER_MWH":
         "Ofgem FIT levelisation, the company-side twin of policy_costs' _FIT_LEVY_BY_YEAR; "
         "published per levelisation period, so the pin carries the period-to-year mapping.",
@@ -274,6 +286,16 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/market/market_report.py::_UK_DOMESTIC_ACCOUNTS_M":
         "Ofgem's Retail Market Indicators publish domestic account counts; the table is a "
         "market total in millions and is a straightforward pin once the series is fetched.",
+    "simulation/svt_rates.py::_SVT_GAS_PRECAP_PENCE_PER_KWH":
+        "the pre-cap gas SVT estimate for 2016-2018, back-derived from BEIS QEP bills and Ofgem "
+        "SVT league tables; both are real publications, so this is published_unpinned and not "
+        "not_published, but the BACK-DERIVATION from a bill to a unit rate is a reading and the "
+        "pin has to carry it. CLASSIFIED BY THE CM PASS (2026-09-07) FROM THE TABLE'S OWN "
+        "COMMENT, not from independent study of the sources: it arrived unclassified at "
+        "9b373b96c and was reddening `test_every_discovered_table_is_classified` for every lane, "
+        "which is a whole-tree gate, so leaving it would have wedged the repo rather than the "
+        "author. The owning lane should correct the bucket if this reading is wrong — that is a "
+        "cheaper error than a jammed tree, and it is flagged here rather than filed silently.",
     "saas/non_commodity.py::_NON_COMMODITY_ELEC_RESI_BY_YEAR":
         "an aggregate of DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and metering. No publication "
         "states the aggregate; the pin is each component, which is most of this register.",
@@ -372,7 +394,18 @@ _BAND_PINNED: dict[str, str] = {
 #
 # LOWERED 40 -> 39 on 2026-08-30, by moving `_UK_SWITCHING_RATE_PCT` to `_BAND_PINNED` where it
 # always belonged. A ratchet paid down by pinning something, which is the only move it permits.
-_MAX_PUBLISHED_UNPINNED = 39
+#
+# LOWERED 39 -> 37 on 2026-09-07, by fetching the GB Capacity Market auction results into the
+# commons and collapsing BOTH remaining clearing-price tables onto them. Paid down the way the
+# ratchet intends: two tables left this bucket because a publication was fetched, not because a
+# bucket was re-labelled.
+#
+# NET 39 -> 38, not 37: the same pass ADDED `simulation/svt_rates.py::_SVT_GAS_PRECAP_PENCE_PER_KWH`,
+# which arrived unclassified from another lane and was reddening the classification leg for every
+# lane in the tree. Recorded as two separate movements rather than one net figure, because a
+# ratchet that only ever shows its net is a ratchet you cannot audit: this bucket was PAID DOWN by
+# two and CHARGED one, and the charge is somebody else's table.
+_MAX_PUBLISHED_UNPINNED = 38
 
 # The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
 # into a dumping ground. Declared here rather than left implicit; see the test of that name.
@@ -649,6 +682,37 @@ def test_the_switching_reading_has_not_been_re_inlined():
     assert not relapsed, (
         f"{relapsed} is a literal table again. It loads from the commons; keep it that way, and "
         "see tests/architecture/test_switching_rate_commons.py for the band it answers to."
+    )
+
+
+# The GB Capacity Market auction results, same repair one publication along (2026-09-07). Held
+# separately from the two above for the same reason they are held separately from each other: a
+# relapse message citing the wrong incident sends the next reader to the wrong file.
+_MUST_NOT_BE_LITERALS_CM = (
+    "company/market/capacity_market.py::_CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR",
+    "company/market/ic_flexibility_revenue.py::_CM_DELIVERY_GBP_PER_KW_YR",
+)
+
+
+def test_the_capacity_market_clearing_prices_have_not_been_re_inlined():
+    """MUTATION: paste either table back as a dict literal and this fires on that name.
+
+    THREE homes held one publication and they disagreed by up to 4.7x. `_CM_CLEARING_PRICE_GBP_
+    PER_KW_PER_YEAR` was keyed by the year the AUCTION was held under a lookup whose parameter was
+    named `delivery_year` -- a silent four-year offset -- and carried GBP50/kW as its miss default,
+    a price no GB auction ever cleared at. `_CM_DELIVERY_GBP_PER_KW_YR` was keyed correctly but
+    priced two delivery years that had no T-4 at all. Both now derive from
+    `docs/domain_artefact_library/regulatory/capacity_market_auction_results.json`.
+
+    "Absent from the census" and "unchecked" look identical to a census, so this leg makes the
+    absence load-bearing.
+    """
+    discovered = set(discover_year_keyed_tables())
+    relapsed = sorted(set(_MUST_NOT_BE_LITERALS_CM) & discovered)
+    assert not relapsed, (
+        f"{relapsed} is a literal table again. The CM clearing prices load from the commons; keep "
+        "them that way, and see company/market/capacity_market_published_record.py for the T-4 / "
+        "T-1 split that a single table cannot express."
     )
 
 

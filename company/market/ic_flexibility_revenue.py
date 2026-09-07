@@ -6,10 +6,22 @@ customers (who need EV/ASHP/battery), I&C participants sell process
 flexibility (chillers, compressors, HVAC curtailment, interruptible loads).
 
 Eligibility: I&C customers with EAC >= _IC_MIN_EAC_KWH participate via DSR
-aggregators who pool sub-2 MW loads into CM-eligible units. Aggregators charge
-a commission (_AGGREGATOR_FEE_PCT) on CM/DFS revenue.
+aggregators who pool sub-threshold loads into CM-eligible units. The minimum Capacity Market Unit
+is 1 MW (reduced from 2 MW), and a typical site here is ~35 kW of flex, so aggregation is not an
+optimisation but the only route. Aggregators charge a commission (_AGGREGATOR_FEE_PCT) on CM/DFS
+revenue. This is what distinguishes the I&C leg from the domestic one, where
+`flexibility_potential` REFUSES: an I&C site is a real DSR CMU component with half-hourly metering
+behind a real aggregator contract, and a household is not.
 
-CM clearing prices are from published T-4/T-3 auction results (NESO).
+CM clearing prices are NOT constants here: they are published per delivery year, per auction, and
+read from `capacity_market_published_record`. This module used to carry its own
+`_CM_DELIVERY_GBP_PER_KW_YR` table, one of THREE homes for one publication that disagreed with each
+other by up to 4.7x.
+
+DE-RATING IS A NAMED GAP IN THIS LEG. The CM pays on DE-RATED capacity and this module applies the
+clearing price to raw `flex_kw`, so the CM leg is overstated by the whole de-rating factor. The
+factors are published per auction and per technology class; none was fetched, so none is applied
+and none is invented. See `capacity_market_published_record.derating_factor`.
 DFS: launched Oct 2022. Its rate and event count are published per winter and read from
 `dfs_published_record` -- they are NOT constants, and they are not duplicated here.
 
@@ -20,7 +32,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from company.market import dfs_published_record
+from company.market import capacity_market_published_record, dfs_published_record
 
 _IC_LOAD_FACTOR = 0.65           # typical industrial load factor (UK)
 _IC_DSR_FRACTION = 0.10          # 10% of peak demand enrolled in DSR/CM
@@ -30,20 +42,18 @@ _IC_MIN_EAC_KWH = 200_000        # minimum 200 MWh/yr for DSR aggregator eligibi
 _DFS_LAUNCH_YEAR = dfs_published_record.FIRST_WINTER
 _DFS_DURATION_HRS = 1.0          # 1-hour events
 
-# T-4/T-3 CM delivery year clearing prices (£/kW/yr) by calendar year of Oct delivery start.
-# Source: NESO auction results + capacity_market_levy_2016_2024.md.
-_CM_DELIVERY_GBP_PER_KW_YR: Dict[int, float] = {
-    2016: 15.0,
-    2017: 10.0,
-    2018: 19.40,
-    2019: 18.00,
-    2020: 22.50,
-    2021: 8.40,
-    2022: 6.44,
-    2023: 15.97,
-    2024: 18.00,
-    2025: 18.00,
-}
+#: THIS MODULE'S READING of the published auction record, stated so it can be disagreed with.
+#:
+#: An aggregated DSR CMU is procured in the BULK auction, so this leg prices at T-4 and never at
+#: T-1. The two are different auctions for the same delivery year and differed by 11.6x in DY
+#: 2022/23; a leg that took "the" CM price would be choosing between them silently.
+#:
+#: WHAT THE DELETED TABLE GOT WRONG, beyond being one of three homes. Its 2016 (15.0) and 2017
+#: (10.0) entries priced T-4 delivery years that did not exist -- no T-4 had begun delivering, and
+#: only transitional DSR auctions ran. Its 2025 entry (18.00) repeated 2024's beside it and
+#: matched neither of the two figures published for that auction. Its 2018-2024 entries were
+#: right, and they are unchanged by this repair: only the three unestablished years move.
+_CM_AUCTION_FOR_IC = "T-4"
 
 
 @dataclass(frozen=True)
@@ -55,7 +65,7 @@ class ICFlexibilityRecord:
     eac_kwh: float
     peak_demand_kw: float
     flex_kw: float
-    cm_price_gbp_per_kw: float
+    cm_price_gbp_per_kw: Optional[float]
     gross_cm_revenue_gbp: float
     gross_dfs_revenue_gbp: float
     aggregator_fee_gbp: float
@@ -63,6 +73,10 @@ class ICFlexibilityRecord:
     dfs_established: bool = True
     """False means the winter is not in the published record, so the DFS leg is 0.0 for want of
     evidence rather than because the service paid nothing. 2023/24 is the live case."""
+    cm_established: bool = True
+    """False means the published auction record does not establish a T-4 price for this delivery
+    year, so the CM leg is 0.0 for want of evidence and NOT because the auction paid nothing.
+    2016 and 2017 (no T-4 delivered) and 2025 (two sources disagree) are the live cases."""
 
 
 def _peak_demand_kw(eac_kwh: float) -> float:
@@ -74,8 +88,31 @@ def _flex_kw(peak_kw: float) -> float:
     return round(peak_kw * _IC_DSR_FRACTION, 2)
 
 
-def _gross_cm_revenue(flex_kw: float, year: int) -> float:
-    price = _CM_DELIVERY_GBP_PER_KW_YR.get(year, _CM_DELIVERY_GBP_PER_KW_YR[2025])
+def _cm_price(year: int) -> Optional[float]:
+    """The published T-4 clearing price for this delivery year, or `None`.
+
+    NO FALLBACK. The deleted table ended `.get(year, _CM_DELIVERY_GBP_PER_KW_YR[2025])`, so any
+    year outside it silently took 2025's value -- and 2025's value was itself unestablished. A
+    lookup whose miss returns a neighbouring year's number cannot report that it missed.
+    """
+    return capacity_market_published_record.clearing_price_gbp_per_kw_year(
+        year, _CM_AUCTION_FOR_IC)
+
+
+def _gross_cm_revenue(flex_kw: float, year: int) -> Optional[float]:
+    """Gross CM revenue for one aggregated I&C site in one delivery year.
+
+    `None` where the published record does not establish a T-4 price for the year: 2016 and 2017
+    because no T-4 delivered, 2025 because two sources give different figures. Callers must not
+    read that as zero for the same reason the DFS leg beside it must not.
+
+    STILL OVERSTATED, and named rather than silently carried: this multiplies by RATED flex, and
+    the CM pays on DE-RATED capacity. The de-rating factor is unfetched, so the overstatement is
+    the whole factor -- see the module docstring.
+    """
+    price = _cm_price(year)
+    if price is None:
+        return None
     return round(flex_kw * price, 2)
 
 
@@ -126,8 +163,13 @@ class ICFlexibilityRevenueBook:
 
             peak_kw = _peak_demand_kw(eac_kwh)
             fkw = _flex_kw(peak_kw)
-            cm_price = _CM_DELIVERY_GBP_PER_KW_YR.get(year, _CM_DELIVERY_GBP_PER_KW_YR[2025])
-            gross_cm = _gross_cm_revenue(fkw, year)
+            cm_price = _cm_price(year)
+            cm = _gross_cm_revenue(fkw, year)
+            # Same discipline as the DFS leg below: 0.0 keeps the arithmetic running while
+            # `cm_established` carries the reason. "No T-4 delivered that year" and "two sources
+            # disagree about that auction" both land here, and `capacity_market_published_record
+            # .delivery_year(y).note` says which -- they lead to different repairs.
+            gross_cm = 0.0 if cm is None else cm
             dfs = _gross_dfs_revenue(fkw, year)
             # None means the winter ran and we cannot say what it paid. Booking 0.0 keeps the
             # arithmetic honest about the CM leg while `dfs_established` carries the reason; the two
@@ -149,6 +191,7 @@ class ICFlexibilityRevenueBook:
                 aggregator_fee_gbp=agg_fee,
                 net_revenue_gbp=net,
                 dfs_established=(dfs is not None),
+                cm_established=(cm is not None),
             )
             self._records.append(record)
             revenue_by_cid[cid] = net

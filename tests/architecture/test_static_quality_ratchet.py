@@ -721,7 +721,20 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1317,  # lowered 2026-09-06 (the gas SVT leg, landing): -2 from clean HEAD's 1319, and
+    "I001": 1314,  # lowered 2026-09-07 (the Capacity Market price leg): -3, and ALL THREE ARE
+    #             THIS COMMIT'S. Attributable with certainty rather than by extract-overlay,
+    #             because this landed from an ISOLATED worktree: the tree here is clean HEAD plus
+    #             exactly these files and no other lane's uncommitted work can be in it. Measured
+    #             both ways round -- a `git worktree add --detach HEAD` extract reads I001 1317,
+    #             the frozen figure, so clean HEAD is green and the whole delta is the overlay.
+    #             The three files are `company/market/flexibility_potential.py`,
+    #             `tests/company/market/test_phase_af_flexibility_revenue.py` and
+    #             `tests/company/market/test_capacity_market.py` -- each already red at HEAD, each
+    #             opened by this commit anyway to delete the GBP75/kW constant and the tautologies
+    #             asserting it. `tests/company/interfaces/test_flexibility_revenue_seam.py` is NOT
+    #             among them: this commit made it red and then fixed it, so it is net zero against
+    #             HEAD and banking it would be banking nothing.  SHRINK-ONLY.
+    # (superseded) 1317, lowered 2026-09-06 (the gas SVT leg, landing): -2 from clean HEAD's 1319, and
     #             BOTH ARE THIS COMMIT'S, attributed one file at a time in a `git archive HEAD`
     #             extract overlaid with exactly this commit's files:
     #               clean HEAD                                  13/13 green (census 1319)
@@ -770,7 +783,10 @@ RUFF_BASELINE: dict[str, int] = {
     #             import block was open for the delegation (atom C32, see log).
     "F401": 264,
     "E402": 173,  # lowered 2026-09-05 with the I001 entry above — same deletion, same attribution
-    "F841": 126,
+    "F841": 125,  # lowered 2026-09-07 (the Capacity Market price leg): -1, and it is this
+    #             commit's. `test_ashp_only_cm_revenue` bound `result = book.compute_year(...)`
+    #             and never read it; the rewrite that turned that test from asserting a CM price
+    #             into asserting the CM refusal dropped the binding with it.  SHRINK-ONLY.
     "E741": 107,
     "F811": 94,
     "E702": 76,
@@ -790,7 +806,12 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2296  # was 2298; -2 (I001) on 2026-09-06, the gas SVT leg: this commit opens
+RUFF_BASELINE_TOTAL = 2292  # was 2296; -4 on 2026-09-07, the Capacity Market price leg: -3 I001
+                            # and -1 F841, every one of them this commit's and attributable with
+                            # certainty because it landed from an isolated worktree. See the two
+                            # entries above for the file-by-file split.
+                            #
+                            # (superseded) 2296, was 2298; -2 (I001) on 2026-09-06, the gas SVT leg: this commit opens
                             # both `tests/simulation/test_svt_rates.py` (the gas tests needed their
                             # imports at the top, since mid-file blocks took E402 above ITS
                             # baseline, and hoisting sorted the header block) and

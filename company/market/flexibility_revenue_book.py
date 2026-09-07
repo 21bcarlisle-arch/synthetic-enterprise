@@ -7,14 +7,22 @@ Service and the Capacity Market.
 Epistemic: asset flags come from company CRM records (observable).
 No simulation internals read.
 
-CM: operational since 2014; T-4 clearing ~75/kW/yr (2023).
+CM: THE DOMESTIC CM LEG IS REFUSED, and this book's phasing changed with it. A household cannot
+hold a Capacity Market agreement -- the minimum CMU is 1 MW against a whole flexible house of
+3.0-15.4 kW -- so `flexibility_potential._estimate_capacity_revenue` returns `None` and this book
+books nothing for it. The docstring here previously read "T-4 clearing ~75/kW/yr (2023)": the 75
+was the T-1 clearing price for delivery year 2022/23, which cleared at the price cap, and it was
+neither a T-4 nor 2023 nor anything a household could earn. See
+`capacity_market_published_record`.
 DFS: launched October 2022 by NESO. Event count and rate are published per winter and read
 from `dfs_published_record` -- 22 events in 2022/23 (of which only 2 were called by system
 conditions; the other 20 were calendar-scheduled tests) and 44 in 2024/25.
 
 Phasing:
-- 2016-2021: CM revenue only
-- 2022+: CM + DFS revenue
+- 2016-2021: NO domestic flexibility revenue at all. This used to read "CM revenue only", and
+  that whole leg was the refused one -- so every pre-DFS year in this book now books zero, which
+  is the honest reading of a household that held no agreement in a market it could not enter.
+- 2022+: DFS revenue only, per the published winter record.
 """
 from __future__ import annotations
 
@@ -89,7 +97,12 @@ class FlexibilityRevenueBook:
                 continue
 
             flex_kw = _estimate_flex_kw(has_ev, has_ashp, has_battery)
-            cm_rev = round(_estimate_capacity_revenue(flex_kw), 2)
+            # `None` is a refusal with a reason, not a missing measurement: a household holds no
+            # CM agreement, so this zero is structural and established. It is a DIFFERENT zero
+            # from the DFS one below, which means "the service ran and we cannot say what it
+            # paid" -- the two flags on the record are what keep them apart.
+            cm_raw = _estimate_capacity_revenue(flex_kw)
+            cm_rev = 0.0 if cm_raw is None else round(cm_raw, 2)
             dfs_raw = _estimate_dfs_revenue(flex_kw, year) if dfs_active else 0.0
             # None means the winter ran and the published record does not establish what it paid.
             # Booked as 0.0 with the flag beside it, never silently as "the service paid nothing".
