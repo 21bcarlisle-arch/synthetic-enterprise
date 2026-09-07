@@ -20,12 +20,26 @@ rather than adjusted:
 `test_crisis_year_higher_rate` and `test_cm_obligation_2021_rate` read the deleted price table and
 are replaced by legs over the published levy, which is a different series that moves differently --
 2022 is the case that matters and it moves the OTHER WAY.
+
+AND SIX MORE WENT ON 2026-09-07 (a52), FOR THE SAME REASON ONE STEP UP. `test_penalty_formula`,
+`test_shortfall_when_partial`, `test_delivered_when_firm_capacity_meets_obligation`,
+`test_failed_when_no_firm_capacity`, `test_penalty_zero_when_delivered` and
+`test_every_delivery_status_branch_is_reachable` all exercised a capacity PROVIDER's delivery
+obligation on a supplier. They were not wrong about the code -- every one of them passed, and the
+last was written carefully, deriving its fixture from the branch definition precisely so it would
+not be fitted to the conclusion. That care went into proving a partition over a quantity that should
+not have existed, which is what a suite can do when it takes the module's subject on trust. The
+replacement below is keyed to the ABSENCE of the concept, so it holds against a re-introduction that
+picks different names.
 """
+import dataclasses
+import inspect
+
 import pytest
 
 from company.regulatory.capacity_market import (
     _LEVY_GBP_PER_MWH,
-    _PENALTY_DIVISOR,
+    CMObligationResult,
     cm_charge_per_mwh,
     cm_levy_gbp_per_mwh,
     compute_cm_obligation,
@@ -45,22 +59,6 @@ def test_annual_charge_scales_with_demand():
     assert r2.annual_charge_gbp > r1.annual_charge_gbp
 
 
-def test_delivered_when_firm_capacity_meets_obligation():
-    result = compute_cm_obligation(2024, 1_000_000, firm_capacity_kw=999_999)
-    assert result.delivery_status == "DELIVERED"
-    assert result.penalty_gbp == 0.0
-
-
-def test_failed_when_no_firm_capacity():
-    result = compute_cm_obligation(2024, 10_000_000, firm_capacity_kw=0)
-    assert result.delivery_status == "FAILED"
-
-
-def test_penalty_zero_when_delivered():
-    result = compute_cm_obligation(2024, 1_000_000, firm_capacity_kw=999_999)
-    assert result.penalty_gbp == 0.0
-
-
 def test_cm_charge_per_mwh_positive():
     charge = cm_charge_per_mwh(2024, 5_000_000)
     assert charge > 0
@@ -71,42 +69,67 @@ def test_cm_charge_per_mwh_zero_demand():
     assert charge == 0.0
 
 
-def test_shortfall_when_partial():
-    result = compute_cm_obligation(2024, 10_000_000, firm_capacity_kw=1)
-    assert result.shortfall_kw > 0
+# --- The delivery verdict for this module, 2026-09-07 (a52). A supplier's CM obligation is a
+# --- payment: it has no delivery status, no shortfall and no non-delivery penalty.
+
+#: The vocabulary a provider's delivery obligation arrives in. Deliberately wider than the four
+#: names that were actually deleted, because the failure mode is a re-introduction that picks
+#: different words for the same concept -- `met_obligation`, `stress_event_response`, `underdelivery`.
+_PROVIDER_DELIVERY_VOCABULARY = (
+    "deliver", "shortfall", "penalt", "firm_capacity", "stress", "underdeliver", "non_delivery",
+)
 
 
-def test_every_delivery_status_branch_is_reachable():
-    """The defect: a rarely-taken branch that no input can actually reach.
+def _delivery_words_in(names):
+    return {n for n in names if any(w in n.lower() for w in _PROVIDER_DELIVERY_VOCABULARY)}
 
-    This replaces `test_partial_delivery_status`, which hard-coded `firm_capacity_kw=15_500`
-    against an `obligation_kw` that included the removed 0.92 factor. Once the factor went, 15,500
-    fell outside the PARTIAL band and the test read FAILED. RE-TUNING THAT NUMBER UNTIL IT AGREED
-    would have fitted the fixture to the conclusion and left it just as brittle; the firm capacity
-    is now DERIVED from the branch's own definition, so it tracks any future change to the sizing.
 
-    Asserted as a partition over the whole space rather than one leg per branch: a status function
-    that returned 'FAILED' for everything would pass a PARTIAL-only test that had been re-tuned
-    until it didn't.
+def test_a_supplier_result_carries_no_delivery_obligation_concept():
+    """The defect: a capacity PROVIDER's delivery obligation modelled on a supplier.
+
+    Read off the live dataclass fields and the live signature -- NOT off the module's source text,
+    which necessarily quotes `delivery_status`, `shortfall_kw` and `penalty_gbp` in the docstring
+    explaining why they are gone. A source-text control here would be reading its own explanation
+    and reporting the defect it documents.
+
+    THE POISON LEG IS THE POINT. `_delivery_words_in` is asserted to FIRE on the four names that
+    were removed before it is asserted to stay silent on the surface that remains, because
+    "found nothing" is otherwise indistinguishable from a matcher that can never match -- and this
+    control's whole value is in the years where it correctly finds nothing.
     """
-    obligation = compute_cm_obligation(2024, 87_600).obligation_kw
-    statuses = {
-        compute_cm_obligation(2024, 87_600, firm_capacity_kw=firm).delivery_status
-        for firm in (
-            obligation,                    # no shortfall      -> DELIVERED
-            obligation * 0.95,             # shortfall < 10%   -> PARTIAL
-            0.0,                           # whole obligation  -> FAILED
-        )
-    }
-    assert statuses == {"DELIVERED", "PARTIAL", "FAILED"}, (
-        f"only reached {statuses}; a branch no input can take is not a branch")
+    deleted = {"delivery_status", "shortfall_kw", "penalty_gbp", "firm_capacity_kw"}
+    assert _delivery_words_in(deleted) == deleted, (
+        "reachability: the matcher must flag the very names this control exists to keep out")
+
+    surface = (
+        {f.name for f in dataclasses.fields(CMObligationResult)}
+        | set(inspect.signature(compute_cm_obligation).parameters)
+    )
+    assert surface, "reachability: an empty surface would pass this vacuously"
+    assert _delivery_words_in(surface) == set(), (
+        f"{_delivery_words_in(surface)} is a capacity PROVIDER's delivery obligation on a "
+        "SUPPLIER result. A supplier discharges its CM obligation by paying; the provider side "
+        "with a real penalty ledger is company/market/capacity_market.py::CMObligation.")
 
 
-def test_penalty_formula():
-    result = compute_cm_obligation(2024, 87_600, firm_capacity_kw=0)
+def test_the_charge_a_supplier_pays_does_not_depend_on_any_capacity_it_holds():
+    """The defect: a supplier levy that a contracted capacity could reduce.
+
+    The deleted legs let a caller hand this function a `firm_capacity_kw`, and the concern is not
+    only that the field is gone but that no successor may re-enter the money. Keyed to the
+    PROPERTY -- the charge is a function of year and volume alone -- so it holds however a future
+    edit spells the capacity argument.
+
+    There is a real lever and this is not it: a supplier reduces this charge by moving demand out
+    of the winter peak periods the levy is assessed on, which changes the VOLUME term. Owning a
+    power station does not.
+    """
+    assert len(inspect.signature(compute_cm_obligation).parameters) == 2, (
+        "compute_cm_obligation takes the obligation year and the volume; a third input to a "
+        "levy that is published per MWh supplied is a quantity nobody publishes")
     levy = cm_levy_gbp_per_mwh(2024)
-    expected = round((result.shortfall_kw / 1000.0) * (levy / _PENALTY_DIVISOR), 2)
-    assert result.penalty_gbp == pytest.approx(expected)
+    assert compute_cm_obligation(2024, 5_000_000).annual_charge_gbp == pytest.approx(
+        5_000_000 * levy)
 
 
 # --- The de-rating verdict for this module, 2026-09-07 (a51). The answer was NO FACTOR, because

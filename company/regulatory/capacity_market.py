@@ -39,11 +39,38 @@ rather than derived. Reading the commons is not a wall crossing (see `ro_commons
 the law and the published cost breakdown are readable by every lane, and what stays owned here is
 the READING.
 
-STILL NOT ADDRESSED, and named so the next reader does not mistake it for settled: `delivery_status`,
-`shortfall_kw` and `penalty_gbp` below model a capacity PROVIDER's obligation to deliver at a stress
-event and its penalty for failing to. A supplier holds no such obligation -- its CM obligation is a
-payment. Those three fields are a category conflation left standing here because unpicking them is a
-change to what this module is for, not a de-rating decision, and this pass was the latter.
+THE DELIVERY LEGS ARE NOW GONE, and this is the record of why they were deleted rather than moved
+(2026-09-07, a52, answering the question a51 named and left open). `delivery_status`, `shortfall_kw`,
+`penalty_gbp` and a `firm_capacity_kw` argument modelled a capacity PROVIDER's obligation to deliver
+at a System Stress Event and its penalty for failing to. A supplier holds no such obligation: its CM
+obligation is a payment, and it discharges it by paying.
+
+NOTHING WAS MOVED, because there was no receiving home for it. Three separate things were wrong and
+only the last of them is the sort a re-founding could fix:
+
+  * THE DIFFERENCE WAS NOT A SHORTFALL. `shortfall_kw = obligation_kw - firm_capacity_kw` subtracted
+    a contracted capacity from this module's estimate of the supplier's own PEAK-PERIOD DEMAND. A
+    provider's shortfall is its agreed de-rated capacity less what it actually delivered at a stress
+    event; neither term of that is a demand estimate, so the subtraction names a quantity nobody
+    holds.
+  * THE PENALTY WAS NOT MONEY. `(shortfall_kw / 1000) * (levy / 8)` is MW x GBP/MWh, which is GBP
+    PER HOUR -- a rate, in a field called `penalty_gbp`. The `/ 8` had no source and no unit. At 5
+    TWh of demand it produced GBP933.65 for 2024 beside a GBP36.35m charge: five orders of magnitude
+    apart, which is the size an invented divisor reaches when nothing constrains it.
+  * AND THE STATUS WAS CONSTANT. `firm_capacity_kw` defaulted to None -> 0, so `delivery_status` read
+    FAILED for every year at every input a real supplier could present. DELIVERED and PARTIAL were
+    reachable only by handing the function a firm capacity a supplier does not have, which its own
+    tests duly did.
+
+The provider side already exists and is correct: `company/market/capacity_market.py` holds `CMUnit`,
+`CMObligation.penalties_gbp` and `apply_penalty`, hung off a de-rated capacity and a delivery year.
+Moving these fields there would have been a second and worse home for a mechanism that is already
+built -- the same fourth-home failure this module was just re-founded to undo.
+
+WHAT REPLACES THEM IS NOTHING, deliberately. A supplier that wants to reduce this charge does it by
+reducing customer demand in the winter peak periods the levy is assessed on. That is a real and
+modellable lever, it is not a delivery obligation, and inventing it here to fill the hole the
+deletion leaves would be the same move that produced the 0.92.
 """
 
 from __future__ import annotations
@@ -89,10 +116,6 @@ _LEVY_GBP_PER_MWH: Dict[int, float] = _load_levy()
 #: invented de-rating factor and a mis-keyed clearing price to produce the headline number.
 _PEAK_TO_AVERAGE_RATIO = 1.8
 
-# Penalty rate for missed delivery: 1/8 of the levy rate per MWh shortfall. See the module
-# docstring -- the whole penalty leg models a provider obligation a supplier does not hold.
-_PENALTY_DIVISOR = 8
-
 
 def cm_levy_gbp_per_mwh(obligation_year: int) -> Optional[float]:
     """The published CM supplier levy for an Apr-Mar obligation year, or `None`.
@@ -117,20 +140,18 @@ class CMObligationResult:
     reading `clearing_price` off a supplier obligation was being told something false by the
     field name alone."""
     annual_charge_gbp: float
-    delivery_status: str          # DELIVERED / PARTIAL / FAILED -- provider concept, see docstring
-    shortfall_kw: float
-    penalty_gbp: float
 
 
-def compute_cm_obligation(
-    year: int, total_demand_mwh: float, firm_capacity_kw: float = None
-) -> CMObligationResult:
+def compute_cm_obligation(year: int, total_demand_mwh: float) -> CMObligationResult:
     """Compute the company's Capacity Market charge for an Apr-Mar obligation year.
 
     Args:
         year: obligation year (the calendar year the Apr-Mar year opens in)
         total_demand_mwh: supplier's total annual metered demand
-        firm_capacity_kw: contracted firm capacity (if any); None = zero (all pass-through)
+
+    THERE IS NO `firm_capacity_kw` AND NO DELIVERY RESULT. See the module docstring: a supplier's
+    CM obligation is a payment, so it has no delivery status to report and no shortfall to be
+    penalised for. The argument was never optional-with-a-default so much as unanswerable.
 
     THE CHARGE IS THE PUBLISHED LEVY TIMES VOLUME, and nothing else feeds it. It is no longer
     peak demand times a de-rating factor times a clearing price, which was three invented or
@@ -157,30 +178,12 @@ def compute_cm_obligation(
     peak_mw = (total_demand_mwh / 8760.0) * _PEAK_TO_AVERAGE_RATIO
     obligation_kw = round(peak_mw * 1000, 1)
 
-    firm = firm_capacity_kw or 0.0
-    shortfall_kw = max(0.0, obligation_kw - firm)
-
-    annual_charge = round(total_demand_mwh * levy, 2)
-    penalty = (
-        round((shortfall_kw / 1000.0) * (levy / _PENALTY_DIVISOR), 2) if shortfall_kw > 0 else 0.0
-    )
-
-    if shortfall_kw == 0:
-        delivery_status = "DELIVERED"
-    elif shortfall_kw < obligation_kw * 0.1:
-        delivery_status = "PARTIAL"
-    else:
-        delivery_status = "FAILED"
-
     return CMObligationResult(
         year=year,
         total_demand_mwh=total_demand_mwh,
         obligation_kw=obligation_kw,
         levy_gbp_per_mwh=levy,
-        annual_charge_gbp=annual_charge,
-        delivery_status=delivery_status,
-        shortfall_kw=round(shortfall_kw, 1),
-        penalty_gbp=penalty,
+        annual_charge_gbp=round(total_demand_mwh * levy, 2),
     )
 
 
