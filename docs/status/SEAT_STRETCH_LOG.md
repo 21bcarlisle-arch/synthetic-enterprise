@@ -8,6 +8,101 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-07 — the number lands near 3,000, and three of the criteria that produced earlier ones were broken
+
+<!-- head: 39a410f0d46c -->
+
+A five-piece run, and the thread through it is that three of the numbers I published were produced
+by broken criteria that all failed in the flattering direction.
+
+THE NUMBER, AND THE PREDICTION IT TESTED
+
+The director wrote a falsifier into the canon and asked me to honour it: *if payment method lands and
+moves the figure by a tenth rather than threefold, the strata mechanism is wrong.*
+
+    before payment method   2 strata (fuel)         6 axes    N =   102
+    after payment + shape   4 strata (fuel x pay)   7 axes    N = ~3,000    (tolerance 0.10)
+
+**It moved by about thirty.** The mechanism is confirmed — strata multiply, correlated axes do not —
+and the arithmetic I used to get there is still wrong. I said *k* strata multiply by about *k*, which
+predicts 2x. The measured factor is 30, because coverage is owed *within* each stratum on every axis
+and the binding cost is the smallest cell of the cross (electrically heated, not direct debit, 5.7%
+of the book), not the number of cells.
+
+So I got the right magnitude — the pre-registration said "roughly 3,000 households… low thousands" —
+from reasoning that does not support it. Worth saying rather than banking the hit.
+
+EVERY AXIS OF THE CANON'S VECTOR IS NOW IN. `blind_to` is empty for the first time: annual gas,
+annual electricity, seasonal swing, weather sensitivity, half-hourly shape, and both intervention
+ceilings, stratified by fuel x payment method. What remains uncounted sits outside the demand vector
+entirely, and each item now carries its reason.
+
+THREE BROKEN CRITERIA, AND THEY ALL FAILED FLATTERINGLY
+
+**A criterion whose bar loosened as the sample shrank.** Acceptance was "under the two-sample
+critical value", which grows as n falls, so a 13-case sample passed trivially. It returned the two
+smallest sizes on the ladder, which is the only answer that criterion can give.
+
+**A random sample dressed as a weighted design.** The module quoted the canon's "each drawn case
+carries the population mass it stands for" in its docstring and ran `rng.choice`. No weight entered
+the test at all. 8,500 was an honest answer to a question nobody asked, and the director's own tell
+caught it.
+
+**Weights fitted globally and scored per stratum.** One weight vector solved to reproduce the
+population, then each stratum's sub-sample scored against *that stratum's* distribution — a
+sub-sample asked to match a distribution its weights were never fitted to. It returned "no size
+accepts" at every tolerance, which reads as a gigantic requirement and was a broken test.
+
+The pattern is the lesson: **a criterion that fails by demanding MORE cases is dangerous precisely
+because more-is-conservative reads as caution.** Two of these three produced plausible large numbers
+and neither looked like a bug.
+
+AND I PUBLISHED A CONVERGENCE CLAIM THAT THE NEXT DATA POINT REFUTED
+
+On two points — 2,716 at 12,000 reference households and 3,824 at 40,000 — I wrote that N grows with
+the reference population and has not converged, and filed that as the honest headline. The third
+point is 2,748 at 120,000. **It does not rise.** Two points looked like a slope because two points
+always do. Corrected in place, and the document renamed to match what it now says.
+
+WHAT ELSE LANDED
+
+**A filer for director documents.** Four canons in two days arrived without the severity header and
+51 without a Knowledge declaration; each silently blocked a level raise in every lane until a seat
+attempted a merge. I transcribed it four times and said twice I would build the tool instead. Now
+severity is *read* from the document's own Type block and refused if absent, lane is derived where
+the subject says so and refused where it does not, and the Knowledge topic is never invented.
+
+**Occupancy conditioned on the address**, with the fallback visible rather than silent. It buys 9%
+of household-size variance, which is the finding rather than the caveat: occupancy is something this
+company must meter, not look up.
+
+**A knowledge page written and not landed.** The site lane is red at HEAD on another lane's
+uncommitted change — a working-tree edit that deletes sixteen controls from the failing file. Making
+the lane green by removing the red controls is not a call to make inside someone else's commit, so
+the page waits and the wedge is filed with its cause. I checked origin again at the end of the run
+rather than assuming it had cleared. It has not.
+
+WHAT I GOT WRONG IN THE MECHANICS
+
+A per-stratum reference rebuilt at every ladder step — the same pre-project-once defect this module
+had already fixed one level up, committed again one level down. It ran twenty-five minutes without
+finishing; hoisted, the same ladder takes thirty-eight seconds.
+
+A plausibility rule that called observed dwellings impossible. "Cavity insulation in a pre-1930
+home" looked physically obvious and the evidence produced it at 1.3%, because the band is *before
+1930* and cavity construction is general through the 1920s. A rule that contradicts the data is a
+wrong rule, not wrong data.
+
+THE HABIT THIS RUN ARGUES FOR
+
+Every one of the three broken criteria would have survived review, because each produced a number of
+plausible size with a defensible story. What caught them was not inspection but **comparison** — the
+random comparator beside the designed one, the held-out directions beside the fitted ones, the third
+reference size beside the first two. A single number with a good story is the thing to distrust; the
+cheapest defence is to compute the same quantity a second way and look at the two together.
+
+---
+
 ## 2026-09-07 — a writer that exists while nothing checks it wrote
 
 <!-- head: 219c26366d63 -->
