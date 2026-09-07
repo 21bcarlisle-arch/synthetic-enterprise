@@ -203,7 +203,7 @@ def house_cases(insulation_override: str | None = None):
     return keys, params, dict(by_region), dict(national)
 
 
-def demand_grid():
+def demand_grid(include_scotland: bool = False):
     """(demand, weather sensitivity, household weights) over cells x house cases, England and Wales.
 
     THE DEMAND MODEL HERE IS A CLOSED FORM, AND IT IS VALIDATED RATHER THAN ASSERTED. Against the
@@ -241,14 +241,23 @@ def demand_grid():
         # product with no Scottish dwellings, so there is no measured stock composition to compose
         # with a Scottish cell. Using the England-and-Wales mixture there would be an assumption
         # about the coldest 8% of the book, which is the worst place to make one.
-        if n is None or region is None or region == "S92000003":
+        # SCOTLAND WAS EXCLUDED BECAUSE THE SURVEY COULD NOT REACH IT, not because the world
+        # cannot. `DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07` removes the cause: with
+        # households GENERATED from a fitted joint rather than selected from NEED rows, a Scottish
+        # cell can be populated by raking the joint onto Scotland's own published stock. The
+        # household map always carried Scotland's 2,508,542 households; only the survey did not.
+        # Kept as a switch rather than deleted: `population()` still selects rows and must still
+        # refuse Scotland, or it would silently give Scottish cells English dwellings.
+        if n is None or region is None:
+            continue
+        if region == "S92000003" and not include_scotland:
             continue
         cells[(cell_x, cell_y)][region] += n * count / per_oa[oa]
 
     d = drv.drivers()
     index = {(int(x) // 1000, int(y) // 1000): i
              for i, (x, y) in enumerate(zip(d["east"], d["north"]))}
-    winter, wind, sun, weight, region_of = [], [], [], [], []
+    winter, wind, sun, weight, region_of, nation = [], [], [], [], [], []
     for cell, regions in cells.items():
         i = index.get(cell)
         if i is None:
@@ -258,19 +267,34 @@ def demand_grid():
         sun.append(d["annual_sun"][i])
         weight.append(sum(regions.values()))
         region_of.append(max(regions, key=regions.get))
+        nation.append("S" if max(regions, key=regions.get) == "S92000003" else "EW")
     winter = np.array(winter)
     wind = np.array(wind)
     sun = np.array(sun)
     weight = np.array(weight)
+
+    hdd = _seasonal_hdd(winter)
+    a, b, n = sens.ANGSTROM_A, sens.ANGSTROM_B, sens.ANNUAL_DAYLIGHT_H
+    solar_index = (a + b * sun / n) / (a + b * REFERENCE_SUNSHINE_H / n)
+
+    if include_scotland:
+        # THE CELL GEOMETRY ONLY, and the early return is the honest shape rather than a
+        # convenience. Everything below builds a per-case demand grid from NEED's REGIONAL stock
+        # mixtures, and NEED has no Scottish region -- so for a Scottish cell there is nothing to
+        # look up and a national fallback would be exactly "assume the Scottish stock is English".
+        # The caller that asks for Scotland (`demand_vector_coverage.generated_population`) GENERATES
+        # its own households from a raked joint and needs only where the cells are and how many
+        # households sit in them.
+        return {"cell_weights": weight, "cell_hdd": hdd, "cell_wind": wind,
+                "cell_solar_index": solar_index, "cell_nation": np.array(nation),
+                "per_case_demand_grid": None}
 
     keys, params, by_region, national = house_cases()
     totals = {r: sum(c.values()) for r, c in by_region.items()}
     mixture = {r: np.array([by_region[r].get(k, 0) / totals[r] for k in keys]) for r in by_region}
     probability = np.stack([mixture[r] for r in region_of])
 
-    hdd = _seasonal_hdd(winter)
-    a, b, n = sens.ANGSTROM_A, sens.ANGSTROM_B, sens.ANNUAL_DAYLIGHT_H
-    solar_index = (a + b * sun / n) / (a + b * REFERENCE_SUNSHINE_H / n)
+
     reference_solar = _reference_solar_kwh_per_m2()
     hours = len(DOYS) * 24.0
 
@@ -284,6 +308,7 @@ def demand_grid():
         demand[:, i] = np.maximum(
             0.0, hlc * hdd * 24.0 - aperture * reference_solar * solar_index - internal * hours)
     return {"demand": demand, "sensitivity": sensitivity, "weights": probability * weight[:, None],
+            "cell_nation": np.array(nation),
             "cell_weights": weight, "cell_hdd": hdd, "cell_wind": wind,
             "cell_solar_index": solar_index, "case_keys": keys, "case_params": params,
             "national_mixture": np.array([national[k] / sum(national.values()) for k in keys])}

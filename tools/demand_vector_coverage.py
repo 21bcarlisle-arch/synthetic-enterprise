@@ -54,6 +54,7 @@ reference year -- and NEED is annual. SERL is accredited-access and is not being
 from __future__ import annotations
 
 import argparse
+import collections
 import csv
 import json
 import sys
@@ -66,7 +67,8 @@ if str(PROJECT) not in sys.path:
 
 #: The axes that describe what a household USES. Reproducing their joint distribution is the
 #: canon's first number.
-DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh", "seasonal_swing")
+DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh", "seasonal_swing",
+                     "weather_sensitivity_kwh_per_degree_day")
 
 #: The axes that describe what could be DONE for a household. The canon's second number adds these,
 #: and calls it the real one: a sample that reproduces consumption perfectly can still be unable to
@@ -86,6 +88,25 @@ AXES = DISTRIBUTION_AXES + RESPONSE_AXES
 #: criterion will always give. A sample-size rule whose bar loosens as the sample shrinks is not a
 #: sample-size rule.
 DISTRIBUTION_TOLERANCE = 0.05
+
+#: WHAT THIS N IS BLIND TO, ENUMERATED, so no reader can take it for the size of the book. The
+#: director, 2026-09-07, refusing the figure: *"It's the number for a partial vector... the number
+#: has moved an order of magnitude every time an axis arrived: 800 with retrofit flags, 8,500 when
+#: electricity and the non-gas stratum went in. A single missing stratum multiplied it tenfold. I
+#: have no reason to expect the remaining axes to behave differently."*
+#:
+#: He is right on the evidence and the escalation is the point: every one of these is an axis on
+#: which two households can differ while matching on everything measured, and each is therefore a
+#: direction the sample is currently NOT required to span.
+UNCOUNTED_AXES = (
+    "half_hourly_electricity_shape",     # needs a presence pattern; W2_19's remaining half
+    "payment_method",                    # direct debit, standard credit, prepayment: different book
+    "meter_read_pattern",                # quarterly estimate against half-hourly settlement
+    "arrears_position",
+    "move_history",
+    "credit_position",
+    "tariff_and_dates",
+)
 
 #: Significance used for the POWER statement reported beside each n -- the discrepancy a test at
 #: this level could actually have detected at that size. Kept because "with a stated power" is what
@@ -204,6 +225,143 @@ def _fabric_for(row, *, retrofitted: bool):
             p.solar_aperture_m2, p.internal_gain_kw)
 
 
+def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
+    """A GENERATED population: modelled houses, each placed in a real GB weather cell.
+
+    `DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07`: *"NEED -- and any comparable survey --
+    is EVIDENCE, NOT POPULATION."* `population()` above selected NEED rows, and two consequences
+    followed that the canon names:
+
+      * **No Scottish dwelling could be chosen at all.** NEED covers England and Wales, so the cell
+        space was filtered by `region == "S92000003"` and the coldest 8% of the book -- where
+        weather sensitivity is largest -- was excluded by construction. The household map already
+        carried Scotland's 2,508,542 households; only the survey did not.
+      * **Coverage was capped at the combinations 46,000 rows happened to contain.**
+
+    Here the stock attributes are DRAWN FROM THE FITTED JOINT, so combinations appear at the rate
+    they co-occur, and consumption is drawn from the evidence CONDITIONAL on the drawn combination
+    -- which is what keeps a generated household anchored to something real without selecting it.
+
+    SCOTLAND IS RAKED, NOT ASSUMED. The joint is England-and-Wales-fitted, so its property-type
+    margin is moved onto Scotland's own Census 2022 UV402 shares (34.4% flats against England's
+    much lower share) and the structure within a type is carried over. That carry-over is the
+    assumption and it is smaller than pretending the Scottish stock is English.
+    """
+    import numpy as np
+
+    from simulation import fabric_physics as fp
+    from tools import demand_case_coverage as dcc
+    from tools import stock_joint_generator as gen
+
+    grid = dcc.demand_grid(include_scotland=True)
+    hdd = np.asarray(grid["cell_hdd"])
+    wind = np.asarray(grid["cell_wind"])
+    solar_index = np.asarray(grid["cell_solar_index"])
+    cell_weight = np.asarray(grid["cell_weights"], dtype=float)
+    cell_nation = np.asarray(grid["cell_nation"])
+
+    joint = gen.fit_joint()
+    scots = gen.scotland_type_marginal()
+    joint_by_nation = {"GB": joint}
+    if scots:
+        joint_by_nation["S"] = gen.raked_joint(joint, scots)
+
+    # Consumption CONDITIONAL on the combination, from the evidence. A generated household is a
+    # real combination and takes a real household's meter reading from that combination's pool.
+    import csv as _csv
+
+    from tools import need_stock_joint as need
+    with need.NEED_CSV.open(encoding="utf-8-sig") as fh:
+        rows = list(_csv.DictReader(fh))
+    pools: dict = collections.defaultdict(list)
+    for row in rows:
+        if row.get("PROP_TYPE") not in need.PROPERTY_TYPE:
+            continue
+        try:
+            elec = float(row.get("Econs2024"))
+        except (TypeError, ValueError):
+            continue
+        try:
+            gas = float(row.get("Gcons2024"))
+        except (TypeError, ValueError):
+            gas = 0.0
+        key = (need.PROPERTY_TYPE[row["PROP_TYPE"]], row.get("PROP_AGE_BAND"),
+               row.get("FLOOR_AREA_BAND"), row.get("EPC"), row.get("LI_FLAG"),
+               row.get("CWI_FLAG"), row.get("PV_FLAG"), row.get("MAIN_HEAT_FUEL"))
+        pools[key].append((gas, elec))
+
+    rng = np.random.default_rng(seed)
+    cell_pick = rng.choice(len(hdd), size=points, replace=True, p=cell_weight / cell_weight.sum())
+
+    combos, fabric_cache = [], {}
+    for nation in ("GB", "S"):
+        mask = (cell_nation[cell_pick] == "S") if nation == "S" else (cell_nation[cell_pick] != "S")
+        count = int(mask.sum())
+        if not count:
+            continue
+        source = joint_by_nation.get(nation, joint)
+        drawn = gen.generate(count, source, rng)
+        combos.append((np.flatnonzero(mask), drawn))
+
+    as_built = np.zeros((points, 5))
+    retrofit = np.zeros((points, 5))
+    gas_obs = np.zeros(points)
+    elec_obs = np.zeros(points)
+    fuel = np.empty(points, dtype=object)
+    for index, drawn in combos:
+        for slot, household in zip(index, drawn):
+            key = tuple(household[k] for k in gen.JOINT_KEYS)
+            if key not in fabric_cache:
+                row = {"PROP_TYPE": _PROP_TYPE_BACK[household["property_type"]],
+                       "PROP_AGE_BAND": household["age_band"],
+                       "FLOOR_AREA_BAND": household["area_band"],
+                       "LI_FLAG": household["loft"], "CWI_FLAG": household["cavity"]}
+                fabric_cache[key] = (_fabric_for(row, retrofitted=False),
+                                     _fabric_for(row, retrofitted=True))
+            as_built[slot], retrofit[slot] = fabric_cache[key]
+            pool = pools.get(key)
+            if pool:
+                gas_obs[slot], elec_obs[slot] = pool[int(rng.integers(len(pool)))]
+            fuel[slot] = household["fuel"]
+
+    reference_solar = dcc._reference_solar_kwh_per_m2()
+    hours = len(dcc.DOYS) * 24.0
+    cold = hdd[cell_pick]
+    warm = dcc._seasonal_hdd(_winter_from_hdd(cold), setpoint_c=dcc.SETPOINT_C - 1.0)
+    site_wind = wind[cell_pick]
+    site_solar = solar_index[cell_pick]
+
+    def demand(params, degree_days):
+        ach = np.maximum(params[:, 1] * (site_wind / fp.SAP_REFERENCE_WIND_MS),
+                         fp._MINIMUM_VENTILATION_ACH)
+        hlc = (params[:, 0] + 0.33 * ach * params[:, 2]) / 1000.0
+        gross = hlc * degree_days * 24.0
+        gains = params[:, 3] * reference_solar * site_solar + params[:, 4] * hours
+        return np.maximum(0.0, gross - gains), hlc
+
+    gas, hlc = demand(as_built, cold)
+    gas_turndown, _ = demand(as_built, warm)
+    gas_retrofit, _ = demand(retrofit, cold)
+    swing = np.full(points, 0.5) * (1.0 + 0.15 * (hlc - hlc.mean()) / (hlc.std() or 1.0))
+
+    # WEATHER SENSITIVITY IS AN AXIS, not an assumption that it is spanned. The director named it
+    # among the things this figure did not confirm; it is the heat-loss coefficient in kWh per
+    # degree-day, which the physics already computes, so there was no reason to leave it implicit.
+    values = np.stack([gas, elec_obs, swing, hlc * 24.0,
+                       np.maximum(0.0, gas - gas_retrofit),
+                       np.maximum(0.0, gas - gas_turndown)], axis=1)
+    return {"values": values, "axes": AXES, "fuel": fuel, "observed_gas": gas_obs,
+            "cells": cell_pick, "cell_nation": cell_nation[cell_pick],
+            "distinct_cells": int(len(set(cell_pick.tolist()))),
+            "generated": True, "n_need_rows": len(rows)}
+
+
+#: The generator speaks this project's property names and `_fabric_for` reads NEED's. One mapping,
+#: here, rather than the generator learning a second vocabulary.
+_PROP_TYPE_BACK = {"DETACHED": "Detached", "SEMI_DETACHED": "Semi detached",
+                   "TERRACED": "Mid terrace", "FLAT": "Flat"}
+
+
 def population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     """A household-weighted sample of (NEED dwelling x weather cell), with its output vector.
 
@@ -273,7 +431,7 @@ def population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     # from `W2_19`. Only the HALF-HOURLY SHAPE does, which is the dependency that was mistakenly
     # taken to cover both.
     elec = np.array([rows[ri]["_elec"] for ri in row_pick])
-    values = np.stack([gas, elec, swing,
+    values = np.stack([gas, elec, swing, hlc * 24.0,
                        np.maximum(0.0, gas - gas_retrofit),
                        np.maximum(0.0, gas - gas_turndown)], axis=1)
     fuel = np.array([rows[ri].get("MAIN_HEAT_FUEL", "?") for ri in row_pick])
@@ -650,9 +808,12 @@ def smallest_n_chosen(pop, axes, ns=CHOSEN_NS, seed: int = 0,
     return answer, verdicts
 
 
-def measurement(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
+def measurement(points: int = POPULATION_POINTS, seed: int = 0, generated: bool = True) -> dict:
     """Both numbers the canon asks for, at several accuracies, and the second is the real one."""
-    pop = population(points=points, seed=seed)
+    # GENERATED BY DEFAULT. `population()` selects NEED rows and is kept only as the comparator
+    # that shows what selection could not reach.
+    pop = (generated_population(points=points, seed=seed) if generated
+           else population(points=points, seed=seed))
     import numpy as np
 
     price_list = {}
@@ -677,9 +838,14 @@ def measurement(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     return {
         "price_list_by_tolerance": price_list,
         "population_points": int(len(values)),
+        "generated": bool(pop.get("generated")),
+        "distinct_cells_reached": pop.get("distinct_cells"),
+        "scotland_share_of_points": (round(float((np.asarray(pop["cell_nation"]) == "S").mean()), 4)
+                                     if pop.get("cell_nation") is not None else None),
         "need_dwellings": pop["n_need_rows"],
         "axes_measured": list(AXES),
-        "axes_named_absent": ["half_hourly_electricity_shape"],
+        "this_is_a_floor_not_an_answer": True,
+        "uncounted_axes": list(UNCOUNTED_AXES),
         "alpha": ALPHA,
         "tolerance": DISTRIBUTION_TOLERANCE,
         "replicates": REPLICATES,
@@ -700,9 +866,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--measure", action="store_true", help="both N figures and their curves")
     ap.add_argument("--points", type=int, default=POPULATION_POINTS)
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--selected", action="store_true",
+                    help="use the OLD NEED-row selection, for comparison")
     args = ap.parse_args(argv)
     if args.measure:
-        print(json.dumps(measurement(points=args.points, seed=args.seed), indent=2, default=str))
+        print(json.dumps(measurement(points=args.points, seed=args.seed,
+                                     generated=not args.selected), indent=2, default=str))
         return 0
     ap.print_help(sys.stderr)
     return 2

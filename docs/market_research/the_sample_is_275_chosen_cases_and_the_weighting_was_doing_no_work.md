@@ -90,3 +90,22 @@ stands for. **The sample is 31× smaller and it is the one that teaches the comp
 - **Gas and electricity are observed; the heat model is not validated against them.** That is the
   validation step, which the director has ordered after `W2_19`.
 - **England and Wales only** — NEED carries no Scottish dwellings.
+
+---
+
+## AMENDED 2026-09-07 — 275 is a FLOOR for a PARTIAL vector, not the size of the book
+
+Director, refusing the figure: *"It's the number for a partial vector... the number has moved an
+order of magnitude every time an axis arrived... I'd rather carry thousands and know why than carry
+275 and find out later."*
+
+He is right and the figure is republished as a floor. Since this was written the population is
+GENERATED rather than selected, Scotland is reachable, and weather sensitivity is an axis:
+**275 -> 273 (Scotland) -> 243 (weather sensitivity)**.
+
+The mechanism, and it sharpens rather than softens his point: **strata multiply, correlated axes do
+not.** The non-gas stratum multiplied the figure sevenfold; Scotland and weather sensitivity moved
+it by ~12% between them. Payment method, read pattern and arrears are STRATA, so the prediction --
+filed before they are built -- is low thousands.
+
+Full account: `the_sample_size_is_a_floor_and_strata_are_what_multiply_it.md`.

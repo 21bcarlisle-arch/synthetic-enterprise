@@ -14,13 +14,26 @@ from tools import demand_vector_coverage as dvc
 
 
 def _grid(n=4000, seed=0):
+    """A synthetic population with ONE COLUMN PER DECLARED AXIS.
+
+    Built from `dvc.AXES` rather than a hand-written list of five: when weather sensitivity was
+    added as a sixth axis every fixture here silently disagreed with the module and six controls
+    failed at once. A fixture whose width is hardcoded is a fixture that goes stale the moment the
+    subject grows.
+    """
     rng = np.random.default_rng(seed)
     gas = rng.lognormal(9.2, 0.6, size=n)
-    elec = rng.lognormal(7.9, 0.5, size=n)
-    swing = rng.uniform(0.55, 0.75, size=n)
-    insulation = gas * rng.uniform(0.05, 0.45, size=n)
-    turndown = gas * rng.uniform(0.04, 0.09, size=n)
-    return np.stack([gas, elec, swing, insulation, turndown], axis=1)
+    columns = {
+        "annual_gas_kwh": gas,
+        "annual_electricity_kwh": rng.lognormal(7.9, 0.5, size=n),
+        "seasonal_swing": rng.uniform(0.55, 0.75, size=n),
+        "weather_sensitivity_kwh_per_degree_day": gas * rng.uniform(0.0002, 0.0006, size=n),
+        "insulation_ceiling_kwh": gas * rng.uniform(0.05, 0.45, size=n),
+        "turndown_ceiling_kwh": gas * rng.uniform(0.04, 0.09, size=n),
+    }
+    missing = [a for a in dvc.AXES if a not in columns]
+    assert not missing, f"the fixture has no column for {missing}; add one rather than let it drift"
+    return np.stack([columns[a] for a in dvc.AXES], axis=1)
 
 
 def test_THE_BAR_DOES_NOT_LOOSEN_AS_THE_SAMPLE_SHRINKS():
@@ -53,18 +66,17 @@ def test_THE_JOINT_CATCHES_WHAT_THE_MARGINS_CANNOT():
     Built so the two populations have IDENTICAL marginals by construction: the same values, paired
     differently. A per-axis test cannot tell them apart and must not be able to; the sliced joint
     test must."""
-    rng = np.random.default_rng(2)
     n = 4000
-    gas = rng.lognormal(9.2, 0.6, size=n)
-    elec = rng.lognormal(7.9, 0.5, size=n)
-    ceiling = rng.uniform(200.0, 6000.0, size=n)
-    swing = rng.uniform(0.55, 0.75, size=n)
-    turndown = rng.uniform(150.0, 900.0, size=n)
+    base = _grid(n=n, seed=2)
+    ceiling_at = dvc.AXES.index("insulation_ceiling_kwh")
+    gas_at = dvc.AXES.index("annual_gas_kwh")
+    aligned = base.copy()
+    aligned[:, gas_at] = np.sort(base[:, gas_at])
+    aligned[:, ceiling_at] = np.sort(base[:, ceiling_at])
+    opposed = aligned.copy()
+    opposed[:, ceiling_at] = np.sort(base[:, ceiling_at])[::-1]
 
-    aligned = np.stack([np.sort(gas), elec, swing, np.sort(ceiling), turndown], axis=1)
-    opposed = np.stack([np.sort(gas), elec, swing, np.sort(ceiling)[::-1], turndown], axis=1)
-
-    for j in range(5):
+    for j in range(len(dvc.AXES)):
         assert dvc.ks_distance(aligned[:, j], opposed[:, j]) == pytest.approx(0.0, abs=1e-12), (
             f"axis {j} differs between the two populations, so this fixture no longer isolates "
             "the joint")
@@ -141,6 +153,8 @@ def test_ONLY_THE_HALF_HOURLY_SHAPE_IS_STILL_ABSENT():
     nothing. Bundling them deferred the axis that turns a floor into a number.
 
     So electricity must now be IN, and exactly one axis may remain declared blind."""
+    assert dvc.UNCOUNTED_AXES, "the uncounted axes must be enumerated, not left to prose"
+    assert "half_hourly_electricity_shape" in dvc.UNCOUNTED_AXES
     assert "annual_electricity_kwh" in dvc.AXES, (
         "annual electricity is observed in NEED and has no W2_19 dependency; deferring it is what "
         "kept the answer a floor")
