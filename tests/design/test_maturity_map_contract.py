@@ -715,7 +715,9 @@ def test_MUTATION_an_atom_with_no_code_token_is_out_of_subject():
 # never admit a new violation. What IS asserted is the fix-is-not-complete case: an entry still
 # sitting in the partition that now names a control has been fixed and must be delisted.
 LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
-    "A49_the_ceiling_comes_before_the_programme_on_r3_and_r4",
+    # A49 delisted 2026-09-07: its row now names the four files its own build wrote, so it is
+    # graded rather than frozen. The entry is deleted, not kept-and-passing, because
+    # `test_ungradable_build_rows_allowlist_has_no_FIXED_entries` is what makes the fix complete.
     "C_supply_start_consumer_routing",
     "D46_the_validator_holds_against_the_varied_population",
     "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement",

@@ -1,0 +1,186 @@
+{
+  "bound_kind": "CEILING",
+  "bound_kind_reason": "TRUE CEILING. Perfect foreknowledge of the half-hourly intensity shape is exactly the quantity a real forecast approximates, and perfect compliance is exactly what advice approximates, so no buildable method beats `hindsight_ceiling`. A reading at or below the null therefore RETIRES the time-shifting candidate outright, which is what a floor could never do.",
+  "bound_scope": "The TIMING lever on ELECTRICITY only. A negative here retires nothing about consumption reduction, physical measures or gas.",
+  "not_bounded_by_this": [
+    "reduction -- using less. Abates both kWh and carbon and is R4's subject.",
+    "gas -- a near-constant factor per kWh burned. It emits when burned, so no timing benefit exists and none is claimed (scope brief \u00a7B).",
+    "physical measures -- efficiency, solar, heat pumps. R4's subject, and bounded there.",
+    "tariff switching -- moves money, never carbon. The director's standing rule: savings count only from reduced or time-shifted usage, never from discounting.",
+    "embodied carbon in any measure or asset fitted.",
+    "rebound -- part of a saving returns as extra comfort. It cannot reduce a TIMING ceiling (the kWh is unchanged), which is why it is out of scope here and in scope for every reduction figure R4 reports."
+  ],
+  "book": {
+    "source_run": "run_output_latest.json",
+    "households": 68,
+    "secondary_legs_excluded": 0,
+    "total_electricity_kwh_per_year": 262087.9,
+    "median_eac_kwh": 2673.8
+  },
+  "world": {
+    "hindsight_g_per_kwh": 40.74888451449468,
+    "null_max_g_per_kwh": 8.450668864494684,
+    "null_mean_g_per_kwh": -0.4528999262553191,
+    "null_p95_g_per_kwh": 4.626113431161347,
+    "by_year_g_per_kwh": {
+      "2016": 30.951,
+      "2021": 72.7629,
+      "2022": 81.615,
+      "2025": 34.8054
+    },
+    "days": 20,
+    "years": [
+      "2016",
+      "2021",
+      "2022",
+      "2025"
+    ],
+    "extrapolated_intensity_years": []
+  },
+  "shift_window_half_hours": 6,
+  "forecast_capture": {
+    "capture_mean": 0.8585,
+    "worst_year": "2023",
+    "window_half_hours": 6,
+    "window_sensitivity": {
+      "2": 0.8142,
+      "4": 0.8401,
+      "6": 0.8585,
+      "8": 0.8697,
+      "12": 0.8837
+    }
+  },
+  "rungs": {
+    "baseline": {
+      "rung": "baseline",
+      "kind": "reference",
+      "g_co2e_per_shifted_kwh": 0.0,
+      "book_tco2e_per_year": 0.0,
+      "book_gbp_per_year": 0.0,
+      "gbp_per_household_year": 0.0,
+      "kg_co2e_per_household_year": 0.0,
+      "note": "No score at all. Abatement is zero BY CONSTRUCTION, not by measurement."
+    },
+    "hindsight_ceiling": {
+      "rung": "hindsight_ceiling",
+      "kind": "CEILING",
+      "g_co2e_per_shifted_kwh": 40.7489,
+      "book_tco2e_per_year": 10.6798,
+      "book_gbp_per_year": 469.91,
+      "gbp_per_household_year": 6.9105,
+      "kg_co2e_per_household_year": 157.056,
+      "note": "Perfect foreknowledge of the half-hourly shape, perfect compliance, every kWh moved. Unreachable by construction, which is what makes it a ceiling."
+    },
+    "forecast_ceiling": {
+      "rung": "forecast_ceiling",
+      "kind": "CEILING",
+      "g_co2e_per_shifted_kwh": 34.9829,
+      "book_tco2e_per_year": 9.1686,
+      "book_gbp_per_year": 403.42,
+      "gbp_per_household_year": 5.9326,
+      "kg_co2e_per_household_year": 134.832,
+      "note": "The same, acting on the PUBLISHED FORECAST -- what a household could actually act on -- handicapped by the feed's own measured capture of 0.8585. Still perfect compliance, so still a ceiling."
+    },
+    "null_ceiling": {
+      "rung": "null_ceiling",
+      "kind": "noise floor",
+      "g_co2e_per_shifted_kwh": 8.4507,
+      "book_tco2e_per_year": 2.2148,
+      "book_gbp_per_year": 97.45,
+      "gbp_per_household_year": 1.4331,
+      "kg_co2e_per_household_year": 32.571,
+      "note": "The MAX over 200 draws of an optimiser with no skill: window picked from a shuffled day, scored on the real one. How high chance reaches."
+    }
+  },
+  "within_day_overstatement": {
+    "available": true,
+    "by_year": {
+      "2021": 1.4034,
+      "2022": 1.5378
+    },
+    "mean": 1.4706,
+    "years_uncovered": [
+      "2016",
+      "2025"
+    ],
+    "what_it_means": "The reconstructed shape swings more WITHIN a day than the published NESO series does, so a timing benefit computed on it is too large by about this factor. It is the only axis a household can act on -- the washing moves from 6pm to 2am, not to a windier Tuesday -- so it is the correct correction for a shifting claim and the annual p95/p5 figure is not."
+  },
+  "corrected_headline": {
+    "rung": "forecast_ceiling_corrected",
+    "kind": "CEILING",
+    "g_co2e_per_shifted_kwh": 23.7882,
+    "book_tco2e_per_year": 6.2346,
+    "book_gbp_per_year": 274.32,
+    "gbp_per_household_year": 4.0342,
+    "kg_co2e_per_household_year": 91.685,
+    "note": "The forecast ceiling divided by the feed's own measured within-day overstatement of 1.4706. This is the honest headline: it removes the one exaggeration this repository has measured in the shape, on the one axis a household can act on."
+  },
+  "shiftable_share_curve": [
+    {
+      "shiftable_share": 0.05,
+      "gbp_per_household_year": 0.2017,
+      "kg_co2e_per_household_year": 4.584
+    },
+    {
+      "shiftable_share": 0.1,
+      "gbp_per_household_year": 0.4034,
+      "kg_co2e_per_household_year": 9.168
+    },
+    {
+      "shiftable_share": 0.2,
+      "gbp_per_household_year": 0.8068,
+      "kg_co2e_per_household_year": 18.337
+    },
+    {
+      "shiftable_share": 0.5,
+      "gbp_per_household_year": 2.0171,
+      "kg_co2e_per_household_year": 45.843
+    },
+    {
+      "shiftable_share": 1.0,
+      "gbp_per_household_year": 4.0342,
+      "kg_co2e_per_household_year": 91.685
+    }
+  ],
+  "carbon_value": {
+    "gbp_per_tonne": 44.0,
+    "basis": "DESNZ traded carbon values 2025, Table 1, central case, real 2025 GBP",
+    "why_traded_and_not_non_traded": "GB grid generation sits inside the UK ETS, so an abated grid tonne is a traded tonne. The non-traded value would roughly double every money figure here and this repository holds it only as an ASSERTED anchor, which may not be the comparator in a ceiling.",
+    "never_a_target": "The cheapest way to improve a \u00a3/tonne score is to pick easy households, which is the opposite of the mission. This figure is a diagnostic (scope brief \u00a7D)."
+  },
+  "verdict": {
+    "clears_the_null": true,
+    "hindsight_over_null": 4.82,
+    "retires_time_shifting": false
+  },
+  "named_gaps": [
+    "SHIFTABLE SHARE of domestic load. Nothing in the knowledge layer, the commons or the market research establishes one, so the headline is reported at share = 1.0 and the curve is published instead of a figure. This is the single number that would turn the ceiling into an estimate, and it is a question to research.",
+    "The non-traded (appraisal) carbon value is held only as an asserted anchor (~\u00a380-90/tCO2e). Sourcing it would roughly double every money figure above.",
+    "Book depth (A46): every figure here is a per-year rate over a book whose renewal history is thin, so what a ceiling can be DEMONSTRATED over is bounded separately.",
+    "The shape is exogenous: a book-wide shift would itself move the merit order. At 164 households against ~28M GB homes that is negligible, and at national scale it is not -- which makes this a ceiling for THIS company and not for the policy."
+  ],
+  "caveats": [
+    "Computed over 20 whole days in years 2016, 2021, 2022, 2025. That is a small panel and the figure carries its sample size for that reason.",
+    "The typical-day cross-check below understates within-day spread because averaging days flattens it; the real-day rungs overstate it by the measured factor. The two bracket the answer rather than agreeing."
+  ],
+  "typical_day_cross_check": {
+    "available": true,
+    "g_per_kwh_by_year": {
+      "2016": 51.8741,
+      "2017": 53.7321,
+      "2018": 45.5552,
+      "2019": 42.8741,
+      "2020": 34.9318,
+      "2021": 38.4922,
+      "2022": 38.4355,
+      "2023": 34.7801,
+      "2024": 35.6833,
+      "2025": 30.0231
+    },
+    "first_year": "2016",
+    "last_year": "2025",
+    "change_pct": -42.1,
+    "reads": "UNDERSTATES the real-day figure -- averaging days flattens within-day spread. It is carried for the TREND, not for the level."
+  },
+  "headline": "R3's timing ceiling CLEARS its null by 4.82x, so there is real carbon in the grid's shape for a score to point at. At perfect foreknowledge, perfect compliance and EVERY kWh moved, the whole 68-household book abates 10.68 tCO2e/yr -- \u00a36.91 per household-year at the DESNZ traded carbon value. Acting on a real forecast and correcting the shape's own measured within-day exaggeration takes that to \u00a34.03 per household-year (91.7 kgCO2e). Those are CEILINGS at a shiftable share of 1.0, which no household has; at a tenth of load moved the figure is a tenth of that. And it is shrinking: on the typical-day series the headroom moved -42.1% between 2016 and 2025 as the grid decarbonised, so the programme is worth less every year it is not built."
+}
