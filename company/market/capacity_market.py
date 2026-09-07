@@ -17,6 +17,28 @@ observation, not a market spike, and the same figure `flexibility_potential` was
 household's rated power. `2021: 0.0  # No T4 cleared in some years` asserted that no T-4 cleared;
 the T-4 for delivery year 2021/22 cleared at GBP8.40/kW, the cheapest of the whole record, so the
 comment described the opposite of what happened and a zero stood where a real price belonged.
+
+THIS MODULE DOES NOT APPLY A DE-RATING FACTOR, AND APPLYING ONE HERE WOULD DOUBLE-COUNT. Asked
+deliberately on 2026-09-07, once `derating_factor()` began serving real published numbers. The
+answer is no, and the reason is one word in a field name: `CMUnit.derated_capacity_kw` states that
+its input is ALREADY de-rated, so `annual_revenue_gbp` multiplying it by the clearing price is the
+publisher's own arithmetic and correct as it stands. A factor inside that property would apply the
+de-rating twice and understate by the whole of it -- 29% at the DSR series' trough.
+
+SO THE LIVE HAZARD HERE IS THE OPPOSITE ONE, and it is why `derated_kw_from_rated` now exists:
+nothing stopped a caller passing a RATED figure into a field whose name says de-rated. That is
+silent, it is the founding defect of this family arriving through an argument list rather than
+through a constant, and no comment would have caught it. The conversion is now a named door that
+resolves its factor through the same `auction_actually_held` as the price, so a caller holding a
+rated number has somewhere correct to go and does not have to know about DY 2022/23's substituted
+T-3 in order to avoid crossing two auctions.
+
+WHAT THE PUBLISHER WILL NOT ANSWER FROM A UNIT TYPE ALONE, which is half the value of the door.
+Three of the six `CMUnitType` members do not determine a de-rating class: Storage is published
+split by duration (0.5h to 12h), so `BATTERY` and `PUMP_STORAGE` need a duration nobody has asked
+this module for, and interconnectors are published per NAMED LINK (IFA, BritNED, NEMO, NSL...), so
+`INTERCONNECTOR` names no class either. Those three REFUSE with the reason, rather than picking a
+plausible neighbour -- which is exactly what a caller in a hurry would have done inline.
 """
 from __future__ import annotations
 
@@ -64,11 +86,81 @@ def get_cm_price(
         delivery_year, "T-4" if auction is AuctionType.T4 else "T-1")
 
 
+#: `CMUnitType` -> the de-rating class the publisher lists it under, in preference order. A TUPLE
+#: because THE PUBLISHER RENAMED THE CLASSES MID-RECORD and a single string silently returns no
+#: factor for the years using the other name: OCGT is 'OCGT and Reciprocating Engines' in the 2016
+#: Transitional auction and again in the T-4 for DY 2019/20, and 'Open Cycle Gas Turbine (OCGT)'
+#: everywhere else. Aliases are tried in order and the first one the register carries wins.
+_DERATING_CLASS_ALIASES: dict[CMUnitType, tuple[str, ...]] = {
+    CMUnitType.CCGT: ("Combined Cycle Gas Turbine (CCGT)",),
+    CMUnitType.OCGT: ("Open Cycle Gas Turbine (OCGT)", "OCGT and Reciprocating Engines"),
+    CMUnitType.DEMAND_RESPONSE: (capacity_market_published_record.DSR_TECHNOLOGY_CLASS,),
+}
+
+#: The unit types whose de-rating class the publisher does NOT determine from the type alone, with
+#: the reason each one refuses. Kept beside the map rather than as an `else` branch so that a
+#: reader adding a `CMUnitType` has to decide which side it falls on.
+_CLASS_NOT_DETERMINED_BY_TYPE: dict[CMUnitType, str] = {
+    CMUnitType.BATTERY: (
+        "the publisher splits Storage by DURATION -- 'Storage (Duration 0.5h)' through 'Storage "
+        "(Duration 12h)' -- and the factors across that range differ by more than 3x, so a "
+        "battery's de-rating is not determined by it being a battery"
+    ),
+    CMUnitType.PUMP_STORAGE: (
+        "pumped storage is published under the same duration-split Storage classes as any other "
+        "store, and this module has not been told a duration"
+    ),
+    CMUnitType.INTERCONNECTOR: (
+        "interconnector factors are published per NAMED LINK -- IFA, IFA2, BritNED, NEMO, NSL, "
+        "Eleclink, Moyle, EWIC, Greenlink, VikingLink -- and they range from 0.06 to 0.69, so "
+        "'interconnector' identifies no class at all"
+    ),
+}
+
+
+def derated_kw_from_rated(
+    unit_type: CMUnitType, rated_kw: float, delivery_year: int, auction: AuctionType
+) -> Optional[float]:
+    """Convert a RATED capacity to the de-rated capacity `CMUnit` wants, or `None`.
+
+    THE SANCTIONED DOOR INTO `derated_capacity_kw`. That field's name says de-rated and nothing
+    enforced it; a caller holding a nameplate figure had no correct route and the wrong one was
+    free. Resolves the factor through `capacity_market_published_record`, which pins it to the
+    auction ACTUALLY held, so DY 2022/23's substituted T-3 cannot be paired with a T-4 factor.
+
+    `None` means the register establishes no factor for that class in that auction -- a delivery
+    year outside the record. It is NOT 1.0 and NOT "no de-rating", and a caller that substitutes
+    either has reinstated the whole overstatement.
+
+    Raises `ValueError` for a unit type the publisher does not class from the type alone -- see
+    `_CLASS_NOT_DETERMINED_BY_TYPE`. That is deliberately a different outcome from `None`: an
+    absent year is an evidence gap, whereas asking for "the battery factor" is a question with no
+    answer however complete the record gets, and collapsing the two would hide it.
+    """
+    if unit_type in _CLASS_NOT_DETERMINED_BY_TYPE:
+        raise ValueError(
+            f"cannot de-rate a {unit_type.value} CMU from its unit type: "
+            f"{_CLASS_NOT_DETERMINED_BY_TYPE[unit_type]}. Look the factor up by its published "
+            "class with `capacity_market_published_record.derating_factor` and pass the de-rated "
+            "capacity directly."
+        )
+    auction_label = "T-4" if auction is AuctionType.T4 else "T-1"
+    for technology_class in _DERATING_CLASS_ALIASES[unit_type]:
+        factor = capacity_market_published_record.derating_factor(
+            technology_class, delivery_year, auction_label)
+        if factor is not None:
+            return round(rated_kw * factor, 4)
+    return None
+
+
 @dataclass(frozen=True)
 class CMUnit:
     unit_id: str
     unit_type: CMUnitType
     derated_capacity_kw: float
+    """DE-RATED, as the name says -- not nameplate. `derated_kw_from_rated` converts. Passing a
+    rated figure here overstates `annual_revenue_gbp` by 1/f, which is 12-40% across the DSR
+    record, and nothing downstream can detect it because both numbers are plausible kW."""
     registered_date: dt.date
 
 

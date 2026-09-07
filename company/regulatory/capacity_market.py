@@ -1,77 +1,169 @@
-"""Capacity Market (CM) obligation management.
+"""Capacity Market (CM) obligation management -- the SUPPLIER side.
 
-UK energy suppliers with more than 50MWh/year metered load have capacity
-obligations under the Capacity Market (run by NESO). Obligations are
-derived from the supplier's Total Final Demand (TFD) during the four
-highest system demand settlement periods of the year (Triads for old
-mechanism; replaced by Capacity Market charge in settlement).
+UK suppliers pay a Capacity Market charge, recovered from all electricity demand customers as a
+pass-through on the bill. This module models the company's own CM obligation and charge from
+company-observable settlement data.
 
-The CM charge appears as a pass-through cost on customer bills.
-Failure to meet delivery obligations results in penalty charges.
+THIS MODULE APPLIES NO DE-RATING FACTOR, AND IT NEVER SHOULD HAVE. Asked deliberately on
+2026-09-07, once `capacity_market_published_record.derating_factor()` began serving real published
+numbers and the two remaining CM consumers needed a decision each. The answer here is not "no
+factor is available" -- it is that **the concept does not apply**. De-rating is a haircut on a
+capacity PROVIDER's connection capacity, reflecting how much of it can be relied on at a stress
+event. A supplier's obligation is a payment scaled by the electricity it SUPPLIED, and demand is
+not de-rated. There is no published factor for it because there is nothing to publish.
 
-This module models the company's CM obligation, estimated charge,
-and delivery status — all from company-observable settlement data.
+WHAT WAS HERE INSTEAD, and it is the more instructive half. `_DERATING_FACTOR = 0.92  # Assumed
+average de-rated supply margin %` -- invented, named for a concept that does not apply to the
+quantity it multiplied, and load-bearing in every figure this module produced. Alongside it,
+`_CM_OBLIGATION_RATE_BY_YEAR` was a FOURTH home for the CM clearing price (after
+`flexibility_potential`, `capacity_market` and `ic_flexibility_revenue`), keyed by year with no
+statement of which year, ending in `.get(year, _RATE[2025])` so that every unrecognised year
+silently priced at a real-looking number.
+
+AND THE CLEARING PRICE WAS NEVER THIS QUANTITY. A supplier levy is not an auction result: it is
+the total cost of all capacity agreements recovered across all suppliers in proportion to their
+peak-period demand, and no publication states it as a rate you can derive from a clearing price.
+Measured against Ofgem Annex 9 at 5 TWh, the route this replaced read 8.51x at 2016, 0.21x at 2020,
+0.03x at 2021, 4.21x at 2022 and 1.69x at 2024 -- it tracked the published series in neither level
+nor sign of error. 2022 is the clearest: the T-1 cleared at the GBP75/kW CAP and the real levy
+FELL, because the volume behind that price was small. A clearing-price model gets that year
+backwards, and no re-parameterisation fixes a quantity that is not the one being asked for.
+
+REMOVING THE 0.92 MADE THE OLD ANSWER WORSE (2024: 12.29 -> 13.36 GBP/MWh against a published
+7.27), which is the most expensive thing an invented constant can do: it was pulling an overstated
+figure toward plausibility and so made a wrong route look roughly calibrated. That is why this is a
+re-founding rather than a deletion.
+
+The charge now comes from the regulation commons -- the published Annex 9 series, one home, read
+rather than derived. Reading the commons is not a wall crossing (see `ro_commons`, same doctrine):
+the law and the published cost breakdown are readable by every lane, and what stays owned here is
+the READING.
+
+STILL NOT ADDRESSED, and named so the next reader does not mistake it for settled: `delivery_status`,
+`shortfall_kw` and `penalty_gbp` below model a capacity PROVIDER's obligation to deliver at a stress
+event and its penalty for failing to. A supplier holds no such obligation -- its CM obligation is a
+payment. Those three fields are a category conflation left standing here because unpicking them is a
+change to what this module is for, not a de-rating decision, and this pass was the latter.
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, Optional
+
+_COMMONS = (
+    Path(__file__).resolve().parents[2]
+    / "docs" / "domain_artefact_library" / "regulatory"
+    / "capacity_market_supplier_levy.json"
+)
 
 
-# CM obligation rate (GBP/kW per annum), varies by auction year
-# Source: NESO Capacity Market auction results, clearing prices
-_CM_OBLIGATION_RATE_BY_YEAR: dict[int, float] = {
-    2016: 22.50,
-    2017: 6.95,
-    2018: 8.40,
-    2019: 15.97,
-    2020: 6.44,
-    2021: 0.77,   # Covid demand reduction
-    2022: 75.00,  # T-1 auction crisis price
-    2023: 63.00,
-    2024: 65.00,
-    2025: 68.00,
-}
+def _load_levy() -> Dict[int, float]:
+    """`{obligation_year: GBP/MWh}` from the regulation commons.
 
-# Assumed average de-rated supply margin %, used to size obligation
-_DERATING_FACTOR = 0.92
+    NO FAIL-OPEN PATH (R15). A missing, empty or malformed artefact RAISES at import rather than
+    degrading to the literals this replaced or to a plausible default. An unavailable publication
+    is not a licence to invent one -- which is exactly how a fourth home for the clearing price
+    and an invented 0.92 came to be load-bearing here in the first place.
+    """
+    if not _COMMONS.exists():
+        raise FileNotFoundError(
+            f"Capacity Market supplier levy commons missing: {_COMMONS}. The published series is "
+            "required; there is no invented default."
+        )
+    rows = json.loads(_COMMONS.read_text()).get("levy_gbp_per_mwh")
+    if not rows:
+        raise ValueError(f"CM supplier levy commons carries no series: {_COMMONS}")
+    return {row["obligation_year"]: float(row["gbp_per_mwh"]) for row in rows}
 
-# Penalty rate for missed delivery: 1/8 of the clearing price per MWh shortfall
+
+_LEVY_GBP_PER_MWH: Dict[int, float] = _load_levy()
+
+#: Peak-to-average demand ratio used to size the peak-period demand the CM charge is levied on.
+#: Origin: assumption -- NOT a published figure, and it is only reachable through
+#: `compute_cm_obligation`'s `obligation_kw`, which is a diagnostic. It does NOT reach
+#: `annual_charge_gbp` or `cm_charge_per_mwh`, both of which are now the published levy times
+#: volume. Kept explicit and named so its status is visible; it used to be multiplied by an
+#: invented de-rating factor and a mis-keyed clearing price to produce the headline number.
+_PEAK_TO_AVERAGE_RATIO = 1.8
+
+# Penalty rate for missed delivery: 1/8 of the levy rate per MWh shortfall. See the module
+# docstring -- the whole penalty leg models a provider obligation a supplier does not hold.
 _PENALTY_DIVISOR = 8
+
+
+def cm_levy_gbp_per_mwh(obligation_year: int) -> Optional[float]:
+    """The published CM supplier levy for an Apr-Mar obligation year, or `None`.
+
+    `None` means the year is outside Ofgem's published record -- NOT zero, and NOT the last known
+    rate. There is deliberately no carry-forward: the lookup this replaced ended
+    `.get(year, _RATE[2025])`, so a caller asking about an unpublished year got a real-looking
+    number with nothing behind it and no way to tell.
+    """
+    return _LEVY_GBP_PER_MWH.get(obligation_year)
 
 
 @dataclass
 class CMObligationResult:
     year: int
     total_demand_mwh: float
-    obligation_kw: float          # derived from TFD; kW of firm capacity required
-    clearing_price_gbp_per_kw: float
+    obligation_kw: float          # peak-period demand estimate; a diagnostic, see the docstring
+    levy_gbp_per_mwh: float
+    """The PUBLISHED supplier levy, GBP per MWh supplied. This field used to be called
+    `clearing_price_gbp_per_kw` and held an auction result -- a different quantity, in different
+    units, belonging to a different party. Renamed rather than re-sourced, because a caller
+    reading `clearing_price` off a supplier obligation was being told something false by the
+    field name alone."""
     annual_charge_gbp: float
-    delivery_status: str          # DELIVERED / PARTIAL / FAILED
+    delivery_status: str          # DELIVERED / PARTIAL / FAILED -- provider concept, see docstring
     shortfall_kw: float
     penalty_gbp: float
 
 
-def compute_cm_obligation(year: int, total_demand_mwh: float, firm_capacity_kw: float = None) -> CMObligationResult:
-    """Compute Capacity Market obligation and charge for a given year.
+def compute_cm_obligation(
+    year: int, total_demand_mwh: float, firm_capacity_kw: float = None
+) -> CMObligationResult:
+    """Compute the company's Capacity Market charge for an Apr-Mar obligation year.
 
     Args:
-        year: delivery year
+        year: obligation year (the calendar year the Apr-Mar year opens in)
         total_demand_mwh: supplier's total annual metered demand
         firm_capacity_kw: contracted firm capacity (if any); None = zero (all pass-through)
 
-    Returns CMObligationResult with annual charge and delivery status.
+    THE CHARGE IS THE PUBLISHED LEVY TIMES VOLUME, and nothing else feeds it. It is no longer
+    peak demand times a de-rating factor times a clearing price, which was three invented or
+    mis-keyed inputs producing a figure that missed Ofgem's published series by up to 33x in one
+    direction and 8.5x in the other.
+
+    `obligation_kw` survives as a DIAGNOSTIC -- the peak-period demand the charge is levied on,
+    sized by `_PEAK_TO_AVERAGE_RATIO`, which is an assumption and says so. It no longer reaches
+    the money.
+
+    Raises `ValueError` for a year outside the published record. There is no carry-forward: the
+    lookup this replaced defaulted to its last known rate, so an unpublished year was
+    indistinguishable from a published one at the call site.
     """
-    rate = _CM_OBLIGATION_RATE_BY_YEAR.get(year, _CM_OBLIGATION_RATE_BY_YEAR[2025])
-    # Peak demand estimate: annual MWh / 8760h * peak-to-average factor 1.8
-    peak_mw = (total_demand_mwh / 8760.0) * 1.8
-    obligation_kw = round(peak_mw * 1000 * _DERATING_FACTOR, 1)
+    levy = cm_levy_gbp_per_mwh(year)
+    if levy is None:
+        raise ValueError(
+            f"no published Capacity Market supplier levy for obligation year {year}: the record "
+            f"covers {min(_LEVY_GBP_PER_MWH)}-{max(_LEVY_GBP_PER_MWH)}. There is no default, "
+            "because the default this replaced was the last known rate and it made an "
+            "unpublished year look established."
+        )
+
+    peak_mw = (total_demand_mwh / 8760.0) * _PEAK_TO_AVERAGE_RATIO
+    obligation_kw = round(peak_mw * 1000, 1)
 
     firm = firm_capacity_kw or 0.0
     shortfall_kw = max(0.0, obligation_kw - firm)
 
-    annual_charge = round(obligation_kw * rate, 2)
-    penalty = round((shortfall_kw / 1000.0) * (rate / _PENALTY_DIVISOR), 2) if shortfall_kw > 0 else 0.0
+    annual_charge = round(total_demand_mwh * levy, 2)
+    penalty = (
+        round((shortfall_kw / 1000.0) * (levy / _PENALTY_DIVISOR), 2) if shortfall_kw > 0 else 0.0
+    )
 
     if shortfall_kw == 0:
         delivery_status = "DELIVERED"
@@ -84,7 +176,7 @@ def compute_cm_obligation(year: int, total_demand_mwh: float, firm_capacity_kw: 
         year=year,
         total_demand_mwh=total_demand_mwh,
         obligation_kw=obligation_kw,
-        clearing_price_gbp_per_kw=rate,
+        levy_gbp_per_mwh=levy,
         annual_charge_gbp=annual_charge,
         delivery_status=delivery_status,
         shortfall_kw=round(shortfall_kw, 1),
@@ -93,8 +185,14 @@ def compute_cm_obligation(year: int, total_demand_mwh: float, firm_capacity_kw: 
 
 
 def cm_charge_per_mwh(year: int, total_demand_mwh: float) -> float:
-    """Return the CM pass-through charge in GBP/MWh for a given year and demand."""
-    result = compute_cm_obligation(year, total_demand_mwh)
+    """The CM pass-through charge in GBP/MWh -- which is the published levy itself.
+
+    Kept as a named function because callers ask for it by this name, and because the identity is
+    the point: a per-MWh charge derived from a per-MWh publication cannot drift from it. The form
+    this replaced routed the same question through a peak estimate, a de-rating factor and a
+    clearing price, and arrived somewhere else entirely.
+    """
     if total_demand_mwh <= 0:
         return 0.0
-    return round(result.annual_charge_gbp / total_demand_mwh, 4)
+    return round(compute_cm_obligation(year, total_demand_mwh).annual_charge_gbp
+                 / total_demand_mwh, 4)
