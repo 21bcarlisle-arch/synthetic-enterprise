@@ -984,6 +984,116 @@ def test_the_SIZE_of_the_missing_tariff_REACHES_THE_READER_and_its_absence_rende
         "the gap itself must still be published when its size is not known")
 
 
+def test_the_SHARING_SPLIT_is_DERIVED_from_the_frontier_and_can_go_false(monkeypatch, tmp_path):
+    """BOTH LEGS over the discriminator, because a flag only ever asserted true is a flag no
+    mutation can fail.
+
+    `the_split_is_an_identity` is the page's licence to tell a reader that sharing creates nothing.
+    If it were prose — a `True` restated in R4 — it would stay green after the frontier stopped
+    summing, and the page would keep claiming an identity it no longer had. So this drives the
+    derivation twice from one artefact shape: the real frontier, where the shares sum and the flag
+    must hold, and a POISONED one where they do not and it must not.
+
+    MUTATION (must fire): hardcode the flag to True, or compare the rows against anything other
+    than the created value they are supposed to divide.
+    """
+    import tools.r4_product_ceiling as r4
+
+    def _artefact(frontier):
+        p = tmp_path / f"tou_{len(frontier)}_{frontier[0]['company_gbp_per_household_year']}.json"
+        p.write_text(json.dumps({
+            "created_value": {"gbp_per_household_year": 100.0},
+            "reachable_book": {"households": 22, "book_gbp_per_year": 1125.0},
+            "the_carbon_column": {"money_over_carbon": 7.43},
+            "sharing_frontier": frontier,
+            "the_interior_optimum": {
+                "therefore": "The company's take is zero at both ends.",
+                "what_it_does_NOT_say": "Where the interior optimum is.",
+            },
+        }), encoding="utf-8")
+        return p
+
+    sums = [{"pass_through": a, "household_gbp_per_household_year": 100.0 * a,
+             "company_gbp_per_household_year": 100.0 * (1 - a)} for a in (0.0, 0.5, 1.0)]
+    monkeypatch.setattr(r4, "TOU_ARTEFACT", _artefact(sums))
+    assert r4.the_sharing_ceiling()["the_split_is_an_identity"] is True, (
+        "the shares sum to the created value at every row and the derivation says they do not, "
+        "so the page would withhold a true identity")
+
+    # POISONED: the company's share no longer completes the household's. Sharing would then be
+    # creating or destroying value, which is the one thing the frontier exists to deny.
+    broken = json.loads(json.dumps(sums))
+    broken[1]["company_gbp_per_household_year"] = 90.0
+    monkeypatch.setattr(r4, "TOU_ARTEFACT", _artefact(broken))
+    assert r4.the_sharing_ceiling()["the_split_is_an_identity"] is False, (
+        "a frontier whose shares do not sum to the created value still licenses the page to claim "
+        "an identity — the flag is restated rather than derived")
+
+
+def test_the_SHARING_SPLIT_reaches_the_reader_and_the_frontier_ROWS_never_do():
+    """THE RENDER, and the trap it has to walk around.
+
+    The frontier holds the created value FIXED, so its zero-pass-through row says the company keeps
+    the whole ceiling. That is not a take anyone could bank — at zero pass-through nothing moves,
+    so nothing is created — and published as a row it would read as value the company gets for
+    doing nothing. Value TRANSFERRED dressed as value CREATED is the substitution the mission's
+    first consequence forbids, so the rows must not travel and the identity must arrive with the
+    endpoints that bound it.
+
+    MUTATION (must fire): render the identity without the interior-optimum sentence, or ship the
+    frontier rows into the payload the page reads.
+    """
+    from tools.generate_delivery_page import the_most_the_products_beyond_price_could_be_worth
+
+    payload = the_most_the_products_beyond_price_could_be_worth()
+    if payload.get("available"):
+        sharing = payload.get("the_sharing_ceiling") or {}
+        rows = [v for v in sharing.values() if isinstance(v, list)]
+        assert not any(
+            isinstance(r, dict) and "pass_through" in r for row in rows for r in row), (
+            "the frontier's rows reached the delivery payload; its zero-pass-through row reads as "
+            "the company keeping the whole ceiling for a shift that never happened")
+
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    key = "the_most_the_products_beyond_price_could_be_worth"
+    if not (live.get(key) or {}).get("available"):
+        pytest.skip("no product ceiling in this feed; the absence path is covered elsewhere")
+
+    shown_feed = json.loads(json.dumps(live))
+    shown_feed[key]["the_sharing_ceiling"] = {
+        "available": True,
+        "created_gbp_per_household_year": 51.36,
+        "the_split_is_an_identity": True,
+        "the_optimum_is_interior": "Its maximum is STRICTLY INTERIOR and needs no elasticity.",
+        "where_the_optimum_sits": "That needs a shift response, and none is established.",
+    }
+    shown = _text(_render({"../data/delivery.json": shown_feed})["delivery-product-ceiling"][
+        "innerHTML"])
+    assert "sharing it creates nothing" in shown, (
+        "the sharing side never reaches the reader: the page sizes the value and never says how "
+        "it would divide, which is the half the instrument was built to bound")
+    assert "STRICTLY INTERIOR" in shown, (
+        "the identity is published without the endpoints that make it a decision, so a reader "
+        "cannot tell the company's optimum is not at either end")
+    assert "none is established" in shown, (
+        "the unestablished shift response must travel with the claim, or the interior optimum "
+        "reads as a located number rather than a shape")
+
+    # AND THE OTHER LEG: an artefact whose shares stopped summing may not draw the claim at all.
+    withheld_feed = json.loads(json.dumps(live))
+    withheld_feed[key]["the_sharing_ceiling"] = {
+        "available": True,
+        "created_gbp_per_household_year": 51.36,
+        "the_split_is_an_identity": False,
+        "the_optimum_is_interior": "Its maximum is STRICTLY INTERIOR and needs no elasticity.",
+    }
+    withheld = _text(_render({"../data/delivery.json": withheld_feed})[
+        "delivery-product-ceiling"]["innerHTML"])
+    assert "sharing it creates nothing" not in withheld, (
+        "the page claims sharing creates nothing while the frontier it rests on no longer sums — "
+        "a claim that survives its own evidence going false")
+
+
 @pytest.mark.parametrize("panel,key,marker", [
     ("delivery-carbon-ceiling", "the_most_a_carbon_score_could_be_worth", "91.7"),
     ("delivery-product-ceiling", "the_most_the_products_beyond_price_could_be_worth", "tariff_fit"),

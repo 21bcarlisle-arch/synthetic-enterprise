@@ -1,13 +1,85 @@
 {
- "generated_at": "2026-09-07T06:07:29.550918+00:00",
+ "generated_at": "2026-09-07T07:11:22.645248+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
    {
+    "sha": "40eeb5edc",
+    "at": "2026-09-07T07:58:20+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "c7f433ce2",
+    "at": "2026-09-07T07:55:56+01:00",
+    "subject": "merge origin/main: the fork dial's restore and its guard's unreachable leg, disjoint from the R3 sharing ceiling",
+    "substantive": false
+   },
+   {
+    "sha": "9f9a423a4",
+    "at": "2026-09-07T07:55:05+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "1a352d2aa",
+    "at": "2026-09-07T07:53:29+01:00",
+    "subject": "the centroid is gone: households now sit on the addresses themselves, and it costs half a second",
+    "substantive": true
+   },
+   {
+    "sha": "f1ccbd258",
+    "at": "2026-09-07T07:51:01+01:00",
+    "subject": "the fork dial was never restored at HEAD, and the guard's post-expiry leg had never been run",
+    "substantive": true
+   },
+   {
+    "sha": "8a50f59c6",
+    "at": "2026-09-07T07:30:31+01:00",
+    "subject": "merge origin/main: the sharing ceiling and its wiring, disjoint from the A49 L2 recording and the liveness heartbeats",
+    "substantive": false
+   },
+   {
+    "sha": "7f33c0715",
+    "at": "2026-09-07T07:20:37+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=7d92b54dd5a896f9e9c2b97b62771e2a3b3ccd59) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "6b544363f",
+    "at": "2026-09-07T07:08:34+01:00",
+    "subject": "the delivery feed carries the sized missing tariff, so /harness/ shows it without waiting for the publish daemon",
+    "substantive": false
+   },
+   {
     "sha": "6fb5f64f3",
     "at": "2026-09-07T06:57:57+01:00",
     "subject": "the sharing side of R3 gets a ceiling: 7.4x the carbon, and a third of the book could be sold it",
+    "substantive": true
+   },
+   {
+    "sha": "7d92b54dd",
+    "at": "2026-09-07T06:48:04+01:00",
+    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=23a4ab3d146512bdcb3f6aede3a431fc0804faa6) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
+    "substantive": false
+   },
+   {
+    "sha": "23a4ab3d1",
+    "at": "2026-09-07T06:38:50+01:00",
+    "subject": "a49's recorded L2 is at HEAD and the shared working tree still reads level 0",
+    "substantive": false
+   },
+   {
+    "sha": "a6bacbac1",
+    "at": "2026-09-07T06:37:28+01:00",
+    "subject": "merge origin/main: the A49 ceilings reach a reader, disjoint from the L2 recording",
+    "substantive": false
+   },
+   {
+    "sha": "d73d48347",
+    "at": "2026-09-07T06:27:15+01:00",
+    "subject": "A49 is recorded at L2: both ceilings exist, and what stood between the row and its level was two lane blockers and a missing header line",
     "substantive": true
    },
    {
@@ -171,88 +243,16 @@
     "at": "2026-09-07T01:19:45+01:00",
     "subject": "R1's only unbiased magnitude was measured and reached no surface, and three published sentences asserted verdicts they never read",
     "substantive": true
-   },
-   {
-    "sha": "33d700648",
-    "at": "2026-09-07T00:58:37+01:00",
-    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
-    "substantive": false
-   },
-   {
-    "sha": "3088f8c71",
-    "at": "2026-09-07T00:53:14+01:00",
-    "subject": "the arm refused gas for a reason that had stopped being true, and four inputs behind the gate still said electricity",
-    "substantive": true
-   },
-   {
-    "sha": "fc9d943a5",
-    "at": "2026-09-07T00:45:48+01:00",
-    "subject": "the R1 magnitude refused for coverage the book already had, and the winner was setting the population",
-    "substantive": true
-   },
-   {
-    "sha": "d1aebbd79",
-    "at": "2026-09-07T00:23:38+01:00",
-    "subject": "the wedge fixture had one clock, and the cut-proof that should have caught it was passing on nothing",
-    "substantive": true
-   },
-   {
-    "sha": "992a037fc",
-    "at": "2026-09-06T23:59:40+01:00",
-    "subject": "the map pair sat seven bytes under its ceiling, and the prose that filled it belonged in the store",
-    "substantive": true
-   },
-   {
-    "sha": "41732272a",
-    "at": "2026-09-06T23:47:06+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=c1ee932fb5a684884ae4e3ee39e707afcb6febc9) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "c1ee932fb",
-    "at": "2026-09-06T23:42:00+01:00",
-    "subject": "one Lane 0 claim has two live seats again, and the second is mid-build on the same module",
-    "substantive": false
-   },
-   {
-    "sha": "ec8a18710",
-    "at": "2026-09-06T23:40:38+01:00",
-    "subject": "a drawn household now has a coordinate, and the census is where it came from",
-    "substantive": true
-   },
-   {
-    "sha": "20b057ba0",
-    "at": "2026-09-06T23:07:08+01:00",
-    "subject": "chore(liveness): publish heartbeat while sim output unchanged (git=bc60c0f6fd64319e7c0b07bfd6a44ded25a35d65) -- decouples published liveness from content-change (Fault#1 2026-07-25)",
-    "substantive": false
-   },
-   {
-    "sha": "bc60c0f6f",
-    "at": "2026-09-06T23:06:57+01:00",
-    "subject": "no: 15% of GB square kilometres hold no address, not 47% -- households now follow the address record",
-    "substantive": true
-   },
-   {
-    "sha": "dd6426269",
-    "at": "2026-09-06T23:04:22+01:00",
-    "subject": "A49's note published a clearance its own instrument now refutes -- the coverage bought a magnitude and took the clearance away",
-    "substantive": true
-   },
-   {
-    "sha": "49978405f",
-    "at": "2026-09-06T22:57:42+01:00",
-    "subject": "merge origin/main -- W1_14's weather-cell siting lane, disjoint from R1's account-state coverage",
-    "substantive": false
    }
   ],
-  "substantive": 23,
-  "mechanical": 17,
+  "substantive": 19,
+  "mechanical": 21,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
   "oriented_at": "2026-09-05T14:23:03.881665+00:00",
-  "age_hours": 39.7,
+  "age_hours": 40.8,
   "expires_after_hours": 12.0,
   "live": false,
   "thesis_read": "For the first time in ten stretches the direction reached work, and the reason it did not register as such is worth more than the fact. `previous_focus_drawn.drawn` is empty for the tenth consecutive orientation \u2014 and yet focus item 1, the HadUK-Grid pull, was BUILT and LANDED at 12:09Z as 8016f7176, and focus item 3's subject, the tree standing behind origin, is repaired: `git rev-list --left-right --count HEAD...origin/main` reads 0 and 0 at 14:24Z against 0 and 10 at the last orientation. So my predecessor's open sub-question \u2014 how a focus item gets built without being drawn \u2014 now has a demonstrated answer rather than a candidate: the staging queue delivered it. `staging_rooms.work_queue()` ranks the weather ruling 2nd of 76 and an interactive seat worked it from there, while `delivery_lane`'s ledger, which is the only thing `drawn` reads, never saw it. The steer is not a no-op in effect; it is a no-op in the record, and those are different failures with different fixes. What is NOT fixed is the precedence: `next_item()` at 14:24Z still returns `fork-alarm-transition-state-keyed-on-behind-which-moves-every-cadence-2026-09-05`, one of five live continuations, so the `focus` loop beneath it is still unreachable \u2014 and I can now say something sharper than \"the store never empties\". One of those five, `register-low-water-three-implementations-one-mechanism`, describes work that LANDED this stretch in fc950dda6, cbfb12f1b and 029c21452. `live()` retires an entry that expires or is refuted and has no channel for one that was DONE, so a finished continuation preempts the seat's order forever. Against the thesis proper the stretch was the usual shape and I will not dress it up: `tools/product_machinery_split.py` at 14:23Z reads 3.33% over 50, 4.84% over 100, 2.33% over 200, 3.30% over 400 \u2014 below the declared floor at every horizon, as it has been every time it has been run. Nineteen of 44 commits were substantive and the great majority were register rungs, alarm keys, banner rows and publish causes. The one genuine product movement is the weather pull, and it is unfinished in a way nothing is watching: `/home/rich/.cache/synthetic-enterprise/haduk_grid` holds 5.3 GB and 123 files, the committed receipt declares 124 MB and three, and `pull.log` stops at `[120/315]` at 12:27Z with no process alive \u2014 the monthly tier complete at 105 files, the daily tier at 15 of 210, and nothing retrying. That is a tick-bound job that died with its tick, which this project has filed before. The stretch also produced its own best finding: `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS` establishes that 12 of the 50 reds in `.publish_gate_state.json` were `/tmp` at 0 MB, pass green on re-run at the same HEAD, and are indistinguishable in the state file from real defects \u2014 so a tick drawn on that state repairs passing tests, which is a machine that manufactures its own machinery work. The instance was swept; the mechanism was not. Every figure above was read live between 14:23Z and 14:26Z \u2014 `product_machinery_split` run, `next_item()` and `seat_continuation.live()` called, the cache walked with `find` and `du`, the receipt and `pull.log` opened, `git rev-list` run \u2014 and every one of them will be stale for whoever reads this. Re-run before relying on any.",
@@ -1813,7 +1813,11 @@
    "reachable_households": 22,
    "reachable_book_gbp_per_year": 1125.22,
    "why_it_is_not_added_to_this_arm": "It is a COUNTERFACTUAL about a product that does not exist, and this arm reports what THIS book can do. Adding it would publish a bill saving no household on this book can receive. It is carried beside the None so the size of the missing product is visible: the gap is not a rounding error, it is the largest bounded figure in R4.",
-   "and_only_this_column_can_be_shared": "The carbon lands on nobody's bill, so no tariff can share it. The money does. That makes the tariff the PRECONDITION for the abatement rather than a way of monetising it -- the money is what pays for the behaviour that abates."
+   "and_only_this_column_can_be_shared": "The carbon lands on nobody's bill, so no tariff can share it. The money does. That makes the tariff the PRECONDITION for the abatement rather than a way of monetising it -- the money is what pays for the behaviour that abates.",
+   "the_split_is_an_identity": true,
+   "the_optimum_is_interior": "The company's own take is zero at BOTH ends of the frontier, so for any shift response that increases with pass-through its maximum is STRICTLY INTERIOR. That conclusion needs no elasticity and none is asserted: it follows from the two endpoints alone.",
+   "where_the_optimum_sits": "Where the interior optimum is. That needs the shift response as a function of pass-through, and nothing in the knowledge layer, the commons or the market research establishes one. It is a question to research, not a number to pick.",
+   "why_the_frontier_ROWS_are_not_published_here": "The frontier holds the created value FIXED, so its rows are conditional on the shift happening at all. Its zero-pass-through row therefore reads `company keeps the whole ceiling`, and that is not a take anyone could bank: at zero pass-through a household's bill is identical whenever it draws, so nothing moves and nothing is created. Published as a row it would read as value the company could keep for doing nothing -- value TRANSFERRED dressed as value CREATED, which is the one substitution the mission forbids. So the identity travels with the endpoints that bound it and never alone."
   },
   "named_gaps": [
    "PROPERTY ATTRIBUTES. Nothing in the book distinguishes one home's fabric, roof or heating system from another's. This is the single acquisition that would turn three FLOORS into CEILINGS, and it is a data question rather than a modelling one.",
