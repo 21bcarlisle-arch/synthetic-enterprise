@@ -721,7 +721,17 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1314,  # lowered 2026-09-07 (the Capacity Market price leg): -3, and ALL THREE ARE
+    "I001": 1313,  # lowered 2026-09-07 (the CM DE-RATING leg, a50): -1, and it is THIS COMMIT'S.
+    #             `tests/company/test_phase_nx_ic_flexibility.py` -- a file this commit had open
+    #             anyway, because it was RED AT HEAD at collection (it imported the constant the
+    #             price leg below deleted) and had to be repaired to run at all. Attribution is
+    #             certain rather than inferred: measured in a `git worktree add --detach HEAD`
+    #             extract, which reads I001 1314 -- exactly the figure this line replaces -- so
+    #             clean HEAD is green on the old baseline and the whole -1 is this overlay. Landed
+    #             from an ISOLATED worktree, so no other lane's uncommitted fix can be in it.
+    #             SHRINK-ONLY.
+    #
+    #             (previous entry) lowered 2026-09-07 (the Capacity Market price leg): -3, ALL THREE
     #             THIS COMMIT'S. Attributable with certainty rather than by extract-overlay,
     #             because this landed from an ISOLATED worktree: the tree here is clean HEAD plus
     #             exactly these files and no other lane's uncommitted work can be in it. Measured
@@ -806,8 +816,14 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2292  # was 2296; -4 on 2026-09-07, the Capacity Market price leg: -3 I001
-                            # and -1 F841, every one of them this commit's and attributable with
+RUFF_BASELINE_TOTAL = 2291  # was 2292; -1 (I001) on 2026-09-07, the CM DE-RATING leg (a50), in
+                            # `tests/company/test_phase_nx_ic_flexibility.py` -- a file already red
+                            # at HEAD at COLLECTION, so this commit had to open it regardless. A
+                            # detached HEAD extract totals 2292, the figure this line replaces, so
+                            # the whole -1 is this overlay and none of it another lane's.
+                            #
+                            # (superseded) 2292, was 2296; -4 on 2026-09-07, the Capacity Market price leg: -3 I001
+                            # and -1 F841, every one of them that commit's and attributable with
                             # certainty because it landed from an isolated worktree. See the two
                             # entries above for the file-by-file split.
                             #
