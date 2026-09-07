@@ -98,6 +98,12 @@ KS_CRITICAL = 1.358
 
 #: Sizes the acceptance is reported at. Geometric, because the answer is expected in the thousands
 #: and an arithmetic ladder would spend every step where the curve is already flat.
+#: Sizes the CHOSEN design is reported at. Separate from `NS` because a designed sample
+#: answers one to two orders of magnitude lower and a random ladder would spend every
+#: step past the answer.
+CHOSEN_NS = (34, 55, 89, 110, 130, 150, 175, 200, 230, 260, 300, 377, 500, 700, 1000,
+             1400, 1800, 2300, 3000, 4000, 5200)
+
 NS = (13, 21, 34, 55, 89, 144, 233, 300, 377, 450, 520, 610, 700, 800, 987, 1200, 1597, 2000,
       2584, 3300, 4181, 5400, 6765, 8500, 10946, 14000, 17711, 23000, 30000)
 
@@ -477,6 +483,173 @@ def binding_axis(pop, axes, n, seed: int = 0) -> str:
     return max(result, key=lambda k: result[k]["d"])
 
 
+#: Directions the WEIGHTS are fitted on. Disjoint from the 64 the test scores, and that separation
+#: is the only thing standing between "the weights carry the representativeness" and "the weights
+#: were fitted to the answer". A design that passes only on the directions it was fitted to has
+#: learned the test, not the population.
+FIT_SLICES = 32
+
+#: Cut points per axis and per direction used to fit. The weights match the population's CDF at
+#: these quantiles; the test then scores the whole CDF against every population point.
+FIT_GRID = 60
+
+
+def choose_for_difference(values, k: int, seed: int = 0, fuel=None):
+    """Cases chosen because they BEHAVE differently, with the tails deliberately in.
+
+    THE CHOOSING, and the first version of it was wrong in an instructive way. It used greedy
+    maximin -- farthest-from-everything-drawn -- which is right for spanning a space and wrong for
+    standing in for a population: every case lands in the sparse outskirts, the dense bulk where
+    most households live is represented by a handful of atoms, and no weighting can rebuild a
+    bulk-heavy distribution from a set of extremes. Measured, it was WORSE than a random draw.
+
+    So the cases are cluster MEDOIDS -- real households, one per distinct region of behaviour, so
+    two near-identical households can never both be chosen -- plus the extreme of every axis, plus
+    the extremes WITHIN each fuel, because the minority fuel's tail is not the population's tail and
+    the canon says those are different customers.
+    """
+    import numpy as np
+    from sklearn.cluster import KMeans
+
+    values = np.asarray(values, dtype=float)
+    mean = values.mean(axis=0)
+    sd = values.std(axis=0)
+    sd = np.where(sd == 0, 1.0, sd)
+    z = (values - mean) / sd
+
+    km = KMeans(n_clusters=k, n_init=1, random_state=seed).fit(z)
+    chosen = []
+    for c in range(k):
+        members = np.flatnonzero(km.labels_ == c)
+        if len(members):
+            d = np.sum((z[members] - km.cluster_centers_[c]) ** 2, axis=1)
+            chosen.append(int(members[int(np.argmin(d))]))
+    for j in range(values.shape[1]):
+        chosen += [int(np.argmax(values[:, j])), int(np.argmin(values[:, j]))]
+    if fuel is not None:
+        fuel = np.asarray(fuel)
+        for f in sorted(set(fuel.tolist())):
+            idx = np.flatnonzero(fuel == f)
+            for j in range(values.shape[1]):
+                chosen += [int(idx[np.argmax(values[idx, j])]), int(idx[np.argmin(values[idx, j])])]
+    return np.array(sorted(set(chosen)))
+
+
+def fit_weights(values, chosen, reference, seed: int = 999):
+    """Solve for the mass each chosen case stands for, so the WEIGHTED sample reproduces the
+    population.
+
+    Non-negative least squares against the population's own CDF at `FIT_GRID` quantiles on every
+    axis and every FIT direction, with a heavily-weighted sum-to-one row. Non-negativity is not a
+    convenience: a negative weight is a household count below zero, and a case that has to be
+    subtracted to make the distribution work is a case that should not have been chosen.
+    """
+    import numpy as np
+    from scipy.optimize import nnls
+
+    values = np.asarray(values, dtype=float)
+    z = (values - reference.mean) / reference.sd
+    rng = np.random.default_rng(seed)
+    directions = rng.normal(size=(FIT_SLICES, z.shape[1]))
+    directions /= np.linalg.norm(directions, axis=1, keepdims=True)
+
+    rows, targets = [], []
+    for j in range(values.shape[1]):
+        for cut in np.quantile(values[:, j], np.linspace(0.02, 0.98, FIT_GRID)):
+            rows.append((values[chosen, j] <= cut).astype(float))
+            targets.append(float((values[:, j] <= cut).mean()))
+    for u in directions:
+        projected = z @ u
+        chosen_projected = z[chosen] @ u
+        for cut in np.quantile(projected, np.linspace(0.02, 0.98, FIT_GRID)):
+            rows.append((chosen_projected <= cut).astype(float))
+            targets.append(float((projected <= cut).mean()))
+
+    A = np.vstack([np.array(rows), np.ones((1, len(chosen))) * 100.0])
+    b = np.append(np.array(targets), 100.0)
+    weights, _ = nnls(A, b)
+    return weights if weights.sum() > 0 else np.ones(len(chosen))
+
+
+def weighted_ks(sample_values, sample_weights, sorted_reference) -> float:
+    """KS distance between a WEIGHTED empirical distribution and an equal-mass reference.
+
+    The sample's steps are its weights rather than 1/n, which is the whole of what "the mass it
+    stands for" means when it reaches the test.
+    """
+    import numpy as np
+
+    x = np.asarray(sample_values, dtype=float)
+    w = np.asarray(sample_weights, dtype=float)
+    order = np.argsort(x)
+    x, w = x[order], w[order]
+    total = w.sum()
+    if total <= 0:
+        return 1.0
+    cumulative = np.cumsum(w) / total
+
+    grid = np.concatenate([x, sorted_reference])
+    # Step function value at each grid point: the weight at or below it.
+    idx = np.searchsorted(x, grid, "right") - 1
+    sample_cdf = np.where(idx >= 0, cumulative[np.clip(idx, 0, len(x) - 1)], 0.0)
+    reference_cdf = np.searchsorted(sorted_reference, grid, "right") / len(sorted_reference)
+    return float(np.max(np.abs(sample_cdf - reference_cdf)))
+
+
+def accepts_weighted(sample, weights, reference, tolerance: float = DISTRIBUTION_TOLERANCE) -> dict:
+    """`accepts_against`, for a chosen-and-weighted sample rather than a random one."""
+    import numpy as np
+
+    sample = np.asarray(sample, dtype=float)
+    out = {}
+    for j, axis in enumerate(reference.axes):
+        d = weighted_ks(sample[:, j], weights, reference.marginals[j])
+        out[axis] = {"d": round(d, 5), "tolerance": tolerance, "accepts": bool(d <= tolerance)}
+    z = (sample - reference.mean) / reference.sd
+    worst = max(weighted_ks(z @ u, weights, proj)
+                for u, proj in zip(reference.directions, reference.projections))
+    out["JOINT"] = {"d": round(worst, 5), "tolerance": tolerance,
+                    "accepts": bool(worst <= tolerance), "slices": JOINT_SLICES}
+    return out
+
+
+def smallest_n_chosen(pop, axes, ns=CHOSEN_NS, seed: int = 0,
+                      tolerance: float = DISTRIBUTION_TOLERANCE, reference=None):
+    """The smallest DELIBERATELY-CHOSEN, WEIGHTED sample that reproduces the population.
+
+    THE DESIGN THE CANON ACTUALLY SPECIFIES, and the one this module was not running. Its acceptance
+    drew `rng.choice(...)` -- a uniform random sample -- while its own docstring quoted "each drawn
+    case carries the population mass it stands for". No weight entered the test at all. The director
+    wrote the tell into the canon: *if N comes out at the scale a random sample would need, the
+    weighting is doing no work.* It came out at 8,500, and it was doing none because there was none.
+
+    ONE DRAW PER SIZE, not five: the choosing is deterministic given its seed, so there is no luck to
+    average over. That is a property of designing rather than sampling.
+    """
+    import numpy as np
+
+    values = np.asarray(pop["values"])
+    keep = [AXES.index(a) for a in axes]
+    subset = values[:, keep]
+    reference = reference if reference is not None else _Reference(subset, axes)
+    verdicts, answer = {}, None
+    for k in ns:
+        if k >= len(subset):
+            break
+        chosen = choose_for_difference(subset, k, seed=seed, fuel=pop.get("fuel"))
+        weights = fit_weights(subset, chosen, reference)
+        result = accepts_weighted(subset[chosen], weights, reference, tolerance=tolerance)
+        worst = max(v["d"] for v in result.values())
+        ok = all(v["accepts"] for v in result.values())
+        verdicts[len(chosen)] = {"worst_ks_distance": round(worst, 4), "accepts": ok,
+                                 "carrying_weight": int((weights > 1e-9).sum()),
+                                 "tolerance": tolerance}
+        if ok:
+            answer = int(len(chosen))
+            break
+    return answer, verdicts
+
+
 def measurement(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     """Both numbers the canon asks for, at several accuracies, and the second is the real one."""
     pop = population(points=points, seed=seed)
@@ -487,15 +660,19 @@ def measurement(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
     ref_d = _Reference(allv[:, [AXES.index(a) for a in DISTRIBUTION_AXES]], DISTRIBUTION_AXES)
     ref_r = _Reference(allv[:, [AXES.index(a) for a in AXES]], AXES)
     for tol in TOLERANCES:
-        nd, curve_d = smallest_n(pop, DISTRIBUTION_AXES, tolerance=tol, seed=seed, reference=ref_d)
+        # THE ANSWER is the deliberately-chosen weighted design. The random figure is kept beside
+        # it as the TELL the canon asks for: if the two are the same scale, the weighting is doing
+        # no work and the design has reverted to representativeness.
+        chosen_n, curve_c = smallest_n_chosen(pop, AXES, tolerance=tol, seed=seed, reference=ref_r)
         nr, curve_r = smallest_n(pop, AXES, tolerance=tol, seed=seed, reference=ref_r)
         price_list[f"{tol:.2f}"] = {
-            "n_to_reproduce_the_distribution": nd,
-            "n_to_also_span_intervention_response": nr,
+            "n_chosen_and_weighted": chosen_n,
+            "n_random_sample_comparator": nr,
+            "weighting_factor": (round(nr / chosen_n, 1) if (chosen_n and nr) else None),
             "dominated_by": binding_axis(pop, AXES, nr or max(NS), seed=seed) if nr else None,
         }
-    n_distribution, curve_d = smallest_n(pop, DISTRIBUTION_AXES, seed=seed, reference=ref_d)
-    n_response, curve_r = smallest_n(pop, AXES, seed=seed, reference=ref_r)
+    n_distribution, curve_d = smallest_n_chosen(pop, DISTRIBUTION_AXES, seed=seed, reference=ref_d)
+    n_response, curve_r = smallest_n_chosen(pop, AXES, seed=seed, reference=ref_r)
     values = allv
     return {
         "price_list_by_tolerance": price_list,
@@ -508,6 +685,8 @@ def measurement(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
         "replicates": REPLICATES,
         "n_to_reproduce_the_distribution": n_distribution,
         "n_to_also_span_intervention_response": n_response,
+        "design": ("cases chosen for difference, weights fitted to the mass each stands for; the "
+                   "random-sample figure is the comparator, not the answer"),
         "distribution_curve": curve_d,
         "response_curve": curve_r,
         "every_n_is_a_floor_because": (

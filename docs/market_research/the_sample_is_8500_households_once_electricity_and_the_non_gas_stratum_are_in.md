@@ -88,3 +88,20 @@ dominate and it is the joint. That half stands, and it stands more clearly now.
   only fully honoured once it is answered — which is the validation step, now correctly ordered
   after `W2_19` rather than before it.
 - **PV headroom is not an axis** because roof geometry is not in the premise joint.
+
+---
+
+## SUPERSEDED 2026-09-07 — the sample was random, so the weighting was doing no work
+
+**The corrected measurement is in
+`the_sample_is_275_chosen_cases_and_the_weighting_was_doing_no_work.md`.**
+
+The acceptance test drew `rng.choice(...)` -- a uniform random sample -- while this module's own
+docstring quoted the canon's "each drawn case carries the population mass it stands for". No weight
+entered the test at all, so 8,500 is the size a RANDOM sample needs and not the answer to the
+canon's question. The director wrote that exact tell into the canon and it fired on this figure.
+
+Corrected: **275 deliberately-chosen weighted cases**, 31x smaller, on the same acceptance.
+
+Kept rather than deleted: 8,500 remains the honest random-sample comparator, and it is what makes
+the factor legible.
