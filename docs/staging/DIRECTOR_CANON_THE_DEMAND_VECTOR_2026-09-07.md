@@ -1,6 +1,6 @@
 # [DIRECTOR-CANON] — The demand vector: simulate difference, not averages (2026-09-07)
 
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `unminted`
+**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** W2_19_who_lives_where_money_and_composition
 
 **Type:** [CANON — the deliverable the world must produce, the resolution it must produce it at, and the defect that has twice hidden the requirement. Severity: BLOCKING — two live coverage claims rest on the collapse this document names. Mechanism and measurement are the delivery seat's; the deliverable and the separation are the director's.]
 
