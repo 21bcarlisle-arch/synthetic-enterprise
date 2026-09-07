@@ -984,6 +984,22 @@
 
 > Now backfilling today's replies so the pairing is complete rather than showing seven instructions and one answer.
 
-### 2026-09-07T13:10:37.525Z
+### 2026-09-07T13:13:54.687Z
 
-> MEMORY.md is 16.9KB, all 109 links resolve, and every demoted entry is reachable via a catalogue. Final state check.
+> Closed. Landed and pushed as `92aa394dd`.
+>
+> **What's there now.** A `Stop` hook writes each reply verbatim into `SEAT_REPLY_<day>.md`, beside the `DIRECTOR_CONSOLE_<day>.md` it answers. The pair completes when a turn ends, not when a stretch closes. Today already carries both sides — your turns, and 180 replies backfilled from this session so the day reads as a conversation rather than seven instructions and one answer.
+>
+> **The one decision worth arguing.** The replies are a separate document under a separate prefix, not a section of your record. `pull_forward_proposal.director_sources` reads `DIRECTOR_CONSOLE_*` as *your own words*. The tempting name was `DIRECTOR_CONSOLE_REPLY_` — it routes to the right room with no code change at all, and it would hand a release door the machine's words carrying your authority. That's the same defect that let daemon prompts into this record this morning, one step further along, and that one was only caught because the files got thirty times bigger. There's no size tell on this one. A control forbids the name.
+>
+> **Where each side is filed is deliberately asymmetric.** A new instruction lands in the staging root because that's where the doorbell reads and a session must wake up for it. A reply goes straight to `console/` — nobody has to action the seat's own words, and filing them in the root would ring a doorbell over a document with no ask in it, while adding a document a day to a queue whose own sediment check already reports filing outrunning dispositioning by +155 over seven days.
+>
+> **The window is now a finding**, on the existing mechanism rather than a second one: `check()` already compared the record against `.human_last_input`; it now also asks whether a day holding your turns holds any answers. A hook that stops firing looks exactly like the gap you described.
+>
+> Ordering in that check cost two tests to get right — the pairing test fired ahead of the staleness test and reported "the Stop hook is not firing" about a capture that had been blind for four days. Same symptom, wrong cause. Staleness answers first now.
+>
+> Timestamps come from the transcript rather than the wall clock, so a reply sorts against the turn it answers; tool calls and thinking are excluded, since a record of what was *said* shouldn't quote its own tool traffic back at you. Redaction applies on the same terms as your side — the seat quotes back what you paste, and this record ships to the same tree push protection stopped an hour ago.
+>
+> One thing named rather than hidden: today's backfilled record is denser than the days that follow, because the hook records one reply per turn and the backfill took every assistant message. All verbatim; the granularity differs.
+>
+> Still open and unchanged: the demand vector under your canon — measured on the heat-driven axes with the electricity gap named, half-hourly electricity shape as the deliverable — and the Cloudflare token rotation, which remains yours.

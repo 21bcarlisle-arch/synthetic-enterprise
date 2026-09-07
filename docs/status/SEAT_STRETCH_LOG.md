@@ -8,6 +8,92 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-07 — a writer that exists while nothing checks it wrote
+
+<!-- head: 219c26366d63 -->
+
+Twenty-nine commits, and the thread is one sentence the director wrote twice: a writer that exists
+while nothing checks it wrote.
+
+THE CONSOLE CAPTURE HAD BEEN DEAD FOR SIX DAYS AND THE CAUSE WAS A HARDCODED PATH. The harness names
+a transcript folder by slugging the session's working directory. On 3 September the seat moved under
+systemd, its launch directory became the project, and every transcript landed in a differently-named
+folder. The module had the old slug baked in. It kept reading a folder that still existed, still held
+sixteen real transcripts, and never received another one.
+
+WHAT MADE IT INVISIBLE IS THE PART WORTH KEEPING. The module was built to fail closed and its guard
+was aimed one state to the left: it refuses when there is NO transcript. What happened was a folder
+that had gone COLD, which to every reader is indistinguishable from a director who said nothing.
+Blindness was guarded; staleness was not. And `observe()`, whose own comment says it runs in the
+worker loop, has zero callers — so even the guard that existed was never invoked.
+
+THE NAIVE FIX WAS WORSE THAN THE GAP AND I SHIPPED IT BEFORE I CAUGHT IT. Pointing the scanner at the
+live folder swept daemon-injected turns into the record: 67% of one day's captured "director turns"
+and 84% of the next were "You are the autonomous worker, woken by a scheduled tick" — the machine's
+words quoted as his, in a file the release door reads as his authority. The tell was size: 485 KB,
+992 KB and 1.56 MB against 22–54 KB for a real day. There is no structural discriminator to fall back
+on; an interactive seat, a worker tick and a delivery-seat dispatch all write `userType: "external"`
+with identical cwd and version. So the capture moved to the prompt-submit hook, where the answer is
+simply known, and the scan became a backstop.
+
+THEN THE PUSH CAUGHT A LIVE CREDENTIAL THE CAPTURE HAD SWEPT IN. A Cloudflare API token, pasted into
+the pane weeks ago, recorded verbatim, carried by the backfill into a file bound for a remote. Push
+protection stopped it and I did not bypass it. A verbatim capture of a human's typing will eventually
+contain a secret — that is a property of the channel, not an accident — so redaction now runs inside
+both writers before anything reaches disk.
+
+AND MY FIRST REDACTION WAS ITSELF WORSE THAN THE PROBLEM. 33 files, 16 to 38 spans each: it was eating
+UUIDs, which are the transcript filenames in every `Source:` line, so it destroyed the only pointer
+from a record back to what produced it. Corrected with three exclusions — a 40-char hex string is a
+git sha, a UUID is a filename, an underscore-separated identifier is a module path — it is 4 files and
+17 spans.
+
+THE SAME DEFECT APPEARED THREE MORE TIMES IN ONE DAY, EACH INSIDE THE FIX FOR THE LAST.
+
+The new staleness control globbed the staging root and `done/` and never `console/`, the room its own
+writer writes to, and reported a four-day lapse over records sitting on disk.
+
+The backstop deleted evidence: `write()` reads a three-day transcript window, so re-running it
+regenerates an older day from nothing. It cut 3 September from 22,907 bytes to 10,592 while being
+repaired for losing six days, and I had not backed the file up.
+
+The register repair had to be computed against the COMMITTED tree, not the working one. The tool
+called a module "now wired" — true in the shared tree where an untracked file imports it, false in
+the tree the commit creates, where deleting its ruling made it undispositioned. Same file, two trees,
+opposite correct answers.
+
+WHAT I STOPPED SHORT OF, DELIBERATELY. Six days exist in both `console/` and `done/`; the duplication
+predates this and deciding which room owns an archived record is separate work. Two reds in the
+capability index are another lane's — modules landed without index rows — and fixing them would mean
+writing rows for code I did not build. Two half-staged archives belong to the lanes that made them:
+one carries a disposition concluding CLOSED and the other is a bare move with no reason, and
+completing either to clear my own path would bank a fail-open.
+
+THE MEASUREMENT WORK, WHICH IS THE ACTUAL JOB. W2_22 landed: 233 houses for 99% of household-weighted
+variance across five output axes, against 55 for the optimal partition — so drawing for difference
+costs 4.2x the houses, knowingly. Four of five tails close at 610 and the fifth does not close at any
+affordable size; it is a stratification problem, not a size one, and the page says 30% rather than
+reporting N as complete. The director's own input-versus-output premise, measured on Britain rather
+than assumed, came out half right: variance covered is identical to four decimal places between the
+two draws, and what the input draw loses is the fill radius, three of 23 corners, and 40% of the level
+tail. Right about why it matters, wrong that it shows in the aggregate.
+
+AND THE COVERAGE NUMBERS WERE MEASURING THE WRONG THING, WHICH HE CAUGHT. Thirteen cases for 99% of
+demand was measured on a scalar — annual kWh — when the thing being served is a vector. My own finding
+had named the mechanism ("demand is a scalar") and filed it as an interesting property rather than as
+a defect in the subject. The same collapse was on the input side too: three separable weather grids
+against a response my own sensitivity table shows is fabric-dependent. One defect, twice, flattering
+in the same direction both times.
+
+THE HABIT THAT WOULD HAVE SAVED MOST OF THIS. Every failure above is a mechanism that existed and was
+never checked to have run: a capture with no caller, a guard aimed at the wrong state, a stretch entry
+appended and never landed, a reply hook writing into the wrong record. The question is not "does the
+writer exist" but "what did it write, and when did anyone last look". The director asked it about the
+reply hook within an hour of it landing, and the answer was that it fired and was writing other
+sessions' words into his record.
+
+---
+
 ## 2026-09-07 — four correct answers to questions nobody asked
 
 <!-- head: e4bedd260172 -->

@@ -36,6 +36,30 @@ from _seat import is_resident_seat  # noqa: E402
 PROJECT_DIR = Path(__file__).resolve().parent.parent.parent
 
 
+def is_a_conversation_with_the_director(transcript: Path) -> bool:
+    """Did the DIRECTOR speak in this session at all?
+
+    THE DEFECT THIS EXISTS FOR, found by checking that the hook fired rather than assuming it
+    (director, 2026-09-07: "verify it fires rather than assuming it will"). `.claude/hooks/` is
+    committed, so this hook runs in EVERY resident session -- autonomous worker ticks and
+    delivery-seat dispatches included. Within an hour of landing, two of them had written their own
+    narration into the director's reply record: "Released. Saving the control-failure class..."
+    filed as an answer to him.
+
+    That is the mirror of the daemon-prompt defect repaired on his side the same morning. A record
+    of what he was told must not carry the machine talking to itself, so a session in which he never
+    spoke writes nothing. An NTFY relay counts -- it is genuinely him, carried by a daemon -- which
+    is why the test is `is_director_prompt` on the turns rather than a guess about the session type.
+    """
+    from tools import console_instruction_record as record
+
+    try:
+        return any(record.is_director_prompt(text) for _stamp, text in record.director_turns(
+            transcript))
+    except Exception:  # noqa: BLE001 - an unreadable transcript is not a conversation
+        return False
+
+
 def assistant_turns(transcript: Path) -> list[tuple[str, str]]:
     """[(timestamp, text)] for every assistant message that said something, in order.
 
@@ -100,6 +124,11 @@ def main() -> int:
                         transcript = candidate
                         break
         if transcript is None:
+            return 0
+
+        # WHOSE CONVERSATION IS THIS. Checked before anything is written, because the cost of
+        # getting it wrong is the director's own record carrying words that were never for him.
+        if not is_a_conversation_with_the_director(transcript):
             return 0
 
         stamp, text = last_assistant_text(transcript)

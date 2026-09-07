@@ -145,3 +145,37 @@ def test_THE_LIVE_RECORD_CARRIES_BOTH_SIDES_OF_TODAY():
     if not turns:
         pytest.skip("no console record for the reference day on this machine")
     assert replies, "the day this was built holds instructions and no answers"
+
+def test_A_SESSION_THE_DIRECTOR_NEVER_SPOKE_IN_WRITES_NOTHING(tmp_path):
+    """THE DEFECT VERIFICATION FOUND, and it was found only because the director refused to assume
+    the hook fired. `.claude/hooks/` is committed, so this runs in EVERY resident session --
+    autonomous worker ticks and delivery-seat dispatches included. Within an hour of landing, two of
+    them had written their own narration into his reply record: *"Released. Saving the
+    control-failure class..."* filed as an answer to him. Three entries had to be purged.
+
+    That is the mirror of the daemon-prompt defect repaired on his side the same morning: a record
+    of what he was told carrying the machine talking to itself. An NTFY relay still counts, because
+    it is genuinely him carried by a daemon -- which is why the test is `is_director_prompt` on the
+    turns and not a guess about the session type."""
+    module = _hook_module()
+
+    worker = tmp_path / "worker.jsonl"
+    worker.write_text("\n".join(json.dumps(r) for r in [
+        {"type": "user", "timestamp": "2026-09-07T09:00:00.000Z",
+         "message": {"content": "You are the autonomous worker, woken by a scheduled tick"}},
+        {"type": "assistant", "timestamp": "2026-09-07T09:01:00.000Z",
+         "message": {"content": [{"type": "text", "text": "Released. Saving the class."}]}},
+    ]), encoding="utf-8")
+
+    console = tmp_path / "console.jsonl"
+    console.write_text("\n".join(json.dumps(r) for r in [
+        {"type": "user", "timestamp": "2026-09-07T09:00:00.000Z",
+         "message": {"content": "Verify it fires rather than assuming it will."}},
+        {"type": "assistant", "timestamp": "2026-09-07T09:01:00.000Z",
+         "message": {"content": [{"type": "text", "text": "Verified, and it found something."}]}},
+    ]), encoding="utf-8")
+
+    assert module.is_a_conversation_with_the_director(console) is True
+    assert module.is_a_conversation_with_the_director(worker) is False, (
+        "a worker tick counts as a conversation with the director, so its narration will be filed "
+        "as an answer to him")
