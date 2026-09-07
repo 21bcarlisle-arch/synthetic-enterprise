@@ -370,17 +370,62 @@ def _continuation_written_at(focus_id: str) -> float | None:
     return None
 
 
+def _continuation_written_while_holding(focus_id: str) -> list[str]:
+    """What the writer of this continuation had in hand, or `[]` if nothing or we cannot tell.
+
+    `seat_continuation.hand_off` stamps this; an entry written before that landed carries no stamp
+    and reads `[]`. FAIL-CLOSED IN THE SAME DIRECTION as everything else here: an unstamped or
+    unreadable entry reads as "not self-issued", which shortens chains and preserves the
+    continuation-first order the director asked for.
+    """
+    try:
+        for entry in seat_continuation._load():
+            if str(entry.get("id")) == str(focus_id):
+                return [str(h) for h in (entry.get("written_while_holding") or ())]
+    except Exception:
+        return []
+    return []
+
+
 def _self_issued_chain(path: Path | None = None) -> int:
     """How many hand-offs in a row this lane has drawn that IT wrote, most recent first.
 
-    THE LINK, and it is what "self-issued" means operationally: continuation B is counted only if
-    its `source_written_at` is LATER than the instant the item drawn before it was handed out. A
-    continuation written after a draw was written by the lane holding that draw. One written
-    before it came from somewhere else -- an interactive session, an executor promotion -- and
-    breaks the chain, because that is exactly the case the continuation-first order is right for.
+    THE LINK IS KEYED TO AUTHORSHIP ORDER, NOT TO THE PREVIOUS DRAW, AND THE FIRST VERSION WAS
+    KEYED TO THE DRAW (2026-09-07). It read `source_written_at > previous row's last_drawn_at`,
+    reasoning that a continuation written after a draw was written by the lane holding that draw.
+    That is true of a lane that writes exactly one hand-off per turn and false of a lane working
+    through a BACKLOG of its own -- which is what this lane actually does. Measured on the live
+    ledger the day after the limit landed: six consecutive continuation draws, every one of them
+    self-issued, and this counter returned **1**. `a49-builds` was written at ...744124 and drawn
+    at ...747128, after `W1_14-cut` (written ...743284) had been drawn at ...746814 -- so a
+    continuation written EARLIER and drawn LATER read as "came from somewhere else", which is
+    precisely the signature of a queue the lane fed itself. The swap never armed, and a fix that is
+    present and inert is worse than one that is absent.
 
-    Counted over LINKS rather than rows, so the oldest row (which has nothing before it to be
-    written after) is never credited with an authorship nothing can establish.
+    NO TEMPORAL TEST REPLACES IT, AND TWO WERE TRIED AND REJECTED WITH THE MEASUREMENT THAT KILLED
+    THEM. Keying the link to WRITE ORDER instead (`newer` written after `older` was written) counts
+    the backlog correctly and also counts a BATCH -- one interactive session writing four hand-offs
+    seconds apart, which is the case the continuation-first order exists for. Adding an anchor
+    ("the newest write lands after the run's oldest draw") repairs the batch case only on an EMPTY
+    ledger: with history behind it the run reaches back to an ancient draw, the anchor passes, and
+    a four-row batch on top of six rows of history counted **9**. That anchor was written, tested
+    green against an empty-ledger fixture, and deleted when the production shape was tried -- the
+    fixture, not the mechanism, was what passed.
+
+    SO THE TEST IS AUTHORSHIP, STAMPED AT WRITE TIME, because it is not recoverable afterwards.
+    A tick holds a delivery-lane claim while it works and the interactive seat holds none, so
+    `seat_continuation.hand_off` records whether anything was in hand and `record_draw` copies the
+    answer onto the row. A batch written by a session that held nothing breaks the run wherever it
+    sits, with or without history behind it, and an interleaved backlog counts however far its
+    parent is from the row before it.
+
+    IT IS INERT ON ROWS DRAWN BEFORE THE STAMP EXISTED -- they carry no authorship and read as not
+    self-issued, so the chain is 0 until the ledger refills. That is the fail-safe direction (the
+    continuation source keeps today's priority) and it self-corrects within
+    `SELF_HANDOFF_CHAIN_LIMIT` + 1 draws.
+
+    Counted over LINKS rather than rows, so the oldest row (which has nothing before it) is never
+    credited with an authorship nothing can establish.
 
     NEVER RAISES and an unreadable ledger reads as NO CHAIN, which preserves today's ordering. A
     wrong 0 costs one more continuation before focus is consulted; a wrong large number would
@@ -395,16 +440,14 @@ def _self_issued_chain(path: Path | None = None) -> int:
     except Exception:
         return 0
     #
-    # ONE TEST, NOT TWO, AND THE SECOND ONE WAS DELETED RATHER THAN KEPT (poison round,
-    # 2026-09-06). This read `if newer.get("source") != "continuation": break` first, and removing
-    # that line killed nothing: `record_draw` writes `source_written_at` ONLY where it writes
-    # `source: continuation`, so a focus row has no `source_written_at` and the link test below
-    # breaks the run at exactly the same index. An EQUIVALENCE, established rather than assumed --
-    # and a leg that cannot fail is worth less than the sentence explaining why it was removed.
+    # NO SEPARATE `source != "continuation"` LEG, AND IT WAS DELETED RATHER THAN KEPT (poison
+    # round, 2026-09-06). `record_draw` writes the authorship flag ONLY where it writes
+    # `source: continuation`, so a focus row is missing it and breaks the run at exactly the same
+    # index. An EQUIVALENCE, established rather than assumed, and it survives the 2026-09-07
+    # re-keying for the same reason it held before.
     links = 0
-    for newer, older in zip(rows, rows[1:]):
-        written = newer.get("source_written_at")
-        if written is None or float(written) <= float(older.get("last_drawn_at") or 0.0):
+    for newer in rows[:-1]:
+        if not newer.get("source_self_issued"):
             break
         links += 1
     return links
@@ -436,6 +479,10 @@ def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None
             row["source"] = "focus" if written is None else "continuation"
             if written is not None:
                 row["source_written_at"] = written
+                # AUTHORSHIP, copied across at the same instant and for the same reason: the
+                # continuation store is emptied by `drop` and the expiry, so a chain re-derived
+                # later would read every past draw as authorless.
+                row["source_self_issued"] = bool(_continuation_written_while_holding(focus_id))
         ledger[focus_id] = row
         if len(ledger) > MAX_REMEMBERED_DRAWS:
             keep = sorted(ledger.items(),

@@ -65,8 +65,34 @@ _DD_ID = _pick_ids(1, want_dd=True)[0]
 _NON_DD_ID = _pick_ids(1, want_dd=False)[0]
 
 
+def _opening_from_first_bill(bills: list[dict]) -> dict:
+    """Each customer's first issued bill amount, as an EXPLICIT opening DD.
+
+    This helper exists only so the arithmetic tests below keep the exact numbers
+    they were written against. It is deliberately named for what it does:
+    `build_dd_balance_book` no longer opens anyone from their first bill (that
+    was the defect fixed 2026-09-02, atom `D_opening_dd_seasonal_sizing`), so a
+    test that WANTS that opening must now say so out loud. Mirrors the identical
+    helper in tests/simulation/test_dd_balance_book.py; the property itself is
+    held by
+    tests/company/billing/test_the_opening_dd_is_never_the_first_issued_bill.py.
+
+    Handing it in is not cosmetic here: without it DD2 REFUSES every customer to
+    `unestimated_customers`, DD1's schedules come back empty, and the two tests
+    below that assert an ABSENCE (the non-DD gate, the replay) pass vacuously
+    while the other six go red. That is what happened between 2026-09-02 and
+    2026-09-07, so both of those now assert a presence alongside the absence.
+    """
+    first: dict = {}
+    for b in sorted(bills, key=lambda x: x["period_end"]):
+        first.setdefault(b["customer_id"], float(b["total_amount_gbp"]))
+    return first
+
+
 def _level_book(bills):
-    return build_dd_level_collection_book(build_dd_balance_book(bills))
+    return build_dd_level_collection_book(
+        build_dd_balance_book(bills, _opening_from_first_bill(bills))
+    )
 
 
 # ---- the standing amount SIZES the collection, not the bill (R15 FAIL-OPEN) --
@@ -118,7 +144,7 @@ def test_amount_equals_dd2_collected_by_construction():
     collected_gbp for that customer-month -- the single-source guarantee that
     DD1/DD2/DD4a cannot drift apart."""
     bills = _monthly_bills(_DD_ID, [50, 60, 90, 120, 80, 55, 50, 60, 90, 120, 80, 55])
-    bb = build_dd_balance_book(bills)
+    bb = build_dd_balance_book(bills, _opening_from_first_bill(bills))
     book = build_dd_level_collection_book(bb)
     dd2_collected = [round(p.collected_gbp, 2) for p in bb.trajectories[_DD_ID]]
     dd1_collected = [round(c.amount_gbp, 2) for c in book.schedules[_DD_ID]]
@@ -142,11 +168,19 @@ def test_collection_lands_on_staggered_payment_day():
 
 def test_only_direct_debit_customers_get_a_schedule():
     """A non-DD customer carries no level-DD balance in DD2, so DD1 emits no
-    schedule for them -- the gate is inherited, not re-implemented."""
-    bills = _monthly_bills(_NON_DD_ID, [70] * 12)
+    schedule for them -- the gate is inherited, not re-implemented.
+
+    BOTH legs of the partition run through ONE book, and both ids are handed an
+    opening amount, so the only thing that can separate them is the payment
+    method. Asserting the absence alone was satisfied by an empty book for five
+    days: any refusal upstream -- the missing opening amount, a broken id space,
+    a producer returning nothing -- made `n_customers == 0` true for every
+    input, and the exclusion this test exists to prove was never exercised."""
+    bills = _monthly_bills(_NON_DD_ID, [70] * 12) + _monthly_bills(_DD_ID, [70] * 12)
     book = _level_book(bills)
+    assert _DD_ID in book.schedules, "the DD leg must be REACHED, or the gate is untested"
     assert _NON_DD_ID not in book.schedules
-    assert book.summary()["n_customers"] == 0
+    assert book.summary()["n_customers"] == 1
 
 
 # ---- determinism / idempotence (C-S2) ----------------------------------------
@@ -155,11 +189,17 @@ def test_deterministic_idempotent_replay():
     bills = _monthly_bills(_DD_ID, [40, 45, 60, 80, 110, 130, 120, 100, 70, 55, 45, 40])
     a = _level_book(bills).serialise()
     b = _level_book(list(reversed(bills))).serialise()  # order-insensitive input
+    # Non-emptiness FIRST: two empty books are trivially equal, which is how
+    # this test stayed green through the 2026-09-02..09-07 outage that reddened
+    # six of its neighbours. The equality below only means something over a
+    # book that has something in it.
+    assert a["sample_schedules"], "replay must compare a NON-EMPTY book"
+    assert a["summary"]["n_collections"] == 12
     assert a == b
 
 
 def test_empty_book_is_measurable_not_crash():
-    book = build_dd_level_collection_book(build_dd_balance_book([]))
+    book = build_dd_level_collection_book(build_dd_balance_book([], {}))
     s = book.summary()
     assert s["n_customers"] == 0
     assert s["n_collections"] == 0

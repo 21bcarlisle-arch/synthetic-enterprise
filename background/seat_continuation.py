@@ -228,6 +228,28 @@ def _superseded_ids(items: list[dict]) -> set[str]:
     return out
 
 
+def _lane_work_in_hand() -> list[str]:
+    """Delivery-lane items claimed right now, or `[]` if there are none or we cannot tell.
+
+    IMPORTED LAZILY because `delivery_lane` imports THIS module at module level, and the pair
+    would not load at all otherwise. The path is not rebuilt here on purpose: `delivery_lane`
+    resolves its own store (and the shared-tree rule that goes with it), and a second copy of that
+    path would drift the first time either moved.
+
+    NEVER RAISES, AND EMPTY IS THE SAFE ANSWER. `[]` reads as "not self-issued", which can only
+    SHORTEN a chain and leave the continuation source consulted first -- today's behaviour. The
+    opposite error would credit a chain to a store it could not open and defer the seat's
+    continuations behind focus for no reason.
+    """
+    try:
+        from background import delivery_lane
+        from background import seat_work_in_hand as claims_mod
+
+        return sorted(str(k) for k in claims_mod._load(delivery_lane.claims_file()))
+    except Exception:
+        return []
+
+
 def hand_off(
     work_id: str,
     what: str,
@@ -309,6 +331,15 @@ def hand_off(
     ]
     retires = [d for d in dict.fromkeys([*inherited, *retires]) if d != work_id]
     entry = {**fields, "written_at": stamped}
+    # WHO WROTE THIS, stamped at WRITE TIME because it cannot be recovered afterwards. A tick holds
+    # a delivery-lane claim while it works; the interactive seat claims in a different store and
+    # holds none. So "a delivery-lane item was in hand when this was written" IS the operational
+    # test for a lane feeding itself, and `delivery_lane._self_issued_chain` reads nothing else.
+    # Its previous, purely temporal, test could not tell a backlog from a batch -- see that
+    # function for the six-draw run it counted as one.
+    held = _lane_work_in_hand()
+    if held:
+        entry["written_while_holding"] = held
     if retires:
         entry["supersedes"] = retires
     items.append(entry)

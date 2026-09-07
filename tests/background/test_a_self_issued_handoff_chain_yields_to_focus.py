@@ -25,10 +25,21 @@ MUTATIONS (each must fire, and which test catches it):
   (c) always order `(_focus, _continuation)` -- `..._A_FIRST_HANDOFF_STILL_WINS` goes red;
   (d) make the second source a suppression rather than a swap (return None instead of falling
       through) -- `..._STILL_GETS_ITS_CONTINUATION_WHEN_FOCUS_IS_EMPTY` goes red;
-  (e) drop the `source_written_at > previous last_drawn_at` link test in `_self_issued_chain`
-      -- `..._A_HANDOFF_WRITTEN_BEFORE_THE_PREVIOUS_DRAW_IS_NOT_SELF_ISSUED` goes red;
+  (e) drop the authorship test in `_self_issued_chain` (count every continuation row) --
+      `..._A_BATCH_WRITTEN_IN_ONE_SITTING_IS_NOT_SELF_ISSUED` goes red;
   (f) stamp every draw `source: focus` -- `..._A_DRAW_STAMPS_WHICH_SOURCE_ANSWERED` and the two
-      chain tests go red.
+      chain tests go red;
+  (g) re-key the link back to `source_written_at > older["last_drawn_at"]` (the 2026-09-07
+      defect) -- `..._A_SELF_ISSUED_BACKLOG_DRAWN_OUT_OF_WRITE_ORDER_IS_STILL_A_CHAIN` goes red;
+  (h) stop stamping `written_while_holding` in `seat_continuation.hand_off` -- the backlog test
+      goes red (everything reads as somebody else's work).
+
+THE 2026-09-07 RE-KEYING, and why the two legs below had to be added. The link was keyed to the
+PREVIOUS DRAW, which credits a lane writing exactly one hand-off per turn and breaks on a lane
+working through a BACKLOG of its own -- two programmes interleaved, so the row before is not the
+parent. Measured on the live ledger: six consecutive self-issued continuation draws, counter = 1,
+swap never armed. `_self_issued_chain`'s docstring carries the instants, and the two temporal
+repairs that were tried and refuted before authorship was stamped instead.
 
 AND ONE SURVIVAL, RECORDED BECAUSE IT WAS ESTABLISHED RATHER THAN ASSUMED. `_self_issued_chain`
 opened with a second break on `newer["source"] != "continuation"`, and deleting it killed nothing.
@@ -46,6 +57,7 @@ import yaml
 from background import delivery_lane as dl
 from background import direction as d
 from background import seat_continuation as sc
+from background import seat_work_in_hand as claims_mod
 
 # Relative for the reason `test_delivery_lane` records at length: the direction record has a
 # liveness window checked against the real clock, and a frozen instant makes every draw test here
@@ -77,6 +89,11 @@ def lane(tmp_path, monkeypatch):
     monkeypatch.setattr(dl, "MATURITY_MAP", map_path)
     monkeypatch.setattr(d, "DIRECTION_PATH", direction_path)
     monkeypatch.setattr(sc, "STORE", tmp_path / ".seat_continuation.json")
+    # AND THE CLAIMS STORE BY MODULE CONSTANT AS WELL AS BY ARGUMENT. `hand_off` stamps authorship
+    # from whatever `dl.claims_file()` resolves, which ignores the `path=` these tests pass -- so
+    # without this the stamp would read THIS MACHINE'S live delivery-lane claims and the chain
+    # would depend on what the real seat happened to be holding.
+    monkeypatch.setattr(dl, "CLAIMS_FILE", tmp_path / "claims.json")
 
     def write_focus(ids):
         direction_path.write_text(yaml.safe_dump({
@@ -206,20 +223,90 @@ def test_a_FOCUS_DRAW_RESETS_THE_CHAIN(lane):
     assert dl.next_item(now=end + 3, path=lane["claims"])["id"] == "after-the-reset"
 
 
-def test_a_HANDOFF_WRITTEN_BEFORE_THE_PREVIOUS_DRAW_IS_NOT_SELF_ISSUED(lane):
+def test_a_BATCH_WRITTEN_IN_ONE_SITTING_IS_NOT_SELF_ISSUED(lane):
     """WHAT "SELF-ISSUED" MEANS, and the leg that stops this counting the wrong thing. A batch of
     continuations written by ONE interactive session before any of them was drawn is not a lane
     feeding itself -- it is exactly the case the continuation-first order is right for, and
-    counting it would starve the source the director asked for."""
+    counting it would starve the source the director asked for.
+
+    THE WRITE INSTANTS ARE DISTINCT AND THE BATCH SITS ON TOP OF REAL HISTORY, and both halves of
+    that were bought with a failed mutation. Until 2026-09-07 the writes were all the SAME instant
+    -- which no session produces; a session typing four hand-offs writes them seconds apart -- and
+    the ledger held nothing but the batch, which the live one never does (94 rows). A purely
+    temporal reading passes this test with an empty ledger and counts 9 with history behind it.
+    The history is therefore not scene-setting: it is the leg."""
+    end = _chain(lane, CHAIN_BUILT)              # real self-issued history, as production has
+    assert dl._self_issued_chain(lane["claims"]) >= dl.SELF_HANDOFF_CHAIN_LIMIT, (
+        "the history must itself be a chain, or this test cannot show the batch failing to extend "
+        "one")
+
+    # Now ONE SESSION writes a batch. It holds no delivery-lane claim -- that is what makes it a
+    # session and not a tick, and it is the whole discriminator -- so the run is released first.
+    # AND THE HISTORY IS RETIRED FROM THE CONTINUATION STORE, because releasing a claim makes the
+    # item offerable again and `live()` is oldest-first: without this the batch is never drawn at
+    # all, the ledger's newest rows stay the history's, and the test reads 6 while proving nothing.
+    for work_id in claims_mod.held(path=lane["claims"]):
+        claims_mod.release(work_id, path=lane["claims"])
+        sc.drop(work_id)
+    at = end
     for i in range(CHAIN_BUILT + 1):
         sc.hand_off(f"one-session-wrote-all-of-these-{i}", f"piece {i}", "one session, one sitting",
-                    "done", now=NOW_EPOCH)
-    at = NOW_EPOCH
+                    "done", now=at + i)
+    at += CHAIN_BUILT
     for _ in range(CHAIN_BUILT + 1):
         at += 100.0
         dl.draw(now=at, path=lane["claims"])
 
-    assert dl._self_issued_chain(lane["claims"]) == 0
+    # NON-VACUITY, ASSERTED RATHER THAN ASSUMED: the 0 below must come from the batch being read
+    # as somebody else's work, NOT from the batch never reaching the ledger. The first draft of
+    # this test read 0 for the second reason and would have passed every mutation.
+    ledger = claims_mod._load(dl._ledger_path(lane["claims"]))
+    newest = sorted(ledger.items(), key=lambda kv: kv[1]["last_drawn_at"], reverse=True)
+    assert newest[0][0].startswith("one-session-wrote-all-of-these-"), (
+        f"the batch never reached the head of the ledger -- newest row is {newest[0][0]!r}, so "
+        "this test measures an undrawn batch rather than an uncounted one")
+
+    assert dl._self_issued_chain(lane["claims"]) == 0, (
+        "a batch written by one session in one sitting is not this lane feeding itself, and "
+        "counting it starves the continuation source the director asked for")
+
+
+def test_a_SELF_ISSUED_BACKLOG_DRAWN_OUT_OF_WRITE_ORDER_IS_STILL_A_CHAIN(lane):
+    """THE 2026-09-07 DEFECT, built by the mechanism. The lane runs two programmes interleaved, so
+    the hand-off a tick writes is not the next row drawn -- it queues behind one already standing.
+    Every continuation here is written by the tick holding a drawn item, which is what self-issued
+    means, and NOT ONE of them (after the first pair) was written after the row drawn immediately
+    before it. That is the live ledger's shape: six such draws, and the counter said 1.
+
+    The chain must reach the limit, because reaching it is the entire mechanism -- a counter that
+    reads under the limit makes every "the swap did not fire" assertion in this file pass for the
+    wrong reason."""
+    at = NOW_EPOCH
+    # Two continuations standing before either is drawn -- an ordinary backlog, not one sitting:
+    # each is drawn, and each drawn tick writes the next while the other is still queued.
+    sc.hand_off("programme-a-step-1", "carry on with A", "a tick wrote this", "done", now=at)
+    sc.hand_off("programme-b-step-1", "carry on with B", "a tick wrote this", "done", now=at + 10)
+    drawn = []
+    for i in range(CHAIN_BUILT):
+        at += 100.0
+        drawn.append(dl.draw(now=at, path=lane["claims"]))
+        # The tick that just drew writes its own next piece; `live()` is oldest-first, so the row
+        # drawn NEXT is the one already queued -- written BEFORE the draw that just happened.
+        sc.hand_off(f"written-by-the-tick-that-drew-{i}", f"carry on {i}",
+                    "the tick holding the drawn item wrote this", "done", now=at + 10)
+
+    assert all(drawn), "every iteration must actually draw, or this measures an empty ledger"
+    chain = dl._self_issued_chain(lane["claims"])
+    assert chain >= dl.SELF_HANDOFF_CHAIN_LIMIT, (
+        f"a backlog of {CHAIN_BUILT} self-issued hand-offs counted {chain}, under the limit of "
+        f"{dl.SELF_HANDOFF_CHAIN_LIMIT}, so the swap never arms -- this is the live ledger's "
+        "defect, where six consecutive self-issued draws counted 1")
+
+    # AND THE SWAP ACTUALLY FIRES ON IT. The counter is not the deliverable; the focus list
+    # getting a hearing is, and a counter proved in isolation has been wrong here before.
+    lane["focus"](["the-seats-own-ranked-item"])
+    assert sc.live(now=at + 20), "a continuation must still be live, or this proves the expiry"
+    assert dl.next_item(now=at + 20, path=lane["claims"])["id"] == "the-seats-own-ranked-item"
 
 
 def test_a_DRAW_STAMPS_WHICH_SOURCE_ANSWERED(lane):
@@ -231,9 +318,12 @@ def test_a_DRAW_STAMPS_WHICH_SOURCE_ANSWERED(lane):
     dl.draw(now=NOW_EPOCH + 1, path=lane["claims"])
     dl.draw(now=NOW_EPOCH + 2, path=lane["claims"])
 
-    from background import seat_work_in_hand as claims_mod
     ledger = claims_mod._load(dl._ledger_path(lane["claims"]))
     assert ledger["a-continuation"]["source"] == "continuation"
     assert ledger["a-continuation"]["source_written_at"] == NOW_EPOCH
+    # AUTHORSHIP IS STAMPED AT THE DRAW TOO, and False here is the correct answer rather than a
+    # missing field: this hand-off was written by a session holding no delivery-lane claim.
+    assert ledger["a-continuation"]["source_self_issued"] is False
     assert ledger["the-seats-own-ranked-item"]["source"] == "focus"
     assert "source_written_at" not in ledger["the-seats-own-ranked-item"]
+    assert "source_self_issued" not in ledger["the-seats-own-ranked-item"]
