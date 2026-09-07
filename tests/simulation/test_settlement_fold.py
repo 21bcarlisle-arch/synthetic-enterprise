@@ -190,7 +190,17 @@ def test_the_run_builds_exactly_one_fold_and_feeds_it_where_the_list_is_extended
 
     import simulation.run_phase2b as p2b
 
-    src = Path(p2b.__file__).read_text(encoding="utf-8")
+    # READ THE CODE, NOT THE PROSE (2026-09-07). This assertion counted raw substrings and went
+    # red the day a comment in the run loop QUOTED `settled_fold.add(settled_this_term)` to
+    # explain the ordering below -- two "feeds", one of which was a sentence. A control that
+    # cannot tell a call from a mention of a call is measuring the wrong thing, and it fails
+    # in the direction that punishes explaining the code. The `src.index` assertion at the foot
+    # of this test had the same latent defect: the first occurrence it found was that comment,
+    # ~1,000 lines ABOVE the extend it was asserting to be below.
+    raw = Path(p2b.__file__).read_text(encoding="utf-8")
+    src = "\n".join(
+        line for line in raw.splitlines() if not line.lstrip().startswith("#")
+    )
     assert src.count("settled_fold = SettlementFold()") == 1, (
         "the run builds more than one fold")
     assert src.count("settled_fold.add(") == 1, "the fold is fed in more than one place"

@@ -196,6 +196,29 @@ def run_hedged_term(
                 "customer_id": customer_id,
                 "settlement_date": date_str,
                 "settlement_period": period,
+                # THE TERM THIS ROW SETTLED, stamped by the writer that settled it (2026-09-07).
+                #
+                # Stamping it HERE and not in the run loop beside `commodity`/`data_regime` is
+                # the whole point. This function settles one already-bounded term; every record
+                # it returns belongs to exactly that term and to no other, which is a fact only
+                # this scope holds without re-deriving it. The run loop can stamp it for the two
+                # call sites it happens to own, and the next caller of any settlement writer
+                # emits unstamped rows again — which is how the book arrived at 296 eligible
+                # renewals and not one row able to say which term it came from.
+                #
+                # `settlement_daily.CARRIED_FIELDS` has listed "term_start" since it was written,
+                # so the fold has always been ready to carry a field no writer ever wrote.
+                # `company/crm/customer_profitability.estimate_prior_term_net_margin` groups the
+                # settled book by it to find the most recent completed term; with it absent that
+                # function returned None on 78 of 78 calls before summing a single margin, and
+                # the supplier's own policy of repricing net-negative accounts was unreachable on
+                # the whole book. Measured and graded in
+                # SEAT_RESULT_THE_ID_REPAIR_IS_LIVE_AND_BOUGHT_NOTHING_BECAUSE_NO_SETTLED_ROW_CARRIES_A_TERM_START_2026-09-07.md.
+                #
+                # No wall is crossed: this is the supplier's own contract boundary, sitting
+                # beside the rate it locked and the hedge it struck, not a fact about the
+                # household.
+                "term_start": term_start_date,
                 "consumption_kwh": consumption_kwh,
                 "unit_rate_gbp_per_mwh": period_rate,
                 "hedge_price_gbp_per_mwh": hedge_price_gbp_per_mwh,
@@ -345,6 +368,13 @@ def run_deemed_term(
                 "customer_id": customer_id,
                 "settlement_date": date_str,
                 "settlement_period": period,
+                # Stamped for the same reason as in `run_hedged_term` above — see the note
+                # there. A deemed period is not upliftable, but it IS a completed term in the
+                # same book, and `estimate_prior_term_net_margin` picks the most recent prior
+                # term by `max(term_start)` across every row it matched. Leaving deemed rows
+                # unstamped would silently hide them from that max and hand the writer an older
+                # fixed term as "the most recent prior" one.
+                "term_start": term_start_date,
                 "consumption_kwh": consumption_kwh,
                 "unit_rate_gbp_per_mwh": billed_rate_gbp_per_mwh,
                 "cap_bound": billed_rate_gbp_per_mwh < uncapped_rate_gbp_per_mwh,
@@ -486,6 +516,8 @@ def run_flex_term(
                 "customer_id": customer_id,
                 "settlement_date": date_str,
                 "settlement_period": period,
+                # Same reason as the two writers above, and the same max(term_start) hazard.
+                "term_start": term_start_date,
                 "consumption_kwh": consumption_kwh,
                 "unit_rate_gbp_per_mwh": effective_unit_rate,
                 "flex_reference_price_gbp_per_mwh": ref_price,

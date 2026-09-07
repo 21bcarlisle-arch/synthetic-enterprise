@@ -159,6 +159,12 @@ def run_gas_term(
                 "customer_id": customer_id,
                 "settlement_date": d,
                 "settlement_period": 1,  # gas has one period per day
+                # THE TERM THIS ROW SETTLED — see the long note in
+                # `simulation/hedged_settlement.run_hedged_term` for why the writer stamps it
+                # and the run loop does not. Gas is the half of the book this cost most: 186 of
+                # the 296 renewals eligible for the unprofitability uplift are gas, and every
+                # one of them read a book that could not say which term it came from.
+                "term_start": term_start,
                 "commodity": "gas",
                 "daily_kwh": round(daily_kwh, 4),
                 "spot_price_gbp_mwh": round(spot_price, 4),
