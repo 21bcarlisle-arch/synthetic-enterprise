@@ -105,6 +105,28 @@ one place the two legitimately differ: `MIN_RECORDS_FOR_JUDGEMENT` and the `max(
 selection can pick a different "prior term" than the world's `prev_term_margin[cid]` where a
 term was clipped by the reporting window.
 
+## GRADED 2026-09-07 14:05 BST, beside the claim rather than instead of it
+
+**Four legs of five confirmed; leg 4 refuted, and the error was mine, not the run's.**
+
+| leg | predicted | measured | verdict |
+|---|---|---|---|
+| 1 (hard) | W3 eligible firings ≥ 44; residue → 0 or near | 51; residue **exactly 0** | **CONFIRMED** |
+| 1 (hedge) | "a small non-zero residue" from clipping | 0 | **the hedge was WRONG** |
+| 2 | 20–150 of 296 | 51 | **CONFIRMED** |
+| 3 | net margin +ve, under 1% | +£881.97, **+0.63%** | **CONFIRMED** |
+| 4 | renewals, `portfolio_premium` AND `price_cap` all unmoved | first two held; **`price_cap` 106 → 107** | **REFUTED** |
+| 5 | `margin_surcharge` stays exactly 127 | 127 | **CONFIRMED** |
+
+Leg 4 was a badly chosen invariant, not a contaminated pair. The price-cap clamp sits
+*downstream of writer 3 in the same chain*, so an uplift that pushes a rate into the lawful
+ceiling moves that count by construction. I asserted independence for a figure that is not
+independent, and said its movement would mean contamination — it does not. The two genuinely
+independent figures (the renewal count and `portfolio_premium`) held exactly.
+
+Full working, the money decomposition, and what it means for the thesis:
+`SEAT_RESULT_WRITER_3_NOW_FIRES_51_TIMES_AND_EVERY_POUND_OF_IT_IS_TRANSFER_2026-09-07.md`.
+
 ## What this does not settle, and is the next question after it
 
 Writers 2 and 3 sit four lines apart and answer "was the prior term loss-making" from two
