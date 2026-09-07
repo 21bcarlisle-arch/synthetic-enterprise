@@ -548,6 +548,42 @@ def _clamp_term_end(term_start: str, end_date: str = REPORT_END) -> str:
     return natural
 
 
+def resolved_tariff_type(record: dict, *, successor: bool = False) -> str | None:
+    """The `tariff_type` this record's schedule builder ACTUALLY stamps on every term it emits.
+
+    ONE function because the answer differs by commodity and the difference is a live defect, not
+    a style choice. `population_draw.to_customer_dict` renders `"tariff_type": self.tariff_type`
+    unconditionally, so a drawn or won record carries the key PRESENT and `None`, and
+    `record.get("tariff_type", "fixed")` never reaches its default
+    (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28). The
+    electricity call site was repaired to `or "fixed"` on 2026-08-30 and the GAS one was not, so
+    the two schedule builders resolve the same record differently and neither spelling is "how
+    `run_phase2b` spells it" any more.
+
+    That mattered twice over, because `run_value_cycle_ab.product_label_by_account_class` had
+    restated the pre-repair spelling as a THIRD copy in order to census the guard's own input. It
+    therefore published `resolved_tariff_type: null, the_guard_admits_it: false` for 137
+    electricity legs the builder labels `fixed` and the guard admits, in the same artefact whose
+    funnel measured only 158 unlabelled refusals -- all of them gas. Two blocks of one file
+    disagreeing about one read is what a restated spelling buys.
+
+    So the census IMPORTS this rather than restating it, and a future repair of the gas side is
+    one edit in one place that moves the world and the diagnostic together.
+
+    NOT a fidelity change. Each branch returns exactly what its call site returned before, gas
+    defect included -- whether the drawn gas book should carry a decided product is a curriculum
+    question owed a determination, and it is filed as one rather than answered here by a lane that
+    has already seen what it would do to the arm's denominator.
+    """
+    if successor:
+        # The successor call site passes no `tariff_type` at all, so `build_renewal_schedule`'s
+        # own signature default decides -- not the record, whatever the record happens to carry.
+        return "fixed"
+    if record.get("commodity") == "electricity":
+        return record.get("tariff_type") or "fixed"
+    return record.get("tariff_type", "fixed")
+
+
 def _bootstrap_first_term_forward_price(
     term_start: str, gas_records: list[dict],
     contract_length_months: int = 12, lookback_days: int = 90, risk_factor: float = 1.2,
@@ -1277,7 +1313,9 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             elec_records, EFFECTIVE_EAC_KWH[c["customer_id"]],
             lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
             segment=c.get("segment", "resi"),
-            # `or`, NOT `.get(..., "fixed")`, AND THE DIFFERENCE WAS 137 OF 146 ACCOUNTS.
+            # `resolved_tariff_type` resolves this to `or`, NOT `.get(..., "fixed")`, AND THE
+            # DIFFERENCE WAS 137 OF 146 ACCOUNTS. The reasoning is kept here, beside the world it
+            # decides; the function exists so the census that reports this read cannot restate it.
             # `population_draw.to_customer_dict` renders `"tariff_type": self.tariff_type`
             # unconditionally, so a drawn or won electricity leg carries the key PRESENT with
             # value None and the default here was never reached
@@ -1294,7 +1332,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
             # engagement roll in `build_renewal_schedule`, which is what puts roughly two thirds
             # of the domestic book on the standard variable product -- the distribution the
             # determination said was owed, generated rather than asserted.
-            tariff_type=c.get("tariff_type") or "fixed",
+            tariff_type=resolved_tariff_type(c),
             deemed_gap_days=c.get("deemed_gap_days", 0),
         )
 
@@ -1314,7 +1352,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     for c in GAS_CUSTOMERS:
         gas_schedules[c["customer_id"]] = _build_gas_renewal_schedule(
             c, gas_records, lookback_temps_fn=_lookback_temps_fn(c["customer_id"]),
-            report_end=effective_end, tariff_type=c.get("tariff_type", "fixed"),
+            report_end=effective_end, tariff_type=resolved_tariff_type(c),
         )
 
     # ---- Interleave all terms chronologically ----

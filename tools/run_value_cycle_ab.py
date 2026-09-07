@@ -1928,13 +1928,22 @@ def product_label_by_account_class() -> dict:
     license opposite decisions -- grow the book, versus fix the world.
 
     So this counts the guard's own INPUT, off the roster the run bound, rather than its output.
-    `resolved` is `record.get("tariff_type", "fixed")` spelled exactly as `run_phase2b` spells it
-    at its two schedule-building call sites, because the defect being measured is precisely that
-    the default is DEFEATED: `population_draw.to_customer_dict` renders the key unconditionally,
-    so a drawn or won record carries it PRESENT and `None` and the `"fixed"` fallback never fires
+    `resolved` is `run_phase2b.resolved_tariff_type` CALLED, not respelled, because the defect
+    being measured is precisely that the default is DEFEATED:
+    `population_draw.to_customer_dict` renders the key unconditionally, so a drawn or won record
+    carries it PRESENT and `None` and the `"fixed"` fallback never fires
     (`docs/design/DRAWN_BOOK_TARIFF_TYPE_FIDELITY_DETERMINATION.md`, settled 2026-08-28). A census
     keyed on "is the key missing" and one keyed on "what does the read return" are different
     censuses and only the second is what the guard sees.
+
+    IT USED TO RESTATE THAT READ AS `record.get("tariff_type", "fixed")`, and the restatement went
+    stale on 2026-08-30 when the electricity call site was repaired to `or "fixed"` and this line
+    was not. For eight days this block published `resolved_tariff_type: null` and
+    `the_guard_admits_it: false` for 137 electricity legs the builder labels `fixed` and the guard
+    admits -- while `product_not_upliftable_by_tariff_type`, a few keys away in the same artefact,
+    measured 158 unlabelled refusals and every one of them was gas. A restated spelling is a copy
+    of a sentence about the world, and this file's own `product_gate_refusal` sibling exists
+    because the last copy of a sentence about the world went stale the same way.
 
     KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that the found book is
     unlabelled. `a_found_account_can_reach_the_product_gate` is DERIVED, and it turns True the
@@ -1945,9 +1954,10 @@ def product_label_by_account_class() -> dict:
     R12: diagnostic. The counts are not a target and this is not a cue to relax
     `UPLIFTABLE_TARIFF_TYPES` so the found book gets counted.
     """
-    from simulation.run_phase2b import CUSTOMERS, SUCCESSOR_CUSTOMERS
+    from simulation.run_phase2b import CUSTOMERS, SUCCESSOR_CUSTOMERS, resolved_tariff_type
 
     classes = account_class_map()
+    _successor_ids = {r["customer_id"] for r in SUCCESSOR_CUSTOMERS}
     census: dict[tuple[str, str, bool, str], int] = collections.Counter()
     # Whether each billing account's legs agree that a product was DECIDED for them. Two legs of
     # one account minted by two paths can disagree. That disagreement used to be invisible to the
@@ -1961,7 +1971,8 @@ def product_label_by_account_class() -> dict:
         account = _billing_account_id(record["customer_id"])
         name = classes.get(account, UNCLASSIFIED_ACCOUNT_CLASS)
         present = "tariff_type" in record
-        resolved = record.get("tariff_type", "fixed")
+        resolved = resolved_tariff_type(
+            record, successor=record["customer_id"] in _successor_ids)
         census[(name, record["commodity"], present, resolved)] += 1
         key_present_by_account[account].add(present)
         if (record["commodity"] in UPLIFTABLE_COMMODITIES
@@ -1972,10 +1983,13 @@ def product_label_by_account_class() -> dict:
     return {
         "available": True,
         "what_this_is": (
-            "What `run_phase2b`'s `record.get(\"tariff_type\", \"fixed\")` returns for every leg "
-            "on the roster this run bound, split by how the account joined the book. This is the "
-            "INPUT to the arm's product guard, read off the world's records rather than inferred "
-            "from which renewals the run happened to price."),
+            "What `run_phase2b.resolved_tariff_type` returns for every leg on the roster this run "
+            "bound -- the value that record's OWN schedule builder stamps on every term it emits "
+            "-- split by how the account joined the book. This is the INPUT to the arm's product "
+            "guard, read off the world's records rather than inferred from which renewals the "
+            "run happened to price. The read differs by commodity because the electricity call "
+            "site was repaired on 2026-08-30 and the gas one was not; that function is the only "
+            "place either spelling exists."),
         "the_guard_this_feeds": (
             "company/crm/customer_profitability.py: UPLIFTABLE_TARIFF_TYPES = {}, applied at "
             "company/pricing/value_based_renewal.renewal_margin_uplift on commodities {!r}."
@@ -1997,9 +2011,12 @@ def product_label_by_account_class() -> dict:
             "If `a_found_account_can_reach_the_product_gate` is false, no book size prices a "
             "found household: every renewal it offers is refused on the record's shape, which no "
             "number of further households changes. The accounts whose legs DISAGREE are a "
-            "separate fact and a latent one -- a gas leg that omits the key takes the `\"fixed\"` "
-            "default and would be priced as a product the world never decided for it, invisible "
-            "today only because the commodity guard refuses gas one step earlier."),
+            "separate fact and it stopped being a latent one on 2026-09-07, when gas began "
+            "reaching the product gate: a gas leg that CARRIES the key unset now resolves to "
+            "`None` where its own electricity leg resolves to `fixed`, so one account is priced "
+            "on one fuel and refused on the other for a reason that is a record shape rather "
+            "than a product. A gas leg that OMITS the key still takes the `\"fixed\"` default "
+            "and is priced as a product the world never decided for it."),
     }
 
 
