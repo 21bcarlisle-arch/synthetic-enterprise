@@ -6,7 +6,7 @@ from company.trading.net_open_position_register import (
     NOPSeverity,
     NetOpenPositionRegister,
     _AMBER_THRESHOLD_PCT,
-    _FLAT_TOLERANCE_PCT,
+    _FLAT_NOP_EXPOSURE_PCT,
     _RED_THRESHOLD_PCT,
 )
 
@@ -162,5 +162,5 @@ class TestNetOpenPositionRegister:
         assert reg.long_retail_positions == []
 
     def test_constant_thresholds_sensible(self):
-        assert 0 < _FLAT_TOLERANCE_PCT < _AMBER_THRESHOLD_PCT < _RED_THRESHOLD_PCT
+        assert 0 < _FLAT_NOP_EXPOSURE_PCT < _AMBER_THRESHOLD_PCT < _RED_THRESHOLD_PCT
 

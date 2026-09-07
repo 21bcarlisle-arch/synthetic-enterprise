@@ -36,7 +36,11 @@ class NOPSeverity(str, Enum):
     RED = "RED"        # NOP breaches policy limits
 
 
-_FLAT_TOLERANCE_PCT = 5.0   # ±5% = FLAT
+# RENAMED FROM `_FLAT_TOLERANCE_PCT` 2026-09-07 — see the note in
+# `company/market/portfolio_position.py`. Same name and same 5.0, two different quantities: that
+# one bands a hedge ratio around 100%, this one bands net open exposure around zero as rung one of
+# the ladder below.
+_FLAT_NOP_EXPOSURE_PCT = 5.0   # ±5% = FLAT
 _AMBER_THRESHOLD_PCT = 20.0  # >20% exposure = AMBER
 _RED_THRESHOLD_PCT = 40.0    # >40% exposure = RED
 
@@ -71,7 +75,7 @@ class DeliveryPeriodPosition:
     @property
     def direction(self) -> ExposureDirection:
         abs_pct = abs(self.nop_pct_of_retail)
-        if abs_pct <= _FLAT_TOLERANCE_PCT:
+        if abs_pct <= _FLAT_NOP_EXPOSURE_PCT:
             return ExposureDirection.FLAT
         if self.net_open_position_mwh < 0:
             return ExposureDirection.LONG_RETAIL

@@ -75,7 +75,23 @@ from tools.domain_constant_origins import (
 #: different rather than one being a miscount. Baselining a number I can reproduce beats matching
 #: one I cannot: a ratchet nobody can re-derive is a ratchet nobody can trust. If his 263 is the
 #: better population, this constant moves and the definition above moves with it.
-UNSOURCED_DEBT_CEILING = 197
+#:
+#: RE-BASELINED 2026-09-07, 197 -> 255, AND THE DEBT DID NOT GET WORSE — THE SCAN GOT HONEST.
+#: `DOMAIN_UNIT` was added beside `DOMAIN_NAME` in `tools/domain_constant_origins.py` because the
+#: old regex matched the WORD "rate" and not a rate spelled in its units. 82 constants were out of
+#: scope on a spelling and 67 of them declared no origin, so the ratchet had been guarding two
+#: thirds of its own subject. Among the 67: `STANDING_CHARGE_SME_P_PER_DAY` — the director's own
+#: cited example of the class this file exists for — and `TARGET_MARGIN_GBP_PER_MWH`, the flat
+#: control arm. **A ratchet that cannot see the example it was built from is the failure mode this
+#: file's own docstring is about, one level up: not a control that cannot fail, a control aimed
+#: slightly to the left of its target.**
+#:
+#: THIS RAISE IS THE ONLY LEGITIMATE ONE, and the shape is worth naming so the next raise is
+#: argued rather than typed: the ceiling may rise ONLY when the SCAN widens and never when the
+#: CODE does. Debt admitted by widening the subject is debt that already existed; debt admitted by
+#: a new unsourced constant is the thing being refused. A commit that raises this without moving
+#: `DOMAIN_NAME`/`DOMAIN_UNIT` is landing the 256th picked number.
+UNSOURCED_DEBT_CEILING = 255
 
 #: NAME COLLISIONS REMAINING, AS AN EXACT SET AND NOT A COUNT — and the difference is the whole
 #: lesson of this file. A count ratchet (`<= 2`) passes when `duplicates()` returns nothing at all,
@@ -206,14 +222,21 @@ def test_no_concept_is_declared_in_more_than_one_module():
 #: 197 constants cannot become documented in one commit. A reading far below today's is a broken
 #: scan, not progress. Set with room to work the debt down genuinely; when real progress crosses
 #: it, this constant moves DELIBERATELY and the movement is the record that progress happened.
-UNSOURCED_DEBT_FLOOR = 150
+#: RAISED 2026-09-07, 150 -> 208, with the SAME 47 of headroom under the ceiling it had before.
+#: The floor tracks the ceiling because its job is unchanged: it catches `_classify` breaking OPEN,
+#: and a floor left at 150 under a 255 ceiling would let the classifier discharge a hundred
+#: constants silently before anything went red.
+UNSOURCED_DEBT_FLOOR = 208
 
 #: POPULATION FLOOR, dated 2026-08-30, measured at 223 constants across `company/` and `saas/`.
 #: Set below the measurement with headroom, never AT it: a floor pinned to today's count reds on
 #: any lane that lands one constant. A control that counts violations reports SUCCESS when its
 #: scan loses its subjects, which is how five separate controls in this repository went quiet in a
 #: single day.
-CONSTANT_POPULATION_FLOOR = 190
+#: RAISED 2026-09-07, 190 -> 263, keeping the same 33 of headroom under a population that went
+#: 214 -> 296 when `DOMAIN_UNIT` was added. Left at 190 this floor would have been satisfied by a
+#: scan that had lost every unit-spelled constant it just gained.
+CONSTANT_POPULATION_FLOOR = 263
 
 #: THE WHOLE DOMAIN-NAMED POPULATION, literals AND non-literals, and it exists because the debt
 #: count alone could not see the best repair (2026-08-31). `scan()` only sees constants whose value
@@ -227,7 +250,11 @@ CONSTANT_POPULATION_FLOOR = 190
 #: rewarded leaving a literal in place with a comment over replacing it with the authority.
 #:
 #: Floor set below 222 + 29 = 251 with headroom, for the reason on CONSTANT_POPULATION_FLOOR above.
-DOMAIN_NAMED_POPULATION_FLOOR = 235
+#: RAISED 2026-09-07, 235 -> 319, keeping the same 16 of headroom. Measured 296 literal + 39
+#: promoted = 335 after `DOMAIN_UNIT`. Both halves moved, which is the check: a widening that
+#: raised the literals and left `promoted()` flat would have meant the new regex reaches only
+#: unfixed-shaped constants and would score every proper repair of one as a deletion.
+DOMAIN_NAMED_POPULATION_FLOOR = 319
 
 
 def test_the_whole_domain_named_population_is_still_in_scope():

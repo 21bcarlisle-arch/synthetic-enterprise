@@ -134,8 +134,61 @@ class CustomerProfitabilityBook:
 
 # Phase 44a constants for net-negative profitability feedback.
 # Applied as a unit-rate uplift at renewal when prior term is net-negative.
-MIN_RECORDS_FOR_JUDGEMENT: int = 3  # minimum settlement records to form a view
-NET_NEGATIVE_UPLIFT_GBP_PER_MWH: float = 5.0  # uplift applied for net-negative prior term
+
+#: How many settled rows the prior term must carry before we will judge it at all. **COMPANY
+#: BELIEF**, and a weak one: three is a quorum nobody sourced, and no published record says how
+#: much of a term a supplier must have settled before it may act on the margin. What makes it a
+#: belief rather than a picked number is that it is the CONSERVATIVE direction — it can only make
+#: writer 3 refuse, never fire — and the refusal is counted, so a quorum set too high shows up as
+#: renewals declining for want of evidence rather than as silence.
+MIN_RECORDS_FOR_JUDGEMENT: int = 3
+
+#: The net-negative renewal surcharge, GBP/MWh. **COMPANY BELIEF — the magnitude is ours and no
+#: published source establishes it.** Recorded here rather than left as a bare number because it
+#: became load-bearing on 2026-09-07 and was not before: writer 3 returned 0.0 on 78 of 78 calls
+#: until `term_start` reached the settled book, and it now fires 51 times and moves real money.
+#:
+#: WHAT THE PUBLISHED RECORD DOES SETTLE — the PERMISSION, and it is the smaller half.
+#: `docs/domain_artefact_library/regulatory/pricing_differentiation_permissions.md` reads the
+#: consolidated supply licence and finds no prohibition on pricing expected cost into a contract
+#: unit rate (D2), with three live constraints: SLC 27.2A binds only differences BY PAYMENT
+#: METHOD and this is not one; SLC 7.4's undue-onerousness test binds DEEMED contracts and has a
+#: comparator — a class margin significantly above the book's general margin — which a renewal
+#: surcharge applied to a growing class would eventually meet; and SLC 0.3 forbids a material
+#: imbalance in the supplier's favour. That register's own instruction (§F.1) is "expected cost,
+#: not a floor": price what the loss actually cost, and let the answer emerge.
+#:
+#: WHAT IT DOES NOT SETTLE — the MAGNITUDE. That register marks D2 `UNSOURCED`: no Ofgem view on
+#: risk-priced domestic tariffs was found. Nothing in the commons, `docs/market_research/` or the
+#: knowledge map establishes a rate for a loss-recovery surcharge, because it is not a regulated
+#: instrument — it is a supplier's own commercial policy. So this stays a belief. It is NOT
+#: bounded by the price cap's EBIT allowance
+#: (`docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md`): that file says in its
+#: own §E that it is not this company's cap and must never become a number our margin is tuned
+#: toward, and a fixed-term contract a customer chose is not a default tariff. Quoted here as
+#: SCALE ONLY, with its clock: the regulator allowed a notional efficient supplier £45.16 per
+#: customer per year (dual fuel, benchmark consumption, direct debit, cap period 11a).
+#:
+#: WHAT GRADES IT, measured over `docs/reports/run_output_latest.json`, all 51 firings:
+#:
+#:     basis/magnitude   gbp_per_mwh 5.0, 51 of 51      (flat, as designed)
+#:     commodity         46 gas, 5 electricity
+#:     rate_before       min 50.7  median 128.9  max 287.4  GBP/MWh
+#:     surcharge as a share of the rate it modifies:
+#:                       min 1.74%   median 3.88%   max 9.86%
+#:
+#: **A FLAT GBP/MWh SURCHARGE IS NOT A FLAT POLICY, and that is this constant's real defect
+#: rather than its level.** The same "penalty" is 1.7% of one renewal and 9.9% of another — a
+#: 5.7x spread across the book that nobody chose and no reader of the number could predict. It is
+#: also uncorrelated with the deficit it is levied for: the surcharge does not read the size of
+#: the loss, only its sign, so it neither recovers a large one nor is proportionate to a small
+#: one. Against the mission's first test it is pure transfer — the pair that landed it measured
+#: +881.10 GBP revenue against +0.45 GBP cost — and that is an argument for pricing the cost
+#: rather than the sign, which is a PRICING POLICY and so the director's, filed as
+#: `SEAT_FINDING_THE_NET_NEGATIVE_SURCHARGE_IS_FLAT_IN_POUNDS_AND_SO_VARIES_5_7X_IN_WHAT_IT_CHARGES_2026-09-07.md`.
+#: Until he rules, the honest thing is a labelled belief that says what it is, not a bare 5.0
+#: that reads as established.
+NET_NEGATIVE_UPLIFT_GBP_PER_MWH: float = 5.0
 
 
 def estimate_prior_term_net_margin(

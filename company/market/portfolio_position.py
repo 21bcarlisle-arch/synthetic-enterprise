@@ -16,7 +16,14 @@ class CommodityType(str, Enum):
     GAS = 'gas'
 
 
-_FLAT_TOLERANCE_PCT = 5.0
+# RENAMED FROM `_FLAT_TOLERANCE_PCT` 2026-09-07. It shared that name AND the value 5.0 with
+# `company/trading/net_open_position_register`, and the two are not the same quantity: this is a
+# band around a HEDGE RATIO of 100%, that one is a band around ZERO net open exposure and is the
+# first rung of a GREEN/AMBER/RED ladder. Different denominators, different zero points — so a
+# reader who had met one of them would have believed they knew what the other meant. Surfaced the
+# day `DOMAIN_UNIT` brought `_PCT` constants into `tools/domain_constant_origins`; nothing could
+# see it before, because neither name contains the word "threshold".
+_FLAT_HEDGE_RATIO_TOLERANCE_PCT = 5.0
 
 
 @dataclass(frozen=True)
@@ -34,9 +41,9 @@ class EnergyPosition:
     @property
     def direction(self) -> PositionDirection:
         ratio = self.hedge_ratio_pct
-        if ratio < (100.0 - _FLAT_TOLERANCE_PCT):
+        if ratio < (100.0 - _FLAT_HEDGE_RATIO_TOLERANCE_PCT):
             return PositionDirection.SHORT
-        if ratio > (100.0 + _FLAT_TOLERANCE_PCT):
+        if ratio > (100.0 + _FLAT_HEDGE_RATIO_TOLERANCE_PCT):
             return PositionDirection.LONG
         return PositionDirection.FLAT
 

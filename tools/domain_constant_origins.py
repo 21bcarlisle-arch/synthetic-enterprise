@@ -81,6 +81,44 @@ SCOPE = ("company", "saas")
 #: by changing this one regex, and the ratchet would simply be re-baselined.
 DOMAIN_NAME = re.compile(r"(RATE|PRICE|PROBABILITY|THRESHOLD|CAP)")
 
+#: THE SAME FIVE WORDS, DETECTED BY THE UNIT INSTEAD OF THE SPELLING (2026-09-07).
+#:
+#: `DOMAIN_NAME` above matches the WORD "rate". It does not match a rate that is spelled in its
+#: units, and that is a defect in the detector rather than a decision about scope: a constant
+#: named `..._GBP_PER_MWH` is a price by construction, and one named `..._PCT` is a rate,
+#: threshold or probability by construction. Neither can be anything else. Widening to them is
+#: not the wider net the note above declines (COST, FEE, MARGIN, FACTOR, WEIGHT, DAYS — 593
+#: constants, and a re-baseline against a question nobody asked); it is the director's own five
+#: words, found where they were hiding.
+#:
+#: WHAT IT WAS COSTING, and this is why it is not a tidy-up. 82 constants were out of scope on a
+#: spelling, 67 of them declaring no origin at all — a third again on top of the debt this file
+#: was built to ratchet. Among them:
+#:
+#:   * `company/pricing/tariff_comparison.STANDING_CHARGE_SME_P_PER_DAY` and `..._IC_P_PER_DAY`
+#:     — **the director's OWN cited example of the class** ("a standing charge that matches
+#:     neither fuel"), invisible to the control written for it. Its `_RESI_` sibling one line
+#:     above is in scope and reads CITED, so the file looked covered.
+#:   * `saas/tariff_pricing.TARGET_MARGIN_GBP_PER_MWH = 2.00` — the flat control arm the whole of
+#:     `docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md` §D was written about,
+#:     and the basis it records for it is "none stated".
+#:   * `company/market/network_charges._DUOS_PENCE_PER_KWH`, `_TNUOS_PENCE_PER_KWH` — published
+#:     network charges, carried as bare numbers.
+#:
+#: FOUND BY FOLLOWING A THREAD, not by an audit: `NET_NEGATIVE_UPLIFT_GBP_PER_MWH` was asked
+#: where it came from, and the answer was that nothing had ever asked.
+#:
+#: DELIBERATELY NOT INCLUDED: counting and conversion suffixes — `PERIODS_PER_DAY`,
+#: `_DAYS_PER_MONTH`, `_HOURS_PER_DAY`, `KWH_PER_THERM`. 24 hours in a day is arithmetic, not a
+#: number anybody picked, and demanding an origin for it would spend the rule's credibility on
+#: noise. That cut is what separates this from the wider net: money-per-unit and percent only.
+DOMAIN_UNIT = re.compile(r"_GBP_PER_|_P_PER_|_PENCE_PER_|_PCT\b")
+
+
+def in_scope(name: str) -> bool:
+    """Does this NAME owe an origin — by the director's word, or by its unit?"""
+    return bool(DOMAIN_NAME.search(name) or DOMAIN_UNIT.search(name))
+
 #: It came from outside us.
 #:
 #: THE ABBREVIATIONS ARE ANCHORED ON BOTH SIDES (2026-08-31). `CMA\b` and `ONS\b` carried a
@@ -186,7 +224,7 @@ def scan(root: Path | None = None) -> list[dict]:
                 if not _is_numeric(value):
                     continue
                 for name in names:
-                    if not name.isupper() or not DOMAIN_NAME.search(name):
+                    if not name.isupper() or not in_scope(name):
                         continue
                     comment = _comment_block(lines, node.lineno)
                     try:
@@ -250,7 +288,7 @@ def promoted(root: Path | None = None) -> list[dict]:
                 if _is_numeric(value):
                     continue
                 for name in names:
-                    if name.isupper() and DOMAIN_NAME.search(name):
+                    if name.isupper() and in_scope(name):
                         out.append({
                             "path": str(path.relative_to(root)),
                             "name": name,
