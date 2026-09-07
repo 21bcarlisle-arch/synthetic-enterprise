@@ -260,6 +260,14 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     # single-value copy of one row of a published series is invisible to it -- and that copy was
     # the one doing damage, at GBP930/household/year. Discovery must not be narrower than the
     # thing it governs; here it was narrower in a dimension nobody had named.
+    #
+    # THAT BOUND IS STILL TRUE OF THIS CENSUS, and it is not deleted, because it correctly says
+    # what this file can and cannot see. What changed on 2026-09-08 is that the hole is now
+    # covered ELSEWHERE: `tools/published_row_scalar_census.py` walks every module-level number in
+    # `company/`, `saas/` and `simulation/` against every row of every JSON artefact in the
+    # commons, ranked by how few published rows a value collides with. Its own reachability floor
+    # is the constant named above, fed back in as a poison round --
+    # `tests/architecture/test_published_row_scalar_census.py`.
     "company/regulatory/fit_book.py::_FIT_LEVELISATION_RATE_PER_MWH":
         "Ofgem FIT levelisation, the company-side twin of policy_costs' _FIT_LEVY_BY_YEAR; "
         "published per levelisation period, so the pin carries the period-to-year mapping.",
