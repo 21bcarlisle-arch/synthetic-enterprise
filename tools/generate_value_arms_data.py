@@ -1426,9 +1426,18 @@ def _resolvable(value, spread) -> bool | None:
 _SCOPE_BY_DESIGN = {
     "acquisition_term": "term 0 has no prior term to price against",
     "not_the_arms_commodity": (
-        "the commodity is outside `UPLIFTABLE_COMMODITIES` (electricity, gas). Gas sat here "
-        "until 2026-09-07 and no longer does: the arm now reads the renewal's own commodity for "
-        "its churn curve, its cost-to-serve cadence, its standing-charge table and its lawful cap"),
+        "the commodity is outside `UPLIFTABLE_COMMODITIES` (electricity, gas). Gas sat here until "
+        "2026-09-07 and no longer does -- the arm reads the renewal's own commodity for its churn "
+        "curve, its cost-to-serve cadence, its standing-charge table and its lawful cap. THE "
+        "MEASURED GAIN FROM THAT WAS ZERO DECISIONS AND ZERO ACCOUNTS: on a one-variable pair of "
+        "runs in one world all 337 gas renewals moved to two other refusals -- 158 to "
+        "`product_not_upliftable` (gas legs on SVT, the same market ceiling the electricity book "
+        "has) and 179 to `no_observed_history`, which is NOT 'this account has no gas history'. "
+        "The chain is called with the household billing id and the world files gas settlement "
+        "rows under the supply-point id (`C1g` vs `C1`), so the gas leg's own book is unreachable "
+        "by the key it is looked up under. The gate was standing in front of that. See "
+        "docs/staging/SEAT_RESULT_ADMITTING_GAS_MOVED_THE_REFUSAL_AND_BOUGHT_ZERO_DECISIONS_"
+        "BECAUSE_THE_ARM_ASKS_FOR_THE_GAS_LEGS_BOOK_UNDER_THE_WRONG_ID_2026-09-07.md"),
 }
 
 

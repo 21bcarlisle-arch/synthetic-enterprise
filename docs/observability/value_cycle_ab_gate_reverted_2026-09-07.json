@@ -1,0 +1,2852 @@
+{
+  "generated_at": "2026-09-07T01:10:14Z",
+  "producing_commit": {
+    "commit": "3088f8c717b6ab0910a65950015f4b79ba8a8be4",
+    "resolved_at": "2026-09-07T00:34:00Z",
+    "resolved_when": "at process start, when Python bound the modules this run executed -- NOT at artefact assembly, which is a later tree",
+    "unavailable_because": null,
+    "why_this_is_here": "This run takes hours and the tree moves under it. A consumer that wants to publish these counts needs to know which code drew them, and no diff between two artefacts can supply that."
+  },
+  "world_identity": {
+    "digest": "39a192ce04c1eda8",
+    "anchors": {
+      "2016": 4.259915,
+      "2017": 7.372584,
+      "2018": 2.945347,
+      "2019": 6.637286,
+      "2020": 6.359296,
+      "2021": 5.641346,
+      "2022": 1.0,
+      "2023": 2.033232,
+      "2024": 4.259915,
+      "2025": 4.259915
+    },
+    "fitted_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2023,
+      2024
+    ],
+    "declared_years": [
+      2016,
+      2022,
+      2025
+    ],
+    "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other.",
+    "unavailable_because": null
+  },
+  "report_end": null,
+  "clock_definitions": {
+    "settled-realised": "SETTLED, on the world's realised payment behaviour. Summed over `phase2b.all_records` AS THIS ARTEFACT READS THEM -- i.e. after `simulation/run_phase4c_on_phase2b.py` has called `apply_emergent_bad_debt` and `apply_debt_recovery`, which replace the flat-rate provision in each row with the write-offs and DCA recoveries the arrears model actually produced, and carry the difference through `treasury_cash_balance_gbp`. This is the SAME sum `saas/reporting/annual_report.py:921` publishes as `total_net_gbp` in `docs/reports/run_output_latest.json`, which is the figure the site shows.",
+    "settled-provisioned": "SETTLED, on the flat-rate bad-debt PROVISION, and superseded within the same run. `simulation/run_phase2b.py:2499-2503` sums the same rows at the end of the settlement loop, before the arrears engine has touched them, so its `bad_debt_gbp` is still `get_bad_debt_rate()` x billed amount -- a calibrated company assumption, not an outcome. Published here NAMED rather than dropped, because the run's own summary dict still carries these scalars and a reader who meets one elsewhere (e.g. `run_output_latest.json:final_treasury_gbp`) needs to know which figure it is."
+  },
+  "what_this_is": "The same book and the same world, run once per pricing arm, scored on what ACTUALLY happened. No figure here is anything the company believed.",
+  "book_identity": {
+    "control_arm": {
+      "served_segments": [
+        "resi",
+        "SME"
+      ],
+      "served_segments_resolved_from": "curriculum",
+      "served_segments_override_env": null,
+      "served_segments_unavailable_because": null,
+      "billing_accounts_settled_in_window": 164,
+      "with_an_electricity_leg": 146,
+      "with_a_gas_leg": 105,
+      "dual_fuel": 87,
+      "dual_fuel_share_of_accounts": 0.5304878048780488,
+      "accounts_at_end_of_window": 73,
+      "what_each_count_selects": {
+        "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+        "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+      },
+      "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+    },
+    "value_arm": {
+      "served_segments": [
+        "resi",
+        "SME"
+      ],
+      "served_segments_resolved_from": "curriculum",
+      "served_segments_override_env": null,
+      "served_segments_unavailable_because": null,
+      "billing_accounts_settled_in_window": 165,
+      "with_an_electricity_leg": 147,
+      "with_a_gas_leg": 105,
+      "dual_fuel": 87,
+      "dual_fuel_share_of_accounts": 0.5272727272727272,
+      "accounts_at_end_of_window": 71,
+      "what_each_count_selects": {
+        "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+        "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+      },
+      "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+    },
+    "level_arm": {
+      "served_segments": [
+        "resi",
+        "SME"
+      ],
+      "served_segments_resolved_from": "curriculum",
+      "served_segments_override_env": null,
+      "served_segments_unavailable_because": null,
+      "billing_accounts_settled_in_window": 165,
+      "with_an_electricity_leg": 147,
+      "with_a_gas_leg": 105,
+      "dual_fuel": 87,
+      "dual_fuel_share_of_accounts": 0.5272727272727272,
+      "accounts_at_end_of_window": 70,
+      "what_each_count_selects": {
+        "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+        "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+      },
+      "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+    },
+    "same_book_across_arms": {
+      "same_book": true,
+      "arms_compared": [
+        "control_arm",
+        "level_arm",
+        "value_arm"
+      ],
+      "arms_with_no_recorded_book": [],
+      "served_segments_by_arm": {
+        "control_arm": [
+          "resi",
+          "SME"
+        ],
+        "value_arm": [
+          "resi",
+          "SME"
+        ],
+        "level_arm": [
+          "resi",
+          "SME"
+        ]
+      },
+      "resolved_from_by_arm": {
+        "control_arm": "curriculum",
+        "value_arm": "curriculum",
+        "level_arm": "curriculum"
+      },
+      "distinct_books": [
+        [
+          "resi",
+          "SME"
+        ]
+      ],
+      "why_this_is_here": "`arm_identity` guards the policy fields; this guards the population. A delta between two arms that served different segments carries an uncontrolled variable of the same class -- WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26."
+    }
+  },
+  "arm_identity": {
+    "differing_fields": [
+      "name",
+      "renewal_margin_arm"
+    ],
+    "why_it_matters": "`name` and `renewal_margin_arm` are the only two, and `name` does not reach a decision. Any third field here means the delta below carries an uncontrolled variable, which is the defect WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10 recorded on the sibling comparison."
+  },
+  "control_arm": {
+    "total_net_gbp": 139109.489403,
+    "total_gross_margin_gbp": 377745.6319205916,
+    "total_capital_cost_gbp": 6694.1254559505,
+    "total_bad_debt_gbp": 12083.22,
+    "final_treasury_gbp": 389109.49,
+    "provisioned_net_gbp": 120238.269442,
+    "provisioned_bad_debt_gbp": 30954.439961,
+    "provisioned_final_treasury_gbp": 370238.2694419874,
+    "enterprise_value_gbp": 124866.74544177135,
+    "account_count": 73,
+    "churned_accounts": 77,
+    "renewals_priced_by_the_arm": 0,
+    "clocks": {
+      "total_net_gbp": "settled-realised",
+      "total_bad_debt_gbp": "settled-realised",
+      "final_treasury_gbp": "settled-realised",
+      "provisioned_net_gbp": "settled-provisioned",
+      "provisioned_bad_debt_gbp": "settled-provisioned",
+      "provisioned_final_treasury_gbp": "settled-provisioned"
+    }
+  },
+  "value_arm": {
+    "total_net_gbp": 146264.951996,
+    "total_gross_margin_gbp": 366321.199673576,
+    "total_capital_cost_gbp": 6394.962968495582,
+    "total_bad_debt_gbp": 8800.130000000001,
+    "final_treasury_gbp": 396264.95,
+    "provisioned_net_gbp": 126146.364369,
+    "provisioned_bad_debt_gbp": 28918.717627,
+    "provisioned_final_treasury_gbp": 376146.36436900037,
+    "enterprise_value_gbp": 128944.87290750803,
+    "account_count": 71,
+    "churned_accounts": 80,
+    "renewals_priced_by_the_arm": 100,
+    "clocks": {
+      "total_net_gbp": "settled-realised",
+      "total_bad_debt_gbp": "settled-realised",
+      "final_treasury_gbp": "settled-realised",
+      "provisioned_net_gbp": "settled-provisioned",
+      "provisioned_bad_debt_gbp": "settled-provisioned",
+      "provisioned_final_treasury_gbp": "settled-provisioned"
+    }
+  },
+  "level_arm": {
+    "total_net_gbp": 142636.508641,
+    "total_gross_margin_gbp": 361192.4250006602,
+    "total_capital_cost_gbp": 6336.3091891771455,
+    "total_bad_debt_gbp": 8764.87,
+    "final_treasury_gbp": 392636.51,
+    "provisioned_net_gbp": 122838.935992,
+    "provisioned_bad_debt_gbp": 28562.442649,
+    "provisioned_final_treasury_gbp": 372838.9359919987,
+    "enterprise_value_gbp": 126088.04384670865,
+    "account_count": 70,
+    "churned_accounts": 81,
+    "renewals_priced_by_the_arm": 99,
+    "clocks": {
+      "total_net_gbp": "settled-realised",
+      "total_bad_debt_gbp": "settled-realised",
+      "final_treasury_gbp": "settled-realised",
+      "provisioned_net_gbp": "settled-provisioned",
+      "provisioned_bad_debt_gbp": "settled-provisioned",
+      "provisioned_final_treasury_gbp": "settled-provisioned"
+    }
+  },
+  "level_arm_decision_shape": {
+    "priced": 99,
+    "declined": 0,
+    "declined_share_of_renewals_seen": 0.0,
+    "distinct_margins": 30,
+    "modal_margin_share_of_book": 0.697,
+    "median_margin_gbp_per_mwh": 48.5,
+    "control_margin_gbp_per_mwh": 2.0,
+    "endpoint_bound": 30,
+    "endpoint_at_ceiling": 30,
+    "endpoint_at_floor": 0,
+    "withheld": 0,
+    "ceiling_bound": 0,
+    "extrapolation_bound": 0,
+    "clamped_by_the_price_cap": 0
+  },
+  "level_vs_selection": {
+    "available": true,
+    "level_gbp_per_mwh": 48.5,
+    "level_source": "the value arm's own realised median margin in THIS run (`decision_shape.median_margin_gbp_per_mwh`), not a constant",
+    "control_net_gbp": 139109.489403,
+    "value_arm_net_gbp": 146264.951996,
+    "level_arm_net_gbp": 142636.508641,
+    "value_advantage_gbp": 7155.462592999975,
+    "level_advantage_gbp": 3527.019237999979,
+    "selection_gbp": 3628.443354999996,
+    "level_share_of_advantage": 0.49291281900493494,
+    "share_undefined_reason": null,
+    "clock": "settled-realised",
+    "basis": "settled net margin (R14) on the SETTLED-REALISED clock -- `net_margin_gbp` summed from the world's own settled records after the arrears engine has replaced the flat-rate provision with realised write-offs and DCA recoveries.",
+    "why_this_clock": "The provisioned clock's bad-debt line is a calibrated company assumption, and this artefact scores nothing the company believed; the realised clock is also the one the site publishes. It is the LESS flattering choice -- the value arm's advantage falls from GBP 7,366.22 to GBP 4,668.41 and bad debt turns from a GBP 2,481.39 saving into a GBP 216.42 cost -- and it is taken for the two reasons above and not for its size (R12).",
+    "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
+  },
+  "realised_delta": {
+    "net_margin_gbp": 7155.462592999975,
+    "enterprise_value_gbp": 4078.1274657366885,
+    "accounts_at_end": -2,
+    "churned_accounts": 3,
+    "gross_margin_gbp": -11424.43224701559,
+    "bad_debt_gbp": -3283.0899999999983
+  },
+  "gross_to_net_bridge": {
+    "what_this_is": "The arithmetic between gross and net, per arm, summed from the world's own settled records. Answers `gross fell and net rose` with named lines and figures instead of a candidate list.",
+    "clock": "settled-realised",
+    "basis": "R14 -- SETTLED-REALISED. Every figure is summed from phase2b.all_records AS THEY STAND AFTER the arrears engine, which is the same read the arm blocks now use and the same sum the site publishes. Not billed. Not banked -- this world has no banked clock; see `clock_definitions`. Until 2026-08-28 the arm blocks read run_phase2b's frozen pre-arrears scalars instead, so this bridge and the arm block published two different net margins for the same arm, GBP 39,962.17 apart.",
+    "line_definitions": {
+      "policy_and_levies_gbp": {
+        "summed_from": [
+          "policy_cost_gbp",
+          "gas_policy_cost_gbp"
+        ],
+        "is": "RO + CfD + CCL + CM + FiT + SoLR mutualisation (elec), CCL + GGL (gas)"
+      },
+      "network_gbp": {
+        "summed_from": [
+          "network_cost_gbp",
+          "gas_network_cost_gbp"
+        ],
+        "is": "DUoS + TNUoS unit charges (elec), transportation + metering (gas)"
+      },
+      "capital_cost_gbp": {
+        "summed_from": [
+          "capital_cost_gbp"
+        ],
+        "is": "cost of collateral, sized once per term and allocated across the periods that settled"
+      },
+      "bad_debt_gbp": {
+        "summed_from": [
+          "bad_debt_gbp"
+        ],
+        "is": "money billed that never arrived, deducted from net in run_phase2b"
+      }
+    },
+    "control_arm": {
+      "records": 324696,
+      "gross_margin_gbp": 377745.63192059664,
+      "policy_and_levies_gbp": 71213.5338779176,
+      "network_gbp": 148645.2628714783,
+      "capital_cost_gbp": 6694.1254559502195,
+      "bad_debt_gbp": 12083.219999997742,
+      "total_deductions_gbp": 238636.14220534387,
+      "net_margin_gbp": 139109.48940299838,
+      "unexplained_residual_gbp": -0.0003122543857898563,
+      "revenue_gbp": 675114.3658211682,
+      "wholesale_cost_gbp": 297368.7341136535,
+      "volume_kwh": 6235635.253423682
+    },
+    "value_arm": {
+      "records": 314127,
+      "gross_margin_gbp": 366321.1996735861,
+      "policy_and_levies_gbp": 64904.090729930555,
+      "network_gbp": 139957.0640094318,
+      "capital_cost_gbp": 6394.962968495421,
+      "bad_debt_gbp": 8800.129999997802,
+      "total_deductions_gbp": 220056.2477078556,
+      "net_margin_gbp": 146264.95199600232,
+      "unexplained_residual_gbp": 3.0271796276792884e-05,
+      "revenue_gbp": 646603.6199209754,
+      "wholesale_cost_gbp": 280282.42030951753,
+      "volume_kwh": 5986336.078676345
+    },
+    "net_delta_contribution_gbp": {
+      "gross_margin_gbp": -11424.432247010525,
+      "network_gbp": 8688.198862046498,
+      "policy_and_levies_gbp": 6309.44314798704,
+      "bad_debt_gbp": 3283.08999999994,
+      "capital_cost_gbp": 299.1624874547988
+    },
+    "largest_contribution": "gross_margin_gbp",
+    "net_delta_gbp": 7155.462593003933,
+    "net_delta_reconstructed_gbp": 7155.462250477752,
+    "reconstruction_error_gbp": -0.0003425261811571545,
+    "reconstruction_closes": true,
+    "unexplained_residual_delta_gbp": 0.0003425261820666492
+  },
+  "churn_volume_attribution": {
+    "what_this_is": "Whether the accounts that churned under ONE arm and not the other carry the gross-margin fall. Measured, so it can rule the candidate out.",
+    "differentially_churned_accounts": [
+      "C5_2",
+      "PROS-2018-0137",
+      "PROS-2019-0024",
+      "PROS-2024-0110",
+      "SYN-2016-034"
+    ],
+    "control_only": [
+      "PROS-2018-0137"
+    ],
+    "value_only": [
+      "C5_2",
+      "PROS-2019-0024",
+      "PROS-2024-0110",
+      "SYN-2016-034"
+    ],
+    "control_arm": {
+      "differentially_churned": {
+        "gross_gbp": 11867.701337192628,
+        "volume_kwh": 188880.69683369764
+      },
+      "everyone_else": {
+        "gross_gbp": 365877.930583409,
+        "volume_kwh": 6046754.556589636
+      }
+    },
+    "value_arm": {
+      "differentially_churned": {
+        "gross_gbp": 13584.020985740022,
+        "volume_kwh": 202818.74487947975
+      },
+      "everyone_else": {
+        "gross_gbp": 352737.17868783994,
+        "volume_kwh": 5783517.333797106
+      }
+    },
+    "gross_delta_gbp": -11424.432247021643,
+    "gross_delta_from_differentially_churned_gbp": 1716.3196485473945,
+    "share_of_gross_delta": -0.15023238016881235,
+    "volume_delta_kwh": -249299.174746749
+  },
+  "decision_shape": {
+    "priced": 94,
+    "declined": 6,
+    "declined_share_of_renewals_seen": 0.06,
+    "distinct_margins": 47,
+    "modal_margin_share_of_book": 0.1277,
+    "median_margin_gbp_per_mwh": 48.5,
+    "control_margin_gbp_per_mwh": 2.0,
+    "endpoint_bound": 46,
+    "endpoint_at_ceiling": 46,
+    "endpoint_at_floor": 0,
+    "withheld": 0,
+    "ceiling_bound": 44,
+    "extrapolation_bound": 0,
+    "clamped_by_the_price_cap": 0
+  },
+  "renewal_funnel": {
+    "control_arm": {
+      "available": true,
+      "arm": "control_arm",
+      "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
+      "renewals_the_world_offered": 2098,
+      "reached_the_arm_with_an_arm_set": 0,
+      "priced": 0,
+      "declined": 0,
+      "priced_share_of_renewals_offered": 0.0,
+      "stages": [
+        {
+          "stage": "control_arm_no_writer",
+          "count": 2098,
+          "share_of_renewals_offered": 1.0,
+          "means": "the control arm: `renewal_margin_uplift` returns before computing anything under `flat_rules`, so every renewal the world offered lands here. On the control this is the WHOLE funnel and that is correct -- it is what makes the world's own renewal count readable from a run in which the arm priced nothing."
+        },
+        {
+          "stage": "no_locked_rate",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "a term with no locked unit rate to move -- a deemed or flex period, priced at settlement rather than struck. There is no margin here for any arm to choose."
+        },
+        {
+          "stage": "acquisition_term",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
+        },
+        {
+          "stage": "not_the_arms_commodity",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "a commodity outside `UPLIFTABLE_COMMODITIES`. Gas was here until 2026-09-07, on the ground that the arm's churn and cost-to-serve inputs had never been fitted to it; every one of those inputs now takes the renewal's OWN commodity (churn `fuel`, cost-to-serve cadence, standing-charge table, cap ceiling), so the stage counts only fuels this supplier does not sell. The MEANING stops at the guard and the cause is read off the breakdown, for the reason given below."
+        },
+        {
+          "stage": "product_not_upliftable",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). WHY these particular renewals were refused is NOT stated here: read `product_not_upliftable_by_tariff_type` beside this count, because a term the world settled on a product with no renewal to price and a term whose product was never decided are the same integer and opposite conclusions."
+        },
+        {
+          "stage": "no_observed_history",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "nothing settled for this account inside the one-year observation window before the term start, so the arm has no EAC, tenure or current rate to price from."
+        },
+        {
+          "stage": "declined",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the arm RAN and found no margin that survives both the price cap and the churn model's support bound. A decision, not an omission."
+        },
+        {
+          "stage": "priced",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
+        }
+      ],
+      "product_not_upliftable_by_tariff_type": {},
+      "accounts_the_arm_priced": [],
+      "accounts_the_world_offered_a_renewal": 164,
+      "by_account_class": {
+        "available": true,
+        "what_this_is": "The renewal funnel split by how each billing account joined the book, from the world's own `acquisition_type` rather than from the shape of its id. The stage totals beside this block are true of the book as a whole and cannot say WHOSE renewals they are.",
+        "classes": {
+          "drawn_by_the_curriculum": {
+            "renewals_the_world_offered": 913,
+            "accounts": 63,
+            "priced": 0,
+            "priced_share_of_its_own_renewals": 0.0,
+            "stages": {
+              "control_arm_no_writer": 913,
+              "no_locked_rate": 0,
+              "acquisition_term": 0,
+              "not_the_arms_commodity": 0,
+              "product_not_upliftable": 0,
+              "no_observed_history": 0,
+              "declined": 0,
+              "priced": 0
+            }
+          },
+          "founder_hand_authored": {
+            "renewals_the_world_offered": 79,
+            "accounts": 10,
+            "priced": 0,
+            "priced_share_of_its_own_renewals": 0.0,
+            "stages": {
+              "control_arm_no_writer": 79,
+              "no_locked_rate": 0,
+              "acquisition_term": 0,
+              "not_the_arms_commodity": 0,
+              "product_not_upliftable": 0,
+              "no_observed_history": 0,
+              "declined": 0,
+              "priced": 0
+            }
+          },
+          "won_by_the_funnel": {
+            "renewals_the_world_offered": 1106,
+            "accounts": 91,
+            "priced": 0,
+            "priced_share_of_its_own_renewals": 0.0,
+            "stages": {
+              "control_arm_no_writer": 1106,
+              "no_locked_rate": 0,
+              "acquisition_term": 0,
+              "not_the_arms_commodity": 0,
+              "product_not_upliftable": 0,
+              "no_observed_history": 0,
+              "declined": 0,
+              "priced": 0
+            }
+          }
+        },
+        "priced_accounts_by_class": {
+          "drawn_by_the_curriculum": [],
+          "founder_hand_authored": [],
+          "won_by_the_funnel": []
+        },
+        "accounts_the_company_won_or_drew_that_the_arm_priced": 0,
+        "reading": "The mission says the value comes from inference over the individual customers the method FINDS. A run in which every priced renewal belongs to a founder account has not tested that claim at all, whatever its headline says."
+      },
+      "product_label_by_account_class": {
+        "available": true,
+        "what_this_is": "What `run_phase2b`'s `record.get(\"tariff_type\", \"fixed\")` returns for every leg on the roster this run bound, split by how the account joined the book. This is the INPUT to the arm's product guard, read off the world's records rather than inferred from which renewals the run happened to price.",
+        "the_guard_this_feeds": "company/crm/customer_profitability.py: UPLIFTABLE_TARIFF_TYPES = ['fixed', 'pass_through'], applied at company/pricing/value_based_renewal.renewal_margin_uplift on commodities ['electricity'].",
+        "legs": [
+          {
+            "account_class": "drawn_by_the_curriculum",
+            "commodity": "electricity",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 46,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "drawn_by_the_curriculum",
+            "commodity": "gas",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 18,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "founder_hand_authored",
+            "commodity": "electricity",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 15,
+            "the_guard_admits_it": true
+          },
+          {
+            "account_class": "founder_hand_authored",
+            "commodity": "gas",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 4,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "won_by_the_funnel",
+            "commodity": "electricity",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 91,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "won_by_the_funnel",
+            "commodity": "gas",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 83,
+            "the_guard_admits_it": false
+          }
+        ],
+        "a_found_account_can_reach_the_product_gate": false,
+        "found_accounts_the_guard_would_admit": [],
+        "billing_accounts_whose_legs_disagree_about_labelling": [
+          "PROS-2016-0067",
+          "PROS-2016-0099",
+          "PROS-2016-0121",
+          "PROS-2017-0038",
+          "PROS-2017-0065",
+          "PROS-2017-0084",
+          "PROS-2017-0130",
+          "PROS-2017-0160",
+          "PROS-2017-0185",
+          "PROS-2018-0016",
+          "PROS-2018-0039",
+          "PROS-2018-0080",
+          "PROS-2018-0137",
+          "PROS-2018-0161",
+          "PROS-2018-0223",
+          "PROS-2018-0238",
+          "PROS-2019-0009",
+          "PROS-2019-0024",
+          "PROS-2019-0069",
+          "PROS-2019-0105",
+          "PROS-2019-0135",
+          "PROS-2019-0164",
+          "PROS-2019-0190",
+          "PROS-2019-0216",
+          "PROS-2019-0255",
+          "PROS-2019-0302",
+          "PROS-2019-0310",
+          "PROS-2019-0329",
+          "PROS-2020-0012",
+          "PROS-2020-0032",
+          "PROS-2020-0067",
+          "PROS-2020-0170",
+          "PROS-2020-0190",
+          "PROS-2020-0221",
+          "PROS-2020-0287",
+          "PROS-2020-0303",
+          "PROS-2020-0347",
+          "PROS-2020-0391",
+          "PROS-2021-0029",
+          "PROS-2021-0060",
+          "PROS-2021-0105",
+          "PROS-2021-0133",
+          "PROS-2021-0175",
+          "PROS-2021-0212",
+          "PROS-2021-0248",
+          "PROS-2021-0288",
+          "PROS-2021-0324",
+          "PROS-2021-0362",
+          "PROS-2021-0399",
+          "PROS-2022-0019",
+          "PROS-2022-0049",
+          "PROS-2022-0081",
+          "PROS-2023-0001",
+          "PROS-2023-0025",
+          "PROS-2023-0072",
+          "PROS-2023-0113",
+          "PROS-2023-0146",
+          "PROS-2023-0172",
+          "PROS-2023-0225",
+          "PROS-2023-0248",
+          "PROS-2023-0280",
+          "PROS-2023-0305",
+          "PROS-2024-0014",
+          "PROS-2024-0040",
+          "PROS-2024-0065",
+          "PROS-2024-0083",
+          "PROS-2024-0110",
+          "PROS-2024-0131",
+          "PROS-2024-0179",
+          "PROS-2024-0199",
+          "PROS-2024-0218",
+          "PROS-2024-0241",
+          "PROS-2024-0270",
+          "PROS-2024-0289",
+          "PROS-2024-0315",
+          "PROS-2024-0335",
+          "PROS-2024-0349",
+          "PROS-2025-0033",
+          "PROS-2025-0051",
+          "PROS-2025-0087",
+          "PROS-2025-0106",
+          "PROS-2025-0136",
+          "PROS-2025-0163"
+        ],
+        "reading": "If `a_found_account_can_reach_the_product_gate` is false, no book size prices a found household: every renewal it offers is refused on the record's shape, which no number of further households changes. The accounts whose legs DISAGREE are a separate fact and a latent one -- a gas leg that omits the key takes the `\"fixed\"` default and would be priced as a product the world never decided for it, invisible today only because the commodity guard refuses gas one step earlier."
+      },
+      "unrecognised_stages": [],
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect. WHAT THE DROP AT `product_not_upliftable` MEANS IS READ OFF `product_not_upliftable_by_tariff_type` AND IS NOT ASSERTED HERE -- this paragraph used to explain it as terms carrying `None` for want of a standard-variable product, and went on saying so after that product shipped on 2026-08-30 while the breakdown in this same block said otherwise. SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING, and that claim does NOT depend on which products the gate refused today: only a household on a fixed deal has a struck renewal rate that any arm can move, roughly a third of a domestic book is on one at any moment, and the rest of it has no renewal decision to price at all. This instrument's power ceiling is a fact about how much of a domestic book per-customer renewal pricing can legitimately reach, and it gets SMALLER as a share of the book as the world's product mix gets more honest, not bigger. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+    },
+    "value_arm": {
+      "available": true,
+      "arm": "value_arm",
+      "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
+      "renewals_the_world_offered": 2039,
+      "reached_the_arm_with_an_arm_set": 2039,
+      "priced": 94,
+      "declined": 6,
+      "priced_share_of_renewals_offered": 0.0461,
+      "stages": [
+        {
+          "stage": "control_arm_no_writer",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the control arm: `renewal_margin_uplift` returns before computing anything under `flat_rules`, so every renewal the world offered lands here. On the control this is the WHOLE funnel and that is correct -- it is what makes the world's own renewal count readable from a run in which the arm priced nothing."
+        },
+        {
+          "stage": "no_locked_rate",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "a term with no locked unit rate to move -- a deemed or flex period, priced at settlement rather than struck. There is no margin here for any arm to choose."
+        },
+        {
+          "stage": "acquisition_term",
+          "count": 252,
+          "share_of_renewals_offered": 0.1236,
+          "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
+        },
+        {
+          "stage": "not_the_arms_commodity",
+          "count": 337,
+          "share_of_renewals_offered": 0.1653,
+          "means": "a commodity outside `UPLIFTABLE_COMMODITIES`. Gas was here until 2026-09-07, on the ground that the arm's churn and cost-to-serve inputs had never been fitted to it; every one of those inputs now takes the renewal's OWN commodity (churn `fuel`, cost-to-serve cadence, standing-charge table, cap ceiling), so the stage counts only fuels this supplier does not sell. The MEANING stops at the guard and the cause is read off the breakdown, for the reason given below."
+        },
+        {
+          "stage": "product_not_upliftable",
+          "count": 1350,
+          "share_of_renewals_offered": 0.6621,
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). WHY these particular renewals were refused is NOT stated here: read `product_not_upliftable_by_tariff_type` beside this count, because a term the world settled on a product with no renewal to price and a term whose product was never decided are the same integer and opposite conclusions."
+        },
+        {
+          "stage": "no_observed_history",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "nothing settled for this account inside the one-year observation window before the term start, so the arm has no EAC, tenure or current rate to price from."
+        },
+        {
+          "stage": "declined",
+          "count": 6,
+          "share_of_renewals_offered": 0.0029,
+          "means": "the arm RAN and found no margin that survives both the price cap and the churn model's support bound. A decision, not an omission."
+        },
+        {
+          "stage": "priced",
+          "count": 94,
+          "share_of_renewals_offered": 0.0461,
+          "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
+        }
+      ],
+      "product_not_upliftable_by_tariff_type": {
+        "'svt'": 1350
+      },
+      "accounts_the_arm_priced": [
+        "C3",
+        "C5",
+        "C5_2",
+        "C6",
+        "C7",
+        "C8",
+        "C9",
+        "PROS-2016-0042",
+        "PROS-2016-0099",
+        "PROS-2017-0038",
+        "PROS-2017-0065",
+        "PROS-2017-0185",
+        "PROS-2018-0016",
+        "PROS-2018-0039",
+        "PROS-2018-0137",
+        "PROS-2018-0223",
+        "PROS-2018-0238",
+        "PROS-2019-0009",
+        "PROS-2019-0024",
+        "PROS-2019-0135",
+        "PROS-2019-0164",
+        "PROS-2019-0190",
+        "PROS-2019-0255",
+        "PROS-2019-0310",
+        "PROS-2020-0032",
+        "PROS-2020-0067",
+        "PROS-2020-0221",
+        "PROS-2020-0249",
+        "PROS-2020-0347",
+        "PROS-2020-0391",
+        "PROS-2021-0029",
+        "PROS-2021-0060",
+        "PROS-2021-0105",
+        "PROS-2021-0133",
+        "PROS-2021-0175",
+        "PROS-2021-0288",
+        "PROS-2021-0324",
+        "PROS-2021-0362",
+        "PROS-2022-0049",
+        "PROS-2023-0025",
+        "PROS-2024-0110",
+        "SYN-2016-001",
+        "SYN-2016-004",
+        "SYN-2016-007",
+        "SYN-2016-008",
+        "SYN-2016-009",
+        "SYN-2016-015",
+        "SYN-2016-018",
+        "SYN-2016-019",
+        "SYN-2016-020",
+        "SYN-2016-022",
+        "SYN-2016-023",
+        "SYN-2016-026",
+        "SYN-2016-028",
+        "SYN-2016-030",
+        "SYN-2016-032",
+        "SYN-2016-034",
+        "SYN-2016-036",
+        "SYN-2016-042",
+        "SYN-2016-044",
+        "SYN-2016-045",
+        "SYN-2016-048",
+        "SYN-2016-055",
+        "SYN-2016-057",
+        "SYN-2016-060",
+        "SYN-2016-062"
+      ],
+      "accounts_the_world_offered_a_renewal": 165,
+      "by_account_class": {
+        "available": true,
+        "what_this_is": "The renewal funnel split by how each billing account joined the book, from the world's own `acquisition_type` rather than from the shape of its id. The stage totals beside this block are true of the book as a whole and cannot say WHOSE renewals they are.",
+        "classes": {
+          "drawn_by_the_curriculum": {
+            "renewals_the_world_offered": 899,
+            "accounts": 63,
+            "priced": 34,
+            "priced_share_of_its_own_renewals": 0.0378,
+            "stages": {
+              "control_arm_no_writer": 0,
+              "no_locked_rate": 0,
+              "acquisition_term": 63,
+              "not_the_arms_commodity": 158,
+              "product_not_upliftable": 643,
+              "no_observed_history": 0,
+              "declined": 1,
+              "priced": 34
+            }
+          },
+          "founder_hand_authored": {
+            "renewals_the_world_offered": 62,
+            "accounts": 11,
+            "priced": 12,
+            "priced_share_of_its_own_renewals": 0.1935,
+            "stages": {
+              "control_arm_no_writer": 0,
+              "no_locked_rate": 0,
+              "acquisition_term": 15,
+              "not_the_arms_commodity": 5,
+              "product_not_upliftable": 30,
+              "no_observed_history": 0,
+              "declined": 0,
+              "priced": 12
+            }
+          },
+          "won_by_the_funnel": {
+            "renewals_the_world_offered": 1078,
+            "accounts": 91,
+            "priced": 48,
+            "priced_share_of_its_own_renewals": 0.0445,
+            "stages": {
+              "control_arm_no_writer": 0,
+              "no_locked_rate": 0,
+              "acquisition_term": 174,
+              "not_the_arms_commodity": 174,
+              "product_not_upliftable": 677,
+              "no_observed_history": 0,
+              "declined": 5,
+              "priced": 48
+            }
+          }
+        },
+        "priced_accounts_by_class": {
+          "drawn_by_the_curriculum": [
+            "SYN-2016-001",
+            "SYN-2016-004",
+            "SYN-2016-007",
+            "SYN-2016-008",
+            "SYN-2016-009",
+            "SYN-2016-015",
+            "SYN-2016-018",
+            "SYN-2016-019",
+            "SYN-2016-020",
+            "SYN-2016-022",
+            "SYN-2016-023",
+            "SYN-2016-026",
+            "SYN-2016-028",
+            "SYN-2016-030",
+            "SYN-2016-032",
+            "SYN-2016-034",
+            "SYN-2016-036",
+            "SYN-2016-042",
+            "SYN-2016-044",
+            "SYN-2016-045",
+            "SYN-2016-048",
+            "SYN-2016-055",
+            "SYN-2016-057",
+            "SYN-2016-060",
+            "SYN-2016-062"
+          ],
+          "founder_hand_authored": [
+            "C3",
+            "C5",
+            "C5_2",
+            "C6",
+            "C7",
+            "C8",
+            "C9"
+          ],
+          "won_by_the_funnel": [
+            "PROS-2016-0042",
+            "PROS-2016-0099",
+            "PROS-2017-0038",
+            "PROS-2017-0065",
+            "PROS-2017-0185",
+            "PROS-2018-0016",
+            "PROS-2018-0039",
+            "PROS-2018-0137",
+            "PROS-2018-0223",
+            "PROS-2018-0238",
+            "PROS-2019-0009",
+            "PROS-2019-0024",
+            "PROS-2019-0135",
+            "PROS-2019-0164",
+            "PROS-2019-0190",
+            "PROS-2019-0255",
+            "PROS-2019-0310",
+            "PROS-2020-0032",
+            "PROS-2020-0067",
+            "PROS-2020-0221",
+            "PROS-2020-0249",
+            "PROS-2020-0347",
+            "PROS-2020-0391",
+            "PROS-2021-0029",
+            "PROS-2021-0060",
+            "PROS-2021-0105",
+            "PROS-2021-0133",
+            "PROS-2021-0175",
+            "PROS-2021-0288",
+            "PROS-2021-0324",
+            "PROS-2021-0362",
+            "PROS-2022-0049",
+            "PROS-2023-0025",
+            "PROS-2024-0110"
+          ]
+        },
+        "accounts_the_company_won_or_drew_that_the_arm_priced": 59,
+        "reading": "The mission says the value comes from inference over the individual customers the method FINDS. A run in which every priced renewal belongs to a founder account has not tested that claim at all, whatever its headline says."
+      },
+      "product_label_by_account_class": {
+        "available": true,
+        "what_this_is": "What `run_phase2b`'s `record.get(\"tariff_type\", \"fixed\")` returns for every leg on the roster this run bound, split by how the account joined the book. This is the INPUT to the arm's product guard, read off the world's records rather than inferred from which renewals the run happened to price.",
+        "the_guard_this_feeds": "company/crm/customer_profitability.py: UPLIFTABLE_TARIFF_TYPES = ['fixed', 'pass_through'], applied at company/pricing/value_based_renewal.renewal_margin_uplift on commodities ['electricity'].",
+        "legs": [
+          {
+            "account_class": "drawn_by_the_curriculum",
+            "commodity": "electricity",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 46,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "drawn_by_the_curriculum",
+            "commodity": "gas",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 18,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "founder_hand_authored",
+            "commodity": "electricity",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 15,
+            "the_guard_admits_it": true
+          },
+          {
+            "account_class": "founder_hand_authored",
+            "commodity": "gas",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 4,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "won_by_the_funnel",
+            "commodity": "electricity",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 91,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "won_by_the_funnel",
+            "commodity": "gas",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 83,
+            "the_guard_admits_it": false
+          }
+        ],
+        "a_found_account_can_reach_the_product_gate": false,
+        "found_accounts_the_guard_would_admit": [],
+        "billing_accounts_whose_legs_disagree_about_labelling": [
+          "PROS-2016-0067",
+          "PROS-2016-0099",
+          "PROS-2016-0121",
+          "PROS-2017-0038",
+          "PROS-2017-0065",
+          "PROS-2017-0084",
+          "PROS-2017-0130",
+          "PROS-2017-0160",
+          "PROS-2017-0185",
+          "PROS-2018-0016",
+          "PROS-2018-0039",
+          "PROS-2018-0080",
+          "PROS-2018-0137",
+          "PROS-2018-0161",
+          "PROS-2018-0223",
+          "PROS-2018-0238",
+          "PROS-2019-0009",
+          "PROS-2019-0024",
+          "PROS-2019-0069",
+          "PROS-2019-0105",
+          "PROS-2019-0135",
+          "PROS-2019-0164",
+          "PROS-2019-0190",
+          "PROS-2019-0216",
+          "PROS-2019-0255",
+          "PROS-2019-0302",
+          "PROS-2019-0310",
+          "PROS-2019-0329",
+          "PROS-2020-0012",
+          "PROS-2020-0032",
+          "PROS-2020-0067",
+          "PROS-2020-0170",
+          "PROS-2020-0190",
+          "PROS-2020-0221",
+          "PROS-2020-0287",
+          "PROS-2020-0303",
+          "PROS-2020-0347",
+          "PROS-2020-0391",
+          "PROS-2021-0029",
+          "PROS-2021-0060",
+          "PROS-2021-0105",
+          "PROS-2021-0133",
+          "PROS-2021-0175",
+          "PROS-2021-0212",
+          "PROS-2021-0248",
+          "PROS-2021-0288",
+          "PROS-2021-0324",
+          "PROS-2021-0362",
+          "PROS-2021-0399",
+          "PROS-2022-0019",
+          "PROS-2022-0049",
+          "PROS-2022-0081",
+          "PROS-2023-0001",
+          "PROS-2023-0025",
+          "PROS-2023-0072",
+          "PROS-2023-0113",
+          "PROS-2023-0146",
+          "PROS-2023-0172",
+          "PROS-2023-0225",
+          "PROS-2023-0248",
+          "PROS-2023-0280",
+          "PROS-2023-0305",
+          "PROS-2024-0014",
+          "PROS-2024-0040",
+          "PROS-2024-0065",
+          "PROS-2024-0083",
+          "PROS-2024-0110",
+          "PROS-2024-0131",
+          "PROS-2024-0179",
+          "PROS-2024-0199",
+          "PROS-2024-0218",
+          "PROS-2024-0241",
+          "PROS-2024-0270",
+          "PROS-2024-0289",
+          "PROS-2024-0315",
+          "PROS-2024-0335",
+          "PROS-2024-0349",
+          "PROS-2025-0033",
+          "PROS-2025-0051",
+          "PROS-2025-0087",
+          "PROS-2025-0106",
+          "PROS-2025-0136",
+          "PROS-2025-0163"
+        ],
+        "reading": "If `a_found_account_can_reach_the_product_gate` is false, no book size prices a found household: every renewal it offers is refused on the record's shape, which no number of further households changes. The accounts whose legs DISAGREE are a separate fact and a latent one -- a gas leg that omits the key takes the `\"fixed\"` default and would be priced as a product the world never decided for it, invisible today only because the commodity guard refuses gas one step earlier."
+      },
+      "unrecognised_stages": [],
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect. WHAT THE DROP AT `product_not_upliftable` MEANS IS READ OFF `product_not_upliftable_by_tariff_type` AND IS NOT ASSERTED HERE -- this paragraph used to explain it as terms carrying `None` for want of a standard-variable product, and went on saying so after that product shipped on 2026-08-30 while the breakdown in this same block said otherwise. SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING, and that claim does NOT depend on which products the gate refused today: only a household on a fixed deal has a struck renewal rate that any arm can move, roughly a third of a domestic book is on one at any moment, and the rest of it has no renewal decision to price at all. This instrument's power ceiling is a fact about how much of a domestic book per-customer renewal pricing can legitimately reach, and it gets SMALLER as a share of the book as the world's product mix gets more honest, not bigger. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+    },
+    "level_arm": {
+      "available": true,
+      "arm": "level_arm",
+      "what_this_is": "One row per renewal the rate chain saw on this arm, grouped by the stage it stopped at. `renewals_the_world_offered` is every call of `decide_renewal_rate` (simulation/run_phase2b.py, inside the chronological term loop) and is therefore already NET of two world-side exclusions the chain never sees: a term belonging to an account that had already churned, and a successor term not yet activated by a home-move win. Both are `continue`s above the call.",
+      "renewals_the_world_offered": 2024,
+      "reached_the_arm_with_an_arm_set": 2024,
+      "priced": 99,
+      "declined": 0,
+      "priced_share_of_renewals_offered": 0.0489,
+      "stages": [
+        {
+          "stage": "control_arm_no_writer",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the control arm: `renewal_margin_uplift` returns before computing anything under `flat_rules`, so every renewal the world offered lands here. On the control this is the WHOLE funnel and that is correct -- it is what makes the world's own renewal count readable from a run in which the arm priced nothing."
+        },
+        {
+          "stage": "no_locked_rate",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "a term with no locked unit rate to move -- a deemed or flex period, priced at settlement rather than struck. There is no margin here for any arm to choose."
+        },
+        {
+          "stage": "acquisition_term",
+          "count": 252,
+          "share_of_renewals_offered": 0.1245,
+          "means": "term 0. The account had no prior term when this one was struck, so there is nothing observed to price against (`MIN_TERM_INDEX_FOR_UPLIFT`)."
+        },
+        {
+          "stage": "not_the_arms_commodity",
+          "count": 333,
+          "share_of_renewals_offered": 0.1645,
+          "means": "a commodity outside `UPLIFTABLE_COMMODITIES`. Gas was here until 2026-09-07, on the ground that the arm's churn and cost-to-serve inputs had never been fitted to it; every one of those inputs now takes the renewal's OWN commodity (churn `fuel`, cost-to-serve cadence, standing-charge table, cap ceiling), so the stage counts only fuels this supplier does not sell. The MEANING stops at the guard and the cause is read off the breakdown, for the reason given below."
+        },
+        {
+          "stage": "product_not_upliftable",
+          "count": 1340,
+          "share_of_renewals_offered": 0.6621,
+          "means": "the term's `tariff_type` is not one this writer prices (`UPLIFTABLE_TARIFF_TYPES` = fixed, pass_through). WHY these particular renewals were refused is NOT stated here: read `product_not_upliftable_by_tariff_type` beside this count, because a term the world settled on a product with no renewal to price and a term whose product was never decided are the same integer and opposite conclusions."
+        },
+        {
+          "stage": "no_observed_history",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "nothing settled for this account inside the one-year observation window before the term start, so the arm has no EAC, tenure or current rate to price from."
+        },
+        {
+          "stage": "declined",
+          "count": 0,
+          "share_of_renewals_offered": 0.0,
+          "means": "the arm RAN and found no margin that survives both the price cap and the churn model's support bound. A decision, not an omission."
+        },
+        {
+          "stage": "priced",
+          "count": 99,
+          "share_of_renewals_offered": 0.0489,
+          "means": "the arm chose a margin for this renewal. This is `decision_shape.priced`."
+        }
+      ],
+      "product_not_upliftable_by_tariff_type": {
+        "'svt'": 1340
+      },
+      "accounts_the_arm_priced": [
+        "C3",
+        "C5",
+        "C5_2",
+        "C6",
+        "C7",
+        "C8",
+        "C9",
+        "PROS-2016-0042",
+        "PROS-2016-0099",
+        "PROS-2017-0038",
+        "PROS-2017-0065",
+        "PROS-2017-0185",
+        "PROS-2018-0016",
+        "PROS-2018-0039",
+        "PROS-2018-0137",
+        "PROS-2018-0223",
+        "PROS-2018-0238",
+        "PROS-2019-0009",
+        "PROS-2019-0024",
+        "PROS-2019-0135",
+        "PROS-2019-0164",
+        "PROS-2019-0190",
+        "PROS-2019-0255",
+        "PROS-2019-0310",
+        "PROS-2019-0329",
+        "PROS-2020-0032",
+        "PROS-2020-0067",
+        "PROS-2020-0221",
+        "PROS-2020-0249",
+        "PROS-2020-0287",
+        "PROS-2020-0303",
+        "PROS-2020-0347",
+        "PROS-2020-0391",
+        "PROS-2021-0029",
+        "PROS-2021-0060",
+        "PROS-2021-0105",
+        "PROS-2021-0133",
+        "PROS-2021-0175",
+        "PROS-2021-0288",
+        "PROS-2021-0324",
+        "PROS-2021-0362",
+        "PROS-2022-0049",
+        "PROS-2023-0025",
+        "PROS-2024-0040",
+        "PROS-2024-0110",
+        "SYN-2016-001",
+        "SYN-2016-004",
+        "SYN-2016-007",
+        "SYN-2016-008",
+        "SYN-2016-009",
+        "SYN-2016-015",
+        "SYN-2016-018",
+        "SYN-2016-019",
+        "SYN-2016-020",
+        "SYN-2016-022",
+        "SYN-2016-023",
+        "SYN-2016-026",
+        "SYN-2016-028",
+        "SYN-2016-030",
+        "SYN-2016-032",
+        "SYN-2016-034",
+        "SYN-2016-036",
+        "SYN-2016-042",
+        "SYN-2016-044",
+        "SYN-2016-045",
+        "SYN-2016-048",
+        "SYN-2016-055",
+        "SYN-2016-057",
+        "SYN-2016-060",
+        "SYN-2016-062"
+      ],
+      "accounts_the_world_offered_a_renewal": 165,
+      "by_account_class": {
+        "available": true,
+        "what_this_is": "The renewal funnel split by how each billing account joined the book, from the world's own `acquisition_type` rather than from the shape of its id. The stage totals beside this block are true of the book as a whole and cannot say WHOSE renewals they are.",
+        "classes": {
+          "drawn_by_the_curriculum": {
+            "renewals_the_world_offered": 899,
+            "accounts": 63,
+            "priced": 35,
+            "priced_share_of_its_own_renewals": 0.0389,
+            "stages": {
+              "control_arm_no_writer": 0,
+              "no_locked_rate": 0,
+              "acquisition_term": 63,
+              "not_the_arms_commodity": 158,
+              "product_not_upliftable": 643,
+              "no_observed_history": 0,
+              "declined": 0,
+              "priced": 35
+            }
+          },
+          "founder_hand_authored": {
+            "renewals_the_world_offered": 62,
+            "accounts": 11,
+            "priced": 12,
+            "priced_share_of_its_own_renewals": 0.1935,
+            "stages": {
+              "control_arm_no_writer": 0,
+              "no_locked_rate": 0,
+              "acquisition_term": 15,
+              "not_the_arms_commodity": 5,
+              "product_not_upliftable": 30,
+              "no_observed_history": 0,
+              "declined": 0,
+              "priced": 12
+            }
+          },
+          "won_by_the_funnel": {
+            "renewals_the_world_offered": 1063,
+            "accounts": 91,
+            "priced": 52,
+            "priced_share_of_its_own_renewals": 0.0489,
+            "stages": {
+              "control_arm_no_writer": 0,
+              "no_locked_rate": 0,
+              "acquisition_term": 174,
+              "not_the_arms_commodity": 170,
+              "product_not_upliftable": 667,
+              "no_observed_history": 0,
+              "declined": 0,
+              "priced": 52
+            }
+          }
+        },
+        "priced_accounts_by_class": {
+          "drawn_by_the_curriculum": [
+            "SYN-2016-001",
+            "SYN-2016-004",
+            "SYN-2016-007",
+            "SYN-2016-008",
+            "SYN-2016-009",
+            "SYN-2016-015",
+            "SYN-2016-018",
+            "SYN-2016-019",
+            "SYN-2016-020",
+            "SYN-2016-022",
+            "SYN-2016-023",
+            "SYN-2016-026",
+            "SYN-2016-028",
+            "SYN-2016-030",
+            "SYN-2016-032",
+            "SYN-2016-034",
+            "SYN-2016-036",
+            "SYN-2016-042",
+            "SYN-2016-044",
+            "SYN-2016-045",
+            "SYN-2016-048",
+            "SYN-2016-055",
+            "SYN-2016-057",
+            "SYN-2016-060",
+            "SYN-2016-062"
+          ],
+          "founder_hand_authored": [
+            "C3",
+            "C5",
+            "C5_2",
+            "C6",
+            "C7",
+            "C8",
+            "C9"
+          ],
+          "won_by_the_funnel": [
+            "PROS-2016-0042",
+            "PROS-2016-0099",
+            "PROS-2017-0038",
+            "PROS-2017-0065",
+            "PROS-2017-0185",
+            "PROS-2018-0016",
+            "PROS-2018-0039",
+            "PROS-2018-0137",
+            "PROS-2018-0223",
+            "PROS-2018-0238",
+            "PROS-2019-0009",
+            "PROS-2019-0024",
+            "PROS-2019-0135",
+            "PROS-2019-0164",
+            "PROS-2019-0190",
+            "PROS-2019-0255",
+            "PROS-2019-0310",
+            "PROS-2019-0329",
+            "PROS-2020-0032",
+            "PROS-2020-0067",
+            "PROS-2020-0221",
+            "PROS-2020-0249",
+            "PROS-2020-0287",
+            "PROS-2020-0303",
+            "PROS-2020-0347",
+            "PROS-2020-0391",
+            "PROS-2021-0029",
+            "PROS-2021-0060",
+            "PROS-2021-0105",
+            "PROS-2021-0133",
+            "PROS-2021-0175",
+            "PROS-2021-0288",
+            "PROS-2021-0324",
+            "PROS-2021-0362",
+            "PROS-2022-0049",
+            "PROS-2023-0025",
+            "PROS-2024-0040",
+            "PROS-2024-0110"
+          ]
+        },
+        "accounts_the_company_won_or_drew_that_the_arm_priced": 63,
+        "reading": "The mission says the value comes from inference over the individual customers the method FINDS. A run in which every priced renewal belongs to a founder account has not tested that claim at all, whatever its headline says."
+      },
+      "product_label_by_account_class": {
+        "available": true,
+        "what_this_is": "What `run_phase2b`'s `record.get(\"tariff_type\", \"fixed\")` returns for every leg on the roster this run bound, split by how the account joined the book. This is the INPUT to the arm's product guard, read off the world's records rather than inferred from which renewals the run happened to price.",
+        "the_guard_this_feeds": "company/crm/customer_profitability.py: UPLIFTABLE_TARIFF_TYPES = ['fixed', 'pass_through'], applied at company/pricing/value_based_renewal.renewal_margin_uplift on commodities ['electricity'].",
+        "legs": [
+          {
+            "account_class": "drawn_by_the_curriculum",
+            "commodity": "electricity",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 46,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "drawn_by_the_curriculum",
+            "commodity": "gas",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 18,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "founder_hand_authored",
+            "commodity": "electricity",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 15,
+            "the_guard_admits_it": true
+          },
+          {
+            "account_class": "founder_hand_authored",
+            "commodity": "gas",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 4,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "won_by_the_funnel",
+            "commodity": "electricity",
+            "tariff_type_key_present": true,
+            "resolved_tariff_type": null,
+            "legs": 91,
+            "the_guard_admits_it": false
+          },
+          {
+            "account_class": "won_by_the_funnel",
+            "commodity": "gas",
+            "tariff_type_key_present": false,
+            "resolved_tariff_type": "fixed",
+            "legs": 83,
+            "the_guard_admits_it": false
+          }
+        ],
+        "a_found_account_can_reach_the_product_gate": false,
+        "found_accounts_the_guard_would_admit": [],
+        "billing_accounts_whose_legs_disagree_about_labelling": [
+          "PROS-2016-0067",
+          "PROS-2016-0099",
+          "PROS-2016-0121",
+          "PROS-2017-0038",
+          "PROS-2017-0065",
+          "PROS-2017-0084",
+          "PROS-2017-0130",
+          "PROS-2017-0160",
+          "PROS-2017-0185",
+          "PROS-2018-0016",
+          "PROS-2018-0039",
+          "PROS-2018-0080",
+          "PROS-2018-0137",
+          "PROS-2018-0161",
+          "PROS-2018-0223",
+          "PROS-2018-0238",
+          "PROS-2019-0009",
+          "PROS-2019-0024",
+          "PROS-2019-0069",
+          "PROS-2019-0105",
+          "PROS-2019-0135",
+          "PROS-2019-0164",
+          "PROS-2019-0190",
+          "PROS-2019-0216",
+          "PROS-2019-0255",
+          "PROS-2019-0302",
+          "PROS-2019-0310",
+          "PROS-2019-0329",
+          "PROS-2020-0012",
+          "PROS-2020-0032",
+          "PROS-2020-0067",
+          "PROS-2020-0170",
+          "PROS-2020-0190",
+          "PROS-2020-0221",
+          "PROS-2020-0287",
+          "PROS-2020-0303",
+          "PROS-2020-0347",
+          "PROS-2020-0391",
+          "PROS-2021-0029",
+          "PROS-2021-0060",
+          "PROS-2021-0105",
+          "PROS-2021-0133",
+          "PROS-2021-0175",
+          "PROS-2021-0212",
+          "PROS-2021-0248",
+          "PROS-2021-0288",
+          "PROS-2021-0324",
+          "PROS-2021-0362",
+          "PROS-2021-0399",
+          "PROS-2022-0019",
+          "PROS-2022-0049",
+          "PROS-2022-0081",
+          "PROS-2023-0001",
+          "PROS-2023-0025",
+          "PROS-2023-0072",
+          "PROS-2023-0113",
+          "PROS-2023-0146",
+          "PROS-2023-0172",
+          "PROS-2023-0225",
+          "PROS-2023-0248",
+          "PROS-2023-0280",
+          "PROS-2023-0305",
+          "PROS-2024-0014",
+          "PROS-2024-0040",
+          "PROS-2024-0065",
+          "PROS-2024-0083",
+          "PROS-2024-0110",
+          "PROS-2024-0131",
+          "PROS-2024-0179",
+          "PROS-2024-0199",
+          "PROS-2024-0218",
+          "PROS-2024-0241",
+          "PROS-2024-0270",
+          "PROS-2024-0289",
+          "PROS-2024-0315",
+          "PROS-2024-0335",
+          "PROS-2024-0349",
+          "PROS-2025-0033",
+          "PROS-2025-0051",
+          "PROS-2025-0087",
+          "PROS-2025-0106",
+          "PROS-2025-0136",
+          "PROS-2025-0163"
+        ],
+        "reading": "If `a_found_account_can_reach_the_product_gate` is false, no book size prices a found household: every renewal it offers is refused on the record's shape, which no number of further households changes. The accounts whose legs DISAGREE are a separate fact and a latent one -- a gas leg that omits the key takes the `\"fixed\"` default and would be priced as a product the world never decided for it, invisible today only because the commodity guard refuses gas one step earlier."
+      },
+      "unrecognised_stages": [],
+      "reading": "Read `priced_share_of_renewals_offered` before any per-decision claim in this file. The stages are the arm's OWN eligibility rule, so a large drop is not automatically a defect. WHAT THE DROP AT `product_not_upliftable` MEANS IS READ OFF `product_not_upliftable_by_tariff_type` AND IS NOT ASSERTED HERE -- this paragraph used to explain it as terms carrying `None` for want of a standard-variable product, and went on saying so after that product shipped on 2026-08-30 while the breakdown in this same block said otherwise. SO THE SMALL PRICED SURFACE IS MARKET STRUCTURE, NOT PLUMBING, and that claim does NOT depend on which products the gate refused today: only a household on a fixed deal has a struck renewal rate that any arm can move, roughly a third of a domestic book is on one at any moment, and the rest of it has no renewal decision to price at all. This instrument's power ceiling is a fact about how much of a domestic book per-customer renewal pricing can legitimately reach, and it gets SMALLER as a share of the book as the world's product mix gets more honest, not bigger. R12: diagnostic, never a target, and specifically NOT a cue to relax a guard so the experiment gets a bigger n."
+    }
+  },
+  "decision_population": {
+    "available": true,
+    "per_arm": {
+      "control_arm": {
+        "renewals_the_world_offered": 2098,
+        "priced": 0,
+        "declined": 0,
+        "accounts_priced": 0
+      },
+      "value_arm": {
+        "renewals_the_world_offered": 2039,
+        "priced": 94,
+        "declined": 6,
+        "accounts_priced": 66
+      },
+      "level_arm": {
+        "renewals_the_world_offered": 2024,
+        "priced": 99,
+        "declined": 0,
+        "accounts_priced": 70
+      }
+    },
+    "priced_by_arm": {
+      "control_arm": 0,
+      "value_arm": 94,
+      "level_arm": 99
+    },
+    "largest_denominator_difference": 5,
+    "difference_as_share_of_the_smaller": 0.0532,
+    "the_mechanism": "Sequential A/B roster divergence. The arms are identical in eligibility -- `renewal_margin_uplift` passes `flat_at_level` through every guard the value arm passes, so neither arm can see a renewal the other cannot. They differ in WHICH renewals still exist: a different price changes who churns, `run_phase2b` skips every remaining term of a churned billing account before the rate chain is called, and an account that leaves early therefore removes all of its later renewals from that arm's denominator. `churn_roster_diff` names the accounts.",
+    "what_a_reader_must_not_do": "Do not take a per-decision figure from one arm and compare it with a per-decision figure from another: the denominators above are different books, not the same book measured twice. Arm-level totals (net margin, treasury, enterprise value) ARE comparable -- they are sums over the whole run and carry the roster difference inside them, which is the effect being measured.",
+    "why_this_is_not_a_defect": "Equalising the denominators would mean pricing renewals for customers who had already left, which is not a world any supplier operates in. The difference is the measurement, not noise in it. R12: diagnostic, never a target."
+  },
+  "bound_attribution": {
+    "available": true,
+    "headline": "44 of 94 priced renewals (47%) had their margin set by a bound rather than by anything about the customer -- 44 by the lawful price cap and 0 by the frontier of what the churn model has evidence for. Those decisions sit on 32 billing account(s) carrying 71% of the realised margin movement between the arms. On this run the arm's answers were decided by a bound.",
+    "decided_by": "a bound",
+    "headline_share_threshold": 0.5,
+    "priced": 94,
+    "decided_by_the_lawful_ceiling": 44,
+    "decided_by_the_model_support_bound": 0,
+    "chosen_freely": 50,
+    "share_of_priced_decided_by_a_bound": 0.4681,
+    "ceiling_bound_and_sat_at_that_end": 44,
+    "median_margin_gbp_per_mwh": {
+      "decided_by_the_lawful_ceiling": 45.0,
+      "decided_by_the_model_support_bound": null,
+      "chosen_freely": 50.75,
+      "control": 2.0,
+      "what_the_gap_says": "if the ceiling-decided median sits well above the freely-chosen one, the arm wanted more than the law allows on exactly the customers it was stopped on, and the cap -- not the churn belief -- is what held the price down."
+    },
+    "realised_margin_movement": {
+      "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
+      "billing_accounts_with_a_bound_decided_renewal": 32,
+      "net_delta_gbp_on_those_accounts": 7652.319459000052,
+      "net_delta_gbp_elsewhere": -496.8568660000162,
+      "absolute_movement_gbp_on_those_accounts": 14472.414065000066,
+      "absolute_movement_gbp_elsewhere": 6027.3198379999885,
+      "share_of_absolute_movement_on_those_accounts": 0.706
+    },
+    "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
+    "reading": "`decided_by` is a description of THIS run and never a target (R12). \"the customer\" means no priced answer was bound-decided; \"a bound\" means a bound decided at least half of the answers or at least half of the money; \"mixed\" is everything between, and it means the headline must not be attributed to either without naming which half. A positive delta under \"a bound\" is not a refutation of value-based pricing -- it is a statement that this run did not test it."
+  },
+  "cross_section_reconciliation": {
+    "available": true,
+    "read_from": "docs/observability/value_based_pricing_arms.json",
+    "why_this_is_here": "Both artefacts publish `endpoint_at_ceiling` and `ceiling_bound` from the same module, and on 2026-08-26 the two counts were read as contradicting each other. They are measured over different populations under different ceilings. Neither is wrong; the names are.",
+    "cross_section": {
+      "unit": "one renewal decision per ACCOUNT, taken at a single moment",
+      "as_of_year": 2025,
+      "decisions": 251,
+      "distinct_accounts": 251,
+      "lawful_ceiling_passed": false,
+      "priced_under_a_lawful_ceiling": 0,
+      "endpoint_bound": 23,
+      "endpoint_at_ceiling": 19,
+      "endpoint_at_floor": 4,
+      "extrapolation_bound": 0,
+      "what_endpoint_at_ceiling_means": "the top of the candidate grid under the churn model's own support bound, and NOT the Ofgem price cap: this call site passes no `max_offered_rate_gbp_per_mwh`, so `ceiling_bound` is structurally False for every account here and its count is not a measurement of anything. A run that DOES price under the cap will report a far larger ceiling count on the same book and the same module, and that is not a contradiction."
+    },
+    "this_run": {
+      "unit": "one renewal decision per RENEWAL EVENT the run actually reached",
+      "decisions": 94,
+      "declined": 6,
+      "lawful_ceiling_passed": true,
+      "endpoint_bound": 46,
+      "endpoint_at_ceiling": 46,
+      "endpoint_at_floor": 0,
+      "extrapolation_bound": 0,
+      "what_endpoint_at_ceiling_means": "the highest margin the Ofgem domestic cap allowed at that term's own cap window, threaded into the search by `renewal_rate_chain` (8b450a839) rather than clamped on afterwards."
+    },
+    "the_three_differences": [
+      {
+        "difference": "population",
+        "measured": "251 decision(s) over 251 account(s) priced once at 2025, against 94 renewal event(s) this run actually reached across its whole window -- repeat visits to a smaller roster, at each term's own rate."
+      },
+      {
+        "difference": "ceiling",
+        "measured": "the cross-section priced 0 of 251 decision(s) under a lawful ceiling; this run priced every one under the domestic cap for its own term. Where no ceiling is passed `ceiling_bound` cannot fire at all, so a low ceiling count there is not evidence that the cap does not bind."
+      },
+      {
+        "difference": "conditions",
+        "measured": "the cross-section prices every account at one year's rates and one cap window; this run prices each renewal at the rate and cap in force when it fell, including the 2021-23 crisis window where the base rate is nearest the cap and the ceiling therefore binds hardest."
+      }
+    ],
+    "what_this_does_NOT_reconcile": "Interior on the cross-section and ceiling-bound here are consistent AND both unflattering: they say the belief's optimum is interior to the model's own support but lies ABOVE what the company may lawfully charge. The customer-level question -- does the churn model punish a supplier-specific rise before the law does -- is open either way. See `bound_attribution.what_would_change_this`."
+  },
+  "belief_vs_outcome": {
+    "available": true,
+    "priced_and_scored": 94,
+    "unmatched_decisions": 0,
+    "scored_share_of_priced": 1.0,
+    "unmatched_sample": [],
+    "matched_sample": [
+      {
+        "account": "C5",
+        "term_start": "2016-12-31",
+        "retained": false
+      },
+      {
+        "account": "SYN-2016-001",
+        "term_start": "2017-01-01",
+        "retained": true
+      },
+      {
+        "account": "SYN-2016-007",
+        "term_start": "2017-01-26",
+        "retained": true
+      },
+      {
+        "account": "SYN-2016-008",
+        "term_start": "2017-01-26",
+        "retained": false
+      },
+      {
+        "account": "SYN-2016-009",
+        "term_start": "2017-02-04",
+        "retained": false
+      },
+      {
+        "account": "SYN-2016-018",
+        "term_start": "2017-03-08",
+        "retained": false
+      },
+      {
+        "account": "SYN-2016-019",
+        "term_start": "2017-03-11",
+        "retained": true
+      },
+      {
+        "account": "SYN-2016-022",
+        "term_start": "2017-03-15",
+        "retained": false
+      },
+      {
+        "account": "SYN-2016-023",
+        "term_start": "2017-03-18",
+        "retained": false
+      },
+      {
+        "account": "PROS-2016-0099",
+        "term_start": "2017-03-23",
+        "retained": false
+      }
+    ],
+    "unmatched_by_year": {},
+    "unmatched_meaning": "the arm priced this renewal and the world logged no lifecycle event at that (account, term_start). `simulation/customer_events.roll_lifecycle_event` returns None when `home_move_win_rates` carries no entry for the renewal month, and that roster's schedule is derived independently of the term list the arm prices off -- so these are renewals at which the world rolled NO churn decision, not renewals whose outcome is unknown. They are excluded rather than counted as retained: scoring a belief about retention against a renewal where leaving was impossible would flatter the arm.",
+    "scored_decisions": [
+      {
+        "account": "C5",
+        "term_start": "2016-12-31",
+        "believed_p_retain": 0.3917,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 57.75
+      },
+      {
+        "account": "SYN-2016-001",
+        "term_start": "2017-01-01",
+        "believed_p_retain": 0.4525,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 55.5
+      },
+      {
+        "account": "SYN-2016-007",
+        "term_start": "2017-01-26",
+        "believed_p_retain": 0.4338,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 53.25
+      },
+      {
+        "account": "SYN-2016-008",
+        "term_start": "2017-01-26",
+        "believed_p_retain": 0.4312,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 51.5
+      },
+      {
+        "account": "SYN-2016-009",
+        "term_start": "2017-02-04",
+        "believed_p_retain": 0.4864,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 51.0
+      },
+      {
+        "account": "SYN-2016-018",
+        "term_start": "2017-03-08",
+        "believed_p_retain": 0.4415,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 45.75
+      },
+      {
+        "account": "SYN-2016-019",
+        "term_start": "2017-03-11",
+        "believed_p_retain": 0.4389,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 43.75
+      },
+      {
+        "account": "SYN-2016-022",
+        "term_start": "2017-03-15",
+        "believed_p_retain": 0.4516,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 54.5
+      },
+      {
+        "account": "SYN-2016-023",
+        "term_start": "2017-03-18",
+        "believed_p_retain": 0.4338,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 45.5
+      },
+      {
+        "account": "PROS-2016-0099",
+        "term_start": "2017-03-23",
+        "believed_p_retain": 0.4766,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 54.75
+      },
+      {
+        "account": "SYN-2016-026",
+        "term_start": "2017-03-28",
+        "believed_p_retain": 0.4812,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 49.5
+      },
+      {
+        "account": "C6",
+        "term_start": "2017-04-01",
+        "believed_p_retain": 0.3991,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 55.5
+      },
+      {
+        "account": "C8",
+        "term_start": "2017-04-01",
+        "believed_p_retain": 0.4412,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 63.5
+      },
+      {
+        "account": "SYN-2016-030",
+        "term_start": "2017-04-14",
+        "believed_p_retain": 0.4607,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 57.0
+      },
+      {
+        "account": "SYN-2016-044",
+        "term_start": "2017-06-15",
+        "believed_p_retain": 0.4853,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 49.75
+      },
+      {
+        "account": "SYN-2016-045",
+        "term_start": "2017-06-15",
+        "believed_p_retain": 0.4772,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 50.75
+      },
+      {
+        "account": "C3",
+        "term_start": "2017-07-01",
+        "believed_p_retain": 0.435,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 41.25
+      },
+      {
+        "account": "C9",
+        "term_start": "2017-07-01",
+        "believed_p_retain": 0.4189,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 54.25
+      },
+      {
+        "account": "SYN-2016-055",
+        "term_start": "2017-08-04",
+        "believed_p_retain": 0.5026,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 55.0
+      },
+      {
+        "account": "SYN-2016-062",
+        "term_start": "2017-08-31",
+        "believed_p_retain": 0.4982,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 59.25
+      },
+      {
+        "account": "C5_2",
+        "term_start": "2017-12-31",
+        "believed_p_retain": 0.5057,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 84.25
+      },
+      {
+        "account": "C7",
+        "term_start": "2017-12-31",
+        "believed_p_retain": 0.5564,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 101.5
+      },
+      {
+        "account": "SYN-2016-001",
+        "term_start": "2018-01-01",
+        "believed_p_retain": 0.715,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 86.5
+      },
+      {
+        "account": "SYN-2016-004",
+        "term_start": "2018-01-16",
+        "believed_p_retain": 0.4393,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 49.75
+      },
+      {
+        "account": "SYN-2016-007",
+        "term_start": "2018-01-26",
+        "believed_p_retain": 0.63,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 82.75
+      },
+      {
+        "account": "PROS-2017-0038",
+        "term_start": "2018-01-27",
+        "believed_p_retain": 0.4528,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 48.25
+      },
+      {
+        "account": "PROS-2016-0042",
+        "term_start": "2018-02-09",
+        "believed_p_retain": 0.4459,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 42.25
+      },
+      {
+        "account": "PROS-2017-0065",
+        "term_start": "2018-02-16",
+        "believed_p_retain": 0.3305,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 40.25
+      },
+      {
+        "account": "SYN-2016-015",
+        "term_start": "2018-02-27",
+        "believed_p_retain": 0.4009,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 48.5
+      },
+      {
+        "account": "SYN-2016-019",
+        "term_start": "2018-03-11",
+        "believed_p_retain": 0.6007,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 67.0
+      },
+      {
+        "account": "SYN-2016-020",
+        "term_start": "2018-03-11",
+        "believed_p_retain": 0.4015,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 49.75
+      },
+      {
+        "account": "C8",
+        "term_start": "2018-04-01",
+        "believed_p_retain": 0.6493,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 101.5
+      },
+      {
+        "account": "SYN-2016-028",
+        "term_start": "2018-04-08",
+        "believed_p_retain": 0.4704,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 52.5
+      },
+      {
+        "account": "SYN-2016-032",
+        "term_start": "2018-04-26",
+        "believed_p_retain": 0.3743,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 40.0
+      },
+      {
+        "account": "SYN-2016-034",
+        "term_start": "2018-05-03",
+        "believed_p_retain": 0.4081,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 41.5
+      },
+      {
+        "account": "SYN-2016-036",
+        "term_start": "2018-05-07",
+        "believed_p_retain": 0.3948,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 43.5
+      },
+      {
+        "account": "SYN-2016-042",
+        "term_start": "2018-05-30",
+        "believed_p_retain": 0.5076,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 48.5
+      },
+      {
+        "account": "PROS-2017-0185",
+        "term_start": "2018-06-15",
+        "believed_p_retain": 0.4168,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 24.75
+      },
+      {
+        "account": "C9",
+        "term_start": "2018-07-01",
+        "believed_p_retain": 0.6273,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 90.75
+      },
+      {
+        "account": "SYN-2016-060",
+        "term_start": "2018-08-24",
+        "believed_p_retain": 0.4303,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 53.25
+      },
+      {
+        "account": "C5_2",
+        "term_start": "2018-12-31",
+        "believed_p_retain": 0.5293,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 92.75
+      },
+      {
+        "account": "SYN-2016-001",
+        "term_start": "2019-01-01",
+        "believed_p_retain": 0.9118,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 20.0
+      },
+      {
+        "account": "PROS-2018-0039",
+        "term_start": "2019-01-31",
+        "believed_p_retain": 0.6885,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 8.0
+      },
+      {
+        "account": "PROS-2016-0042",
+        "term_start": "2019-02-09",
+        "believed_p_retain": 0.9118,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 20.0
+      },
+      {
+        "account": "PROS-2017-0065",
+        "term_start": "2019-02-16",
+        "believed_p_retain": 0.9118,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 20.0
+      },
+      {
+        "account": "SYN-2016-030",
+        "term_start": "2019-04-14",
+        "believed_p_retain": 0.6112,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "PROS-2018-0137",
+        "term_start": "2019-05-02",
+        "believed_p_retain": 0.6752,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "SYN-2016-034",
+        "term_start": "2019-05-03",
+        "believed_p_retain": 0.9118,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "C9",
+        "term_start": "2019-07-01",
+        "believed_p_retain": 0.9118,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2018-0238",
+        "term_start": "2019-08-13",
+        "believed_p_retain": 0.5376,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 57.75
+      },
+      {
+        "account": "PROS-2019-0024",
+        "term_start": "2020-01-29",
+        "believed_p_retain": 0.6252,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "PROS-2018-0137",
+        "term_start": "2020-05-01",
+        "believed_p_retain": 0.7849,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2019-0135",
+        "term_start": "2020-05-05",
+        "believed_p_retain": 0.5031,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 48.0
+      },
+      {
+        "account": "PROS-2019-0164",
+        "term_start": "2020-06-04",
+        "believed_p_retain": 0.5983,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 35.25
+      },
+      {
+        "account": "PROS-2019-0190",
+        "term_start": "2020-06-25",
+        "believed_p_retain": 0.5192,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 44.5
+      },
+      {
+        "account": "C9",
+        "term_start": "2020-06-30",
+        "believed_p_retain": 0.8997,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2018-0223",
+        "term_start": "2020-07-29",
+        "believed_p_retain": 0.765,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "SYN-2016-055",
+        "term_start": "2020-08-03",
+        "believed_p_retain": 0.8026,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2019-0255",
+        "term_start": "2020-08-25",
+        "believed_p_retain": 0.526,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 36.75
+      },
+      {
+        "account": "PROS-2019-0310",
+        "term_start": "2020-10-08",
+        "believed_p_retain": 0.4441,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 36.75
+      },
+      {
+        "account": "SYN-2016-001",
+        "term_start": "2020-12-31",
+        "believed_p_retain": 0.8997,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 30.0
+      },
+      {
+        "account": "PROS-2018-0016",
+        "term_start": "2021-01-11",
+        "believed_p_retain": 0.9154,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "PROS-2020-0032",
+        "term_start": "2021-01-23",
+        "believed_p_retain": 0.8241,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 20.0
+      },
+      {
+        "account": "PROS-2019-0164",
+        "term_start": "2021-06-04",
+        "believed_p_retain": 0.6468,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "PROS-2020-0221",
+        "term_start": "2021-07-05",
+        "believed_p_retain": 0.3302,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 20.0
+      },
+      {
+        "account": "PROS-2020-0249",
+        "term_start": "2021-07-26",
+        "believed_p_retain": 0.3461,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 20.0
+      },
+      {
+        "account": "PROS-2018-0238",
+        "term_start": "2021-08-12",
+        "believed_p_retain": 0.9154,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 12.0
+      },
+      {
+        "account": "SYN-2016-057",
+        "term_start": "2021-08-15",
+        "believed_p_retain": 0.9154,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 8.0
+      },
+      {
+        "account": "SYN-2016-055",
+        "term_start": "2023-08-03",
+        "believed_p_retain": 0.949,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 80.0
+      },
+      {
+        "account": "PROS-2021-0288",
+        "term_start": "2023-09-18",
+        "believed_p_retain": 0.949,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 80.0
+      },
+      {
+        "account": "PROS-2021-0324",
+        "term_start": "2023-10-24",
+        "believed_p_retain": 0.949,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2020-0347",
+        "term_start": "2023-11-14",
+        "believed_p_retain": 0.949,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2021-0362",
+        "term_start": "2023-11-23",
+        "believed_p_retain": 0.949,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2020-0391",
+        "term_start": "2023-12-25",
+        "believed_p_retain": 0.949,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2019-0009",
+        "term_start": "2024-01-11",
+        "believed_p_retain": 0.9378,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "PROS-2023-0025",
+        "term_start": "2024-01-21",
+        "believed_p_retain": 0.7922,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2021-0029",
+        "term_start": "2024-01-26",
+        "believed_p_retain": 0.9137,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 30.0
+      },
+      {
+        "account": "PROS-2022-0049",
+        "term_start": "2024-02-17",
+        "believed_p_retain": 0.8551,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 80.0
+      },
+      {
+        "account": "PROS-2021-0060",
+        "term_start": "2024-02-25",
+        "believed_p_retain": 0.8054,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 80.0
+      },
+      {
+        "account": "PROS-2020-0067",
+        "term_start": "2024-02-26",
+        "believed_p_retain": 0.7969,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 80.0
+      },
+      {
+        "account": "PROS-2021-0105",
+        "term_start": "2024-04-04",
+        "believed_p_retain": 0.8345,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "SYN-2016-048",
+        "term_start": "2024-06-18",
+        "believed_p_retain": 0.8381,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 60.0
+      },
+      {
+        "account": "PROS-2020-0221",
+        "term_start": "2024-07-04",
+        "believed_p_retain": 0.8823,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 20.0
+      },
+      {
+        "account": "PROS-2021-0288",
+        "term_start": "2024-09-17",
+        "believed_p_retain": 0.9378,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 30.0
+      },
+      {
+        "account": "PROS-2021-0362",
+        "term_start": "2024-11-22",
+        "believed_p_retain": 0.8093,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 45.0
+      },
+      {
+        "account": "PROS-2020-0391",
+        "term_start": "2024-12-24",
+        "believed_p_retain": 0.7985,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 12.0
+      },
+      {
+        "account": "PROS-2023-0025",
+        "term_start": "2025-01-20",
+        "believed_p_retain": 0.9132,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 8.0
+      },
+      {
+        "account": "PROS-2021-0060",
+        "term_start": "2025-02-24",
+        "believed_p_retain": 0.9346,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 12.0
+      },
+      {
+        "account": "PROS-2020-0067",
+        "term_start": "2025-02-25",
+        "believed_p_retain": 0.9346,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 30.0
+      },
+      {
+        "account": "PROS-2021-0105",
+        "term_start": "2025-04-04",
+        "believed_p_retain": 0.6656,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 8.0
+      },
+      {
+        "account": "PROS-2024-0110",
+        "term_start": "2025-04-11",
+        "believed_p_retain": 0.4633,
+        "retained": false,
+        "chosen_margin_gbp_per_mwh": 28.75
+      },
+      {
+        "account": "PROS-2018-0137",
+        "term_start": "2025-04-30",
+        "believed_p_retain": 0.7224,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 30.0
+      },
+      {
+        "account": "PROS-2021-0133",
+        "term_start": "2025-04-30",
+        "believed_p_retain": 0.698,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 30.0
+      },
+      {
+        "account": "PROS-2021-0175",
+        "term_start": "2025-06-07",
+        "believed_p_retain": 0.703,
+        "retained": true,
+        "chosen_margin_gbp_per_mwh": 60.0
+      }
+    ],
+    "mean_believed_p_retain": 0.644545744680851,
+    "realised_retention_rate": 0.574468085106383,
+    "calibration_error": 0.07007765957446799,
+    "discrimination_auc": 0.5805555555555556,
+    "auc_population": {
+      "retained": 54,
+      "left": 40
+    },
+    "by_believed_bucket": [
+      {
+        "believed_from": 0.2,
+        "believed_to": 0.4,
+        "n": 7,
+        "mean_believed_p_retain": 0.3666714285714286,
+        "realised_retention_rate": 0.5714285714285714
+      },
+      {
+        "believed_from": 0.4,
+        "believed_to": 0.6,
+        "n": 38,
+        "mean_believed_p_retain": 0.46850526315789476,
+        "realised_retention_rate": 0.47368421052631576
+      },
+      {
+        "believed_from": 0.6,
+        "believed_to": 0.8,
+        "n": 19,
+        "mean_believed_p_retain": 0.6945105263157895,
+        "realised_retention_rate": 0.6842105263157895
+      },
+      {
+        "believed_from": 0.8,
+        "believed_to": 1.0,
+        "n": 30,
+        "mean_believed_p_retain": 0.9007233333333332,
+        "realised_retention_rate": 0.6333333333333333
+      }
+    ],
+    "reading": "`discrimination_auc` at 0.5 means the belief carries NO information about who stays, and any advantage the arm shows is then a property of its calibration error rather than of inference -- which is the thesis failing while the P&L improves. Above 0.5 with a large `calibration_error` means the arm ranks customers correctly and misjudges the level, which is a different and more repairable finding. `auc_population` is published because this statistic is noise when one side is small. READ `scored_share_of_priced` FIRST: these statistics describe only the decisions that could be matched to an outcome, and on the first live run that was 28 of 58. R12: diagnostic, never a target."
+  },
+  "method_skill": {
+    "available": true,
+    "reason": null,
+    "concordance": 0.5527603074772887,
+    "null_constant_signal_concordance": 0.5,
+    "null_spread": {
+      "available": true,
+      "null_mean": 0.49989458420684835,
+      "null_sd": 0.046536339809709996,
+      "null_95_interval": [
+        0.40950384346610763,
+        0.5904961565338924
+      ],
+      "p_two_sided": 0.26035,
+      "observed_inside_the_null_interval": true,
+      "draws": 20000,
+      "seed": 20260828,
+      "signal_ties_in_the_observed_data": 74,
+      "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
+      "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+    },
+    "signal": "chosen_margin_gbp_per_mwh (the arm's own per-customer decision)",
+    "outcome": "(household_saving_gbp + our_net_margin_gbp) / counterfactual_gbp, per priced term",
+    "basis": "settled clock both sides; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, falling back to the pre-2019 SVT series for electricity, at this account's own metered volumes (R14)",
+    "decisions_scored": 54,
+    "accounts": 38,
+    "decisions_the_outcome_could_not_reach": 40,
+    "drop_out": {
+      "available": true,
+      "decisions_the_arm_logged": 100,
+      "priced_decisions": 94,
+      "decisions_scored": 54,
+      "decisions_dropped": 46,
+      "dropped_by_reason": {
+        "declined": 6,
+        "signal_not_a_number": 0,
+        "account_has_no_settled_row_anywhere": 0,
+        "the_priced_term_carried_no_settled_row": 40,
+        "no_published_counterfactual_rate_for_the_term": 0,
+        "a_settled_row_carried_no_net_margin": 0,
+        "counterfactual_not_positive": 0
+      },
+      "what_each_reason_means": {
+        "declined": {
+          "class": "eligibility",
+          "means": "the arm declined the renewal, so it emitted no per-customer price to rank anything by. A decline is a decision but not a SIGNAL, and it never entered the priced population."
+        },
+        "signal_not_a_number": {
+          "class": "join",
+          "means": "the log entry carried no numeric `chosen_margin_gbp_per_mwh` -- a malformed row. A non-zero count here is a defect in the writer, not a bound on the measurement."
+        },
+        "account_has_no_settled_row_anywhere": {
+          "class": "join",
+          "means": "the arm priced this billing account and the settled book carries no row for it under that key, in any term. Either the account id does not join or the household never billed -- both are the arm and the world failing to meet, not a household we declined to score."
+        },
+        "the_priced_term_carried_no_settled_row": {
+          "class": "eligibility",
+          "means": "the account DOES settle, but this priced term has no settled record inside its own 365 days. Nothing was billed under the price that was chosen, so there is no outcome to rank it against -- the boundary `_term_period_of` exists to impose."
+        },
+        "no_published_counterfactual_rate_for_the_term": {
+          "class": "coverage",
+          "means": "settled rows exist inside the term and not one of them found a published default-tariff rate for its own date and fuel. Without the counterfactual there is no denominator and no saving -- a gap in the sourced tariff series, not in the world's record."
+        },
+        "a_settled_row_carried_no_net_margin": {
+          "class": "eligibility",
+          "means": "at least one settled row in the term supplied no NET margin, so the account-term is blind. Summing the rows that DID resolve would publish a partial account wearing a whole one's name -- the `saas/cost_to_serve.py` defect of 2026-08-17, arriving here."
+        },
+        "counterfactual_not_positive": {
+          "class": "eligibility",
+          "means": "the counterfactual summed to zero or below, so the ratio has no denominator. Scoring it would divide by a coverage gap."
+        }
+      },
+      "dropped_by_class": {
+        "join": 0,
+        "coverage": 0,
+        "eligibility": 40
+      },
+      "what_each_class_means": {
+        "join": "the arm's key and the settled book's key never met. Widenable by us, here, with no world change and no ruling -- and a non-zero count is a DEFECT, not a bound.",
+        "coverage": "the join succeeded and the outcome exists, but an input this repository is supposed to supply was missing for it. Widenable, but the work is outside this measurement -- it is a gap in what we have sourced, not in what the world did.",
+        "eligibility": "the concordance genuinely needs it. There is no settled outcome behind the price, so scoring the decision would rank a coverage gap. Widening this is not available at any book size; only a LARGER settled book adds decisions here."
+      },
+      "reconciles": true,
+      "reconciliation": "54 scored + 46 dropped = 100 against 100 logged",
+      "reading": "94 priced decisions, 54 scored. The largest single reason is `the_priced_term_carried_no_settled_row` at 40 -- the account DOES settle, but this priced term has no settled record inside its own 365 days. Nothing was billed under the price that was chosen, so there is no outcome to rank it against -- the boundary `_term_period_of` exists to impose. NOT ONE of the 40 dropped decisions is a failed join or a missing input of ours. Every one of them was dropped because the world settled no outcome the concordance could rank the price against, which is the eligibility the statistic needs rather than a plumbing gap. THE SAMPLE CANNOT BE WIDENED FROM THIS BOOK: 54 is what the method has earned, and only a larger settled book adds to it."
+    },
+    "dropped_sample": [
+      {
+        "account": "C5",
+        "term_start": "2016-12-31",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-008",
+        "term_start": "2017-01-26",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-009",
+        "term_start": "2017-02-04",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-018",
+        "term_start": "2017-03-08",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-022",
+        "term_start": "2017-03-15",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-023",
+        "term_start": "2017-03-18",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "PROS-2016-0099",
+        "term_start": "2017-03-23",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "C6",
+        "term_start": "2017-04-01",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-044",
+        "term_start": "2017-06-15",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-045",
+        "term_start": "2017-06-15",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "C3",
+        "term_start": "2017-07-01",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "C7",
+        "term_start": "2017-12-31",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-007",
+        "term_start": "2018-01-26",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "PROS-2017-0038",
+        "term_start": "2018-01-27",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-015",
+        "term_start": "2018-02-27",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-019",
+        "term_start": "2018-03-11",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-020",
+        "term_start": "2018-03-11",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "C8",
+        "term_start": "2018-04-01",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-036",
+        "term_start": "2018-05-07",
+        "reason": "the_priced_term_carried_no_settled_row"
+      },
+      {
+        "account": "SYN-2016-042",
+        "term_start": "2018-05-30",
+        "reason": "the_priced_term_carried_no_settled_row"
+      }
+    ],
+    "comparable_pairs": 1431,
+    "pairs_tied_on_outcome": 0,
+    "settled_rows_outside_every_priced_term": 287564,
+    "scored_sample": [
+      {
+        "account": "SYN-2016-001",
+        "term_start": "2017-01-01",
+        "chosen_margin_gbp_per_mwh": 55.5,
+        "joint_value_ratio": -0.03489123524588589
+      },
+      {
+        "account": "SYN-2016-007",
+        "term_start": "2017-01-26",
+        "chosen_margin_gbp_per_mwh": 53.25,
+        "joint_value_ratio": -0.30609711930127614
+      },
+      {
+        "account": "SYN-2016-019",
+        "term_start": "2017-03-11",
+        "chosen_margin_gbp_per_mwh": 43.75,
+        "joint_value_ratio": 0.17784940944104852
+      },
+      {
+        "account": "SYN-2016-026",
+        "term_start": "2017-03-28",
+        "chosen_margin_gbp_per_mwh": 49.5,
+        "joint_value_ratio": 0.027572442656109176
+      },
+      {
+        "account": "C8",
+        "term_start": "2017-04-01",
+        "chosen_margin_gbp_per_mwh": 63.5,
+        "joint_value_ratio": -0.00936291857816346
+      },
+      {
+        "account": "SYN-2016-030",
+        "term_start": "2017-04-14",
+        "chosen_margin_gbp_per_mwh": 57.0,
+        "joint_value_ratio": 0.20261087271996
+      },
+      {
+        "account": "C9",
+        "term_start": "2017-07-01",
+        "chosen_margin_gbp_per_mwh": 54.25,
+        "joint_value_ratio": 0.20079167452794663
+      },
+      {
+        "account": "SYN-2016-055",
+        "term_start": "2017-08-04",
+        "chosen_margin_gbp_per_mwh": 55.0,
+        "joint_value_ratio": 0.20561307351194572
+      },
+      {
+        "account": "SYN-2016-062",
+        "term_start": "2017-08-31",
+        "chosen_margin_gbp_per_mwh": 59.25,
+        "joint_value_ratio": 0.20233847381138143
+      },
+      {
+        "account": "C5_2",
+        "term_start": "2017-12-31",
+        "chosen_margin_gbp_per_mwh": 84.25,
+        "joint_value_ratio": 0.019300398119897765
+      }
+    ],
+    "bound": "READ THIS BEFORE THE NUMBER. A rank statistic over this few decisions, clustered on this few accounts, has a wide confidence interval and every account is potentially influential. This is the same resolution wall that made the 2026-08-28 chase-on/chase-off comparison unreadable, arriving on a different question. Two things make it less bad here: the outcome is continuous, so pounds have no 1/17 quantum and a small effect is small rather than invisible; and every priced decision with settled pounds behind it contributes, not only the ones the world rolled an event for. It is still a handful of accounts, and `A46` (book depth) is upstream of this being worth much -- which remains the director's decision.",
+    "reading": "0.5 means the arm's own price carries NO information about whether value was jointly created -- the method has no skill, whatever the book did. Above 0.5 means the decisions it priced highest are the ones where household and company came out ahead together. BELOW 0.5 is the director's own case and the one worth being able to see: the arm ranks confidently and uses the ranking to EXTRACT, so its most expensive decisions destroy the relationship. Read it beside `belief_vs_outcome.discrimination_auc` -- a high churn AUC with a flat curve here is a maximiser working correctly on a one-sided objective. R12: a DIAGNOSTIC, never a target; nothing optimises this figure."
+  },
+  "household_side": {
+    "control_arm": {
+      "available": true,
+      "basis": "settled clock; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, at this customer's own metered volume; pounds cover the COMPARABLE periods only (see `coverage_pct`)",
+      "customer_years": 1122,
+      "customer_years_without_any_counterfactual": 92,
+      "records_this_view_could_not_value": 0,
+      "coverage_pct": 86.394110182532,
+      "paid_gbp": 644346.2523482238,
+      "counterfactual_gbp": 579223.4576126918,
+      "household_saving_gbp": -65122.79473553209,
+      "household_saving_pct_of_counterfactual": -11.243121092495121,
+      "our_gross_margin_gbp": 360465.2798625916,
+      "household_share_of_the_split_pct": -22.049924414875687,
+      "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
+    },
+    "value_arm": {
+      "available": true,
+      "basis": "settled clock; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, at this customer's own metered volume; pounds cover the COMPARABLE periods only (see `coverage_pct`)",
+      "customer_years": 1096,
+      "customer_years_without_any_counterfactual": 92,
+      "records_this_view_could_not_value": 0,
+      "coverage_pct": 85.82749697227851,
+      "paid_gbp": 615835.5064480751,
+      "counterfactual_gbp": 543125.9858664493,
+      "household_saving_gbp": -72709.52058162577,
+      "household_saving_pct_of_counterfactual": -13.387229201643189,
+      "our_gross_margin_gbp": 349040.84761557606,
+      "household_share_of_the_split_pct": -26.31244215488192,
+      "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
+    },
+    "level_arm": {
+      "available": true,
+      "basis": "settled clock; counterfactual = the published Ofgem default tariff cap unit rate for each settlement date, at this customer's own metered volume; pounds cover the COMPARABLE periods only (see `coverage_pct`)",
+      "customer_years": 1088,
+      "customer_years_without_any_counterfactual": 92,
+      "records_this_view_could_not_value": 0,
+      "coverage_pct": 85.73819437732017,
+      "paid_gbp": 608380.8003739859,
+      "counterfactual_gbp": 538744.6714156407,
+      "household_saving_gbp": -69636.12895834511,
+      "household_saving_pct_of_counterfactual": -12.925627417411789,
+      "our_gross_margin_gbp": 343912.07294266025,
+      "household_share_of_the_split_pct": -25.389076397574026,
+      "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
+    }
+  },
+  "churn_roster_diff": {
+    "available": true,
+    "churned_under_both": 76,
+    "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
+    "only_in_value_arm": [
+      {
+        "account": "C5_2",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 1179.3583980000003
+      },
+      {
+        "account": "PROS-2019-0024",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 345.63499500000125
+      },
+      {
+        "account": "PROS-2024-0110",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 302.94030800000075
+      },
+      {
+        "account": "SYN-2016-034",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 182.808873
+      }
+    ],
+    "only_in_control_arm": [
+      {
+        "account": "PROS-2018-0137",
+        "segment": null,
+        "realised_lifetime_margin_gbp": 431.43218499999955
+      }
+    ],
+    "only_in_value_arm_realised_gbp": 2010.7425740000024,
+    "only_in_control_arm_realised_gbp": 431.43218499999955,
+    "largest_single_difference_gbp": 1179.3583980000003,
+    "realised_coverage": {
+      "only_in_value_arm": {
+        "accounts": 4,
+        "valued": 4
+      },
+      "only_in_control_arm": {
+        "accounts": 1,
+        "valued": 1
+      }
+    },
+    "reading": "If `largest_single_difference_gbp` is a large share of `realised_delta.gross_margin_gbp`, the headline is a statement about ONE decision and n=1 is not a thesis -- read it as a case study and say so. The realised figures are whole-life and come from the arm's own run, so an account present in both rosters is not compared here at all: only the accounts the two arms treated DIFFERENTLY appear. A total of null means accounts differed but NONE could be valued -- that is an unavailable measurement, and it must never be read as zero concentration; check `realised_coverage`, and where `valued` is short of `accounts` the totals are a FLOOR. Only an empty roster side legitimately totals 0.0. R12: diagnostic, never a target."
+  },
+  "margin_movers": {
+    "available": true,
+    "accounts_compared": 165,
+    "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
+    "accounts_that_moved": 98,
+    "net_delta_gbp": 7155.462593000034,
+    "total_absolute_movement_gbp": 20499.733903000055,
+    "top_n": 15,
+    "concentration_top_n_share_of_absolute_movement": 0.8393072778121317,
+    "biggest_movers": [
+      {
+        "account": "C8",
+        "segment": null,
+        "control_gbp": 3858.8106549999984,
+        "value_arm_gbp": 922.9428819999999,
+        "delta_gbp": -2935.8677729999986
+      },
+      {
+        "account": "C9",
+        "segment": null,
+        "control_gbp": 488.34986300000014,
+        "value_arm_gbp": 3122.5074310000023,
+        "delta_gbp": 2634.1575680000024
+      },
+      {
+        "account": "PROS-2018-0137",
+        "segment": null,
+        "control_gbp": 431.43218499999955,
+        "value_arm_gbp": 2918.926495999998,
+        "delta_gbp": 2487.4943109999986
+      },
+      {
+        "account": "PROS-2019-0024",
+        "segment": null,
+        "control_gbp": 2121.931377000007,
+        "value_arm_gbp": 345.63499500000125,
+        "delta_gbp": -1776.296382000006
+      },
+      {
+        "account": "PROS-2017-0065",
+        "segment": null,
+        "control_gbp": -997.3612960000028,
+        "value_arm_gbp": 618.7359319999979,
+        "delta_gbp": 1616.0972280000005
+      },
+      {
+        "account": "SYN-2016-034",
+        "segment": null,
+        "control_gbp": 1632.769912000001,
+        "value_arm_gbp": 182.808873,
+        "delta_gbp": -1449.9610390000012
+      },
+      {
+        "account": "C5_2",
+        "segment": null,
+        "control_gbp": null,
+        "value_arm_gbp": 1179.3583980000003,
+        "delta_gbp": 1179.3583980000003
+      },
+      {
+        "account": "PROS-2020-0391",
+        "segment": null,
+        "control_gbp": 1868.9636799999937,
+        "value_arm_gbp": 2416.0072859999964,
+        "delta_gbp": 547.0436060000027
+      },
+      {
+        "account": "SYN-2016-055",
+        "segment": null,
+        "control_gbp": 1601.8065379999985,
+        "value_arm_gbp": 2060.9567599999996,
+        "delta_gbp": 459.1502220000011
+      },
+      {
+        "account": "SYN-2016-001",
+        "segment": null,
+        "control_gbp": 201.19310000000056,
+        "value_arm_gbp": 630.309461000001,
+        "delta_gbp": 429.11636100000044
+      },
+      {
+        "account": "PROS-2020-0067",
+        "segment": null,
+        "control_gbp": 1820.594455000012,
+        "value_arm_gbp": 2186.824730000026,
+        "delta_gbp": 366.2302750000142
+      },
+      {
+        "account": "C5",
+        "segment": null,
+        "control_gbp": -93.91940599999916,
+        "value_arm_gbp": 269.38050899999973,
+        "delta_gbp": 363.2999149999989
+      },
+      {
+        "account": "PROS-2022-0049",
+        "segment": null,
+        "control_gbp": 782.3130499999947,
+        "value_arm_gbp": 1141.8453930000007,
+        "delta_gbp": 359.532343000006
+      },
+      {
+        "account": "PROS-2021-0362",
+        "segment": null,
+        "control_gbp": 809.1528209999918,
+        "value_arm_gbp": 1111.0811779999974,
+        "delta_gbp": 301.9283570000056
+      },
+      {
+        "account": "PROS-2021-0060",
+        "segment": null,
+        "control_gbp": 1656.8787689999979,
+        "value_arm_gbp": 1956.9208490000005,
+        "delta_gbp": 300.04208000000267
+      }
+    ],
+    "reading": "`concentration_top_n_share_of_absolute_movement` near 1.0 means a handful of accounts ARE the headline and it should be read as a case study, not a portfolio result. Spread thin, the portfolio claim stands. Note that `net_delta_gbp` is the NET-of-all-costs line and will not equal `realised_delta.gross_margin_gbp`, which is a different basis (R14) -- they are here to be compared in SHAPE, not summed. R12: diagnostic, never a target."
+  },
+  "control_credibility": {
+    "available": true,
+    "read_from": "docs/observability/value_based_pricing_arms.json",
+    "source": "Ofgem Default Tariff Cap EBIT allowance, decision 25 August 2023, cap period 11a -- docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md",
+    "accounts_scored": 251,
+    "regulated_allowance_median_gbp_per_mwh": [
+      2.14,
+      7.99
+    ],
+    "control_gbp_per_mwh": 2.0,
+    "control_as_share_of_allowance": [
+      0.25,
+      0.935
+    ],
+    "what_it_means": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
+  },
+  "how_to_read_this": "A positive net-margin delta does NOT establish the thesis on its own. READ `bound_attribution.headline` FIRST -- it says in one sentence whether the customer or a bound chose these prices, and an advantage that came from a bound is no more the company's inference than one that came from access. Then check three things, all carried above: how many of the arm's answers an endpoint or the support bound decided rather than the customer (`decision_shape`), how weak the control is against the regulated allowance (`control_credibility`), and how many renewals the arm actually priced (`renewals_priced_by_the_arm`) -- a small delta from an arm that priced almost nothing says nothing about pricing on value. `renewal_funnel` says WHY that number is what it is, stage by stage, and `decision_population` says why the arms' denominators differ -- read both before taking any per-decision figure from this file, and never take one from two arms at once. A NEGATIVE delta is a result and not a defect: the arm maximises the company's own beliefs, so it loses exactly to the degree those beliefs are wrong, and finding that out is what this experiment is for.",
+  "clock_audit": {
+    "what_this_refuses": "two net margins published for one arm without a declared clock on each, and two figures sharing a clock that do not agree. See `clock_audit`'s docstring for the defect it was built from.",
+    "figures_checked": 11,
+    "arms_checked": [
+      "control_arm",
+      "level_arm",
+      "value_arm"
+    ],
+    "clocks_in_use": [
+      "settled-provisioned",
+      "settled-realised"
+    ],
+    "passes": true,
+    "failures": []
+  }
+}
