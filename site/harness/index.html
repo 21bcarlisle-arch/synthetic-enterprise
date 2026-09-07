@@ -122,6 +122,24 @@ a { color: var(--teal); }
       had been tried. Both readings are below.
     </p>
     <div id="delivery-ceiling"></div>
+
+    <h3>The most a carbon score could ever be worth</h3>
+    <p class="sub">
+      Same discipline, different programme: before building a thing that tells a household
+      <em>when</em> to use electricity, measure the most that could ever be worth if it worked
+      perfectly. Perfect foreknowledge of the grid's hour-by-hour carbon, perfect compliance, every
+      kilowatt-hour moved. That is a true ceiling — no buildable method beats it.
+    </p>
+    <div id="delivery-carbon-ceiling"></div>
+
+    <h3>The most the products beyond price could ever be worth</h3>
+    <p class="sub">
+      Six products — tariff fit, time-shifting, advice, insulation, solar, a heat pump — and the
+      answer is not one number. Three of them we can bound from above, so a small reading would
+      retire them. Three we can only bound from below, because we hold nothing about the building.
+      Which is which is the finding.
+    </p>
+    <div id="delivery-product-ceiling"></div>
   </section>
 
   <section>
@@ -780,12 +798,174 @@ function renderDeliveryCeiling(d) {
       : "") + ".</div>";
 }
 
+/* THE OTHER TWO CEILINGS A49 EXISTS FOR. Both instruments landed on 2026-09-07 and both wrote
+   their readings into a file nobody opens: run on demand, reachable from no schedule, reported as
+   orphans. A bound that reaches no reader cannot retire a candidate programme, which is the entire
+   thing a ceiling is for. `fmt` renders a null as an em-dash and NEVER as a zero — "we did not
+   measure this" and "this is worth nothing" are opposite claims and R4's whole finding lives in
+   the difference. */
+function fmt(v, dp) {
+  return (v === null || v === undefined) ? "—" : Number(v).toFixed(dp === undefined ? 2 : dp);
+}
+
+function renderCarbonCeiling(d) {
+  var c = d.the_most_a_carbon_score_could_be_worth || {};
+  if (!c.available) {
+    $("delivery-carbon-ceiling").innerHTML = '<div class="note">' +
+      esc(c.why || "No carbon-timing ceiling is available, so no bound is shown. That is not the " +
+                   "same as the bound being zero.") + "</div>";
+    return;
+  }
+  var curve = c.shiftable_share_curve || [];
+  $("delivery-carbon-ceiling").innerHTML =
+    kpi(fmt(c.kg_co2e_per_household_year, 1) + " kg", "CO₂e per household-year, at its ceiling") +
+    kpi("£" + fmt(c.gbp_per_household_year), "what that carbon is worth at the traded price") +
+    kpi(fmt(c.hindsight_over_null, 2) + "×", "how far it clears an optimiser with no skill") +
+    "<p>" + esc(c.statement || "") + "</p>" +
+    /* THE LADDER, NOT THE LANDING. Three handicaps applied in order, each published, because a
+       reader who is shown only the corrected figure cannot tell which step they disagree with. */
+    '<div class="note"><strong>How the ceiling gets handicapped down to that figure.</strong> ' +
+    "Perfect foreknowledge of the grid's shape is worth <b>" + fmt(c.hindsight_g_per_kwh, 1) +
+    " g</b> per shifted kWh. Acting on the <em>published forecast</em> instead captures " +
+    fmt((c.forecast_capture || 0) * 100, 1) + "% of that. Then the reconstructed shape swings " +
+    fmt(c.within_day_overstatement, 2) + "× more within a day than the published series does, so " +
+    "the figure is divided by its own measured exaggeration — leaving <b>" +
+    fmt(c.g_co2e_per_shifted_kwh, 1) + " g</b> per shifted kWh. An optimiser with no skill at all " +
+    "reaches " + fmt(c.null_g_per_kwh, 1) + " g, which is what the " + fmt(c.hindsight_over_null, 2) +
+    "× above is measured against.</div>" +
+    /* THE DENOMINATOR NOBODY HAS ESTABLISHED. The headline is at share 1.0 — every kWh in the home
+       moved — because no published source gives a domestic shiftable share. Publishing the curve
+       is the honest `None` made useful: the reader scales it, we do not invent it. */
+    (curve.length
+      ? '<div class="note"><strong>And the headline assumes every kilowatt-hour in the home can ' +
+        "move, which no household can do.</strong> No published source establishes what share of " +
+        "domestic load is actually shiftable, so rather than invent one, here is the bound at " +
+        'each share:<div class="table-scroll"><table><tr><th>share of load moved</th>' +
+        curve.map(function (p) {
+          return "<th>" + fmt((p.shiftable_share || 0) * 100, 0) + "%</th>"; }).join("") +
+        "</tr><tr><td>kgCO₂e per household-year</td>" +
+        curve.map(function (p) {
+          return "<td>" + fmt(p.kg_co2e_per_household_year, 1) + "</td>"; }).join("") +
+        "</tr><tr><td>value of that carbon</td>" +
+        curve.map(function (p) {
+          return "<td>£" + fmt(p.gbp_per_household_year) + "</td>"; }).join("") +
+        "</tr></table></div>At a tenth of load moved it is a tenth. <b>The missing number is a gap " +
+        "we have named, not one we have filled.</b></div>"
+      : "") +
+    /* WHEN, NOT WHETHER. A programme worth less every year it is not built is a different decision
+       from a small one, and this is the only line on the panel that speaks to timing. */
+    (c.trend_change_pct !== null && c.trend_change_pct !== undefined
+      ? '<div class="note"><strong>It is shrinking.</strong> The headroom moved <b>' +
+        fmt(c.trend_change_pct, 1) + "%</b> between " + esc(String(c.trend_first_year)) + " and " +
+        esc(String(c.trend_last_year)) + " as the grid decarbonised — so this programme is worth " +
+        "less every year it is not built. " + esc(c.trend_reads || "") + "</div>"
+      : "") +
+    /* WHAT A NEGATIVE WOULD HAVE MEANT, which is the whole reason the kind of bound is declared
+       before the reading. A ceiling retires; a floor cannot. */
+    '<div class="note"><strong>This is a ' + esc(String(c.bound_kind || "")) + ", and that is a " +
+    "claim about what a bad reading would have proved.</strong> " + esc(c.bound_kind_reason || "") +
+    " It " + (c.retires_time_shifting ? "does retire" : "does <b>not</b> retire") +
+    " time-shifting on this book.</div>" +
+    '<div class="note"><strong>What this bound does not cover.</strong> ' +
+    esc(c.bound_scope || "") +
+    ((c.not_bounded_by_this || []).length
+      ? " Six levers it says nothing about: <ul>" +
+        c.not_bounded_by_this.map(function (g) { return "<li>" + esc(g) + "</li>"; }).join("") +
+        "</ul>"
+      : "") + "</div>" +
+    ((c.named_gaps || []).length
+      ? '<div class="note"><strong>Named gaps, carried rather than filled.</strong><ul>' +
+        c.named_gaps.map(function (g) { return "<li>" + esc(g) + "</li>"; }).join("") +
+        "</ul></div>"
+      : "") +
+    '<div class="meta">Measured on ' + esc(String(c.run_output || "an unnamed run")) + ", " +
+    n(c.households) + " households, over " + n(c.days_measured) + " whole days in " +
+    esc((c.years_measured || []).join(", ")) + ". Carbon valued at £" +
+    fmt(c.carbon_value_gbp_per_tonne, 0) + "/tonne — " + esc(c.carbon_value_basis || "") + ".</div>";
+}
+
+function renderProductCeiling(d) {
+  var c = d.the_most_the_products_beyond_price_could_be_worth || {};
+  if (!c.available) {
+    $("delivery-product-ceiling").innerHTML = '<div class="note">' +
+      esc(c.why || "No product ceiling is available, so no bound is shown. That is not the same " +
+                   "as the bound being zero.") + "</div>";
+    return;
+  }
+  var arms = c.arms || [];
+  /* THE COLUMN THAT IS NOT POUNDS, AND WHY IT IS NOT. Time-shifting's carbon is valued at the
+     traded price, which is NOT a bill saving — so it sits in its own column and is never summed
+     with tariff fit's. Two currencies in one column is how a page publishes a number nobody owns. */
+  var row = function (a) {
+    return "<tr><td><b>" + esc(a.product) + "</b></td><td>" + esc(String(a.bound_kind || "")) +
+      "</td><td>" + (a.gbp_per_household_year === null || a.gbp_per_household_year === undefined
+        ? "—" : "£" + fmt(a.gbp_per_household_year)) + "</td><td>" +
+      (a.kg_co2e_per_household_year === null || a.kg_co2e_per_household_year === undefined
+        ? "—" : fmt(a.kg_co2e_per_household_year, 1) + " kg") + "</td></tr>";
+  };
+  $("delivery-product-ceiling").innerHTML =
+    kpi(n((c.ceilings || []).length) + " / " + n(arms.length), "products we can bound from ABOVE") +
+    kpi(n((c.floors || []).length) + " / " + n(arms.length), "we can only bound from BELOW") +
+    kpi(n(c.property_attributes_found), "property attributes the company holds, across " +
+        n(c.property_logs_scanned) + " logs") +
+    "<p>" + esc(c.statement || "") + "</p>" +
+    '<div class="table-scroll"><table><tr><th>product</th><th>bound</th>' +
+    "<th>£ per household-year</th><th>carbon per household-year</th></tr>" +
+    arms.map(row).join("") + "</table></div>" +
+    /* NO TOTAL, AND SAYING SO IS THE POINT. The arms are not disjoint and the columns are not one
+       currency; a sum is the number a reader would quote and it would be meaningless. */
+    '<div class="note"><strong>There is deliberately no total.</strong> ' +
+    esc(c.refuses_to_total || "") + "</div>" +
+    /* THE ANSWER A49 WAS MINTED FOR, in one sentence. This is the canon's own charge — "the
+       company can make a household cheaper and never greener" — as arithmetic rather than worry. */
+    '<div class="note"><strong>The part of this we can bound is the part that cannot cut ' +
+    "carbon.</strong> The bounded arm that abates is <b>" +
+    esc((c.the_arm_that_abates || []).join(", ") || "none") + "</b>, and it saves no money. The " +
+    "bounded arm that saves money is <b>" +
+    esc((c.the_arm_that_does_not || []).join(", ") || "none") + "</b>, and its carbon is exactly " +
+    "zero — by the director's own standing rule that a saving counts only from reduced or " +
+    "time-shifted usage, never from discounting. Everything that would actually cut a household's " +
+    "carbon (insulation, solar, a heat pump) is a <b>floor</b>, which retires nothing, because we " +
+    "hold <b>" + n(c.property_attributes_found) + "</b> property attributes across " +
+    n(c.property_logs_scanned) + " logs — " + n(c.fabric_eligible) + " of " + n(c.fabric_rows) +
+    " rows carry enough to size a measure at all. <b>What stands between this and a real bound is " +
+    "a data acquisition, not a model</b>, which is a materially different programme from the one " +
+    "R4 describes.</div>" +
+    /* THE GAP NEITHER INSTRUMENT WAS LOOKING FOR, and the mission's two-sidedness in one line:
+       value CREATED with no instrument of SHARING it. */
+    (c.why_time_shifting_has_no_pounds
+      ? '<div class="note"><strong>And there is no way to share the value time-shifting creates.' +
+        "</strong> " + esc(c.why_time_shifting_has_no_pounds) + " Value is created and <em>then</em> " +
+        "shared, so a lever with a carbon ceiling and no bill-saving ceiling at all is half a " +
+        "product. That is a missing tariff, not a missing measurement.</div>"
+      : "") +
+    '<div class="note"><strong>Why the answer is a split and not a number.</strong> ' +
+    esc(c.bound_kind_reason || "") + "</div>" +
+    ((c.named_gaps || []).length
+      ? '<div class="note"><strong>Named gaps, carried rather than filled.</strong><ul>' +
+        c.named_gaps.map(function (g) { return "<li>" + esc(g) + "</li>"; }).join("") +
+        "</ul></div>"
+      : "") +
+    '<div class="meta">Measured on ' + esc(String(c.run_output || "an unnamed run")) + ", " +
+    n(c.households) + " households.</div>";
+}
+
 fetch("../data/delivery.json").then(function (r) { return r.json(); }).then(function (d) {
   renderDeliveryKpis(d); renderDeliveryDid(d); renderDeliveryDecided(d);
   renderDeliveryWrong(d); renderDeliveryNext(d); renderDeliveryCeiling(d);
+  renderCarbonCeiling(d); renderProductCeiling(d);
 }).catch(function () {
   $("delivery-kpis").innerHTML = "";
   $("delivery-did").innerHTML = "<p>The delivery record could not be loaded, so nothing is shown here.</p>";
+  /* THE TWO CEILING PANELS SIT UNDER LIVE HEADINGS AND MUST SAY SO WHEN THE FEED DIES. A blank
+     panel below "The most a carbon score could ever be worth" reads as "nothing", and nothing is
+     the one answer neither instrument returned. */
+  $("delivery-carbon-ceiling").innerHTML =
+    "<p>The delivery record could not be loaded, so this bound is not shown. That is a broken " +
+    "feed, not a measurement of zero.</p>";
+  $("delivery-product-ceiling").innerHTML =
+    "<p>The delivery record could not be loaded, so these bounds are not shown. That is a broken " +
+    "feed, not a measurement of zero.</p>";
 });
 
 /* SITE9, whose block the director overturned on 2026-08-25: "Rebuild the delta as a section on

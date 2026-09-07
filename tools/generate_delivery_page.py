@@ -43,6 +43,14 @@ from background import direction as direction_mod
 # artefact's and the choice is the instrument's constant; nothing here derives a number.
 from tools.r1_inference_ceiling import the_a49_gate
 
+# THE OTHER TWO INSTRUMENTS A49 EXISTS FOR, imported for the SAME reason as the line above: each
+# module owns where its artefact lives, and a generator that restated those paths would be a second
+# opinion about which file is the record. Importing `OUT_PATH` also wires both modules to something
+# that actually runs -- until 2026-09-07 they were reachable from no committed schedule and read as
+# orphans, which is the honest description of an instrument whose reading nobody ever sees.
+from tools.r3_carbon_score_ceiling import OUT_PATH as R3_ARTEFACT
+from tools.r4_product_ceiling import OUT_PATH as R4_ARTEFACT
+
 PROJECT = Path(__file__).resolve().parent.parent
 OUT_PATH = PROJECT / "site" / "data" / "delivery.json"
 
@@ -359,6 +367,188 @@ def the_number_the_programme_rests_on() -> dict:
     }
 
 
+def _read_artefact(path: Path, subject: str, required_field: str, stale_why: str) -> tuple:
+    """Read one instrument's committed artefact, or say WHY there is nothing to show.
+
+    THREE ABSENCES THAT ARE NOT THE SAME CLAIM, and a panel that collapses them lies in the reader's
+    favour: NOT RUN (no bound has been measured), UNREADABLE (a bound may exist and we cannot see
+    it), and STALE (a bound exists and is from before a correction that moved it). Only the last of
+    those is a reason to withhold a number that is sitting right there, so it is the one that has to
+    name the correction it is missing. None of them is the same as the bound being zero.
+    """
+    if not path.is_file():
+        return None, {"available": False,
+                      "why": f"the {subject} instrument has not been run in this tree, so no bound "
+                             f"is shown. That is not the same as the bound being zero. Run "
+                             f"`python3 -m {path.stem} --save` in a tree holding the run outputs."}
+    try:
+        got = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None, {"available": False,
+                      "why": f"the {subject} artefact could not be read, so no bound is shown."}
+    if required_field not in got:
+        return None, {"available": False, "why": stale_why}
+    return got, None
+
+
+def the_most_a_carbon_score_could_be_worth() -> dict:
+    """R3's timing ceiling, READ from the instrument's committed artefact.
+
+    WHY IT IS ON THIS PAGE. A49 required a ceiling per side before either programme is built, and
+    R3's landed on 2026-09-07 into a file nobody opens. A bound that reaches no reader cannot retire
+    a candidate programme, which is the entire thing ceilings are for -- EP13 ran twelve passes and
+    the discipline arrived at pass seven, retiring five programmes that would otherwise have been
+    built first and measured afterwards.
+
+    THE SHAPE OF THE ANSWER MATTERS MORE THAN THE NUMBER, so the panel carries both. The headline is
+    at a shiftable share of 1.0 -- every kWh in the home moved -- because NO PUBLISHED SOURCE
+    ESTABLISHES A DOMESTIC SHIFTABLE SHARE, and a number invented for that slot would be load-bearing
+    within a week. The curve is published instead, and the reader scales it themselves.
+
+    IT COMPUTES NOTHING, like every panel here. Two implementations of one quantity is how a figure
+    comes to have two values and no owner; this repository has already paid for that once.
+    """
+    got, absent = _read_artefact(
+        R3_ARTEFACT, "carbon-timing-ceiling", "corrected_headline",
+        "the carbon-timing artefact in this tree predates the within-day correction, so its figure "
+        "is the raw forecast ceiling with the feed's own measured overstatement still inside it. It "
+        "is withheld rather than shown: re-run `python3 -m tools.r3_carbon_score_ceiling --save`.")
+    if absent:
+        return absent
+    headline = got.get("corrected_headline") or {}
+    verdict = got.get("verdict") or {}
+    world = got.get("world") or {}
+    trend = got.get("typical_day_cross_check") or {}
+    return {
+        "available": True,
+        "run_output": (got.get("book") or {}).get("source_run"),
+        "households": (got.get("book") or {}).get("households"),
+        "bound_kind": got.get("bound_kind"),
+        "bound_kind_reason": got.get("bound_kind_reason"),
+        # WHAT THIS BOUND DOES NOT COVER, carried beside it and never behind it. R3 bounds the
+        # TIMING lever on ELECTRICITY; the instrument names six levers it says nothing about, and a
+        # reader shown "91.7 kg" without them would read a bound on the whole carbon programme.
+        "bound_scope": got.get("bound_scope"),
+        "not_bounded_by_this": got.get("not_bounded_by_this"),
+        "kg_co2e_per_household_year": headline.get("kg_co2e_per_household_year"),
+        "gbp_per_household_year": headline.get("gbp_per_household_year"),
+        "g_co2e_per_shifted_kwh": headline.get("g_co2e_per_shifted_kwh"),
+        "at_shiftable_share": 1.0,
+        # THE HANDICAPS, PUBLISHED AS SEPARATE STEPS rather than folded into one corrected figure.
+        # Perfect foreknowledge -> what the published forecast actually captures -> divided by the
+        # feed's own measured within-day overstatement. A reader who cannot see the ladder cannot
+        # tell which step they disagree with.
+        "hindsight_g_per_kwh": ((got.get("rungs") or {}).get("hindsight_ceiling") or {}).get(
+            "g_co2e_per_shifted_kwh"),
+        "forecast_capture": (got.get("forecast_capture") or {}).get("capture_mean"),
+        "within_day_overstatement": (got.get("within_day_overstatement") or {}).get("mean"),
+        "null_g_per_kwh": ((got.get("rungs") or {}).get("null_ceiling") or {}).get(
+            "g_co2e_per_shifted_kwh"),
+        "clears_the_null": verdict.get("clears_the_null"),
+        "hindsight_over_null": verdict.get("hindsight_over_null"),
+        "retires_time_shifting": verdict.get("retires_time_shifting"),
+        # THE CURVE, BECAUSE THE HEADLINE'S DENOMINATOR IS NOT ESTABLISHED. This is the honest
+        # `None` made useful: we cannot say what share of a home's load is shiftable, so we publish
+        # what the bound is at every share and refuse to pick one.
+        "shiftable_share_curve": got.get("shiftable_share_curve"),
+        # AND IT IS SHRINKING, which is the fact that decides WHEN rather than WHETHER. A programme
+        # worth less every year it is not built is a different decision from a small one.
+        "trend_change_pct": trend.get("change_pct"),
+        "trend_first_year": trend.get("first_year"),
+        "trend_last_year": trend.get("last_year"),
+        "trend_reads": trend.get("reads"),
+        "carbon_value_gbp_per_tonne": (got.get("carbon_value") or {}).get("gbp_per_tonne"),
+        "carbon_value_basis": (got.get("carbon_value") or {}).get("basis"),
+        "days_measured": world.get("days"),
+        "years_measured": world.get("years"),
+        "named_gaps": got.get("named_gaps"),
+        "caveats": got.get("caveats"),
+        "statement": got.get("headline"),
+    }
+
+
+def the_most_the_products_beyond_price_could_be_worth() -> dict:
+    """R4's product ceiling, READ from the instrument's committed artefact.
+
+    THE SPLIT IS THE DELIVERABLE AND THE PANEL IS BUILT AROUND IT. Three of R4's six products are
+    true CEILINGS -- a negative retires them outright -- and three are FLOORS, which retire nothing,
+    because the company holds no property attribute to target on. Conflating those two is the error
+    EP13's tenth pass made and its eleventh corrected, so this panel never renders an arm without
+    the kind of bound beside it.
+
+    AND THE ANSWER A49 WAS MINTED FOR IS ONE SENTENCE: the part of R4 this book can bound is the
+    part that CANNOT ABATE, and the part that abates is the part we cannot bound. That is the
+    canon's own charge -- "the company can make a household cheaper and never greener" -- as
+    arithmetic rather than as a worry, and it belongs where the director can read it.
+
+    IT COMPUTES NOTHING. The `refuses_to_total` line is the instrument's, not this generator's: the
+    arms are not disjoint (advice is the channel for the others) and summing them would double-count.
+    """
+    got, absent = _read_artefact(
+        R4_ARTEFACT, "product-ceiling", "verdict",
+        "the product-ceiling artefact in this tree predates the ceiling/floor split, which IS the "
+        "finding. It is withheld rather than shown as a list of numbers whose kind is unstated: "
+        "re-run `python3 -m tools.r4_product_ceiling --save`.")
+    if absent:
+        return absent
+    verdict = got.get("verdict") or {}
+    arms = got.get("arms") or {}
+    census = got.get("fabric_eligibility") or {}
+    time_shifting = arms.get("time_shifting") or {}
+    return {
+        "available": True,
+        "run_output": (got.get("book") or {}).get("source_run"),
+        "households": (got.get("book") or {}).get("households"),
+        "bound_kind": got.get("bound_kind"),
+        "bound_kind_reason": got.get("bound_kind_reason"),
+        "ceilings": verdict.get("ceilings"),
+        "floors": verdict.get("floors"),
+        # THE TWO-SIDED SENTENCE, LIFTED AS TWO FIELDS SO NEITHER CAN BE DROPPED. `abates` is the
+        # arm with carbon and no bill saving; `does_not` is the arm with pounds and carbon of
+        # exactly zero by the director's standing rule -- discounting changes no kWh and no hour.
+        "the_arm_that_abates": verdict.get("the_bounded_arm_that_abates"),
+        "the_arm_that_does_not": verdict.get("the_bounded_arm_that_does_not"),
+        "arms": [
+            {
+                "product": name,
+                "bound_kind": arm.get("bound_kind"),
+                "gbp_per_household_year": arm.get("gbp_per_household_year"),
+                "kg_co2e_per_household_year": arm.get("kg_co2e_per_household_year"),
+                "carbon_value_gbp_per_household_year": arm.get(
+                    "carbon_value_gbp_per_household_year"),
+                "why": (arm.get("why_a_ceiling") or arm.get("why_a_floor_and_not_a_ceiling")
+                        or arm.get("why") or ""),
+                "missing_data": arm.get("missing_data"),
+                "carbon_is_zero_by_rule": arm.get("carbon_is_zero_by_rule"),
+                "households_above_the_reference": arm.get("households_above_the_reference"),
+            }
+            for name, arm in arms.items()
+        ],
+        "refuses_to_total": got.get("refuses_to_total"),
+        # WHAT STANDS BETWEEN R4 AND A REAL BOUND, and it is the finding that changes the shape of
+        # the programme: a DATA ACQUISITION, not a model. Three floors become three ceilings the day
+        # the book holds a floor area, a wall construction and a heating system.
+        # BOTH SIDES OF THE CENSUS, AND SAY WHAT EACH COUNTS. `logs_scanned` is how hard we looked;
+        # `attributes_found` is what we found. A single field carrying 29 under a name like
+        # "attributes" would publish the OPPOSITE of the finding -- the finding is ZERO, and the 29
+        # is what makes the zero worth believing rather than a shallow search.
+        "property_logs_scanned": (got.get("property_attribute_census") or {}).get("logs_scanned"),
+        "property_attributes_found": len(
+            (got.get("property_attribute_census") or {}).get("attributes_found") or {}),
+        "fabric_eligible": census.get("eligible"),
+        "fabric_rows": census.get("rows"),
+        "fabric_share": census.get("share"),
+        # THE GAP NEITHER INSTRUMENT WAS LOOKING FOR, and the reason it is on this panel rather than
+        # only in a staged finding: R3 measures value CREATED and this book has no instrument of
+        # SHARING it. A shifted kWh is cheaper only on a time-of-use tariff and there is none here,
+        # so time-shifting has a carbon ceiling and NO bill-saving ceiling at all. That is the
+        # mission's own two-sidedness showing up as a missing product.
+        "why_time_shifting_has_no_pounds": time_shifting.get("why_the_gbp_column_is_None"),
+        "named_gaps": got.get("named_gaps"),
+        "statement": got.get("headline"),
+    }
+
+
 def build() -> dict:
     return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -368,6 +558,9 @@ def build() -> dict:
         "what_it_got_wrong": what_it_got_wrong(),
         "what_next": what_next(),
         "the_number_the_programme_rests_on": the_number_the_programme_rests_on(),
+        "the_most_a_carbon_score_could_be_worth": the_most_a_carbon_score_could_be_worth(),
+        "the_most_the_products_beyond_price_could_be_worth": (
+            the_most_the_products_beyond_price_could_be_worth()),
         "how_to_read_this": (
             "The delivery seat wakes on a timer, reads the last stretch, and writes direction -- "
             "never code. What it decides biases which work the ticks draw and can never block "
