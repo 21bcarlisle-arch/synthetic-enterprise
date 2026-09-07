@@ -99,6 +99,10 @@
             "type": "command",
             "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/pull_next_work.py",
             "timeout": 600
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/capture_seat_reply.py"
           }
         ]
       }

@@ -237,6 +237,16 @@ _CLASS_PREFIX = "CLASS_"
 #: implies a family and would invite a second one to be created rather than a row added.
 _STANDING_REGISTERS = frozenset({"HEAD_RED_REGISTER.md"})
 _CONSOLE_PREFIX = "DIRECTOR_CONSOLE_"
+#: The seat's side of the same conversation (director, 2026-09-07: "it records what I send and not
+#: what you reply... my advisor can see the instruction and not the answer"). Classified CONSOLE
+#: because it is the same THING -- a verbatim record, not work, filed beside the turn it answers.
+#:
+#: DELIBERATELY NOT NAMED `DIRECTOR_CONSOLE_REPLY_`, which would route here with no code change and
+#: would be wrong: `pull_forward_proposal.director_sources` reads DIRECTOR_CONSOLE_* as the
+#: DIRECTOR'S OWN WORDS, and filing the seat's replies under that prefix would hand a release door
+#: the machine's words wearing his authority. That is the defect this record channel was repaired
+#: for on this same day; the name is what keeps the two apart.
+_SEAT_REPLY_PREFIX = "SEAT_REPLY_"
 _MINT_PREFIX = "PLANNER_MINTED_"
 _FROM_RICH_PREFIX = "from_rich_"
 _DOORBELL_PREFIXES = ("run_complete_", "run_pending_")
@@ -277,7 +287,11 @@ def kind_of(name: str) -> str:
     hypothetical — it is the state the director found, two 25-51KB transcripts sitting in the
     work channel because their name begins with the same eight letters as a ruling's.
     """
-    if name.startswith(_CONSOLE_PREFIX):
+    if name.startswith((_CONSOLE_PREFIX, _SEAT_REPLY_PREFIX)):
+        # `SEAT_REPLY_` is tested HERE, beside the console prefix and ahead of everything else,
+        # for the reason the docstring above gives about `DIRECTOR_CONSOLE_`: it begins with the
+        # same four letters as `SEAT_FINDING_`, and a reply reaching the finding test first would
+        # classify as live work and flood the draw with one document per day.
         return KIND_CONSOLE
     if name.startswith(_CLASS_PREFIX) or name in _STANDING_REGISTERS:
         # REFERENCE BY NAME, PROMOTED BY STATE — the same two-step a class register takes. The

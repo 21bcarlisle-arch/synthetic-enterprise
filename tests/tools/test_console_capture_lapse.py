@@ -48,6 +48,9 @@ def test_THE_CHECK_READS_THE_SAME_ROOM_THE_WRITER_WRITES_TO(tmp_path, monkeypatc
     original bug wearing a control's clothes."""
     staging = tmp_path / "staging"
     _record(staging, "2026-09-07")
+    # The day needs BOTH sides, or the pairing check answers instead and this test stops being
+    # about the room it was written to guard.
+    record.append_reply("2026-09-07T09:05:00.000Z", "Answered.", staging=staging)
     assert (staging / "DIRECTOR_CONSOLE_2026-09-07.md").is_file(), (
         "the writer no longer files a new day into the root; this test's premise has moved")
     monkeypatch.setattr(record, "HUMAN_PRESENCE_STAMP", _stamp(tmp_path, time.time()))

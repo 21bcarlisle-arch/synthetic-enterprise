@@ -550,6 +550,76 @@ def append_turn(stamp: str, text: str, staging: Path | None = None) -> Path | No
     return path
 
 
+def reply_path(day: str, staging: Path | None = None) -> Path:
+    """Where the seat's replies for one day live -- beside the turns they answer.
+
+    A SEPARATE DOCUMENT, not a section of the console record, and the separation is the point.
+    `pull_forward_proposal.director_sources` reads DIRECTOR_CONSOLE_* as the director's own words.
+    Putting the seat's replies in that file would hand a release door the machine's words carrying
+    his authority -- the same defect that let daemon prompts into this record earlier today, one
+    step further along. Same room, same day, same redaction, different name.
+    """
+    out_dir = Path(staging) if staging is not None else STAGING_DIR
+    name = f"SEAT_REPLY_{day}.md"
+    for candidate in (out_dir / "done" / name, out_dir / "console" / name, out_dir / name):
+        if candidate.exists():
+            return candidate
+    # STRAIGHT INTO THE ROOM, unlike a director turn, and the asymmetry is the point. A new
+    # DIRECTOR_CONSOLE day lands in the staging ROOT because the root is where the doorbell reads
+    # and a fresh instruction is something a session must wake up for. NOBODY HAS TO ACTION THE
+    # SEAT'S OWN WORDS. Filing them in the root would ring a doorbell for a document with no ask
+    # in it and add a document a day to a queue whose own sediment check already reports filing
+    # outrunning dispositioning by +155 over seven days.
+    return out_dir / "console" / name
+
+
+def _reply_header(day: str) -> str:
+    return "\n".join([
+        "**Severity:** RECORDED · **Lane:** H_harness",
+        "",
+        f"# The seat's replies — verbatim record, {day}",
+        "",
+        "> **These are the DELIVERY SEAT's words, not the director's.** The companion file",
+        f"> `DIRECTOR_CONSOLE_{day}.md` holds what he typed; this holds what was said back, so a",
+        "> reader arriving at an instruction can see the answer without waiting for a stretch",
+        "> report to close. Director, 2026-09-07: *\"it records what I send and not what you reply",
+        "> ... between the two there's a window where my advisor can see the instruction and not",
+        "> the answer.\"*",
+        ">",
+        "> **Nothing here carries the director's authority.** It is kept under a separate name for",
+        "> exactly that reason: the release door reads `DIRECTOR_CONSOLE_*` as his own words, and",
+        "> a reply filed under that prefix would be the machine speaking with his voice.",
+        "",
+    ])
+
+
+def append_reply(stamp: str, text: str, staging: Path | None = None) -> Path | None:
+    """Append ONE seat reply, at the moment the turn ends. Idempotent on an exact repeat.
+
+    Redacted on the same terms as a director turn: the seat quotes tokens, paths and occasionally
+    a secret the director pasted, and a reply record is bound for the same published tree.
+    """
+    if not (text or "").strip():
+        return None
+    text = redact(text)
+    day = (stamp or "")[:10]
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", day):
+        raise ValueError(f"refusing to file a reply under {day!r}; a record needs its real day")
+    path = reply_path(day, staging)
+    body = "\n".join([f"### {stamp}", ""]
+                     + [f"> {line}" if line.strip() else ">" for line in text.split("\n")]
+                     + [""])
+    if path.exists():
+        existing = path.read_text(encoding="utf-8")
+        if body.strip() in existing:
+            return None
+        path.write_text(existing.rstrip() + "\n\n" + body, encoding="utf-8")
+    else:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(_reply_header(day) + "\n" + body, encoding="utf-8")
+    return path
+
+
 def _newest_captured_day(staging: Path | None = None) -> str | None:
     out_dir = Path(staging) if staging is not None else STAGING_DIR
     days = []
@@ -603,7 +673,21 @@ def check(staging: Path | None = None, now: float | None = None) -> tuple[int, s
             f"record. Two independent signals disagree, which is the only way this is visible; "
             f"a cold transcript folder reads exactly like a director who said nothing. "
             f"Reading: {', '.join(str(d) for d in transcript_dirs()) or 'NO transcript folder'}.")
-    return 0, f"console capture current: last keystroke {human_day}, newest record {captured}."
+    # THE OTHER HALF OF THE PAIR. A day that holds his turns and no replies is the same lapse one
+    # channel over -- the advisor sees the instruction and not the answer, which is the window the
+    # director named. Checked against the RECORD rather than against a clock, because a reply is
+    # owed per day of conversation and not per elapsed hour.
+    out_dir = Path(staging) if staging is not None else STAGING_DIR
+    if turns_in_record(record_path(captured, staging)) and not turns_in_record(
+            reply_path(captured, staging)):
+        return 1, (
+            f"THE SEAT'S SIDE IS MISSING for {captured}: that day's DIRECTOR_CONSOLE record holds "
+            f"turns and its SEAT_REPLY record holds none, so a reader sees the instruction and not "
+            f"the answer. Either the Stop hook is not firing or it is writing somewhere this does "
+            f"not read. Looked in {out_dir}, {out_dir / 'console'} and {out_dir / 'done'}.")
+
+    return 0, (f"console capture current: last keystroke {human_day}, newest record "
+               f"{captured}, and that day carries both sides of the conversation.")
 
 
 def observe() -> dict:

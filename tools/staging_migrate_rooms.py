@@ -21,6 +21,10 @@ WHAT IT DOES, AND WHY EACH PART IS SAFE.
 
 1. CLASS_*.md          -> reference/   Standing registers. Never work, never drain.
 2. DIRECTOR_CONSOLE_*  -> console/     Verbatim transcripts. Record, not work.
+   SEAT_REPLY_*        -> console/     The seat's side of the same conversation, filed
+                                       beside the turns it answers. Kept under its own
+                                       name because the release door reads
+                                       DIRECTOR_CONSOLE_* as the director's OWN words.
 3. Alarm documents     -> collapsed    Grouped by the declared family, merged into the
                                        OLDEST document of each group, which keeps the
                                        original first-seen date and every instance name.
