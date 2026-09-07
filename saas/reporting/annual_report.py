@@ -1024,6 +1024,7 @@ def extract_report_data(run_output: dict) -> dict:
         "roc_summary": phase2b.get("roc_summary", {}),
         "fit_summary": phase2b.get("fit_summary", {}),
         "ccl_summary": phase2b.get("ccl_summary", {}),
+        "cm_statutory_summary": phase2b.get("cm_statutory_summary", {}),
         # VALUE_CHAIN surfacing (2026-07-24): the trading book + its two
         # board-level credit/liquidity registers are computed by run_phase2b
         # but were silently dropped by this whitelist -- so the mid-run PEAK
@@ -6701,6 +6702,136 @@ def _section_fit_levy(data: dict) -> str:
     return "\n".join(lines)
 
 
+def _section_cm_supplier_levy(data: dict) -> str:
+    """a53: the supplier's own Capacity Market position, reconciled against the settlement.
+
+    WHY THIS SECTION RECONCILES RATHER THAN JUST REPORTING. This page ALREADY carries a CM
+    figure -- the `CM` column of the Policy Cost & Levy Breakdown, which is the pass-through as
+    `hedged_settlement` accumulated it per settled record. Publishing a second CM total beside it
+    without the delta and its cause would be this project's fourth-home failure, not a fix for
+    it. So the difference is computed here, at render time, on the run's own numbers.
+
+    THE RECONCILIATION IS A MEASUREMENT, NOT A CLAIM IN PROSE. The two readings differ in year
+    keying: the statutory return uses the calendar-year volume accumulator RO and FiT share, and
+    the settlement buckets each record into its Apr-Mar obligation year, so Jan-Mar of year N is
+    charged at year N-1's levy. If that is the WHOLE difference, then for each year
+
+        company - settlement  ==  (Jan-Mar volume) x (levy(N) - levy(N-1))
+
+    and dividing the delta by the levy step backs out an implied Jan-Mar volume. That implied
+    share is printed. A plausible winter-weighted quarter lands near 30%; a share outside 15-45%
+    means something OTHER than keying differs -- a segment filter, a gas record in the
+    electricity accumulator, a volume basis -- and the page says so rather than presenting the
+    delta as understood. Keyed to the property, not to the run that first produced it.
+
+    THE UNPUBLISHED YEAR IS PRINTED AS A GAP. Ofgem Annex 9 ends at obligation year 2024. The
+    statutory return refuses such a year; the settlement carries its last known rate forward.
+    Both behaviours are on the page, because a reader comparing the two columns is owed the
+    reason the company's cell is empty where the settlement's is not.
+    """
+    from company.regulatory.capacity_market import cm_charge_per_mwh
+    cm = data.get("cm_statutory_summary", {})
+    per_year = cm.get("per_year", {})
+    if not per_year:
+        return ""
+    ydata = data.get("years", {})
+    lines = ["## Capacity Market (CM) Supplier Levy -- Statutory Position"]
+    lines.append("")
+    lines.append("The CM supplier levy recovers the cost of all capacity agreements across all")
+    lines.append("licensed suppliers, in proportion to peak-period demand. Every demand segment")
+    lines.append("pays -- domestic, SME and I&C alike; there is no exemption. Source: Ofgem Annex 9.")
+    lines.append("")
+    lines.append("This is the supplier's OWN annual return. The `CM` column in Policy Cost & Levy")
+    lines.append("Breakdown is the same levy as it landed in settlement, bucketed by Apr-Mar")
+    lines.append("obligation year. The two are reconciled below.")
+    lines.append("")
+    lines.append("| Year | Elec MWh | Levy (GBP/MWh) | Statutory CM Cost | In Settlement | Delta | Implied Jan-Mar share |")
+    lines.append("|------|----------|----------------|-------------------|---------------|-------|----------------------|")
+    total_statutory = 0.0
+    total_settled = 0.0
+    prev_levy = None
+    unexplained: list[str] = []
+    gap_years: list[str] = []
+    for yr in sorted(per_year.keys()):
+        yd = per_year[yr]
+        mwh = yd.get("elec_mwh", 0.0)
+        levy = yd.get("levy_gbp_per_mwh")
+        cost = yd.get("cm_levy_gbp")
+        settled = (ydata.get(yr) or {}).get("cm_levy_gbp")
+        if levy is None or cost is None:
+            gap_years.append(yr)
+            settled_str = ("GBP" + f"{settled:,.2f}") if settled else "n/a"
+            lines.append(
+                "| " + yr + " | " + f"{mwh:,.1f}" + " | NOT PUBLISHED | **NO FIGURE** | "
+                + settled_str + " | -- | -- |"
+            )
+            continue
+        total_statutory += cost
+        # The implied Jan-Mar volume, and whether the keying explains the delta. A year whose
+        # levy did not move carries no information either way -- the step is the divisor.
+        share_str = "--"
+        if settled is not None:
+            total_settled += settled
+            if prev_levy is not None and abs(levy - prev_levy) > 1e-9 and mwh > 0:
+                implied = (cost - settled) / (levy - prev_levy)
+                share = 100.0 * implied / mwh
+                share_str = f"{share:.1f}%"
+                if not (15.0 <= share <= 45.0):
+                    unexplained.append(yr)
+        delta = (cost - settled) if settled is not None else None
+        lines.append(
+            "| " + yr + " | " + f"{mwh:,.1f}" + " | GBP" + f"{levy:.2f}" + " | GBP"
+            + f"{cost:,.2f}" + " | "
+            + (("GBP" + f"{settled:,.2f}") if settled is not None else "n/a") + " | "
+            + (("GBP" + f"{delta:,.2f}") if delta is not None else "n/a") + " | "
+            + share_str + " |"
+        )
+        prev_levy = levy
+    lines.append(
+        "| **Total (published years)** | | | **GBP" + f"{total_statutory:,.2f}"
+        + "** | **GBP" + f"{total_settled:,.2f}" + "** | **GBP"
+        + f"{total_statutory - total_settled:,.2f}" + "** | |"
+    )
+    lines.append("")
+    # The per-MWh charge, which is the comparison that does not depend on the volume basis.
+    published = cm.get("published_years") or []
+    if published and total_statutory > 0:
+        latest = max(published)
+        latest_mwh = per_year[latest].get("elec_mwh", 0.0)
+        lines.append(
+            f"Pass-through rate for {latest}: **GBP{cm_charge_per_mwh(int(latest), latest_mwh):.2f}"
+            "/MWh** -- which IS the published levy. A per-MWh charge derived from a per-MWh "
+            "publication cannot drift from it."
+        )
+        lines.append("")
+    if gap_years:
+        reason = per_year[gap_years[0]].get("unpublished_reason") or ""
+        lines.append(
+            "> **NO FIGURE FOR " + ", ".join(gap_years) + ".** " + reason + " The settlement "
+            "column still shows a number for that year because the world's reading carries its "
+            "last known rate forward. That divergence is the point: an unpublished cost is "
+            "reported here as absent, not as last year's."
+        )
+        lines.append("")
+    if unexplained:
+        lines.append(
+            "> **THE DELTA IN " + ", ".join(unexplained) + " IS NOT EXPLAINED BY YEAR KEYING.** "
+            "Backing the difference out over the levy step implies a Jan-Mar volume share "
+            "outside 15-45%, which no winter quarter reaches. Something other than the Apr-Mar "
+            "bucketing differs between the statutory return and the settlement -- a segment "
+            "filter, a fuel leaking into the electricity accumulator, or a different volume "
+            "basis. This is a finding, not a rounding."
+        )
+    else:
+        lines.append(
+            "> Every delta above is accounted for by obligation-year keying alone: the implied "
+            "Jan-Mar volume share sits in the winter-quarter band in every year with a levy "
+            "step. The statutory return and the settlement disagree about WHICH YEAR a January "
+            "MWh belongs to, and about nothing else."
+        )
+    return "\n".join(lines)
+
+
 def _section_roc_obligations(data: dict) -> str:
     """The RO Cost Observatory, with a self-check against the published law.
 
@@ -10790,6 +10921,7 @@ def generate_annual_report(data: dict) -> str:
     sections.append(_section_roc_obligations(data))                 # Phase OG
     sections.append(_section_fit_levy(data))                        # Phase OH
     sections.append(_section_ccl_levy(data))                        # Phase OI
+    sections.append(_section_cm_supplier_levy(data))                # a53
     sections.append(_section_whd_liability(data))                   # Phase OJ
     sections.append(_section_eco_obligation(data))                  # Phase OK
     sections.append(_section_carbon_emissions(data))               # Phase OL

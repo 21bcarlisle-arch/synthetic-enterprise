@@ -3072,13 +3072,21 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         report_years=_all_years,
     ).summary
 
-    # Phases OG/OH/OI: the supplier's annual statutory return -- Renewables
-    # Obligation, FiT levelisation levy, Climate Change Levy. KNIFE pass 3 step
-    # 17 moved all three behind one door (register §3l): working out what you
-    # owe off your own supply volumes is the supplier's statutory accounting,
-    # not world physics. The world hands over the settled records and its own
-    # I&C book; the obligation levels, buy-out prices and levy rates stay
-    # company-side.
+    # Phases OG/OH/OI + a53: the supplier's annual statutory return -- Renewables
+    # Obligation, FiT levelisation levy, Climate Change Levy, Capacity Market
+    # supplier levy. KNIFE pass 3 step 17 moved the first three behind one door
+    # (register §3l): working out what you owe off your own supply volumes is the
+    # supplier's statutory accounting, not world physics. The world hands over
+    # the settled records and its own I&C book; the obligation levels, buy-out
+    # prices and levy rates stay company-side.
+    #
+    # CM joined as the fourth leg on 2026-09-07. It is NOT a duplicate of the
+    # `cm_levy_gbp` this file already accumulates through `hedged_settlement`:
+    # that one is the pass-through as it lands in the settlement, bucketed by
+    # Apr-Mar obligation year off each record; this one is the supplier's own
+    # annual return on its calendar-year volumes, and it refuses years Ofgem has
+    # not published rather than carrying a rate forward. The report prints both
+    # and reconciles them -- the same shape RO, FiT and CCL already have.
     _statutory = build_statutory_obligations(
         settled_records=all_records,
         report_years=_all_years,
@@ -3092,6 +3100,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
     roc_summary = _statutory.roc_summary
     fit_summary = _statutory.fit_summary
     ccl_summary = _statutory.ccl_summary
+    cm_statutory_summary = _statutory.cm_summary
 
     # Phase 27d: Triad risk for I&C customers.
     # Identify Triad periods for each winter in the run window, then compute
@@ -3496,6 +3505,12 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         "fit_summary": fit_summary,
         # Phase OI: Climate Change Levy pass-through
         "ccl_summary": ccl_summary,
+        # a53: Capacity Market supplier levy -- the supplier's OWN statutory
+        # position, distinct from the settlement pass-through in
+        # `years[*].cm_levy_gbp`. Named `cm_statutory_summary` and not
+        # `cm_summary` on purpose: the shorter name would sit next to the
+        # settlement figure looking like the same quantity.
+        "cm_statutory_summary": cm_statutory_summary,
         "per_customer_behavioral": _build_behavioral_trajectories(
             ELEC_CUSTOMERS + GAS_CUSTOMERS,
             household_demand_register,

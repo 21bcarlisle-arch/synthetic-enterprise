@@ -468,11 +468,23 @@ class DuplicateWork(RuntimeError):
 #: land the very work the run exists to produce. Widened openly, with a control
 #: (`test_a_simulation_run_does_not_make_a_worktree_unpromotable`) that fires if the writer's own
 #: constant is renamed out from under this literal.
+#: THE FIFTH ENTRY IS THE SAME WRITER AS THE SECOND, AND THAT IS THE WHOLE POINT (2026-09-07,
+#: a53). `background/agent_status.py::update_agent_status` writes TWO files in one act:
+#: `docs/observability/agent_status.json`, exempted since the second entry above, and
+#: `site/data/agent_status.json`, its site mirror, which was not. One writer, one call, one
+#: timestamp, and the promotion route refused on one of the pair -- so the pre-commit gate's own
+#: epistemic-verifier heartbeat made the worktree unpromotable the instant a landing succeeded.
+#: The third instance of the failure the two paragraphs above already record, and the first where
+#: the exempt and the refused file are written by the SAME LINE OF CODE. Committing the mirror to
+#: get past it loses the race with the next gate run, which is what makes this a widening and not
+#: a workaround. Controlled by `test_the_site_mirror_of_the_agent_roster_is_exempt_with_its_twin`,
+#: which is keyed to the writer's own two constants rather than to these literals.
 SHARED_BY_DESIGN = (
     "docs/staging/",
     "docs/observability/",
     "docs/reports/",
     "docs/context-handshake-latest.md",
+    "site/data/agent_status.json",
 )
 
 #: Kept as the old private name because this module's own callers use it; DERIVED, not restated.

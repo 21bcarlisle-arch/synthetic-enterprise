@@ -284,6 +284,55 @@ def test_the_handshake_exemption_still_names_the_file_the_simulation_writes():
     )
 
 
+def test_the_site_mirror_of_the_agent_roster_is_exempt_with_its_twin():
+    """One writer, one call, two files -- and the promotion route exempted only one of them.
+
+    Found on 2026-09-07 (a53) by a landing that succeeded and then could not be promoted.
+    `background/agent_status.py::update_agent_status` stamps `STATUS_FILE` and `SITE_STATUS_FILE`
+    from the same timestamp in the same call; the pre-commit gate runs the epistemic verifier,
+    which calls it. So every successful landing left the site mirror dirty and the route refused
+    the very commit its own gate had just produced. Committing the mirror does not help: the next
+    gate run rewrites it, so the writer races its own exhaust and loses.
+
+    KEYED TO THE WRITER'S OWN CONSTANTS, NOT TO THE LITERALS. `background/` cannot import the
+    exemption's subject any more than it could for the handshake entry, so the check is that
+    BOTH paths the writer holds are exempt. A rename on either side disconnects loudly.
+
+    THE PAIR IS ASSERTED, NOT JUST THE NEW ONE. A control naming only the mirror would pass if
+    the twin were dropped, and it is the pairing -- same writer, same act -- that justifies the
+    widening at all.
+    """
+    from background.agent_status import SITE_STATUS_FILE, STATUS_FILE
+    from background.seat_work_in_hand import SHARED_BY_DESIGN
+
+    repo = Path(__file__).resolve().parents[2]
+    for label, path in (("roster", STATUS_FILE), ("site mirror", SITE_STATUS_FILE)):
+        rel = str(path.resolve().relative_to(repo))
+        assert any(rel.startswith(prefix) for prefix in SHARED_BY_DESIGN), (
+            f"`agent_status` writes the {label} to {rel!r} on every gate run, and the promotion "
+            f"route exempts {SHARED_BY_DESIGN!r}. Every landing is unpromotable again."
+        )
+    # ...and the two really are one writer's pair, so this is not two unrelated exemptions
+    # justified by one reason.
+    assert STATUS_FILE != SITE_STATUS_FILE
+    assert STATUS_FILE.name == SITE_STATUS_FILE.name
+
+
+def test_the_site_mirror_exemption_did_not_exempt_the_rest_of_the_site():
+    """The widening names ONE FILE, and `site/` is where authored work lives.
+
+    MUTATION: replace the entry with `"site/"` and this fires. The handshake entry needed the
+    same leg for `docs/`, and for the same reason -- a directory-shaped exemption over a tree
+    that holds real work turns the guard off for that tree.
+    """
+    from background.seat_work_in_hand import SHARED_BY_DESIGN
+
+    assert "site/" not in SHARED_BY_DESIGN and "site/data/" not in SHARED_BY_DESIGN
+    assert not any(
+        "site/index.html".startswith(prefix) for prefix in SHARED_BY_DESIGN
+    ), "authored site work stopped being refused -- the exemption is reading as a directory"
+
+
 # ── A PUSH PROMOTES A RANGE, NOT A TIP (2026-08-31) ──────────────────────────────────────────────
 # Found by the first live run of the seat executor. Four minutes after it started its first
 # unattended turn, `background/fork_salvage.py` -- a daemon that sweeps worktrees for uncommitted

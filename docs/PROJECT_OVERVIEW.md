@@ -5824,6 +5824,19 @@ Direct response to Dashboardvision.md Phase A (Level 2 insight layer).
 
 **10 new tests (2,099 total).**
 
+> **SUPERSEDED, 2026-09-07 (a51/a52/a53). Everything described above is gone, and the entry is
+> kept because the correction is the interesting part.** `_CM_OBLIGATION_RATE_BY_YEAR` was a
+> fourth home for the CM *clearing price*, which is not the quantity a supplier owes; the module
+> now reads the published Ofgem Annex 9 *supplier levy* from the regulation commons, and refuses
+> a year the record does not cover rather than defaulting to its last known rate. The `0.92`
+> "de-rating" was invented and named for a concept that does not apply to demand at all.
+> `firm_capacity_kw`, the delivery status and the penalty modelled a capacity PROVIDER's
+> obligation, which a supplier does not hold; they were deleted, not moved. The claim about the
+> 2021→2022 swing is backwards: the T-1 cleared at the £75/kW cap and the levy FELL.
+> The charge now reaches production as the fourth leg of
+> `company/regulatory/statutory_obligations.build_statutory_obligations`, alongside RO, FiT and
+> CCL, and is published as "Capacity Market (CM) Supplier Levy -- Statutory Position".
+
 ---
 ### Phase 120 -- Wholesale risk limits + position governor (2026-06-26)
 **Files:** `company/trading/risk_limits.py` (new), `tests/company/trading/test_risk_limits.py` (new)

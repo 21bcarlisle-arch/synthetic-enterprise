@@ -270,7 +270,6 @@ company.finance.working_capital | unhooked | consumers:company.finance | Working
 company.market.agreed_capacity_register | unhooked | consumers:company.market | Agreed Capacity Register (Phase GS).; 2 test(s); no importer
 company.market.bsc_settlement_run_register | unhooked | consumers:company.market | BSC Settlement Run Tracking Register (Phase DH).; 1 test(s); no importer
 company.market.bsuos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
-company.market.capacity_market | unhooked | consumers:company.market | Capacity Market participation: CM unit registration, auction, and obligations.; 2 test(s); no importer
 company.market.capacity_market_register | unhooked | consumers:company.market | Capacity Market Revenue Register (Phase EX).; 1 test(s); no importer
 company.market.cfd_levy | unhooked | consumers:company.market | CfD (Contracts for Difference) levy tracker.; 1 test(s); no importer
 company.market.curve_monitor | unhooked | consumers:company.market | Wholesale forward curve anomaly detection.; 2 test(s); no importer
@@ -312,7 +311,6 @@ company.market.mpas_registry | unhooked | consumers:company.market | MPAS supply
 company.market.mprn_register | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.network_charge_ledger | unhooked | consumers:company.market | Network charge pass-through ledger: TNUoS, DUoS, BSUoS tracking.; 2 test(s); no importer
 company.market.network_charges | unhooked | consumers:company.market | Network Use of System (UoS) charges.; 1 test(s); no importer
-company.market.portfolio_position | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.ppa_book | unhooked | consumers:company.market | Power Purchase Agreement (PPA) book: long-term renewable offtake contracts.; 1 test(s); no importer
 company.market.price_monitor | unhooked | consumers:company.market | Wholesale energy price monitor: alerts on spot/forward prices vs trigger levels.; 2 test(s); no importer
 company.market.prosumer_balance_register | unhooked | consumers:company.market | Prosumer Balance Register (Phase EH).; 1 test(s); no importer
@@ -335,7 +333,6 @@ company.pricing.tariff_smoothing | unhooked | consumers:company.pricing | no doc
 company.pricing.tou_product_launch | unhooked | consumers:company.pricing | ToU Product Launch Decision Engine -- Phase X.; 1 test(s); no importer
 company.pricing.tou_rate_card | unhooked | consumers:company.pricing | EV ToU Rate Card Optimiser -- Phase Y.; 1 test(s); no importer
 company.regulatory.annual_obligations | unhooked | consumers:company.regulatory | Annual regulatory obligations report packaging ECO4, WHD, GSOP and Ofgem returns.; 3 test(s); no importer
-company.regulatory.capacity_market | unhooked | consumers:company.regulatory | Capacity Market (CM) obligation management.; 1 test(s); no importer
 company.regulatory.cca_verification_register | unhooked | consumers:company.regulatory | Climate Change Agreement (CCA) Verification Register (Phase GT).; 1 test(s); no importer
 company.regulatory.cfd_levy_register | unhooked | consumers:company.regulatory | Contract for Difference (CfD) Levy Register (Phase FJ).; 1 test(s); no importer
 company.regulatory.consumer_vulnerability_register | unhooked | consumers:company.regulatory | Consumer Vulnerability Duty Action Register (Phase DG).; 1 test(s); no importer

@@ -237,3 +237,182 @@ def test_a_malformed_commons_raises_rather_than_degrading_to_no_levy(tmp_path, m
     # ...and the real artefact still loads, so this is not a guard that refuses everything.
     monkeypatch.undo()
     assert mod._load_levy()
+
+
+# ---------------------------------------------------------------------------
+# a53: the charge now REACHES SOMETHING. Until 2026-09-07 this file was the only
+# importer of the module above -- correctly sourced, carefully tested, and wired
+# to nothing, which is the `saas/opex_ledger.py` shape where a right number sits
+# looking established while production spends a different one. The controls below
+# are keyed to the module having a PRODUCTION consumer, not to today's figures.
+# ---------------------------------------------------------------------------
+
+
+def _levy_from_the_commons(year: int) -> float:
+    """The published levy, read from the artefact WITHOUT going through the module.
+
+    Deliberately not `cm_levy_gbp_per_mwh(year)`. A control that gets its expected value from
+    the subject reads `x == x` for every value of x, so the wiring check below would survive
+    the levy being replaced by anything at all as long as both sides changed together.
+    """
+    import json
+    from pathlib import Path
+
+    artefact = (
+        Path(__file__).resolve().parents[3]
+        / "docs" / "domain_artefact_library" / "regulatory"
+        / "capacity_market_supplier_levy.json"
+    )
+    rows = json.loads(artefact.read_text())["levy_gbp_per_mwh"]
+    return float(next(r["gbp_per_mwh"] for r in rows if r["obligation_year"] == year))
+
+
+def _records_for(years, kwh_per_month):
+    return [
+        {
+            "customer_id": "E-1",
+            "settlement_date": f"{y}-{m:02d}-01",
+            "consumption_kwh": kwh_per_month,
+            "commodity": "elec",
+        }
+        for y in years
+        for m in range(1, 13)
+    ]
+
+
+def test_the_supplier_cm_charge_reaches_the_statutory_return():
+    """The defect a53 names: the module computes a correct charge that no caller reads.
+
+    Behavioural, through the real production entry point -- `build_statutory_obligations` is
+    what `simulation/run_phase2b.py` calls. Deleting the CM leg, or pointing it at a different
+    series, changes the number this asserts. The expected value is built from the commons
+    artefact and plain arithmetic, so it cannot agree with the module by construction.
+    """
+    from company.regulatory.statutory_obligations import build_statutory_obligations
+
+    published_years = ["2019", "2024"]
+    kwh = 1_000_000.0  # 1 GWh/month -> 12,000 MWh/yr, well clear of any rounding
+    result = build_statutory_obligations(
+        settled_records=_records_for(published_years, kwh),
+        report_years=published_years,
+        ic_elec_customer_ids=set(),
+        ic_gas_customer_ids=set(),
+    )
+
+    per_year = result.cm_summary["per_year"]
+    for yr in published_years:
+        expected = 12 * kwh / 1000.0 * _levy_from_the_commons(int(yr))
+        assert per_year[yr]["cm_levy_gbp"] == pytest.approx(expected), (
+            f"the statutory return's {yr} CM cost is not the published levy times the volume "
+            "supplied -- either the leg is gone or it is reading a different series"
+        )
+    # The two years carry DIFFERENT levies, so this cannot pass with one rate stamped on both.
+    assert per_year["2019"]["levy_gbp_per_mwh"] != per_year["2024"]["levy_gbp_per_mwh"]
+    assert result.cm_summary["total_cm_levy_gbp"] == pytest.approx(
+        sum(per_year[y]["cm_levy_gbp"] for y in published_years)
+    )
+
+
+def test_an_unpublished_year_is_a_gap_in_the_return_and_not_a_zero_or_a_carry_forward():
+    """The defect: the return filling a year Ofgem has not published.
+
+    Both fail-open shapes are refused, because they arrive by different routes and read as
+    different lies: a ZERO says the levy cost nothing, and a CARRY-FORWARD says last year's
+    rate is this year's law. The world's own reading (`simulation/policy_costs`) does carry
+    forward, on purpose -- so this is a real difference between the two readings and not a
+    detail.
+
+    THE PARTITION IS ASSERTED FIRST. A `_cm_summary` that refused EVERY year would satisfy
+    every leg below, so the fixture is checked to produce both kinds of year before either
+    kind is examined.
+    """
+    from company.regulatory.statutory_obligations import build_statutory_obligations
+
+    years = ["2024", "2099"]  # one in the published record, one that never will be
+    result = build_statutory_obligations(
+        settled_records=_records_for(years, 1_000_000.0),
+        report_years=years,
+        ic_elec_customer_ids=set(),
+        ic_gas_customer_ids=set(),
+    )
+    cm = result.cm_summary
+
+    assert cm["published_years"] == ["2024"] and cm["unpublished_years"] == ["2099"], (
+        "both branches must be reachable in this fixture, or the legs below prove nothing"
+    )
+
+    gap = cm["per_year"]["2099"]
+    assert gap["cm_levy_gbp"] is None, "an unpublished year must be absent, never a number"
+    assert gap["levy_gbp_per_mwh"] is None
+    assert gap["cm_levy_gbp"] != 0, "a zero would read as 'this cost nothing'"
+    assert gap["levy_gbp_per_mwh"] != cm["per_year"]["2024"]["levy_gbp_per_mwh"], (
+        "a carried-forward rate would read as established law"
+    )
+    assert "2099" in (gap["unpublished_reason"] or ""), "a refusal must name its reason"
+    # ...and the volume is still reported, so the year is a GAP in the charge and not a hole
+    # in the book. A missing year and a year with no published levy are different facts.
+    assert gap["elec_mwh"] > 0
+
+    # The total is the PUBLISHED years only, and says so by matching that year alone.
+    assert cm["total_cm_levy_gbp"] == pytest.approx(cm["per_year"]["2024"]["cm_levy_gbp"])
+
+
+def test_the_run_and_the_report_both_carry_the_statutory_cm_key():
+    """The defect: the leg computed, then silently dropped between the run and the page.
+
+    `extract_report_data` is a WHITELIST -- its own comments record a past incident where it
+    dropped a computed block and every board surface reading the feed went blind. So the run's
+    output key and the whitelist are checked as a pair.
+
+    AST, not a grep. A source-text search counts a comment that quotes the key; this reads the
+    dict keys the parser actually sees.
+    """
+    import ast
+    import os
+
+    root = os.path.join(os.path.dirname(__file__), "..", "..", "..")
+
+    def _string_dict_keys(tree) -> set:
+        return {
+            k.value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Dict)
+            for k in node.keys
+            if isinstance(k, ast.Constant) and isinstance(k.value, str)
+        }
+
+    run_tree = ast.parse(
+        open(os.path.join(root, "simulation", "run_phase2b.py"), encoding="utf-8").read()
+    )
+    run_keys = _string_dict_keys(run_tree)
+    assert "cm_statutory_summary" in run_keys, (
+        "run_phase2b no longer emits the supplier's statutory CM position"
+    )
+    # Vacuity guard: a parse that produced no keys would pass the line above for free.
+    assert "ccl_summary" in run_keys and len(run_keys) > 50
+
+    report_tree = ast.parse(
+        open(os.path.join(root, "saas", "reporting", "annual_report.py"), encoding="utf-8").read()
+    )
+    extract = next(
+        n for n in ast.walk(report_tree)
+        if isinstance(n, ast.FunctionDef) and n.name == "extract_report_data"
+    )
+    # The key must be present AND fed from the run output's own key of the same name. A key
+    # mapped to the wrong source publishes a real number for the wrong quantity, which no
+    # presence check would notice.
+    mapping = {
+        k.value: ast.unparse(v)
+        for node in ast.walk(extract)
+        if isinstance(node, ast.Dict)
+        for k, v in zip(node.keys, node.values)
+        if isinstance(k, ast.Constant) and isinstance(k.value, str)
+    }
+    assert "ccl_summary" in mapping, "the whitelist could not be read -- vacuity guard"
+    assert "cm_statutory_summary" in mapping, (
+        "the report's extract whitelist drops the statutory CM position"
+    )
+    assert "cm_statutory_summary" in mapping["cm_statutory_summary"], (
+        "the statutory CM key is fed from something other than the run's own "
+        f"cm_statutory_summary: {mapping['cm_statutory_summary']}"
+    )
