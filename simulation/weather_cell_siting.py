@@ -67,15 +67,42 @@ book's LOCATIONS rather than from its HOUSEHOLDS. Asked of the households, the a
   `simulation/household_siting.coordinate_for_customer` draws a 1 km cell from the region's own
   census household distribution.
 
-**And 0 of those 210 resolve here.** The coordinate is no longer the binding constraint; THIS
-MODULE'S ARTEFACT IS. `locations` is a precomputed TABLE, not a grid lookup: `derive()` sites only
-the locations handed to it, which by default is the seven in `KNOWN_LOCATIONS` +
-`REACHABILITY_WITNESS`, keyed to four decimals (~11 m). A drawn household's coordinate was never in
-that table and cannot collide with it, so `cells_for_location` returns None for every sited
-household and the substitution branch is STILL unreachable -- for a different reason than before,
-and one that lives here rather than in the draw. See the 2026-09-07 seat finding; the honest remedy
-is to cut the artefact over the population that will be looked up in it, which is a decision about
-artefact size, not a wiring fix, and must not be made by fabricating a nearest-anything here.
+**And 0 of those 210 resolved here** until the re-cut below. The coordinate stopped being the
+binding constraint when W2_18 landed and THIS MODULE'S ARTEFACT became it: `locations` was a
+precomputed TABLE of the seven locations `derive()` is handed, keyed to four decimals (~11 m), and
+a drawn household's coordinate was never in it and could not collide with it.
+
+WHAT THE ARTEFACT IS CUT OVER, AND WHY IT IS THE GRID AND NOT THE DRAWN POPULATION
+----------------------------------------------------------------------------------
+Re-cut 2026-09-07. `cells_for_location` now asks two tables: the JSON's named `locations` first
+(archive sites, supply book, witness -- they keep their names and their measured
+`km_to_cell_centre`), then `occupied_land_cells.csv`, which holds **all 175,188 occupied 1 km land
+cells** with their per-driver cell. **210/210 drawn households now resolve, and 2 of them match an
+archive site** (both London's cells). The site_cells.json this replaced was byte-identical
+afterwards: the re-cut is purely additive and moved no coverage figure and no named location.
+
+The join is an EQUALITY and nothing is fabricated to make it. `tools/household_siting_frame.py`
+builds each frame row's coordinate from `round(d["latitude"][i], 4)` and the normals' own longitude
+auxiliary coordinate -- the identical two expressions `_occupied_space()` uses -- so a drawn
+coordinate IS a land cell's own coordinate at the same precision. Measured: **139,938 distinct
+frame coordinates, 139,938 join, 0 miss**, and the 175,188 grid keys are 175,188 distinct keys, so
+4 dp cannot merge two cells.
+
+The direction was to cut over the drawn population; the artefact is cut over the **whole grid**
+instead, which is 25% larger (4.3 MB against 3.4 MB, beside the 5.0 MB frame that is already
+committed) and buys the property rather than today's answer. The frame is a SUBSET that moves --
+it covers England and Wales and has no Scottish region today -- so an artefact cut to it would go
+silently stale the moment the frame gained one, and "which population" would be a question every
+future reader had to re-ask. Cut to the grid there is no such question: the row count IS
+`occupied_land_cells` in the JSON, which is what
+`test_the_two_artefacts_were_cut_by_the_same_partition` checks.
+
+FAIL-CLOSED SURVIVES THE RE-CUT. A coordinate that is not a land cell -- offshore, outside GB, or
+22 m off a cell centre -- is still refused with its reason. There is no nearest-cell fallback and
+adding one is what `fabric_physics.latitude_for_weather_site` refuses one layer down. What the
+re-cut changed is which refusal a drawn household receives: not "absent from the artefact" any
+more, but the honest third one, "shares no archive site's cells on all three drivers" -- 208 of the
+210. **The re-cut is a LOOKUP fix and not an archive-breadth fix**, and the 2.0% is untouched.
 
 The accept branch is not decorative and is not a proximity test. Twenty-eight 1 km cells share all
 three of London's cells (re-measured 2026-09-07 on the UPRN placement; seventeen on the superseded
@@ -97,6 +124,7 @@ nearest-anything. Siting a premise the derivation has never seen would be exactl
 `fabric_physics.latitude_for_weather_site` refuses one layer down.
 """
 
+import csv
 import json
 from pathlib import Path
 from typing import Mapping
@@ -105,6 +133,12 @@ PROJECT = Path(__file__).resolve().parent.parent
 
 #: The committed answer. Regenerate with `python3 -m simulation.weather_cell_siting --derive`.
 ARTEFACT = PROJECT / "sim" / "weather_cells" / "site_cells.json"
+
+#: The BULK table: every occupied 1 km land cell of the derivation, with its per-driver cell.
+#: Written by the SAME `--derive` run as `ARTEFACT`, from the same partition, so the two cannot be
+#: regenerated apart. See "WHAT THE ARTEFACT IS CUT OVER" above for why this is the whole grid and
+#: not the frame's 139,938 cells.
+LAND_CELLS = PROJECT / "sim" / "weather_cells" / "occupied_land_cells.csv"
 
 #: W1_27's build decision, per driver and held separately -- NOT the 987 the joint curve wanted.
 #: `docs/market_research/the_cell_decision_and_what_the_world_actually_uses.md`.
@@ -157,6 +191,8 @@ _EARTH_RADIUS_KM = 6371.0
 MAX_SITING_KM = 2.0
 
 _cache: dict | None = None
+_land_cache: tuple[tuple[str, ...], dict[str, tuple[int, ...]]] | None = None
+_land_cache_path: Path | None = None
 
 
 def _key(lat: float, lon: float) -> str:
@@ -177,24 +213,84 @@ def load(path: Path | str = ARTEFACT) -> dict:
     return _cache
 
 
-def cells_for_location(location: Mapping, path: Path | str = ARTEFACT) -> dict | None:
+def load_land_cells(path: Path | str = LAND_CELLS) -> tuple[tuple[str, ...],
+                                                            dict[str, tuple[int, ...]]]:
+    """`(drivers, {key: cell labels})` over every occupied 1 km land cell, read once per process.
+
+    The drivers come from the CSV's OWN header rather than from `DRIVERS` or from the JSON, so a
+    column reordered in the artefact cannot be silently read as another driver's label. The header
+    is checked against the JSON by `test_the_two_artefacts_were_cut_by_the_same_partition`.
+
+    Held as `key -> tuple` rather than `key -> {driver: label}` because the second costs 50 MB
+    against this one's 30 MB for 175,188 rows (measured), and the dict is rebuilt per lookup, which
+    happens once per premise and not once per settlement period.
+
+    FAIL-CLOSED (R15): a missing table RAISES rather than returning empty. Returning `{}` would
+    turn every drawn household's lookup into "this coordinate is not in the artefact" — a refusal
+    that reads as a fidelity finding when it is really an absent file, which is the exact shape
+    `household_siting.load_frame` refuses for the same reason.
+    """
+    global _land_cache, _land_cache_path
+    target = Path(path)
+    if _land_cache is not None and _land_cache_path == target:
+        return _land_cache
+    if not target.is_file():
+        raise FileNotFoundError(
+            f"{target} -- the occupied land cell table is absent, so no coordinate outside the "
+            f"{len(load()['locations'])} named locations can be sited. It is committed; regenerate "
+            "with `python3 -m simulation.weather_cell_siting --derive` (needs the HadUK normals "
+            "and the census pulls in ~/.cache/synthetic-enterprise).")
+    with target.open() as fh:
+        reader = csv.reader(fh)
+        header = next(reader)
+        drivers = tuple(header[2:])
+        cells = {f"{row[0]},{row[1]}": tuple(int(c) for c in row[2:]) for row in reader}
+    if not cells:
+        raise ValueError(f"{target} holds no land cell -- an empty table would refuse every drawn "
+                         "household and report no error")
+    _land_cache, _land_cache_path = (drivers, cells), target
+    return _land_cache
+
+
+def cells_for_location(location: Mapping, path: Path | str = ARTEFACT,
+                       land_path: Path | str = LAND_CELLS) -> dict | None:
     """The per-driver cell labels for `location`, or None if the derivation has never sited it.
 
-    None is a RESULT: it says this coordinate was not in the population the cells were cut over,
-    not that it has no weather."""
+    TWO tables, asked in this order and for different reasons. The JSON's `locations` holds the
+    named places — the archive sites, the supply book's own coordinates, the reachability witness —
+    and it answers first so that a named premise keeps its name and its measured
+    `km_to_cell_centre`. The land cell table answers everything else: it is the derivation's whole
+    occupied grid, so any coordinate that IS a 1 km land cell resolves, which is every coordinate
+    `household_siting.coordinate_for_customer` can draw.
+
+    None is a RESULT: it says this coordinate is not an occupied land cell of the derivation —
+    offshore, outside GB, or off-grid by more than the key's ~11 m — not that it has no weather.
+    """
     lat, lon = location.get("lat"), location.get("lon")
     if lat is None or lon is None:
         return None
-    return load(path)["locations"].get(_key(lat, lon))
+    key = _key(lat, lon)
+    named = load(path)["locations"].get(key)
+    if named is not None:
+        return named
+    drivers, cells = load_land_cells(land_path)
+    labels = cells.get(key)
+    if labels is None:
+        return None
+    # `km_to_cell_centre` is 0.0 and that is a measurement, not a placeholder: the key matched a
+    # land cell's OWN coordinate exactly, so the premise is at the cell centre by construction.
+    return {"lat": lat, "lon": lon, "km_to_cell_centre": 0.0,
+            "cells": dict(zip(drivers, labels))}
 
 
-def cell_matched_site(location: Mapping, path: Path | str = ARTEFACT) -> str | None:
+def cell_matched_site(location: Mapping, path: Path | str = ARTEFACT,
+                      land_path: Path | str = LAND_CELLS) -> str | None:
     """The archive site whose weather this premise may settle on, or None.
 
     Accepts ONLY when the derivation puts the premise and the site in the same cell on all three
     drivers. One driver disagreeing is a refusal, because the CSV carries all three and a
     substitution cannot take the temperature without also taking the wind and the cloud."""
-    sited = cells_for_location(location, path)
+    sited = cells_for_location(location, path, land_path)
     if sited is None:
         return None
     data = load(path)
@@ -205,7 +301,8 @@ def cell_matched_site(location: Mapping, path: Path | str = ARTEFACT) -> str | N
     return None
 
 
-def siting_refusal(location: Mapping, path: Path | str = ARTEFACT) -> str:
+def siting_refusal(location: Mapping, path: Path | str = ARTEFACT,
+                   land_path: Path | str = LAND_CELLS) -> str:
     """Why this premise cannot take an archive site's weather — named, per R15.
 
     A refusal that says which driver disagreed is how the next pull gets prioritised; a bare None
@@ -231,18 +328,18 @@ def siting_refusal(location: Mapping, path: Path | str = ARTEFACT) -> str:
                 f"`--derive` cannot reach it. The remedy is a coordinate at the DRAW (W2_18, and "
                 f"W1_24 which waits on a population); fabricating one here is what "
                 f"`fabric_physics.latitude_for_weather_site` refuses one layer down")
-    sited = cells_for_location(location, path)
+    sited = cells_for_location(location, path, land_path)
     if sited is None:
+        drivers, cells = load_land_cells(land_path)
         return (f"{location.get('region', location)!r} carries a real coordinate that is not in the "
-                f"derived artefact. `locations` is a precomputed TABLE over the locations `derive()` "
-                f"was handed — {len(load(path)['locations'])} of them, keyed to ~11 m — and NOT a "
-                f"grid "
-                f"lookup, so an arbitrary coordinate cannot match it. Bare `--derive` re-sites those "
-                f"same locations and will not reach this one: the artefact must be cut over the "
-                f"population that gets looked up in it (`derive(locations=...)`). Since W2_18 this "
-                f"is where every drawn household lands. Do NOT fall back to the nearest sited "
-                f"location — that is proximity standing in for climate, which this seam exists to "
-                f"refuse")
+                f"derived artefact — it is not one of the {len(cells):,} occupied 1 km land cells "
+                f"the derivation covers, to the ~11 m the key resolves. That means offshore, "
+                f"outside GB, or a coordinate that is not a HadUK-Grid land cell centre; it does "
+                f"NOT mean the artefact is cut too narrow, which is what this refusal said until "
+                f"2026-09-07, when the table held seven locations and every drawn household landed "
+                f"here. Do NOT fall back to the nearest sited location — that is proximity "
+                f"standing in for climate, which this seam exists to refuse, and it is what "
+                f"`fabric_physics.latitude_for_weather_site` refuses one layer down")
     data = load(path)
     disagreements = []
     for site_location, site in ARCHIVE_SITES.items():
@@ -314,9 +411,16 @@ def _nearest_land_cell(lat, lon, cell_lat, cell_lon):
     return i, float(km[i])
 
 
-def derive(cells_per_driver: int = CELLS_PER_DRIVER,
-           locations: Mapping[str, tuple[float, float]] | None = None) -> dict:
-    """Site every known location in the derived cells, and price what the archive covers.
+def _derived(cells_per_driver: int = CELLS_PER_DRIVER,
+             locations: Mapping[str, tuple[float, float]] | None = None) -> tuple[dict, list]:
+    """`(site_cells.json's payload, occupied_land_cells.csv's rows)` from ONE expensive pass.
+
+    Both artefacts come out of a single partition here rather than from two entry points, because
+    two entry points is the whole drift class: the JSON's `archive_sites` and the CSV's rows are
+    the same k-means labels, and a world where one can be regenerated without the other is a world
+    where a premise and the archive site it matches were cut by different partitions.
+    `test_the_two_artefacts_were_cut_by_the_same_partition` is the control; this is the reason it
+    can pass.
 
     The partition is `weather_cell_derivation.per_driver_curve`'s exactly — one weighted k-means per
     standardised driver, `n_init=1`, `random_state=0` — so a cell label here means the same thing as
@@ -336,6 +440,12 @@ def derive(cells_per_driver: int = CELLS_PER_DRIVER,
         .fit(z[:, [i]], sample_weight=weights).labels_
         for i, driver in enumerate(DRIVERS)
     }
+
+    land_rows = sorted(
+        (round(float(cell_lat[i]), 4), round(float(cell_lon[i]), 4),
+         *(int(labels[d][i]) for d in DRIVERS))
+        for i in range(len(weights))
+    )
 
     sited: dict[str, dict] = {}
     for name, (lat, lon) in locations.items():
@@ -369,7 +479,33 @@ def derive(cells_per_driver: int = CELLS_PER_DRIVER,
         "archive_sites": {loc: sited[loc] for loc in ARCHIVE_SITES if loc in sited},
         "locations": {_key(v["lat"], v["lon"]): {"name": k, **v} for k, v in sited.items()},
         "coverage": coverage,
-    }
+    }, land_rows
+
+
+def derive(cells_per_driver: int = CELLS_PER_DRIVER,
+           locations: Mapping[str, tuple[float, float]] | None = None) -> dict:
+    """Site every known location in the derived cells, and price what the archive covers."""
+    return _derived(cells_per_driver, locations)[0]
+
+
+def derive_land_cells(cells_per_driver: int = CELLS_PER_DRIVER) -> list[tuple]:
+    """`(lat, lon, *cell labels)` for every occupied 1 km land cell, sorted.
+
+    Sorted so the committed CSV is a stable diff: a re-derivation that moves one cell shows as one
+    changed line rather than as 175,188 reordered ones, which is the difference between a review
+    that can see a change and one that cannot.
+    """
+    return _derived(cells_per_driver)[1]
+
+
+def _write_land_cells(rows: list[tuple], drivers: list[str], path: Path = LAND_CELLS) -> None:
+    """Write the bulk table. Four decimals on the coordinate — the same ~11 m `_key` resolves and
+    the same precision `tools/household_siting_frame` writes, so the two join by equality."""
+    with Path(path).open("w", newline="") as fh:
+        out = csv.writer(fh)
+        out.writerow(["lat", "lon", *drivers])
+        for lat, lon, *cells in rows:
+            out.writerow([f"{lat:.4f}", f"{lon:.4f}", *cells])
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -381,10 +517,14 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     if args.derive:
-        data = derive()
+        # ONE pass, BOTH artefacts. Writing them from separate commands is what would let the
+        # named locations and the land cell table be cut by different partitions.
+        data, land_rows = _derived()
         ARTEFACT.parent.mkdir(parents=True, exist_ok=True)
         ARTEFACT.write_text(json.dumps(data, indent=2) + "\n")
+        _write_land_cells(land_rows, data["drivers"])
         print(f"wrote {ARTEFACT}")
+        print(f"wrote {LAND_CELLS} ({len(land_rows):,} occupied land cells)")
     else:
         data = load()
 
