@@ -1,9 +1,39 @@
 {
- "generated_at": "2026-09-07T05:15:13.179411+00:00",
+ "generated_at": "2026-09-07T06:07:29.550918+00:00",
  "seat": "delivery",
  "what_it_did": {
   "available": true,
   "commits": [
+   {
+    "sha": "6fb5f64f3",
+    "at": "2026-09-07T06:57:57+01:00",
+    "subject": "the sharing side of R3 gets a ceiling: 7.4x the carbon, and a third of the book could be sold it",
+    "substantive": true
+   },
+   {
+    "sha": "9d1c1ba40",
+    "at": "2026-09-07T06:27:13+01:00",
+    "subject": "merge origin/main: automatic reconciliation in an isolated worktree",
+    "substantive": false
+   },
+   {
+    "sha": "c2af43816",
+    "at": "2026-09-07T06:22:49+01:00",
+    "subject": "A49's R3 and R4 ceilings reach a reader, and the two instruments stop being orphans",
+    "substantive": true
+   },
+   {
+    "sha": "b2261a318",
+    "at": "2026-09-07T06:22:28+01:00",
+    "subject": "merge origin/main: the A49 row repointing and the two ceiling instruments, disjoint from the gas-leg discharge",
+    "substantive": false
+   },
+   {
+    "sha": "ccb948232",
+    "at": "2026-09-07T06:20:16+01:00",
+    "subject": "the arm's gas legs found their book: 179 blind renewals became 122 prices and 57 declines, and the method still cannot be told from chance",
+    "substantive": false
+   },
    {
     "sha": "bfd450a32",
     "at": "2026-09-07T05:59:40+01:00",
@@ -213,46 +243,16 @@
     "at": "2026-09-06T22:57:42+01:00",
     "subject": "merge origin/main -- W1_14's weather-cell siting lane, disjoint from R1's account-state coverage",
     "substantive": false
-   },
-   {
-    "sha": "0d1091514",
-    "at": "2026-09-06T22:54:52+01:00",
-    "subject": "the coverage bought R1 a positive magnitude and took away the ceiling's clearance -- one identical run, one ablated variable",
-    "substantive": false
-   },
-   {
-    "sha": "89caf6f59",
-    "at": "2026-09-06T22:52:17+01:00",
-    "subject": "W1_14's row denied a file that was in its own commit's tree",
-    "substantive": true
-   },
-   {
-    "sha": "9b373b96c",
-    "at": "2026-09-06T22:49:44+01:00",
-    "subject": "the account-state record now carries the gas cap and the portfolio position for every term, so two of R1's three named coverage gaps are the book's fact rather than a writer's firing pattern",
-    "substantive": true
-   },
-   {
-    "sha": "53a5dc93a",
-    "at": "2026-09-06T22:26:16+01:00",
-    "subject": "chore(liveness): daemon-written agent_status picked up in this worktree",
-    "substantive": false
-   },
-   {
-    "sha": "64e427717",
-    "at": "2026-09-06T22:25:15+01:00",
-    "subject": "W1_14 was waiting on the I&C archive gap and its subject is households",
-    "substantive": true
    }
   ],
-  "substantive": 24,
-  "mechanical": 16,
+  "substantive": 23,
+  "mechanical": 17,
   "what_the_split_means": "A mechanical commit republishes an unchanged net -- the report, the dashboard, the state files. Counting those as work would make a quiet day look busy, so they are separated rather than filtered: they happened, they are just not progress."
  },
  "what_it_decided": {
   "available": true,
   "oriented_at": "2026-09-05T14:23:03.881665+00:00",
-  "age_hours": 38.9,
+  "age_hours": 39.7,
   "expires_after_hours": 12.0,
   "live": false,
   "thesis_read": "For the first time in ten stretches the direction reached work, and the reason it did not register as such is worth more than the fact. `previous_focus_drawn.drawn` is empty for the tenth consecutive orientation \u2014 and yet focus item 1, the HadUK-Grid pull, was BUILT and LANDED at 12:09Z as 8016f7176, and focus item 3's subject, the tree standing behind origin, is repaired: `git rev-list --left-right --count HEAD...origin/main` reads 0 and 0 at 14:24Z against 0 and 10 at the last orientation. So my predecessor's open sub-question \u2014 how a focus item gets built without being drawn \u2014 now has a demonstrated answer rather than a candidate: the staging queue delivered it. `staging_rooms.work_queue()` ranks the weather ruling 2nd of 76 and an interactive seat worked it from there, while `delivery_lane`'s ledger, which is the only thing `drawn` reads, never saw it. The steer is not a no-op in effect; it is a no-op in the record, and those are different failures with different fixes. What is NOT fixed is the precedence: `next_item()` at 14:24Z still returns `fork-alarm-transition-state-keyed-on-behind-which-moves-every-cadence-2026-09-05`, one of five live continuations, so the `focus` loop beneath it is still unreachable \u2014 and I can now say something sharper than \"the store never empties\". One of those five, `register-low-water-three-implementations-one-mechanism`, describes work that LANDED this stretch in fc950dda6, cbfb12f1b and 029c21452. `live()` retires an entry that expires or is refuted and has no channel for one that was DONE, so a finished continuation preempts the seat's order forever. Against the thesis proper the stretch was the usual shape and I will not dress it up: `tools/product_machinery_split.py` at 14:23Z reads 3.33% over 50, 4.84% over 100, 2.33% over 200, 3.30% over 400 \u2014 below the declared floor at every horizon, as it has been every time it has been run. Nineteen of 44 commits were substantive and the great majority were register rungs, alarm keys, banner rows and publish causes. The one genuine product movement is the weather pull, and it is unfinished in a way nothing is watching: `/home/rich/.cache/synthetic-enterprise/haduk_grid` holds 5.3 GB and 123 files, the committed receipt declares 124 MB and three, and `pull.log` stops at `[120/315]` at 12:27Z with no process alive \u2014 the monthly tier complete at 105 files, the daily tier at 15 of 210, and nothing retrying. That is a tick-bound job that died with its tick, which this project has filed before. The stretch also produced its own best finding: `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS` establishes that 12 of the 50 reds in `.publish_gate_state.json` were `/tmp` at 0 MB, pass green on re-run at the same HEAD, and are indistinguishable in the state file from real defects \u2014 so a tick drawn on that state repairs passing tests, which is a machine that manufactures its own machinery work. The instance was swept; the mechanism was not. Every figure above was read live between 14:23Z and 14:26Z \u2014 `product_machinery_split` run, `next_item()` and `seat_continuation.live()` called, the cache walked with `find` and `du`, the receipt and `pull.log` opened, `git rev-list` run \u2014 and every one of them will be stale for whoever reads this. Re-run before relying on any.",
@@ -1805,9 +1805,19 @@
   "fabric_rows": 152,
   "fabric_share": 0.0263,
   "why_time_shifting_has_no_pounds": "R3's pounds are CARBON VALUED at the traded price, not a bill saving. A shifted kWh is cheaper only on a time-of-use tariff and this book holds none, so the BILL saving from shifting is zero here and the carbon value sits in its own column. Adding it to tariff fit's pounds would sum two different quantities.",
+  "the_sharing_ceiling": {
+   "available": true,
+   "source": "tools/tou_sharing_ceiling.py \u2014 read, not recomputed",
+   "created_gbp_per_household_year": 51.36,
+   "times_the_carbon_value_of_the_same_act": 7.43,
+   "reachable_households": 22,
+   "reachable_book_gbp_per_year": 1125.22,
+   "why_it_is_not_added_to_this_arm": "It is a COUNTERFACTUAL about a product that does not exist, and this arm reports what THIS book can do. Adding it would publish a bill saving no household on this book can receive. It is carried beside the None so the size of the missing product is visible: the gap is not a rounding error, it is the largest bounded figure in R4.",
+   "and_only_this_column_can_be_shared": "The carbon lands on nobody's bill, so no tariff can share it. The money does. That makes the tariff the PRECONDITION for the abatement rather than a way of monetising it -- the money is what pays for the behaviour that abates."
+  },
   "named_gaps": [
    "PROPERTY ATTRIBUTES. Nothing in the book distinguishes one home's fabric, roof or heating system from another's. This is the single acquisition that would turn three FLOORS into CEILINGS, and it is a data question rather than a modelling one.",
-   "A TIME-OF-USE TARIFF. Without one a shifted kWh is not cheaper, so time-shifting has a carbon ceiling and no bill-saving ceiling at all. That is a product decision, and it is what would let the household share in the value R3 measures.",
+   "A TIME-OF-USE TARIFF. Without one a shifted kWh is not cheaper, so time-shifting has a carbon ceiling and no bill-saving ceiling at all. That is a product decision, and it is what would let the household share in the value R3 measures. IT IS NOW SIZED: `tools/tou_sharing_ceiling.py` bounds it, and the arm carries the figure under `if_a_time_of_use_tariff_existed` -- the gap is the largest bounded number in R4.",
    "Book depth (A46) bounds how much any of this can be DEMONSTRATED over."
   ],
   "statement": "R4 SPLITS, AND THE SPLIT IS THE ANSWER. Of six products, 3 are true CEILINGS and 3 are FLOORS (efficiency_fabric, solar, heat_pump) -- because the property-attribute census over 29 logs found 0 attributes, so a measure cannot be sized for a specific home and a negative would retire nothing. THE PART WE CAN BOUND IS THE PART THAT CANNOT ABATE: tariff fit is worth \u00a32.19 per household-year and its carbon ceiling is EXACTLY ZERO by the director's own rule, because discounting moves money and changes no kWh and no hour. The part that abates -- time-shifting, at 91.7 kgCO2e per household-year -- carries no bill saving at all, because this book holds no time-of-use tariff for a shifted kWh to be cheaper on. So the canon's charge is confirmed by arithmetic rather than by assertion: the company can make a household cheaper and never greener. AND BOTH BOUNDED ARMS ARE SMALL: \u00a32.19 of bill saving and \u00a34.03 of carbon value per household-year, only 7 of 68 households priced above the market reference at all. So the whole of the part of R4 this book can bound is worth a few pounds a household-year, and any real value in the programme lives in the arms that are FLOORS. R4 IS NOT RETIRED -- nothing here bounds the measures from above -- but what stands between it and a bound is a DATA ACQUISITION, not a model."
