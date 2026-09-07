@@ -1,0 +1,204 @@
+{
+  "bound_kind": "CEILING on the created value; the SPLIT is a FRONTIER and is not a bound at all",
+  "bound_kind_reason": "TRUE CEILING on what a time-of-use tariff could create. The company holds both sides of the subtraction -- the half-hourly traded wholesale price it buys at, and its own EAC -- and perfect foreknowledge of the day's price shape with every kWh moved is exactly the quantity a real tariff and real compliance approximate. Nothing buildable beats it, so a reading at or below the null RETIRES the time-of-use product outright. The pass-through split is a different kind of statement: the household's share and the company's share sum to the created value at every pass-through BY CONSTRUCTION, so a negative there is not possible and retires nothing. Sharing does not create value; it allocates it.",
+  "bound_scope": "The WHOLESALE ENERGY cost of moving domestic load within the day, on the ELECTRICITY book only. It bounds nothing about network charges, capacity, imbalance, gas, consumption reduction or physical measures.",
+  "measures": {
+    "created": "wholesale energy cost avoided by drawing a kWh in the day's cheapest window instead of at the day's mean price. A resource saving, bounded from above.",
+    "shared": "how that created value divides between the household's bill and the company's margin at a given tariff pass-through. An identity, never a bound."
+  },
+  "price_series": {
+    "source": "Elexon Market Index Data (MID), volume-weighted across reporting providers",
+    "reader": "sim/market_index_history.py \u2014 reused, not re-derived",
+    "days": 1520,
+    "years": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020"
+    ],
+    "days_by_year": {
+      "2016": 105,
+      "2017": 356,
+      "2018": 360,
+      "2019": 356,
+      "2020": 343
+    },
+    "mean_day_price_gbp_per_mwh": 44.678,
+    "why_it_is_not_corrected_like_R3s": "R3 divides by the reconstructed intensity shape's own measured within-day overstatement. This series is TRADED PRICE, not a reconstruction, so there is no overstatement measured against a published counterpart and nothing to correct. That is a difference in the data, not a lower standard."
+  },
+  "shift_window_half_hours": 6,
+  "world": {
+    "hindsight_gbp_per_mwh": 13.325509676921339,
+    "null_max_gbp_per_mwh": 0.5741568912312468,
+    "null_mean_gbp_per_mwh": 0.019248962200632748,
+    "mean_day_price_gbp_per_mwh": 44.678,
+    "by_year_gbp_per_mwh": {
+      "2016": 17.8952,
+      "2017": 11.5328,
+      "2018": 12.8163,
+      "2019": 12.1533,
+      "2020": 15.5383
+    },
+    "days": 1520,
+    "years": [
+      "2016",
+      "2017",
+      "2018",
+      "2019",
+      "2020"
+    ],
+    "days_by_year": {
+      "2016": 105,
+      "2017": 356,
+      "2018": 360,
+      "2019": 356,
+      "2020": 343
+    }
+  },
+  "book": {
+    "source_run": "run_output_latest.json",
+    "households_with_an_eac": 68,
+    "smart_metered_households": 59,
+    "reachable": 22,
+    "total_electricity_kwh_per_year": 262087.9,
+    "why_the_two_denominators_differ": "The per-household figure divides R3's book so the two instruments' columns are over the same denominator. The BOOK figure divides only the households a half-hourly-settled tariff could actually be sold to. Publishing one number over two populations is how a ratio comes to be a quantity nobody defined."
+  },
+  "created_value": {
+    "rung": "hindsight_ceiling",
+    "kind": "CEILING",
+    "gbp_per_shifted_mwh": 13.3255,
+    "pence_per_shifted_kwh": 1.3326,
+    "gbp_per_household_year": 51.36,
+    "share_of_the_day_price": 0.2983,
+    "note": "Perfect foreknowledge of the day's price shape, perfect compliance, every kWh moved, at a shiftable share of 1.0. Unreachable by construction, which is what makes it a ceiling."
+  },
+  "null_ceiling": {
+    "rung": "null_ceiling",
+    "kind": "noise floor",
+    "gbp_per_shifted_mwh": 0.5742,
+    "note": "The MAX over 200 draws of an optimiser with no skill: the window picked from a shuffled day and scored on the real one."
+  },
+  "matched_panel_clearance": {
+    "available": true,
+    "panel_days": 20,
+    "draws": 60,
+    "median_ratio": 5.04,
+    "worst_ratio": 2.97,
+    "best_ratio": 7.2,
+    "clears_in_every_draw": true,
+    "what_it_means": "What this instrument would have reported if it had had R3's panel. It is the figure to read against R3's, and the whole-panel ratio is NOT."
+  },
+  "shiftable_share_curve": [
+    {
+      "shiftable_share": 0.05,
+      "gbp_per_household_year": 2.568
+    },
+    {
+      "shiftable_share": 0.1,
+      "gbp_per_household_year": 5.136
+    },
+    {
+      "shiftable_share": 0.2,
+      "gbp_per_household_year": 10.2719
+    },
+    {
+      "shiftable_share": 0.5,
+      "gbp_per_household_year": 25.6798
+    },
+    {
+      "shiftable_share": 1.0,
+      "gbp_per_household_year": 51.3596
+    }
+  ],
+  "sharing_frontier": [
+    {
+      "pass_through": 0.0,
+      "household_gbp_per_household_year": 0.0,
+      "company_gbp_per_household_year": 51.3596
+    },
+    {
+      "pass_through": 0.25,
+      "household_gbp_per_household_year": 12.8399,
+      "company_gbp_per_household_year": 38.5197
+    },
+    {
+      "pass_through": 0.5,
+      "household_gbp_per_household_year": 25.6798,
+      "company_gbp_per_household_year": 25.6798
+    },
+    {
+      "pass_through": 0.75,
+      "household_gbp_per_household_year": 38.5197,
+      "company_gbp_per_household_year": 12.8399
+    },
+    {
+      "pass_through": 1.0,
+      "household_gbp_per_household_year": 51.3596,
+      "company_gbp_per_household_year": 0.0
+    }
+  ],
+  "the_interior_optimum": {
+    "company_take_at_pass_through_0": "ZERO. At no pass-through a household's bill is identical whenever it draws its electricity, so it has no MONEY reason to move any of it. Nothing moves, nothing is created, and the company keeps a share of nothing. This is not a modelling choice -- it is the state of this book today, which is exactly why R4's time-shifting arm reports no pounds.",
+    "company_take_at_pass_through_1": "ZERO. Everything the shift creates reaches the household's bill and the company retains none of it.",
+    "therefore": "The company's own take is zero at BOTH ends of the frontier, so for any shift response that increases with pass-through its maximum is STRICTLY INTERIOR. That conclusion needs no elasticity and none is asserted: it follows from the two endpoints alone.",
+    "what_it_does_NOT_say": "Where the interior optimum is. That needs the shift response as a function of pass-through, and nothing in the knowledge layer, the commons or the market research establishes one. It is a question to research, not a number to pick.",
+    "the_one_thing_that_still_moves_at_zero_pass_through": "Carbon. A household that shifts for the carbon abates exactly what R3 measures, and none of that value reaches anyone's bill, so it cannot be shared through a tariff at all. That is the finding this instrument was built out of, restated as arithmetic: the carbon is created and the tariff is the only mechanism this book could have for sharing what the same act creates in money."
+  },
+  "the_carbon_column": {
+    "available": true,
+    "source": "tools/r3_carbon_score_ceiling.py \u2014 read, not recomputed",
+    "rung": "hindsight_ceiling",
+    "households": 68,
+    "kg_co2e_per_household_year": 157.056,
+    "carbon_value_gbp_per_household_year": 6.9105,
+    "money_over_carbon": 7.43,
+    "why_these_are_never_summed": "The money column is a WHOLESALE COST AVOIDED and the carbon column is TONNES VALUED at the DESNZ traded price. Two correct figures whose sum is not a quantity is this project's most expensive recurring shape. They are the same act read in two currencies and they belong in two columns.",
+    "why_the_ratio_IS_a_quantity": "Both are pounds per household-year over the same book, from the same act -- moving every kWh into the day's cleanest six half hours -- at the same shiftable share of 1.0. So their RATIO says which column the case for a time-of-use tariff rests on, even though their SUM says nothing."
+  },
+  "reachable_book": {
+    "available": true,
+    "households": 22,
+    "share_of_eac_book": 0.3235,
+    "electricity_kwh_per_year": 84440.8,
+    "book_gbp_per_year": 1125.22,
+    "gbp_per_reachable_household_year": 51.15
+  },
+  "known_errors": [
+    {
+      "direction": "overstates",
+      "what": "The price differential between two half hours is producer surplus PLUS the resource saving from dispatching cheaper plant. Only the second is value CREATED; the first is value moved from a generator to the supplier. This bound cannot separate them, so it is an upper bound on the creation as well as on the money."
+    },
+    {
+      "direction": "overstates",
+      "what": "The price shape is exogenous here. A book-wide shift would itself flatten the differential it is paid out of. At this book's size against ~28M GB homes that is negligible, and at national scale it is not -- which makes this a ceiling for THIS company and not for the policy."
+    },
+    {
+      "direction": "understates",
+      "what": "The counterfactual is the DAY'S MEAN price, chosen to match R3's construction exactly so the money and carbon columns describe the same act. Households draw disproportionately in the evening peak, above the day's mean, so the cost actually avoided by moving their load is larger than this."
+    },
+    {
+      "direction": "understates",
+      "what": "Only the WHOLESALE leg is counted. Avoided red-band DUoS, triad exposure and capacity costs are real value a time-of-use tariff creates and none of them is in this figure."
+    },
+    {
+      "direction": "understates",
+      "what": "The panel is Elexon MID, which this repository holds from 2016-09 to 2020-12. It ends before the 2021-2023 price episode, when within-day differentials were far wider than anything in this window. A ceiling measured on calm years is not the ceiling of the years that followed."
+    }
+  ],
+  "refuses_to_total": "There is no total here. The money column and R3's carbon column are the same act in two currencies and their sum is not a quantity; the household's share and the company's share of the money already sum to it by construction, so adding them to it would count the created value twice.",
+  "verdict": {
+    "clears_the_null": true,
+    "whole_panel_ratio": 23.21,
+    "whole_panel_ratio_is_NOT_comparable_to_R3s": "It is computed over a panel two orders of magnitude larger, and the null's height falls with panel size for reasons that have nothing to do with signal. Read `matched_panel_clearance` against R3 instead.",
+    "retires_time_of_use": false
+  },
+  "named_gaps": [
+    "THE SHIFT RESPONSE as a function of pass-through. It is what decides where on the frontier the company's own optimum sits, and nothing in the knowledge layer, the commons or the market research establishes one. A question to research.",
+    "SHIFTABLE SHARE of domestic load \u2014 R3's gap, and the same one here. The headline is at share 1.0 and the curve is published instead of a figure.",
+    "NO MEASURED PRICE-FORECAST CAPTURE. R3 handicaps its ceiling by the intensity feed's own measured forecast capture; this repository holds no equivalent for the price, and applying the intensity one would multiply two different quantities together. A real time-of-use tariff is set from the DAY-AHEAD AUCTION clear, which is published before the day rather than forecast, so the handicap may be much smaller than R3's \u2014 but this repository holds no half-hourly day-ahead auction series to measure it on, so the gap between day-ahead knowledge and hindsight is UNMEASURED and is not assumed away.",
+    "MID COVERAGE ends 2020-12 in this tree and begins 2016-09. The 2021-2023 price episode is outside the panel entirely.",
+    "THE COST OF THE PRODUCT. Half-hourly settlement, a smart-meter rollout to the traditional-metered majority, and the shape and imbalance risk a supplier takes on when it prices a household half-hourly. None of it is in this figure, and a ceiling is a gross number by construction."
+  ],
+  "headline": "A TIME-OF-USE TARIFF COULD CREATE \u00a351.36 PER HOUSEHOLD-YEAR ON THIS BOOK, and that is a CEILING: perfect foreknowledge of the day's price shape, perfect compliance, every kWh moved. It is \u00a313.33/MWh avoided \u2014 30% of the mean day price \u2014 over 1520 whole days of Elexon MID, 2016-2020. At R3's own panel size it clears its skill-free null by 5.04x at the median and 2.97x at the worst of 60 draws; the whole-panel ratio of 23.21x is larger only because the null falls with panel size, and is not the figure to read against R3. AND THE MONEY IS THE CASE, NOT THE CARBON: the same act \u2014 every kWh into the day's cleanest six half hours \u2014 is worth 7.43x more in avoided wholesale cost than in carbon at the DESNZ traded value (\u00a36.91 per household-year, 157 kgCO2e). The two are never summed; they are the same act in two currencies. But only ONE of them can be shared with the household, because only one of them lands on a bill \u2014 which is why the tariff is the precondition for the abatement rather than a way of monetising it. WHO IT COULD BE SOLD TO IS THE BINDING CONSTRAINT: half-hourly settlement needs a smart meter, and 22 of 68 households on this book carry both a smart meter and an electricity EAC, so the whole reachable book is \u00a31125 a year at the ceiling. AND SHARING CREATES NOTHING: the household's share and the company's share sum to the created value at every pass-through. The company's take is zero at both ends of that frontier \u2014 nothing moves at zero pass-through, nothing is retained at full \u2014 so its own optimum is strictly interior, which follows from the endpoints and needs no elasticity. Where it sits does need one, and none is established."
+}

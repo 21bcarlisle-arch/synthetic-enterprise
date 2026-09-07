@@ -544,6 +544,12 @@ def the_most_the_products_beyond_price_could_be_worth() -> dict:
         # so time-shifting has a carbon ceiling and NO bill-saving ceiling at all. That is the
         # mission's own two-sidedness showing up as a missing product.
         "why_time_shifting_has_no_pounds": time_shifting.get("why_the_gbp_column_is_None"),
+        # AND HOW BIG THE MISSING PRODUCT IS. The blank pounds column above says a bill saving
+        # cannot exist on this book; it says nothing about whether the tariff that would create one
+        # is worth a penny or fifty. A reader who cannot tell those apart reads the blank as an arm
+        # that was measured and came out at nothing, which is the opposite of the truth. Read from
+        # R4's own artefact, which reads it from the sharing instrument -- never recomputed here.
+        "the_sharing_ceiling": time_shifting.get("if_a_time_of_use_tariff_existed") or {},
         "named_gaps": got.get("named_gaps"),
         "statement": got.get("headline"),
     }
