@@ -1,7 +1,5 @@
 # [DIRECTOR-CANON] — The demand vector: simulate difference, not averages (2026-09-07)
 
-**Severity:** BLOCKING · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** W2_19_who_lives_where_money_and_composition
-
 **Type:** [CANON — the deliverable the world must produce, the resolution it must produce it at, and the defect that has twice hidden the requirement. Severity: BLOCKING — two live coverage claims rest on the collapse this document names. Mechanism and measurement are the delivery seat's; the deliverable and the separation are the director's.]
 
 ---
@@ -81,6 +79,8 @@ The sample is **not** a random draw sized until it looks like the population. It
 **The practical tell:** if N comes out at the scale a random sample would need, the weighting is doing no work and the design has reverted to representativeness. A weighted, deliberately-chosen sample needs far fewer cases than a random draw to reproduce a distribution — that is the whole reason for choosing rather than drawing. A large N is not automatically wrong, but it is a signal to check which design is actually running.
 
 **What we do not want** is a faithful crowd of near-identical households. Two thousand houses that look like each other reproduce the distribution and teach the company nothing, because there is nothing in them to tell apart.
+
+**Effort follows where value is lost, not where volume is.** This is the reason the tail is deliberately over-weighted in the choosing, and it should be read as intent rather than as a side effect of rejecting near-duplicates. Common combinations are already well served: a real supplier's segment model handles them and the customer gets a reasonable outcome. The value is in the uncommon combinations, where averaging disappoints and undervalues — which is what hyper-personalisation is *for*. **So the sample is densest where the population is thinnest**, and the solved weights correct for that when aggregating. Choosing over-weights the tail; weighting restores the mass.
 
 **The weather cell count is derived, not designed.** Once the sample is a set of (household, cell) cases, the number of cells is whatever the drawn sample lands in. The only reason to want it in advance is sizing a data pull, which is an engineering constraint rather than a modelling one. `W1_21`'s 987 was coverage of the three drivers' own variance on one shared partition — a partition of weather against itself, which knows nothing about fabric. Right shape, wrong subject.
 
