@@ -404,13 +404,25 @@ def composition(model_path: Path, payment_method: str) -> dict:
             "benchmark_consumption_witnessed_in_model": witnessed}
 
 
+#: A window whose `source` starts with this was itself derived from the cap level model, so checking
+#: this module's derivation against it compares the workbook with itself. THAT IS NOT CORROBORATION
+#: AND IT WOULD NOT LOOK LIKE A DEFECT: the excluded rows agree almost exactly, so admitting them
+#: would IMPROVE the reported worst error while destroying what the number means. The cross-check is
+#: the only evidence the benchmark-minus-nil decomposition is right; it has to stand on a series
+#: published by a route that does not pass through this workbook.
+SELF_DERIVED_WINDOW_SOURCE = "ofgem_default_tariff_cap_level_model"
+
+
 def _published_levels() -> list[dict]:
+    """Published cap levels that can honestly corroborate this module — self-derived rows removed."""
     if not CAP_WINDOWS.exists():
         raise CapModelUnavailable(
             f"{_named(CAP_WINDOWS)} is absent, so the derived unit rate cannot be "
             "checked against the published one. The decomposition is not published unchecked."
         )
-    return json.loads(CAP_WINDOWS.read_text()).get("windows", [])
+    windows = json.loads(CAP_WINDOWS.read_text()).get("windows", [])
+    return [window for window in windows
+            if not str(window.get("source", "")).startswith(SELF_DERIVED_WINDOW_SOURCE)]
 
 
 _MONTHS = {name: index for index, name in enumerate(

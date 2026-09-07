@@ -25,6 +25,8 @@ with it refuses rather than publishes.
 """
 from __future__ import annotations
 
+import json
+
 import pytest
 
 openpyxl = pytest.importorskip("openpyxl")
@@ -80,6 +82,56 @@ def test_electricity_vat_is_not_a_constant_across_the_published_periods():
     assert subject.vat_multiplier("2025-10-01") == subject.VAT_MULTIPLIER_DEFAULT
     assert subject.vat_multiplier("2026-10-01") != subject.VAT_MULTIPLIER_DEFAULT
     assert subject.vat_multiplier("2027-04-01") == subject.VAT_MULTIPLIER_DEFAULT
+
+
+def _windows(tmp_path, monkeypatch, rows):
+    path = tmp_path / "ofgem_default_tariff_cap_windows.json"
+    path.write_text(json.dumps({"windows": rows}))
+    monkeypatch.setattr(subject, "CAP_WINDOWS", path)
+    return path
+
+
+SELF_DERIVED = subject.SELF_DERIVED_WINDOW_SOURCE + "_v1.31"
+
+
+def test_a_window_derived_from_the_cap_model_cannot_corroborate_the_cap_model(
+        tmp_path, monkeypatch):
+    """The cross-check must not quietly start comparing the workbook with itself.
+
+    THE DANGER IS THAT THIS LOOKS LIKE AN IMPROVEMENT. `ofgem_default_tariff_cap_windows.json` was
+    extended past 2025-12-31 with rows derived from the same cap level model this module reads.
+    Admitting them would make the reported worst relative error BETTER, because they agree almost
+    exactly — and the cross-check is the only evidence the benchmark-minus-nil decomposition is
+    right, so a self-agreeing row does not strengthen it, it empties it.
+    """
+    _windows(tmp_path, monkeypatch,
+             [{"from": "2026-01-01", "to": "2026-03-31", "elec": 276.9, "source": SELF_DERIVED}])
+    with pytest.raises(subject.CapModelUnavailable, match="no cap period"):
+        subject.cross_check([{"cap_period": "January 2026 - March 2026", "starts": "2026-01-01",
+                              "unit_rate_p_per_kwh_ex_vat": 26.37}])
+
+
+def test_an_independently_published_window_still_corroborates(tmp_path, monkeypatch):
+    """The other leg. An exclusion that dropped EVERY row would pass the test above and leave the
+    module permanently unable to publish, and the two are indistinguishable without this."""
+    _windows(tmp_path, monkeypatch,
+             [{"from": "2026-01-01", "to": "2026-03-31", "elec": 276.9,
+               "source": "third_party_cap_history_compilation"}])
+    result = subject.cross_check([{"cap_period": "January 2026 - March 2026",
+                                   "starts": "2026-01-01",
+                                   "unit_rate_p_per_kwh_ex_vat": 276.9 / 10.0 / 1.05}])
+    assert result["periods_checked"] == 1
+
+
+def test_a_window_with_no_source_at_all_is_kept(tmp_path, monkeypatch):
+    """Absence of a `source` is not evidence of self-derivation, and dropping unmarked rows would
+    silently empty the cross-check the first time a lane adds a row without the field."""
+    _windows(tmp_path, monkeypatch,
+             [{"from": "2026-01-01", "to": "2026-03-31", "elec": 276.9}])
+    assert subject.cross_check([{"cap_period": "January 2026 - March 2026",
+                                 "starts": "2026-01-01",
+                                 "unit_rate_p_per_kwh_ex_vat": 276.9 / 10.0 / 1.05}
+                                ])["periods_checked"] == 1
 
 
 def _witness_workbook(values: dict[str, float] | None, *, sheet_name: str | None = None):

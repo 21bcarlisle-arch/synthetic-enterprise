@@ -120,6 +120,50 @@ It is left alone in this landing on purpose. Removing it moves 21 already-publis
 reason that has nothing to do with the divisor, and a result that moves for two reasons at once
 cannot be attributed to either. **It is the next item on this artefact**, and it should land alone.
 
+## SECOND LANDING: the windows artefact reaches 2026, and the 2026 divisors ARE corroborated after all
+
+P1 failed, so the 2026 divisors rested on the model's own consumption table. They no longer do.
+**Ofgem's published cap tables state the divisor on their face.** The PDF for charge restriction
+period **15b** (January–March 2026) heads its electricity column *"Single-Rate Metering Arrangement
+m (2,700kWh)"*; the PDF for **17a** (October–December 2026) heads it *"(2,500kWh)"*. That is a
+separate publication from the workbook, and it settles what `1c` could not — **including that the
+opening finding's "2,500 from P15b" is wrong on Ofgem's own published face.**
+
+The model reproduces those PDFs to under a penny per household-year:
+
+| period | model benchmark−nil, Eastern | published cap table | difference |
+|---|---|---|---|
+| Jan–Mar 2026 (15b) | £717.02 | £717.01 | £0.01 |
+| Oct–Dec 2026 (17a) | £665.32 | £665.33 | £0.01 |
+
+The two publications' *absolute* levels differ by a fixed £2.47/year (levelisation), and that
+difference **falls entirely in the standing charge** — it is identical on the nil and benchmark
+columns, so it cancels out of the unit rate. Worth knowing before anyone reconciles the two.
+
+`ofgem_default_tariff_cap_windows.json` gains the four 2026 periods and moves `cannot_tell` →
+`current`. What moved the verdict is **per-row provenance**, not a fresher fetch: its old note said
+the artefact was "only as fresh as its weakest column" and recorded `cannot_tell` rather than
+splitting the legs. Every row now carries `source`, so the legs can be asked separately.
+
+### The trap in doing this the obvious way, and the control that stops it
+
+The windows artefact's own `how_to_recheck` proposed "re-siting the unit rates onto Ofgem's own
+published levels" as its fix. **Done naively, that silently destroys the composition's cross-check.**
+The composition validates its benchmark-minus-nil decomposition against this artefact — and if this
+artefact's rows are themselves derived from the same workbook, the check compares the workbook with
+itself. That is the whole of its evidence, gone.
+
+**And it would have looked like an improvement.** The self-derived rows agree to ~0.05%, so
+admitting them would have *lowered* the reported worst relative error while emptying the number of
+meaning. So `_published_levels` now excludes rows whose `source` names the cap level model, by name,
+with three legs: the exclusion fires, an independently-sourced row still corroborates (an exclusion
+that dropped everything would pass the first leg and leave the module unable to publish), and a row
+with **no** `source` is kept rather than dropped. The cross-check still stands on **21 independent
+periods, worst error 1.340%** — unchanged by adding four rows, which is the point.
+
+`how_to_recheck` now names both the fix and the trap: re-site onto the published cap table **PDFs**,
+which are a separate publication with their own rounding, never onto the model workbook.
+
 ## What is still open
 
 1. **`GB average` as a 15th region**, above. One-line change, published figures move, land alone.
@@ -133,6 +177,25 @@ cannot be attributed to either. **It is the next item on this artefact**, and it
    would be checked against a series derived from the same workbook by the same subtraction. The
    independence of that third-party series is what makes the check evidence. Whatever extends it
    must come from Ofgem's published headline levels, not from the model.
-3. **`ofgem_default_tariff_cap_windows` and `gb_domestic_switching_rate` remain `cannot_tell`**, for
-   the reasons their own blocks state — a third-party compilation with no edition marker, and a
-   citation that names an in-repo derivation rather than an edition.
+3. **`ofgem_default_tariff_cap_windows` is settled** (above). Its remaining open job is re-siting
+   the 21 pre-2026 unit rates onto the published cap table PDFs — **not** onto the model — one PDF
+   per charge restriction period, all linked from the page already recorded in the artefact.
+4. **`company/pricing/ofgem_price_cap.py`'s ANNUAL lookup table stops at 2025 and falls back to a
+   hardcoded £190.0/MWh for 2026**, while the window lookup — reading the same commons artefact —
+   now returns the four real published 2026 levels (246.7–276.9). The two accessors disagree by
+   £57–87/MWh about the same ceiling in the same year, and which one a caller reaches for decides
+   the ceiling applied to a customer. The characterization suite already names this divergence as a
+   SURPRISE; extending the commons made it wider and it is now a stale table rather than a missing
+   one. Not fixed here: it moves a company-side money figure and belongs in its own landing.
+5. **Two characterization tests had to be re-keyed, and the reason is worth keeping.** Both went red
+   because the artefact became MORE current — they pinned 263.5 and 62.9 (the Oct-Dec 2025 levels)
+   where they meant "the last published window, whatever it is". A control keyed to today's answer
+   goes red when the code gets more honest and stays green when the claim rots, which is exactly
+   backwards. Both are now keyed to `_CAP_WINDOWS[-1]`, so the next extension will not touch them.
+6. **`gb_domestic_switching_rate` is STILL `cannot_tell` and was not touched this turn.** Its
+   defect is named precisely in its own `provenance_legend`: all ten rows are `secondary` because
+   they come from an in-repo derivation (`docs/market_research/churn_price_elasticity.md` §1)
+   rather than from a named DESNZ Quarterly Domestic Energy Switching Statistics edition, and
+   `primary` is deliberately defined and reached by nothing. Reaching it means one fetch per year
+   from the DESNZ release series and stamping the edition each rate was read from. That is a
+   self-contained job and it is the honest thing left undone here.
