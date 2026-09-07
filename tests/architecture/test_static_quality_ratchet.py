@@ -721,7 +721,10 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1313,  # lowered 2026-09-07 (the CM DE-RATING leg, a50): -1, and it is THIS COMMIT'S.
+    "I001": 1311,  # lowered 2026-09-07 (a51, the CM de-rating CALLERS): -2 more, both this
+    # commit's -- company/regulatory/capacity_market.py and its test file, whose import blocks were
+    # rewritten when the module was re-founded on the commons. Proved mine by stashing exactly
+    # those two paths and re-counting: 1311 -> 1313.
     #             `tests/company/test_phase_nx_ic_flexibility.py` -- a file this commit had open
     #             anyway, because it was RED AT HEAD at collection (it imported the constant the
     #             price leg below deleted) and had to be repaired to run at all. Attribution is
@@ -816,7 +819,7 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2291  # was 2292; -1 (I001) on 2026-09-07, the CM DE-RATING leg (a50), in
+RUFF_BASELINE_TOTAL = 2289  # 2291 -> 2289 (a51): the two I001s above.
                             # `tests/company/test_phase_nx_ic_flexibility.py` -- a file already red
                             # at HEAD at COLLECTION, so this commit had to open it regardless. A
                             # detached HEAD extract totals 2292, the figure this line replaces, so

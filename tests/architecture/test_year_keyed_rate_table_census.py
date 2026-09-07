@@ -222,12 +222,19 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/regulatory/green_gas_levy_register.py::_GGL_RATE_GBP_PER_METER_PER_DAY":
         "a THIRD reading of the Green Gas Levy, in GBP/meter/DAY against a Nov-Oct levy year; "
         "its own comment says 'approximate rates calibrated to' the statutory instruments.",
-    "company/regulatory/capacity_market.py::_CM_OBLIGATION_RATE_BY_YEAR":
-        "NESO publishes CM auction clearing prices per delivery year; the supplier obligation "
-        "rate is a derived ALLOCATION of those across supplied volume, not a clearing price, so "
-        "it stays a separate table. The auction results it derives from ARE now in the commons "
-        "(capacity_market_auction_results.json), so this is a cheaper pin than it was: what is "
-        "still missing is the allocation, not the prices.",
+    # `company/regulatory/capacity_market.py::_CM_OBLIGATION_RATE_BY_YEAR` CAME OFF on 2026-09-07
+    # (a51), and this edit is the record the work happened. Its entry said the supplier obligation
+    # rate "is a derived ALLOCATION of those across supplied volume, not a clearing price", and
+    # that "what is still missing is the allocation, not the prices" -- correct, and it was the
+    # right thing to have written down, because it named exactly what to go and find. THE
+    # ALLOCATION IS PUBLISHED: Ofgem Annex 9 gives the CM cost per customer per year, and this
+    # repo has carried it in docs/market_research/capacity_market_levy_2016_2024.md since Phase
+    # 30a. It is now in the commons as capacity_market_supplier_levy.json and the module reads it.
+    #
+    # WHAT THE TABLE ACTUALLY HELD was not an allocation at all: it was the clearing price series
+    # under a fourth name, and multiplying it by an estimated peak and an invented 0.92 de-rating
+    # factor missed the published levy by 8.51x at 2016 and 0.03x at 2021. The pin was cheaper
+    # than it looked in one direction and far more expensive in the other.
     # `company/market/capacity_market.py::_CM_CLEARING_PRICE_GBP_PER_KW_PER_YEAR` and
     # `company/market/ic_flexibility_revenue.py::_CM_DELIVERY_GBP_PER_KW_YR` CAME OFF on
     # 2026-09-07, and this edit is the record the work happened. This register's own docstring had
@@ -405,7 +412,9 @@ _BAND_PINNED: dict[str, str] = {
 # lane in the tree. Recorded as two separate movements rather than one net figure, because a
 # ratchet that only ever shows its net is a ratchet you cannot audit: this bucket was PAID DOWN by
 # two and CHARGED one, and the charge is somebody else's table.
-_MAX_PUBLISHED_UNPINNED = 38
+_MAX_PUBLISHED_UNPINNED = 37  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+# obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
+# the point -- pinning a table is the only sanctioned way to move this number.
 
 # The named hole. `not_published` carries no ratchet, so it is the one bucket that could grow
 # into a dumping ground. Declared here rather than left implicit; see the test of that name.

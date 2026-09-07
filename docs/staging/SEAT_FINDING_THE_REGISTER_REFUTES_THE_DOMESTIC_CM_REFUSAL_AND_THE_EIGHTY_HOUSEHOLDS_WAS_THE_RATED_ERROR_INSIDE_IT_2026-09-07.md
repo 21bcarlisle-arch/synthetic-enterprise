@@ -122,10 +122,40 @@ There is also a category conflation underneath it: `delivery_status`, `shortfall
 `penalty_gbp` model a **capacity provider's** delivery obligation, which a supplier does not hold.
 A supplier's CM obligation is a payment.
 
-**Not fixed here, deliberately.** Fixing it properly means founding the supplier levy on the
-regulation commons so both lanes read one publication — the `ro_commons` shape — and that is a
-piece of work, not a line. It has **no production caller** (only its own tests), so nothing
-published today is wrong because of it. Handed off.
+**Written as "not fixed here, handed off" — and then fixed here, in the same turn.** Correction
+kept beside the claim rather than revised away: I judged it a separate piece of work, started the
+hand-off, and found the allocation was already in the repo, at which point it became a line of
+reading rather than a piece of research. What changed my mind is recorded below because the reason
+generalises.
+
+**The census entry named the missing thing, and that is what made it cheap.** The pin in
+`test_year_keyed_rate_table_census.py` for `_CM_OBLIGATION_RATE_BY_YEAR` said the supplier rate "is
+a derived ALLOCATION of those across supplied volume, not a clearing price", and that "what is
+still missing is the allocation, not the prices". Exactly right, and it pointed at the answer: the
+allocation **is** published — Ofgem Annex 9's CM cost per customer per year — and this repo has
+carried it in `docs/market_research/capacity_market_levy_2016_2024.md` since Phase 30a, wired into
+`simulation/policy_costs.py`. A sourced series sitting seven weeks unread on the company side while
+an invented one ran beside it: **the `saas/opex_ledger.py` £55-vs-£150 shape, arriving again.**
+
+Done in this turn:
+
+* `docs/domain_artefact_library/regulatory/capacity_market_supplier_levy.json` — the Annex 9 series
+  moved into the regulation commons, one home, with `None` and no carry-forward outside its range.
+* `_DERATING_FACTOR` and `_CM_OBLIGATION_RATE_BY_YEAR` **deleted**; the charge is now the published
+  levy times volume. `clearing_price_gbp_per_kw` on the result is renamed `levy_gbp_per_mwh` —
+  a different quantity, in different units, belonging to a different party, and the field name was
+  telling callers something false on its own.
+* The company side now reproduces Annex 9 **exactly, 2016–2024** (ratio 1.000 at every year). That
+  agreement is *not* independent corroboration and must not be read as any — it is two readers of
+  one publication, which is the entire point of the commons.
+* Both controls that asserted the defects as the contract are gone, and the census pin and the
+  ruff/unpinned ratchets came **down** with the work.
+
+**Still not addressed, and now the only thing left here:** `delivery_status`, `shortfall_kw` and
+`penalty_gbp` model a capacity *provider's* delivery obligation and penalty. A supplier holds no
+such obligation — its CM obligation is a payment. That is a change to what the module is *for*,
+not a de-rating decision, and it is named in the module docstring so the next reader does not
+mistake it for settled.
 
 ## A control that failed for the right reason, twice
 
