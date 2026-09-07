@@ -10,23 +10,24 @@ aggregators who pool sub-2 MW loads into CM-eligible units. Aggregators charge
 a commission (_AGGREGATOR_FEE_PCT) on CM/DFS revenue.
 
 CM clearing prices are from published T-4/T-3 auction results (NESO).
-DFS: launched Oct 2022; payments ~£4.5/MWh for demand reduction events.
+DFS: launched Oct 2022. Its rate and event count are published per winter and read from
+`dfs_published_record` -- they are NOT constants, and they are not duplicated here.
 
 Epistemic: company observes I&C EAC from billing records. No SIM internals read.
 """
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
+
+from company.market import dfs_published_record
 
 _IC_LOAD_FACTOR = 0.65           # typical industrial load factor (UK)
 _IC_DSR_FRACTION = 0.10          # 10% of peak demand enrolled in DSR/CM
 _AGGREGATOR_FEE_PCT = 0.20       # aggregator fee on gross CM/DFS revenue
 _IC_MIN_EAC_KWH = 200_000        # minimum 200 MWh/yr for DSR aggregator eligibility
 
-_DFS_LAUNCH_YEAR = 2022
-_DFS_RATE_GBP_PER_MWH = 4.5     # NESO DFS average rate 2022-24
-_DFS_EVENTS_PER_YR = 20          # ~20 winter dispatch events
+_DFS_LAUNCH_YEAR = dfs_published_record.FIRST_WINTER
 _DFS_DURATION_HRS = 1.0          # 1-hour events
 
 # T-4/T-3 CM delivery year clearing prices (£/kW/yr) by calendar year of Oct delivery start.
@@ -59,6 +60,9 @@ class ICFlexibilityRecord:
     gross_dfs_revenue_gbp: float
     aggregator_fee_gbp: float
     net_revenue_gbp: float
+    dfs_established: bool = True
+    """False means the winter is not in the published record, so the DFS leg is 0.0 for want of
+    evidence rather than because the service paid nothing. 2023/24 is the live case."""
 
 
 def _peak_demand_kw(eac_kwh: float) -> float:
@@ -75,12 +79,24 @@ def _gross_cm_revenue(flex_kw: float, year: int) -> float:
     return round(flex_kw * price, 2)
 
 
-def _gross_dfs_revenue(flex_kw: float, year: int) -> float:
+def _gross_dfs_revenue(flex_kw: float, year: int) -> Optional[float]:
+    """Gross DFS revenue for one I&C site in one winter, from the published record.
+
+    None where the winter ran but is not established (2023/24) -- distinct from 0.0, which here means
+    the service did not exist yet. An I&C site's rated flex is closer to its delivered flex than a
+    household's is (56% of I&C delivery is over 10 kW, against 91% of domestic under 1 kW), so this
+    keeps the rated-power form and applies only the published delivery shortfall.
+    """
     if year < _DFS_LAUNCH_YEAR:
         return 0.0
-    # flex_kw * duration_hrs / 1000 = MWh per event; multiply by rate and events
+    row = dfs_published_record.winter(year)
+    rate = dfs_published_record.realised_rate_gbp_per_mwh(year)
+    events = dfs_published_record.events(year)
+    if row is None or rate is None or events is None or row.delivery_fraction_of_committed is None:
+        return None
     flex_mw = flex_kw / 1000.0
-    return round(flex_mw * _DFS_DURATION_HRS * _DFS_RATE_GBP_PER_MWH * _DFS_EVENTS_PER_YR, 2)
+    return round(
+        flex_mw * _DFS_DURATION_HRS * rate * events * row.delivery_fraction_of_committed, 2)
 
 
 class ICFlexibilityRevenueBook:
@@ -112,7 +128,12 @@ class ICFlexibilityRevenueBook:
             fkw = _flex_kw(peak_kw)
             cm_price = _CM_DELIVERY_GBP_PER_KW_YR.get(year, _CM_DELIVERY_GBP_PER_KW_YR[2025])
             gross_cm = _gross_cm_revenue(fkw, year)
-            gross_dfs = _gross_dfs_revenue(fkw, year)
+            dfs = _gross_dfs_revenue(fkw, year)
+            # None means the winter ran and we cannot say what it paid. Booking 0.0 keeps the
+            # arithmetic honest about the CM leg while `dfs_established` carries the reason; the two
+            # must stay distinguishable, because "DFS paid nothing" and "we have no primary source
+            # for 2023/24" lead to opposite decisions.
+            gross_dfs = 0.0 if dfs is None else dfs
             agg_fee = round((gross_cm + gross_dfs) * _AGGREGATOR_FEE_PCT, 2)
             net = round(gross_cm + gross_dfs - agg_fee, 2)
 
@@ -127,6 +148,7 @@ class ICFlexibilityRevenueBook:
                 gross_dfs_revenue_gbp=gross_dfs,
                 aggregator_fee_gbp=agg_fee,
                 net_revenue_gbp=net,
+                dfs_established=(dfs is not None),
             )
             self._records.append(record)
             revenue_by_cid[cid] = net

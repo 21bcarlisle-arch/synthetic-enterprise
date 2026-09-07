@@ -14,10 +14,9 @@ from company.market.flexibility_potential import (
     _BATTERY_FLEX_KW,
     _ASHP_FLEX_KW,
     _CAPACITY_MARKET_GBP_PER_KW_YR,
-    _DFS_RATE_GBP_PER_MWH,
-    _DISPATCH_EVENTS_PER_YR,
     _DISPATCH_DURATION_HRS,
 )
+from company.market import dfs_published_record
 
 
 def _make_register(assets_by_cid: dict) -> MagicMock:
@@ -51,16 +50,26 @@ def test_ev_only_cm_pre_dfs():
 
 
 def test_ev_earns_dfs_from_2022():
-    """From 2022 (DFS launch): EV customer earns CM + DFS revenue."""
+    """From 2022 (DFS launch): EV customer earns CM + DFS revenue.
+
+    The DFS leg is asserted against the PUBLISHED per-participant economics, not against the
+    production formula. The version of this test that recomputed
+    `_EV_FLEX_KW / 1000 * _DISPATCH_DURATION_HRS * _DFS_RATE_GBP_PER_MWH * _DISPATCH_EVENTS_PER_YR`
+    was a tautology -- it passed for every value of the rate, which is exactly how a rate that was
+    737x too low survived in two files. See tests/company/market/test_dfs_published_record.py.
+    """
     book = FlexibilityRevenueBook()
     reg = _make_register({"C1": {"ev": True, "ashp": False, "battery": False}})
     result = book.compute_year(2022, reg, ["C1"])
     rec = book.records_for_year(2022)[0]
     assert rec.dfs_revenue_gbp > 0.0
-    expected_dfs = round(
-        _EV_FLEX_KW / 1000 * _DISPATCH_DURATION_HRS * _DFS_RATE_GBP_PER_MWH * _DISPATCH_EVENTS_PER_YR, 2
-    )
-    assert rec.dfs_revenue_gbp == expected_dfs
+
+    # An EV household holds ~7.8x the flex of the published average participant, so it must earn
+    # materially more than the average and nothing like the whole book.
+    per_average = dfs_published_record.revenue_gbp_per_participant_winter(2022)
+    assert rec.dfs_revenue_gbp > per_average
+    assert rec.dfs_revenue_gbp == pytest.approx(
+        per_average * (_EV_FLEX_KW / dfs_published_record.REFERENCE_PARTICIPANT_FLEX_KW), rel=0.01)
     assert rec.total_revenue_gbp == round(rec.capacity_market_revenue_gbp + rec.dfs_revenue_gbp, 2)
 
 

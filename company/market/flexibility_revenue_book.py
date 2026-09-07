@@ -8,7 +8,9 @@ Epistemic: asset flags come from company CRM records (observable).
 No simulation internals read.
 
 CM: operational since 2014; T-4 clearing ~75/kW/yr (2023).
-DFS: launched October 2022 by NESO; ~20 winter dispatch events/yr.
+DFS: launched October 2022 by NESO. Event count and rate are published per winter and read
+from `dfs_published_record` -- 22 events in 2022/23 (of which only 2 were called by system
+conditions; the other 20 were calendar-scheduled tests) and 44 in 2024/25.
 
 Phasing:
 - 2016-2021: CM revenue only
@@ -20,13 +22,14 @@ import datetime as dt
 from dataclasses import dataclass
 from typing import Dict, List
 
+from company.market import dfs_published_record
 from company.market.flexibility_potential import (
     _estimate_capacity_revenue,
     _estimate_dfs_revenue,
     _estimate_flex_kw,
 )
 
-_DFS_LAUNCH_YEAR = 2022
+_DFS_LAUNCH_YEAR = dfs_published_record.FIRST_WINTER
 
 
 @dataclass(frozen=True)
@@ -42,6 +45,9 @@ class FlexibilityRevenueRecord:
     capacity_market_revenue_gbp: float
     dfs_revenue_gbp: float
     total_revenue_gbp: float
+    dfs_established: bool = True
+    """False means the winter is not in the published record, so the DFS leg is 0.0 for want of
+    evidence rather than because the service paid nothing. 2023/24 is the live case."""
 
 
 class FlexibilityRevenueBook:
@@ -84,7 +90,10 @@ class FlexibilityRevenueBook:
 
             flex_kw = _estimate_flex_kw(has_ev, has_ashp, has_battery)
             cm_rev = round(_estimate_capacity_revenue(flex_kw), 2)
-            dfs_rev = round(_estimate_dfs_revenue(flex_kw), 2) if dfs_active else 0.0
+            dfs_raw = _estimate_dfs_revenue(flex_kw, year) if dfs_active else 0.0
+            # None means the winter ran and the published record does not establish what it paid.
+            # Booked as 0.0 with the flag beside it, never silently as "the service paid nothing".
+            dfs_rev = 0.0 if dfs_raw is None else round(dfs_raw, 2)
             total = round(cm_rev + dfs_rev, 2)
 
             self._records.append(
@@ -98,6 +107,7 @@ class FlexibilityRevenueBook:
                     capacity_market_revenue_gbp=cm_rev,
                     dfs_revenue_gbp=dfs_rev,
                     total_revenue_gbp=total,
+                    dfs_established=(dfs_raw is not None),
                 )
             )
             revenue_by_cid[cid] = total
