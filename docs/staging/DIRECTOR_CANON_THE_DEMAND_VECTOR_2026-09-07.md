@@ -82,6 +82,8 @@ The sample is **not** a random draw sized until it looks like the population. It
 
 **What we do not want** is a faithful crowd of near-identical households. Two thousand houses that look like each other reproduce the distribution and teach the company nothing, because there is nothing in them to tell apart.
 
+**Effort follows where value is lost, not where volume is.** This is the reason the tail is deliberately over-weighted in the choosing, and it should be read as intent rather than as a side effect of rejecting near-duplicates. Common combinations are already well served: a real supplier's segment model handles them and the customer gets a reasonable outcome. The value is in the uncommon combinations, where averaging disappoints and undervalues — which is what hyper-personalisation is *for*. **So the sample is densest where the population is thinnest**, and the solved weights correct for that when aggregating. Choosing over-weights the tail; weighting restores the mass.
+
 **The weather cell count is derived, not designed.** Once the sample is a set of (household, cell) cases, the number of cells is whatever the drawn sample lands in. The only reason to want it in advance is sizing a data pull, which is an engineering constraint rather than a modelling one. `W1_21`'s 987 was coverage of the three drivers' own variance on one shared partition — a partition of weather against itself, which knows nothing about fabric. Right shape, wrong subject.
 
 ---
