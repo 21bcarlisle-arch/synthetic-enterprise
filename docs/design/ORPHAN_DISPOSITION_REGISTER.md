@@ -250,7 +250,6 @@ company.crm.switching_report | unhooked | consumers:company.crm | Customer gain/
 company.crm.tariff_notification | unhooked | consumers:company.crm | Tariff change notification system: 42-day advance notice per Ofgem SLC 25B.; 3 test(s); no importer
 company.crm.tpa_register | unhooked | consumers:company.crm | Third Party Authority (TPA) Register: customer-designated account representatives.; 1 test(s); no importer
 company.crm.tpi_conduct_register | unhooked | consumers:company.crm | TPI Conduct Compliance Register (Phase GY).; 2 test(s); no importer
-company.crm.vulnerability_index | unhooked | consumers:company.crm | Fuel poverty vulnerability index: scored triage for Ofgem obligations.; 2 test(s); no importer
 company.finance.annualised_revenue_report | unhooked | consumers:company.finance | Annualised Customer Revenue Report (Phase EU).; 1 test(s); no importer
 company.finance.board_dashboard | unhooked | consumers:company.finance | Integrated board KPI dashboard: the monthly view an energy supplier board reviews.; 2 test(s); no importer
 company.finance.board_kpis | unhooked | consumers:company.finance | no docstring; 2 test(s); no importer
@@ -269,6 +268,7 @@ company.finance.revenue_accruals | unhooked | consumers:company.finance | Revenu
 company.finance.trade_finance | unhooked | consumers:company.finance | Trade finance instrument registry: letters of credit, bank guarantees, parent guarantees.; 3 test(s); no importer
 company.finance.working_capital | unhooked | consumers:company.finance | Working capital daily cash position: inflows, outflows, headroom monitoring.; 1 test(s); no importer
 company.market.agreed_capacity_register | unhooked | consumers:company.market | Agreed Capacity Register (Phase GS).; 2 test(s); no importer
+company.market.bsc_settlement_run_register | unhooked | consumers:company.market | BSC Settlement Run Tracking Register (Phase DH).; 1 test(s); no importer
 company.market.bsuos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.capacity_market | unhooked | consumers:company.market | Capacity Market participation: CM unit registration, auction, and obligations.; 2 test(s); no importer
 company.market.capacity_market_register | unhooked | consumers:company.market | Capacity Market Revenue Register (Phase EX).; 1 test(s); no importer
@@ -358,7 +358,6 @@ company.regulatory.ofgem_redress_register | unhooked | consumers:company.regulat
 company.regulatory.ofgem_scorecard | unhooked | consumers:company.regulatory | Ofgem Supplier Performance Scorecard (Phase EF).; 1 test(s); no importer
 company.regulatory.penalty_provision | unhooked | consumers:company.regulatory | Regulatory Penalty Provision Book (Phase EL).; 1 test(s); no importer
 company.regulatory.price_cap_tracker | unhooked | consumers:company.regulatory | Price Cap Pass-Through Tracker (Phase EM).; 1 test(s); no importer
-company.regulatory.priority_services_register | unhooked | consumers:company.regulatory | Priority Services Register (PSR) — consumer vulnerability tracking.; 2 test(s); no importer
 company.regulatory.regulatory_breach_log | unhooked | consumers:company.regulatory | Regulatory Breach Log.; 2 test(s); no importer
 company.regulatory.regulatory_dashboard | unhooked | consumers:company.regulatory | Phase 300 milestone: Regulatory Compliance Dashboard.; 1 test(s); no importer
 company.regulatory.remit_book | unhooked | consumers:company.regulatory | no docstring; 1 test(s); no importer
@@ -367,7 +366,6 @@ company.regulatory.renewable_obligation | unhooked | consumers:company.regulator
 company.regulatory.reporting_calendar | unhooked | consumers:company.regulatory | Regulatory reporting calendar: submission deadlines and overdue detection.; 2 test(s); no importer
 company.regulatory.rggo_register | unhooked | consumers:company.regulatory | Renewable Gas Guarantee of Origin (RGGO) Register (Phase GV).; 1 test(s); no importer
 company.regulatory.sar_register | unhooked | consumers:company.regulatory | Data Subject Access Request (SAR) Register.; 1 test(s); no importer
-company.regulatory.seg_export_estimator | unhooked | consumers:company.regulatory | SEG Export Estimator — Phase R.; 1 test(s); no importer
 company.regulatory.sfr_book | unhooked | consumers:company.regulatory | Supplier Financial Resilience (SFR) framework.; 1 test(s); no importer
 company.regulatory.slc_compliance_tracker | unhooked | consumers:company.regulatory | Standard Licence Condition (SLC) compliance tracker.; 2 test(s); no importer
 company.regulatory.solr | unhooked | consumers:company.regulatory | Supplier of Last Resort (SoLR) risk assessment.; 1 test(s); no importer
@@ -397,7 +395,6 @@ company.trading.gas_forward_curve | unhooked | consumers:company.trading | Whole
 company.trading.gas_market_monitor | unhooked | consumers:company.trading | Wholesale Gas Market Monitor (Phase FF).; 2 test(s); no importer
 company.trading.imbalance_cashflow | unhooked | consumers:company.trading | Imbalance Cash Flow Register (Phase FT).; 1 test(s); no importer
 company.trading.imbalance_charge_register | unhooked | consumers:company.trading | Imbalance Charge Register (Phase EN).; 1 test(s); no importer
-company.trading.initial_margin_register | unhooked | consumers:company.trading | Initial Margin Register for OTC and cleared energy derivatives.; 2 test(s); no importer
 company.trading.interconnector_booking | unhooked | consumers:company.trading | Interconnector Capacity Booking Register (Phase FQ).; 1 test(s); no importer
 company.trading.net_open_position_register | unhooked | consumers:company.trading | Net open position register — tracks hedged vs unhedged retail commitment.; 2 test(s); no importer
 company.trading.otc_margin_book | unhooked | consumers:company.trading | OTC derivative variation margin call tracking (ISDA CSA mechanism).; 2 test(s); no importer

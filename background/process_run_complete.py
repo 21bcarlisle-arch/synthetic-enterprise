@@ -4004,6 +4004,23 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     except Exception as exc:
         log("stretch-log check unavailable (non-fatal): {}".format(exc))
     try:
+        # THE SAME RULE, ONE CHANNEL OVER (director, 2026-09-07): a session that takes director
+        # input without capturing it is a FINDING. Placed beside the stretch check because the
+        # shape is identical -- a record the machine owes, raised rather than refused, since
+        # blocking a publish would not write the missing turns and would stop the work instead.
+        #
+        # THE DEFECT IT WATCHES: the console capture read a hardcoded transcript folder. On
+        # 2026-09-03 the seat's launch directory changed, that folder went cold, and six days of
+        # console input were never recorded while every reader saw a director who had said
+        # nothing. Nothing compared the record against any independent signal, so nothing could
+        # tell "he was quiet" from "we went blind".
+        from tools.console_instruction_record import check as _console_check
+        _rc_cc, _msg_cc = _console_check()
+        if _rc_cc:
+            log("DIRECTOR CONSOLE CAPTURE OWED -- " + _msg_cc.replace("\n", " | ")[:600])
+    except Exception as exc:
+        log("console-capture check unavailable (non-fatal): {}".format(exc))
+    try:
         from tools.startup_anchor_freshness import main as _anchor_freshness
         _rc = _anchor_freshness([])
         log("Generated docs/status/STARTUP_ANCHORS.md"

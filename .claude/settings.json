@@ -73,6 +73,10 @@
           {
             "type": "command",
             "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/stamp_human_presence.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR:-/home/rich/synthetic-enterprise}/.claude/hooks/capture_director_console.py"
           }
         ]
       }

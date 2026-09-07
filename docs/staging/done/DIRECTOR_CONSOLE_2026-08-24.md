@@ -15,7 +15,91 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 7 turn(s).
+Source: `16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl, 16d1bf68-b2cc-4d3f-8cdf-ec3ba3090a30.jsonl, 1e93f7c2-5dac-44a9-9ba8-702868340689.jsonl, 29f540c9-c503-4cb4-8dc8-7e6d21848896.jsonl, 3ecd2228-d715-4827-b979-8167832db295.jsonl, 49b87759-f59c-4a41-8358-591d63aabc48.jsonl, 64390b0a-005b-4111-9d62-cc1b4dbb1894.jsonl, 650509ea-4293-4a86-beb1-cb466ee395d8.jsonl, 78de2e37-5e5c-434e-a45c-6a4a33895c14.jsonl, 7b238e49-4b5c-4ac7-9a72-af739707354b.jsonl, 98bc6f04-feb8-4f15-bb1f-b487d27bc96f.jsonl, b1e91fec-5a59-4ad8-95b0-3e230ab3a03e.jsonl, c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl, d9710230-6d6a-4418-918e-dc4927796278.jsonl, fb85b35a-9e36-4fb4-9281-f16f9c932879.jsonl, ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 10 turn(s).
+
+### 2026-08-24T05:42:32.962Z
+
+> Fresh session. You are the autonomous builder on Poesys. It's
+> Monday morning; publishing is healthy and the site is current. The
+> tick cadence is at 4h from the weekend stand-down and its revert
+> was recorded as due today — that decision is folded into what
+> follows.
+>
+> A belief for you to test, not accept: we have been spinning our
+> wheels. The evidence is the weekend — a 90% cut in tick spawns
+> cost almost nothing of value. Publishing ran untouched and the
+> work we lost was investigation and framing that moved no level. If
+> that reading is right, most autonomous output for the past
+> fortnight has been going somewhere that doesn't matter.
+>
+> You hold the measurements. Test it properly and tell me if I'm
+> wrong — level moves per day, what proportion of draws end in
+> shipped capability, how much of the queue is your own findings
+> about your own controls. If the belief survives, act on it.
+>
+> I'm handing you the machinery, not asking permission back. Tick
+> cadence, the draw rules, the pass ceiling, the backlog, how atoms
+> are minted and closed, lane weights, how epochs gate — all yours
+> to change. If the structure is producing work nobody needs, change
+> the structure. Delete atoms that shouldn't exist. Close lanes that
+> aren't earning. Collapse epochs that are only bookkeeping. Stop
+> filing findings where a class document already covers them.
+>
+> Two constraints so this doesn't become another meta-project. The
+> output has to be changes to how work gets chosen, landed this
+> week, not an analysis of them. And the test is reader-visible: by
+> Friday I want to open the site and see something a customer or a
+> domain expert would care about that isn't there today — PB1, the
+> growth path, Explore's remaining stages with real data.
+>
+> Publishing frequency stays as it is. It costs CPU, not my token
+> allowance, and it's what makes an outage visible early.
+>
+> Reserved to me, unchanged: curriculum values, one-way doors,
+> money, real people. Everything else, decide and go.
+>
+> Report when something is done, not between pieces.
+
+### 2026-08-24T07:07:12.827Z
+
+> Third or fourth time an Anthropic API error has stopped this
+> session mid-work. The ticks recover on their own — they just draw
+> again next cycle — but the interactive seat doesn't, and nothing
+> notices it has stopped. With ticks at 4h, commit silence no longer
+> distinguishes a slow cadence from a dead session.
+>
+> Close that yourself: make an interrupted interactive session
+> recoverable without me noticing it. Whatever shape works — the
+> work it left behind adoptable, or the session's own state written
+> down so a fresh one resumes it. I shouldn't be the mechanism that
+> spots a stall.
+
+### 2026-08-24T09:18:53.137Z
+
+> Finish Explore's remaining stages with real data, then PB3, then
+> the Knowledge stubs that are still unwritten. Don't stop after the
+> first — work the queue, and only come back when it's done or
+> something genuinely needs me.
+>
+> Publishing paused at 07:52 and the site is showing 05:36. Clear
+> that first.
+>
+> Direction alongside it. I don't care about profit — it's fiction.
+> What I care about is that every customer and segment is
+> individually credible and free of inconsistencies. £1.4m or £5m is
+> irrelevant; a household that couldn't exist is not.
+>
+> So suspend I&C from the book. Keep the capability built and
+> tested, don't delete it, but stop the company serving business
+> accounts for now. It dwarfs residential, makes every per-customer
+> figure unreadable, and contradicts the carbon thesis the site
+> leads with. Grow residential toward 200, earned through the funnel
+> as you've just built it.
+>
+> Your settlement-engine finding is exactly what I want surfaced: if
+> our own code binds growth rather than the simulated economics, say
+> so on the site and fix it if it's cheap. A growth curve that's an
+> artefact of our engine is an inconsistency, not a result.
 
 ### 2026-08-24T14:17:29.064Z
 

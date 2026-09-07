@@ -15,7 +15,7 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `7b238e49-4b5c-4ac7-9a72-af739707354b.jsonl` · 8 turn(s).
+Source: `16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl, 16d1bf68-b2cc-4d3f-8cdf-ec3ba3090a30.jsonl, 1e93f7c2-5dac-44a9-9ba8-702868340689.jsonl, 29f540c9-c503-4cb4-8dc8-7e6d21848896.jsonl, 3ecd2228-d715-4827-b979-8167832db295.jsonl, 49b87759-f59c-4a41-8358-591d63aabc48.jsonl, 64390b0a-005b-4111-9d62-cc1b4dbb1894.jsonl, 650509ea-4293-4a86-beb1-cb466ee395d8.jsonl, 78de2e37-5e5c-434e-a45c-6a4a33895c14.jsonl, 7b238e49-4b5c-4ac7-9a72-af739707354b.jsonl, 98bc6f04-feb8-4f15-bb1f-b487d27bc96f.jsonl, b1e91fec-5a59-4ad8-95b0-3e230ab3a03e.jsonl, c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl, d9710230-6d6a-4418-918e-dc4927796278.jsonl, fb85b35a-9e36-4fb4-9281-f16f9c932879.jsonl, ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 9 turn(s).
 
 ### 2026-08-30T06:56:49.135Z
 
@@ -299,3 +299,48 @@ Source: `7b238e49-4b5c-4ac7-9a72-af739707354b.jsonl` · 8 turn(s).
 > irreversible: no money, no customers, no licence. Record what you
 > chose and what you rejected; that record is what I review and it
 > replaces asking.
+
+### 2026-08-30T22:26:31.920Z
+
+> Three changes to how you work, from a code review I did tonight of
+> the constants in company/ and saas/. The findings themselves are
+> in my last message — duplicated names with different values,
+> factual errors against the real rules, beliefs dressed as facts.
+> The pattern behind them is the point.
+>
+> The pattern: a short-term fix that answers today's request, with
+> a number picked because a number was needed, that comes undone
+> when it meets the rest of the system. £150 CAC. A 0.95 churn cap.
+> A standing charge that matches neither fuel. Each looked
+> reasonable in isolation and each was wrong in the whole. That
+> isn't carelessness — a bounded invocation can't see the whole,
+> and we asked you for speed. So the fix is structural.
+>
+> One: knowledge first is the rule, not a preference. A number you
+> need is a question to research, never a value to pick. Check the
+> knowledge layer, the commons and the published record before
+> writing any domain constant. If nothing establishes it, that's a
+> finding to file, and the code carries the gap explicitly rather
+> than a placeholder that looks like an answer.
+>
+> Two: refuse unsourced domain constants at the door. Every
+> rate, price, probability, threshold or cap in company/ and saas/
+> carries its origin — a citation, or a labelled belief the company
+> holds and something grades, or a named simplification with what
+> it would take to do properly. A constant with none of those is
+> refused, the way an unsourced money constant already is. Same
+> name may not carry two values anywhere; a duplicated constant is
+> refused too. Baseline the existing 263 uncommented ones as debt
+> that only shrinks, and work it down.
+>
+> Three: the delivery seat reviews interconnection, not only
+> priority. Every orientation already asks what matters next. Add:
+> of what landed since the last orientation, what else assumes it,
+> and does that assumption still hold. That's the whole-system view
+> a thirty-minute tick structurally cannot have, and the seat is the
+> only place in the architecture that can hold it. When the answer
+> is "something downstream now disagrees", that's the next item,
+> ahead of new work.
+>
+> These don't slow you down; they move the checking from after the
+> break to before it. Apply them from now, then fix tonight's list.

@@ -15,7 +15,7 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 9 turn(s).
+Source: `16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl, 16d1bf68-b2cc-4d3f-8cdf-ec3ba3090a30.jsonl, 1e93f7c2-5dac-44a9-9ba8-702868340689.jsonl, 29f540c9-c503-4cb4-8dc8-7e6d21848896.jsonl, 3ecd2228-d715-4827-b979-8167832db295.jsonl, 49b87759-f59c-4a41-8358-591d63aabc48.jsonl, 64390b0a-005b-4111-9d62-cc1b4dbb1894.jsonl, 650509ea-4293-4a86-beb1-cb466ee395d8.jsonl, 78de2e37-5e5c-434e-a45c-6a4a33895c14.jsonl, 7b238e49-4b5c-4ac7-9a72-af739707354b.jsonl, 98bc6f04-feb8-4f15-bb1f-b487d27bc96f.jsonl, b1e91fec-5a59-4ad8-95b0-3e230ab3a03e.jsonl, c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl, d9710230-6d6a-4418-918e-dc4927796278.jsonl, fb85b35a-9e36-4fb4-9281-f16f9c932879.jsonl, ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 9 turn(s).
 
 ### 2026-08-25T06:49:10.759Z
 
@@ -60,7 +60,7 @@ Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 9 turn(s).
 >    - **Finding classes**: `python3 -m background.finding_classes --render|--check`. Five classes: publish_gate_and_wedge, controls_that_cannot_fail, measurements_that_mirror, uncommitted_and_orphaned_work, no_caller_and_never_runs.
 >    - **The five-tabs ruling (`03dd8c49e`, 2026-08-20)**: eleven pages deleted; the site is now `/`, `/knowledge/`, `/capabilities/`, `/explore/`, `/harness/` (+ `/privacy/`). Its "WHERE THE CONTENT WENT" table: world+company→Capabilities; proof+evidence→Harness; customers→Explore ("which supersedes it"); now→Home; glossary→Knowledge; director+shadow→Harness/deleted. All 38 redirects deleted. Its own lesson: "a generator that outlives its page is how a deleted surface returns."
 >    - **RC7 (director ruling 2026-07-24)**: "no cohort-derived pound aggregate may lead a public surface — a share of revenue and an account count, never a total."
->    - **NTFY env lives at `/home/rich/.config/synthetic-enterprise/.env.ntfy`** (resolved via `background.secrets_location.resolve_secret_file('.env.ntfy')`), NOT `background/.env.ntfy`.
+>    - **NTFY env lives at `/home/rich/.config/synthetic-enterprise/.env.ntfy`** (resolved via `background.secret<REDACTED: credential-shaped, removed by the console capture>('.env.ntfy')`), NOT `background/.env.ntfy`.
 >
 > 3. **Files and Code Sections:**
 >
@@ -362,10 +362,6 @@ Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 9 turn(s).
 > it does not require you to wait.
 > ```
 
-### 2026-08-25T16:41:30.517Z
-
-> /compact
-
 ### 2026-08-25T16:44:01.167Z
 
 > This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
@@ -533,6 +529,63 @@ Source: `c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl` · 9 turn(s).
 > Don't panic about the website. Nobody is reading it. Keep it
 > honest when you touch it and let the banner do its job when it's
 > behind, but never interrupt real work to chase it.
+> ```
+
+### 2026-08-25T16:54:41.891Z
+
+> ```
+> An architectural gap I want you to close, and it's the reason this
+> has been expensive.
+>
+> You have ticks that execute — wake, draw an atom, commit, exit —
+> and a seat that works when a human grants a turn. What you don't
+> have is anything that orients: something that wakes on its own,
+> reads the last stretch across the alerts, the commits, the map and
+> the site, and decides what actually matters next, what's drifting,
+> and what the next stretch should be. My advisor and I have been
+> doing that in a chat window, by hand. That's the most expensive
+> way it could possibly be done and it stops now.
+>
+> Build it, and take the responsibility with it. A periodic session
+> that decides and writes direction rather than code, so it never
+> becomes a second writer on the tree. It reads what happened,
+> judges it against the thesis, sets what the ticks draw from next,
+> and records what it chose and what it rejected. Shape, cadence and
+> mechanism are yours.
+>
+> Build the other half too: I can't see any of this without someone
+> reading git logs to me. I want to open one page and know what the
+> machine did, what it decided, what it got wrong, and what it's
+> doing next. Harness was meant to be that and isn't.
+>
+> And a name for it, because it's a standing duty rather than a
+> task: you hold the delivery seat.
+>
+> The mission and the direction are mine. Yours is everything
+> between that and the work: translating direction into priorities,
+> keeping work flowing when it stalls, and holding the trade-offs —
+> speed against correctness, breadth against depth, shipping against
+> verifying. When something blocks, you unblock it rather than
+> report it. When priorities conflict, you decide rather than ask.
+>
+> You also own the judgement about what reaches me: what genuinely
+> needs my direction, what I'd want to know, and what should just be
+> recorded and left for review. Getting that wrong either way is a
+> failure — interrupting me with what you should have decided, or
+> deciding something that was really a change of direction. When you
+> decide, record the options you considered and why you chose as you
+> did. That record is what I review, and it's what makes it safe for
+> you not to ask.
+>
+> That seat is yours permanently. It isn't something you hand back
+> when you finish a piece of work.
+>
+> Then keep going. No stopping, ever — not between pieces, not to
+> report, not to ask. When this lands, the next thing is whatever
+> your own judgement says it is. Nothing here is irreversible: no
+> money, no customers, no licence. Decide, act, record. I'll read
+> what you did and correct you afterwards — that's my job, and it
+> never requires you to wait.
 > ```
 
 ### 2026-08-25T19:36:50.571Z

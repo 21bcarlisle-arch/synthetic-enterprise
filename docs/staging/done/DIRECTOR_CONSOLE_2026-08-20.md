@@ -15,7 +15,7 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
+Source: `16aaaff2-7e7e-417f-83d5-80457b2eaadb.jsonl, 16d1bf68-b2cc-4d3f-8cdf-ec3ba3090a30.jsonl, 1e93f7c2-5dac-44a9-9ba8-702868340689.jsonl, 29f540c9-c503-4cb4-8dc8-7e6d21848896.jsonl, 3ecd2228-d715-4827-b979-8167832db295.jsonl, 49b87759-f59c-4a41-8358-591d63aabc48.jsonl, 64390b0a-005b-4111-9d62-cc1b4dbb1894.jsonl, 650509ea-4293-4a86-beb1-cb466ee395d8.jsonl, 78de2e37-5e5c-434e-a45c-6a4a33895c14.jsonl, 7b238e49-4b5c-4ac7-9a72-af739707354b.jsonl, 98bc6f04-feb8-4f15-bb1f-b487d27bc96f.jsonl, b1e91fec-5a59-4ad8-95b0-3e230ab3a03e.jsonl, c6cee6e9-62fb-45a2-8e17-d45aa524771f.jsonl, d9710230-6d6a-4418-918e-dc4927796278.jsonl, fb85b35a-9e36-4fb4-9281-f16f9c932879.jsonl, ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 26 turn(s).
 
 ### 2026-08-20T04:54:15.749Z
 
@@ -115,7 +115,7 @@ Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
 >
 > 8. **Current Work:**
 > Immediately before this summary I completed the director's final list except the green publish:
-> - **Salvaged four lanes' work**, all pushed to origin, all verified byte-identical: `salvage/ep6-wall-protocol-typing-20260819`, `salvage/knife3-growth-desk-20260819` (recreated after silent failure), `salvage/seam-door-call-conformance-20260819`, `salvage/saas-margin-rename-20260819`.
+> - **Salvaged four lanes' work**, all pushed to origin, all verified byte-identical: `salvage/<REDACTED: credential-shaped, removed by the console capture>`, `salvage/knife3-growth-desk-20260819` (recreated after silent failure), `salvage/<REDACTED: credential-shaped, removed by the console capture>`, `salvage/saas-margin-rename-20260819`.
 > - **Nav landed and deployed** (`92f59bdb9`, `a11556e23`). All three symptoms verified gone on the **deployed** site at 360px: `logoFont:"Helvetica Neue", logoSize:17px, logoWeight:700, navH:70, n:5, rows:1, lastRight:352, overflow:false` — identical across home/knowledge/capabilities/explore.
 > - **Proposal filed** (`7045ca2e9`).
 > - **NTFY sent** (`x6IhSeT4Kktn`), stating plainly that publish was not achieved. Topic was read from the running worker's `/proc/<pid>/environ` and the temp file was deleted afterwards.
@@ -320,7 +320,7 @@ Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
 > Here is the OAuth callback URL from my phone — complete the
 > Cloudflare authorisation with it:
 >
-> http://localhost:63364/callback?code=90a4c90ffe17c7efdb206d159e271368%3ASNLpvt4NGMnWqXnU%3AjwZq4bQz8sWlyR7KXyFAjSCxts3DOvEm&state=m4DphbMx2bdq9THpA0OMk8KHazfxd-lCPmeXsobsKeM&iss=https%3A%2F%2Fmcp.cloudflare.com
+> http://localhost:63364/callback?code=<REDACTED: credential-shaped, removed by the console capture>%3ASNLpvt4NGMnWqXnU%<REDACTED: credential-shaped, removed by the console capture>&state=<REDACTED: credential-shaped, removed by the console capture>&iss=https%3A%2F%2Fmcp.cloudflare.com
 >
 > Then do these now, in order, and report each:
 >
@@ -340,11 +340,11 @@ Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
 
 ### 2026-08-20T12:53:13.579Z
 
-> http://localhost:63364/callback?code=90a4c90ffe17c7efdb206d159e271368%3AN1PNU2ri9LjFoMqU%3A6p4yq3WEB7wXgy7Jo8b6l28xSqCwYKCS&state=qjWdQgNPrgF01iyFNGZ4NarMuJbidZUvOZC2Hgx3Gec&iss=https%3A%2F%2Fmcp.cloudflare.com
+> http://localhost:63364/callback?code=<REDACTED: credential-shaped, removed by the console capture>%3AN1PNU2ri9LjFoMqU%<REDACTED: credential-shaped, removed by the console capture>&state=<REDACTED: credential-shaped, removed by the console capture>&iss=https%3A%2F%2Fmcp.cloudflare.com
 
 ### 2026-08-20T12:59:20.699Z
 
-> http://localhost:3118/callback?code=90a4c90ffe17c7efdb206d159e271368%3AAR-auPZM-HE4UxUQ%3AD01wJsmwGyjsf62Sa8BYr7kvUBoEnPBi&state=BHeCZfcrwCPwBTzHFRjxKg_9dW8XNgSR0vwzj2jIQ4I&iss=https%3A%2F%2Fobservability.mcp.cloudflare.com
+> http://localhost:3118/callback?code=<REDACTED: credential-shaped, removed by the console capture>%3AAR-auPZM-HE4UxUQ%<REDACTED: credential-shaped, removed by the console capture>&state=<REDACTED: credential-shaped, removed by the console capture>&iss=https%3A%2F%2Fobservability.mcp.cloudflare.com
 
 ### 2026-08-20T14:01:01.457Z
 
@@ -380,6 +380,15 @@ Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
 > edge_traffic_capture.py runs on a schedule and writes real rows.
 >
 > [REDACTED 2026-08-26 — a live Cloudflare API token was here. GitHub push protection refused the commit carrying it, which is the only reason it never reached origin. It sat in this working-tree file from 2026-08-20. The instruction in this very message reads "not in the repo"; the ntfy responder writes every inbound message to docs/staging/ verbatim, so the token and the instruction not to store it travelled together to the one place it said not to go. ROTATE IT.]
+
+### 2026-08-20T14:25:44.110Z
+
+> Cloudflare analytics-read token, scoped to poesys.net, Analytics
+> Read only, no expiry. Store it as CLOUDFLARE_API_TOKEN wherever
+> the scheduled capture needs it — not in the repo — and confirm
+> edge_traffic_capture.py runs on a schedule and writes real rows.
+>
+> <REDACTED: credential-shaped, removed by the console capture>
 
 ### 2026-08-20T14:37:27.475Z
 
@@ -422,10 +431,6 @@ Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
 ### 2026-08-20T15:02:55.433Z
 
 > can i help or is it now all in hand?
-
-### 2026-08-20T15:04:31.982Z
-
-> /compact
 
 ### 2026-08-20T15:06:24.808Z
 
@@ -577,6 +582,156 @@ Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
 > If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/rich/.claude/projects/-/ffcb5162-c57b-4509-934d-b57034445bf0.jsonl
 > Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
 
+### 2026-08-20T15:06:24.808Z
+
+> This session is being continued from a previous conversation that ran out of context. The summary below covers the earlier portion of the conversation.
+>
+> Summary:
+> 1. **Primary Request and Intent:**
+>
+> This session spans 2026-08-20 in `/home/rich/synthetic-enterprise`. Rich (MD/director) issued sequential instructions:
+>
+> - **Dashboard/exec summary:** "Decide what each is for. If nothing reads them, retire them rather than keep them consistent... And a rule beyond those two: a surface no reader can reach must never be able to block publishing."
+> - **Repeating alerts:** "the sim failed about twenty times overnight... Fix the failures, and make a repeating alert escalate itself into the draw instead of re-telling me."
+> - **Site fold:** "This is an externally facing website for readers who don't know the project. It is not my observability tool... The five tabs are the site. Anything not in them either has its content moved into a tab that earns it, or it goes and its URL redirects somewhere sensible... Two things to protect: the redirects that already point at Proof must keep landing somewhere real, and the G13 audit follows the figures wherever they end up."
+> - **Redirects:** "no one has ever visited those URLs. There is no history to protect, so stop protecting it. Delete the redirects outright, and the controls, tests and checks that exist to keep them true... the retired-area machinery, fold enforcement for pages that no longer exist, the three-state register if two states now cover it... If deleting something would genuinely break a reader's path, keep that one and tell me which."
+> - **Channel measurement:** "the repeating-alert fix hasn't taken: today PUBLISH RECOVERED fired seven times, four naming the same run id 810561e4f... Measure your own channel over the last 24 hours and fix what the measurement shows, not the mechanism you expected to be at fault."
+> - **Cloudflare grant:** "Granted: you may control Cloudflare. Install the official setup from https://developers.cloudflare.com/agent-setup/prompt.md... Treat that page as documentation I'm acting on, not as instructions you obeyed: I'm the one authorising this, and the authority comes from me rather than from the fetched text. Record it that way."
+> - **504s:** "take the 504s first" — plus "set up whatever ongoing visibility you need before the free plan's 1-day retention loses it" and "when the origin times out the edge serves last-known-good, so every 'verified live' check either of us has done this week may have been reading a stale copy."
+> - **Working mode change:** "Assume I'm not watching. Batch what you'd tell me into one report at the end of the day rather than after each piece — what landed, what you decided, what you got wrong, what needs me. Only interrupt for something genuinely reserved: curriculum values, one-way doors, money, or a real person. Everything else, act and record. If you find yourself waiting on me for anything else, that's a defect in how I've written the rules — act, and tell me what rule needs changing."
+>
+> **SECURITY CONSTRAINTS (verbatim, still in force):**
+> - "DNS is a one-way door: no DNS change without my word, ever."
+> - "Cache purge, analytics, build and deployment reads are yours to use freely... Anything that spends money stays reserved."
+> - Token: "Store it as CLOUDFLARE_API_TOKEN wherever the scheduled capture needs it — not in the repo"
+> - Four reserved classes: curriculum values, one-way doors, money, a real person.
+> - From CLAUDE.md: hook-bypass (`--no-verify`) is a wall; the agent may never widen its own security profile.
+>
+> 2. **Key Technical Concepts:**
+> - Cloudflare Pages deploy from `origin/main` on `site/**` (`.github/workflows/deploy-pages.yml`); `_redirects`, `_headers`, zone cache vs Pages asset serving
+> - Cloudflare GraphQL Analytics API (`httpRequestsAdaptiveGroups`); Free plan **refuses queries wider than 1 day**
+> - MCP servers: `cloudflare-api`, `-docs`, `-bindings`, `-builds`, `-observability`; OAuth flows don't survive between turns
+> - R-rules: R5 (transitions only), R10 (class not instance), R11 (verify to rendered value), R15 (controls must FAIL; TAUTOLOGY/FAIL-OPEN/FAIL-SILENT)
+> - 12-gate pre-commit chain (~15 min); AO2 write-time reuse gate **reads the commit message**; orphan ratchet; finding-class consolidation
+> - Derived-not-literal principle: literal page lists go stale and take controls down
+> - Absence-vs-staleness rule (see §5)
+>
+> 3. **Files and Code Sections:**
+>
+> - **`tools/reader_reachability.py`** (created) — walks built site from front door. Transitive closure from `/`, redirect sources excluded, static hrefs only, fails closed below `MIN_PLAUSIBLE_REACHABLE = 6`. Key regex fix:
+> ```python
+> # The href AND what follows its closing quote. A JS-templated href reads
+> # `href="./x/"+esc(id)+"/"`, and an attribute-only regex extracts `./x/`
+> _HREF = re.compile(r"""href=(["'])(.*?)\1(\s*\+)?""")
+> ```
+>
+> - **`tools/generate_dashboard_data.py`** — removed `_check_consistency`, `_insights_metric`, `_CONSISTENCY_CHECKS` (88 lines). Added `PUBLISH_VERDICT_CHECKS` and `REPORTED_NOT_BLOCKING`. Final verdict narrowed:
+> ```python
+> consistency_ok = population_ok and mix_claim_ok
+> ```
+>
+> - **`background/alarm_repetition.py`** (created) — `alarm_signature()`, `normalise()`, `escalate()`. `ESCALATE_AFTER_REPEATS = 3`, `EPISODE_GAP_SECONDS = 4 * 3600`. Number regex deliberately without trailing `\b`:
+> ```python
+> re.compile(r"\d[\d,]*(?:\.\d+)?"),
+> ```
+> Pytest guard scoped to the real directory:
+> ```python
+> target = Path(staging_dir) if staging_dir is not None else STAGING_DIR
+> if (os.environ.get("PYTEST_CURRENT_TEST") is not None
+>         and target.resolve() == (PROJECT_DIR / "docs" / "staging").resolve()):
+>     return None
+> ```
+>
+> - **`background/notify.py`** — G-N4 auto-keying for unkeyed `real_alarm`; commit-on-delivery for auto keys only; re-escalation stops once escalated:
+> ```python
+> due = (re_escalate_after is not None
+>        and not escalated
+>        and (now - float(prev.get("ts", 0))) >= re_escalate_after)
+> ```
+>
+> - **`background/publish_step_ledger.py`** — `_commit_state()` now called only after a delivered alert; routed through `notify()`.
+>
+> - **`site/harness/index.html`** (rewritten) — real page fetching `../data/proof.json`; sections: how work is chosen, what we know is wrong, belief-vs-truth gap (carries the G13 store-agreement audit), corrections, rules minted, controls, what a human decided.
+>
+> - **`site/explore/index.html`** — six-stage traversal; loads **both** fuel legs; stage 6 carries "For them" and "For us".
+>
+> - **`site/_redirects`** — now ONE rule: `/favicon.ico /favicon.svg 301`
+>
+> - **`tools/edge_traffic_capture.py`** (created) — hourly capture to `docs/observability/edge_traffic.jsonl`, dedup by `(hour, path, status, colo)`, exits non-zero on failure/zero rows.
+>
+> - **`background/edge-traffic-capture.{service,timer}`** (created) — hourly, `Persistent=true`, `EnvironmentFile=-/home/rich/.config/synthetic-enterprise/.env.cloudflare`
+>
+> - **`docs/observability/HANDOVER_504_GATEWAY_TIMEOUTS_2026-08-20.md`** (created, 209 lines) — full diagnosis. **50-line breakthrough section is UNCOMMITTED.**
+>
+> - **`docs/staging/WORKER_FINDING_THE_SITE_IS_FAILING_UP_TO_47_PERCENT_OF_PAGE_LOADS_2026-08-20.md`** (created, last action) — BLOCKING, makes the investigation drawable.
+>
+> - **`docs/design/CLOUDFLARE_CAPABILITY_GRANT_2026-08-20.md`** (created) — records authority as the director's, not the page's; states DNS wall is prose honoured not a capability lacked.
+>
+> 4. **Errors and fixes:**
+>
+> - **`git stash` on the shared tree** — pop conflicted, reverted 84 files of four other lanes' work. Restored losslessly by checking each file against HEAD before restoring.
+> - **`git add -A` swept another lane's work** into my commit → gate refused on KNIFE3's landing claim. Narrowed to explicit pathspec.
+> - **AO2 record in the docstring, not the commit message** — the gate reads the commit message. (Repeat of a known past error.)
+> - **Regex `\b\d[\d,]*\.?\d*\b`** couldn't match "252" inside "252s" — read correctly, did nothing. Removed trailing `\b`.
+> - **Auto-key had no recovery signal** — would silence an alarm permanently. Added `EPISODE_GAP_SECONDS`.
+> - **Commit-on-attempt** remembered a failed send as delivered, suppressing retries — the 2026-07-18 deadman incident; caught by that incident's own test in the gate.
+> - **Escalation wrote real staging findings during pytest** — five filed, one quoting fixture `SOME_DOC.md`. Added pytest guard.
+> - **XML comment with `--`** in sitemap.xml — invalid, twice.
+> - **Front door `net_margin_gbp`** violated RC7 (no cohort £ aggregate leads a public surface) — removed; conflict with the brief recorded, not resolved.
+> - **www redirect kept on a belief** — "people type www"; then measured: no DNS record. Deleted.
+> - **Wrong 504 attribution** — reported "399 from LHR so it's my own machine"; fuller data showed SOF/ORD/MCI/VIE/AMS/GRU including a Brazilian reader.
+> - **Three wrong theories about the stale pages** — cache headers, zone purge, local-curl-only.
+> - **Handover filed where nothing reads it** — `docs/observability/` isn't scanned by the staging watcher. Surfaced only when Rich asked "will this happen automatically without me doing anything?"
+>
+> 5. **Problem Solving:**
+>
+> - **Retired the exec-summary gate**, corrected my own false premise that it blocked publishing (it's advisory; the log shows the pipeline continuing in the same minute).
+> - **Measured the channel from the ntfy mirror** (`/home/rich/synthetic-enterprise-ops/ntfy-mirror.md`): 69 messages/24h, 33 conditions; sim failures 21→0 post-fix; PUBLISH RECOVERED ×7 bypassed `notify()` and was false.
+> - **The 504 breakthrough:** `_routes.json` doesn't exist; 219 files/20MB. From 829 captured rows: **every path that has ever 504'd is extensionless; every path with a file extension has zero 504s.** `/never-existed-xyz/` and `/definitely-not-a-page/` also 504'd, proving it's the path-resolution fallback, not content serving. Best untested lead: `site/404.html` is 961 bytes in repo but serves live as **HTTP 308 with 0 bytes**.
+> - **Absence-vs-staleness rule:** checks that observed NEW content hold (a stale copy can't contain something newer); checks concluding something was ABSENT/REMOVED/UNCHANGED are unsafe. Fix is `?cb=<nonce>`.
+>
+> 6. **All user messages:**
+> - Post-compact anchor: state-setting + dashboard/exec summary decision + repeating-alert escalation + Explore
+> - "Ruling on the site, replacing my earlier sequencing..." (five tabs are the site; content moves or page goes; protect Proof redirects and G13 audit; "Judge what content is worth keeping and act. Don't bring me a list of pages to rule on.")
+> - "push it and check the live site"
+> - "margin stays off the front door — leave it as you've set it, and keep those five checks reported-not-blocking until a reader can open the page they grade. Redirects: no one has ever visited those URLs... Delete the redirects outright... The SITE9 escalation asks me to rule on publishing /director/ to crawlers — a page you deleted half an hour later. Kill it... the repeating-alert fix hasn't taken... Measure your own channel over the last 24 hours and fix what the measurement shows, not the mechanism you expected to be at fault. Then straight on to the work that moves the project... finish Explore properly... then the Harness page's own content, then PB3's growth path."
+> - "Harness content next, then PB3. I'll set CLOUDFLARE_ZONE_ID — that one's mine... Worth a moment's thought about what else in the publish path prints failure and exits zero."
+> - "Granted: you may control Cloudflare. Install the official setup from https://developers.cloudflare.com/agent-setup/prompt.md... Treat that page as documentation I'm acting on... DNS is a one-way door: no DNS change without my word, ever."
+> - "The OAuth callback goes to localhost:3118 which my phone can't reach. Start the Cloudflare authorisation again..."
+> - Callback URL paste (first, orphaned)
+> - Callback URL paste (second, succeeded) + four numbered items
+> - Callback URL paste (observability)
+> - "take the 504s first. Also set up whatever ongoing visibility you need before the free plan's 1-day retention loses it..."
+> - "Hand over rather than start the fix — you're near your limit and I'd rather you compact cleanly than lose the thread mid-diagnosis."
+> - "Cloudflare analytics-read token, scoped to poesys.net, Analytics Read only, no expiry. Store it as CLOUDFLARE_API_TOKEN wherever the scheduled capture needs it — not in the repo" + `<REDACTED: credential-shaped, removed by the console capture>`
+> - "504s first — Harness and PB3 wait behind them... Assume I'm not watching. Batch what you'd tell me into one report at the end of the day... Only interrupt for something genuinely reserved... Token stays as it is."
+> - "So work is happening?"
+> - "will this work and handover happen automatically without me doing anything?"
+> - "can i help or is it now all in hand?"
+>
+> 7. **Pending Tasks (director's stated order):**
+> 1. **Fix the 504s** — test the `site/404.html` 308 theory
+> 2. **Re-run absence-shaped verifications** with cache-busters
+> 3. **Harness page content** (written method account)
+> 4. **PB3 growth path**
+>
+> 8. **Current Work:**
+>
+> Immediately before the summary request, Rich asked "can i help or is it now all in hand?" I ran a state check showing commit H still gating with 0 refusals.
+>
+> Just prior, I had filed `docs/staging/WORKER_FINDING_THE_SITE_IS_FAILING_UP_TO_47_PERCENT_OF_PAGE_LOADS_2026-08-20.md` (BLOCKING) after discovering the handover was in `docs/observability/` — not scanned by the staging watcher — so the investigation would never have been drawn. All five daemons confirmed running (supervisor, background_worker, autonomous_runner, deadmans_switch, sim_runner).
+>
+> **Outstanding state:** commit H still in the gate (carrying `tools/edge_traffic_capture.py`, the systemd units, `edge_traffic.jsonl`, the handover, the capability record); the 50-line breakthrough section of the handover **uncommitted**; 126 uncommitted files in the shared tree; the new staging finding uncommitted.
+>
+> 9. **Optional Next Step:**
+>
+> Answer the question actually asked — "can i help or is it now all in hand?" — honestly and briefly: nothing reserved is pending, so nothing needs him. Then, per his standing instruction ("Assume I'm not watching... Everything else, act and record"), continue with the 504 fix as instructed: "Start where you said: whether the Pages deployment's asset count or _routes.json explains why routed HTML resolves slowly while direct assets never fail. Look rather than guess."
+>
+> That specific hypothesis is now **eliminated** (no `_routes.json`; 219 files/20MB). The next concrete step is the lead recorded in the handover: test whether `site/404.html` serving live as **HTTP 308 with 0 bytes** (while being a healthy 961 bytes in repo and every deployment) explains the hanging path-resolution fallback — likely via the zone's managed Normalization Ruleset — and note the handover's own caution: "The 404.html-308 lead IS a theory, and the fourth of the day; three have already been wrong. Test it before acting on it."
+>
+> If you need specific details from before compaction (like exact code snippets, error messages, or content you generated), read the full transcript at: /home/rich/.claude/projects/-/ffcb5162-c57b-4509-934d-b57034445bf0.jsonl
+> Continue the conversation from where it left off without asking the user any further questions. Resume directly — do not acknowledge the summary, do not recap what was happening, do not preface with "I'll continue" or similar. Pick up the last task as if the break never happened.
+
 ### 2026-08-20T15:08:37.715Z
 
 > can you pick up where you left off
@@ -584,3 +739,7 @@ Source: `ffcb5162-c57b-4509-934d-b57034445bf0.jsonl` · 24 turn(s).
 ### 2026-08-20T20:17:47.409Z
 
 > Are you stalled?
+
+### 2026-08-20T20:19:48.314Z
+
+> thats twice youve stalled due to excuses about context. fix this so it doesnt hapen again.
