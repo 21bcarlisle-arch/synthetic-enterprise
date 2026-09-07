@@ -6,6 +6,7 @@ delivery seat found: five derivation modules in `tools/`, at level 3, imported b
 """
 
 import json
+import math
 
 import pytest
 
@@ -15,7 +16,7 @@ from simulation.weather_inputs import _WEATHER_SOURCE_CUSTOMERS, _weather_source
 LONDON = {"lat": 51.5074, "lon": -0.1278, "region": "London"}
 BIRMINGHAM = {"lat": 52.4862, "lon": -1.8904, "region": "Birmingham"}
 TEESSIDE = {"lat": 54.5973, "lon": -1.1049, "region": "Teesside"}
-WITNESS = {"lat": 50.5392, "lon": -4.2371, "region": "Cornish coast"}
+WITNESS = {"lat": 50.4689, "lon": -4.1492, "region": "Cornish coast"}
 
 
 def test_the_sim_imports_the_derivation_rather_than_reimplementing_it():
@@ -43,10 +44,17 @@ def test_the_accept_branch_is_reachable_and_it_matches_climate_not_proximity():
     accept branch cannot fire. Every refusal test below passes against a mechanism that refuses
     EVERYTHING, so the accept branch must be proved reachable before any of them mean anything.
 
-    The witness is 304 km from London on the opposite coast. A mechanism that matched on distance
+    The witness is ~300 km from London on the opposite coast. A mechanism that matched on distance
     would refuse it; one that matched on the derived cells accepts it, because the derivation puts
     the two in the same cell on all three drivers. So this also pins WHICH property is being
     tested — swapping the cell comparison for a nearest-site rule turns this red.
+
+    2026-09-07: this went red when the artefact was re-cut on the UPRN placement, because the old
+    witness cell stopped sharing all three of London's — leaving the accept branch with NO witness,
+    which is the very R15 failure the witness exists to prevent, reintroduced by a re-derivation
+    rather than by a code change. The witness was re-measured, not the assertion relaxed. The
+    distance is asserted as a DISTANCE now rather than as per-axis deltas, one of which was passing
+    by 0.02 degrees and would have failed the next re-cut for a reason that is not the property.
     """
     assert wcs.cell_matched_site(WITNESS) == "C1"
 
@@ -55,8 +63,11 @@ def test_the_accept_branch_is_reachable_and_it_matches_climate_not_proximity():
     assert sited["cells"] == london["cells"]
 
     # ...and it really is far away, so "same cell" cannot be read as "next door".
-    assert abs(sited["lat"] - london["lat"]) > 0.9
-    assert abs(sited["lon"] - london["lon"]) > 4.0
+    lat1, lon1 = math.radians(sited["lat"]), math.radians(sited["lon"])
+    lat2, lon2 = math.radians(london["lat"]), math.radians(london["lon"])
+    a = (math.sin((lat2 - lat1) / 2) ** 2
+         + math.cos(lat1) * math.cos(lat2) * math.sin((lon2 - lon1) / 2) ** 2)
+    assert 6371.0 * 2 * math.asin(math.sqrt(a)) > 250
 
 
 def test_one_driver_disagreeing_refuses_the_whole_substitution():
@@ -86,9 +97,15 @@ def test_an_unsited_coordinate_is_refused_and_never_placed_by_nearest_anything()
     unsited = {"lat": 52.0000, "lon": -1.0000, "region": "nowhere in particular"}
     assert wcs.cells_for_location(unsited) is None
     assert wcs.cell_matched_site(unsited) is None
-    assert "has not been sited" in wcs.siting_refusal(unsited)
+    # Keyed to the PROPERTY, not the wording (which was rewritten 2026-09-07 when the refusal was
+    # found to be prescribing a remedy that cannot reach this case): the refusal must say the
+    # coordinate is absent from the artefact AND must not offer proximity as a way out.
+    refusal = wcs.siting_refusal(unsited)
+    assert "not in the derived artefact" in refusal
+    assert "nearest" in refusal, "the refusal must explicitly rule out the fallback it is tempting"
 
-    # A premise with no coordinates at all — every drawn population customer, today.
+    # A premise with no coordinates at all — every drawn customer under the DEFAULT placeholder
+    # region, and none of them once `draw_region=True` (W2_18, 2026-09-07).
     assert wcs.cell_matched_site({"lat": None, "lon": None, "region": "GB"}) is None
 
 
@@ -103,14 +120,25 @@ def test_a_premise_with_no_coordinate_is_refused_for_that_reason_and_not_told_to
     Keyed to the PROPERTY (the two refusals are distinguishable and the no-coordinate one does not
     prescribe `--derive`), not to today's wording, so it stays honest if the text is rewritten and
     goes red if the branches are ever collapsed back together.
+
+    2026-09-07 — THIS CONTROL WAS HALF WRONG, and the half is kept beside its correction. It used to
+    assert `"--derive" in siting_refusal(unsited)`, on the reasoning that re-deriving fixes a real
+    unsited coordinate. It does not: `derive()` sites only the locations it is handed and the CLI
+    hands it the same seven, so bare `--derive` reaches no drawn household. The wrong leg survived
+    because at the time NO real coordinate reached that branch — it was asserting a remedy against
+    an empty population. It now asserts the opposite property: the unsited refusal must NOT sell
+    bare `--derive` as sufficient.
     """
     no_coordinate = {"lat": None, "lon": None, "region": "UNKNOWN_SYNTHETIC"}
     unsited = {"lat": 52.0000, "lon": -1.0000, "region": "nowhere in particular"}
 
     bare = wcs.siting_refusal(no_coordinate)
-    assert wcs.siting_refusal(unsited) != bare, "two different failures, one refusal"
-    assert "--derive" in wcs.siting_refusal(unsited), (
-        "a real unsited coordinate IS fixed by re-deriving and the refusal must still say so"
+    unsited_refusal = wcs.siting_refusal(unsited)
+    assert unsited_refusal != bare, "two different failures, one refusal"
+    assert "locations=" in unsited_refusal, (
+        "the unsited refusal must name the remedy that can actually reach it — re-cutting the "
+        "artefact over the population being looked up, not bare `--derive`, which re-sites the "
+        "same handful of locations"
     )
     assert "coordinate" in bare and "None" in bare
     assert "draw" in bare.lower(), "the refusal must name the lane that can actually fix it"
@@ -119,22 +147,30 @@ def test_a_premise_with_no_coordinate_is_refused_for_that_reason_and_not_told_to
     )
 
 
-def test_no_household_in_this_world_can_reach_the_cell_substitution_branch():
-    """DEFECT (the seat's own, 2026-09-06): reading W1_14's blocker off the supply book's LOCATIONS
-    when the atom's subject is its HOUSEHOLDS — so 'two pulls close it' was recorded as this atom's
-    precondition while buying nothing for household heat load.
+def test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_it_up():
+    """DEFECT (the seat's own, 2026-09-07): a tripwire that could not see the event it was built for.
 
-    Two independent reasons the branch is unreachable, asserted separately because they are fixed by
-    different lanes and either one could be closed alone:
+    Its predecessor — `test_no_household_in_this_world_can_reach_the_cell_substitution_branch` —
+    said in its own docstring that "a coordinate at the draw breaks it … delete it and move W1_14's
+    level". W2_18 then landed a coordinate at the draw (`ec8a18710`) and it stayed GREEN, because
+    its drawn-population leg called `draw_population(...)` with the DEFAULT placeholder region,
+    which is the one region `household_siting` correctly refuses to site. The capability arrived on
+    the non-default branch and the control was measuring the default one. R15: a control keyed to
+    today's CONFIGURATION is blind to the branch the work actually lands on.
 
-      1. every resi premise in the supply book answers at step 1 (its location has an archive), so
-         it never consults step 2 — the two un-archived locations hold only I&C premises;
-      2. every DRAWN household carries no coordinate, so step 2 refuses it whatever the archive.
+    So this is rewritten to the property rather than deleted, because the claim it guards did NOT
+    become true — it changed shape. Three legs, each fixed by a different lane:
 
-    This control is DELIBERATELY the shape that goes red when the world gets better: a resi premise
-    at a fifth location, or a coordinate at the draw, breaks it. That is the point — it is pinned to
-    the claim "the cells drive household heat load" being FALSE, and it must fail the moment that
-    stops being true. Do not weaken it; delete it and move W1_14's level.
+      1. every resi premise in the supply book answers at step 1, so it never consults step 2 —
+         the two un-archived locations hold only I&C premises (unchanged, 2026-09-06);
+      2. with `draw_region=True` every drawn household DOES carry a coordinate — W2_18's delivery,
+         and this leg goes red if it ever regresses;
+      3. and none of them resolves, because `locations` is a table over the seven locations
+         `derive()` was handed. The refusal they receive must say THAT, not "no coordinate".
+
+    Still deliberately the shape that goes red when the world gets better: leg 3 fails the moment
+    the artefact is cut over the drawn population, which is now W1_14's real remaining move. Do not
+    weaken it then — delete leg 3 and move the level.
     """
     from company.interfaces.supply_book import registered_supply_points
     from simulation.population_draw import draw_population
@@ -152,12 +188,34 @@ def test_no_household_in_this_world_can_reach_the_cell_substitution_branch():
         )
         assert _weather_source_customer_id(premise) in ("C1", "C2", "C3", "C4")
 
-    drawn = [c.to_customer_dict() for c in draw_population(7, acquisitions_per_year_lambda=40.0)]
+    # draw_region=True is the SHARP configuration and the reason this control was blind: with the
+    # default placeholder region there is no household distribution to draw from, so an unsited
+    # household there proves nothing about whether a coordinate exists.
+    drawn = [c.to_customer_dict() for c in
+             draw_population(7, acquisitions_per_year_lambda=40.0, draw_region=True)]
     assert len(drawn) > 100, "too few drawn households for this to say anything"
-    assert all(wcs.cells_for_location(c["location"]) is None for c in drawn), (
-        "a drawn household is now sited in the derived cells — the coordinate reached the draw"
+
+    # Leg 2 — W2_18 delivered. Red if the coordinate regresses.
+    unsited = [c for c in drawn if c["location"]["lat"] is None]
+    assert not unsited, (
+        f"{len(unsited)} of {len(drawn)} drawn households lost their coordinate — W2_18 regressed"
     )
-    assert all(c["location"]["lat"] is None for c in drawn), "and that is why: no coordinate"
+
+    # Leg 3 — and it still buys no cell, for a reason that now lives in THIS module's artefact.
+    resolved = [c for c in drawn if wcs.cells_for_location(c["location"]) is not None]
+    assert not resolved, (
+        f"{len(resolved)} drawn households now resolve in the derived cells — the artefact has been "
+        "cut over the drawn population and W1_14's household gap has closed. Delete this leg and "
+        "move the level; do not weaken it"
+    )
+    refusal = wcs.siting_refusal(drawn[0]["location"])
+    assert "carries no coordinate" not in refusal, (
+        "a sited household is being refused as though it had no coordinate — the branches have been "
+        "collapsed back together and the refusal now names the wrong lane"
+    )
+    assert "locations=" in refusal, (
+        "the refusal a sited household receives must name the artefact's table as the cause"
+    )
 
 
 def test_the_refusal_names_the_driver_that_disagreed():
@@ -169,7 +227,11 @@ def test_the_refusal_names_the_driver_that_disagreed():
     for site in ("C1", "C2", "C3", "C4"):
         assert site in reason, f"{site} is an archive site and the refusal did not price it"
     assert "winter_temp" in reason
-    assert "3.5% of GB households" in reason
+    # Keyed to the ARTEFACT's own figure, not to the literal "3.5%" this asserted until 2026-09-07.
+    # That literal went red when the artefact was re-cut on the UPRN placement — a control pinned to
+    # today's answer going red because the code became MORE honest, which is exactly backwards.
+    coverage = wcs.load()["coverage"]["all_three"]
+    assert f"{coverage * 100:.1f}% of GB households" in reason
 
 
 def test_the_archive_covers_a_small_measured_share_and_the_figure_carries_its_partition():

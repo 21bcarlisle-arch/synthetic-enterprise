@@ -6,16 +6,16 @@
     "annual_sun"
   ],
   "partition": "one weighted k-means per driver, n_init=1, random_state=0 (weather_cell_derivation.per_driver_curve)",
-  "occupied_land_cells": 121668,
+  "occupied_land_cells": 175188,
   "archive_sites": {
     "London": {
       "lat": 51.5074,
       "lon": -0.1278,
       "km_to_cell_centre": 0.42,
       "cells": {
-        "winter_temp": 3,
-        "annual_wind": 2,
-        "annual_sun": 12
+        "winter_temp": 9,
+        "annual_wind": 17,
+        "annual_sun": 7
       }
     },
     "Manchester": {
@@ -23,9 +23,9 @@
       "lon": -2.2426,
       "km_to_cell_centre": 0.454,
       "cells": {
-        "winter_temp": 16,
-        "annual_wind": 19,
-        "annual_sun": 17
+        "winter_temp": 14,
+        "annual_wind": 5,
+        "annual_sun": 3
       }
     },
     "Glasgow": {
@@ -33,9 +33,9 @@
       "lon": -4.2518,
       "km_to_cell_centre": 0.467,
       "cells": {
-        "winter_temp": 14,
-        "annual_wind": 0,
-        "annual_sun": 4
+        "winter_temp": 8,
+        "annual_wind": 20,
+        "annual_sun": 20
       }
     },
     "Cotswolds": {
@@ -43,9 +43,9 @@
       "lon": -1.8433,
       "km_to_cell_centre": 0.575,
       "cells": {
-        "winter_temp": 2,
-        "annual_wind": 15,
-        "annual_sun": 6
+        "winter_temp": 19,
+        "annual_wind": 10,
+        "annual_sun": 7
       }
     }
   },
@@ -56,9 +56,9 @@
       "lon": -0.1278,
       "km_to_cell_centre": 0.42,
       "cells": {
-        "winter_temp": 3,
-        "annual_wind": 2,
-        "annual_sun": 12
+        "winter_temp": 9,
+        "annual_wind": 17,
+        "annual_sun": 7
       }
     },
     "53.4808,-2.2426": {
@@ -67,9 +67,9 @@
       "lon": -2.2426,
       "km_to_cell_centre": 0.454,
       "cells": {
-        "winter_temp": 16,
-        "annual_wind": 19,
-        "annual_sun": 17
+        "winter_temp": 14,
+        "annual_wind": 5,
+        "annual_sun": 3
       }
     },
     "55.8642,-4.2518": {
@@ -78,9 +78,9 @@
       "lon": -4.2518,
       "km_to_cell_centre": 0.467,
       "cells": {
-        "winter_temp": 14,
-        "annual_wind": 0,
-        "annual_sun": 4
+        "winter_temp": 8,
+        "annual_wind": 20,
+        "annual_sun": 20
       }
     },
     "51.8330,-1.8433": {
@@ -89,9 +89,9 @@
       "lon": -1.8433,
       "km_to_cell_centre": 0.575,
       "cells": {
-        "winter_temp": 2,
-        "annual_wind": 15,
-        "annual_sun": 6
+        "winter_temp": 19,
+        "annual_wind": 10,
+        "annual_sun": 7
       }
     },
     "52.4862,-1.8904": {
@@ -100,38 +100,38 @@
       "lon": -1.8904,
       "km_to_cell_centre": 0.146,
       "cells": {
-        "winter_temp": 15,
-        "annual_wind": 19,
-        "annual_sun": 7
+        "winter_temp": 0,
+        "annual_wind": 5,
+        "annual_sun": 8
       }
     },
     "54.5973,-1.1049": {
       "name": "Teesside",
       "lat": 54.5973,
       "lon": -1.1049,
-      "km_to_cell_centre": 0.735,
+      "km_to_cell_centre": 0.468,
       "cells": {
-        "winter_temp": 12,
-        "annual_wind": 16,
-        "annual_sun": 18
+        "winter_temp": 17,
+        "annual_wind": 11,
+        "annual_sun": 17
       }
     },
-    "50.5392,-4.2371": {
+    "50.4689,-4.1492": {
       "name": "Cornish coast (reachability witness, not a premise)",
-      "lat": 50.5392,
-      "lon": -4.2371,
+      "lat": 50.4689,
+      "lon": -4.1492,
       "km_to_cell_centre": 0.005,
       "cells": {
-        "winter_temp": 3,
-        "annual_wind": 2,
-        "annual_sun": 12
+        "winter_temp": 9,
+        "annual_wind": 17,
+        "annual_sun": 7
       }
     }
   },
   "coverage": {
-    "winter_temp": 0.2051,
-    "annual_wind": 0.3072,
-    "annual_sun": 0.2792,
-    "all_three": 0.0348
+    "winter_temp": 0.2036,
+    "annual_wind": 0.2782,
+    "annual_sun": 0.1725,
+    "all_three": 0.02
   }
 }

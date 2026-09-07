@@ -1725,8 +1725,10 @@
   #   L2 IS NOT CLAIMED AND MUST NOT BE. L2 is "mechanically real"; the world's household heat load
   #   is still not DRIVEN by the cells, and the seam is what measured why. The archive is four real
   #   Open-Meteo pulls (C1-C4) against a decision of 21 cells per driver, and those four sites
-  #   cover 20.5% / 30.7% / 27.9% of GB households on winter temperature / wind / sunshine, and
-  #   3.5% on all three at once. So the substitution branch is live and correct and today accepts
+  #   cover 20.4% / 27.8% / 17.3% of GB households on winter temperature / wind / sunshine, and
+  #   2.0% on all three at once (re-cut 2026-09-07 on the UPRN placement; the superseded centroid
+  #   figures were 20.5% / 30.7% / 27.9% / 3.5% and every one overstated the archive). So the
+  #   substitution branch is live and correct and today accepts
   #   nothing the supply book holds: Birmingham shares Manchester's wind cell and neither its
   #   temperature nor its sunshine cell; Teesside shares nothing with anything.
   level_target: 3
@@ -1735,12 +1737,13 @@
   #   "draw it ahead of the next un-drawn product item"; sequencing against its siblings is carried
   #   structurally by depends_on rather than by inventing a 46th rung on a scale that has none.
   provenance: director_ruling
-  # WHAT THIS ATOM WAITS ON, named -- and it is NOT W1_23 or W1_24. Both of those DEPEND ON this
-  # atom and open when it reaches level 3, so deferring the wiring to them is circular. The blocker
-  # is ARCHIVE BREADTH -- and on 2026-09-06 both the COUNT and the REASON were corrected. "17 more
-  # pulls" counts the PARTITION (21 cells less the 4 occupied), which is W1_23's precondition, not
-  # this atom's. THIS atom waits on the BOOK: six distinct supply-book locations, four with
-  # archives, so it is TWO pulls. Both figures are real and count different sets.
+  # WHAT THIS ATOM WAITS ON, named -- and it is NOT W1_23 or W1_24. Both DEPEND ON this atom and
+  # open when it reaches level 3, so deferring the wiring to them is circular. The blocker has been
+  # restated three times BY MEASUREMENT, each correction kept: "17 pulls" counted the PARTITION
+  # (W1_23's precondition); "two pulls" counted the supply book's LOCATIONS, whose un-archived
+  # premises are all I&C, so both move HOUSEHOLD coverage 100% -> 100% (2026-09-06); and the
+  # coordinate gap that replaced them was closed by W2_18 on 2026-09-07. blocked_on is null and
+  # correct: the remaining move is this atom's OWN artefact, not another lane's.
   blocked_on: null
   # RE-MEASURED 2026-09-06 (later tick), because a stated precondition is a proxy that expires and
   # 'clears on its own' is a prediction, not a reading. Probed the archive directly for Birmingham
@@ -1763,13 +1766,17 @@
   # because C1/C2/C3 precede them in book ORDER. Every live premise resolves exactly as before
   # (18/18 unchanged); three mutations of the new guards are killed by the two controls added.
   # THE PULL IS THEREFORE THE WHOLE GAP AGAIN, which is what block_reason says.
-  block_reason: "L1->L2 needs weather ARCHIVE breadth, not more derivation, and TWO pulls close it:
-    `sim/weather_data/` holds 4 real Open-Meteo sites and the supply book has 6 distinct locations,
-    so Birmingham and Teesside are the whole gap. Attempted 2026-09-06, refused HTTP 429 'Daily API
-    request limit exceeded' -- external, clears on its own. That attempt found the header-only-CSV
-    data-loss defect fixed the same day (staged SEAT_FINDING, 2026-09-06). Measured by
-    `simulation/weather_cell_siting.derive()`, recorded in `sim/weather_cells/site_cells.json`. NOT
-    deferred to W1_23/W1_24 -- both depend_on this atom and open when it lands."
+  block_reason: "L1->L2 is blocked HERE now -- not on the archive, and no longer on the draw. W2_18
+    landed a census-sourced coordinate (ec8a18710): measured 2026-09-07 at seed 7 with
+    draw_region=True, 210/210 drawn households are SITED and 0/210 RESOLVE. `weather_cell_siting`'s
+    `locations` is a precomputed TABLE over the 7 locations `derive()` is handed, keyed to ~11 m, so
+    an arbitrary drawn coordinate cannot match it and bare `--derive` re-sites the same 7. The move
+    is to cut the artefact over the population that gets looked up in it (`derive(locations=...)`),
+    which is a decision about artefact size and fidelity, not a wiring fix. The two Open-Meteo pulls
+    are still worth doing for I&C (0/4 -> 4/4, HTTP 429 as of 2026-09-06) but are NOT this atom's
+    precondition. Held by
+    `test_a_drawn_household_has_a_coordinate_and_the_artefact_still_cannot_look_it_up`, whose leg 3
+    goes red the moment the artefact is re-cut. Staged SEAT_FINDING 2026-09-07."
   depends_on: []
   couples_with: [W1_5_premise_demand_shape]
   file_scope: ['simulation/weather_cell_siting.py', 'simulation/weather_inputs.py', 'tests/simulation/test_weather_cell_siting.py']

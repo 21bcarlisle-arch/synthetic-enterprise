@@ -47,8 +47,9 @@ def _weather_source_customer_id(customer: dict) -> str:
        siting_refusal` is what turns that bare miss into a reason naming the driver that disagreed.
 
     Step 2 currently accepts nothing the supply book contains — Birmingham and Teesside each share
-    some but not all of an archive site's cells, and the four sites between them cover 3.5% of GB
-    households on all three drivers at once. That is a measurement of the ARCHIVE, not of this
+    some but not all of an archive site's cells, and the four sites between them cover 2.0% of GB
+    households on all three drivers at once (re-cut 2026-09-07 on the UPRN placement; the 3.5% this
+    line carried was the superseded centroid method's). That is a measurement of the ARCHIVE, not of this
     function: it fires the moment a fifth pull lands, and the module records why.
     """
     for source in _WEATHER_SOURCE_CUSTOMERS:
