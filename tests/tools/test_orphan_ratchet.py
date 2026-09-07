@@ -364,3 +364,122 @@ def test_an_unreadable_git_filters_nothing_rather_than_everything(tmp_path):
     assert "background.scratch" in _orphans(root), (
         "with git unreadable the orphan set was filtered anyway, so a git failure would "
         "certify any tree as clean")
+
+
+# ---------------------------- WHOSE ACT PUT THE MODULE IN THE ACCUSATION
+# Added 2026-09-07. Three times in 24 hours an UNCOMMITTED deletion from
+# `docs/design/orphan_baseline.json` refused every lane committing in the shared tree,
+# under the text "THIS COMMIT ADDS WORK THAT NOTHING RUNS", naming a module the refused
+# lane had never touched. The first instance stood 22 hours. The gate was right that the
+# tree was inconsistent and wrong about every other word in the sentence, and a refusal
+# whose text points at the wrong lane cannot be found to be wrong by the lane it stops.
+#
+# The discriminator is HEAD. A module frozen in `git show HEAD:<baseline>` was already
+# excused before this commit existed, so its reappearance is an EDIT TO THE BASELINE and
+# nothing else. The two tests below are the two halves -- the victim and the real new
+# orphan -- and the third asserts the two refusals have not collapsed back into one text,
+# which is the regression an exit-code-only test cannot see.
+
+def _frozen_repo(tmp_path: Path, *, head_orphans: list[str],
+                 tree_orphans: list[str]) -> tuple[Path, Path]:
+    """A committed repo whose baseline says `head_orphans`, with `tree_orphans` on disk now.
+
+    The two differ exactly as the shared tree differs when a lane edits the baseline and has
+    not committed it. Committing FIRST and rewriting SECOND is what makes `git show HEAD:`
+    a different answer from the file — a fixture that wrote one copy would make the whole
+    discriminator vacuous.
+    """
+    root = _git_repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    pass\n",
+        "background/scratch.py": "def helper():\n    pass\n",
+        "background/other.py": "def helper():\n    pass\n",
+    })
+    baseline = root / "docs" / "design" / "orphan_baseline.json"
+    baseline.parent.mkdir(parents=True, exist_ok=True)
+    baseline.write_text(json.dumps({"orphans": head_orphans}) + "\n")
+    subprocess.run(["git", "add", "-A"], cwd=str(root), check=True)
+    subprocess.run(["git", "-c", "user.email=t@t", "-c", "user.name=t",
+                    "commit", "-qm", "baseline"], cwd=str(root), check=True)
+    baseline.write_text(json.dumps({"orphans": tree_orphans}) + "\n")
+    return root, baseline
+
+
+def test_a_baseline_entry_deleted_only_in_the_working_tree_is_named_as_the_cause(tmp_path, capsys):
+    """DEFECT: the refusal tells an innocent lane its commit added work nothing runs.
+
+    MUTATION (must fire): return `(list(added), [])` unconditionally from `attribute_added`.
+    That is the code as it stood for the 22-hour instance, and this test reds on it.
+    """
+    root, _ = _frozen_repo(tmp_path,
+                           head_orphans=["background.scratch", "background.other"],
+                           tree_orphans=["background.other"])
+    rc = orat.run(root=root, path=root / "docs" / "design" / "orphan_baseline.json")
+    err = capsys.readouterr().err
+
+    assert rc == 1, "the tree IS inconsistent, so this must still refuse -- only the text changes"
+    assert orat.UNFROZEN_HEADLINE in err, (
+        "an uncommitted baseline deletion is refused under the new-orphan text, so the lane it "
+        "stops is told its own commit is the cause:\n{}".format(err))
+    assert orat.ADDED_HEADLINE not in err, (
+        "the innocent lane is STILL told its commit adds work nothing runs -- which is the whole "
+        "defect, regardless of what else was printed:\n{}".format(err))
+    assert "docs/design/orphan_baseline.json" in err, (
+        "the refusal does not name the uncommitted edit, so it cannot be acted on by the lane "
+        "that owns it:\n{}".format(err))
+
+
+def test_a_module_absent_from_head_is_still_the_committing_lanes_new_orphan(tmp_path, capsys):
+    """DEFECT: the leg above becomes a blanket excuse and the ratchet stops ratcheting.
+
+    The other half, and the one that matters: a module HEAD never froze is genuinely new,
+    and must keep the original accusation. Without this the attribution could return
+    everything as `unfrozen` and pass the test above while abolishing the control.
+    """
+    root, _ = _frozen_repo(tmp_path, head_orphans=[], tree_orphans=[])
+    rc = orat.run(root=root, path=root / "docs" / "design" / "orphan_baseline.json")
+    err = capsys.readouterr().err
+
+    assert rc == 1
+    assert orat.ADDED_HEADLINE in err, (
+        "a module frozen NOWHERE is excused as a baseline edit, so the ratchet no longer fires "
+        "on the only thing it exists for:\n{}".format(err))
+    assert "background.scratch" in err and "background.other" in err
+    assert orat.UNFROZEN_HEADLINE not in err, (
+        "a genuinely new orphan is reported as somebody else's uncommitted baseline edit:\n"
+        "{}".format(err))
+
+
+def test_the_two_refusals_are_not_the_same_sentence():
+    """DEFECT: the texts collapse back into one and the repair is undone silently.
+
+    Every assertion above survives a change that makes both headlines identical -- `in err`
+    is satisfied either way, and so is the exit code. This is the only control that reds on
+    that, and it is why the two are module constants rather than inline strings.
+    """
+    assert orat.ADDED_HEADLINE != orat.UNFROZEN_HEADLINE
+    assert orat.UNFROZEN_HEADLINE not in orat.ADDED_HEADLINE
+    assert orat.ADDED_HEADLINE not in orat.UNFROZEN_HEADLINE
+
+
+def test_an_unreadable_head_keeps_the_ordinary_refusal_rather_than_excusing(tmp_path, capsys):
+    """DEFECT: attribution guesses, and a real new orphan is excused as a baseline edit.
+
+    `head_baseline` returns None when git cannot answer -- here a tree with no commit at all,
+    so `git show HEAD:` fails. None is not an empty baseline: an empty one would say "HEAD
+    froze nothing", which is the same evidence as "HEAD says this is new".
+    """
+    root = _git_repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    pass\n",
+        "background/scratch.py": "def helper():\n    pass\n",
+    })
+    baseline = root / "docs" / "design" / "orphan_baseline.json"
+    baseline.parent.mkdir(parents=True, exist_ok=True)
+    baseline.write_text(json.dumps({"orphans": []}) + "\n")
+
+    assert orat.head_baseline(root, baseline) is None, "the fixture unexpectedly has a HEAD"
+    rc = orat.run(root=root, path=baseline)
+    err = capsys.readouterr().err
+    assert rc == 1
+    assert orat.ADDED_HEADLINE in err, (
+        "with HEAD unreadable the accusation was re-attributed anyway, so a git failure would "
+        "excuse every new orphan in the tree:\n{}".format(err))

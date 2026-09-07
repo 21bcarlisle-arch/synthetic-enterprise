@@ -364,6 +364,84 @@ def new_orphans(state: dict, baseline: dict) -> list[str]:
     return sorted(set(state["orphans"]) - set(baseline.get("orphans") or []))
 
 
+def _baseline_rel(base: Path, p: Path) -> str | None:
+    """The baseline's path as GIT names it, or `None` when it is not inside the repo.
+
+    `None` rather than a best-effort string, because the caller asks `git show HEAD:<this>` with
+    it: a path git cannot resolve must stop the attribution, not be handed to git and have its
+    non-zero exit read as "HEAD has no baseline". The refusal text falls back to the raw path
+    separately — printing an absolute path is still naming the subject.
+    """
+    try:
+        return p.resolve().relative_to(base.resolve()).as_posix()
+    except (OSError, ValueError):
+        return None
+
+
+def head_baseline(root: Path | None = None, path: Path | None = None) -> set[str] | None:
+    """The frozen set as COMMITTED at HEAD, or `None` when git cannot answer.
+
+    `None` is not an empty baseline and the two must never be conflated: an empty set would make
+    every accused module look like an uncommitted-deletion victim and turn the refusal below into a
+    blanket excuse. `None` means "cannot attribute", and `attribute_added` then leaves the ordinary
+    refusal exactly as it was.
+    """
+    base = root or ROOT
+    p = path or BASELINE_PATH
+    rel = _baseline_rel(base, p)
+    if rel is None:
+        return None
+    try:
+        out = subprocess.run(["git", "show", "HEAD:{}".format(rel)], cwd=str(base),
+                             capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if out.returncode != 0:
+        return None
+    try:
+        data = json.loads(out.stdout)
+    except ValueError:
+        return None
+    orphans = data.get("orphans")
+    return set(orphans) if isinstance(orphans, list) else None
+
+
+def attribute_added(added: list[str], head_orphans: set[str] | None) -> tuple[list[str], list[str]]:
+    """Split the accused modules by WHOSE ACT put them in the accusation. Returns (new, unfrozen).
+
+    THE DEFECT THIS EXISTS FOR, measured three times in 24 hours. `docs/design/orphan_baseline.json`
+    is a shared file in a tree several lanes write at once. When one lane deletes an entry from its
+    WORKING-TREE copy and has not committed that, every other lane's commit is refused — because the
+    module is still unreachable and is no longer excused — under the text *"THIS COMMIT ADDS WORK
+    THAT NOTHING RUNS"*, naming a module the refused lane never touched. The first instance stood 22
+    hours. The refusal was correct that the tree is inconsistent and wrong about every other word,
+    and CLAUDE.md's rule is that a refusal names its reason so the refusal itself can be found to be
+    wrong.
+
+    THE DISCRIMINATOR is HEAD, not the index. A module the accusation names that IS frozen in
+    `git show HEAD:docs/design/orphan_baseline.json` cannot have been made an orphan by the commit
+    under test: HEAD already said it was one and nobody had to fix it. Its absence from the
+    working-tree copy is an EDIT TO THE BASELINE, and that edit is the thing to name.
+
+    Fail-closed on `None`: when HEAD cannot be read the split is not attempted and every accused
+    module keeps the ordinary refusal. An attribution that guesses would excuse a real new orphan,
+    which is the one outcome this whole module exists to prevent.
+    """
+    if head_orphans is None:
+        return list(added), []
+    return ([m for m in added if m not in head_orphans],
+            [m for m in added if m in head_orphans])
+
+
+#: The two refusals, kept apart as named constants because the whole repair is that they READ
+#: differently. A control asserts both that they differ and that each run prints only its own —
+#: collapsing them back into one text is the regression, and it is invisible to any test that only
+#: checks the exit code.
+ADDED_HEADLINE = "orphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS."
+UNFROZEN_HEADLINE = (
+    "orphan-ratchet: AN UNCOMMITTED EDIT TO THE BASELINE IS WHY THIS REFUSES -- NOT YOUR COMMIT.")
+
+
 def freeze(root: Path | None = None, path: Path | None = None) -> dict:
     state = compute(root)
     data = {
@@ -400,18 +478,43 @@ def run(root: Path | None = None, path: Path | None = None, report: bool = False
 
     added = new_orphans(state, baseline)
     if added:
-        print("\norphan-ratchet: THIS COMMIT ADDS WORK THAT NOTHING RUNS.\n", file=sys.stderr)
-        for mod in added[:20]:
-            print("  {}".format(mod), file=sys.stderr)
-        if len(added) > 20:
-            print("  ... and {} more".format(len(added) - 20), file=sys.stderr)
-        print(
-            "\nNothing imports these, and no committed systemd unit, timer or git hook runs them.\n"
-            "This is the no-caller class (13 instances in 13 days, 8 found by accident:\n"
-            "docs/staging/done/WORKER_REPORT_NO_CALLER_CLASS_CENSUS_2026-08-09.md).\n"
-            "\nWire it to something that runs, or -- if it is deliberately dormant -- say so by\n"
-            "adding it with `python3 tools/orphan_ratchet.py --freeze` in the SAME commit, so the\n"
-            "decision is on the record instead of in someone's head.\n", file=sys.stderr)
+        bpath = path or BASELINE_PATH
+        rel = _baseline_rel(root or ROOT, bpath) or str(bpath)
+        genuinely_new, unfrozen = attribute_added(
+            added, head_baseline(root, path))
+
+        if unfrozen:
+            print("\n{}\n".format(UNFROZEN_HEADLINE), file=sys.stderr)
+            for mod in unfrozen[:20]:
+                print("  {}".format(mod), file=sys.stderr)
+            if len(unfrozen) > 20:
+                print("  ... and {} more".format(len(unfrozen) - 20), file=sys.stderr)
+            print(
+                "\nEvery module above is FROZEN AT HEAD in {rel} and missing from the WORKING-TREE\n"
+                "copy of that file. HEAD already excused them, so no commit can have added them:\n"
+                "what changed is the baseline itself, uncommitted, in a tree several lanes write.\n"
+                "\nThe edit to look at, not your own diff:\n"
+                "  git diff -- {rel}\n"
+                "  git show HEAD:{rel}    # what the accusation above was measured against\n"
+                "\nIf that deletion is yours and deliberate, commit it WITH the work that wires the\n"
+                "module. If it is not yours, it belongs to whichever lane is holding {rel} dirty --\n"
+                "this refusal is theirs to clear, and re-running your commit will not.\n".format(
+                    rel=rel), file=sys.stderr)
+
+        if genuinely_new:
+            print("\n{}\n".format(ADDED_HEADLINE), file=sys.stderr)
+            for mod in genuinely_new[:20]:
+                print("  {}".format(mod), file=sys.stderr)
+            if len(genuinely_new) > 20:
+                print("  ... and {} more".format(len(genuinely_new) - 20), file=sys.stderr)
+            print(
+                "\nNothing imports these, and no committed systemd unit, timer or git hook runs "
+                "them.\n"
+                "This is the no-caller class (13 instances in 13 days, 8 found by accident:\n"
+                "docs/staging/done/WORKER_REPORT_NO_CALLER_CLASS_CENSUS_2026-08-09.md).\n"
+                "\nWire it to something that runs, or -- if it is deliberately dormant -- say so by\n"
+                "adding it with `python3 tools/orphan_ratchet.py --freeze` in the SAME commit, so "
+                "the\ndecision is on the record instead of in someone's head.\n", file=sys.stderr)
         return 1
 
     gone = sorted(set(baseline.get("orphans") or []) - set(state["orphans"]))
