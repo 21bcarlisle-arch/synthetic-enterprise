@@ -1,9 +1,13 @@
 """Phase 30a: Capacity Market (CM) levy for all electricity demand customers."""
 
+import json
+
 import pytest
+
 from simulation.policy_costs import (
-    get_cm_levy_per_mwh,
+    _CM_LEVY_ARTEFACT,
     _CM_LEVY_BY_YEAR,
+    get_cm_levy_per_mwh,
 )
 
 
@@ -43,9 +47,19 @@ def test_cm_levy_oy_boundary_apr():
 
 
 def test_all_years_defined():
-    """All years 2016-2024 have CM levy rates defined."""
-    for year in range(2016, 2025):
-        assert year in _CM_LEVY_BY_YEAR
+    """Every year Annex 9 covers has a rate, with no hole in the middle.
+
+    KEYED TO THE RECORD, NOT TO 2024. This asserted `range(2016, 2025)` until 2026-09-07, which
+    was a floor rather than a span: it stayed green when the record GREW and could not notice a
+    year appearing out of order. The record now runs to 2025/26 and will keep moving.
+    """
+    years = sorted(_CM_LEVY_BY_YEAR)
+    assert years[0] == 2016, "the record starts at 2016/17; the sim clamps below it"
+    assert years == list(range(years[0], years[-1] + 1)), (
+        f"the CM levy record has a hole in it: {years}. Every obligation year between the first "
+        "and last must be priced, because the sim buckets every settlement record by date and a "
+        "missing middle year would silently clamp to the wrong end"
+    )
 
 
 def test_clamps_pre_2016():
@@ -53,9 +67,34 @@ def test_clamps_pre_2016():
     assert get_cm_levy_per_mwh("2010-01-01") == pytest.approx(_CM_LEVY_BY_YEAR[2016])
 
 
-def test_clamps_post_2024():
-    """Dates after 2024 clamp to the 2024 rate."""
-    assert get_cm_levy_per_mwh("2030-01-01") == pytest.approx(_CM_LEVY_BY_YEAR[2024])
+def test_clamps_past_the_published_record():
+    """Dates past Annex 9's coverage clamp to the LAST PUBLISHED year, whichever that is.
+
+    RENAMED AND RE-KEYED 2026-09-07, from `test_clamps_post_2024` asserting
+    `_CM_LEVY_BY_YEAR[2024]`. That is the shape CLAUDE.md names: pinned to today's answer, so it
+    went red when the record became MORE complete (v1.11 added 2025/26) while saying nothing
+    about the property it existed for. The carry-forward is the world's own reading -- the
+    company side returns None out here instead -- and what it promises is "the nearest published
+    year", not "2024".
+
+    NOT `_CM_LEVY_BY_YEAR[max(_CM_LEVY_BY_YEAR)]`, which was the first re-key written here and
+    was withdrawn before it landed: `get_cm_levy_per_mwh` computes that exact expression, so the
+    assertion would have restated the implementation and only survived as a control by accident.
+    The last published year is taken from the COMMONS ARTEFACT instead -- an independent route to
+    the same boundary -- and both sides go through the public reader.
+    """
+    last_published = max(
+        int(row["obligation_year"])
+        for row in json.loads(_CM_LEVY_ARTEFACT.read_text())["levy_gbp_per_mwh"]
+    )
+    assert get_cm_levy_per_mwh("2030-01-01") == pytest.approx(
+        get_cm_levy_per_mwh(f"{last_published}-06-01")
+    )
+    # ...and it is not clamping to the wrong END. Without this a table that had collapsed to a
+    # single repeated rate, or a clamp that returned the FIRST year, would pass the line above.
+    assert get_cm_levy_per_mwh("2030-01-01") != pytest.approx(
+        get_cm_levy_per_mwh("2016-06-01")
+    )
 
 
 def test_all_rates_positive():

@@ -782,10 +782,17 @@ def test_the_sim_cm_levy_reader_serves_the_commons():
 
     That last one is an EQUIVALENCE, not a missing test — while the load stands this leg cannot
     fail, and that is what the load is for. What it is NOT is a check on the artefact's own
-    values: nothing here re-derives the levy from Annex 9's £/customer/year, so a wrong figure
-    in the commons is wrong in both lanes at once and silently. See
-    docs/staging/SEAT_FINDING_THE_CM_LEVY_ARTEFACTS_STATED_DERIVATION_DOES_NOT_REPRODUCE_ITS_2018_ROW_2026-09-07.md
-    — its 2018 row already does not.
+    values: nothing HERE re-derives the levy from Annex 9, so a wrong figure in the commons is
+    wrong in both lanes at once and silently.
+
+    THAT GAP IS NOW HELD, and this docstring's earlier version pointed at the wrong reason for
+    it (2026-09-07). `tests/architecture/test_cm_levy_commons.py` re-derives every row from the
+    Annex 9 cap-period levels the artefact now carries verbatim. It found a real defect on its
+    first run — 2024/25 was carried at £7.27, an Apr–Sep-only reading, against a full-year
+    £6.99 — and it REFUTED the 2018 row this docstring used to cite as already wrong: that row
+    was correct, and the apparent contradiction was a rounded per-customer figure in a prose
+    note being run through the derivation. Two lanes serving one law is still the right trade;
+    what it needs is a control over the law itself, which is that file and not this one.
     """
     from simulation import policy_costs
 
