@@ -385,7 +385,16 @@ def monday_document_for(friday: date, staging: Path | None = None) -> Path | Non
 
 
 def _step_body(step: str, due_on: date, overdue: list[dict]) -> str:
-    lines = [f"# {STEPS[step]['title']}", "",
+    # A SEVERITY HEADER, because this document is written into `docs/staging/` root and
+    # `finding_severity` reads that room by FILESYSTEM, not by filename. Without it the step doc
+    # scans as UNCLASSIFIED, the gate exits 1, and every lane's commit is refused by a ritual
+    # nobody had done yet -- which is what happened on 2026-09-07 to this file's own landing.
+    # RECORDED, not LATENT: the open step is a scheduled piece of work, and it is `_finding_body`
+    # that raises a LATENT finding once the step is actually late. A step doc classified as a
+    # defect would put a healthy rhythm in the latent count every week.
+    lines = ["**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · "
+             "**Atom:** none — weekly rhythm", "",
+             f"# {STEPS[step]['title']}", "",
              f"**Due:** {due_on.isoformat()} (Europe/London). Armed by the step before it.", ""]
     if step == MONDAY_STEP:
         lines += [

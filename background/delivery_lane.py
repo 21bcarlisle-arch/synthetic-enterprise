@@ -121,6 +121,7 @@ import argparse
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from background import direction as direction_mod
@@ -194,6 +195,15 @@ SELF_HANDOFF_CHAIN_LIMIT = 3
 #: whole point of the lane — and shorter than the tick's own 2-hour ceiling so a dead invocation
 #: cannot hold an item past its own lifetime.
 CLAIM_STALE_SECONDS = 100 * 60
+
+#: How far back `drawn_without_landing` looks. A DAY, not a stretch, and that is the whole point of
+#: the horizon: a stretch is three hours, so an item drawn at 04:11 and never landed falls out of a
+#: stretch-scoped read by the 08:00 orientation and is never mentioned again by anything. Twenty-four
+#: hours puts it in front of eight consecutive orientations, which is long enough that ignoring it is
+#: a decision somebody made rather than a fact that aged out. Bounded rather than unbounded because
+#: the ledger remembers 400 draws across several weeks, and a surface that opens with dozens of
+#: ancient never-landed ids is one the reader learns to skip.
+DRAWN_WITHOUT_LANDING_HORIZON_SECONDS = 24 * 60 * 60
 
 
 def _atom_ids() -> set[str]:
@@ -558,6 +568,56 @@ def drawn_since(cutoff: float, *, path: Path | None = None) -> list[str]:
                   and float(row.get("last_drawn_at") or 0.0) >= float(cutoff))
 
 
+def drawn_without_landing(cutoff: float | None = None, now: float | None = None, *,
+                          path: Path | None = None) -> list[dict]:
+    """Lane 0 ids handed out inside the horizon whose claim window CLOSED with nothing landed.
+
+    SAY WHAT IT IS BEFORE MEASURING IT. An id qualifies when three things are true together: its
+    most recent draw is at or after `cutoff`; that draw is at least `CLAIM_STALE_SECONDS` old, so
+    the window it was given has run out and the claim has been swept; and no landing is bound at or
+    after that draw. The third clause is keyed to the DRAW, not to `last_landing_at` being null,
+    because an id drawn, landed, and drawn again has a populated landing instant that says nothing
+    about the second window -- and that is the shape a null test would report as healthy.
+
+    WHY IT EXISTS, AND THE FACT WAS ALREADY ON DISK. On 2026-09-07 two focus items were drawn
+    (04:11 and 04:41), done correctly, and left sitting in the working tree: the lane-0 chain
+    counter and the DD level collection book's six red controls. `record_draw` had written
+    `first_drawn_at` for both and `_remember_landing` never wrote them a `last_landing_at`, so the
+    ledger held the whole finding hours before anybody noticed -- and NOTHING READ IT. The
+    bottleneck had moved from "never drawn" to "drawn and never landed", and the only surface that
+    could have said so was a join nobody had made, exactly as `seat_continuation.expired` was
+    before it learned to read `first_drawn_at` from this side.
+
+    THIS IS NOT THE SWEEP AND IT IS NOT A SECOND ONE. `sweep_stale` returns the claim to the pool,
+    which is a correct and SILENT act: the item becomes drawable again and the record of its wasted
+    window survives only here. This function is the reading, and it takes no action at all.
+
+    NEVER RAISES, and an unreadable ledger reads as NOTHING MISSED. That is the fail-open
+    direction, chosen for the same reason every other reader in this module chooses it -- the
+    orientation brief this feeds must not lose its other twenty keys to a store that would not
+    open -- and it is the reason the control over this lives in a test rather than in a try/except
+    that would swallow its own subject.
+    """
+    stamp = time.time() if now is None else float(now)
+    floor = (stamp - DRAWN_WITHOUT_LANDING_HORIZON_SECONDS) if cutoff is None else float(cutoff)
+    try:
+        ledger = claims_mod._load(_ledger_path(path or CLAIMS_FILE))
+    except Exception:
+        return []
+    out = []
+    for fid, row in ledger.items():
+        if not isinstance(row, dict):
+            continue
+        drawn = float(row.get("last_drawn_at") or 0.0)
+        if drawn < floor or stamp - drawn < CLAIM_STALE_SECONDS:
+            continue
+        if float(row.get("last_landing_at") or 0.0) >= drawn:
+            continue
+        out.append({"id": str(fid), "drawn_at": drawn,
+                    "hours_since_draw": round((stamp - drawn) / 3600.0, 1)})
+    return sorted(out, key=lambda r: r["drawn_at"], reverse=True)
+
+
 def _binding_instant(focus_id: str, rec: dict, store: Path) -> float:
     """The instant `record_landing` compares a commit against: this id's FIRST draw.
 
@@ -830,6 +890,80 @@ def record_landing(focus_id: str, *, commit: str = "HEAD", path: Path | None = N
         return bound
     except Exception:
         return []
+
+
+def note_landing_under(focus_id: str, other_id: str, *, path: Path | None = None) -> str:
+    """Credit `focus_id`'s draw with the landing already bound to `other_id`. "" on success.
+
+    THE DEFECT, measured 2026-09-07 on the live ledger. Two items were drawn separately, worked
+    together, and landed in ONE commit under a THIRD id --
+    `two-of-three-drawn-focus-items-were-finished-and-never-left-the-working-tree`. `ee3498cc0`
+    carried both repairs and reached origin. The two rows that were actually DRAWN still read
+    `first_drawn_at` populated, `last_landing_at` null, so `drawn_without_landing` named them to
+    every orientation as work nobody had done, under a heading that tells the next seat to check
+    `git status` before starting anything new. There was no route to say otherwise:
+    `record_landing` refuses an id whose claim was swept, and by 100 minutes after the draw every
+    such id's claim HAS been swept, so the one shape that produces this -- finish late, land under
+    a name that reads better -- is the one shape that can never be recorded.
+
+    TWO STORES, AND THE REFUSAL BELONGED TO ONLY ONE OF THEM. "It is NOT CLAIMED" is correct about
+    the CLAIMS store: there is no deadline left to inform, and inventing one would be a heartbeat.
+    It is not correct about the DRAW LEDGER, which is a record of what was handed out and what
+    came of it, survives release by construction (`_remember_landing`), and is the store the
+    orientation actually reads. This writes only the second one, and deliberately takes no claim,
+    restarts no deadline, and returns nothing to the pool.
+
+    IT IS NOT A FREE ERASER, and the guards are the whole reason it can be trusted to remove a row
+    from the seat's most urgent list. Each refuses and NAMES ITSELF:
+
+      * `focus_id` was never drawn -- there is no row, so there is nothing this could be about;
+      * `other_id` is `focus_id` -- self-credit is `--landed`'s job and the fail-open shape here;
+      * `other_id` holds no landing -- a row cannot lend what it does not have, which is what
+        makes this a JOIN between two facts on disk rather than an assertion by the caller;
+      * that landing is not NEWER than `focus_id`'s first draw -- older work is somebody else's,
+        the same rule and the same reason as `record_landing`.
+
+    The caller therefore controls only WHICH pair, and both halves must already be true in the
+    ledger. `landed_under` is written beside the credited instant, so the row carries the one-line
+    reason it has no landing of its own and a reader can always get back to the commit.
+
+    Never raises, and an unwritable ledger reads as a refusal rather than a success: the caller is
+    about to print this, and a silent success over a store that did not change is the one answer
+    that would train the next seat to stop checking.
+    """
+    try:
+        ledger_path = _ledger_path(path or CLAIMS_FILE)
+        ledger = claims_mod._load(ledger_path)
+        row = ledger.get(focus_id)
+        if not isinstance(row, dict):
+            return (f"{focus_id} was never drawn -- the ledger has no row for it, so there is no "
+                    f"draw for a landing to reach")
+        if other_id == focus_id:
+            return ("an id cannot lend itself a landing -- use `--landed` for work that landed "
+                    "under this id's own name")
+        lender = ledger.get(other_id)
+        if not isinstance(lender, dict):
+            return f"{other_id} was never drawn -- the ledger has no row for it to lend from"
+        when = float(lender.get("last_landing_at") or 0.0)
+        if when <= 0.0:
+            return (f"{other_id} holds NO landing to lend -- nothing is bound to it, so there is "
+                    f"no commit this row could be credited with")
+        first_drawn = float(row.get("first_drawn_at") or 0.0)
+        if when <= first_drawn:
+            return (f"{other_id}'s landing is not newer than {focus_id}'s first draw -- work that "
+                    f"predates the draw is somebody else's, the same rule as `--landed`")
+        row["last_landing_at"] = when
+        row["last_landing_paths"] = sorted(str(p) for p in (lender.get("last_landing_paths") or []))
+        # THE ONE-LINE REASON, ON THE ROW. Without it the credited row is indistinguishable from a
+        # row that landed under its own name, and the next reader auditing why an item vanished
+        # from the missed list has nothing to follow. It is written by the write that succeeded,
+        # never beside it.
+        row["landed_under"] = str(other_id)
+        ledger[focus_id] = row
+        claims_mod._save(ledger, ledger_path)
+        return ""
+    except Exception as exc:  # noqa: BLE001 - the caller prints this; a silent success is worse
+        return f"the draw ledger could not be written: {exc}"
 
 
 #: A commit id cited in a focus item's prose. Seven is the short-hash floor this project's messages
@@ -1222,6 +1356,10 @@ def main(argv=None) -> int:
     ap.add_argument("--landed", metavar="FOCUS_ID",
                     help="bind the paths of a just-landed commit to a claim, restarting its "
                          "deadline from that commit's own timestamp")
+    ap.add_argument("--landed-under", nargs=2, metavar=("FOCUS_ID", "OTHER_FOCUS_ID"),
+                    help="credit a DRAWN id with the landing already bound to another id, for "
+                         "work that landed under a different name; writes the draw ledger only, "
+                         "takes no claim and restarts no deadline")
     ap.add_argument("--commit", default="HEAD",
                     help="which commit --landed reads its paths from (default: HEAD)")
     ap.add_argument("--since", default=None, metavar="REF",
@@ -1263,6 +1401,19 @@ def main(argv=None) -> int:
                   f"{refusal_reason(args.landed, commit=args.commit, since=args.since)}")
             return 1
         print("bound {} path(s) to {}: {}".format(len(scope), args.landed, ", ".join(scope[:8])))
+        return 0
+    if args.landed_under:
+        focus_id, other_id = args.landed_under
+        refusal = note_landing_under(focus_id, other_id)
+        if refusal:
+            # NON-ZERO, matching --landed and --release above: the caller believes the row is
+            # settled and the lane disagrees, so the row is still on the seat's missed list and
+            # the caller needs to hear it now rather than read it in the next orientation.
+            print(f"credited NOTHING to {focus_id}: {refusal}")
+            return 1
+        paths = last_landing(focus_id)[1]
+        print("credited {} with {}'s landing ({} path(s)): {}".format(
+            focus_id, other_id, len(paths), ", ".join(paths[:8])))
         return 0
     if args.hand_off:
         focus_id, done_means = args.hand_off
