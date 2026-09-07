@@ -1,0 +1,819 @@
+{
+ "artefact": "ofgem_cap_unit_rate_composition",
+ "what_this_is": "The COMMODITY SHARE OF THE DOMESTIC ELECTRICITY UNIT RATE, derived from Ofgem's own published cap level model as (benchmark-consumption allowance minus nil-consumption allowance) / benchmark kWh, per component. The nil column IS the standing charge, so this is Ofgem's construction and not an apportionment invented here.",
+ "why_it_was_needed": "The shift-response bridge converts a tariff pass-through into the price ratio a household faces, and needs the commodity share of the UNIT RATE. The knowledge map carried wholesale ~40% of the BILL -- a different denominator. This closes that gap.",
+ "source_model": "Default_tariff_cap_level_v1.19.xlsx",
+ "source_url": "https://www.ofgem.gov.uk/energy-policy-and-regulation/policy-and-regulatory-programmes/default-tariff-cap",
+ "basis": {
+  "vat": "components are EX-VAT; shares are unaffected by a uniform rate, unit rates are",
+  "meter": "single-rate electricity, benchmark 3100 kWh/year",
+  "commodity_components": [
+   "DF",
+   "CM"
+  ],
+  "regional_treatment": "median across distribution regions, with the full spread beside it"
+ },
+ "headline": {
+  "s_is_not_a_constant": true,
+  "scope": "periods with the cap actually in force, i.e. from 2019-01-01",
+  "min_share": 0.4077,
+  "max_share": 0.8077,
+  "min_share_including_ofgems_illustrative_backcast": 0.3699,
+  "reading": "The commodity share of the electricity unit rate is ABOVE 0.40 in every period the cap has actually been in force, which is the direction the shift-response finding predicted from the denominators. It is not a scalar: it runs from roughly 0.41 in the calm periods before the gas crisis to roughly 0.81 at the January 2023 peak, so a caller citing one value must name the cap period it belongs to.",
+  "the_backcast_is_not_the_law": "Ofgem's model also carries pre-2019 columns it labels 'for illustration only' -- a cap level for periods in which no cap existed. Several fall BELOW 0.40. They are published here for completeness and excluded from this headline, because reading them as cap periods would make the claim above false in the flattering direction."
+ },
+ "cross_check_against_published_cap_levels": {
+  "periods_checked": 13,
+  "worst_relative_error": 0.0134,
+  "rows": [
+   {
+    "cap_period": "January 2019 - March 2019",
+    "derived_gbp_per_mwh": 165.09,
+    "published_gbp_per_mwh": 165.2,
+    "relative_error": 0.00066
+   },
+   {
+    "cap_period": "April 2019 - September 2019",
+    "derived_gbp_per_mwh": 185.49,
+    "published_gbp_per_mwh": 185.6,
+    "relative_error": 0.00058
+   },
+   {
+    "cap_period": "October 2019 - March 2020",
+    "derived_gbp_per_mwh": 178.35,
+    "published_gbp_per_mwh": 178.5,
+    "relative_error": 0.00082
+   },
+   {
+    "cap_period": "April 2020 - September 2020",
+    "derived_gbp_per_mwh": 176.04,
+    "published_gbp_per_mwh": 178.1,
+    "relative_error": 0.01155
+   },
+   {
+    "cap_period": "October 2020 - March 2021",
+    "derived_gbp_per_mwh": 169.6,
+    "published_gbp_per_mwh": 171.9,
+    "relative_error": 0.0134
+   },
+   {
+    "cap_period": "April 2021 - September 2021",
+    "derived_gbp_per_mwh": 189.04,
+    "published_gbp_per_mwh": 189.5,
+    "relative_error": 0.00242
+   },
+   {
+    "cap_period": "October 2021 - March 2022",
+    "derived_gbp_per_mwh": 207.73,
+    "published_gbp_per_mwh": 208.0,
+    "relative_error": 0.00129
+   },
+   {
+    "cap_period": "April 2022 - September 2022",
+    "derived_gbp_per_mwh": 282.89,
+    "published_gbp_per_mwh": 283.4,
+    "relative_error": 0.0018
+   },
+   {
+    "cap_period": "October 2022 - December 2022",
+    "derived_gbp_per_mwh": 517.08,
+    "published_gbp_per_mwh": 518.9,
+    "relative_error": 0.0035
+   },
+   {
+    "cap_period": "January 2023 - March 2023",
+    "derived_gbp_per_mwh": 673.46,
+    "published_gbp_per_mwh": 674.7,
+    "relative_error": 0.00184
+   },
+   {
+    "cap_period": "April 2023 - June 2023",
+    "derived_gbp_per_mwh": 503.08,
+    "published_gbp_per_mwh": 506.0,
+    "relative_error": 0.00578
+   },
+   {
+    "cap_period": "July 2023 - September 2023",
+    "derived_gbp_per_mwh": 299.68,
+    "published_gbp_per_mwh": 301.1,
+    "relative_error": 0.00471
+   },
+   {
+    "cap_period": "October 2023 - December 2023",
+    "derived_gbp_per_mwh": 272.62,
+    "published_gbp_per_mwh": 273.5,
+    "relative_error": 0.00321
+   }
+  ]
+ },
+ "by_payment_method": {
+  "direct_debit": {
+   "payment_method": "direct_debit",
+   "periods": [
+    {
+     "cap_period": "April 2015 \u2013 September 2015",
+     "starts": "2015-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4621,
+     "commodity_share_min": 0.4278,
+     "commodity_share_max": 0.4809,
+     "unit_rate_p_per_kwh_ex_vat": 13.274,
+     "standing_charge_p_per_day_ex_vat": 18.661,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2015- March 2016",
+     "starts": "2015-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4349,
+     "commodity_share_min": 0.4011,
+     "commodity_share_max": 0.4535,
+     "unit_rate_p_per_kwh_ex_vat": 12.64,
+     "standing_charge_p_per_day_ex_vat": 18.685,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2016-September 2016",
+     "starts": "2016-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3823,
+     "commodity_share_min": 0.3567,
+     "commodity_share_max": 0.409,
+     "unit_rate_p_per_kwh_ex_vat": 13.153,
+     "standing_charge_p_per_day_ex_vat": 19.374,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2016-March 2017",
+     "starts": "2016-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3699,
+     "commodity_share_min": 0.3445,
+     "commodity_share_max": 0.3963,
+     "unit_rate_p_per_kwh_ex_vat": 12.852,
+     "standing_charge_p_per_day_ex_vat": 19.446,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2017 - September 2017",
+     "starts": "2017-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4199,
+     "commodity_share_min": 0.3864,
+     "commodity_share_max": 0.4451,
+     "unit_rate_p_per_kwh_ex_vat": 14.004,
+     "standing_charge_p_per_day_ex_vat": 18.785,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2017 - March 2018",
+     "starts": "2017-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.408,
+     "commodity_share_min": 0.375,
+     "commodity_share_max": 0.4328,
+     "unit_rate_p_per_kwh_ex_vat": 13.796,
+     "standing_charge_p_per_day_ex_vat": 18.904,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2018 - September 2018",
+     "starts": "2018-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4287,
+     "commodity_share_min": 0.4052,
+     "commodity_share_max": 0.4502,
+     "unit_rate_p_per_kwh_ex_vat": 15.064,
+     "standing_charge_p_per_day_ex_vat": 19.635,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2018 - March 2019",
+     "starts": "2018-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4452,
+     "commodity_share_min": 0.4218,
+     "commodity_share_max": 0.4666,
+     "unit_rate_p_per_kwh_ex_vat": 15.723,
+     "standing_charge_p_per_day_ex_vat": 21.53,
+     "regions": 15
+    },
+    {
+     "cap_period": "January 2019 - March 2019",
+     "starts": "2019-01-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4452,
+     "commodity_share_min": 0.4218,
+     "commodity_share_max": 0.4666,
+     "unit_rate_p_per_kwh_ex_vat": 15.723,
+     "standing_charge_p_per_day_ex_vat": 21.53,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2019 - September 2019",
+     "starts": "2019-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4764,
+     "commodity_share_min": 0.4542,
+     "commodity_share_max": 0.4914,
+     "unit_rate_p_per_kwh_ex_vat": 17.666,
+     "standing_charge_p_per_day_ex_vat": 22.301,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2019 - March 2020",
+     "starts": "2019-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.451,
+     "commodity_share_min": 0.4287,
+     "commodity_share_max": 0.4652,
+     "unit_rate_p_per_kwh_ex_vat": 16.986,
+     "standing_charge_p_per_day_ex_vat": 22.393,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2020 - September 2020",
+     "starts": "2020-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.443,
+     "commodity_share_min": 0.4165,
+     "commodity_share_max": 0.4583,
+     "unit_rate_p_per_kwh_ex_vat": 16.766,
+     "standing_charge_p_per_day_ex_vat": 23.192,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2020 - March 2021",
+     "starts": "2020-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4077,
+     "commodity_share_min": 0.3842,
+     "commodity_share_max": 0.4224,
+     "unit_rate_p_per_kwh_ex_vat": 16.152,
+     "standing_charge_p_per_day_ex_vat": 23.191,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2021 - September 2021",
+     "starts": "2021-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4233,
+     "commodity_share_min": 0.4026,
+     "commodity_share_max": 0.438,
+     "unit_rate_p_per_kwh_ex_vat": 18.004,
+     "standing_charge_p_per_day_ex_vat": 23.692,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2021 - March 2022",
+     "starts": "2021-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4781,
+     "commodity_share_min": 0.4569,
+     "commodity_share_max": 0.4937,
+     "unit_rate_p_per_kwh_ex_vat": 19.784,
+     "standing_charge_p_per_day_ex_vat": 23.682,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2022 - September 2022",
+     "starts": "2022-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.6269,
+     "commodity_share_min": 0.6057,
+     "commodity_share_max": 0.6481,
+     "unit_rate_p_per_kwh_ex_vat": 26.942,
+     "standing_charge_p_per_day_ex_vat": 45.314,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2022 - December 2022",
+     "starts": "2022-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.7613,
+     "commodity_share_min": 0.7471,
+     "commodity_share_max": 0.7753,
+     "unit_rate_p_per_kwh_ex_vat": 49.246,
+     "standing_charge_p_per_day_ex_vat": 46.283,
+     "regions": 15
+    },
+    {
+     "cap_period": "January 2023 - March 2023",
+     "starts": "2023-01-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.8077,
+     "commodity_share_min": 0.7961,
+     "commodity_share_max": 0.819,
+     "unit_rate_p_per_kwh_ex_vat": 64.139,
+     "standing_charge_p_per_day_ex_vat": 46.283,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2023 - June 2023",
+     "starts": "2023-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.7389,
+     "commodity_share_min": 0.7319,
+     "commodity_share_max": 0.7551,
+     "unit_rate_p_per_kwh_ex_vat": 47.912,
+     "standing_charge_p_per_day_ex_vat": 51.262,
+     "regions": 15
+    },
+    {
+     "cap_period": "July 2023 - September 2023",
+     "starts": "2023-07-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.5715,
+     "commodity_share_min": 0.562,
+     "commodity_share_max": 0.5932,
+     "unit_rate_p_per_kwh_ex_vat": 28.541,
+     "standing_charge_p_per_day_ex_vat": 51.262,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2023 - December 2023",
+     "starts": "2023-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.5595,
+     "commodity_share_min": 0.549,
+     "commodity_share_max": 0.582,
+     "unit_rate_p_per_kwh_ex_vat": 25.964,
+     "standing_charge_p_per_day_ex_vat": 51.644,
+     "regions": 15
+    }
+   ]
+  },
+  "standard_credit": {
+   "payment_method": "standard_credit",
+   "periods": [
+    {
+     "cap_period": "April 2015 \u2013 September 2015",
+     "starts": "2015-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4386,
+     "commodity_share_min": 0.4061,
+     "commodity_share_max": 0.4565,
+     "unit_rate_p_per_kwh_ex_vat": 13.983,
+     "standing_charge_p_per_day_ex_vat": 22.466,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2015- March 2016",
+     "starts": "2015-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4128,
+     "commodity_share_min": 0.3808,
+     "commodity_share_max": 0.4305,
+     "unit_rate_p_per_kwh_ex_vat": 13.315,
+     "standing_charge_p_per_day_ex_vat": 22.497,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2016-September 2016",
+     "starts": "2016-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3629,
+     "commodity_share_min": 0.3386,
+     "commodity_share_max": 0.3882,
+     "unit_rate_p_per_kwh_ex_vat": 13.856,
+     "standing_charge_p_per_day_ex_vat": 23.232,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2016-March 2017",
+     "starts": "2016-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3511,
+     "commodity_share_min": 0.327,
+     "commodity_share_max": 0.3762,
+     "unit_rate_p_per_kwh_ex_vat": 13.539,
+     "standing_charge_p_per_day_ex_vat": 23.325,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2017 - September 2017",
+     "starts": "2017-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3986,
+     "commodity_share_min": 0.3668,
+     "commodity_share_max": 0.4225,
+     "unit_rate_p_per_kwh_ex_vat": 14.752,
+     "standing_charge_p_per_day_ex_vat": 22.662,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2017 - March 2018",
+     "starts": "2017-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3873,
+     "commodity_share_min": 0.3559,
+     "commodity_share_max": 0.4109,
+     "unit_rate_p_per_kwh_ex_vat": 14.533,
+     "standing_charge_p_per_day_ex_vat": 22.823,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2018 - September 2018",
+     "starts": "2018-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.407,
+     "commodity_share_min": 0.3847,
+     "commodity_share_max": 0.4274,
+     "unit_rate_p_per_kwh_ex_vat": 15.869,
+     "standing_charge_p_per_day_ex_vat": 23.635,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2018 - March 2019",
+     "starts": "2018-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4227,
+     "commodity_share_min": 0.4004,
+     "commodity_share_max": 0.443,
+     "unit_rate_p_per_kwh_ex_vat": 16.562,
+     "standing_charge_p_per_day_ex_vat": 25.656,
+     "regions": 15
+    },
+    {
+     "cap_period": "January 2019 - March 2019",
+     "starts": "2019-01-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4227,
+     "commodity_share_min": 0.4004,
+     "commodity_share_max": 0.443,
+     "unit_rate_p_per_kwh_ex_vat": 16.562,
+     "standing_charge_p_per_day_ex_vat": 25.656,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2019 - September 2019",
+     "starts": "2019-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4523,
+     "commodity_share_min": 0.4312,
+     "commodity_share_max": 0.4665,
+     "unit_rate_p_per_kwh_ex_vat": 18.609,
+     "standing_charge_p_per_day_ex_vat": 26.503,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2019 - March 2020",
+     "starts": "2019-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4281,
+     "commodity_share_min": 0.407,
+     "commodity_share_max": 0.4416,
+     "unit_rate_p_per_kwh_ex_vat": 17.893,
+     "standing_charge_p_per_day_ex_vat": 26.622,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2020 - September 2020",
+     "starts": "2020-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4205,
+     "commodity_share_min": 0.3954,
+     "commodity_share_max": 0.4351,
+     "unit_rate_p_per_kwh_ex_vat": 17.661,
+     "standing_charge_p_per_day_ex_vat": 27.48,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2020 - March 2021",
+     "starts": "2020-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.387,
+     "commodity_share_min": 0.3648,
+     "commodity_share_max": 0.401,
+     "unit_rate_p_per_kwh_ex_vat": 17.014,
+     "standing_charge_p_per_day_ex_vat": 27.488,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2021 - September 2021",
+     "starts": "2021-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4018,
+     "commodity_share_min": 0.3822,
+     "commodity_share_max": 0.4159,
+     "unit_rate_p_per_kwh_ex_vat": 18.965,
+     "standing_charge_p_per_day_ex_vat": 28.033,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2021 - March 2022",
+     "starts": "2021-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4539,
+     "commodity_share_min": 0.4338,
+     "commodity_share_max": 0.4687,
+     "unit_rate_p_per_kwh_ex_vat": 20.84,
+     "standing_charge_p_per_day_ex_vat": 28.078,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2022 - September 2022",
+     "starts": "2022-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.5952,
+     "commodity_share_min": 0.575,
+     "commodity_share_max": 0.6154,
+     "unit_rate_p_per_kwh_ex_vat": 28.379,
+     "standing_charge_p_per_day_ex_vat": 50.969,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2022 - December 2022",
+     "starts": "2022-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.7228,
+     "commodity_share_min": 0.7093,
+     "commodity_share_max": 0.7361,
+     "unit_rate_p_per_kwh_ex_vat": 51.869,
+     "standing_charge_p_per_day_ex_vat": 52.154,
+     "regions": 15
+    },
+    {
+     "cap_period": "January 2023 - March 2023",
+     "starts": "2023-01-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.7668,
+     "commodity_share_min": 0.7558,
+     "commodity_share_max": 0.7776,
+     "unit_rate_p_per_kwh_ex_vat": 67.554,
+     "standing_charge_p_per_day_ex_vat": 52.154,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2023 - June 2023",
+     "starts": "2023-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.7015,
+     "commodity_share_min": 0.6949,
+     "commodity_share_max": 0.7169,
+     "unit_rate_p_per_kwh_ex_vat": 50.464,
+     "standing_charge_p_per_day_ex_vat": 57.535,
+     "regions": 15
+    },
+    {
+     "cap_period": "July 2023 - September 2023",
+     "starts": "2023-07-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.5425,
+     "commodity_share_min": 0.5336,
+     "commodity_share_max": 0.5632,
+     "unit_rate_p_per_kwh_ex_vat": 30.064,
+     "standing_charge_p_per_day_ex_vat": 57.535,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2023 - December 2023",
+     "starts": "2023-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.5315,
+     "commodity_share_min": 0.5215,
+     "commodity_share_max": 0.5529,
+     "unit_rate_p_per_kwh_ex_vat": 27.333,
+     "standing_charge_p_per_day_ex_vat": 58.034,
+     "regions": 15
+    }
+   ]
+  },
+  "prepayment": {
+   "payment_method": "prepayment",
+   "periods": [
+    {
+     "cap_period": "April 2015 \u2013 September 2015",
+     "starts": "2015-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4643,
+     "commodity_share_min": 0.4299,
+     "commodity_share_max": 0.4832,
+     "unit_rate_p_per_kwh_ex_vat": 13.21,
+     "standing_charge_p_per_day_ex_vat": 24.387,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2015- March 2016",
+     "starts": "2015-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.437,
+     "commodity_share_min": 0.4031,
+     "commodity_share_max": 0.4557,
+     "unit_rate_p_per_kwh_ex_vat": 12.579,
+     "standing_charge_p_per_day_ex_vat": 24.423,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2016-September 2016",
+     "starts": "2016-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3842,
+     "commodity_share_min": 0.3584,
+     "commodity_share_max": 0.411,
+     "unit_rate_p_per_kwh_ex_vat": 13.089,
+     "standing_charge_p_per_day_ex_vat": 25.126,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2016-March 2017",
+     "starts": "2016-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.3717,
+     "commodity_share_min": 0.3462,
+     "commodity_share_max": 0.3982,
+     "unit_rate_p_per_kwh_ex_vat": 12.789,
+     "standing_charge_p_per_day_ex_vat": 25.233,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2017 - September 2017",
+     "starts": "2017-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.422,
+     "commodity_share_min": 0.3883,
+     "commodity_share_max": 0.4472,
+     "unit_rate_p_per_kwh_ex_vat": 13.936,
+     "standing_charge_p_per_day_ex_vat": 24.645,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2017 - March 2018",
+     "starts": "2017-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4099,
+     "commodity_share_min": 0.3768,
+     "commodity_share_max": 0.4349,
+     "unit_rate_p_per_kwh_ex_vat": 13.729,
+     "standing_charge_p_per_day_ex_vat": 24.839,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2018 - September 2018",
+     "starts": "2018-04-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4308,
+     "commodity_share_min": 0.4072,
+     "commodity_share_max": 0.4524,
+     "unit_rate_p_per_kwh_ex_vat": 14.991,
+     "standing_charge_p_per_day_ex_vat": 25.653,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2018 - March 2019",
+     "starts": "2018-10-01",
+     "cap_in_force": false,
+     "commodity_share_of_unit_rate": 0.4501,
+     "commodity_share_min": 0.4263,
+     "commodity_share_max": 0.4718,
+     "unit_rate_p_per_kwh_ex_vat": 15.553,
+     "standing_charge_p_per_day_ex_vat": 25.828,
+     "regions": 15
+    },
+    {
+     "cap_period": "January 2019 - March 2019",
+     "starts": "2019-01-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4501,
+     "commodity_share_min": 0.4263,
+     "commodity_share_max": 0.4718,
+     "unit_rate_p_per_kwh_ex_vat": 15.553,
+     "standing_charge_p_per_day_ex_vat": 25.828,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2019 - September 2019",
+     "starts": "2019-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4813,
+     "commodity_share_min": 0.4587,
+     "commodity_share_max": 0.4965,
+     "unit_rate_p_per_kwh_ex_vat": 17.487,
+     "standing_charge_p_per_day_ex_vat": 26.666,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2019 - March 2020",
+     "starts": "2019-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4558,
+     "commodity_share_min": 0.4331,
+     "commodity_share_max": 0.4702,
+     "unit_rate_p_per_kwh_ex_vat": 16.808,
+     "standing_charge_p_per_day_ex_vat": 26.757,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2020 - September 2020",
+     "starts": "2020-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4478,
+     "commodity_share_min": 0.421,
+     "commodity_share_max": 0.4633,
+     "unit_rate_p_per_kwh_ex_vat": 16.587,
+     "standing_charge_p_per_day_ex_vat": 27.54,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2020 - March 2021",
+     "starts": "2020-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4164,
+     "commodity_share_min": 0.3923,
+     "commodity_share_max": 0.4317,
+     "unit_rate_p_per_kwh_ex_vat": 15.81,
+     "standing_charge_p_per_day_ex_vat": 27.334,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2021 - September 2021",
+     "starts": "2021-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4348,
+     "commodity_share_min": 0.4133,
+     "commodity_share_max": 0.4504,
+     "unit_rate_p_per_kwh_ex_vat": 17.523,
+     "standing_charge_p_per_day_ex_vat": 27.446,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2021 - March 2022",
+     "starts": "2021-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.4861,
+     "commodity_share_min": 0.4644,
+     "commodity_share_max": 0.5022,
+     "unit_rate_p_per_kwh_ex_vat": 19.457,
+     "standing_charge_p_per_day_ex_vat": 27.848,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2022 - September 2022",
+     "starts": "2022-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.6322,
+     "commodity_share_min": 0.6106,
+     "commodity_share_max": 0.6537,
+     "unit_rate_p_per_kwh_ex_vat": 26.718,
+     "standing_charge_p_per_day_ex_vat": 50.0,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2022 - December 2022",
+     "starts": "2022-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.7756,
+     "commodity_share_min": 0.761,
+     "commodity_share_max": 0.7901,
+     "unit_rate_p_per_kwh_ex_vat": 48.338,
+     "standing_charge_p_per_day_ex_vat": 51.086,
+     "regions": 15
+    },
+    {
+     "cap_period": "January 2023 - March 2023",
+     "starts": "2023-01-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.8203,
+     "commodity_share_min": 0.8084,
+     "commodity_share_max": 0.8319,
+     "unit_rate_p_per_kwh_ex_vat": 63.148,
+     "standing_charge_p_per_day_ex_vat": 51.086,
+     "regions": 15
+    },
+    {
+     "cap_period": "April 2023 - June 2023",
+     "starts": "2023-04-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.7561,
+     "commodity_share_min": 0.749,
+     "commodity_share_max": 0.773,
+     "unit_rate_p_per_kwh_ex_vat": 46.808,
+     "standing_charge_p_per_day_ex_vat": 56.129,
+     "regions": 15
+    },
+    {
+     "cap_period": "July 2023 - September 2023",
+     "starts": "2023-07-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.5922,
+     "commodity_share_min": 0.5824,
+     "commodity_share_max": 0.6153,
+     "unit_rate_p_per_kwh_ex_vat": 27.545,
+     "standing_charge_p_per_day_ex_vat": 56.129,
+     "regions": 15
+    },
+    {
+     "cap_period": "October 2023 - December 2023",
+     "starts": "2023-10-01",
+     "cap_in_force": true,
+     "commodity_share_of_unit_rate": 0.5685,
+     "commodity_share_min": 0.5579,
+     "commodity_share_max": 0.5916,
+     "unit_rate_p_per_kwh_ex_vat": 25.55,
+     "standing_charge_p_per_day_ex_vat": 58.225,
+     "regions": 15
+    }
+   ]
+  }
+ }
+}

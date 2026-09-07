@@ -1,0 +1,476 @@
+{
+ "artefact": "tou_price_shape_by_episode",
+ "question": "Does the 2021-2023 episode put the peak-to-off-peak price ratio a household faces inside the range over which the domestic shift response was actually estimated?",
+ "why_it_was_asked": "The landed shift-response finding could not locate the interior optimum and named the reason: its Elexon MID panel ends 2020-12 by construction, so its median within-day ratio of 1.77:1 might be an artefact of which years we hold rather than a fact about the market. It called this the highest-value measurement it had.",
+ "method": {
+  "price_series": "Elexon MID, volume-weighted, via sim/market_index_history.py",
+  "day_builder": "tools/r3_carbon_score_ceiling.whole_days -- the landed panel's own",
+  "shift_window_half_hours": 6,
+  "ratio": "mean of the day's dearest N half hours over the mean of its cheapest N",
+  "bridge": "ratio(alpha,s) = [1+alpha*s*(peak_rel-1)] / [1+alpha*s*(off_rel-1)]",
+  "s": "read PER DAY from the cap period in force, via docs/domain_artefact_library/regulatory/ofgem_cap_unit_rate_composition.json",
+  "response": "computed per day and then averaged, never the response at the mean ratio",
+  "the_landed_panel_is_re_measured_here": "2016-2020 is recomputed by this identical code path rather than quoted, because a new number beside an old one computed differently is two constructions sharing a name, and the comparison is the whole point.",
+  "arc_reader_checked_against": "the landed artefact's own CLNR predictions at 2.88:1 (opt-in 0.08, opt-out 0.05)"
+ },
+ "evidence_floor_price_ratio": 2.0,
+ "ofgem_material_response_threshold": 3.0,
+ "episodes": [
+  {
+   "episode": "2016-2020",
+   "available": true,
+   "years": [
+    "2016",
+    "2017",
+    "2018",
+    "2019",
+    "2020"
+   ],
+   "raw_price_shape": {
+    "days": 1520,
+    "days_with_a_positive_cheapest_window": 1483,
+    "days_dropped_non_positive_cheapest_window": 37,
+    "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 821,
+    "within_day_wholesale_ratio": {
+     "p10": 1.438,
+     "p25": 1.561,
+     "median": 1.772,
+     "p75": 2.27,
+     "p90": 3.385
+    },
+    "median_dearest_window_over_day_mean": 1.33,
+    "median_cheapest_window_over_day_mean": 0.761,
+    "commodity_share_median": 0.4287,
+    "level_mean_day_price_gbp_per_mwh": 44.68,
+    "created_value_gbp_per_shifted_mwh": 13.326,
+    "created_value_gbp_per_household_year": 51.36
+   },
+   "faced_ratio_and_response": [
+    {
+     "alpha": 0.25,
+     "faced_ratio_p50": 1.065,
+     "faced_ratio_p90": 1.127,
+     "days_at_or_above_2to1": 0.0,
+     "days_at_or_above_3to1": 0.0,
+     "mean_response_opt_in": 0.0157,
+     "mean_response_opt_out": 0.0
+    },
+    {
+     "alpha": 0.5,
+     "faced_ratio_p50": 1.132,
+     "faced_ratio_p90": 1.272,
+     "days_at_or_above_2to1": 0.0,
+     "days_at_or_above_3to1": 0.0,
+     "mean_response_opt_in": 0.0204,
+     "mean_response_opt_out": 0.0008
+    },
+    {
+     "alpha": 0.75,
+     "faced_ratio_p50": 1.203,
+     "faced_ratio_p90": 1.431,
+     "days_at_or_above_2to1": 0.0074,
+     "days_at_or_above_3to1": 0.0,
+     "mean_response_opt_in": 0.0251,
+     "mean_response_opt_out": 0.003
+    },
+    {
+     "alpha": 1.0,
+     "faced_ratio_p50": 1.28,
+     "faced_ratio_p90": 1.613,
+     "days_at_or_above_2to1": 0.0276,
+     "days_at_or_above_3to1": 0.0007,
+     "mean_response_opt_in": 0.0298,
+     "mean_response_opt_out": 0.0062
+    }
+   ],
+   "interior_optimum": {
+    "opt_in": {
+     "argmax_alpha": 0.21,
+     "company_gbp_per_household_year": 0.608,
+     "household_gbp_per_household_year": 0.162,
+     "response_at_optimum": 0.015
+    },
+    "opt_out": {
+     "argmax_alpha": 0.74,
+     "company_gbp_per_household_year": 0.038,
+     "household_gbp_per_household_year": 0.109,
+     "response_at_optimum": 0.0029
+    }
+   }
+  },
+  {
+   "episode": "2021-2023",
+   "available": true,
+   "years": [
+    "2021",
+    "2022",
+    "2023"
+   ],
+   "raw_price_shape": {
+    "days": 1078,
+    "days_with_a_positive_cheapest_window": 1017,
+    "days_dropped_non_positive_cheapest_window": 61,
+    "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+    "within_day_wholesale_ratio": {
+     "p10": 1.477,
+     "p25": 1.59,
+     "median": 1.791,
+     "p75": 2.272,
+     "p90": 3.712
+    },
+    "median_dearest_window_over_day_mean": 1.307,
+    "median_cheapest_window_over_day_mean": 0.736,
+    "commodity_share_median": 0.5715,
+    "level_mean_day_price_gbp_per_mwh": 135.94,
+    "created_value_gbp_per_shifted_mwh": 46.335,
+    "created_value_gbp_per_household_year": 178.59
+   },
+   "faced_ratio_and_response": [
+    {
+     "alpha": 0.25,
+     "faced_ratio_p50": 1.088,
+     "faced_ratio_p90": 1.184,
+     "days_at_or_above_2to1": 0.0,
+     "days_at_or_above_3to1": 0.0,
+     "mean_response_opt_in": 0.0175,
+     "mean_response_opt_out": 0.0003
+    },
+    {
+     "alpha": 0.5,
+     "faced_ratio_p50": 1.183,
+     "faced_ratio_p90": 1.405,
+     "days_at_or_above_2to1": 0.0079,
+     "days_at_or_above_3to1": 0.0,
+     "mean_response_opt_in": 0.024,
+     "mean_response_opt_out": 0.0025
+    },
+    {
+     "alpha": 0.75,
+     "faced_ratio_p50": 1.287,
+     "faced_ratio_p90": 1.673,
+     "days_at_or_above_2to1": 0.0433,
+     "days_at_or_above_3to1": 0.0079,
+     "mean_response_opt_in": 0.0306,
+     "mean_response_opt_out": 0.007
+    },
+    {
+     "alpha": 1.0,
+     "faced_ratio_p50": 1.4,
+     "faced_ratio_p90": 1.996,
+     "days_at_or_above_2to1": 0.0993,
+     "days_at_or_above_3to1": 0.0256,
+     "mean_response_opt_in": 0.0375,
+     "mean_response_opt_out": 0.0127
+    }
+   ],
+   "interior_optimum": {
+    "opt_in": {
+     "argmax_alpha": 0.285,
+     "company_gbp_per_household_year": 2.345,
+     "household_gbp_per_household_year": 0.935,
+     "response_at_optimum": 0.0184
+    },
+    "opt_out": {
+     "argmax_alpha": 0.7,
+     "company_gbp_per_household_year": 0.321,
+     "household_gbp_per_household_year": 0.749,
+     "response_at_optimum": 0.006
+    }
+   }
+  },
+  {
+   "episode": "2024-2025",
+   "available": true,
+   "years": [
+    "2024",
+    "2025"
+   ],
+   "raw_price_shape": {
+    "days": 731,
+    "days_with_a_positive_cheapest_window": 650,
+    "days_dropped_non_positive_cheapest_window": 81,
+    "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+    "within_day_wholesale_ratio": {
+     "p10": 1.392,
+     "p25": 1.506,
+     "median": 1.696,
+     "p75": 2.554,
+     "p90": 6.67
+    },
+    "median_dearest_window_over_day_mean": 1.29,
+    "median_cheapest_window_over_day_mean": 0.764,
+    "commodity_share_median": 0.5595,
+    "level_mean_day_price_gbp_per_mwh": 75.62,
+    "created_value_gbp_per_shifted_mwh": 27.743,
+    "created_value_gbp_per_household_year": 106.93
+   },
+   "faced_ratio_and_response": [
+    {
+     "alpha": 0.25,
+     "faced_ratio_p50": 1.077,
+     "faced_ratio_p90": 1.209,
+     "days_at_or_above_2to1": 0.0,
+     "days_at_or_above_3to1": 0.0,
+     "mean_response_opt_in": 0.0173,
+     "mean_response_opt_out": 0.0003
+    },
+    {
+     "alpha": 0.5,
+     "faced_ratio_p50": 1.159,
+     "faced_ratio_p90": 1.47,
+     "days_at_or_above_2to1": 0.0062,
+     "days_at_or_above_3to1": 0.0,
+     "mean_response_opt_in": 0.0237,
+     "mean_response_opt_out": 0.0028
+    },
+    {
+     "alpha": 0.75,
+     "faced_ratio_p50": 1.247,
+     "faced_ratio_p90": 1.829,
+     "days_at_or_above_2to1": 0.0523,
+     "days_at_or_above_3to1": 0.0062,
+     "mean_response_opt_in": 0.0302,
+     "mean_response_opt_out": 0.0069
+    },
+    {
+     "alpha": 1.0,
+     "faced_ratio_p50": 1.342,
+     "faced_ratio_p90": 2.298,
+     "days_at_or_above_2to1": 0.1462,
+     "days_at_or_above_3to1": 0.0231,
+     "mean_response_opt_in": 0.037,
+     "mean_response_opt_out": 0.0124
+    }
+   ],
+   "interior_optimum": {
+    "opt_in": {
+     "argmax_alpha": 0.285,
+     "company_gbp_per_household_year": 1.391,
+     "household_gbp_per_household_year": 0.554,
+     "response_at_optimum": 0.0182
+    },
+    "opt_out": {
+     "argmax_alpha": 0.685,
+     "company_gbp_per_household_year": 0.189,
+     "household_gbp_per_household_year": 0.412,
+     "response_at_optimum": 0.0056
+    }
+   }
+  }
+ ],
+ "by_year_raw_shape": {
+  "2016": {
+   "days": 105,
+   "days_with_a_positive_cheapest_window": 105,
+   "days_dropped_non_positive_cheapest_window": 0,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 105,
+   "within_day_wholesale_ratio": {
+    "p10": 1.566,
+    "p25": 1.888,
+    "median": 2.365,
+    "p75": 3.329,
+    "p90": 6.237
+   },
+   "median_dearest_window_over_day_mean": 1.657,
+   "median_cheapest_window_over_day_mean": 0.71,
+   "commodity_share_median": 0.3699,
+   "level_mean_day_price_gbp_per_mwh": 49.79,
+   "created_value_gbp_per_shifted_mwh": 17.895,
+   "created_value_gbp_per_household_year": 68.97
+  },
+  "2017": {
+   "days": 356,
+   "days_with_a_positive_cheapest_window": 351,
+   "days_dropped_non_positive_cheapest_window": 5,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 356,
+   "within_day_wholesale_ratio": {
+    "p10": 1.449,
+    "p25": 1.567,
+    "median": 1.725,
+    "p75": 2.041,
+    "p90": 2.442
+   },
+   "median_dearest_window_over_day_mean": 1.348,
+   "median_cheapest_window_over_day_mean": 0.788,
+   "commodity_share_median": 0.408,
+   "level_mean_day_price_gbp_per_mwh": 44.82,
+   "created_value_gbp_per_shifted_mwh": 11.533,
+   "created_value_gbp_per_household_year": 44.45
+  },
+  "2018": {
+   "days": 360,
+   "days_with_a_positive_cheapest_window": 358,
+   "days_dropped_non_positive_cheapest_window": 2,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 360,
+   "within_day_wholesale_ratio": {
+    "p10": 1.364,
+    "p25": 1.47,
+    "median": 1.595,
+    "p75": 1.78,
+    "p90": 2.124
+   },
+   "median_dearest_window_over_day_mean": 1.285,
+   "median_cheapest_window_over_day_mean": 0.814,
+   "commodity_share_median": 0.4287,
+   "level_mean_day_price_gbp_per_mwh": 56.54,
+   "created_value_gbp_per_shifted_mwh": 12.816,
+   "created_value_gbp_per_household_year": 49.4
+  },
+  "2019": {
+   "days": 356,
+   "days_with_a_positive_cheapest_window": 352,
+   "days_dropped_non_positive_cheapest_window": 4,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+   "within_day_wholesale_ratio": {
+    "p10": 1.425,
+    "p25": 1.55,
+    "median": 1.725,
+    "p75": 2.226,
+    "p90": 3.254
+   },
+   "median_dearest_window_over_day_mean": 1.319,
+   "median_cheapest_window_over_day_mean": 0.762,
+   "commodity_share_median": 0.4764,
+   "level_mean_day_price_gbp_per_mwh": 41.76,
+   "created_value_gbp_per_shifted_mwh": 12.153,
+   "created_value_gbp_per_household_year": 46.84
+  },
+  "2020": {
+   "days": 343,
+   "days_with_a_positive_cheapest_window": 317,
+   "days_dropped_non_positive_cheapest_window": 26,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+   "within_day_wholesale_ratio": {
+    "p10": 1.575,
+    "p25": 1.784,
+    "median": 2.214,
+    "p75": 2.988,
+    "p90": 5.851
+   },
+   "median_dearest_window_over_day_mean": 1.363,
+   "median_cheapest_window_over_day_mean": 0.639,
+   "commodity_share_median": 0.443,
+   "level_mean_day_price_gbp_per_mwh": 33.54,
+   "created_value_gbp_per_shifted_mwh": 15.538,
+   "created_value_gbp_per_household_year": 59.89
+  },
+  "2021": {
+   "days": 349,
+   "days_with_a_positive_cheapest_window": 341,
+   "days_dropped_non_positive_cheapest_window": 8,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+   "within_day_wholesale_ratio": {
+    "p10": 1.497,
+    "p25": 1.611,
+    "median": 1.839,
+    "p75": 2.378,
+    "p90": 4.344
+   },
+   "median_dearest_window_over_day_mean": 1.312,
+   "median_cheapest_window_over_day_mean": 0.724,
+   "commodity_share_median": 0.4233,
+   "level_mean_day_price_gbp_per_mwh": 115.36,
+   "created_value_gbp_per_shifted_mwh": 41.615,
+   "created_value_gbp_per_household_year": 160.39
+  },
+  "2022": {
+   "days": 364,
+   "days_with_a_positive_cheapest_window": 348,
+   "days_dropped_non_positive_cheapest_window": 16,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+   "within_day_wholesale_ratio": {
+    "p10": 1.476,
+    "p25": 1.591,
+    "median": 1.822,
+    "p75": 2.245,
+    "p90": 3.095
+   },
+   "median_dearest_window_over_day_mean": 1.309,
+   "median_cheapest_window_over_day_mean": 0.724,
+   "commodity_share_median": 0.6269,
+   "level_mean_day_price_gbp_per_mwh": 198.18,
+   "created_value_gbp_per_shifted_mwh": 62.762,
+   "created_value_gbp_per_household_year": 241.9
+  },
+  "2023": {
+   "days": 365,
+   "days_with_a_positive_cheapest_window": 328,
+   "days_dropped_non_positive_cheapest_window": 37,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+   "within_day_wholesale_ratio": {
+    "p10": 1.471,
+    "p25": 1.573,
+    "median": 1.733,
+    "p75": 2.188,
+    "p90": 4.229
+   },
+   "median_dearest_window_over_day_mean": 1.302,
+   "median_cheapest_window_over_day_mean": 0.754,
+   "commodity_share_median": 0.7389,
+   "level_mean_day_price_gbp_per_mwh": 93.56,
+   "created_value_gbp_per_shifted_mwh": 34.467,
+   "created_value_gbp_per_household_year": 132.84
+  },
+  "2024": {
+   "days": 366,
+   "days_with_a_positive_cheapest_window": 325,
+   "days_dropped_non_positive_cheapest_window": 41,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+   "within_day_wholesale_ratio": {
+    "p10": 1.403,
+    "p25": 1.535,
+    "median": 1.709,
+    "p75": 2.554,
+    "p90": 6.779
+   },
+   "median_dearest_window_over_day_mean": 1.29,
+   "median_cheapest_window_over_day_mean": 0.752,
+   "commodity_share_median": 0.5595,
+   "level_mean_day_price_gbp_per_mwh": 71.38,
+   "created_value_gbp_per_shifted_mwh": 26.799,
+   "created_value_gbp_per_household_year": 103.29
+  },
+  "2025": {
+   "days": 365,
+   "days_with_a_positive_cheapest_window": 325,
+   "days_dropped_non_positive_cheapest_window": 40,
+   "days_resting_on_ofgems_illustrative_backcast_not_the_cap": 0,
+   "within_day_wholesale_ratio": {
+    "p10": 1.384,
+    "p25": 1.492,
+    "median": 1.678,
+    "p75": 2.503,
+    "p90": 6.618
+   },
+   "median_dearest_window_over_day_mean": 1.292,
+   "median_cheapest_window_over_day_mean": 0.779,
+   "commodity_share_median": 0.5595,
+   "level_mean_day_price_gbp_per_mwh": 79.87,
+   "created_value_gbp_per_shifted_mwh": 28.69,
+   "created_value_gbp_per_household_year": 110.58
+  }
+ },
+ "what_actually_moved_the_faced_ratio": {
+  "available": true,
+  "at_pass_through": 1.0,
+  "baseline_2016_2020": 1.2797,
+  "measured_2021_2023": 1.4001,
+  "new_shape_with_old_commodity_share": 1.2812,
+  "old_shape_with_new_commodity_share": 1.3865,
+  "commodity_share_2016_2020": 0.4287,
+  "commodity_share_2021_2023": 0.5715,
+  "reading": "Swapping in the 2021-2023 wholesale SHAPE alone moves the faced ratio by about a thousandth. Swapping in the 2021-2023 COMMODITY SHARE alone moves essentially the whole distance. The episode did improve the ratio a household faces -- but not through the price shape, which is what a time-of-use tariff actually sells. It improved it because the crisis temporarily made wholesale a larger fraction of the unit rate, and that has already unwound: the share is back to 0.56 by late 2023 from a peak of 0.81."
+ },
+ "verdict": {
+  "answer": "DOES NOT REACH THE EVIDENCE RANGE",
+  "raw_median_ratio_landed_panel": 1.772,
+  "raw_median_ratio_2021_2023": 1.791,
+  "faced_median_ratio_at_full_pass_through_2021_2023": 1.4,
+  "evidence_floor": 2.0,
+  "level_moved_amplitude_did_not": {
+   "mean_day_price_gbp_per_mwh_landed": 44.68,
+   "mean_day_price_gbp_per_mwh_2021_2023": 135.94,
+   "reading": "The LEVEL of wholesale prices and the created value per shifted MWh both moved several-fold. The within-day SHAPE, which is what a time-of-use tariff lives on, did not. A ratio is scale-free and the crisis was a level event."
+  }
+ }
+}
