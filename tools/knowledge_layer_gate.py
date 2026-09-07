@@ -136,16 +136,65 @@ def verdict(name: str, text: str, known: set[str]) -> tuple[bool, str]:
     )
 
 
+#: Documents that ESTABLISH DOMAIN UNDERSTANDING without living in `docs/market_research/`.
+#:
+#: THE GAP THIS CLOSES, found by the director on 2026-09-07: *"The sampling design, the
+#: strata-versus-correlated-axes finding, the plausibility measurement, the cell count being
+#: derived -- all of it is in canon, findings and stretch reports, and none of it is a Knowledge
+#: page. Your own gate makes a research document declare a Knowledge topic or say why not; it
+#: wasn't watching canon, and canon is where this landed."*
+#:
+#: A director canon is exactly the document class this gate exists for -- it is where the durable
+#: understanding gets decided -- and it was the one class the gate could not see, because the gate
+#: was scoped to a DIRECTORY rather than to a KIND of document. Scoping a rule to where a thing
+#: usually lives is how the instance that lives elsewhere escapes it.
+CANON_PREFIXES = ("DIRECTOR_CANON_", "DIRECTOR_RULING_")
+STAGING_DIR = PROJECT / "docs" / "staging"
+
+
 def staged_new_research(cwd: Path | None = None) -> list[str]:
-    """Paths this commit ADDS under docs/market_research/. Adds only -- see the docstring."""
+    """Paths this commit ADDS that must declare where their understanding reaches a reader.
+
+    Adds only -- see the docstring. Two sources: `docs/market_research/`, and director canon or
+    rulings anywhere under `docs/staging/`, which are research by any honest reading and were
+    invisible to this gate until 2026-09-07.
+    """
     done = subprocess.run(
         ["git", "diff", "--cached", "--name-only", "--diff-filter=A", "HEAD", "--",
-         "docs/market_research"],
+         "docs/market_research", "docs/staging"],
         cwd=str(cwd or PROJECT), capture_output=True, text=True, timeout=60,
     )
     if done.returncode != 0:
         return []
-    return [ln for ln in done.stdout.splitlines() if ln.endswith(".md")]
+    out = []
+    for line in done.stdout.splitlines():
+        if not line.endswith(".md"):
+            continue
+        name = line.rsplit("/", 1)[-1]
+        if line.startswith("docs/market_research/") or name.startswith(CANON_PREFIXES):
+            out.append(line)
+    return out
+
+
+def canon_without_knowledge() -> list[str]:
+    """Canon and rulings on disk that declare no Knowledge topic -- the standing backlog.
+
+    Reported rather than refused for documents that already exist: the gate refuses what a commit
+    ADDS, and retro-refusing every canon written before the rule would block every lane over
+    documents nobody is touching. The list is what says how large the debt is.
+    """
+    out = []
+    for directory in (STAGING_DIR, STAGING_DIR / "done", STAGING_DIR / "console",
+                      STAGING_DIR / "records"):
+        if not directory.is_dir():
+            continue
+        for path in sorted(directory.glob("*.md")):
+            if not path.name.startswith(CANON_PREFIXES):
+                continue
+            text = path.read_text(encoding="utf-8", errors="replace")
+            if not declared_knowledge_of(text):
+                out.append(str(path.relative_to(PROJECT)))
+    return out
 
 
 def orphan_research() -> dict:

@@ -2,6 +2,8 @@
 
 **Severity:** LATENT · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** W2_19_who_lives_where_money_and_composition
 
+**Knowledge:** how-many-synthetic-households
+
 **Type:** [CANON — what the population is made of, what it stands for, and what the world is ultimately for. Severity: LATENT. Companion to the demand-vector canon of the same date, which governs what must be reproduced; this governs what does the reproducing. Mechanism and measurement are the delivery seat's.]
 
 ---

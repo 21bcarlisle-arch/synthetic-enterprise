@@ -140,3 +140,42 @@ def test_the_page_this_rule_was_written_for_is_a_real_topic(declared):
     Knowledge page. If it is not in the graph, the gate cannot accept a declaration naming it and
     the rule has no destination."""
     assert declared in gate.topic_ids()
+
+
+def test_A_DIRECTOR_CANON_IS_WATCHED_because_scoping_to_a_DIRECTORY_let_canon_escape():
+    """THE GAP THE DIRECTOR FOUND, 2026-09-07: *"Your own gate makes a research document declare a
+    Knowledge topic or say why not; it wasn't watching canon, and canon is where this landed."*
+
+    The gate was scoped to `docs/market_research/` -- a DIRECTORY -- while the document class it
+    exists for is anything that establishes domain understanding. Canon is exactly that and lives in
+    `docs/staging/`, so the sampling design, the strata mechanism and the plausibility measurement
+    all reached the tree without ever being asked where a reader would find them. **Scoping a rule
+    to where a thing usually lives is how the instance that lives elsewhere escapes it.**"""
+    from tools import knowledge_layer_gate as gate
+
+    assert gate.CANON_PREFIXES, "the canon document class must be named, not implied"
+    for prefix in ("DIRECTOR_CANON_", "DIRECTOR_RULING_"):
+        assert prefix in gate.CANON_PREFIXES, f"{prefix} is a research class and must be watched"
+
+    # The two canons this rule was written for now declare where their understanding reaches.
+    backlog = gate.canon_without_knowledge()
+    for served in ("DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07.md",
+                   "DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07.md"):
+        assert not any(b.endswith(served) for b in backlog), (
+            f"{served} still declares no Knowledge topic, and it is the document that prompted "
+            "the rule")
+
+
+def test_THE_CANON_BACKLOG_IS_REPORTED_rather_than_retro_refused():
+    """A rule applied backwards to 51 existing documents would block every lane over documents
+    nobody is touching. The gate refuses what a commit ADDS and REPORTS what already exists, so the
+    debt is visible and payable rather than a wedge."""
+    from tools import knowledge_layer_gate as gate
+
+    backlog = gate.canon_without_knowledge()
+    assert isinstance(backlog, list)
+    # A backlog that reads empty when 50-odd documents predate the rule would mean the reader is
+    # not looking, which is the failure this whole gate is about.
+    assert len(backlog) > 0, (
+        "no canon lacks a declaration, which is either a finished migration or a blind reader -- "
+        "if it is genuinely finished, delete this assertion and say so")
