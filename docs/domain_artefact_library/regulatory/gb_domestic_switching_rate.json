@@ -19,22 +19,103 @@
     "recalled": "author recall, NEVER fetched. There are none in this file. The level is kept so that an unsourced year added later has somewhere honest to go instead of taking the strongest level in the file because it is the only one defined."
   },
   "rates": [
-    {"year": 2016, "switches_millions_lo": 4.76, "switches_millions_hi": 4.93, "rate_pct_lo": 17.0, "rate_pct_hi": 17.6, "provenance": "secondary", "note": "4.82m stated; peak challenger era."},
-    {"year": 2017, "switches_millions_lo": 3.78, "switches_millions_hi": 3.92, "rate_pct_lo": 13.5, "rate_pct_hi": 14.0, "provenance": "secondary", "note": "3.84m stated; market consolidation."},
-    {"year": 2018, "switches_millions_lo": 5.46, "switches_millions_hi": 5.60, "rate_pct_lo": 19.5, "rate_pct_hi": 20.0, "provenance": "secondary", "note": "5.54m stated; pre-cap surge."},
-    {"year": 2019, "switches_millions_lo": 5.80, "switches_millions_hi": 5.96, "rate_pct_lo": 20.7, "rate_pct_hi": 21.3, "provenance": "secondary", "note": "5.88m stated, corroborated live by Energy UK. Default Tariff Cap live from January."},
-    {"year": 2020, "switches_millions_lo": 6.30, "switches_millions_hi": 6.44, "rate_pct_lo": 22.5, "rate_pct_hi": 23.0, "provenance": "secondary", "note": "6.39m stated, corroborated live (~5.9m on the Energy UK count). The record's high-water mark."},
-    {"year": 2021, "switches_millions_lo": 5.01, "switches_millions_hi": 5.15, "rate_pct_lo": 17.9, "rate_pct_hi": 18.4, "provenance": "secondary", "note": "5.06m stated; Energy UK 5.1m, '14% lower than 2020'. H2 near zero as suppliers withdrew products."},
-    {"year": 2022, "switches_millions_lo": 0.80, "switches_millions_hi": 1.20, "rate_pct_lo": 2.9, "rate_pct_hi": 4.3, "provenance": "secondary", "note": "The crisis trough. Nothing was cheaper than a capped SVT, so there was nowhere to go."},
-    {"year": 2023, "switches_millions_lo": 2.50, "switches_millions_hi": 3.50, "rate_pct_lo": 8.9, "rate_pct_hi": 12.5, "provenance": "secondary", "note": "Recovery begins; fairer-pricing rule in force."},
-    {"year": 2024, "switches_millions_lo": 3.50, "switches_millions_hi": 4.50, "rate_pct_lo": 12.5, "rate_pct_hi": 16.1, "provenance": "secondary", "note": "Post-ban equilibrium. Ofgem describes switching as still below pre-crisis levels, and it is -- against a 2020 of 23%."},
-    {"year": 2025, "switches_millions_lo": 4.00, "switches_millions_hi": 5.00, "rate_pct_lo": 14.3, "rate_pct_hi": 17.9, "provenance": "secondary", "note": "Continued normalisation."}
+    {
+      "year": 2016,
+      "switches_millions_lo": 4.76,
+      "switches_millions_hi": 4.93,
+      "rate_pct_lo": 17.0,
+      "rate_pct_hi": 17.6,
+      "provenance": "secondary",
+      "note": "4.82m stated; peak challenger era."
+    },
+    {
+      "year": 2017,
+      "switches_millions_lo": 3.78,
+      "switches_millions_hi": 3.92,
+      "rate_pct_lo": 13.5,
+      "rate_pct_hi": 14.0,
+      "provenance": "secondary",
+      "note": "3.84m stated; market consolidation."
+    },
+    {
+      "year": 2018,
+      "switches_millions_lo": 5.46,
+      "switches_millions_hi": 5.6,
+      "rate_pct_lo": 19.5,
+      "rate_pct_hi": 20.0,
+      "provenance": "secondary",
+      "note": "5.54m stated; pre-cap surge."
+    },
+    {
+      "year": 2019,
+      "switches_millions_lo": 5.8,
+      "switches_millions_hi": 5.96,
+      "rate_pct_lo": 20.7,
+      "rate_pct_hi": 21.3,
+      "provenance": "secondary",
+      "note": "5.88m stated, corroborated live by Energy UK. Default Tariff Cap live from January."
+    },
+    {
+      "year": 2020,
+      "switches_millions_lo": 6.3,
+      "switches_millions_hi": 6.44,
+      "rate_pct_lo": 22.5,
+      "rate_pct_hi": 23.0,
+      "provenance": "secondary",
+      "note": "6.39m stated, corroborated live (~5.9m on the Energy UK count). The record's high-water mark."
+    },
+    {
+      "year": 2021,
+      "switches_millions_lo": 5.01,
+      "switches_millions_hi": 5.15,
+      "rate_pct_lo": 17.9,
+      "rate_pct_hi": 18.4,
+      "provenance": "secondary",
+      "note": "5.06m stated; Energy UK 5.1m, '14% lower than 2020'. H2 near zero as suppliers withdrew products."
+    },
+    {
+      "year": 2022,
+      "switches_millions_lo": 0.8,
+      "switches_millions_hi": 1.2,
+      "rate_pct_lo": 2.9,
+      "rate_pct_hi": 4.3,
+      "provenance": "secondary",
+      "note": "The crisis trough. Nothing was cheaper than a capped SVT, so there was nowhere to go."
+    },
+    {
+      "year": 2023,
+      "switches_millions_lo": 2.5,
+      "switches_millions_hi": 3.5,
+      "rate_pct_lo": 8.9,
+      "rate_pct_hi": 12.5,
+      "provenance": "secondary",
+      "note": "Recovery begins; fairer-pricing rule in force."
+    },
+    {
+      "year": 2024,
+      "switches_millions_lo": 3.5,
+      "switches_millions_hi": 4.5,
+      "rate_pct_lo": 12.5,
+      "rate_pct_hi": 16.1,
+      "provenance": "secondary",
+      "note": "Post-ban equilibrium. Ofgem describes switching as still below pre-crisis levels, and it is -- against a 2020 of 23%."
+    },
+    {
+      "year": 2025,
+      "switches_millions_lo": 4.0,
+      "switches_millions_hi": 5.0,
+      "rate_pct_lo": 14.3,
+      "rate_pct_hi": 17.9,
+      "provenance": "secondary",
+      "note": "Continued normalisation."
+    }
   ],
   "unreconciled_cross_check": {
     "source": "ElectraLink Energy Market Insight, January 2025 and January 2024",
     "figures": "3.21m changes of supplier in 2024 (+38% on 2023, so 2023 ~2.33m), against a stated peak of 6.34m in 2019.",
     "why_it_is_not_in_the_band": "ElectraLink's headline CoS count could not be resolved this pass to a single fuel. Its domestic segmentation is by MPAN, which is electricity; but its Data Transfer Network carries both fuels and the headline describes 'households and businesses'. Read as electricity, 2024 is 11.5% and sits just below the band's low end. Read as both fuels, the electricity share is roughly 1.8m and 2024 is ~6.5%, which is half the band. The two readings differ by a factor of 1.8 and picking one to widen the band with would be choosing a number because a number was needed. The band therefore stays on the one series whose numerator definition is settled, and this sits beside it as the open question.",
-    "what_would_settle_it": "The ElectraLink DTS annual report, or Ofgem's Retail Market Indicators switching series downloaded per fuel rather than read off the chart. Ofgem's portal states April 2026 at 243,754 electricity and 183,180 gas domestic switches -- a per-fuel split that, annualised, would settle both the definition and the recent level."
+    "what_would_settle_it": "The ElectraLink DTS annual report, or Ofgem's Retail Market Indicators switching series downloaded per fuel rather than read off the chart. Ofgem's portal states April 2026 at 243,754 electricity and 183,180 gas domestic switches -- a per-fuel split that, annualised, would settle both the definition and the recent level.",
+    "fuel_scope_resolved": "RESOLVED 2026-09-07 to ELECTRICITY, which version 1 left open as a 1.8x ambiguity. The publisher's per-fuel columns settle it: read as BOTH FUELS, ElectraLink's stated 2019 peak of 6.34m would have to correspond to the record's 10.768m (5.946m electricity + 4.822m gas) -- 41% low, which no counting convention explains. Read as ELECTRICITY it is 6.34m against 5.946m (2019) and 3.21m against 2.681m (2024): consistently 7-20% ABOVE the Ofgem/DESNZ count, in the same direction in every year checked. WHY it runs high is still open and is not guessed at -- a plausible cause is that the Data Transfer Network sees erroneous transfers and their reversals that Ofgem's supplier-reported figures net out, but nothing here establishes that."
   },
   "reserved": "The band is evidence and is not the director's. WHERE INSIDE THE BAND the world is aimed is a curriculum value under the mission brief of 2026-08-30 section 7, whose tie-break is 'choose the option that makes the company's advantage harder to demonstrate' -- the high end. Recorded in docs/market_research/gb_switching_rate_denominators.md, not decided in code.",
   "source_check": {
@@ -50,5 +131,133 @@
       "note": "SETTLED FROM `cannot_tell` ON 2026-09-07 BY FETCHING THE PUBLISHER, AND THE ANSWER IS WORSE THAN A STALE EDITION -- the publisher's own figures fall OUTSIDE the band in 8 of the 10 years, including every year from 2020 on. Edition read: publication date 30/06/2026, data period Jan-Mar 2026, sha256 6cd4dee481faf8f71068fa1ca7f86ef9cf049e546336d93c54d35368740c75b4. Published rates, electricity transfers over that year's electricity customers: 2016 15.82, 2017 18.19, 2018 19.06, 2019 20.82, 2020 20.21, 2021 15.57, 2022 3.06, 2023 6.33, 2024 9.03, 2025 10.40. Only 2019 and 2022 are inside. THE VERDICT IS ROBUST TO BOTH OBVIOUS RESCUES, CHECKED BEFORE IT WAS CLAIMED: against this artefact's own flat 28.0m denominator it is still 8 of 10 outside and the same 8 years; read as both fuels it is 8 of 10 outside too, and inside on DIFFERENT years (2023, 2024) than the electricity reading (2019, 2022). 2017 is not merely off but inverted -- the artefact holds 3.84m and calls it consolidation, the publisher has 5.118m, a 16 per cent RISE. THE BAND IS NOT REPAIRED IN THIS PASS AND THAT IS A JUDGEMENT: simulation/departure_level_anchor.py's YEAR_LEVEL_ANCHOR is fitted to each band's HIGH endpoint with 0.00pp of room above in all ten years, the new figures sit 3.5-7.1pp below it in 2023-2025, and re-siting `rates` without a re-capture and re-fit would put a whole-tree red at HEAD and wedge every lane. The band change and the re-fit are one atom and must land together.",
       "open_finding": "docs/staging/SEAT_FINDING_THE_SWITCHING_BANDS_OWN_PUBLISHER_DISAGREES_WITH_IT_IN_EIGHT_OF_TEN_YEARS_2026-09-07.md"
     }
+  },
+  "values_refuted_by_the_publisher": {
+    "what_this_is": "THE MACHINE-READABLE FORM of the refutation stated in prose in `source_check.checked_for_supersession.note`, added 2026-09-07 by a second lane that reached the same conclusion independently and concurrently. It is not a second opinion and it does not restate the verdict -- it exists so the claim can be CHECKED rather than read. `tests/architecture/test_a_refuted_commons_artefact_cannot_quietly_become_current.py` recomputes every flag below from the bands in `rates` on every run.",
+    "why_it_is_not_redundant": "A refutation written as prose beside the values it refutes goes stale silently and in the flattering direction. The cheapest way to make this finding disappear is not to correct a value -- it is to WIDEN one band until it swallows the publisher's figure, which moves no rate and reads as a refinement. Nothing held that shut. The control also fires the other way: when the real repair lands, every flag flips true and it forces this block to be regenerated or removed rather than left accusing the file of a defect it has fixed.",
+    "headline": "8 of 10 bands do not contain the publisher's own figure for that year.",
+    "comparison": [
+      {
+        "year": 2016,
+        "published_switches_millions": 4.42,
+        "published_accounts_millions": 27.947,
+        "published_gas_switches_millions_not_in_numerator": 3.347,
+        "published_rate_pct": 15.816,
+        "this_files_band_pct": [
+          17.0,
+          17.6
+        ],
+        "band_contains_the_publisher": false
+      },
+      {
+        "year": 2017,
+        "published_switches_millions": 5.118,
+        "published_accounts_millions": 28.129,
+        "published_gas_switches_millions_not_in_numerator": 4.144,
+        "published_rate_pct": 18.195,
+        "this_files_band_pct": [
+          13.5,
+          14.0
+        ],
+        "band_contains_the_publisher": false
+      },
+      {
+        "year": 2018,
+        "published_switches_millions": 5.402,
+        "published_accounts_millions": 28.336,
+        "published_gas_switches_millions_not_in_numerator": 4.517,
+        "published_rate_pct": 19.064,
+        "this_files_band_pct": [
+          19.5,
+          20.0
+        ],
+        "band_contains_the_publisher": false
+      },
+      {
+        "year": 2019,
+        "published_switches_millions": 5.946,
+        "published_accounts_millions": 28.556,
+        "published_gas_switches_millions_not_in_numerator": 4.822,
+        "published_rate_pct": 20.822,
+        "this_files_band_pct": [
+          20.7,
+          21.3
+        ],
+        "band_contains_the_publisher": true
+      },
+      {
+        "year": 2020,
+        "published_switches_millions": 5.811,
+        "published_accounts_millions": 28.749,
+        "published_gas_switches_millions_not_in_numerator": 4.336,
+        "published_rate_pct": 20.213,
+        "this_files_band_pct": [
+          22.5,
+          23.0
+        ],
+        "band_contains_the_publisher": false
+      },
+      {
+        "year": 2021,
+        "published_switches_millions": 4.502,
+        "published_accounts_millions": 28.916,
+        "published_gas_switches_millions_not_in_numerator": 3.082,
+        "published_rate_pct": 15.569,
+        "this_files_band_pct": [
+          17.9,
+          18.4
+        ],
+        "band_contains_the_publisher": false
+      },
+      {
+        "year": 2022,
+        "published_switches_millions": 0.893,
+        "published_accounts_millions": 29.224,
+        "published_gas_switches_millions_not_in_numerator": 0.566,
+        "published_rate_pct": 3.056,
+        "this_files_band_pct": [
+          2.9,
+          4.3
+        ],
+        "band_contains_the_publisher": true
+      },
+      {
+        "year": 2023,
+        "published_switches_millions": 1.867,
+        "published_accounts_millions": 29.487,
+        "published_gas_switches_millions_not_in_numerator": 1.195,
+        "published_rate_pct": 6.332,
+        "this_files_band_pct": [
+          8.9,
+          12.5
+        ],
+        "band_contains_the_publisher": false
+      },
+      {
+        "year": 2024,
+        "published_switches_millions": 2.681,
+        "published_accounts_millions": 29.695,
+        "published_gas_switches_millions_not_in_numerator": 2.092,
+        "published_rate_pct": 9.028,
+        "this_files_band_pct": [
+          12.5,
+          16.1
+        ],
+        "band_contains_the_publisher": false
+      },
+      {
+        "year": 2025,
+        "published_switches_millions": 3.146,
+        "published_accounts_millions": 30.249,
+        "published_gas_switches_millions_not_in_numerator": 2.474,
+        "published_rate_pct": 10.4,
+        "this_files_band_pct": [
+          14.3,
+          17.9
+        ],
+        "band_contains_the_publisher": false
+      }
+    ],
+    "what_this_block_does_not_settle": "Anything about the world. The world reads `rate_pct_hi` live, so the repair drops its target 16.1% on the mean and 42-49% in 2023-2025, and simulation/departure_level_anchor.py records six of seven fitted years BELOW their band by 3.3-9.0pp -- so the record is about to move TOWARD the world and part of that standing gap is this file being wrong rather than the world being wrong. HOW MUCH IS NOT ESTABLISHED AND MUST NOT BE GUESSED. Written down before the re-capture runs so it cannot be filed as a prediction afterwards, and so that a gap shrinking because its target moved is not read as the mechanism improving."
   }
 }
