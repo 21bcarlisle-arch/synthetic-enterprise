@@ -1,5 +1,7 @@
 **Severity:** RECORDED · **Lane:** A_strategy_governance (the director's own words: "product (what the world is for) + W1/W2 fidelity register" -- `product` is not one of the thirteen lanes `background/finding_severity.LANES` knows, and an unparseable lane refuses EVERY lane's merge of origin/main, so the field carries the nearest real lane and his phrasing is kept verbatim beside it) · **Priority:** P1 for registration; fidelity gaps folded into the existing phases; two small discovery pulls authorised · **Proportionality:** reversible / narrow
 
+**Knowledge:** none -- no topic declared at filing; the seat that acts on this document names the page its understanding reaches, or says why none
+
 # [DIRECTOR-RULING][ADVISOR-STAGED] Supplier-side use-case register, and the SIM fidelity each one needs (2026-09-06)
 
 **Decided by the director in the advisor channel, 5–6 September 2026.** This is a **product document, not a build order**: it says what the world being built is *for*, so the machine can judge fidelity work by the use it enables, and so the site's Capabilities register has something true to say. Nothing here authorises a company-side build. The **second half** registers the SIM-side fidelity each use case depends on — the director's instruction verbatim: *"we need the SIM to have sufficient fidelity on the other side to enable these."*
