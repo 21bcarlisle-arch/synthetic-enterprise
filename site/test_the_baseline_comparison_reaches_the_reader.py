@@ -366,6 +366,95 @@ def test_the_coverage_denominator_is_renewals_and_not_accounts(live):
     assert dec["book_accounts_settled"] != offered
 
 
+def test_the_reader_meets_the_population_at_which_a_decision_EXISTED(live):
+    """THE DENOMINATOR IS THE CLAIM, ONE LEVEL UP FROM THE CONTROL ABOVE (2026-09-07).
+
+    That one settled "renewals, not accounts" and left a ratio that is still not a quantity:
+    `priced / renewals_the_world_offered` divides renewals by TERM BOUNDARIES, and two thirds of
+    this book's boundaries are Ofgem cap revisions on a default tariff at which no rate is struck
+    for the household and no offer is made. So the published percentage was mostly a measure of
+    GB's product mix. `docs/staging/SEAT_DECISION_AN_SVT_HOUSEHOLD_IS_NOT_A_DECISION_THIS_ARM
+    _DECLINES_2026-09-07.md`.
+
+    Fires on: the decision population reaching the feed and stopping there, which is the failure
+    this panel has now shipped twice; and on the page publishing only the flattering denominator.
+    """
+    dp = _live_feed()["decisions"].get("decisions_that_existed") or {}
+    assert dp.get("available"), (
+        "the live feed carries no decision population, so the page's reach claim has no honest "
+        "denominator to render: {!r}".format(dp.get("reason")))
+    rendered = live["arms-decisions"]
+
+    assert "{:,}".format(dp["decisions_that_existed"]) in rendered, (
+        "the population at which a decision existed never reaches the reader, so the only "
+        "denominator on the page is the term-boundary count")
+    assert "{:.2f}%".format(dp["priced_share_of_the_decisions_that_existed"] * 100) in rendered, (
+        "the arm's reach over the decisions there were to make does not reach the reader")
+    # BOTH, AND NEITHER ALONE. The term-boundary count stays -- a reader who met only the smaller
+    # denominator would think the arm sees most of the book -- so what the page owes is the
+    # sentence saying what each one counts.
+    offered = dp["renewals_the_world_offered"]
+    assert (str(offered) in rendered or "{:,}".format(offered) in rendered), (
+        "the term-boundary count has been dropped from the page, leaving a reader thinking the "
+        "arm sees most of the book")
+    assert "term boundar" in rendered.lower(), (
+        "the page prints two denominators and never says that the larger one counts term "
+        "boundaries rather than decisions")
+    assert "decision" in rendered.lower()
+
+
+def test_a_population_that_cannot_be_derived_says_so_where_a_reader_sees_it():
+    """FAIL CLOSED, ON THE SURFACE. MUTATION: drop the paragraph when the block is unavailable.
+
+    A missing denominator reads exactly like a denominator nobody needed, and the page would go
+    on showing the term-boundary percentage as though it were the reach. "We cannot tell" is a
+    result and it belongs on the page.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["decisions"]["decisions_that_existed"] = {
+        "available": False,
+        "reason": "this run's funnel carries no per-stage counts, so the population cannot be "
+                  "derived and is NOT reconstructed from the totals.",
+    }
+    rendered = _render(feed)["arms-decisions"]
+    assert "cannot tell" in rendered.lower(), (
+        "a run whose decision population could not be derived rendered no refusal at all")
+    assert "not reconstructed from the totals" in rendered.lower(), (
+        "the page refuses without naming the reason, so a reader cannot tell whether the "
+        "refusal itself is wrong")
+
+
+def test_refusals_of_unknown_membership_reach_the_reader_as_unknown():
+    """MUTATION: publish the population and swallow the bucket whose membership is not settled.
+
+    The unlabelled refusals are a record defect, so those households may well have presented a
+    decision. Counting them out silently would publish a reach that is too high for a reason no
+    reader could see. The alternative population is a PREDICTION filed before the fidelity
+    determination that settles it, so it has to be visible to be worth anything.
+
+    ITS SUBJECT IS A CONSTRUCTED FEED because the live run's refusals are all explained, and the
+    live leg above proves the lift. Driving the door with a bucket the live feed lacks is the
+    only way to reach this branch at all.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["decisions"]["decisions_that_existed"] = dict(
+        feed["decisions"]["decisions_that_existed"],
+        unresolved={
+            "renewals": 158,
+            "what_they_are": "refusals whose record carries no decided product at all.",
+            "if_the_owed_determination_admits_them": {
+                "decisions_that_existed": 437,
+                "priced_share_of_the_decisions_that_existed": 0.4943,
+            },
+            "this_is_a_prediction_not_a_result": "filed before the determination is made.",
+        })
+    rendered = _render(feed)["arms-decisions"]
+    assert "158" in rendered, "the renewals of unknown membership never reach the reader"
+    assert "437" in rendered and "49.43%" in rendered, (
+        "the page excludes 158 renewals and never says what including them would do, so the "
+        "prediction cannot be held against the determination when it lands")
+
+
 def test_the_page_never_attributes_the_small_surface_to_one_cause(live):
     """The note used to attribute the whole small surface to ONE eligibility guard.
 

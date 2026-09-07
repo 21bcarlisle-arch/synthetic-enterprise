@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06T14:31:52.350844Z",
+  "generated_at": "2026-09-07T11:22:21.834951Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -301,10 +301,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "7a1d1698329f089a1d6de2a5a0e0c6074fd31997",
+    "publishing_tree_commit": "40fe58f85f9f0a61826961b6cef59972845b36a0",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 7a1d16983 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from 40fe58f85 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -472,10 +472,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "7a1d1698329f089a1d6de2a5a0e0c6074fd31997",
+      "publishing_tree_commit": "40fe58f85f9f0a61826961b6cef59972845b36a0",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 7a1d16983 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from 40fe58f85 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -526,9 +526,9 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "published_run_net_gbp": 139109.489403,
-      "gap_gbp": -6771.937053997739,
-      "statement": "The published run's net margin (\u00a3139,109.49) is NOT the baseline arm's (\u00a3145,881.43) -- they differ by \u00a36,771.94. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "published_run_net_gbp": 139261.552629,
+      "gap_gbp": -6619.873827997741,
+      "statement": "The published run's net margin (\u00a3139,261.55) is NOT the baseline arm's (\u00a3145,881.43) -- they differ by \u00a36,619.87. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -1051,6 +1051,51 @@
     "book_accounts_settled": 164,
     "renewals_the_world_offered": 1953,
     "priced_share_of_renewals_offered": 0.0614,
+    "decisions_that_existed": {
+      "available": true,
+      "what_this_is": "The renewals at which a rate was struck for this household and a prior term existed -- the population at which a per-customer renewal-pricing decision was actually available to be made -- and the share of them this arm priced. Derived from the funnel's own stage counts at publication time, never read from the artefact, so a run written before this existed still gets one.",
+      "decisions_that_existed": 132,
+      "priced": 120,
+      "declined": 12,
+      "priced_share_of_the_decisions_that_existed": 0.9091,
+      "renewals_the_world_offered": 1953,
+      "priced_share_of_renewals_offered": 0.0614,
+      "in_the_population": [
+        {
+          "stage": "declined",
+          "count": 12,
+          "why": "the arm ran, looked, and found no margin surviving both the price cap and the churn model's support bound. A decision made."
+        },
+        {
+          "stage": "priced",
+          "count": 120,
+          "why": "the arm chose a margin for this household. A decision made."
+        }
+      ],
+      "outside_it": [
+        {
+          "stage": "product_not_upliftable",
+          "count": 1223,
+          "why": "the household's product carries no rate this supplier struck for it. From 2019 an SVT rate is the Ofgem default-tariff cap, set per region, payment method and consumption level; before that it was a published per-supplier tariff-level rate. Either way it is not a per-household strike, so there is no object for a per-customer writer to take as its argument. WHAT A REAL SUPPLIER DECIDES HERE IS A CONVERSION -- whether to serve this household a fixed deal -- which is an acquisition-shaped decision about an existing customer and is a desk this company has not built."
+        },
+        {
+          "stage": "not_the_arms_commodity",
+          "count": 346,
+          "why": "a fuel this supplier does not sell. The world offered no decision because the world offered no supply."
+        },
+        {
+          "stage": "acquisition_term",
+          "count": 252,
+          "why": "term 0. This is the household's FIRST term with us, so there is no prior rate to move and no settled history to price against. It is an acquisition, not a renewal."
+        }
+      ],
+      "unresolved": null,
+      "what_each_denominator_counts": {
+        "renewals_the_world_offered": "every TERM BOUNDARY the world put in front of the arm, including households on a default tariff whose boundary is a price-cap revision rather than an expiry. It is the book's shape and it is context: the share of it sitting on a default tariff is a published fact about GB, not a result of this company.",
+        "decisions_that_existed": "the boundaries at which a rate this supplier struck for this household existed and a prior term existed to price against. It is the denominator of any claim about the METHOD, because it is the set of decisions there were to make."
+      },
+      "reading": "The arm priced 120 of the 132 renewals at which a decision existed -- 90.9%. The world put 1,953 term boundaries in front of it; at 1,821 of those there was no per-customer renewal decision to make -- no rate this supplier had struck for that household, or no prior term to move one from -- so they are context and not a denominator. READ BOTH: the first number is about the method, the second is about the book's product mix. R12: a diagnostic. Neither denominator is a target and this is specifically not a cue to relax a guard so the population gets bigger."
+    },
     "why_the_rest_were_not_priced": [
       {
         "stage": "product_not_upliftable",
@@ -1076,7 +1121,7 @@
         "share_of_renewals_offered": 0.1772,
         "by_design": true,
         "exclusion_class": "deliberate_scope",
-        "why": "the arm is fitted to electricity and has never been fitted to gas"
+        "why": "the commodity is outside `UPLIFTABLE_COMMODITIES` (electricity, gas). Gas sat here until 2026-09-07 and no longer does -- the arm reads the renewal's own commodity for its churn curve, its cost-to-serve cadence, its standing-charge table and its lawful cap. THE MEASURED GAIN FROM THAT WAS ZERO DECISIONS AND ZERO ACCOUNTS: on a one-variable pair of runs in one world all 337 gas renewals moved to two other refusals -- 158 to `product_not_upliftable` (gas legs on SVT, the same market ceiling the electricity book has) and 179 to `no_observed_history`, which is NOT 'this account has no gas history'. The chain is called with the household billing id and the world files gas settlement rows under the supply-point id (`C1g` vs `C1`), so the gas leg's own book is unreachable by the key it is looked up under. The gate was standing in front of that. See docs/staging/SEAT_RESULT_ADMITTING_GAS_MOVED_THE_REFUSAL_AND_BOUGHT_ZERO_DECISIONS_BECAUSE_THE_ARM_ASKS_FOR_THE_GAS_LEGS_BOOK_UNDER_THE_WRONG_ID_2026-09-07.md"
       },
       {
         "stage": "acquisition_term",

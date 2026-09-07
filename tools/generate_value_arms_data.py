@@ -123,6 +123,7 @@ from pathlib import Path
 # its own at import: it is the OTHER half of the comparison, and asking it later would compare an
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
+from tools.decisions_that_existed import decisions_that_existed
 from tools.inference_claim import (
     CANNOT_TELL,
     cannot_tell_sentence,
@@ -3145,6 +3146,14 @@ def _decisions(three_arm: dict, provenance: dict | None = None) -> dict:
         # separate and also-true fact -- it just is not the coverage.
         "renewals_the_world_offered": offered,
         "priced_share_of_renewals_offered": funnel.get("priced_share_of_renewals_offered"),
+        # AND THE DENOMINATOR OF ANY CLAIM ABOUT THE METHOD, which is a different set (2026-09-07).
+        # `renewals_the_world_offered` counts TERM BOUNDARIES, two thirds of which are price-cap
+        # revisions on a default tariff where no rate is struck per household and no offer is
+        # made -- so the share above is mostly a published fact about GB's product mix and not a
+        # reading of this company. DERIVED HERE rather than read off the artefact, for the reason
+        # `product_gate_refusal` records: this page renders runs weeks old, and a figure that
+        # exists only in new artefacts reaches no reader at all.
+        "decisions_that_existed": decisions_that_existed(funnel),
         "why_the_rest_were_not_priced": exclusions,
         # HOW CONCENTRATED, which is a different fact from how much is COVERED and is why both
         # are published. Dropped by the 2026-08-28 denominator edit and caught by rendering the

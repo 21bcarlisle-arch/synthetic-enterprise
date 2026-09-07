@@ -110,6 +110,7 @@ from simulation.run_phase4c_on_phase2b import main as run_phase4c
 # SVT series before it) is argued at length where it is defined; a second copy here would be a
 # second thing to keep in step, and the household leg and the ladder's must be one reference or
 # their figures cannot be read against each other.
+from tools.decisions_that_existed import decisions_that_existed
 from tools.run_price_ladder import household_side, published_default_tariff
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -2139,6 +2140,12 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
         "reached_the_arm_with_an_arm_set": reached - counts.get("control_arm_no_writer", 0),
         "priced": priced,
         "declined": counts.get(STAGE_DECLINED, 0),
+        # THE OLD RATIO, KEPT AND NO LONGER THE REACH CLAIM. Its denominator is every TERM
+        # BOUNDARY, including the two thirds of a domestic book whose "boundary" is a price-cap
+        # revision at which no rate is struck and no offer made. A renewal count over a
+        # term-boundary count is two correct figures whose ratio is not a quantity, and it was
+        # published as the method's coverage until 2026-09-07. `decisions_that_existed` beside it is
+        # the denominator of any claim about the METHOD; this one is the book's product mix.
         "priced_share_of_renewals_offered": round(priced / reached, 4) if reached else None,
         # THE DROP AT EACH STAGE, in the order the guards fire, each with the count that stopped
         # there and what stopping there means.
@@ -2155,6 +2162,18 @@ def renewal_funnel(result: dict, arm_label: str) -> dict:
         # Broken out because this stage's count is the artefact's biggest single drop and its
         # MEANING depends entirely on which products are behind it.
         "product_not_upliftable_by_tariff_type": dict(sorted(product_values.items())),
+        # THE POPULATION A REACH CLAIM MAY DIVIDE BY, derived from the stage counts above rather
+        # than asserted. Written into the artefact so a run carries its own answer, and DERIVED
+        # AGAIN at publication time by the same function, because the page renders artefacts
+        # weeks old and a denominator that only exists in new runs reaches no reader.
+        "decisions_that_existed": decisions_that_existed({
+            "stages": [{"stage": stage, "count": counts.get(stage, 0)}
+                       for stage in FUNNEL_STAGES],
+            "renewals_the_world_offered": reached,
+            "priced_share_of_renewals_offered": (
+                round(priced / reached, 4) if reached else None),
+            "product_not_upliftable_by_tariff_type": dict(sorted(product_values.items())),
+        }),
         "accounts_the_arm_priced": sorted({
             row.get("customer_id") for row in log if row.get("stage") == STAGE_PRICED}),
         "accounts_the_world_offered_a_renewal": len({row.get("customer_id") for row in log}),

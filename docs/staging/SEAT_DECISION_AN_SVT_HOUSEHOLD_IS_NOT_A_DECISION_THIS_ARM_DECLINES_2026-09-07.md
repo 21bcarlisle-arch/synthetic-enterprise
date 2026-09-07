@@ -80,7 +80,29 @@ The 10.59% ratio is neither, and it is currently the one on the page.
 1. **`/harness/` publishes reach against the named decision population, not the term-boundary
    count.** Both numbers on the page, each with the sentence saying what it counts; the skill claim
    divides by 279. The funnel keeps every stage count unchanged — this is a publishing change, not
-   a measurement one. **This is the load-bearing follow-on and it is not yet done.**
+   a measurement one. ~~**This is the load-bearing follow-on and it is not yet done.**~~
+   **DONE 2026-09-07, later the same day**, and the sentence above is kept rather than revised so
+   the order of the work stays readable. Landed as `tools/decisions_that_existed.py`, called by
+   both the producer (`run_value_cycle_ab.renewal_funnel`) and the publisher
+   (`generate_value_arms_data`) for the reason `product_gate_refusal` records — the page renders
+   artefacts weeks old, so a denominator that exists only in new runs reaches no reader. **The
+   panel is `#arms-decisions` on `/capabilities/`, not `/harness/`: this document named the wrong
+   page and the correction is recorded rather than quietly applied.** Two corrections to §4 fell
+   out of building it, both from the rule that a stage's membership is a statement about the world
+   and not a slice of today's guard order:
+   - **`no_observed_history` is INSIDE the population and the table above omitted it.** It counts
+     zero on every run measured, so leaving it out would have been a denominator fitted to the
+     flattering answer: a renewal the world offered and the arm could not price for want of
+     history is a decision we FAILED to make, not one that was never offered. `test_a_decision_
+     the_arm_could_not_make_for_want_of_history_stays_in_the_denominator` holds it there, and a
+     poison round flipping the flag reds it and nothing else.
+   - **The rendered sentence may not say the excluded boundaries "carried no struck rate".**
+     252 of them are acquisition terms, which carry one and are outside for the other reason.
+     Stating one cause for a remainder that has two is the shape this panel has published twice.
+   Live figures on the published run at the time of landing: **120 priced of 132 decisions =
+   90.91%**, against **6.14%** of 1,953 term boundaries. The 216/279/77.42% above are the
+   `leg_id_fixed` artefact's and are reproduced exactly by the module
+   (`test_the_population_excludes_term_boundaries_at_which_no_rate_was_struck`).
 2. **A concordance re-read.** The arm's concordance sits inside the null at n=170. That n is drawn
    from the priced population and is *unaffected* by this decision — the denominator changing does
    not add one observation. Recorded here so that a later reader cannot mistake a reach of 77% for

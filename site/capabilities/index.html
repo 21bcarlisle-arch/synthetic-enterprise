@@ -875,6 +875,51 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                   : ", out of a book of " + esc(bookCount) + " settled accounts"))
           + ". Every account named among the scored decisions is one of "
           + esc(accts.length) + " (" + esc(accts.join(", ")) + ").</p>"
+          /* TWO DENOMINATORS, EACH NAMED, AND THE ONE ABOVE IS NOT THE METHOD'S (2026-09-07).
+             The percentage in the sentence above divides renewals by TERM BOUNDARIES, and two
+             thirds of this book's boundaries are price-cap revisions on a default tariff at
+             which no rate is struck for the household and no offer is made. So that figure is
+             mostly a published fact about GB's product mix, and reading it as the method's reach
+             is the ratio-of-two-things-that-are-not-one-quantity error. It stays, because the
+             book's shape is real and a reader who only met the smaller denominator would think
+             the arm sees most of the book. What is added is the population at which a decision
+             actually existed, and it leads. FAIL CLOSED: a feed whose population could not be
+             derived says so on the page rather than dropping the paragraph, because a missing
+             denominator reads exactly like a denominator nobody needed. */
+          + (function (dp) {
+              if (!dp || !dp.available) {
+                return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--amber);">'
+                  + "<strong>We cannot tell what share of the available decisions this is.</strong> "
+                  + prose((dp && dp.reason) || "This run carries no per-stage funnel, so the "
+                      + "population at which a renewal decision existed cannot be derived, and "
+                      + "the percentage above counts term boundaries rather than decisions.")
+                  + "</p>";
+              }
+              var counts = dp.what_each_denominator_counts || {};
+              return '<p style="margin:8px 0 6px;font-size:13px;">'
+                + "<strong>And what share of the decisions there were to make.</strong> "
+                + "The arm priced <strong>" + esc(dp.priced) + "</strong> of the <strong>"
+                + esc(dp.decisions_that_existed)
+                + "</strong> renewals at which a decision existed &mdash; <strong>"
+                + (dp.priced_share_of_the_decisions_that_existed * 100).toFixed(2)
+                + "%</strong>."
+                + (dp.unresolved
+                    ? " A further <strong>" + esc(dp.unresolved.renewals) + "</strong> are "
+                      + "excluded as unknown rather than counted either way; if the owed "
+                      + "determination admits them the population is "
+                      + esc(dp.unresolved.if_the_owed_determination_admits_them
+                              .decisions_that_existed)
+                      + " and the share "
+                      + (dp.unresolved.if_the_owed_determination_admits_them
+                           .priced_share_of_the_decisions_that_existed * 100).toFixed(2)
+                      + "% &mdash; written down before that determination is made."
+                    : "")
+                + "</p>"
+                + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>Read both, and neither alone.</strong> "
+                + prose(counts.renewals_the_world_offered || "") + " "
+                + prose(counts.decisions_that_existed || "") + "</p>";
+            })(dec.decisions_that_existed)
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(dec.concentration_note) + "</p>"
           /* WHERE THE UNPRICED RENEWALS WENT, WITH THE EVIDENCE UNDER THE LARGEST DROP. Until
