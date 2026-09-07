@@ -321,6 +321,116 @@ def whole_book_fields(fields) -> list[str]:
             if OBSERVABLE_FIELD_SCOPE.get(f, ("undeclared", ""))[0] == "account_state"]
 
 
+#: WHICH RUNG A49 GATES R3 AND R4 ON. Decided 2026-09-07 by the delivery seat and declared HERE, in
+#: the source, above every reading -- for the same reason `OBSERVABLE_FIELD_SCOPE` is declared here:
+#: a gate settled after the numbers are in is a gate settled BY its numbers, which is the
+#: outcome-driven selection the scope mechanism exists to prevent. Both rungs answer real questions
+#: and only one of them answers R3's and R4's.
+#:
+#: THE ARGUMENT IS ABOUT POPULATIONS AND IS PRIOR TO EVERY READING. R3 is the score (PS/tCO2e) and
+#: R4 is products beyond price -- advice, tariff fit, efficiency, solar, heat pumps, time-shifting.
+#: Both are delivered to EVERY ACCOUNT ON SUPPLY, so the bound that gates them has to be over that
+#: population. The all-candidate rung's population is set by whichever pair WINS, and on this book
+#: the winner reaches through `perceived_bill_saving_gbp`, whose scope is `decision_only` -- so it
+#: bounds what could be recovered about the households that reached a priced renewal and has no
+#: route to the rest of the book. Its denominator is not the programme's denominator. The whole-book
+#: rung asks the same question restricted to what the company holds for every account, so its
+#: population IS the programme's.
+#:
+#: IT WOULD BE THE SAME DECISION IF THE READINGS WERE THE OTHER WAY UP, and that is the test of it:
+#: were this rung the one refusing and the all-candidate rung the one carrying a magnitude, A49's
+#: honest answer would be "we cannot tell what R3 and R4 could be worth" -- a result, and one that
+#: belongs on the page. `the_a49_gate` therefore reads this constant and never the readings, and
+#: `test_the_gate_does_not_follow_whichever_rung_has_a_number` is what holds that.
+#:
+#: WHAT WOULD MOVE IT is a change of SCOPE, never a change of reading: an honest reclassification of
+#: a `decision_only` field to `account_state` (which collapses the two rungs onto one population),
+#: or R3/R4 being redefined as programmes delivered only into a renewal window.
+A49_GATING_RUNG = "whole_book_pair_rung"
+
+
+def the_a49_gate(result: dict) -> dict:
+    """The rung A49 gates R3 and R4 on, the reason, and whatever that rung says today.
+
+    ONE IMPLEMENTATION, TWO ROUTES. The instrument writes this into its own artefact and
+    `tools/generate_delivery_page` calls the same function on the artefact it reads, so the page and
+    the record cannot come to differ about which rung is the gate. A second implementation on the
+    publishing side is the VAT-rule shape: one rule, five implementations, one of them fixed.
+
+    IT SELECTS BY KEY AND NEVER BY READING. `A49_GATING_RUNG` is a module constant; nothing in this
+    function looks at a magnitude before choosing. The losing rung travels beside it under
+    `the_rung_it_is_not` rather than being dropped, because a rung reported alone is a rung chosen.
+
+    `consequence` IS DERIVED AND NOT A LITERAL. Three published sentences on this same panel
+    asserted verdicts their function had never read, each true on the run it was written against and
+    stale by the next one (2026-09-07). So the sentence is computed from the reading every time, and
+    the "we cannot tell" branch is a first-class answer rather than an empty string.
+    """
+    rung = result.get(A49_GATING_RUNG) or {}
+    magnitude = rung.get("magnitude_three_way_split") or {}
+    verdict = rung.get("selection_corrected_verdict") or {}
+    estimate = magnitude.get("estimate")
+    other = result.get("magnitude_three_way_split") or {}
+    if not rung:
+        consequence = ("the artefact carries no whole-book rung, so this gate has not been read at "
+                       "all. That is an ABSENT bound and not a bound of zero.")
+    elif estimate is None:
+        consequence = ("WE CANNOT TELL what R3 and R4 could be worth: the rung A49 gates them on "
+                       "cannot support an unbiased magnitude on this book. Neither retired nor "
+                       "licensed -- unmeasured.")
+    elif magnitude.get("exceeds_its_own_noise_floor"):
+        consequence = ("R3 and R4 are NOT retired by R1: there is household variation recoverable "
+                       "from what the company holds on every account on supply. It does not "
+                       "license building either of them -- R1 bounds INFERENCE, and what a carbon "
+                       "score or an advice product is worth needs its own ceiling per side.")
+    else:
+        consequence = ("R1 offers R3 and R4 no headroom on this book: the magnitude over every "
+                       "account on supply does not clear its own noise floor, so a programme "
+                       "conditioned on what the company observes has nothing to condition on.")
+    return {
+        "rung": A49_GATING_RUNG,
+        "reads": f"{A49_GATING_RUNG}.magnitude_three_way_split.estimate",
+        "decided": "2026-09-07",
+        "why": ("R3 and R4 are delivered to every account on supply, so the bound that gates them "
+                "must be over that population. This rung's is the book; the all-candidate rung's "
+                "is set by whichever pair wins, and a pair reaching through a `decision_only` "
+                "field carries only the accounts that reached a renewal."),
+        "what_would_move_it": ("a change of SCOPE -- a `decision_only` field honestly reclassified "
+                               "to `account_state`, or R3/R4 redefined as renewal-window "
+                               "programmes. Never a change of reading."),
+        "population": (rung.get("best_pair") or {}).get("n"),
+        "book": result.get("households"),
+        "magnitude": estimate,
+        "noise_floor": magnitude.get("bound_abs_p95"),
+        "p_value": magnitude.get("p_value"),
+        "refused": magnitude.get("refused"),
+        "exceeds_its_own_noise_floor": magnitude.get("exceeds_its_own_noise_floor"),
+        # THE GATING RUNG'S OWN SELECTED-MAXIMUM VERDICT, which on this book DISAGREES with the
+        # magnitude beside it -- it cannot be told from chance while the de-biased estimate clears
+        # its floor. Different statistics against different nulls, and the magnitude published
+        # without this beside it would read as a bound the rung has not earned.
+        "and_its_own_ceiling_verdict": {
+            "observed": verdict.get("observed"),
+            "clears": rung.get("clears_the_selection_corrected_null"),
+            "p_value": verdict.get("p_value"),
+            "bound_p95": verdict.get("bound_p95"),
+        },
+        # THE RUNG THIS IS NOT, carried so the choice is visible rather than the loser being
+        # deleted. It answers a real question -- what can be recovered about a household AT ITS
+        # RENEWAL WINDOW -- which is R2's population and not R3's or R4's.
+        "the_rung_it_is_not": {
+            "rung": "all_candidate_pair_rung",
+            "reads": "magnitude_three_way_split.estimate",
+            "population": (result.get("best_pair") or {}).get("n"),
+            "magnitude": other.get("estimate"),
+            "refused": other.get("refused"),
+            "answers": ("what can be recovered about the households that reached a priced renewal "
+                        "-- R2's population, and no route to the rest of the book."),
+        },
+        "consequence": consequence,
+    }
+
+
 def true_traits(customer_ids) -> tuple[dict[str, float], int]:
     """The elasticity the WORLD used, resolved at the seed the book was drawn at.
 
@@ -1339,7 +1449,7 @@ def measure(cells: int = 2, run_path: Path | None = None,
     # Half the households are the fit side; they are what the cell means are built from.
     households_per_cell = (best.get("n", 0) / 2) / (cells * cells) if cells else 0.0
 
-    return {
+    out = {
         "run_output": run.name,
         "single_feature_ceilings": single,
         "constant_fields_refused": constant_fields,
@@ -1463,6 +1573,14 @@ def measure(cells: int = 2, run_path: Path | None = None,
                 stability.get("unanimous") if stability else None,
         },
     }
+    # WHICH OF THE RUNGS ABOVE A49 GATES R3 AND R4 ON, written INTO the artefact rather than left
+    # for a reader to infer. Both rungs have been on `/harness/` since 2026-09-07 and the choice
+    # between them was still nobody's: the page showed two answers to two questions and the reader
+    # had to pick. `A49_GATING_RUNG` is a constant declared above every reading and this call
+    # happens last, on the finished result, so the gate can name what its rung SAYS without the
+    # saying having chosen it.
+    out["the_a49_gate"] = the_a49_gate(out)
+    return out
 
 
 def main(argv=None) -> int:

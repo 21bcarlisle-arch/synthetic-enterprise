@@ -731,6 +731,37 @@ function renderDeliveryCeiling(d) {
         "selection is what buys the power — so this is reported as a magnitude over the whole " +
         "book, not as a bound on the figure above it.</div>";
     })(c.the_whole_book_rung) +
+    /* WHICH OF THE TWO RUNGS ABOVE THE PROGRAMME IS ACTUALLY GATED ON. Both have been rendered
+       here since 2026-09-07 and the choice between them was still nobody's: two answers to two
+       questions, over two populations, and the reader left to pick — which in practice means
+       picking whichever one has a number, the outcome-driven selection the scope mechanism exists
+       to prevent. The choice is a CONSTANT in the instrument (`A49_GATING_RUNG`), decided on the
+       populations and prior to every reading, and this block renders it together with what that
+       rung says today — including a refusal, and including the losing rung, because a rung
+       reported alone is a rung chosen. */
+    (function (g) {
+      if (!g) { return ""; }
+      var not = g.the_rung_it_is_not || {};
+      return '<div class="note"><strong>What R3 and R4 are gated on, and why it is this rung.' +
+        "</strong> A49 gates them on <b>" + esc(String(g.rung || "")) + "</b>" +
+        (g.population ? ", over " + n(g.population) + " households" : "") +
+        (g.book ? " of " + n(g.book) + " in the book" : "") + ". " + esc(g.why || "") +
+        " The rung it is not is <b>" + esc(String(not.rung || "")) + "</b>" +
+        (not.population ? " (" + n(not.population) + " households)" : "") + ": " +
+        esc(not.answers || "") +
+        " <b>The choice is not read off the numbers.</b> What would move it: " +
+        esc(g.what_would_move_it || "") +
+        " <br><br>" +
+        (g.magnitude === null || g.magnitude === undefined
+          ? "<b>The gating rung carries no magnitude on this book</b>" +
+            (g.refused ? ": " + esc(g.refused) : ".")
+          : "It reads <b>" + num(g.magnitude) + "</b> against a noise floor of " +
+            num(g.noise_floor) + " (p = " + num(g.p_value) + "), while its own selected-maximum " +
+            "verdict " +
+            ((g.and_its_own_ceiling_verdict || {}).clears ? "clears" : "does not clear") +
+            " (p = " + num((g.and_its_own_ceiling_verdict || {}).p_value) + ").") +
+        " " + esc(g.consequence || "") + "</div>";
+    })(c.the_a49_gate) +
     '<div class="note"><strong>What this does not say.</strong> ' +
     esc(c.what_it_does_not_say || "") + "</div>" +
     "<p>" + esc(c.why_both_figures_are_shown || "") + "</p>" +

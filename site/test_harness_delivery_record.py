@@ -620,3 +620,78 @@ def test_the_WHOLE_BOOK_magnitude_and_its_disagreeing_verdict_reach_the_reader()
     absent = shown(None)
     assert "restricted to what the company holds" not in absent, (
         "a rung the artefact does not carry is being described to the reader anyway")
+
+
+def test_WHICH_RUNG_THE_PROGRAMME_IS_GATED_ON_reaches_the_reader():
+    """Both rungs were on this page and the CHOICE between them was still nobody's.
+
+    They answer different questions over different populations -- what can be recovered about every
+    account on supply, versus about the accounts that reached a priced renewal -- and only one of
+    them carries an unbiased magnitude on this book. A page that shows both and names neither as
+    the gate leaves the reader to pick, and in practice that means picking whichever one has a
+    number: the outcome-driven selection the scope mechanism exists to prevent. So the decision is
+    rendered, with its reason and its falsifier, beside whatever the chosen rung says.
+
+    ALL THREE STATES, because a block the panel always emits says nothing. A gate with headroom, a
+    gate that refuses, and an artefact carrying no gate at all are three different claims.
+
+    MUTATION (must fire): drop the gate block; render the reason without the reading; render the
+    reading without the reason; emit it unconditionally so an absent gate reads like a decided one.
+    """
+    live = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))
+    c = dict(live.get("the_number_the_programme_rests_on") or {})
+    if not c.get("available"):
+        pytest.skip("no ceiling measurement in this tree; the absence path is covered above")
+
+    def shown(gate):
+        c["the_a49_gate"] = gate
+        live["the_number_the_programme_rests_on"] = c
+        return _text(_render({"../data/delivery.json": live})["delivery-ceiling"]["innerHTML"])
+
+    base = {
+        "rung": "whole_book_pair_rung",
+        "why": "R3 and R4 are delivered to every account on supply.",
+        "what_would_move_it": "a change of SCOPE, never a change of reading.",
+        "population": 164, "book": 164,
+        "and_its_own_ceiling_verdict": {"clears": False, "p_value": 0.4726},
+        "the_rung_it_is_not": {"rung": "all_candidate_pair_rung", "population": 69,
+                               "answers": "what can be recovered about the households that "
+                                          "reached a priced renewal."},
+    }
+
+    # LEG 1 -- the gate is open. The rung, its population, the figure, the reason and the falsifier
+    # all have to be on the page: a named gate with no reason is an assertion, and a reason with no
+    # falsifier is not a decision anyone can overturn.
+    open_gate = shown({**base, "magnitude": 0.2513, "noise_floor": 0.1628, "p_value": 0.01,
+                       "refused": None, "exceeds_its_own_noise_floor": True,
+                       "consequence": "R3 and R4 are NOT retired by R1."})
+    assert "gated on, and why it is this rung" in open_gate, "the gate block is not rendered at all"
+    assert "whole_book_pair_rung" in open_gate, "the page does not name the rung it gates on"
+    assert "0.2513" in open_gate and "0.1628" in open_gate
+    assert "every account on supply" in open_gate, (
+        "the page names a gate and not the reason it is that one, which is an assertion")
+    assert "What would move it" in open_gate, (
+        "a decision published without its falsifier cannot be overturned by evidence")
+    assert "all_candidate_pair_rung" in open_gate and "69" in open_gate, (
+        "the losing rung is deleted rather than carried, so the choice is invisible")
+    assert "NOT retired" in open_gate
+    # THE GATING RUNG'S OWN VERDICT DISAGREES WITH ITS MAGNITUDE ON THIS BOOK, and the reader has
+    # to be told, or the magnitude reads as a bound this rung has not earned.
+    assert "0.4726" in open_gate and "does not clear" in open_gate
+
+    # LEG 2 -- the gating rung refuses. The refusal is what is rendered, and NO figure is invented
+    # from the rung that was not chosen.
+    shut = shown({**base, "magnitude": None, "noise_floor": None, "p_value": None,
+                  "refused": "three-way split needs 8 households per cell on the fit fold",
+                  "exceeds_its_own_noise_floor": False,
+                  "consequence": "WE CANNOT TELL what R3 and R4 could be worth."})
+    assert "carries no magnitude on this book" in shut
+    assert "8 households per cell" in shut
+    assert "WE CANNOT TELL" in shut
+    assert "0.2513" not in shut, "a figure the gating rung did not produce is on the page"
+
+    # LEG 3 -- an artefact with no gate renders nothing rather than a decided-looking blank. Every
+    # tree holding an artefact from before 2026-09-07 is in this state.
+    absent = shown(None)
+    assert "gated on, and why it is this rung" not in absent, (
+        "a gate the feed does not carry is being described to the reader anyway")

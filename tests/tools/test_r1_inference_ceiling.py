@@ -951,3 +951,159 @@ def test_the_published_sentence_cannot_ASSERT_a_verdict_it_did_not_READ():
         "the same cause the old literal did")
     assert "What closes it is COVERAGE" in no_book, (
         "with no rung to point at, coverage IS still the honest cause and must not be dropped")
+
+
+def _result(book_magnitude: dict, pair_magnitude: dict) -> dict:
+    """A finished result shaped like the artefact, with the two rungs' magnitudes dialled by hand.
+
+    Hand-built rather than measured because the property under test is which rung the gate NAMES,
+    and the only way to show that is not read off the numbers is to invert the numbers.
+    """
+    return {
+        "households": 164,
+        "best_pair": {"n": 69, "x": "perceived_bill_saving_gbp", "y": "mean_recent_margin_rate"},
+        "magnitude_three_way_split": pair_magnitude,
+        "whole_book_pair_rung": {
+            "best_pair": {"n": 164, "x": "rate_vs_svt_pct", "y": "mean_recent_margin_rate"},
+            "clears_the_selection_corrected_null": False,
+            "selection_corrected_verdict": {"observed": 0.1963, "p_value": 0.4726,
+                                            "bound_p95": 0.3103},
+            "magnitude_three_way_split": book_magnitude,
+        },
+    }
+
+
+ANSWERED = {"estimate": 0.2513, "bound_abs_p95": 0.1628, "p_value": 0.01,
+            "exceeds_its_own_noise_floor": True, "refused": None}
+REFUSED = {"estimate": None, "bound_abs_p95": 0.2701, "p_value": 0.7761,
+           "exceeds_its_own_noise_floor": False,
+           "refused": "three-way split needs 8 households per cell on the fit fold"}
+AT_THE_FLOOR = {"estimate": 0.0641, "bound_abs_p95": 0.1628, "p_value": 0.31,
+                "exceeds_its_own_noise_floor": False, "refused": None}
+
+
+def test_the_gate_does_not_follow_whichever_rung_has_a_number():
+    """THE CONTROL THE WHOLE DECISION RESTS ON: the gate is chosen on scope, not on outcome.
+
+    A49 gates R3 and R4 on ONE of two rungs that answer different questions over different
+    populations. On this book only one of them carries an unbiased magnitude, so an implementation
+    that reads "the rung with an estimate" is indistinguishable from the honest one HERE and is the
+    outcome-driven selection the scope mechanism exists to prevent. The only way to tell them apart
+    is to invert the readings and check the gate does not move.
+
+    MUTATION (must fire): make `the_a49_gate` choose the rung whose `estimate` is not None, or fall
+    back to the all-candidate rung when the gating one refuses.
+    """
+    # THE INVERSION. The whole-book rung refuses; the all-candidate rung is the one with a figure.
+    inverted = r.the_a49_gate(_result(book_magnitude=REFUSED, pair_magnitude=ANSWERED))
+
+    assert inverted["rung"] == "whole_book_pair_rung", (
+        "the gate moved to the rung that happened to carry a number, which is the selection this "
+        "decision was recorded to prevent")
+    assert inverted["magnitude"] is None, (
+        f"the gating rung refused and the gate published {inverted['magnitude']!r} -- it is "
+        "reading the losing rung's estimate")
+    assert inverted["refused"] == REFUSED["refused"], "the refusal did not reach the gate"
+    assert inverted["population"] == 164, "the gate is reporting the losing rung's population"
+    assert "CANNOT TELL" in inverted["consequence"], (
+        "a refused gate must publish 'we cannot tell', which is a result -- neither retired nor "
+        "licensed")
+    # THE LOSING RUNG IS CARRIED, NOT DELETED, because a rung reported alone is a rung chosen.
+    assert inverted["the_rung_it_is_not"]["magnitude"] == ANSWERED["estimate"]
+    assert inverted["the_rung_it_is_not"]["population"] == 69
+
+    # AND THE OTHER WAY UP, so the assertion above is about the CHOICE and not about the fixture:
+    # the same gate on the readings the real book gives.
+    upright = r.the_a49_gate(_result(book_magnitude=ANSWERED, pair_magnitude=REFUSED))
+    assert upright["rung"] == "whole_book_pair_rung"
+    assert upright["magnitude"] == ANSWERED["estimate"]
+    assert upright["the_rung_it_is_not"]["magnitude"] is None
+
+
+def test_the_gates_CONSEQUENCE_is_derived_from_the_reading_on_every_branch():
+    """Three sentences on this panel asserted verdicts their function had never read (2026-09-07).
+
+    Each was true on the run it was written against and stayed put when the run moved. So the
+    gate's own sentence is computed from the reading every time, and all three branches are
+    asserted -- an unmeasured gate, a gate with headroom, and a gate at its floor are three
+    different claims and none of them may be rendered as another.
+
+    MUTATION (must fire): return the "NOT retired" sentence unconditionally, or collapse the
+    refused branch into the at-the-floor one.
+    """
+    over = r.the_a49_gate(_result(ANSWERED, REFUSED))["consequence"]
+    under = r.the_a49_gate(_result(AT_THE_FLOOR, REFUSED))["consequence"]
+    absent = r.the_a49_gate(_result(REFUSED, ANSWERED))["consequence"]
+    missing = r.the_a49_gate({"households": 164})["consequence"]
+
+    assert "NOT retired" in over and "no headroom" not in over
+    assert "no headroom" in under, (
+        "a magnitude inside its own noise floor is being published as headroom")
+    assert "NOT retired" not in under
+    assert "CANNOT TELL" in absent and "NOT retired" not in absent
+    # AN ABSENT RUNG AND A REFUSING ONE ARE DIFFERENT CLAIMS. An artefact predating the whole-book
+    # rung has not measured this gate at all, which is not the same as measuring and refusing.
+    assert "no whole-book rung" in missing and "not a bound of zero" in missing
+    assert missing != absent
+
+    # AND THE GATE NEVER LICENSES THE BUILD. R1 bounds INFERENCE; what a carbon score or an advice
+    # product is worth is A49's remaining work and needs a ceiling per side.
+    assert "does not license" in over, (
+        "the open branch reads as permission to build R3 and R4, which R1's ceiling cannot give")
+
+
+def test_the_gate_on_the_REAL_artefact_reads_the_rung_it_names():
+    """Keyed to the property and never to today's answer.
+
+    It asserts the gate's figures ARE the gating rung's figures, whichever way they fall, so it
+    goes red if the lift ever drifts onto the other rung and stays green when the book grows.
+    Pinning +0.2513 would do the opposite of both.
+
+    MUTATION (must fire): read `result["magnitude_three_way_split"]` -- the all-candidate rung --
+    into the gate's `magnitude`.
+    """
+    import json
+
+    artefact = r.OUT_PATH
+    assert artefact.is_file(), (
+        f"{artefact} is tracked and missing, so what the gate publishes cannot be checked against "
+        "what the instrument measured")
+    held = json.loads(artefact.read_text(encoding="utf-8"))
+    rung = held.get(r.A49_GATING_RUNG)
+    if not rung:
+        pytest.skip("this artefact predates the whole-book rung; there is no gating rung to read")
+
+    gate = r.the_a49_gate(held)
+    mag = rung.get("magnitude_three_way_split") or {}
+
+    assert gate["rung"] == r.A49_GATING_RUNG
+    assert gate["magnitude"] == mag.get("estimate")
+    assert gate["refused"] == mag.get("refused")
+    assert gate["noise_floor"] == mag.get("bound_abs_p95")
+    assert gate["population"] == (rung.get("best_pair") or {}).get("n")
+    # THE GATING RUNG'S OWN SELECTED-MAXIMUM VERDICT TRAVELS WITH ITS MAGNITUDE. On this book they
+    # disagree, and a magnitude published without it reads as a bound this rung has not earned.
+    assert gate["and_its_own_ceiling_verdict"]["clears"] == rung.get(
+        "clears_the_selection_corrected_null")
+    # AND IT IS NOT THE OTHER RUNG WEARING THE GATE'S NAME.
+    assert gate["the_rung_it_is_not"]["population"] == (held.get("best_pair") or {}).get("n")
+
+
+def test_the_gating_rung_is_declared_where_a_reading_cannot_reach_it():
+    """The decision has to be un-moveable by an outcome, which means it lives above every run.
+
+    `A49_GATING_RUNG` is a module constant beside `OBSERVABLE_FIELD_SCOPE`, and the rung it names
+    must be one built from `account_state` fields only -- otherwise the gate's population is set by
+    whichever pair wins and the whole argument for the choice collapses.
+
+    MUTATION (must fire): point `A49_GATING_RUNG` at the all-candidate rung; or widen
+    `whole_book_fields` to admit a `decision_only` field.
+    """
+    assert r.A49_GATING_RUNG == "whole_book_pair_rung"
+    book = r.whole_book_fields(r.OBSERVABLE_FIELDS)
+    assert book, "the gating rung has no fields, so it cannot be over the whole book"
+    assert all(r.OBSERVABLE_FIELD_SCOPE[f][0] == "account_state" for f in book), (
+        "a `decision_only` field reached the gating rung, so its population is again set by "
+        "whichever pair wins")
+    # THE FIELD THAT ACTUALLY DID THE COLLAPSING, named so this stays a control over the real case.
+    assert "perceived_bill_saving_gbp" not in book

@@ -36,6 +36,13 @@ from pathlib import Path
 
 from background import direction as direction_mod
 
+# THE GATE DECLARATION, IMPORTED RATHER THAN RESTATED. `A49_GATING_RUNG` and `the_a49_gate` live in
+# the instrument beside `OBSERVABLE_FIELD_SCOPE`, which is what decides them; this module calls the
+# same function on the artefact it reads so the page and the record cannot come to disagree about
+# which rung is the gate. That is still a LIFT and not a computation -- the readings are the
+# artefact's and the choice is the instrument's constant; nothing here derives a number.
+from tools.r1_inference_ceiling import the_a49_gate
+
 PROJECT = Path(__file__).resolve().parent.parent
 OUT_PATH = PROJECT / "site" / "data" / "delivery.json"
 
@@ -325,6 +332,13 @@ def the_number_the_programme_rests_on() -> dict:
             "households_per_cell_on_the_fit_fold": book_magnitude.get(
                 "households_per_cell_on_the_fit_fold"),
         } if book_rung else None,
+        # WHICH OF THE TWO RUNGS ABOVE A49 ACTUALLY GATES R3 AND R4 ON, which until 2026-09-07 was
+        # nobody's: both rungs reached this panel, they answer different questions over different
+        # populations, and the reader was left to pick. Choosing whichever one had a number would
+        # have been the outcome-driven selection the scope mechanism exists to prevent, so the
+        # choice is a constant in the instrument -- read `A49_GATING_RUNG` for the argument -- and
+        # this field carries it together with whatever that rung says today, INCLUDING a refusal.
+        "the_a49_gate": the_a49_gate(got),
         # WHAT THE SEARCH ALONE WAS WORTH, at a fit fold held the same size so it is attributable to
         # the selection and to nothing else.
         "selection_inflation": (got.get("magnitude_three_way_split_detail") or {}).get(
