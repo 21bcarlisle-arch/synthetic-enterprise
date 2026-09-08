@@ -139,6 +139,7 @@ from background.tree_lock import (  # noqa: E402  (needs the path insert above)
     TreeLockTimeout,
     tree_lock,
 )
+from tools import stale_copy_refusal  # noqa: E402  (same reason: needs the path insert)
 
 # The gate is the repo's OWN hook, named in ONE place. Running a hand-picked subset here would
 # recreate the accretion the ruling forbids: the tool must face what `git commit` faces.
@@ -1236,7 +1237,8 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
          attempts: int = DEFAULT_ATTEMPTS, on_lost: Callable[[int, BaseMoved], None] | None = None,
          content: Mapping[str, bytes | None] | None = None,
          merge: str | None = None,
-         resolutions: Mapping[str, bytes] | None = None) -> str:
+         resolutions: Mapping[str, bytes] | None = None,
+         drops: frozenset[str] = frozenset()) -> str:
     """Land exactly `paths`, re-gating against the new base when the race is lost.
 
     Returns the new commit sha, or raises LandingRefused. `attempts` bounds the loop; `on_lost`
@@ -1256,7 +1258,11 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
 
     `content` (see `build_resulting_tree`) is passed to every attempt unchanged, which is what
     makes the retry safe for a two-lane file: a worktree-sourced retry re-reads whatever the
-    other lane has since written, a content-sourced one commits the same bytes it was given."""
+    other lane has since written, a content-sourced one commits the same bytes it was given.
+
+    `drops` exempts named paths from `tools.stale_copy_refusal` -- the declaration that a deletion
+    is YOURS and deliberate. It is passed to every attempt and PRINTED on the successful one, so a
+    landing that used it says so out loud; an exemption nobody can see is not an exemption."""
     if attempts < 1:
         raise LandingRefused(
             "attempts={} would run no gate at all; a landing with no gate is the bypass this "
@@ -1264,7 +1270,7 @@ def land(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
     lost: list[BaseMoved] = []
     for attempt in range(1, attempts + 1):
         try:
-            sha = _land_once(root, paths, message, hook_rel, content, merge, resolutions)
+            sha = _land_once(root, paths, message, hook_rel, content, merge, resolutions, drops)
             announce_landing(sha, message, paths, merge=merge)
             return sha
         except BaseMoved as exc:
@@ -1352,7 +1358,8 @@ def announce_landing(sha: str, message: str, paths: list[str], *,
 def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_REL,
                content: Mapping[str, bytes | None] | None = None,
                merge: str | None = None,
-               resolutions: Mapping[str, bytes] | None = None) -> str:
+               resolutions: Mapping[str, bytes] | None = None,
+               drops: frozenset[str] = frozenset()) -> str:
     """ONE attempt: read HEAD, build the resulting tree, gate it, compare-and-swap."""
     if merge is None and not paths:
         raise LandingRefused("no paths given -- a surgical landing names its paths explicitly.")
@@ -1388,6 +1395,18 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
                 "the named paths are already at HEAD -- the resulting tree is identical, so "
                 "there is nothing to land. (If you expected a change, check the pathspec.)")
     files = changed_paths(root, parent_tree, result_tree)
+    # BEFORE THE EXTRACT, because this refusal is about the tree and not about the tests, and the
+    # extract is the expensive step. A stale copy passes every gate below it -- the tree it reverts
+    # to was valid an hour ago -- so no amount of running the suite can find this, and running it
+    # first would only spend a full cycle to arrive at the same refusal.
+    reverts = stale_copy_refusal.violations(root, parent, result_tree, files, allow=drops)
+    if reverts:
+        raise LandingRefused(stale_copy_refusal.refusal_text(reverts))
+    if drops:
+        # NAMED, never silent. An exemption nobody can see is a hole, and this is the line that
+        # makes a deliberate deletion attributable to the landing that chose it.
+        print("[stale-copy] symbol/landing loss DECLARED by --drops for: {}".format(
+            ", ".join(sorted(drops))))
     EXTRACT_ROOT.mkdir(parents=True, exist_ok=True)
     checkout = Path(tempfile.mkdtemp(prefix="surgical-land-", dir=str(EXTRACT_ROOT)))
     # Marker written FIRST, before anything else can fail or take long: this is what makes the
@@ -1570,6 +1589,10 @@ def main(argv: list[str] | None = None) -> int:
                          "conflicted, and EVERY conflicted path must be given or the merge is "
                          "refused. Keep SRCFILE outside the repo, as with --content: the shared "
                          "worktree is never swapped. The gate still runs on the resulting tree.")
+    ap.add_argument("--drops", action="append", default=[], metavar="REPOPATH",
+                    help="declare that this landing DELIBERATELY deletes work in REPOPATH, "
+                         "exempting it from the stale-copy refusal. Printed on the landing, "
+                         "because an exemption nobody can see is a hole rather than a decision.")
     ap.add_argument("paths", nargs="*", help="the exact paths to land")
     args = ap.parse_args(argv)
     if args.verify:
@@ -1626,7 +1649,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         sha = land(ROOT, args.paths, args.message, attempts=args.attempts, on_lost=report_lost,
                    content=content or None, merge=args.merge,
-                   resolutions=resolutions or None)
+                   resolutions=resolutions or None, drops=frozenset(args.drops))
     except LandingRefused as exc:
         sys.stderr.write("[surgical-land] REFUSED: {}\n".format(exc))
         name_the_contested_paths(args.paths, content)
