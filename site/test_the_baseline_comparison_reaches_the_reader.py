@@ -41,6 +41,24 @@ for what it must not:
   * collapse `readable === null` into the reading  -> the same rung reds on its third subject: a
     split whose readability was never TESTED would render as a stated composition.
   * stop naming the published run in the table     -> the same rung reds.
+
+R15, the ATTRIBUTION rungs added 2026-09-08, and the poison round was run BEFORE them because
+"survived" means two opposite things. The headline now carries TWO legs with TWO verdicts in one
+sentence -- the advantage RESOLVES while the selection leg WITHHOLDS -- and every rung over it
+asked only whether a phrase was on the page. Poisons applied to the published feed and reverted:
+  * swap the two legs' whole verdict sentences    -> BEFORE: 89 passed, the file green while the
+    page told a reader the opposite of the feed about both legs. AFTER: reds on the advantage's
+    own band, missing from the advantage's own region.
+  * add the refusal to the RESOLVED leg's sentence, changing nothing else -> BEFORE: green (every
+    phrase the old rungs looked for was already present). AFTER: reds on attribution. This is the
+    discriminating poison: it is invisible to any whole-page presence check.
+  * render the boundary figure twice              -> reds, fail-closed and in those words, because
+    a page that marks no boundary is one a READER cannot attribute either.
+  * state a direction for the WITHHELD leg        -> reds on that leg's own region.
+The reachability leg is `test_MUTATION_a_verdict_rendered_under_the_other_legs_lead_is_caught_and_
+the_mirror_is_reachable`: it drives the MIRROR state -- advantage withheld, selection leg resolved
+-- through the real door and asserts the same rungs PASS, so the attribution helper cannot pass by
+refusing everything. Neutering that helper reds it (DID NOT RAISE), which is how it was proved.
 """
 from __future__ import annotations
 
@@ -2467,6 +2485,91 @@ def _superseded_advantage_rendered(rendered: str) -> str:
     return money if money in rendered else ""
 
 
+def _the_legs_own_regions(rendered: str, cw: dict) -> tuple:
+    """Split the current-world headline where the SELECTION leg's sentence begins.
+
+    WHY A REGION AND NOT THE WHOLE PAGE (2026-09-08, measured). The current-world clause carries
+    TWO legs with TWO verdicts in one sentence: the advantage (`£17,739`) which resolves, and the
+    selection leg (`£270`) which withholds. Every rung over it asked only whether a phrase was
+    present SOMEWHERE. That was the same question as attribution for exactly as long as both legs
+    said the same thing, and it stopped being on the day the floor was re-pointed.
+
+    THE MEASUREMENT THAT PUT THIS HERE, and it was pre-registered before it was run (see
+    `docs/staging/SEAT_PREREG_THE_TWO_LEG_HEADLINE_IS_ASSERTED_WHOLE_PAGE_2026-09-08.md`):
+    swapping the two legs' verdict sentences in the published feed -- so the page tells a reader
+    the £17,739 advantage HAS NO VERDICT and the £270 selection leg CLEARS, the opposite of the
+    feed on both legs -- left this whole file green, 89 passed. Every figure, every phrase and
+    every band edge was still on the page; only what they were said ABOUT had been reversed.
+
+    THE BOUNDARY COMES FROM THE FEED, NEVER FROM THE PAGE'S PROSE. It is the selection leg's own
+    point figure through the PRODUCER's formatter, which is what opens that leg's lead. A control
+    that split on the literal words `OF THAT,` would be a second copy of the headline, red on the
+    day someone rewrote a sentence without changing what it claims.
+
+    AND THE REFUSAL IS THE POINT, not an edge case. If that figure renders zero times or more than
+    once, this rung cannot tell where one leg's statement ends and the other's begins -- and
+    NEITHER CAN A READER. So it fails closed, in those words, rather than falling back to the
+    whole page and quietly becoming the control it replaced.
+
+    Returns `(advantage_region, selection_region)`. The selection region is `""` when the feed
+    carries no selection figure, which is the state in which the producer renders one leg only.
+    """
+    from tools.generate_value_arms_data import _gbp as _signed_sterling
+
+    advantage = _signed_sterling(cw.get("value_advantage_gbp"))
+    assert advantage in rendered, (
+        "the advantage figure {} is not on the page, so this rung has no region to attribute a "
+        "verdict to".format(advantage))
+    start = rendered.index(advantage)
+    point = (cw.get("selection_leg") or {}).get("figure_gbp")
+    if not isinstance(point, (int, float)):
+        # ONE LEG ONLY. `_current_world_clause` returns the whole-advantage sentence alone when
+        # the feed carries no selection figure, so the whole clause IS the advantage's region.
+        return rendered[start:], ""
+    marker = _signed_sterling(point)
+    seen = rendered.count(marker)
+    assert seen == 1, (
+        "the selection leg's own figure {} renders {} times in this headline, so neither this "
+        "rung nor a reader can tell where the advantage's statement ends and the leg's begins -- "
+        "and the two carry different verdicts".format(marker, seen))
+    split = rendered.index(marker)
+    assert start < split, (
+        "the selection leg's figure {} renders BEFORE the advantage's {}, so the leads are not in "
+        "the order the producer composes them and the regions below would be swapped".format(
+            marker, advantage))
+    return rendered[start:split], rendered[split:]
+
+
+def _assert_the_verdict_belongs_to_the_leg_that_earned_it(
+        leg: dict, region: str, subject: str) -> None:
+    """A leg's verdict must render in THAT leg's own region, and never in the other leg's.
+
+    KEYED TO THE PROPERTY. Both directions are asserted from the feed's own flags, so this rung
+    follows the page on the day the selection leg resolves and the advantage withholds -- the
+    mirror of today -- rather than reddening on a page that became more honest. That is the
+    reversal the sibling rung above was repaired for on 2026-09-03 and again on 2026-09-08, and
+    it is why this is stated as an equality against the feed and not as a presence check.
+
+    `CLEARS` IS THE UPPERCASE VERDICT AND NOTHING ELSE. `DOES NOT CLEAR` does not contain it, and
+    the withheld branch's own `1 of the 3 re-draws clears that spread` is lowercase; the producer
+    reserves the capital for the sentence that states a direction.
+    """
+    withheld = leg.get("verdict_withheld_because")
+    assert ("STATES NO VERDICT" in region) is bool(withheld), (
+        "{}: the feed {} a verdict for this leg and the page's own sentence about it {}, so a "
+        "reader attributes the refusal to the wrong figure".format(
+            subject,
+            "withheld" if withheld else "states",
+            "carries no refusal" if withheld else "refuses"))
+    states_a_direction = bool(
+        leg.get("bound_available") and not withheld and leg.get("resolved"))
+    assert ("CLEARS" in region) is states_a_direction, (
+        "{}: the feed {} a direction for this leg and the page's own sentence about it {}".format(
+            subject,
+            "states" if states_a_direction else "states no",
+            "states none" if states_a_direction else "states one"))
+
+
 def _assert_the_redraw_band_reached_the_reader(leg: dict, rendered: str, subject: str) -> None:
     """The published figure never renders without the family of re-draws it was one of.
 
@@ -2590,75 +2693,67 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
             "the feed claims a bound for the current world, states no verdict from it, and gives "
             "no reason -- 'no bound', 'did not clear' and 'the verdict is one draw's' are three "
             "different states and a reader meets them as one")
+        # EACH LEG IS JUDGED IN ITS OWN REGION OF THE SENTENCE, and this replaced the whole-page
+        # presence checks on 2026-09-08 after a pre-registered measurement showed the file stayed
+        # green with the two legs' verdicts SWAPPED -- see `_the_legs_own_regions`. Presence and
+        # attribution were one question only while both legs said the same thing.
+        leg = cw.get("selection_leg") or {}
+        advantage_region, selection_region = _the_legs_own_regions(rendered, cw)
         # THE FAMILY REACHES THE READER ON WHICHEVER BRANCH THE VERDICT TAKES. Asserted HERE,
         # above the branch, and not inside `if withheld` where it lived until 2026-09-08 -- see
         # `_assert_the_redraw_band_reached_the_reader` for why that placement made it a control
         # keyed to today's answer. Both legs, because the selection leg is the one whose family
-        # has a NEGATIVE centre under a positive published draw.
-        _assert_the_redraw_band_reached_the_reader(cw, rendered, "the advantage")
-        _assert_the_redraw_band_reached_the_reader(
-            cw.get("selection_leg") or {}, rendered, "the selection leg")
-        if withheld:
-            # THE WITHHOLDING MUST REACH THE READER, with the range that reverses it. A payload
-            # that withholds while the page still prints CLEARS is the fail-open this whole rung
-            # exists for, pointed the other way.
-            assert "STATES NO VERDICT" in rendered, (
-                "the feed withheld the verdict ({}) and the page did not tell the reader"
-                .format(withheld[:120]))
-            assert "CLEARS" not in rendered, (
-                "the feed withheld the verdict and the page still states one")
-            return
-        # AND THE VERDICT MUST REACH THE READER. A feed that resolves while the page still prints
-        # the refusal is the same fail-open one step along: the reader meets "STATES NO VERDICT"
-        # under a figure the site has in fact bounded.
-        #
-        # TWO LEGS, ONE SENTENCE (2026-09-08). This rung's subject is the WHOLE advantage, and the
-        # string it asserts on is produced by the SELECTION leg -- a different quantity, with its
-        # own bound and its own verdict. That never mattered while one floor left both unreadable.
-        # It matters now: on the current book the advantage's own re-draws span £17,262 to £20,002
-        # and RESOLVE, while the selection leg's span -£3,075 to £1,200 and reverse. So the page
-        # legitimately states a verdict on one and withholds on the other, in one headline -- and
-        # this rung read the resolved leg's flag against the withheld leg's sentence and called the
-        # page fail-open. Exactly the shape its own comment above records being repaired for, one
-        # leg along. The reader is still never left to infer an absence; the phrase must correspond
-        # to SOME leg that actually withheld, and carry that leg's own reversing range.
-        leg = cw.get("selection_leg") or {}
-        leg_withheld = leg.get("verdict_withheld_because")
-        if not leg_withheld:
-            assert "STATES NO VERDICT" not in rendered, (
-                "the feed holds a bound measured in this world, neither the advantage nor the "
-                "creation leg withheld a verdict, and the page still tells the reader it has none")
-        else:
-            assert "STATES NO VERDICT" in rendered, (
-                "the creation leg withheld its verdict ({}) and the page did not tell the reader"
-                .format(str(leg_withheld)[:120]))
-            leg_stability = leg.get("verdict_stability") or {}
+        # has a NEGATIVE centre under a positive published draw -- and each against its OWN
+        # region, because the two families straddle zero in opposite directions and a band shown
+        # under the wrong leg is a reader told the advantage may be worth nothing.
+        _assert_the_redraw_band_reached_the_reader(cw, advantage_region, "the advantage")
+        _assert_the_redraw_band_reached_the_reader(leg, selection_region, "the selection leg")
+        _assert_the_verdict_belongs_to_the_leg_that_earned_it(
+            cw, advantage_region, "the advantage")
+        if selection_region:
+            _assert_the_verdict_belongs_to_the_leg_that_earned_it(
+                leg, selection_region, "the selection leg")
+        # THE WITHHELD LEG'S REVERSING RANGE, whichever leg withholds. Not "the creation leg" as
+        # this block read until 2026-09-08: it hard-named one leg while asserting on the whole
+        # page, so on the mirror state -- advantage withheld, selection leg resolved -- it would
+        # have demanded the resolved leg's edges and refused the honest page. The verdict phrases
+        # themselves are no longer asserted here at all; the attribution rungs above state both
+        # directions per leg, in that leg's own region, which is strictly stronger than the
+        # whole-page presence checks that lived here and were green through a full leg swap.
+        for judged, region, name in ((cw, advantage_region, "the advantage"),
+                                     (leg, selection_region, "the selection leg")):
+            if not region or not judged.get("verdict_withheld_because"):
+                continue
+            stability = judged.get("verdict_stability") or {}
             for edge in ("redraw_min_gbp", "redraw_max_gbp"):
-                figure = leg_stability.get(edge)
+                figure = stability.get(edge)
                 assert isinstance(figure, (int, float)), (
-                    "the creation leg's verdict was withheld for a range the feed does not carry, "
-                    "so the reason is unfalsifiable")
-                # SIGN OUTSIDE THE SYMBOL, as the page renders it. This leg's family straddles
-                # zero, so `"£{:,.0f}".format(-3075)` would look for `£-3,075` and never match the
-                # `-£3,075` the reader actually meets.
+                    "{}'s verdict was withheld for a range the feed does not carry, so the "
+                    "reason is unfalsifiable".format(name))
+                # SIGN OUTSIDE THE SYMBOL, as the page renders it. The selection leg's family
+                # straddles zero, so `"£{:,.0f}".format(-3075)` would look for `£-3,075` and never
+                # match the `-£3,075` the reader actually meets.
                 shown = "{}£{:,.0f}".format("-" if figure < 0 else "", abs(figure))
-                assert shown in rendered, (
-                    "the page withheld the creation leg's verdict without showing {} ({}) -- the "
-                    "reader is told there is no verdict and not what reverses it".format(
-                        edge, shown))
+                assert shown in region, (
+                    "the page withheld {}'s verdict without showing {} ({}) in its own sentence "
+                    "-- the reader is told there is no verdict and not what reverses it".format(
+                        name, edge, shown))
+        if withheld:
+            return
         stdev = (cw.get("bound") or {}).get("stdev_gbp")
         assert isinstance(stdev, (int, float)), (
             "the feed claims a bound and carries no spread to show, so the verdict is unfalsifiable")
-        assert "£{:,.0f}".format(stdev) in rendered, (
+        # IN THE ADVANTAGE'S OWN SENTENCE. The two legs are bounded by two different spreads
+        # (£1,522 and £2,279); a whole-page check passes while the advantage's verdict is stated
+        # against the selection leg's spread, which is the same wrong-leg reading one number along.
+        assert "£{:,.0f}".format(stdev) in advantage_region, (
             "the verdict rendered without the spread it was decided against, so a reader must "
             "take the gate on trust rather than check it")
-        assert ("CLEARS" in rendered) is bool(cw.get("resolved")), (
-            "the rendered verdict disagrees with the feed's `resolved`")
         # THE SMALLER CLAIM IS SAID OUT LOUD. This figure can clear its floor while being a fifth
         # of the superseded one, because the floor fell further than the advantage did. A bare
         # "clears" lets a reader take a collapse for a win, which is the direction's own warning
         # about a result that moves the flattering way.
-        assert "SMALLER advantage" in rendered, (
+        assert "SMALLER advantage" in advantage_region, (
             "the current-world verdict rendered without saying the advantage SHRANK between "
             "worlds, so a page that resolved a collapsed figure reads as the company improving")
         return
@@ -2688,6 +2783,70 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
         "the superseded comparison was deleted rather than kept beside the current one")
     assert rendered.index(money) < rendered.index(superseded), (
         "the superseded figure rendered ahead of the one measured in the live world")
+
+
+def test_MUTATION_a_verdict_rendered_under_the_other_legs_lead_is_caught_and_the_mirror_is_reachable():
+    """Attribution, over the WHOLE partition of two legs and two verdicts, in one control.
+
+    THE DEFECT, MEASURED AND PRE-REGISTERED (2026-09-08). Swapping the two legs' verdict
+    sentences in the published feed -- the page telling a reader the £17,739 advantage has NO
+    VERDICT and the £270 selection leg CLEARS, the opposite of the feed on both -- left this file
+    green, 89 passed. Every rung asked whether a phrase was on the page and none asked which
+    figure it was said about, because while both legs withheld those were the same question.
+
+    AND THE HALF THAT MATTERS MORE IS THE SECOND SUBJECT. A control that catches the swap by
+    hard-wiring "the advantage resolves, the leg withholds" is keyed to today's answer and reds on
+    the day the floor tightens and the legs trade places. So the MIRROR is asserted to PASS: the
+    same rungs, over a feed whose advantage withholds and whose selection leg resolves, driven
+    through the real door. Without this leg the attribution rungs could refuse the mirror
+    unconditionally and every other rung in this file would still be green.
+
+    THE SENTENCES COME FROM THE PRODUCER, never from this test. A mirrored page hand-written here
+    would prove the assertions match prose this file authored -- the shape recorded in the memory
+    of `a mutation-proven branch that never met the producer's real prose`. `_current_world_clause`
+    composes both subjects from the mirrored feed, and the result is spliced into the real headline
+    and rendered by the real door.
+    """
+    from tools import generate_value_arms_data as gvad
+
+    feed = copy.deepcopy(_live_feed())
+    cw = feed["current_world"]
+    original = gvad._current_world_clause(cw)
+    assert original and original in feed["headline"], (
+        "the published headline does not contain the clause its own producer composes from the "
+        "published feed, so this rung cannot splice a mirror into it")
+
+    mirrored_world = copy.deepcopy(cw)
+    leg = mirrored_world["selection_leg"]
+    # THE TRADE IS OF EVERY FIELD THE VERDICT IS COMPOSED FROM, not of the flags alone. A mirror
+    # that swapped `resolved` and left the stability block behind would render a leg withholding
+    # for the other leg's range, which is a third state and not the mirror.
+    swap = ("resolved", "verdict_withheld_because", "verdict_stability", "redraw_band")
+    for field in swap:
+        mirrored_world[field], leg[field] = leg.get(field), mirrored_world.get(field)
+    mirrored = gvad._current_world_clause(mirrored_world)
+    assert mirrored != original, (
+        "trading the two legs' verdicts changed nothing the producer renders, so the page does "
+        "not distinguish which leg a verdict belongs to and neither could any rung over it")
+    feed["headline"] = feed["headline"].replace(original, mirrored, 1)
+    feed["current_world"] = mirrored_world
+    rendered = _render(feed)["arms-headline"]
+
+    # THE MIRROR PASSES. Both legs, both directions, through the same helpers the live rung uses.
+    advantage_region, selection_region = _the_legs_own_regions(rendered, mirrored_world)
+    _assert_the_verdict_belongs_to_the_leg_that_earned_it(
+        mirrored_world, advantage_region, "the advantage")
+    _assert_the_verdict_belongs_to_the_leg_that_earned_it(
+        leg, selection_region, "the selection leg")
+    _assert_the_redraw_band_reached_the_reader(mirrored_world, advantage_region, "the advantage")
+    _assert_the_redraw_band_reached_the_reader(leg, selection_region, "the selection leg")
+
+    # AND THE SWAP IS CAUGHT. The same rendered page, judged against the feed it is NOT -- which
+    # is the live feed, unmirrored. This is the poison round: it must fail, and it must fail for
+    # attribution rather than for a missing figure, because every figure is still on the page.
+    with pytest.raises(AssertionError, match="wrong figure"):
+        _assert_the_verdict_belongs_to_the_leg_that_earned_it(
+            cw, advantage_region, "the advantage")
 
 
 def test_MUTATION_an_unbounded_current_figure_is_never_rendered_bare():
