@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from tools.python_code_text import code_text, imported_modules, searchable
+from tools.python_code_text import code_strings, code_text, imported_modules, searchable
 
 # The argv form every subprocess call in this repository is written in, and the one that made the
 # seat-executor control fail open: no shell spelling appears in it contiguously.
@@ -91,6 +91,48 @@ def test_a_list_with_a_non_string_element_is_not_joined():
     """A join across a variable would invent a spelling nobody wrote. MUTATION: join partial
     lists and this fires with a command line that does not exist in the source."""
     assert "python3 -m" not in searchable('run(["python3", "-m", module, "--once"])')
+
+
+# ── the list form: the same two directions, for a caller that searches string by string ──────
+
+def test_the_list_form_carries_both_directions_the_blob_form_does():
+    """`code_strings` is the shape `test_the_seat_executor_stands_down` reads the tree with, and it
+    was a THIRD private copy of this rule until 2026-09-08. MUTATION: drop the `_argv_joins` call
+    and the fail-open half returns; drop `prose_string_ids` and the false-positive half does."""
+    import ast
+
+    assert "python3 -m background.seat_executor --once" in code_strings(ast.parse(_ARGV_LIST)), (
+        "the argv list is not being rejoined: a wall keyed to the shell spelling is fail-open"
+    )
+    assert not any("seat-executor.service" in s for s in code_strings(ast.parse(_PROSE))), (
+        "prose reached the list: an accurate comment reads as an invocation"
+    )
+
+
+def test_the_list_form_is_not_the_blob_form_flattened():
+    """WHY IT IS A SEPARATE FUNCTION AND NOT `searchable(...).split()`. Each item must be a string
+    some running line could really produce, because the caller runs a REGEX over each one. MUTATION:
+    implement it as `[searchable(src)]` and this fires -- a pattern would be free to straddle two
+    adjacent constructs and match text no line ever emits, which on a wall is a false red."""
+    import ast
+
+    src = 'a = "start seat-executor"\nb = ".service and then some"\n'
+    items = code_strings(ast.parse(src))
+    assert "seat-executor.service" in "".join(items), (
+        "POISON ROUND: the sample no longer demonstrates the straddle, so the leg below would pass "
+        "on a flattening implementation too"
+    )
+    assert not any("seat-executor.service" in s for s in items)
+
+
+def test_the_list_form_drops_a_bare_string_that_is_not_a_docstring():
+    """The copy this replaced dropped only a body's FIRST statement. A bare `Expr(Constant(str))`
+    anywhere is discarded by the interpreter and can invoke nothing, so it is prose too. MUTATION:
+    narrow back to first-statement-only and this fires."""
+    import ast
+
+    src = 'x = 1\n"""background.seat_executor --once is what the timer runs"""\n'
+    assert not any("background.seat_executor --once" in s for s in code_strings(ast.parse(src)))
 
 
 # ── unparseable source fails closed ──────────────────────────────────────────────────────────

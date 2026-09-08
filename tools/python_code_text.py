@@ -39,7 +39,7 @@ import ast
 import io
 import tokenize
 
-__all__ = ["searchable", "code_text", "imported_modules", "prose_string_ids"]
+__all__ = ["searchable", "code_text", "code_strings", "imported_modules", "prose_string_ids"]
 
 
 def prose_string_ids(tree: ast.AST) -> set[int]:
@@ -139,6 +139,33 @@ def code_text(source: str) -> str | None:
     if not joins:
         return blanked
     return blanked + "\n" + "\n".join(joins) + "\n"
+
+
+def code_strings(tree: ast.AST) -> list[str]:
+    """Every string a running file could hand to a shell, as SEPARATE items. No prose.
+
+    The list-shaped reading, for a caller that searches each string on its own rather than
+    searching one blob. `searchable()` is the blob form, and the two are not interchangeable: a
+    pattern can straddle two adjacent constructs in the blob and match nothing any running line
+    could produce, which for a wall is a false red that gets the wall widened.
+
+    Both halves of `code_text` are here, from the same primitives: prose dropped via
+    `prose_string_ids`, argv lists rejoined via `_argv_joins`, and the list's own elements kept
+    alongside the join so a caller looking for a bare module name still finds it.
+
+    THIS WAS A THIRD PRIVATE COPY until 2026-09-08 -- `_python_strings_and_argvs` inside
+    `tests/background/test_the_seat_executor_stands_down.py`, written independently on the day
+    `tools/launch_shape_census.py` gave up its own. Its version dropped only DOCSTRINGS (a body's
+    first statement); this drops every bare `Expr(Constant(str))`, which is a superset and costs no
+    coverage for the same reason -- a discarded expression cannot invoke, import or read anything.
+    """
+    prose = prose_string_ids(tree)
+    out = _argv_joins(tree)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Constant) and isinstance(node.value, str) \
+                and id(node) not in prose:
+            out.append(node.value)
+    return out
 
 
 def searchable(source: str) -> str:

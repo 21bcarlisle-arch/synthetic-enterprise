@@ -22,6 +22,7 @@ import time
 import pytest
 
 from background import seat_continuation, seat_executor
+from tools.python_code_text import code_strings
 
 
 @pytest.fixture(autouse=True)
@@ -432,34 +433,18 @@ _UNIT_START_RE = re.compile(
 _ENTRY_FUNCS = ("run_once", "main")
 
 
-def _python_strings_and_argvs(tree) -> list:
-    """Every string a running Python file could hand to a shell — and NO docstring or comment.
-
-    THE TWO HALVES ARE BOTH THE POINT. A docstring is a bare `Expr(Constant(str))` statement, so
-    dropping those is what stops accurate prose about this module from reading as a call to it;
-    comments never reach the AST at all, so they cost nothing. And an argv LIST is rejoined with
-    spaces, because `["python3", "-m", "background.seat_executor", "--once"]` contains none of the
-    shell spellings as a substring — which is the whole reason the old check missed its own
-    documented mutation.
-    """
-    docstrings = set()
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
-            body = getattr(node, "body", None) or []
-            if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) \
-                    and isinstance(body[0].value.value, str):
-                docstrings.add(id(body[0].value))
-    out = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.List, ast.Tuple)):
-            parts = [e.value for e in node.elts
-                     if isinstance(e, ast.Constant) and isinstance(e.value, str)]
-            if len(parts) == len(node.elts) and parts:
-                out.append(" ".join(parts))
-        elif isinstance(node, ast.Constant) and isinstance(node.value, str) \
-                and id(node) not in docstrings:
-            out.append(node.value)
-    return out
+#: THE DISCRIMINATOR IS NOT OURS TO OWN (2026-09-08). This file carried its own
+#: `_python_strings_and_argvs` — every string a running Python file could hand to a shell, prose
+#: dropped, argv lists rejoined — written the same day `tools/launch_shape_census.py` independently
+#: wrote the identical thing. Two private copies of one rule is how that rule gets widened in one
+#: place and left wrong in the other, which is the class this control was the worst instance of.
+#: `code_strings` is the one home; the census reads `prose_string_ids` from the same module.
+#:
+#: WHY THE LIST FORM AND NOT `searchable()`. `_python_invokes` searches each string on its own and
+#: runs `_UNIT_START_RE` against it. Over `searchable()`'s single blob a pattern could straddle two
+#: adjacent constructs and match text no running line produces — a false red on a WALL, and a false
+#: red is exactly what got the list above widened three times.
+_python_strings_and_argvs = code_strings
 
 
 def _python_invokes(text: str) -> bool | None:
