@@ -425,6 +425,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        is not the claim. This paragraph carries what it does NOT cover -- money only, of three
        currencies -- since the number is easiest to over-read on the surface that publishes it. -->
   <div id="arms-household"></div>
+  <!-- WHAT THE ADVANTAGE IS MADE OF, AND WHETHER THAT CAN BE READ AT ALL. It sits ABOVE the split
+       panel deliberately, on this page's own ordering rule: a reader who meets "the price level
+       explains 78.7% of the advantage" first has formed the impression, and a refusal met
+       afterwards does not undo it. Choosing better is value MADE and charging more is value
+       MOVED, so this is the one composition on the site the mission's first sentence turns on.
+       Nothing here is authored: the sentence, the runs and the dates all come from
+       `current_world.composition`, which scans `docs/observability/` at publish time. It renders
+       on BOTH branches -- a page silent when nothing disagrees reads exactly like a page where
+       nobody looked, which is the state this block was built out of. -->
+  <div id="arms-composition" style="margin:14px 0 0;font-size:13px;"></div>
   <div id="arms-split"></div>
   <p id="arms-errorbar" style="margin:14px 0 0;"></p>
   <div id="arms-decisions"></div>
@@ -776,6 +786,93 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + "promised &mdash; money, time and carbon. This figure reaches one:</strong></p>"
               + '<ul style="margin:0;font-size:12px;color:var(--muted);">' + exRows + "</ul>"
             : "");
+
+      /* WHETHER THE ADVANTAGE IS THE CHOOSING OR THE PRICE LEVEL -- and on this page's most
+         load-bearing figure, "we cannot yet tell" is a result and belongs on the surface. Until
+         2026-09-08 this whole block existed in the feed and reached no reader: the producer
+         scanned the observability directory, found three later runs over the same world, composed
+         the refusal in the director's own words, and assigned it to nothing. A refusal nobody
+         renders is a refusal that was not made.
+
+         EVERY BRANCH RENDERS, INCLUDING THE CLEAN ONE. "We looked and nothing later disagrees" and
+         "nobody looked" are different states that produce the same blank element, and the second
+         is what this page was in. So the census table renders whenever the producer found runs,
+         whether or not any of them refuses.
+
+         NO FIGURE WITHOUT ITS RUN AND ITS DATE. Every share below is a cell in a row that names
+         the artefact it came out of and the timestamp it was measured at, because the runs are NOT
+         a trend and are not differenced -- the level arm takes its level from each run's own
+         realised median margin and the priced population moved between them. A bare percentage
+         here would invite exactly the subtraction the producer refuses to do. */
+      var cw = d.current_world || {};
+      var comp = cw.composition || {};
+      var compLead = '<strong>Is the advantage the choosing, or the price level?</strong> ';
+      var compBody;
+      if (!comp.available) {
+        compBody = "THIS PUBLISH STATES NO COMPOSITION OF THE ADVANTAGE. "
+          + prose(comp.reason || "The run withheld its own split.");
+      } else if (comp.readable === false) {
+        compBody = '<span style="color:var(--amber);font-weight:600;">'
+          + "The split cannot be read, and here is why.</span> "
+          + prose(comp.why_not_readable || "");
+      } else if (comp.readable === null || comp.readable === undefined) {
+        compBody = "WHETHER THIS SPLIT CAN BE READ HAS NOT BEEN ESTABLISHED. "
+          + prose(comp.why_not_readable || "")
+          + " Read the share below as one run's arithmetic and not as a composition.";
+      } else {
+        /* The only branch that states a composition, and it still states what was checked. */
+        compBody = "The level leg is "
+          + (comp.level_share_of_advantage * 100).toFixed(1)
+          + "% of the advantage, from the run named in the table below. Every later run over this "
+          + "same world puts the advantage on the same side of which-leg-is-bigger, so no run on "
+          + "disk contradicts it. " + prose(comp.what_each_part_counts || "");
+      }
+      /* The published run is a row of the same table as the ones it is being checked against, not
+         a sentence above it: a reader comparing three shares needs them in one column, and the
+         published figure is the one most easily mistaken for the settled answer. */
+      var pubRun = comp.published_run || {};
+      var compCensus = [];
+      if (pubRun.artefact || pubRun.generated_at) {
+        compCensus.push({
+          artefact: pubRun.artefact, generated_at: pubRun.generated_at,
+          level_share_of_advantage: comp.level_share_of_advantage,
+          the_bigger_leg: ((comp.later_runs_disagree || {}).published_run || {}).the_bigger_leg,
+          published: true
+        });
+      }
+      compCensus = compCensus.concat(comp.later_runs_in_this_world || []);
+      var compRows = compCensus.map(function (r) {
+        return "<tr><td style=\"padding:1px 10px 1px 0;\">"
+          + esc(r.artefact || "not matched to a file on disk")
+          + (r.published ? ' <span style="color:var(--muted);">(published above)</span>' : "")
+          + "</td><td style=\"padding:1px 10px 1px 0;white-space:nowrap;\">"
+          + esc(r.generated_at || "undated")
+          + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+          + (r.level_share_of_advantage === null || r.level_share_of_advantage === undefined
+              ? "&mdash;"
+              : (r.level_share_of_advantage * 100).toFixed(1) + "%")
+          + "</td><td style=\"padding:1px 0;\">" + esc(r.the_bigger_leg || "no reading")
+          + "</td></tr>";
+      }).join("");
+      $("arms-composition").innerHTML =
+        '<p style="margin:0 0 6px;">' + compLead + compBody + "</p>"
+        + (compRows
+            ? '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:0;border-collapse:collapse;"><tr>'
+              + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Run</th>"
+              + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Measured"
+              + "</th>"
+              + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Level "
+              + "leg's share</th>"
+              + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Bigger leg</th>"
+              + "</tr>" + compRows + "</table></div>"
+              + '<p style="margin:4px 0 0;font-size:11px;color:var(--muted);">Every run over the '
+              + "same world (" + esc(cw.live_world || "unidentified")
+              + ") that this publish could find. They are NOT a trend and none supersedes "
+              + "another; read each figure against the run and the date beside it.</p>"
+            : "")
+        + '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
+        + prose(comp.against_the_superseded_panel || "") + "</p>";
 
       var sp = d.provisioned || {};
       if (sp.available) {

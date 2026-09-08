@@ -28,6 +28,19 @@ R15 -- the mutations, each run and reverted:
     reds.
 The null rung is `test_an_unavailable_feed_renders_an_absence_and_never_a_zero`: it must stay green
 through all five, because every one of them is about what a reader meets, not about the feed.
+
+R15, the composition rungs added 2026-09-08 -- each run and reverted, and the second one SURVIVED
+its first draft, which is why the judge below checks each branch for what it must SAY and not only
+for what it must not:
+  * delete the `#arms-composition` assignment      -> all three composition rungs red.
+  * refuse on every branch (`else if (true)`)      -> `..._and_one_that_agrees_does_not` reds. The
+    first draft passed this: the refusal's text comes from `why_not_readable`, a readable feed
+    carries none, so a hard-wired refusal printed a bare heading and satisfied an absence check.
+  * drop the census when nothing disagrees         -> the same rung reds ("we looked and nothing
+    later disagrees" and "nobody looked" are the two states this block exists to separate).
+  * collapse `readable === null` into the reading  -> the same rung reds on its third subject: a
+    split whose readability was never TESTED would render as a stated composition.
+  * stop naming the published run in the table     -> the same rung reds.
 """
 from __future__ import annotations
 
@@ -52,7 +65,7 @@ DD_ARMS = SITE / "data" / "dd_opening_arms.json"
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
-          "arms-market", "arms-sample", "arms-departure", "arms-svt-belief")
+          "arms-market", "arms-sample", "arms-departure", "arms-svt-belief", "arms-composition")
 
 
 def _text(fragment: str) -> str:
@@ -226,6 +239,197 @@ def test_the_superseded_clock_is_declared_where_the_split_is_read(live):
     assert "settled-provisioned" in live["arms-split"]
     assert "superseded" in live["arms-split"].lower(), (
         "the split renders on a clock the run superseded inside itself and does not say so")
+
+
+# ── whether the advantage is the choosing or the price level, on the page ────────────────────
+#
+# THE DEFECT THESE SERVE (2026-09-08). `tools/generate_value_arms_data` scans `docs/observability/`
+# for every A/B run over the SAME world as the one being published, composes the director's own
+# refusal when a later one puts the advantage on the other side of which-leg-is-bigger, and until
+# this control existed it assigned that refusal to nothing. The page published a 6.8% level share
+# from 2026-09-03 -- the advantage is mostly the choosing, which is value MADE -- while three later
+# runs over the same departure level sat unread at 49.3%, 49.3% and 93.9%, the last of them saying
+# the advantage is mostly a price CHARGED. Every one of the producer's legs was green. A refusal
+# nobody renders is a refusal that was not made.
+#
+# KEYED TO THE PROPERTY, NEVER TO TODAY'S 6.8% OR TO TODAY'S REFUSAL. `_composition_matches_verdict`
+# below dispatches on the FEED's own `readable`, so re-running the arms until they agree turns the
+# live rung from "the refusal renders" into "the reading renders" with nothing here to edit, and a
+# newer disagreeing run tomorrow turns it back. What the rungs forbid is the page and the feed
+# disagreeing in either direction.
+
+def _composition_words() -> str:
+    """The director's sentence, imported rather than retyped, so a paraphrase in the producer
+    cannot pass here by matching a copy of itself kept in the test."""
+    from tools.generate_value_arms_data import CANNOT_TELL_SELECTION_OR_LEVEL
+
+    return CANNOT_TELL_SELECTION_OR_LEVEL.upper()
+
+
+def _composition_defects(comp: dict, rendered: str) -> list[str]:
+    """Every way the rendered composition can disagree with the feed that produced it.
+
+    PURE, so the mutation rungs can exercise both branches with no live feed in the way -- the
+    live one only ever visits whichever branch today's runs put it on, and the branch it does not
+    visit is where a fail-open would live.
+    """
+    defects = []
+    if not rendered.strip():
+        return ["the door rendered NOTHING where the composition goes, so a reader meets the "
+                "split panel below with no statement of whether that split can be read at all"]
+    words = _composition_words()
+    # EACH BRANCH IS CHECKED FOR WHAT IT MUST SAY, NEVER ONLY FOR WHAT IT MUST NOT. Written as
+    # "the words are absent when nothing disagrees" this passed a door hard-wired to the refusal
+    # branch: the refusal's text comes from `why_not_readable`, and a readable feed carries none,
+    # so an unconditionally-refusing page printed a bare heading and satisfied the absence. What
+    # separates the branches is which of the feed's OWN sentences reaches the reader.
+    if comp.get("readable") is False:
+        # TWO REFUSALS SHARE THIS BRANCH, AND ONLY ONE OF THEM IS THE DIRECTOR'S. The producer
+        # refuses for two independent reasons -- a later run over this same world disagrees about
+        # which leg is bigger, and the numerator has no SIGN across the floor's re-draws -- and it
+        # is the first that his words were written for. Demanding them on every refusal made this
+        # rung red on the day the page became correct: the remedy for the disagreement is to
+        # publish the newest run, which empties the census, so the live refusal became the second
+        # one, which has never claimed those words and should not. What the door owes on BOTH is
+        # that the feed's own reason reaches the reader; the words are owed where the feed says a
+        # later run disagrees, which is exactly where the director asked for them.
+        said = comp.get("why_not_readable") or ""
+        if not said:
+            defects.append("the feed refuses to read the split and states no reason, so a reader "
+                           "meets a bare refusal and cannot tell which of them it is")
+        elif said[:80] not in rendered:
+            defects.append("the refusal's reason does not reach the reader")
+        if comp.get("later_runs_disagree") and words not in rendered:
+            defects.append("a later run over this same world disagrees about which leg is bigger "
+                           "and the page does not carry the director's words: " + rendered[:400])
+    elif comp.get("readable") is None:
+        if not comp.get("why_not_readable"):
+            defects.append("the feed neither read the split nor said why it could not")
+        elif comp["why_not_readable"][:80] not in rendered:
+            defects.append("the split was never tested for readability and the page does not say "
+                           "so, which reads exactly like a split that passed")
+        if words in rendered:
+            defects.append("'not asked' renders as a disagreement between runs")
+    else:
+        reading = comp.get("what_each_part_counts") or ""
+        if not reading or reading[:60] not in rendered:
+            defects.append("the feed reads the split and the page does not state what the two "
+                           "parts count, so the reading a reader meets is not the feed's: "
+                           + rendered[:400])
+        share = comp.get("level_share_of_advantage")
+        if share is not None and "{:.1f}%".format(share * 100) not in rendered:
+            defects.append("the readable share itself does not reach the reader")
+        if words in rendered:
+            defects.append("the page refuses in the director's words on a feed that states no "
+                           "disagreement, so the refusal is unconditional and says nothing")
+    # ON EVERY BRANCH: no figure without the run and the date it was measured on. This is the
+    # director's condition and it is the half that a page could most easily drop while still
+    # printing the sentence.
+    for row in comp.get("later_runs_in_this_world") or []:
+        for field in ("artefact", "generated_at"):
+            if row.get(field) and row[field] not in rendered:
+                defects.append("a run over this same world is not on the page: {}".format(
+                    row[field]))
+        share = row.get("level_share_of_advantage")
+        if share is not None and "{:.1f}%".format(share * 100) not in rendered:
+            defects.append("{} renders no share, so a reader cannot see what it disagrees "
+                           "about".format(row.get("artefact")))
+    published = comp.get("published_run") or {}
+    for field in ("artefact", "generated_at"):
+        if published.get(field) and published[field] not in rendered:
+            defects.append("the PUBLISHED run's own {} is absent, so the figure this page states "
+                           "is the one figure with no run against it".format(field))
+    return defects
+
+
+def test_the_composition_the_page_states_is_the_one_the_feed_established(live):
+    """The live rung. It follows the feed wherever today's runs put it and never asserts which."""
+    comp = (_live_feed().get("current_world") or {}).get("composition") or {}
+    assert comp.get("available"), (
+        "the publish carries no composition of the advantage at all, so the mission's own "
+        "question -- value made or value moved -- has no answer and no refusal on this page")
+    defects = _composition_defects(comp, live["arms-composition"])
+    assert not defects, "\n".join(defects)
+
+
+def _feed_with_composition(**overrides) -> dict:
+    """The live feed with its composition block replaced, driven through the real door."""
+    feed = copy.deepcopy(_live_feed())
+    feed["current_world"]["composition"] = {
+        "available": True,
+        "level_share_of_advantage": 0.068,
+        "what_each_part_counts": "the numerator is the level leg and the denominator the whole",
+        "published_run": {"artefact": "value_cycle_ab_published.json",
+                          "generated_at": "2026-09-03T10:17:07Z"},
+        "later_runs_in_this_world": [],
+        "later_runs_disagree": None,
+        "against_the_superseded_panel": "the two panels are not a revision",
+        **overrides,
+    }
+    return feed
+
+
+def test_MUTATION_a_later_run_that_disagrees_reaches_the_reader_and_one_that_agrees_does_not():
+    """THE PARTITION IN ONE CONTROL, because the branch the live feed does not visit is where a
+    fail-open lives. A page that refuses unconditionally passes every refusal leg ever written.
+
+    Both subjects carry the SAME later run at the same date and share; the only thing that moves
+    is whether the producer judged it a disagreement. Nothing else can explain a difference here.
+    """
+    later = {"artefact": "value_cycle_ab_later.json", "generated_at": "2026-09-07T03:24:30Z",
+             "ran_in_world": "39a192ce04c1eda8", "level_share_of_advantage": 0.9393,
+             "the_bigger_leg": "level"}
+    refused = _feed_with_composition(
+        readable=False,
+        why_not_readable=_composition_words() + ". A later run over the same world says level.",
+        later_runs_in_this_world=[later],
+        later_runs_disagree={"available": True, "later_runs_that_disagree": [later]})
+    allowed = _feed_with_composition(readable=True, later_runs_in_this_world=[later])
+    # THE THIRD STATE, AND IT IS NOT A TIDINESS LEG. `readable` is None when no floor in this world
+    # carried two re-draws of the level leg -- the question was never ASKED. Collapsed into the
+    # reading branch it renders as a stated composition, which is the flattering answer arrived at
+    # by not having tested anything, and the two absence rungs above both stay green through it.
+    not_asked = _feed_with_composition(
+        readable=None, why_not_readable="No floor measured in this world carries two or more "
+                                        "re-draws of the level leg, so it was never tested.",
+        later_runs_in_this_world=[later])
+
+    refused_text = _render(refused)["arms-composition"]
+    allowed_text = _render(allowed)["arms-composition"]
+    not_asked_text = _render(not_asked)["arms-composition"]
+
+    assert not _composition_defects(refused["current_world"]["composition"], refused_text), (
+        "a later run disagreeing about which leg is bigger does not reach the reader")
+    assert not _composition_defects(allowed["current_world"]["composition"], allowed_text), (
+        "the page cannot state a composition even when nothing on disk contradicts it")
+    assert not _composition_defects(not_asked["current_world"]["composition"], not_asked_text), (
+        "a split whose readability was never tested does not say so where a reader sees it")
+    # REACHABILITY OVER THE WHOLE PARTITION, in one assertion. Three distinct feed states must
+    # produce three distinct pages, or one of the branches above is unreachable another way and
+    # every leg in this file would still be green.
+    assert len({refused_text, allowed_text, not_asked_text}) == 3, (
+        "two of the three composition states render identically, so the page does not distinguish "
+        "them and a reader cannot tell which one it is in")
+    # AND THE CENSUS SURVIVES THE AGREEING BRANCH. "We looked and nothing later disagrees" and
+    # "nobody looked" are the two states this whole block was built to separate, and they render
+    # identically the moment the table is dropped when the refusal does not fire.
+    assert later["artefact"] in allowed_text and later["generated_at"] in allowed_text, (
+        "the census vanishes when nothing disagrees, so a reader cannot tell a checked page from "
+        "an unchecked one")
+
+
+def test_MUTATION_a_composition_the_run_never_produced_renders_as_an_absence():
+    """An unavailable split must say so. Rendering nothing there leaves the reader meeting the
+    superseded panel's 78.7% below with no statement that the current world has no answer."""
+    feed = copy.deepcopy(_live_feed())
+    feed["current_world"]["composition"] = {
+        "available": False, "reason": "the run withheld its own level share"}
+    rendered = _render(feed)["arms-composition"]
+    assert "the run withheld its own level share" in rendered, (
+        "an unavailable composition renders empty, which reads exactly like a composition that "
+        "needed no statement: " + rendered[:300])
+    assert _composition_words() not in rendered, (
+        "a run that produced no split at all is reported as a disagreement between runs")
 
 
 # ── the error bar, which is the reason the number cannot be quoted bare ──────────────────────
@@ -2237,6 +2441,58 @@ def _superseded_advantage_rendered(rendered: str) -> str:
     return money if money in rendered else ""
 
 
+def _assert_the_redraw_band_reached_the_reader(leg: dict, rendered: str, subject: str) -> None:
+    """The published figure never renders without the family of re-draws it was one of.
+
+    THE DEFECT (2026-09-08, the director's own reading of `site/data/value_arms.json`): the feed
+    publishes £2,335.87 while carrying redraw_min £450.99, redraw_mean £1,450.64 and redraw_max
+    £2,433.70 in the same object, and the reader was shown the WINNER of the re-draw and not the
+    re-draw. The min and max did reach the page -- but only through the withheld verdict's own
+    prose, and so only on the branch that withholds.
+
+    WHY IT IS ASSERTED HERE AND NOT INSIDE THE WITHHELD BRANCH. That placement is this project's
+    named backwards-control shape: it goes green on exactly the day the page states a direction,
+    because a stated verdict prints the stdev and drops the family. "£2,336 CLEARS a £991 spread"
+    is the most quotable sentence this page can produce and the one most in need of "...from a
+    family spanning £451 to £2,434 whose centre is £1,451". So the control is keyed to
+    `verdict_stability.checked` -- did the rung RUN -- and not to what it concluded. Adding a new
+    verdict branch that omits the band now reds here rather than shipping.
+
+    THE MEAN IS NOT OPTIONAL, and the range without it is the flattering reading one layer along:
+    a reader told the quantity spans £451 to £2,434 still takes £2,336 as the answer. On the
+    selection leg the centre is NEGATIVE beneath a positive published draw, which is the whole
+    finding, and it is a finding that fits in no range.
+
+    FAIL-CLOSED ON A HALF-CARRIED BAND. A stability block that says `checked` and carries no
+    edges is a claim to have measured with nothing to show, so it reds rather than passing over.
+    """
+    stability = (leg or {}).get("verdict_stability") or {}
+    if not stability.get("checked"):
+        # NOT RUN IS A STATE, and it has its own reason. Nothing to render, nothing to assert --
+        # the fail-closed leg is that the feed must SAY why, which it does through `why_not`.
+        assert stability.get("why_not") or not stability, (
+            "{} carries a stability block that neither checked nor said why not, so 'the "
+            "re-draws agree' and 'nobody re-drew' render as the same silence".format(subject))
+        return
+    # THE PRODUCER'S OWN FORMATTER, NEVER A SECOND COPY OF THE SIGN CONVENTION. This module's own
+    # `_gbp` renders the selection leg's -£8,634 centre as `£-8,634`; the page holds `-£8,634`.
+    # A control written against the local one reds on the single leg whose SIGN is the finding,
+    # and the cheapest way to make that red go away is to stop asserting the leg. Imported under
+    # its own name because it is a different convention from this file's `_gbp`, and two things
+    # called `_gbp` in one module is how the next reader picks the wrong one.
+    from tools.generate_value_arms_data import _gbp as _signed_sterling
+
+    for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
+        figure = stability.get(edge)
+        assert isinstance(figure, (int, float)), (
+            "{} claims its verdict was re-drawn and carries no {}, so the claim is "
+            "unfalsifiable".format(subject, edge))
+        assert _signed_sterling(figure) in rendered, (
+            "{} rendered without {} ({}) -- the reader met one draw of a family the feed "
+            "measured and the page did not show".format(
+                subject, edge, _signed_sterling(figure)))
+
+
 def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_resolved(live):
     """The current-world contrast must render, and it must render UNBOUNDED and say so.
 
@@ -2308,6 +2564,14 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
             "the feed claims a bound for the current world, states no verdict from it, and gives "
             "no reason -- 'no bound', 'did not clear' and 'the verdict is one draw's' are three "
             "different states and a reader meets them as one")
+        # THE FAMILY REACHES THE READER ON WHICHEVER BRANCH THE VERDICT TAKES. Asserted HERE,
+        # above the branch, and not inside `if withheld` where it lived until 2026-09-08 -- see
+        # `_assert_the_redraw_band_reached_the_reader` for why that placement made it a control
+        # keyed to today's answer. Both legs, because the selection leg is the one whose family
+        # has a NEGATIVE centre under a positive published draw.
+        _assert_the_redraw_band_reached_the_reader(cw, rendered, "the advantage")
+        _assert_the_redraw_band_reached_the_reader(
+            cw.get("selection_leg") or {}, rendered, "the selection leg")
         if withheld:
             # THE WITHHOLDING MUST REACH THE READER, with the range that reverses it. A payload
             # that withholds while the page still prints CLEARS is the fail-open this whole rung
@@ -2317,15 +2581,6 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
                 .format(withheld[:120]))
             assert "CLEARS" not in rendered, (
                 "the feed withheld the verdict and the page still states one")
-            stability = cw.get("verdict_stability") or {}
-            for edge in ("redraw_min_gbp", "redraw_max_gbp"):
-                figure = stability.get(edge)
-                assert isinstance(figure, (int, float)), (
-                    "the verdict was withheld for a range the feed does not carry, so the reason "
-                    "is unfalsifiable")
-                assert "£{:,.0f}".format(figure) in rendered, (
-                    "the page withheld the verdict without showing {} -- the reader is told there "
-                    "is no verdict and not what reverses it".format(edge))
             return
         # AND THE VERDICT MUST REACH THE READER. A feed that resolves while the page still prints
         # the refusal is the same fail-open one step along: the reader meets "STATES NO VERDICT"

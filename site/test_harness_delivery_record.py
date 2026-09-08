@@ -866,8 +866,29 @@ def test_the_PRODUCT_ceiling_publishes_THE_CANONS_OWN_CHARGE_as_arithmetic(rende
     # The acquisition, because it changes the shape of the programme rather than its size.
     assert "a data acquisition, not a model" in body, (
         "the page does not say what stands between R4 and a real bound")
-    assert "0" in body and "29 logs" in body, (
-        "the census behind the floor verdict is not shown, so the floors read as an opinion")
+    # THE CENSUS, BOTH SIDES, LIFTED FROM THE FEED RATHER THAN TYPED HERE. The first draft asserted
+    # the literal "29 logs" -- how many logs happened to be on disk the day it was written. That
+    # count ROTATES, so the control went red when the instrument was merely re-run (27 on
+    # 2026-09-08) and it said nothing about whether the census had reached the page at all. A
+    # control pinned to today's answer goes red when the code becomes more honest and stays green
+    # when the claim rots, which is exactly backwards. What the panel owes a reader is BOTH sides:
+    # what the search FOUND, because a FLOOR verdict rests on that being zero, and how hard it
+    # looked, which is what makes the zero worth believing rather than a shallow search.
+    census = json.loads((DATA / "delivery.json").read_text(encoding="utf-8"))[
+        "the_most_the_products_beyond_price_could_be_worth"]
+    scanned, found = census.get("property_logs_scanned"), census.get(
+        "property_attributes_found")
+    assert isinstance(scanned, int) and isinstance(found, int), (
+        "the feed carries no census, so this leg would pass on a page that shows neither side "
+        "of it")
+    # THE PANEL'S OWN PHRASING, not a bare number: the instrument's headline prose also happens to
+    # quote the log count, so `"27 logs" in body` was satisfied by a sentence rather than by the
+    # census reaching the panel. Proved by deleting the count from both render sites and watching
+    # the leg stay green.
+    assert "across {} logs".format(scanned) in body, (
+        "how hard the census looked is not shown, so the floors read as an opinion")
+    assert "{} property attributes".format(found) in body, (
+        "what the census FOUND is not on the page, and the whole floor verdict rests on it")
 
 
 def test_the_MISSING_TARIFF_that_makes_time_shifting_half_a_product_reaches_the_reader(rendered):

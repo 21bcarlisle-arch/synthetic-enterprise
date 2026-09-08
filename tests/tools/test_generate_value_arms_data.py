@@ -2399,18 +2399,28 @@ def test_the_generator_reads_the_current_world_floor_from_its_own_constant(tmp_p
     """
     live = _live_digest()
     only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
+    point = _world_stamped(_load(gva.CURRENT_WORLD_THREE_ARM_PATH), live)
     # THE LEG THE PAGE IS WAITING FOR, synthesised. The real one is still being measured; this
     # control is about the WIRING and must not wait on a run to be able to fail.
+    #
+    # STAMPED FORWARD ONTO THE POINT ESTIMATE'S OWN CLOCK, for the same reason the world digest is
+    # stamped forward one line up, and it is not cosmetic. `_staleness_caveat` withholds the bound
+    # whenever the floor's `generated_at` PREDATES the three-arm run's -- correctly, and it went
+    # from silent to firing on 2026-09-08 the moment `CURRENT_WORLD_THREE_ARM_PATH` moved to a
+    # re-take later than any floor on disk. A synthetic floor left on the 09-03 clock therefore
+    # makes `bound_available` false through the AGE guard while the wiring under test is perfect,
+    # so the assertion below would red for a reason this control does not name. Both stamps say
+    # the same thing: this fixture stands in for the floor leg that is owed, and the wiring is
+    # what is on trial.
     undecomposed = dict(only_leg, redraw_scope=dict(only_leg["redraw_scope"],
-                                                    mode=gva.BOUNDING_REDRAW_MODE))
+                                                    mode=gva.BOUNDING_REDRAW_MODE),
+                        generated_at=point["generated_at"])
     floor_path = tmp_path / "floor_all_live_world.json"
     floor_path.write_text(json.dumps(undecomposed), encoding="utf-8")
     monkeypatch.setattr(gva, "CURRENT_WORLD_NOISE_FLOOR_PATH", floor_path)
 
     three_arm_path = tmp_path / "three_arm_live.json"
-    three_arm_path.write_text(
-        json.dumps(_world_stamped(_load(gva.CURRENT_WORLD_THREE_ARM_PATH), live)),
-        encoding="utf-8")
+    three_arm_path.write_text(json.dumps(point), encoding="utf-8")
     monkeypatch.setattr(gva, "CURRENT_WORLD_THREE_ARM_PATH", three_arm_path)
 
     data = gva.generate(out_path=tmp_path / "value_arms.json")
@@ -2565,6 +2575,71 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
         "unconditionally and the guard above is an equivalence")
     assert stated["verdict_withheld_because"] is None, (
         "a reason for withholding was published beside a stated verdict")
+
+
+def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verdict():
+    """A STATED verdict carries the family it was drawn from, not only a withheld one.
+
+    THE DEFECT THIS CLOSES (2026-09-08). The band -- span, mean, and where in it this draw fell --
+    reached the headline through `verdict_withheld_because`, so it rendered on exactly the branch
+    that refuses to state a direction. Let the seeds agree and the page prints "That figure CLEARS
+    the £X this contrast moves across N seed re-draws" and the family vanishes: the reader meets
+    the WINNER of the re-draw, told it won, and is never shown the re-draw. That is the failure
+    `_verdict_stability` exists to prevent, surviving into the one branch where a direction is
+    asserted out loud and so where it costs most.
+
+    THE UNANIMOUS FLOOR IS THE WITNESS AND IT HAS TO BE, because the committed artefacts withhold:
+    every control over this could be satisfied by the withheld branch alone, and a control that
+    can only be exercised on the branch that was already right proves nothing about the one that
+    was wrong. £20,000/£20,100/£20,200 clear their own £100 spread by two orders of magnitude, so
+    `resolved` is True, `verdict_withheld_because` is None, and the stated branch is REACHED --
+    asserted here rather than assumed, because a subject that quietly withheld would make every
+    assertion below a re-test of the branch that already passed.
+
+    AND THAT FAMILY IS PLACED ABOVE THE PUBLISHED DRAW ON PURPOSE. The subject's point estimate
+    is this artefact's £12,071, so a family centred on £20,100 makes the honest sentence the
+    UNFLATTERING one -- see the placement assertion at the foot of this test for why a witness
+    that could only say "ABOVE" would leave the direction a constant.
+
+    KEYED TO THE PROPERTY. The figures are read from the stability block the same build produced,
+    never typed, so this does not red when the arms are re-run -- it reds when a verdict branch
+    stops carrying the family.
+
+    Fires on: dropping `redraw_band` from the stated branch of `_leg_clause`; composing it only
+    inside `verdict_withheld_because` again; or reporting a family whose edges the block does not
+    carry.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    admitted = dict(_load(NOISE_FLOOR_ONLY_LIVE),
+                    redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+                                      mode=gva.BOUNDING_REDRAW_MODE))
+    unanimous = _floor_with_advantages(admitted, [20000.0, 20100.0, 20200.0])
+    stated = gva._current_world_contrast(current, superseded, unanimous)
+    assert stated["resolved"] is not None and not stated["verdict_withheld_because"], (
+        "the unanimous floor did not reach the stated-verdict branch, so this subject re-tests "
+        "the withheld one and witnesses nothing")
+
+    clause = gva._current_world_clause(stated)
+    assert "CLEARS" in clause or "DOES NOT CLEAR" in clause, (
+        "the headline states no verdict off a floor whose every re-draw agrees, so the branch "
+        "under test was not rendered")
+    stability = stated["verdict_stability"]
+    assert stability["checked"], "the unanimous floor produced no stability block to render"
+    for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
+        assert "£{:,.0f}".format(stability[edge]) in clause, (
+            "the headline stated a verdict without {} -- the reader is handed a direction and "
+            "not the family the figure was one draw of".format(edge))
+
+    # AND THE PLACEMENT IS MEASURED, NOT ASSERTED FROM TODAY'S DRAW. The published £12,071 sits
+    # below the £20,100 centre of this substituted family, so this subject must say BELOW -- the
+    # sole witness that the sentence is capable of the unflattering direction on the stated
+    # branch. The live artefact draws ABOVE its family, so a witness built from it would leave
+    # "ABOVE" a constant that happens to be true rather than a reading that was taken.
+    assert "BELOW the centre of its own family" in clause, (
+        "the published draw sits under this family's mean and the stated branch did not say so, "
+        "so the placement is a constant that happens to be true of the withheld artefact")
 
 
 def test_MUTATION_the_stability_guard_fails_on_its_own_witness_and_only_there():
@@ -2884,10 +2959,26 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
         "the committed current-world run no longer names the live world, so this control's "
         "subject is gone -- re-run the arms rather than re-pointing the constant")
 
+    # THE REAL PAIRING FIRST, AND IT IS REFUSED FOR AGE -- asserted here rather than worked around,
+    # because it is the state the page is actually in. `CURRENT_WORLD_THREE_ARM_PATH` moved to the
+    # 2026-09-08 re-take and every floor on disk predates it, so `_staleness_caveat` withholds the
+    # bound. That guard is right and this control is not about it: what is on trial below is
+    # WHICH SPREAD the creation leg reaches for, which the age of the floor says nothing about.
+    # Re-run the floor (`--noise-floor-seeds … --redraw-mode all`) and this leg goes quiet by
+    # itself; delete the age guard and it reds -- so it is keyed to the property either way.
+    as_found = gva._current_world_contrast(current, superseded, floor_live)["selection_leg"]
+    assert as_found["bound_available"] is False, (
+        "the floor on disk is no longer older than the run this page publishes, so the age "
+        "refusal below has no subject -- drop this leg and keep the LIVE one")
+    assert "OLDER THAN THE FIGURE IT BOUNDS" in str(as_found.get("why_no_bound")), (
+        "the creation leg is unbounded in the live world for some reason OTHER than the floor's "
+        "age, which is a different finding: " + str(as_found.get("why_no_bound"))[:300])
+
+    # LIVE. The creation leg is bounded, in the world it was measured in, on its own contrast --
+    # on a floor stamped onto the point estimate's clock, so the wiring is what answers here.
+    floor_live = dict(floor_live, generated_at=current["generated_at"])
     block = gva._current_world_contrast(current, superseded, floor_live)
     leg = block["selection_leg"]
-
-    # LIVE. The creation leg is bounded, in the world it was measured in, on its own contrast.
     assert leg["bound_available"] is True, (
         "the creation leg carries no bound in the live world: " + str(leg.get("why_no_bound")))
     assert leg["bound_contrast"] == gva.SELECTION_CONTRAST
@@ -3130,6 +3221,14 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     Fires on: refusing unconditionally; reading the share as a composition; dropping the
     two-worlds sentence from either branch; or re-dividing the two figures here instead of
     reading the share the producer already computed behind its own guard.
+
+    `later_runs=[]` ON EVERY SUBJECT, AND IT IS THE SUBJECT DECLARING ITSELF. Since 2026-09-07 the
+    block carries a SECOND, independent refusal -- a later run over the same world disagreeing
+    about which leg the advantage is made of -- and on the real directory it fires, because one
+    does. Left to scan, WITNESS B would be refused for that reason and this control would report
+    "refuses regardless of its subject" about a block that does not. The empty census is what
+    isolates the sign property being tested here; the other property has its own control,
+    `test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_composition`.
     """
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
@@ -3137,7 +3236,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     admitted = _admitted_live_floor()
 
     # WITNESS A -- the live artefact's own rows: -882.45, +1,733.38, +9,085.08. No sign.
-    refused = gva._current_world_contrast(current, superseded, admitted,
+    refused = gva._current_world_contrast(current, superseded, admitted, later_runs=[],
                                           superseded_split={"level_share_of_advantage": 0.7867})
     comp = refused["composition"]
     assert comp["available"] is True, str(comp.get("reason"))[:200]
@@ -3152,7 +3251,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     # WITNESS B -- the sole witness that the refusal is a judgement. Same rows, shifted so every
     # draw is positive; nothing else edited.
     stable = _floor_with_level_legs(admitted, [1_000.0, 1_733.378959, 9_085.082015])
-    allowed = gva._current_world_contrast(current, superseded, stable,
+    allowed = gva._current_world_contrast(current, superseded, stable, later_runs=[],
                                           superseded_split={"level_share_of_advantage": 0.7867})
     assert allowed["composition"]["readable"] is True, (
         "a floor whose level leg holds one sign is still refused, so this block refuses "
@@ -3165,6 +3264,7 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
     # test it was an unreachable branch that crashed on an empty range, which this file's own
     # suite caught on the foreign-world subject.
     unasked = gva._current_world_contrast(current, superseded, dict(admitted, seeds=[]),
+                                          later_runs=[],
                                           superseded_split={"level_share_of_advantage": 0.7867})
     assert unasked["composition"]["readable"] is None, (
         "a floor that could not be asked is reported as an answer")
@@ -3198,6 +3298,182 @@ def test_the_shares_refusal_reaches_the_headline_and_not_only_the_payload():
     assert "CHANGES SIGN" in clause, (
         "the share's refusal never reaches the sentence a reader meets")
     assert "may not be read as the company having got better or worse" in clause
+
+
+def _a_later_run(when: str, world: str, share: float, whole: float = 10_000.0) -> dict:
+    """One more A/B artefact over a named world -- the shape the census admits rows from.
+
+    THE WHOLE IS HELD AND THE SHARE MOVES, so the two legs below differ in exactly the quantity
+    under test and in nothing else. `level_advantage_gbp` is the share of the whole by definition
+    and `selection_gbp` is the rest, which is how the producer emits them.
+    """
+    return {
+        "generated_at": when,
+        "producing_commit": {"commit": "deadbeef" + when[-6:].replace(":", "")},
+        "world_identity": {"digest": world},
+        "level_vs_selection": {
+            "available": True,
+            "clock": "settled-realised",
+            "value_advantage_gbp": whole,
+            "level_advantage_gbp": whole * share,
+            "selection_gbp": whole * (1.0 - share),
+            "level_share_of_advantage": share,
+            "share_undefined_reason": None,
+        },
+    }
+
+
+def test_a_later_run_in_this_world_that_disagrees_about_the_split_refuses_the_composition(tmp_path):
+    """The page may not publish the older answer as the current one when a later run contradicts it.
+
+    THE DEFECT IT SERVES (2026-09-07, director, lane 0). `site/data/value_arms.json` published a
+    6.8% level share dated 2026-09-03 as the world as it is now -- the advantage is mostly the
+    CHOOSING, which is the flattering reading, because choosing is value MADE and a price level is
+    value MOVED. Three later runs over the SAME world sat unread in `docs/observability/`, one of
+    them at 93.9%: mostly the level, mostly transfer. Nothing in this module could see them,
+    because `CURRENT_WORLD_THREE_ARM_PATH` is a constant and a constant cannot notice a newer file.
+
+    KEYED TO THE PROPERTY, NEVER TO TODAY'S 6.8%. The refusal fires when a later run over the same
+    world puts the advantage on the OTHER SIDE of which leg is bigger. Re-run the arms so they
+    agree and it lifts by itself; land a newer disagreeing run tomorrow and it fires on a figure
+    nobody has seen. Both directions are what a control pinned to 6.8% would get backwards.
+
+    FOUR WITNESSES, AND THE SECOND IS WHAT MAKES IT A CONTROL RATHER THAN A REFUSAL. An agreeing
+    later run must NOT refuse -- otherwise the red carries no information; a later run in ANOTHER
+    world must not be admitted at all (a figure from another departure level says nothing about
+    this one, which is this page's oldest finding); and an EARLIER run must not be admitted either,
+    or every superseded artefact in the directory would refuse the page forever.
+
+    Fires on: refusing unconditionally; refusing never; admitting a foreign world; admitting an
+    earlier run; dropping the director's words; naming only the runs that flip and hiding the rest;
+    or differencing the runs into a trend.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    published_share = current["level_vs_selection"]["level_share_of_advantage"]
+    assert gva._which_leg(published_share) == "level", (
+        "this subject no longer publishes a level-dominant share, so the disagreeing witness "
+        "below is no longer on the other side and proves nothing")
+    superseded, stable = _load(NOISE_FLOOR), _floor_with_level_legs(
+        _admitted_live_floor(), [1_000.0, 1_733.378959, 9_085.082015])
+
+    # WITNESS A -- a later run in THIS world on the other side of which-leg-is-bigger. The floor is
+    # the sign-STABLE one on purpose: it is the subject on which the other refusal does not fire,
+    # so a red here can only be this one.
+    flips = _a_later_run("2099-01-01T00:00:00Z", live, 0.10)
+    agrees = _a_later_run("2099-01-02T00:00:00Z", live, 0.80)
+    # THROUGH THE CENSUS AND NOT AROUND IT. The rows are built by the same scan production uses, so
+    # a census that stopped admitting rows would take these legs red with it rather than leaving
+    # them green on hand-built input.
+    rows = gva._later_runs_in_this_world(current, live, _dir_of(tmp_path, [flips, agrees]))
+    refused = gva._current_world_contrast(
+        current, superseded, stable, later_runs=rows,
+        superseded_split={"level_share_of_advantage": 0.7867})
+    comp = refused["composition"]
+    assert comp["readable"] is False, (
+        "a later run in this world says the advantage is mostly the other leg and the page "
+        "published a composition anyway")
+    said = comp["why_not_readable"]
+    assert gva.CANNOT_TELL_SELECTION_OR_LEVEL.upper() in said, (
+        "the refusal does not carry the words the director asked for: " + said[:300])
+    # EVERY LATER RUN IS NAMED, NOT ONLY THE ONE THAT FLIPS. A reader handed the flipping run alone
+    # has been shown a two-figure disagreement with the third figure withheld.
+    assert "10.0%" in said and "80.0%" in said, (
+        "a later run in this world is missing from the sentence: " + said[:400])
+    assert "2099-01-01T00:00:00Z" in said and "2099-01-02T00:00:00Z" in said, (
+        "a figure is published without the run date it was measured on")
+    assert "NOT differenced into a trend" in said, (
+        "the sentence does not say the runs are not a trend, which is the one reading the "
+        "director named as forbidden -- more than one thing changed between them")
+    assert comp["later_runs_disagree"]["later_runs_that_disagree"] == [
+        r for r in comp["later_runs_in_this_world"]
+        if r["artefact"] == "value_cycle_ab_run_0.json"], (
+        "the agreeing run was counted as a disagreement, so the gate is 'a later run exists' and "
+        "not 'a later run disagrees'")
+
+    # WITNESS B -- THE SOLE WITNESS THAT THE REFUSAL IS A JUDGEMENT. Same everything, except the
+    # later run falls on the same side of which-leg-is-bigger as the published one.
+    allowed = gva._current_world_contrast(
+        current, superseded, stable,
+        later_runs=gva._later_runs_in_this_world(current, live, _dir_of(tmp_path, [agrees])),
+        superseded_split={"level_share_of_advantage": 0.7867})
+    assert allowed["composition"]["readable"] is True, (
+        "a later run AGREEING about which leg is bigger still refuses, so this block refuses "
+        "regardless of its subject: "
+        + str(allowed["composition"].get("why_not_readable"))[:300])
+    assert allowed["composition"]["later_runs_disagree"] is None
+    assert allowed["composition"]["later_runs_in_this_world"], (
+        "the census went silent on the agreeing branch, so a reader cannot tell 'we looked and "
+        "nothing disagrees' from 'nobody looked'")
+
+    # WITNESS C -- THE SCOPE, BOTH WAYS. A flipping run in ANOTHER world, and a flipping run that
+    # is EARLIER, are each ignored: the first because a figure from another departure level bounds
+    # nothing here, the second because it is what the page already supersedes.
+    elsewhere = _a_later_run("2099-01-01T00:00:00Z", "0000000000000000", 0.10)
+    earlier = _a_later_run("2000-01-01T00:00:00Z", live, 0.10)
+    for name, artefact in (("another world", elsewhere), ("an earlier run", earlier)):
+        scoped = gva._later_runs_in_this_world(current, live, _dir_of(tmp_path, [artefact]))
+        assert scoped == [], "{} was admitted to the census".format(name)
+
+    # WITNESS D -- THE CENSUS REACHES THE REAL DIRECTORY. Every leg above is on injected rows; a
+    # scan that could not find the artefacts that caused this finding would leave the production
+    # path fail-open with four green legs above it.
+    #
+    # ASKED FROM A FIXED OLDER VANTAGE, NOT FROM WHATEVER THE PAGE PUBLISHES. The first draft asked
+    # for rows later than the PUBLISHED run and asserted it found some -- which is satisfiable only
+    # while the defect is present. The remedy for the defect is to publish the newest run, and
+    # nothing on disk is later than the newest thing on disk, so this leg reddened on the day the
+    # page became correct and would have gone green again the moment it fell behind. That is the
+    # control keyed to today's answer instead of to its property, which is the shape this file's
+    # own docstrings price. The property is that the scan can READ `OBSERVABILITY_DIR` and admit
+    # what is in it; the vantage below is a committed artefact this world's later runs are all
+    # after, so rows must come back whichever run the constant names.
+    vantage = gva._read(gva.OBSERVABILITY_DIR / _CENSUS_VANTAGE_ARTEFACT)
+    assert (vantage.get("world_identity") or {}).get("digest") == live, (
+        "the census vantage no longer names the live world, so the rows below would be scoped out "
+        "for that reason alone and this leg would pass for the wrong one")
+    live_rows = gva._later_runs_in_this_world(vantage, live, gva.OBSERVABILITY_DIR)
+    assert live_rows, (
+        "the census finds nothing on the real directory, so nothing here is wired to the directory "
+        "the defect was found in")
+    assert all(r["ran_in_world"] == live and r["generated_at"] > vantage["generated_at"]
+               for r in live_rows)
+    # AND IT ADMITS THE ARTEFACT THE PAGE ITSELF PUBLISHES -- the one file whose absence from the
+    # scan would leave the production path blind in exactly the direction that flatters it. A glob
+    # or a reader that could not take the published run would show up here and nowhere else.
+    published = _read_current_world_run()
+    assert published["generated_at"] > vantage["generated_at"], (
+        "the page publishes a run at or before the census vantage, so the leg below is vacuous -- "
+        "and a constant that moved BACKWARDS is the flattering resolution this control exists to "
+        "refuse")
+    assert gva.CURRENT_WORLD_THREE_ARM_PATH.name in {r["artefact"] for r in live_rows}, (
+        "the census cannot see the artefact the page publishes, so the production scan is blind to "
+        "the run the reader is looking at")
+
+
+#: The vantage WITNESS D takes the real census from. A COMMITTED artefact over the live world that
+#: every later run in that world is after -- deliberately not `CURRENT_WORLD_THREE_ARM_PATH`, whose
+#: whole job is to move forward to the newest run and which therefore has nothing after it.
+_CENSUS_VANTAGE_ARTEFACT = "value_cycle_ab_s1_three_arm_20260903.json"
+
+
+def _read_current_world_run() -> dict:
+    """The artefact the page actually publishes as the current-world run."""
+    return gva._read(gva.CURRENT_WORLD_THREE_ARM_PATH)
+
+
+def _dir_of(tmp_path, artefacts: list):
+    """A directory holding exactly these artefacts, under names the census's glob admits.
+
+    NUMBERED IN ORDER so a control can name one back, and re-made per call so no leg inherits
+    another's files -- a census fixture that accumulated would make the scope legs vacuous.
+    """
+    room = tmp_path / "obs{}".format(len(list(tmp_path.glob("obs*"))))
+    room.mkdir()
+    for index, artefact in enumerate(artefacts):
+        (room / "value_cycle_ab_run_{}.json".format(index)).write_text(
+            json.dumps(artefact), encoding="utf-8")
+    return room
 
 
 def test_an_auc_null_from_a_run_that_names_no_world_withholds_its_direction_and_keeps_its_numbers():

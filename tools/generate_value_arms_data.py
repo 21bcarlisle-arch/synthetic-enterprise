@@ -143,8 +143,14 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: presented as current, so superseded-with-provenance is the correction and deletion is not.
 #: Read for its figures ONLY when its own `world_identity` matches the live world -- see
 #: `_current_world_contrast`, which refuses rather than reaching for the nearest artefact.
+#: MOVED 2026-09-08 from `_20260903` to `_20260908`. The 09-03 run was the newest three-arm take
+#: over world `39a192ce` when it was pinned here; three later runs over the SAME world then landed
+#: and disagreed with it about which leg the advantage is made of, which is the state
+#: `_later_runs_in_this_world` was built to make visible. This artefact is the re-take of the whole
+#: three arms on the current book, and it is later than all three, so the constant now names the
+#: newest run rather than the one the disagreement was measured against.
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260903.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
 #: The floor re-run over the world the contrast above was measured in. WITHOUT THIS CONSTANT THE
 #: PAGE CANNOT BE BOUND AT ALL: `CURRENT_WORLD_THREE_ARM_PATH` was moved to the re-run when the
@@ -3762,6 +3768,45 @@ def _verdict_stability(floor_current: dict | None, spread: dict | None,
     }
 
 
+def _redraw_band_clause(point, stability: dict | None) -> str:
+    """The whole re-draw family, beside the one draw of it that got published.
+
+    THE DEFECT THIS REMOVES (2026-09-08). The band reached the reader on exactly one branch --
+    the withheld one -- because that is the branch it was written for. The day the seeds agree,
+    `verdict_withheld_because` is None, the verdict is stated with its stdev, and the family the
+    figure was drawn from disappears from the page. The reader then meets the WINNER of the
+    re-draw and not the re-draw, which is the failure the stability rung exists to prevent,
+    surviving into the one branch that states a direction out loud. A published £2,336 that
+    CLEARS a £991 spread is a very different claim once you know the same quantity re-drawn
+    averages £1,451: the verdict is still due, and the reader is still owed where in its own
+    family this draw fell.
+
+    KEYED TO `checked`, NOT TO THE VERDICT. That is the whole point of hoisting it out: the band
+    renders wherever the stability rung ran, so no future verdict branch can be added that
+    silently drops it. `where` is composed from the comparison and never hard-coded -- the next
+    run's draw may be the low one, and a sentence that only knows how to say "above" would then
+    be false on the page.
+
+    ONE PRODUCER, THREE CONSUMERS. `verdict_withheld_because`, the withheld headline clause and
+    the stated headline clause each carried their own copy of this sentence. Three copies of one
+    sentence about one quantity is how the mean came to be in two of them and the placement in
+    one -- this file's own named cost, at the scale of a paragraph.
+    """
+    if not (stability or {}).get("checked"):
+        return ""
+    low = _f(stability.get("redraw_min_gbp"))
+    high = _f(stability.get("redraw_max_gbp"))
+    mean = _f(stability.get("redraw_mean_gbp"))
+    value = _f(point)
+    if None in (low, high, mean, value):
+        return ""
+    where = "ABOVE" if value > mean else "BELOW" if value < mean else "exactly AT"
+    return (
+        "The re-draws themselves span {lo} to {hi} and average {mean}, so the figure above sits "
+        "{where} the centre of its own family -- which the range alone would not have told you."
+    ).format(lo=_gbp(low), hi=_gbp(high), mean=_gbp(mean), where=where)
+
+
 def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, live: str,
                        contrast: str) -> dict:
     """One contrast's bound, its re-draw stability and its verdict -- the whole apparatus, once.
@@ -3801,6 +3846,11 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
     # reverses it" are different states, and a reader who cannot tell them apart has been handed
     # the conflation this file refuses everywhere else.
     verdict_withheld_because = None
+    # THE FAMILY THE PUBLISHED DRAW CAME OUT OF, COMPOSED ONCE AND ON EVERY BRANCH. Computed here
+    # rather than in `_leg_clause` because this is the only scope that holds the point estimate
+    # for BOTH legs -- the whole leg keys it `value_advantage_gbp` and the selection leg keys it
+    # `figure_gbp`, and a clause-side implementation would have had to know that.
+    redraw_band = _redraw_band_clause(point, stability)
     if resolved is not None and stability.get("checked") and not stability.get("stable"):
         # WHERE IN THE FAMILY THE PUBLISHED DRAW FELL, not just how wide the family is. Said in
         # the same breath as the range because the range on its own is the flattering reading:
@@ -3808,27 +3858,214 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
         # that £2,336 is near the TOP of that span rather than its middle. Composed from the
         # comparison rather than hard-coded, because the next run's draw may be the low one and a
         # sentence that only knows how to say "above" would then be false on the page.
-        mean = _f(stability.get("redraw_mean_gbp"))
-        where = ("ABOVE" if _f(point) > mean else "BELOW" if _f(point) < mean else "exactly AT")
         verdict_withheld_because = (
             "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the "
             "bound beside it is how far that same quantity moves across {n} re-draws of it. "
             "{res} of those {n} re-draws clear the bound and the rest do not, so whether this "
             "page could state a direction depends on which draw the run happened to make. It "
-            "states none. The re-draws themselves span {lo} to {hi} and average "
-            "{mean}, so the figure above sits {where} the centre of its own family -- "
-            "which the range alone would not have told you."
-        ).format(n=stability.get("n"), res=stability.get("redraw_resolving"),
-                 lo=_gbp(stability.get("redraw_min_gbp")),
-                 hi=_gbp(stability.get("redraw_max_gbp")),
-                 mean=_gbp(mean), where=where)
+            "states none. {band}"
+        ).format(n=stability.get("n"), res=stability.get("redraw_resolving"), band=redraw_band)
         resolved = None
     return {"resolved": resolved, "verdict_withheld_because": verdict_withheld_because,
-            "verdict_stability": stability, **bound}
+            "verdict_stability": stability, "redraw_band": redraw_band, **bound}
+
+
+#: Where every A/B artefact this repository has ever written lives. Scanned rather than enumerated,
+#: because the defect this closes is an artefact that EXISTS and was never named in a constant: on
+#: 2026-09-07 the page published the 2026-09-03 run as "the world as it is now" while three later
+#: runs over the same world sat in this directory, unread, disagreeing with it. A constant naming
+#: the current run cannot notice a newer one; a glob can.
+OBSERVABILITY_DIR = PROJECT / "docs" / "observability"
+_AB_ARTEFACT_GLOB = "value_cycle_ab*.json"
+
+#: The boundary between "the advantage is mostly the LEVEL" and "the advantage is mostly the
+#: SELECTION". It is not a tuned threshold and it is not today's answer: `level_share_of_advantage`
+#: is the level leg over the whole advantage, so a half is exactly where which-leg-is-bigger flips.
+#: Above it the advantage is a price charged -- value MOVED. Below it, value made. That is the
+#: question the mission's first sentence turns on, and it is the only reading this share has.
+_WHICH_LEG_IS_BIGGER = 0.5
+
+#: The words the director asked for, verbatim, so a grep for them finds the surface and not a
+#: paraphrase of it.
+CANNOT_TELL_SELECTION_OR_LEVEL = (
+    "we cannot yet tell whether the advantage is selection or level")
+
+
+def _which_leg(share) -> str | None:
+    """Which half of the advantage is the larger one -- the ONLY reading this share carries.
+
+    NOT A BAND AND NOT A TOLERANCE. A share above a half means the level explains more of the
+    advantage than the choosing does; below it, the reverse. Nothing here is tuned, so nothing here
+    goes stale when the figures move -- which is what keying to the property rather than to today's
+    6.8% buys. A share exactly at a half is its own answer and says so.
+    """
+    if not isinstance(share, (int, float)) or isinstance(share, bool):
+        return None
+    if share > _WHICH_LEG_IS_BIGGER:
+        return "level"
+    if share < _WHICH_LEG_IS_BIGGER:
+        return "selection"
+    return "evenly split"
+
+
+def _later_runs_in_this_world(current: dict | None, live: str,
+                              directory: Path | None = None) -> list:
+    """Every A/B run on disk that names THIS world and is LATER than the one being published.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-07). `CURRENT_WORLD_THREE_ARM_PATH` is a constant, and a
+    constant cannot notice that three later runs over the same departure level are sitting beside
+    it. The page published a 6.8% level share dated 2026-09-03 as "the world as it is now" while
+    `value_cycle_ab_gas_admitted_2026-09-07.json` (49.3%) and
+    `value_cycle_ab_leg_id_fixed_2026-09-07.json` (93.9%) said the opposite thing about the same
+    world -- that the advantage is mostly a price CHARGED, not value made. Nothing on the page or
+    in this module could see them, because nothing looked.
+
+    SAME WORLD, STRICTLY LATER, AND A SPLIT IT ACTUALLY CARRIES -- all three, or the row is not
+    admitted. A run in another world says nothing about this one (that is `_world_provenance`'s
+    whole finding, one artefact along); an earlier run is what this page already publishes; and a
+    run with no `level_vs_selection` has no opinion to disagree with.
+
+    IT RETURNS ROWS, NEVER A VERDICT. Deciding is `_the_later_runs_disagree`'s job, and keeping the
+    census separate is what makes the census assertable on the real directory without the verdict's
+    fixtures in the way.
+    """
+    when = (current or {}).get("generated_at")
+    if not isinstance(when, str) or not when:
+        return []
+    rows = []
+    for path in sorted((directory or OBSERVABILITY_DIR).glob(_AB_ARTEFACT_GLOB)):
+        run = _read(path)
+        if not isinstance(run, dict):
+            continue
+        if ((run.get("world_identity") or {}).get("digest")) != live:
+            continue
+        ran_at = run.get("generated_at")
+        if not isinstance(ran_at, str) or ran_at <= when:
+            continue
+        split = run.get("level_vs_selection") or {}
+        if not split.get("available"):
+            continue
+        share = _f(split.get("level_share_of_advantage"))
+        if share is None:
+            continue
+        rows.append({
+            "artefact": path.name,
+            "generated_at": ran_at,
+            "ran_in_world": live,
+            "level_share_of_advantage": share,
+            "the_bigger_leg": _which_leg(share),
+            "value_advantage_gbp": _f(split.get("value_advantage_gbp")),
+            "level_advantage_gbp": _f(split.get("level_advantage_gbp")),
+            "selection_gbp": _f(split.get("selection_gbp")),
+        })
+    return rows
+
+
+def _name_of_the_run(run: dict | None, directory: Path | None = None) -> str | None:
+    """Which file on disk the published figures came out of -- matched, never assumed.
+
+    THE PAGE MUST NAME A RUN AGAINST EVERY FIGURE, and the only name a reader can act on is the
+    artefact's. Naming `CURRENT_WORLD_THREE_ARM_PATH` instead would be this module asserting which
+    file it read rather than establishing it: the constant is right in production and wrong for
+    every injected subject, and a filename printed beside figures that did not come from it is
+    worse than no filename. Matched on the run's own `generated_at` AND `producing_commit`, and
+    `None` when nothing on disk carries both -- which is a state the sentence prints in words.
+    """
+    if not isinstance(run, dict):
+        return None
+    when, commit = run.get("generated_at"), (run.get("producing_commit") or {}).get("commit")
+    if not isinstance(when, str) or not when:
+        return None
+    for path in sorted((directory or OBSERVABILITY_DIR).glob(_AB_ARTEFACT_GLOB)):
+        other = _read(path)
+        if not isinstance(other, dict):
+            continue
+        if (other.get("generated_at") == when
+                and (other.get("producing_commit") or {}).get("commit") == commit):
+            return path.name
+    return None
+
+
+def _the_later_runs_disagree(share, published_at, published_from, rows: list,
+                             live: str) -> dict | None:
+    """Do the later runs disagree about WHICH LEG the advantage is made of? `None` when they do not.
+
+    THE PROPERTY, AND IT IS NOT TODAY'S 6.8%. The refusal fires when a later run over the same
+    world puts the advantage on the OTHER SIDE of which-leg-is-bigger from the run being published.
+    Re-run the arms so the later runs land on the same side and this lifts by itself; publish a
+    newer disagreeing run tomorrow and it fires again on a figure nobody has seen yet. A control
+    pinned to 6.8% would do the opposite of both.
+
+    NO TREND IS COMPUTED HERE, ON PURPOSE AND ON THE DIRECTOR'S INSTRUCTION. The level arm takes
+    its level from each run's OWN realised median margin (54.25, 48.5 and 20.0 £/MWh across the
+    three), and the writer-3 gas repair moved the priced population between them. More than one
+    thing changed, so the movement from 6.8% to 93.9% is not one quantity across these runs and
+    differencing them would manufacture exactly the attribution this file already refuses to make
+    between the two panels. Every figure is published with the run and the date it came from, and
+    nothing is subtracted from anything.
+    """
+    published_leg = _which_leg(share)
+    if published_leg is None:
+        return None
+    against = [r for r in rows
+               if r["the_bigger_leg"] is not None and r["the_bigger_leg"] != published_leg]
+    if not against:
+        return None
+    return {
+        "available": True,
+        "world": live,
+        "published_run": {
+            "artefact": published_from,
+            "generated_at": published_at,
+            "level_share_of_advantage": share,
+            "the_bigger_leg": published_leg,
+        },
+        "later_runs_that_disagree": against,
+        "later_runs_in_this_world": rows,
+        # EVERY LATER RUN IS NAMED, NOT ONLY THE ONES THAT FLIP. What TRIPS the refusal is a run on
+        # the other side of which-leg-is-bigger; what a reader needs in front of them is all of
+        # them, because 6.8% and 49.3% fall the same side of that line and are not the same
+        # statement about the company. A sentence that printed only the flipping run would hand a
+        # reader a two-figure disagreement and hide the third.
+        "statement": (
+            "{words}. This page publishes {pub_pct} -- the LEVEL leg's share of the advantage, so "
+            "mostly the {pub_leg} -- from {pub_run} measured {pub_when}. {n} later run{s} over the "
+            "SAME world ({world}) exist and are not published above: {rows}. {flip}. THE SPLIT IS "
+            "THEREFORE STATED AS UNRESOLVED AND NOT AS A COMPOSITION. These runs are NOT "
+            "differenced into a trend and none of them supersedes the others: the level arm takes "
+            "its level from each run's own realised median margin and the priced population moved "
+            "between them, so more than one thing changed and the movement is not one quantity "
+            "across them. Every figure here carries the run and the date it was measured on, "
+            "which is the whole of what this page can say until the one-variable version is run."
+        ).format(
+            words=CANNOT_TELL_SELECTION_OR_LEVEL.upper(),
+            pub_pct="{:.1%}".format(share), pub_leg=published_leg,
+            pub_run=published_from or "the run offered as the current-world one",
+            pub_when=published_at or "an unstated date",
+            n=len(rows), s="" if len(rows) == 1 else "s", world=live,
+            flip=("Of those, {} put the advantage on the OTHER side of which leg is bigger -- {}"
+                  .format(len(against),
+                          ", ".join(r["artefact"] for r in against))),
+            rows="; ".join(
+                "{pct} ({leg}) from {name} measured {when}, whole advantage {adv} of which the "
+                "level leg is {lev} and the choosing {sel}".format(
+                    pct="{:.1%}".format(r["level_share_of_advantage"]),
+                    leg=r["the_bigger_leg"], name=r["artefact"], when=r["generated_at"],
+                    adv=_gbp(r["value_advantage_gbp"]), lev=_gbp(r["level_advantage_gbp"]),
+                    sel=_gbp(r["selection_gbp"]))
+                for r in rows)),
+        "what_would_answer_it": (
+            "the arms re-run once over this world with ONE thing changed at a time -- the level "
+            "arm's own level held fixed across the runs, or the priced population held fixed -- "
+            "so the movement in the split can be attributed to something. Until then the split is "
+            "a property of which run was read."),
+    }
 
 
 def _composition_in_this_world(contrast: dict, floor_current: dict | None,
-                               superseded_share, live: str) -> dict:
+                               superseded_share, live: str,
+                               later_runs: list | None = None,
+                               published_at=None, published_from=None) -> dict:
     """How the advantage SPLITS between the two legs -- and why that split may not be read.
 
     THE RESIDUE THIS CLOSES, named in `09009c236`'s own discharge as still unwritten anywhere a
@@ -3858,6 +4095,18 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
     producing commit -- so the movement from 78.7% to 6.8% cannot be attributed to any one of
     them, and it certainly cannot be read as the company having got better at choosing. "I cannot
     yet say" is the result, and the one-variable version has not been run.
+
+    THE SECOND REFUSAL, ADDED 2026-09-07, AND IT IS ABOUT A DIFFERENT WORLD-SHAPED HOLE. Everything
+    above asks whether the share is readable given the SEED spread of the run being published. It
+    cannot ask whether a LATER run over the same world says something else, because until
+    `_later_runs_in_this_world` nothing in this module looked. It did: the page published 6.8% from
+    2026-09-03 -- the advantage is mostly the choosing, which is the flattering answer, because
+    choosing is value MADE and a level is value MOVED -- while two later runs over the same
+    departure level read 49.3% and 93.9%. Where they put the advantage on the other side of
+    which-leg-is-bigger, this block refuses and says so in the director's own words. It is a
+    SECOND, independent reason: both can fire, both are published, and neither is folded into the
+    other, because "the numerator has no sign" and "a later run disagrees" are different states
+    with different remedies.
     """
     share = _f(contrast.get("level_share_of_advantage"))
     if share is None:
@@ -3885,6 +4134,12 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
             "come from the same run and the same clock, so their ratio is a quantity; what is at "
             "issue below is not the arithmetic but whether the quantity can be READ."),
         "superseded_panel_share": superseded_share,
+        # WHICH RUN AND WHICH DATE THIS SHARE CAME OUT OF, ON EVERY BRANCH. `later_runs_disagree`
+        # carries the same pair, but only when it fires -- so a page that read it from there would
+        # name a run exactly when it was refusing and print a bare percentage the rest of the time.
+        # The director's condition is a run and a date against EVERY figure, and the branch where
+        # nothing disagrees is the one where an unattributed share is easiest to over-read.
+        "published_run": {"artefact": published_from, "generated_at": published_at},
         "readable": None,
     }
     # "NOT ASKED" IS ITS OWN STATE AND IT COMES FIRST. Written after the sign test it was both
@@ -3915,6 +4170,24 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
                       if any(s is not None for s in shares) else "an unstated high"))
     else:
         block["readable"] = True
+    # THE SECOND REFUSAL, AND IT OVERRIDES A `True` ABOVE RATHER THAN BEING FOLDED INTO IT. The
+    # sign test can pass on a run that a later run over the same world flatly contradicts -- those
+    # are two different questions and only one of them was ever being asked here. The census is
+    # published whether or not it refuses, because "we looked and nothing later disagrees" is a
+    # result a reader is entitled to see and is indistinguishable, from the page, from never
+    # having looked.
+    rows = later_runs if later_runs is not None else []
+    block["later_runs_in_this_world"] = rows
+    disagreement = _the_later_runs_disagree(share, published_at, published_from, rows, live)
+    block["later_runs_disagree"] = disagreement
+    if disagreement:
+        block["readable"] = False
+        # PREPENDED, NEVER SUBSTITUTED. When the sign test has also fired, both reasons are true
+        # and both reach the reader in one string -- the headline composes `why_not_readable`, so a
+        # reason that replaced the other would be a reason deleted from the surface.
+        block["why_not_readable"] = " ".join(
+            part for part in (disagreement["statement"], block.get("why_not_readable"))
+            if part)
     # SAID ON EVERY BRANCH, because it is true whether or not the refusal above fires and it is
     # the sentence the discharge named as missing.
     block["against_the_superseded_panel"] = (
@@ -3932,7 +4205,9 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
 
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
-                            superseded_split: dict | None = None) -> dict:
+                            superseded_split: dict | None = None,
+                            later_runs: list | None = None,
+                            observability_dir: Path | None = None) -> dict:
     """The same three arms, re-run in the world as it is now — bounded when a live-world floor exists.
 
     WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
@@ -4066,7 +4341,15 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
                 "its own re-draws in this world change its sign.")),
         "composition": _composition_in_this_world(
             contrast, floor_current,
-            _f((superseded_split or {}).get("level_share_of_advantage")), live),
+            _f((superseded_split or {}).get("level_share_of_advantage")), live,
+            # SCANNED BY DEFAULT, INJECTABLE FOR A CONTROL. `None` means "go and look", which is
+            # the production path and the one whose omission was the whole defect; a list means
+            # "these are the runs", which is how both legs of the refusal get a witness without
+            # writing artefacts onto the real disk.
+            later_runs=(_later_runs_in_this_world(current, live, observability_dir)
+                        if later_runs is None else later_runs),
+            published_at=current.get("generated_at"),
+            published_from=_name_of_the_run(current, observability_dir)),
         "what_would_answer_it": (
             None if bound.get("bound_available") and selection.get("bound_available")
             and level.get("bound_available") else
@@ -4182,6 +4465,11 @@ def _leg_clause(leg: dict, lead: str, resolved_tail: str) -> str:
     # The reader gets the range that reverses the verdict, in the headline, rather than a "CLEARS"
     # whose stability they would have to reconstruct from `bound.min_gbp` further down the feed.
     stability = leg.get("verdict_stability") or {}
+    # THE BAND RENDERS ON EVERY BRANCH BELOW THAT HAS ONE, and it is `_redraw_band_clause`'s
+    # sentence rather than this function's second draft of it -- see that docstring for the cost
+    # of the third copy. Empty string when the stability rung did not run, which is the only
+    # state in which the page has nothing to say about the family.
+    band = leg.get("redraw_band") or ""
     if leg.get("verdict_withheld_because"):
         # THE MEAN OF THE RE-DRAWS IS IN THE HEADLINE, beside the range, because withholding the
         # binary and then leaving the surviving point estimate unplaced within its own family is
@@ -4192,24 +4480,28 @@ def _leg_clause(leg: dict, lead: str, resolved_tail: str) -> str:
         clearing = stability.get("redraw_resolving")
         return lead + (
             "THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same "
-            "contrast re-drawn {n} times in this same world spans {lo} to {hi} "
-            "against a {sd} spread -- {res} of the {n} re-draws {verb} that spread and the "
-            "rest do not, so a direction here would be a property of which draw was made rather "
-            "than of the company. Those re-draws average {mean} -- the range alone does not "
-            "say where in it this draw fell and the mean does. The figure and its bound are both "
-            "published; the verdict is withheld until it survives a re-draw. "
+            "contrast re-drawn {n} times in this same world moves against a {sd} spread -- "
+            "{res} of the {n} re-draws {verb} that spread and the rest do not, so a direction "
+            "here would be a property of which draw was made rather than of the company. {band} "
+            "The figure and its bound are both published; the verdict is withheld until it "
+            "survives a re-draw. "
         ).format(sd=_gbp(stdev if stdev is not None else 0),
                  n=stability.get("n"), res=clearing,
-                 verb="clears" if clearing == 1 else "clear",
-                 lo=_gbp(stability.get("redraw_min_gbp")),
-                 hi=_gbp(stability.get("redraw_max_gbp")),
-                 mean=_gbp(stability.get("redraw_mean_gbp")))
+                 verb="clears" if clearing == 1 else "clear", band=band)
     verdict = ("CLEARS the £{sd:,.0f} this same contrast moves across {n} seed re-draws in this "
                "same world" if leg.get("resolved") else
                "DOES NOT CLEAR the £{sd:,.0f} this same contrast moves across {n} seed re-draws "
                "in this same world, so its direction cannot be stated")
-    return lead + ("That figure " + verdict + resolved_tail).format(
+    stated = lead + ("That figure " + verdict + resolved_tail).format(
         sd=stdev if stdev is not None else 0, n=seeds)
+    # AND A STATED VERDICT CARRIES THE FAMILY TOO. This is the branch the band was missing from
+    # until 2026-09-08, and it is the branch where losing it costs most: a reader who is told the
+    # figure CLEARS its spread has been handed a direction, and "£2,336 clears £991" reads as
+    # settled in a way "£2,336, from a family spanning £451 to £2,434 and averaging £1,451" does
+    # not. The stdev says how wide the family is; only the band says where in it this draw fell,
+    # and a verdict stated off the high draw of a wide family is the thing the reader most needs
+    # to be able to check. Appended after `.format` because the band is composed sterling text.
+    return stated + (" " + band + " " if band else "")
 
 
 def _world_departure_level() -> dict:
