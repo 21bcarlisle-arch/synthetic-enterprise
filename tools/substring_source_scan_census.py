@@ -427,7 +427,13 @@ def census(root: Path | None = None, paths: list[Path] | None = None) -> list[Sc
                 continue
             if not _reaches_the_tree(scope, module, _root_parameter(scope), packages):
                 continue
-            evidence = _path_evidence(scope) + module_evidence
+            # THE SCOPE'S OWN EVIDENCE WINS, and module evidence is a FALLBACK rather than an
+            # addition. Concatenating them made a test that reads `site/capabilities/index.html`
+            # report as a Python scan, because some other literal in the same file ends `.py` --
+            # the file-level verdict the second hand pass was wrong for, reintroduced through the
+            # evidence rather than through the walk. Found when another lane landed exactly such a
+            # test mid-turn and the floor reported it.
+            evidence = _path_evidence(scope) or module_evidence
             subject = _subject_of(evidence)
             if subject not in MEMBER_SUBJECTS:
                 continue

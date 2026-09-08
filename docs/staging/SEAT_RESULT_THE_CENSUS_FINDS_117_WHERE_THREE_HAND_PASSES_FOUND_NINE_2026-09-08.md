@@ -89,6 +89,31 @@ members — the four non-member shapes are half of that one assertion, not separ
 legs. The fixture failed on its first run because it had no `saas/` directory, so the census's
 derived package set could not classify a bare literal: the derivation was untested until it wasn't.
 
+## A fourth self-correction, found by another lane landing mid-turn
+
+Kept beside the claim rather than folded into it. `9b26e6fc2` landed, and `origin/main` had moved
+two commits — one of them adding `tests/tools/test_the_value_arms_pages_undriven_pointers.py`. The
+floor reported its `_reading_order` as a new member. It is not one: that function reads
+`site/capabilities/index.html`.
+
+**The cause was mine and it was the file-level verdict again, arriving through the evidence rather
+than through the walk.** When module-scope evidence was added so a helper reading the tree at
+import time and a test searching it would be seen as one scan, it was CONCATENATED with the scope's
+own — so any `.py` literal anywhere in the file made every scan in it a Python scan. The scope's own
+evidence now wins, and module evidence is a fallback for a scope that says nothing.
+
+The count is 117 either way, which is a coincidence and not a confirmation: **four rows left and
+four arrived.** The four that left were false positives of exactly the kind above. The four that
+arrived — `makefile_lint_scope`, `test_exemplar_preserved_verbatim_from_constitution`,
+`test_robots_points_at_the_sitemap`, `test_the_published_dashboard_provenance_agrees_with_the_run_it_names`
+— all report `subject=unknown`: their scope's own evidence says nothing about what kind of file is
+read, and an unknown subject is a member by the fail-closed rule. Previously a stray `.md` or
+`.json` from elsewhere in the same file had been enough to excuse them.
+
+That is four self-corrections before this class was mechanised, three of them found by disagreeing
+with an answer already established by hand and one by another lane's work arriving. It is the
+argument for the guard, not against it.
+
 ## The floor, and what it deliberately does not hold
 
 `docs/observability/substring_source_scan_baseline.json` — 117 rows, keyed `(path, function)`,
