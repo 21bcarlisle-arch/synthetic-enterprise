@@ -1,5 +1,5 @@
 {
-  "generated_at_utc": "2026-09-05T17:38:51Z",
+  "generated_at_utc": "2026-09-08T20:41:24Z",
   "source": "Met Office HadUK-Grid 1km, CEDA Archive",
   "dataset_version": "v1.3.2.ceda",
   "release_directory": "v20260512",
@@ -12,12 +12,12 @@
     "monthly",
     "normals"
   ],
-  "requested": 318,
-  "complete": 318,
+  "requested": 618,
+  "complete": 618,
   "failed": 0,
   "pending": 0,
   "pull_status": "complete",
-  "bytes_on_disk": 19846078338,
+  "bytes_on_disk": 41638537244,
   "files": [
     {
       "tier": "normals",
@@ -2617,9 +2617,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160101-20160131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20160101-20160131.nc",
-      "status": "fetched",
-      "bytes": 74719776,
-      "sha256": "bc81b8c27f211458dc77e4d923354d27a657de058cc8f0e2dc1bd91082347a08"
+      "status": "present",
+      "bytes": 74719776
     },
     {
       "tier": "daily",
@@ -2629,9 +2628,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160201-20160229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20160201-20160229.nc",
-      "status": "fetched",
-      "bytes": 71648275,
-      "sha256": "452a1d176323bcc4e1363a207573ba6929335e97a3267477343b0f3f9b530a78"
+      "status": "present",
+      "bytes": 71648275
     },
     {
       "tier": "daily",
@@ -2641,9 +2639,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160301-20160331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20160301-20160331.nc",
-      "status": "fetched",
-      "bytes": 74367234,
-      "sha256": "8fb0f7beb79b6519235a9eb95426b6209d6ffb630c8407c8388e492731be91fe"
+      "status": "present",
+      "bytes": 74367234
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2016,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160401-20160430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20160401-20160430.nc",
+      "status": "present",
+      "bytes": 72452798
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2016,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160501-20160531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20160501-20160531.nc",
+      "status": "present",
+      "bytes": 73132711
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2016,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160601-20160630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20160601-20160630.nc",
+      "status": "present",
+      "bytes": 71144072
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2016,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160701-20160731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20160701-20160731.nc",
+      "status": "present",
+      "bytes": 72897227
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2016,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160801-20160831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20160801-20160831.nc",
+      "status": "present",
+      "bytes": 72773303
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2016,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20160901-20160930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20160901-20160930.nc",
+      "status": "present",
+      "bytes": 71116344
     },
     {
       "tier": "daily",
@@ -2653,9 +2716,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20161001-20161031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20161001-20161031.nc",
-      "status": "fetched",
-      "bytes": 73115499,
-      "sha256": "ec656e33db0bbba9421768a21b239020b49cca134f83d6f89a2a5c1f622aaa9f"
+      "status": "present",
+      "bytes": 73115499
     },
     {
       "tier": "daily",
@@ -2665,9 +2727,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20161101-20161130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20161101-20161130.nc",
-      "status": "fetched",
-      "bytes": 72617106,
-      "sha256": "1a35aacab63bf676cc3ab1c0956034e82d751948be5fd9e0dcac9897db6d7b34"
+      "status": "present",
+      "bytes": 72617106
     },
     {
       "tier": "daily",
@@ -2677,9 +2738,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20161201-20161231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20161201-20161231.nc",
-      "status": "fetched",
-      "bytes": 73850927,
-      "sha256": "3a02b90a71b3cf6c08f6c93277d78f7f4a801e13dd094caf41d144e74ab18c9a"
+      "status": "present",
+      "bytes": 73850927
     },
     {
       "tier": "daily",
@@ -2689,9 +2749,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170101-20170131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20170101-20170131.nc",
-      "status": "fetched",
-      "bytes": 74897044,
-      "sha256": "af9df5fb3176b3f142a36131e8b6c22c5766b72dbb7aa62b9327b7f6b177196b"
+      "status": "present",
+      "bytes": 74897044
     },
     {
       "tier": "daily",
@@ -2701,9 +2760,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170201-20170228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20170201-20170228.nc",
-      "status": "fetched",
-      "bytes": 69428148,
-      "sha256": "855486d9dd5014198470bc5203497498b4058ebaf77ec19240169c70ea066d04"
+      "status": "present",
+      "bytes": 69428148
     },
     {
       "tier": "daily",
@@ -2713,9 +2771,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170301-20170331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20170301-20170331.nc",
-      "status": "fetched",
-      "bytes": 73896583,
-      "sha256": "add1bd48cea3fa4cd9204c02a1e173aa10c854ee17b7d214b66a735fae20aa80"
+      "status": "present",
+      "bytes": 73896583
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2017,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170401-20170430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20170401-20170430.nc",
+      "status": "present",
+      "bytes": 72033635
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2017,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170501-20170531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20170501-20170531.nc",
+      "status": "present",
+      "bytes": 73001826
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2017,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170601-20170630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20170601-20170630.nc",
+      "status": "present",
+      "bytes": 71281261
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2017,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170701-20170731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20170701-20170731.nc",
+      "status": "present",
+      "bytes": 72881839
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2017,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170801-20170831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20170801-20170831.nc",
+      "status": "present",
+      "bytes": 72899259
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2017,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20170901-20170930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20170901-20170930.nc",
+      "status": "present",
+      "bytes": 71283028
     },
     {
       "tier": "daily",
@@ -2725,9 +2848,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20171001-20171031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20171001-20171031.nc",
-      "status": "fetched",
-      "bytes": 73028125,
-      "sha256": "11ab12cf232da14c842d4ec9bb7099705b3a1274cd79885509758384e2bd992b"
+      "status": "present",
+      "bytes": 73028125
     },
     {
       "tier": "daily",
@@ -2737,9 +2859,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20171101-20171130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20171101-20171130.nc",
-      "status": "fetched",
-      "bytes": 72478092,
-      "sha256": "e8e4952b4e9e3590f907cd85b688fb99dd915e69437c8921862b17dc90a36d74"
+      "status": "present",
+      "bytes": 72478092
     },
     {
       "tier": "daily",
@@ -2749,9 +2870,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20171201-20171231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20171201-20171231.nc",
-      "status": "fetched",
-      "bytes": 74645394,
-      "sha256": "613171b37e23322412d5c988023d1d8cea9015de2598e1964b7d81437e0fe859"
+      "status": "present",
+      "bytes": 74645394
     },
     {
       "tier": "daily",
@@ -2761,9 +2881,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180101-20180131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20180101-20180131.nc",
-      "status": "fetched",
-      "bytes": 74831024,
-      "sha256": "fff6911ce3d6189663b2c2fae6d62bde32bc92b836bc49098d0492188b1a98e2"
+      "status": "present",
+      "bytes": 74831024
     },
     {
       "tier": "daily",
@@ -2773,9 +2892,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180201-20180228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20180201-20180228.nc",
-      "status": "fetched",
-      "bytes": 70410139,
-      "sha256": "b6ae93d865cdf34b40698d97ddac8a5fe5f232f646e4c7644e172796ca427290"
+      "status": "present",
+      "bytes": 70410139
     },
     {
       "tier": "daily",
@@ -2785,9 +2903,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180301-20180331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20180301-20180331.nc",
-      "status": "fetched",
-      "bytes": 75088339,
-      "sha256": "4ee5dc283a2116ba8838c7c3207f8d29036b2957ab707c91a7eaa1c4211b982d"
+      "status": "present",
+      "bytes": 75088339
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2018,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180401-20180430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20180401-20180430.nc",
+      "status": "present",
+      "bytes": 71978796
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2018,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180501-20180531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20180501-20180531.nc",
+      "status": "present",
+      "bytes": 72870009
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2018,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180601-20180630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20180601-20180630.nc",
+      "status": "present",
+      "bytes": 70961252
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2018,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180701-20180731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20180701-20180731.nc",
+      "status": "present",
+      "bytes": 72582300
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2018,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180801-20180831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20180801-20180831.nc",
+      "status": "present",
+      "bytes": 72783392
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2018,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20180901-20180930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20180901-20180930.nc",
+      "status": "present",
+      "bytes": 71294240
     },
     {
       "tier": "daily",
@@ -2797,9 +2980,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20181001-20181031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20181001-20181031.nc",
-      "status": "fetched",
-      "bytes": 73380829,
-      "sha256": "873c2b0e6ffef81dece9a7e4ee11cadd24a88a671f0f7c3a24c4836181a51ea3"
+      "status": "present",
+      "bytes": 73380829
     },
     {
       "tier": "daily",
@@ -2809,9 +2991,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20181101-20181130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20181101-20181130.nc",
-      "status": "fetched",
-      "bytes": 71915525,
-      "sha256": "b4a1cbcf43a233aec52afc7d63c69594bb80ef96b3fafac5c501da028ae6ec60"
+      "status": "present",
+      "bytes": 71915525
     },
     {
       "tier": "daily",
@@ -2821,9 +3002,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20181201-20181231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20181201-20181231.nc",
-      "status": "fetched",
-      "bytes": 73979532,
-      "sha256": "23171ac588e4d1db9ac2431e5eec46c29f4bce618abb72ca419d70d4b0dfbea4"
+      "status": "present",
+      "bytes": 73979532
     },
     {
       "tier": "daily",
@@ -2833,9 +3013,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190101-20190131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20190101-20190131.nc",
-      "status": "fetched",
-      "bytes": 75179484,
-      "sha256": "1c9b0e60b8f2f0731a2681249d7e1ff361e11a61ae6287915c13a808efc7c008"
+      "status": "present",
+      "bytes": 75179484
     },
     {
       "tier": "daily",
@@ -2845,9 +3024,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190201-20190228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20190201-20190228.nc",
-      "status": "fetched",
-      "bytes": 68695860,
-      "sha256": "1f02b7610a8fc9446ef545178c64253f94f861d7b4a601be7ccdcb65ec8a4bf1"
+      "status": "present",
+      "bytes": 68695860
     },
     {
       "tier": "daily",
@@ -2857,9 +3035,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190301-20190331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20190301-20190331.nc",
-      "status": "fetched",
-      "bytes": 74081876,
-      "sha256": "dd2170609d6dd80286ba60798d01caa3aba742c2170e67477d3252438fcdea9d"
+      "status": "present",
+      "bytes": 74081876
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2019,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190401-20190430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20190401-20190430.nc",
+      "status": "present",
+      "bytes": 71858639
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2019,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190501-20190531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20190501-20190531.nc",
+      "status": "present",
+      "bytes": 73347915
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2019,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190601-20190630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20190601-20190630.nc",
+      "status": "present",
+      "bytes": 71274762
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2019,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190701-20190731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20190701-20190731.nc",
+      "status": "present",
+      "bytes": 72701677
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2019,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190801-20190831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20190801-20190831.nc",
+      "status": "present",
+      "bytes": 72718468
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2019,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20190901-20190930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20190901-20190930.nc",
+      "status": "present",
+      "bytes": 71180628
     },
     {
       "tier": "daily",
@@ -2869,9 +3112,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20191001-20191031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20191001-20191031.nc",
-      "status": "fetched",
-      "bytes": 73442637,
-      "sha256": "735149820684110d855a9f96aa9c6e62a465b84108db77fcfc92d9bf4fbef1f9"
+      "status": "present",
+      "bytes": 73442637
     },
     {
       "tier": "daily",
@@ -2881,9 +3123,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20191101-20191130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20191101-20191130.nc",
-      "status": "fetched",
-      "bytes": 72600199,
-      "sha256": "4e5d89bd95810a6c86014823d3ec43b3d820e83f66146af8900fbc49d27069a9"
+      "status": "present",
+      "bytes": 72600199
     },
     {
       "tier": "daily",
@@ -2893,9 +3134,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20191201-20191231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20191201-20191231.nc",
-      "status": "fetched",
-      "bytes": 74199299,
-      "sha256": "58b69aa7203d4d072d1554693f34ef7201e00376d396087d963734c370d1dfc2"
+      "status": "present",
+      "bytes": 74199299
     },
     {
       "tier": "daily",
@@ -2905,9 +3145,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200101-20200131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20200101-20200131.nc",
-      "status": "fetched",
-      "bytes": 74146964,
-      "sha256": "83533381eb65ea024ebb73de65786e14e55233aa62b5bfdeb568cb0e050ae07f"
+      "status": "present",
+      "bytes": 74146964
     },
     {
       "tier": "daily",
@@ -2917,9 +3156,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200201-20200229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20200201-20200229.nc",
-      "status": "fetched",
-      "bytes": 71117325,
-      "sha256": "e9918f54dbc50611b8ec243893ca1f4567a422fab79a6bb7e4a5494635ac3b6d"
+      "status": "present",
+      "bytes": 71117325
     },
     {
       "tier": "daily",
@@ -2929,9 +3167,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200301-20200331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20200301-20200331.nc",
-      "status": "fetched",
-      "bytes": 74426192,
-      "sha256": "4c63acf3ca22290c4a4c4bdfa744b2a5691ff236bba11a2877b074006200c3e4"
+      "status": "present",
+      "bytes": 74426192
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2020,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200401-20200430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20200401-20200430.nc",
+      "status": "present",
+      "bytes": 71669843
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2020,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200501-20200531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20200501-20200531.nc",
+      "status": "present",
+      "bytes": 73204884
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2020,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200601-20200630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20200601-20200630.nc",
+      "status": "present",
+      "bytes": 71201448
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2020,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200701-20200731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20200701-20200731.nc",
+      "status": "present",
+      "bytes": 72997253
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2020,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200801-20200831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20200801-20200831.nc",
+      "status": "present",
+      "bytes": 72656692
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2020,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20200901-20200930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20200901-20200930.nc",
+      "status": "present",
+      "bytes": 71164149
     },
     {
       "tier": "daily",
@@ -2941,9 +3244,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20201001-20201031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20201001-20201031.nc",
-      "status": "fetched",
-      "bytes": 73292499,
-      "sha256": "f17d8653d01768ea62b6897038a725fa2c31834352c49e31a40905480266e6ba"
+      "status": "present",
+      "bytes": 73292499
     },
     {
       "tier": "daily",
@@ -2953,9 +3255,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20201101-20201130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20201101-20201130.nc",
-      "status": "fetched",
-      "bytes": 71742996,
-      "sha256": "dcaea62850cdc994bbae617ac0e6cd3878e00a1a883e0a43c0e6a40841a2a18c"
+      "status": "present",
+      "bytes": 71742996
     },
     {
       "tier": "daily",
@@ -2965,9 +3266,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20201201-20201231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20201201-20201231.nc",
-      "status": "fetched",
-      "bytes": 74749523,
-      "sha256": "9390c7794900c6e736b1094c9a9f3d83a2b4f6cea5e446a9e615ef474b8d5d7b"
+      "status": "present",
+      "bytes": 74749523
     },
     {
       "tier": "daily",
@@ -2977,9 +3277,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210101-20210131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20210101-20210131.nc",
-      "status": "fetched",
-      "bytes": 75674397,
-      "sha256": "6b75ccb2698b473a2d2007a8c54a1d606f3e2ad5afc158b824041d5e9b029157"
+      "status": "present",
+      "bytes": 75674397
     },
     {
       "tier": "daily",
@@ -2989,9 +3288,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210201-20210228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20210201-20210228.nc",
-      "status": "fetched",
-      "bytes": 69725023,
-      "sha256": "2648395c69f8c4b4125809137c4b189f8963e15aa46c52dff3c62b85b8c3536f"
+      "status": "present",
+      "bytes": 69725023
     },
     {
       "tier": "daily",
@@ -3001,9 +3299,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210301-20210331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20210301-20210331.nc",
-      "status": "fetched",
-      "bytes": 74133118,
-      "sha256": "9111ec808e50805c08a6eb653bdc01b14b38b47312fcc603dc782062a8d5a0b8"
+      "status": "present",
+      "bytes": 74133118
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2021,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210401-20210430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20210401-20210430.nc",
+      "status": "present",
+      "bytes": 72438674
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2021,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210501-20210531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20210501-20210531.nc",
+      "status": "present",
+      "bytes": 73481994
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2021,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210601-20210630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20210601-20210630.nc",
+      "status": "present",
+      "bytes": 71189620
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2021,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210701-20210731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20210701-20210731.nc",
+      "status": "present",
+      "bytes": 72510711
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2021,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210801-20210831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20210801-20210831.nc",
+      "status": "present",
+      "bytes": 72752897
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2021,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20210901-20210930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20210901-20210930.nc",
+      "status": "present",
+      "bytes": 71022492
     },
     {
       "tier": "daily",
@@ -3013,9 +3376,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20211001-20211031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20211001-20211031.nc",
-      "status": "fetched",
-      "bytes": 73134063,
-      "sha256": "a2edaff77f06e704d4b8648d621ed1114c05a34aa8b997bd40517f7c277b5ee1"
+      "status": "present",
+      "bytes": 73134063
     },
     {
       "tier": "daily",
@@ -3025,9 +3387,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20211101-20211130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20211101-20211130.nc",
-      "status": "fetched",
-      "bytes": 72031356,
-      "sha256": "68ec1c2cb8c01d7e24c674f73b88a2e19b9fd484c10d85c26082d9c7d10d8e13"
+      "status": "present",
+      "bytes": 72031356
     },
     {
       "tier": "daily",
@@ -3037,9 +3398,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20211201-20211231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20211201-20211231.nc",
-      "status": "fetched",
-      "bytes": 74317337,
-      "sha256": "739d6c82d3643928a7460b11fd8b3fb43368c43d38f532123e460ebba5b47ae9"
+      "status": "present",
+      "bytes": 74317337
     },
     {
       "tier": "daily",
@@ -3049,9 +3409,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220101-20220131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20220101-20220131.nc",
-      "status": "fetched",
-      "bytes": 74413500,
-      "sha256": "022946f508ea350e2f7fdf66dbaac48201328c77010e19d98e94a25d86ad93d2"
+      "status": "present",
+      "bytes": 74413500
     },
     {
       "tier": "daily",
@@ -3061,9 +3420,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220201-20220228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20220201-20220228.nc",
-      "status": "fetched",
-      "bytes": 69308786,
-      "sha256": "3102f358c7135ab6d1209513029063354cfa20a080cd2d144c4eebe86d627720"
+      "status": "present",
+      "bytes": 69308786
     },
     {
       "tier": "daily",
@@ -3073,9 +3431,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220301-20220331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20220301-20220331.nc",
-      "status": "fetched",
-      "bytes": 73864155,
-      "sha256": "08007852d69cffa8b54d9518b94c6830edf1e3a7efa1f477d49ef8b66ab6272e"
+      "status": "present",
+      "bytes": 73864155
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2022,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220401-20220430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20220401-20220430.nc",
+      "status": "present",
+      "bytes": 71918539
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2022,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220501-20220531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20220501-20220531.nc",
+      "status": "present",
+      "bytes": 73133015
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2022,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220601-20220630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20220601-20220630.nc",
+      "status": "present",
+      "bytes": 71189883
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2022,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220701-20220731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20220701-20220731.nc",
+      "status": "present",
+      "bytes": 72635033
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2022,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220801-20220831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20220801-20220831.nc",
+      "status": "present",
+      "bytes": 72587283
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2022,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20220901-20220930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20220901-20220930.nc",
+      "status": "present",
+      "bytes": 71185057
     },
     {
       "tier": "daily",
@@ -3085,9 +3508,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20221001-20221031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20221001-20221031.nc",
-      "status": "fetched",
-      "bytes": 73069806,
-      "sha256": "8af239adc7869657d4e34712f0c5ab4bbe04ef75bdbc784a7c9f0fdef169962e"
+      "status": "present",
+      "bytes": 73069806
     },
     {
       "tier": "daily",
@@ -3097,9 +3519,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20221101-20221130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20221101-20221130.nc",
-      "status": "fetched",
-      "bytes": 71742437,
-      "sha256": "16dd835bf2a1c70aa19f67633e2a0ad68db0ee07fb94e4a804c7ae37511c4e28"
+      "status": "present",
+      "bytes": 71742437
     },
     {
       "tier": "daily",
@@ -3109,9 +3530,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20221201-20221231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20221201-20221231.nc",
-      "status": "fetched",
-      "bytes": 74896353,
-      "sha256": "59ef4abe8ba929222fd2a8043cdc6a5e7507774be9f154a79a755d768e1339e9"
+      "status": "present",
+      "bytes": 74896353
     },
     {
       "tier": "daily",
@@ -3121,9 +3541,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230101-20230131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20230101-20230131.nc",
-      "status": "fetched",
-      "bytes": 74762990,
-      "sha256": "2e50b60276a1e2509202489c05e68d75910b8cefe16a35972eaefef5b6ab63ba"
+      "status": "present",
+      "bytes": 74762990
     },
     {
       "tier": "daily",
@@ -3133,9 +3552,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230201-20230228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20230201-20230228.nc",
-      "status": "fetched",
-      "bytes": 68989323,
-      "sha256": "4948b568bae48847ce63f0ced1614f90dd811ef0f9e9d9e99414ec57ed274d27"
+      "status": "present",
+      "bytes": 68989323
     },
     {
       "tier": "daily",
@@ -3145,9 +3563,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230301-20230331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20230301-20230331.nc",
-      "status": "fetched",
-      "bytes": 74512760,
-      "sha256": "e13d2f3ebdce72520ab5ed86ebdb5a0e17001c3a32ff91fc8a41480e03418e9d"
+      "status": "present",
+      "bytes": 74512760
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2023,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230401-20230430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20230401-20230430.nc",
+      "status": "present",
+      "bytes": 71865759
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2023,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230501-20230531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20230501-20230531.nc",
+      "status": "present",
+      "bytes": 72892331
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2023,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230601-20230630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20230601-20230630.nc",
+      "status": "present",
+      "bytes": 70802683
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2023,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230701-20230731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20230701-20230731.nc",
+      "status": "present",
+      "bytes": 72854246
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2023,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230801-20230831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20230801-20230831.nc",
+      "status": "present",
+      "bytes": 72748369
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2023,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20230901-20230930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20230901-20230930.nc",
+      "status": "present",
+      "bytes": 70928331
     },
     {
       "tier": "daily",
@@ -3157,9 +3640,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20231001-20231031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20231001-20231031.nc",
-      "status": "fetched",
-      "bytes": 73214427,
-      "sha256": "e8a3d8e602ef7480f9f75f2685982ea049c82622b14edab3d26c2c6d3d1a799b"
+      "status": "present",
+      "bytes": 73214427
     },
     {
       "tier": "daily",
@@ -3169,9 +3651,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20231101-20231130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20231101-20231130.nc",
-      "status": "fetched",
-      "bytes": 72302875,
-      "sha256": "97bf552a9abf9eb7eb531c794fa0ac42b9a9bc2cd25a71964060c495347e2aca"
+      "status": "present",
+      "bytes": 72302875
     },
     {
       "tier": "daily",
@@ -3181,9 +3662,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20231201-20231231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20231201-20231231.nc",
-      "status": "fetched",
-      "bytes": 74225216,
-      "sha256": "021157f4da602afed8bc1f167273f2b3f940d5ada4b0cf4af7db39537b502468"
+      "status": "present",
+      "bytes": 74225216
     },
     {
       "tier": "daily",
@@ -3193,9 +3673,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240101-20240131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20240101-20240131.nc",
-      "status": "fetched",
-      "bytes": 74961555,
-      "sha256": "ecbec3eca14f1511a72696fa8cf05408e6852f8a05a5b4ceca3f0a1bc1cffad8"
+      "status": "present",
+      "bytes": 74961555
     },
     {
       "tier": "daily",
@@ -3205,9 +3684,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240201-20240229.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20240201-20240229.nc",
-      "status": "fetched",
-      "bytes": 70693093,
-      "sha256": "941c6ba122d93595e807e6ab56d271bc909ae153ab001d001db5890b5e75f1ac"
+      "status": "present",
+      "bytes": 70693093
     },
     {
       "tier": "daily",
@@ -3217,9 +3695,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240301-20240331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20240301-20240331.nc",
-      "status": "fetched",
-      "bytes": 74110734,
-      "sha256": "aa39a39a9967635ba911ba019b5c15d8c71434cdc220625dd8206c9b736bf7fb"
+      "status": "present",
+      "bytes": 74110734
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2024,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240401-20240430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20240401-20240430.nc",
+      "status": "present",
+      "bytes": 72014737
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2024,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240501-20240531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20240501-20240531.nc",
+      "status": "present",
+      "bytes": 72798852
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2024,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240601-20240630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20240601-20240630.nc",
+      "status": "present",
+      "bytes": 71394939
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2024,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240701-20240731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20240701-20240731.nc",
+      "status": "present",
+      "bytes": 72870102
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2024,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240801-20240831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20240801-20240831.nc",
+      "status": "present",
+      "bytes": 72870890
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2024,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20240901-20240930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20240901-20240930.nc",
+      "status": "present",
+      "bytes": 71155737
     },
     {
       "tier": "daily",
@@ -3229,9 +3772,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20241001-20241031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20241001-20241031.nc",
-      "status": "fetched",
-      "bytes": 73081274,
-      "sha256": "a4e7426b5526298ea3063683137d673e3f2a1e860f545ccea05c76d6add585f6"
+      "status": "present",
+      "bytes": 73081274
     },
     {
       "tier": "daily",
@@ -3241,9 +3783,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20241101-20241130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20241101-20241130.nc",
-      "status": "fetched",
-      "bytes": 72070732,
-      "sha256": "1565212bfbd3712d17c7315497a254b016332eb9612dc62332a835d543dc2ab7"
+      "status": "present",
+      "bytes": 72070732
     },
     {
       "tier": "daily",
@@ -3253,9 +3794,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20241201-20241231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20241201-20241231.nc",
-      "status": "fetched",
-      "bytes": 73914380,
-      "sha256": "67c320f25645f45067c66dbc8a7e31fcde666b931710c49a32aea16e6d247a08"
+      "status": "present",
+      "bytes": 73914380
     },
     {
       "tier": "daily",
@@ -3265,9 +3805,8 @@
       "month": 1,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250101-20250131.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20250101-20250131.nc",
-      "status": "fetched",
-      "bytes": 75009621,
-      "sha256": "1ecb8d96a322a62d6107f2914f7184b42c07bd93995b482a2ad8f0ce5b3db859"
+      "status": "present",
+      "bytes": 75009621
     },
     {
       "tier": "daily",
@@ -3277,9 +3816,8 @@
       "month": 2,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250201-20250228.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20250201-20250228.nc",
-      "status": "fetched",
-      "bytes": 69513035,
-      "sha256": "7ac5fb8419303899124a8b7d43b075917ebbfe47e99c5c126d3a4e56c5987d57"
+      "status": "present",
+      "bytes": 69513035
     },
     {
       "tier": "daily",
@@ -3289,9 +3827,74 @@
       "month": 3,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250301-20250331.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20250301-20250331.nc",
-      "status": "fetched",
-      "bytes": 73622562,
-      "sha256": "082e470be62792840f450906b54b835affb9071bc9d338ba98139bbfe6bb3cb5"
+      "status": "present",
+      "bytes": 73622562
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2025,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250401-20250430.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20250401-20250430.nc",
+      "status": "present",
+      "bytes": 71305522
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2025,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250501-20250531.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20250501-20250531.nc",
+      "status": "present",
+      "bytes": 72928958
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2025,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250601-20250630.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20250601-20250630.nc",
+      "status": "present",
+      "bytes": 71151218
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2025,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250701-20250731.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20250701-20250731.nc",
+      "status": "present",
+      "bytes": 72631824
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2025,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250801-20250831.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20250801-20250831.nc",
+      "status": "present",
+      "bytes": 72640846
+    },
+    {
+      "tier": "daily",
+      "variable": "tas",
+      "frequency": "day",
+      "year": 2025,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20250901-20250930.nc",
+      "path": "tas/day/tas_hadukgrid_uk_1km_day_20250901-20250930.nc",
+      "status": "present",
+      "bytes": 71235216
     },
     {
       "tier": "daily",
@@ -3301,9 +3904,8 @@
       "month": 10,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20251001-20251031.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20251001-20251031.nc",
-      "status": "fetched",
-      "bytes": 73148745,
-      "sha256": "f45fe50673bd4666cbe5ee377aa9287e7b3498f3a9820352d743eb2f39e856a5"
+      "status": "present",
+      "bytes": 73148745
     },
     {
       "tier": "daily",
@@ -3313,9 +3915,8 @@
       "month": 11,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20251101-20251130.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20251101-20251130.nc",
-      "status": "fetched",
-      "bytes": 72187647,
-      "sha256": "33b8d7b376febde4b01a4213f5ef32027195ca5b1207687263aff314c1fb7f6b"
+      "status": "present",
+      "bytes": 72187647
     },
     {
       "tier": "daily",
@@ -3325,9 +3926,8 @@
       "month": 12,
       "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tas/day/v20260512/tas_hadukgrid_uk_1km_day_20251201-20251231.nc",
       "path": "tas/day/tas_hadukgrid_uk_1km_day_20251201-20251231.nc",
-      "status": "fetched",
-      "bytes": 74106526,
-      "sha256": "b15932180a6e6d2529c3bea3b10d086854cabe3033a000c0c76f1f226375ba79"
+      "status": "present",
+      "bytes": 74106526
     },
     {
       "tier": "normals",
@@ -3723,13 +4323,2653 @@
       "status": "present",
       "bytes": 41349663,
       "sha256": "f1cca72c15bdfc4ef48191ead1de60498d894c62b2ff087cb5dcf022a49b0901"
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160101-20160131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160101-20160131.nc",
+      "status": "present",
+      "bytes": 74107299
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160201-20160229.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160201-20160229.nc",
+      "status": "present",
+      "bytes": 70881847
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160301-20160331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160301-20160331.nc",
+      "status": "present",
+      "bytes": 73747619
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160401-20160430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160401-20160430.nc",
+      "status": "present",
+      "bytes": 72010108
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160501-20160531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160501-20160531.nc",
+      "status": "present",
+      "bytes": 73050834
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160601-20160630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160601-20160630.nc",
+      "status": "present",
+      "bytes": 71110488
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160701-20160731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160701-20160731.nc",
+      "status": "present",
+      "bytes": 72894696
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160801-20160831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160801-20160831.nc",
+      "status": "present",
+      "bytes": 72804019
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20160901-20160930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20160901-20160930.nc",
+      "status": "present",
+      "bytes": 71140792
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20161001-20161031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20161001-20161031.nc",
+      "status": "present",
+      "bytes": 73285432
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20161101-20161130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20161101-20161130.nc",
+      "status": "present",
+      "bytes": 72190157
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2016,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20161201-20161231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20161201-20161231.nc",
+      "status": "present",
+      "bytes": 73432068
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170101-20170131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170101-20170131.nc",
+      "status": "present",
+      "bytes": 73980241
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170201-20170228.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170201-20170228.nc",
+      "status": "present",
+      "bytes": 68970397
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170301-20170331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170301-20170331.nc",
+      "status": "present",
+      "bytes": 73581459
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170401-20170430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170401-20170430.nc",
+      "status": "present",
+      "bytes": 71828198
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170501-20170531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170501-20170531.nc",
+      "status": "present",
+      "bytes": 73012155
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170601-20170630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170601-20170630.nc",
+      "status": "present",
+      "bytes": 71285777
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170701-20170731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170701-20170731.nc",
+      "status": "present",
+      "bytes": 72835418
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170801-20170831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170801-20170831.nc",
+      "status": "present",
+      "bytes": 72888168
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20170901-20170930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20170901-20170930.nc",
+      "status": "present",
+      "bytes": 71354319
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20171001-20171031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20171001-20171031.nc",
+      "status": "present",
+      "bytes": 73127216
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20171101-20171130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20171101-20171130.nc",
+      "status": "present",
+      "bytes": 72098112
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2017,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20171201-20171231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20171201-20171231.nc",
+      "status": "present",
+      "bytes": 74095261
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180101-20180131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180101-20180131.nc",
+      "status": "present",
+      "bytes": 74306257
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180201-20180228.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180201-20180228.nc",
+      "status": "present",
+      "bytes": 69658378
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180301-20180331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180301-20180331.nc",
+      "status": "present",
+      "bytes": 74450834
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180401-20180430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180401-20180430.nc",
+      "status": "present",
+      "bytes": 71778299
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180501-20180531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180501-20180531.nc",
+      "status": "present",
+      "bytes": 72861266
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180601-20180630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180601-20180630.nc",
+      "status": "present",
+      "bytes": 71018734
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180701-20180731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180701-20180731.nc",
+      "status": "present",
+      "bytes": 72689126
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180801-20180831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180801-20180831.nc",
+      "status": "present",
+      "bytes": 72856444
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20180901-20180930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20180901-20180930.nc",
+      "status": "present",
+      "bytes": 71371109
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20181001-20181031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20181001-20181031.nc",
+      "status": "present",
+      "bytes": 73271493
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20181101-20181130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20181101-20181130.nc",
+      "status": "present",
+      "bytes": 71805887
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2018,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20181201-20181231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20181201-20181231.nc",
+      "status": "present",
+      "bytes": 73607667
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190101-20190131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190101-20190131.nc",
+      "status": "present",
+      "bytes": 74370198
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190201-20190228.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190201-20190228.nc",
+      "status": "present",
+      "bytes": 68441387
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190301-20190331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190301-20190331.nc",
+      "status": "present",
+      "bytes": 73687608
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190401-20190430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190401-20190430.nc",
+      "status": "present",
+      "bytes": 71577847
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190501-20190531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190501-20190531.nc",
+      "status": "present",
+      "bytes": 73193070
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190601-20190630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190601-20190630.nc",
+      "status": "present",
+      "bytes": 71301039
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190701-20190731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190701-20190731.nc",
+      "status": "present",
+      "bytes": 72698417
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190801-20190831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190801-20190831.nc",
+      "status": "present",
+      "bytes": 72781338
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20190901-20190930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20190901-20190930.nc",
+      "status": "present",
+      "bytes": 71231388
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20191001-20191031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20191001-20191031.nc",
+      "status": "present",
+      "bytes": 73434749
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20191101-20191130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20191101-20191130.nc",
+      "status": "present",
+      "bytes": 72203997
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2019,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20191201-20191231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20191201-20191231.nc",
+      "status": "present",
+      "bytes": 73781486
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200101-20200131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200101-20200131.nc",
+      "status": "present",
+      "bytes": 73683613
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200201-20200229.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200201-20200229.nc",
+      "status": "present",
+      "bytes": 70577104
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200301-20200331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200301-20200331.nc",
+      "status": "present",
+      "bytes": 73891214
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200401-20200430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200401-20200430.nc",
+      "status": "present",
+      "bytes": 71469719
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200501-20200531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200501-20200531.nc",
+      "status": "present",
+      "bytes": 73106171
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200601-20200630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200601-20200630.nc",
+      "status": "present",
+      "bytes": 71183627
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200701-20200731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200701-20200731.nc",
+      "status": "present",
+      "bytes": 72954117
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200801-20200831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200801-20200831.nc",
+      "status": "present",
+      "bytes": 72729145
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20200901-20200930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20200901-20200930.nc",
+      "status": "present",
+      "bytes": 71183549
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20201001-20201031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20201001-20201031.nc",
+      "status": "present",
+      "bytes": 73339922
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20201101-20201130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20201101-20201130.nc",
+      "status": "present",
+      "bytes": 71527136
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2020,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20201201-20201231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20201201-20201231.nc",
+      "status": "present",
+      "bytes": 74193604
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210101-20210131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210101-20210131.nc",
+      "status": "present",
+      "bytes": 74888777
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210201-20210228.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210201-20210228.nc",
+      "status": "present",
+      "bytes": 69325943
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210301-20210331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210301-20210331.nc",
+      "status": "present",
+      "bytes": 73663154
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210401-20210430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210401-20210430.nc",
+      "status": "present",
+      "bytes": 71956181
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210501-20210531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210501-20210531.nc",
+      "status": "present",
+      "bytes": 73361784
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210601-20210630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210601-20210630.nc",
+      "status": "present",
+      "bytes": 71112539
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210701-20210731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210701-20210731.nc",
+      "status": "present",
+      "bytes": 72559612
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210801-20210831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210801-20210831.nc",
+      "status": "present",
+      "bytes": 72726239
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20210901-20210930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20210901-20210930.nc",
+      "status": "present",
+      "bytes": 71075440
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20211001-20211031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20211001-20211031.nc",
+      "status": "present",
+      "bytes": 73161361
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20211101-20211130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20211101-20211130.nc",
+      "status": "present",
+      "bytes": 71795033
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2021,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20211201-20211231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20211201-20211231.nc",
+      "status": "present",
+      "bytes": 73819320
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220101-20220131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220101-20220131.nc",
+      "status": "present",
+      "bytes": 73778946
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220201-20220228.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220201-20220228.nc",
+      "status": "present",
+      "bytes": 68758133
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220301-20220331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220301-20220331.nc",
+      "status": "present",
+      "bytes": 73609141
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220401-20220430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220401-20220430.nc",
+      "status": "present",
+      "bytes": 71741950
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220501-20220531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220501-20220531.nc",
+      "status": "present",
+      "bytes": 73152854
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220601-20220630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220601-20220630.nc",
+      "status": "present",
+      "bytes": 71134325
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220701-20220731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220701-20220731.nc",
+      "status": "present",
+      "bytes": 72752865
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220801-20220831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220801-20220831.nc",
+      "status": "present",
+      "bytes": 72688594
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20220901-20220930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20220901-20220930.nc",
+      "status": "present",
+      "bytes": 71254118
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20221001-20221031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20221001-20221031.nc",
+      "status": "present",
+      "bytes": 73121499
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20221101-20221130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20221101-20221130.nc",
+      "status": "present",
+      "bytes": 71633625
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2022,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20221201-20221231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20221201-20221231.nc",
+      "status": "present",
+      "bytes": 74508002
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230101-20230131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230101-20230131.nc",
+      "status": "present",
+      "bytes": 74084989
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230201-20230228.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230201-20230228.nc",
+      "status": "present",
+      "bytes": 68523686
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230301-20230331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230301-20230331.nc",
+      "status": "present",
+      "bytes": 73954763
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230401-20230430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230401-20230430.nc",
+      "status": "present",
+      "bytes": 71695604
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230501-20230531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230501-20230531.nc",
+      "status": "present",
+      "bytes": 72808301
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230601-20230630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230601-20230630.nc",
+      "status": "present",
+      "bytes": 70832899
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230701-20230731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230701-20230731.nc",
+      "status": "present",
+      "bytes": 72779111
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230801-20230831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230801-20230831.nc",
+      "status": "present",
+      "bytes": 72775576
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20230901-20230930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20230901-20230930.nc",
+      "status": "present",
+      "bytes": 71074215
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20231001-20231031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20231001-20231031.nc",
+      "status": "present",
+      "bytes": 73210171
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20231101-20231130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20231101-20231130.nc",
+      "status": "present",
+      "bytes": 71976497
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2023,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20231201-20231231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20231201-20231231.nc",
+      "status": "present",
+      "bytes": 73814992
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240101-20240131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240101-20240131.nc",
+      "status": "present",
+      "bytes": 74284171
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240201-20240229.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240201-20240229.nc",
+      "status": "present",
+      "bytes": 70328119
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240301-20240331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240301-20240331.nc",
+      "status": "present",
+      "bytes": 73734599
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240401-20240430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240401-20240430.nc",
+      "status": "present",
+      "bytes": 71715839
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240501-20240531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240501-20240531.nc",
+      "status": "present",
+      "bytes": 72734702
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240601-20240630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240601-20240630.nc",
+      "status": "present",
+      "bytes": 71328284
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240701-20240731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240701-20240731.nc",
+      "status": "present",
+      "bytes": 72794387
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240801-20240831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240801-20240831.nc",
+      "status": "present",
+      "bytes": 72861017
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20240901-20240930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20240901-20240930.nc",
+      "status": "present",
+      "bytes": 71135575
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20241001-20241031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20241001-20241031.nc",
+      "status": "present",
+      "bytes": 73159275
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20241101-20241130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20241101-20241130.nc",
+      "status": "present",
+      "bytes": 71755348
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2024,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20241201-20241231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20241201-20241231.nc",
+      "status": "present",
+      "bytes": 73548843
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250101-20250131.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250101-20250131.nc",
+      "status": "present",
+      "bytes": 74380366
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250201-20250228.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250201-20250228.nc",
+      "status": "present",
+      "bytes": 69023429
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250301-20250331.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250301-20250331.nc",
+      "status": "present",
+      "bytes": 73399935
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250401-20250430.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250401-20250430.nc",
+      "status": "present",
+      "bytes": 71357857
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250501-20250531.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250501-20250531.nc",
+      "status": "present",
+      "bytes": 72874964
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250601-20250630.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250601-20250630.nc",
+      "status": "present",
+      "bytes": 71191581
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250701-20250731.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250701-20250731.nc",
+      "status": "present",
+      "bytes": 72709649
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250801-20250831.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250801-20250831.nc",
+      "status": "present",
+      "bytes": 72702773
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20250901-20250930.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20250901-20250930.nc",
+      "status": "present",
+      "bytes": 71318795
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20251001-20251031.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20251001-20251031.nc",
+      "status": "present",
+      "bytes": 73191370
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20251101-20251130.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20251101-20251130.nc",
+      "status": "present",
+      "bytes": 71944228
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmax",
+      "frequency": "day",
+      "year": 2025,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmax/day/v20260512/tasmax_hadukgrid_uk_1km_day_20251201-20251231.nc",
+      "path": "tasmax/day/tasmax_hadukgrid_uk_1km_day_20251201-20251231.nc",
+      "status": "present",
+      "bytes": 73751115
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160101-20160131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160101-20160131.nc",
+      "status": "present",
+      "bytes": 75356751
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160201-20160229.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160201-20160229.nc",
+      "status": "present",
+      "bytes": 72201920
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160301-20160331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160301-20160331.nc",
+      "status": "present",
+      "bytes": 75739281
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160401-20160430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160401-20160430.nc",
+      "status": "present",
+      "bytes": 73688302
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160501-20160531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160501-20160531.nc",
+      "status": "present",
+      "bytes": 73792640
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160601-20160630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160601-20160630.nc",
+      "status": "present",
+      "bytes": 71287952
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160701-20160731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160701-20160731.nc",
+      "status": "present",
+      "bytes": 73048460
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160801-20160831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160801-20160831.nc",
+      "status": "present",
+      "bytes": 72850671
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20160901-20160930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20160901-20160930.nc",
+      "status": "present",
+      "bytes": 71198069
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20161001-20161031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20161001-20161031.nc",
+      "status": "present",
+      "bytes": 73473323
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20161101-20161130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20161101-20161130.nc",
+      "status": "present",
+      "bytes": 72991475
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2016,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20161201-20161231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20161201-20161231.nc",
+      "status": "present",
+      "bytes": 74657200
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170101-20170131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170101-20170131.nc",
+      "status": "present",
+      "bytes": 75254487
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170201-20170228.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170201-20170228.nc",
+      "status": "present",
+      "bytes": 70124282
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170301-20170331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170301-20170331.nc",
+      "status": "present",
+      "bytes": 74882045
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170401-20170430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170401-20170430.nc",
+      "status": "present",
+      "bytes": 73221809
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170501-20170531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170501-20170531.nc",
+      "status": "present",
+      "bytes": 73629362
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170601-20170630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170601-20170630.nc",
+      "status": "present",
+      "bytes": 71404159
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170701-20170731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170701-20170731.nc",
+      "status": "present",
+      "bytes": 73061897
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170801-20170831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170801-20170831.nc",
+      "status": "present",
+      "bytes": 72929339
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20170901-20170930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20170901-20170930.nc",
+      "status": "present",
+      "bytes": 71358443
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20171001-20171031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20171001-20171031.nc",
+      "status": "present",
+      "bytes": 73319250
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20171101-20171130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20171101-20171130.nc",
+      "status": "present",
+      "bytes": 73265043
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2017,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20171201-20171231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20171201-20171231.nc",
+      "status": "present",
+      "bytes": 75034952
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180101-20180131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180101-20180131.nc",
+      "status": "present",
+      "bytes": 75438693
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180201-20180228.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180201-20180228.nc",
+      "status": "present",
+      "bytes": 70577047
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180301-20180331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180301-20180331.nc",
+      "status": "present",
+      "bytes": 75665687
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180401-20180430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180401-20180430.nc",
+      "status": "present",
+      "bytes": 72604390
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180501-20180531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180501-20180531.nc",
+      "status": "present",
+      "bytes": 73365905
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180601-20180630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180601-20180630.nc",
+      "status": "present",
+      "bytes": 71185159
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180701-20180731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180701-20180731.nc",
+      "status": "present",
+      "bytes": 72753381
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180801-20180831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180801-20180831.nc",
+      "status": "present",
+      "bytes": 72907412
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20180901-20180930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20180901-20180930.nc",
+      "status": "present",
+      "bytes": 71537023
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20181001-20181031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20181001-20181031.nc",
+      "status": "present",
+      "bytes": 73742509
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20181101-20181130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20181101-20181130.nc",
+      "status": "present",
+      "bytes": 72489246
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2018,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20181201-20181231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20181201-20181231.nc",
+      "status": "present",
+      "bytes": 74651586
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190101-20190131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190101-20190131.nc",
+      "status": "present",
+      "bytes": 75307556
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190201-20190228.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190201-20190228.nc",
+      "status": "present",
+      "bytes": 69788905
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190301-20190331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190301-20190331.nc",
+      "status": "present",
+      "bytes": 75195017
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190401-20190430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190401-20190430.nc",
+      "status": "present",
+      "bytes": 72847006
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190501-20190531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190501-20190531.nc",
+      "status": "present",
+      "bytes": 74214412
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190601-20190630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190601-20190630.nc",
+      "status": "present",
+      "bytes": 71504488
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190701-20190731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190701-20190731.nc",
+      "status": "present",
+      "bytes": 72929186
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190801-20190831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190801-20190831.nc",
+      "status": "present",
+      "bytes": 72816555
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20190901-20190930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20190901-20190930.nc",
+      "status": "present",
+      "bytes": 71416841
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20191001-20191031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20191001-20191031.nc",
+      "status": "present",
+      "bytes": 73862870
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20191101-20191130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20191101-20191130.nc",
+      "status": "present",
+      "bytes": 72848655
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2019,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20191201-20191231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20191201-20191231.nc",
+      "status": "present",
+      "bytes": 74942101
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200101-20200131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200101-20200131.nc",
+      "status": "present",
+      "bytes": 74937127
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200201-20200229.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200201-20200229.nc",
+      "status": "present",
+      "bytes": 72190680
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200301-20200331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200301-20200331.nc",
+      "status": "present",
+      "bytes": 75716882
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200401-20200430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200401-20200430.nc",
+      "status": "present",
+      "bytes": 72790593
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200501-20200531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200501-20200531.nc",
+      "status": "present",
+      "bytes": 73878726
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200601-20200630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200601-20200630.nc",
+      "status": "present",
+      "bytes": 71390037
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200701-20200731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200701-20200731.nc",
+      "status": "present",
+      "bytes": 73240830
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200801-20200831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200801-20200831.nc",
+      "status": "present",
+      "bytes": 72787649
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20200901-20200930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20200901-20200930.nc",
+      "status": "present",
+      "bytes": 71409789
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20201001-20201031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20201001-20201031.nc",
+      "status": "present",
+      "bytes": 73808821
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20201101-20201130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20201101-20201130.nc",
+      "status": "present",
+      "bytes": 72579855
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2020,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20201201-20201231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20201201-20201231.nc",
+      "status": "present",
+      "bytes": 75238992
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210101-20210131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210101-20210131.nc",
+      "status": "present",
+      "bytes": 75329425
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210201-20210228.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210201-20210228.nc",
+      "status": "present",
+      "bytes": 69981847
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210301-20210331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210301-20210331.nc",
+      "status": "present",
+      "bytes": 75223668
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210401-20210430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210401-20210430.nc",
+      "status": "present",
+      "bytes": 73484134
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210501-20210531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210501-20210531.nc",
+      "status": "present",
+      "bytes": 74233375
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210601-20210630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210601-20210630.nc",
+      "status": "present",
+      "bytes": 71434934
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210701-20210731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210701-20210731.nc",
+      "status": "present",
+      "bytes": 72656271
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210801-20210831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210801-20210831.nc",
+      "status": "present",
+      "bytes": 72827720
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20210901-20210930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20210901-20210930.nc",
+      "status": "present",
+      "bytes": 71068077
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20211001-20211031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20211001-20211031.nc",
+      "status": "present",
+      "bytes": 73495900
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20211101-20211130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20211101-20211130.nc",
+      "status": "present",
+      "bytes": 72667658
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2021,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20211201-20211231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20211201-20211231.nc",
+      "status": "present",
+      "bytes": 75128875
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220101-20220131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220101-20220131.nc",
+      "status": "present",
+      "bytes": 75623833
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220201-20220228.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220201-20220228.nc",
+      "status": "present",
+      "bytes": 70413590
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220301-20220331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220301-20220331.nc",
+      "status": "present",
+      "bytes": 74984598
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220401-20220430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220401-20220430.nc",
+      "status": "present",
+      "bytes": 72687038
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220501-20220531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220501-20220531.nc",
+      "status": "present",
+      "bytes": 73436658
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220601-20220630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220601-20220630.nc",
+      "status": "present",
+      "bytes": 71348109
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220701-20220731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220701-20220731.nc",
+      "status": "present",
+      "bytes": 72785750
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220801-20220831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220801-20220831.nc",
+      "status": "present",
+      "bytes": 72764691
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20220901-20220930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20220901-20220930.nc",
+      "status": "present",
+      "bytes": 71334747
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20221001-20221031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20221001-20221031.nc",
+      "status": "present",
+      "bytes": 73298543
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20221101-20221130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20221101-20221130.nc",
+      "status": "present",
+      "bytes": 72216487
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2022,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20221201-20221231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20221201-20221231.nc",
+      "status": "present",
+      "bytes": 74812546
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230101-20230131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230101-20230131.nc",
+      "status": "present",
+      "bytes": 74936941
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230201-20230228.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230201-20230228.nc",
+      "status": "present",
+      "bytes": 69771915
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230301-20230331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230301-20230331.nc",
+      "status": "present",
+      "bytes": 75118055
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230401-20230430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230401-20230430.nc",
+      "status": "present",
+      "bytes": 72870605
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230501-20230531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230501-20230531.nc",
+      "status": "present",
+      "bytes": 73486317
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230601-20230630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230601-20230630.nc",
+      "status": "present",
+      "bytes": 71111165
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230701-20230731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230701-20230731.nc",
+      "status": "present",
+      "bytes": 73000393
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230801-20230831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230801-20230831.nc",
+      "status": "present",
+      "bytes": 72788051
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20230901-20230930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20230901-20230930.nc",
+      "status": "present",
+      "bytes": 71043594
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20231001-20231031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20231001-20231031.nc",
+      "status": "present",
+      "bytes": 73557538
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20231101-20231130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20231101-20231130.nc",
+      "status": "present",
+      "bytes": 72632263
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2023,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20231201-20231231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20231201-20231231.nc",
+      "status": "present",
+      "bytes": 74420047
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240101-20240131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240101-20240131.nc",
+      "status": "present",
+      "bytes": 75223706
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240201-20240229.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240201-20240229.nc",
+      "status": "present",
+      "bytes": 71424179
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240301-20240331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240301-20240331.nc",
+      "status": "present",
+      "bytes": 75035436
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240401-20240430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240401-20240430.nc",
+      "status": "present",
+      "bytes": 73081858
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240501-20240531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240501-20240531.nc",
+      "status": "present",
+      "bytes": 72890920
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240601-20240630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240601-20240630.nc",
+      "status": "present",
+      "bytes": 71753886
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240701-20240731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240701-20240731.nc",
+      "status": "present",
+      "bytes": 73087325
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240801-20240831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240801-20240831.nc",
+      "status": "present",
+      "bytes": 72983141
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20240901-20240930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20240901-20240930.nc",
+      "status": "present",
+      "bytes": 71554189
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20241001-20241031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20241001-20241031.nc",
+      "status": "present",
+      "bytes": 73488064
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20241101-20241130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20241101-20241130.nc",
+      "status": "present",
+      "bytes": 72424355
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2024,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20241201-20241231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20241201-20241231.nc",
+      "status": "present",
+      "bytes": 74764411
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 1,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250101-20250131.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250101-20250131.nc",
+      "status": "present",
+      "bytes": 75386749
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 2,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250201-20250228.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250201-20250228.nc",
+      "status": "present",
+      "bytes": 70259746
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 3,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250301-20250331.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250301-20250331.nc",
+      "status": "present",
+      "bytes": 74697487
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 4,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250401-20250430.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250401-20250430.nc",
+      "status": "present",
+      "bytes": 72694062
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 5,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250501-20250531.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250501-20250531.nc",
+      "status": "present",
+      "bytes": 73647565
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 6,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250601-20250630.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250601-20250630.nc",
+      "status": "present",
+      "bytes": 71334814
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 7,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250701-20250731.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250701-20250731.nc",
+      "status": "present",
+      "bytes": 72817612
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 8,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250801-20250831.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250801-20250831.nc",
+      "status": "present",
+      "bytes": 72736175
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 9,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20250901-20250930.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20250901-20250930.nc",
+      "status": "present",
+      "bytes": 71406308
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 10,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20251001-20251031.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20251001-20251031.nc",
+      "status": "present",
+      "bytes": 73484951
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 11,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20251101-20251130.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20251101-20251130.nc",
+      "status": "present",
+      "bytes": 72394168
+    },
+    {
+      "tier": "daily",
+      "variable": "tasmin",
+      "frequency": "day",
+      "year": 2025,
+      "month": 12,
+      "url": "https://dap.ceda.ac.uk/badc/ukmo-hadobs/data/insitu/MOHC/HadOBS/HadUK-Grid/v1.3.2.ceda/1km/tasmin/day/v20260512/tasmin_hadukgrid_uk_1km_day_20251201-20251231.nc",
+      "path": "tasmin/day/tasmin_hadukgrid_uk_1km_day_20251201-20251231.nc",
+      "status": "present",
+      "bytes": 74834831
     }
   ],
   "cache_walk": {
-    "files": 318,
-    "bytes": 19846078338,
+    "files": 618,
+    "bytes": 41638537244,
     "partials": 0,
-    "receipt_bytes": 19846078338,
+    "receipt_bytes": 41638537244,
     "reconciles": true
   },
   "daily_heating_seasons": {

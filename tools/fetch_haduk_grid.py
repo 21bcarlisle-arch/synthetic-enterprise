@@ -279,7 +279,35 @@ class Token:
         return self._source
 
 
-def build_manifest(tiers: tuple[str, ...]) -> list[dict]:
+#: The daily tier's original scope: mean temperature, heating season only. Kept as the DEFAULT so
+#: every existing caller and the committed receipt mean exactly what they meant before.
+DAILY_DEFAULT_VARIABLES = ("tas",)
+
+#: THE WORLD'S FULL DAILY RECORD, and the reason it exists. Building a cell-keyed weather store
+#: needs six variables, not one, and I nearly worked around that on a false premise: I read
+#: `sfcWind/mon` on disk and concluded HadUK published wind only monthly. It does not -- a HEAD
+#: against the archive returns 200 for tas, tasmin, tasmax, sfcWind, rainfall AND sun at daily 1 km.
+#: What was monthly was what we had DOWNLOADED. So no variable has to come from a coarser source,
+#: and the store needs no second provider.
+#: MEASURED AGAINST THE ARCHIVE WITH A REAL CREDENTIAL, after I asserted the wrong list. An
+#: UNAUTHENTICATED HEAD returns 200 for every variable here -- that 200 is CEDA's login redirect,
+#: not the file -- and I read it as availability and told the director all six were daily. With a
+#: bearer token: tas, tasmin, tasmax and rainfall answer 206 with real HDF bytes; **sfcWind and sun
+#: answer 404.** They are published monthly only, which was the original reading and the correct one.
+#:
+#: Wind and cloud therefore come from ERA5 per CELL, at about 9 km rather than 1 km. That is a
+#: resolution split BY VARIABLE, not a source seam inside one variable -- temperature is HadUK for
+#: all twelve months and wind is ERA5 for all twelve.
+DAILY_WORLD_VARIABLES = ("tas", "tasmin", "tasmax")
+
+ALL_MONTHS = tuple(range(1, 13))
+
+
+def build_manifest(tiers: tuple[str, ...], *,
+                   daily_variables: tuple[str, ...] = DAILY_DEFAULT_VARIABLES,
+                   daily_months: tuple[int, ...] = HEATING_SEASON_MONTHS,
+                   daily_first_year: int = SERIES_FIRST_YEAR,
+                   daily_last_year: int = SERIES_LAST_YEAR) -> list[dict]:
     """The declared list of files this pull is for. Pure -- no network, so it is
     readable and testable without credentials."""
     entries: list[dict] = []
@@ -315,24 +343,25 @@ def build_manifest(tiers: tuple[str, ...]) -> list[dict]:
                 )
 
     if "daily" in tiers:
-        for year in range(SERIES_FIRST_YEAR, SERIES_LAST_YEAR + 1):
-            for month in HEATING_SEASON_MONTHS:
-                last = _last_day(year, month)
-                name = (
-                    f"tas_hadukgrid_uk_1km_day_"
-                    f"{year}{month:02d}01-{year}{month:02d}{last}.nc"
-                )
-                entries.append(
-                    {
-                        "tier": "daily",
-                        "variable": "tas",
-                        "frequency": "day",
-                        "year": year,
-                        "month": month,
-                        "url": f"{ARCHIVE_ROOT}/tas/day/{RELEASE}/{name}",
-                        "path": f"tas/day/{name}",
-                    }
-                )
+        for variable in daily_variables:
+            for year in range(daily_first_year, daily_last_year + 1):
+                for month in daily_months:
+                    last = _last_day(year, month)
+                    name = (
+                        f"{variable}_hadukgrid_uk_1km_day_"
+                        f"{year}{month:02d}01-{year}{month:02d}{last}.nc"
+                    )
+                    entries.append(
+                        {
+                            "tier": "daily",
+                            "variable": variable,
+                            "frequency": "day",
+                            "year": year,
+                            "month": month,
+                            "url": f"{ARCHIVE_ROOT}/{variable}/day/{RELEASE}/{name}",
+                            "path": f"{variable}/day/{name}",
+                        }
+                    )
 
     return entries
 
@@ -570,6 +599,48 @@ def merge_into_receipt(summary: dict, previous: dict | None) -> dict:
     }
 
 
+def write_receipt(summary: dict, *, receipt: Path = RECEIPT) -> dict:
+    """Merge `summary` into the receipt on disk and replace it in one step.
+
+    Checkpointing made the pull survivable and gave the write 63 windows per pull
+    instead of one (`CHECKPOINT_EVERY` = 5 over 318 files), each rewriting 159 KB.
+    Writing the destination in place means every one of those windows is a moment
+    where the receipt is neither the old one nor the new one -- and this run gets
+    killed from outside as a matter of course; that is why it checkpoints at all.
+
+    A torn receipt is worse than a stale one in the specific way that matters here:
+    the reader below refuses to start on a receipt it cannot parse, so the resumable
+    puller stops being resumable until a human moves the file aside. The bytes go to
+    a sibling and `os.replace` swaps them in, so a death mid-write costs the newest
+    checkpoint and never the record of the 10 GB already bought.
+    """
+    previous = None
+    if receipt.exists():
+        try:
+            previous = json.loads(receipt.read_text())
+        except (ValueError, json.JSONDecodeError) as exc:
+            # An unreadable receipt is not an empty one. Refusing here rather than
+            # starting fresh keeps a corrupt file from being laundered into a clean
+            # record of a pull nobody can now account for.
+            raise PullRefused(
+                f"{receipt} exists but is not readable JSON ({exc}); move it aside "
+                "before writing a new receipt"
+            ) from exc
+    merged = finalise_receipt(merge_into_receipt(summary, previous))
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+    partial = receipt.with_name(receipt.name + ".writing")
+    try:
+        with partial.open("w") as handle:
+            json.dump(merged, handle, indent=2)
+            handle.write("\n")
+        os.replace(partial, receipt)
+    except BaseException:
+        # BaseException, not Exception: the death this guards against is a signal.
+        partial.unlink(missing_ok=True)
+        raise
+    return merged
+
+
 def summarise(
     tiers: tuple[str, ...], manifest: list[dict], results: list[dict], token_source
 ) -> dict:
@@ -605,11 +676,12 @@ def summarise(
 
 
 def run(
-    tiers: tuple[str, ...], *, limit: int | None, verify: bool, checkpoint=None
+    tiers: tuple[str, ...], *, limit: int | None, verify: bool, checkpoint=None,
+    daily_kw: dict | None = None,
 ) -> dict:
     env = _load_credentials()
     token = Token(env)
-    manifest = build_manifest(tiers)
+    manifest = build_manifest(tiers, **(daily_kw or {}))
     if limit is not None:
         manifest = manifest[:limit]
 
@@ -622,10 +694,34 @@ def run(
             + (f"  ({outcome.get('reason')})" if outcome.get("reason") else ""),
             flush=True,
         )
+        # THE HEARTBEAT IS EVERY FILE, NOT EVERY CHECKPOINT. The receipt is the RESULT and is
+        # written in windows; this is the LIVENESS, and a liveness signal written every fifth file
+        # cannot distinguish a job that is working slowly from one that died four files ago --
+        # which is the whole distinction it exists to carry.
+        _beat(index, len(manifest), results, state="running")
         if checkpoint and index % CHECKPOINT_EVERY == 0:
             checkpoint(summarise(tiers, manifest, results, token.source))
 
-    return summarise(tiers, manifest, results, token.source)
+    summary = summarise(tiers, manifest, results, token.source)
+    _beat(len(manifest), len(manifest), results,
+          state="failed" if summary.get("failed") else "finished")
+    return summary
+
+
+def _beat(done: int, total: int, results: list[dict], *, state: str) -> None:
+    """Say where the pull has got to, in the one place a reader outside can look.
+
+    Never raises: a status file that can break the job it reports on is worse than no status file.
+    """
+    try:
+        from background.long_job import heartbeat
+
+        failed = sum(1 for r in results if r.get("status") == "failed")
+        heartbeat("haduk-grid-pull", done=done, total=total, failed=failed, state=state,
+                  heartbeat_seconds=180.0,
+                  note=f"{failed} failed" if failed else "")
+    except Exception:  # noqa: BLE001 -- reporting must never take the work down
+        pass
 
 
 def main(argv=None) -> int:
@@ -637,14 +733,21 @@ def main(argv=None) -> int:
     )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument(
+        "--daily-world", action="store_true",
+        help="daily tier covers ALL SIX variables and ALL TWELVE months (the cell store's "
+             "source) instead of mean temperature over the heating season",
+    )
+    parser.add_argument("--daily-first-year", type=int, default=SERIES_FIRST_YEAR)
+    parser.add_argument("--daily-last-year", type=int, default=SERIES_LAST_YEAR)
+    parser.add_argument(
         "--verify",
         action="store_true",
         help="sha256 every file (slow; use when writing the committed receipt)",
     )
     parser.add_argument(
-        "--receipt",
+        "--no-receipt",
         action="store_true",
-        help=f"write the receipt to {RECEIPT.relative_to(RECEIPT.parents[2])}",
+        help="do NOT write the receipt (a pull nobody can read reports success by default)",
     )
     parser.add_argument(
         "--manifest-only",
@@ -654,6 +757,12 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
 
     tiers = tuple(t.strip() for t in args.tiers.split(",") if t.strip())
+    daily_kw = dict(
+        daily_variables=DAILY_WORLD_VARIABLES if args.daily_world else DAILY_DEFAULT_VARIABLES,
+        daily_months=ALL_MONTHS if args.daily_world else HEATING_SEASON_MONTHS,
+        daily_first_year=args.daily_first_year,
+        daily_last_year=args.daily_last_year,
+    )
     known = {"normals", "monthly", "daily"}
     unknown = set(tiers) - known
     if unknown:
@@ -661,29 +770,11 @@ def main(argv=None) -> int:
         return 2
 
     if args.manifest_only:
-        manifest = build_manifest(tiers)
+        manifest = build_manifest(tiers, **daily_kw)
         for entry in manifest:
             print(entry["path"])
         print(f"-- {len(manifest)} file(s)", file=sys.stderr)
         return 0
-
-    def write_receipt(summary: dict) -> dict:
-        previous = None
-        if RECEIPT.exists():
-            try:
-                previous = json.loads(RECEIPT.read_text())
-            except (ValueError, json.JSONDecodeError) as exc:
-                # An unreadable receipt is not an empty one. Refusing here rather than
-                # starting fresh keeps a corrupt file from being laundered into a clean
-                # record of a pull nobody can now account for.
-                raise PullRefused(
-                    f"{RECEIPT} exists but is not readable JSON ({exc}); move it aside "
-                    "before writing a new receipt"
-                ) from exc
-        merged = finalise_receipt(merge_into_receipt(summary, previous))
-        RECEIPT.parent.mkdir(parents=True, exist_ok=True)
-        RECEIPT.write_text(json.dumps(merged, indent=2) + "\n")
-        return merged
 
     try:
         identity = acquire_lock()
@@ -695,18 +786,19 @@ def main(argv=None) -> int:
     # puller starting in the gap between the last file and the last write would merge
     # against a receipt this run is still holding in memory.
     try:
-        return _pull(args, tiers, write_receipt)
+        return _pull(args, tiers, write_receipt, daily_kw)
     finally:
         release_lock(identity)
 
 
-def _pull(args, tiers: tuple[str, ...], write_receipt) -> int:
+def _pull(args, tiers: tuple[str, ...], write_receipt, daily_kw: dict | None = None) -> int:
     try:
         summary = run(
             tiers,
             limit=args.limit,
             verify=args.verify,
-            checkpoint=write_receipt if args.receipt else None,
+            checkpoint=None if args.no_receipt else write_receipt,
+            daily_kw=daily_kw,
         )
     except PullRefused as exc:
         print(f"REFUSED: {exc}", file=sys.stderr)
@@ -719,7 +811,7 @@ def _pull(args, tiers: tuple[str, ...], write_receipt) -> int:
         f"(token: {summary['token_source']})"
     )
 
-    if args.receipt:
+    if not args.no_receipt:
         try:
             merged = write_receipt(summary)
         except PullRefused as exc:
