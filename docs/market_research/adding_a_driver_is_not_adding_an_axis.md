@@ -1,8 +1,8 @@
 **Severity:** RECORDED · **Lane:** W2_customer_generator · **Epoch:** 3 · **Atom:** `unminted`
 
-**Knowledge:** none -- the page this belongs on is `how-many-synthetic-households`, written and
-blocked on the site lane. This is the row it must carry before it publishes, and the declaration is
-replaced when the page lands.
+**Knowledge:** `how-many-synthetic-households` -- landed at `3745b9c0d` and carrying this finding.
+The declaration said "blocked on the site lane" when this was written; the page has since landed and
+its `theory` and `expected_shape` rungs publish the driver-versus-axis distinction measured here.
 
 # Adding a driver is not adding an axis: hot water and occupancy moved the sample size by three households
 
@@ -88,3 +88,30 @@ the count. That stands. What must be added beside it is the negative half, which
 have: **not everything added to the world is added to the vector, and only what is in the vector can
 move N.** Four of the seven "uncounted axes" listed there are drivers or correlated quantities, not
 strata, and on this evidence they will move the figure by approximately nothing.
+
+
+---
+
+## AMENDED, same day — repeated where the measurement is NOT resolution-limited
+
+The result above was measured at a 20,000-household reference, and **6,816 of 20,000 is 34% of the
+reference population**, which is not a compression at all. An earlier finding in this module already
+named that ratio as the resolution limit. The comparison was CONTROLLED — both arms on one
+population — so the *difference* was attributable, but a null result measured at a resolution
+limit is exactly where a real effect can hide. So it was repeated at the reference the published
+figures use.
+
+| reference | sample as a share of it | hot water OFF | hot water ON |
+|---:|---:|---:|---:|
+| 20,000 | 34% | 6,813 | 6,816 |
+| **120,000** | **7.4%** | **8,820** | **8,822** |
+
+**Two households in 8,822.** The null holds, and it holds where the sample is a genuine compression
+of the population rather than a third of it. The mechanism stands: a driver moves households inside
+a shape the acceptance test already reproduces, and only what the sample is scored on can move the
+count.
+
+**And the level is now on a defensible footing for the first time.** Every figure this instrument
+published before today was scored at a reference where the sample was a large fraction of the
+population. 8,822 against 120,000 is the first that is not, which matters more for how the number
+should be read than the hot-water term does.
