@@ -1025,7 +1025,12 @@ def _decomposition_is_the_same_contrast(decomposition: dict | None) -> str | Non
     if declared is None:
         return (
             "THE REMEDY'S EVIDENCE DOES NOT SAY WHICH QUANTITY IT SPLITS, so this page cannot show "
-            "that it describes the figure above. The figure and its bound are stated in "
+            # A LANDMARK, NOT A DIRECTION, and it is not a wording preference. This sentence lands
+            # in `floor_decomposition.different_contrast_caveat`, which NO deployed door renders
+            # (measured 2026-09-08, both branches driven) -- so "the figure above" claims a
+            # direction from a place no reader stands, and would be a claim about wherever the
+            # sentence first gained a home. Naming the figure is true from anywhere.
+            "that it describes the headline figure. The figure and its bound are stated in "
             "`{ours}`; a variance split of some other contrast is not a floor under this one. No "
             "remedy is stated from it. Declaring the contrast in the artefact is owed work "
             "(`tools/run_value_cycle_ab.py --decompose`)."
@@ -1034,7 +1039,9 @@ def _decomposition_is_the_same_contrast(decomposition: dict | None) -> str | Non
         return None
     return (
         "THE REMEDY'S EVIDENCE SPLITS A DIFFERENT QUANTITY, so no remedy is stated from it. The "
-        "decomposition below is of `{theirs}`; the figure above and the bound on it are "
+        # LANDMARK, for the reason the branch above carries: this field renders nowhere today, so
+        # "the figure above" is a direction taken from an unknown place.
+        "decomposition below is of `{theirs}`; the headline figure and the bound on it are "
         "`{ours}`. These are different quantities measured over the same seeds, not two "
         "readings of one -- on the one seed family where all three floor legs exist, the "
         "rest-of-book half is 0.21 on `{theirs}` and 554.21 on `{ours}`, so an irreducible floor "
@@ -2910,9 +2917,23 @@ def _departures(belief: dict) -> dict:
             "available": False,
             "reason": ("this run predates `belief_vs_outcome.scored_decisions` (added 2026-08-30), "
                        "so the artefact carries only the first ten scored rows and the departures "
-                       "behind this figure cannot be listed from it. The accounts the arm's own "
-                       "price drove out ARE named above; the per-renewal list ships with the next "
-                       "A/B run."),
+                       "behind this figure cannot be listed from it. "
+                       # THIS USED TO SAY THE ACCOUNTS THE ARM'S OWN PRICE DROVE OUT WERE "NAMED
+                       # ABOVE", AND THAT WAS FALSE TWICE OVER. The sentence is on an undriven
+                       # branch, so no published feed carries it and the whole-site pointer sweep
+                       # had no string to judge. Driven for the first time on 2026-09-08 it
+                       # renders in `#arms-decisions`, and the field it pointed at --
+                       # `priced_accounts_the_arm_itself_drove_out` -- renders in NO region of
+                       # ANY door, on this build or the real one (marker-probed, both). So the
+                       # direction was wrong AND there was nothing at the end of it. Repairing the
+                       # direction to "beside this" was still false, and the rung that owns this
+                       # branch caught that too. What is true is that the accounts are in the
+                       # feed and on no page, so that is what it says -- and it makes no claim
+                       # about where a reader is standing, which is the only wording that cannot
+                       # rot when this block gains a second home.
+                       "The accounts the arm's own price drove out are carried in this page's "
+                       "feed as `priced_accounts_the_arm_itself_drove_out` and are on no page; "
+                       "the per-renewal list ships with the next A/B run."),
         }
     departed = [r for r in rows if isinstance(r, dict) and r.get("retained") is False]
     return {
