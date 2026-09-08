@@ -61,6 +61,12 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_SHARED_TREE_HOLDS_A_SUPERSEDED_DRAFT_THAT_DELETES_TWO_LANDED_RUNGS_AND_23_TESTS_ARE_RED_BEHIND_IT_2026-09-05.md`
 - `WORKER_FINDING_THE_WALL_CENSUS_PINS_CUSTOMER_IDENTIFIERS_AS_A_SCHEMA_2026-09-01.md`
 
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_RESULT_THE_DOTTED_MODULE_FAIL_OPEN_IS_ZERO_BECAUSE_THE_LAUNCH_FORM_AND_THE_GUARD_ARE_THE_SAME_FACT_2026-09-08.md` — lane `A_strategy_governance`
+
 ## Disposition
 
 **Decision:** OPEN
