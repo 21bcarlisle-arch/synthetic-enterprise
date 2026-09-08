@@ -287,7 +287,13 @@ class Loss:
                 "`python3 -m tools.refresh_to_head {}`\n      surveys it; `--write --slug NAME` "
                 "preserves these bytes and writes HEAD's over them.".format(self.path))
 
-    def render(self) -> str:
+    def render(self, merge: bool = False) -> str:
+        """`merge=True` DROPS the per-path remedy, and that is not tidying. Both doors `remedy()`
+        can name -- `--content` for holder work, `refresh_to_head` for a rival copy -- read a
+        WORKING-TREE copy, and `--merge` has none and refuses both outright. On a merge the remedy
+        is a property of the merge and not of the path, so `refusal_text` states it once; leaving
+        this line in printed a door the tool would refuse, which is the pressure toward bypass this
+        module exists to remove."""
         head = {
             PREDATES: "      your copy contains NOT ONE of the {} distinctive line(s) commit {} "
                       "added here,\n      so it was taken before that landing and this commit "
@@ -298,7 +304,7 @@ class Loss:
         }[self.rule]
         shown = list(self.detail[:6]) if self.rule != UNPARSEABLE else []
         tail = "" if len(self.detail) <= 6 else "        (+{} more)\n".format(len(self.detail) - 6)
-        remedy = "" if self.rule == UNPARSEABLE else self.remedy() + "\n"
+        remedy = "" if self.rule == UNPARSEABLE or merge else self.remedy() + "\n"
         return "  {}  [{}]\n{}\n{}{}{}".format(
             self.path, self.rule, head,
             "".join("        - {}\n".format(n[:110]) for n in shown), tail, remedy)
@@ -331,16 +337,62 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
     return None
 
 
+def adopted_from_merge(root: Path, parent: str, ref: str,
+                       paths: list[str]) -> frozenset[str]:
+    """The paths in `paths` a merge of `ref` into `parent` adopts WITHOUT this side losing anything:
+    unchanged between `merge-base(parent, ref)` and `parent`, and changed by `ref`.
+
+    THE PREDICATE IS ABOUT THIS SIDE'S HISTORY, NOT THE OTHER'S, and that is the whole of it. If
+    this history has not touched a path since it diverged, then whatever the other history did to
+    it cannot delete work of ours -- there is none to delete. Anything this side DID touch stays
+    refused, which is the entire population the control was built for.
+
+    THE OBVIOUS PREDICATE IS WRONG AND IS NOT USED HERE. "Exempt a path whose result blob equals
+    the merged ref's blob" reopens the failure this repo has already paid for
+    (`a_merge_that_adopts_one_sides_rewrite_silently_deletes_the_other_sides_purely_additive_work`):
+    when `parent` carries names the ref does not, `result == ref` IS that deletion, so that
+    predicate exempts exactly the case the control exists for.
+
+    `--no-renames` ON PURPOSE. With rename detection on -- git's default -- a rename shows only the
+    NEW path, so a file this side renamed reads as untouched at its old path and would be exempted.
+    Off, both sides of a rename count as changed, and the error is toward refusing.
+
+    NO MERGE-BASE, NO EXEMPTION. Unrelated histories have no divergence point, so nothing can be
+    shown to be untouched since one, and fail-closed is the direction."""
+    base = _git(root, "merge-base", parent, ref).stdout.strip()
+    if not base:
+        return frozenset()
+
+    def _changed(a: str, b: str) -> set[str]:
+        return {ln.strip() for ln
+                in _git(root, "diff", "--no-renames", "--name-only", a, b).stdout.splitlines()
+                if ln.strip()}
+
+    ours, theirs = _changed(base, parent), _changed(base, ref)
+    return frozenset(p for p in paths if p not in ours and p in theirs)
+
+
 def violations(root: Path, parent: str, result: str, paths: list[str],
-               allow: frozenset[str] = frozenset()) -> list[Loss]:
+               allow: frozenset[str] = frozenset(),
+               merge_ref: str | None = None) -> list[Loss]:
     """Every path in `paths` whose blob in `result` reverts a landing or loses names.
 
     Both blobs come out of git. `allow` is the declared-deletion escape hatch; an allowed path is
     dropped here and NAMED by the caller, because a silent exemption is how a control becomes a
-    formality."""
+    formality.
+
+    `merge_ref` IS THE OTHER PARENT WHEN THIS RESULT IS A MERGE, and without it this control cannot
+    tell "the other lane's landed, declared deletion" from "this lane's stale working copy" -- so
+    on a merge it refused both, and the only route through was to declare the other lane's deletion
+    with `--drops`, which is the guard's own attribution mechanism defeated by its own refusal
+    (measured 2026-09-08, receipt `22df46614`). Passed, the merge-base predicate above exempts what
+    this side never touched. Note also that every sentence of `refusal_text` is false of a merge
+    unless it is told there is one: `--merge` opens no working-tree copy at all."""
+    adopted = (adopted_from_merge(root, parent, merge_ref, paths)
+               if merge_ref is not None else frozenset())
     out = []
     for path in sorted(set(paths)):
-        if path in allow or Path(path).suffix not in READABLE:
+        if path in allow or path in adopted or Path(path).suffix not in READABLE:
             continue
         loss = judge(root, path, blob_at(root, parent, path), blob_at(root, result, path),
                      parent=parent)
@@ -349,7 +401,31 @@ def violations(root: Path, parent: str, result: str, paths: list[str],
     return out
 
 
-def refusal_text(losses: list[Loss]) -> str:
+def refusal_text(losses: list[Loss], merge_ref: str | None = None) -> str:
+    """WHY THE MERGE WORDING IS ITS OWN BRANCH rather than one text hedged to cover both. The
+    default text diagnoses the cause ("a pathspec stages the working-tree copy") and names the
+    route out (`isolate_hunks` + `--content`). Both are FALSE of a merge: `--merge` reads no
+    working-tree copy at all, and `--merge` takes no `--content` override -- so a lane refused on a
+    merge was being told to do something the tool refuses. A refusal whose stated remedy does not
+    exist is the pressure toward bypass this whole module was built to remove."""
+    if merge_ref is not None:
+        return (
+            "\n[stale-copy] ❌ MERGE REFUSED -- {} path(s) THIS side has changed since the "
+            "merge-base would\nlose names by adopting {}'s version.\n\nA path this side never "
+            "touched since the merge-base is adopted without question -- there is\nnothing of "
+            "yours to delete. These are not those: both histories changed them, so taking\nthe "
+            "other side's version here deletes work of ours.\n\n{}\n"
+            "  THE FIX: if git reported the path as CONFLICTED, settle it with the union bytes -- "
+            "`surgical_land\n  --merge {} --resolve <path>=<file>`. If git merged it silently, "
+            "the other history REWROTE what\n  this side also changed: rebase your side's hunks "
+            "onto it (`isolate_hunks --survey <path>`) and\n  land them after the merge.\n\n"
+            "  IF ADOPTING THE LOSS IS DELIBERATE AND YOURS, say so: `--drops <path>`. It is "
+            "printed in the\n  landing output. Do NOT use it to wave through a deletion that "
+            "belongs to the other history --\n  that is what this exemption is for, and a "
+            "declared drop naming the wrong lane corrupts every\n  census of who deleted "
+            "what.\n".format(
+                len(losses), merge_ref[:9],
+                "".join(loss.render(merge=True) for loss in losses), merge_ref))
     return (
         "\n[stale-copy] ❌ COMMIT REFUSED -- {} path(s) would revert work that has already "
         "landed.\n\nA pathspec stages the WORKING-TREE copy. If you opened one of these files "

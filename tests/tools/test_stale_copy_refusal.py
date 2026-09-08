@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from tools import stale_copy_refusal as scr
+from tools import surgical_land
 from tools.python_code_text import searchable
 from tools.symbol_landing_check import _bound_names
 
@@ -211,6 +212,133 @@ def test_the_guard_is_wired_into_the_landing_door(repo: Path) -> None:
     assert build < call < extract, (
         "the refusal must sit between the resulting tree and the extract: after it there is a "
         "tree to judge, and before the extract it costs nothing to refuse")
+
+
+# --------------------------------------------------------------------------- the merge (--merge)
+#
+# The defect: `violations()` took `parent` and `result` and nothing else, so on a merge it could not
+# tell the OTHER history's landed, declared deletion from THIS lane's stale working copy. It refused
+# both, and the only route through was `--drops` -- which then credits this landing with a deletion
+# that belongs to the other lane, defeating the guard's own attribution. Measured 2026-09-08;
+# `22df46614` is the commit that carries the misattributed drop.
+
+#: Far enough apart that an edit to `alpha` and a deletion of the helper are not adjacent hunks --
+#: otherwise git conflicts and the test would be measuring conflict handling instead.
+WIDE = (
+    "def alpha():\n    return 1\n\n\n"
+    "def middle_one():\n    return 'a longer distinctive line, middle of the file'\n\n\n"
+    "def middle_two():\n    return 'a second longer distinctive line, still the middle'\n\n\n"
+    "def freshly_landed_helper(argument):\n"
+    '    """A distinctive line that appears exactly once in this file."""\n'
+    "    return argument * 41 + 7\n"
+)
+WITHOUT_HELPER = WIDE[:WIDE.index("def freshly_landed_helper")].rstrip("\n") + "\n"
+
+
+def _diverge(repo: Path, ours: str | None, theirs: str) -> tuple[str, str, str, list[str]]:
+    """Two histories from one base. Returns (parent, ref, merged tree, changed paths).
+
+    The merged tree comes from `surgical_land.build_merge_tree` -- the real subject. A hand-built
+    result tree would be `a fake more permissive than its subject`: the whole question here is what
+    git's own merge produces for a path each side did or did not touch."""
+    _commit(repo, "m.py", WIDE, "the base both sides share")
+    _run(repo, "branch", "other")
+    if ours is None:
+        _commit(repo, "elsewhere.py", "def ours():\n    return 'this side worked elsewhere'\n",
+                "this side never opens m.py")
+    else:
+        _commit(repo, "m.py", ours, "this side edits m.py too")
+    parent = _run(repo, "rev-parse", "HEAD").strip()
+    _run(repo, "checkout", "-q", "other")
+    _commit(repo, "m.py", theirs, "the other lane deliberately drops the helper, and declares it")
+    ref = _run(repo, "rev-parse", "HEAD").strip()
+    _run(repo, "checkout", "-q", "main")
+    merged = surgical_land.build_merge_tree(repo, parent, ref)
+    changed = surgical_land.changed_paths(repo, parent + "^{tree}", merged)
+    return parent, ref, merged, changed
+
+
+def test_a_merge_over_a_path_this_side_never_touched_lands(repo: Path) -> None:
+    """LEG 1 OF THE PARTITION. Adopting the other history's evolution of a file this side has not
+    opened since the merge-base cannot delete anything of ours -- there is nothing of ours in it."""
+    parent, ref, merged, changed = _diverge(repo, None, WITHOUT_HELPER)
+    poison = scr.violations(repo, parent, merged, changed)
+    assert [v.path for v in poison] == ["m.py"], (
+        "POISON ROUND FIRST: told nothing about the merge, the guard must still refuse this tree, "
+        "or leg 2 below is green for want of anything to refuse rather than because it works")
+    assert scr.violations(repo, parent, merged, changed, merge_ref=ref) == [], (
+        "the merge ref is threaded and this side never touched m.py, so this must land; refusing "
+        "it is what forced 22df46614 to declare another lane's deletion as its own")
+    assert scr.adopted_from_merge(repo, parent, ref, changed) == frozenset({"m.py"})
+
+
+def test_a_merge_over_a_path_this_side_edited_is_still_refused(repo: Path) -> None:
+    """LEG 2, AND IT IS THE WHOLE POPULATION THE GUARD WAS BUILT FOR. Both histories changed the
+    file; adopting theirs deletes work of ours. The exemption must not reach it."""
+    ours = WIDE.replace("    return 1\n", "    return 99\n")
+    parent, ref, merged, changed = _diverge(repo, ours, WITHOUT_HELPER)
+    losses = scr.violations(repo, parent, merged, changed, merge_ref=ref)
+    assert [v.path for v in losses] == ["m.py"], (
+        "a path this side edited must still be refused on a merge; if the merge ref buys a blanket "
+        "pass, the guard is off for exactly the landing kind that reconciles two lanes")
+    assert scr.adopted_from_merge(repo, parent, ref, changed) == frozenset()
+
+
+def test_the_result_equals_the_ref_predicate_would_have_exempted_the_deletion_this_guard_exists_for(
+        repo: Path) -> None:
+    """THE TEMPTING PREDICATE, MEASURED AND REFUTED. 'Exempt a path whose result blob equals the
+    merged ref's blob' reopens `a_merge_that_adopts_one_sides_rewrite_silently_deletes_the_other
+    _sides_purely_additive_work`. Here the other history already carries this side's added line, so
+    the merge result IS its blob byte for byte -- and it drops a name this side still has. The
+    predicate that ships keys on THIS side's history, so it refuses; the blob predicate would not.
+    """
+    mine = "MINE = 'this side added this'\n\n\n"
+    ours = WIDE.replace("def middle_one", mine + "def middle_one")
+    theirs = WITHOUT_HELPER.replace("def middle_one", mine + "def middle_one")
+    parent, ref, merged, changed = _diverge(repo, ours, theirs)
+    assert scr.blob_at(repo, merged, "m.py") == scr.blob_at(repo, ref, "m.py"), (
+        "the fixture no longer demonstrates the wrong predicate's failure: the result and the "
+        "ref's blob must be identical for 'result == ref' to have exempted this")
+    losses = scr.violations(repo, parent, merged, changed, merge_ref=ref)
+    assert [v.path for v in losses] == ["m.py"]
+    assert "freshly_landed_helper" in losses[0].detail or losses[0].rule == scr.PREDATES
+
+
+def test_the_merge_refusal_does_not_name_a_remedy_the_merge_door_refuses(repo: Path) -> None:
+    """A REFUSAL WHOSE STATED REMEDY DOES NOT EXIST IS PRESSURE TOWARD BYPASS. The default text
+    diagnoses a working-tree copy and sends the lane to `--content`; `--merge` reads no working-tree
+    copy and REFUSES `--content` outright, so on a merge both sentences are false of the landing
+    they refuse."""
+    # BOTH remedy shapes, because they name DIFFERENT working-tree doors and a merge refuses each:
+    # holder work sends the lane to `--content`, a rival copy to `refresh_to_head`. Testing only one
+    # left the other free to leak, which is how the per-path remedy reintroduced this defect.
+    holder = scr.Loss("m.py", scr.SUBSET, ("freshly_landed_helper",), gains=("mine_only",))
+    rival = scr.Loss("m.py", scr.SUBSET, ("freshly_landed_helper",), gains=())
+    for loss, door in ((holder, "--content"), (rival, "refresh_to_head")):
+        plain = scr.refusal_text([loss])
+        merged = scr.refusal_text([loss], merge_ref="deadbeef1234")
+        assert door in plain and "WORKING-TREE" in plain, (
+            "the fixture no longer reaches the branch that names {}".format(door))
+        assert door not in merged, (
+            "the merge refusal names {}, a door `--merge` refuses outright".format(door))
+        assert "WORKING-TREE" not in merged
+        assert "--resolve" in merged and "deadbeef1" in merged and "m.py" in merged
+        assert "--drops" in merged, "the declared-deletion route must still be named"
+
+
+def test_the_landing_door_hands_the_guard_the_merge_ref(repo: Path) -> None:
+    """FAIL-SILENT, the wiring half. The predicate is unreachable in production unless
+    `_land_once` actually passes the other parent -- and it is one call site for both landing
+    kinds. Read as code, so a comment describing the wiring cannot satisfy it."""
+    src = searchable(
+        (Path(__file__).resolve().parents[2] / "tools" / "surgical_land.py").read_text())
+    assert "merge_ref=merge_parent" in src, (
+        "the guard is back to seeing only (parent, result) on a merge")
+    assert "stale_copy_refusal.refusal_text(reverts, merge_ref=merge_parent)" in src
+    exempt = src.index("stale_copy_refusal.adopted_from_merge(")
+    named = src.index("[stale-copy] {} path(s) adopted from {}", exempt)
+    assert named > exempt, (
+        "an exemption nobody can see is a hole -- the adopted paths must be printed by the landing")
 
 
 # ------------------------------------------------------------------- the pre-commit door (--staged)

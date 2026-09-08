@@ -1418,14 +1418,31 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
     # extract is the expensive step. A stale copy passes every gate below it -- the tree it reverts
     # to was valid an hour ago -- so no amount of running the suite can find this, and running it
     # first would only spend a full cycle to arrive at the same refusal.
-    reverts = stale_copy_refusal.violations(root, parent, result_tree, files, allow=drops)
+    # THE MERGE REF IS THREADED, and it is what stops this refusal firing on the other history's
+    # own landed, declared work. Without it the guard cannot tell that deletion from this lane's
+    # stale working copy, so it refused both -- and the only route through was `--drops`, which
+    # then attributes the other lane's deletion to THIS landing. See `adopted_from_merge`.
+    adopted = (stale_copy_refusal.adopted_from_merge(root, parent, merge_parent, files)
+               if merge_parent is not None else frozenset())
+    reverts = stale_copy_refusal.violations(root, parent, result_tree, files, allow=drops,
+                                            merge_ref=merge_parent)
     if reverts:
-        raise LandingRefused(stale_copy_refusal.refusal_text(reverts))
+        raise LandingRefused(stale_copy_refusal.refusal_text(reverts, merge_ref=merge_parent))
     # THE TREE THAT WAS ACTUALLY JUDGED, pinned here rather than read again at the gate. A merge
     # re-derive below REBINDS `result_tree`, and handing the hook that later sha would tell it a
     # verdict exists for a tree no verdict describes -- the fail-open direction, and the one this
     # whole module exists to refuse. Pinned, the mismatch simply makes the hook ask for itself.
     gated_tree = result_tree
+    if adopted:
+        # NAMED for the same reason `--drops` is: this is an exemption, and an exemption nobody can
+        # see is a hole. The difference is WHOSE it is -- a drop is a deletion this landing chose,
+        # this is one the other history already made and declared, adopted by a side that never
+        # touched the path.
+        shown = sorted(adopted)
+        print("[stale-copy] {} path(s) adopted from {} unchanged on this side since the "
+              "merge-base, so not this lane's loss: {}{}".format(
+                  len(shown), "{} ({})".format(merge, merge_parent[:9]), ", ".join(shown[:8]),
+                  "" if len(shown) <= 8 else " (+{} more)".format(len(shown) - 8)))
     if drops:
         # NAMED, never silent. An exemption nobody can see is a hole, and this is the line that
         # makes a deliberate deletion attributable to the landing that chose it.
