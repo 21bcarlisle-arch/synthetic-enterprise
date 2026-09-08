@@ -311,6 +311,38 @@ def _is_first_party(dotted: str) -> bool:
 # ------------------------------------------------------------------------------ the check
 
 
+def unresolved_kind(ref: Reference, by_module: dict[str, str],
+                    facts: dict[str, ModuleFacts]) -> str | None:
+    """Why `ref` does not resolve in this tree, or `None` when it does.
+
+    EXTRACTED SO THERE IS ONE ANSWER, not because `check_tree` was long. `tools/landing_pair.py`
+    asks the identical question one step earlier -- before an isolated hunk is built rather than at
+    the landing door -- and a second implementation of "does this reference resolve" is a second
+    opinion that can drift. The four skips below (namespace package, PEP-562 dynamic module,
+    supplied name, `from pkg import submodule`) were each learned from a false positive on this
+    repo's real history, and re-deriving them elsewhere would re-learn them.
+
+    A MODULE THAT WOULD NOT PARSE IS ABSENT FROM `facts` AND PRESENT IN `by_module`, and that
+    asymmetry is deliberate: its consumers report unresolved (fail-closed) while the unparseable
+    blob itself is reported once, by its own finding, rather than once per reference into it."""
+    if ref.symbol is None:
+        if ref.module not in by_module and not _is_package(ref.module, by_module):
+            return "missing-module"
+        return None
+    supplier = facts.get(ref.module)
+    if supplier is None:
+        if _is_package(ref.module, by_module):
+            return None  # a namespace package supplies its submodules
+        return "missing-module"
+    if supplier.dynamic:
+        return None  # PEP 562 __getattr__ / star-import: resolvable only at runtime
+    if ref.symbol in supplier.supplies:
+        return None
+    if f"{ref.module}.{ref.symbol}" in by_module:
+        return None  # `from pkg import submodule`
+    return "missing-attribute"
+
+
 def check_tree(tree: str, only: list[str] | None = None,
                root: Path = ROOT) -> tuple[list[Finding], dict]:
     """Resolve every first-party reference in `tree`. `only` narrows the CONSUMER side.
@@ -342,25 +374,12 @@ def check_tree(tree: str, only: list[str] | None = None,
             continue  # already reported unparseable above
         for ref in references(sources[path], known_modules):
             checked += 1
-            if ref.symbol is None:
-                if ref.module not in by_module and not _is_package(ref.module, by_module):
-                    findings.append(Finding(path, ref.line, ref.module, None,
-                                            "missing-module"))
+            kind = unresolved_kind(ref, by_module, facts)
+            if kind is None:
                 continue
-            supplier = facts.get(ref.module)
-            if supplier is None:
-                if _is_package(ref.module, by_module):
-                    continue  # a namespace package supplies its submodules
-                findings.append(Finding(path, ref.line, ref.module, None, "missing-module"))
-                continue
-            if supplier.dynamic:
-                continue  # PEP 562 __getattr__ / star-import: resolvable only at runtime
-            if ref.symbol in supplier.supplies:
-                continue
-            if f"{ref.module}.{ref.symbol}" in by_module:
-                continue  # `from pkg import submodule`
-            findings.append(Finding(path, ref.line, ref.module, ref.symbol,
-                                    "missing-attribute"))
+            findings.append(Finding(
+                path, ref.line, ref.module,
+                None if kind == "missing-module" else ref.symbol, kind))
 
     report = {
         "tree": tree,

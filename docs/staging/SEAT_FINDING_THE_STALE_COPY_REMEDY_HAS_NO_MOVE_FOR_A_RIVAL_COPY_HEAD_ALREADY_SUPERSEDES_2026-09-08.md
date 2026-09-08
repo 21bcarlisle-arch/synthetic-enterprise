@@ -120,3 +120,85 @@ Naming the pair at census time would cost one pass and save the turn.
 
 Recorded, not built: this turn's landed increment is the cheap-door wiring, and the pair-detection
 belongs with the `refresh-to-head` work rather than bolted onto a census.
+
+---
+
+## WHAT LANDED, 2026-09-08 (lane 0, isolated worktree): the move exists, the door is named per path, and the pair is named at census time
+
+Three things, and the third was not predicted.
+
+**1. `tools/refresh_to_head.py` — the move.** Three conjunctive preconditions, each computed from
+the tree rather than asserted: the copy supplies no name HEAD lacks (`stale_copy_refusal.symbols`);
+the stale-copy control actually refuses the copy (`stale_copy_refusal.judge` — without this leg it
+reverts any edit you point it at, which IS `git checkout`); and the current bytes are **proven**
+recoverable before they are destroyed. The preservation commits onto
+`refs/preserved/refresh-to-head/<slug>` through a throwaway `GIT_INDEX_FILE`, so the holder's index
+is untouched, and `verify_recoverable` **runs** the `git log --all -S` lookup the tool advertises
+rather than printing it — a preserved commit that no ref reaches passes the identity leg happily
+and is unfindable by the route anyone would actually use. Default is survey; the line-level losses
+a symbol test cannot see are printed before any byte moves. It refuses a staged path, a path HEAD
+does not have, a suffix it has no reader for, and a mixed run in which any path is refused.
+
+**2. The refusal names the door PER PATH.** It printed one remedy for both shapes and the wrong
+half was the half with no move. `gains_over()` answers which, and returns `None` rather than `()`
+when it cannot tell — a door named on a guess is worse than no advice, because one of the two
+overwrites bytes. `--census` then **runs the door it names** (`door_verdicts`) instead of claiming
+it: the finding this whole class is about is a remedy that refused.
+
+**3. `tools/landing_pair.py`, and it fires at `isolate_hunks` rather than at the landing gate.**
+`symbol_landing_check` asks the identical question and would red the commit — but only at the
+landing door, after the survey, the selection, the build and the typed command. The resolution rule
+is now a single function (`symbol_landing_check.unresolved_kind`) that both callers share, because
+a pointer that refuses early where the gate passes late teaches a seat to stop believing it.
+
+### The census's own first live run, against the shared tree, and what it found
+
+    2 paths → refresh_to_head, and the door verdict for BOTH is `refreshable` (the door is OPEN)
+    6 paths → isolate_hunks
+    1 PAIR   tests/tools/test_commit_refusal_attribution.py needs
+             tools.commit_refusal_attribution.decompose_outage, which exists ONLY in the
+             UNCOMMITTED copy of tools/commit_refusal_attribution.py
+
+That is the addendum's measured case, reproduced by the mechanism rather than by hand.
+
+**And a ninth state nobody had named.** `tests/tools/test_r1_inference_ceiling.py` references
+`tools.r1_inference_ceiling._scores_on_folds` and `honest_point_estimate` — and **no tree supplies
+either, committed or not.** That is not a pair and it is deliberately not reported as one: an
+unresolved reference with no supplier anywhere is a *worse* state than a pair, not a cleaner one,
+and folding the two rows together would have printed the tree's worst case as "no pair found". Its
+holder has a copy of that test written against a version of `tools/r1_inference_ceiling.py` that
+exists in no tree this machine can see. Isolating its hunks and landing them reds HEAD for every
+lane, and unlike the pair there is no other half to land with it.
+
+**What is still open.** Six of the eight remain Kind-B and are the holders' to land; the finding
+stays open until they are. What has changed is that each of the eight is now sent somewhere with a
+move, and the two whose door was shut have one.
+
+---
+
+## THE RESULT: the eight are five, and the two that had no move are repaired
+
+`refresh_to_head --write --slug kind-a-rival-copies-2026-09-08` was run against
+`/home/rich/synthetic-enterprise` after the mechanism landed. Both Kind-A copies were preserved as
+`refs/preserved/refresh-to-head/kind-a-rival-copies-2026-09-08` (`e94f9fa59`) and replaced with
+HEAD's bytes. The recovery route was re-run afterwards from the shared tree itself, not merely
+printed:
+
+    git log --all -S 'def _bind_to_claim(commit: str, work_id: str | None) -> tuple[list[str], str]:' \
+        -- tools/promote_worktree_landing.py   →  e94f9fa59, b06fa3528, 85dc4bea0
+
+The pre-`since` signature comes back from the preserved commit; the working copy now carries the
+repaired one. That matters beyond the census: any lane running `promote_worktree_landing` **from
+the shared tree** was running the version whose binding bound four of another lane's paths, and now
+is not. `simulation/policy_costs.py` had been missing the 2026-27 RO rate and the 2026/2027 CCL
+rates outright, and now has them.
+
+**Eight → five, and the third one was not mine.** `tests/tools/test_commit_refusal_attribution.py`
+cleared because `a17cf91d4` landed **both halves together** — the test and
+`tools/commit_refusal_attribution.py` — which is exactly the landing the pair pointer exists to
+produce. It landed while this work was in the gate, so the pointer did not cause it; what the
+pointer did was name the pair correctly on a tree where the pair was still open.
+
+The five that remain are all Kind-B holder work and all correctly routed to `isolate_hunks`. One of
+them, `tests/tools/test_r1_inference_ceiling.py`, still carries the ninth state: names no tree
+supplies at all. That is a finding for its holder, not a repair anyone else can make.
