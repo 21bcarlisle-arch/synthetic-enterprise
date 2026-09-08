@@ -660,6 +660,95 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + prose(sv.reading) + "</p>";
   }
 
+  /* THE SECOND CUT, AND IT IS PUBLISHED BESIDE THE FIRST RATHER THAN INSTEAD OF IT.
+
+     The block above tells the reader the concordance is computed over SURVIVORS — the decisions
+     it could not score are the renewals where the household left, and no book size fixes that
+     because the exclusion IS the outcome. Having said so, a page that then showed only the
+     survivor figure would be choosing the flattering rung and telling the reader why it was
+     flattering in the same breath. So this renders `method_skill.fixed_horizon`: every decision
+     the arm PRICED, scored on the joint pounds it produced within 365 days of its own term start,
+     a departure contributing the nothing it actually produced.
+
+     THE POPULATIONS ARE NAMED ON THE SURFACE, both of them, because that is the only thing that
+     lets a reader weigh the two numbers. Neither is the better estimand: the concordance is
+     scale-free over a selected population, this one is unselected in pounds and therefore carries
+     account SIZE. Both bounds are the run's own and are rendered, not summarised here.
+
+     THE BRIDGE IS RENDERED, NOT JUST THE HEADLINE. Two things differ between the figures above
+     and the figure here — the population and the unit — and a reader shown only the two endpoints
+     would attribute the whole move to survivorship, which is exactly the error the producer's
+     three nested legs exist to prevent. The middle leg is the one that makes the outer two
+     readable, so it is on the page.
+
+     THE VERDICT IS NOT WRITTEN HERE, for the same reason the survivorship verdict is not:
+     `_fixed_horizon_reading` composes it from the legs' own numbers, so the day admitting the
+     departures stops lowering the figure this page says so without anybody editing it. */
+  function fixedHorizonBlock(fh) {
+    if (!fh || !fh.available) {
+      /* TWO DIFFERENT ABSENCES, told apart — the same three-state problem the survivorship block
+         was corrected for. A feed generated before this producer existed carries no key at all
+         and `fh` is undefined; a run that carries the block but could rank nothing has its own
+         named reason. Neither may render as a blank, and neither may render as a figure. */
+      return '<p style="margin:10px 0 6px;font-size:11.5px;color:var(--amber);">'
+        + "<strong>And the same question over every decision the arm priced?</strong> "
+        + '<span style="font-weight:600;">Not available from this run.</span> '
+        + prose(fh && fh.reason ? fh.reason
+            : "this page's own feed was generated before the fixed-horizon estimand existed, so "
+              + "the figure above is the survivor-only one with nothing beside it. That one is "
+              + "OURS: regenerating the feed from a run that carries the estimand is all it "
+              + "needs.") + "</p>";
+    }
+    var legs = fh.legs || {};
+    var row = function (label, leg, emphasis) {
+      var c = leg && (leg.concordance === 0 || leg.concordance) ? leg.concordance : null;
+      return "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;"
+        + (emphasis ? "font-weight:600;" : "") + '">'
+        + (c === null ? "&mdash;" : Number(c).toFixed(4))
+        + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
+        + esc(leg && leg.decisions !== undefined ? leg.decisions : "—")
+        + '</td><td style="padding:1px 0;' + (emphasis ? "font-weight:600;" : "") + '">'
+        + label + "</td></tr>";
+    };
+    return '<p style="margin:10px 0 4px;font-size:11.5px;color:var(--muted);">'
+      + "<strong>And the same question over every decision the arm priced?</strong> "
+      + prose(fh.what_this_is) + "</p>"
+      + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+      + 'margin:0 0 6px;border-collapse:collapse;"><tr>'
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Rank</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Decisions</th>"
+      + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Population and outcome</th>"
+      + "</tr>"
+      + row("the decisions that <strong>settled</strong>, on the ratio &mdash; the figure above, "
+            + "rebuilt here as a control", legs.settled_only_ratio_outcome, false)
+      + row("the same decisions, in <strong>pounds</strong> &mdash; the UNIT change alone",
+            legs.settled_only_pounds_outcome, false)
+      + row("every decision the arm <strong>priced</strong>, in pounds &mdash; the POPULATION "
+            + "change alone", legs.every_priced_decision_pounds_outcome, true)
+      + "</table></div>"
+      + '<p style="margin:0 0 4px;font-size:11px;color:var(--muted);">'
+      + esc(fh.decisions_scored) + " of " + esc(fh.decisions_priced)
+      + " priced decisions are scored here, "
+      + "<strong>" + esc(fh.decisions_scored_at_zero_because_the_term_settled_nothing)
+      + "</strong> of them at the nothing their term produced"
+      /* THE CENSORED COUNT IS ON THE SURFACE WHEN IT EXISTS, because it is a bound a longer run
+         removes and the reader cannot tell it from a coverage gap by looking at the total. */
+      + ((fh.excluded_by_reason
+          && fh.excluded_by_reason.horizon_open_at_the_end_of_the_settled_book)
+          ? "; " + esc(fh.excluded_by_reason.horizon_open_at_the_end_of_the_settled_book)
+            + " are censored because their 365 days had not finished when the settled book "
+            + "ended &mdash; a run-length artefact, not a poor outcome"
+          : "")
+      + ". " + esc(fh.reconciliation || "") + ".</p>"
+      + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+      + prose(fh.reading) + "</p>"
+      /* THE BOUND, AND IT IS A DIFFERENT BOUND FROM THE ONE ABOVE. Pounds carry account size and
+         this estimand cannot normalise it away. Rendered rather than footnoted: a figure whose
+         weakness is only in the producer's docstring is a figure published without it. */
+      + '<p style="margin:0 0 6px;font-size:11px;color:var(--muted);font-style:italic;">'
+      + prose(fh.bound) + "</p>";
+  }
+
   /* THE HOUSEHOLD CELL, and it is a cell rather than a section on purpose. An arm that earned
      more while its households kept less has moved value rather than made it, and a reader can
      only see that with both figures on ONE ROW. An arm with no household figure renders the
@@ -1478,6 +1567,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
              same population re-described and the funnel's own consequence ("only a larger settled
              book moves it") is what this qualifies. */
           + survivorshipBlock(msk.survivorship)
+          /* AND THE CUT THAT DOES NOT DROP THEM. Immediately after the split that says the figure
+             above conditions on survival, because a page that names the selection and then shows
+             only the selected figure has chosen the flattering rung in front of the reader. */
+          + fixedHorizonBlock(msk.fixed_horizon)
           // THE CONTRAST FIGURE CARRIES ITS OWN NULL TOO. This line put a bounded 0.333 beside a
           // bare 0.130 and invited the reader to compare them; one of the two was a number they
           // could weigh and the other was not.

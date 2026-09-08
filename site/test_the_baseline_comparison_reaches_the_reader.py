@@ -3806,3 +3806,220 @@ def test_a_reading_that_clears_its_null_is_not_reported_as_cannot_tell():
     assert "orders who leaves" in rendered.lower(), (
         "a belief that clears its null is not reported as clearing it, so this block cannot "
         "publish a success and its failures mean nothing")
+
+
+# ---------------------------------------------------------------------------
+# THE SECOND CUT REACHES THE READER -- method_skill.fixed_horizon
+# ---------------------------------------------------------------------------
+#
+# The block above puts the SELECTION on the page: the concordance is computed over survivors and
+# no book size fixes it. Having said that, a page showing only the survivor figure would be naming
+# the flattering rung and choosing it in the same breath. `method_skill.fixed_horizon` is the cut
+# that scores every PRICED decision -- a departure at the nothing it produced -- and until this
+# block landed nothing under site/ read it, so the reader-facing half did not exist.
+#
+# THE KILLER AIMED AT HERE is the one the survivorship block was corrected for: every run on disk
+# predates this estimand, so the live feed is in the WITHHELD branch and every control that only
+# looked at the live page would pass against a door with no available branch at all. Reachability
+# is therefore proven FIRST, through both producers, before anything grades what the page says.
+
+
+def _fixed_horizon_feed(log, records, events=None):
+    """A live feed whose fixed-horizon block was composed by BOTH producers, end to end.
+
+    No count, leg or verdict is written here. `run_value_cycle_ab.method_skill` is what a run
+    writes into its artefact and `generate_value_arms_data._skill_fixed_horizon` is what the feed
+    carries, so driving the door through both is the only version of this control that can tell
+    "the page reads the run" from "the page prints a string a test handed it".
+    """
+    from tools.generate_value_arms_data import _skill_fixed_horizon
+    from tools.run_value_cycle_ab import method_skill
+
+    phase2b = {"value_arm_log": log, "all_records": records}
+    if events is not None:
+        phase2b["customer_events"] = list(events)
+    produced = method_skill({"phase2b": phase2b})["fixed_horizon"]
+    feed = copy.deepcopy(_live_feed())
+    feed["method_skill"]["fixed_horizon"] = _skill_fixed_horizon({"fixed_horizon": produced})
+    return produced, feed
+
+
+def _fh_settled(account, *, paid, net, mwh=10.0, on="2022-06-01"):
+    return {"customer_id": account, "settlement_date": on, "commodity": "electricity",
+            "consumption_kwh": mwh * 1000.0, "revenue_gbp": paid,
+            "margin_gbp": net, "net_margin_gbp": net}
+
+
+def _fh_priced(account, margin, term="2022-01-01"):
+    return {"customer_id": account, "term_start": term,
+            "chosen_margin_gbp_per_mwh": margin, "believed_p_retain": 0.9}
+
+
+def _fh_book():
+    """Four settled decisions, one departure, and a settled book that runs past every horizon.
+
+    The SPECTATOR row belongs to an account the arm never priced, so it moves the observation end
+    and nothing else -- censoring and scoring have to be separable or the fixture cannot tell a
+    run-length artefact from a departure, which is the distinction the whole block publishes.
+    """
+    log = [_fh_priced("A%d" % i, 1.0 + i) for i in range(4)]
+    records = [_fh_settled("A%d" % i, paid=2000.0, net=100.0 * (i + 1)) for i in range(4)]
+    records.append(_fh_settled("SPECTATOR", paid=1.0, net=1.0, on="2024-01-05"))
+    # A0 renews again and leaves at that renewal: the term settles nothing, so the concordance
+    # drops it and this estimand scores it at the 0.0 it produced.
+    log.append(_fh_priced("A0", 99.0, term="2023-01-01"))
+    events = [{"customer_id": "A0", "event_date": "2023-01-01", "event_type": "churned"}]
+    return log, records, events
+
+
+def test_the_unselected_cut_CAN_reach_the_reader_at_all():
+    """REACHABILITY FIRST, before anything asserts what the block says.
+
+    The live feed is in the WITHHELD branch -- no run on disk carries the estimand -- so every
+    control below would pass against a door that rendered the refusal unconditionally and had no
+    available branch at all. `survived` means two opposite things when the branch was never
+    reached, so this drives it explicitly.
+
+    Fires on: a door that renders only the refusal; on the block wired to `msk.survivorship`
+    rather than `msk.fixed_horizon`, which would render nothing here.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_book())
+    assert produced["available"] is True, "the fixture never reached the available branch"
+    assert produced["decisions_scored_at_zero_because_the_term_settled_nothing"] == 1, (
+        "the fixture never reached the departure this estimand exists to score")
+    rendered = _text(_render(feed)["arms-method"])
+
+    assert "And the same question over every decision the arm priced?" in rendered
+    # BOTH POPULATIONS NAMED, which is the item's own acceptance test.
+    assert "5 of 5 priced decisions are scored here" in rendered
+    assert "1 of them at the nothing their term produced" in rendered
+
+
+def test_the_page_shows_the_BRIDGE_and_not_only_the_headline():
+    """WITHOUT THE MIDDLE LEG THE READER ATTRIBUTES THE WHOLE MOVE TO SURVIVORSHIP.
+
+    Two things differ between the concordance above and the figure here -- the POPULATION and the
+    UNIT, because a household that left has no counterfactual over the horizon. A page showing
+    only the two endpoints invites exactly the attribution this project's own rule forbids: when a
+    result moves and more than one thing changed, you cannot say which did it.
+
+    So all three nested legs are on the surface, each with the population it was computed over.
+
+    Fires on: rendering only `fh.concordance`; on the legs table dropping the pounds-over-settled
+    row, which is the only one that isolates the unit.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_book())
+    rendered = _text(_render(feed)["arms-method"])
+    legs = produced["legs"]
+
+    for key in ("settled_only_ratio_outcome", "settled_only_pounds_outcome",
+                "every_priced_decision_pounds_outcome"):
+        assert ("%.4f" % legs[key]["concordance"]) in rendered, key
+    assert "the UNIT change alone" in rendered
+    assert "the POPULATION change alone" in rendered
+    # The verdict the producer composed FROM those legs, not a sentence this page types.
+    assert produced["reading"][:60] in rendered
+    # ...and the bound, which is a DIFFERENT bound from the concordance's and is the declared
+    # weakness of this cut. A figure whose weakness lives only in a docstring is published without
+    # it, so its absence from the page is the defect this leg names.
+    assert "carries account SIZE" in rendered or "POUNDS" in rendered
+
+
+def test_a_censored_horizon_is_named_on_the_page_as_a_run_length_artefact():
+    """A BOUND A LONGER RUN REMOVES, and the reader cannot tell it from a coverage gap by looking
+    at the total. Rendered only when it exists, so the sentence cannot become furniture.
+
+    Fires on: the censored count being folded into the excluded total on the surface; on the
+    phrase appearing when nothing was censored.
+    """
+    log, records, events = _fh_book()
+    # THE SAME BOOK OBSERVED A YEAR LESS FAR. The four 2022 terms still close inside it; A0's
+    # 2023 renewal does not, so it is CENSORED rather than scored at the zero it would otherwise
+    # have contributed. That is the whole distinction -- the same decision is a departure in one
+    # observation window and an unfinished horizon in the other, and only the run's length
+    # differs. A book where EVERYTHING is censored would render the refusal branch instead and
+    # would prove nothing about this sentence.
+    short = [r for r in records if r["customer_id"] != "SPECTATOR"]
+    short.append(_fh_settled("SPECTATOR", paid=1.0, net=1.0, on="2023-06-01"))
+    produced, feed = _fixed_horizon_feed(log, short, events)
+    assert produced["available"] is True
+    assert produced["excluded_by_reason"]["horizon_open_at_the_end_of_the_settled_book"] == 1
+    assert produced["decisions_scored_at_zero_because_the_term_settled_nothing"] == 0
+    rendered = _text(_render(feed)["arms-method"])
+    assert "censored because their 365 days had not finished" in rendered
+    assert "run-length artefact, not a poor outcome" in rendered
+
+    # ...and it is ABSENT from the book where nothing was censored, or the phrase says nothing.
+    _, whole = _fixed_horizon_feed(log, records, events)
+    assert "censored because their 365 days had not finished" not in _text(
+        _render(whole)["arms-method"])
+
+
+def test_the_live_page_says_it_CANNOT_offer_the_unselected_cut_yet(live):
+    """The branch the published feed is actually in, and it must be on the surface.
+
+    Every run on disk predates the estimand, so the feed withholds it. A page that withheld the
+    ABSENCE too would leave the concordance above -- which the block immediately before it has
+    just told the reader is computed over survivors -- standing alone as though it were the whole
+    answer. "Not available from this run" is a result and it belongs on the page.
+
+    AND THE ABSENCE IS OURS. Unlike the survivorship split, nothing about the world blocks this:
+    regenerating the feed from a run carrying the estimand is all it needs, and the refusal says
+    so rather than implying a bound.
+
+    Fires on: rendering the refusal into a footnote or not at all; on the refusal not naming its
+    reason; on the question disappearing when there is no answer.
+    """
+    horizon = (_live_feed()["method_skill"] or {}).get("fixed_horizon")
+    rendered = _text(live["arms-method"])
+
+    # THE QUESTION IS ON THE PAGE IN BOTH STATES. Only the ANSWER is conditional.
+    assert "And the same question over every decision the arm priced?" in rendered
+
+    if horizon and horizon.get("available"):
+        # THE BRANCH FLIPS THE DAY A RUN CARRIES THE ESTIMAND, and this control must not go red
+        # for the reason it was built to want. Same subject, the other side of the partition.
+        assert str(horizon["decisions_priced"]) in rendered
+        return
+
+    assert "Not available from this run" in rendered
+    assert "OURS" in rendered
+
+
+def test_the_two_ABSENCES_are_told_apart_on_the_page():
+    """MUTATION D4 SURVIVED FIRST, and it is the same three-state defect the survivorship block
+    was corrected for -- found there by the commit gate, found here by a battery.
+
+    There are two ways this cut can be missing and they are not one state. A feed generated before
+    the producer existed carries no `fixed_horizon` key at all, and that absence is OURS: it needs
+    a regenerated feed and nothing else. A feed that HAS the block and withholds it carries the
+    run's own named reason -- a population that does not reconcile is a defect in the run, not a
+    thing regenerating fixes. Rendering one sentence for both would tell a reader the wrong one is
+    true half the time, and a refusal that does not name its reason is the one thing a refusal on
+    this page may not be.
+
+    Fires on: the door ignoring `fh.reason` and always printing the generic sentence.
+    """
+    from tools.generate_value_arms_data import _skill_fixed_horizon
+
+    # THE RUN'S OWN REFUSAL, carried through the real producer rather than typed here.
+    withheld = _skill_fixed_horizon({"fixed_horizon": {
+        "available": True, "reconciles": False,
+        "reconciliation": "4 scored + 1 excluded = 5 against 9 priced",
+        "legs": {}}})
+    feed = copy.deepcopy(_live_feed())
+    feed["method_skill"]["fixed_horizon"] = withheld
+    rendered = _text(_render(feed)["arms-method"])
+
+    assert "Not available from this run" in rendered
+    assert "does not add up" in rendered
+    assert "9 priced" in rendered, "the run's own arithmetic never reached the reader"
+    # ...and the OTHER absence's sentence is not what got printed, or the two are one state.
+    assert "generated before the fixed-horizon estimand existed" not in rendered
+
+    # The feed with no block at all still gets its own sentence, and it names whose problem it is.
+    missing = copy.deepcopy(_live_feed())
+    missing["method_skill"].pop("fixed_horizon", None)
+    other = _text(_render(missing)["arms-method"])
+    assert "generated before the fixed-horizon estimand existed" in other
+    assert "does not add up" not in other
