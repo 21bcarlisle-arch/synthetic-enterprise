@@ -245,3 +245,36 @@ per household. It becomes available the moment the model produces half-hourly ga
 is a *validation* rather than a discovery: the modelled summer base must match the published 12–25%
 hot-water share, and the disagreement between published sources is wide enough that our own number
 would be a contribution rather than a check.
+
+
+---
+
+## REFUTED 2026-09-08, the same week — the prediction in section 4 was wrong
+
+Section 4 says: *"N should rise, and for the first time for a reason that is not a stratum...
+My estimate is a **2–4× rise** from breaking the r ≈ 0.99 degeneracy."* It is kept above rather
+than revised, because a wrong prediction next to its result is the only evidence the experiment was
+designed before the answer was known.
+
+The occupancy-driven half of that build has landed and been measured one variable at a time, on two
+reference populations:
+
+| reference | sample as a share of it | hot water and occupancy OFF | ON |
+|---:|---:|---:|---:|
+| 20,000 | 34% | 6,813 | 6,816 |
+| 120,000 | 7.4% | 8,820 | 8,822 |
+
+**Two households in 8,822.** Not a small effect — a wrong mechanism.
+
+**What the prediction got wrong** is worth more than the number. "Independent of fabric and weather"
+was TRUE of occupancy and IRRELEVANT, because the acceptance test does not score fabric and weather;
+it scores seven output quantities, and occupancy is not one of them. A stratum multiplies N because
+coverage is owed within it; an axis raises N because a dimension is added; **a DRIVER does neither**
+— it moves households around inside a shape already being reproduced.
+
+**Set-point and schedule are not yet tested and the prediction is NOT transferred to them.** They
+have the same problem: unless they change a quantity the sample is scored on, they will move the
+count by nothing either. On today's evidence the honest expectation for the rest of section 4's
+build is **no rise in N and a real gain in fidelity** — which is what the hot-water term
+delivered (0.883× → 0.992× against metered gas). Full account:
+`adding_a_driver_is_not_adding_an_axis.md`.

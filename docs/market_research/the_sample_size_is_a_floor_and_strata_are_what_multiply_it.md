@@ -115,3 +115,18 @@ produced it at **1.3%**, which means NEED's own dwellings show it. They do: the 
 1930"* and cavity construction is general through the 1920s. **A rule that calls observed dwellings
 impossible is a wrong rule, not wrong data**, so it was demoted from a refusal to a reported
 observation.
+
+
+---
+
+## SUPERSEDED 2026-09-08 — the current figure is 8,822 and this one is the partial vector
+
+The figures in this document are the PARTIAL vector: the heat-driven axes, before annual
+electricity, the half-hourly shape and the payment-method stratum. Against the same 120,000-household
+reference and the same five-point tolerance, the full vector now measures **8,822**.
+
+Two things about that number belong with these: it has **not converged** (it rises with the
+reference population), and the vector declares seven axes while carrying **five independent
+directions** — three of them are the same heat-loss coefficient, which inflates the count by at
+least 31%. See `SEAT_FINDING_TWO_AXES_OF_THE_DEMAND_VECTOR_ARE_THE_SAME_AXIS_2026-09-08` and
+`adding_a_driver_is_not_adding_an_axis.md`. Published at `how-many-synthetic-households`.
