@@ -225,6 +225,109 @@ def test_an_unparseable_caller_keeps_its_path_edges_rather_than_inventing_an_orp
 
 
 # ---------------------------------------------------------------------------
+# a path in a DOCSTRING is not an edge either (2026-09-08, the second half)
+#
+# The comment half above left this standing on purpose so the floor did not move
+# for two reasons at once. Measured on `656a45f54`: pruning docstring paths as
+# well takes the orphan set 407 -> 535, a further 128 modules against 34 for
+# comments -- 85 directly, 43 transitively behind them.
+#
+# The live case is `company.regulatory.epg_reconciliation_register`, held
+# reachable ONLY by docstrings in `simulation/svt_rates.py` and
+# `simulation/price_cap_enforcement.py` that themselves say it has no production
+# caller. The graph read a sentence stating a module is unwired as proof it is
+# wired.
+#
+# THE PARTITION, and the last three legs are the ones that matter. A rule that
+# pruned every STRING LITERAL would pass the first two and delete the subprocess
+# edge model -- the 550-orphan fail-open `_import_edges` already records. A rule
+# that read `ast`'s BYTE column as a character column would pass every ASCII
+# fixture and silently eat the code under any docstring containing an em-dash,
+# which is most of this repo's.
+# ---------------------------------------------------------------------------
+
+def test_a_path_cited_in_a_MODULE_docstring_is_not_a_caller(tree):
+    """The shape that held `epg_reconciliation_register` reachable."""
+    (tree / "tools" / "launcher.py").write_text(
+        '"""Launcher.\n\n'
+        'Superseded by company/billing/abandoned.py, which nothing calls.\n'
+        '"""\n'
+        'X = 1\n',
+        encoding="utf-8")
+    row = rows_by_module(ci.build_rows(tree))["company.billing.abandoned"]
+    assert row["callers"] == [], row["callers"]
+    assert row["status"] == "orphan"
+
+
+def test_a_path_cited_in_a_FUNCTION_docstring_is_not_a_caller(tree):
+    """The leg a module-docstring-only rule cannot see.
+
+    Both live holders are nested docstrings, not module ones, so a rule reading
+    only `ast.get_docstring(tree)` would have left the defect exactly where it
+    was while passing the test above it.
+    """
+    row = _launcher(
+        tree,
+        "def why():\n"
+        '    """The value came from company/billing/abandoned.py."""\n'
+        "    return 1\n")
+    assert row["callers"] == [], row["callers"]
+
+
+def test_a_path_in_an_ORDINARY_string_literal_is_still_an_edge(tree):
+    """The over-prune that would restore the 550-orphan fail-open.
+
+    A `subprocess` argument is a REAL route and is a string. Prose is pruned;
+    string literals are not, and only the docstring POSITION tells them apart.
+    """
+    row = _launcher(
+        tree,
+        "import subprocess\n"
+        'def go():\n'
+        '    """Runs it."""\n'
+        '    subprocess.run(["python3", "company/billing/abandoned.py"])\n')
+    assert row["callers"] == ["tools.launcher (by path)"]
+    assert row["status"] == "wired"
+
+
+def test_a_docstring_full_of_em_dashes_does_not_swallow_the_code_beneath_it(tree):
+    """`ast` reports columns in BYTES; every offset here is in CHARACTERS.
+
+    In an ASCII fixture the two agree, which is exactly why this would go
+    unnoticed. Each `—` costs two extra bytes, so a span ended at the raw byte
+    column runs that far PAST the closing quotes and prunes the live edge under
+    it. The dashes are on the CLOSING line because that is where the error
+    accumulates.
+    """
+    row = _launcher(
+        tree,
+        "import subprocess\n"
+        "def go():\n"
+        '    """Runs it — — — — — — — — — — — — — — — — — — — —."""\n'
+        '    subprocess.run(["python3", "company/billing/abandoned.py"])\n')
+    assert row["callers"] == ["tools.launcher (by path)"], (
+        "the edge below the docstring was eaten -- the span is being ended at a "
+        "byte column, not a character column")
+
+
+def test_an_unparseable_caller_keeps_its_docstring_edges_too(tree):
+    """Same direction as the comment fallback: an unreadable file keeps MORE.
+
+    Manufacturing an orphan out of a parse error would refuse an untouched lane
+    under "THIS COMMIT ADDS WORK THAT NOTHING RUNS" -- the 22-hour
+    misattribution class, re-entered through a third door.
+    """
+    (tree / "tools" / "launcher.py").write_text(
+        '"""Cites company/billing/abandoned.py in prose."""\n'
+        "def broken(  :\n",
+        encoding="utf-8")
+    rows = rows_by_module(ci.build_rows(tree))
+    assert rows["tools.launcher"]["status"] == "unparsed", (
+        "the fixture must actually be unparseable or this test proves nothing")
+    assert rows["company.billing.abandoned"]["callers"] == ["tools.launcher (by path)"]
+
+
+# ---------------------------------------------------------------------------
 # the query: the fail-open that matters most
 # ---------------------------------------------------------------------------
 

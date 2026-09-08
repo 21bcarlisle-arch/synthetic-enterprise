@@ -575,6 +575,62 @@ def _comment_spans(text: str) -> list[tuple[int, int]]:
     return spans
 
 
+def _char_col(lines: list[str], lineno: int, col: int) -> int:
+    """`ast`'s UTF-8 BYTE column, as a CHARACTER column into the same line.
+
+    `ast` reports `col_offset` in bytes; every offset elsewhere in this module
+    is in characters. In an ASCII file the two agree, which is exactly why this
+    would go unnoticed — and this repo's docstrings are full of em-dashes, so a
+    closing `\"\"\"` sits several bytes to the right of where it sits in
+    characters. Taking the byte number as a character number would run the
+    span PAST the end of the docstring and swallow the code beneath it, which
+    silently prunes real edges.
+    """
+    if not 1 <= lineno <= len(lines):
+        return col
+    return len(lines[lineno - 1].encode("utf-8")[:col].decode("utf-8", "ignore"))
+
+
+def _docstring_spans(text: str) -> list[tuple[int, int]]:
+    """Character ranges of every module/class/function DOCSTRING.
+
+    `ast` rather than a quote-hunting scan, and only the docstring position —
+    NOT every string literal. `subprocess.run(["python3", "tools/x.py"])` is a
+    real route and must stay an edge; a path in prose is a citation. A rule
+    that pruned all string literals would pass every test named "a docstring
+    path is not an edge" and take the subprocess edge model with it.
+
+    Returns no spans when the file does not parse, so an unreadable file KEEPS
+    its docstring edges. Same direction as `_comment_spans`' fallback and for
+    the same reason: manufacturing an orphan out of a parse error would refuse
+    a lane for a defect that already has its own finding.
+    """
+    try:
+        tree = ast.parse(text)
+    except (SyntaxError, ValueError):
+        return []
+    lines = text.splitlines(keepends=True)
+    spans: list[tuple[int, int]] = []
+    for node in ast.walk(tree):
+        body = getattr(node, "body", None)
+        if not isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef,
+                                 ast.AsyncFunctionDef)) or not body:
+            continue
+        first = body[0]
+        if not isinstance(first, ast.Expr):
+            continue
+        lit = first.value
+        if not (isinstance(lit, ast.Constant) and isinstance(lit.value, str)):
+            continue
+        if lit.end_lineno is None or lit.end_col_offset is None:
+            continue
+        spans.append((
+            _offset_of(text, lit.lineno) + _char_col(lines, lit.lineno, lit.col_offset),
+            _offset_of(text, lit.end_lineno) + _char_col(lines, lit.end_lineno,
+                                                         lit.end_col_offset)))
+    return spans
+
+
 def _offset_of(text: str, lineno: int) -> int:
     """Character offset of 1-based `lineno`'s first character."""
     off = 0
@@ -607,12 +663,23 @@ def _path_references(text: str, by_path: dict[str, str], own: str | None) -> set
     reachability it rests on is real, and until now this graph could not tell
     prose from a subprocess call.
 
-    A docstring path is still counted an edge. That is a known remaining hole in
-    the same class, left standing deliberately: it has its own blast radius and
-    wants its own measurement, and shipping it inside this one would make the
-    floor move for two reasons at once.
+    A PATH WRITTEN IN A DOCSTRING IS NOT AN EDGE EITHER, and this half was left
+    out of the comment commit on purpose so the floor did not move for two
+    reasons at once. Same class, larger blast radius, measured rather than
+    asserted: comments were 34 modules, docstrings a further 128.
+
+    The live evidence it is not theoretical is
+    `company.regulatory.epg_reconciliation_register`, which was reachable ONLY
+    through two docstrings — in `simulation/svt_rates.py` and
+    `simulation/price_cap_enforcement.py` — that themselves say it has no
+    production caller. The graph read a sentence stating a module is unwired as
+    proof that it is wired.
+
+    Prose is pruned, string literals are NOT: `_docstring_spans` takes the
+    docstring position only, because a path in a `subprocess` argument is a
+    real route.
     """
-    spans = _comment_spans(text)
+    spans = _comment_spans(text) + _docstring_spans(text)
     hits: set[str] = set()
     for match in _PATH_TOKEN.finditer(text):
         if any(lo <= match.start() < hi for lo, hi in spans):
