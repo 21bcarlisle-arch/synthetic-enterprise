@@ -7,6 +7,7 @@ Each test names the specific way this control could be useless rather than merel
 from __future__ import annotations
 
 import ast
+import re
 import subprocess
 from pathlib import Path
 
@@ -338,3 +339,64 @@ def test_surgical_land_hands_the_hook_the_tree_it_actually_judged(repo: Path) ->
     assert call < pin < rederive < gate, (
         "the token must be pinned to the judged tree BEFORE the re-derive can rebind it")
     assert "env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree" in src
+
+
+# ------------------------------------------------- which door the refusal sends the lane through
+
+def _commands(text: str) -> list[str]:
+    """The RUNNABLE doors in a refusal -- what a lane will actually paste. Asserting on the tool
+    NAME instead would red on prose that explains why the other door does not apply, which is
+    exactly what a refusal should say; the property is that only one door is offered."""
+    return re.findall(r"python3 -m tools\.\w+", text)
+
+
+#: A RIVAL copy that supplies NOTHING HEAD lacks. Not hypothetical: two of the eight copies the
+#: 2026-09-08 census found on the shared tree are this shape, and the refusal sent both of them to
+#: `isolate_hunks`, which correctly refuses at both ends -- so the lane had no move at all.
+RIVAL_SUPPLYING_NOTHING = (
+    "def alpha():\n"
+    '    """an alternative wording of exactly the same behaviour, and nothing else"""\n'
+    "    return 1\n"
+)
+
+
+def test_a_copy_supplying_nothing_head_lacks_is_sent_to_refresh_to_head(repo: Path) -> None:
+    """THE FINDING'S OWN DEFECT. One remedy printed for two shapes is a remedy that is wrong for
+    one of them, and the wrong half is the half with no legal move -- which is the pressure that
+    points at `git checkout <path>`, the wall."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), RIVAL_SUPPLYING_NOTHING)
+    assert loss is not None and loss.gains == (), (
+        "a copy with no name of its own was not recognised as one")
+    commands = _commands(loss.render())
+    assert commands and all("refresh_to_head" in c for c in commands), (
+        "the lane is still being sent to a tool that will refuse it whichever branch it takes: "
+        "{}".format(commands))
+
+
+def test_a_copy_carrying_holder_work_is_still_sent_to_isolate_hunks(repo: Path) -> None:
+    """THE MIRROR, and the one that matters more: `refresh_to_head` OVERWRITES BYTES. Naming it for
+    a copy that carries an unlanded function would destroy that lane's work through the repair for
+    losing it."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    loss = scr.judge(repo, "m.py", scr.blob_at(repo, "HEAD", "m.py"), STALE_WITH_OWN_WORK)
+    assert loss is not None and loss.gains == ("my_own_new_function",)
+    commands = _commands(loss.render())
+    assert commands and all("isolate_hunks" in c for c in commands), (
+        "a copy holding unlanded work was pointed at the tool that overwrites it: "
+        "{}".format(commands))
+
+
+def test_neither_door_is_named_when_the_copy_cannot_be_read(repo: Path) -> None:
+    """FAIL-CLOSED ON THE ADVICE TOO. A door named on a guess is worse than no advice: one of the
+    two destroys bytes, and 'cannot tell' is a result that belongs on the surface."""
+    _commit(repo, "p.html", "<div id='landed_anchor_one'></div>\n", "lane B lands a page anchor")
+    loss = scr.judge(repo, "p.html", scr.blob_at(repo, "HEAD", "p.html"),
+                     "<div id='landed_anchor_one'></div>\n")
+    assert loss is None, "an identical page copy is not a loss"
+    unreadable = scr.Loss("x.py", scr.PREDATES, ("a line",), "abc123", gains=None)
+    text = unreadable.render()
+    assert "cannot tell which door" in text
+    assert not _commands(text), (
+        "a runnable door was printed on a guess, and one of the two overwrites bytes: "
+        "{}".format(_commands(text)))
