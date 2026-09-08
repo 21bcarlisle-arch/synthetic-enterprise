@@ -87,6 +87,43 @@ _REPORTED_JOINTS = (
 )
 
 
+from tools.reduction_dimension import declare  # noqa: E402  (below the axes it declares over)
+
+#: WHAT A DRAWN CUSTOMER VARIES OVER as far as this report is concerned: the eleven axes it counts
+#: on, plus the demand components the curriculum does not carry. `consumption_band` is a band of a
+#: total, which is why it appears as derived: a band is exactly the collapse the canon's section 1
+#: describes, one step coarser.
+_SUBJECT = _COHORT_AXES + _OBSERVABLE_AXES[:1] + (
+    "annual_gas_kwh", "annual_electricity_kwh", "seasonal_gas_shape",
+    "half_hourly_electricity_shape",
+)
+
+#: THE TWO CLAIMS, and the ruling asked for both on purpose: the per-axis report is eleven marginals
+#: and the joint report is one 12-cell grid. A cell can be full on every margin and empty in the
+#: joint, which is the whole reason §3 asks for "per dimension AND jointly where it matters" -- the
+#: same distinction the canon draws on the weather side. Declaring them separately is what stops the
+#: joint's silence being read as the margins' fullness.
+REDUCES_OVER = (
+    declare(
+        "realised cell counts per curriculum axis",
+        kind="coverage",
+        of=_SUBJECT,
+        reduces_over=_COHORT_AXES + _OBSERVABLE_AXES,
+        derived_from={"consumption_band": ("annual_gas_kwh", "annual_electricity_kwh")},
+        blind_to=("seasonal_gas_shape", "half_hourly_electricity_shape"),
+        joint=False,
+    ),
+    declare(
+        "realised cell counts on the ~12-cell value knee",
+        kind="coverage",
+        of=_SUBJECT,
+        reduces_over=_REPORTED_JOINTS[0][1],
+        blind_to=tuple(a for a in _SUBJECT if a not in _REPORTED_JOINTS[0][1]),
+        joint=True,
+    ),
+)
+
+
 def _axis_levels(axis: str, curriculum: Optional[dict]) -> tuple:
     """The FULL expected level set for an axis, so a joint grid is enumerable and
     an absent (0-count) cell is catchable — not just realised categories.

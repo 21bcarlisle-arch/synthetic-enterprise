@@ -47,11 +47,18 @@ from simulation.population_coverage import (
     coverage_gate_ok,
     population_coverage_report,
 )
+from simulation.population_coverage import REDUCES_OVER as _POPULATION_COVERAGE_DECLARATIONS
 from simulation.population_draw import (
     DEFAULT_END_YEAR,
     DEFAULT_START_YEAR,
     draw_population,
 )
+
+#: RE-EXPORTED, not restated. This generator computes no claim of its own -- it draws a population,
+#: calls `population_coverage_report`, and writes the answer to an artefact. The claim in the
+#: artefact IS that module's claim, so its declaration is the one that belongs beside the file, and a
+#: second copy here would be a second thing to go stale against the report it describes.
+REDUCES_OVER = _POPULATION_COVERAGE_DECLARATIONS
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 _ARTIFACT_PATH = _REPO_ROOT / "docs" / "observability" / "cohort_coverage_realised.json"

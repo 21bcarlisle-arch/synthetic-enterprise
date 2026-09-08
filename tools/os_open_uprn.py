@@ -57,6 +57,22 @@ PROJECT = Path(__file__).resolve().parent.parent
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
+from tools.reduction_dimension import declare  # noqa: E402  (after the path fix above)
+
+#: WHAT THE ADDRESS COVERAGE FIGURE CAN AND CANNOT TELL APART. OS Open UPRN is every ADDRESSABLE
+#: location -- a warehouse, a substation kiosk and a bungalow are one point each -- so a cell that
+#: holds addresses is not a cell that holds households. The count threshold is in the reduction on
+#: purpose: "no address here" and "fewer than ten addresses here" are different claims, and this
+#: module exists because the figure it replaced was quietly the second one.
+REDUCES_OVER = declare(
+    "the share of GB land cells holding an address",
+    kind="coverage",
+    of=("cell_easting", "cell_northing", "address_points_in_cell", "address_is_domestic"),
+    reduces_over=("cell_easting", "cell_northing", "address_points_in_cell"),
+    blind_to=("address_is_domestic",),
+    joint=True,
+)
+
 CACHE = Path.home() / ".cache" / "synthetic-enterprise" / "uprn"
 ARCHIVE = CACHE / "osopenuprn.zip"
 GRID = CACHE / "uprn_per_km_cell.npy"

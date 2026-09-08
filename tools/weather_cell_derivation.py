@@ -59,6 +59,8 @@ PROJECT = Path(__file__).resolve().parent.parent
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
+from tools.reduction_dimension import declare  # noqa: E402  (after the path fix above)
+
 #: The ruling's three primary heat-load variables, in the form the normals actually carry them.
 DRIVERS = ("winter_temp", "annual_wind", "annual_sun")
 UNITS = {"winter_temp": "degC", "annual_wind": "m/s", "annual_sun": "hours"}
@@ -69,6 +71,43 @@ TARGETS = (0.90, 0.95, 0.99)
 #: A geometric sweep, because the curve is steep at the left and flat at the right and a linear
 #: sweep spends all its runs where nothing changes.
 DEFAULT_KS = (1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233, 377, 610, 987, 1597, 2584)
+
+#: THE SUBJECT: what heat load through a dwelling actually varies over. The fabric is in this list
+#: and is in NEITHER claim below, which is the point -- the canon's section 1 "on inputs", and this
+#: module's own measurement is what establishes it: solar gain moves fuel -1.2% in a leaky pre-1919
+#: house and -7.9% in a tight post-2000 one, and wind moves the heat loss coefficient +18.6%
+#: mid-stock against +2.9% in that same modern house. A partition of weather against itself knows
+#: nothing about that, however many cells it has.
+_HEAT_LOAD_DRIVERS = DRIVERS + ("dwelling_fabric",)
+
+#: BOTH CLAIMS THIS MODULE PUBLISHES, and they are different claims that read identically as a list
+#: of three driver names. `DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07` names the first one: the
+#: 21/21/5 read comes off `per_driver_curve`, which partitions on each driver ALONE, and separable
+#: is exactly what the fabric evidence above says the response is not.
+#:
+#: NEITHER FIGURE IS WITHDRAWN. `per_driver_curve`'s own docstring already says the joint
+#: requirement is dimensionality rather than any driver's roughness. What the declarations add is
+#: the third thing neither curve could state about itself: both are blind to the fabric, so both are
+#: partitions of the weather rather than of the demand it drives.
+REDUCES_OVER = (
+    declare(
+        "cells per driver for 99% of household-weighted heat-load driver variation (the 21/21/5)",
+        kind="coverage",
+        of=_HEAT_LOAD_DRIVERS,
+        reduces_over=DRIVERS,
+        blind_to=("dwelling_fabric",),
+        joint=False,
+    ),
+    declare(
+        "cells for 99% of the joint heat-load driver variation (the 987)",
+        kind="coverage",
+        of=_HEAT_LOAD_DRIVERS,
+        reduces_over=("heat_load_driver_triple",),
+        derived_from={"heat_load_driver_triple": DRIVERS},
+        blind_to=("dwelling_fabric",),
+        joint=True,
+    ),
+)
 
 
 def captured_share(within: float, total: float) -> float:

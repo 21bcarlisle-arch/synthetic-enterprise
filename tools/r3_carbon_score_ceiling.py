@@ -179,6 +179,28 @@ NOT_BOUNDED_BY_THIS = (
 )
 
 
+from tools.reduction_dimension import declare  # noqa: E402
+
+#: `BOUND_SCOPE` AND `NOT_BOUNDED_BY_THIS` IN A FORM SOMETHING CAN READ. This instrument already
+#: says both of these in values rather than prose, for the reason its own comment gives -- a control
+#: that greps a docstring is satisfied by a comment. The declaration is the next step of the same
+#: argument: it puts the scope and the exclusions into one structure whose partition is CHECKED, so
+#: a lever added to the subject and forgotten in both lists cannot pass.
+#:
+#: THE EXCLUSION LIST IS THE HONEST HALF. A timing ceiling read as a bound on the whole carbon
+#: programme would retire the mission on the strength of a lever that was never the whole of it.
+REDUCES_OVER = declare(
+    "the most a perfectly-timed load shift could be worth",
+    kind="ceiling",
+    of=("electricity_timing", "electricity_reduction", "gas", "physical_measures",
+        "tariff_switching", "embodied_carbon", "rebound"),
+    reduces_over=("electricity_timing",),
+    blind_to=("electricity_reduction", "gas", "physical_measures", "tariff_switching",
+              "embodied_carbon", "rebound"),
+    joint=True,
+)
+
+
 class CeilingUnavailable(Exception):
     """This instrument could not measure. Never a silent zero.
 

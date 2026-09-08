@@ -56,6 +56,34 @@ the other end.
 
 The two are reported together on purpose. K-means is the CEILING on variance covered at each N; the
 gap between them is the price of drawing for difference, and the tail curve is what that price buys.
+
+THE TAIL IS DENSE ON PURPOSE, AND THAT IS THE CRITERION -- NOT A SIDE EFFECT OF IT
+----------------------------------------------------------------------------------
+`DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07`, section 2, ruling the intent behind the
+draw this module implements:
+
+    "Standard practice samples in proportion, so effort follows volume. That is the wrong instinct
+     here and it is inverted deliberately... The value is in the uncommon combinations -- the ones
+     an averaging model rounds to the nearest segment and gets wrong... So the sample is densest
+     where the population is thinnest. The choosing deliberately over-weights the tail; the solved
+     weights restore the mass when aggregating. Both halves are required and neither is a
+     compromise."
+
+Written here because this is where the sampling criterion is documented, and because until it was,
+the over-representation appeared in this module only as a CONSEQUENCE -- the `REDUCES_OVER` note
+below observes that a shape-blind draw "over-represents the tails of everything except the quantity
+the price is settled on", which reads as a blind spot to be apologised for. It is the opposite. Tail
+density is what the draw is FOR: effort follows where a supplier loses value, not where the volume
+is, because the common combinations are the ones an averaging model already serves adequately.
+
+**BOTH HALVES ARE BUILT AND THEY LIVE IN DIFFERENT MODULES, WHICH IS THE THING TO KNOW BEFORE
+CHANGING EITHER.** The over-weighting half is here: the maximin draw, and `tail_coverage` measuring
+what it reached at `TAIL_QUANTILE`. The restoring half is `demand_vector_coverage.fit_weights` --
+an NNLS solve onto the population's CDF at published cut points, with non-negativity enforced
+because a negative weight is a household count below zero. Deleting or bypassing either one does not
+degrade the sample gracefully: over-weighting without the solve publishes a tail-heavy book as if it
+were the population, and the solve without the over-weighting is proportional sampling wearing this
+module's name.
 """
 from __future__ import annotations
 
@@ -71,6 +99,30 @@ if str(PROJECT) not in sys.path:
 
 AXES = ("annual_kwh", "kwh_per_degree_day", "solar_offset_share",
         "insulation_ceiling_kwh", "turndown_ceiling_kwh")
+
+from tools.reduction_dimension import DEMAND_VECTOR, declare  # noqa: E402  (after the path fix)
+
+#: WHAT A DRAW FOR DIFFERENCE IS A DRAW OVER. The ruling's five behaviour axes are the reduction;
+#: the subject is those plus the demand-vector components no behaviour axis carries.
+_SUBJECT = DEMAND_VECTOR + ("kwh_per_degree_day", "solar_offset_share",
+                            "insulation_headroom", "turndown_headroom")
+
+#: DECLARED BECAUSE THE OPPOSITE CRITERION HAS THE SAME BLIND SPOT. This module draws to SPAN and
+#: `demand_vector_coverage` draws to REPRODUCE -- the canon's section 5 calls them opposed -- and
+#: both reduce over annual totals and fabric response with no shape in the partition at all. A
+#: space-filling draw that is blind to the half-hourly shape over-represents the tails of
+#: everything except the quantity the price is settled on.
+REDUCES_OVER = declare(
+    "the number of houses drawn before a new one behaves like one already drawn",
+    kind="sufficiency",
+    of=_SUBJECT,
+    reduces_over=AXES,
+    derived_from={"annual_kwh": ("annual_gas_kwh", "annual_electricity_kwh"),
+                  "insulation_ceiling_kwh": ("insulation_headroom",),
+                  "turndown_ceiling_kwh": ("turndown_headroom",)},
+    blind_to=("seasonal_gas_shape", "half_hourly_electricity_shape", "heating_fuel"),
+    joint=True,
+)
 
 #: One degree off the thermostat. The turn-down ceiling is stated per degree because that is how the
 #: published trials state it and because the ladder of behavioural rungs the ruling asks for is

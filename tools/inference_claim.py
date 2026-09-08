@@ -88,6 +88,26 @@ from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
 
+from tools.reduction_dimension import declare  # noqa: E402
+
+#: RESTATED RATHER THAN RE-EXPORTED FROM `simulation.premise_population`, deliberately. The ceiling
+#: this module reports is that module's, and importing its declaration at module level would put the
+#: world's package on the publishing lane's import graph -- which is the exact thing
+#: `settled_book_ceiling_accounts` takes a lazy import to avoid. A declaration is a statement about
+#: what a figure can see, and both statements are true of the same figure; the duplication is two
+#: lines and the coupling it avoids is the whole reason that function is written the way it is.
+REDUCES_OVER = declare(
+    "the most accounts the settled book can hold",
+    kind="ceiling",
+    of=("settlement_working_set_bytes_per_account", "serialisation_bytes_per_account",
+        "host_memory_mb", "wall_clock_seconds"),
+    reduces_over=("bytes_per_account", "host_memory_mb"),
+    derived_from={"bytes_per_account": ("settlement_working_set_bytes_per_account",
+                                        "serialisation_bytes_per_account")},
+    blind_to=("wall_clock_seconds",),
+    joint=True,
+)
+
 #: The run artefact that carries the method's own ranking against the interval a random signal
 #: produces. Read rather than recomputed: `tools/generate_value_arms_data._method_skill` rejected
 #: recomputing the spread from the artefact's own n for exactly this reason -- it is

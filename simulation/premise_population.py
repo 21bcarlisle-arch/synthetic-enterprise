@@ -413,6 +413,40 @@ EPC_COVERAGE_SHARE = 0.60
 EPC_VALIDITY_YEARS = 10
 EPC_COVERAGE_SOURCE = "docs/design/PREMISE_FABRIC_PHYSICS_DISCOVER.md (EPC coverage ~60% of stock)"
 
+from tools.reduction_dimension import declare  # noqa: E402
+
+#: THE TWO CLAIMS THIS MODULE PUBLISHES, and they are unrelated except in kind.
+#:
+#: EPC COVERAGE IS ONE NATIONAL NUMBER over a joint that is known to vary across it -- a certificate
+#: exists because a home was sold, let or newly built, which is a transaction bias this module's own
+#: `house_cases` comment already names. Declaring the collapse does not correct it and is not meant
+#: to: it makes "60% of stock" readable as one number standing for four dimensions, which is what it
+#: is, rather than as a measured rate per dimension, which is what it looks like.
+#:
+#: THE BOOK CEILING IS A MEMORY CEILING and is blind to time. A build that fits in memory and takes
+#: a week is inside this ceiling, and nothing here would say so.
+REDUCES_OVER = (
+    declare(
+        "the share of the stock holding an EPC",
+        kind="coverage",
+        of=("property_type", "build_era", "epc_band", "region"),
+        reduces_over=("national_stock",),
+        derived_from={"national_stock": ("property_type", "build_era", "epc_band", "region")},
+        joint=True,
+    ),
+    declare(
+        "the most accounts the settlement path can hold",
+        kind="ceiling",
+        of=("settlement_working_set_bytes_per_account", "serialisation_bytes_per_account",
+            "host_memory_mb", "wall_clock_seconds"),
+        reduces_over=("bytes_per_account", "host_memory_mb"),
+        derived_from={"bytes_per_account": ("settlement_working_set_bytes_per_account",
+                                            "serialisation_bytes_per_account")},
+        blind_to=("wall_clock_seconds",),
+        joint=True,
+    ),
+)
+
 # UNANCHORED (R10): no published stock-wide bedroom marginal was found. Bedrooms
 # scale floor area and hence the LEVEL of every heat-loss coefficient here.
 _BEDROOM_WEIGHTS_BY_PROPERTY_TYPE: dict[PropertyType, dict[int, float]] = {
