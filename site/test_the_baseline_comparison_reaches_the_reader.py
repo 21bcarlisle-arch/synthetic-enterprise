@@ -42,6 +42,21 @@ for what it must not:
     split whose readability was never TESTED would render as a stated composition.
   * stop naming the published run in the table     -> the same rung reds.
 
+R15, the census's OWN attribution, added 2026-09-08 after the headline's -- because the same shape
+was live one panel down and closing it in one place had not been the same as enumerating it. The
+composition panel states a share of ONE quantity once per run, plus the superseded panel's share in
+its closing prose, and every rung over it asked only whether a share was on the panel. The poison,
+applied to the DOOR and reverted:
+  * swap which run each share is attributed to -- feed says published 6.8% and later 93.9%, page
+    prints published 93.9% and later 6.8% -> BEFORE: `_composition_defects` returned NOTHING and
+    the file was green while a reader was told the published run found the opposite of what it
+    found. AFTER: reds on three legs, each naming the run it could not attribute.
+The rung that holds it is `test_MUTATION_a_census_that_swaps_two_runs_shares_is_caught_and_both_
+orders_are_reachable`, and it poisons via two FEEDS rather than the door, because a test may not
+edit production: each page must satisfy its own feed, and page B checked against feed A's claims
+must not. Its two self-legs are the reachability half -- a helper that refused everything would
+fail them, and "refuses correctly" is what a guard that refuses ALL of its partition also passes.
+
 R15, the ATTRIBUTION rungs added 2026-09-08, and the poison round was run BEFORE them because
 "survived" means two opposite things. The headline now carries TWO legs with TWO verdicts in one
 sentence -- the advantage RESOLVES while the selection leg WITHHOLDS -- and every rung over it
@@ -310,6 +325,102 @@ def _door_prose(s: str) -> str:
     return re.sub(r"\s+", " ", s.replace(" -- ", " — "))
 
 
+def _the_census_the_door_builds(comp: dict) -> list[dict]:
+    """The run census in the door's own order, with the share the door gives each row.
+
+    MIRRORING THE DOOR IS THE CLAIM, not duplication of it. The published run is a row of the
+    same table as the runs it is being checked against, and the share the door puts in that row
+    is `comp.level_share_of_advantage` -- the panel's headline number. Saying so here is what
+    makes "the published figure is the one figure with no run against it" checkable: without it
+    the published row's share has no stated owner, and any share anywhere on the panel satisfies
+    it. The later runs carry their own.
+    """
+    published = comp.get("published_run") or {}
+    census = []
+    if published.get("artefact") or published.get("generated_at"):
+        census.append({"artefact": published.get("artefact"),
+                       "generated_at": published.get("generated_at"),
+                       "level_share_of_advantage": comp.get("level_share_of_advantage"),
+                       "published": True})
+    census.extend(comp.get("later_runs_in_this_world") or [])
+    return census
+
+
+def _the_runs_own_regions(rendered: str, comp: dict) -> tuple[str, list, list[str]]:
+    """Split the panel into (the lead's own region, [(run, that run's own row)], refusals).
+
+    WHY A ROW AND NOT THE WHOLE PANEL (2026-09-08). This panel carries a share of the SAME
+    quantity once per run, plus the superseded panel's share in the closing prose -- so it is a
+    surface with several subjects, and a whole-panel presence check on it is this project's named
+    fail-open the day a surface gains a second one. `_the_bands_own_rows` cuts the sibling table
+    the same way and for the same reason.
+
+    THE POISON THAT BOUGHT IT, run before this existed and reverted. Swapping IN THE DOOR which
+    run each share is attributed to -- the feed saying published 6.8% and later 93.9%, the page
+    printing published 93.9% and later 6.8% -- left `_composition_defects` returning NOTHING.
+    Every figure was still on the panel; only what they were said ABOUT had reversed, and a
+    reader was told the published run found the opposite of what it found.
+
+    THE BOUNDARY IS THE DOOR'S OWN ARTEFACT NAME, taken from the same census the door builds its
+    rows from, so a publish that gains or drops a run moves this with it rather than reddening
+    on it. The rows are cut BELOW the header -- the lead sentence names no artefact, but binding
+    the cut to the header is what keeps a future lead that quotes one out of the table.
+
+    AND THE LAST ROW IS BOUNDED. Left running to the end of the panel it would swallow the
+    closing `against_the_superseded_panel` prose, which states the superseded panel's share of
+    this very quantity -- so the last row would be handed a second share to satisfy itself with,
+    which is the fail-open this helper exists to close, reintroduced at the bottom of the table.
+
+    REFUSALS RATHER THAN A FALLBACK. A census the page does not render, renders out of the feed's
+    order, or renders an anchor of twice, leaves neither this rung nor a READER able to say which
+    run a cell belongs to. It refuses in those words instead of falling back to the whole panel
+    and quietly becoming the control it replaced.
+    """
+    census = _the_census_the_door_builds(comp)
+    if not census:
+        # No published run and no later ones: the door renders no table, so there is nothing to
+        # attribute and the whole panel is the lead. Not a refusal -- an empty census is a state
+        # the feed is allowed to be in.
+        return rendered, [], []
+    #: The last cell of the door's own header row. Everything above it is the lead and the column
+    #: names, and no run's figures are in it.
+    head = "Bigger leg"
+    #: The door's own footer, rendered with the table and never without it. It is where the last
+    #: row stops and the closing prose begins.
+    foot = "Every run over the same world"
+    if head not in rendered:
+        return rendered, [], [
+            "the run census rendered without its own column header, so there is no table here to "
+            "attribute a row of and every share on the panel is loose: " + rendered[:300]]
+    body = rendered.index(head) + len(head)
+    tail = rendered.find(foot, body)
+    if tail < 0:
+        return rendered, [], [
+            "the run census rendered without the footer that closes it, so the last row runs into "
+            "the superseded panel's own share and could be satisfied by it"]
+    anchors = [run.get("artefact") or "not matched to a file on disk" for run in census]
+    marks = []
+    for anchor in anchors:
+        pos = rendered.find(anchor, body, tail)
+        if pos < 0:
+            return rendered[:body], [], [
+                "a run over this same world is not in the census the page renders: {}".format(
+                    anchor)]
+        if rendered.find(anchor, pos + len(anchor), tail) >= 0:
+            return rendered[:body], [], [
+                "{} names two rows of the census, so a READER cannot attribute either of them a "
+                "share and neither can this control".format(anchor)]
+        marks.append(pos)
+    if marks != sorted(marks):
+        return rendered[:body], [], [
+            "the census rows are not the runs the feed composes, in that order, so the slices "
+            "below would attribute one run's share to another: feed {}, page {}".format(
+                anchors, [a for _, a in sorted(zip(marks, anchors))])]
+    rows = [(run, rendered[start:marks[i + 1] if i + 1 < len(marks) else tail])
+            for i, (run, start) in enumerate(zip(census, marks))]
+    return rendered[:body], rows, []
+
+
 def _composition_defects(comp: dict, rendered: str) -> list[str]:
     """Every way the rendered composition can disagree with the feed that produced it.
 
@@ -321,6 +432,8 @@ def _composition_defects(comp: dict, rendered: str) -> list[str]:
     if not rendered.strip():
         return ["the door rendered NOTHING where the composition goes, so a reader meets the "
                 "split panel below with no statement of whether that split can be read at all"]
+    lead, rows, refusals = _the_runs_own_regions(rendered, comp)
+    defects.extend(refusals)
     words = _composition_words()
     # EACH BRANCH IS CHECKED FOR WHAT IT MUST SAY, NEVER ONLY FOR WHAT IT MUST NOT. Written as
     # "the words are absent when nothing disagrees" this passed a door hard-wired to the refusal
@@ -361,28 +474,34 @@ def _composition_defects(comp: dict, rendered: str) -> list[str]:
                            "parts count, so the reading a reader meets is not the feed's: "
                            + rendered[:400])
         share = comp.get("level_share_of_advantage")
-        if share is not None and "{:.1f}%".format(share * 100) not in rendered:
-            defects.append("the readable share itself does not reach the reader")
+        # IN THE LEAD'S OWN REGION, not on the panel. The census below states this same share
+        # against the published run, so a whole-panel check here is satisfied by the table even
+        # on a page whose lead sentence states a different run's number -- and the lead sentence
+        # is the one a reader takes as the answer.
+        if share is not None and "{:.1f}%".format(share * 100) not in lead:
+            defects.append("the readable share itself does not reach the reader where the page "
+                           "states the composition: " + lead[-300:])
         if words in rendered:
             defects.append("the page refuses in the director's words on a feed that states no "
                            "disagreement, so the refusal is unconditional and says nothing")
-    # ON EVERY BRANCH: no figure without the run and the date it was measured on. This is the
-    # director's condition and it is the half that a page could most easily drop while still
-    # printing the sentence.
-    for row in comp.get("later_runs_in_this_world") or []:
-        for field in ("artefact", "generated_at"):
-            if row.get(field) and row[field] not in rendered:
-                defects.append("a run over this same world is not on the page: {}".format(
-                    row[field]))
-        share = row.get("level_share_of_advantage")
-        if share is not None and "{:.1f}%".format(share * 100) not in rendered:
-            defects.append("{} renders no share, so a reader cannot see what it disagrees "
-                           "about".format(row.get("artefact")))
-    published = comp.get("published_run") or {}
-    for field in ("artefact", "generated_at"):
-        if published.get(field) and published[field] not in rendered:
-            defects.append("the PUBLISHED run's own {} is absent, so the figure this page states "
-                           "is the one figure with no run against it".format(field))
+    # ON EVERY BRANCH: no figure without the run and the date it was measured on, IN THAT RUN'S
+    # OWN ROW. This is the director's condition, and asserting it over the whole panel met the
+    # letter of it while leaving every figure attributable to any run -- see
+    # `_the_runs_own_regions` for the poison that showed a fully reversed census passing.
+    for run, row in rows:
+        subject = run.get("artefact") or "the run with no artefact"
+        if run.get("generated_at") and run["generated_at"] not in row:
+            defects.append("{}'s row does not carry the date it was measured on, so a reader "
+                           "cannot tell how current that figure is: {}".format(subject, row[:200]))
+        share = run.get("level_share_of_advantage")
+        if share is not None and "{:.1f}%".format(share * 100) not in row:
+            defects.append(
+                "{} renders no share of its own{}, so a reader cannot see what it {}: {}".format(
+                    subject,
+                    " -- and it is the PUBLISHED run, whose share is the number this page states"
+                    if run.get("published") else "",
+                    "found" if run.get("published") else "disagrees about",
+                    row[:200]))
     return defects
 
 
@@ -460,6 +579,56 @@ def test_MUTATION_a_later_run_that_disagrees_reaches_the_reader_and_one_that_agr
     assert later["artefact"] in allowed_text and later["generated_at"] in allowed_text, (
         "the census vanishes when nothing disagrees, so a reader cannot tell a checked page from "
         "an unchecked one")
+
+
+def test_MUTATION_a_census_that_swaps_two_runs_shares_is_caught_and_both_orders_are_reachable():
+    """The panel states one share per run, so PRESENCE of a share is not ATTRIBUTION of it.
+
+    THE DEFECT (2026-09-08, measured before this rung existed and reverted). Swapping in the DOOR
+    which run each share belongs to -- the feed saying the published run found 6.8% and a later
+    run 93.9%, the page printing the published run at 93.9% and the later one at 6.8% -- left
+    `_composition_defects` returning NOTHING and this whole file green. Every figure was still on
+    the panel. Only what they were said ABOUT had reversed, and the reversal is the finding: a
+    reader was told the published run found the opposite of what it found, on the one panel whose
+    subject is the mission's own question, value MADE or value MOVED.
+
+    WHY IT IS TESTED AS A CROSS AND NOT AS A DOOR PATCH. The door is production and a test may not
+    edit it, so the poison here is two FEEDS that differ in nothing but which run holds which
+    share. Each page must satisfy its OWN feed; page B checked against feed A's claims must not.
+    A whole-panel check passes the cross -- both figures are on both pages -- so this assertion is
+    the one that cannot be satisfied without regions.
+
+    THE SELF-CHECKS ARE THE REACHABILITY LEG, and they are why this cannot pass by refusing
+    everything: a helper that returned a defect for every input would fail the two legs above the
+    cross. A guard that refuses ALL of its partition passes every leg written as "does it refuse".
+    """
+    swapped = {"artefact": "value_cycle_ab_later.json", "generated_at": "2026-09-07T03:24:30Z",
+               "ran_in_world": "39a192ce04c1eda8", "the_bigger_leg": "level"}
+    # The two feeds are the SAME two shares over the SAME two runs, exchanged. Nothing else moves,
+    # so nothing else can explain a difference in what the page says.
+    one = _feed_with_composition(
+        readable=True, level_share_of_advantage=0.068,
+        later_runs_in_this_world=[{**swapped, "level_share_of_advantage": 0.9393}])
+    other = _feed_with_composition(
+        readable=True, level_share_of_advantage=0.9393,
+        later_runs_in_this_world=[{**swapped, "level_share_of_advantage": 0.068}])
+    one_comp, other_comp = (f["current_world"]["composition"] for f in (one, other))
+    one_text, other_text = (_render(f)["arms-composition"] for f in (one, other))
+
+    assert not _composition_defects(one_comp, one_text), (
+        "the page cannot state a census that agrees with its own feed")
+    assert not _composition_defects(other_comp, other_text), (
+        "the page cannot state the same census with the two runs' shares exchanged")
+    # BOTH ORDERS RENDER DIFFERENTLY, or the door does not carry the attribution at all and the
+    # cross below would be unfalsifiable rather than passing.
+    assert one_text != other_text, (
+        "exchanging which run holds which share renders the identical page, so the panel does not "
+        "attribute its shares to runs and no control over it could")
+    # THE CROSS. Feed ONE's claims against the page the OTHER feed produced: every share and date
+    # is present, and every one of them belongs to the wrong run.
+    assert _composition_defects(one_comp, other_text), (
+        "the two runs' shares were exchanged on the page and the control saw nothing, so it "
+        "checks that the figures are SOMEWHERE and not that they are attributed: " + other_text[:400])
 
 
 def test_MUTATION_a_composition_the_run_never_produced_renders_as_an_absence():
