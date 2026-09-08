@@ -1932,6 +1932,63 @@ def test_a_stamp_carrying_no_commit_is_not_read_as_a_commit():
     )["producing_commit"]["reason"]
 
 
+def test_the_survivorship_split_is_withheld_on_a_run_that_did_not_measure_it():
+    """FAIL CLOSED, and the leg that stops this page carrying a finding its run never made.
+
+    THE DEFECT THIS IS AIMED AT is the one the finding itself is about. `drop_out` tells a reader
+    the sample "can only be widened by a LARGER settled book"; the measurement says the class IS
+    the departures, so a larger book buys none of them back. The temptation is to write the
+    corrected sentence here, where it would appear on every page including the ones produced from
+    runs predating the split -- a claim about a run the run never made, which is the shape this
+    file exists to refuse.
+
+    Fires on: defaulting an absent block to `available: True`, or inlining the finding's sentence
+    instead of reading the run's own.
+    """
+    absent = gva._skill_survivorship({})
+    assert absent["available"] is False
+    assert "predates the survivorship split" in absent["reason"]
+    assert "conditioned" not in absent["reason"], (
+        "the page stated the finding's verdict for a run that never measured it")
+
+    # A run that TRIED and could not -- its own reason is preferred over the generic one, because
+    # "predates the split" and "published no event log" are different states.
+    refused = gva._skill_survivorship({"survivorship": {
+        "available": False, "why_not": "the run published no `customer_events`"}})
+    assert refused["available"] is False
+    assert "no `customer_events`" in refused["reason"]
+
+    # AND IT PASSES A REAL ONE THROUGH UNCHANGED, verdict and counts both. Asserted after the two
+    # refusals so a pass here is evidence of a passthrough rather than of a constant.
+    measured = gva._skill_survivorship({"survivorship": {
+        "available": True,
+        "decisions_dropped_for_no_settled_row": 40,
+        "of_those_the_world_recorded_as_a_departure": 40,
+        "of_those_not_attributable_to_a_departure": 0,
+        "scored_decisions_the_world_recorded_as_a_departure": 0,
+        "the_concordance_is_conditioned_on_survival": True,
+        "reading": "A LARGER BOOK DOES NOT FIX THIS",
+    }})
+    assert measured["available"] is True
+    assert measured["of_those_the_world_recorded_as_a_departure"] == 40
+    assert measured["the_concordance_is_conditioned_on_survival"] is True
+    assert measured["reading"] == "A LARGER BOOK DOES NOT FIX THIS"
+
+    # ...and a run whose split REFUTES the reading is passed through refuting it, not smoothed.
+    refuted = gva._skill_survivorship({"survivorship": {
+        "available": True,
+        "decisions_dropped_for_no_settled_row": 40,
+        "of_those_the_world_recorded_as_a_departure": 39,
+        "of_those_not_attributable_to_a_departure": 1,
+        "scored_decisions_the_world_recorded_as_a_departure": 2,
+        "the_concordance_is_conditioned_on_survival": False,
+        "reading": "refutes the survivorship reading",
+    }})
+    assert refuted["the_concordance_is_conditioned_on_survival"] is False
+    assert refuted["of_those_not_attributable_to_a_departure"] == 1
+    assert refuted["scored_decisions_the_world_recorded_as_a_departure"] == 2
+
+
 def test_the_drop_out_consequence_names_the_class_that_is_ours_to_fix():
     """The unflattering half of "widenable: yes", said out loud and DERIVED from the counts.
 

@@ -1532,6 +1532,132 @@ def _skill_drop_out_reading(priced, scored, counts, by_class) -> str:
                 elig=by_class[ELIGIBILITY]))
 
 
+def _churned_renewals(events) -> set | None:
+    """(account, term_start) the world recorded as a DEPARTURE, keyed as the arm keys a decision.
+
+    `None`, never an empty set, when the run published no event log. "Nobody left" and "we were
+    not told who left" are different answers, and the block below refuses on the second rather
+    than reporting a clean survivorship split it did not earn.
+
+    Keyed exactly as `belief_vs_outcome` keys its outcome -- raw `customer_id` against
+    `event_date` -- because the whole value of the split is that the two blocks read the SAME
+    world event from the same side, and a second idea of the key here would make them
+    incomparable without anything saying so.
+    """
+    if not isinstance(events, list) or not events:
+        return None
+    return {(event.get("customer_id"), event.get("event_date")) for event in events
+            if isinstance(event, dict) and event.get("event_type") == "churned"}
+
+
+def _survivorship(dropped_rows: list, scored_rows: list, churned: set | None) -> dict:
+    """Is the concordance computed over SURVIVORS only? Measured, never assumed.
+
+    WHY THIS EXISTS, and it is not the question it was commissioned as. The Lane 0 item asked
+    whether the decisions dropped as `the_priced_term_carried_no_settled_row` are an artefact of
+    the 365-day `_term_period_of` boundary -- recoverable by re-cutting -- or unrecoverable in
+    principle. Measured against the nine A/B artefacts on disk, the answer is neither of the two
+    the question offered, and the third answer is the one that matters:
+
+        THE DROP CLASS IS THE CHURN CLASS. In all nine runs, spanning 20 to 216 priced decisions
+        and three states of this file, the count dropped for `the_priced_term_carried_no_settled_row`
+        equalled the count of priced renewals the world recorded as CHURNED, exactly: 10, 10, 32,
+        32, 40, 40, 40, 43, 40. Of 144 dropped decisions sampled across those runs, 144 were
+        departures; of 82 scored decisions sampled, 82 were retentions. Not one counterexample
+        either way.
+
+    The mechanism is plain once seen: a household that leaves at the renewal never begins the
+    term that was priced, so the term settles no day, so `folded` has no entry for it. Nothing
+    was billed under the chosen price and no re-cut of the boundary and no longer run recovers a
+    single one -- the rows do not exist to be re-attributed.
+
+    THE TWO SIDES ARE INDEPENDENT, which is what makes this a finding rather than a restatement.
+    The drop is a failure to join the SETTLED BOOK; `churned` is a tally of `event_type` in the
+    world's own event log. Neither is computed from the other.
+
+    SO THE CONCORDANCE CONDITIONS ON SURVIVAL, and that is a selection in the estimand, not a
+    sample-size bound. It answers "GIVEN the household stayed, did the arm's price rank the joint
+    value?" -- and it is structurally blind to the decisions where the price is what drove the
+    household away. The bias runs in the direction that matters most: over-pricing shows up as a
+    departure, and a departure deletes the decision from the sample instead of scoring it low. A
+    larger settled book does not fix it, because the same share leaves at any book size.
+
+    PUBLISHED AS A SPLIT THAT CAN FAIL, not as the sentence above. A drop this block cannot
+    attribute to a departure is counted and named, and a SCORED decision the world recorded as a
+    departure is counted too -- that count is 0 in every run on disk and a non-zero one refutes
+    the survivorship reading loudly rather than leaving it to rot in prose (R15: key the control
+    to the property, not to today's answer).
+    """
+    no_settled_row = [row for row in dropped_rows
+                      if row["reason"] == "the_priced_term_carried_no_settled_row"]
+    if churned is None:
+        return {
+            "available": False,
+            "why_not": ("the run published no `customer_events`, so no departure could be joined "
+                        "to a dropped decision. Reported as unknown rather than as a clean split, "
+                        "because an empty event log and a book nobody left are different worlds."),
+            "decisions_dropped_for_no_settled_row": len(no_settled_row),
+        }
+    departures = sum(1 for row in no_settled_row
+                     if (row["account"], row["term_start"]) in churned)
+    unattributed = len(no_settled_row) - departures
+    scored_departures = sum(1 for row in scored_rows
+                            if (row["account"], row["term_start"]) in churned)
+    conditioned = bool(no_settled_row) and unattributed == 0 and scored_departures == 0
+    return {
+        "available": True,
+        "decisions_dropped_for_no_settled_row": len(no_settled_row),
+        "of_those_the_world_recorded_as_a_departure": departures,
+        "of_those_not_attributable_to_a_departure": unattributed,
+        # 0 in every artefact on disk. A non-zero value REFUTES the reading below, which is the
+        # only reason it is published beside it.
+        "scored_decisions_the_world_recorded_as_a_departure": scored_departures,
+        "the_concordance_is_conditioned_on_survival": conditioned,
+        "what_this_is": (
+            "whether the decisions the concordance could not score are the decisions where the "
+            "household LEFT. The drop is a failure to join the settled book; the departure is a "
+            "tally of the world's own event log. Neither is computed from the other."),
+        "reading": _survivorship_reading(
+            len(no_settled_row), departures, unattributed, scored_departures, conditioned),
+    }
+
+
+def _survivorship_reading(dropped, departures, unattributed, scored_departures,
+                          conditioned) -> str:
+    """The verdict, built FROM the counts."""
+    if not dropped:
+        return ("No priced decision was dropped for want of a settled row, so the concordance "
+                "is not conditioned on survival in this run.")
+    if conditioned:
+        return (
+            "All {dropped} decisions the concordance could not score are renewals the world "
+            "recorded as DEPARTURES, and not one scored decision is. So this concordance answers "
+            "a narrower question than its name: GIVEN the household stayed, did the arm's price "
+            "rank the joint value it produced? It is blind by construction to the decisions where "
+            "the price is what drove the household away, and the bias runs the wrong way -- "
+            "over-pricing leaves the sample rather than scoring low. A LARGER BOOK DOES NOT FIX "
+            "THIS: the same share leaves at any book size. What is owed is an estimand that scores "
+            "every priced decision over a fixed horizon from its term start, counting a departure "
+            "as the small-or-zero joint value it actually produced, rather than dropping it."
+        ).format(dropped=dropped)
+    parts = ["{dropped} decisions were dropped for want of a settled row.".format(dropped=dropped)]
+    if departures:
+        parts.append("{n} of them are renewals the world recorded as departures.".format(
+            n=departures))
+    if unattributed:
+        parts.append(
+            "{n} are NOT attributable to a departure, so the term boundary or the run's length "
+            "is doing work here that a departure does not explain -- that residue is the part "
+            "worth re-cutting for, and it is the part every artefact on disk had none of.".format(
+                n=unattributed))
+    if scored_departures:
+        parts.append(
+            "{n} SCORED decisions are departures, which refutes the survivorship reading this "
+            "block was built to publish: the concordance is no longer survivor-conditioned and "
+            "the estimand question below has changed shape.".format(n=scored_departures))
+    return " ".join(parts)
+
+
 def method_skill(value: dict) -> dict:
     """A48 L2: does the arm's own per-customer signal rank JOINT value created?
 
@@ -1704,6 +1830,13 @@ def method_skill(value: dict) -> dict:
         # a failed join from an eligibility rule without reading this file.
         "drop_out": _skill_drop_out(
             len([e for e in log if isinstance(e, dict)]), len(points), dropped),
+        # WHO THE FUNNEL DROPPED, against the world's own record of who left. `drop_out` above
+        # says the largest class is eligibility and that only a larger settled book adds to the
+        # sample; this says the class IS the departures, so a larger book adds decisions and
+        # drops the same share of them. The two blocks disagree about what is owed and this one
+        # is the measured half -- see `_survivorship`.
+        "survivorship": _survivorship(dropped_rows, scored_rows, _churned_renewals(
+            phase2b.get("customer_events"))),
         "dropped_sample": dropped_rows[:20],
         "comparable_pairs": pairs,
         "pairs_tied_on_outcome": outcome_ties,

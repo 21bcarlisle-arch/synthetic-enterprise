@@ -1195,6 +1195,151 @@ def test_the_lumped_count_the_funnel_replaces_still_agrees_with_it():
 
 
 # ---------------------------------------------------------------------------
+# method_skill.survivorship — the drop class IS the churn class
+# ---------------------------------------------------------------------------
+#
+# THE FINDING THESE TESTS HOLD (2026-09-08). The Lane 0 item asked whether the decisions dropped
+# as `the_priced_term_carried_no_settled_row` are an artefact of the 365-day `_term_period_of`
+# boundary or unrecoverable in principle. Measured across the nine A/B artefacts on disk the
+# answer is a third thing: that count equalled the count of priced renewals the world recorded as
+# CHURNED in every one of them, at five distinct values, and 144 of 144 sampled drops were
+# departures against 82 of 82 sampled scored decisions being retentions.
+#
+# So the concordance conditions on SURVIVAL. That is a selection in the estimand and not a
+# sample-size bound, and no larger book fixes it.
+#
+# THE KILLER THESE TESTS ARE AIMED AT is the one this project keeps paying for: a control keyed
+# to today's answer. `the_concordance_is_conditioned_on_survival` must be COMPUTED, so the poison
+# rounds come first — a drop that is not a departure, and a scored decision that is one, each
+# have to move it. A block that reported survivor-conditioning on every input would pass a test
+# written only against the real shape and would say nothing.
+
+def _a48_run_with_events(log, records, events):
+    return {"phase2b": {"value_arm_log": log, "all_records": records,
+                        "customer_events": list(events)}}
+
+
+_LATER_TERM = "2023-01-01"
+
+
+def _a48_unsettled_second_term(account="A0"):
+    """A priced term with no settled row inside it, on an account that DOES settle elsewhere.
+
+    This is the drop under test and not a near-miss of it: the account is in the settled book,
+    so the funnel reaches `the_priced_term_carried_no_settled_row` rather than
+    `account_has_no_settled_row_anywhere`.
+    """
+    return _a48_priced(account, 7.0, term=_LATER_TERM)
+
+
+def _churn_event(account="A0", on=_LATER_TERM):
+    return {"customer_id": account, "event_date": on, "event_type": "churned"}
+
+
+def test_the_unsettled_term_is_the_drop_this_block_splits():
+    """POISON ROUND ZERO. Prove the fixture reaches the branch before grading what it says.
+
+    `survived` means two opposite things when the subject was never reached, so the drop is
+    asserted to exist and to be the right ONE before any survivorship number is read.
+
+    THE OTHER DROP REASONS ARE IN THE FIXTURE ON PURPOSE. A run drops far more decisions for
+    `declined` than for this reason — 64 against 40 in the 2026-09-08 artefact — so a block that
+    split ALL dropped rows rather than this one class would report the funnel's whole tail as
+    unexplained departures. Found by mutation: with only the one drop present, deleting the
+    reason filter changed no assertion in this file.
+    """
+    log, records = _a48_rising()
+    noise = [{"customer_id": "Z9", "term_start": _TERM, "declined": True},
+             _a48_priced("GHOST", 9.0)]
+    result = method_skill(_a48_run_with_events(
+        log + [_a48_unsettled_second_term()] + noise, records, [_churn_event()]))
+    dropped_by_reason = result["drop_out"]["dropped_by_reason"]
+    assert dropped_by_reason["the_priced_term_carried_no_settled_row"] == 1
+    assert dropped_by_reason["declined"] == 1
+    assert dropped_by_reason["account_has_no_settled_row_anywhere"] == 1
+    assert result["drop_out"]["decisions_dropped"] == 3
+    # ...and the split reads ONE of those three, not three.
+    assert result["survivorship"]["decisions_dropped_for_no_settled_row"] == 1
+    assert result["survivorship"]["the_concordance_is_conditioned_on_survival"] is True
+
+
+def test_a_drop_the_world_records_no_departure_for_is_counted_as_unattributed():
+    """POISON ONE. The same run with the departure removed must NOT read as survivor-conditioned.
+
+    This is the residue the Lane 0 item was actually asking about — a term that carried no
+    settled row for a reason other than the household leaving, which is what re-cutting the
+    365-day boundary could recover. Every artefact on disk has none of it; the block still has
+    to be able to count it, or its zero is a claim nothing could contradict.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run_with_events(
+        log + [_a48_unsettled_second_term()], records,
+        [{"customer_id": "A0", "event_date": _LATER_TERM, "event_type": "renewed"}]))
+    survivorship = result["survivorship"]
+    assert survivorship["of_those_the_world_recorded_as_a_departure"] == 0
+    assert survivorship["of_those_not_attributable_to_a_departure"] == 1
+    assert survivorship["the_concordance_is_conditioned_on_survival"] is False
+    assert "NOT attributable to a departure" in survivorship["reading"]
+
+
+def test_a_scored_decision_that_is_a_departure_refutes_the_survivorship_reading():
+    """POISON TWO, and the leg that keys this to the PROPERTY rather than to today's answer.
+
+    `scored_decisions_the_world_recorded_as_a_departure` is 0 in every run on disk. If a future
+    world settles a term the household left part-way through, that decision IS scored and the
+    survivorship reading stops being true — this asserts the block says so rather than carrying
+    the old sentence over a changed world.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run_with_events(
+        log + [_a48_unsettled_second_term()], records,
+        [_churn_event(), _churn_event("A1", on=_TERM)]))
+    survivorship = result["survivorship"]
+    assert survivorship["of_those_the_world_recorded_as_a_departure"] == 1
+    assert survivorship["scored_decisions_the_world_recorded_as_a_departure"] == 1
+    assert survivorship["the_concordance_is_conditioned_on_survival"] is False
+    assert "refutes the survivorship reading" in survivorship["reading"]
+
+
+def test_every_drop_being_a_departure_is_what_names_the_concordance_survivor_conditioned():
+    """THE SHAPE EVERY ARTEFACT ON DISK HAS, and the sentence it must produce.
+
+    Asserted last and deliberately: the two poison rounds above establish that this verdict is
+    reachable in both directions first, so a pass here is evidence the block read the run rather
+    than evidence it always says this.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run_with_events(
+        log + [_a48_unsettled_second_term()], records, [_churn_event()]))
+    survivorship = result["survivorship"]
+    assert survivorship["of_those_the_world_recorded_as_a_departure"] == 1
+    assert survivorship["of_those_not_attributable_to_a_departure"] == 0
+    assert survivorship["scored_decisions_the_world_recorded_as_a_departure"] == 0
+    assert survivorship["the_concordance_is_conditioned_on_survival"] is True
+    # The estimand it names is the deliverable the Lane 0 item asked for when the decisions turn
+    # out to be unrecoverable. It must reach the artefact, not only this file.
+    assert "A LARGER BOOK DOES NOT FIX THIS" in survivorship["reading"]
+    assert "fixed horizon from its term start" in survivorship["reading"]
+
+
+def test_the_split_refuses_rather_than_reporting_a_clean_one_when_no_event_log_exists():
+    """FAIL CLOSED. No event log is "we were not told who left", never "nobody left".
+
+    Without this the block would report `of_those_the_world_recorded_as_a_departure: 0` on a run
+    carrying no events and a reader would take it as the drops being unexplained — the fail-open
+    shape wearing this control's name.
+    """
+    log, records = _a48_rising()
+    survivorship = method_skill(
+        _a48_run(log + [_a48_unsettled_second_term()], records))["survivorship"]
+    assert survivorship["available"] is False
+    assert "no `customer_events`" in survivorship["why_not"]
+    # The count it CAN establish is still published; refusing the split is not refusing the funnel.
+    assert survivorship["decisions_dropped_for_no_settled_row"] == 1
+    assert "the_concordance_is_conditioned_on_survival" not in survivorship
+
+
+# ---------------------------------------------------------------------------
 # gross_to_net_bridge — the £30,924 that was "observed and unexplained"
 # ---------------------------------------------------------------------------
 #

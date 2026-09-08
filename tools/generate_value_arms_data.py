@@ -1647,6 +1647,57 @@ def _widening_consequence(by_class: dict) -> str | None:
               "moves it.")
 
 
+def _skill_survivorship(method_skill: dict) -> dict:
+    """WHO the funnel dropped, not just how many -- read off the run and never recomputed here.
+
+    THE FINDING THIS CARRIES (2026-09-08, Lane 0). `drop_out` above tells a reader that the
+    largest drop class is eligibility and that "only a LARGER settled book adds to it". Measured
+    across the nine A/B artefacts on disk, the class dropped as
+    `the_priced_term_carried_no_settled_row` equals, exactly, the count of priced renewals the
+    world recorded as CHURNED -- in every run, at five distinct values -- and 144 of 144 sampled
+    drops were departures against 82 of 82 sampled scored decisions being retentions.
+
+    So the sentence is misleading in the way that matters: a larger book adds decisions and drops
+    the same share of them, because the concordance conditions on SURVIVAL. It answers "given the
+    household stayed, did the price rank the joint value?" and is blind to the decisions where
+    the price is what drove the household away. That is a selection in the estimand, not a
+    sample-size bound, and it belongs on the surface beside the figure rather than in a finding.
+
+    FAILS CLOSED, for the same reason `_skill_drop_out` does and one more. The split cannot be
+    inferred from anything on an older artefact -- it needs the arm's log and the world's event
+    log in one place -- so a run predating it reports the ABSENCE and names what would fix it. It
+    does NOT carry the sentence over from this docstring: a claim about a run, published without
+    that run having measured it, is exactly the shape the page exists to refuse.
+    """
+    split = (method_skill or {}).get("survivorship") or {}
+    if not split.get("available"):
+        return {
+            "available": False,
+            "reason": (
+                "the run that produced this artefact predates the survivorship split, so the "
+                "page can say how many priced decisions went unscored but not whether they are "
+                "the ones where the household left. Withheld until a run carries "
+                "`method_skill.survivorship`."
+                + ("" if not split.get("why_not") else " The run reported: " + str(
+                    split.get("why_not")))),
+        }
+    return {
+        "available": True,
+        "what_this_is": split.get("what_this_is"),
+        "decisions_dropped_for_no_settled_row": split.get(
+            "decisions_dropped_for_no_settled_row"),
+        "of_those_the_world_recorded_as_a_departure": split.get(
+            "of_those_the_world_recorded_as_a_departure"),
+        "of_those_not_attributable_to_a_departure": split.get(
+            "of_those_not_attributable_to_a_departure"),
+        "scored_decisions_the_world_recorded_as_a_departure": split.get(
+            "scored_decisions_the_world_recorded_as_a_departure"),
+        "the_concordance_is_conditioned_on_survival": split.get(
+            "the_concordance_is_conditioned_on_survival"),
+        "reading": split.get("reading"),
+    }
+
+
 def _skill_drop_out(method_skill: dict) -> dict:
     """The 20 → 6 funnel, read off the run and NEVER recomputed here.
 
@@ -2055,6 +2106,11 @@ def _method_skill(three_arm: dict) -> dict:
         # and `decisions_scored` says 6, a few hundred pixels apart, and until 2026-08-30 nothing
         # on the surface said why -- so the page implied the concordance rested on the 20.
         "drop_out": _skill_drop_out(ms),
+        # ...AND WHO THOSE DROPPED DECISIONS ARE. `drop_out` counts them and tells the reader to
+        # wait for a bigger book; this says the class IS the departures, so a bigger book buys
+        # none of them back. Published beside it deliberately: the two answer the same reader's
+        # question and only one of them has been measured against the world's event log.
+        "survivorship": _skill_survivorship(ms),
         "churn_auc_for_contrast": _f(
             ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
         # THE CONTRAST FIGURE CARRIES ITS OWN NULL, for the same reason the concordance beside it
