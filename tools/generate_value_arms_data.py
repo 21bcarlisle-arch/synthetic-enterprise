@@ -4159,10 +4159,56 @@ def _the_later_runs_disagree(share, published_at, published_from, rows: list,
     }
 
 
+def _the_level_legs_family(measured: list, stability: dict | None) -> str:
+    """Where the level leg's own re-draws are STATED -- the band table, or here when it has none.
+
+    THE FOURTH HOME, AND IT IS THE ONE `656a45f54` NAMED AND LEFT (2026-09-08). That commit moved
+    the re-draw family's three edges out of `_leg_clause` into `#arms-redraw`, where each number
+    is a cell that reds on its own column, and retired the prose home rather than leaving it
+    beside them. The same fact was standing in a fourth place: this refusal recited the level
+    leg's own min and max in prose of its own. Same floor, same `LEVEL_CONTRAST`, same seed rows
+    -- `_verdict_stability` reduces exactly those to `redraw_min_gbp`/`redraw_max_gbp` and the
+    table's price-level row renders them. Two homes for one fact, in two producers, edited on
+    different days for different reasons: this repository's own VAT shape, which CLAUDE.md names
+    by its cost.
+
+    WHAT DOES NOT MOVE, AND WHY THAT IS THE SAME TEST. `CHANGES SIGN` and the share's own range
+    stay in the sentence around this one. The sign is a READING of the family and not a member of
+    it -- the same reason the placement word stayed in `_redraw_band_clause` -- and the share
+    range is a range of a RATIO, which the table has no column for and is therefore not a second
+    home for. Retiring either would be a deletion dressed as a collapse.
+
+    IT IS NOT `_redraw_band_clause`'S SENTENCE, and reusing that one would have been wrong rather
+    than tidy. That sentence says "the band table directly below this headline" and "the figure
+    above": both true where it renders and both false from here. `#arms-composition` sits BELOW
+    `#arms-redraw`, and the figure above this refusal is the SHARE, not the level leg's sterling.
+    A pointer that misdirects is worse than the recital it replaced. The two producers share the
+    property, not the prose, and the property is what the control checks -- that the edges the
+    table renders are the same numbers this block took its sign test over.
+
+    FAIL CLOSED WHERE THE TABLE HAS NO ROW TO POINT AT. `_verdict_stability` returns `checked:
+    False` when no bound was read in this world, when the spread is missing, or when any seed row
+    lacks the contrast -- and the table renders that row as an amber NOT RE-DRAWN. This block's
+    own `measured` DROPS the missing rows instead, so it can still hold two sign-straddling draws
+    where the table holds none. In that state prose is the only home and the numbers stay here;
+    a pointer would send the reader to the gap, which is the failure `_redraw_band_clause` refuses
+    by returning nothing at all. `None` counts as no row: a caller that did not hand the family
+    over cannot have proved one exists.
+    """
+    if (stability or {}).get("checked"):
+        return ("Its own lowest, mean and highest are the price-level row of the re-draw band "
+                "table higher up this section, against the same figure this share is a share of.")
+    return ("It runs {lo} to {hi} across those draws. Those two numbers are stated here rather "
+            "than in the band table higher up this section, because that table's price-level row "
+            "carries no re-draw family to point at.").format(
+                lo=_gbp(min(measured)), hi=_gbp(max(measured)))
+
+
 def _composition_in_this_world(contrast: dict, floor_current: dict | None,
                                superseded_share, live: str,
                                later_runs: list | None = None,
-                               published_at=None, published_from=None) -> dict:
+                               published_at=None, published_from=None,
+                               level_stability: dict | None = None) -> dict:
     """How the advantage SPLITS between the two legs -- and why that split may not be read.
 
     THE RESIDUE THIS CLOSES, named in `09009c236`'s own discharge as still unwritten anywhere a
@@ -4255,11 +4301,12 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
         block["why_not_readable"] = (
             "THIS SHARE HAS NO READING, AND THE REASON IS ITS NUMERATOR. Across {n} re-draws of "
             "the same quantity in this same world -- same book, same code, only the per-household "
-            "price-sensitivity draw moved -- the level leg runs {lo} to {hi} and CHANGES SIGN. A "
-            "leg that is not determined in direction cannot be expressed as a share of anything, "
-            "so this world's single draw of that share -- {pct} -- is one draw's arithmetic and "
-            "not a composition. The share itself spans {slo} to {shi} over those same draws."
-        ).format(n=len(measured), lo=_gbp(min(measured)), hi=_gbp(max(measured)),
+            "price-sensitivity draw moved -- the level leg CHANGES SIGN. {family} A leg that is "
+            "not determined in direction cannot be expressed as a share of anything, so this "
+            "world's single draw of that share -- {pct} -- is one draw's arithmetic and not a "
+            "composition. The share itself spans {slo} to {shi} over those same draws."
+        ).format(n=len(measured),
+                 family=_the_level_legs_family(measured, level_stability),
                  pct="{:.1%}".format(share),
                  slo=("{:.1%}".format(min(s for s in shares if s is not None))
                       if any(s is not None for s in shares) else "an unstated low"),
@@ -4446,7 +4493,16 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             later_runs=(_later_runs_in_this_world(current, live, observability_dir)
                         if later_runs is None else later_runs),
             published_at=current.get("generated_at"),
-            published_from=_name_of_the_run(current, observability_dir)),
+            published_from=_name_of_the_run(current, observability_dir),
+            # THE BLOCK THE TABLE'S PRICE-LEVEL ROW RENDERS FROM, HANDED OVER RATHER THAN
+            # RECOMPUTED. `_the_level_legs_family` needs to know whether `#arms-redraw` can fill
+            # that row's Lowest and Highest before it points a reader at them, and the only
+            # honest way to know is the very block the row is built from. Deriving a second
+            # answer here -- "the floor has rows, so the table must have a family" -- is the
+            # second implementation this whole file is written against, and it would be WRONG:
+            # `_verdict_stability` also refuses when no bound was read or a seed row is short of
+            # the contrast, neither of which the floor's row count can see.
+            level_stability=level.get("verdict_stability")),
         "what_would_answer_it": (
             None if bound.get("bound_available") and selection.get("bound_available")
             and level.get("bound_available") else

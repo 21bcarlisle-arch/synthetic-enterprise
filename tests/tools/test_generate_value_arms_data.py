@@ -3410,6 +3410,128 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
         assert "more than one thing changed" in block["against_the_superseded_panel"]
 
 
+def test_the_level_legs_family_is_POINTED_AT_by_the_share_refusal_and_never_recited_beside_it():
+    """The band's FOURTH home, closed. The refusal names the table; the table holds the numbers.
+
+    THE DEFECT IT SERVES. `656a45f54` moved the re-draw family's three edges out of `_leg_clause`
+    into `#arms-redraw`, where each is a cell that reds on its own column, and retired the prose
+    home rather than leaving it alongside — one fact with two homes gets edited on two days for
+    two reasons, which is this repository's named VAT shape. Its own message recorded the residue:
+    `_composition_in_this_world` recited the LEVEL leg's min and max in prose of its own, over the
+    same floor rows, beside that leg's own row in the same table. A fourth home, a different
+    producer, its own controls, and out of scope that day.
+
+    IT WAS LATENT, NOT LIVE, AND THAT IS WHY THE SUBJECT IS SUBSTITUTED. On the published world
+    the level leg is sign-stable, so the refusal does not fire and no reader has ever met the
+    duplicate. It arms itself on any world whose level leg straddles zero — which is the state
+    `NOISE_FLOOR_ONLY_LIVE` is in, and that floor is this rung's witness.
+
+    THE POINTER IS ASSERTED NOT TO BE A LIE, which is the leg that makes this more than a
+    substring check. A sentence sending a reader to a table holding DIFFERENT numbers is worse
+    than the recital it replaced, so the family the sign test ran over and the family the table
+    renders are asserted to be the same two edges, off the floor's own rows. Two routes to one
+    number is exactly what the collapse was for.
+
+    KEYED TO THE PROPERTY, NEVER TO TODAY'S ANSWER. Every figure is read from the block the build
+    produced. A re-run that moves every re-draw leaves this green; what reds is a number appearing
+    in two places at once.
+
+    Fires on: restoring the min/max recital beside the pointer; pointing at the table from the
+    branch where that table's row carries no family; rendering the level row from another
+    contrast's family; or letting the mean leak into a sentence that never held it.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    admitted = _admitted_live_floor()
+
+    built = gva._current_world_contrast(current, superseded, admitted, later_runs=[],
+                                        superseded_split={"level_share_of_advantage": 0.7867})
+    comp, leg = built["composition"], built["level_leg"]
+    said = comp["why_not_readable"] or ""
+    assert comp["readable"] is False and "CHANGES SIGN" in said, (
+        "the straddling floor did not reach the refusing branch, so this subject witnesses "
+        "nothing: " + str(comp.get("readable")))
+    stability = leg["verdict_stability"]
+    assert stability.get("checked"), (
+        "the band table's price-level row carries no family on this subject, so the branch under "
+        "test is the fallback and not the pointer: " + str(stability.get("why_not"))[:160])
+
+    # THE POINTER IS NOT A LIE. The refusal's own sign test runs over the floor's `level_gbp`
+    # rows; the table's price-level row renders `_verdict_stability`'s reduction of those SAME
+    # rows. Asserted off the floor rather than taken from either, so a producer that quietly
+    # bounded one leg with another's family reds here rather than shipping a sentence that sends
+    # the reader to numbers the refusal was never computed from.
+    rows = sorted(float(seed[gva.LEVEL_CONTRAST]) for seed in admitted["seeds"])
+    assert (stability["redraw_min_gbp"], stability["redraw_max_gbp"]) == (rows[0], rows[-1]), (
+        "the table's price-level row and this refusal are reading different families ({} vs {}), "
+        "so the sentence points a reader at numbers it was not computed from".format(
+            (stability["redraw_min_gbp"], stability["redraw_max_gbp"]), (rows[0], rows[-1])))
+
+    # ONE HOME. The edges live in `#arms-redraw` as cells that fail one at a time; a recital here
+    # is the second home, and the mean was never in this sentence at all — it must not arrive.
+    for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
+        assert gva._gbp(stability[edge]) not in said, (
+            "the share refusal recites {} ({}) as well as pointing at the band table, so the "
+            "level leg's family has two homes again and only one of them can be partially "
+            "failed".format(edge, gva._gbp(stability[edge])))
+    assert "band table" in said, (
+        "the refusal states neither the numbers nor a route to them, so a reader is told the leg "
+        "changes sign and given no way to see by how much")
+
+    # THE PARTITION, AND `level_stability` IS THE ONLY THING THAT MOVES BETWEEN THE TWO SUBJECTS.
+    # Nothing else can explain a difference. The fallback is not tidiness: `_verdict_stability`
+    # refuses when no bound was read in this world, and the refusal's own `measured` drops short
+    # rows instead — so it can hold two straddling draws where the table's row renders NOT
+    # RE-DRAWN. Pointing there would send the reader to the gap, so the numbers must stay.
+    contrast = current["level_vs_selection"]
+    pointed = gva._composition_in_this_world(contrast, admitted, 0.7867, live, later_runs=[],
+                                             level_stability=stability)
+    recited = gva._composition_in_this_world(
+        contrast, admitted, 0.7867, live, later_runs=[],
+        level_stability={"checked": False, "why_not": "no bound was read in this world"})
+    assert pointed["why_not_readable"] == said, (
+        "the direct call does not reproduce what the build published, so the two subjects below "
+        "differ by more than the one thing this rung moves")
+    for edge in ("redraw_min_gbp", "redraw_max_gbp"):
+        assert gva._gbp(stability[edge]) in recited["why_not_readable"], (
+            "the band table's price-level row carries no family and the refusal points at it "
+            "anyway, so {} reaches no reader in either place".format(edge))
+    assert gva._gbp(stability["redraw_mean_gbp"]) not in recited["why_not_readable"], (
+        "the fallback recites a centre this sentence has never carried and the table cannot "
+        "render, which is a third statement of the family rather than the only one")
+    assert pointed["why_not_readable"] != recited["why_not_readable"], (
+        "the pointer and the fallback render identically, so one of the two branches is "
+        "unreachable and every assertion above holds of a single sentence")
+
+    # AND THE WIRING, WHICH THE PAIR ABOVE IS BLIND TO. Calling the producer directly proves the
+    # sentence can fall back; it cannot prove the BUILD hands over the price-level row's own
+    # family rather than some other checked one. Measured, not argued: substituting the whole
+    # advantage's `verdict_stability` at the call site left the whole of this file green, because
+    # on the subject above both families are checked and the pointer branch reads no number out
+    # of either. So the witness is a floor where they DISAGREE — one seed row short of the level
+    # contrast, nothing else touched, which is enough for `_verdict_stability` to refuse that leg
+    # while the advantage's own family still checks. Handing the wrong one over then prints a
+    # pointer at an amber NOT RE-DRAWN cell, and the two edges reach no reader anywhere.
+    short = dict(admitted, seeds=[
+        {k: v for k, v in seed.items() if not (i == 1 and k == gva.LEVEL_CONTRAST)}
+        for i, seed in enumerate(admitted["seeds"])])
+    crossed = gva._current_world_contrast(current, superseded, short, later_runs=[],
+                                          superseded_split={"level_share_of_advantage": 0.7867})
+    assert crossed["verdict_stability"]["checked"] and not (
+        crossed["level_leg"]["verdict_stability"]["checked"]), (
+        "the two families agree about being checked on this subject, so it cannot witness which "
+        "of them the build hands over")
+    fell_back = crossed["composition"]["why_not_readable"] or ""
+    assert "CHANGES SIGN" in fell_back, (
+        "the short floor did not reach the refusing branch, so nothing below is a witness")
+    for edge in ("redraw_min_gbp", "redraw_max_gbp"):
+        assert gva._gbp(stability[edge]) in fell_back, (
+            "the build pointed at the band table while the price-level row of that table carries "
+            "no family, so {} is on no surface at all: the reader is told the leg changes sign "
+            "and shown nothing that says by how much".format(edge))
+
+
 def test_the_shares_refusal_reaches_the_headline_and_not_only_the_payload():
     """A refusal computed and never rendered is a fail-silent.
 
