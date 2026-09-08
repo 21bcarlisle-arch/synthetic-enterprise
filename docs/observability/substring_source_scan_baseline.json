@@ -1,8 +1,150 @@
 {
   "what": "controls that read Python source as TEXT, one row per (file, function)",
+  "scope": [
+    "tests",
+    "tools",
+    "background"
+  ],
   "why": "docs/staging/SEAT_RESULT_THE_CENSUS_FINDS_117_WHERE_THREE_HAND_PASSES_FOUND_NINE_2026-09-08.md",
+  "why_this_scope": "docs/staging/SEAT_RESULT_THE_CENSUS_DISMISSAL_RULE_WAS_FAIL_OPEN_AND_THE_SCOPE_IS_NOW_THE_WHOLE_CLASS_2026-09-08.md",
+  "a_row_is_not_a_verdict": "most rows outside tests/ are dismissals carrying a reason -- a non-Python subject, a container-membership test, or a widening prefilter whose verdict comes from a parse tree. The floor bounds GROWTH; read the row before routing it.",
   "how_to_shrink": "route the scan through tools/python_code_text.py, then delete its row",
   "rows": [
+    {
+      "path": "background/autonomous_runner.py",
+      "function": "main",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/background_worker.py",
+      "function": "main",
+      "subject": "python"
+    },
+    {
+      "path": "background/claude_md_integrity.py",
+      "function": "hollow_skills",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/director_twin.py",
+      "function": "ask_twin",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/director_twin.py",
+      "function": "current_canon_version",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/discovery_agent.py",
+      "function": "run_discovery_cycle",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_classes.py",
+      "function": "archived_instances",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_classes.py",
+      "function": "check",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_classes.py",
+      "function": "existing_disposition_section",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/gap_register_scan.py",
+      "function": "register5_claim_placeholders",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/gap_register_scan.py",
+      "function": "register7_model_timeframe2",
+      "subject": "unfiltered"
+    },
+    {
+      "path": "background/gap_register_scan.py",
+      "function": "register8_followons",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/harness_exit_criterion.py",
+      "function": "ratified_n",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/process_run_complete.py",
+      "function": "_update_latest_md_effort_section",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/process_run_complete.py",
+      "function": "_update_latest_md_organ_section",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/process_run_complete.py",
+      "function": "linked_findings",
+      "subject": "unfiltered"
+    },
+    {
+      "path": "background/publisher_budget.py",
+      "function": "declared_publisher_budget_seconds",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/schedule_reconciler.py",
+      "function": "load_manifest",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/self_clearing_alarm_census.py",
+      "function": "shared_loader_answers",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/shared_primitive_census.py",
+      "function": "census_register_open",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_actionable_backlog_item",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_director_axes_present",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_forward_discovery_complete_ids",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_forward_discovery_dispositioned_ids",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_forward_discovery_propose_half_tracks",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_forward_discovery_tracks",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "forward_discovery_graduation_proposal",
+      "subject": "unknown"
+    },
     {
       "path": "tests/architecture/test_a_cited_constant_has_a_caller.py",
       "function": "_money_constants",
@@ -26,21 +168,26 @@
     {
       "path": "tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py",
       "function": "_describe",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py",
       "function": "_on_disk_here",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/architecture/test_price_cap_commons.py",
       "function": "test_the_artefact_carries_its_law_and_its_basis",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/architecture/test_static_quality_ratchet.py",
       "function": "makefile_lint_scope",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/architecture/test_static_quality_ratchet.py",
+      "function": "requirements_ruff_pin",
       "subject": "unknown"
     },
     {
@@ -91,7 +238,7 @@
     {
       "path": "tests/background/test_finding_classes.py",
       "function": "test_the_discharge_evidence_this_fixture_relies_on_actually_exists",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/background/test_finding_severity.py",
@@ -166,7 +313,7 @@
     {
       "path": "tests/background/test_model_tier.py",
       "function": "test_every_reserved_and_pilot_marker_is_actually_emitted_by_supervisor",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/background/test_notify_contract.py",
@@ -181,7 +328,7 @@
     {
       "path": "tests/background/test_publish_gate_red_census.py",
       "function": "test_both_reds_reach_the_state_file_the_rung_1_draw_reads",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/background/test_publish_gate_scope.py",
@@ -216,12 +363,17 @@
     {
       "path": "tests/company/carbon/test_half_hourly_footprint.py",
       "function": "test_the_annual_LEVEL_comes_from_the_single_owner_and_is_not_restated_here",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/company/comms/test_susceptibility_estimator_wire.py",
       "function": "test_the_belt_is_read_from_the_CONTRACT_and_not_respelled_here",
       "subject": "python"
+    },
+    {
+      "path": "tests/company/compliance/test_crisis_bad_debt_validator.py",
+      "function": "test_extract_both_bases_from_run_output",
+      "subject": "unknown"
     },
     {
       "path": "tests/company/crm/test_one_obligation_one_vulnerability_vocabulary.py",
@@ -251,7 +403,7 @@
     {
       "path": "tests/company/interfaces/test_renewal_offer_seam.py",
       "function": "test_the_order_is_a_signature_lock_first_then_strike",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/company/pricing/test_value_arm_in_the_renewal_chain.py",
@@ -261,7 +413,7 @@
     {
       "path": "tests/company/pricing/test_value_based_renewal.py",
       "function": "test_the_control_IS_what_the_company_does_today_and_is_imported_not_restated",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/company/regulatory/test_pricing_permissions.py",
@@ -281,7 +433,7 @@
     {
       "path": "tests/saas/reporting/test_ep2_rate_chain_decomposition.py",
       "function": "test_every_rate_writer_contributes_a_named_cause_to_the_chain",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/saas/test_arrears_ledger_unavailable_is_not_green.py",
@@ -296,7 +448,7 @@
     {
       "path": "tests/saas/test_sourced_acquisition_costs.py",
       "function": "test_the_debt_register_cannot_outlive_its_debt",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/simulation/test_competitor_reference.py",
@@ -326,12 +478,12 @@
     {
       "path": "tests/simulation/test_policy_cost_values_vs_source.py",
       "function": "test_every_table_pinned_elsewhere_is_named_by_the_control_that_pins_it",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/simulation/test_price_cap_vat_basis.py",
       "function": "test_the_artefact_still_declares_the_basis_this_repair_assumes",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/simulation/test_svt_product.py",
@@ -394,19 +546,34 @@
       "subject": "python"
     },
     {
+      "path": "tests/tools/test_couple_w2_5_c7.py",
+      "function": "test_the_r13_record_exists_and_names_every_candidate",
+      "subject": "unknown"
+    },
+    {
       "path": "tests/tools/test_deploy_pages_serves_what_it_deployed.py",
       "function": "test_every_fetch_the_deploy_makes_is_cache_busted",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_deploy_pages_serves_what_it_deployed.py",
       "function": "test_the_checked_set_is_derived_not_a_hardcoded_path_list",
-      "subject": "python"
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_evidence_pages.py",
+      "function": "test_the_front_door_does_not_route_a_reader_to_the_retired_evidence_door",
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_evidence_pages.py",
       "function": "test_the_publish_cycle_refreshes_the_payload_that_the_capabilities_door_reads",
       "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_generate_value_arms_data.py",
+      "function": "_the_doors_reading_order",
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_generate_value_arms_data.py",
@@ -421,22 +588,42 @@
     {
       "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
       "function": "test_EVERY_day_the_LIVE_page_shows_has_either_a_figure_or_a_reason",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
       "function": "test_a_year_sharing_ONE_half_hour_does_not_count_toward_the_headline",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
       "function": "test_every_PRICED_panel_publishes_WHERE_ITS_SHAPE_CAME_FROM",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
       "function": "test_the_LIVE_page_data_carries_the_household_gap_for_every_day_it_prices",
-      "subject": "python"
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_interim_bypass_retirement.py",
+      "function": "test_no_live_canon_document_offers_the_interim_shape_as_available",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_interim_bypass_retirement.py",
+      "function": "test_the_design_doc_does_not_leave_the_retirement_in_the_future_tense",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_interim_bypass_retirement.py",
+      "function": "test_the_operating_canon_states_the_wall_and_names_the_legal_move",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_interim_bypass_retirement.py",
+      "function": "test_the_retirement_is_recorded_as_a_marker_naming_a_replacement_that_exists",
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_isolate_hunks.py",
@@ -466,7 +653,7 @@
     {
       "path": "tests/tools/test_pre_commit_gate_store_surface.py",
       "function": "test_the_selected_control_goes_RED_when_the_map_is_ONE_BYTE_over",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_pre_commit_test_gate.py",
@@ -486,7 +673,7 @@
     {
       "path": "tests/tools/test_pre_commit_test_gate.py",
       "function": "test_the_data_surface_does_NOT_narrow_to_a_hand_kept_list",
-      "subject": "python"
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_published_provenance_is_real.py",
@@ -519,6 +706,16 @@
       "subject": "unknown"
     },
     {
+      "path": "tests/tools/test_site1_proof_crawlability.py",
+      "function": "test_the_existing_crawler_policy_is_not_weakened_by_the_fix",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_site_eh3_bad_debt_and_periods.py",
+      "function": "test_check_period_coverage_true_against_real_committed_dashboard",
+      "subject": "unknown"
+    },
+    {
       "path": "tests/tools/test_site_lane_gate.py",
       "function": "test_committed_hook_invokes_the_site_lane_gate_and_aborts_on_failure",
       "subject": "python"
@@ -541,8 +738,7 @@
     {
       "path": "tests/tools/test_stale_copy_refusal.py",
       "function": "test_the_guard_is_wired_into_the_cheap_door_too",
-      "subject": "unknown",
-      "reason": "the subject is tools/git-hooks/pre-commit, a POSIX SHELL script, so how_to_shrink names a remedy that does not exist for it -- python_code_text.searchable is a Python tokeniser. What the remedy buys (prose cannot satisfy the assertion) is bought here by selecting the lines that RUN something rather than rejecting the ones that look like comments; a commented-out gate line is not selected, and the test is mutation-proven against exactly that poison. Added BY HAND, never by --freeze, so no other lane's row was swept."
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_symbol_landing_check.py",
@@ -553,6 +749,11 @@
       "path": "tests/tools/test_target_design_delta.py",
       "function": "test_epistemic_wall_probe_does_not_fire_on_the_seam_itself",
       "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py",
+      "function": "test_the_live_feed_states_what_the_concordance_could_have_detected",
+      "subject": "unknown"
     },
     {
       "path": "tests/tools/test_the_map_can_lose_an_atom_and_take_the_queue_with_it.py",
@@ -593,6 +794,156 @@
       "path": "tests/tools/test_write_time_gate.py",
       "function": "_load_mutant",
       "subject": "python"
+    },
+    {
+      "path": "tools/activity_cost.py",
+      "function": "parse_token_log",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/canon_drift_check.py",
+      "function": "evaluate",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/canon_drift_check.py",
+      "function": "probe_text_in_file",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/closed_atom_delivery.py",
+      "function": "_scan",
+      "subject": "python"
+    },
+    {
+      "path": "tools/commit_refusal_attribution.py",
+      "function": "gate_ranks",
+      "subject": "python"
+    },
+    {
+      "path": "tools/commons_source_supersession.py",
+      "function": "check_artefact",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/discovery_pass_ceiling.py",
+      "function": "_level_moves",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_ccgt_swap_ceiling.py",
+      "function": "measure",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_billing_ledger.py",
+      "function": "generate",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_dashboard_data.py",
+      "function": "_check_front_door_segment_claim",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_insights.py",
+      "function": "append_run_history",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_track_record_scorecard.py",
+      "function": "_load_portfolio",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_value_arms_data.py",
+      "function": "_svt_drift_belief",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/isolate_hunks.py",
+      "function": "build",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/landing_pair.py",
+      "function": "pairs_for",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/measure_departure_level.py",
+      "function": "main",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/measure_departure_level.py",
+      "function": "realised_rate_coverage",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_gain_to_store.py",
+      "function": "migrate",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_simplifications.py",
+      "function": "is_migrated",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/orphan_ratchet.py",
+      "function": "scheduled_entrypoints",
+      "subject": "unfiltered"
+    },
+    {
+      "path": "tools/profile_test_suite.py",
+      "function": "classify_population",
+      "subject": "python"
+    },
+    {
+      "path": "tools/published_route_split.py",
+      "function": "where_the_worlds_joint_point_falls",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/reduction_dimension.py",
+      "function": "claim_modules",
+      "subject": "python"
+    },
+    {
+      "path": "tools/running_total_order.py",
+      "function": "scan_tree",
+      "subject": "python"
+    },
+    {
+      "path": "tools/size_ratchet.py",
+      "function": "load_baseline",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/staging_migrate_rooms.py",
+      "function": "_alarm_key_of",
+      "subject": "python"
+    },
+    {
+      "path": "tools/startup_anchor_freshness.py",
+      "function": "anchor_paths",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/startup_anchor_freshness.py",
+      "function": "declared_date",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/startup_anchor_freshness.py",
+      "function": "discover_maintained_surfaces",
+      "subject": "python"
+    },
+    {
+      "path": "tools/stretch_log.py",
+      "function": "newest_entry_head",
+      "subject": "unknown"
     }
   ]
 }

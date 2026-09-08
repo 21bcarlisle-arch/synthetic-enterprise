@@ -196,3 +196,57 @@ def test_the_baseline_is_not_empty_and_the_walk_reaches_the_tree():
     the walk happened at all."""
     assert len(_real_tree()) > 50, "the census walked the real tree and found almost nothing"
     assert census.load_baseline(), "the frozen baseline is empty"
+
+
+def test_a_scope_with_NO_evidence_of_its_own_is_unknown_and_never_the_MODULE_s_subject(tmp_path):
+    """THE FALLBACK THAT HID `tools/canon_drift_check.probe_text_in_file`.
+
+    A scan whose own scope says nothing about what it reads is `unknown`, and rule 3 in this
+    module's docstring reports it. Answering with the enclosing MODULE's path evidence answers a
+    question the scope never asked, and the borrow is not symmetric: an empty scope verdict is
+    already a member, so inheriting can only ever turn a member INTO a non-member. Measured on the
+    real tree the day it was removed -- 12 rows gained in `tests/`, 29 in `tools`/`background`,
+    none lost anywhere.
+
+    The subject here is deliberately named by a PARAMETER, because that is the shape that made it
+    matter: `probe_text_in_file` reads a path out of `docs/design/canon_claims.yaml`, so no
+    source-level evidence will ever say what it reads and `unknown` is the whole of the right
+    answer.
+
+    KILLS `evidence = _path_evidence(scope) or module_evidence`: restore it and the module's
+    markdown literals make this row `non-python` and it disappears.
+    """
+    tree = _poison_tree(tmp_path)
+    borrowed = tree / "tests" / "test_borrowed_evidence.py"
+    borrowed.write_text(
+        "from pathlib import Path\n"
+        "R = Path(__file__).resolve().parents[2]\n"
+        'DOC = R / "docs" / "design" / "notes.md"\n'
+        'REGISTER = R / "docs" / "observability" / "state.json"\n'
+        "def test_reads_whatever_the_register_named(named):\n"
+        "    assert named not in (R / named).read_text()\n", encoding="utf-8")
+    rows = census.census(tree, [borrowed])
+    assert [(s.function, s.subject) for s in rows] == [
+        ("test_reads_whatever_the_register_named", census.UNKNOWN)], (
+        "a scope carrying no path evidence of its own inherited the module's and was dismissed")
+
+
+def test_the_MODULE_s_evidence_is_still_PRINTED_when_the_scope_has_none(tmp_path):
+    """The other half, so the fix is a change of VERDICT and not a loss of information.
+
+    Module evidence still reaches the row a reader sees; it just no longer decides membership.
+    Without this leg, deleting `evidence = own or module_evidence` outright is a silent
+    equivalence and nothing says the reader was left worse off.
+    """
+    tree = _poison_tree(tmp_path)
+    borrowed = tree / "tests" / "test_borrowed_evidence.py"
+    borrowed.write_text(
+        "from pathlib import Path\n"
+        "R = Path(__file__).resolve().parents[2]\n"
+        'DOC = R / "docs" / "design" / "notes.md"\n'
+        "def test_reads_whatever_the_register_named(named):\n"
+        "    assert named not in (R / named).read_text()\n", encoding="utf-8")
+    (row,) = census.census(tree, [borrowed])
+    assert "notes.md" in row.evidence, (
+        "the module's evidence stopped reaching the printed row, so the reason a row was "
+        "reported is no longer legible")

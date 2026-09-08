@@ -103,15 +103,23 @@ class Scan:
         return f"{self.path}:{self.lineno} {self.function}() subject={self.subject} [{seen}]"
 
 
-#: WHERE THE CENSUS LOOKS, and the boundary is the drawn subject rather than the whole class.
+#: WHERE THE CENSUS LOOKS. `tests/` was the drawn subject; `tools` and `background` were read on
+#: 2026-09-08 and added once every member the reading found had been routed or dismissed.
 #:
-#: The class is not confined to `tests/`: run this with `--scope tools background` today and it
-#: returns about thirty more, of which `tools/canon_drift_check.py` and `tools/capability_index.py`
-#: are the two worth a reader. Those are PRODUCTION scanners whose subject is largely prose claims
-#: about the tree, so "is this a member" is a different question there and answering it by reflex
-#: would retire rows that ought to fire. Stated here rather than left as a silent boundary: a green
-#: census means "no test control reads Python as text", never "no scanner does".
-SCANNED = ("tests",)
+#: THE TWO FILES THE OLD COMMENT HERE NAMED -- `tools/canon_drift_check.py` and
+#: `tools/capability_index.py` -- ARE NOT MEMBERS, and the comment was a guess made before the
+#: census had ever been run over this scope. Both already read Python through `ast.parse`. Left
+#: recorded rather than deleted, because a named prior that the measurement refutes is the only
+#: evidence the measurement was not fitted to it.
+#:
+#: The reading itself held up: most of this scope dismisses. Roughly two thirds are scanners whose
+#: subject is Markdown, JSON, a systemd unit or a log, reported only because the census fails
+#: closed when path evidence is absent; the rest are container-membership tests (`key not in data`
+#: over a dict parsed out of file text, which `_match_sites` cannot tell from a substring) and
+#: widening prefilters whose verdict is taken from a parse tree afterwards. Those stay as FLOOR
+#: ROWS carrying this reason -- the documented way to retire a false positive -- rather than being
+#: excused by narrowing the sweep, which is how this class survived four instance fixes.
+SCANNED = ("tests", "tools", "background")
 
 
 def _scanned_population(root: Path, scope: tuple[str, ...] = SCANNED) -> list[Path]:
@@ -427,16 +435,29 @@ def census(root: Path | None = None, paths: list[Path] | None = None) -> list[Sc
                 continue
             if not _reaches_the_tree(scope, module, _root_parameter(scope), packages):
                 continue
-            # THE SCOPE'S OWN EVIDENCE WINS, and module evidence is a FALLBACK rather than an
-            # addition. Concatenating them made a test that reads `site/capabilities/index.html`
+            # THE SCOPE'S OWN EVIDENCE IS THE ONLY EVIDENCE THE VERDICT RESTS ON. Concatenating
+            # scope and module evidence made a test that reads `site/capabilities/index.html`
             # report as a Python scan, because some other literal in the same file ends `.py` --
             # the file-level verdict the second hand pass was wrong for, reintroduced through the
-            # evidence rather than through the walk. Found when another lane landed exactly such a
-            # test mid-turn and the floor reported it.
-            evidence = _path_evidence(scope) or module_evidence
-            subject = _subject_of(evidence)
+            # evidence rather than through the walk.
+            #
+            # THAT FIX WAS FIRST WRITTEN `or module_evidence`, AND THE FALLBACK WAS FAIL-OPEN. It
+            # can only fire when the scope says nothing about what it reads -- which rule 3 above
+            # calls `unknown` and REPORTS -- so borrowing the module's evidence there turns a
+            # member into a non-member and can never do the reverse. Measured 2026-09-08: dropping
+            # it gained 12 rows in `tests/` and 29 in `tools`/`background`, and lost none.
+            #
+            # The two it hid are the argument for the shape. `canon_drift_check.probe_text_in_file`
+            # reads a path named in `docs/design/canon_claims.yaml`, so NO source-level evidence
+            # will ever say what its subject is and `unknown` is the whole of the right answer;
+            # `generate_evidence_data._count_test_functions` counts `def test_` in Python source by
+            # regex for a figure the evidence page PUBLISHES. Module evidence is still carried into
+            # the printed row because a reader wants it -- it just no longer decides.
+            own = _path_evidence(scope)
+            subject = _subject_of(own)
             if subject not in MEMBER_SUBJECTS:
                 continue
+            evidence = own or module_evidence
             first = min(sites, key=lambda n: n.lineno)
             found.append(Scan(rel, name, first.lineno, subject, tuple(sorted(set(evidence)))))
     return sorted(found, key=lambda s: (s.path, s.lineno))
@@ -456,7 +477,13 @@ def freeze(root: Path = _REPO, path: Path = BASELINE_PATH) -> int:
     scans = census(root)
     path.write_text(json.dumps({
         "what": "controls that read Python source as TEXT, one row per (file, function)",
+        "scope": list(SCANNED),
         "why": "docs/staging/SEAT_RESULT_THE_CENSUS_FINDS_117_WHERE_THREE_HAND_PASSES_FOUND_NINE_2026-09-08.md",
+        "why_this_scope": "docs/staging/SEAT_RESULT_THE_CENSUS_DISMISSAL_RULE_WAS_FAIL_OPEN_AND_THE_SCOPE_IS_NOW_THE_WHOLE_CLASS_2026-09-08.md",
+        "a_row_is_not_a_verdict": "most rows outside tests/ are dismissals carrying a reason -- a "
+                                  "non-Python subject, a container-membership test, or a widening "
+                                  "prefilter whose verdict comes from a parse tree. The floor "
+                                  "bounds GROWTH; read the row before routing it.",
         "how_to_shrink": "route the scan through tools/python_code_text.py, then delete its row",
         "rows": [{"path": s.path, "function": s.function, "subject": s.subject}
                  for s in sorted(scans, key=lambda s: s.row)],

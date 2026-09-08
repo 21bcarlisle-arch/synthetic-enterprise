@@ -559,3 +559,47 @@ def test_a_node_with_no_atoms_cannot_render_as_evidenced(tmp_path, sources):
         "an atom-less node must never compute Live"
     )
     assert node["atoms_at_target"] == 0
+
+
+def test_a_test_signature_quoted_in_a_DOCSTRING_is_not_counted_as_a_TEST(tmp_path):
+    """`_count_test_functions` publishes a count of what a cited test file DEFINES.
+
+    `_DEF_TEST` is anchored `^\\s*def`, which a `#` comment cannot satisfy -- so this looked safe,
+    and the docstring case is the one that gets through. A suite explaining which control it
+    replaced quotes the replaced signature, and the published count then says five where four
+    exist. Measured on the real tree 2026-09-08: `tests/tools/test_generate_project_state.py`,
+    5 -> 4, and it is the only file in 1,680 that moves. Small today, and the habit that produces
+    it is one CLAUDE.md asks for by name, so the class is what is being closed here rather than
+    the instance.
+
+    KILLS dropping `searchable()` from `_count_test_functions`: without it this reads 2.
+    """
+    from tools import generate_evidence_data as ged
+
+    cited = tmp_path / "tests" / "test_cited.py"
+    cited.parent.mkdir(parents=True)
+    cited.write_text(
+        '"""This suite replaced an older one that declared:\n'
+        "\n"
+        "    def test_the_shape_that_no_longer_exists():\n"
+        '"""\n'
+        "def test_the_one_that_really_exists():\n"
+        "    assert True\n", encoding="utf-8")
+    assert ged._count_test_functions("tests/test_cited.py", tmp_path) == 1, (
+        "a test signature quoted in a docstring was counted as a test that exists")
+
+
+def test_the_published_test_count_still_counts_REAL_definitions(tmp_path):
+    """VACUITY GUARD for the leg above. `searchable()` blanking too much -- or
+    `_count_test_functions` returning 0 on every error -- passes that assertion by counting
+    nothing at all. This is the leg that says the reading still works.
+    """
+    from tools import generate_evidence_data as ged
+
+    cited = tmp_path / "tests" / "test_cited.py"
+    cited.parent.mkdir(parents=True)
+    cited.write_text(
+        "def test_one():\n    assert True\n"
+        "async def test_two():\n    assert True\n"
+        "class K:\n    def test_three(self):\n        assert True\n", encoding="utf-8")
+    assert ged._count_test_functions("tests/test_cited.py", tmp_path) == 3

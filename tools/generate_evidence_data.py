@@ -96,6 +96,7 @@ import ia_register as _ia  # noqa: E402
 
 from tools import maturity_map_store as map_store  # noqa: E402
 from tools import simplifications_store as store  # noqa: E402 (H41 record tenant)
+from tools.python_code_text import searchable  # noqa: E402
 
 MAP_PATH = PROJECT / "docs" / "design" / "maturity_map.yaml"
 STORE_DIR = PROJECT / "docs" / "design" / "simplifications"
@@ -463,12 +464,19 @@ def _count_test_functions(path: str, project: Path = PROJECT) -> int:
     Deliberately labelled as such everywhere it is rendered: it is a real number read off
     real disk, but it is not a pass count. The executed number on this page is the
     whole-suite figure from test_execution_log.jsonl.
+
+    READ AS CODE, NOT AS TEXT. `_DEF_TEST` is anchored `^\\s*def`, which a `#` comment cannot
+    satisfy -- but a DOCSTRING can, and this repo's test files quote test signatures in their
+    docstrings constantly (a suite that explains which control it replaced names it). Every such
+    quotation inflated a figure the evidence page PUBLISHES as a count of what exists.
+    `searchable()` blanks prose in place and preserves line offsets, so the anchor still means what
+    it says and an unparseable file falls back to exactly today's reading.
     """
     f = project / path
     if not f.is_file():
         return 0
     try:
-        return len(_DEF_TEST.findall(f.read_text(encoding="utf-8", errors="replace")))
+        return len(_DEF_TEST.findall(searchable(f.read_text(encoding="utf-8", errors="replace"))))
     except OSError:
         return 0
 
