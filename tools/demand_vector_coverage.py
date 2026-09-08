@@ -57,6 +57,7 @@ import argparse
 import collections
 import csv
 import json
+import random
 import sys
 from pathlib import Path
 
@@ -64,6 +65,12 @@ PROJECT = Path(__file__).resolve().parent.parent
 
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
+
+#: NEED's `MAIN_HEAT_FUEL` code for mains gas. Carried through the generator UNTRANSLATED, so it is
+#: the survey's raw "1" rather than the word -- named here because `fuel == "gas"` is the obvious
+#: thing to write, it compares equal to nothing, and it fails SILENTLY: numpy returns an all-False
+#: mask and the term you were adding lands on no household at all. It did exactly that once.
+MAINS_GAS = "1"
 
 #: The axes that describe what a household USES. Reproducing their joint distribution is the
 #: canon's first number.
@@ -311,8 +318,13 @@ def _fabric_for(row, *, retrofitted: bool):
             p.solar_aperture_m2, p.internal_gain_kw)
 
 
-def _peak_window_share(points: int, rng):
+def _peak_window_share(points: int, rng, people=None):
     """Each household's share of daily electricity in the 16:00-19:00 window.
+
+    TAKES THE HOUSEHOLD'S OWN HEADCOUNT when the caller has one. It used to draw a SECOND,
+    independent household size here, so a premise could be four people for its electricity shape
+    and one person for its hot water -- two different households wearing one row, and the kind of
+    incoherence that makes a joint distribution meaningless while every marginal stays correct.
 
     Computed from the world's OWN shape builder rather than invented here: `demand_model.
     build_demand_shape` applied to the published Profile Class 1 base, per occupancy pattern and
@@ -334,12 +346,12 @@ def _peak_window_share(points: int, rng):
 
     table = {}
     for pattern in ("single", "family", "elderly"):
-        for people in (1, 2, 3, 4, 5):
+        for size in (1, 2, 3, 4, 5):
             prop = {"heating_system": "gas_boiler", "occupancy_pattern": pattern,
-                    "assets": {}, "people_count": people}
+                    "assets": {}, "people_count": size}
             try:
                 shape = dm.build_demand_shape(list(base), 8.0, "electricity", prop)
-                table[(pattern, people)] = float(sum(shape[PEAK_WINDOW]) / sum(shape))
+                table[(pattern, size)] = float(sum(shape[PEAK_WINDOW]) / sum(shape))
             except Exception:      # noqa: BLE001
                 continue
     if not table:
@@ -347,10 +359,31 @@ def _peak_window_share(points: int, rng):
 
     keys = sorted(table)
     #: Occupancy-pattern shares as `household_segments` holds them; sizes from the TS017 anchor.
-    weights = np.array([(0.30 if k[0] == "single" else 0.50 if k[0] == "family" else 0.20)
-                        * (0.301, 0.340, 0.160, 0.129, 0.070)[k[1] - 1] for k in keys])
-    pick = rng.choice(len(keys), size=points, replace=True, p=weights / weights.sum())
-    return np.array([table[keys[i]] for i in pick])
+    if people is None:
+        weights = np.array([(0.30 if k[0] == "single" else 0.50 if k[0] == "family" else 0.20)
+                            * (0.301, 0.340, 0.160, 0.129, 0.070)[k[1] - 1] for k in keys])
+        pick = rng.choice(len(keys), size=points, replace=True, p=weights / weights.sum())
+        return np.array([table[keys[i]] for i in pick])
+
+    # The size is GIVEN; only the pattern is drawn, and it is drawn CONDITIONAL on the size where
+    # the logic is certain rather than at the unconditional shares. A one-person household is not a
+    # `family` -- that is not an assumption about behaviour, it is what the word means. Everything
+    # beyond that constraint stays at `household_segments`' own shares, renormalised.
+    patterns = ("single", "family", "elderly")
+    base_share = {"single": 0.30, "family": 0.50, "elderly": 0.20}
+    out = np.empty(points)
+    for size in sorted({int(s) for s in people}):
+        allowed = [q for q in patterns if not (q == "family" and size == 1)
+                   and not (q == "single" and size > 1)]
+        allowed = [q for q in allowed if (q, size) in table] or [q for q in patterns
+                                                                 if (q, size) in table]
+        if not allowed:
+            continue
+        mask = np.asarray(people, dtype=int) == size
+        share = np.array([base_share[q] for q in allowed], dtype=float)
+        pick = rng.choice(len(allowed), size=int(mask.sum()), replace=True, p=share / share.sum())
+        out[mask] = [table[(allowed[i], size)] for i in pick]
+    return out
 
 
 def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict:
@@ -379,7 +412,12 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
 
     from simulation import fabric_physics as fp
     from tools import demand_case_coverage as dcc
+    from tools import hot_water_base as hw
     from tools import stock_joint_generator as gen
+
+    #: `hot_water_base` draws from the published MARGINAL with stdlib `random`; the numpy generator
+    #: above owns the stock draws. One seeded stream each rather than one shared and reseeded.
+    _hw_rng = random.Random(seed + 977)
 
     grid = dcc.demand_grid(include_scotland=True)
     hdd = np.asarray(grid["cell_hdd"])
@@ -475,7 +513,33 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
     # WEATHER SENSITIVITY IS AN AXIS, not an assumption that it is spanned. The director named it
     # among the things this figure did not confirm; it is the heat-loss coefficient in kWh per
     # degree-day, which the physics already computes, so there was no reason to leave it implicit.
-    peak_share = _peak_window_share(points, rng)
+    # HOW MANY PEOPLE LIVE HERE, drawn from Census 2021 TS017 and CARRIED, because two of this
+    # vector's axes need it and until now each invented its own.
+    #
+    # WHAT THIS DRAW ASSERTS, NAMED RATHER THAN HIDDEN: the headcount is drawn INDEPENDENTLY of the
+    # dwelling, so it asserts that floor area and bedroom count tell you NOTHING about how many
+    # people live there. That is false and I could not find the published cross-tabulation to fix
+    # it -- nomis carries TS017 by geography, not by accommodation. It is recorded as a gap rather
+    # than left implicit, because the director's rule cuts both ways: omission asserts zero here
+    # too, and zero correlation between dwelling size and occupancy is a value we know is wrong.
+    # The MARGINAL is right, which is what the acceptance test scores; the JOINT with fabric is not.
+    sizes = np.array([s for s, _ in hw.HOUSEHOLD_SIZE_SHARE])
+    size_p = np.array([w for _, w in hw.HOUSEHOLD_SIZE_SHARE], dtype=float)
+    people = rng.choice(sizes, size=points, replace=True, p=size_p / size_p.sum())
+
+    # HOT WATER, WHICH WAS ZERO FOR EVERY HOUSEHOLD IN THE COUNTRY UNTIL NOW. `gas` above is
+    # SPACE HEAT ALONE, so the model asserted that domestic hot water uses no gas -- the exact
+    # shape of defect the director named: "omission is not neutrality -- it asserts zero, and zero
+    # is usually the one value we know is wrong." Published end-use splits put hot water at 12-25%
+    # of domestic gas, so the omission was not small.
+    #
+    # ONLY WHERE THE FUEL IS GAS. A household that does not heat with gas does not heat its water
+    # with gas either, and adding a gas term to it would be a worse error than the one being fixed.
+    water = np.where(fuel == MAINS_GAS,
+                     np.array([hw.annual_kwh(_hw_rng, people_count=int(n)) for n in people]), 0.0)
+    gas = gas + water
+
+    peak_share = _peak_window_share(points, rng, people=people)
     values = np.stack([gas, elec_obs, swing, hlc * 24.0, peak_share,
                        np.maximum(0.0, gas - gas_retrofit),
                        np.maximum(0.0, gas - gas_turndown)], axis=1)
@@ -494,7 +558,13 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
     payment = np.where(rng.random(points) < DD_SHARE_ELEC, "direct_debit", "not_direct_debit")
 
     return {"values": values, "axes": AXES, "fuel": fuel, "observed_gas": gas_obs,
-            "payment_method": payment,
+            "payment_method": payment, "people_count": people,
+            # RETURNED SO THE TERM CAN BE CONTROLLED EXACTLY. Asserting it off-gas by differencing
+            # medians is a STATISTICAL test of an EXACT property, and at ~30 five-person off-gas
+            # households the fabric spread swamps it -- the first version of that control went red
+            # on noise while the code was right, which is the fastest way to teach a reader to
+            # ignore it.
+            "hot_water_kwh": water,
             "cells": cell_pick, "cell_nation": cell_nation[cell_pick],
             "distinct_cells": int(len(set(cell_pick.tolist()))),
             "generated": True, "n_need_rows": len(rows)}
