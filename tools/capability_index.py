@@ -146,10 +146,12 @@ from __future__ import annotations
 
 import argparse
 import ast
+import io
 import json
 import re
 import subprocess
 import sys
+import tokenize
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -543,11 +545,79 @@ _PATH_TOKEN = re.compile(
 )
 
 
+def _comment_spans(text: str) -> list[tuple[int, int]]:
+    """Character ranges of every `#` comment, so a path inside one can be told from code.
+
+    `tokenize` rather than a `#`-hunting regex, because the two disagree on the
+    lines that matter most: `PATH = "tools/x.py"  # not tools/y.py` has a `#`
+    and a real edge on the same line, and a hash inside a string literal is not
+    a comment at all. Only the tokenizer knows which is which.
+
+    Falls back to "the line's first non-space character is `#`" when the file
+    does not tokenize — that is the strictly narrower rule, so an unreadable
+    file keeps MORE edges than it should rather than fewer. Manufacturing an
+    orphan out of a parse error would refuse a lane for a defect that is
+    already its own separate finding.
+    """
+    spans: list[tuple[int, int]] = []
+    try:
+        for tok in tokenize.generate_tokens(io.StringIO(text).readline):
+            if tok.type == tokenize.COMMENT:
+                start = _offset_of(text, tok.start[0]) + tok.start[1]
+                spans.append((start, start + len(tok.string)))
+    except (tokenize.TokenError, IndentationError, SyntaxError, ValueError):
+        spans = []
+        pos = 0
+        for line in text.splitlines(keepends=True):
+            if line.lstrip().startswith("#"):
+                spans.append((pos, pos + len(line)))
+            pos += len(line)
+    return spans
+
+
+def _offset_of(text: str, lineno: int) -> int:
+    """Character offset of 1-based `lineno`'s first character."""
+    off = 0
+    for _ in range(lineno - 1):
+        nxt = text.find("\n", off)
+        if nxt < 0:
+            return len(text)
+        off = nxt + 1
+    return off
+
+
 def _path_references(text: str, by_path: dict[str, str], own: str | None) -> set[str]:
-    """Modules this source names by repo-relative PATH (subprocess, exec, config)."""
+    """Modules this source names by repo-relative PATH (subprocess, exec, config).
+
+    A PATH WRITTEN IN A COMMENT IS NOT AN EDGE, and this is the whole of the
+    difference between citing a module and running one.
+
+    MEASURED 2026-09-08 (`SEAT_FINDING_THIRTY_FOUR_MODULES_ARE_HELD_OUT_OF_THE_
+    ORPHAN_SET_BY_A_COMMENT...`): 307 path edges existed only on comment lines,
+    and they were the sole reachability of 34 modules, 33 of which the orphan
+    baseline did not excuse. So an EDITORIAL REWORD of one sentence — dropping a
+    `.py`, touching no code — turned a module into an orphan and refused every
+    lane in the tree under "THIS COMMIT ADDS WORK THAT NOTHING RUNS", naming a
+    module the refused lane never touched.
+
+    The habit that produced it is one CLAUDE.md asks for: say where a number came
+    from. Citing `tools/x.py` as the provenance of a finding silently satisfied
+    the control that asks whether anything RUNS `tools/x.py`. That also made the
+    floor's "shrink it freely" false in general — a shrink is only free if the
+    reachability it rests on is real, and until now this graph could not tell
+    prose from a subprocess call.
+
+    A docstring path is still counted an edge. That is a known remaining hole in
+    the same class, left standing deliberately: it has its own blast radius and
+    wants its own measurement, and shipping it inside this one would make the
+    floor move for two reasons at once.
+    """
+    spans = _comment_spans(text)
     hits: set[str] = set()
-    for token in _PATH_TOKEN.findall(text):
-        mod = by_path.get(token)
+    for match in _PATH_TOKEN.finditer(text):
+        if any(lo <= match.start() < hi for lo, hi in spans):
+            continue
+        mod = by_path.get(match.group())
         if mod and mod != own:
             hits.add(mod)
     return hits

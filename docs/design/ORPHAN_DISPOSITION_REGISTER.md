@@ -174,6 +174,7 @@ company.billing.billing_dispute | unhooked | consumers:company.billing | Billing
 company.billing.breathing_space_register | unhooked | consumers:company.billing | Debt Respite (Breathing Space) Register (Phase FY).; 2 test(s); no importer
 company.billing.capacity_to_pay | unhooked | consumers:company.billing | Capacity-to-Pay (CtP) affordability assessment for customers in arrears.; 4 test(s); no importer
 company.billing.contract_manager | unhooked | consumers:company.billing | Supply contract lifecycle management: terms, break clauses, price protection.; 2 test(s); no importer
+company.billing.cot | unhooked | consumers:company.billing | no docstring; 2 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.billing.credit_balance_control | unhooked | consumers:company.billing | Undischarged credit-balance control (SLC 14 / Ofgem DD Market Compliance Review).; 1 test(s); no importer
 company.billing.economy7 | unhooked | consumers:company.billing | no docstring; 2 test(s); no importer
 company.billing.exit_fee | unhooked | consumers:company.billing | no docstring; 1 test(s); no importer
@@ -223,6 +224,7 @@ company.crm.cos_process | unhooked | consumers:company.crm | no docstring; 2 tes
 company.crm.credit_assessment_register | unhooked | consumers:company.crm | Customer Credit Assessment Register (Phase DU).; 1 test(s); no importer
 company.crm.credit_scoring | unhooked | consumers:company.crm | Customer credit scoring and risk tier classification.; 2 test(s); no importer
 company.crm.customer_comm_preferences | unhooked | consumers:company.crm | Customer Communication Preference Register.; 2 test(s); no importer
+company.crm.customer_registry | unhooked | consumers:company.crm | Company Layer — Customer Registry (CRM foundation).; 2 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.crm.customer_retention | unhooked | consumers:company.crm | Customer Retention Offer Book — Phase AE.; 1 test(s); no importer
 company.crm.decarb_recommender | unhooked | consumers:company.crm | no docstring; 2 test(s); no importer
 company.crm.eep_book | unhooked | consumers:company.crm | no docstring; 4 test(s); no importer
@@ -311,6 +313,7 @@ company.market.mpas_registry | unhooked | consumers:company.market | MPAS supply
 company.market.mprn_register | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.network_charge_ledger | unhooked | consumers:company.market | Network charge pass-through ledger: TNUoS, DUoS, BSUoS tracking.; 2 test(s); no importer
 company.market.network_charges | unhooked | consumers:company.market | Network Use of System (UoS) charges.; 1 test(s); no importer
+company.market.portfolio_position | unhooked | consumers:company.market | no docstring; 1 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.market.ppa_book | unhooked | consumers:company.market | Power Purchase Agreement (PPA) book: long-term renewable offtake contracts.; 1 test(s); no importer
 company.market.price_monitor | unhooked | consumers:company.market | Wholesale energy price monitor: alerts on spot/forward prices vs trigger levels.; 2 test(s); no importer
 company.market.prosumer_balance_register | unhooked | consumers:company.market | Prosumer Balance Register (Phase EH).; 1 test(s); no importer
@@ -320,13 +323,16 @@ company.market.shipper_code_register | unhooked | consumers:company.market | Xos
 company.market.smart_meter_programme_register | unhooked | consumers:company.market | Smart Meter Installation Programme Register (Phase GI).; 2 test(s); no importer
 company.market.smart_meter_rollout | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.switch_governance | unhooked | consumers:company.market | Switching cooling-off and objection management: 14-day right, ET resolution.; 4 test(s); no importer
+company.market.tariff_benchmarking | unhooked | consumers:company.market | Tariff Benchmarking Register (Phase EZ).; 1 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.market.tnuos_ledger | unhooked | consumers:company.market | no docstring; 1 test(s); no importer
 company.market.triad_notification_book | unhooked | consumers:company.market | Triad Notification Book — proactive I&C demand reduction for TNUoS Triad avoidance.; 3 test(s); no importer
 company.market.uig_allocation_register | unhooked | consumers:company.market | Unidentified Gas (UIG) Allocation Register (Phase GN).; 2 test(s); no importer
 company.pricing.break_even_assessor | unhooked | consumers:company.pricing | Break-Even Tariff Assessor.; 1 test(s); no importer
+company.pricing.cost_to_serve | unhooked | consumers:company.pricing | no docstring; 1 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.pricing.ncc_forecast_register | unhooked | consumers:company.pricing | Non-Commodity Cost (NCC) Forecast Register (Phase GW).; 2 test(s); no importer
 company.pricing.price_elasticity | unhooked | consumers:company.pricing | Price Elasticity Estimator — models customer churn response to tariff changes.; 2 test(s); no importer
 company.pricing.price_transparency_register | unhooked | consumers:company.pricing | Price Transparency Publication Register (Phase DL).; 1 test(s); no importer
+company.pricing.renewal_pricing_engine | unhooked | consumers:company.pricing | Renewal Pricing Engine — compute optimal renewal tariff for each customer.; 4 test(s); no importer; arrived 2026-09-08 when a path in a comment stopped counting as an edge; its only caller was prose citing it
 company.pricing.segment_profitability | unhooked | consumers:company.pricing | Tariff Segment Profitability Book.; 1 test(s); no importer
 company.pricing.standing_charge_assessor | unhooked | consumers:company.pricing | Standing Charge Fairness Assessor (Phase FP).; 1 test(s); no importer
 company.pricing.tariff_smoothing | unhooked | consumers:company.pricing | no docstring; 1 test(s); no importer
@@ -342,7 +348,6 @@ company.regulatory.ebss_register | unhooked | consumers:company.regulatory | Ene
 company.regulatory.eco_tracker | unhooked | consumers:company.regulatory | Energy Company Obligation (ECO) tracker.; 1 test(s); no importer
 company.regulatory.ee_obligation_tracker | unhooked | consumers:company.regulatory | Energy efficiency obligation referral tracker: ECO4, GBIS, WHD, BUS.; 3 test(s); no importer
 company.regulatory.energy_bill_support | unhooked | consumers:company.regulatory | no docstring; 1 test(s); no importer
-company.regulatory.epg_reconciliation_register | unhooked | consumers:company.regulatory | Energy Price Guarantee (EPG) Reconciliation Register (Phase GC).; 1 test(s); no importer
 company.regulatory.ets_registry | unhooked | consumers:company.regulatory | UK Emissions Trading Scheme (UKETS) allowance registry: purchase, allocation, surrender.; 2 test(s); no importer
 company.regulatory.fuel_poverty | unhooked | consumers:company.regulatory | Fuel Poverty Indicator: customer fuel poverty risk assessment.; 1 test(s); no importer
 company.regulatory.green_gas_levy_register | unhooked | consumers:company.regulatory | Green Gas Levy (GGL) Register (Phase FV).; 2 test(s); no importer
@@ -405,6 +410,33 @@ company.trading.triad_response_book | unhooked | consumers:company.trading | Tri
 company.trading.wholesale_position_report | unhooked | consumers:company.trading | Wholesale Market Position Monthly Report (Phase DV).; 1 test(s); no importer
 company.trading.wholesale_trading_mandate_register | unhooked | consumers:company.trading | Wholesale Trading Mandate Register.; 1 test(s); no importer
 ORPHAN-DISPOSITIONS -->
+
+---
+
+## 6. Six rows arrived and one left on 2026-09-08, all for one reason
+
+`tools/capability_index` stopped counting a path written in a `#` comment as a caller edge. 307 such
+edges existed; citing a module as the provenance of a finding — the habit CLAUDE.md asks for — had
+been satisfying the control that asks whether anything RUNS it.
+
+**Six rows arrived.** `company.billing.cot`, `company.crm.customer_registry`,
+`company.market.portfolio_position`, `company.market.tariff_benchmarking`,
+`company.pricing.cost_to_serve` and `company.pricing.renewal_pricing_engine` lost their last caller
+and are ruled `unhooked`. They did not change; the measurement stopped being wrong about them. Each
+row carries that provenance so six rulings landing on one day is not read as six new modules.
+
+**One row left, and it should come back.** `company.regulatory.epg_reconciliation_register` was
+deleted because the index calls it `wired` and a ruling kept past its subject is stale by §0. It is
+not wired. Its only two references are paths inside **docstrings** — in `simulation/svt_rates.py`
+and `simulation/price_cap_enforcement.py`, both of which say in so many words that the register *has
+no production caller*. The prose wiring it is the prose denying it.
+
+Docstring paths are still edges. Pruning them too moves the orphan set from 407 to 535 — a further
+128 modules against 34 for the comment half — so it is its own atom rather than a second reason for
+this commit to move the floor. **`epg_reconciliation_register` needs a fresh ruling in that commit.**
+Until then it is held in `docs/design/orphan_baseline.json` past its computed reachability, with the
+delete-me condition written into that file's `_doc`, so an editorial reword of either docstring
+cannot refuse a lane. That standing baseline row is the marker for this paragraph.
 
 ---
 

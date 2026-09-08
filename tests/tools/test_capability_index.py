@@ -133,6 +133,98 @@ def test_a_module_invoked_by_path_is_not_an_orphan(tree):
 
 
 # ---------------------------------------------------------------------------
+# a path in a COMMENT is not an edge (2026-09-08)
+#
+# 307 path edges in this repo existed only on comment lines and were the sole
+# reachability of 35 modules, 34 of them unexcused by the orphan baseline. The
+# habit that produced them is one CLAUDE.md asks for -- cite where a number came
+# from -- and citing `tools/x.py` silently satisfied the control asking whether
+# anything RUNS it. An editorial reword then made the module an orphan and
+# refused every lane in the tree.
+#
+# The pair below is the partition, and BOTH legs are required: a rule that
+# pruned every path token would pass the first and take the whole subprocess
+# edge model with it, which is the 550-orphan fail-open `_import_edges` already
+# records. `..._still_an_edge` is the leg that catches that.
+# ---------------------------------------------------------------------------
+
+def _launcher(tree, body):
+    (tree / "tools" / "launcher.py").write_text(
+        '"""Launcher."""\n' + body, encoding="utf-8")
+    return rows_by_module(ci.build_rows(tree))["company.billing.abandoned"]
+
+
+def test_a_path_cited_in_a_comment_is_not_a_caller(tree):
+    """The provenance citation, which is what 307 of this repo's edges were."""
+    row = _launcher(tree, "# superseded by company/billing/abandoned.py\nX = 1\n")
+    assert row["callers"] == [], row["callers"]
+    assert row["status"] == "orphan", (
+        "a module whose only mention is prose is not run by anything, and the "
+        "floor must be able to say so")
+
+
+def test_a_path_cited_in_a_TRAILING_comment_is_not_a_caller(tree):
+    """The leg a line-starts-with-`#` rule cannot see.
+
+    Measured: exactly one module in the live repo (`company.billing.cot`) is
+    held reachable by this shape alone, by two constants citing where their
+    value came from. One instance is why the rule is `tokenize` and not a
+    regex -- had the census been the specification, this module would have
+    kept a false edge and no control would ever have named it.
+    """
+    row = _launcher(tree, 'X = 1  # matches company/billing/abandoned.py::VALUE\n')
+    assert row["callers"] == [], row["callers"]
+
+
+def test_a_path_in_real_code_beside_a_comment_is_still_an_edge(tree):
+    """The over-prune that would restore the 550-orphan fail-open.
+
+    A `#` on the line does not make the line prose. Both forms appear here so
+    a rule that gives up on any commented line fails, and a rule that reads the
+    whole line as code fails the assertion below it.
+    """
+    row = _launcher(
+        tree,
+        "import subprocess\n"
+        'subprocess.run(["python3", "company/billing/abandoned.py"])  # the live edge\n',
+    )
+    assert row["callers"] == ["tools.launcher (by path)"]
+    assert row["status"] == "wired"
+
+
+def test_a_hash_inside_a_string_does_not_turn_the_line_into_a_comment(tree):
+    """`#` is not a comment marker inside a literal, and a regex would think it is."""
+    row = _launcher(
+        tree,
+        'FRAGMENT = "#! run"\n'
+        'import subprocess\n'
+        'subprocess.run(["python3", "company/billing/abandoned.py"])\n',
+    )
+    assert row["callers"] == ["tools.launcher (by path)"]
+
+
+def test_an_unparseable_caller_keeps_its_path_edges_rather_than_inventing_an_orphan(tree):
+    """Fail toward the EXISTING edge, because the alternative refuses a lane.
+
+    A file that does not tokenize has its own finding already. If it also
+    silently dropped its edges, a syntax error in one lane's scratch file would
+    orphan another lane's module and refuse it under "THIS COMMIT ADDS WORK
+    THAT NOTHING RUNS" -- the 22-hour misattribution class, re-entered through
+    a new door.
+    """
+    (tree / "tools" / "launcher.py").write_text(
+        'import subprocess\n'
+        'subprocess.run(["python3", "company/billing/abandoned.py"])\n'
+        'def broken(  :\n',
+        encoding="utf-8",
+    )
+    rows = rows_by_module(ci.build_rows(tree))
+    assert rows["tools.launcher"]["status"] == "unparsed", (
+        "the fixture must actually be unparseable or this test proves nothing")
+    assert rows["company.billing.abandoned"]["callers"] == ["tools.launcher (by path)"]
+
+
+# ---------------------------------------------------------------------------
 # the query: the fail-open that matters most
 # ---------------------------------------------------------------------------
 
