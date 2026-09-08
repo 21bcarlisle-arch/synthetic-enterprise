@@ -151,6 +151,36 @@ CONTROL_TESTS = [
     # (2026-08-25) is live: two test files already spend 393s of a 600s hook budget, so anything
     # added here has to declare what it costs against that. 0.2s is 0.03% of that budget.
     "tests/architecture/test_static_quality_ratchet.py",
+    # THE ONE LAUNCHER (2026-09-08). Sixth entry, and it is here for the reason the five above
+    # spell out at length rather than for a new one: subject set = the whole repo, selector set =
+    # one filename stem. The census AST-walks every committed `*.py` and every `*.sh` looking for
+    # a long job launched outside `background/launch_long_job.py`; nothing about a NEW module with
+    # `start_new_session=True` in it mentions this test's stem, so per-file selection would fire
+    # it only when the test itself is edited -- the case that needs it least -- and stay silent on
+    # the only case it exists for. That is the identical FAIL-SILENT-at-selection shape as the
+    # wall, seam and lint entries, and it was noticed here BEFORE the control shipped rather than
+    # after it went red at HEAD, which is the whole reason those four comments are so long.
+    #
+    # What the silence would cost, measured not predicted: five launches of one measurement, four
+    # deaths, one cause -- `setsid` changes the session and the process group, a cgroup is
+    # neither, and `worker-tick.service` is KillMode=control-group. The remedy was rediscovered by
+    # dying four separate times because each site banked it privately. `fdc16f4c6` retired the
+    # last two known sites into one launcher; this is what refuses the seventh.
+    #
+    # ~6.2s for the whole file (22 tests), which makes it THE MOST EXPENSIVE ENTRY in this list,
+    # ahead of the wall walk at ~4.8s. Said plainly rather than rounded down, because the standing
+    # finding the lint entry cites is live and an entry that understates its cost is how a 600s
+    # budget gets spent: this is ~1.0% of it.
+    #
+    # Where it goes is not where you would guess. The census itself is ~0.1s -- `_census_python`
+    # skips the AST parse for any file containing neither trigger literal, which is exactly
+    # equivalent rather than approximate, and takes the repo-wide walk from 5.7s to nearly
+    # nothing. Substantially all of the 6.2s is the ONE control that proves that prefilter is not
+    # a blind spot, by walking the tree BOTH ways and requiring identical output. That control
+    # costs precisely what the optimisation saves, which is the correct trade and not an accident:
+    # an unproven prefilter on a control this shape is a fail-open waiting to happen, and the
+    # cheap version of this file would be the one that stops seeing things.
+    "tests/architecture/test_the_one_launcher_is_the_only_launcher.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own
