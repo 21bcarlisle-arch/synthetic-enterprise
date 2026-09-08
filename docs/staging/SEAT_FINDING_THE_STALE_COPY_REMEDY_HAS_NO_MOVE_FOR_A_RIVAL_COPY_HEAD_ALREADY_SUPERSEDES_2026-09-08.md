@@ -84,3 +84,39 @@ which is the `since` repair *inside* `_bind_to_claim`, not the function. The cen
 exact; the paraphrase reads as "the function is gone" and sends a reader looking for the wrong
 thing. Recorded here rather than fixed silently: the paraphrase is what I acted on for the first
 twenty minutes of the turn.
+
+---
+
+## ADDENDUM, measured after the wiring landed: the remedy is PER-PATH and at least one of the eight is half a pair
+
+The six Kind-B copies carry genuinely new symbols, so the drawn remedy — isolate the holder's hunks
+and land them over HEAD — does apply to them in principle. I checked whether it is **safe**, by
+asking of each whether the names its new code references exist at `origin/main`. Five resolve.
+
+**`tests/tools/test_commit_refusal_attribution.py` does not, and the way it fails is the finding.**
+Its three new tests call `attr.decompose_outage(...)`. `tools/commit_refusal_attribution.py` is
+present at `origin/main` at 1382 lines and **does not define `decompose_outage`**. It is defined in
+the shared tree's *uncommitted working copy* of that module.
+
+So the lane holding this stale test copy also holds an uncommitted edit to the module it tests, and
+**only the test is in the census's eight** — the module is not stale by rule 1, so nothing names it.
+A seat that works the eight path by path, exactly as the refusal text instructs, lands the test
+without the function and reds the tree at HEAD for every lane.
+
+That is not a defect in the refusal, which is correct about the eight paths it names. It is a limit
+on the **remedy's granularity**: `isolate_hunks` + `surgical_land --content` operate on one path,
+the refusal is printed one path at a time, and a lane's work is not path-shaped. Nothing in the
+route tells you to look for the other half, and the other half is invisible to the control that
+sent you.
+
+**What this adds to "what is next".** The `refresh-to-head` move sketched above is still the answer
+for the two Kind-A copies. For the Kind-B six the extra requirement is: before landing any isolated
+hunk, resolve the names it introduces against the tree it will land into, and if a name resolves
+only in another *uncommitted* file, that file is part of the same landing. A one-leg version of
+that check is cheap — `tools/symbol_landing_check.py` already asks whether every first-party
+reference resolves in the tree a commit creates, and it is the control that would catch this — but
+it is only reachable from the landing door, so it fires *after* a seat has spent the isolation work.
+Naming the pair at census time would cost one pass and save the turn.
+
+Recorded, not built: this turn's landed increment is the cheap-door wiring, and the pair-detection
+belongs with the `refresh-to-head` work rather than bolted onto a census.
