@@ -38,6 +38,7 @@ all five.
 """
 from __future__ import annotations
 
+import ast
 import copy
 import datetime
 import json
@@ -3604,6 +3605,338 @@ def test_the_level_legs_family_is_POINTED_AT_by_the_share_refusal_and_never_reci
             "the build pointed at the band table while the price-level row of that table carries "
             "no family, so {} is on no surface at all: the reader is told the leg changes sign "
             "and shown nothing that says by how much".format(edge))
+
+
+DOOR = PROJECT / "site" / "capabilities" / "index.html"
+
+#: The band table every pointer below sends a reader to.
+_THE_BAND_TABLE = "arms-redraw"
+
+#: WHAT A POINTER IS ALLOWED TO SAY, and what each phrase CLAIMS about where that table sits.
+#: The first element is the anchor the claim is relative to; `None` means "relative to wherever
+#: this sentence happens to render", which is the shape that broke -- a producer does not know how
+#: many homes its own output has, and this one had two on opposite sides of the table.
+#:
+#: `higher up this section` is RETIRED and kept here on purpose. Dropping it would make restoring
+#: the old wording red as an unrecognised phrase rather than as the lie it was, and a refusal that
+#: names the wrong reason is how a correct fix gets reverted.
+_POINTER_PHRASES = {
+    "directly below this headline": ("arms-headline", "below"),
+    "under the headline figure": ("arms-headline", "below"),
+    "higher up this section": (None, "above"),
+}
+
+#: The words that make a sentence a POINTER at all, rather than prose that happens to mention the
+#: table. Scoped deliberately wide: a sentence naming the table and giving no direction is caught
+#: by the fail-closed leg below, not waved through.
+_POINTS_AT_THE_TABLE = "band table"
+
+
+def _the_doors_reading_order() -> dict:
+    """`{anchor id: position}` in the order a reader scrolls the section, from the door itself.
+
+    SOURCE ORDER IS THE SUBJECT, and it is the right one here because every anchor this reads is a
+    static element of `site/capabilities/index.html` -- the door assigns `innerHTML` into them and
+    never reorders them, so document order IS what a reader meets. A control that drove the render
+    would measure the same thing through a node process and could not see an anchor the JS never
+    fills, which is exactly the state a moved block would be in.
+    """
+    html = DOOR.read_text(encoding="utf-8")
+    order, seen_twice = {}, set()
+    for position, match in enumerate(re.finditer(r'id="(arms-[a-z-]+)"', html)):
+        anchor = match.group(1)
+        if anchor in order:
+            seen_twice.add(anchor)
+        else:
+            order[anchor] = position
+    assert not seen_twice, (
+        "the door declares {} more than once, so 'where it sits' has no answer and every pointer "
+        "below is judged against an arbitrary one of them".format(sorted(seen_twice)))
+    return order
+
+
+def _the_regions_a_sentence_reaches(sentence: str, built: dict) -> set:
+    """Which page regions a producer's sentence actually renders in -- DERIVED, never declared.
+
+    THIS IS THE HALF THAT WAS MISSING. `_the_level_legs_family`'s own docstring declared its home
+    ("`#arms-composition` sits BELOW `#arms-redraw`") and reasoned from it; the declaration was
+    true and incomplete, and nothing could notice because nothing else in the tree held an opinion
+    about where that sentence rendered. So the homes are taken by running the composers the door
+    reads from: `_current_world_clause` is what `#arms-headline` renders, and
+    `composition.why_not_readable` is what `#arms-composition` renders. A producer that gains a
+    third home gains it here too, without anyone remembering to edit a list.
+    """
+    homes = set()
+    if sentence and sentence in (gva._current_world_clause(built) or ""):
+        homes.add("arms-headline")
+    if sentence and sentence in (((built.get("composition") or {}).get("why_not_readable")) or ""):
+        homes.add("arms-composition")
+    return homes
+
+
+def _pointer_defects(sentence: str, homes: set, order: dict) -> list:
+    """Every way one pointer sentence can be false, judged in EVERY region it renders in."""
+    defects = []
+    if _POINTS_AT_THE_TABLE not in sentence:
+        return ["the sentence does not point at the band table at all: " + sentence[:120]]
+    if _THE_BAND_TABLE not in order:
+        return ["the door no longer declares #{}, so the sentence points at nothing".format(
+            _THE_BAND_TABLE)]
+    said = [phrase for phrase in _POINTER_PHRASES if phrase in sentence]
+    # FAIL CLOSED ON A PHRASE NOBODY REGISTERED. A pointer reworded past this vocabulary is not a
+    # pointer this control has checked, and reading that silence as a pass is the fail-open the
+    # whole rung exists against.
+    if not said:
+        defects.append(
+            "the sentence sends a reader to the band table in words this control does not know, "
+            "so its direction is unchecked -- add the phrase to `_POINTER_PHRASES` with what it "
+            "claims: " + sentence[:160])
+        return defects
+    if len(said) > 1:
+        defects.append("one sentence claims {} directions at once: {}".format(len(said), said))
+    if not homes:
+        defects.append(
+            "the sentence renders in none of the regions this control knows about, so it is "
+            "judged nowhere: " + sentence[:120])
+    for phrase in said:
+        landmark, direction = _POINTER_PHRASES[phrase]
+        # A LANDMARK CLAIM IS ABSOLUTE and holds wherever it renders; a `None` landmark is a claim
+        # about "here", so it is re-asked once per home. That distinction IS the defect this rung
+        # closed: the same "here" sentence was true in one home and false in the other.
+        against = [landmark] if landmark else sorted(homes)
+        for anchor in against:
+            if anchor not in order:
+                defects.append("{!r} is measured against #{}, which the door no longer "
+                               "declares".format(phrase, anchor))
+                continue
+            actually = "below" if order[_THE_BAND_TABLE] > order[anchor] else (
+                "above" if order[_THE_BAND_TABLE] < order[anchor] else "at")
+            if actually != direction:
+                defects.append(
+                    "{!r} tells a reader at #{} that the band table is {} them, and it is {}: "
+                    "the pointer misdirects".format(phrase, anchor, direction, actually))
+    return defects
+
+
+def _every_pointer_this_page_can_publish() -> dict:
+    """`{name: (sentence, homes)}` for every band-table pointer the producers can emit.
+
+    BOTH BRANCHES OF BOTH PRODUCERS, off real builds rather than hand-written stability blocks,
+    because the homes have to be derived and a home is a property of the BUILD.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded, admitted = _load(NOISE_FLOOR), _admitted_live_floor()
+    split = {"level_share_of_advantage": 0.7867}
+
+    # THE POINTING BRANCH -- the straddling floor refuses the share while the table's price-level
+    # row still carries a family, which is the only state in which the refusal points rather than
+    # recites. Same subject as the rung above it.
+    pointed = gva._current_world_contrast(current, superseded, admitted, later_runs=[],
+                                          superseded_split=split)
+    # THE FALLBACK BRANCH -- one seed row short of the level contrast, nothing else touched, so
+    # `_verdict_stability` refuses that leg and the refusal states the numbers instead. It carries
+    # a pointer too ("stated here rather than in ..."), and that pointer was equally untied.
+    short = dict(admitted, seeds=[
+        {k: v for k, v in seed.items() if not (i == 1 and k == gva.LEVEL_CONTRAST)}
+        for i, seed in enumerate(admitted["seeds"])])
+    fell_back = gva._current_world_contrast(current, superseded, short, later_runs=[],
+                                            superseded_split=split)
+
+    # THE SUBJECT IS THE COMPOSED STRING THE BUILD PUBLISHES, not a fresh call to the producer.
+    # `_the_level_legs_family`'s fallback interpolates the floor's own edges, so a hand-fed call
+    # returns a sentence that is nowhere in the feed -- and deriving homes by substring would then
+    # report none and this rung would judge nothing. What a reader meets is the refusal, so the
+    # refusal is what is judged; the leg below ties it back to the producer.
+    pointers = {}
+    for name, built, sentence in (
+            ("_redraw_band_clause", pointed, pointed.get("redraw_band") or ""),
+            ("_the_level_legs_family, pointing at the table", pointed,
+             (pointed.get("composition") or {}).get("why_not_readable") or ""),
+            ("_the_level_legs_family, stating the numbers", fell_back,
+             (fell_back.get("composition") or {}).get("why_not_readable") or "")):
+        pointers[name] = (sentence, _the_regions_a_sentence_reaches(sentence, built))
+
+    # AND THE MIDDLE SUBJECT IS THIS PRODUCER'S, asserted rather than assumed. Without it the two
+    # composition subjects are just "some refusal the build emitted", and a refactor that stopped
+    # calling `_the_level_legs_family` altogether would leave this rung green over prose it was
+    # never written about.
+    from_the_producer = gva._the_level_legs_family(
+        [-1.0, 1.0], (pointed.get("level_leg") or {}).get("verdict_stability"))
+    assert from_the_producer and from_the_producer in pointers[
+        "_the_level_legs_family, pointing at the table"][0], (
+        "the published refusal does not carry `_the_level_legs_family`'s own sentence, so the "
+        "subject below is not this producer's output: " + from_the_producer[:160])
+    return pointers
+
+
+def test_a_sentence_pointing_at_the_band_table_is_true_from_EVERY_region_it_renders_in():
+    """A pointer at `#arms-redraw` must be true in every place a reader can meet it.
+
+    THE DEFECT IT SERVES (2026-09-08, found by building this rung). `656a45f54` and `ea6101870`
+    collapsed the re-draw family's NUMBERS into one home. The DESCRIPTION of that home then had
+    two, in two producers, edited on different days -- the same shape one layer along -- and the
+    drawn item asked whether that was worth a control. It was, and not for the reason the item
+    gave: the answer was not a latent drift hazard but a live falsehood.
+
+    `_the_level_legs_family` said the family was in "the re-draw band table HIGHER UP THIS
+    SECTION". That sentence lands in `composition.why_not_readable`, which has TWO homes:
+    `#arms-composition` renders it, and `_current_world_clause` composes it into `headline`, which
+    `#arms-headline` renders. `#arms-redraw` sits BELOW the headline (position 1 against 0) and
+    ABOVE the composition panel (1 against 7). So one of the two readers was sent the wrong way up
+    the page. Every existing control over that sentence asked whether it said "band table"; none
+    asked where the table was, and the producer's own docstring asserted the single home it knew
+    about. The fix is a LANDMARK -- "under the headline figure" -- which is true from anywhere and
+    cannot rot into a lie by the sentence gaining a third home.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S DOM. Nothing here pins a position. The door's own reading
+    order is read at run time and each sentence's homes are derived by running the composers the
+    door reads from, so moving `#arms-redraw` above the headline reds this, moving the composition
+    panel above it reds this, and rewording a pointer past the registered vocabulary reds this
+    fail-closed rather than passing on silence.
+
+    Fires on: reordering the section so a pointer's direction stops holding; giving a `here`-
+    relative pointer a second home on the other side of the table; restoring "higher up this
+    section" to `_the_level_legs_family`; rewording a pointer into unregistered words; declaring
+    two directions in one sentence; or dropping the `#arms-redraw` anchor while the prose still
+    sends readers to it.
+    """
+    order = _the_doors_reading_order()
+    assert _THE_BAND_TABLE in order and "arms-headline" in order, (
+        "the door declares neither the band table nor the headline, so this rung has no subject")
+
+    pointers = _every_pointer_this_page_can_publish()
+    defects = []
+    for name, (sentence, homes) in pointers.items():
+        assert sentence, (
+            "{} emitted nothing on the branch this rung drives, so its pointer is unwitnessed "
+            "and every assertion below skips it".format(name))
+        assert homes, (
+            "{} renders in no region this control can see, so it is judged nowhere -- either the "
+            "door stopped rendering it or `_the_regions_a_sentence_reaches` has gone blind".format(
+                name))
+        defects.extend("{}: {}".format(name, d) for d in _pointer_defects(sentence, homes, order))
+    assert not defects, "the page misdirects its own readers:\n  " + "\n  ".join(defects)
+
+    # THE QUANTIFIER NEEDS A WITNESS. "True in EVERY region" is the whole claim, and on a set of
+    # sentences that each render once it is indistinguishable from "true somewhere". At least one
+    # pointer must reach two regions, or this rung has quietly become the weaker check it replaced.
+    assert any(len(homes) > 1 for _, homes in pointers.values()), (
+        "no pointer reaches more than one region any more, so the per-home loop above is never "
+        "exercised and this rung cannot tell a landmark claim from a 'here'-relative one")
+
+
+def test_MUTATION_a_pointer_that_misdirects_is_CAUGHT_and_both_directions_are_reachable():
+    """The rung above must be failable by the page being wrong, not only by it being right.
+
+    POISONED IN TWO PLACES, because the claim has two halves and a control that only holds one is
+    the fail-open. The SENTENCE is poisoned back to its pre-fix wording against the real door
+    order; the ORDER is poisoned by moving `#arms-redraw` below the composition panel against the
+    real sentences. Each must red, and the honest pair of each must not -- otherwise the judge
+    refuses everything, which is what a guard that refuses its whole partition also does.
+
+    AND THE TWO KINDS OF CLAIM FAIL ON DIFFERENT MOVES, which is why both are poisoned. A LANDMARK
+    pointer survives the table being pushed to the foot of the section and breaks when it goes
+    above the landmark; a `here`-relative one breaks on exactly the move the landmark survives.
+    The first draft of leg B asserted the opposite and reported the judge blind while the judge was
+    right -- the sentence said "under the headline figure" and the table was still under it.
+
+    R15, run and reverted:
+      * restore "higher up this section" to `_the_level_legs_family` -> the rung above reds on
+        `#arms-headline`, naming the direction it claims and the direction that holds.
+      * move the `#arms-redraw` div above `#arms-headline` in the door -> the rung above reds on
+        both landmark pointers.
+      * delete the `#arms-redraw` div -> reds on the pointer having nothing to point at.
+    """
+    order = _the_doors_reading_order()
+    honest = "the re-draw band table under the headline figure"
+    poisoned = "the re-draw band table higher up this section"
+
+    # A. THE SENTENCE IS WRONG, THE PAGE IS NOT. Judged in both homes the live producer has.
+    both_homes = {"arms-headline", "arms-composition"}
+    assert not _pointer_defects(honest, both_homes, order), (
+        "the landmark wording is reported as a misdirection, so the judge refuses correct prose "
+        "and every red it raises is uninformative")
+    caught = _pointer_defects(poisoned, both_homes, order)
+    assert any("arms-headline" in d for d in caught), (
+        "the retired wording -- which was live and false in the headline until 2026-09-08 -- is "
+        "not caught, so the rung above passes on the very defect it was written for: " + str(caught))
+    # AND IT IS CAUGHT FOR BEING FALSE, NOT FOR BEING UNKNOWN. A fail-closed red on an unregistered
+    # phrase would satisfy the line above while saying nothing about direction.
+    assert not any("this control does not know" in d for d in caught), (
+        "the poison reds as an unrecognised phrase rather than as a misdirection, so the "
+        "direction half of this control is untested")
+    # THE OTHER HALF OF THE PARTITION. Rendered ONLY below the table, "higher up" is TRUE -- so the
+    # judge is reading the sentence against the region and not banning a word.
+    assert not _pointer_defects(poisoned, {"arms-composition"}, order), (
+        "'higher up this section' is refused even from a region below the table, so the judge "
+        "rejects the phrase rather than judging the claim")
+
+    # B. THE PAGE IS WRONG, THE SENTENCE IS NOT. The move has to break the claim the sentence
+    # actually makes: a LANDMARK pointer at the headline survives the table being pushed to the
+    # foot of the section -- correctly, it is still under the headline -- and stops holding only
+    # when the table goes ABOVE the landmark. Getting this backwards was the first draft of this
+    # leg, and it reported the control blind when the control was right.
+    hoisted = dict(order, **{_THE_BAND_TABLE: order["arms-headline"] - 1})
+    assert _pointer_defects(honest, both_homes, hoisted), (
+        "the band table moved above the headline it names as its landmark and the pointer still "
+        "reads true, so this control is blind to the page being reordered under it")
+    # AND THE `here`-RELATIVE HALF, which IS the one a move within the section breaks. Pushing the
+    # table below the composition panel makes that panel's "higher up" false where the landmark
+    # pointer is untouched -- so the two kinds of claim are shown to fail on different moves.
+    sunk = dict(order, **{_THE_BAND_TABLE: order["arms-composition"] + 1})
+    assert not _pointer_defects(honest, both_homes, sunk), (
+        "a landmark pointer reds on a move that leaves it true, so the judge is keyed to the "
+        "table's position rather than to what the sentence claims")
+    assert _pointer_defects(poisoned, {"arms-composition"}, sunk), (
+        "the table moved below the panel whose sentence says it is higher up, and nothing said "
+        "so -- the 'here'-relative claim is not being re-asked against the order")
+    gone = {k: v for k, v in order.items() if k != _THE_BAND_TABLE}
+    assert _pointer_defects(honest, both_homes, gone), (
+        "the anchor a reader is being sent to is not on the page and nothing said so")
+
+    # C. A REWORDING IS NOT A PASS.
+    reworded = "the same three are in the re-draw band table, over that way somewhere"
+    assert any("does not know" in d for d in _pointer_defects(reworded, both_homes, order)), (
+        "a pointer in unregistered words is waved through, which is the fail-open this vocabulary "
+        "exists to close")
+
+
+def test_every_band_table_pointer_in_the_producer_is_one_this_control_judges():
+    """A fourth producer must not be able to arrive untied. The census, not a memory of one.
+
+    THE SHAPE THIS FILE KEEPS PAYING FOR. The re-draw family had four homes and each was found by
+    tripping over it: `_leg_clause`'s recital, then `#arms-redraw`, then `_composition_in_this
+    _world`'s, then the pointer prose. The rung above judges the pointers it is HANDED; nothing in
+    it would notice a fifth sentence in a new producer, and "I grepped once" is not a control.
+
+    SCOPED TO THE MODULE THAT OWNS THIS PAGE'S PROSE, and to string literals rather than the file's
+    text, so the docstrings that discuss the pointers -- including the one recording the defect --
+    do not have to be written around a regex.
+
+    Fires on: a new producer emitting a band-table pointer without registering its wording; and,
+    by construction, on any of the three registered ones being reworded past the vocabulary.
+    """
+    source = (PROJECT / "tools" / "generate_value_arms_data.py")
+    tree = ast.parse(source.read_text(encoding="utf-8"))
+    docstrings = {id(node.body[0].value) for node in ast.walk(tree)
+                  if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef,
+                                       ast.Module))
+                  and node.body and isinstance(node.body[0], ast.Expr)
+                  and isinstance(node.body[0].value, ast.Constant)
+                  and isinstance(node.body[0].value.value, str)}
+    unjudged = []
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Constant) and isinstance(node.value, str)):
+            continue
+        if id(node) in docstrings or _POINTS_AT_THE_TABLE not in node.value:
+            continue
+        if not any(phrase in node.value for phrase in _POINTER_PHRASES):
+            unjudged.append("line {}: {}".format(node.lineno, node.value[:120]))
+    assert not unjudged, (
+        "tools/generate_value_arms_data.py sends a reader to the band table in words no rung "
+        "checks the direction of, so a fifth home for one fact can arrive with nothing red:\n  "
+        + "\n  ".join(unjudged))
 
 
 def test_the_shares_refusal_reaches_the_headline_and_not_only_the_payload():

@@ -4220,12 +4220,25 @@ def _the_level_legs_family(measured: list, stability: dict | None) -> str:
     home for. Retiring either would be a deletion dressed as a collapse.
 
     IT IS NOT `_redraw_band_clause`'S SENTENCE, and reusing that one would have been wrong rather
-    than tidy. That sentence says "the band table directly below this headline" and "the figure
-    above": both true where it renders and both false from here. `#arms-composition` sits BELOW
-    `#arms-redraw`, and the figure above this refusal is the SHARE, not the level leg's sterling.
-    A pointer that misdirects is worse than the recital it replaced. The two producers share the
-    property, not the prose, and the property is what the control checks -- that the edges the
-    table renders are the same numbers this block took its sign test over.
+    than tidy. The figure above this refusal is the SHARE, not the level leg's sterling, so that
+    sentence's "the figure above" is false from here. A pointer that misdirects is worse than the
+    recital it replaced. The two producers share the property, not the prose, and the property is
+    what the control checks -- that the edges the table renders are the same numbers this block
+    took its sign test over.
+
+    AND THE DIRECTION WORD USED TO BE WRONG, WHICH THE PARAGRAPH ABOVE ASSERTED IT WAS NOT
+    (2026-09-08, later the same day). It read: *"`#arms-composition` sits BELOW `#arms-redraw`"* --
+    true, and not the whole truth, because this sentence has TWO homes and that is only one of
+    them. `why_not_readable` is rendered by `#arms-composition` AND composed into the page headline
+    by `_current_world_clause`, which `#arms-headline` renders -- and `#arms-redraw` sits BELOW the
+    headline. So "higher up this section" was false in one of the two places a reader could meet
+    it. Nothing was red: every control over this sentence asked whether it said "band table", never
+    where the table was. THE REMEDY IS A LANDMARK AND NOT A DIRECTION. "under the headline figure"
+    names where the table IS, so it is true from anywhere on the page and cannot rot into a lie by
+    the sentence gaining a third home. `_redraw_band_clause` already pointed that way, so the two
+    producers now name one landmark rather than two directions -- and
+    `test_a_sentence_pointing_at_the_band_table_is_true_from_EVERY_region_it_renders_in` derives
+    each sentence's homes from the producers themselves rather than trusting a paragraph like this.
 
     FAIL CLOSED WHERE THE TABLE HAS NO ROW TO POINT AT. `_verdict_stability` returns `checked:
     False` when no bound was read in this world, when the spread is missing, or when any seed row
@@ -4236,12 +4249,16 @@ def _the_level_legs_family(measured: list, stability: dict | None) -> str:
     by returning nothing at all. `None` counts as no row: a caller that did not hand the family
     over cannot have proved one exists.
     """
+    # A LANDMARK, NEVER A DIRECTION FROM HERE -- see the docstring. This sentence renders in two
+    # regions that sit on opposite sides of the table it points at, so "higher up" was false in one
+    # of them; "under the headline figure" is true from both and from any third home.
     if (stability or {}).get("checked"):
         return ("Its own lowest, mean and highest are the price-level row of the re-draw band "
-                "table higher up this section, against the same figure this share is a share of.")
+                "table under the headline figure, against the same figure this share is a share "
+                "of.")
     return ("It runs {lo} to {hi} across those draws. Those two numbers are stated here rather "
-            "than in the band table higher up this section, because that table's price-level row "
-            "carries no re-draw family to point at.").format(
+            "than in the re-draw band table under the headline figure, because that table's "
+            "price-level row carries no re-draw family to point at.").format(
                 lo=_gbp(min(measured)), hi=_gbp(max(measured)))
 
 
