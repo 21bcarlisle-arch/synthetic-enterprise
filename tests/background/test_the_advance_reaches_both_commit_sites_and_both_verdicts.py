@@ -57,6 +57,15 @@ def publisher(tmp_path, monkeypatch):
         calls.append(list(cmd))
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
+
+    # THE COMMIT IS A SURGICAL LANDING (2026-09-08). "Did the cycle reach its commit" is this
+    # call now, not a `git commit` argv, so it is recorded in the same shape `_committed` reads.
+    # This file's subject -- when the provenance stamp is re-graded around the advance -- is
+    # unchanged by the route.
+    def fake_land(pathspec, msg, git_hash):
+        calls.append(["git", "commit", "-m", msg, "--"] + list(pathspec))
+        return {"sha": "0" * 40, "refusal": "", "lost": []}
+    monkeypatch.setattr(prc, "_land_publish_commit", fake_land)
     return calls
 
 

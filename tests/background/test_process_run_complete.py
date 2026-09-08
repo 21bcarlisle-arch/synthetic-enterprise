@@ -157,6 +157,28 @@ def _origin_is_level(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _the_landing_lands(monkeypatch):
+    """Hold the publish COMMIT at "landed" for this file, for the same reason as the fixture above.
+
+    The publish commit became a `surgical_land` landing on 2026-09-08 -- it builds
+    HEAD-plus-its-pathspec and gates that tree in a clean extract, precisely so that another
+    lane's uncommitted work can no longer refuse it. The sandbox `PROJECT_DIR` these tests run in
+    is not a git repository, so the real tool would refuse every one of them and each test below
+    would measure that refusal instead of its own subject -- exactly what `_origin_is_level`
+    exists to prevent one step earlier.
+
+    STATED, NOT NEUTERED. The tests in this file that are ABOUT the landing's outcomes override
+    this in their own body (which runs after the fixture and therefore wins), and the classifier
+    is driven against the real tool, in a real repository, by
+    `test_the_publisher_classifies_the_tools_real_refusals.py` -- which does NOT use this
+    fixture, so pinning it here cannot make that control green.
+    """
+    monkeypatch.setattr(
+        prc, "_land_publish_commit",
+        lambda pathspec, msg, git_hash: {"sha": "0" * 40, "refusal": "", "lost": []})
+
+
+@pytest.fixture(autouse=True)
 def _isolate_project_dir(tmp_path_factory, monkeypatch):
     """Point PROJECT_DIR -- and EVERY module path derived from it -- at a throwaway tree,
     for every test in this file. Zero real-tree WRITES (real-tree reads of static input
@@ -754,10 +776,15 @@ def test_git_commit_push_no_push_recorded_if_commit_fails(tmp_path, monkeypatch)
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
 
-    def fake_run(cmd, **kwargs):
-        return fake_completed(cmd, returncode=1 if cmd[:2] == ["git", "commit"] else 0, **kwargs)
-
-    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+    monkeypatch.setattr(prc.subprocess, "run", fake_completed)
+    # The refusal is the LANDING's now, not a `git commit` return code -- see
+    # `_the_landing_lands`, which this line overrides because this test IS about the refusal.
+    monkeypatch.setattr(
+        prc, "_land_publish_commit",
+        lambda pathspec, msg, git_hash: {
+            "sha": "", "lost": [],
+            "refusal": "GATE RED on the resulting tree (rc=1). This is the tree the commit "
+                       "WOULD create, not the working tree."})
 
     result = prc.git_commit_push("abc1234", 1000.0)
 
@@ -973,12 +1000,15 @@ def test_git_commit_push_commits_whole_generated_site_data_surface(tmp_path, mon
 
     added = []
 
-    def fake_run(cmd, **kwargs):
-        if cmd[:2] == ["git", "add"]:
-            added.extend(cmd[2:])
-        return fake_completed(cmd, **kwargs)
-
-    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+    monkeypatch.setattr(prc.subprocess, "run", fake_completed)
+    # READ THE PATHSPEC, NOT `git add` (2026-09-08). The publish commit is a surgical landing:
+    # there is no index and no `git add`, so a control that watched for one would be watching an
+    # empty list and would be green for the very omission it names. The pathspec handed to the
+    # landing is what the commit carries, so that is where the glob has to show up.
+    monkeypatch.setattr(
+        prc, "_land_publish_commit",
+        lambda pathspec, msg, git_hash: (added.extend(pathspec)
+                                         or {"sha": "0" * 40, "refusal": "", "lost": []}))
 
     prc.git_commit_push("abc1234", 1000.0)
 
@@ -1601,29 +1631,45 @@ def test_gate_failure_log_tail_is_bounded(monkeypatch, tmp_path):
 # recorded a "test_regression" that was nothing of the sort. R15 -- these prove the
 # catch is real, not asserted.
 
-def _commit_push_with(monkeypatch, run_side_effect):
-    """Drive git_commit_push with a stubbed subprocess.run and a no-op tree_lock."""
+#: What `surgical_land.run_gate` raises when the pre-commit hook chain outruns its own deadline
+#: and is KILLED. Copied from `run_gate`'s fail-closed branch: an unavailable gate is a failed
+#: gate, so the tool converts the kill into a refusal -- and the publisher has to read the kill
+#: back out of the text, because a killed child has no verdict and the reader must not be sent to
+#: the tests. `test_the_publisher_classifies_the_tools_real_refusals.py` drives the real tool and
+#: is what keeps this string honest.
+GATE_KILLED_REFUSAL = (
+    "the gate could not be EXECUTED (Command '['sh', 'tools/git-hooks/pre-commit']' timed out "
+    "after 3600 seconds) -- refusing rather than landing ungated.")
+
+
+def _commit_push_with(monkeypatch, run_side_effect, land=None):
+    """Drive git_commit_push with a stubbed subprocess.run and a no-op tree_lock.
+
+    `land`, when given, is the refusal text the surgical landing answers with -- the publish
+    COMMIT is a landing now (2026-09-08), so that is where a commit-side failure enters.
+    """
     import contextlib
     monkeypatch.setattr(prc, "tree_lock", lambda: contextlib.nullcontext())
     monkeypatch.setattr(prc.subprocess, "run", run_side_effect)
+    if land is not None:
+        monkeypatch.setattr(
+            prc, "_land_publish_commit",
+            lambda pathspec, msg, git_hash: {"sha": "", "refusal": land, "lost": []})
     return prc.git_commit_push("abc1234", 1_500_000)
 
 
 def test_commit_timeout_is_caught_and_does_not_crash_the_publish(monkeypatch, tmp_path):
     """THE REGRESSION. A slow hook chain must degrade to "retry next cycle".
 
-    MUTATION: remove the `except subprocess.TimeoutExpired` in git_commit_push and
-    this raises instead of returning False -- which is exactly the 2026-08-03 crash.
+    MUTATION: delete the `_gate_was_killed` branch's `return` (let the killed gate fall through
+    to the generic refusal) and this still returns False -- so the assertion below is paired with
+    `test_commit_timeout_says_so_in_the_log`, which is the leg that fires. The crash this test
+    was written for (2026-08-03, an uncaught `TimeoutExpired` out of `git commit`) is now
+    structurally impossible: `_land_publish_commit` turns EVERY failure into a value.
     """
-    import subprocess as _sp
-
-    def _run(argv, **kw):
-        if argv[:2] == ["git", "commit"]:
-            raise _sp.TimeoutExpired(cmd=argv, timeout=kw.get("timeout", 0))
-        return _FakeCompleted(0)
-
-    assert _commit_push_with(monkeypatch, _run) is False, \
-        "a timed-out commit must report failure, not crash the publish"
+    assert _commit_push_with(monkeypatch, lambda argv, **kw: _FakeCompleted(0),
+                             land=GATE_KILLED_REFUSAL) is False, \
+        "a killed gate must report failure, not crash the publish"
 
 
 def test_commit_timeout_says_so_in_the_log(monkeypatch, tmp_path):
@@ -1632,21 +1678,20 @@ def test_commit_timeout_says_so_in_the_log(monkeypatch, tmp_path):
     name itself, or the next reader blames the test suite again (R9: evidence
     before narrative).
 
-    MUTATION: drop the log() call from the except branch and this fails.
+    MUTATION: make `_gate_was_killed` return False and this fails -- the kill is narrated as an
+    ordinary gate refusal, which sends the reader to a test suite that returned no verdict.
     """
-    import subprocess as _sp
     written = []
     monkeypatch.setattr(prc, "log", lambda m: written.append(m))
 
-    def _run(argv, **kw):
-        if argv[:2] == ["git", "commit"]:
-            raise _sp.TimeoutExpired(cmd=argv, timeout=kw.get("timeout", 0))
-        return _FakeCompleted(0)
-
-    assert _commit_push_with(monkeypatch, _run) is False
+    assert _commit_push_with(monkeypatch, lambda argv, **kw: _FakeCompleted(0),
+                             land=GATE_KILLED_REFUSAL) is False
     joined = "\n".join(written)
-    assert "TIMED OUT" in joined, joined
+    assert "KILLED" in joined, joined
     assert "hook chain" in joined, "the log must point at the hook chain, not the run"
+    assert "no test" in joined.lower(), (
+        "a killed gate returned NO verdict, and the log has to say so or the reader spends the "
+        "next hour on the test suite")
 
 
 def test_commit_timeout_budget_fits_inside_the_workers_own_cap():
@@ -1713,17 +1758,30 @@ def test_the_commit_runs_its_hook_chain_unbuffered(monkeypatch):
     """THE WIRING. The env above only helps if `git commit` is actually given it -- git
     passes its own environment to every hook, so this one call reaches the whole chain.
 
+    THE SUBJECT IS THE LIVENESS COMMIT NOW (2026-09-08). The content publish is a surgical
+    landing, whose gate is a `sh tools/git-hooks/pre-commit` this module does not build the
+    environment for; `_commit_and_push_paths` is the `git commit` that remains, it runs the same
+    chain, and it is the one that can still be killed blind. Driving this against the content
+    path after the route change would have asserted about a call that no longer happens.
+
     MUTATION: drop `env=_commit_hook_env()` from the `git commit` subprocess.run in
-    git_commit_push and this fails, restoring the blind kill.
+    `_commit_and_push_paths` and this fails, restoring the blind kill.
     """
     seen = {}
+    target = Path(prc.PROJECT_DIR) / "site" / "data" / "publish_provenance.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("{}")
+    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
+    monkeypatch.setattr(prc, "_git_add_or_refuse", lambda *a, **k: True)
 
     def _run(argv, **kw):
         if argv[:2] == ["git", "commit"]:
             seen["env"] = kw.get("env")
         return _FakeCompleted(0)
 
-    _commit_push_with(monkeypatch, _run)
+    monkeypatch.setattr(prc.subprocess, "run", _run)
+    prc._commit_and_push_paths([str(target)], "msg", label="Provenance banner",
+                               git_hash="abc1234")
 
     env = seen.get("env")
     assert env is not None, "`git commit` must be given an explicit environment"
@@ -2032,18 +2090,24 @@ def test_an_UNEXPECTED_landing_failure_is_non_fatal(monkeypatch, tmp_path):
 # machine looked healthy and the figures were a day old. Three defects, one test each below.
 
 def _outcome_of(monkeypatch, tmp_path, *, commit):
-    """Drive git_commit_push with a stubbed git and return the recorded outcome reason."""
+    """Drive git_commit_push with the landing answering `commit()`, and return the outcome.
+
+    `commit()` returns the REFUSAL TEXT the surgical landing raises. The publish commit stopped
+    being a `git commit` subprocess on 2026-09-08; the four outcomes below are unchanged, but the
+    observation each one is decided from is now a sentence from `surgical_land` rather than a
+    return code and a stream.
+    """
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
     monkeypatch.setattr(prc, "_push_due", lambda: False)  # stop after the commit
-
-    def fake_run(cmd, **kwargs):
-        if cmd[:2] == ["git", "commit"]:
-            return commit()
-        return types.SimpleNamespace(returncode=0, stdout="", stderr="")
-    monkeypatch.setattr(prc.subprocess, "run", fake_run)
+    monkeypatch.setattr(prc.subprocess, "run",
+                        lambda cmd, **kw: types.SimpleNamespace(
+                            returncode=0, stdout="", stderr=""))
+    monkeypatch.setattr(
+        prc, "_land_publish_commit",
+        lambda pathspec, msg, git_hash: {"sha": "", "refusal": commit(), "lost": []})
 
     outcome = {}
     prc.git_commit_push("abc1234", 1000.0, outcome=outcome)
@@ -2054,18 +2118,21 @@ def test_a_commit_timeout_is_not_recorded_as_nothing_to_commit(tmp_path, monkeyp
     """The distinction the whole freeze turned on. `git_commit_push` returns False for six
     different things; two mean 'nothing to publish' and four mean 'the publish FAILED'."""
     def timeout():
-        raise subprocess.TimeoutExpired(cmd=["git", "commit"], timeout=1)
+        return GATE_KILLED_REFUSAL
 
-    def empty_index():
-        return types.SimpleNamespace(
-            returncode=1, stdout="nothing to commit, working tree clean", stderr="")
+    def nothing_changed():
+        # `surgical_land._land_once`'s own words. The no-op is decided by comparing the resulting
+        # TREE with HEAD's, which is a strictly better discriminator than the sentence git used
+        # to print -- but it is still a sentence this classifier has to recognise.
+        return ("the named paths are already at HEAD -- the resulting tree is identical, so "
+                "there is nothing to land. (If you expected a change, check the pathspec.)")
 
     def hook_refusal():
-        return types.SimpleNamespace(
-            returncode=1, stdout="", stderr="[status-honesty] COMMIT REFUSED.")
+        return ("GATE RED on the resulting tree (rc=1). This is the tree the commit WOULD "
+                "create, not the working tree.\n[status-honesty] COMMIT REFUSED.")
 
     assert _outcome_of(monkeypatch, tmp_path, commit=timeout) == prc.COMMIT_TIMEOUT
-    assert _outcome_of(monkeypatch, tmp_path, commit=empty_index) == prc.NOTHING_TO_COMMIT
+    assert _outcome_of(monkeypatch, tmp_path, commit=nothing_changed) == prc.NOTHING_TO_COMMIT
     assert _outcome_of(monkeypatch, tmp_path, commit=hook_refusal) == prc.COMMIT_REFUSED
 
     # And only the no-op ones let the next identical cycle be skipped.
@@ -2128,10 +2195,21 @@ def test_liveness_is_never_easier_to_publish_than_content():
     'I am alive' signal published on schedule and its figures could not publish at all -- which
     is precisely the state the director found by eye after eighteen hours.
 
-    MUTATION: give `_commit_and_push_paths` its own larger timeout again and this fails.
+    THE TWO DEADLINES STOPPED BEING ONE CONSTANT (2026-09-08). Until then both paths ran `git
+    commit` and this asserted they read the same name. The content publish is a surgical landing
+    now, so its hook chain runs under `surgical_land.GATE_TIMEOUT_SECONDS` while the liveness
+    commit still runs under `GIT_COMMIT_HOOK_TIMEOUT_SECONDS` -- two mechanisms, two numbers, and
+    the identity assertion is no longer available. What the identity was PROTECTING still is, and
+    it is an inequality: the content path must never die on a hook chain the liveness path
+    survives. It may be more generous; it may not be less.
+
+    MUTATION: give the liveness path a deadline above `surgical_land.GATE_TIMEOUT_SECONDS` (or
+    drop the landing's own timeout below `GIT_COMMIT_HOOK_TIMEOUT_SECONDS`) and this fails.
     """
     import ast
     import inspect
+
+    from tools import surgical_land
 
     def commit_timeouts(fn):
         """The `timeout=` on every `git commit` subprocess call in fn's source."""
@@ -2154,14 +2232,19 @@ def test_liveness_is_never_easier_to_publish_than_content():
                     found.append(ast.unparse(kw.value))
         return found
 
-    content = commit_timeouts(prc.git_commit_push)
     liveness = commit_timeouts(prc._commit_and_push_paths)
-    assert content and liveness, "expected a git commit call with a timeout on both paths"
-    assert set(content) == set(liveness) == {"GIT_COMMIT_HOOK_TIMEOUT_SECONDS"}, (
-        "the content commit and the liveness commit must take their deadline from ONE constant; "
-        f"content={content} liveness={liveness}. A liveness path that survives a hook-chain "
-        "slowdown the content path dies on is the mechanism that hides a publish freeze."
-    )
+    assert liveness, "expected a `git commit` call with a timeout on the liveness path"
+    assert set(liveness) == {"GIT_COMMIT_HOOK_TIMEOUT_SECONDS"}, liveness
+    # THE CONTENT PATH HAS NO `git commit` AT ALL, and that is the thing to assert rather than
+    # assume -- if one came back, its deadline would be unbounded by anything here.
+    assert not commit_timeouts(prc.git_commit_push), (
+        "the content publish shelled out to `git commit` again -- that is the shared-tree hook "
+        "chain this route replaced, and its deadline is outside this comparison")
+    assert surgical_land.GATE_TIMEOUT_SECONDS >= prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS, (
+        "the content commit's gate ({}s) dies sooner than the liveness commit's ({}s) -- that is "
+        "the band in which the site keeps saying 'I am alive' while its figures cannot publish "
+        "at all".format(surgical_land.GATE_TIMEOUT_SECONDS,
+                        prc.GIT_COMMIT_HOOK_TIMEOUT_SECONDS))
 
 
 # ── A TEST PROCESS MAY NOT WRITE THE LIVE sim-runner-log (2026-08-21) ─────────────────────────
@@ -2237,17 +2320,24 @@ _LOCK_STDERR = "fatal: Unable to create '/home/rich/synthetic-enterprise/.git/in
 
 
 def _publish_with_add(monkeypatch, tmp_path, *, add):
-    """Drive git_commit_push with `git add` answering `add()`.
+    """Drive the BANNER/HEARTBEAT publish with `git add` answering `add()`.
 
-    Returns (outcome reason, the git subcommands actually attempted, the lines logged).
+    Returns (landed?, the git subcommands actually attempted, the lines logged).
+
+    THE SUBJECT MOVED, AND THE CLASS DID NOT (2026-09-08). This drove `git_commit_push` until
+    the content publish became a surgical landing -- which has no index and therefore no `git
+    add` to leave unchecked. `_commit_and_push_paths` (the banner and liveness-heartbeat
+    chokepoint) still stages one, so it is where the unchecked-add class now lives, and it is
+    the second instance the R10 census below already names. Driving these against the content
+    path after the route change would have been an assertion about a `git add` that no longer
+    happens: green for every mutation, including the one it names.
     """
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
+    target = tmp_path / "site" / "data" / "publish_provenance.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("{}")
     monkeypatch.setattr(prc, "tree_lock", lambda *a, **k: contextlib.nullcontext())
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
-    # A non-empty pathspec, so the COMMIT_REFUSED below can only be the add's doing and not
-    # the pre-existing empty-pathspec refusal a few lines under it.
-    monkeypatch.setattr(prc, "_commit_pathspec", lambda *a, **k: ["docs/reports/ANNUAL_REPORT.md"])
-    monkeypatch.setattr(prc, "_push_due", lambda: False)
     logged = []
     monkeypatch.setattr(prc, "log", lambda msg, *a, **kw: logged.append(str(msg)))
     attempted = []
@@ -2259,9 +2349,9 @@ def _publish_with_add(monkeypatch, tmp_path, *, add):
         return fake_completed(cmd, **kwargs)
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
-    outcome = {}
-    prc.git_commit_push("abc1234", 1000.0, outcome=outcome)
-    return outcome.get("reason"), attempted, "\n".join(logged)
+    landed = prc._commit_and_push_paths([str(target)], "msg", label="Provenance banner",
+                                        git_hash="abc1234")
+    return landed, attempted, "\n".join(logged)
 
 
 def test_a_failed_git_add_refuses_the_cycle_and_names_the_lock(tmp_path, monkeypatch):
@@ -2274,12 +2364,10 @@ def test_a_failed_git_add_refuses_the_cycle_and_names_the_lock(tmp_path, monkeyp
     def locked():
         return types.SimpleNamespace(returncode=128, stdout="", stderr=_LOCK_STDERR)
 
-    reason, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=locked)
+    landed, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=locked)
 
-    # 1. The cycle is refused, with an outcome that is NOT retryable-as-a-no-op, so the next
-    #    cycle genuinely retries instead of fingerprinting this as a clean skip.
-    assert reason == prc.COMMIT_REFUSED
-    assert prc.COMMIT_REFUSED not in prc.RETRYABLE_PUBLISH_OUTCOMES
+    # 1. The publish is refused, and says so -- never a silent False.
+    assert landed is False
     # 2. `git commit` is never reached. Pre-fix it WAS, and its pathspec complaint is the
     #    wrong diagnosis that cost 1h43m.
     assert ["git", "commit"] not in attempted, (
@@ -2297,10 +2385,9 @@ def test_a_successful_git_add_still_reaches_the_commit(tmp_path, monkeypatch):
     def clean():
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
 
-    reason, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=clean)
+    _landed, attempted, logged = _publish_with_add(monkeypatch, tmp_path, add=clean)
 
     assert ["git", "commit"] in attempted
-    assert reason != prc.COMMIT_REFUSED
     assert "NOTHING IS STAGED" not in logged
 
 
@@ -2433,9 +2520,23 @@ def test_the_commit_call_is_TIMED_on_both_paths():
 
     MUTATION (must fire): record only after a successful commit.
     """
-    import inspect
+    import ast
 
-    source = inspect.getsource(prc.git_commit_push)
+    # The content path's commit is a surgical landing since 2026-09-08, and the duration is
+    # recorded where that call is made -- on the refusal branch and the success branch both,
+    # with the KILL kept as its own label. Read BOTH functions, because the liveness path still
+    # commits directly and still has to be measured.
+    #
+    # FROM THE MODULE'S TEXT, NOT `inspect.getsource(prc._land_publish_commit)`: this file's
+    # autouse `_the_landing_lands` fixture has replaced that attribute with a lambda, and
+    # `getsource` would read the FIXTURE and report zero -- a control graded on its own stub.
+    module_src = Path(prc.__file__).read_text()
+    wanted = {"_land_publish_commit", "_commit_and_push_paths"}
+    bodies = [ast.get_source_segment(module_src, node) or ""
+              for node in ast.parse(module_src).body
+              if isinstance(node, ast.FunctionDef) and node.name in wanted]
+    assert len(bodies) == len(wanted), "expected both commit sites; found {}".format(len(bodies))
+    source = "\n".join(bodies)
 
     assert source.count("_record_commit_hook_duration(") >= 2
     assert '"timeout"' in source
@@ -2517,14 +2618,19 @@ class TestTheTwoRoomsRepairRunsAtTheCommitRatherThanACycleEarlier:
 
         observed = []
 
-        def fake_run(argv, **kwargs):
-            if argv[:2] == ["git", "commit"]:
-                # THE OBSERVATION, taken at the instant the real gate would read the tree.
-                observed.append(root_copy.exists())
-                return type("R", (), {"returncode": 1, "stdout": "", "stderr": ""})()
-            return type("R", (), {"returncode": 0, "stdout": "", "stderr": ""})()
+        def fake_land(pathspec, msg, git_hash):
+            # THE OBSERVATION, taken at the instant the real gate would read the tree. The
+            # landing IS that instant now: `surgical_land` builds the resulting tree from these
+            # working-tree paths and runs the hook chain over it, so a duplicate still on disk
+            # here is a duplicate the gate sees.
+            observed.append(root_copy.exists())
+            return {"sha": "", "lost": [],
+                    "refusal": "GATE RED on the resulting tree (rc=1). TWO ROOMS."}
 
-        monkeypatch.setattr(prc.subprocess, "run", fake_run)
+        monkeypatch.setattr(prc, "_land_publish_commit", fake_land)
+        monkeypatch.setattr(prc.subprocess, "run",
+                            lambda argv, **kw: type(
+                                "R", (), {"returncode": 0, "stdout": "", "stderr": ""})())
         return observed, logged
 
     def test_a_duplicate_written_during_the_run_is_gone_by_the_time_the_commit_runs(

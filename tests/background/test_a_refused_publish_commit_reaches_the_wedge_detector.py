@@ -257,25 +257,36 @@ def test_the_runner_does_not_send_the_reader_after_a_pending_marker():
 # the wedge went looking for a red test that did not exist.
 
 def test_a_lost_tree_lock_is_a_named_outcome_and_not_an_uncaught_traceback(tmp_path, monkeypatch):
-    """MUTATION: put `tree_lock()` back in a bare `with` and this raises instead of returning,
-    which is exactly the shape that became rc=1.
+    """MUTATION: file the landing's lost-lock refusal under the generic gate-red branch and this
+    names COMMIT_REFUSED, which is exactly the shape that sent the reader to a hook chain that
+    never ran.
 
     The assertion is deliberately BOTH halves -- that it does not raise, AND that it names
     TREE_LOCK_UNAVAILABLE. Catching the timeout and filing it as COMMIT_REFUSED would satisfy
     the first alone while still pointing the reader at a hook chain that never ran.
+
+    WHERE THE CONTENTION LIVES NOW (2026-09-08). The publish commit is a `surgical_land`
+    landing, which takes the tree lock ITSELF for its compare-and-swap -- for the three plumbing
+    calls of the swap rather than for the whole hook chain, so this is rarer than it was. The
+    tool turns a lost lock into a `LandingRefused` whose text says the gate PASSED and the
+    commit was not made; the publisher has to read that back out and file it as contention,
+    because "the gate said no" and "nobody ever asked the gate" send a reader to opposite places.
     """
     import background.process_run_complete as prc
-    from background.tree_lock import TreeLockTimeout
 
     monkeypatch.setattr(prc, "PROJECT_DIR", tmp_path)
     monkeypatch.setattr(prc, "LATEST_MD", tmp_path / "LATEST.md")
     monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
 
-    def _held(*a, **k):
-        raise TreeLockTimeout("Could not acquire tree lock (x) within 60.0s")
-
-    monkeypatch.setattr(prc, "tree_lock", _held)
+    # `surgical_land._write_lock`'s own words, verbatim.
+    lost_lock = (
+        "the gate PASSED and the commit was NOT made: another writer held the tree lock for the "
+        "whole 900s wait (Could not acquire tree lock (x) within 900.0s). Nothing is wrong with "
+        "the change.")
+    monkeypatch.setattr(
+        prc, "_land_publish_commit",
+        lambda pathspec, msg, git_hash: {"sha": "", "refusal": lost_lock, "lost": []})
 
     outcome = {}
     result = prc.git_commit_push("abc1234", 1000.0, outcome)

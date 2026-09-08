@@ -831,6 +831,14 @@ def materialise(root: Path, checkout: Path, result_tree: str, parent: str,
 # Step 4: the gate, against the extract.
 # ---------------------------------------------------------------------------------------------
 
+#: How long the gate may run before the hook chain is KILLED. Named rather than inline since
+#: 2026-09-08, because the PUBLISH commit now comes through this door and a control has to be
+#: able to compare this deadline against the one the liveness/banner commit runs under. An
+#: asymmetry in that pair is the mechanism that lets a site keep saying "I am alive" while its
+#: figures cannot publish at all -- eighteen hours of it on 2026-08-13, found by eye.
+GATE_TIMEOUT_SECONDS = 3600
+
+
 def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
              gated_tree: str | None = None) -> tuple[int, str, str]:
     """Run the repo's own pre-commit hook inside the extract. Returns (rc, stdout, stderr).
@@ -864,7 +872,7 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
         env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree
     try:
         r = subprocess.run(["sh", hook_rel], cwd=str(checkout), env=env,
-                           capture_output=True, text=True, timeout=3600)
+                           capture_output=True, text=True, timeout=GATE_TIMEOUT_SECONDS)
     except (OSError, subprocess.SubprocessError) as exc:
         raise LandingRefused(
             "the gate could not be EXECUTED ({}) -- refusing rather than landing ungated.".format(

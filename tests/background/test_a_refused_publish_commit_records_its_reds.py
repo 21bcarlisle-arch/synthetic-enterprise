@@ -92,6 +92,17 @@ CLEAN_NO_OP_STDOUT = (
     "nothing to commit, working tree clean\n"
 )
 
+# THE SAME NO-OP, ONE ROUTE LATER (2026-09-08). The publish commit is a `surgical_land` landing
+# now, and a cycle whose surfaces did not change is refused by the TREE COMPARISON rather than by
+# an empty index -- a strictly better discriminator, because it is a property of the tree instead
+# of a sentence in git's stderr. Kept verbatim from `surgical_land._land_once`; the control that
+# the two texts have not drifted apart is
+# `test_the_publisher_classifies_the_tools_real_refusals.py`, which drives the real tool.
+ALREADY_AT_HEAD_REFUSAL = (
+    "the named paths are already at HEAD -- the resulting tree is identical, so there is "
+    "nothing to land. (If you expected a change, check the pathspec.)"
+)
+
 
 class _FakeCompleted:
     def __init__(self, returncode=0, stdout="", stderr=""):
@@ -171,10 +182,24 @@ def publish(tmp_path, monkeypatch):
         path.write_text("{}")
     (repo / "docs" / "staging" / "done").mkdir(parents=True, exist_ok=True)
 
-    def _run(stdout="", stderr="", rc=1):
+    def _run(stdout="", stderr="", rc=1, refusal=None):
+        # THE COMMIT IS A SURGICAL LANDING (2026-09-08). The refusal that carries the hook
+        # chain's verdict is now `LandingRefused`'s text rather than a CompletedProcess, and
+        # `surgical_land.run_gate` keeps the two streams apart and then renders them into ONE
+        # excerpt -- stdout first, because the hook is a `cmd || exit 1` chain whose refusing
+        # gate writes the END of stdout. The stub reproduces that shape, so the both-streams
+        # differential below is still about what it was about.
+        def fake_land(pathspec, msg, git_hash):
+            if rc == 0:
+                return {"sha": "0" * 40, "refusal": "", "lost": []}
+            text = refusal if refusal is not None else (
+                "GATE RED on the resulting tree (rc=1). This is the tree the commit WOULD "
+                "create, not the working tree.\n" + stdout + stderr)
+            return {"sha": "", "refusal": text, "lost": []}
+
+        monkeypatch.setattr(prc, "_land_publish_commit", fake_land)
+
         def fake_run(cmd, **kwargs):
-            if cmd[:2] == ["git", "commit"]:
-                return _FakeCompleted(rc, stdout, stderr)
             if cmd[:2] == ["git", "rev-parse"]:
                 # A scratch tree with no history: git has heard of nothing on disk, which is
                 # what the pathspec filter asks. `add` and everything else succeeds.
@@ -275,6 +300,38 @@ def test_the_banner_path_records_its_refusal_too(tmp_path, monkeypatch):
     assert git_hash == "deadbee"
 
 
+def test_the_banner_paths_clean_no_op_stays_silent_and_records_nothing(tmp_path, monkeypatch):
+    """The banner path's OTHER branch, and the one that now owns `_git_said_nothing_to_commit`.
+
+    The content publish stopped being that predicate's second caller when it became a surgical
+    landing (2026-09-08), and the banner path had been spelling the same test out by hand two
+    lines from the shared one -- the drift its own docstring warns about. Re-pointed, so this is
+    the test that keeps the predicate honest.
+
+    MUTATION: invert the guard (`if _tail and _git_said_nothing_to_commit(_tail)`) -> a
+    byte-identical banner, which is the EXPECTED steady state, is narrated as a FAILED commit
+    and records an empty red set against it.
+    """
+    repo = tmp_path / "repo"
+    target = repo / "site" / "data" / "publish_provenance.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text("{}")
+    monkeypatch.setattr(prc, "PROJECT_DIR", repo)
+    monkeypatch.setattr(prc, "tree_lock", lambda: contextlib.nullcontext())
+    monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
+    monkeypatch.setattr(prc, "_git_add_or_refuse", lambda *a, **k: True)
+    monkeypatch.setattr(prc.subprocess, "run",
+                        lambda cmd, **kw: _FakeCompleted(1, CLEAN_NO_OP_STDOUT, ""))
+    said = []
+    monkeypatch.setattr(prc, "log", lambda m: said.append(str(m)))
+
+    assert prc._commit_and_push_paths([str(target)], "msg", label="Provenance banner",
+                                      git_hash="deadbee") is False
+    assert not any("FAILED" in m for m in said), \
+        "a byte-identical banner was narrated as a failed commit:\n" + "\n".join(said)
+    assert prc.last_blocking_tests() == ([], None)
+
+
 # ── STAYS EMPTY ─────────────────────────────────────────────────────────────────────────────
 
 def test_a_clean_empty_index_no_op_records_nothing(publish):
@@ -284,7 +341,7 @@ def test_a_clean_empty_index_no_op_records_nothing(publish):
     said = []
     with pytest.MonkeyPatch.context() as mp:
         mp.setattr(prc, "log", lambda m: said.append(str(m)))
-        outcome = publish(stdout=CLEAN_NO_OP_STDOUT)
+        outcome = publish(refusal=ALREADY_AT_HEAD_REFUSAL)
     assert outcome["reason"] == prc.NOTHING_TO_COMMIT
     assert not any("REFUSED" in m for m in said), \
         "a clean no-op was narrated as a refusal:\n" + "\n".join(said)

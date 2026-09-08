@@ -31,6 +31,14 @@ WHAT EACH TEST KILLS (R15 -- a control that cannot fail is worse than none):
                                                     commit again, reached by degradation
   * `..._a_refusal_does_not_fingerprint`         -- classify the refusal as NOTHING_TO_COMMIT
                                                     and the run is recorded as done forever
+
+THE ROUTE CHANGED UNDER THESE TESTS (2026-09-08). The publish commit is now a `surgical_land`
+landing, so there is no `git add` and no `git commit` subprocess on this path -- the pathspec is
+an ARGUMENT rather than an argv, and the index it used to be able to sweep does not exist. Every
+scope property above survives verbatim; the two assertions that read the staged list now read the
+pathspec, because an assertion over a list that is now always empty is green for every mutation
+it names (R15). The names-its-paths test gained the stronger form the new route makes available:
+no `git commit` subprocess at all.
 """
 from __future__ import annotations
 
@@ -96,15 +104,24 @@ def publish(tmp_path, monkeypatch):
 
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
+    # THE COMMIT IS A SURGICAL LANDING NOW (2026-09-08). The publish no longer builds an index
+    # and no longer shells out to `git commit`: it hands its pathspec to `_land_publish_commit`,
+    # which gates HEAD-plus-exactly-those-paths in a clean extract. The SCOPE property this file
+    # exists for is unchanged -- it just travels as an argument instead of an argv -- so the seam
+    # records it in the same shape the assertions below already read. What is genuinely gone is
+    # the `git add`: there is no index to sweep, which is why the assertions that used to read
+    # `_staged()` now read the pathspec.
+    def fake_land(pathspec, msg, git_hash):
+        calls.append(["git", "commit", "-m", msg, "--"] + list(pathspec))
+        return {"sha": "0" * 40, "refusal": "", "lost": []}
+
+    monkeypatch.setattr(prc, "_land_publish_commit", fake_land)
+
     def _run():
         prc.git_commit_push("abc1234", 1000.0)
         return calls
 
     return _run
-
-
-def _staged(calls):
-    return [arg for c in calls if c[:2] == ["git", "add"] for arg in c[2:]]
 
 
 def _commit_argv(calls):
@@ -124,12 +141,16 @@ def test_the_publish_does_not_stage_the_whole_archive_directory(publish, tmp_pat
 
     calls = publish()
 
-    assert str(done) not in _staged(calls), (
-        "the publish staged docs/staging/done as a DIRECTORY -- `git add` on a directory takes "
-        "every file under it, which is how two other lanes' BLOCKING findings were archived by "
-        "a commit that carried neither repair")
-    assert str(foreign) not in _staged(calls)
-    assert str(foreign) not in (_commit_argv(calls) or []), (
+    # READ THE PATHSPEC, NOT `_staged` (2026-09-08). There is no `git add` on this path any more,
+    # so an assertion over `_staged(calls)` would be over an empty list -- green for every
+    # mutation, including the one this test names. The pathspec is where the directory would
+    # appear now, and it is the thing the landing actually commits.
+    argv = _commit_argv(calls) or []
+    assert str(done) not in argv, (
+        "the publish named docs/staging/done as a DIRECTORY in its pathspec -- git takes every "
+        "file under it, which is how two other lanes' BLOCKING findings were archived by a "
+        "commit that carried neither repair")
+    assert str(foreign) not in argv, (
         "a document this process did not move into done/ reached the publish commit")
 
 
@@ -153,10 +174,9 @@ def test_the_runs_own_marker_is_still_committed(publish, tmp_path):
 
     calls = publish()
 
-    assert str(archived) in _staged(calls), "this run's own marker was not staged"
     assert str(archived) in (_commit_argv(calls) or []), (
-        "this run's own marker was staged but left out of the commit pathspec -- it would sit "
-        "in done/, untracked, forever")
+        "this run's own marker was left out of the landing's pathspec -- it would sit in done/, "
+        "untracked, forever")
 
 
 # --- half two: the pathspec ---------------------------------------------------------------
@@ -168,12 +188,20 @@ def test_the_publish_commit_names_its_paths_rather_than_committing_the_index(pub
     took the tree lock, which is why the lock was never the protection its comment claimed --
     goes out under the publish's message.
     """
-    argv = _commit_argv(publish())
+    calls = publish()
+    argv = _commit_argv(calls)
     assert argv is not None, "no commit was attempted"
-    assert "--" in argv, (
-        "the publish ran a bare `git commit`, which commits the whole index and therefore any "
-        "other lane's staged work")
-    assert argv[argv.index("--") + 1:], "the pathspec after `--` is empty"
+    assert argv[argv.index("--") + 1:], "the pathspec handed to the landing is empty"
+    # THE STRONGER FORM, available since the route changed (2026-09-08): the publish must not
+    # shell out to `git commit` AT ALL. The old defect was reachable because the code had a
+    # `git commit` whose pathspec could be dropped; a landing has no index to fall back to, so
+    # the only way back to the defect is to reintroduce the subprocess.
+    # MUTATION: put `subprocess.run(["git", "commit", "-m", msg])` back -> fails here.
+    real_commits = [c for c in calls if c[:2] == ["git", "commit"] and c is not argv]
+    assert not real_commits, (
+        "the publish shelled out to `git commit` -- that runs the pre-commit hook chain against "
+        "the SHARED working tree, which is the whole cause this route replaced: {}".format(
+            real_commits))
 
 
 def test_the_maturity_fold_is_named_in_the_pathspec(publish, tmp_path):
