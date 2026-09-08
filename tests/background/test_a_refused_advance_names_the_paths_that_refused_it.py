@@ -161,6 +161,76 @@ def test_a_long_list_says_how_many_it_dropped(monkeypatch):
     assert "20 path(s)" in detail and "8 further path(s)" in detail
 
 
+# ── and the verdict states the STEP, not only the cause ─────────────────────────────────────
+#
+# NAMING THE PATHS WAS NOT ENOUGH, and the publisher's own counter is the evidence. Every
+# `behind_origin` refusal `process_run_complete` records carries *"Reconcile first: `python3 -m
+# background.origin_reconcile`"*, and on a tree held by paths that are not byte-identical to
+# origin's that command can only refuse again. Failures went 24 -> 25 -> 29 across three
+# directions that each named the publisher. `SEAT_FINDING_THE_PUBLISHERS_OWN_REMEDY_CANNOT_CLEAR
+# _ITS_OWN_REFUSAL_AND_THE_REPLACEMENT_RUN_HAS_NO_LEVEL_ARM_2026-09-08.md`, item 4.
+#
+# THE MIRROR LEG IS WHAT MAKES THIS A CONTROL. A single "does the detail mention landing" assert
+# passes against a constant paragraph printed under every refusal -- including the two legs where
+# no landing is the step. So each kind is asserted to name its OWN door and to NOT name the
+# other's, and both no-path legs are asserted to carry no step at all.
+def test_the_modified_leg_names_the_hunks_door_and_NOT_the_untracked_one(monkeypatch):
+    """MUTATION: print both steps unconditionally and the second assertion fails. Drop the
+    per-kind split for one constant string and it fails too."""
+    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
+        args=["git"], returncode=1, stdout="", stderr="refused"))
+    detail = _not_advanced([{"path": "background/supervisor.py", "kind": orc.FF_MODIFIED}])["detail"]
+    assert "isolate_hunks.py --survey" in detail
+    assert "or by removing them" not in detail, "an untracked-only step under a modified-only hold"
+
+
+def test_the_untracked_leg_names_its_own_door_and_NOT_the_hunks_one(monkeypatch):
+    """The mirror. Without it, a function that always printed the `isolate_hunks` sentence would
+    pass the test above and send every untracked-only reader to a tool that has nothing to do."""
+    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
+        args=["git"], returncode=1, stdout="", stderr="refused"))
+    detail = _not_advanced([{"path": "docs/staging/A.md", "kind": orc.FF_UNTRACKED}])["detail"]
+    assert "or by removing them" in detail
+    assert "isolate_hunks" not in detail, "a modified-only step under an untracked-only hold"
+
+
+def test_it_says_re_running_this_module_is_NOT_the_step(monkeypatch):
+    """THE SENTENCE THE WHOLE FIX IS. The publisher routes its reader here; the reader must leave
+    knowing that coming back without landing returns this identical refusal. Keyed to the PROPERTY
+    that makes it true -- bytes already equal to origin's -- so it stays right if the doors move."""
+    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
+        args=["git"], returncode=1, stdout="", stderr="refused"))
+    detail = _not_advanced([{"path": "held.py", "kind": orc.FF_MODIFIED},
+                            {"path": "docs/staging/A.md", "kind": orc.FF_UNTRACKED}])["detail"]
+    assert "NOT TO RE-RUN THIS MODULE" in detail
+    assert "ALREADY equal what origin brings" in detail
+    # BOTH doors, because both kinds are held. The two single-kind tests above prove this is the
+    # partition being read and not a paragraph that ignores its argument.
+    assert "isolate_hunks" in detail and "or by removing them" in detail
+
+
+def test_the_two_no_path_legs_carry_no_landing_step_at_all(monkeypatch):
+    """A remedy under "I could not look" would be a step attached to a diagnosis never made, and
+    a remedy under "nothing collides" would name a landing for a refusal no landing clears."""
+    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
+        args=["git"], returncode=1, stdout="", stderr="refused"))
+    for blockers in (None, []):
+        detail = _not_advanced(blockers)["detail"]
+        assert "NOT TO RE-RUN THIS MODULE" not in detail
+        assert "isolate_hunks" not in detail
+
+
+def test_an_unknown_kind_gets_no_confident_step(monkeypatch):
+    """FAIL CLOSED ON THE PARTITION. A third kind added later must not inherit whichever step the
+    code happened to reach; it says the property and declines to name a door."""
+    monkeypatch.setattr(orc, "_git", lambda *a, **k: subprocess.CompletedProcess(
+        args=["git"], returncode=1, stdout="", stderr="refused"))
+    detail = _not_advanced([{"path": "odd.py", "kind": "some kind invented later"}])["detail"]
+    assert "odd.py" in detail, "the path is still named"
+    assert "isolate_hunks" not in detail and "or by removing them" not in detail
+    assert "ALREADY equal what origin brings" in detail
+
+
 def test_the_post_merge_refusal_names_them_too(monkeypatch):
     """THE SECOND SITE. `NOT_ADVANCED` is returned from two places -- nothing-of-ours, and a merge
     that pushed and still left the tree behind. A repair wired into one of two sites is this

@@ -199,8 +199,61 @@ def paths_blocking_fast_forward(project: Path | None = None) -> list[dict] | Non
     return blocking
 
 
+def _landing_clause(blocking: list[dict]) -> str:
+    """The step that clears the named paths, per KIND, and the property that makes it the step.
+
+    THE REFUSAL HAD THE WHOLE ANSWER IN IT AND STOPPED ONE STEP SHORT OF STATING IT (delivery
+    seat, 2026-09-08, `SEAT_FINDING_THE_PUBLISHERS_OWN_REMEDY_CANNOT_CLEAR_ITS_OWN_REFUSAL...`).
+    `process_run_complete` writes *"Reconcile first: `python3 -m background.origin_reconcile`"*
+    into every `behind_origin` `cause_evidence`, and on a tree held by paths that are NOT
+    byte-identical to origin's the only possible answer to that command is a second refusal. The
+    publisher's failure count went 24, 25, 29 across three directions that each named it. Every
+    reader of that state file was being routed to a command cited as clearing what it cannot.
+
+    SO THE REMEDY IS NOT "RUN RECONCILE" -- it is *land or revert the blocking paths, THEN run
+    reconcile*, and this module already enumerates those paths by name one sentence earlier.
+
+    KEYED TO THE PROPERTY AND NOT TO A COMMAND LIST. The reason a landing clears the refusal is
+    that `advance_shared_tree` removes a blocking path only when its bytes ALREADY equal what
+    origin brings; landing makes them equal. That sentence is what stops the next reader
+    re-running this module and expecting a different verdict, so it is stated rather than implied.
+
+    PER KIND, BECAUSE THE TWO KINDS TAKE DIFFERENT DOORS -- `paths_blocking_fast_forward`'s own
+    docstring says so, and a reader with only untracked blockers who is sent to `isolate_hunks`
+    has been given the same dead end in a longer sentence.
+    """
+    modified = [b["path"] for b in blocking if b.get("kind") == FF_MODIFIED]
+    untracked = [b["path"] for b in blocking if b.get("kind") == FF_UNTRACKED]
+    steps = []
+    if modified:
+        steps.append(
+            "the {} MODIFIED path(s) are this tree's uncommitted work and clear by LANDING or "
+            "reverting them here -- `python3 tools/isolate_hunks.py --survey <path>` lists the "
+            "hunks and `python3 -m tools.surgical_land --content <path>=<isolated> <path>` lands "
+            "your bytes without swapping the shared worktree".format(len(modified)))
+    if untracked:
+        steps.append(
+            "the {} UNTRACKED path(s) clear by landing them (`python3 -m tools.surgical_land "
+            "<path>`) or by removing them, whichever the holding lane wants".format(len(untracked)))
+    if not steps:
+        # A kind this function does not know about. Say so rather than printing a remedy that was
+        # chosen for a different shape -- an unrecognised kind with a confident step attached is
+        # how a reader is sent somewhere worse than nowhere.
+        return ("This module clears a blocking path only when its bytes ALREADY equal what origin "
+                "brings, and none of these paths is a kind it knows how to name a step for.")
+    return ("THE STEP IS TO LAND OR REVERT THOSE PATHS, NOT TO RE-RUN THIS MODULE: it clears a "
+            "blocking path only when the path's bytes ALREADY equal what origin brings, so a "
+            "second run on this tree returns this same refusal. Specifically, {}. Then re-run "
+            "`python3 -m background.origin_reconcile`.".format("; and ".join(steps)))
+
+
 def _blocking_clause(blocking: list[dict] | None) -> str:
-    """The named cause, rendered ahead of git's own words rather than after them."""
+    """The named cause, rendered ahead of git's own words rather than after them.
+
+    THE LANDING STEP IS ATTACHED ONLY TO THE LEG THAT NAMED PATHS. "I could not look" and
+    "nothing collides" are not refusals a landing clears, and a remedy printed under either would
+    read as a diagnosis this module never made.
+    """
     if blocking is None:
         return ("The paths refusing the advance could NOT be established, so this names the fork "
                 "and not its cause.")
@@ -209,10 +262,11 @@ def _blocking_clause(blocking: list[dict] | None) -> str:
                 "dirty-tree collision and git's own words are the whole of the cause.")
     listed = blocking[:12]
     dropped = len(blocking) - len(listed)
-    return "Refused by {} path(s): {}{}.".format(
+    return "Refused by {} path(s): {}{}. {}".format(
         len(blocking),
         "; ".join("{} ({})".format(b["path"], b["kind"]) for b in listed),
-        " -- and {} further path(s) not listed here".format(dropped) if dropped else "")
+        " -- and {} further path(s) not listed here".format(dropped) if dropped else "",
+        _landing_clause(blocking))
 
 
 def _blob_here(project: Path, path: str) -> str | None:
