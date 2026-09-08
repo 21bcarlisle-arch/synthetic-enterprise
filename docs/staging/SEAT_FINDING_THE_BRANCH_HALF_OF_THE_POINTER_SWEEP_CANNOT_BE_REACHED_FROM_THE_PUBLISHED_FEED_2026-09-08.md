@@ -88,7 +88,20 @@ page; this sees **every producer's prose against every field's homes**. Three ru
 * render dropped after planting (drift) → fidelity leg reds first, before any rule passes on
   silence.
 
-## Also found, not fixed — filed rather than carried silently
+## Also found — FIXED in the follow-on commit, corrected here beside the original claim
+
+*This section was filed as "found, not fixed". The `appendChild` half was fixed in the same turn;
+the sentence below is left standing and corrected rather than revised away.*
+
+`_live_harness.mjs` now descends into appended children when it serialises a region, cycle- and
+depth-guarded so a door that appends an element into its own subtree cannot hang the verifier
+(a hang is an unavailable check, which fails every door in the run, not just the broken one).
+Proven failable: removing the descent reds both new legs in `site/test_live_pixel_verify.py`;
+descending only one level reds the nesting leg alone. Verified result-identical on the real tree —
+663 site tests and 132 harness-dependent tool tests pass unchanged — which is what "no deployed
+door does this today" predicted. The `#hash` half is **not** fixed and stands as written below.
+
+## The original claim, as filed
 
 `site/_live_harness.mjs` reflects `appendChild` into a `children` array **nothing reads**, and
 elements from `createElement` never enter the output map at all. A door rendering by DOM-building
@@ -105,8 +118,8 @@ small now and the plumbing is one argument away.
   `generate_proof_data.py`) are recorded and not refused. Closing them needs per-page rungs that
   RUN the producer's branches, as `_every_pointer_this_page_can_publish` does for value_arms.
   That is the remaining work of this claim, and it is per-page by necessity.
-* **The harness `appendChild`/`createElement` gap** should be closed at the harness, where it fixes
-  both controls and the live verifier at once.
+* ~~**The harness `appendChild`/`createElement` gap**~~ — done in this turn, at the harness, where
+  it fixes both controls and the live verifier at once. The `#hash` plumbing remains open.
 * **The eleven unrendered here-relative sentences** are feed prose no door reads. Either a door
   should render them or the producers should stop writing them; today they cost payload bytes and
   carry pointers nobody can meet.
