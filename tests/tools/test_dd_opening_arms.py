@@ -315,3 +315,57 @@ def test_the_diff_states_what_did_not_move_as_well_as_what_did():
     assert d["unmoved_keys"] == ["x", "z"]
     assert not set(d["moved_keys"]) & set(d["unmoved_keys"])
     assert d["leaf_diffs"]["y"] == ["y: 2 -> 99"]
+
+
+def test_the_clock_identifies_its_substrate_and_not_merely_its_path():
+    """DEFECT: the figures name a substrate by a PATH that is rewritten under them.
+
+    `docs/reports/run_output_latest.json` is overwritten by `process_run_complete`
+    every time a run finishes. A clock naming only that path says "these figures
+    came from whatever is standing there now", which on 2026-09-03 was already
+    false: the published artefact reproduced exactly from that path's committed
+    blob and not at all from the working-tree copy at the same path.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S DIGEST. It does not pin the current
+    substrate -- a legitimate re-run against a new one must stay green. It asserts
+    that an identity is carried at all and is shaped like the digest of some real
+    bytes, so deleting the field, or labelling the figures with a run id or a
+    timestamp that no reader could check against the substrate, goes red.
+
+    Deliberately NOT asserted here: that the digest equals the substrate standing
+    on disk. Those legitimately differ the moment a run completes, and a control
+    that reddened for that would be keyed to today's answer and would wedge every
+    lane. Naming which of the two has moved is the TOOL's job, and it prints it.
+    """
+    import json
+    from pathlib import Path
+
+    from tools.dd_opening_arms import DEFAULT_ARTEFACT
+
+    published = json.loads(Path(DEFAULT_ARTEFACT).read_text())
+    clock = published["clock"]
+    digest = clock.get("substrate_sha256")
+    assert digest, (
+        "the published two-arm figures carry no substrate identity, so which run "
+        "produced them cannot be established from the artefact"
+    )
+    assert len(digest) == 64 and set(digest) <= set("0123456789abcdef"), (
+        f"substrate identity {digest!r} is not a sha256 a reader could recompute"
+    )
+
+
+def test_the_reader_and_the_report_cannot_disagree_about_the_substrate():
+    """DEFECT: the site feed and the report artefact drift onto different runs.
+
+    The reader sees `site/data/dd_opening_arms.json`; the record is
+    `docs/reports/dd_opening_arms.json`. If those two ever carry figures from
+    different substrates, the page and its evidence are two different claims and
+    nothing would say so.
+    """
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[2]
+    report = json.loads((root / "docs/reports/dd_opening_arms.json").read_text())
+    feed = json.loads((root / "site/data/dd_opening_arms.json").read_text())
+    assert feed["substrate_sha256"] == report["clock"]["substrate_sha256"]
