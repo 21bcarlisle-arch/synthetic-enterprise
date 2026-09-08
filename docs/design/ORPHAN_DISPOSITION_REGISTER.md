@@ -47,6 +47,30 @@ ways the index could be blind to a real caller, each checked against the tree:
 **The index is not blind. The orphans are real.** `kept-and-explained` — the class that would have
 carried the volume — is empty, and it is empty by measurement rather than by assumption.
 
+**RE-MEASURED 2026-09-08 (row 1 only), and the "1 hit" figure above was wrong by 2026-09-08 —
+though the verdict it supported was not.** That census predates 707 commits, the comment prune and
+the docstring prune, and its result was left as the last untested blindness hypothesis in this
+section. Re-run over the working tree and again over a clean `HEAD` extract at `b71f148bc`:
+**40 production modules are named by a live `python3 -m dotted.name` invocation** — not one, and not
+a docstring example — **and zero of them are orphans.** 38 carry a `__main__` guard, which
+`_is_entrypoint` already reads; the other two (`background.boot_sha`, `background.publish_scope`)
+are held `wired` by 5 and 2 importers. The blindness is real and costs nothing, because a module
+worth launching as `-m` is a module with the guard that already makes it an entrypoint — the `-m`
+string and the guard are the same fact seen twice.
+
+No dotted-name edge was added, and the orphan baseline was not re-frozen because the orphan set does
+not move. What landed instead is **integrity check 7** in `tools/capability_index.py`, keyed to the
+property rather than to the count: a `-m` target with **no guard and no importer** — the only shape
+this blindness can cost anything — fails the index. Row 1 of this table is therefore closed by a
+control, not by a paragraph. Full working:
+`docs/staging/SEAT_RESULT_THE_DOTTED_MODULE_FAIL_OPEN_IS_ZERO_BECAUSE_THE_LAUNCH_FORM_AND_THE_GUARD_ARE_THE_SAME_FACT_2026-09-08.md`.
+
+Row 3's successor question is still open and is NOT covered by check 7: a module named only in a
+DATA file. `background/gap_ledger_reconciler.runners_for` builds its `-m` command from producer
+paths recorded in the gap ledger, so that path appears in no `.py` source at all. The 2026-08-09
+finding that all such hits "are documentation" was true of documentation; the gap ledger is a work
+queue.
+
 The other two classes are near-empty for the same reason:
 
 - **`wired`** requires a caller that *existed and was missing*. For these modules there is no
