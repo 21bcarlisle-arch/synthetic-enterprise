@@ -173,3 +173,32 @@ lane, and unlike the pair there is no other half to land with it.
 **What is still open.** Six of the eight remain Kind-B and are the holders' to land; the finding
 stays open until they are. What has changed is that each of the eight is now sent somewhere with a
 move, and the two whose door was shut have one.
+
+---
+
+## THE RESULT: the eight are five, and the two that had no move are repaired
+
+`refresh_to_head --write --slug kind-a-rival-copies-2026-09-08` was run against
+`/home/rich/synthetic-enterprise` after the mechanism landed. Both Kind-A copies were preserved as
+`refs/preserved/refresh-to-head/kind-a-rival-copies-2026-09-08` (`e94f9fa59`) and replaced with
+HEAD's bytes. The recovery route was re-run afterwards from the shared tree itself, not merely
+printed:
+
+    git log --all -S 'def _bind_to_claim(commit: str, work_id: str | None) -> tuple[list[str], str]:' \
+        -- tools/promote_worktree_landing.py   →  e94f9fa59, b06fa3528, 85dc4bea0
+
+The pre-`since` signature comes back from the preserved commit; the working copy now carries the
+repaired one. That matters beyond the census: any lane running `promote_worktree_landing` **from
+the shared tree** was running the version whose binding bound four of another lane's paths, and now
+is not. `simulation/policy_costs.py` had been missing the 2026-27 RO rate and the 2026/2027 CCL
+rates outright, and now has them.
+
+**Eight → five, and the third one was not mine.** `tests/tools/test_commit_refusal_attribution.py`
+cleared because `a17cf91d4` landed **both halves together** — the test and
+`tools/commit_refusal_attribution.py` — which is exactly the landing the pair pointer exists to
+produce. It landed while this work was in the gate, so the pointer did not cause it; what the
+pointer did was name the pair correctly on a tree where the pair was still open.
+
+The five that remain are all Kind-B holder work and all correctly routed to `isolate_hunks`. One of
+them, `tests/tools/test_r1_inference_ceiling.py`, still carries the ninth state: names no tree
+supplies at all. That is a finding for its holder, not a repair anyone else can make.
