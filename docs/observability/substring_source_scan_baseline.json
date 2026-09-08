@@ -539,6 +539,12 @@
       "subject": "python"
     },
     {
+      "path": "tests/tools/test_stale_copy_refusal.py",
+      "function": "test_the_guard_is_wired_into_the_cheap_door_too",
+      "subject": "unknown",
+      "reason": "the subject is tools/git-hooks/pre-commit, a POSIX SHELL script, so how_to_shrink names a remedy that does not exist for it -- python_code_text.searchable is a Python tokeniser. What the remedy buys (prose cannot satisfy the assertion) is bought here by selecting the lines that RUN something rather than rejecting the ones that look like comments; a commented-out gate line is not selected, and the test is mutation-proven against exactly that poison. Added BY HAND, never by --freeze, so no other lane's row was swept."
+    },
+    {
       "path": "tests/tools/test_symbol_landing_check.py",
       "function": "test_it_judges_the_tree_and_not_the_working_tree",
       "subject": "python"

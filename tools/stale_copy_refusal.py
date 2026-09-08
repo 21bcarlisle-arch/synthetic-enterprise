@@ -68,9 +68,16 @@ empty, the sets equal, and the path waved through **while looking checked** -- a
 that is useless without ever being fail-open. `--census` prints the no-opinion population in its own
 section so what the control cannot see is on the surface rather than absent from it.
 
+BOTH DOORS, SINCE 2026-09-08. `tools/surgical_land.py` calls `violations()` in-process, and
+`tools/git-hooks/pre-commit` calls `--staged` -- so a plain `git commit -- <path>` faces this too.
+It did not until that date, and the asymmetry was the wrong way round: the careful door was guarded
+and the cheap, commoner one was not. See `staged()` for why the hook's subject is `git write-tree`
+and why running inside `surgical_land`'s own extract is a paired SKIP rather than a second ask.
+
 Run standalone:
 
     python3 -m tools.stale_copy_refusal --census        # working tree vs HEAD, both rules
+    python3 -m tools.stale_copy_refusal --staged        # the tree this index would commit
     python3 -m tools.stale_copy_refusal --at-tree T --since-tree P
 
 Exit 0 = clean, 1 = a path would revert a landing or lose names.
@@ -79,6 +86,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import os
 import re
 import subprocess
 from collections import Counter
@@ -329,14 +337,77 @@ def census(root: Path = ROOT) -> tuple[list[Loss], list[str]]:
     return losses, sorted(p for p in changed if Path(p).suffix not in READABLE)
 
 
+# --------------------------------------------------------------------------- the pre-commit door
+
+#: Set by `tools/surgical_land.py` to the sha of the tree it has ALREADY judged, and read by
+#: `--staged` running inside that tool's extract. It is the TREE and not a boolean for the reason
+#: an allowlist row is never a name: a token that says "trust me" is a bypass, while a token that
+#: says "the check already ran on exactly THIS tree" is a claim `--staged` re-derives for itself
+#: and discards when it does not hold.
+ALREADY_GATED_ENV = "STALE_COPY_ALREADY_GATED_TREE"
+
+
+def staged(root: Path = ROOT, env: dict | None = None) -> tuple[int, str]:
+    """Judge the tree a `git commit` from this index WOULD create. Returns (rc, what to print).
+
+    THE HOLE THIS CLOSES, and it is the commoner half. Until 2026-09-08 this control was reachable
+    only from `tools/surgical_land.py`, so it guarded the careful door and left the cheap one open:
+    `CLAUDE.md` tells every lane to commit by pathspec, a pathspec stages the WORKING-TREE copy,
+    and a plain `git commit -- <path>` reverted a landing with nothing anywhere able to notice. The
+    eight copies the census found on the shared tree are what an unguarded cheap door costs.
+
+    THE SUBJECT IS `git write-tree`, NOT THE WORKING TREE. During a pre-commit hook the index IS
+    the resulting tree, so writing it out gives the same subject `surgical_land` builds by hand --
+    which is what makes a partial commit judged on the half being committed rather than the half
+    on disk. A working-tree read here would judge a file the commit is not making.
+
+    FAIL-CLOSED ON AN UNWRITEABLE INDEX and open on NO HEAD. They are different states: an index
+    that will not write out is a check that could not run (R15: an unavailable check is a failed
+    check), while a repo with no HEAD has no landing to revert and nothing to be stale against.
+
+    THE SKIP IS NOT FAIL-OPEN, and the argument is that it is PAIRED rather than trusted.
+    `surgical_land._land_once` calls `violations()` on (parent, result_tree, files) BEFORE it
+    materialises the extract and refuses on the result, so by the time the hook runs in there the
+    identical question has been answered on the identical tree -- with the `--drops` exemptions the
+    hook cannot see. Re-asking it would not add a check; it would silently DELETE the escape hatch,
+    refusing a declared deletion at the only legal landing door. So the skip is keyed to the tree
+    sha, re-derived here: a token naming any other tree is ignored and the check runs.
+    """
+    env = os.environ if env is None else env
+    if _git(root, "rev-parse", "--verify", "HEAD").returncode != 0:
+        return 0, "[stale-copy] no HEAD yet -- a first commit reverts no landing."
+    written = _git(root, "write-tree")
+    if written.returncode != 0:
+        return 1, ("[stale-copy] ❌ COMMIT REFUSED -- the index would not write out as a tree, so "
+                   "the check could NOT RUN and an unavailable check is a failed one:\n  {}".format(
+                       written.stderr.strip()[-300:]))
+    result = written.stdout.strip()
+    if env.get(ALREADY_GATED_ENV) == result:
+        return 0, ("[stale-copy] already judged on this exact tree ({}) by tools/surgical_land.py, "
+                   "which knows this landing's --drops; not re-asking.".format(result[:9]))
+    changed = [ln.strip() for ln in _git(
+        root, "diff-tree", "-r", "--name-only", "HEAD", result).stdout.splitlines() if ln.strip()]
+    losses = violations(root, "HEAD", result, changed)
+    if losses:
+        return 1, refusal_text(losses)
+    return 0, "[stale-copy] {} staged path(s) -- none reverts a landing.".format(len(changed))
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--census", action="store_true", help="working tree vs HEAD")
+    ap.add_argument("--staged", action="store_true",
+                    help="judge the tree this index would commit (the pre-commit hook's door)")
     ap.add_argument("--at-tree", metavar="TREEISH", help="the tree the commit would create")
     ap.add_argument("--since-tree", metavar="TREEISH", default="HEAD")
     ap.add_argument("--root", default=str(ROOT), help="repository to judge (default: this one)")
     args = ap.parse_args(argv)
     root = Path(args.root)
+
+    if args.staged:
+        rc, text = staged(root)
+        print(text)
+        return rc
 
     if args.at_tree:
         changed = [ln.strip() for ln in _git_text(

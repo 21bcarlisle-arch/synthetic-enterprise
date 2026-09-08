@@ -15,6 +15,25 @@ if git diff --cached --name-only | grep -qx "docs/status/LATEST.md"; then
     }
 fi
 
+# STALE-COPY REFUSAL (2026-09-08). A commit whose copy of a file PREDATES the last landing to that
+# path is REFUSED. `CLAUDE.md` tells every lane to commit by pathspec rather than `-A`, and that is
+# right -- but a pathspec stages the WORKING-TREE copy, so a lane that opened a file before another
+# lane landed in it silently reverts that landing by naming the path. Nothing below can see it: the
+# tree it reverts to was valid an hour ago, so it parses, its imports resolve and its own tests pass.
+#
+# FIRST, BEFORE THE TEST GATE, for the same reason `surgical_land` runs it before building its
+# extract: this refusal is about the TREE and not about the tests, so no amount of running the suite
+# can find it and running the suite first would spend a full cycle to reach the same answer.
+#
+# WHY IT IS HERE AT ALL, given `tools/surgical_land.py` has called it since it landed: that guarded
+# the careful door and left the cheap one open, which is the wrong way round -- `git commit -- <path>`
+# is the commoner habit. The eight shared-tree copies the census found on the day this was wired,
+# one of them `tools/promote_worktree_landing.py` missing the binding repair for the second time,
+# are what an unguarded cheap door costs. Inside `surgical_land`'s own extract this SKIPS, and only
+# when the tree sha it re-derives matches the token that tool set -- see `staged()` for why re-asking
+# there would delete the `--drops` escape hatch rather than add a check.
+python3 -m tools.stale_copy_refusal --staged || exit 1
+
 # TEST GATE (director P0, 2026-07-17): a commit with red tests is STRUCTURALLY IMPOSSIBLE, not
 # merely discouraged -- structural impossibility over remembered discipline (two red commits
 # landed tonight because "run tests then commit" is a remembered process, and remembered processes

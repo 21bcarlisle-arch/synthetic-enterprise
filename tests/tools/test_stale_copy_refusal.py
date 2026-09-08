@@ -210,3 +210,131 @@ def test_the_guard_is_wired_into_the_landing_door(repo: Path) -> None:
     assert build < call < extract, (
         "the refusal must sit between the resulting tree and the extract: after it there is a "
         "tree to judge, and before the extract it costs nothing to refuse")
+
+
+# ------------------------------------------------------------------- the pre-commit door (--staged)
+
+
+def _stage(root: Path, path: str, text: str) -> None:
+    (root / path).write_text(text)
+    _run(root, "add", path)
+
+
+def test_the_cheap_door_refuses_a_staged_copy_that_predates_the_landing(repo: Path) -> None:
+    """THE DEFECT THIS LEG OWNS, and it is the one the guard did not cover for its first day alive:
+    `surgical_land` called this control and `git commit -- <path>` did not, so the careful door was
+    guarded and the cheap, commoner one was open. A lane holding a stale copy reverted a landing by
+    naming its path and every gate below was green on it."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    _stage(repo, "m.py", STALE_WITH_OWN_WORK)
+    rc, text = scr.staged(repo, env={})
+    assert rc == 1, "the staged stale copy was waved through the door it now has to face"
+    assert "m.py" in text and "isolate_hunks" in text
+
+
+def test_the_cheap_door_lets_an_honest_commit_through(repo: Path) -> None:
+    """THE OTHER HALF OF THE PARTITION, and without it the leg above passes on a guard that refuses
+    EVERYTHING -- which is the shape CLAUDE.md names: a guard that refuses everything passes every
+    test that only asks whether it refuses correctly. A door that stops honest work is pressure
+    toward `--no-verify`, and bypass is a wall."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    _stage(repo, "m.py", LANDED.replace("return 1", "return 99") + "\ndef mine():\n    return 0\n")
+    rc, text = scr.staged(repo, env={})
+    assert rc == 0, text
+    assert "none reverts a landing" in text
+
+
+def test_the_subject_is_the_staged_half_and_never_the_working_tree(repo: Path) -> None:
+    """A PARTIAL COMMIT is the routine case on this shared tree -- CLAUDE.md's own discipline is to
+    stage a precise pathspec -- and it is exactly where `the index` and `the disk` diverge. Reading
+    the working copy here would judge a file the commit is not making, in BOTH directions: it would
+    refuse a clean staged copy because of an unstaged one, and pass a stale staged copy because the
+    disk had since been refreshed. This asserts the second, which is the fail-open one."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    _stage(repo, "m.py", STALE_WITH_OWN_WORK)          # the stale bytes are what would be COMMITTED
+    (repo / "m.py").write_text(LANDED)                 # ...while the disk has since been refreshed
+    rc, _text = scr.staged(repo, env={})
+    assert rc == 1, (
+        "a working-tree read passed a commit that reverts a landing, because the disk was clean "
+        "and the index was not")
+
+
+def test_an_index_that_will_not_write_out_is_a_failed_check_and_not_a_skip(repo: Path) -> None:
+    """R15 FAIL-CLOSED. An unavailable check is a failed check; the alternative is a control that
+    certifies whenever it cannot run, which is the direction that authorises what it guards."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    (repo / ".git" / "index").write_bytes(b"not an index")
+    rc, text = scr.staged(repo, env={})
+    assert rc == 1 and "could NOT RUN" in text, text
+
+
+def test_a_repo_with_no_head_is_open_and_that_is_a_different_state(repo: Path) -> None:
+    """Open, not fail-open: a first commit has no landing behind it to revert. Kept apart from the
+    unwriteable-index leg above on purpose -- folding "nothing to check" into "could not check"
+    is how a fail-closed rule acquires a silent hole."""
+    fresh = repo.parent / "fresh"
+    fresh.mkdir()
+    _run(fresh, "init", "-q", "-b", "main")
+    rc, text = scr.staged(fresh, env={})
+    assert rc == 0 and "no HEAD" in text
+
+
+def test_the_paired_skip_names_the_tree_and_a_token_for_any_other_tree_is_ignored(repo: Path):
+    """THE SKIP IS THE ONE PLACE THIS COULD BECOME A BYPASS, so it is keyed to the tree sha and
+    re-derived here rather than believed. `surgical_land` has already asked this question, WITH the
+    landing's `--drops`, on the tree it names -- re-asking there would not add a check, it would
+    delete the escape hatch at the only legal landing door. A token naming anything else is a claim
+    about a tree nobody judged, and the check runs."""
+    _commit(repo, "m.py", LANDED, "lane B lands a helper")
+    _stage(repo, "m.py", STALE_WITH_OWN_WORK)
+    tree = _run(repo, "write-tree").strip()
+
+    rc, text = scr.staged(repo, env={scr.ALREADY_GATED_ENV: tree})
+    assert rc == 0 and "already judged" in text, "the paired skip did not fire on its own tree"
+    assert tree[:9] in text, "a skip that does not name the tree it trusted is unauditable"
+
+    other = _run(repo, "rev-parse", "HEAD^{tree}").strip()
+    assert other != tree
+    rc, _ = scr.staged(repo, env={scr.ALREADY_GATED_ENV: other})
+    assert rc == 1, "a token naming a DIFFERENT tree bought a pass -- that is a bypass, not a skip"
+    rc, _ = scr.staged(repo, env={scr.ALREADY_GATED_ENV: "true"})
+    assert rc == 1, "a truthy non-sha token bought a pass"
+
+
+def test_the_guard_is_wired_into_the_cheap_door_too(repo: Path) -> None:
+    """FAIL-SILENT, the same argument as the landing-door leg above and the reason this whole turn
+    existed: the control was real, proven and reachable from exactly one caller, and the other
+    caller is the one most commits actually go through.
+
+    THE HOOK IS A SHELL SCRIPT, so `tools/python_code_text.searchable` -- the remedy for a control
+    that reads source as text -- does not apply: it is a Python tokeniser. What that remedy buys is
+    that prose cannot satisfy the assertion, and the shape below buys the same thing a different
+    way: it selects the lines that RUN something (`python3 ...` at column zero) rather than
+    rejecting the ones that look like comments. A commented-out gate line reads `# python3 ...` and
+    is not selected, so neither the presence check nor the ordering can be satisfied by a comment.
+    """
+    hook = (Path(__file__).resolve().parents[2] / "tools" / "git-hooks" / "pre-commit").read_text()
+    ran = [ln for ln in hook.splitlines() if ln.startswith("python3 ")]
+    assert "python3 -m tools.stale_copy_refusal --staged || exit 1" in ran, (
+        "the cheap door is unguarded again; a pathspec commit can revert a landing")
+    order = [i for i, ln in enumerate(ran) if "stale_copy_refusal --staged" in ln]
+    gate = [i for i, ln in enumerate(ran) if "pre_commit_test_gate" in ln]
+    assert order and gate and order[0] < gate[0], (
+        "this refusal is about the TREE, not the tests -- no suite can find it, so running the "
+        "suite first only spends a full cycle to reach the same answer")
+
+
+def test_surgical_land_hands_the_hook_the_tree_it_actually_judged(repo: Path) -> None:
+    """THE FAIL-OPEN THIS FORBIDS. `rederive_in` REBINDS `result_tree` on a merge, after the
+    violations call. Handing the hook the post-rederive sha would assert a verdict for a tree no
+    verdict describes -- and the hook, trusting it, would skip. Read as code so a comment saying
+    the right thing cannot satisfy it."""
+    src = searchable(
+        (Path(__file__).resolve().parents[2] / "tools" / "surgical_land.py").read_text())
+    call = src.index("stale_copy_refusal.violations(")
+    pin = src.index("gated_tree = result_tree", call)
+    rederive = src.index("result_tree, rederived = rederive_in(", call)
+    gate = src.index("run_gate(checkout, hook_rel, gated_tree=gated_tree)", call)
+    assert call < pin < rederive < gate, (
+        "the token must be pinned to the judged tree BEFORE the re-derive can rebind it")
+    assert "env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree" in src

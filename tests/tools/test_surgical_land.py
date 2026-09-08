@@ -194,9 +194,9 @@ def _racing_gate(repo: Path, lose_until: int, calls: list[int]):
     move rather than an empty commit that git would refuse."""
     real_run_gate = sl.run_gate
 
-    def gate(checkout, hook_rel=sl.HOOK_REL):
+    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
         calls.append(len(calls) + 1)
-        rc, out, err = real_run_gate(checkout, hook_rel)
+        rc, out, err = real_run_gate(checkout, hook_rel, gated_tree)
         if len(calls) <= lose_until:
             name = "colleague_{}.txt".format(len(calls))
             (repo / name).write_text("landed mid-gate\n")
@@ -272,9 +272,9 @@ def test_a_RED_gate_is_never_retried_however_many_attempts_are_allowed(
     real_run_gate = sl.run_gate
     calls: list[int] = []
 
-    def counting_gate(checkout, hook_rel=sl.HOOK_REL):
+    def counting_gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
         calls.append(len(calls) + 1)
-        return real_run_gate(checkout, hook_rel)
+        return real_run_gate(checkout, hook_rel, gated_tree)
 
     monkeypatch.setattr(sl, "run_gate", counting_gate)
     with pytest.raises(sl.LandingRefused, match="GATE RED"):
@@ -472,8 +472,8 @@ def test_a_content_sourced_retry_commits_the_same_bytes_the_caller_gave(
     calls: list[int] = []
     racing = _racing_gate(repo, lose_until=1, calls=calls)
 
-    def gate(checkout, hook_rel=sl.HOOK_REL):
-        rc, out, err = racing(checkout, hook_rel)
+    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
+        rc, out, err = racing(checkout, hook_rel, gated_tree)
         (repo / "code.py").write_text("VALUE = 99  # the mover rewrote it mid-gate\n")
         return rc, out, err
 
@@ -1588,3 +1588,48 @@ def test_the_landing_overlay_falls_back_when_git_cannot_answer(tmp_path):
     not_a_repo = tmp_path / "bare"
     not_a_repo.mkdir()
     assert sl._machine_data_dir(not_a_repo) == not_a_repo
+
+
+def test_the_hook_can_re_derive_the_gated_tree_from_inside_the_extract(repo: Path, monkeypatch):
+    """THE ASSUMPTION THE PAIRED SKIP RESTS ON, measured rather than reasoned about.
+
+    `stale_copy_refusal.staged()` skips only when `git write-tree` INSIDE the extract equals the
+    token this tool set. That is an empirical claim about `materialise` -- the extract is a fresh
+    `git init` with the object store lent read-only, its HEAD set to the parent and the named paths
+    `git add`ed -- and if it were false the skip would never fire, every landing would silently
+    re-ask the question WITHOUT this landing's `--drops`, and a declared deletion would be refused
+    at the only legal door. That failure is invisible from the outside: the landing still goes
+    green. So the hook here reports what it sees and the test compares it to what was handed over.
+
+    Cheap on purpose (the real hook runs a full suite): the subject is the TREE IDENTITY, not the
+    gates, and a real-hook version of this would cost a full cycle to measure the same equality."""
+    (repo / "tools" / "git-hooks" / "pre-commit").write_text(
+        '#!/bin/sh\n'
+        'echo "TOKEN=${STALE_COPY_ALREADY_GATED_TREE:-unset}"\n'
+        'echo "INDEX=$(git write-tree)"\n'
+        'test "$(cat gate_verdict)" = green\n')
+    _run(repo, "git", "add", "-A")
+    _run(repo, "git", "commit", "-q", "-m", "an observing hook")
+
+    seen: dict[str, str] = {}
+    real_run_gate = sl.run_gate
+
+    def gate(checkout, hook_rel=sl.HOOK_REL, gated_tree=None):
+        rc, out, err = real_run_gate(checkout, hook_rel, gated_tree)
+        for line in out.splitlines():
+            if "=" in line:
+                key, _, value = line.partition("=")
+                seen[key.strip()] = value.strip()
+        return rc, out, err
+
+    monkeypatch.setattr(sl, "run_gate", gate)
+    (repo / "code.py").write_text("VALUE = 7\n")
+    sl.land(repo, ["code.py"], "land with an observing hook")
+
+    assert seen.get("TOKEN") not in (None, "unset"), (
+        "the token never reached the hook, so the skip can never fire and every landing re-asks "
+        "the stale-copy question without its --drops")
+    assert seen["INDEX"] == seen["TOKEN"], (
+        "the extract's index writes out as {} but the tool handed over {} -- the skip is keyed to "
+        "a sha that never matches, which makes it dead code that looks alive".format(
+            seen["INDEX"][:9], seen["TOKEN"][:9]))

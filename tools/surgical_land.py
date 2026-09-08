@@ -831,8 +831,16 @@ def materialise(root: Path, checkout: Path, result_tree: str, parent: str,
 # Step 4: the gate, against the extract.
 # ---------------------------------------------------------------------------------------------
 
-def run_gate(checkout: Path, hook_rel: str = HOOK_REL) -> tuple[int, str, str]:
+def run_gate(checkout: Path, hook_rel: str = HOOK_REL,
+             gated_tree: str | None = None) -> tuple[int, str, str]:
     """Run the repo's own pre-commit hook inside the extract. Returns (rc, stdout, stderr).
+
+    `gated_tree` IS THE TREE THIS TOOL HAS ALREADY JUDGED with `stale_copy_refusal.violations`,
+    handed to the hook so its own `--staged` leg does not ask the same question a second time
+    WITHOUT this landing's `--drops`. Passing the sha rather than a boolean is what keeps that from
+    being a bypass: the hook re-derives the tree from the index it is about to commit and ignores a
+    token naming anything else. Omitting it is safe and merely costs the duplicate ask -- but a
+    landing that legitimately declared `--drops` would then be refused at the only legal door.
 
     THE TWO STREAMS ARE KEPT APART, and that is load-bearing rather than tidy (2026-08-24,
     WORKER_FINDING_THE_GATES_REFUSAL_QUOTES_SIX_GREEN_LINES_WHEN_A_NON_PYTEST_GATE_REDS). This
@@ -851,8 +859,11 @@ def run_gate(checkout: Path, hook_rel: str = HOOK_REL) -> tuple[int, str, str]:
             "the gate is UNAVAILABLE: {} does not exist in the resulting tree. An unavailable "
             "check is a FAILED check (R15) -- refusing rather than landing ungated.".format(
                 hook_rel))
+    env = _gitless_env()
+    if gated_tree:
+        env[stale_copy_refusal.ALREADY_GATED_ENV] = gated_tree
     try:
-        r = subprocess.run(["sh", hook_rel], cwd=str(checkout), env=_gitless_env(),
+        r = subprocess.run(["sh", hook_rel], cwd=str(checkout), env=env,
                            capture_output=True, text=True, timeout=3600)
     except (OSError, subprocess.SubprocessError) as exc:
         raise LandingRefused(
@@ -1402,6 +1413,11 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
     reverts = stale_copy_refusal.violations(root, parent, result_tree, files, allow=drops)
     if reverts:
         raise LandingRefused(stale_copy_refusal.refusal_text(reverts))
+    # THE TREE THAT WAS ACTUALLY JUDGED, pinned here rather than read again at the gate. A merge
+    # re-derive below REBINDS `result_tree`, and handing the hook that later sha would tell it a
+    # verdict exists for a tree no verdict describes -- the fail-open direction, and the one this
+    # whole module exists to refuse. Pinned, the mismatch simply makes the hook ask for itself.
+    gated_tree = result_tree
     if drops:
         # NAMED, never silent. An exemption nobody can see is a hole, and this is the line that
         # makes a deliberate deletion attributable to the landing that chose it.
@@ -1444,7 +1460,7 @@ def _land_once(root: Path, paths: list[str], message: str, hook_rel: str = HOOK_
         # landing -- every error inside it is swallowed and the body's exceptions pass through.
         with staging_root_resurrection_watch.bracket(
                 root, "surgical-land gate: " + message.splitlines()[0][:80]):
-            rc, gate_out, gate_err = run_gate(checkout, hook_rel)
+            rc, gate_out, gate_err = run_gate(checkout, hook_rel, gated_tree=gated_tree)
         tests = _test_summary(gate_out + gate_err)
         if rc != 0:
             raise LandingRefused(
