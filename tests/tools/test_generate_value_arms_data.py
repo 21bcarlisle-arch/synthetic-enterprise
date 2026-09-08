@@ -2021,6 +2021,80 @@ def test_the_drop_out_consequence_names_the_class_that_is_ours_to_fix():
     assert gva._widening_consequence({}) is None
 
 
+_ALL_ELIGIBILITY = {"join": 0, "coverage": 4, "eligibility": 10}
+
+
+def test_the_page_stops_promising_a_bigger_book_when_nothing_measured_it():
+    """THE DEFECT (2026-09-08, Lane 0), on the surface a reader actually meets.
+
+    This sentence is rendered in amber directly above the concordance interval and it closed
+    "The interval above is what this book can earn, and only a larger settled book moves it."
+    The class counts support the first half and say NOTHING about the second: measured, the
+    eligibility class IS the churn class, so a bigger book drops the same share.
+
+    Fires on: any remedy composed from `by_class` alone.
+    """
+    withheld = gva._widening_consequence(_ALL_ELIGIBILITY)
+    assert "only a larger settled book moves it" not in withheld
+    assert "NOT ESTABLISHED by this run" in withheld
+    # The measured half must survive the correction.
+    assert "cannot be widened by fixing our own code" in withheld
+
+
+@pytest.mark.parametrize("split,expected,forbidden", [
+    ({"available": True, "decisions_dropped_for_no_settled_row": 40,
+      "of_those_not_attributable_to_a_departure": 0,
+      "the_concordance_is_conditioned_on_survival": True},
+     "does NOT move it", "may move it"),
+    ({"available": True, "decisions_dropped_for_no_settled_row": 40,
+      "of_those_not_attributable_to_a_departure": 7,
+      "the_concordance_is_conditioned_on_survival": False},
+     "moves at most part of it", "does NOT move it"),
+    ({"available": True, "decisions_dropped_for_no_settled_row": 0,
+      "of_those_not_attributable_to_a_departure": 0,
+      "the_concordance_is_conditioned_on_survival": False},
+     "may move it", "does NOT move it"),
+])
+def test_the_bigger_book_clause_moves_with_the_split(split, expected, forbidden):
+    """R15: three states, each driven, so the clause cannot be a constant wearing a reading's
+    clothes — which is precisely what the sentence it replaces was.
+
+    The survivor-conditioned world and the recoverable-residue world are the Lane 0 item's own
+    two hypotheses, and the page has to be able to say either.
+    """
+    rendered = gva._widening_consequence(_ALL_ELIGIBILITY, split)
+    assert expected in rendered
+    assert forbidden not in rendered
+    assert "NOT ESTABLISHED" not in rendered
+
+
+def test_the_consequence_reads_the_RUNS_split_and_not_a_second_idea_of_it():
+    """THE WIRING. `_widening_consequence` being right proves nothing about whether the feed
+    hands it the split — and a funnel and a split disagreeing on one page is the whole defect.
+
+    Driven through the producer, so a fixture that typed the split would prove only that the
+    function renders what a test gave it.
+    """
+    from tools.run_value_cycle_ab import _survivorship
+
+    produced = _survivorship(
+        [{"reason": "the_priced_term_carried_no_settled_row", "account": "A1",
+          "term_start": "2023-01-01"}],
+        [{"account": "A2", "term_start": "2023-02-01"}],
+        {("A1", "2023-01-01")})
+    assert produced["the_concordance_is_conditioned_on_survival"] is True
+
+    funnel = gva._skill_drop_out({
+        "drop_out": {"available": True, "reconciles": True, "priced_decisions": 14,
+                     "decisions_scored": 4, "dropped_by_reason": {"declined": 0},
+                     "dropped_by_class": _ALL_ELIGIBILITY, "what_each_class_means": {},
+                     "what_each_reason_means": {}},
+        "survivorship": produced,
+    })
+    assert "does NOT move it" in funnel["consequence"]
+    assert "NOT ESTABLISHED" not in funnel["consequence"]
+
+
 # ─────────────────────────────────────────────────────────────────────────────────────────────
 # WHETHER THE WORLD THESE FIGURES WERE MEASURED IN IS STILL THE WORLD
 #

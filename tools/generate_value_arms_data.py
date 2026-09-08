@@ -1626,8 +1626,19 @@ def _attribution_sentence(exclusions: list[dict], offered) -> str:
             + "; ".join(parts) + ". " + tail)
 
 
-def _widening_consequence(by_class: dict) -> str | None:
+def _widening_consequence(by_class: dict, survivorship: dict | None = None) -> str | None:
     """What the class split costs us, in the reader's words. DERIVED from the counts, never typed.
+
+    THE REMEDY IS THE SURVIVORSHIP SPLIT'S TO STATE, not this function's (2026-09-08, Lane 0).
+    This sentence used to close with "The interval above is what this book can earn, and only a
+    larger settled book moves it." -- in amber, on the page, above the concordance it qualifies.
+    The class counts genuinely support "not widenable by fixing our own code". They do NOT support
+    the remedy: `run_value_cycle_ab._survivorship` measured that the class being described IS the
+    churn class, so a larger book adds decisions and drops the same share.
+
+    So the close is now composed from the split, and when the run carries no split it says the
+    remedy is unestablished rather than promising one. A reader who acts on "get a bigger book"
+    is acting on the one sentence here nothing had measured.
 
     THE SENTENCE THAT MATTERS IS THE UNFLATTERING ONE, and it is the one nothing on this page said
     until now: when `join` is zero, no amount of work on our own code makes this sample any
@@ -1659,8 +1670,34 @@ def _widening_consequence(by_class: dict) -> str | None:
                 + tail[0].lower() + tail[1:])
     return ("Of the {total} decisions that dropped out, ZERO are a join we failed to make -- so "
             "this sample cannot be widened by fixing our own code. ".format(total=total) + tail
-            + " The interval above is what this book can earn, and only a larger settled book "
-              "moves it.")
+            + " " + _bigger_book_clause(survivorship))
+
+
+def _bigger_book_clause(survivorship: dict | None) -> str:
+    """Does the interval above get better with a bigger book? Read off the split, or withheld.
+
+    THE THREE STATES ARE NOT TWO. A run that measured the split and found the drops are departures
+    knows waiting does not help; a run that measured a residue knows part of it does; a run
+    carrying no split knows NEITHER and must say so. Collapsing the last into either of the first
+    two is how the old sentence came to promise a remedy for months.
+    """
+    split = survivorship if isinstance(survivorship, dict) else {}
+    if not split.get("available"):
+        return ("Whether a larger settled book moves the interval above is NOT ESTABLISHED by "
+                "this run -- it turns on whether these are the renewals where the household left, "
+                "and this run did not measure that.")
+    dropped = split.get("decisions_dropped_for_no_settled_row") or 0
+    unattributed = split.get("of_those_not_attributable_to_a_departure") or 0
+    if split.get("the_concordance_is_conditioned_on_survival"):
+        return ("And a larger settled book does NOT move it: all {dropped} of those are renewals "
+                "the world recorded as departures, so a bigger book adds decisions and drops the "
+                "same share of them.".format(dropped=dropped))
+    if unattributed:
+        return ("A larger settled book moves at most part of it: {n} of those are not "
+                "attributable to a departure, and that residue is the recoverable "
+                "half.".format(n=unattributed))
+    return ("A larger settled book may move it: the split found no departure behind these drops "
+            "and no unattributed residue either.")
 
 
 def _skill_survivorship(method_skill: dict) -> dict:
@@ -1780,7 +1817,11 @@ def _skill_drop_out(method_skill: dict) -> dict:
         # can fix it here, while a coverage gap is data this repository owes and a larger sample
         # of it is a separate piece of work. A reader who meets "widenable: yes" and stops has
         # been told the flattering half.
-        "consequence": _widening_consequence(by_class),
+        # THE SPLIT IS READ FROM THE SAME ARTEFACT, never from the feed block built beside it: one
+        # subject, one source. `_skill_survivorship` shapes the same run's split for the reader;
+        # this reads what the RUN said, so the two cannot come to disagree about the remedy.
+        "consequence": _widening_consequence(
+            by_class, (method_skill or {}).get("survivorship")),
         "reconciliation": drop.get("reconciliation"),
         "reading": drop.get("reading"),
     }

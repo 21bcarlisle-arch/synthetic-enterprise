@@ -574,6 +574,92 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           : "");
   }
 
+  /* WHO THE FUNNEL DROPPED, which is a different fact from how many.
+
+     WHY IT IS HERE AND NOT ONLY IN THE JSON. The funnel above tells a reader the largest drop
+     class is eligibility and — through `consequence` — that only a larger settled book adds to
+     the sample. Measured (2026-09-08), that class IS the churn class: every decision dropped for
+     want of a settled row is a renewal the world recorded as a departure, so a larger book adds
+     decisions and drops the SAME SHARE of them. The concordance a few lines above therefore
+     answers "given the household stayed, did the price rank the joint value?" — a selection in
+     the estimand, not a sample-size bound, and the bias runs the wrong way: over-pricing leaves
+     the sample rather than scoring low.
+
+     THE SENTENCE IS NOT WRITTEN HERE. `run_value_cycle_ab._survivorship` MEASURES the split per
+     run and `_survivorship_reading` composes the verdict from those counts; this renders what the
+     run said. A page that typed the paragraph above would go on asserting it after the run that
+     refutes it — and the refuting count (`scored_decisions_the_world_recorded_as_a_departure`) is
+     published beside the verdict for exactly that reason.
+
+     ABSENT, NEVER INFERRED. The split needs the arm's log and the world's event log in one place,
+     so a run predating it cannot have the answer reconstructed from its artefact. That branch
+     renders the refusal on the surface rather than in a footnote: the reader is told the page
+     cannot say whether the figure conditions on survival, which is not the same as being told
+     it does not.
+
+     AND THERE ARE THREE STATES, NOT TWO — found by the commit gate, which is the only place that
+     could have found it. The FEED can predate this block entirely: `_skill_survivorship` writes
+     the withheld branch with its own named reason, but a `value_arms.json` generated before that
+     producer existed carries no `survivorship` key at all, and the published feed at HEAD is
+     exactly that. `sv` is then `undefined`, and a refusal whose reason came from `sv.reason`
+     would have rendered "Not measured by this run." with NOTHING after it — a refusal that does
+     not name its reason, which is the one thing a refusal here may not be. So the two absences
+     are told apart: the feed predating the producer is OURS to fix by regenerating, and the run
+     predating the split is not. */
+  function survivorshipBlock(sv) {
+    if (!sv || !sv.available) {
+      /* "NOT MEASURED BY THIS RUN", and deliberately NOT "we cannot tell". That phrase is the
+         director's, reserved on this page for one verdict — the concordance sitting inside its
+         null — and a control exists to stop it becoming a constant. Two different unknowns
+         wearing one form of words is how this project has published something misleading before:
+         a reading that cannot be told from chance and a split a run never took are not the same
+         state, and a reader who saw the same sentence for both would have no way to tell them
+         apart. */
+      return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--amber);">'
+        + "<strong>Are those the decisions where the household left?</strong> "
+        + '<span style="font-weight:600;">Not measured by this run.</span> '
+        + prose(sv && sv.reason ? sv.reason
+            : "this page's own feed was generated before the survivorship split existed, so it "
+              + "carries no answer either way. That one is OURS: regenerating the feed from a run "
+              + "that measured the split is all it needs, and until then the question above is "
+              + "open rather than answered.") + "</p>";
+    }
+    return '<p style="margin:10px 0 4px;font-size:11.5px;color:var(--muted);">'
+      + "<strong>Are those the decisions where the household left?</strong> "
+      + prose(sv.what_this_is) + "</p>"
+      + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+      + 'margin:0 0 6px;border-collapse:collapse;"><tr>'
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Decisions</th>"
+      + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">What they are</th></tr>"
+      + "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+      + esc(sv.decisions_dropped_for_no_settled_row)
+      + "</td><td style=\"padding:1px 0;\">dropped for want of a settled row</td></tr>"
+      + "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+      + esc(sv.of_those_the_world_recorded_as_a_departure)
+      + "</td><td style=\"padding:1px 0;\">of those, renewals the world recorded as a "
+      + "<strong>departure</strong></td></tr>"
+      + "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+      + esc(sv.of_those_not_attributable_to_a_departure)
+      + "</td><td style=\"padding:1px 0;\">of those, NOT attributable to a departure &mdash; the "
+      + "residue a re-cut boundary or a longer run could recover</td></tr>"
+      /* THE REFUTING ROW, printed as plainly as the others. A scored decision that IS a departure
+         contradicts the verdict below it, and a page that hid the count while printing the
+         verdict would be unable to tell the reader the two had come apart. */
+      + "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+      + esc(sv.scored_decisions_the_world_recorded_as_a_departure)
+      + "</td><td style=\"padding:1px 0;\">SCORED decisions the world recorded as a departure "
+      + "&mdash; a non-zero count here refutes the reading below</td></tr>"
+      + "</table></div>"
+      /* AMBER WHEN THE FIGURE IS SURVIVOR-CONDITIONED, muted when it is not. The colour is read
+         off the run's own flag, not from the presence of the block: this is a bound on what the
+         concordance above MEANS, and a reader who takes it for the unconditional question has
+         read the page wrong. */
+      + '<p style="margin:0 0 6px;font-size:11.5px;color:var('
+      + (sv.the_concordance_is_conditioned_on_survival ? "--amber" : "--muted") + ');'
+      + (sv.the_concordance_is_conditioned_on_survival ? "font-weight:600;" : "") + '">'
+      + prose(sv.reading) + "</p>";
+  }
+
   /* THE HOUSEHOLD CELL, and it is a cell rather than a section on purpose. An arm that earned
      more while its households kept less has moved value rather than made it, and a reader can
      only see that with both figures on ONE ROW. An arm with no household figure renders the
@@ -1388,6 +1474,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
              counts are what say whether the sample can be widened, and a subtraction can only
              give the total. */
           + skillFunnel(msk.drop_out || {})
+          /* AND WHO THOSE DROPPED DECISIONS ARE. Immediately after the funnel, because it is the
+             same population re-described and the funnel's own consequence ("only a larger settled
+             book moves it") is what this qualifies. */
+          + survivorshipBlock(msk.survivorship)
           // THE CONTRAST FIGURE CARRIES ITS OWN NULL TOO. This line put a bounded 0.333 beside a
           // bare 0.130 and invited the reader to compare them; one of the two was a number they
           // could weigh and the other was not.

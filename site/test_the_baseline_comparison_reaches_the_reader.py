@@ -113,13 +113,21 @@ def _text(fragment: str) -> str:
     return re.sub(r"\s+", " ", html_lib.unescape(re.sub(r"<[^>]+>", " ", fragment))).strip()
 
 
-def _render(feed: dict, growth: dict | None = None) -> dict:
+def _render(feed: dict, growth: dict | None = None, raw: bool = False) -> dict:
     """Drive the real door with the given feed and return {id: rendered text a reader sees}.
 
     `growth` overrides the book-growth feed. It is a parameter rather than a constant because the
     sample bound below is authored by THAT producer and read by this page, so the only way to
     prove the page reads it -- rather than printing a number that happens to match -- is to drive
     the door with a different one.
+
+    `raw` returns the innerHTML UNSTRIPPED, and it exists because `_text` is blind to a class of
+    real defect. Every control here reads stripped text, so a mutation that changes only the
+    MARKUP survives all of them -- and on this page markup carries meaning: amber qualifies the
+    headline figure, muted footnotes it. One survived mutation (2026-09-08: the survivorship
+    verdict styled amber unconditionally) is what bought this parameter. Use it only for a claim
+    about the styling itself; a figure asserted against raw HTML reds on a correct page, which is
+    what `_text` exists to prevent.
     """
     if not HARNESS.is_file():
         pytest.fail("site/_live_harness.mjs is missing -- the render check is UNAVAILABLE, and an "
@@ -150,6 +158,13 @@ def _render(feed: dict, growth: dict | None = None) -> dict:
     rendered = {}
     for panel in PANELS:
         element = out.get(panel) or {}
+        # RAW MARKUP FOR THE ONE THING `_text` IS BLIND TO: styling. A block rendered amber says
+        # "this bounds the figure above"; the same words in muted say "footnote". Stripped to text
+        # the two are identical, so a mutation that ambers every branch survives every text
+        # assertion in this file -- which is exactly how it was caught.
+        if raw:
+            rendered[panel] = element.get("innerHTML") or ""
+            continue
         rendered[panel] = _text(element.get("innerHTML") or "") or _text(
             element.get("textContent") or "")
     return rendered
@@ -1997,6 +2012,63 @@ def test_the_reader_is_told_the_sample_cannot_be_widened_by_our_own_code(live):
     assert "ZERO are a join we failed to make" in rendered
 
 
+def _consequence_feed(by_class, survivorship):
+    """A feed whose amber consequence line was composed by the REAL producer, end to end.
+
+    The sentence is never written here. `generate_value_arms_data._widening_consequence` is what
+    the feed carries, so driving the door through it is the only version of this control that can
+    tell "the page reads the producer" from "the page prints a string a test handed it".
+    """
+    from tools.generate_value_arms_data import _widening_consequence
+
+    feed = copy.deepcopy(_live_feed())
+    drop = feed["method_skill"]["drop_out"]
+    drop["by_class"] = dict(by_class)
+    drop["consequence"] = _widening_consequence(by_class, survivorship)
+    return _text(_render(feed)["arms-method"])
+
+
+_ALL_ELIGIBILITY_CLASSES = {"join": 0, "coverage": 4, "eligibility": 10}
+
+
+def test_the_page_stops_telling_the_reader_a_bigger_book_moves_the_interval(live):
+    """THE DEFECT (2026-09-08, Lane 0), on the surface a reader meets it on.
+
+    In amber, directly above the concordance interval, this page closed with "The interval above
+    is what this book can earn, and only a larger settled book moves it." The class counts do not
+    establish that and never did — measured, the eligibility class IS the churn class, so a
+    bigger book adds decisions and drops the same share of them. A reader who took the amber line
+    at its word would go and buy book depth to fix a selection in the estimand.
+
+    Fires on: restoring the promise; on a remedy composed from the class counts alone.
+    """
+    rendered = _consequence_feed(_ALL_ELIGIBILITY_CLASSES, None)
+    assert "only a larger settled book moves it" not in rendered, (
+        "the page is back to promising a bigger book fixes an interval nothing measured")
+    assert "NOT ESTABLISHED by this run" in rendered
+    # The measured half must still reach the reader, or the fix threw away a real finding.
+    assert "cannot be widened by fixing our own code" in rendered
+
+
+def test_the_amber_line_says_a_bigger_book_does_NOT_help_when_the_split_measured_it(live):
+    """THE OTHER SIDE, driven — so the refusal above is a reading and not a constant.
+
+    The day a run carries the survivorship split, this line must stop saying "not established"
+    and state the measured answer. Both states are driven here because whichever one the
+    published feed is in, the other is unreachable locally, and a page that rendered one
+    sentence for both could not tell a reader which of them anyone can act on.
+    """
+    conditioned = {"available": True, "decisions_dropped_for_no_settled_row": 40,
+                   "of_those_not_attributable_to_a_departure": 0,
+                   "the_concordance_is_conditioned_on_survival": True}
+    rendered = _consequence_feed(_ALL_ELIGIBILITY_CLASSES, conditioned)
+    assert "does NOT move it" in rendered
+    assert "40 of those are renewals the world recorded as departures" in rendered
+    assert "NOT ESTABLISHED" not in rendered
+    # ...and the two states are DIFFERENT sentences, not one wording covering both.
+    assert rendered != _consequence_feed(_ALL_ELIGIBILITY_CLASSES, None)
+
+
 def test_MUTATION_a_run_with_a_join_failure_is_told_the_gap_is_OURS(live):
     """NULL RUNG. The sentence above must be a reading of the classes, not a constant.
 
@@ -2020,6 +2092,228 @@ def test_MUTATION_a_run_with_a_join_failure_is_told_the_gap_is_OURS(live):
     assert "cannot be widened by fixing our own code" not in rendered, (
         "a run WITH a join failure was told its sample cannot be widened -- the page is printing "
         "a constant, not the classes")
+
+
+# ── WHO the funnel dropped, not only how many ────────────────────────────────────────────────
+#
+# THE DEFECT (2026-09-08, Lane 0). The funnel above published "only a larger settled book moves
+# it" over a class that IS the churn class: every decision it drops for want of a settled row is
+# a renewal where the household left. So the concordance three lines up answers "GIVEN the
+# household stayed, did the price rank the joint value?" and a larger book drops the same share.
+# `run_value_cycle_ab._survivorship` measured it and `_skill_survivorship` carried it to the
+# feed; until this block landed, nothing under site/ read either, so the reader-facing half of
+# that finding did not exist.
+
+
+def _survivorship_feed(dropped_rows, scored_rows, churned):
+    """A live feed whose survivorship block was composed by BOTH producers, end to end.
+
+    Neither the counts nor the verdict are written here. `run_value_cycle_ab._survivorship` is
+    what a run writes into its artefact and `generate_value_arms_data._skill_survivorship` is what
+    the feed carries, so driving the door through both is the only version of this control that
+    can tell "the page reads the run" from "the page prints a string a test handed it".
+    """
+    from tools.generate_value_arms_data import _skill_survivorship
+    from tools.run_value_cycle_ab import _survivorship
+
+    produced = _survivorship(dropped_rows, scored_rows, churned)
+    feed = copy.deepcopy(_live_feed())
+    feed["method_skill"]["survivorship"] = _skill_survivorship({"survivorship": produced})
+    return produced, feed
+
+
+#: One dropped decision per reason, so the reason filter inside `_survivorship` is REACHABLE. A
+#: fixture holding only the `no_settled_row` drop makes `[row for row in dropped if reason == ...]`
+#: an identity, and a mutation deleting the filter survives against it -- which is exactly what
+#: happened on this block's first mutation battery.
+_DROPPED = [
+    {"reason": "the_priced_term_carried_no_settled_row", "account": "A1",
+     "term_start": "2023-01-01"},
+    {"reason": "the_priced_term_carried_no_settled_row", "account": "A2",
+     "term_start": "2023-02-01"},
+    {"reason": "no_published_counterfactual_rate_for_the_term", "account": "A3",
+     "term_start": "2023-03-01"},
+]
+_SCORED = [{"account": "A4", "term_start": "2023-04-01"},
+           {"account": "A5", "term_start": "2023-05-01"}]
+#: Both `no_settled_row` accounts left; neither scored account did. The survivor-conditioned world.
+_CHURNED_CONDITIONED = {("A1", "2023-01-01"), ("A2", "2023-02-01")}
+
+
+def test_the_survivorship_split_CAN_reach_the_reader_at_all():
+    """REACHABILITY FIRST, before anything asserts what the block says.
+
+    The live feed is in the WITHHELD branch -- no run on disk carries the split -- so every
+    control below it would pass against a door that rendered the refusal unconditionally and had
+    no available branch at all. This drives the branch that will exist the day a run carries the
+    measurement, and it is the one that must not be assumed.
+
+    Fires on: a door that renders only the refusal; on a block wired into `msk.drop_out` rather
+    than `msk.survivorship`, which would render nothing here.
+    """
+    produced, feed = _survivorship_feed(_DROPPED, _SCORED, _CHURNED_CONDITIONED)
+    assert produced["available"] is True, "the fixture never reached the available branch"
+    rendered = _text(_render(feed)["arms-method"])
+
+    assert "Are those the decisions where the household left?" in rendered
+    # Every count, including the one that would refute the verdict beside it.
+    assert "2 dropped for want of a settled row" in rendered
+    assert "2 of those, renewals the world recorded as a departure" in rendered
+    assert "0 of those, NOT attributable to a departure" in rendered
+    assert "0 SCORED decisions the world recorded as a departure" in rendered
+    # And the reading, which is the half a reader carries away.
+    assert "GIVEN the household stayed" in rendered
+    assert "A LARGER BOOK DOES NOT FIX THIS" in rendered
+
+
+def test_the_live_page_says_it_CANNOT_TELL_whether_the_figure_conditions_on_survival(live):
+    """The branch the published feed is actually in, and it must be on the surface.
+
+    "Not measured" is a result here and it is not the same claim as "it does not condition on
+    survival". Every run on disk predates the split, so the feed withholds it -- and a page that
+    withheld the ABSENCE too would leave the concordance reading as the unconditional question it
+    is not.
+
+    THE WORDS ARE NOT "WE CANNOT TELL", and that is load-bearing rather than a style choice.
+    `test_a_reading_that_CLEARS_its_null_does_not_say_it` reserves that phrase for the verdict
+    about the concordance and its null; this block's first draft borrowed it and turned that
+    control red, correctly. Two unknowns sharing one sentence is exactly the failure the phrase's
+    own control exists to prevent.
+
+    Fires on: rendering the refusal into a footnote, or not at all; on inferring a split from an
+    artefact that never measured one.
+    """
+    survivorship = (_live_feed()["method_skill"] or {}).get("survivorship")
+    rendered = _text(live["arms-method"])
+
+    # THE QUESTION IS ON THE PAGE IN ALL THREE STATES. Everything below only decides which
+    # ANSWER is owed; a page that dropped the question when it had no answer would leave the
+    # concordance above reading as the unconditional one.
+    assert "Are those the decisions where the household left?" in rendered
+
+    if survivorship and survivorship.get("available"):
+        # THE BRANCH FLIPS THE DAY A RUN CARRIES THE SPLIT, and this control must not go red for
+        # the reason it was built to want. Same subject, the other side of the partition.
+        assert str(survivorship["decisions_dropped_for_no_settled_row"]) in rendered
+        return
+
+    assert "Not measured by this run" in rendered
+    if survivorship:
+        # The producer's withheld branch: the RUN predates the split, and that is not ours.
+        assert "predates the survivorship split" in rendered
+        return
+    # NO KEY AT ALL -- the state the published feed is in, and the state that refused this
+    # commit. `_skill_survivorship` did not exist when `value_arms.json` was last generated, so
+    # `sv` is undefined in the door. A refusal reading "Not measured by this run." with nothing
+    # after it is what this leg exists to prevent, and it is the branch a working tree holding a
+    # REGENERATED feed cannot reach -- which is why the gate found it and no local run did.
+    assert "own feed was generated before the survivorship split existed" in rendered
+    assert "That one is OURS" in rendered, (
+        "the absence a regenerated feed would fix is not named as ours to fix")
+    # NO PAGE-WIDE ASSERTION THAT "we cannot tell" IS ABSENT, and the first draft of this control
+    # had one. It is wrong: the live page says exactly that about the concordance and its null,
+    # correctly. Scoping it to this block would only re-guard what the control named above
+    # already catches -- which it demonstrably does, having gone red on the borrowed phrase.
+
+
+def test_MUTATION_the_verdict_is_read_off_the_counts_across_the_WHOLE_partition():
+    """One control over every side of the split, because a per-side leg cannot see a constant.
+
+    `_survivorship_reading` has four outcomes and three of them contradict the finding this block
+    publishes. A door printing the survivor-conditioned paragraph as text would pass any test
+    written against today's answer, so the discriminator is that the four renders DIFFER and each
+    carries its own consequence:
+
+      * conditioned      -- the drops are all departures and no scored decision is
+      * refuted          -- a SCORED decision is a departure, so the reading changes shape
+      * residue          -- a drop is not attributable to a departure, which IS re-cuttable
+      * nothing dropped  -- no drop for want of a settled row, so no conditioning to report
+
+    Fires on: hard-coding the paragraph; on styling the verdict amber from the block's presence
+    rather than from the run's own flag (the leg at the end -- and that mutation SURVIVED the
+    stripped-text assertions, which is why `_render(raw=True)` exists).
+    """
+    def render(dropped, scored, churned):
+        produced, feed = _survivorship_feed(dropped, scored, churned)
+        return produced, _text(_render(feed)["arms-method"])
+
+    conditioned, conditioned_text = render(_DROPPED, _SCORED, _CHURNED_CONDITIONED)
+    # A scored decision the world recorded as a departure -- the refuting count.
+    refuted, refuted_text = render(
+        _DROPPED, _SCORED, _CHURNED_CONDITIONED | {("A4", "2023-04-01")})
+    # A drop no departure explains -- the residue worth re-cutting the boundary for.
+    residue, residue_text = render(_DROPPED, _SCORED, {("A1", "2023-01-01")})
+    # And the rare side: nothing dropped for want of a settled row at all.
+    empty, empty_text = render(_DROPPED[2:], _SCORED, _CHURNED_CONDITIONED)
+
+    # THE PARTITION IS REACHED. A guard that refused every input would satisfy each leg below.
+    assert conditioned["the_concordance_is_conditioned_on_survival"] is True
+    assert refuted["the_concordance_is_conditioned_on_survival"] is False
+    assert residue["the_concordance_is_conditioned_on_survival"] is False
+    assert empty["decisions_dropped_for_no_settled_row"] == 0
+
+    assert len({conditioned_text, refuted_text, residue_text, empty_text}) == 4, (
+        "two sides of the split render the same words, so the page is printing a constant rather "
+        "than reading the counts")
+    assert "A LARGER BOOK DOES NOT FIX THIS" in conditioned_text
+    for text in (refuted_text, residue_text, empty_text):
+        assert "A LARGER BOOK DOES NOT FIX THIS" not in text, (
+            "a run that does NOT condition on survival was told a larger book cannot help it")
+    assert "refutes the survivorship reading" in refuted_text
+    assert "worth re-cutting for" in residue_text
+    assert "not conditioned on survival in this run" in empty_text
+
+    # AND THE STYLING, which `_text` above is blind to. Amber says "this bounds the figure four
+    # lines up"; muted says "footnote". A block styled amber on every input tells the reader every
+    # run is survivor-conditioned, and this leg is here because that mutation SURVIVED the four
+    # assertions above it.
+    def verdict_style(dropped, scored, churned, phrase):
+        _, feed = _survivorship_feed(dropped, scored, churned)
+        raw = _render(feed, raw=True)["arms-method"]
+        paragraphs = [chunk for chunk in raw.split("<p ") if phrase in chunk]
+        assert len(paragraphs) == 1, (
+            "the verdict paragraph carrying {!r} could not be isolated in the rendered "
+            "markup".format(phrase))
+        return paragraphs[0].split(">", 1)[0]
+
+    assert "--amber" in verdict_style(
+        _DROPPED, _SCORED, _CHURNED_CONDITIONED, "A LARGER BOOK DOES NOT FIX THIS"), (
+        "the survivor-conditioned verdict is footnoted in muted, where it bounds the concordance")
+
+    # THE TWO ABSENCES, DRIVEN RATHER THAN OBSERVED, and they are different states.
+    #
+    # A run predating the split is not ours to fix; a FEED predating the producer is. Both are
+    # driven here because whichever one the published feed is in, the other is unreachable
+    # locally -- and the second cost this work a refused commit: every local run held a
+    # regenerated feed carrying the key, so only the gate's clean tree ever saw `sv` undefined.
+    # A run that took the split but had no event log to join -- the producer's own refusal, with
+    # its own `why_not`. Composed by both producers, like every fixture above.
+    _, withheld = _survivorship_feed(_DROPPED, _SCORED, None)
+    withheld_text = _text(_render(withheld)["arms-method"])
+    assert "Not measured by this run" in withheld_text
+    assert "predates the survivorship split" in withheld_text
+    assert "no departure could be joined to a dropped decision" in withheld_text, (
+        "the run's own reason for having no split did not reach the reader")
+
+    no_key = copy.deepcopy(_live_feed())
+    no_key["method_skill"].pop("survivorship", None)
+    no_key_text = _text(_render(no_key)["arms-method"])
+    assert "Are those the decisions where the household left?" in no_key_text, (
+        "a feed predating the producer drops the question instead of leaving it open")
+    assert "own feed was generated before the survivorship split existed" in no_key_text
+    assert "That one is OURS" in no_key_text
+    assert withheld_text != no_key_text, (
+        "a run that predates the split and a FEED that predates the producer render the same "
+        "words, so the page cannot tell the reader which absence is ours to fix")
+    for dropped, scored, churned, phrase in (
+            (_DROPPED, _SCORED, _CHURNED_CONDITIONED | {("A4", "2023-04-01")},
+             "refutes the survivorship reading"),
+            (_DROPPED, _SCORED, {("A1", "2023-01-01")}, "worth re-cutting for"),
+            (_DROPPED[2:], _SCORED, _CHURNED_CONDITIONED,
+             "not conditioned on survival in this run")):
+        assert "--amber" not in verdict_style(dropped, scored, churned, phrase), (
+            "a run that does NOT condition on survival is styled as though it does, so the "
+            "page's amber comes from the block being present rather than from the run's flag")
 
 
 def _book_counts(feed):
