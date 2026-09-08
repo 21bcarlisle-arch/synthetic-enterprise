@@ -6,6 +6,8 @@ and the epistemic guard that true_creditworthy never leaks into company/** code.
 import pytest
 from pathlib import Path
 
+from tools.python_code_text import searchable
+
 
 class TestCreditBureauPortProtocol:
     def test_synthetic_adapter_satisfies_protocol(self):
@@ -116,15 +118,69 @@ class TestCreditAdapterFactory:
 
 
 class TestEpistemicGuard:
+    @staticmethod
+    def _company_modules_reading_ground_truth(root: Path) -> list[str]:
+        """company/** modules that READ `true_creditworthy`, as opposed to naming it.
+
+        TWO SUBSTRING BUGS LIVED HERE, both the same class: a spelling standing in for a
+        structure.
+
+        THE FILENAME FILTER. `"test" in path.name` excluded four production modules from an
+        epistemic wall — `liquidity_stress_test.py`, `collateral_death_test.py`,
+        `stress_test.py` and, because "attestation" contains "test",
+        `annual_compliance_attestation_register.py`. Risk and compliance code is precisely where
+        a creditworthiness leak would be worth having, and the wall could not see it. A test
+        module is one pytest collects, which is a `test_` PREFIX, not the letters anywhere.
+
+        THE BODY SCAN. `"true_creditworthy" in text` cannot tell a read from a comment saying
+        the read is forbidden, so documenting the wall breached it. `searchable()` blanks
+        comments and docstrings and leaves everything a running module could touch.
+        """
+        out = []
+        for path in sorted(root.rglob("*.py")):
+            if path.name.startswith("test_") or "/tests/" in path.as_posix():
+                continue
+            text = path.read_text(encoding="utf-8", errors="ignore")
+            if "true_creditworthy" in searchable(text):
+                out.append(str(path))
+        return out
+
     def test_true_creditworthy_never_read_by_company_code(self):
         """SIM ground truth (true_creditworthy) must never leak into company/** decision code."""
         repo_root = Path(__file__).resolve().parents[2]
         company_dir = repo_root / "company"
-        violations = []
-        for path in company_dir.rglob("*.py"):
-            if "test" in path.name:
-                continue
-            text = path.read_text(encoding="utf-8", errors="ignore")
-            if "true_creditworthy" in text:
-                violations.append(str(path))
+        violations = self._company_modules_reading_ground_truth(company_dir)
         assert violations == [], f"true_creditworthy leaked into company code: {violations}"
+
+    def test_the_wall_scan_has_a_subject(self):
+        """FAIL-SILENT GUARD. The scan above passes on every input if it walks nothing, and a
+        renamed root or a typo would do exactly that while reading like a clean wall."""
+        repo_root = Path(__file__).resolve().parents[2]
+        scanned = [p for p in (repo_root / "company").rglob("*.py")
+                   if not p.name.startswith("test_")]
+        assert len(scanned) > 50, f"company/ scan saw only {len(scanned)} modules — blind"
+
+    def test_the_wall_catches_a_real_read(self, tmp_path):
+        """REACHABILITY, asserted before anything is asserted about the tree. MUTATION: narrow
+        the scan to nothing and this fires; without it the green above means nothing."""
+        (tmp_path / "leaky.py").write_text("score = customer['true_creditworthy']\n")
+        assert self._company_modules_reading_ground_truth(tmp_path) == [
+            str(tmp_path / "leaky.py")]
+
+    def test_a_module_named_for_a_stress_test_is_still_inside_the_wall(self, tmp_path):
+        """The filename defect, pinned. MUTATION: restore `"test" in path.name` and this fires —
+        four real company/risk and company/regulatory modules leave the wall with it."""
+        (tmp_path / "liquidity_stress_test.py").write_text("x = true_creditworthy\n")
+        (tmp_path / "annual_compliance_attestation_register.py").write_text(
+            "y = true_creditworthy\n")
+        assert len(self._company_modules_reading_ground_truth(tmp_path)) == 2
+
+    def test_documenting_the_wall_does_not_breach_it(self, tmp_path):
+        """THE OTHER DIRECTION. MUTATION: drop `searchable()` and this fires — a module that
+        explains why it must not read ground truth is reported as reading it."""
+        (tmp_path / "honest.py").write_text(
+            '"""Scores from the bureau adapter only; true_creditworthy is SIM-side."""\n'
+            "# never read true_creditworthy here -- it is ground truth\n"
+            "score = bureau.score(account)\n"
+        )
+        assert self._company_modules_reading_ground_truth(tmp_path) == []

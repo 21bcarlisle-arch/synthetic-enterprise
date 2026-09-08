@@ -42,6 +42,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from tools.python_code_text import prose_string_ids
+
 _REPO = Path(__file__).resolve().parents[1]
 
 #: The one address allowed to launch. Every other sighting is either a floor row with a stated
@@ -194,21 +196,18 @@ def _tracked(repo: Path, pattern: str) -> list[str]:
     return [p for p in out if p]
 
 
-def _docstring_nodes(tree: ast.AST) -> set[int]:
-    """The id()s of string constants that are docstrings or bare string expressions.
-
-    Prose that MENTIONS the tool is not a launch, and this project has a lot of prose about this
-    exact defect — `tools/run_arms_rerun.py` recites the shell command it replaced in its own
-    docstring. Counting that would make the census report the history rather than the code. A
-    docstring cannot launch anything, so the exclusion costs no coverage: an argv literal lives in
-    a `List` or a `Call`, never in a bare `Expr`.
-    """
-    out: set[int] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
-            if isinstance(node.value.value, str):
-                out.add(id(node.value))
-    return out
+#: The id()s of bare string-expression Constants: prose that MENTIONS the tool is not a launch,
+#: and this project has a lot of prose about this exact defect — `tools/run_arms_rerun.py` recites
+#: the shell command it replaced in its own docstring. Counting that would make the census report
+#: the history rather than the code. A docstring cannot launch anything, so the exclusion costs no
+#: coverage: an argv literal lives in a `List` or a `Call`, never in a bare `Expr`.
+#:
+#: THIS WAS A PRIVATE COPY until 2026-09-08. The identical discrimination was written a second
+#: time inside `test_the_seat_executor_stands_down`, and the CLASS it belongs to — a control that
+#: reads Python by substring and cannot tell code from prose — was found live in four more
+#: controls, two of them walls. A helper nobody can import gets rewritten per instance, which is
+#: exactly how that control was widened four times without the class ever being fixed.
+_docstring_nodes = prose_string_ids
 
 
 def _census_python(text: str, path: str) -> list[Sighting]:

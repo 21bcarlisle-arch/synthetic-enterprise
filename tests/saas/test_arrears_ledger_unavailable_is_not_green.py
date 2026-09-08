@@ -244,18 +244,63 @@ _NOT_A_POPULATION_RATE = {
 }
 
 
-def _ledger_reading_modules():
+def _ledger_reading_modules(_root=None):
+    """The class members, read as CODE. `_root` is for the reachability legs only.
+
+    IT IS A PARAMETER SO THE MUTATION LEGS RUN THIS FUNCTION rather than a copy of it. A leg
+    that calls `searchable()` directly proves the helper works and says nothing about whether
+    this scan uses it — which is how the first draft of the leg below passed with the naive
+    reading restored. Every value here is prose-blanked source, so the three
+    membership questions below all ask about what a module DOES.
+
+    THE NEGATION IS WHY THIS MATTERS. The teeth below are `"arrears_ledger" not in text`, so
+    under a raw-text reading a COMMENT naming the shared reader was enough to clear a real
+    offender — an accurate note about the fix hid the defect the fix was for. The other
+    direction was live too: `saas/money.py` and `tools/generate_customer_consumption.py` only
+    ever named the ledger in prose and were carried in the class regardless, which is two
+    exemption rows this list never had to grow.
+    """
     from pathlib import Path
-    root = Path(__file__).resolve().parent.parent.parent
+
+    from tools.python_code_text import searchable
+
+    root = Path(_root) if _root is not None else Path(__file__).resolve().parent.parent.parent
     reader = root / "saas" / "reporting" / "arrears_ledger.py"
     found = {}
     for path in sorted(list((root / "saas").rglob("*.py")) + list((root / "tools").rglob("*.py"))):
         if path == reader:
             continue
-        text = path.read_text(encoding="utf-8", errors="ignore")
+        text = searchable(path.read_text(encoding="utf-8", errors="ignore"))
         if _LEDGER in text or "arrears_history" in text:
             found[str(path.relative_to(root))] = text
     return found
+
+
+def test_a_comment_naming_the_shared_reader_cannot_clear_an_offender(tmp_path):
+    """THE FAIL-OPEN, pinned, THROUGH THE PRODUCTION SCAN. The teeth are a NEGATED substring, so
+    under the raw-text reading this module -- which computes a population rate and never calls
+    the shared reader -- was cleared by a comment mentioning it.
+
+    MUTATION: drop `searchable()` from `_ledger_reading_modules` and this fires.
+    """
+    surface = tmp_path / "saas" / "sneaky_report.py"
+    surface.parent.mkdir(parents=True)
+    surface.write_text(
+        '"""Population rate. TODO: route through saas.reporting.arrears_ledger."""\n'
+        "arrears = load('billing_ledger.json')\n"
+        "rate = len(arrears) / len(active_customer_ids)\n"
+    )
+    assert "arrears_ledger" in surface.read_text(), "sanity: the prose mention is in the raw text"
+
+    found = _ledger_reading_modules(tmp_path)
+    assert "saas/sneaky_report.py" in found, "the scan lost the surface entirely"
+    offenders = [
+        rel for rel, text in found.items()
+        if _DENOMINATOR in text and "arrears" in text and "arrears_ledger" not in text
+    ]
+    assert offenders == ["saas/sneaky_report.py"], (
+        "a comment naming the shared reader still clears a surface that never calls it"
+    )
 
 
 def test_every_population_rate_surface_goes_through_the_shared_reader():
