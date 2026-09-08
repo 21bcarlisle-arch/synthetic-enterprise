@@ -4,7 +4,26 @@ REUSE: tools/hot_water_base.py
 CLASS: CUSTOM
 INDEX: searched "hot water", "base load", "cooking", "gas base", "standing loss".
        `simulation/fabric_physics.py` models SPACE HEAT and deliberately has no hot-water term.
-       `simulation/demand_model.py` owns electricity shape. Nothing models the gas base.
+       `simulation/demand_model.py` owns electricity shape.
+
+       **THIS BLOCK SAID "Nothing models the gas base." THAT WAS FALSE WHEN I WROTE IT.**
+       `simulation/premise_trace.py` line 907 carries a Layer-2 domestic hot-water model, on the
+       SHIPPED settlement path, occupancy-driven, and it has been there since long before this
+       module. I searched five phrases and did not open the module I was naming, then answered the
+       write-time gate's question -- what did the index return and why write new code anyway --
+       with a claim I had not checked.
+
+       The two disagree: 40 L/person with NO fixed term against SAP's 36 + 25N, and a 45 K rise
+       against the 37.6 K the measured energy implies. They agree exactly at the average occupancy
+       (both give 96 L/day at N=2.4) and nowhere else, which is why nothing noticed. Production
+       emits 1.4-1.6x the DESNZ measured median and its four-versus-two ratio is 2.00 against
+       SAP's 1.58.
+
+       Recorded in `SEAT_FINDING_THE_SETTLEMENT_PATHS_HOT_WATER_IS_HALF_AGAIN_THE_MEASURED_VALUE
+       _AND_I_BUILT_THE_SECOND_COPY_2026-09-08`, which recommends ONE implementation in
+       `premise_trace` with this module importing it. Until that lands this module is the sourced
+       copy and the unsourced one is the one that runs -- so nothing here should be read as the
+       company's behaviour.
 
 WHY THIS IS DRAWN AND NOT DERIVED
 ---------------------------------
