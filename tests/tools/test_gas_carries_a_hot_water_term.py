@@ -224,3 +224,66 @@ def test_AN_INTERVENTION_CEILING_DOES_NOT_INCLUDE_THE_HOT_WATER_TERM(pop):
             "people, so an intervention saving cannot legitimately depend on how many live there "
             "-- the hot-water term is leaking into the counterfactual.")
     assert water[on_gas].mean() > 0, "guard against this passing because the term is gone again"
+
+
+#: Axis pairs KNOWN to be exactly collinear, with the finding that records why. A ratchet, not an
+#: excuse: any pair not on this list reds the control below, and removing a pair from the list
+#: requires the degeneracy to actually be gone.
+_KNOWN_COLLINEAR = {
+    frozenset({"seasonal_swing", "weather_sensitivity_kwh_per_degree_day"}),
+    frozenset({"seasonal_swing", "turndown_ceiling_kwh"}),
+    frozenset({"weather_sensitivity_kwh_per_degree_day", "turndown_ceiling_kwh"}),
+}
+
+
+def test_NO_NEW_PAIR_OF_DECLARED_AXES_IS_EXACTLY_THE_SAME_AXIS(pop):
+    """A vector cannot carry information in a direction it already carries.
+
+    THREE axes are one direction, not two. `seasonal_swing` is `0.5 * (1 + 0.15 * z(hlc))`,
+    `weather_sensitivity` is `hlc * 24`, and `turndown_ceiling_kwh` is `hlc * 24 * (cold - warm
+    degree-days)` where that difference is near-constant across cells because almost every cell
+    heats on almost every day of the window. All three are affine in one scalar, so their mutual
+    correlations are 1.000000 and 0.999997 BY CONSTRUCTION rather than by coincidence.
+
+        eigenvalues  [4.9436, 1.0000, 0.9732, 0.0660, 0.0171, 0.0000, -0.0000]
+
+    TWO zero eigenvalues: seven declared axes, rank five, and only THREE directions carrying more
+    than 1% of the trace. It costs at least 31% on the published sample size -- N fell from 6,816 to
+    5,215 on dropping `seasonal_swing` alone, because a direction appearing more than once must be
+    satisfied each time while teaching nothing after the first.
+
+    AND THE THIRD MEMBER WAS ONLY VISIBLE AFTER A DEFECT WAS FIXED. While the hot-water term was
+    leaking into the counterfactual, `turndown_ceiling_kwh` correlated +0.38 with HEADCOUNT, which
+    made it look partly independent. Removing the leak removed the spurious independence and showed
+    the axis had always been a copy of the heat-loss coefficient. A defect was flattering the
+    instrument, and fixing it made the measurement look worse and the tree more honest.
+
+    WHY THIS IS A RATCHET AND NOT A CLEAN ASSERTION. The known pair is still live: replacing it
+    honestly needs the cold-half share of ANNUAL demand, and the model stops on 31 March. That is
+    the `simulate_premise` build, not a patch. Landing a red control would wedge every lane, and
+    weakening the assertion to something today's tree passes would key it to today's answer -- so
+    it is keyed to the SET, which is neither. A new duplicate reds it; removing the known one means
+    deleting a line here and having that stay green.
+
+    Recorded in `SEAT_FINDING_TWO_AXES_OF_THE_DEMAND_VECTOR_ARE_THE_SAME_AXIS_2026-09-08`.
+    """
+    axes = list(pop["axes"])
+    values = np.asarray(pop["values"])
+    correlation = np.corrcoef(values.T)
+
+    collinear = set()
+    for i in range(len(axes)):
+        for j in range(i + 1, len(axes)):
+            if abs(correlation[i, j]) > 0.9995:
+                collinear.add(frozenset({axes[i], axes[j]}))
+
+    unexpected = collinear - _KNOWN_COLLINEAR
+    assert not unexpected, (
+        f"new exactly-collinear axis pair(s): {[sorted(p) for p in unexpected]}. Two declared axes "
+        "that are affine transforms of one another carry one direction between them, and the "
+        "acceptance test double-weights it -- inflating N for no information.")
+
+    stale = _KNOWN_COLLINEAR - collinear
+    assert not stale, (
+        f"{[sorted(p) for p in stale]} is no longer collinear -- the degeneracy is fixed, so "
+        "delete it from `_KNOWN_COLLINEAR` rather than leaving a permanent excuse behind.")

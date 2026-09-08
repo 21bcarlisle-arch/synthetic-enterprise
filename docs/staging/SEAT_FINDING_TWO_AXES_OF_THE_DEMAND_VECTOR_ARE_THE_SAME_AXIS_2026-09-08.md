@@ -129,3 +129,45 @@ prediction cover both.
 
 Item 1 of "what is next" is therefore discharged, and item 3 -- the full-rank control -- is now the
 whole of what is outstanding before the axis is rebuilt on `simulate_premise`.
+
+
+---
+
+## AMENDED AGAIN, same day -- it is THREE axes, and the control found what I did not
+
+The title says two. It is three, and I only know that because I wrote the control instead of
+trusting the reading I had already taken by hand. The control's first run refused a pair I had not
+looked at.
+
+    +1.000000   seasonal_swing            x  weather_sensitivity_kwh_per_degree_day
+    +0.999997   seasonal_swing            x  turndown_ceiling_kwh
+    +0.999997   weather_sensitivity...    x  turndown_ceiling_kwh
+
+    eigenvalues  [4.9436, 1.0000, 0.9732, 0.0660, 0.0171, 0.0000, -0.0000]
+
+**TWO zero eigenvalues. Seven declared axes, rank five, and only THREE directions carrying more than
+1% of the trace.** `turndown_ceiling_kwh` is `hlc * 24 * (cold - warm degree-days)`, and that
+difference is near-constant across cells because almost every cell heats on almost every day of the
+window -- so it is a third scaled copy of the heat-loss coefficient.
+
+**And it was only visible because a defect had just been fixed.** While the hot-water term was
+leaking into the counterfactual (`41501920c`), `turndown_ceiling_kwh` correlated +0.38 with
+HEADCOUNT, which made it look partly independent of fabric. Removing the leak removed the spurious
+independence and showed the axis had always been a copy. **A defect was flattering the instrument.**
+Fixing it made the measurement look worse and the tree more honest, which is the direction that
+counts -- and it is the second time today that fixing one thing exposed a larger thing underneath it.
+
+This also revises the correction upward. Dropping `seasonal_swing` alone moved N from 6,816 to
+5,215. That was measured with `turndown_ceiling_kwh` still in the vector as a third copy, so **31%
+is a lower bound on the inflation, not the size of it.**
+
+### The control is landed and it is a ratchet
+
+`test_NO_NEW_PAIR_OF_DECLARED_AXES_IS_EXACTLY_THE_SAME_AXIS` names the three known pairs in
+`_KNOWN_COLLINEAR` and reds on any pair not on that list. It also reds if a listed pair STOPS being
+collinear without being deleted, so the list cannot rot into a permanent excuse. Poison round:
+making a fourth axis an affine copy reds it; the tree as it stands is green.
+
+Landing it red was not an option -- a red control wedges every lane -- and weakening it to something
+today's tree passes cleanly would have keyed it to today's answer. Keying it to the SET is neither,
+and it costs one line to discharge when the axes are rebuilt.
