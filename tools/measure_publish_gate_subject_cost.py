@@ -48,13 +48,13 @@ exits `EXIT_LOCK_SKIPPED` with its marker still pending -- an outcome the worker
 retries -- so the cost is one deferred publish cycle per phase. See `_publisher_exclusion`.
 
 Usage:  python3 -m tools.measure_publish_gate_subject_cost --systemd  [THE committed launch]
-        python3 -m tools.measure_publish_gate_subject_cost --detach   [session-detach only]
         python3 -m tools.measure_publish_gate_subject_cost [--out PATH]   [inline, blocks ~40min]
 """
 from __future__ import annotations
 
 import argparse
 import fcntl
+import io
 import json
 import os
 import shutil
@@ -118,15 +118,12 @@ QUIET_POLL_SECONDS = 30
 # whose launch lives outside the repo cannot be reconstructed from the repo, which is the IaC
 # constraint OPS1/OPERATIONAL_LAYER_DESIGN names as the core one.
 #
-# So `--detach` is the launch, and it is code. The parent re-execs this module through
-# `start_new_session=True` (setsid: the child becomes a session AND process-group leader, so a
-# group-directed kill aimed at the tick cannot reach it), then returns immediately.
-#
-# The record does not TAKE THE CALLER'S WORD for any of this. `main` stamps
-# `is_session_leader`, computed from the running process's own `os.getsid`, so the next reader
-# can tell from the repo artefact alone whether the run that produced it was really detached --
-# which is exactly what could not be checked about the 08:35Z run.
-DETACHED_LOG_FILE = prc.PROJECT_DIR / "docs" / "observability" / "publish-gate-subject-cost-log.md"
+# That is still true, and the launch is still code. What changed on 2026-09-08 is WHOSE code:
+# see `MEASUREMENT_JOB_NAME` below.
+#: The repo-readable launch trail AND the unit's own log, which used to be two different places.
+#: `launch_long_job` points BOTH of the unit's streams at one file in order, so a header written
+#: here no longer sits beside output that went somewhere else.
+LAUNCH_LOG_FILE = prc.PROJECT_DIR / "docs" / "observability" / "publish-gate-subject-cost-log.md"
 
 
 def _ancestor_pids() -> set:
@@ -174,158 +171,83 @@ def _measurement_is_running() -> bool:
     return False
 
 
-def _detached_popen(argv: list, stdout_handle) -> subprocess.Popen:
-    """Start `argv` in a NEW SESSION, so it outlives this process and its process group.
-
-    This one line is the whole fix, which is why it is a named function with its own control
-    (`test_a_detached_child_survives_the_death_of_its_launchers_process_group`) rather than a
-    keyword buried in a call the tests never reach."""
-    return subprocess.Popen(argv, cwd=str(prc.PROJECT_DIR), stdin=subprocess.DEVNULL,
-                            stdout=stdout_handle, stderr=subprocess.STDOUT,
-                            start_new_session=True)
-
-
-def _spawn_detached(out: str, log) -> int:
-    """Re-exec this harness in its own session and return, leaving it running.
-
-    Returns the child's pid. The child's argv deliberately does NOT carry `--detach`: it is the
-    measurement, not another launcher."""
-    DETACHED_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-    handle = open(str(DETACHED_LOG_FILE), "a")
-    handle.write("\n## detached launch {}\n".format(
-        time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())))
-    handle.flush()
-    child = _detached_popen(
-        [sys.executable, "-m", "tools.measure_publish_gate_subject_cost", "--out", out], handle)
-    handle.close()
-    log("detached: pid {} in its own session, logging to {}".format(
-        child.pid, DETACHED_LOG_FILE))
-    log("it writes {} -- read `complete`, not the file's existence".format(out))
-    return child.pid
-
-
-# ── SESSION DETACHMENT WAS NOT ENOUGH: THE FOURTH DEATH (2026-08-10) ─────────────────────────
+# ── THE LAUNCH LEFT THIS FILE, AND THAT IS THE REPAIR (2026-09-08) ───────────────────────────
 #
-# OBSERVED. The 10:42:36Z run was launched through `--detach` above and its own record says
-# `is_session_leader: true` -- computed by the running process, so the detach demonstrably HELD.
-# It died anyway, 3.5 minutes in, still inside `_wait_for_quiet` (`last_heartbeat` 10:46:06Z,
-# then nothing). No kernel OOM in that window (`dmesg` stops at 08:28), and this repository
-# contains no reaper: `worker_seat.py` states the reaping path is DELETED, and `pkill`/`killpg`
-# appear nowhere outside comments.
+# Everything this harness knows about launching was learned here, at a cost of five launches and
+# four deaths. Session detachment was the third fix and it was not enough: the 10:42:36Z run's own
+# record says `is_session_leader: true` -- computed by the running process, so the detach
+# demonstrably HELD -- and it died anyway, 3.5 minutes in, inside `_wait_for_quiet`. `setsid`
+# changes the session and the process group; it changes neither the child's `ppid` (so a walk of a
+# tick's descendants still finds it) nor its CGROUP (so a `KillMode=control-group` teardown still
+# takes it). Only handing the job to the user manager fixes that, because then init is the parent
+# and the job has a cgroup of its own.
 #
-# INFERRED (R9, and labelled as inference because the killer was not caught in the act): what
-# survives a process-GROUP kill does not survive a killer that enumerates a launcher's
-# DESCENDANTS. `start_new_session` changes the session and group; it does not change the child's
-# `ppid`, so a walk of /proc from the bounded tick still finds it. That is the difference the
-# `--detach` control never tested for, and it is exactly the shape of a harness cleaning up
-# after a turn.
+# AND THAT REMEDY WAS BANKED HERE, IN PRIVATE HELPERS, BOUND TO ONE UNIT NAME. Which is why it
+# helped nothing else: every other long job in this repo went on hand-rolling its own launch, and
+# three more died of the same cause in September. So the argv builder, the fixed-name refusal and
+# the corpse-clearing are gone from this file and live in `background.launch_long_job`, which is
+# now the one launcher. Identical properties, one implementation, one suite -- plus two this
+# harness never had:
 #
-# So the escalation this file's own design doc pre-committed to -- "a systemd unit beside
-# reconcile-watch.timer, not a fourth identical launch" -- is what `--systemd` does. A TRANSIENT
-# unit, not a manifest entry: `background/process_manifest.yaml` declares the steady-state
-# process set, and a one-shot ~50-minute job that is *supposed* to end would read as MISSING to
-# `process_reconciler.py` the moment it finished. The launch is still fully in the repo, which
-# is what the IaC constraint asks for -- it is the ARGV that is committed, not a hand-typed
-# incantation.
+#   * a LIVENESS RECORD. A ~50-minute measurement that died was previously noticed only by
+#     someone looking at a pid. `launch_liveness` now holds a claim `deadmans_switch` re-asks on
+#     a timer, and the launcher STOPS a unit whose record could not be written rather than leave
+#     it running and invisible -- which is the state that cost the four launches.
+#   * a CGROUP CHECK ON THE LAUNCH, keyed to the property that decides whether the job survives,
+#     rather than the run's own after-the-fact `is_session_leader` stamp, which said true about a
+#     run that was already dead.
 #
-# The reparenting is the point: `systemd-run` hands the job to the user manager, so the child's
-# parent is init and no descendant-walk from any tick can reach it.
-MEASUREMENT_UNIT_NAME = "publish-gate-subject-cost"
-
-
-def _systemd_run_argv(out: str) -> list:
-    """The transient-unit launch. Built here so a test can assert its shape without running it.
-
-    The FIXED unit name is load-bearing, not cosmetic: systemd itself refuses to start a second
-    unit under a name already active, so double-launch refusal becomes a fact asserted by init
-    rather than a command line this harness parses and could misread (six launches got past the
-    `pgrep` guard on 2026-08-10 because each previous child had already died)."""
-    return ["systemd-run", "--user", "--unit={}".format(MEASUREMENT_UNIT_NAME),
-            "--description=OPS2 publish-gate subject-cost measurement (one-shot, ~50 min)",
-            "--property=WorkingDirectory={}".format(prc.PROJECT_DIR),
-            "--property=Type=simple",
-            sys.executable, "-m", "tools.measure_publish_gate_subject_cost", "--out", out]
-
-
-# ── A CORPSE HOLDS THE NAME JUST AS FIRMLY AS A LIVE RUN ─────────────────────────────────────
+# `--detach` is DELETED rather than kept as a fallback. It was the fourth death, it looks
+# identical to a good launch while it is alive, and offering it beside the working launch offers
+# only a way to lose another 50 minutes. `launch_long_job` refuses outright when `systemd-run` is
+# absent, for exactly that reason.
 #
-# OBSERVED, on the very next launch after the OOM. The fixed unit name is load-bearing and stays
-# -- but systemd keeps a FAILED unit loaded, so the refusal it produces is identical to the one a
-# live measurement produces:
+# WHAT DID NOT MOVE, and must not: `_measurement_is_running` above. A unit name refuses a second
+# UNIT and says nothing about an INLINE run someone started in a terminal, and two full suites do
+# not fit in this box -- two OOM kills proved it.
 #
-#   Failed to start transient service unit: Unit publish-gate-subject-cost.service was already
-#   loaded or has a fragment file
-#
-# and this harness printed "a live unit of this name IS the refusal", which was simply untrue:
-# `systemctl --user is-active` said `failed`. A guard whose message is right in one of the two
-# states it fires in is a guard that misdirects the next reader half the time -- and here it
-# would have blocked every future launch forever, because nothing ever clears the corpse.
-#
-# So a FAILED unit is reset and the launch proceeds; an ACTIVE one still refuses, which is the
-# protection that was actually wanted. Never a blanket reset: that would delete the running
-# measurement's own registration and hand a second one the name.
-def _unit_is_active() -> bool:
-    """True if the measurement unit is running or starting. Unknown reads as ACTIVE.
-
-    The safe direction is the refusing one: a systemctl we cannot interrogate must not be taken
-    as permission to start a second suite next to a live one."""
-    try:
-        res = subprocess.run(["systemctl", "--user", "is-active", MEASUREMENT_UNIT_NAME],
-                             capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
-        return True
-    return res.stdout.strip() in ("active", "activating", "reloading")
-
-
-def _clear_a_failed_unit(log) -> None:
-    """Reset the unit ONLY if it is dead. Never raises: this is a convenience, not a control."""
-    if _unit_is_active():
-        return
-    try:
-        res = subprocess.run(["systemctl", "--user", "reset-failed", MEASUREMENT_UNIT_NAME],
-                             capture_output=True, text=True, timeout=30)
-    except (OSError, subprocess.SubprocessError):
-        return
-    if res.returncode == 0:
-        log("  . cleared the corpse of a previous unit -- it was not active, so its name was "
-            "blocking every future launch rather than protecting a live one")
+# Still a TRANSIENT unit, never a manifest entry: `background/process_manifest.yaml` declares the
+# steady-state process set, and a one-shot job that is *supposed* to end would read as MISSING to
+# `process_reconciler.py` the moment it finished.
+MEASUREMENT_JOB_NAME = "publish-gate-subject-cost"
 
 
 def _launch_under_systemd(out: str, log) -> int:
-    """Hand the measurement to the init system. Returns a process exit code, not a pid.
+    """Hand the measurement to `background.launch_long_job`. An exit code, not a pid.
 
-    Fails CLOSED on every unhappy path -- no systemd-run, a name held by a LIVE unit, a non-zero
-    rc -- because a launch that silently did nothing is precisely the failure mode of the last
-    four attempts, and the next reader must be able to tell 'refused' from 'running'."""
-    if shutil.which("systemd-run") is None:
-        log("! systemd-run unavailable -- use --detach, and expect it to die if this tick's "
-            "harness reaps its descendants (see the note above)")
-        return 1
-    _clear_a_failed_unit(log)
+    Fails CLOSED on every unhappy path, as it always did -- but the refusal is now the launcher's
+    `LaunchRefused`, which NAMES its reason, and that reason is printed rather than reduced to a
+    return code. A launch that silently did nothing is precisely the failure mode of the four
+    attempts this file's comments are made of, and the next reader must be able to tell 'refused'
+    from 'running'."""
+    from background import launch_long_job
+
+    _record_launch_header("background.launch_long_job")
+    # The launcher narrates to stdout; this harness's own narration is prefixed and flushed, so
+    # its lines are captured and re-emitted through `log` rather than interleaved raw.
+    narration = io.StringIO()
     try:
-        res = subprocess.run(_systemd_run_argv(out), capture_output=True, text=True, timeout=120)
-    except (OSError, subprocess.SubprocessError) as exc:
-        log("! could not launch the transient unit: {}".format(exc))
+        entry = launch_long_job.launch(
+            MEASUREMENT_JOB_NAME,
+            [sys.executable, "-m", "tools.measure_publish_gate_subject_cost", "--out", out],
+            artefact=out, workdir=str(prc.PROJECT_DIR), log=str(LAUNCH_LOG_FILE),
+            description="OPS2 publish-gate subject-cost measurement (one-shot, ~50 min)",
+            out=narration)
+    except launch_long_job.LaunchRefused as exc:
+        log("! REFUSED: {}".format(exc))
         return 1
-    if res.returncode != 0:
-        log("! systemd-run refused (rc={}): {}".format(
-            res.returncode, (res.stderr or "").strip()[-400:]))
-        log("  a LIVE unit of this name IS the refusal (a dead one is cleared above) -- check: "
-            "systemctl --user status {}".format(MEASUREMENT_UNIT_NAME))
-        return res.returncode
-    _record_launch_header("systemd-run --user --unit={}".format(MEASUREMENT_UNIT_NAME))
-    log("launched as transient unit {}.service -- owned by the user manager, so no "
-        "descendant-walk from this tick can reach it".format(MEASUREMENT_UNIT_NAME))
+    for line in narration.getvalue().splitlines():
+        log(line)
     log("it writes {} -- read `complete`, not the file's existence".format(out))
-    log("follow with: journalctl --user -u {} -f".format(MEASUREMENT_UNIT_NAME))
+    log("follow with: journalctl --user -u {} -f".format(entry["unit"]))
     return 0
 
 
 def _record_launch_header(how: str) -> None:
     """Append a launch line to the repo-readable trail. Never raises."""
     try:
-        DETACHED_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
-        with open(str(DETACHED_LOG_FILE), "a") as fh:
+        LAUNCH_LOG_FILE.parent.mkdir(parents=True, exist_ok=True)
+        with open(str(LAUNCH_LOG_FILE), "a") as fh:
             fh.write("\n## launch {} via {}\n".format(
                 time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), how))
     except OSError:
@@ -337,7 +259,12 @@ def _launched_by() -> str:
 
     `INVOCATION_ID` is set by systemd for a process it started, and by nothing else here. Same
     discipline as `is_session_leader`: a reader of the record must be able to tell how the run
-    that produced it was launched WITHOUT trusting whoever wrote the launch line."""
+    that produced it was launched WITHOUT trusting whoever wrote the launch line.
+
+    `session-detach` STAYS after `--detach` was deleted, and stays for a reason. It no longer
+    names anything this file offers -- but a run started from a hand-typed `setsid` still lands
+    here, and that is exactly the launch shape whose record must not read as `systemd`. Deleting
+    the answer would not delete the state; it would make it indistinguishable from a good one."""
     if os.environ.get("INVOCATION_ID"):
         return "systemd"
     try:
@@ -1779,13 +1706,11 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=str(prc.PROJECT_DIR / "docs" / "observability"
                                          / "publish_gate_subject_cost.json"))
-    ap.add_argument("--detach", action="store_true",
-                    help="re-exec in a new session and return immediately; survives a kill of "
-                         "the launcher's process GROUP but not of its descendant tree")
     ap.add_argument("--systemd", action="store_true",
-                    help="hand the run to the user manager as a transient unit; THE committed "
-                         "launch from a bounded tick, because init owns it and no walk of this "
-                         "tick's descendants can reach it")
+                    help="hand the run to background.launch_long_job, which starts it as a "
+                         "transient user unit and records its liveness; THE launch from a "
+                         "bounded tick, because init owns it and neither a descendant walk nor "
+                         "a cgroup teardown can reach it")
     args = ap.parse_args(argv)
 
     def log(msg):
@@ -1797,13 +1722,6 @@ def main(argv=None) -> int:
                 "would time a second full suite into a box that fits one")
             return 1
         return _launch_under_systemd(args.out, log)
-    if args.detach:
-        if _measurement_is_running():
-            log("! a measurement is already live -- refusing to start a second one, which "
-                "would time a second full suite into a box that fits one")
-            return 1
-        _spawn_detached(args.out, log)
-        return 0
     return _run_measurement(args.out, log)
 
 
