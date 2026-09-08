@@ -3216,13 +3216,31 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
         assert "£{:,.0f}".format(stdev) in advantage_region, (
             "the verdict rendered without the spread it was decided against, so a reader must "
             "take the gate on trust rather than check it")
-        # THE SMALLER CLAIM IS SAID OUT LOUD. This figure can clear its floor while being a fifth
-        # of the superseded one, because the floor fell further than the advantage did. A bare
-        # "clears" lets a reader take a collapse for a win, which is the direction's own warning
-        # about a result that moves the flattering way.
-        assert "SMALLER advantage" in advantage_region, (
-            "the current-world verdict rendered without saying the advantage SHRANK between "
-            "worlds, so a page that resolved a collapsed figure reads as the company improving")
+        # THE DIRECTION AGAINST THE SUPERSEDED FIGURE IS SAID OUT LOUD, WHICHEVER WAY IT WENT. This
+        # figure can clear its floor while being a fraction of the superseded one, because the floor
+        # can fall further than the advantage did; a bare "clears" then lets a reader take a
+        # collapse for a win, which is the direction's own warning about a result that moves the
+        # flattering way.
+        #
+        # KEYED TO THE ARITHMETIC, NOT TO "SMALLER" (2026-09-08). This asserted the literal
+        # "SMALLER advantage", which made it a control pinned to today's answer -- and to an answer
+        # that had already expired. When `CURRENT_WORLD_THREE_ARM_PATH` moved to the 2026-09-08 run
+        # in `8e90037a5` the current-world advantage became £17,739 against the panel's £12,071, so
+        # this rung went on DEMANDING that the page call a larger figure smaller, and the producer
+        # obliged it from a literal. A control that reds when the page starts telling the truth is
+        # backwards. What must hold is that the direction is stated and that it MATCHES the two
+        # figures the feed carries.
+        old = cw.get("superseded_value_advantage_gbp")
+        now = cw.get("value_advantage_gbp")
+        assert isinstance(old, (int, float)) and isinstance(now, (int, float)), (
+            "the feed states a current-world verdict without carrying both figures the direction "
+            "is read from, so whether the page said SMALLER or LARGER cannot be checked at all")
+        expected = ("SAME advantage" if now == old
+                    else "SMALLER advantage" if now < old else "LARGER advantage")
+        assert expected in advantage_region, (
+            "the current-world verdict rendered without saying which way the advantage moved "
+            "against the superseded figure (£{:,.0f} now against £{:,.0f} then, so the page owes "
+            "'{}'), so a reader takes a move for a win".format(now, old, expected))
         return
 
     # NO BOUND MEANS NO VERDICT, AND THE PAGE MUST SAY SO BESIDE THE FIGURE -- not below it, and

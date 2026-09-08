@@ -2221,7 +2221,17 @@ def test_a_superseded_world_reaches_the_headline_and_not_only_the_payload():
         "qualifies: " + built["headline"][:120])
     # The figures themselves are KEPT. Superseded-with-provenance is the correction; deletion
     # is not -- so the advantage must still be stated, under its caveat.
-    assert "12,071" in built["headline"]
+    #
+    # KEYED TO THE RUN'S OWN ADVANTAGE, NOT TO £12,071 (2026-09-08). This read `assert "12,071" in
+    # built["headline"]`, which is a control pinned to today's answer: `THREE_ARM_PATH` is the path
+    # the newest run is PROMOTED onto, so the assertion went red on the day the page became MORE
+    # current while saying nothing about the property it exists for. What must hold is that
+    # whatever advantage the subject carries reaches the headline.
+    stated = gva._f((stale.get("level_vs_selection") or {}).get("value_advantage_gbp"))
+    assert stated is not None, "the subject artefact carries no advantage to state"
+    assert gva._gbp(stated) in built["headline"], (
+        "the superseded run's own advantage was dropped from the headline rather than kept under "
+        "its caveat -- deletion is not the correction: " + built["headline"][:200])
 
 
 def test_a_superseded_run_that_names_its_world_still_puts_its_date_in_the_clause():
@@ -3477,12 +3487,117 @@ def test_the_level_share_is_refused_when_its_numerator_has_no_sign():
         "a floor that could not be asked is reported as an answer")
     assert "not asked" in unasked["composition"]["why_not_readable"]
 
-    # THE TWO-WORLDS SENTENCE IS ON EVERY BRANCH, because it is true whichever way the refusal
-    # above fell and it is the sentence the discharge named as missing.
+    # THE SUPERSEDED-PANEL SENTENCE IS ON EVERY BRANCH, because it is true whichever way the
+    # refusal above fell and it is the sentence the discharge named as missing.
+    #
+    # ITS ATTRIBUTION CLAUSE IS NOW KEYED TO A COUNT AND NOT TO PROSE (2026-09-08). This loop used
+    # to assert the literal "DIFFERENT WORLDS" and "more than one thing changed" -- a control
+    # pinned to today's answer, and pinned to an answer that was already wrong: the sentence said
+    # the two runs were measured in different worlds while the canonical 2026-08-31 artefact
+    # carries no `world_identity` at all, so the page could not establish either world. The three
+    # subjects above pass no superseded RUN, so the honest branch for them is "not established";
+    # what the sentence must carry on every branch is the SHARE and the refusal to read it as
+    # company skill.
     for block in (comp, allowed["composition"], unasked["composition"]):
         assert "78.7%" in block["against_the_superseded_panel"]
-        assert "DIFFERENT WORLDS" in block["against_the_superseded_panel"]
-        assert "more than one thing changed" in block["against_the_superseded_panel"]
+        assert ("may not be read as the company having got better or worse"
+                in block["against_the_superseded_panel"]), (
+            "the branch dropped the director's own refusal, so a reader meets a moved share with "
+            "nothing beside it: " + block["against_the_superseded_panel"])
+        assert "has not established which of the world" in block[
+            "against_the_superseded_panel"], (
+            "a block built with no superseded run still asserted what differs between the two "
+            "runs: " + block["against_the_superseded_panel"])
+
+
+def _run_stamped(world: str | None, when: str, commit: str | None) -> dict:
+    """A run carrying only the three fields the attribution count reads. `None` omits the field."""
+    run = {"generated_at": when}
+    if world is not None:
+        run["world_identity"] = {"digest": world}
+    if commit is not None:
+        run["producing_commit"] = {"commit": commit}
+    return run
+
+
+def test_the_superseded_panels_attribution_is_COUNTED_and_the_whole_partition_is_reachable():
+    """The two panels' difference is attributed from a count of what differs, never from prose.
+
+    THE LIVE DEFECT IT FIRES ON, and it was published, not hypothetical. On 2026-09-08 the feed's
+    own headline read: "IN THE WORLD AS IT IS NOW, the same comparison gives £17,739 ... It is a
+    SMALLER advantage than the £12,071 below, not a larger one: what moved is the floor, which fell
+    further than the advantage did." £17,739 is LARGER than £12,071. The literal, the direction and
+    the cause were all typed in when the current-world figure was £2,336; `CURRENT_WORLD_THREE_ARM_PATH`
+    was moved to the 2026-09-08 run in `8e90037a5` and the sentence describing the pair was not, so
+    the page asserted the opposite of the arithmetic between the two figures it names and
+    foreclosed the correct reading in the same breath. Beside it, `against_the_superseded_panel`
+    said the two were "measured in DIFFERENT WORLDS" while the canonical artefact carries no
+    `world_identity` at all.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, not a leg per branch. A count that returned "two or more"
+    for everything would satisfy every individual branch assertion that mattered on the day it was
+    written -- which is exactly how the sentence above survived. So the reachability of all four
+    states is asserted together, and the direction clause is asserted to TRACK the arithmetic
+    rather than to hold any particular value.
+
+    Fires on: hard-coding any figure or direction back into either sentence; collapsing the
+    same-run branch into the two-or-more branch; or counting an ABSENT field as differing or as
+    matching.
+    """
+    a = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_aaa")
+    # THE FOUR STATES, each differing from `a` in exactly what its name says.
+    three = _run_stamped("world_bbbb", "2026-08-31T03:47:57Z", "commit_bbb")
+    one = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_bbb")
+    same = _run_stamped("world_aaaa", "2026-09-08T21:01:30Z", "commit_aaa")
+    blind = _run_stamped(None, "2026-09-08T21:01:30Z", "commit_aaa")
+
+    counts = {name: gva._what_differs_between_two_runs(a, other)
+              for name, other in (("three", three), ("one", one),
+                                  ("same", same), ("blind", blind))}
+
+    # THE PARTITION, IN ONE ASSERT. Every state must be reachable; a counter stuck on any single
+    # answer fails here rather than passing three of four assertions elsewhere.
+    assert (counts["three"]["how_many_differ"] == 3
+            and counts["one"]["how_many_differ"] == 1
+            and counts["same"]["the_same_run"] is True
+            and counts["blind"]["unestablished"] == ["the world it ran in"]), (
+        "the attribution count cannot reach all four of its states, so whichever sentence it "
+        "publishes is a constant: " + repr({k: v for k, v in counts.items()}))
+    # AN ABSENT FIELD IS NEITHER, and that is the load-bearing case: counted as differing it
+    # manufactures the refusal, counted as matching it manufactures a one-variable claim.
+    assert counts["blind"]["how_many_differ"] == 0
+    assert counts["blind"]["the_same_run"] is False, (
+        "two runs agreeing on the fields a third could not be read from were called the same run")
+
+    sentences = {name: gva._against_the_superseded_panel(0.7867, count)
+                 for name, count in counts.items()}
+    assert "more than one thing changed" in sentences["three"]
+    assert "exactly ONE differs" in sentences["one"]
+    assert "SAME RUN" in sentences["same"]
+    assert "could not be read at all" in sentences["blind"]
+    # THE DIRECTOR'S REFUSAL IS ON EVERY BRANCH, because it is a property of the quantity.
+    for name, sentence in sentences.items():
+        assert "may not be read as the company having got better or worse" in sentence, name
+        assert "DIFFERENT WORLDS" not in sentence, (
+            name + ": a world difference is asserted in prose again")
+
+    # AND THE HEADLINE'S DIRECTION TRACKS THE ARITHMETIC of the two figures it names.
+    def clause(now, before):
+        return gva._against_the_panels_figure(
+            now, {"superseded_value_advantage_gbp": before})
+
+    assert "LARGER" in clause(17_738.64, 12_071.08), (
+        "the published pair that made the old sentence false still does not read as larger")
+    assert "SMALLER" in clause(2_335.87, 12_071.08)
+    assert "SAME advantage" in clause(17_452.61, 17_452.61), (
+        "one run promoted to both paths still reads as a comparison of two measurements")
+    # NO CAUSE IS CLAIMED. The old sentence attributed the move to the floor falling further than
+    # the advantage; that was measured for one pair and cannot be true of every pair.
+    for pair in ((17_738.64, 12_071.08), (2_335.87, 12_071.08)):
+        assert "what moved is the floor" not in clause(*pair)
+    assert "no comparison" in clause(17_452.61, None), (
+        "a panel that states no advantage still had one compared against it"
+    )
 
 
 def test_the_level_legs_family_is_POINTED_AT_by_the_share_refusal_and_never_recited_beside_it():
