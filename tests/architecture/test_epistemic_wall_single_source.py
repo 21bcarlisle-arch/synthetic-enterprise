@@ -218,3 +218,107 @@ def test_the_seam_exemption_is_a_property_of_the_importing_file():
     company-side endpoint), not the text of a line."""
     assert verifier._is_exempt(shared.SEAM_PATH_PREFIX + "supply_book.py")
     assert not verifier._is_exempt("saas/reporting/annual_report.py")
+
+
+# --------------------------------------------------------------------------
+# The PER-MODULE probe — the fifth private copy, and it was five substrings.
+# --------------------------------------------------------------------------
+#
+# Five suites asserted this same wall on their own module with
+# `for banned in ("import company", "from company", "import saas", "from saas"):
+#      assert banned not in src`
+# over raw source: four verbatim copies under `tests/sim/` and `tests/simulation/`, and its
+# mirror with the arguments swapped under `tests/saas/`. That is the shape this file already
+# refuses for the WALKER, arriving through a door the walker's own control does not watch — a
+# per-module probe rather than a second walker. `shared.forbidden_wall_imports` is the one home.
+#
+# THE POISON ROUND IS FIRST, and the order is the point: "no crossing found" means two opposite
+# things, and a probe that cannot see one reports every module clean.
+
+
+def _wall_tree(tmp_path):
+    """A miniature repo with one module on each side of the wall, and nothing crossing yet."""
+    (tmp_path / "simulation").mkdir()
+    (tmp_path / "saas").mkdir()
+    (tmp_path / "simulation" / "world.py").write_text("import math\n", encoding="utf-8")
+    (tmp_path / "saas" / "twin.py").write_text("import statistics\n", encoding="utf-8")
+    return tmp_path
+
+
+def test_the_per_module_probe_fires_in_BOTH_directions(tmp_path):
+    """One control over the whole partition: a probe that only ever answers "clean" passes a
+    suite of "does it stay quiet" legs, so both crossings are asserted here together."""
+    tree = _wall_tree(tmp_path)
+    sim, twin = tree / "simulation" / "world.py", tree / "saas" / "twin.py"
+    # VACUITY GUARD FIRST: on the clean tree the probe must be silent, or the reds below say
+    # nothing at all.
+    assert shared.forbidden_wall_imports(str(sim), root=str(tree)) == set()
+    assert shared.forbidden_wall_imports(str(twin), root=str(tree)) == set()
+
+    sim.write_text("from company.billing import engine\n", encoding="utf-8")
+    twin.write_text("import simulation.world\n", encoding="utf-8")
+    assert shared.forbidden_wall_imports(str(sim), root=str(tree)) == {"company.billing",
+                                                                      "company",
+                                                                      "company.billing.engine"}
+    assert shared.forbidden_wall_imports(str(twin), root=str(tree)) == {"simulation",
+                                                                       "simulation.world"}
+
+
+def test_a_comment_stating_the_wall_is_not_a_crossing(tmp_path):
+    """The direction that had already been paid for four times in the sibling control.
+
+    The most natural line to write in a world module is the rule itself. Under the substring
+    reading that comment WAS the violation, so the rule punished its own documentation and the
+    obvious repair was to delete the sentence.
+    """
+    tree = _wall_tree(tmp_path)
+    sim = tree / "simulation" / "world.py"
+    sim.write_text(
+        '"""The wall: this module must never import company or saas."""\n'
+        "# not even `from company.billing import engine` in a worked example\n"
+        "import math\n",
+        encoding="utf-8")
+    assert shared.forbidden_wall_imports(str(sim), root=str(tree)) == set()
+
+
+def test_a_relative_import_of_the_other_side_is_a_crossing(tmp_path):
+    """`from ..company.billing import engine` contains neither banned spelling and is an import."""
+    tree = _wall_tree(tmp_path)
+    (tree / "simulation" / "deep").mkdir()
+    nested = tree / "simulation" / "deep" / "inner.py"
+    nested.write_text("from ..company.billing import engine\n", encoding="utf-8")
+    assert "company.billing" in shared.forbidden_wall_imports(str(nested), root=str(tree))
+
+
+def test_source_that_will_not_parse_REFUSES_rather_than_reporting_clean(tmp_path):
+    """Fail-closed: we did not manage to look, which is never evidence of absence."""
+    tree = _wall_tree(tmp_path)
+    broken = tree / "simulation" / "world.py"
+    broken.write_text("def f(:\n", encoding="utf-8")
+    with pytest.raises(SyntaxError):
+        shared.forbidden_wall_imports(str(broken), root=str(tree))
+
+
+def test_the_per_module_probe_does_NOT_do_seam_exemption_and_says_so(tmp_path):
+    """A control over the boundary the probe deliberately does not hold.
+
+    A `seam_exempt` parameter was written here and DELETED before shipping, refuted by its own
+    poison round: `imported_modules` expands prefixes, so `from company.interfaces import
+    sim_interface` yields a bare `company` that is not under the seam, and no exemption built on
+    one endpoint can tell that artefact from a real `import company`. This leg pins the STRICT
+    reading as intended rather than as an oversight, and points at the instrument that answers
+    the seam question from real two-ended edges.
+    """
+    tree = _wall_tree(tmp_path)
+    (tree / "company" / "interfaces").mkdir(parents=True)
+    sim = tree / "simulation" / "world.py"
+    sim.write_text("from company.interfaces import sim_interface\n", encoding="utf-8")
+    assert shared.forbidden_wall_imports(str(sim), root=str(tree)), (
+        "the seam is a sanctioned crossing for the TREE ratchet (`crossings_at`), and a finding "
+        "for a leaf world module -- if this ever goes quiet the probe grew an exemption"
+    )
+    assert not hasattr(shared.forbidden_wall_imports, "__defaults__") or \
+        "seam_exempt" not in shared.forbidden_wall_imports.__code__.co_varnames, (
+            "the seam_exempt dial came back; it cannot be made exact on a prefix-expanding "
+            "import reader -- use `crossings_at`"
+        )

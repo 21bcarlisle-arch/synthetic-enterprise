@@ -310,6 +310,66 @@ _top = top_package
 _under_seam = under_seam
 
 
+def forbidden_wall_imports(path: str, root: str = REPO_ROOT) -> set[str]:
+    """The wall crossings ONE module's imports make, asked of the import graph.
+
+    WHY THIS IS HERE AND NOT WRITTEN OUT AT EACH CALL SITE. Five suites asserted this same wall
+    on their own module by SUBSTRING -- `for banned in ("import company", "from company",
+    "import saas", "from saas"): assert banned not in src` in four verbatim copies under
+    `tests/sim/` and `tests/simulation/`, and its mirror in `tests/saas/`. That reading is wrong
+    in both directions at once, and this is the FIRST wall in CLAUDE.md:
+
+      * PROSE READS AS CODE. The most natural line to write in a sim module is the rule itself --
+        `# the wall: this module must never import company or saas`. That comment REDS its own
+        wall, so the rule punishes its own documentation, and the fix a reader reaches for is to
+        delete the comment or widen the control.
+      * CODE READS AS PROSE. `from ..company.billing import engine` contains neither `"from
+        company"` nor `"import company"`, and neither does `from  company import x` with two
+        spaces. Both are real imports the four-string list cannot see.
+
+    WHAT NEITHER READING REACHES, said here rather than in a footnote: a DYNAMIC import.
+    `import_module("company." + name)` and `__import__("saas")` are invisible to the substring
+    list and invisible to the import graph alike, because the module name does not exist until the
+    line runs. This function is not a fix for that, and calling it one would be the kind of claim
+    that gets a control trusted past what it can do. What it fixes is the false red -- which is
+    the failure this class has actually paid for, four times, in the sibling control -- and the
+    import spellings above.
+
+    `imported_modules` answers the question the wall actually asks -- what does this module
+    import, however it is spelled -- and `None` from it means the source did not parse, which is
+    raised rather than returned as "no crossings": we did not manage to look, and this control is
+    never allowed to read that as clean.
+
+    THERE IS NO SEAM EXEMPTION HERE, and the parameter that offered one was DELETED before this
+    shipped rather than left as a dial. It was written, and its own poison round refuted it:
+    `imported_modules` expands prefixes, so `from company.interfaces import sim_interface` yields
+    `company` alongside the seam names, and a bare `company` is not under the seam. Exempting it
+    would have required guessing whether the ancestor was imported in its own right, which the
+    import graph cannot say. `crossings_at` answers the seam question properly, from real edges
+    with two endpoints; a per-module probe has one end and should not pretend otherwise.
+
+    The five call sites want the strict reading anyway. They are leaf world modules that reach the
+    company side through nothing at all, so their local guard is deliberately TIGHTER than the
+    tree ratchet: `company.interfaces` inside a pure-world module is a finding there even though
+    it is a sanctioned crossing in general.
+    """
+    from tools.python_code_text import imported_modules
+
+    with open(path, encoding="utf-8") as handle:
+        imports = imported_modules(handle.read())
+    if imports is None:
+        raise SyntaxError(f"{path} does not parse -- the wall could not be read, not proven clean")
+    # `root` is a parameter so a poison round can plant `simulation/x.py` and `saas/y.py` in a
+    # temp tree and drive THIS function over them. A control that proves reachability by calling
+    # `imported_modules` itself would be testing the estimator and not the wiring.
+    module = _module_name(os.path.abspath(root), os.path.abspath(path))
+    if is_company_module(module):
+        crossed = {m for m in imports if is_sim_module(m)}
+    else:
+        crossed = {m for m in imports if is_company_module(m)}
+    return crossed
+
+
 def company_reads_sim(edges: list[RawEdge]) -> dict[tuple[str, str], RawEdge]:
     """Class (a): company-side internals importing SIM internals, NOT via seam.
 

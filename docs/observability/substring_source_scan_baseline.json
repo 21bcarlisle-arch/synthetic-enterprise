@@ -1,0 +1,592 @@
+{
+  "what": "controls that read Python source as TEXT, one row per (file, function)",
+  "why": "docs/staging/SEAT_RESULT_THE_CENSUS_FINDS_117_WHERE_THREE_HAND_PASSES_FOUND_NINE_2026-09-08.md",
+  "how_to_shrink": "route the scan through tools/python_code_text.py, then delete its row",
+  "rows": [
+    {
+      "path": "tests/architecture/test_a_cited_constant_has_a_caller.py",
+      "function": "_money_constants",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/architecture/test_a_wait_is_written_one_way.py",
+      "function": "test_the_canonical_waiter_still_requires_a_subject_and_a_deadline",
+      "subject": "python"
+    },
+    {
+      "path": "tests/architecture/test_a_wait_is_written_one_way.py",
+      "function": "test_the_scan_has_subjects_and_the_allowlist_is_reasoned",
+      "subject": "python"
+    },
+    {
+      "path": "tests/architecture/test_household_identity_is_the_worlds.py",
+      "function": "test_the_two_switched_call_sites_still_ask_the_world",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py",
+      "function": "_describe",
+      "subject": "python"
+    },
+    {
+      "path": "tests/architecture/test_no_committed_discharge_cites_an_unlanded_falsifier.py",
+      "function": "_on_disk_here",
+      "subject": "python"
+    },
+    {
+      "path": "tests/architecture/test_price_cap_commons.py",
+      "function": "test_the_artefact_carries_its_law_and_its_basis",
+      "subject": "python"
+    },
+    {
+      "path": "tests/architecture/test_static_quality_ratchet.py",
+      "function": "makefile_lint_scope",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/architecture/test_switching_rate_commons.py",
+      "function": "discover_switching_level_candidates",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_a_claim_is_visible_from_every_worktree.py",
+      "function": "test_the_binding_the_turn_is_judged_on_reaches_the_claim",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_a_refusing_gate_banner_is_a_string_a_gate_prints.py",
+      "function": "_chain_modules",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_a_staged_document_no_longer_blocks_every_landing.py",
+      "function": "test_the_directory_fixture_pins_that_seam",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_atom_status_merge.py",
+      "function": "test_block_style_atom_folds_and_clears_its_inbox",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_derived_artefact_register.py",
+      "function": "test_the_entrypoint_is_seat_guarded",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_director_channel_routing.py",
+      "function": "test_kind_digest_is_not_a_way_to_ask_for_batching",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_director_channel_routing.py",
+      "function": "test_the_high_volume_recurring_senders_are_batched",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_disk_headroom.py",
+      "function": "test_every_scratch_pattern_names_a_real_creator",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_classes.py",
+      "function": "test_the_discharge_evidence_this_fixture_relies_on_actually_exists",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "_assert_missing_artefact_does_not_release",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "_assert_no_test_node_does_not_release",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_a_bad_artefact_on_a_continuation_line_voids_the_whole_discharge",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_a_discharge_whose_file_does_not_define_the_node_does_not_release",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_a_falsifier_in_neither_landed_tree_is_still_refused",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_a_falsifier_in_no_tree_and_never_deleted_is_still_refused",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_a_node_that_exists_only_in_the_working_tree_does_not_release",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_a_retired_falsifier_releases_and_records_that_its_evidence_is_HISTORICAL",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_a_retired_file_is_not_an_AMNESTY_for_a_node_it_never_defined",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_an_artefact_on_disk_but_not_in_the_index_does_not_release",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_an_unreadable_index_refuses_rather_than_releasing",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_mutation_j_the_null_control_is_LOAD_BEARING_not_decorative",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_finding_severity.py",
+      "function": "test_the_authors_reason_line_is_not_read_as_artefacts",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_live_ledger_guard.py",
+      "function": "test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_model_tier.py",
+      "function": "test_every_reserved_and_pilot_marker_is_actually_emitted_by_supervisor",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_notify_contract.py",
+      "function": "_direct_senders",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_publish_gate_alert.py",
+      "function": "test_alarm_cites_linked_findings_and_persists_them_for_the_draw",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_publish_gate_red_census.py",
+      "function": "test_both_reds_reach_the_state_file_the_rung_1_draw_reads",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_publish_gate_scope.py",
+      "function": "test_marker_detection_is_faithful_to_pytest_not_a_substring",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_publish_gate_stub_roots_are_repo_shaped.py",
+      "function": "_modules_that_drive_the_gate",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_seat_continuity.py",
+      "function": "test_MUTATION_one_real_source_path_among_the_exhaust_still_files",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_seat_continuity.py",
+      "function": "test_the_document_SAYS_what_work_it_is_about",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_seat_continuity.py",
+      "function": "test_the_handoff_carries_the_state_a_fresh_session_NEEDS",
+      "subject": "python"
+    },
+    {
+      "path": "tests/background/test_seat_guard_daemons.py",
+      "function": "test_every_stack_launcher_script_is_guarded",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/carbon/test_half_hourly_footprint.py",
+      "function": "test_the_annual_LEVEL_comes_from_the_single_owner_and_is_not_restated_here",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/comms/test_susceptibility_estimator_wire.py",
+      "function": "test_the_belt_is_read_from_the_CONTRACT_and_not_respelled_here",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/crm/test_one_obligation_one_vulnerability_vocabulary.py",
+      "function": "test_no_regulatory_outcome_is_decided_by_a_numeric_band",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/crm/test_the_svt_drift_belief_is_not_wired_to_any_decision.py",
+      "function": "_callers_of",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/crm/test_the_svt_drift_belief_is_not_wired_to_any_decision.py",
+      "function": "_recording_site_is_in_this_tree",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/crm/test_the_svt_drift_belief_is_not_wired_to_any_decision.py",
+      "function": "test_the_belief_is_computed_AFTER_the_roll_and_cannot_seed_it",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/crm/test_the_svt_drift_belief_is_not_wired_to_any_decision.py",
+      "function": "test_the_two_halves_are_COHERENT__recorded_by_the_world_iff_the_company_forms_it",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/interfaces/test_renewal_offer_seam.py",
+      "function": "test_the_order_is_a_signature_lock_first_then_strike",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/pricing/test_value_arm_in_the_renewal_chain.py",
+      "function": "test_the_adapter_cannot_reach_the_worlds_truth",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/pricing/test_value_based_renewal.py",
+      "function": "test_the_control_IS_what_the_company_does_today_and_is_imported_not_restated",
+      "subject": "python"
+    },
+    {
+      "path": "tests/company/regulatory/test_pricing_permissions.py",
+      "function": "test_the_significance_multiple_is_NAMED_as_a_reading_and_not_as_the_law",
+      "subject": "python"
+    },
+    {
+      "path": "tests/domain/test_battery_register_integrity.py",
+      "function": "test_no_battery_check_can_skip_itself",
+      "subject": "python"
+    },
+    {
+      "path": "tests/hooks/test_pull_next_work.py",
+      "function": "test_hook_cannot_write_to_a_pane_structurally",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/saas/reporting/test_ep2_rate_chain_decomposition.py",
+      "function": "test_every_rate_writer_contributes_a_named_cause_to_the_chain",
+      "subject": "python"
+    },
+    {
+      "path": "tests/saas/test_arrears_ledger_unavailable_is_not_green.py",
+      "function": "test_a_comment_naming_the_shared_reader_cannot_clear_an_offender",
+      "subject": "python"
+    },
+    {
+      "path": "tests/saas/test_net_after_cts_and_blindfold_arithmetic.py",
+      "function": "test_the_reporting_layer_no_longer_reads_cost_to_serve_net_margin_gbp",
+      "subject": "python"
+    },
+    {
+      "path": "tests/saas/test_sourced_acquisition_costs.py",
+      "function": "test_the_debt_register_cannot_outlive_its_debt",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_competitor_reference.py",
+      "function": "test_MUTATION_the_run_FEEDS_and_READS_the_ledger_and_feeds_it_AFTER_the_roll",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_phase25a_eac_solar.py",
+      "function": "test_demand_estimation_log_key_exists_in_run_output",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_phase26a_industrial_profile.py",
+      "function": "test_risk_committee_eac_not_using_effective_eac_kwh_directly",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_phase26a_industrial_profile.py",
+      "function": "test_risk_committee_eac_uses_company_estimate",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_policy_cost_coverage.py",
+      "function": "test_the_renderer_cannot_reach_across_the_wall_to_compute_this",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_policy_cost_values_vs_source.py",
+      "function": "test_every_table_pinned_elsewhere_is_named_by_the_control_that_pins_it",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_price_cap_vat_basis.py",
+      "function": "test_the_artefact_still_declares_the_basis_this_repair_assumes",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_svt_product.py",
+      "function": "test_svt_is_gated_out_of_the_renewal_decision",
+      "subject": "python"
+    },
+    {
+      "path": "tests/simulation/test_the_worlds_dwelling_is_drawn_not_believed.py",
+      "function": "test_the_worlds_dwelling_never_crosses_the_wall",
+      "subject": "python"
+    },
+    {
+      "path": "tests/test_isolation_guards.py",
+      "function": "test_the_guards_coverage_set_is_a_single_source",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_blind_review.py",
+      "function": "test_the_cold_eyes_skill_owns_this_tool_rather_than_sitting_beside_it",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_brand_compliance.py",
+      "function": "test_exemplar_preserved_verbatim_from_constitution",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_capability_index.py",
+      "function": "test_the_renderer_leaves_a_malformed_row_for_the_checker_to_report",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_capability_index.py",
+      "function": "test_the_renderer_never_retires_a_ruling_whose_subject_left",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_capability_index.py",
+      "function": "test_the_renderer_never_rules_on_a_new_orphan",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_couple_value_based_pricing.py",
+      "function": "test_the_LEDGER_write_refuses_a_CO_CALIBRATED_pair",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_couple_value_based_pricing.py",
+      "function": "test_the_ledger_write_is_OPT_IN_so_a_read_only_run_cannot_move_the_record",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_couple_value_based_pricing.py",
+      "function": "test_the_refusal_is_reachable_from_the_write_path",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_couple_value_based_pricing.py",
+      "function": "test_the_row_level_ceiling_is_READ_from_the_call_sites_own_arguments",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_deploy_pages_serves_what_it_deployed.py",
+      "function": "test_every_fetch_the_deploy_makes_is_cache_busted",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_deploy_pages_serves_what_it_deployed.py",
+      "function": "test_the_checked_set_is_derived_not_a_hardcoded_path_list",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_evidence_pages.py",
+      "function": "test_the_publish_cycle_refreshes_the_payload_that_the_capabilities_door_reads",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_generate_value_arms_data.py",
+      "function": "test_the_generator_rides_the_publish_cycle",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
+      "function": "test_BOTH_generators_are_wired_into_the_publish_cycle",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
+      "function": "test_EVERY_day_the_LIVE_page_shows_has_either_a_figure_or_a_reason",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
+      "function": "test_a_year_sharing_ONE_half_hour_does_not_count_toward_the_headline",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
+      "function": "test_every_PRICED_panel_publishes_WHERE_ITS_SHAPE_CAME_FROM",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
+      "function": "test_the_LIVE_page_data_carries_the_household_gap_for_every_day_it_prices",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_isolate_hunks.py",
+      "function": "test_the_selection_can_be_made_by_regex_as_well_as_by_number",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_landed_manifest_check.py",
+      "function": "test_fail_silent_the_control_has_an_automated_caller_in_the_gate",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_landed_manifest_check.py",
+      "function": "test_tripwire_the_real_instances_manifest_names_symbols_not_the_supplier_path",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_no_live_data_literal_pins.py",
+      "function": "_live_data_literal_pins",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_orphan_ratchet.py",
+      "function": "test_freezing_records_what_it_froze",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_pre_commit_gate_store_surface.py",
+      "function": "test_the_selected_control_goes_RED_when_the_map_is_ONE_BYTE_over",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_pre_commit_test_gate.py",
+      "function": "_hook_gate_modules",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_pre_commit_test_gate.py",
+      "function": "test_an_ordinary_code_commit_selects_the_lint_ratchet",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_pre_commit_test_gate.py",
+      "function": "test_committed_hook_invokes_the_gate_and_aborts_on_failure",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_pre_commit_test_gate.py",
+      "function": "test_the_data_surface_does_NOT_narrow_to_a_hand_kept_list",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_published_provenance_is_real.py",
+      "function": "test_bridge_url_resolves_from_a_door_page_not_from_the_site_root",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_record_landing_claim_check.py",
+      "function": "test_mutation_reading_the_working_tree_would_make_it_green",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_run_arms_rerun.py",
+      "function": "test_a_clean_run_reports_success_and_writes_every_leg_to_the_stamped_log",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_run_arms_rerun.py",
+      "function": "test_a_failed_leg_skips_its_dependants_and_only_its_dependants",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_scale_probe_10k.py",
+      "function": "test_a_ceiling_death_is_recorded_as_one",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_site1_proof_crawlability.py",
+      "function": "test_robots_points_at_the_sitemap",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_site_lane_gate.py",
+      "function": "test_committed_hook_invokes_the_site_lane_gate_and_aborts_on_failure",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_site_reachability.py",
+      "function": "test_every_SITEMAP_url_is_actually_reachable_from_the_front_door",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_size_ratchet_gate.py",
+      "function": "test_a_deleted_file_stays_in_the_snapshot_for_audit_but_cannot_violate",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_size_ratchet_gate.py",
+      "function": "test_sp3_does_not_ship_a_rival_clone_detector",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_symbol_landing_check.py",
+      "function": "test_it_judges_the_tree_and_not_the_working_tree",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_target_design_delta.py",
+      "function": "test_epistemic_wall_probe_does_not_fire_on_the_seam_itself",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_the_map_can_lose_an_atom_and_take_the_queue_with_it.py",
+      "function": "test_the_seeded_register_carries_the_two_atoms_nobody_explained",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_the_published_provenance_names_the_run_not_the_generator.py",
+      "function": "test_the_published_dashboard_provenance_agrees_with_the_run_it_names",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_wall_channel_census.py",
+      "function": "test_FAIL_CLOSED_seams_that_ALL_lose_their_version_refuse_rather_than_reporting_clean",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_wall_channel_census.py",
+      "function": "test_channel_C_IS_wired_into_the_commit_gate_and_the_condition_that_allowed_it_is_recorded",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_wall_channel_census.py",
+      "function": "test_the_COMPANY_side_encoder_is_recognised_though_it_builds_no_dict",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_wall_channel_census.py",
+      "function": "test_the_COUNTERPARTY_side_decoder_is_recognised_though_it_imports_no_codec",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_wall_channel_census.py",
+      "function": "test_the_artefact_half_is_NOT_wired_into_the_commit_gate",
+      "subject": "python"
+    },
+    {
+      "path": "tests/tools/test_write_time_gate.py",
+      "function": "_load_mutant",
+      "subject": "python"
+    }
+  ]
+}
