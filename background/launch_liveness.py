@@ -182,8 +182,17 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
     return entry
 
 
-def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list]:
+def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list, list]:
     """Re-ask every record still claiming `live`; settle the ones that are not, and say so.
+
+    RETURNS `(stale, lines, settled)`. `settled` carries the records this call moved, each with the
+    verdict that moved it, because A DEATH AND A COMPLETION ARE NOT THE SAME EVENT and only the
+    caller can know what to do about that. Both contradict a document that says "in flight", which
+    is why both count as stale; but one is an incident and the other is the good news the run was
+    launched for. Handing back only a COUNT forced the caller to choose one severity for both, and
+    the first version of the deadman wiring duly paged a `real_alarm` for a job that had succeeded
+    -- crying wolf on the director's own channel, which is how this project has buried its signal
+    before. The split has to exist here, at the point where the verdict is known.
 
     THE CONTRADICTION IS THE OUTPUT, and the writeback is what stops it being a nag. A record that
     the re-ask settles keeps the verdict and the evidence, so the next reader of the documents in
@@ -195,7 +204,7 @@ def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list]:
     the job: an UNREADABLE probe settles nothing, and neither does UNKNOWN, because "we could not
     tell" is not permission to overwrite what the launch said.
     """
-    records, lines, stale = load(path), [], 0
+    records, lines, settled = load(path), [], []
     for entry in records:
         if entry.get("claim") != LIVE:
             continue
@@ -208,15 +217,15 @@ def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list]:
             lines.append(
                 f"  (claim left at `live`: {verdict} is not evidence the job ended)")
             continue
-        stale += 1
         entry["claim"] = FINISHED if verdict == FINISHED else DIED
         entry["settled_at"] = _now()
         entry["evidence"] = answer["why"]
+        settled.append(entry)
         for doc in entry.get("asserted_live_by") or []:
             lines.append(f"  CONTRADICTS {doc} -- it says this run is in flight; it is not")
-    if stale:
+    if settled:
         save(records, path)
-    return stale, lines
+    return len(settled), lines, settled
 
 
 def main(argv: list | None = None) -> int:
@@ -249,7 +258,7 @@ def main(argv: list | None = None) -> int:
         print(f"recorded {entry['job']} -> unit {entry['unit']}, claim {entry['claim']}")
         return 0
 
-    stale, lines = check()
+    stale, lines, _ = check()
     for line in lines:
         print(line)
     if stale:

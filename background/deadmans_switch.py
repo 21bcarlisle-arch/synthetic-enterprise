@@ -947,23 +947,46 @@ def _check_launch_liveness() -> None:
     """
     try:
         from background import launch_liveness
-        stale, lines = launch_liveness.check()
+        stale, lines, settled = launch_liveness.check()
     except Exception as e:  # noqa: BLE001 -- see docstring: we did not look, so we say nothing
         log(f"launch-liveness check error: {e}")
         return
     if not stale:
         clear_transition(_LAUNCH_LIVENESS_KEY)
         return
-    contradicted = [ln.strip() for ln in lines if ln.strip().startswith("CONTRADICTS")]
-    notify(
-        f"[LAUNCH STALE] {stale} launch record(s) claimed a run was in flight and it is not. "
-        + (" ".join(contradicted) if contradicted else "No document was named as asserting it.")
-        + " The record now carries the verdict and the evidence, so the claim is settled; this is "
-        "the contradiction arriving without anyone checking a pid.",
-        kind="real_alarm", transition_key=_LAUNCH_LIVENESS_KEY,
-        state=f"settled:{stale}", re_escalate_after=RE_ESCALATE_SECONDS,
-    )
-    log(f"LAUNCH STALE settled {stale} record(s): {' | '.join(lines)}")
+    log(f"LAUNCH settled {stale} record(s): {' | '.join(lines)}")
+
+    # A DEATH AND A COMPLETION ARE NOT THE SAME EVENT, and the first draft of this wiring paged
+    # `real_alarm` for both. Both contradict a document reading "in flight" -- but one is an
+    # incident and the other is the good news the run was launched for, and a channel that pages
+    # him for success is how this project has buried its own signal before. Caught here, before it
+    # fired, because the floor leg was minutes from finishing successfully when this was written.
+    died = [e for e in settled if e.get("claim") == launch_liveness.DIED]
+    done = [e for e in settled if e.get("claim") == launch_liveness.FINISHED]
+
+    def _docs(entries) -> str:
+        named = [d for e in entries for d in (e.get("asserted_live_by") or [])]
+        return (" Now wrong: " + ", ".join(named)) if named else " No document asserted it."
+
+    if died:
+        notify(
+            f"[LAUNCH DIED] {len(died)} detached run(s) claimed in flight are dead: "
+            + ", ".join(str(e.get("job")) for e in died) + "." + _docs(died)
+            + " The verdict is systemd's, from outside the job's own cgroup, so it survives the "
+            "kill it reports. The record now carries it; nobody checked a pid.",
+            kind="real_alarm", transition_key=_LAUNCH_LIVENESS_KEY,
+            state=f"died:{len(died)}", re_escalate_after=RE_ESCALATE_SECONDS,
+        )
+    if done:
+        # Batched, not paged: `routine_landing` is a deferrable class, so this reaches the digest.
+        notify(
+            f"[LAUNCH FINISHED] {len(done)} detached run(s) completed: "
+            + ", ".join(str(e.get("job")) for e in done) + "." + _docs(done),
+            kind="work_done", transition_key=_LAUNCH_LIVENESS_KEY + "_done",
+            state=f"done:{len(done)}", topic_class="routine_landing",
+        )
+    if not died:
+        clear_transition(_LAUNCH_LIVENESS_KEY)
 
 
 def _check_repo_not_bare() -> None:

@@ -75,7 +75,7 @@ def test_a_broken_probe_is_not_a_death(tmp_path):
     assert ll.reask(entry, lambda unit: None)["verdict"] == ll.UNREADABLE
 
     ll.save([entry], tmp_path / "records.json")
-    stale, lines = ll.check(tmp_path / "records.json", probe=lambda unit: None)
+    stale, lines, _ = ll.check(tmp_path / "records.json", probe=lambda unit: None)
     assert stale == 0, "an unreadable probe settled a live claim"
     assert json.loads((tmp_path / "records.json").read_text())[0]["claim"] == ll.LIVE
     assert any("not evidence the job ended" in line for line in lines)
@@ -88,8 +88,8 @@ def test_the_check_names_the_documents_that_are_now_wrong(tmp_path):
     store = tmp_path / "records.json"
     ll.save([_entry(tmp_path, asserted_live_by=["docs/prereg.md", "docs/correction.md"])], store)
 
-    stale, lines = ll.check(store, probe=_probe(ActiveState="inactive", Result="success",
-                                                ExecMainStatus="0"))
+    stale, lines, _ = ll.check(store, probe=_probe(ActiveState="inactive", Result="success",
+                                                   ExecMainStatus="0"))
     assert stale == 1
     joined = "\n".join(lines)
     for doc in ("docs/prereg.md", "docs/correction.md"):
@@ -110,7 +110,7 @@ def test_a_settled_record_never_returns_to_live(tmp_path):
     store = tmp_path / "records.json"
     ll.save([_entry(tmp_path, claim=ll.DIED, settled_at="2026-09-08T01:00:00Z",
                     evidence="Result=oom-kill")], store)
-    stale, lines = ll.check(store, probe=_probe(ActiveState="active"))
+    stale, lines, _ = ll.check(store, probe=_probe(ActiveState="active"))
     assert (stale, lines) == (0, []), "a settled record was re-asked and could have been re-opened"
     assert json.loads(store.read_text())[0]["claim"] == ll.DIED
 
@@ -164,9 +164,8 @@ def test_the_deadman_pages_the_documents_a_stale_claim_makes_wrong(monkeypatch):
     leg that makes the arrival automatic, so it is the leg worth a control.
     """
     dms, sent, _ = _deadman(monkeypatch)
-    monkeypatch.setattr(ll, "check", lambda: (1, [
-        "a-long-run: DIED -- Result=oom-kill",
-        "  CONTRADICTS docs/prereg.md -- it says this run is in flight; it is not"]))
+    dead = {"job": "a-long-run", "claim": ll.DIED, "asserted_live_by": ["docs/prereg.md"]}
+    monkeypatch.setattr(ll, "check", lambda: (1, ["a-long-run: DIED -- Result=oom-kill"], [dead]))
     dms._check_launch_liveness()
 
     assert len(sent) == 1, "a stale liveness claim did not page"
@@ -174,6 +173,46 @@ def test_the_deadman_pages_the_documents_a_stale_claim_makes_wrong(monkeypatch):
     assert "docs/prereg.md" in msg, (
         "the page named no document, so the reader inherits the search that was the whole cost")
     assert kw.get("kind") == "real_alarm"
+
+
+def test_a_run_that_SUCCEEDED_is_batched_and_never_paged(monkeypatch):
+    """A DEATH AND A COMPLETION ARE NOT THE SAME EVENT, and the first draft of the wiring paged an
+    identical `real_alarm` for both.
+
+    Both contradict a document reading "in flight", so both are stale -- but one is an incident and
+    the other is the good news the run was launched for. Paging him for success is how this
+    project's one inbound channel has buried its own signal before, so the split is a control and
+    not a preference. Caught before it ever fired: the floor leg was minutes from finishing
+    successfully when this was written.
+    """
+    dms, sent, cleared = _deadman(monkeypatch)
+    done = {"job": "floor", "claim": ll.FINISHED, "asserted_live_by": ["docs/result.md"]}
+    monkeypatch.setattr(ll, "check", lambda: (1, ["floor: FINISHED -- rc=0"], [done]))
+    dms._check_launch_liveness()
+
+    assert len(sent) == 1, "a completed run said nothing at all; the document stays wrong silently"
+    msg, kw = sent[0]
+    assert kw.get("kind") != "real_alarm", (
+        "a run that SUCCEEDED paged the director as an alarm: " + msg)
+    assert kw.get("kind") == "work_done" and kw.get("topic_class") == "routine_landing", (
+        "a completion must go to the batched digest, not the instant route: " + repr(kw))
+    assert "docs/result.md" in msg, "the batched note still has to name what is now wrong"
+    assert cleared, "no death stood, so the alarm key must be cleared rather than left armed"
+
+
+def test_a_death_and_a_completion_in_one_pass_both_get_their_own_route(monkeypatch):
+    """The partition asserted over the whole set, not one leg at a time. A branch that handled only
+    whichever came first would pass both single-verdict tests above."""
+    dms, sent, cleared = _deadman(monkeypatch)
+    monkeypatch.setattr(ll, "check", lambda: (2, ["two"], [
+        {"job": "dead-one", "claim": ll.DIED, "asserted_live_by": ["docs/a.md"]},
+        {"job": "done-one", "claim": ll.FINISHED, "asserted_live_by": ["docs/b.md"]}]))
+    dms._check_launch_liveness()
+
+    kinds = {kw.get("kind") for _, kw in sent}
+    assert kinds == {"real_alarm", "work_done"}, (
+        "one verdict swallowed the other; got " + repr(kinds))
+    assert not cleared, "a real death stood, and its alarm key was cleared anyway"
 
 
 def test_the_deadman_is_silent_when_nothing_is_stale_and_when_it_could_not_look(monkeypatch):
@@ -184,7 +223,7 @@ def test_the_deadman_is_silent_when_nothing_is_stale_and_when_it_could_not_look(
     look" must not clear the alarm either: that would report an answer we never had.
     """
     dms, sent, cleared = _deadman(monkeypatch)
-    monkeypatch.setattr(ll, "check", lambda: (0, ["floor: RUNNING -- ActiveState=active"]))
+    monkeypatch.setattr(ll, "check", lambda: (0, ["floor: RUNNING -- ActiveState=active"], []))
     dms._check_launch_liveness()
     assert sent == [] and cleared, "a live run paged, or the settled alarm was never cleared"
 

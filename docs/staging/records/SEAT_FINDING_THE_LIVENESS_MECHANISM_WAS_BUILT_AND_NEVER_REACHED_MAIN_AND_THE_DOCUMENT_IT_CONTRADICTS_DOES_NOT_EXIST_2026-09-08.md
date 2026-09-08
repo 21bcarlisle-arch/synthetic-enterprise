@@ -147,6 +147,33 @@ that guard's rule rather than waiting for it to fire. That is not tidiness: `che
 store, and settling is deliberately one-way, so twelve live mutation cycles could have permanently
 marked a running job dead from inside a unit test.
 
+## A death and a completion are not the same event, and the first wiring paged both
+
+Caught before it ever fired, with minutes to spare: the floor leg was on its final pass when the
+wiring landed, and on finishing **successfully** it would have sent the director a `real_alarm`
+reading *"a launch record claimed a run was in flight and it is not"* — indistinguishable from the
+page for a job that died.
+
+Both genuinely contradict a document saying "in flight", so both are stale. But one is an incident
+and the other is the good news the run was launched for, and **a channel that pages him for success
+is how this project has buried its own signal before.** This is the *"before measuring a thing, say
+what it is"* rule applied to an alarm: one word, `stale`, covering two populations with different
+triggers and different remedies.
+
+`check()` now returns the settled records, not just a count — the split has to exist where the
+verdict is known, because a caller handed only a number is forced to choose one severity for both.
+A **DIED** record pages `real_alarm`; a **FINISHED** record goes to the batched digest as
+`work_done`/`routine_landing`, still naming the documents it makes wrong. The alarm key is cleared
+only when no death stands.
+
+| mutation | result |
+|---|---|
+| completion paged as `real_alarm` | **2 failed** |
+| completion swallowed when a death is present in the same pass | **1 failed** |
+
+The second is the partition asserted over the whole set rather than one leg at a time — a branch
+handling only whichever verdict came first would pass both single-verdict controls.
+
 ## What is still owed, unchanged and not done here
 
 1. **A shared launcher.** Still untouched, and now five bespoke shell scripts in `/var/tmp`.
