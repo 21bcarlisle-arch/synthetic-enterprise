@@ -114,6 +114,40 @@ root copy, anything restoring from HEAD stops producing one. If the resurrection
 this lands, the writer is copying `records/` → root rather than restoring from git, and that
 narrows the search to one branch.
 
+## CORRECTION, written after the landing, beside the claim it corrects
+
+**The paragraphs above are wrong about the cause, and the pre-registered test settled it against
+them.** Recorded here rather than revised away, because the prediction was filed before the answer
+was known and that is the only thing that makes the test worth anything.
+
+The landing was `cb32da379`. Immediately after it, the root copies were present **again** — which
+read at first like the `records/` → root branch the test predicted. It is not. The stamps are the
+refutation:
+
+| stamp | what was running |
+|---|---|
+| 21:27:38 | a `surgical_land` run (the landing of `e2accc1ea` / `8e58d7448`) |
+| 21:52:58 | my first `surgical_land` attempt — the one the gate REFUSED |
+| 21:55:11 | my second `surgical_land` attempt — the one that landed |
+
+There is **no ~25-minute daemon cadence**; 21:52:58 and 21:55:11 are two minutes apart. Every
+restoration coincides with a `surgical_land` run, and with nothing else. `surgical_land` preserves
+the working tree across the gate — `--content-remove` says so in its own help text, *"commit
+REPOPATH as a DELETION without removing it from the working tree"* — so a file absent from the
+working tree but present in HEAD comes back when the lander runs.
+
+The decisive evidence is what happened **after** HEAD stopped carrying them. Once `cb32da379` was
+in, the three root copies were deleted once more, and this time `git status` reported the tree
+clean against HEAD and `finding_classes --check` returned **PASS (0 failures)** and stayed there.
+Nothing restored them, because there was no longer anything in HEAD to restore from.
+
+So: this was never a rogue writer, and **the second seat named above is exonerated** — that
+paragraph was an observation offered as a candidate, and it was the wrong one. The real shape is
+narrower and more useful: *while a document sits in HEAD's staging root, no working-tree deletion
+of it survives the next landing in this tree.* That is why the half-finished archive move could not
+be cleared by deleting files, by any lane, however many times it was tried — and why the only
+repair that could ever have worked was the one that changed HEAD.
+
 The second open item is the one the draw could not have known it was asking for: `last_clean_publish`
 stays null until a `run_complete` marker exists to publish. If the queue stays empty, the field stays
 null while the pipeline is entirely healthy — so **that field is not a usable liveness test**, and
