@@ -2663,6 +2663,7 @@ def test_the_three_legs_are_NESTED_so_the_bridge_moves_one_variable_at_a_time():
     log, records = _a48_rising()
     horizon = _fh(log + [_a48_unsettled_second_term(), _a48_priced("GHOST", 9.0)], records)
     legs = horizon["legs"]
+    assert legs["the_published_population_ratio_outcome"]["decisions"] == 4
     assert legs["settled_only_ratio_outcome"]["decisions"] == 4
     assert legs["settled_only_pounds_outcome"]["decisions"] == 4
     assert legs["every_priced_decision_pounds_outcome"]["decisions"] == 5
@@ -2684,8 +2685,65 @@ def test_leg_one_reproduces_the_published_concordance_through_a_different_code_p
     """
     log, records = _a48_rising()
     result = method_skill(_a48_run(log, _a48_observed_until(records)))
-    assert (result["fixed_horizon"]["legs"]["settled_only_ratio_outcome"]["concordance"]
+    legs = result["fixed_horizon"]["legs"]
+    assert (legs["the_published_population_ratio_outcome"]["concordance"]
             == pytest.approx(result["concordance"]))
+    assert (legs["the_published_population_ratio_outcome"]["decisions"]
+            == result["decisions_scored"])
+
+    # AND IT STILL AGREES WHEN CENSORING BITES, which is the case leg 0 exists for. The same book
+    # observed less far leaves leg 1 SHORT of the published figure while leg 0 still reproduces
+    # it -- so the bridge starts where the page's number is rather than somewhere near it.
+    log2 = log + [_a48_priced("A0", 3.0, term=_LATER_TERM)]
+    records2 = list(records) + [_a48_settled("A0", paid_gbp=2000.0, net_gbp=900.0,
+                                             on="2023-03-01")]
+    short = method_skill(_a48_run(log2, _a48_observed_until(records2, "2023-06-01")))
+    short_legs = short["fixed_horizon"]["legs"]
+    assert short["fixed_horizon"]["excluded_by_reason"][
+        "horizon_open_at_the_end_of_the_settled_book"] == 1
+    assert (short_legs["the_published_population_ratio_outcome"]["concordance"]
+            == pytest.approx(short["concordance"]))
+    assert (short_legs["the_published_population_ratio_outcome"]["decisions"]
+            == short_legs["settled_only_ratio_outcome"]["decisions"] + 1)
+    reading = short["fixed_horizon"]["reading"]
+    assert "1 decisions whose horizon had not closed were dropped first" in reading
+    # THE SIZE OF THE CENSORING TERM, not just its count: a verdict that named the decisions and
+    # then reported the move as zero would read as "censoring cost nothing" on every book.
+    delta = (short_legs["settled_only_ratio_outcome"]["concordance"]
+             - short_legs["the_published_population_ratio_outcome"]["concordance"])
+    assert delta != 0, "the fixture never made censoring move the figure"
+    assert ("%+.4f" % delta) in reading
+
+    # AND ON THE BRANCH THAT HAS ALL FOUR TERMS, which is the one a real run takes. The clause
+    # above is composed on the no-departures branch; a run with departures AND censoring goes
+    # through a different sentence, and a censoring term dropped from THAT one would report the
+    # bridge as unit-plus-population on every real book. (Mutation: `censoring = 0.0` survived
+    # against the no-departures leg alone.)
+    # THE CENSORED DECISION HAS TO BE ONE THAT SETTLED. A term with an open horizon and nothing
+    # settled in it never reaches a row at all, so leg 0 and leg 1 are equal and censoring moves
+    # nothing -- the fixture would agree with the mutation. A0's 2023 renewal settles in March,
+    # priced LOW where it produced MOST, so removing it is discordant and the term is visible.
+    mixed = method_skill(_a48_run(
+        log + [_a48_priced("A0", 0.2, term=_LATER_TERM),
+               _a48_priced("A4", 0.5, term="2021-01-01"),
+               _a48_priced("A4", 7.0, term=_TERM)],
+        _a48_observed_until(
+            records + [_a48_settled("A0", paid_gbp=2000.0, net_gbp=900.0, on="2023-03-01"),
+                       _a48_settled("A4", paid_gbp=2000.0, net_gbp=250.0, on="2021-06-01")],
+            "2023-06-01")))["fixed_horizon"]
+    assert mixed["decisions_scored_at_zero_because_the_term_settled_nothing"] == 1
+    assert mixed["excluded_by_reason"]["horizon_open_at_the_end_of_the_settled_book"] == 1
+    mlegs = mixed["legs"]
+    mdelta = (mlegs["settled_only_ratio_outcome"]["concordance"]
+              - mlegs["the_published_population_ratio_outcome"]["concordance"])
+    assert mdelta != 0, "the fixture never made censoring move the figure on this branch"
+    assert "whose horizon had not closed moves it" in mixed["reading"]
+    assert ("%+.4f" % mdelta) in mixed["reading"]
+    assert "The CENSORING term is the largest" in mixed["reading"]
+
+    # ...and on a book where NOTHING was censored the same sentence says so, or the clause is
+    # furniture rather than a reading.
+    assert "the UNIT alone" in result["fixed_horizon"]["reading"]
 
 
 def test_the_reading_names_which_of_the_unit_and_the_population_moved_it_and_flips_with_them():
@@ -2741,7 +2799,7 @@ def test_a_run_where_nobody_left_says_so_rather_than_claiming_a_survivorship_cor
     log, records = _a48_rising()
     horizon = _fh(log, records)
     assert horizon["decisions_scored_at_zero_because_the_term_settled_nothing"] == 0
-    assert "no departures" in horizon["reading"]
+    assert "no departure was added back" in horizon["reading"]
     assert "LOWERS the figure" not in horizon["reading"]
     assert "RAISES the figure" not in horizon["reading"]
 
@@ -2831,8 +2889,8 @@ def test_the_verdict_names_whichever_of_the_unit_and_the_population_actually_mov
     population = (legs["every_priced_decision_pounds_outcome"]["concordance"]
                   - legs["settled_only_pounds_outcome"]["concordance"])
     assert abs(unit) > abs(population) > 0
-    assert "The UNIT term is the larger" in horizon["reading"]
+    assert "The UNIT term is the largest" in horizon["reading"]
 
     # ...and the same sentence on the ordinary book names the other one, or this asserts nothing.
     ordinary = _fh(log + [_a48_priced("A0", 99.0, term=_LATER_TERM)], _a48_rising()[1])
-    assert "The POPULATION term is the larger" in ordinary["reading"]
+    assert "The POPULATION term is the largest" in ordinary["reading"]

@@ -1813,18 +1813,29 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
     over the horizon because it has no metered volumes over the horizon, and imputing one from an
     earlier term is an inference the world does not hand us. It is not done.
 
-    SO TWO THINGS CHANGE AT ONCE between the published figure and this one -- the POPULATION and
-    the UNIT -- and a result that moves when two things changed cannot be attributed. Hence the
-    three-leg bridge, over NESTED populations, one variable per step:
+    SO THREE THINGS CHANGE AT ONCE between the published figure and this one -- CENSORING, the
+    UNIT and the POPULATION -- and a result that moves when more than one thing changed cannot be
+    attributed. Hence the bridge, over NESTED populations, one variable per step:
 
-        leg 1 `settled_only_ratio_outcome`      settled within the horizon, ratio   -- the control
-        leg 2 `settled_only_pounds_outcome`     the SAME decisions,        pounds   -- THE UNIT
-        leg 3 `every_priced_decision_pounds`    leg 2 + the zero outcomes, pounds   -- THE POPULATION
+        leg 0 `the_published_population_ratio`  every valued term,   ratio   -- the control
+        leg 1 `settled_only_ratio_outcome`      less the censored,   ratio   -- CENSORING
+        leg 2 `settled_only_pounds_outcome`     the SAME decisions,  pounds  -- THE UNIT
+        leg 3 `every_priced_decision_pounds`    plus the zeroes,     pounds  -- THE POPULATION
 
-    Leg 1 is a control and not a finding: it reconstructs the concordance's own construction
-    through a different code path over the same decisions, so when nothing is censored it must
-    agree with the published figure. A disagreement means THIS block's plumbing is wrong, not
-    that anything was learned.
+    LEG 0 EXISTS BECAUSE THE FIRST VERSION OF THIS BLOCK DID NOT HAVE IT, and on its first live
+    run the omission was material: 0.5337 published against 0.4209 here, of which the three legs
+    then present accounted for less than three-quarters. The missing term was censoring, which
+    restricts the population BEFORE the first leg and was invisible between them -- 47 of 214
+    priced decisions on a book observed to 2025-06-07. A reader would have attributed the whole
+    move to survivorship. That is the exact defect this bridge exists to prevent, arriving inside
+    the mechanism built to prevent it.
+
+    Leg 0 is a control and not a finding: it reconstructs the concordance's own population and
+    outcome through a different code path, so it must agree with the published figure. A
+    disagreement means THIS block's plumbing is wrong, not that anything was learned. It is also
+    why the coverage gates below run BEFORE the horizon test -- the concordance applies them and
+    has no horizon test, so a decision excluded for the wrong one would put two differences
+    between leg 0 and the figure it is checking.
 
     THE NULL IS INDEPENDENT OF BOTH CHANGES, by construction and not by argument. A constant
     signal ties every pair and `_concordance` scores a signal tie as exactly a half regardless of
@@ -1857,19 +1868,28 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
         # CENSORING IS TESTED BEFORE THE OUTCOME, deliberately. A decision whose horizon is still
         # open has an outcome we can read -- it just is not the outcome the estimand names, and
         # reading it anyway is how a short window becomes a low score.
-        if _horizon_is_open(term, observation_end):
-            excluded["horizon_open_at_the_end_of_the_settled_book"] += 1
-            continue
+        #
+        # CENSORING IS RESOLVED LAST, AFTER EVERY GATE BELOW, and the order is load-bearing. Leg 0
+        # has to reproduce `method_skill.concordance` EXACTLY, and the concordance has no censoring
+        # at all -- so a decision that fails a coverage gate must be excluded for the gate, on both
+        # sides, or the two populations differ by two things and leg 0 stops being a control.
+        censored = _horizon_is_open(term, observation_end)
         acc = folded.get((account, term))
         if acc is None:
             if account not in accounts_in_the_settled_book:
                 excluded["account_has_no_settled_row_anywhere"] += 1
                 continue
+            if censored:
+                # An unfinished horizon with nothing settled in it yet is NOT a departure. The
+                # pounds may still arrive; we have not seen the year out.
+                excluded["horizon_open_at_the_end_of_the_settled_book"] += 1
+                continue
             # THE DECISION THE CONCORDANCE DROPS AND THIS ESTIMAND SCORES. The account settled
             # under other terms, so we can see it; this term settled nothing, so the price it was
             # given produced nothing. That is a measured 0.0 and it is the whole point.
             rows.append({"account": account, "term_start": term, "signal": float(signal),
-                         "pounds": 0.0, "ratio": None, "settled_within_the_horizon": False})
+                         "pounds": 0.0, "ratio": None, "settled_within_the_horizon": False,
+                         "censored": False})
             continue
         if acc["no_counterfactual"]:
             excluded["no_published_counterfactual_rate_for_the_term"] += 1
@@ -1881,30 +1901,47 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
             excluded["counterfactual_not_positive"] += 1
             continue
         pounds = acc["saving"] + acc["net"]
-        rows.append({"account": account, "term_start": term, "signal": float(signal),
-                     "pounds": pounds, "ratio": pounds / acc["counterfactual"],
-                     "settled_within_the_horizon": True})
+        row = {"account": account, "term_start": term, "signal": float(signal),
+               "pounds": pounds, "ratio": pounds / acc["counterfactual"],
+               "settled_within_the_horizon": True, "censored": censored}
+        if censored:
+            # KEPT, NOT DROPPED, and kept for ONE purpose: leg 0. This decision is in the
+            # concordance's population and must not be in the estimand's, and the only way a
+            # reader can see what that costs is to have both legs computed from one pass.
+            excluded["horizon_open_at_the_end_of_the_settled_book"] += 1
+        rows.append(row)
 
-    settled = [row for row in rows if row["settled_within_the_horizon"]]
-    zeroes = [row for row in rows if not row["settled_within_the_horizon"]]
+    scorable = [row for row in rows if not row["censored"]]
+    settled = [row for row in scorable if row["settled_within_the_horizon"]]
+    zeroes = [row for row in scorable if not row["settled_within_the_horizon"]]
+    # THE CONCORDANCE'S OWN POPULATION: every decision with a valued term, censored or not. This
+    # is what `method_skill.concordance` is computed over, rebuilt here so the bridge starts where
+    # the published figure is rather than somewhere near it.
+    published = [row for row in rows if row["settled_within_the_horizon"]]
     legs = {
+        "the_published_population_ratio_outcome": _horizon_leg(
+            [(row["signal"], row["ratio"]) for row in published],
+            "THE PUBLISHED FIGURE, rebuilt. Every priced decision whose term settled something, "
+            "on the counterfactual-normalised ratio, with NO horizon test -- which is exactly the "
+            "population and outcome `method_skill.concordance` uses. A control, not a finding: "
+            "the two must agree through different code paths, and a disagreement is a defect "
+            "here rather than anything about the book."),
         "settled_only_ratio_outcome": _horizon_leg(
             [(row["signal"], row["ratio"]) for row in settled],
-            "the decisions that settled within the horizon, scored on the CONCORDANCE'S OWN "
-            "outcome (the counterfactual-normalised ratio). A control, not a finding: with "
-            "nothing censored this must reproduce `method_skill.concordance` through a different "
-            "code path, and a disagreement is a defect here."),
+            "the same decisions LESS the ones whose horizon had not closed. Against leg 0 this "
+            "isolates CENSORING and nothing else -- one outcome, two populations, and the "
+            "difference is a bound a longer run removes rather than anything about the method."),
         "settled_only_pounds_outcome": _horizon_leg(
             [(row["signal"], row["pounds"]) for row in settled],
             "THE SAME decisions, scored in POUNDS. Against leg 1 this isolates the UNIT change "
             "and nothing else -- one population, two outcomes."),
         "every_priced_decision_pounds_outcome": _horizon_leg(
-            [(row["signal"], row["pounds"]) for row in rows],
+            [(row["signal"], row["pounds"]) for row in scorable],
             "THE ESTIMAND. Leg 2's decisions PLUS the ones whose term settled nothing, at the "
             "0.0 they produced. Against leg 2 this isolates the POPULATION change and nothing "
             "else -- one outcome, two populations."),
     }
-    scored = len(rows)
+    scored = len(scorable)
     total_excluded = sum(excluded.values())
     return {
         "available": legs["every_priced_decision_pounds_outcome"]["concordance"] is not None,
@@ -1941,6 +1978,9 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
         "zero_outcomes_the_world_recorded_as_a_departure": (
             None if churned is None else
             sum(1 for row in zeroes if (row["account"], row["term_start"]) in churned)),
+        # THE SAMPLE CARRIES `censored` ON EVERY ROW, so a reader looking at a 0.0 can tell a
+        # departure from a year we have not seen out. Drawn from ALL rows, not the scorable ones:
+        # the censored decisions are the population leg 0 has and leg 1 does not.
         "sample": rows[:10],
         "bound": (
             "READ THIS BEFORE THE NUMBER, and it is a DIFFERENT bound from the concordance's. "
@@ -1980,6 +2020,7 @@ def _fixed_horizon_reading(legs: dict, zeroes: int, scored: int) -> str:
     legs' own numbers, so the day the arm starts ranking departures correctly this sentence
     changes without anybody editing it.
     """
+    published_leg = legs["the_published_population_ratio_outcome"]["concordance"]
     ratio_leg = legs["settled_only_ratio_outcome"]["concordance"]
     pounds_leg = legs["settled_only_pounds_outcome"]["concordance"]
     whole = legs["every_priced_decision_pounds_outcome"]["concordance"]
@@ -1987,28 +2028,51 @@ def _fixed_horizon_reading(legs: dict, zeroes: int, scored: int) -> str:
         return ("No two priced decisions differed in the pounds they produced, so nothing could "
                 "be ranked. That is a statement about this book, not about the method.")
     if not zeroes:
-        return ("Every priced decision settled something within the horizon, so this estimand "
-                "and the concordance are computed over the SAME {scored} decisions and differ "
-                "only in the unit. Nothing here is survivorship: this run had no departures "
-                "among its priced decisions to add back.".format(scored=scored))
-    if ratio_leg is None or pounds_leg is None:
+        # NO DEPARTURE WAS ADDED BACK -- but censoring may still have taken decisions away, and
+        # "whatever censoring took" would be this reading declining to say. The clause is
+        # composed whenever the leg exists, on this branch as on the one below, because a bound a
+        # longer run removes is exactly the thing a reader must not have to infer.
+        dropped = (None if published_leg is None or ratio_leg is None else
+                   legs["the_published_population_ratio_outcome"]["decisions"]
+                   - legs["settled_only_ratio_outcome"]["decisions"])
+        return ("Every priced decision this estimand could score settled something within the "
+                "horizon, so no departure was added back and nothing here is survivorship -- "
+                "{scored} decisions. {censoring}".format(
+                    scored=scored,
+                    censoring=(
+                        "The move against `method_skill.concordance` is the UNIT alone."
+                        if dropped == 0 else
+                        "It is not the concordance's population either: {n} decisions whose "
+                        "horizon had not closed were dropped first, moving the figure "
+                        "{delta:+.4f} before the unit changed anything.".format(
+                            n=dropped, delta=ratio_leg - published_leg)
+                        if dropped else
+                        "The censoring leg could not be computed, so the move against "
+                        "`method_skill.concordance` is not attributed.")))
+    if published_leg is None or ratio_leg is None or pounds_leg is None:
         return ("{whole:.4f} over {scored} priced decisions, {zeroes} of which produced nothing "
-                "within the horizon. The bridge legs could not both be computed, so the move "
-                "against `method_skill.concordance` CANNOT BE ATTRIBUTED to the unit or to the "
-                "population and neither attribution is offered.".format(
+                "within the horizon. The bridge legs could not all be computed, so the move "
+                "against `method_skill.concordance` CANNOT BE ATTRIBUTED to censoring, to the "
+                "unit or to the population, and no attribution is offered.".format(
                     whole=whole, scored=scored, zeroes=zeroes))
+    censoring = ratio_leg - published_leg
     unit = pounds_leg - ratio_leg
     population = whole - pounds_leg
+    terms = {"CENSORING": censoring, "UNIT": unit, "POPULATION": population}
     return (
-        "{whole:.4f} over all {scored} priced decisions, against {ratio:.4f} over the {settled} "
-        "that settled something -- and the difference is ATTRIBUTABLE because the bridge moves "
-        "one thing at a time. Changing the outcome from the ratio to pounds moves it {unit:+.4f}; "
-        "admitting the {zeroes} decisions whose term settled nothing then moves it "
-        "{population:+.4f}. The {larger} term is the larger. {direction}".format(
-            whole=whole, scored=scored, ratio=ratio_leg,
-            settled=legs["settled_only_ratio_outcome"]["decisions"],
-            unit=unit, zeroes=zeroes, population=population,
-            larger="POPULATION" if abs(population) > abs(unit) else "UNIT",
+        "{whole:.4f} over all {scored} priced decisions, against {published:.4f} over the "
+        "{published_n} the published concordance is computed on -- and the difference is "
+        "ATTRIBUTABLE because the bridge moves one thing at a time. Dropping the {censored} "
+        "decisions whose horizon had not closed moves it {censoring:+.4f}; changing the outcome "
+        "from the ratio to pounds then moves it {unit:+.4f}; admitting the {zeroes} decisions "
+        "whose term settled nothing then moves it {population:+.4f}. The {larger} term is the "
+        "largest. {direction}".format(
+            whole=whole, scored=scored, published=published_leg,
+            published_n=legs["the_published_population_ratio_outcome"]["decisions"],
+            censored=(legs["the_published_population_ratio_outcome"]["decisions"]
+                      - legs["settled_only_ratio_outcome"]["decisions"]),
+            censoring=censoring, unit=unit, zeroes=zeroes, population=population,
+            larger=max(terms, key=lambda k: abs(terms[k])),
             direction=(
                 "Admitting the departures LOWERS the figure, which is what survivor-conditioning "
                 "was hiding: the arm's price ranks the households it kept better than it ranks "

@@ -675,11 +675,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      scale-free over a selected population, this one is unselected in pounds and therefore carries
      account SIZE. Both bounds are the run's own and are rendered, not summarised here.
 
-     THE BRIDGE IS RENDERED, NOT JUST THE HEADLINE. Two things differ between the figures above
-     and the figure here — the population and the unit — and a reader shown only the two endpoints
-     would attribute the whole move to survivorship, which is exactly the error the producer's
-     three nested legs exist to prevent. The middle leg is the one that makes the outer two
-     readable, so it is on the page.
+     THE BRIDGE IS RENDERED, NOT JUST THE HEADLINE. THREE things differ between the figure above
+     and the figure here — CENSORING, the unit and the population — and a reader shown only the
+     two endpoints would attribute the whole move to survivorship, which is exactly the error the
+     producer's four nested legs exist to prevent. On the first live run the censoring term alone
+     was larger than the unit term, so a page without it would have been misleading rather than
+     merely incomplete. The middle legs are what make the outer two readable, so they are here.
 
      THE VERDICT IS NOT WRITTEN HERE, for the same reason the survivorship verdict is not:
      `_fixed_horizon_reading` composes it from the legs' own numbers, so the day admitting the
@@ -719,9 +720,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Decisions</th>"
       + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Population and outcome</th>"
       + "</tr>"
-      + row("the decisions that <strong>settled</strong>, on the ratio &mdash; the figure above, "
-            + "rebuilt here as a control", legs.settled_only_ratio_outcome, false)
-      + row("the same decisions, in <strong>pounds</strong> &mdash; the UNIT change alone",
+      + row("every decision whose term <strong>settled</strong>, on the ratio &mdash; the figure "
+            + "above, rebuilt here as a control", legs.the_published_population_ratio_outcome,
+            false)
+      + row("the same, less the terms whose <strong>365 days had not closed</strong> &mdash; "
+            + "CENSORING alone", legs.settled_only_ratio_outcome, false)
+      + row("those decisions, in <strong>pounds</strong> &mdash; the UNIT change alone",
             legs.settled_only_pounds_outcome, false)
       + row("every decision the arm <strong>priced</strong>, in pounds &mdash; the POPULATION "
             + "change alone", legs.every_priced_decision_pounds_outcome, true)

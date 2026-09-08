@@ -3912,9 +3912,10 @@ def test_the_page_shows_the_BRIDGE_and_not_only_the_headline():
     rendered = _text(_render(feed)["arms-method"])
     legs = produced["legs"]
 
-    for key in ("settled_only_ratio_outcome", "settled_only_pounds_outcome",
-                "every_priced_decision_pounds_outcome"):
+    for key in ("the_published_population_ratio_outcome", "settled_only_ratio_outcome",
+                "settled_only_pounds_outcome", "every_priced_decision_pounds_outcome"):
         assert ("%.4f" % legs[key]["concordance"]) in rendered, key
+    assert "CENSORING alone" in rendered
     assert "the UNIT change alone" in rendered
     assert "the POPULATION change alone" in rendered
     # The verdict the producer composed FROM those legs, not a sentence this page types.
@@ -3983,7 +3984,17 @@ def test_the_live_page_says_it_CANNOT_offer_the_unselected_cut_yet(live):
         return
 
     assert "Not available from this run" in rendered
-    assert "OURS" in rendered
+    # THE REFUSAL NAMES THE REASON IT ACTUALLY HAS, and which of the two absences the feed is in
+    # is not this control's to assume -- it FLIPPED under this test mid-turn, when a daemon
+    # regenerated the feed with the landed producer and moved it from "no block at all" to "the
+    # block, withheld with the run's own reason". A control pinned to either state would have gone
+    # red for the wrong cause. Both branches are driven explicitly, from constructed feeds, in
+    # `test_the_two_ABSENCES_are_told_apart_on_the_page`; this one asserts only that whichever
+    # state the live page is in, its refusal carries that state's reason.
+    if horizon and horizon.get("reason"):
+        assert horizon["reason"][:60] in rendered
+    else:
+        assert "OURS" in rendered
 
 
 def test_the_two_ABSENCES_are_told_apart_on_the_page():
