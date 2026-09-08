@@ -569,3 +569,53 @@ def test_record_standing_review_refuses_when_the_ledger_is_unavailable(tmp_path,
 
 if __name__ == "__main__":
     raise SystemExit(pytest.main([__file__, "-q"]))
+
+
+# ── A CALLER IS A CALL, AND AN OWNER DECLARES IT IN ITS DOCSTRING ──────────────────────────────
+# Two readings in this module face OPPOSITE ways and both were reading raw bytes (2026-09-08).
+# `_primitive_inventory` wants code and was counting comments as callers -- `vat_constant` read 5
+# where 3 call it, `rng_substream_primitive` 45 where 44 do, both OVERSTATING adoption of the
+# shared primitive. `_quantity_coverage` wants prose and was reading `text[:2000]`, which is not
+# the docstring: it is whatever the first 2000 bytes happen to be.
+def test_MUTATION_a_primitive_named_only_in_a_COMMENT_is_not_a_caller(tmp_path):
+    """The defect, driven. This is the live shape: `# see company/finance/vat_book.vat_rate()`
+    counted the file that merely POINTS at the primitive as one that had migrated to it."""
+    f = _write(tmp_path / "mentions.py", "# vat_rate() lives in company/finance/vat_book.py\n"
+                                         "def unrelated():\n    return 1\n")
+    inv = c._primitive_inventory([f], project_dir=tmp_path)
+    assert inv["vat_constant"]["caller_count"] == 0, (
+        "a comment naming the primitive counted as a caller -- the census overstates migration")
+
+
+def test_a_primitive_that_is_really_CALLED_is_still_counted(tmp_path):
+    """The other end, and without it the test above passes on a census that counts nothing."""
+    f = _write(tmp_path / "calls.py", "def f(x):\n    return x * vat_rate('2024-01-01')\n")
+    inv = c._primitive_inventory([f], project_dir=tmp_path)
+    assert inv["vat_constant"]["caller_count"] == 1
+
+
+def test_MUTATION_an_ownership_claim_OUTSIDE_the_docstring_is_not_a_declaration(tmp_path):
+    """`text[:2000]` is a byte window, not a docstring. A module whose real docstring says nothing
+    about ownership, and whose IMPORT BLOCK carries a comment quoting the phrase, read as an owner
+    -- and `has_owner` is the coverage figure the SP4 registry gate is keyed to."""
+    text = ('"""An ordinary module that owns nothing."""\n'
+            "# NOTE: the single owning module for net margin is elsewhere -- see the register.\n"
+            "import json\n")
+    f = _write(tmp_path / "mod.py", text)
+    coverage = c._quantity_coverage([f], project_dir=tmp_path)
+    assert coverage["net_margin"]["has_owner"] is False, (
+        "a comment ABOUT ownership was read as a declaration OF it")
+
+
+def test_a_declaration_below_2000_BYTES_of_imports_is_still_found(tmp_path):
+    """The half the old window silently lost, and the reason this is not merely a narrowing: a
+    module with a long licence header pushed its own docstring out of `text[:2000]`, so a genuine
+    owner read as no owner. The docstring is where it lives, at whatever offset."""
+    header = "# padding padding padding padding padding padding padding padding\n" * 40
+    text = header + '"""This module is the single owning module for treasury across the codebase."""\n'
+    f = _write(tmp_path / "long.py", text)
+    assert text.index("single owning module") > 2000, (
+        "the declaration must sit past the old byte window or this asserts nothing")
+    coverage = c._quantity_coverage([f], project_dir=tmp_path)
+    assert coverage["treasury"]["has_owner"] is True
+    assert coverage["treasury"]["owner_module"] == "long.py"

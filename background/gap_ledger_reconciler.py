@@ -48,6 +48,8 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
+from tools.python_code_text import searchable  # noqa: E402
+
 LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "coupled_gap_ledger.json"
 
 # Directories scanned for gap-ledger WRITERS. Both, because the family is not only `tools/`:
@@ -155,7 +157,14 @@ def discover_writers(project_dir: Path | None = None) -> dict:
                 text = p.read_text(errors="ignore")
             except OSError:
                 continue
-            if _WRITE_MARKER.search(text):
+            # THE MARKER IS ASKED OF CODE, NOT OF BYTES (2026-09-08). `background/live_ledger_guard.py`
+            # explains in its module docstring that `tools/couple_*.py --write-ledger` mains are the
+            # class it leaves open, and that sentence made the GUARD a ledger writer -- 21 writers
+            # where 20 write. `write_site_attribution` gave it no rows, so the harm was confined to
+            # the count, but the shape is `_SELF` above one degree removed: a module that DESCRIBES
+            # the write is not one that performs it. The stored text stays raw; only the discovery
+            # question is asked of code, because attribution downstream parses it anyway.
+            if _WRITE_MARKER.search(searchable(text)):
                 found[rel] = text
     return found
 

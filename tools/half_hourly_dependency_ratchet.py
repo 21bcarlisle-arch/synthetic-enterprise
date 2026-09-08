@@ -56,6 +56,11 @@ import sys
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
+if str(PROJECT) not in sys.path:
+    sys.path.insert(0, str(PROJECT))
+
+from tools.python_code_text import searchable  # noqa: E402
+
 BASELINE = PROJECT / "docs" / "design" / "half_hourly_dependency_baseline.json"
 
 #: The modules that consume the RETAINED settlement book. The spine is deliberately absent:
@@ -96,9 +101,16 @@ def scan(root: Path | None = None) -> dict[str, list[str]]:
             continue
         seen_any_file = True
         hits = []
-        for raw in path.read_text(encoding="utf-8").splitlines():
+        # HALF THE REMEDY WAS HAND-ROLLED HERE and it was the wrong half. `startswith("#")` drops
+        # a FULL-LINE comment, so `sections.append(_section_worst(data))  # Phase BR` recorded its
+        # trailing comment as part of the dependency, and any docstring line naming a marker was a
+        # dependency outright. `searchable()` blanks both in place, keeping offsets, so the line
+        # numbers and the normalisation below are untouched. It APPENDS rejoined argv literals
+        # past the end of the file; a marker inside one would be a new hit, which is the direction
+        # a ratchet is allowed to be wrong in.
+        for raw in searchable(path.read_text(encoding="utf-8")).splitlines():
             line = raw.strip()
-            if line.startswith("#") or not any(m in line for m in MARKERS):
+            if not any(m in line for m in MARKERS):
                 continue
             # Normalised so reformatting is not a diff, but a changed EXPRESSION is.
             hits.append(re.sub(r"\s+", " ", line))

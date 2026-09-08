@@ -782,13 +782,29 @@ def test_the_live_writer_family_has_no_unresolvable_write_site():
     assert glr.unresolved_write_sites(glr.discover_writers()) == {}
 
 
-def test_a_marker_matched_on_PROSE_ALONE_produces_nothing():
-    """`background/gap_metric.py` and `background/live_ledger_guard.py` quote `--write-ledger` in
-    help text and have no write call, so `_WRITE_MARKER` discovers them. Producing nothing is the
-    correct answer for them, not a miss -- and it must not be reported as unresolved either."""
+def test_a_marker_matched_on_PROSE_ALONE_IS_NOT_A_WRITER():
+    """CORRECTED 2026-09-08, and the correction is beside the claim it replaces.
+
+    This test used to assert the opposite -- that `background/live_ledger_guard.py` MUST be
+    discovered as a ledger writer, on the reasoning that `write_site_attribution` gives it no rows
+    so the count is harmless. Both halves were wrong about where the mention lives. It is not help
+    text; it is the module's own DOCSTRING, explaining that `tools/couple_*.py --write-ledger`
+    mains are the class the guard leaves open. A module that DESCRIBES the write is not one that
+    performs it, and `discover_writers` said 21 writers where 20 write.
+
+    That is `_SELF` above it, one degree removed: the grader is excluded by name because its prose
+    quotes the marker, and the same prose in any other module bought the same false membership
+    with no exclusion to catch it. `_WRITE_MARKER` is now asked of code, so the name is no longer
+    needed and the class is closed rather than the instance.
+    """
     writers = glr.discover_writers()
+    assert "background/live_ledger_guard.py" not in writers, (
+        "a module whose docstring quotes `--write-ledger` is not a ledger writer")
+    # THE OTHER END, and it is what stops this passing on a discovery that finds nothing:
+    # `gap_metric.py` really does `def write_gap_entry(`, which is CODE and stays a match. Its own
+    # attribution is empty and always was -- it DEFINES the write rather than calling it with an
+    # atom id -- so the non-vacuity claim is made against the index as a whole.
+    assert "background/gap_metric.py" in writers
     index = glr.write_site_attribution(writers)
-    for path in ("background/gap_metric.py", "background/live_ledger_guard.py"):
-        assert path in writers, f"{path} must still be discovered -- else this asserts nothing"
-        assert index[path] == set()
-        assert path not in glr.unresolved_write_sites(writers)
+    assert any(index.values()), "no writer resolved any atom id -- discovery has lost its subject"
+    assert "background/gap_metric.py" not in glr.unresolved_write_sites(writers)

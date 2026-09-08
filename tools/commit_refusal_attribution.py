@@ -58,14 +58,20 @@ import argparse
 import collections
 import re
 import statistics
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background.process_run_complete import (
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
+from background.process_run_complete import (  # noqa: E402
     _REFUSING_GATE_BANNERS,
     _parse_failed_node_ids,
     _parse_refusing_gate,
 )
+from tools.python_code_text import searchable  # noqa: E402
 
 DEFAULT_LOG = Path("docs/observability/sim-runner-log.md")
 
@@ -689,9 +695,16 @@ def gate_ranks(hook_text=None, emitter_texts=None):
     texts = {} if emitter_texts is None else dict(emitter_texts)
 
     def body(path):
+        # THE SECONDARY RANK IS A BYTE OFFSET INTO THE EMITTER, so a comment ABOVE the banner it
+        # describes moves the gate earlier in the order (2026-09-08). Prose about a refusal is
+        # exactly what these files are full of, and the ordering evidence is the only thing that
+        # makes the largest episode in the refusal log analysable. `searchable()` blanks comments
+        # and bare strings IN PLACE -- offsets preserved -- so a printed banner keeps its true
+        # position and a paragraph describing it no longer has one. An emitter is Python; the hook
+        # is a shell script and is read raw, which is right: `searchable` returns it unchanged.
         if path not in texts:
             p = Path(path)
-            texts[path] = p.read_text(encoding="utf-8") if p.exists() else ""
+            texts[path] = searchable(p.read_text(encoding="utf-8")) if p.exists() else ""
         return texts[path]
 
     ranks = {}
