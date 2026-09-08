@@ -300,3 +300,18 @@ def test_main_returns_two_on_a_coverage_hole(monkeypatch, tmp_path):
 def test_main_returns_zero_on_a_clean_tree(monkeypatch, tmp_path):
     monkeypatch.setattr(guard, "ROOT", _make_tree(tmp_path))
     assert guard.main([]) == 0
+
+
+def test_an_owner_declaring_its_names_only_in_COMMENTS_has_lost_its_subject(tmp_path):
+    """The guard's whole claim is 'the canonical series still lives here'. A name surviving
+    only in a comment is exactly the state a MOVED series leaves behind -- so reading the
+    owner's raw bytes made this guard greenest at the moment its subject was gone."""
+    owner_in_prose = (
+        '"""Carbon emissions. UK_GRID_FUEL_MIX moved to sim/ on 2026-09-01."""\n'
+        "# grid_intensity_g_co2e_per_kwh now lives with the series it reads.\n"
+        "def unrelated():\n    return 1\n"
+    )
+    tree = _make_tree(tmp_path, owner_source=owner_in_prose)
+    with pytest.raises(guard.CoverageError) as exc:
+        guard._check_owner(tree, guard.OWNER_REL_PATH)
+    assert "UK_GRID_FUEL_MIX" in str(exc.value)

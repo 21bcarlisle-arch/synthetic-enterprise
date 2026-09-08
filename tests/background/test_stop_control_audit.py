@@ -313,3 +313,71 @@ def test_main_returns_nonzero_when_the_audit_is_unavailable(monkeypatch, capsys)
 def test_main_passes_on_the_real_repo(capsys):
     assert sca.main([]) == 0
     assert "PASS" in capsys.readouterr().out
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The oracle is CODE, not the file's bytes. `sym not in source` over raw text is
+# FAIL-OPEN in the one direction that matters: a comment is the likeliest thing
+# to survive a deletion, because it is the part nobody has to change.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_a_symbol_surviving_only_in_a_COMMENT_is_still_missing(tmp_path):
+    """Delete the stop control, leave the comment that explains it, and the byte reading
+    goes on certifying an affordance that no longer exists."""
+    fake_root = tmp_path / "root"
+    (fake_root / "background").mkdir(parents=True)
+    (fake_root / "background" / "executor_governor.py").write_text(
+        '"""The governor used to expose kill_switch_enabled() here."""\n'
+        "# kill_switch_enabled was removed on 2026-09-01; nothing replaced it\n"
+        "def unrelated():\n    return 1\n",
+        encoding="utf-8",
+    )
+    result = sca.audit(controls=(sca.REGISTRY[0],), project_dir=fake_root,
+                       doc_path=sca.GAP_DOC_PATH)
+    assert "SYMBOL_MISSING" in _violations(result)
+
+
+def test_a_cited_test_recited_only_in_a_DOCSTRING_is_still_missing(tmp_path):
+    """`def <name>(` is the 'Release tested?' column's only oracle. A signature quoted inside
+    a module docstring certifies a citation to nothing."""
+    control = dataclasses.replace(
+        sca.REGISTRY[0],
+        module="background/executor_governor.py",
+        symbols=(),
+        flag=None,
+        flag_readers=(),
+        cited_tests=("tests/background/test_ghost.py::test_the_switch_stops_it",),
+    )
+    fake_root = tmp_path / "root"
+    (fake_root / "background").mkdir(parents=True)
+    (fake_root / "background" / "executor_governor.py").write_text("x = 1\n", encoding="utf-8")
+    (fake_root / "tests" / "background").mkdir(parents=True)
+    (fake_root / "tests" / "background" / "test_ghost.py").write_text(
+        '"""This file used to hold def test_the_switch_stops_it(monkeypatch) -- deleted."""\n'
+        "x = 1\n",
+        encoding="utf-8",
+    )
+    result = sca.audit(controls=(control,), project_dir=fake_root, doc_path=sca.GAP_DOC_PATH)
+    assert "TEST_MISSING" in _violations(result)
+
+
+def test_a_flag_named_only_in_a_COMMENT_is_not_a_reader(tmp_path):
+    """A flag file is a control only because something READS it. A module that merely mentions
+    the flag while explaining why it no longer honours it is not a reader."""
+    control = dataclasses.replace(
+        sca.REGISTRY[0],
+        module="background/executor_governor.py",
+        symbols=(),
+        flag="docs/observability/.build_executor_enabled",
+        flag_readers=("background/executor_governor.py",),
+        cited_tests=(),
+    )
+    fake_root = tmp_path / "root"
+    (fake_root / "background").mkdir(parents=True)
+    (fake_root / "background" / "executor_governor.py").write_text(
+        "# .build_executor_enabled is no longer consulted -- the gate moved upstream\n"
+        "x = 1\n",
+        encoding="utf-8",
+    )
+    result = sca.audit(controls=(control,), project_dir=fake_root, doc_path=sca.GAP_DOC_PATH)
+    assert "FLAG_UNREFERENCED" in _violations(result)

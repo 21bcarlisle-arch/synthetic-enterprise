@@ -47,6 +47,7 @@ from __future__ import annotations
 import argparse
 import ast
 import os
+import re
 import sys
 from collections import deque
 from pathlib import Path
@@ -61,6 +62,7 @@ from tools.epistemic_wall import (  # noqa: E402
     build_edges,
     top_package,
 )
+from tools.python_code_text import code_strings  # noqa: E402
 
 #: Modules that ARE the network. Anything importing one of these can open a socket, and
 #: anything importing THAT can too, and so on. `subprocess` is deliberately included: a
@@ -80,6 +82,10 @@ HTTP_MODULES = frozenset({
 #: So: a shell counts iff the module also names a network binary.
 NETWORK_BINARIES = ("curl", "wget", "nc", "ncat", "ssh", "scp", "rsync", "telnet")
 SHELL_MODULES = frozenset({"subprocess", "os"})
+
+#: Compiled once. `\b` so `curl -sS https://x` matches and `curly_brace` does not -- the binary
+#: is a WORD inside a command string, never the whole string.
+_BINARY_RE = {b: re.compile(rf"\b{re.escape(b)}\b") for b in NETWORK_BINARIES}
 
 #: Scanned for the capability graph. Wider than the wall's own dirs, because the route out
 #: of the company can run through any package it can import.
@@ -136,7 +142,6 @@ def network_capable_directly(root: str = REPO_ROOT,
                     tree = ast.parse(Path(path).read_text(encoding="utf-8"))
                 except (OSError, SyntaxError):
                     continue
-                src = Path(path).read_text(encoding="utf-8")
                 imported: set[str] = set()
                 for node in ast.walk(tree):
                     if isinstance(node, ast.Import):
@@ -146,8 +151,19 @@ def network_capable_directly(root: str = REPO_ROOT,
                 if imported & HTTP_MODULES:
                     found[_module_of(root, path)] = "http client"
                 elif imported & SHELL_MODULES:
+                    # THE STRINGS A RUNNING LINE COULD HAND TO A SHELL, not the file's bytes.
+                    # Asking `'"curl"' in src` was wrong in both directions at this wall.
+                    # Prose: the paragraph above naming `curl` as the worked example is itself
+                    # a quoted `"curl"`, so this module reported ITSELF and every accurate
+                    # comment about the rule fired the rule. Code: every shell-out in this repo
+                    # that passes flags writes them INSIDE the string -- `run(["curl -s " + url],
+                    # shell=True)` contains no `"curl"` token at all, so the one control between
+                    # company code and a socket was blind to the commonest spelling of the thing
+                    # it forbids. `code_strings` drops prose and rejoins argv lists, and the word
+                    # boundary is what lets `curl -s` match while `curly` does not.
+                    strings = code_strings(tree)
                     named = [b for b in NETWORK_BINARIES
-                             if f'"{b}"' in src or f"'{b}'" in src]
+                             if any(_BINARY_RE[b].search(s) for s in strings)]
                     if named:
                         found[_module_of(root, path)] = f"shells {'/'.join(named)}"
     if not found:

@@ -68,6 +68,10 @@ from pathlib import Path
 from typing import Iterable, List, Sequence
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.python_code_text import searchable  # noqa: E402
 
 #: The one module allowed to declare the series. Relative to the repo root.
 OWNER_REL_PATH = "company/regulatory/carbon_emissions.py"
@@ -265,7 +269,10 @@ def _check_owner(root: Path, owner_rel: str) -> None:
             f"owner module {owner_rel} is missing -- the series has no declared home, so "
             f"'no second series' means nothing"
         )
-    source = owner.read_text(encoding="utf-8")
+    # CODE, not bytes. This guard's whole claim is "the canonical series still lives here", and
+    # a name surviving only in a comment is exactly the state a moved series leaves behind --
+    # so reading raw text makes the guard greenest at the moment the thing it guards is gone.
+    source = searchable(owner.read_text(encoding="utf-8"))
     missing = [n for n in OWNER_REQUIRED_NAMES if not re.search(rf"\b{re.escape(n)}\b", source)]
     if missing:
         raise CoverageError(

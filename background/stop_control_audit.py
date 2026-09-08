@@ -41,6 +41,11 @@ from pathlib import Path
 import yaml
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
+
+from tools.python_code_text import searchable  # noqa: E402
+
 GAP_DOC_PATH = PROJECT_DIR / "docs" / "design" / "STOP_CONTROL_GAP.md"
 PROCESS_MANIFEST_PATH = PROJECT_DIR / "background" / "process_manifest.yaml"
 
@@ -281,11 +286,17 @@ def _check_vocabulary(c: StopControl, tag: str) -> list[str]:
 
 
 def _check_module_symbols(c: StopControl, tag: str, root: Path) -> list[str]:
-    """Oracle: the implementing file's real source text."""
+    """Oracle: the implementing file's real CODE — prose blanked, argv lists rejoined.
+
+    `sym not in source` over raw bytes is FAIL-OPEN in the direction that matters here: delete
+    the symbol, leave the comment that explains it, and this audit goes on certifying a stop
+    control that no longer exists. The comment is the likeliest thing to survive the deletion,
+    because it is the part nobody has to change.
+    """
     module_path = root / c.module
     if not module_path.exists():
         return [f"{tag}: MODULE_MISSING — {c.module} does not exist"]
-    source = module_path.read_text(encoding="utf-8", errors="replace")
+    source = searchable(module_path.read_text(encoding="utf-8", errors="replace"))
     return [
         f"{tag}: SYMBOL_MISSING — {c.module} no longer contains {sym!r}"
         for sym in c.symbols
@@ -306,7 +317,11 @@ def _check_flag_readers(c: StopControl, tag: str, root: Path) -> list[str]:
         reader_path = root / reader
         if not reader_path.exists():
             out.append(f"{tag}: READER_MISSING — {reader} does not exist")
-        elif flag_name not in reader_path.read_text(encoding="utf-8", errors="replace"):
+        # CODE, not bytes: a module that only MENTIONS the flag in a comment does not read it,
+        # and treating the mention as a reader is how a flag file keeps counting as a control
+        # after the code that honoured it was removed.
+        elif flag_name not in searchable(
+                reader_path.read_text(encoding="utf-8", errors="replace")):
             out.append(f"{tag}: FLAG_UNREFERENCED — {reader} does not reference {flag_name}")
     return out
 
@@ -340,7 +355,10 @@ def _check_cited_tests(c: StopControl, tag: str, root: Path, live: bool) -> list
         test_path = root / rel
         if not test_path.exists():
             out.append(f"{tag}: TEST_FILE_MISSING — {rel}")
-        elif f"def {test_name}(" not in test_path.read_text(encoding="utf-8", errors="replace"):
+        # A `def name(` recited inside a docstring is not a test. This is the 'Release tested?'
+        # column's only oracle, so a prose match here certifies a citation to nothing.
+        elif f"def {test_name}(" not in searchable(
+                test_path.read_text(encoding="utf-8", errors="replace")):
             out.append(f"{tag}: TEST_MISSING — {rel} no longer defines {test_name}")
     return out
 

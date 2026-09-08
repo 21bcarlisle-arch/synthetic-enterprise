@@ -170,3 +170,60 @@ def test_MUTATION_a_stale_baseline_entry_fails_the_gate(monkeypatch):
     monkeypatch.setattr(iso, "KNOWN_ROUTES", padded)
     problems = iso.gate_violations()
     assert any("STALE BASELINE" in p and "company.imaginary" in p for p in problems), problems
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# The subject is CODE, not the file's bytes. Both directions, because
+# `'"curl"' in src` was wrong in both and neither was reachable from the live
+# tree -- every real shell-out here happens to spell the binary as its own
+# quoted token, so the tree's own verdict is silent on the reading.
+# ─────────────────────────────────────────────────────────────────────────────
+
+def test_MUTATION_a_binary_named_only_in_PROSE_does_NOT_fire(tmp_path):
+    """PROSE READ AS CODE. This module's own paragraph explaining that a shelled `curl` is a
+    network route contains the token `"curl"`, so the byte reading made every accurate comment
+    about the rule fire the rule -- and made this file report ITSELF as network-capable."""
+    _tree(tmp_path, {
+        "company/__init__.py": "",
+        "company/audit.py": (
+            'import subprocess\n'
+            '"""The wall: this module must never shell out to "curl" or "wget"."""\n'
+            '# and never `"ssh"` either -- see the ruling of 2026-08-18\n'
+            'subprocess.run(["git", "status"])\n'
+        ),
+        "sim/__init__.py": "",
+        "sim/x.py": "import requests\n",
+    })
+    assert iso.violations(str(tmp_path), DIRS) == []
+
+
+def test_MUTATION_a_binary_inside_a_shell_STRING_fires(tmp_path):
+    """CODE READ AS PROSE, and this is the dangerous half. `run(["curl -s " + url],
+    shell=True)` contains no `"curl"` token anywhere, so the byte reading was FAIL-OPEN
+    against the commonest spelling of the thing this wall forbids."""
+    _tree(tmp_path, {
+        "company/__init__.py": "",
+        "company/audit.py": (
+            'import subprocess\n'
+            'URL = "https://example.com/x"\n'
+            'subprocess.run(["curl -sS " + URL], shell=True)\n'
+        ),
+        "sim/__init__.py": "",
+    })
+    found = {v["module"] for v in iso.violations(str(tmp_path), DIRS)}
+    assert "company.audit" in found
+
+
+def test_a_word_that_merely_CONTAINS_a_binary_name_does_not_fire(tmp_path):
+    """The word boundary earns its place: widening to a bare substring would make
+    `nc` fire on every `increment`, and a wall that cries wolf gets routed around."""
+    _tree(tmp_path, {
+        "company/__init__.py": "",
+        "company/audit.py": (
+            'import subprocess\n'
+            'subprocess.run(["git", "increment-counter", "--sshuttle-ish"])\n'
+        ),
+        "sim/__init__.py": "",
+        "sim/x.py": "import requests\n",
+    })
+    assert iso.violations(str(tmp_path), DIRS) == []
