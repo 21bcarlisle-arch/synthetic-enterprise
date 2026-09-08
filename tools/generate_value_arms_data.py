@@ -3841,7 +3841,7 @@ def _verdict_stability(floor_current: dict | None, spread: dict | None,
 
 
 def _redraw_band_clause(point, stability: dict | None) -> str:
-    """The whole re-draw family, beside the one draw of it that got published.
+    """WHERE in its own re-draw family the published draw fell, and where the family itself is.
 
     THE DEFECT THIS REMOVES (2026-09-08). The band reached the reader on exactly one branch --
     the withheld one -- because that is the branch it was written for. The day the seeds agree,
@@ -3853,16 +3853,37 @@ def _redraw_band_clause(point, stability: dict | None) -> str:
     averages £1,451: the verdict is still due, and the reader is still owed where in its own
     family this draw fell.
 
-    KEYED TO `checked`, NOT TO THE VERDICT. That is the whole point of hoisting it out: the band
-    renders wherever the stability rung ran, so no future verdict branch can be added that
-    silently drops it. `where` is composed from the comparison and never hard-coded -- the next
-    run's draw may be the low one, and a sentence that only knows how to say "above" would then
-    be false on the page.
+    AND THE NUMBERS THEMSELVES ARE NO LONGER HERE (2026-09-08, later the same day). This sentence
+    recited the min, the max and the mean; `#arms-redraw` on the capabilities page renders the
+    same three from `verdict_stability.*` as structured cells, per contrast. One fact, two homes,
+    edited on different days for different reasons -- this repository's own VAT shape, named in
+    CLAUDE.md by its cost. The prose home is the one that CANNOT BE PARTIALLY FAILED: the mean was
+    deletable from it with all 84 door rungs green, which was measured before it was fixed, while
+    a dropped cell in the table reds on its own column. So the numbers stay in the table and this
+    sentence names the table.
+
+    WHAT STAYS, AND WHY IT IS NOT THE SAME FACT. The placement word is a READING of the family,
+    not a member of it, and it is the reading the range alone would not give: a reader told the
+    quantity spans £451 to £2,434 still takes £2,336 as the answer. The page derives the same word
+    in `redrawBand()` from two numbers already on screen, and the door asserts the two agree --
+    so the one thing said twice is the one thing checked for drift.
+
+    KEYED TO `checked`, NOT TO THE VERDICT. That is the whole point of hoisting it out: the
+    pointer renders wherever the stability rung ran, so no future verdict branch can be added that
+    silently sends the reader nowhere. `where` is composed from the comparison and never
+    hard-coded -- the next run's draw may be the low one, and a sentence that only knows how to
+    say "above" would then be false on the page.
 
     ONE PRODUCER, THREE CONSUMERS. `verdict_withheld_because`, the withheld headline clause and
     the stated headline clause each carried their own copy of this sentence. Three copies of one
     sentence about one quantity is how the mean came to be in two of them and the placement in
     one -- this file's own named cost, at the scale of a paragraph.
+
+    NO ` -- ` IN THE RETURNED SENTENCE, on purpose. The door rewrites that sequence to an em dash
+    through its own `prose()`, so a control that looks for this string in the rendered region has
+    to translate first; keeping the sentence free of it means the feed's own bytes are what a
+    reader meets, and the attribution rung can compare them without a second copy of the door's
+    formatter.
     """
     if not (stability or {}).get("checked"):
         return ""
@@ -3870,13 +3891,17 @@ def _redraw_band_clause(point, stability: dict | None) -> str:
     high = _f(stability.get("redraw_max_gbp"))
     mean = _f(stability.get("redraw_mean_gbp"))
     value = _f(point)
+    # LOW AND HIGH ARE STILL REQUIRED THOUGH THEY ARE NO LONGER PRINTED HERE. They are what this
+    # sentence sends the reader to, and a pointer at a table that cannot fill its own Lowest and
+    # Highest columns is worse than silence: the reader follows it and meets the gap.
     if None in (low, high, mean, value):
         return ""
     where = "ABOVE" if value > mean else "BELOW" if value < mean else "exactly AT"
     return (
-        "The re-draws themselves span {lo} to {hi} and average {mean}, so the figure above sits "
-        "{where} the centre of its own family -- which the range alone would not have told you."
-    ).format(lo=_gbp(low), hi=_gbp(high), mean=_gbp(mean), where=where)
+        "The re-draws themselves are set out contrast by contrast in the band table directly "
+        "below this headline, lowest, mean and highest; the figure above sits {where} the "
+        "centre of its own family."
+    ).format(where=where)
 
 
 def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, live: str,
@@ -4537,18 +4562,19 @@ def _leg_clause(leg: dict, lead: str, resolved_tail: str) -> str:
     # The reader gets the range that reverses the verdict, in the headline, rather than a "CLEARS"
     # whose stability they would have to reconstruct from `bound.min_gbp` further down the feed.
     stability = leg.get("verdict_stability") or {}
-    # THE BAND RENDERS ON EVERY BRANCH BELOW THAT HAS ONE, and it is `_redraw_band_clause`'s
+    # THE POINTER RENDERS ON EVERY BRANCH BELOW THAT HAS A FAMILY, and it is `_redraw_band_clause`'s
     # sentence rather than this function's second draft of it -- see that docstring for the cost
     # of the third copy. Empty string when the stability rung did not run, which is the only
     # state in which the page has nothing to say about the family.
     band = leg.get("redraw_band") or ""
     if leg.get("verdict_withheld_because"):
-        # THE MEAN OF THE RE-DRAWS IS IN THE HEADLINE, beside the range, because withholding the
-        # binary and then leaving the surviving point estimate unplaced within its own family is
-        # the flattering reading one step along -- see `_verdict_stability`. A reader who is told
-        # the quantity spans £451 to £2,434 still takes £2,336 as the answer; told the same family
-        # averages £1,451, they can see the published run drew high. On the selection leg that
-        # centre is NEGATIVE while the published draw is positive, which is the whole finding.
+        # THE PLACEMENT OF THE DRAW IS IN THE HEADLINE; the family's own numbers are in the table
+        # this sentence points at. Withholding the binary and then leaving the surviving point
+        # estimate unplaced within its own family is the flattering reading one step along -- see
+        # `_verdict_stability` -- so ABOVE/BELOW/AT stays here where the refusal is. The three
+        # edges left this sentence on 2026-09-08 for `#arms-redraw`, which fails per cell; on the
+        # selection leg the centre is NEGATIVE while the published draw is positive, and that is
+        # the finding the table's own Mean column now carries and can be failed on.
         clearing = stability.get("redraw_resolving")
         return lead + (
             "THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same "
@@ -4566,13 +4592,13 @@ def _leg_clause(leg: dict, lead: str, resolved_tail: str) -> str:
                "in this same world, so its direction cannot be stated")
     stated = lead + ("That figure " + verdict + resolved_tail).format(
         sd=stdev if stdev is not None else 0, n=seeds)
-    # AND A STATED VERDICT CARRIES THE FAMILY TOO. This is the branch the band was missing from
-    # until 2026-09-08, and it is the branch where losing it costs most: a reader who is told the
-    # figure CLEARS its spread has been handed a direction, and "£2,336 clears £991" reads as
-    # settled in a way "£2,336, from a family spanning £451 to £2,434 and averaging £1,451" does
-    # not. The stdev says how wide the family is; only the band says where in it this draw fell,
-    # and a verdict stated off the high draw of a wide family is the thing the reader most needs
-    # to be able to check. Appended after `.format` because the band is composed sterling text.
+    # AND A STATED VERDICT IS PLACED IN ITS FAMILY TOO. This is the branch the band was missing
+    # from until 2026-09-08, and it is the branch where losing it costs most: a reader who is told
+    # the figure CLEARS its spread has been handed a direction, and "£2,336 clears £991" reads as
+    # settled in a way "£2,336, and it sits ABOVE the centre of its own family" does not. The stdev
+    # says how wide the family is; only this says where in it this draw fell, and a verdict stated
+    # off the high draw of a wide family is the thing the reader most needs to be able to check.
+    # Appended after `.format` because the band clause is composed text and carries no fields.
     return stated + (" " + band + " " if band else "")
 
 

@@ -2566,7 +2566,8 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
 
     Fires on: withholding unconditionally; withholding only the unflattering direction; folding
     the withheld state into `bound_available: False` so a reader cannot tell "never measured"
-    from "one draw's"; or dropping the range from the reason.
+    from "one draw's"; reporting a family the floor's own rows do not give; or a reason that
+    withholds a verdict without placing the published draw in the family that reverses it.
     """
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
@@ -2588,23 +2589,33 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
     assert withheld["verdict_withheld_because"], (
         "the verdict was withheld with no reason, so `resolved: None` now means both 'never "
         "measured' and 'one draw's' and a reader cannot tell them apart")
-    # THE RANGE THAT REVERSES IT REACHES THE READER, not just the fact of withholding.
-    for edge in ("£451", "£2,434"):
-        assert edge in withheld["verdict_withheld_because"], (
-            "the reason withheld the range that reverses the verdict: "
-            + withheld["verdict_withheld_because"])
-    # AND THE CENTRE OF THE FAMILY, WHICH IS WHAT PLACES THE SURVIVING POINT ESTIMATE IN IT. A
-    # range says how far the quantity moves; only the mean says the published £2,336 is the high
-    # end of its own re-draws rather than their middle. Withholding the binary and leaving that
-    # unsaid is the flattering reading one layer along.
+    # THE RANGE THAT REVERSES IT REACHES THE READER -- FROM THE FIELDS, which is where the page
+    # now reads it. Until 2026-09-08 this asserted the literal strings "£451" and "£2,434" inside
+    # the reason: two homes for one fact, and the assertion here was keyed to TODAY'S ANSWER as
+    # well, so it would have gone red on a re-run that moved the family and green on a page that
+    # dropped the band table entirely. `#arms-redraw` renders these three from
+    # `verdict_stability.*` as cells that fail one at a time; what this rung owes is that the
+    # block the cells come from is CARRIED and correct.
+    #
+    # AND THE CENTRE IS THE ONE THAT PLACES THE SURVIVING POINT ESTIMATE. A range says how far the
+    # quantity moves; only the mean says the published £2,336 is the high end of its own re-draws
+    # rather than their middle. Withholding the binary and leaving that unsaid is the flattering
+    # reading one layer along.
+    rows = (1467.230551, 2433.696987, 450.9949)
     stability = withheld["verdict_stability"]
-    assert stability["redraw_mean_gbp"] == pytest.approx(
-        (1467.230551 + 2433.696987 + 450.9949) / 3), (
-        "the reported centre is not the mean of the rows it claims to summarise")
-    assert "£1,451" in withheld["verdict_withheld_because"], (
-        "the reason gave the range without the mean, so a reader cannot tell whether the figure "
-        "published above is the middle of its family or its favourable end: "
-        + withheld["verdict_withheld_because"])
+    for edge, expected in (("redraw_min_gbp", min(rows)),
+                           ("redraw_mean_gbp", sum(rows) / len(rows)),
+                           ("redraw_max_gbp", max(rows))):
+        assert stability[edge] == pytest.approx(expected), (
+            "the reported {} is not {} of the rows it claims to summarise, so the band table "
+            "renders a family this floor did not produce".format(edge, edge.split("_")[1]))
+    # AND THE REASON SENDS THE READER TO IT rather than reciting it a second time. Read from the
+    # block this same call composed, so a reworded pointer stays green and a reason that stops
+    # pointing anywhere reds.
+    assert withheld["redraw_band"] and withheld["redraw_band"] in (
+            withheld["verdict_withheld_because"]), (
+        "the reason withheld a verdict for a family and did not place the published draw in it "
+        "or say where the family is: " + withheld["verdict_withheld_because"])
     # THE DIRECTION IS COMPOSED, NOT HARD-CODED. £2,335.87 is above the £1,450.64 mean, so this
     # subject must say ABOVE -- and the low-draw subject below is the sole witness that the
     # sentence is capable of saying the unflattering thing about a DIFFERENT draw. Without it,
@@ -2636,7 +2647,8 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
 
 
 def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verdict():
-    """A STATED verdict carries the family it was drawn from, not only a withheld one.
+    """A STATED verdict places its draw in its family and sends the reader to it, not only a
+    withheld one -- AND STATES THE FAMILY'S NUMBERS NOWHERE, because they have one home.
 
     THE DEFECT THIS CLOSES (2026-09-08). The band -- span, mean, and where in it this draw fell --
     reached the headline through `verdict_withheld_because`, so it rendered on exactly the branch
@@ -2645,6 +2657,19 @@ def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verd
     the WINNER of the re-draw, told it won, and is never shown the re-draw. That is the failure
     `_verdict_stability` exists to prevent, surviving into the one branch where a direction is
     asserted out loud and so where it costs most.
+
+    AND THE SECOND HALF, LATER THE SAME DAY. The fix above put the family in the headline as a
+    RECITAL of min, max and mean -- beside `#arms-redraw`, which renders the same three from
+    `verdict_stability.*` as structured cells, per contrast, each failable on its own. One fact,
+    two homes, edited on different days for different reasons: the VAT shape CLAUDE.md names by
+    its cost. The prose home was retired because it is the one that cannot be partially failed --
+    the mean was deletable from it with all 84 door rungs green, measured before it was fixed.
+
+    SO THE ABSENCE IS ASSERTED HERE AND NOT AT THE DOOR, and that placement is the whole reason
+    this rung can hold it. The subject's family is SUBSTITUTED (£20,000/£20,100/£20,200) and
+    cannot collide with any other figure the clause composes, so "this number is not in this
+    sentence" means what it says. Against the live page, `£451` is a substring of `£12,451` and
+    the same assertion would be a coin toss on the next re-run.
 
     THE UNANIMOUS FLOOR IS THE WITNESS AND IT HAS TO BE, because the committed artefacts withhold:
     every control over this could be satisfied by the withheld branch alone, and a control that
@@ -2661,11 +2686,11 @@ def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verd
 
     KEYED TO THE PROPERTY. The figures are read from the stability block the same build produced,
     never typed, so this does not red when the arms are re-run -- it reds when a verdict branch
-    stops carrying the family.
+    stops placing the draw in its family, and when the retired recital comes back.
 
     Fires on: dropping `redraw_band` from the stated branch of `_leg_clause`; composing it only
-    inside `verdict_withheld_because` again; or reporting a family whose edges the block does not
-    carry.
+    inside `verdict_withheld_because` again; reporting a family whose edges the block does not
+    carry; or restoring the min/max/mean recital to the clause so the band has two homes again.
     """
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
@@ -2685,10 +2710,23 @@ def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verd
         "under test was not rendered")
     stability = stated["verdict_stability"]
     assert stability["checked"], "the unanimous floor produced no stability block to render"
+    # THE STATED BRANCH CARRIES THE POINTER. Read from the block the same build produced rather
+    # than matched against words this test wrote: `redraw_band` is what `_redraw_band_clause`
+    # composed for this contrast, and the property is that the stated branch renders it -- which
+    # is exactly what it did not do before 2026-09-08.
+    band = stated["redraw_band"]
+    assert band and band in clause, (
+        "the headline stated a verdict without the sentence placing that figure in its own "
+        "family -- the reader is handed a direction and never told the direction came out of a "
+        "family, nor where the rest of it is")
+    # AND IT CARRIES THE POINTER INSTEAD OF THE NUMBERS, not as well as. The three edges live in
+    # `#arms-redraw` as cells that fail one at a time; a recital here is a second home for one
+    # fact, and the two are edited on different days for different reasons.
     for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
-        assert "£{:,.0f}".format(stability[edge]) in clause, (
-            "the headline stated a verdict without {} -- the reader is handed a direction and "
-            "not the family the figure was one draw of".format(edge))
+        assert gva._gbp(stability[edge]) not in clause, (
+            "the headline recites {} ({}) as well as pointing at the band table, so one fact has "
+            "two homes again and only one of them can be partially failed".format(
+                edge, gva._gbp(stability[edge])))
 
     # AND THE PLACEMENT IS MEASURED, NOT ASSERTED FROM TODAY'S DRAW. The published £12,071 sits
     # below the £20,100 centre of this substituted family, so this subject must say BELOW -- the
@@ -3058,9 +3096,9 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
         "the creation leg's bound equals the whole advantage's ({} against {}) -- a spread "
         "measured on one quantity published as a bound on another".format(*whole))
 
-    # THE CENTRE, THE RANGE AND THE COUNT REACH THE READER, in the headline and not only the
-    # payload. The centre is the half a range alone will not tell you: this draw is +£2,177 and
-    # its own family averages BELOW zero.
+    # THE FAMILY REACHES THE READER, and the count and the placement are in the headline. The
+    # placement is the half a range alone will not tell you: this draw is +£2,177 and its own
+    # family averages BELOW zero.
     headline = gva.build(_load(THREE_ARM), superseded, _load(RUN_OUTPUT), None,
                          current, floor_live)["headline"]
     assert leg["verdict_withheld_because"], (
@@ -3070,22 +3108,29 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
     # the control keyed to THAT DAY'S ANSWER: re-pointing the constants at a floor measured in the
     # same world, on the same commit as the arms it bounds -- the strictly more honest pairing this
     # file exists to make safe -- turned it red, and nothing about the property had changed. A
-    # control that goes red when the page gets a BETTER bound is backwards. The property is that
-    # the centre, both ends of the range and the resolving count reach the reader; the numbers are
-    # whichever floor is current.
+    # control that goes red when the page gets a BETTER bound is backwards.
+    #
+    # AND THE THREE EDGES ARE NO LONGER ASSERTED AGAINST THE HEADLINE, later the same day. They
+    # were recited there AND rendered as cells in `#arms-redraw`; one fact with two homes gets
+    # edited on two days for two reasons, and the prose home is the one that cannot be partially
+    # failed. So the edges are asserted here to be CARRIED -- the table renders what this block
+    # holds, and `site/test_the_baseline_comparison_reaches_the_reader.py` asserts each one
+    # reaches the reader, per contrast, in that contrast's own row. What the headline still owes
+    # is the count and the pointer that places this draw in the family.
     stability = leg["verdict_stability"]
-    for label, shown in (
-        ("range low", gva._gbp(stability["redraw_min_gbp"])),
-        ("range high", gva._gbp(stability["redraw_max_gbp"])),
-        ("family centre", gva._gbp(stability["redraw_mean_gbp"])),
-        ("resolving count", "{} of the {}".format(
-            stability["redraw_resolving"], stability["n"])),
-    ):
-        assert shown in headline, (
-            "the creation leg's {} ({}) is not on the surface -- the reader meets the point "
-            "estimate and cannot place it in its own family".format(label, shown))
-    # AND THE CENTRE IS NOT THE PUBLISHED DRAW. The whole reason the centre is on the surface is
-    # that a single draw can sit anywhere in its own family; asserting only that "a number
+    for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
+        assert isinstance(stability.get(edge), (int, float)), (
+            "the creation leg's verdict was withheld for a family carrying no {}, so the band "
+            "table has nothing to render and the refusal is unfalsifiable".format(edge))
+    count = "{} of the {}".format(stability["redraw_resolving"], stability["n"])
+    assert count in headline, (
+        "the creation leg's resolving count ({}) is not on the surface -- the reader is told the "
+        "verdict is one draw's and not how many draws disagree".format(count))
+    assert leg["redraw_band"] and leg["redraw_band"] in headline, (
+        "the creation leg's point estimate reached the reader with nothing placing it in its own "
+        "family and no route to the rest of that family")
+    # AND THE CENTRE IS NOT THE PUBLISHED DRAW. The whole reason the placement is on the surface
+    # is that a single draw can sit anywhere in its own family; a control satisfied by "a number
     # appears" would pass if the page printed the point estimate three times.
     assert gva._gbp(stability["redraw_mean_gbp"]) != gva._gbp(leg["figure_gbp"]), (
         "the family centre renders identically to the published draw, so this control cannot "

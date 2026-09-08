@@ -1299,40 +1299,58 @@ class TestFrozenBaselineOutOfBandTrigger:
     publish path (2026-07-29 wedge: run inline it backed up 22 run markers and
     the 900s sweep timeout re-attempted it forever)."""
 
-    def test_spawns_detached_when_stale_and_never_runs_inline(self, monkeypatch):
+    def test_launched_out_of_band_when_stale_and_never_runs_inline(self, monkeypatch):
+        """THIS TEST USED TO PIN THE DEFECT (2026-09-08). Its last assertion was
+        `kwargs["start_new_session"] is True, "must be detached to outlive publish"` -- and that
+        is precisely the claim three launches of one measurement refuted. Every user unit here is
+        KillMode=control-group; `setsid` changes the session and the process group, and a cgroup
+        is neither, so the refresh died with the publisher's teardown while a green control said
+        it was correctly detached. A control keyed to today's answer goes red when the code
+        becomes more honest, which is exactly backwards, and this is what that looks like.
+
+        What survives unchanged is the thing this class was really about: NEVER INLINE."""
         import tools.run_frozen_baseline as rfb
+        from background import launch_long_job
         monkeypatch.setattr(rfb, "should_refresh_baseline", lambda *a, **k: True)
 
-        popen_calls = []
-
-        class _FakeProc:
-            pid = 4242
-
-        def fake_popen(argv, **kwargs):
-            popen_calls.append((argv, kwargs))
-            return _FakeProc()
+        launches = []
+        monkeypatch.setattr(launch_long_job, "launch",
+                            lambda job, command, **kw: launches.append((job, command, kw))
+                            or {"unit": "longjob-x", "log": "/var/tmp/x.log"})
 
         # If anything tried to run the replay inline, this would fire.
         monkeypatch.setattr(rfb, "run_frozen_baseline",
                             lambda *a, **k: (_ for _ in ()).throw(
                                 AssertionError("replay ran inline in the publish path")))
-        monkeypatch.setattr(prc.subprocess, "Popen", fake_popen)
+
+        def no_popen(*a, **k):
+            raise AssertionError(
+                "the refresh was spawned directly; a setsid child dies with the publisher's "
+                "cgroup -- it goes through background.launch_long_job")
+
+        monkeypatch.setattr(prc.subprocess, "Popen", no_popen)
 
         prc._trigger_frozen_baseline_refresh_out_of_band("abc123")
 
-        assert len(popen_calls) == 1, "stale baseline must spawn exactly one refresh"
-        argv, kwargs = popen_calls[0]
-        assert argv[1:] == ["-m", "tools.run_frozen_baseline", "--if-stale"]
-        assert kwargs.get("start_new_session") is True, "must be detached to outlive publish"
+        assert len(launches) == 1, "stale baseline must launch exactly one refresh"
+        job, command, kwargs = launches[0]
+        assert command[1:] == ["-m", "tools.run_frozen_baseline", "--if-stale"]
+        assert kwargs["artefact"].endswith("frozen_policy_baseline.json"), (
+            "a launch record with no artefact can never settle to FINISHED, so a completed "
+            "refresh would read as an unexplained death forever")
 
     def test_does_not_spawn_when_fresh(self, monkeypatch):
         import tools.run_frozen_baseline as rfb
+        from background import launch_long_job
         monkeypatch.setattr(rfb, "should_refresh_baseline", lambda *a, **k: False)
 
         def fail_popen(*a, **k):
             raise AssertionError("no refresh must be spawned when the baseline is fresh")
 
         monkeypatch.setattr(prc.subprocess, "Popen", fail_popen)
+        # The route changed on 2026-09-08, so the leg that proves nothing starts had to change
+        # with it -- guarding only `Popen` would have gone quiet the moment the spawn moved.
+        monkeypatch.setattr(launch_long_job, "launch", fail_popen)
         # returns without spawning
         prc._trigger_frozen_baseline_refresh_out_of_band("abc123")
 
