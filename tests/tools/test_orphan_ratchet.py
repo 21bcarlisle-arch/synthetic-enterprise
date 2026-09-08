@@ -483,3 +483,136 @@ def test_an_unreadable_head_keeps_the_ordinary_refusal_rather_than_excusing(tmp_
     assert orat.ADDED_HEADLINE in err, (
         "with HEAD unreadable the accusation was re-attributed anyway, so a git failure would "
         "excuse every new orphan in the tree:\n{}".format(err))
+
+
+# ------------------------- WHICH TREE WAS THE FLOOR MEASURED IN
+# Added 2026-09-08. A `freeze()` output taken in a tree TWELVE MODULES SMALLER was pasted
+# into the shared baseline. The refusal that followed named the module and the file
+# correctly and said nothing about the only thing that separated a JUSTIFIED SHRINK of the
+# floor from A STALE PASTE -- and those two have opposite remedies: the drawn item read it
+# as a shrink and said to land it, which would have converted an attributable refusal
+# ("AN UNCOMMITTED EDIT TO THE BASELINE") into an unattributable one ("THIS COMMIT ADDS
+# WORK THAT NOTHING RUNS") and left every lane still refused. Telling them apart cost a
+# full re-measurement of the premise.
+#
+# `freeze()` had written `module_count` from the tree it ran in since the file existed, and
+# NOTHING READ IT BACK. It was the whole evidence, sitting beside the list it contradicted.
+#
+# It is a NOTE and not a refusal, and that is the design, not a softening: module_count
+# moves on every commit that adds or deletes a module, so a gate keyed to it would be red
+# in the ordinary case and wedge every lane. The tests below are the two halves -- it
+# speaks when the trees differ, and is SILENT when they agree -- because a note that always
+# prints is a note nobody reads, which is this file's own always-red shape.
+
+def _baseline_saying(baseline: Path, *, orphans: list[str], module_count: int | None) -> None:
+    data: dict = {"orphans": orphans}
+    if module_count is not None:
+        data["module_count"] = module_count
+    baseline.write_text(json.dumps(data) + "\n")
+
+
+def test_a_baseline_frozen_in_a_different_tree_says_so_in_the_refusal(tmp_path, capsys):
+    """DEFECT: the refusal cannot distinguish a shrink of this floor from another tree's paste.
+
+    MUTATION (must fire): make `baseline_tree_note` return None unconditionally. That is the
+    code as it stood on 2026-09-08, and this test reds on it.
+    """
+    root, baseline = _frozen_repo(tmp_path, head_orphans=[], tree_orphans=[])
+    here = orat.compute(root)["module_count"]
+    _baseline_saying(baseline, orphans=[], module_count=here - 12)
+
+    rc = orat.run(root=root, path=baseline)
+    err = capsys.readouterr().err
+
+    assert rc == 1
+    assert str(here - 12) in err and str(here) in err, (
+        "the refusal does not print the tree the floor was frozen in beside the tree it is "
+        "being applied to, so a stale paste reads exactly like a justified shrink:\n{}".format(err))
+    assert "SMALLER" in err, (
+        "the direction is not named, and it is the whole diagnosis: a floor from a SMALLER tree "
+        "cannot have grandfathered the modules this one has:\n{}".format(err))
+
+
+def test_a_baseline_frozen_in_a_larger_tree_is_not_called_smaller(tmp_path, capsys):
+    """DEFECT: the note is one constant sentence, so the direction it names is decoration.
+
+    The other half. A floor frozen in a LARGER tree is the other real shape here -- a freeze
+    taken in the dirty shared tree, where a lane's untracked modules exist, then applied in the
+    clean extract `surgical_land` gates. Without this leg a note hard-coding "SMALLER" passes
+    the test above and is wrong half the time it fires.
+    """
+    root, baseline = _frozen_repo(tmp_path, head_orphans=[], tree_orphans=[])
+    here = orat.compute(root)["module_count"]
+    _baseline_saying(baseline, orphans=[], module_count=here + 9)
+
+    assert orat.run(root=root, path=baseline) == 1
+    err = capsys.readouterr().err
+    assert "LARGER" in err and "SMALLER" not in err, (
+        "a baseline frozen in a BIGGER tree is reported as coming from a smaller one:\n"
+        "{}".format(err))
+
+
+def test_a_baseline_frozen_in_this_tree_says_nothing(tmp_path, capsys):
+    """DEFECT: the note prints on every refusal and becomes noise nobody reads.
+
+    The silence leg, and the one that makes the two above mean something: a note that fires
+    unconditionally satisfies both of them -- `in err` is true either way -- while telling a
+    reader nothing about which tree the floor came from. `freeze()` taken HERE agrees exactly,
+    and agreement must be silent.
+    """
+    root, baseline = _frozen_repo(tmp_path, head_orphans=[], tree_orphans=[])
+    here = orat.compute(root)["module_count"]
+    _baseline_saying(baseline, orphans=[], module_count=here)
+
+    assert orat.run(root=root, path=baseline) == 1, "the fixture stopped refusing"
+    err = capsys.readouterr().err
+    assert orat.ADDED_HEADLINE in err, "the fixture stopped refusing for the expected reason"
+    assert "BASELINE PROVENANCE" not in err, (
+        "a baseline frozen in THIS tree is still reported as coming from another one, so the "
+        "note fires on every refusal in the repo and stops being evidence:\n{}".format(err))
+
+
+def test_a_baseline_that_records_no_tree_size_says_it_cannot_tell(tmp_path, capsys):
+    """DEFECT: a baseline with no module_count is silently treated as agreeing.
+
+    "We cannot tell" is a result and belongs on the surface. An older-format baseline carries
+    no evidence about the tree it was frozen in, and silence there is indistinguishable from
+    the silence that means "frozen here" -- which is the one reading that would be wrong.
+    """
+    root, baseline = _frozen_repo(tmp_path, head_orphans=[], tree_orphans=[])
+    _baseline_saying(baseline, orphans=[], module_count=None)
+
+    assert orat.run(root=root, path=baseline) == 1
+    err = capsys.readouterr().err
+    assert "no module_count" in err, (
+        "a baseline carrying no evidence about its own tree reads the same as one frozen "
+        "here:\n{}".format(err))
+
+
+def test_the_report_names_the_tree_too_when_nothing_refuses(tmp_path, capsys):
+    """DEFECT: the evidence is only reachable through a refusal, and the paste that cost a
+    premise re-measurement did NOT refuse in the tree it was pasted into.
+
+    Measured 2026-09-08: the stale baseline exited 0 in the shared tree (its list was a subset
+    of the tree's orphans, and a subset can never be a new orphan) and exited 1 only in a clean
+    extract. The seat diagnosing it ran `--report`, which printed the tree's module_count with
+    no sign that the baseline beside it described a different tree.
+    """
+    root = _repo(tmp_path, unit="/usr/bin/python3 -m background.runner", modules={
+        "background/runner.py": "def main():\n    pass\n",
+        "background/dormant.py": "def f():\n    pass\n",
+    })
+    baseline = tmp_path / "b.json"
+    frozen = orat.freeze(root, baseline)
+    assert orat.run(root=root, path=baseline) == 0, "the frozen floor failed its own gate"
+    capsys.readouterr()
+
+    _baseline_saying(baseline, orphans=frozen["orphans"],
+                     module_count=frozen["module_count"] + 40)
+    assert orat.run(root=root, path=baseline, report=True) == 0, (
+        "a disagreeing module_count REFUSED -- it is evidence about which tree the floor came "
+        "from, and a gate keyed to it would red on every commit that adds a module")
+    out = capsys.readouterr().out
+    assert "BASELINE PROVENANCE" in out and str(frozen["module_count"] + 40) in out, (
+        "--report prints this tree's module_count with no sign that the baseline beside it "
+        "describes another tree:\n{}".format(out))
