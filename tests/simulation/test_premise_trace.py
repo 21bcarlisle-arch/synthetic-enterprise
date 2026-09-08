@@ -108,11 +108,17 @@ def test_a_gas_heated_premise_puts_its_heat_in_gas_not_electricity(trace):
     assert trace.heating_commodity == "gas"
     assert sum(sum(d.gas_kwh) for d in trace.days) > 0.0
     for day in trace.days:
-        # A gas-heated premise burns gas for space heat AND hot water; nothing
-        # else reaches the gas meter.
+        # A gas-heated premise burns gas for space heat, hot water AND COOKING; nothing else
+        # reaches the gas meter. Cooking joined the identity on 2026-09-08 -- before that the
+        # model asserted cooking gas was zero for every household in the country, which the
+        # hot-water correction exposed by removing the over-reading that had masked it.
         assert sum(day.gas_kwh) == pytest.approx(
-            sum(day.heating_fuel_kwh) + sum(day.dhw_fuel_kwh), rel=1e-9
+            sum(day.heating_fuel_kwh) + sum(day.dhw_fuel_kwh) + sum(day.cooking_fuel_kwh),
+            rel=1e-9,
         )
+        # AND COOKING IS ACTUALLY THERE. Without this the identity above would pass just as
+        # happily on a tree where the term had been deleted again.
+        assert sum(day.cooking_fuel_kwh) > 0.0 or day.is_away
 
 
 def test_annual_levels_sit_in_the_external_anchor_band(trace):

@@ -136,13 +136,25 @@ COMBI_SHARE_OF_HOMES = 0.626
 # BOTH COEFFICIENTS ARE PARAMETERS, NOT CONSTANTS, and that is deliberate: `--sweep` moves them and
 # `grade()` reports whether the resulting population still reproduces the DESNZ quartiles. A
 # parameter we can move and grade is worth more than a number we are confident in.
-HOT_WATER_FIXED_LITRES_PER_DAY = 36.0
-HOT_WATER_LITRES_PER_PERSON_PER_DAY = 25.0
+# IMPORTED FROM THE PRODUCTION MODEL, NOT RE-DECLARED. This module held its own copy of the SAP
+# volume relationship while `simulation/premise_trace` held a different one on the SHIPPED
+# settlement path -- two implementations of one quantity, disagreeing about the shape of the
+# occupancy relationship, and the sourced copy was the one that did not run. The correction put the
+# anchored constants in production, where the demand is actually computed, and this module now
+# imports them. There is one implementation and this is not it.
+from simulation.premise_trace import (  # noqa: E402
+    _DHW_FIXED_LITRES_PER_DAY as HOT_WATER_FIXED_LITRES_PER_DAY,
+)
+from simulation.premise_trace import (  # noqa: E402
+    _DHW_LITRES_PER_PERSON_DAY as HOT_WATER_LITRES_PER_PERSON_PER_DAY,
+)
 
 #: The occupancy SAP's own figures are stated at, and the one the DESNZ median corresponds to.
 #: Used to re-centre the volume curve so the population median stays on the MEASURED value while the
 #: SHAPE across occupancy comes from SAP.
-REFERENCE_OCCUPANCY = 2.4
+from simulation.premise_trace import (  # noqa: E402
+    _DHW_REFERENCE_OCCUPANCY as REFERENCE_OCCUPANCY,
+)
 
 
 def occupancy_factor(people_count: float,

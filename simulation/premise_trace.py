@@ -907,14 +907,153 @@ def occupancy_at(profile: BehaviourProfile, period: int, *, is_weekend: bool, is
 # Layer 2 — domestic hot water
 # ---------------------------------------------------------------------------
 
-# `domain-knowledge` — BS EN 12831 / SAP hot-water draw: ~40 litres per person per
-# day at a 45 K rise ≈ 2.1 kWh thermal per person per day.
-_DHW_LITRES_PER_PERSON_DAY = 40.0
-_DHW_DELTA_T_K = 45.0
-_DHW_KWH_PER_LITRE = 4.18 * _DHW_DELTA_T_K / 3600.0
+# VOLUME FROM SAP, ENERGY ANCHORED TO A MEASUREMENT.
+#
+# THIS BLOCK USED TO READ: "`domain-knowledge` — BS EN 12831 / SAP hot-water draw: ~40 litres
+# per person per day at a 45 K rise", with `_DHW_LITRES_PER_PERSON_DAY = 40.0` and NO fixed term.
+# It cited SAP and implemented a relationship SAP does not contain, and the product of the two
+# errors put this path at **1.4-1.6x the measured value** on every fabric-eligible customer --
+# about +730 kWh a year each, on the demand the company settles, bills and hedges on. Recorded in
+# `SEAT_FINDING_THE_SETTLEMENT_PATHS_HOT_WATER_IS_HALF_AGAIN_THE_MEASURED_VALUE_AND_I_BUILT_THE
+# _SECOND_COPY_2026-09-08`; corrected on the director's decision of the same day to fix it and
+# RE-BASELINE rather than carry the old number for continuity.
+#
+# It survived because the old form and the new one agree EXACTLY at the average occupancy --
+# 40 x 2.4 = 96 litres, 36 + 25 x 2.4 = 96 litres -- so any check at the mean passes. They
+# disagree everywhere else, and the disagreement is the whole shape of the relationship.
+
+# SAP 2012 / BREDEM: Vd,average = 36 + 25 x N litres/day. A FIXED draw-off plus a per-person one,
+# and the STRUCTURE carries the claim: some hot water is drawn whatever the headcount (a boiler's
+# own draw-off, a sink run) and the rest is showers. So four people use about 1.58x the hot water
+# of two, not 2x. The old strictly-proportional form asserted 2.00.
+_DHW_FIXED_LITRES_PER_DAY = 36.0
+_DHW_LITRES_PER_PERSON_DAY = 25.0
+
+#: The occupancy SAP states its figures at, and the one the DESNZ median corresponds to.
+_DHW_REFERENCE_OCCUPANCY = 2.4
+
+#: DESNZ, *Domestic hot-water use: observations from connected devices*, March 2024: 45,000 metered
+#: homes on gas combi boilers, median daily hot-water GAS 3.9 kWh (September) to 4.5 kWh (May).
+#: The mean of the two published seasonal points, which is what the model is anchored to.
+_DHW_MEASURED_MEDIAN_GAS_KWH_PER_DAY = 4.2
+
 _DHW_COMBI_EFFICIENCY = 0.80
+
+# DERIVED, NOT CHOSEN, and this is the second of the two errors it replaces. The temperature rise
+# is whatever makes the SAP volume deliver the DESNZ measured median GAS at the reference
+# occupancy, given the combi efficiency above. Written as the arithmetic rather than as a number so
+# it cannot drift away from the measurement it is anchored to: change the volume or the median and
+# this follows.
+#
+# It comes out at ~30 K, and THAT IS THE PLAUSIBILITY CHECK rather than a coincidence: a 10 C cold
+# main to about 40 C is a blended draw-off temperature, which is what a shower actually runs at.
+# The old 45 K was a storage temperature applied to a delivered volume, which is why it over-read.
+# A value here of 5 K or 90 K would have refuted the frame instead of confirming it.
+_DHW_DELTA_T_K = (
+    _DHW_MEASURED_MEDIAN_GAS_KWH_PER_DAY
+    * _DHW_COMBI_EFFICIENCY
+    * 3600.0
+    / (
+        4.18
+        * (_DHW_FIXED_LITRES_PER_DAY + _DHW_LITRES_PER_PERSON_DAY * _DHW_REFERENCE_OCCUPANCY)
+    )
+)
+_DHW_KWH_PER_LITRE = 4.18 * _DHW_DELTA_T_K / 3600.0
+
+
+def dhw_daily_litres(people_count: float) -> float:
+    """SAP's daily hot-water volume for a household of this size.
+
+    The one place the volume relationship lives. `tools/hot_water_base` imports it rather than
+    carrying a second copy -- which is the defect this correction exists to end."""
+    return _DHW_FIXED_LITRES_PER_DAY + _DHW_LITRES_PER_PERSON_DAY * people_count
 _DHW_HEAT_PUMP_COP_PENALTY = 0.62  # a cylinder at 55 C is a worse duty than space heat
 _DHW_EVENT_HOURS = 0.2
+
+
+# ---------------------------------------------------------------------------
+# Layer 2 — cooking gas
+# ---------------------------------------------------------------------------
+#
+# THE MODEL ASSERTED COOKING GAS = 0 FOR EVERY HOUSEHOLD, and the assertion was invisible because
+# the hot-water term was over-reading by enough to hide it. Correcting hot water to its measured
+# value exposed it immediately: the fixture premise's winter/summer gas ratio left its diagnostic
+# band, because SUMMER GAS IS THE FLAT TERM and the flat term was hot water alone.
+#
+# Two other modules in this tree already assume cooking exists -- `household_demand`'s
+# post-heat-pump residual is "cooking only", and `gas_settlement` splits domestic gas 70/30 with
+# the 30 being "DHW + cooking (flat year-round)". This layer is the third place, and it was the
+# only one actually generating a demand series, so it was the one that mattered.
+#
+# THE LEVEL IS SOURCED AND NO NEW CONSTANT IS MINTED. DESNZ 2024 puts cooking at 5-10% of
+# domestic gas end use; Ofgem's published TDCV medium band anchors what a domestic gas total is.
+# The product of two published figures is the level, and the range is carried rather than
+# collapsed.
+_COOKING_SHARE_OF_DOMESTIC_GAS = 0.075
+_COOKING_SHARE_RANGE = (0.05, 0.10)
+
+#: THE OCCUPANCY SHAPE IS AN ASSUMPTION AND IS MARKED AS ONE. A household cooks a meal whatever
+#: its size and the portions scale with the people eating them, so cooking is sub-linear in
+#: headcount for the same structural reason hot water is. That reasoning is strong; the SPLIT
+#: between the fixed and per-person parts is not measured -- `ASSUMPTIONS.md` records the cooking
+#: fuel split by household composition as NOT FOUND. So the hot-water proportion is borrowed,
+#: stated here as a borrowing, and left as a parameter so being wrong about it is measurable.
+_COOKING_FIXED_FRACTION = _DHW_FIXED_LITRES_PER_DAY / (
+    _DHW_FIXED_LITRES_PER_DAY + _DHW_LITRES_PER_PERSON_DAY * _DHW_REFERENCE_OCCUPANCY
+)
+
+
+def _tdcv_medium_gas_kwh() -> float:
+    """Ofgem's published typical domestic gas consumption, imported not restated."""
+    from simulation.population_draw import TDCV_BANDS_KWH
+
+    low, high = TDCV_BANDS_KWH["gas"]["MEDIUM"]
+    return (low + high) / 2.0
+
+
+def cooking_daily_kwh(
+    people_count: float, *, share: float = _COOKING_SHARE_OF_DOMESTIC_GAS
+) -> float:
+    """Metered cooking gas per day, flat across the year and sub-linear in headcount.
+
+    FLAT ACROSS THE YEAR on purpose: cooking is the other half of the summer gas base and it does
+    not follow the weather. It also does not follow FABRIC -- a well-insulated house does not cook
+    less -- which is why the level is anchored to a national typical consumption rather than to
+    this household's own gas.
+    """
+    reference = _tdcv_medium_gas_kwh() * share / 365.0
+    fixed = reference * _COOKING_FIXED_FRACTION
+    per_person = (reference - fixed) / _DHW_REFERENCE_OCCUPANCY
+    return fixed + per_person * people_count
+
+
+#: How the day's cooking splits between the two meals that use gas. Breakfast is short and the
+#: evening meal is the long one; the household's OWN clock places them, not a national 18:00,
+#: which is the same treatment `draw_dhw_events` gives its evening cluster.
+_COOKING_MEAL_SHARES = ((0.30, 0), (0.70, 2))       # (share, periods to spread over from start)
+
+
+def cooking_period_kwh(profile: BehaviourProfile, daily_kwh: float,
+                       *, is_away: bool) -> list[float]:
+    """The day's cooking gas across 48 periods, on this household's meal clock.
+
+    NOT SMEARED FLAT. A constant trickle would put cooking gas in the small hours and would be the
+    same artefact the cold-appliance duty cycle exists to remove -- this module's whole subject is
+    texture, and a term added without it is a term that shows up wrong in any half-hourly use.
+
+    An empty house does not cook, the same rule `draw_dhw_events` already applies.
+    """
+    out = [0.0] * PERIODS_PER_DAY
+    if is_away or daily_kwh <= 0.0:
+        return out
+    breakfast = min(PERIODS_PER_DAY - 1, max(0, profile.wake_period + 1))
+    evening = min(PERIODS_PER_DAY - 1,
+                  max(0, int(36 + profile.routine_offset_periods)))
+    for start, (share, spread) in zip((breakfast, evening), _COOKING_MEAL_SHARES):
+        periods = [min(PERIODS_PER_DAY - 1, start + k) for k in range(spread + 1)]
+        for period in periods:
+            out[period] += daily_kwh * share / len(periods)
+    return out
 
 
 def draw_dhw_events(
@@ -930,7 +1069,7 @@ def draw_dhw_events(
         return []
     rng = _substream(base_seed, f"dhw::{day_index}")
     shift = profile.weekend_shift_periods if is_weekend else 0
-    daily_kwh = _DHW_LITRES_PER_PERSON_DAY * _DHW_KWH_PER_LITRE * profile.people_count
+    daily_kwh = dhw_daily_litres(profile.people_count) * _DHW_KWH_PER_LITRE
     n_events = max(2, int(round(profile.people_count * 1.4)))
     events: list[ApplianceEvent] = []
     weights = []
@@ -1275,6 +1414,11 @@ class PremiseDayTrace:
     """Gross electricity consumption at the premise, before PV offset."""
     gas_kwh: tuple[float, ...]
     internal_gain_kw: tuple[float, ...]
+    #: Cooking gas, carried as its OWN field rather than folded silently into `gas_kwh`. A
+    #: term added to a total but not exposed cannot be asserted on exactly -- the
+    #: commodity-split control would have had to difference medians instead of checking an
+    #: identity, and a statistical proxy for an exact property is a control that cries wolf.
+    cooking_fuel_kwh: tuple[float, ...] = ()
 
     @property
     def net_electricity_kwh(self) -> tuple[float, ...]:
@@ -1551,6 +1695,13 @@ def generate_premise_trace(
             _dhw_fuel_kwh(household, heat_kwh, ambient.temperatures_c[p])
             for p, heat_kwh in enumerate(dhw_heat_kwh)
         ]
+        # COOKING, which this model asserted was zero for every household until 2026-09-08.
+        # Attached to the same commodity as hot water: both are "the gas base", and the split of
+        # an electric hob in a gas-heated home is recorded in ASSUMPTIONS.md as NOT FOUND, so it
+        # is named as unmodelled rather than guessed at.
+        cooking_kwh = cooking_period_kwh(
+            profile, cooking_daily_kwh(profile.people_count), is_away=is_away
+        )
         electricity = list(behavioural)
         gas = [0.0] * PERIODS_PER_DAY
         for period in range(PERIODS_PER_DAY):
@@ -1560,7 +1711,16 @@ def generate_premise_trace(
             else:
                 electricity[period] += result.fuel_kwh[period]
             if dhw_commodity == "gas":
-                gas[period] += dhw_fuel[period]
+                # COOKING GAS ONLY WHERE THERE IS GAS. The first version of this attached cooking
+                # to whichever commodity carries hot water, which put a "cooking gas" term on an
+                # all-electric premise's ELECTRICITY -- where `draw_appliance_events` already
+                # carries cooking as an appliance. It double-counted, and it showed up as the
+                # company's thermal inference refusing to fit a heat-pump premise at all.
+                #
+                # A gas-heated home with an electric hob is therefore overstated here. That split
+                # is recorded in ASSUMPTIONS.md as NOT FOUND, so it stays named rather than
+                # guessed at.
+                gas[period] += dhw_fuel[period] + cooking_kwh[period]
             else:
                 electricity[period] += dhw_fuel[period]
 
@@ -1578,6 +1738,9 @@ def generate_premise_trace(
                 behavioural_electricity_kwh=tuple(behavioural),
                 cold_appliance_kwh=tuple(cold_kwh),
                 dhw_fuel_kwh=tuple(dhw_fuel),
+                cooking_fuel_kwh=tuple(
+                    cooking_kwh if dhw_commodity == "gas" else [0.0] * PERIODS_PER_DAY
+                ),
                 ev_kwh=tuple(ev_kwh),
                 pv_generation_kwh=tuple(pv_kwh),
                 electricity_kwh=tuple(electricity),
