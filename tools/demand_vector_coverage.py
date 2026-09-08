@@ -72,6 +72,11 @@ if str(PROJECT) not in sys.path:
 #: mask and the term you were adding lands on no household at all. It did exactly that once.
 MAINS_GAS = "1"
 
+#: The calendar months `demand_case_coverage.DOYS` actually simulates: 1 October to 31 March.
+#: Named because every per-household term added to the gas total must be on THIS clock, not on a
+#: year -- the hot-water term was not, and the error was a 20-point swing against observed gas.
+_MODELLED_MONTHS = (10, 11, 12, 1, 2, 3)
+
 #: The axes that describe what a household USES. Reproducing their joint distribution is the
 #: canon's first number.
 DISTRIBUTION_AXES = ("annual_gas_kwh", "annual_electricity_kwh", "seasonal_swing",
@@ -542,8 +547,18 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
     #
     # ONLY WHERE THE FUEL IS GAS. A household that does not heat with gas does not heat its water
     # with gas either, and adding a gas term to it would be a worse error than the one being fixed.
+    # ON THE SAME CLOCK AS THE SPACE HEAT, and the first version was not. `dcc.DOYS` is
+    # 1 October to 31 March -- 182 days, because space heat outside it is near zero -- and I added
+    # TWELVE MONTHS of hot water to it. The modelled total went from 12% BELOW observed NEED annual
+    # gas to 10% ABOVE. Neither figure was wrong; their sum was not a quantity.
+    #
+    # THE AXIS IS STILL CALLED `annual_gas_kwh` AND IT IS A WINTER-WINDOW TOTAL. That misnaming is
+    # older than this term and is not fixed here: making it genuinely annual means simulating the
+    # summer, which is the `simulate_premise` build the director has already approved. Named so the
+    # next reader does not have to rediscover it by differencing against NEED.
     water = np.where(fuel == MAINS_GAS,
-                     np.array([hw.annual_kwh(_hw_rng, people_count=int(n)) for n in people]), 0.0)
+                     np.array([hw.kwh_over_months(_hw_rng, _MODELLED_MONTHS, people_count=int(n))
+                               for n in people]), 0.0)
     space_heat = gas
     gas = space_heat + water
 

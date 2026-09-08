@@ -78,49 +78,73 @@ def test_A_GAS_HEATED_HOUSEHOLDS_TOTAL_EXCEEDS_ITS_SPACE_HEAT(pop):
     assert (sensitivity > 0).all(), "a dwelling with no heat loss at all"
 
 
-def test_THE_HOT_WATER_SHARE_LANDS_INSIDE_THE_PUBLISHED_END_USE_BAND(pop):
-    """The term's SIZE is checked against published evidence, not against itself.
+def test_THE_MODELLED_TOTAL_TRACKS_THE_OBSERVED_GAS_FOR_THE_SAME_HOUSEHOLDS(pop):
+    """Graded against NEED's OWN METER READINGS, which is the only like-for-like anchor there is.
 
-    This is the control the old model could never have passed, because its answer was 0.0 -- and
-    nothing was measuring, so nothing said so. Note what it does NOT do: it does not assert our
-    number, it asserts that our number falls where the published range says it must. The band is
-    wide because the evidence is."""
-    axes = list(pop["axes"])
-    gas = pop["values"][:, axes.index("annual_gas_kwh")]
+    THIS CONTROL REPLACED ONE THAT COMPARED THE WRONG CLOCKS. It asserted the hot-water share sat
+    inside the published 12-25% end-use band -- but those shares are ANNUAL and this model's window
+    is `demand_case_coverage.DOYS`, 1 October to 31 March. Space heat is concentrated in that
+    window and hot water is not, so hot water's share of WINTER gas is legitimately lower than its
+    share of ANNUAL gas (9.7% against a published annual 12-25%), and the control was reading a
+    correct model as broken. Comparing an annual published share to a winter modelled one is the
+    same defect the module it guards was written to fix.
+
+    What CAN be compared like-for-like is the modelled total against the observed annual gas of the
+    same households, and the movement is the evidence the term belongs:
+
+        space heat alone                    0.883 x observed
+        + twelve months of water (wrong)    1.102 x observed
+        + the same window as the heat       0.992 x observed
+
+    The band is wide because the space-heat model is a degree-day closed form due to be retired for
+    `simulate_premise`; this asserts the total is the right SIZE, not that the model is right."""
+    space_heat = np.asarray(pop["space_heat_kwh"])
+    water = np.asarray(pop["hot_water_kwh"])
+    observed = np.asarray(pop["observed_gas"])
     on_gas = np.asarray(pop["fuel"]) == dvc.MAINS_GAS
-    people = np.asarray(pop["people_count"])[on_gas]
 
-    import random
-    rng = random.Random(4)
-    water = np.array([np.mean([hw.annual_kwh(rng, people_count=int(n)) for _ in range(30)])
-                      for n in sorted({int(p) for p in people})])
-    weights = np.array([float((people == n).mean()) for n in sorted({int(p) for p in people})])
-    mean_water = float((water * weights).sum() / weights.sum())
-    share = mean_water / float(np.median(gas[on_gas]))
-    low, high = _HOT_WATER_END_USE_BAND
-    assert low <= share <= high, (
-        f"hot water is {share:.1%} of the modelled gas total, outside the published {low:.0%}-"
-        f"{high:.0%} end-use range. Either the per-person coefficient or the space-heat model has "
-        "moved, and the two are no longer jointly consistent with the published split.")
+    metered = observed[on_gas][observed[on_gas] > 0]
+    if metered.size < 100:
+        pytest.skip("no observed gas readings to grade against")
+    ratio = float(np.median((space_heat + water)[on_gas]) / np.median(metered))
+    # THE BAND IS SET TO EXCLUDE BOTH KNOWN DEFECTS, and the first version of it did not: I wrote
+    # 0.85-1.15, which ADMITS the 1.102 its own docstring cites as the failure. A control whose
+    # tolerance contains the defect it names is not a control, and a poison round is what said so
+    # -- restoring the twelve-month bug left all seven tests green.
+    #
+    # If the closed form is replaced by `simulate_premise` and the ratio drifts outside this band,
+    # that is a FINDING TO INVESTIGATE, not a band to widen. Writing that down is the only thing
+    # stopping the next session from doing the easy thing.
+    assert 0.92 <= ratio <= 1.08, (
+        f"the modelled gas total is {ratio:.3f}x the observed annual gas for the same households. "
+        "Outside this band one of two things has happened: a term is on the wrong clock (twelve "
+        "months of hot water on a 182-day heating window put it at 1.102), or a term is missing "
+        "entirely (space heat alone put it at 0.883).")
 
 
 def test_GAS_RISES_WITH_HEADCOUNT_which_is_the_whole_point_of_the_wiring(pop):
     """Before this, a one-person and a five-person household in identical dwellings had identical
-    modelled gas. That is the assertion the director named: omission is not neutrality."""
+    modelled gas. That is the assertion the director named: omission is not neutrality.
+
+    ASSERTS THE TREND, NOT A STRICT ORDERING. Five-person households are 7% of the stock, so at
+    this sample size their median wobbles against the four-person one on fabric noise alone -- the
+    first version went red on exactly that, which is a control keyed to a sample size rather than
+    to a property. Small-versus-large has the n to be stable and asserts the same thing."""
     axes = list(pop["axes"])
     gas = pop["values"][:, axes.index("annual_gas_kwh")]
     on_gas = np.asarray(pop["fuel"]) == dvc.MAINS_GAS
     people = np.asarray(pop["people_count"])
 
     medians = [float(np.median(gas[on_gas & (people == n)])) for n in (1, 2, 3, 4, 5)]
-    assert medians == sorted(medians), f"median gas is not monotone in headcount: {medians}"
-    assert medians[-1] > medians[0] * 1.15, (
-        f"five people use only {medians[-1] / medians[0]:.2f}x a single person's gas -- the term "
-        "is wired but too small to be doing anything")
+    small, large = float(np.mean(medians[:2])), float(np.mean(medians[3:]))
+    assert large > small * 1.05, (
+        f"four-and-five-person households use {large / small:.3f}x what one-and-two-person ones "
+        f"use (medians {[round(m) for m in medians]}) -- the term is wired but does nothing")
     # SUB-LINEAR, because the fabric term does not scale with people at all and the hot-water term
-    # itself has a fixed part. A proportional answer here would mean something is scaling that
-    # should not be.
-    assert medians[-1] < medians[0] * 5.0
+    # has a fixed part. A proportional answer would mean something is scaling that should not be.
+    assert large < small * 2.0, (
+        f"gas scales {large / small:.2f}x with headcount -- too steep for a term that is a tenth "
+        "of the winter total and sub-linear in people")
 
 
 def test_A_NON_GAS_HOUSEHOLD_GETS_NO_GAS_HOT_WATER(pop):

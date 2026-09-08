@@ -180,6 +180,29 @@ def draw_daily_kwh(rng, month: int = 1, people_count: float | None = None,
     return drawn * occupancy_factor(people_count, litres_per_person)
 
 
+#: Calendar months, as `draw_daily_kwh` interpolates them, and their lengths.
+_MONTH_DAYS = {1: 31, 2: 28.25, 3: 31, 4: 30, 5: 31, 6: 30,
+               7: 31, 8: 31, 9: 30, 10: 31, 11: 30, 12: 31}
+
+
+def kwh_over_months(rng, months, people_count: float | None = None,
+                    litres_per_person: float = HOT_WATER_LITRES_PER_PERSON_PER_DAY) -> float:
+    """Hot-water gas over a NAMED SET OF MONTHS, because a caller's window may not be a year.
+
+    THE DEFECT THIS EXISTS FOR, and it is one I shipped. `demand_case_coverage.DOYS` simulates
+    1 October to 31 March -- 182 days -- because space heat outside that window is near zero. I
+    added `annual_kwh`, TWELVE MONTHS of hot water, onto that half-year space-heat total and called
+    the sum `annual_gas_kwh`. The modelled total went from 12% BELOW the observed NEED annual gas
+    to 10% ABOVE it, and both numbers looked plausible on their own.
+
+    Two correct figures whose sum is not a quantity: the project's most reliable way to publish
+    something misleading. The window belongs to the caller, so the caller names it.
+    """
+    return sum(draw_daily_kwh(rng, month=m, people_count=people_count,
+                              litres_per_person=litres_per_person) * _MONTH_DAYS[m]
+               for m in months)
+
+
 def annual_kwh(rng, people_count: float | None = None,
                litres_per_person: float = HOT_WATER_LITRES_PER_PERSON_PER_DAY) -> float:
     """A household's hot-water gas for a year, summing the seasonal shape."""
