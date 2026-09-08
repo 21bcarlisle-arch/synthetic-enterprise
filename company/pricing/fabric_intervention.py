@@ -165,6 +165,11 @@ class RetrofitOffer:
     delivered_efficiency_gain: float    # kWh out per kWh in, relative to today
     shiftable_fraction: float           # of annual heat kWh, moved not removed
     lifetime_years: float
+    # A BEHAVIOURAL measure removes DEMAND at an unchanged fabric, which is a different
+    # physical thing from removing heat loss: insulation lowers the HLC and a thermostat
+    # does not. Kept as its own field so the two can never be summed by accident, and so a
+    # reader can tell which kind of measure they are looking at from the parameters alone.
+    demand_reduction_fraction: float = 0.0
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -173,6 +178,7 @@ class RetrofitOffer:
             "delivered_efficiency_gain",
             "shiftable_fraction",
             "lifetime_years",
+            "demand_reduction_fraction",
         ):
             value = getattr(self, field_name)
             if not math.isfinite(value):
@@ -190,11 +196,143 @@ class RetrofitOffer:
 # parameters, identical in level to the set the harness previously held privately —
 # they moved here rather than being re-chosen, so this change alters WHO decides and
 # WHAT the choice set contains, never the economics underneath.
+# ---------------------------------------------------------------------------
+# THE HEALTH FLOOR — why a turn-down is refused rather than priced
+# ---------------------------------------------------------------------------
+#
+# Until 2026-09-08 every measure in the book below cost the customer at least £300, so the
+# company could recommend spending money and nothing else. The mission's third leg is ADVICE,
+# and a one-degree turn-down is worth real energy at no capital at all -- which is exactly the
+# advice a household with no capital can act on.
+#
+# THE OBVIOUS IMPLEMENTATION IS THE DANGEROUS ONE. Enter it at £0 capex against a comfort cost
+# and it wins every ranking for every household, including the coldest. Director, refusing that
+# design: "A comfort cost makes warmth a willingness-to-pay question, and the households that
+# would accept the trade are the ones who can least afford to refuse it, so the model would find
+# the fuel-poor and recommend they be cold."
+#
+# SO COMFORT IS NOT PRICED, IT IS FLOORED. A floor cannot be bought off by a large enough
+# saving; a price can. Below the floor the measure is not offered at any value.
+HEALTH_FLOOR_INDOOR_C = 18.0
+"""WHO guidance on minimum indoor temperature for health, carried into NICE NG6 (excess winter
+deaths and cold homes). Published and citable, and a THRESHOLD rather than a preference."""
+
+#: EFUS 2017 measured mean living-room temperature over the heating season, by EPC band. This is
+#: MEASURED behaviour, not an assumption about it: worse-insulated homes are COLDER, not merely
+#: more expensive, and the spread is about 2 C. A real supplier can hold this table -- the EPC
+#: register is open and the EFUS report is published -- so it crosses no wall.
+#:
+#: It is what makes the floor bite in the right place without any extra rule: EPC F/G homes sit
+#: at 17.2 C, already below the floor, so a turn-down is refused for exactly the households a
+#: naive model would target hardest.
+EFUS_INTERNAL_TEMPERATURE_BY_EPC_C: dict[str, float] = {
+    "A": 19.3, "B": 19.3, "C": 19.3, "D": 18.95, "E": 18.0, "F": 17.2, "G": 17.2,
+}
+
+# EPC D IS REFUSED BY FIVE HUNDREDTHS OF A DEGREE AND THAT IS NOT A BUG. 18.95 - 1.0 = 17.95,
+# which is below 18.0, so a D household is declined. The knife-edge is real rather than an
+# artefact of rounding: the rule is a floor, and a household one twentieth of a degree the wrong
+# side of it is still the wrong side of it. The alternative -- shaving the turn-down to 0.95 C so
+# it just clears -- is a saving computed to the edge of the floor, which is the priced-comfort
+# design this was built to refuse, wearing different clothes.
+#
+# THE CONSEQUENCE IS WORTH STATING PLAINLY BECAUSE IT IS UNCOMFORTABLE: the only zero-capital
+# measure in the book reaches EPC A-C only. The households with no capital are largely the ones
+# in D and below, and they are refused -- correctly, because they are already too cold to turn
+# down. So this measure does NOT solve the problem that every route to a customer's bill runs
+# through their capital. The measure that would is FLOW TEMPERATURE: dropping a combi from 80 C
+# to 55 C costs nothing, makes the boiler condense as designed, and does not make the home one
+# degree colder, so it never meets this floor at all. It is absent from the book and blocked on
+# a source, not on physics.
+#
+# WHAT THIS MEASURE IS NOT YET, AND THE READER MUST NOT ASSUME OTHERWISE. `epc_band` defaults to
+# `None` and NOTHING OUTSIDE THIS MODULE'S OWN TESTS PASSES ONE today, so every real call reaches
+# the fail-closed branch and no household is actually offered a turn-down. That is the SAFE end of
+# the failure, not a working feature: the measure is in the book and the floor is proven over the
+# whole band partition, and the band itself does not yet arrive.
+#
+# WHAT IS MISSING IS ONE FIELD ON THE CERTIFICATE, and crossing is not the obstacle -- the EPC
+# register is public and an efficiency band is exactly the kind of prior a real supplier holds.
+# `thermal_inference.EpcCertificate` is this company's read of that register and carries only
+# `build_era_band`, an AGE band, with no A-G efficiency band beside it. Adding one is the wiring
+# step and it is deliberately NOT done here by deriving a band from the insulation string or from
+# a fitted heat-loss coefficient: either would be a domain constant invented to fill a slot, and
+# the band would then be read as established when it was assumed.
+
+TURN_DOWN_SETPOINT_C = 1.0
+"""The advice actually given: one degree, not a variable amount tuned per household. A
+household-specific optimum would be a saving computed to the edge of the floor, which is the
+priced-comfort design under another name."""
+
+TURN_DOWN_DEMAND_REDUCTION = 0.06
+"""Fraction of FABRIC heat removed by a one-degree turn-down. The published field range is
+6-10% and this is its CONSERVATIVE end, deliberately.
+
+THE DEGREE-DAY ARITHMETIC SAYS MORE AND IS NOT USED. Measured over the HadUK-Grid monthly
+normals for all 245,077 GB land cells, dropping the base temperature one degree removes 11.7%
+of annual degree-days at an 18 C base and 14.3% at 15.5 C. That is an UPPER BOUND on a
+continuously-heated house at a fixed set-point, and real heating is intermittent -- the same gap
+that makes a continuous closed form over-read a winter total.
+
+Where the physics and the field disagree about a number a CUSTOMER will act on, the company
+quotes the field, at its cautious end. Overstating a saving to a household that then does not
+see it is a mis-selling harm, and the asymmetry is not symmetric."""
+
+
+def internal_temperature_c(epc_band: str) -> float:
+    """The measured internal temperature this band's households actually run at."""
+    band = (epc_band or "").strip().upper()[:1]
+    if band not in EFUS_INTERNAL_TEMPERATURE_BY_EPC_C:
+        raise InsufficientObservationError(
+            f"no measured internal temperature for EPC band {epc_band!r}; the health floor "
+            "cannot be established, and a turn-down must not be offered on an unknown one"
+        )
+    return EFUS_INTERNAL_TEMPERATURE_BY_EPC_C[band]
+
+
+def turn_down_clears_the_health_floor(epc_band: str | None) -> tuple[bool, str]:
+    """May this household be advised to turn down? Returns the answer AND its reason.
+
+    FAILS CLOSED ON AN UNKNOWN BAND. A supplier that cannot establish a household is warm
+    enough does not get to assume it is -- the absent-evidence case and the too-cold case
+    lead to the same refusal, which is the point rather than a limitation.
+    """
+    if not epc_band:
+        return False, (
+            "no EPC band, so the health floor cannot be established and a turn-down is not "
+            "offered — absent evidence is not evidence of a warm home"
+        )
+    try:
+        current = internal_temperature_c(epc_band)
+    except InsufficientObservationError as exc:
+        return False, str(exc)
+    after = current - TURN_DOWN_SETPOINT_C
+    if after < HEALTH_FLOOR_INDOOR_C:
+        return False, (
+            f"EPC {epc_band.strip().upper()[:1]} homes are measured at {current:.1f}C and a "
+            f"{TURN_DOWN_SETPOINT_C:.0f}C turn-down would put this household at {after:.1f}C, "
+            f"below the {HEALTH_FLOOR_INDOOR_C:.0f}C health floor. THE FINDING FOR THIS "
+            "HOUSEHOLD IS THAT THE FABRIC NEEDS WORK, NOT THE THERMOSTAT"
+        )
+    return True, (
+        f"EPC {epc_band.strip().upper()[:1]} homes are measured at {current:.1f}C, so a "
+        f"{TURN_DOWN_SETPOINT_C:.0f}C turn-down leaves {after:.1f}C, at or above the "
+        f"{HEALTH_FLOOR_INDOOR_C:.0f}C health floor"
+    )
+
+
 OFFER_BOOK: dict[str, RetrofitOffer] = {
     "insulate": RetrofitOffer("insulate", 6000.0, 0.30, 0.0, 0.0, 30.0),
     "heat_pump": RetrofitOffer("heat_pump", 12000.0, 0.0, 2.6, 0.0, 18.0),
     "solar_pv": RetrofitOffer("solar_pv", 7000.0, 0.0, 0.0, 0.0, 25.0),
     "time_shift": RetrofitOffer("time_shift", 300.0, 0.0, 0.0, 0.25, 10.0),
+    # ZERO CAPITAL, and a one-year life because a thermostat setting is a CHOICE rather than an
+    # installation: it can be undone the same afternoon. Valuing it over an insulation lifetime
+    # would let a behaviour outrank a building fabric on a number nobody could hold anyone to.
+    "turn_down": RetrofitOffer(
+        "turn_down", 0.0, 0.0, 0.0, 0.0, 1.0,
+        demand_reduction_fraction=TURN_DOWN_DEMAND_REDUCTION,
+    ),
 }
 
 
@@ -209,6 +347,13 @@ class Recommendation:
     ranked: tuple[tuple[str, float], ...]
     reason: str
     basis: str
+    # THE BEST MEASURE THIS HOUSEHOLD COULD ACT ON WITH NO MONEY, surfaced separately because
+    # ranking by lifetime value buries it: a 30-year insulation measure will out-total a
+    # one-year behaviour change every time, and a household that cannot spend £6,000 is told
+    # nothing at all by that answer. `None` when there is no such measure -- which includes
+    # every household the health floor refuses.
+    zero_capital_measure: str | None = None
+    zero_capital_note: str = ""
 
     @property
     def acted(self) -> bool:
@@ -271,6 +416,14 @@ def offer_annual_saving_kwh(
     saved = 0.0
     if offer.hlc_reduction_fraction > 0.0:
         saved += offer.hlc_reduction_fraction * fabric_heat_kwh(
+            hlc_kw_per_k, annual_degree_days_k_day, annual_heat_kwh=annual_heat_kwh
+        )
+    if offer.demand_reduction_fraction > 0.0:
+        # Same base, different mechanism: the fabric is unchanged and less heat is asked
+        # of it. Scaling the FABRIC share rather than the bill matters here for the same
+        # reason it does for insulation -- a home whose gas is mostly hot water and cooking
+        # saves little by turning the heating down.
+        saved += offer.demand_reduction_fraction * fabric_heat_kwh(
             hlc_kw_per_k, annual_degree_days_k_day, annual_heat_kwh=annual_heat_kwh
         )
     if offer.delivered_efficiency_gain > 0.0:
@@ -361,6 +514,9 @@ def _decline(
     ranked: tuple[tuple[str, float], ...],
     reason: str,
     basis: str,
+    *,
+    zero_capital_measure: str | None = None,
+    zero_capital_note: str = "",
 ) -> Recommendation:
     """Build a refusal. ONE constructor for all three, so a decline can never
     accidentally carry a measure name or a non-zero value that a downstream reader
@@ -370,6 +526,8 @@ def _decline(
         decision=decision,
         measure=DO_NOTHING,
         lifetime_net_value_gbp=0.0,
+        zero_capital_measure=zero_capital_measure,
+        zero_capital_note=zero_capital_note,
         ranked=ranked,
         reason=reason,
         basis=basis,
@@ -387,6 +545,7 @@ def decide(
     unit_rate_p_per_kwh: float,
     offers: Mapping[str, RetrofitOffer] | None = None,
     evidence_note: str = "",
+    epc_band: str | None = None,
 ) -> Recommendation:
     """The decision itself, on a fabric estimate and its pessimistic bound.
 
@@ -406,14 +565,31 @@ def decide(
             + (evidence_note or "no premise-specific evidence"),
             basis,
         )
+    # THE HEALTH FLOOR IS APPLIED TO THE CHOICE SET, NOT TO THE DECISION. A household that is
+    # already too cold still gets a recommendation -- it is simply not this one. Removing the
+    # measure rather than declining the premise is what makes the refusal say "the fabric needs
+    # work" instead of "no".
+    floor_ok, floor_note = turn_down_clears_the_health_floor(epc_band)
+    book = dict(offers if offers is not None else OFFER_BOOK)
+    if not floor_ok:
+        book.pop("turn_down", None)
+
     ranked = rank_offers(
         hlc_kw_per_k,
         annual_heat_kwh,
         annual_degree_days_k_day,
         unit_rate_p_per_kwh=unit_rate_p_per_kwh,
-        offers=offers,
+        offers=book,
     )
     winner, value = ranked[0]
+
+    # The best measure needing no capital, whatever the ranking's winner is.
+    zero_capital = next(
+        (name for name, v in ranked
+         if name != DO_NOTHING and v > 0.0 and book.get(name) is not None
+         and book[name].capex_gbp <= 0.0),
+        None,
+    )
     if winner == DO_NOTHING:
         return _decline(
             premise_id,
@@ -463,6 +639,8 @@ def decide(
             f"(£{pessimistic[winner]:,.0f}) at the pessimistic end of the interval"
         ),
         basis=basis,
+        zero_capital_measure=zero_capital,
+        zero_capital_note=floor_note,
     )
 
 
@@ -473,6 +651,7 @@ def recommend_measure(
     annual_degree_days_k_day: float,
     unit_rate_p_per_kwh: float,
     offers: Mapping[str, RetrofitOffer] | None = None,
+    epc_band: str | None = None,
 ) -> Recommendation:
     """THE COMPANY'S DECISION, on the company's own belief about one premise.
 
@@ -494,6 +673,7 @@ def recommend_measure(
         evidence_note=(
             f"basis={belief.basis.value}, relative_sd={belief.relative_sd:.3f}"
         ),
+        epc_band=epc_band,
     )
 
 

@@ -2560,3 +2560,55 @@
   # (2) a control that reds when a caller assumes a case stands for exactly one household; proven by
   # a poison round, because a control over a property nobody violates today passes vacuously and
   # "survived" would mean two opposite things.
+- id: W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing
+  title: "a zero-capital measure in the offer book, refused below a health floor rather than priced against a comfort cost -- so the company's advice leg exists and cannot recommend that the coldest households be colder"
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 50
+  provenance: proposal
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: []
+  file_scope:
+    - company/pricing/fabric_intervention.py
+    - tests/company/test_turn_down_respects_the_health_floor.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "the advice a supplier's call handler actually gives for free -- turn the thermostat down a degree, drop the flow temperature -- which is the only thing they can offer a household with no capital, and which a responsible supplier withholds from a home that is already too cold"
+  # MINTED 2026-09-08 from SEAT_FINDING_EVERY_PIECE_OF_ADVICE_THE_COMPANY_CAN_GIVE_COSTS_THE_CUSTOMER_MONEY
+  # (LATENT, atom `unminted`). The finding's own measurement: OFFER_BOOK held insulate £6,000,
+  # heat_pump £12,000, solar_pv £7,000, time_shift £300 and nothing else, against a mission that
+  # names ADVICE as one of three mechanisms. Every route the company had to a customer's bill ran
+  # through the customer's capital.
+  #
+  # L1 IS WHERE THIS SITS AND THE REASON IS REACHABILITY, NOT THE CONTROLS. `turn_down` is in the
+  # book at zero capex, the floor is proven over the whole EPC partition, and 9 controls are green
+  # -- but `decide(epc_band=...)` defaults to `None` and NO production caller passes a band, so
+  # `tools/couple_fabric.py` and `background/fabric_gap_ledger.py` reach only the fail-closed
+  # branch. The measure is safe and it is not yet live for any household.
+  #
+  # THE DESIGN THE FINDING ASKED FOR WAS SUPERSEDED, DELIBERATELY. The finding's step 2 said "with
+  # a stated comfort cost". Comfort is FLOORED here instead, on the director's refusal of the
+  # priced design (2026-09-08): a comfort cost makes warmth a willingness-to-pay question, and the
+  # households that would accept the trade are the ones who can least afford to refuse it. A floor
+  # cannot be bought off by a large enough saving; a price can.
+  #
+  # CONTROL: tests/company/test_turn_down_respects_the_health_floor.py, and specifically
+  # `test_NO_SAVING_HOWEVER_LARGE_BUYS_A_TURN_DOWN_BELOW_THE_FLOOR` -- it drives the unit rate to
+  # 10,000 p/kWh and asserts an EPC F household is STILL not offered the measure. It is the leg
+  # that reds if a well-meaning refactor turns the floor back into a term, which is the only way
+  # this defect comes back.
+  #
+  # EXIT to L2: the EPC A-G band crosses the seam as an observable -- a field on
+  # `company/pricing/thermal_inference.EpcCertificate`, which today carries only `build_era_band`
+  # -- and at least one production caller passes it, so the floor's ALLOW branch is reached by
+  # something other than a test. The band must be drawn from the published register the way
+  # `simulation/premise_population.py` already draws it, NOT derived from insulation level or from
+  # the truth HLC: either would be a domain constant invented to fill a slot.
+  # EXIT to L3: FLOW TEMPERATURE in the book. It is the measure that actually answers the finding
+  # -- zero capital, and it does not make the home one degree colder, so it never meets this floor
+  # at all. It is blocked on a source for the saving, not on physics.
