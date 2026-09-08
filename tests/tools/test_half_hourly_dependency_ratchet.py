@@ -113,3 +113,40 @@ def test_the_baseline_is_json_and_says_what_it_is():
     raw = json.loads(hh.BASELINE.read_text(encoding="utf-8"))
     assert "spine" in raw["_doc"].lower()
     assert "reads" in raw
+
+
+# ── HALF THE REMEDY WAS HAND-ROLLED, AND IT WAS THE WRONG HALF ─────────────────────────────────
+# `scan` dropped a FULL-LINE `#` and nothing else (fixed 2026-09-08). A trailing comment was
+# recorded as part of the dependency expression, and a docstring line naming a marker was recorded
+# as a dependency outright -- so the census could name a half-hourly read in a module that has
+# none, which is the direction that manufactures a refusal nobody can clear.
+def _consumer(root, body):
+    p = root / hh.CONSUMERS[0]
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(body, encoding="utf-8")
+    return hh.CONSUMERS[0]
+
+
+def test_MUTATION_a_marker_named_only_in_a_DOCSTRING_is_not_a_dependency(tmp_path):
+    """The defect, driven. `startswith("#")` never saw a docstring, so a module explaining that it
+    deliberately does NOT read `settlement_period` read as one that does."""
+    rel = _consumer(tmp_path, '"""This module never reads settlement_period -- the fold is\n'
+                              'upstream of it."""\n\n\ndef f(row):\n    return row["margin_gbp"]\n')
+    assert hh.scan(root=tmp_path).get(rel, []) == [], (
+        "a docstring naming the marker was recorded as a half-hourly read")
+
+
+def test_MUTATION_a_trailing_comment_is_not_part_of_the_dependency(tmp_path):
+    """The live instance, and the reason this is a RATCHET problem rather than a cosmetic one: the
+    frozen line is compared verbatim, so editing a comment beside an unchanged expression reads as
+    a changed dependency and refuses the commit that changed nothing."""
+    rel = _consumer(tmp_path, 'def f(row):\n'
+                              '    return is_peak_period(row["settlement_period"])  # Phase BR\n')
+    hits = hh.scan(root=tmp_path)[rel]
+    assert hits == ['return is_peak_period(row["settlement_period"])'], hits
+
+
+def test_a_real_half_hourly_read_is_still_recorded(tmp_path):
+    """The end that stops the two above passing on a scan that records nothing."""
+    rel = _consumer(tmp_path, 'def f(row):\n    return is_peak_period(row["settlement_period"])\n')
+    assert hh.scan(root=tmp_path)[rel] == ['return is_peak_period(row["settlement_period"])']

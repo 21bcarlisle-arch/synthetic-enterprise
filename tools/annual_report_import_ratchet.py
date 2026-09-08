@@ -37,9 +37,15 @@ precisely to tell those apart.
 from __future__ import annotations
 
 import ast
+import sys
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parents[1]
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
+
+from tools.python_code_text import searchable  # noqa: E402
+
 TARGET = "saas.reporting.annual_report"
 DEBT_DOC = PROJECT_DIR / "docs" / "design" / "ANNUAL_REPORT_IMPORT_DEBT.md"
 
@@ -144,10 +150,21 @@ def gate_violations(root: Path | None = None) -> list[str]:
 
 
 def render_debt(root: Path | None = None) -> str:
+    # THE COUNT READ ONE TREE AND THE ROOT NAMED ANOTHER. `test_importers(root)` honoured `root`
+    # and the private-reacher loop below did not, so `render_debt(tmp)` counted the live repo --
+    # which is why the figure had no test that could drive it. Both read `base` now.
+    base = Path(root) if root is not None else PROJECT_DIR
     tests = test_importers(root)
+    # THE PUBLISHED COUNT IS OF CALLS, NOT OF MENTIONS (2026-09-08). This figure is what the
+    # director's 2026-08-19 instruction told us to record the size of, and it was read off raw
+    # bytes: a test whose COMMENT names `_section_policy_costs` while explaining what its own
+    # substring match catches counted as one that reaches in. Two of the 84 were exactly that --
+    # neither imports a `_section_*` function at all -- so the debt published itself
+    # 2 larger than it is -- in the direction that makes the rebuild look more necessary.
     private = sorted(
         p for p in tests
-        if "_section" in (PROJECT_DIR / p).read_text(encoding="utf-8", errors="replace")
+        if "_section" in searchable(
+            (base / p).read_text(encoding="utf-8", errors="replace"))
     )
     return (
         "**Severity:** RECORDED · **Lane:** D_billing_metering\n\n"
@@ -165,7 +182,7 @@ def render_debt(root: Path | None = None) -> str:
         f"| Test files importing the report | **{len(tests)}** |\n"
         f"| ...of which reach into private `_section_*` functions | **{len(private)}** |\n"
         f"| `saas/reporting/annual_report.py` | **"
-        f"{len((PROJECT_DIR / _SELF).read_text(errors='replace').splitlines())} lines** |\n\n"
+        f"{len((base / _SELF).read_text(errors='replace').splitlines())} lines** |\n\n"
         "## What the shape means\n\n"
         "The report is not merely imported — it has become the place where domain figures are\n"
         "COMPUTED, and the suite validates those figures by calling renderer internals. So the\n"

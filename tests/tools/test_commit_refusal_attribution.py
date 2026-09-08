@@ -1291,3 +1291,55 @@ def test_a_mixed_only_view_never_reports_the_solo_cause_episodes_it_excludes():
     # The solo episode's BRACKETED hour must appear in one view and not the other.
     assert every["by_gate"][attr.RED_TEST][attr.BRACKETED] == 3600
     assert mixed["by_gate"][attr.RED_TEST][attr.BRACKETED] == 0.0
+
+
+# ── THE SECONDARY RANK IS A BYTE OFFSET, SO PROSE ABOVE A BANNER MOVED THE GATE ────────────────
+# The fix (2026-09-08) routes each emitter through `tools.python_code_text.searchable`. It is an
+# EQUIVALENCE on today's tree -- no emitter currently carries its own banner in a comment, so
+# `gate_ranks()` returns the identical 21 pairs before and after. A suite run is therefore silent
+# on whether the reading changed at all, which is why reachability is proved by POISON here
+# instead: a paragraph that merely DESCRIBES a refusal is written above the line that prints it,
+# and the two readings are asked to disagree.
+def _poison_emitter(tmp_path, *, banner, prose_first):
+    """An emitter whose banner appears in a comment BEFORE the print that emits it."""
+    prose = f'# The gate prints "{banner}" when it refuses.\n'
+    code = f'def refuse():\n    print("{banner}")\n'
+    src = (prose + code) if prose_first else (code + prose)
+    p = tmp_path / "poison_gate.py"
+    p.write_text(src, encoding="utf-8")
+    return p
+
+
+def _ranks_for(emitter_path, banner, monkeypatch):
+    """`gate_ranks` driven through its REAL read of `emitter_path` -- no injected text."""
+    monkeypatch.setattr(attr, "_REFUSING_GATE_BANNERS", (("poison gate", (banner,), str(emitter_path)),))
+    return attr.gate_ranks(hook_text=f"python3 {emitter_path}\n")
+
+
+def test_MUTATION_a_banner_named_only_in_a_COMMENT_does_not_move_the_gates_rank(tmp_path, monkeypatch):
+    """The defect, driven. The comment sits at offset 0 and the real `print` well after it, so a
+    byte reading ranks this gate FIRST in its chain position and a code reading ranks it where it
+    actually refuses. Reverting `searchable()` in `body()` makes the two offsets equal and this
+    fails."""
+    banner = "[poison-gate] REFUSED because the tree was not ready to commit"
+    early = _poison_emitter(tmp_path, banner=banner, prose_first=True)
+    _, offset = _ranks_for(early, banner, monkeypatch)["poison gate"]
+    text = early.read_text(encoding="utf-8")
+    assert text.index(banner) == text.index("#") + len('# The gate prints "'), "fixture lost its poison"
+    assert offset > text.index(banner), (
+        "the rank is the offset of the COMMENT, not of the print -- prose moved the gate earlier "
+        f"in the refusal order (rank offset {offset}, comment at {text.index(banner)})")
+
+
+def test_the_rank_still_finds_a_banner_that_is_only_ever_PRINTED(tmp_path, monkeypatch):
+    """The other direction, and the one that says the widening did not go too far: blanking prose
+    must not blank the string literal the gate actually emits. Without this, a `searchable()` that
+    dropped every string would leave every gate unranked -- and an ABSENT rank is silently skipped
+    by `gate_ranks`'s callers, so the whole ordering analysis would empty out and read as 'no
+    evidence' rather than as a broken instrument."""
+    banner = "[poison-gate] REFUSED because the tree was not ready to commit"
+    quiet = tmp_path / "quiet_gate.py"
+    quiet.write_text(f'def refuse():\n    print("{banner}")\n', encoding="utf-8")
+    ranks = _ranks_for(quiet, banner, monkeypatch)
+    assert "poison gate" in ranks, "a printed banner must still be locatable"
+    assert ranks["poison gate"][1] == quiet.read_text(encoding="utf-8").index(banner)

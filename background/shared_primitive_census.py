@@ -69,6 +69,11 @@ from pathlib import Path
 from typing import Any
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
+
+from tools.python_code_text import searchable  # noqa: E402
+
 OBS_DIR = PROJECT_DIR / "docs" / "observability"
 CENSUS_PATH = OBS_DIR / "shared_primitive_census.json"
 
@@ -263,7 +268,15 @@ def _primitive_inventory(
     files: list[Path], project_dir: Path = PROJECT_DIR
 ) -> dict[str, dict[str, Any]]:
     """{name: {exists, caller_count, migrated_count}} for the seven named primitives. Reads real
-    file text (independent of any other module's own inventory of itself)."""
+    file CODE (independent of any other module's own inventory of itself).
+
+    THE COUNTS WERE INFLATED BY PROSE until 2026-09-08. `caller_pattern` was matched against raw
+    bytes, so a comment or docstring NAMING a primitive counted as a caller of it: `vat_constant`
+    read 5 callers where 3 call it, and `rng_substream_primitive` read 45 where 44 do. Both are
+    published figures and both moved in the direction that overstates migration -- the census said
+    more of the tree had adopted the shared primitive than had. `searchable()` blanks comments and
+    bare strings in place, so line numbers and every other reading here are untouched.
+    """
     out: dict[str, dict[str, Any]] = {}
     for name, spec in _NAMED_PRIMITIVES.items():
         canonical_abs = (project_dir / spec.canonical_path).resolve()
@@ -274,7 +287,7 @@ def _primitive_inventory(
             if f.resolve() == canonical_abs:
                 continue  # the definition site is not a "caller"
             try:
-                text = f.read_text(encoding="utf-8")
+                text = searchable(f.read_text(encoding="utf-8"))
             except OSError:
                 continue
             if spec.caller_pattern.search(text):
@@ -286,6 +299,29 @@ def _primitive_inventory(
 
 
 # =========================================================================== 4. owned-quantity coverage
+def _module_prose(path: Path) -> str:
+    """The module DOCSTRING -- the only place an ownership declaration is allowed to live.
+
+    THE INVERSE OF `_primitive_inventory`, and worth stating because the remedy is the opposite
+    one. That census wants code and was reading prose; this one wants prose and was reading
+    `text[:2000]` -- raw bytes, so an import block, a long constant table or a `# noqa` run pushed
+    the docstring out of the window, and 2000 chars of imports could equally carry the ownership
+    phrase in a comment. `searchable()` would delete the very thing this looks for, so the honest
+    reading is the docstring itself, taken from the tree.
+
+    FAIL-CLOSED: source that will not parse falls back to today's bounded read. We did not manage
+    to look, and that is never evidence that no declaration is there.
+    """
+    try:
+        source = path.read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    try:
+        return ast.get_docstring(ast.parse(source)) or ""
+    except (SyntaxError, ValueError):
+        return source[:2000]
+
+
 # The ruling s4 six named quantities. "has_owner" is TRUE only when some module's own text
 # EXPLICITLY declares itself the single owning module for that quantity -- a related module simply
 # existing (e.g. carbon_ledger.py) is NOT enough (that would be a tautology: "a file about carbon
@@ -327,11 +363,7 @@ def _quantity_coverage(files: list[Path], project_dir: Path = PROJECT_DIR) -> di
         )
         owner: str | None = None
         for f in files:
-            try:
-                text = f.read_text(encoding="utf-8")
-            except OSError:
-                continue
-            head = text[:2000]  # module docstring lives at the top; bounded read
+            head = _module_prose(f)
             if combined_re.search(head):
                 owner = str(f.relative_to(project_dir))
                 break

@@ -134,3 +134,36 @@ def test_the_debt_record_states_its_own_size():
     body = ar.DEBT_DOC.read_text(encoding="utf-8")
     assert "Test files importing the report" in body
     assert str(len(ar.test_importers())) in body
+
+
+def _debt_tree(tmp_path, files):
+    """A minimal tree `render_debt(root)` can be driven over: the renderer, plus test files."""
+    (tmp_path / "saas" / "reporting").mkdir(parents=True)
+    (tmp_path / "saas" / "reporting" / "annual_report.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "tests").mkdir()
+    for name, body in files.items():
+        (tmp_path / "tests" / name).write_text(body, encoding="utf-8")
+    return tmp_path
+
+
+def test_MUTATION_the_published_private_count_is_of_CALLS_not_of_MENTIONS(tmp_path):
+    """THE PUBLISHED FIGURE (2026-09-08). `render_debt` reported 84 test files reaching into
+    `_section_*` internals; two of them name a `_section_*` function only in a COMMENT and import
+    none, so the debt the director asked us to size published itself 2 too large -- in the
+    direction that makes the rebuild it defers look more necessary than it is.
+
+    Driven over a planted tree rather than the live one: the figure is a COUNT, so a control keyed
+    to today's answer goes red every time another lane adds a test, and one keyed to two named
+    files goes red when either is renamed. Here the poison and the real reacher are both present,
+    so the count can only be 1.
+    """
+    root = _debt_tree(tmp_path, {
+        "test_mentions.py": ("from saas.reporting.annual_report import render\n"
+                             "# explains why it does NOT call _section_policy_costs\n"),
+        "test_reaches.py": ("from saas.reporting.annual_report import _section_policy_costs\n"
+                            "def test_x():\n    assert _section_policy_costs({})\n"),
+    })
+    rendered = ar.render_debt(root)
+    assert "| Test files importing the report | **2** |" in rendered, rendered
+    assert "| ...of which reach into private `_section_*` functions | **1** |" in rendered, (
+        "a COMMENT naming a private section counted as a file that reaches into one")
