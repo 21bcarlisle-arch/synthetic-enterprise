@@ -37,13 +37,22 @@ THE TWO MECHANISMS HERE, and why each is keyed to a property rather than to toda
      than waved through. Fail closed: "we cannot tell" is the result, and it belongs in the rule.
 
 WHAT THIS FILE STILL CANNOT SEE, said on the surface rather than in a footnote. An untied literal
-in a producer whose feed has NO multi-home field is recorded and not refused -- thirteen of them
-today, twelve in `generate_value_arms_data.py` and one in `generate_proof_data.py`. Their landing
-fields do not exist until their branch fires, so nothing here can know whether they will be
-multi-homed when it does. The only instrument that closes that is a per-page rung that RUNS the
-producer's branches, which is what the value_arms rung does for the page where the defect was
-found. `test_an_untied_literal_is_refused_once_its_producer_publishes_a_multi_home_field` is the
-ratchet that fires the day one of those feeds gains a shared field.
+in a producer whose feed has NO multi-home field is recorded and not refused. Their landing fields
+do not exist until their branch fires, so nothing here can know whether they will be multi-homed
+when it does. The only instrument that closes that is a per-page rung that RUNS the producer's
+branches, and both pages that carried untied literals when this file landed now have one:
+`tests/tools/test_the_value_arms_pages_undriven_pointers.py` and
+`tests/tools/test_the_proof_pages_undriven_pointers.py`.
+`test_an_untied_literal_is_refused_once_its_producer_publishes_a_multi_home_field` is the ratchet
+that fires the day one of those feeds gains a shared field.
+
+THE COUNT IS DELIBERATELY NOT WRITTEN HERE ANY MORE. It used to read "thirteen of them today,
+twelve in `generate_value_arms_data.py` and one in `generate_proof_data.py`", and that sentence was
+stale within a day of landing: `1d1afa40b` drove the twelve and reworded three of them out of the
+vocabulary, leaving nine, and nothing said so. A prose count is a control pinned to today's answer
+-- it goes wrong when the code gets BETTER, which is exactly backwards. What is load-bearing is the
+property (an untied literal in a single-home feed is recorded, not refused), and the census below
+is where the number lives.
 
 ALSO FOUND AND NOT FIXED HERE (latent, filed): `_live_harness.mjs` reflects `appendChild` into a
 `children` array that nothing reads, and elements made by `createElement` never enter the output

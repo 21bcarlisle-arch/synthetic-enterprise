@@ -92,6 +92,12 @@ every repair is on a branch the current artefacts do not take. Nothing a reader 
 * **The thirteenth literal** — `generate_proof_data.py:1555`, "not readable beside this
   measurement" — is **still recorded and unjudged**. It needs its own per-page rung against the door
   that reads `proof.json`; the shape here transfers, the recipes do not.
+  > **CLOSED, same day, by the next turn of the same claim.**
+  > `SEAT_RESULT_THE_THIRTEENTH_POINTER_CLAIMS_AN_ABSENCE_AND_A_DIRECTION_NO_REGION_CAN_SEE_2026-09-08.md`.
+  > The shape transferred and the recipes did not, exactly as written — but so did neither of the
+  > **verdicts**: this sentence claims an ABSENCE (`above`/`below`/`same` cannot state it) and a
+  > direction that resolves INSIDE one field (region granularity is structurally blind to it).
+  > `tests/tools/test_the_proof_pages_undriven_pointers.py`.
 * **`floor_decomposition.different_contrast_caveat` is written by the producer and read by no
   door.** Same class as the eleven unrendered here-relative payload strings in the parent finding.
   Either a door renders it or the producer stops writing it.

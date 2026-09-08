@@ -221,9 +221,15 @@ def _drive(symbol: str, sentence: str) -> dict:
 
 # ── the census ───────────────────────────────────────────────────────────────────────────────
 
-def _owning_symbol(line: int) -> str | None:
-    """The function or module constant a source line belongs to."""
-    tree = ast.parse(PRODUCER.read_text(encoding="utf-8"))
+def _owning_symbol(source: Path, line: int) -> str | None:
+    """The function or module constant a source line belongs to.
+
+    TAKES THE PRODUCER RATHER THAN CLOSING OVER IT, because the proof page's rung
+    (`test_the_proof_pages_undriven_pointers.py`) imports this and the one below rather than
+    keeping a second copy: two AST censuses of "which untied literals does this producer own"
+    would drift, and the drift shows up as one page judging a set the other does not.
+    """
+    tree = ast.parse(source.read_text(encoding="utf-8"))
     spans = [(node.lineno, node.end_lineno, node.name)
              for node in ast.walk(tree)
              if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))]
@@ -233,8 +239,8 @@ def _owning_symbol(line: int) -> str | None:
     return owning[-1][2] if owning else None
 
 
-def _untied_literals() -> list[dict]:
-    """Every here-relative literal in this producer that lands in NO published field today.
+def _untied_literals(producer: Path) -> list[dict]:
+    """Every here-relative literal in `producer` that lands in NO published field today.
 
     THE UNTIED SET IS DERIVED, not listed. `_producer_literals` is the producer sweep's own AST
     census -- docstrings excluded, because a producer's prose ABOUT this defect is not something
@@ -255,12 +261,12 @@ def _untied_literals() -> list[dict]:
 
     untied = []
     for literal in producers._producer_literals():
-        if literal["producer"] != PRODUCER.name:
+        if literal["producer"] != producer.name:
             continue
         if any(fragment in text for text in published_text
                for fragment in literal["fragments"]):
             continue
-        untied.append(dict(literal, symbol=_owning_symbol(literal["line"])))
+        untied.append(dict(literal, symbol=_owning_symbol(producer, literal["line"])))
     return untied
 
 
@@ -375,7 +381,7 @@ def driven() -> list[dict]:
     order = _reading_order()
     rows = []
     by_symbol: dict[str, list] = {}
-    for literal in _untied_literals():
+    for literal in _untied_literals(PRODUCER):
         by_symbol.setdefault(literal["symbol"], []).append(literal)
 
     for index, (symbol, literals) in enumerate(sorted(by_symbol.items())):
