@@ -24,8 +24,8 @@
     "asserted_live_by": [
       "docs/staging/records/SEAT_RESULT_THE_CURRENT_BOOK_RETAKE_LANDED_AND_ITS_SPLIT_IS_STILL_UNREADABLE_2026-09-08.md"
     ],
-    "claim": "live",
-    "settled_at": null,
-    "evidence": null
+    "claim": "finished",
+    "settled_at": "2026-09-08T04:10:57Z",
+    "evidence": "the artefact `/var/tmp/value_cycle_ab_current_book_floor_2026-09-08.json` exists, the unit's Result=success and ExecMainStatus=0, and the job's own rc file says nothing"
   }
 ]

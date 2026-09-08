@@ -161,8 +161,13 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: this constant and `CURRENT_WORLD_NOISE_FLOOR_PATH` move together. Moving either alone is the
 #: defect. See docs/staging/records/
 #: SEAT_RESULT_THE_CURRENT_BOOK_RETAKE_LANDED_AND_ITS_SPLIT_IS_STILL_UNREADABLE_2026-09-08.md.
+#: MOVED 2026-09-08T04:10Z, TOGETHER with `CURRENT_WORLD_NOISE_FLOOR_PATH` below, which is the only
+#: legal way to move either. The floor this waited on landed: `--redraw-mode all`, seeds
+#: 11111/22222/33333, world `39a192ce04c1eda8`, produced by `04361d6c7` -- the SAME world and the
+#: SAME commit as these arms, and stamped 04:10:26Z against the arms' 00:19:54Z, so the bound is
+#: newer than the figure it bounds and the staleness guard is satisfied rather than bypassed.
 CURRENT_WORLD_THREE_ARM_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260903.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
 #: The floor re-run over the world the contrast above was measured in. WITHOUT THIS CONSTANT THE
 #: PAGE CANNOT BE BOUND AT ALL: `CURRENT_WORLD_THREE_ARM_PATH` was moved to the re-run when the
@@ -170,8 +175,11 @@ NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise
 #: from the superseded world, could only ever refuse, and would have gone on refusing -- in the
 #: same words -- on the day the live-world leg landed. Admitted on its DIGEST and its LEG, never
 #: on its filename; see `_current_world_bound`.
+#: MOVED 2026-09-08 in the SAME commit as `CURRENT_WORLD_THREE_ARM_PATH` above. Moving either alone
+#: is the defect this pair exists to prevent, in BOTH directions: the figure alone republishes an
+#: unbounded headline, and the bound alone bounds the wrong run.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260903.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260908.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".

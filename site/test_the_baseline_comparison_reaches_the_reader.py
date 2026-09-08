@@ -2331,9 +2331,41 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
         # AND THE VERDICT MUST REACH THE READER. A feed that resolves while the page still prints
         # the refusal is the same fail-open one step along: the reader meets "STATES NO VERDICT"
         # under a figure the site has in fact bounded.
-        assert "STATES NO VERDICT" not in rendered, (
-            "the feed holds a bound measured in this world and the page still tells the reader it "
-            "has none")
+        #
+        # TWO LEGS, ONE SENTENCE (2026-09-08). This rung's subject is the WHOLE advantage, and the
+        # string it asserts on is produced by the SELECTION leg -- a different quantity, with its
+        # own bound and its own verdict. That never mattered while one floor left both unreadable.
+        # It matters now: on the current book the advantage's own re-draws span £17,262 to £20,002
+        # and RESOLVE, while the selection leg's span -£3,075 to £1,200 and reverse. So the page
+        # legitimately states a verdict on one and withholds on the other, in one headline -- and
+        # this rung read the resolved leg's flag against the withheld leg's sentence and called the
+        # page fail-open. Exactly the shape its own comment above records being repaired for, one
+        # leg along. The reader is still never left to infer an absence; the phrase must correspond
+        # to SOME leg that actually withheld, and carry that leg's own reversing range.
+        leg = cw.get("selection_leg") or {}
+        leg_withheld = leg.get("verdict_withheld_because")
+        if not leg_withheld:
+            assert "STATES NO VERDICT" not in rendered, (
+                "the feed holds a bound measured in this world, neither the advantage nor the "
+                "creation leg withheld a verdict, and the page still tells the reader it has none")
+        else:
+            assert "STATES NO VERDICT" in rendered, (
+                "the creation leg withheld its verdict ({}) and the page did not tell the reader"
+                .format(str(leg_withheld)[:120]))
+            leg_stability = leg.get("verdict_stability") or {}
+            for edge in ("redraw_min_gbp", "redraw_max_gbp"):
+                figure = leg_stability.get(edge)
+                assert isinstance(figure, (int, float)), (
+                    "the creation leg's verdict was withheld for a range the feed does not carry, "
+                    "so the reason is unfalsifiable")
+                # SIGN OUTSIDE THE SYMBOL, as the page renders it. This leg's family straddles
+                # zero, so `"£{:,.0f}".format(-3075)` would look for `£-3,075` and never match the
+                # `-£3,075` the reader actually meets.
+                shown = "{}£{:,.0f}".format("-" if figure < 0 else "", abs(figure))
+                assert shown in rendered, (
+                    "the page withheld the creation leg's verdict without showing {} ({}) -- the "
+                    "reader is told there is no verdict and not what reverses it".format(
+                        edge, shown))
         stdev = (cw.get("bound") or {}).get("stdev_gbp")
         assert isinstance(stdev, (int, float)), (
             "the feed claims a bound and carries no spread to show, so the verdict is unfalsifiable")

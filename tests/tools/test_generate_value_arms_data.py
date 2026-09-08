@@ -2915,10 +2915,31 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
                          current, floor_live)["headline"]
     assert leg["verdict_withheld_because"], (
         "a verdict was stated on a leg whose own re-draws reverse it, or withheld with no reason")
-    for shown in ("-£8,634", "£2,350", "-£1,861", "1 of the 3"):
+    # DERIVED FROM THE FLOOR, NOT WRITTEN DOWN. Until 2026-09-08 these four were the literals
+    # "-£8,634", "£2,350", "-£1,861" and "1 of the 3" -- the 09-03 floor's own figures. That made
+    # the control keyed to THAT DAY'S ANSWER: re-pointing the constants at a floor measured in the
+    # same world, on the same commit as the arms it bounds -- the strictly more honest pairing this
+    # file exists to make safe -- turned it red, and nothing about the property had changed. A
+    # control that goes red when the page gets a BETTER bound is backwards. The property is that
+    # the centre, both ends of the range and the resolving count reach the reader; the numbers are
+    # whichever floor is current.
+    stability = leg["verdict_stability"]
+    for label, shown in (
+        ("range low", gva._gbp(stability["redraw_min_gbp"])),
+        ("range high", gva._gbp(stability["redraw_max_gbp"])),
+        ("family centre", gva._gbp(stability["redraw_mean_gbp"])),
+        ("resolving count", "{} of the {}".format(
+            stability["redraw_resolving"], stability["n"])),
+    ):
         assert shown in headline, (
-            "the creation leg's {} is not on the surface -- the reader meets the point estimate "
-            "and cannot place it in its own family".format(shown))
+            "the creation leg's {} ({}) is not on the surface -- the reader meets the point "
+            "estimate and cannot place it in its own family".format(label, shown))
+    # AND THE CENTRE IS NOT THE PUBLISHED DRAW. The whole reason the centre is on the surface is
+    # that a single draw can sit anywhere in its own family; asserting only that "a number
+    # appears" would pass if the page printed the point estimate three times.
+    assert gva._gbp(stability["redraw_mean_gbp"]) != gva._gbp(leg["figure_gbp"]), (
+        "the family centre renders identically to the published draw, so this control cannot "
+        "tell the two apart and the reader cannot either")
 
     # WORLD. The inherited guard still bites on the parameterised leg.
     elsewhere = gva._current_world_contrast(
