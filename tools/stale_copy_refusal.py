@@ -238,12 +238,54 @@ def symbols(text: str, path: str) -> frozenset[str] | None:
 # ------------------------------------------------------------------------------- the judgement
 
 
+def gains_over(head_text: str, new_text: str, path: str) -> tuple[str, ...] | None:
+    """The names this copy supplies that HEAD does not -- or `None` when it cannot be told.
+
+    THIS IS WHICH DOOR THE REFUSED LANE SHOULD WALK THROUGH, and until 2026-09-08 the refusal
+    guessed. It named `isolate_hunks --keep N` for every path, and
+    `SEAT_FINDING_THE_STALE_COPY_REMEDY_HAS_NO_MOVE_FOR_A_RIVAL_COPY_HEAD_ALREADY_SUPERSEDES` is
+    what that costs: two of the eight copies on the shared tree supply NO name HEAD lacks, so
+    `isolate_hunks` refuses them at both ends -- select a hunk and you land a revert, select none
+    and it refuses the empty change -- and the lane is sent somewhere with no move. Empty here
+    means the copy is a rival HEAD strictly supersedes and `tools/refresh_to_head.py` is the door;
+    non-empty means it is holder work and `isolate_hunks` is.
+
+    `None` IS NOT EMPTY, for the reason the rest of this module keeps saying: an unreadable or
+    unparseable side cannot establish "supplies nothing", and printing the Kind-A door on a guess
+    would send a lane to a tool that overwrites bytes."""
+    try:
+        before, after = symbols(head_text, path), symbols(new_text, path)
+    except Unparseable:
+        return None
+    if before is None or after is None:
+        return None
+    return tuple(sorted(after - before))
+
+
 @dataclass(frozen=True)
 class Loss:
     path: str
     rule: str
     detail: tuple[str, ...]
     commit: str = ""
+    #: () = supplies nothing HEAD lacks; a tuple = holder work; None = could not be told.
+    gains: tuple[str, ...] | None = None
+
+    def remedy(self) -> str:
+        if self.gains is None:
+            return ("      REMEDY: cannot tell which door -- this copy's names could not be read, "
+                    "so\n      neither `refresh_to_head` nor `isolate_hunks` is licensed until "
+                    "that is fixed.")
+        if self.gains:
+            return ("      REMEDY: this copy supplies {} name(s) HEAD lacks ({}), so it is HOLDER "
+                    "WORK.\n      `python3 -m tools.isolate_hunks --survey {}`, `--keep N` builds "
+                    "HEAD-plus-yours,\n      then `surgical_land --content {}=<file>`.".format(
+                        len(self.gains), ", ".join(self.gains[:3])
+                        + ("..." if len(self.gains) > 3 else ""), self.path, self.path))
+        return ("      REMEDY: this copy supplies NO name HEAD lacks -- it is a rival copy HEAD "
+                "supersedes,\n      and `isolate_hunks` has nothing legitimate to select. "
+                "`python3 -m tools.refresh_to_head {}`\n      surveys it; `--write --slug NAME` "
+                "preserves these bytes and writes HEAD's over them.".format(self.path))
 
     def render(self) -> str:
         head = {
@@ -256,9 +298,10 @@ class Loss:
         }[self.rule]
         shown = list(self.detail[:6]) if self.rule != UNPARSEABLE else []
         tail = "" if len(self.detail) <= 6 else "        (+{} more)\n".format(len(self.detail) - 6)
-        return "  {}  [{}]\n{}\n{}{}".format(
+        remedy = "" if self.rule == UNPARSEABLE else self.remedy() + "\n"
+        return "  {}  [{}]\n{}\n{}{}{}".format(
             self.path, self.rule, head,
-            "".join("        - {}\n".format(n[:110]) for n in shown), tail)
+            "".join("        - {}\n".format(n[:110]) for n in shown), tail, remedy)
 
 
 def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
@@ -274,7 +317,8 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
         if distinctive:
             present = {ln.strip() for ln in new_text.splitlines()}
             if not any(d in present for d in distinctive):
-                return Loss(path, PREDATES, distinctive, commit)
+                return Loss(path, PREDATES, distinctive, commit,
+                            gains_over(head_text, new_text, path))
     try:
         before, after = symbols(head_text, path), symbols(new_text, path)
     except Unparseable as exc:
@@ -282,7 +326,8 @@ def judge(root: Path, path: str, head_text: str | None, new_text: str | None,
     if before is None or after is None:
         return None
     if after < before:  # STRICT subset: loses names and adds not one
-        return Loss(path, SUBSET, tuple(sorted(before - after)))
+        # A strict subset supplies nothing by definition, so the door is never in doubt here.
+        return Loss(path, SUBSET, tuple(sorted(before - after)), gains=())
     return None
 
 
@@ -309,11 +354,10 @@ def refusal_text(losses: list[Loss]) -> str:
         "\n[stale-copy] ❌ COMMIT REFUSED -- {} path(s) would revert work that has already "
         "landed.\n\nA pathspec stages the WORKING-TREE copy. If you opened one of these files "
         "before another\nlane landed in it, your copy is the OLD one and this commit deletes their "
-        "work.\n\n{}\n"
-        "  THE FIX, and it is not to wait for them: `python3 -m tools.isolate_hunks --survey "
-        "<path>`\n  shows the hunks, `--keep N` builds HEAD-plus-your-hunks-only, and\n"
-        "  `surgical_land --content <path>=<file>` lands those bytes without reading the working "
-        "copy.\n\n  IF THE DELETION IS YOURS AND DELIBERATE, say so: `--drops <path>`. It is "
+        "work.\n\nTHE FIX IS PER PATH AND IS PRINTED WITH IT -- which door depends on whether YOUR "
+        "copy supplies\nany name HEAD lacks, and naming one door for both shapes is what sent two "
+        "lanes to a tool\nthat correctly refused them.\n\n{}\n"
+        "  IF THE DELETION IS YOURS AND DELIBERATE, say so: `--drops <path>`. It is "
         "printed in the\n  landing output, because an exemption nobody can see is not an "
         "exemption, it is a hole.\n".format(
             len(losses), "".join(loss.render() for loss in losses)))
@@ -335,6 +379,46 @@ def census(root: Path = ROOT) -> tuple[list[Loss], list[str]]:
         if loss is not None:
             losses.append(loss)
     return losses, sorted(p for p in changed if Path(p).suffix not in READABLE)
+
+
+def door_verdicts(losses: list[Loss], root: Path = ROOT) -> dict[str, str]:
+    """Ask each named door whether it would actually TAKE the path this census sends it.
+
+    THE FINDING THIS EXISTS FOR IS A REMEDY THAT REFUSED. Naming a door is a claim, and the claim
+    was wrong for two of eight copies for as long as anybody looked. So the census now runs the
+    door it names: `refresh_to_head.judge_copy` for a copy supplying nothing HEAD lacks, and
+    `landing_pair` for one that carries holder work -- because that copy's isolated hunks may
+    reference a name only another lane's UNCOMMITTED file supplies, which lands red for every lane
+    and is invisible to the path-by-path route that sent you.
+
+    IMPORTED HERE AND NOT AT MODULE SCOPE, and the reason is a real cycle rather than taste:
+    `tools/refresh_to_head.py` imports this module's `judge`, `symbols` and `READABLE` -- it is
+    this control's writing half and takes its definition of a stale copy from here. The census is
+    the only caller in the other direction.
+    """
+    from tools import landing_pair, refresh_to_head  # deferred: see the docstring
+
+    out: dict[str, str] = {}
+    index = None
+    for loss in losses:
+        if loss.gains == ():
+            verdict = refresh_to_head.judge_copy(root, loss.path)
+            out[loss.path] = (
+                "      the door this refusal names IS OPEN: {}".format(verdict.state)
+                if verdict.state == refresh_to_head.REFRESHABLE else
+                "      ⚠ THE DOOR THIS REFUSAL NAMES IS SHUT [{}]: {}".format(
+                    verdict.state, verdict.reason.split(".")[0]))
+        elif loss.gains and Path(loss.path).suffix == ".py":
+            if index is None:
+                index = landing_pair.index_tree(root, "HEAD")
+            try:
+                work = (root / loss.path).read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            pairs = landing_pair.pairs_for(work, loss.path, index, root)
+            if pairs:
+                out[loss.path] = "\n".join(p.render() for p in pairs)
+    return out
 
 
 # --------------------------------------------------------------------------- the pre-commit door
@@ -420,9 +504,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     losses, no_opinion = census(root)
+    verdicts = door_verdicts(losses, root)
     print("[stale-copy] WOULD REVERT A LANDING: {}".format(len(losses)))
     for loss in losses:
-        print(loss.render())
+        print(loss.render(), end="")
+        if loss.path in verdicts:
+            print("{}".format(verdicts[loss.path]))
+        print()
     print("\n[stale-copy] NO OPINION (no reader for this suffix -- NOT a clean verdict): {}".format(
         len(no_opinion)))
     for path in no_opinion[:15]:

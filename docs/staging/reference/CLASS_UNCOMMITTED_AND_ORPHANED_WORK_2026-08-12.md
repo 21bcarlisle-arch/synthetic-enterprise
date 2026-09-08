@@ -22,7 +22,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_ARCHIVED_STAGING_PATHS_ARE_RESURRECTED_ON_THE_SHARED_TREE_2026-08-10.md` — LATENT
 - `WORKER_FINDING_A_DERIVED_ARTEFACT_CAN_BE_COMMITTED_AHEAD_OF_ITS_INPUT_2026-08-10.md` — LATENT
 - `WORKER_FINDING_A_FINISHED_CUT_SAT_UNCOMMITTED_WITH_EVERY_CONTROL_GREEN_2026-08-12.md` — LATENT
-- `WORKER_FINDING_A_GAP_ROW_IS_ATTRIBUTED_TO_ANY_WRITER_THAT_MERELY_NAMES_IT_2026-08-19.md` — RECORDED
+- `WORKER_FINDING_A_GAP_ROW_IS_ATTRIBUTED_TO_ANY_WRITER_THAT_MERELY_NAMES_IT_2026-08-19.md` — BLOCKING
 - `WORKER_FINDING_A_MEASUREMENT_TOOL_NEVER_LANDS_THE_EVIDENCE_ITS_CONTROL_READS_2026-08-10.md` — LATENT
 - `WORKER_FINDING_A_TEST_REWRITTEN_AHEAD_OF_ITS_API_DISABLED_413_ARCHITECTURE_CONTROLS_FOR_NINE_HOURS_2026-09-01.md` — BLOCKING
 - `WORKER_FINDING_RUFF_BASELINE_IS_CALIBRATED_TO_UNCOMMITTED_WORK_2026-08-09.md` — LATENT
@@ -55,10 +55,11 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+5 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_FINDING_THE_ORPHAN_RATCHET_ACCUSES_A_COMMITTED_REACHABLE_MODULE_BECAUSE_ANOTHER_LANES_DIRTY_FILE_BROKE_THE_CHAIN_2026-09-07.md`
 - `SEAT_FINDING_THE_PUBLISH_DAEMON_COMMITTED_A_NOTE_DECLARATION_WITHOUT_ITS_CONTENT_SO_ONLY_AN_ISOLATED_WORKTREE_CAN_SEE_THE_RED_2026-09-04.md`
+- `WORKER_FINDING_A_GAP_ROW_IS_ATTRIBUTED_TO_ANY_WRITER_THAT_MERELY_NAMES_IT_2026-08-19.md`
 - `WORKER_FINDING_A_TEST_REWRITTEN_AHEAD_OF_ITS_API_DISABLED_413_ARCHITECTURE_CONTROLS_FOR_NINE_HOURS_2026-09-01.md`
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md`
 
