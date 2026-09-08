@@ -30,6 +30,8 @@ from pathlib import Path
 
 import pytest
 
+from tools.python_code_text import searchable
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
 HOOKS_DIR = REPO_ROOT / ".claude" / "hooks"
 sys.path.insert(0, str(HOOKS_DIR))
@@ -336,11 +338,22 @@ class TestStructuralLock:
             if p.name != "_seat.py" and not p.name.startswith("__")
         )
 
+    @staticmethod
+    def _is_guarded(path: Path) -> bool:
+        """Does this hook CALL the guard, as opposed to mentioning it?
+
+        FAIL-OPEN OTHERWISE, and this is the direction that matters here: `"is_resident_seat"
+        in src` counts a hook whose only reference is `# TODO: add is_resident_seat` as guarded,
+        so the note admitting the hook is unguarded is what certifies it. The reverse bites the
+        allow-list leg below -- a universal hook documenting why it must run in every seat has
+        to name the guard it deliberately omits, and would be failed for saying so.
+        """
+        return "is_resident_seat" in searchable(path.read_text())
+
     def test_every_hook_is_guarded_or_explicitly_universal(self):
         offenders = []
         for p in self._hook_files():
-            src = p.read_text()
-            guarded = "is_resident_seat" in src
+            guarded = self._is_guarded(p)
             if p.name in UNIVERSAL_HOOKS:
                 # A universal hook must NOT be guarded (it runs in every seat).
                 assert not guarded, f"{p.name} is on UNIVERSAL_HOOKS but imports the guard"
@@ -357,5 +370,26 @@ class TestStructuralLock:
 
     def test_there_is_at_least_one_guarded_hook(self):
         # Sanity: the lock is meaningless if nothing is guarded.
-        guarded = [p.name for p in self._hook_files() if "is_resident_seat" in p.read_text()]
+        guarded = [p.name for p in self._hook_files() if self._is_guarded(p)]
         assert len(guarded) >= 1
+
+    def test_a_hook_that_only_mentions_the_guard_is_not_guarded(self, tmp_path):
+        """THE FAIL-OPEN, pinned. MUTATION: restore `"is_resident_seat" in src` and this fires --
+        an unguarded hook whose TODO admits it is unguarded reads as guarded, and the structural
+        lock's whole job is to stop exactly that hook shipping quietly."""
+        p = tmp_path / "unguarded_hook.py"
+        p.write_text(
+            '"""Blocks a claim. Should call is_resident_seat before it fires."""\n'
+            "# TODO: is_resident_seat\n"
+            "def main():\n    return 0\n"
+        )
+        assert "is_resident_seat" in p.read_text(), "sanity: the raw mention is there"
+        assert not self._is_guarded(p)
+
+    def test_a_hook_that_calls_the_guard_is_guarded(self, tmp_path):
+        """REACHABILITY. Without it the narrowing above could be to nothing at all, and every
+        hook would read as unguarded while this class still went green on the tree."""
+        p = tmp_path / "guarded_hook.py"
+        p.write_text("from _seat import is_resident_seat\n\nif not is_resident_seat():\n"
+                     "    raise SystemExit(0)\n")
+        assert self._is_guarded(p)

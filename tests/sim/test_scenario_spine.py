@@ -17,6 +17,7 @@ import pytest
 import yaml
 
 from sim.scenario import spine as S
+from tools.python_code_text import imported_modules
 
 REPO = Path(__file__).resolve().parents[2]
 
@@ -163,6 +164,31 @@ def test_unknown_world_raises():
 # --- W1: the epistemic wall (FRAME §A.3) -------------------------------------
 
 
+_SPINE = "sim.scenario.spine"
+
+
+def _spine_importers(*roots: Path) -> tuple[int, list[str]]:
+    """(files scanned, files importing the spine) — from the AST, not from a line spelling.
+
+    THE WALL IS KEYED TO THE IMPORT, NOT TO HOW SOMEBODY TYPED IT. The two spellings this used
+    to match missed `from sim.scenario import (spine)` and the line-broken parenthesised form
+    entirely, and fired on any docstring that named the module — so an accurate comment about
+    the wall read as a breach of it, and a legal-looking line break walked straight through.
+
+    UNREADABLE IS A BREACH, not a pass: a file we could not parse is one we did not check, and
+    a wall that goes quiet on what it cannot read is the failure it exists to prevent.
+    """
+    scanned = 0
+    offenders = []
+    for root in roots:
+        for py in root.rglob("*.py"):
+            scanned += 1
+            mods = imported_modules(py.read_text(encoding="utf-8", errors="ignore"))
+            if mods is None or _SPINE in mods:
+                offenders.append(str(py))
+    return scanned, offenders
+
+
 def test_wall_company_and_saas_never_import_the_spine():
     """W1: no company/** or saas/** code may import sim.scenario.spine.
 
@@ -171,40 +197,57 @@ def test_wall_company_and_saas_never_import_the_spine():
     detectable law F1b proved for company comms.
 
     KILLER MUTATION: add `from sim.scenario.spine import ScenarioSpine` to any company/saas
-    module -> this FAILS. FAIL-SILENT guard: the test asserts it actually scanned a
-    non-trivial number of files, so an empty/blind scan can never pass green.
+    module -> this FAILS, and so does every other spelling of that import (see
+    `test_wall_check_can_actually_fail`). FAIL-SILENT guard: the test asserts it actually
+    scanned a non-trivial number of files, so an empty/blind scan can never pass green.
     """
-    scanned = 0
-    offenders = []
-    for root in ("company", "saas"):
-        for py in (REPO / root).rglob("*.py"):
-            scanned += 1
-            text = py.read_text(encoding="utf-8", errors="ignore")
-            if "sim.scenario.spine" in text or "from sim.scenario import spine" in text:
-                offenders.append(str(py.relative_to(REPO)))
+    scanned, offenders = _spine_importers(REPO / "company", REPO / "saas")
     # FAIL-SILENT guard: an unavailable/blind scan is a FAILED check, not skipped-green.
     assert scanned > 50, f"wall scan saw only {scanned} files — scan is blind, treat as FAILED"
     assert offenders == [], f"company/saas modules import the scenario spine (wall breach): {offenders}"
 
 
-def test_wall_check_can_actually_fail(tmp_path):
-    """W1 mutation self-test: prove the scan flags a real breach (control can fail).
+@pytest.mark.parametrize("spelling", [
+    "from sim.scenario.spine import ScenarioSpine",
+    "import sim.scenario.spine",
+    "from sim.scenario import spine",
+    "from sim.scenario import (spine)",
+    "from sim.scenario import (\n    spine,\n)",
+    "import sim.scenario.spine as sp",
+])
+def test_wall_check_can_actually_fail(tmp_path, spelling):
+    """W1 mutation self-test: prove the wall flags a real breach (control can fail).
 
-    Writes a throwaway module that imports the spine into a temp 'company' tree and asserts
-    the same scan logic reports it. Guards against a tautological wall that always passes.
+    THIS NOW EXERCISES THE PRODUCTION SCAN. It used to re-implement the loop inline, which
+    proved only that the COPY could fail — a wall could have been narrowed to nothing and this
+    would have stayed green. Each spelling is one a supplier could plausibly write; the last
+    three were invisible to the line-matching this replaced.
     """
     fake_company = tmp_path / "company"
     fake_company.mkdir()
-    (fake_company / "leaky.py").write_text("from sim.scenario.spine import ScenarioSpine\n")
-    offenders = []
-    scanned = 0
-    for py in fake_company.rglob("*.py"):
-        scanned += 1
-        text = py.read_text(encoding="utf-8", errors="ignore")
-        if "sim.scenario.spine" in text or "from sim.scenario import spine" in text:
-            offenders.append(str(py))
+    (fake_company / "leaky.py").write_text(spelling + "\n")
+    scanned, offenders = _spine_importers(fake_company)
     assert scanned == 1
-    assert len(offenders) == 1  # the scan DOES catch a breach
+    assert len(offenders) == 1, f"the wall is blind to {spelling!r}"
+
+
+def test_prose_about_the_wall_is_not_a_breach_of_it(tmp_path):
+    """THE OTHER DIRECTION, and the one that makes a wall unmaintainable. A company module that
+    documents why it must not read scenario state has to name what it must not read. Keying on
+    mention means every accurate comment is a breach, and a wall nobody can explain gets deleted.
+
+    MUTATION: fall back to `"sim.scenario.spine" in text` and this fires.
+    """
+    root = tmp_path / "company"
+    root.mkdir()
+    (root / "honest.py").write_text(
+        '"""Reads prices only. Must never import sim.scenario.spine (FRAME A.3)."""\n'
+        "# from sim.scenario import spine  <- would be a wall breach\n"
+        "VALUE = 1\n"
+    )
+    scanned, offenders = _spine_importers(root)
+    assert scanned == 1
+    assert offenders == [], "a docstring naming the spine was read as importing it"
 
 
 # --- import hygiene ----------------------------------------------------------

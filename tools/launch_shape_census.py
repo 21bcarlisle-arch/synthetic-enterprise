@@ -42,6 +42,8 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+from tools.python_code_text import prose_string_ids
+
 _REPO = Path(__file__).resolve().parents[1]
 
 #: The one address allowed to launch. Every other sighting is either a floor row with a stated
@@ -155,6 +157,16 @@ FLOOR: dict[tuple[str, str], tuple[int, str]] = {
         "mechanism that the launcher does not offer and should not. The second sighting is the "
         "`shutil.which` availability probe that makes the first fail CLOSED.",
     ),
+    ("tests/background/test_the_seat_executor_stands_down.py", RAW_TRANSIENT_UNIT): (
+        1,
+        "A FIXTURE FOR A DIFFERENT CONTROL, and it launches nothing: the string is handed to "
+        "`_invokes()` — a pure function over text — to assert that starting the seat-executor "
+        "unit is told apart from naming it in prose. That control was red at HEAD precisely "
+        "because it could not make that distinction (2026-09-08 finding), and a fixture spelling "
+        "a FAKE start command would prove nothing about a detector whose whole job is to "
+        "recognise a real one. Nothing here opens a process; routing a test's expected-input "
+        "string through the launcher is not a thing that can be done.",
+    ),
     ("tests/background/test_launch_long_job.py", RAW_TRANSIENT_UNIT): (
         1,
         "The launcher's OWN door test, which is a category of its own: it must spell the real "
@@ -184,21 +196,18 @@ def _tracked(repo: Path, pattern: str) -> list[str]:
     return [p for p in out if p]
 
 
-def _docstring_nodes(tree: ast.AST) -> set[int]:
-    """The id()s of string constants that are docstrings or bare string expressions.
-
-    Prose that MENTIONS the tool is not a launch, and this project has a lot of prose about this
-    exact defect — `tools/run_arms_rerun.py` recites the shell command it replaced in its own
-    docstring. Counting that would make the census report the history rather than the code. A
-    docstring cannot launch anything, so the exclusion costs no coverage: an argv literal lives in
-    a `List` or a `Call`, never in a bare `Expr`.
-    """
-    out: set[int] = set()
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Expr) and isinstance(node.value, ast.Constant):
-            if isinstance(node.value.value, str):
-                out.add(id(node.value))
-    return out
+#: The id()s of bare string-expression Constants: prose that MENTIONS the tool is not a launch,
+#: and this project has a lot of prose about this exact defect — `tools/run_arms_rerun.py` recites
+#: the shell command it replaced in its own docstring. Counting that would make the census report
+#: the history rather than the code. A docstring cannot launch anything, so the exclusion costs no
+#: coverage: an argv literal lives in a `List` or a `Call`, never in a bare `Expr`.
+#:
+#: THIS WAS A PRIVATE COPY until 2026-09-08. The identical discrimination was written a second
+#: time inside `test_the_seat_executor_stands_down`, and the CLASS it belongs to — a control that
+#: reads Python by substring and cannot tell code from prose — was found live in four more
+#: controls, two of them walls. A helper nobody can import gets rewritten per instance, which is
+#: exactly how that control was widened four times without the class ever being fixed.
+_docstring_nodes = prose_string_ids
 
 
 def _census_python(text: str, path: str) -> list[Sighting]:

@@ -86,7 +86,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
-from background import delivery_lane, seat_work_in_hand  # noqa: E402
+from background import delivery_lane, doomed_at_teardown, seat_work_in_hand  # noqa: E402
 from background.fork_salvage import salvage_worktree  # noqa: E402
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.seat_work_in_hand import DuplicateWork  # noqa: E402
@@ -1043,6 +1043,14 @@ def main(argv=None) -> int:  # pragma: no cover - operator surface
     if args.once:
         ran, detail = run_once()
         print(detail)
+        # LAST ACT OF THE ONESHOT. This unit is Type=oneshot with the default
+        # KillMode=control-group, so systemd SIGKILLs whatever is still in the cgroup the instant
+        # this returns -- and `run_once` has already waited on the bounded turn, so anything left
+        # is a long job launched by hand that is about to be lost silently. Deliberately HERE and
+        # not in `run_once`: `--dry-run` and `--status` go through `run_once` too, and those are an
+        # operator at a terminal rather than a teardown, where every process on the session is
+        # legitimately present and the report would be pure noise.
+        doomed_at_teardown.check_and_log(log)
         return 0 if ran else 0
     ap.print_help()
     return 0
