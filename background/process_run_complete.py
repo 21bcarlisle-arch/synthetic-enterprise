@@ -3174,6 +3174,16 @@ _REFUSING_GATE_BANNERS = (
     ("running-total-order gate",
      ("running-total-order: COMMIT REFUSED.",), "tools/running_total_order.py"),
     ("scope-evidence ratchet", ("[scope-evidence] ❌",), "tools/scope_evidence_ratchet.py"),
+    # Both commons gates print their banner as an f-string, so the needle is the LITERAL part up
+    # to the interpolation -- `REFUSED (` and not `REFUSED (3)`. The trailing `(` is what keeps
+    # the needle off the sibling PASS line, which is the same sentence with one word swapped:
+    # `commons source supersession: PASS (9 artefacts askable)`. Dropping it would name a gate
+    # that let the commit through, which is the fail-open twin this table already has a leg for.
+    ("commons-source-supersession gate",
+     ("commons source supersession: REFUSED (",), "tools/commons_source_supersession.py"),
+    ("commons-citation-provenance gate",
+     ("commons citation supports provenance: REFUSED (",),
+     "tools/commons_citation_supports_provenance.py"),
     ("write-time gate",
      ("[write-time-gate] ", "❌ COMMIT REFUSED"), "tools/write_time_gate.py"),
 )
