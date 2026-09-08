@@ -2,17 +2,18 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 34 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
+**Instances:** 35 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
 
-## The 34 instances
+## The 35 instances
 
 - `SEAT_FINDING_ONE_LOADER_ANSWER_STOOD_VERBATIM_ON_TWELVE_ROWS_AND_ANSWERED_A_DIFFERENT_QUESTION_2026-09-05.md` — LATENT
 - `SEAT_FINDING_THE_BATTERYS_RESULTS_LOCK_LANDED_AND_MY_OWN_PROPOSED_DESIGN_HAD_A_FAIL_OPEN_BRANCH_IN_IT_2026-09-06.md` — LATENT
 - `SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md` — RECORDED
+- `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md` — BLOCKING
 - `SEAT_FINDING_THE_REFUTED_HANDOFF_WON_THE_DRAW_BECAUSE_ITS_CORRECTION_USED_A_NEW_ID_2026-09-03.md` — LATENT
 - `SEAT_RESULT_EIGHT_OF_TEN_ROOMS_CANNOT_FAIL_FOR_THIS_SUBJECT_AND_THE_CONTROL_NAMED_FOR_ITS_CONTRACT_GRADED_ITS_OWN_FIXTURE_2026-09-05.md` — LATENT
 - `SEAT_RESULT_NOTHING_IN_THE_CALLER_POPULATION_KILLS_ANY_OF_FUEL_MIXS_ELEVEN_CONTRACTS_AND_THE_TENTH_SUITES_GREEN_CANNOT_BE_A_SWALLOW_2026-09-06.md` — LATENT
@@ -47,7 +48,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**25.0 recorded episode-hours** across 1 of the 34 instances; largest single recorded episode **25h**; 7 instance(s) name a published figure in scope.
+**25.0 recorded episode-hours** across 1 of the 35 instances; largest single recorded episode **25h**; 7 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -55,8 +56,9 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-3 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+4 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
+- `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md`
 - `WORKER_FINDING_THE_LANE_WALL_WAS_FAIL_OPEN_ON_A_FULL_DISK_2026-08-31.md`
 - `WORKER_FINDING_THE_SHARED_TREE_HOLDS_A_SUPERSEDED_DRAFT_THAT_DELETES_TWO_LANDED_RUNGS_AND_23_TESTS_ARE_RED_BEHIND_IT_2026-09-05.md`
 - `WORKER_FINDING_THE_WALL_CENSUS_PINS_CUSTOMER_IDENTIFIERS_AS_A_SCHEMA_2026-09-01.md`

@@ -155,6 +155,16 @@ FLOOR: dict[tuple[str, str], tuple[int, str]] = {
         "mechanism that the launcher does not offer and should not. The second sighting is the "
         "`shutil.which` availability probe that makes the first fail CLOSED.",
     ),
+    ("tests/background/test_the_seat_executor_stands_down.py", RAW_TRANSIENT_UNIT): (
+        1,
+        "A FIXTURE FOR A DIFFERENT CONTROL, and it launches nothing: the string is handed to "
+        "`_invokes()` — a pure function over text — to assert that starting the seat-executor "
+        "unit is told apart from naming it in prose. That control was red at HEAD precisely "
+        "because it could not make that distinction (2026-09-08 finding), and a fixture spelling "
+        "a FAKE start command would prove nothing about a detector whose whole job is to "
+        "recognise a real one. Nothing here opens a process; routing a test's expected-input "
+        "string through the launcher is not a thing that can be done.",
+    ),
     ("tests/background/test_launch_long_job.py", RAW_TRANSIENT_UNIT): (
         1,
         "The launcher's OWN door test, which is a category of its own: it must spell the real "

@@ -13,8 +13,10 @@ would make this whole build a very safe way of achieving nothing.
 """
 from __future__ import annotations
 
+import ast
 import json
 import os
+import re
 import time
 
 import pytest
@@ -398,8 +400,177 @@ _INVOCATION_PATTERNS = (
     "seat_executor.run_once(",
     "seat_executor.main(",
     "-m background.seat_executor",
-    "seat-executor.service",
 )
+
+#: THE UNIT NAME MADE THE SAME MISTAKE THE LIST ABOVE HAS NOW CORRECTED THREE TIMES, and it was
+#: the last bare-substring member left (2026-09-08). The docstring below says the subject is
+#: INVOCATION, NOT MENTION, and then `"seat-executor.service"` matched any prose naming the unit:
+#: `background/launch_long_job.py` cites this exact cgroup as the worked example of why `setsid`
+#: does not survive a `KillMode=control-group` teardown, and was therefore reported as a second
+#: scheduler of the unattended writer. **That red was live at HEAD**, not introduced by the change
+#: that found it — see the finding filed the same day. Naming the cgroup you die in is the
+#: opposite of arming a turn.
+#:
+#: THE DISCRIMINATOR IS THE FILE'S KIND, and it is a property rather than an allow-list. In a
+#: systemd unit or the IaC manifest, naming the unit IS the wiring — there is no other way to
+#: declare a schedule, so a mention there is an invocation. In Python or shell, starting a unit
+#: takes a verb, and the verb is what this looks for. An allow-list would have grown by one row
+#: per accurate comment; this grows by nothing.
+_UNIT_NAME = "seat-executor.service"
+
+#: Suffixes where naming the unit cannot be prose: the declaration IS the schedule.
+_DECLARATION_SUFFIXES = (".service", ".timer", ".yaml", ".json")
+
+_UNIT_START_RE = re.compile(
+    r"systemctl[^\n]*\b(?:start|restart|reload-or-restart)\b[^\n]*seat-executor"
+    r"|systemd-run[^\n]*seat-executor"
+)
+
+
+#: THE ENTRY POINTS, AS AST SHAPES rather than as spellings. A call cannot be written without
+#: being a Call node, and a docstring cannot become one however it is punctuated.
+_ENTRY_FUNCS = ("run_once", "main")
+
+
+def _python_strings_and_argvs(tree) -> list:
+    """Every string a running Python file could hand to a shell — and NO docstring or comment.
+
+    THE TWO HALVES ARE BOTH THE POINT. A docstring is a bare `Expr(Constant(str))` statement, so
+    dropping those is what stops accurate prose about this module from reading as a call to it;
+    comments never reach the AST at all, so they cost nothing. And an argv LIST is rejoined with
+    spaces, because `["python3", "-m", "background.seat_executor", "--once"]` contains none of the
+    shell spellings as a substring — which is the whole reason the old check missed its own
+    documented mutation.
+    """
+    docstrings = set()
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)):
+            body = getattr(node, "body", None) or []
+            if body and isinstance(body[0], ast.Expr) and isinstance(body[0].value, ast.Constant) \
+                    and isinstance(body[0].value.value, str):
+                docstrings.add(id(body[0].value))
+    out = []
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.List, ast.Tuple)):
+            parts = [e.value for e in node.elts
+                     if isinstance(e, ast.Constant) and isinstance(e.value, str)]
+            if len(parts) == len(node.elts) and parts:
+                out.append(" ".join(parts))
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str) \
+                and id(node) not in docstrings:
+            out.append(node.value)
+    return out
+
+
+def _python_invokes(text: str) -> bool | None:
+    """Does this Python file INVOKE the executor? None when it cannot be parsed (fail closed)."""
+    try:
+        tree = ast.parse(text)
+    except SyntaxError:
+        return None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) \
+                and node.func.attr in _ENTRY_FUNCS \
+                and isinstance(node.func.value, ast.Name) \
+                and node.func.value.id == "seat_executor":
+            return True
+    for s in _python_strings_and_argvs(tree):
+        if any(p in s for p in _INVOCATION_PATTERNS) or _UNIT_START_RE.search(s):
+            return True
+    return False
+
+
+def _invokes(path, text: str) -> bool:
+    """Does this file START a seat-executor turn, as opposed to talking about one?
+
+    PYTHON IS READ AS CODE; EVERYTHING ELSE AS TEXT. A `.service`, `.timer`, `.yaml` or `.sh` has
+    no prose/code distinction worth drawing — naming the unit there IS the wiring. A `.py` file is
+    mostly prose about other code in this repository, and every previous widening of this control
+    was paid for by an accurate comment.
+    """
+    if path.suffix == ".py":
+        verdict = _python_invokes(text)
+        if verdict is not None:
+            return verdict
+        # Unparseable: fall through to the substring reading rather than answering "no". We did
+        # not look properly, and that is never evidence of absence.
+    if any(pattern in text for pattern in _INVOCATION_PATTERNS):
+        return True
+    if _UNIT_NAME in text:
+        if path.suffix in _DECLARATION_SUFFIXES:
+            return True
+        return bool(_UNIT_START_RE.search(text))
+    return False
+
+
+def test_the_documented_mutation_actually_fires():
+    """THE CONTROL BELOW CLAIMED A MUTATION IT HAD NEVER BEEN RUN AGAINST (found 2026-09-08).
+
+    Its docstring said, verbatim: *add `subprocess.run(["python3", "-m",
+    "background.seat_executor", "--once"])` anywhere under `background/` … and this fires with the
+    path named*. It did not. The argv-LIST form — which is how every subprocess call in this
+    repository is written, including the executor's own — contains none of the shell spellings as
+    a substring, so the one control guarding the project's only unattended writer was FAIL-OPEN
+    against the exact shape its own prose used as the proof it worked.
+
+    A mutation named in prose and never executed is a claim, not evidence. This is the executable
+    version of that claim, so the next reader gets a red instead of a sentence.
+    """
+    from pathlib import Path
+
+    for form in (
+        'subprocess.run(["python3", "-m", "background.seat_executor", "--once"])',
+        "subprocess.Popen(['python3', '-m', 'background.seat_executor', '--once'])",
+        'os.system("python3 -m background.seat_executor --once")',
+        'subprocess.run(["systemctl", "--user", "start", "seat-executor.service"])',
+        "from background import seat_executor\nseat_executor.run_once()",
+        "from background import seat_executor\nseat_executor.main(['--once'])",
+    ):
+        assert _invokes(Path("background/rogue.py"), form), \
+            "a second scheduler written as {!r} is invisible to the control".format(form)
+
+
+def test_prose_about_the_executor_is_not_an_invocation_of_it():
+    """THE OTHER DIRECTION, and the one that made this red at HEAD. Every widening of this control
+    so far was paid for by an accurate comment: `fork_salvage` reading a predicate, then
+    `delivery_lane.hand_off_focus` explaining the stand-down, then `launch_long_job` naming the
+    cgroup. Prose is not a call, and a docstring cannot be made into one by punctuation."""
+    from pathlib import Path
+
+    for prose in (
+        '"""The cgroup is 0::/user.slice/.../seat-executor.service, and setsid does not help."""',
+        '"""Explains seat_executor.run_once() and why it stands down."""',
+        "# see background/seat_executor.py for the stand-down order",
+        'x = 1  # background.seat_executor --once is what the timer runs',
+    ):
+        assert not _invokes(Path("background/commentary.py"), prose), \
+            "prose {!r} was read as arming the unattended writer".format(prose)
+
+
+def test_naming_the_unit_and_starting_the_unit_are_told_apart():
+    """THE NARROWING ABOVE MUST NOT BE A HOLE, and this is the control that says so.
+
+    Removing `"seat-executor.service"` from the bare-substring list makes the population strictly
+    smaller, which is exactly the move that turns a control into decoration — a filter that now
+    refuses everything would pass the caller above just as happily as a correct one. So this
+    asserts the WHOLE PARTITION in one place rather than a leg apiece: prose is not an invocation,
+    a start verb IS, and a declaration file IS. All three verdicts reachable, from one function.
+
+    MUTATION: delete the `_UNIT_START_RE` branch (so a `.py` naming the unit is never an invoker)
+    and the second leg fires; make `_invokes` return True on any mention and the first fires.
+    """
+    from pathlib import Path
+
+    prose = Path("background/launch_long_job.py")
+    # The real sentence out of `launch_long_job.py` that was reported as a second scheduler.
+    assert not _invokes(prose, "0::/user.slice/.../app.slice/seat-executor.service\n"
+                               "`setsid` changes the SESSION and the PROCESS GROUP.")
+    # A genuine start from python/shell is still caught, which is the whole point of the control.
+    assert _invokes(prose, 'subprocess.run(["systemctl", "--user", "start", "seat-executor.service"])')
+    assert _invokes(Path("x.sh"), "systemd-run --user --unit=seat-executor.service /usr/bin/true")
+    # In a unit or the IaC manifest, naming it IS the schedule -- no verb exists to look for.
+    assert _invokes(Path("background/seat-executor.timer"), "Unit=seat-executor.service")
+    assert _invokes(Path("background/schedule_manifest.yaml"), "  unit: seat-executor.service")
 
 
 def test_the_only_thing_that_invokes_it_is_the_declared_schedule():
@@ -444,7 +615,7 @@ def test_the_only_thing_that_invokes_it_is_the_declared_schedule():
                 text = path.read_text(encoding="utf-8")
             except OSError:
                 continue
-            if any(pattern in text for pattern in _INVOCATION_PATTERNS):
+            if _invokes(path, text):
                 invokers.append(str(path.relative_to(project)))
 
     unexpected = sorted(set(invokers) - _ARMED_BY)

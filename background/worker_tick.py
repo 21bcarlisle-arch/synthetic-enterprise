@@ -513,6 +513,13 @@ def run_tick() -> TickDecision:
         # draw, so a tick that decides not to spawn must give the slot back rather than make the
         # next tick wait for its pid to die.
         _release_lock(*owned)
+        # LAST ACT, and it must be last: this unit is Type=oneshot with KillMode=control-group, so
+        # the moment this function returns systemd SIGKILLs everything still in the cgroup. We have
+        # already waited on the invocation above, so anything left here is a long job somebody
+        # launched by hand and is about to lose. It cannot be saved from here -- it is named, which
+        # is the thing whose absence cost four launches. See background/doomed_at_teardown.py.
+        from background import doomed_at_teardown
+        doomed_at_teardown.check_and_log(_log)
 
 
 if __name__ == "__main__":
