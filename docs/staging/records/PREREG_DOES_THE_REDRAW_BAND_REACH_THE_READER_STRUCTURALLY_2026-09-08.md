@@ -208,3 +208,59 @@ test, not at the door.
 | point at the table with `level_stability` not `checked` | **RED** on the fallback leg of the same control |
 | substitute the whole advantage's family for the level leg's | **RED** on the identity assert (prediction 3) |
 | drop `CHANGES SIGN` | **RED** on the existing sign control, untouched |
+
+## The account — measured, beside the predictions and not in place of them
+
+**Done.** `_the_level_legs_family` is the one producer of that clause. On a world whose price-level
+row carries a family the refusal says *"Its own lowest, mean and highest are the price-level row of
+the re-draw band table higher up this section"*; the two edges are gone from it. `#arms-redraw` is
+now the family's only numeric home for **all three** contrasts.
+
+| Prediction | Result |
+|---|---|
+| 1 — no published byte moves | **HELD.** The feed regenerated with only `generated_at` and `publishing_tree_commit` moved; every figure and every sentence byte-identical, so the feed was not committed |
+| 2 — pointer, and neither edge in the refusal | **HELD** |
+| 3 — `min(measured)` == `redraw_min_gbp` exactly | **HELD** (`-1302.9943640000129` / `8664.540695999982` off the floor's own rows) |
+| 4 — the share range stays | **HELD** — `-124.5%` to `28451.6%` still published; no table column holds a ratio |
+| 5 — `CHANGES SIGN` stays, sign control untouched and green | **HELD** |
+| 6 — door green with no edit | **HELD.** 91 passed, 1 skipped (I predicted 90 — a rung landed from another lane between the prediction and the run; the substance, green with nothing edited, held) |
+| 7 — the fallback is reachable and recites | **HELD** |
+
+### R15 — the poisons, each run against the real builder and reverted
+
+| Poison | Predicted | Measured |
+|---|---|---|
+| restore the min/max recital beside the pointer | RED on the one-home control, only there | **RED**, 118 others passed |
+| render the pointer where `checked` is False | RED on the fallback leg | **RED** |
+| hand the WHOLE ADVANTAGE's family over as the level leg's | RED on the identity assert | **SURVIVED — 119 passed.** See below |
+| drop `CHANGES SIGN` | RED on the existing sign control | **RED** — that control plus two others |
+
+### The prediction that was wrong, and it was a missing test rather than an equivalence
+
+Poison 3 survived, and the reason is worth more than the poison. The identity assert reads the
+edges from `level_leg.verdict_stability` — the leg's own block — so it cannot see WHICH family the
+build handed to the composition. And the pointer branch reads no number out of the family it is
+given: it only asks whether it is `checked`. On that subject both families are checked, so
+substituting one for the other changed nothing observable.
+
+That is a real fail-open, not an equivalence. The hazard is a page that points at the price-level
+row while that row renders an amber **NOT RE-DRAWN** — the two edges then reach a reader in
+neither place, which is strictly worse than the recital this work retired.
+
+The witness is a floor where the two families **disagree** about being checked: one seed row short
+of `level_advantage_gbp`, nothing else touched. `_verdict_stability` refuses that leg (no bound is
+read) while the whole advantage's own family still checks, and the refusal's `measured` drops the
+short row and still holds two straddling draws. Handing the wrong family over then prints the
+pointer where the recital was owed. With that leg added, poison 3 **REDS**.
+
+Kept here rather than quietly folded into the design: a control keyed to the leg's own block
+looked like it was checking the wiring and was blind to it, which is this project's named
+`calls-the-estimator-directly` shape one layer along.
+
+### What this does NOT close
+
+The two producers point at the same table in two sentences that describe it from two different
+places on the page — `#arms-composition` sits below `#arms-redraw`, so neither can reuse the
+other's words. They share the property, which is controlled, and not the prose, which is not: a
+table renamed or moved would leave whichever producer was not touched describing it wrongly. That
+is a smaller defect than the one closed here and no control is proposed for it.
