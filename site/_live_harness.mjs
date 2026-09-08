@@ -158,8 +158,28 @@ for (let i = 0; i < 40; i++) {
   await new Promise((r) => setTimeout(r, 0));
 }
 
+// A region's content is its OWN markup PLUS everything appended beneath it. Without the
+// descent, a door that renders by createElement/appendChild reports an empty region and every
+// control reading this output -- the pixel verifier, both pointer sweeps -- passes on the
+// silence rather than on the page. No deployed door builds DOM that way today, so this changes
+// no current result; it is here so that the day one does, it is seen rather than missed.
+// Depth- and cycle-guarded: a door that appends an element to itself must not hang the verifier.
+function serialise(e, seen) {
+  let html = e._inner, text = e._text;
+  if (seen.has(e) || seen.size > 20000) return { html, text };
+  seen.add(e);
+  for (const child of e.children) {
+    if (!child || typeof child !== "object") continue;
+    const inner = serialise(child, seen);
+    html += inner.html;
+    text += inner.text;
+  }
+  return { html, text };
+}
+
 const out = { _meta: { requested, unresolved, scriptError } };
 for (const [id, e] of Object.entries(elements)) {
-  out[id] = { innerHTML: e._inner, textContent: e._text };
+  const content = serialise(e, new Set());
+  out[id] = { innerHTML: content.html, textContent: content.text };
 }
 process.stdout.write(JSON.stringify(out));

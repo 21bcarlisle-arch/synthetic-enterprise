@@ -284,3 +284,66 @@ def test_prose_discussing_nan_is_not_flagged():
     # ...but a NaN in a VALUE position is still caught.
     assert V.rendered_defects('<div class="kpi-v">NaN</div>')
     assert V.rendered_defects("NaN")
+
+
+# --------------------------------------------------------------------------
+# FAIL-OPEN: a region built by DOM construction rather than by innerHTML
+# --------------------------------------------------------------------------
+def test_a_region_built_by_appendChild_is_not_reported_empty():
+    """The harness must see content a door BUILDS, not only content it assigns.
+
+    THE FAIL-OPEN THIS CLOSES (found 2026-09-08 while building the producer-branch pointer
+    sweep). `_live_harness.mjs` pushed `appendChild` children onto an array nothing read, and
+    `createElement` nodes never entered the output map at all. So a door that rendered by
+    `createElement`/`appendChild` -- the ordinary way to build a list -- reported an EMPTY
+    region, and every control reading this output passed on the silence: `verify_door` would
+    call a blank panel healthy, and both here-relative pointer sweeps derive a sentence's homes
+    from these strings, so every payload string on such a door reported ZERO homes and was
+    judged nowhere.
+
+    Measured before fixing: no deployed door uses either call, so this changed no live result.
+    That is exactly why it needed a control -- a fail-open with no current instance is one
+    nothing will notice arriving.
+
+    Fires on: the descent being removed; `createElement` nodes losing their content; a nested
+    child (built into a child, then appended) being dropped.
+    """
+    html = """<div id="panel"></div><script>
+      const root = document.getElementById("panel");
+      const row = document.createElement("div");
+      row.textContent = "BUILT_BY_APPEND";
+      const deep = document.createElement("span");
+      deep.innerHTML = "<b>NESTED_TWO_DEEP</b>";
+      row.appendChild(deep);
+      root.appendChild(row);
+    </script>"""
+    rendered = V.run_harness(html, {})
+    panel = rendered.get("panel") or {}
+    blob = "{} {}".format(panel.get("innerHTML") or "", panel.get("textContent") or "")
+    assert "BUILT_BY_APPEND" in blob, (
+        "a region whose content was appended as a child element reports empty, so every "
+        "control reading this output judges it as a blank panel: {!r}".format(blob))
+    assert "NESTED_TWO_DEEP" in blob, (
+        "the descent stops at the first child, so content built two levels deep is invisible "
+        "and a door that nests its rows reports a fraction of what it renders: {!r}".format(blob))
+
+
+def test_an_element_appended_to_itself_does_not_hang_the_harness():
+    """The cycle guard, which is the cost of descending at all.
+
+    A door that appends an element into its own subtree is a bug, but an infinite recursion in
+    the VERIFIER turns that bug into a hang, and `run_harness` treats a timeout as unavailable
+    -- which is a FAILED check for every door in the same run, not just the broken one.
+    """
+    html = """<div id="panel"></div><script>
+      const root = document.getElementById("panel");
+      const row = document.createElement("div");
+      row.textContent = "CYCLIC_ROW";
+      row.appendChild(row);
+      root.appendChild(row);
+      root.appendChild(root);
+    </script>"""
+    rendered = V.run_harness(html, {})
+    panel = rendered.get("panel") or {}
+    assert "CYCLIC_ROW" in "{}".format(panel.get("textContent") or ""), (
+        "the cycle guard dropped the honest content along with the cycle")
