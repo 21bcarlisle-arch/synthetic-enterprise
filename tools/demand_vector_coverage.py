@@ -108,10 +108,14 @@ REDUCES_OVER = declare(
                   # Sensitivity is how much the gas total MOVES with the weather, so it is built
                   # from the level and the shape together rather than being a fifth thing.
                   "weather_sensitivity_kwh_per_degree_day": ("annual_gas_kwh", "seasonal_gas_shape"),
-                  # The peak-window share IS the half-hourly shape, reduced to the statistic the
-                  # price acts on. Declared as derived from it rather than as a new component, so
-                  # the subject vector stays the canon's.
-                  "peak_window_share": ("half_hourly_electricity_shape",),
+                  # DERIVED FROM THE LEVEL, NOT THE SHAPE, and the AST control is what forced the
+                  # correction. It was declared as derived from `half_hourly_electricity_shape`
+                  # while that component was also declared blind, and it refused the pair: one of
+                  # the two is wrong. The one that was wrong is this. Two of the three occupancy
+                  # patterns produce proportional curves, so what this axis actually varies with is
+                  # the household's consumption LEVEL and its elderly / not-elderly flag -- not the
+                  # shape. Declaring it as shape-derived is what made the vector look complete.
+                  "peak_window_share": ("annual_electricity_kwh",),
                   "insulation_ceiling_kwh": ("insulation_headroom",),
                   "turndown_ceiling_kwh": ("turndown_headroom",)},
     # THE BILLING AXES CANNOT APPEAR HERE, and that absence is itself the finding. `blind_to` may
@@ -120,11 +124,12 @@ REDUCES_OVER = declare(
     # that this N does not span them. `UNCOUNTED_AXES` carries them instead, and the gap between
     # what the declaration can say and what is actually missing is why the figure is published as a
     # FLOOR rather than as a size.
-    # NOTHING IN THE SUBJECT VECTOR IS BLIND ANY MORE. Every component the canon names -- gas,
-    # electricity, seasonal shape, half-hourly shape, heating fuel -- now enters the measurement.
-    # What remains uncounted is outside the demand vector entirely (`UNCOUNTED_AXES`), which the
-    # declaration cannot express and the floor label carries instead.
-    blind_to=(),
+    # HALF-HOURLY SHAPE GOES BACK ON THE BLIND LIST, and claiming otherwise was premature. The
+    # `peak_window_share` axis is in the measurement and does not carry the composition signal it
+    # appears to: two of the three occupancy patterns are proportional, so it distinguishes elderly
+    # from everyone else and nothing finer. An axis that is PRESENT but carries a level rather than
+    # a shape is worse than an absent one, because the vector looks complete.
+    blind_to=("half_hourly_electricity_shape",),
     joint=True,
 )
 
@@ -145,12 +150,28 @@ DISTRIBUTION_TOLERANCE = 0.05
 #: than physics, and this is that resolution -- two households with identical annual kWh, one with
 #: a sharp evening peak and one flat, are a different cost to serve and a different hedge.
 #:
-#: MEASURED BEFORE IT WAS BELIEVED, and the canon's premise turned out half wrong. It says "the
-#: world rescales one national profile, so every household has the same half-hourly shape". The
-#: world does vary it: across occupancy patterns and household sizes the peak share runs 0.196 to
-#: 0.253, a 29% relative spread. But `single` and `family` come out identical to four decimals and
-#: only `elderly` differs, so THE SHAPE VARIES ON EFFECTIVELY ONE BINARY rather than on a
-#: continuum. The concern was directionally right and the literal claim was not.
+#: MEASURED, THEN RE-MEASURED WHEN THE DIRECTOR REFUSED THE RESULT, and the second reading reverses
+#: the first. I reported that the peak share runs 0.196 to 0.253 across occupancy patterns and
+#: concluded the world varies shape "on effectively one binary". He replied that `single` and
+#: `family` agreeing to four decimal places is not two populations agreeing -- it is one object
+#: counted twice -- and asked for the mechanism rather than the number.
+#:
+#: HE IS RIGHT AND THE AXIS IS LARGELY AN ARTEFACT. `demand_model.occupancy_multiplier` does carry a
+#: per-pattern shape term, so the world is not simply rescaling one curve. But the `family` and
+#: `single` multiplier vectors -- (1.1, 0.85, 1.4) and (1.0, 0.75, 1.25) over morning/day/evening --
+#: are NEARLY PROPORTIONAL: their ratios are 1.10, 1.133, 1.12, a spread of 0.033. A share is
+#: scale-invariant, so proportional curves have IDENTICAL SHAPE and differ only in level. Measured
+#: on the real profile the maximum normalised difference between them is 0.0005, while their totals
+#: differ 11.9 kWh against 13.3.
+#:
+#: `elderly` reshapes because its ratios spread by 0.72 -- daytime ABOVE evening, which no rescaling
+#: can produce. So the axis carries an elderly / not-elderly distinction and almost nothing else.
+#:
+#: AND THE VOCABULARY CANNOT EXPRESS WHAT THE DIRECTOR DESCRIBED. The bands are morning, day and
+#: evening; there is no after-school band, and `children_count` is documented as not moving the
+#: shape at all. A family with young children cannot have the morning-and-after-school signature he
+#: named, because the model has nowhere to put it.
+PEAK_WINDOW_IS_LEVEL_DRIVEN = True
 PEAK_WINDOW = slice(32, 38)
 
 #: WHAT THIS N IS BLIND TO, ENUMERATED, so no reader can take it for the size of the book. The
@@ -163,6 +184,7 @@ PEAK_WINDOW = slice(32, 38)
 #: which two households can differ while matching on everything measured, and each is therefore a
 #: direction the sample is currently NOT required to span.
 UNCOUNTED_AXES = (
+    "half_hourly_shape_by_composition",  # the axis exists and is level-driven -- see PEAK_WINDOW
     "payment_method_third_category",     # DD is anchored; the PPM/standard-credit split is a
                                          # NAMED GAP in ASSUMPTIONS.md, not a rounding
     "meter_read_pattern",                # quarterly estimate against half-hourly settlement

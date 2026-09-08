@@ -44,17 +44,50 @@ My estimate of *how much* was wrong by an order of magnitude, in the direction o
 
 ## What is now in the vector
 
-All seven, and `REDUCES_OVER.blind_to` is empty:
+All seven are present, and one of them does not carry what it claims:
 
-annual gas · annual electricity · seasonal swing · weather sensitivity · **peak-window share** ·
-insulation ceiling · turn-down ceiling — stratified by **fuel × payment method**.
+annual gas · annual electricity · seasonal swing · weather sensitivity · peak-window share ·
+insulation ceiling · turn-down ceiling — stratified by **fuel × payment method**. Seven axes are
+present; six of them carry what their names say.
 
-**The half-hourly shape is in, and measuring it corrected the canon's premise.** The canon says *"the
-world rescales one national profile, so every household has the same half-hourly shape"*. It does
-not: across occupancy patterns and household sizes the 16:00–19:00 share runs **0.196 to 0.253**, a
-29% relative spread. But `single` and `family` come out identical to four decimal places and only
-`elderly` differs — so **the shape varies on effectively one binary rather than on a continuum.** The
-concern was right in direction and the literal claim was wrong.
+**The half-hourly shape axis is in the vector and it does NOT carry the shape.** I first reported
+that the world varies shape "on effectively one binary". The director refused it: *"'identical to
+four decimals' is the tell. Genuinely different populations don't agree to four decimal places."*
+
+He is right, and the mechanism is worse than a rounding. `occupancy_multiplier` does carry a
+per-pattern shape term — the world is not simply rescaling one national curve — but the `family` and
+`single` multiplier vectors, **(1.1, 0.85, 1.4)** and **(1.0, 0.75, 1.25)** over morning/day/evening,
+are **nearly proportional**: their ratios are 1.10, 1.133, 1.12, a spread of 0.033. A share is
+scale-invariant, so proportional curves are **the same shape at a different level**. Measured on the
+real profile the maximum normalised difference between them is **0.0005**, while their totals differ
+11.9 kWh against 13.3.
+
+`elderly` reshapes because its ratios spread by **0.72** — daytime above evening, which no rescaling
+can produce. **So the axis separates elderly from everyone else and nothing finer.**
+
+**And the vocabulary cannot express what he described.** The bands are morning, day and evening.
+There is no after-school band, and `children_count` is documented in the function as not moving the
+shape at all — so a family with young children has nowhere to put a morning-and-after-school
+signature.
+
+**`blind_to` therefore goes back to naming the half-hourly shape, and my "empty for the first time"
+claim is withdrawn.** An axis that is *present* but carries a level rather than a shape is worse
+than an absent one, because the vector looks complete. The AST control forced the correction: the
+axis was declared derived from `half_hourly_electricity_shape` while that component was declared
+blind, and it refused the pair as contradictory. It was right, and the thing that was wrong was the
+derivation — the axis is derived from the **level**.
+
+**What this costs the mission, in the director's words:** *a book where everyone has the same curve
+can't price time of use, flexibility or anything else that depends on when demand happens.* That is
+now demonstrated rather than asserted, and it is the binding limit on the shape axis — not the
+sample size.
+
+**Fixing it needs a source this project does not have.** No published table gives a half-hourly
+curve by household composition; Elexon's profile classes are keyed on meter and tariff type, not on
+who lives there. The one source that would (SERL) is accredited-access and the director has declined
+to pursue it. So the honest state is: the multipliers are hand-set, two of the three are
+accidentally proportional, and no anchored replacement exists today. A control now registers the
+proportional pair and refuses any *undeclared* one, so the defect cannot return under a new name.
 
 ## Does it converge? I said no, and the next point refuted me
 

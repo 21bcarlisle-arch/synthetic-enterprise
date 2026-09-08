@@ -155,11 +155,19 @@ def test_ONLY_THE_HALF_HOURLY_SHAPE_IS_STILL_ABSENT():
 
     So electricity must now be IN, and exactly one axis may remain declared blind."""
     assert dvc.UNCOUNTED_AXES, "the uncounted axes must be enumerated, not left to prose"
-    assert "half_hourly_electricity_shape" not in dvc.UNCOUNTED_AXES, (
-        "the half-hourly shape is now an axis; leaving it on the uncounted list would understate "
-        "what the figure covers as badly as overstating it")
-    assert dvc.REDUCES_OVER.blind_to == (), (
-        "every component of the canon's subject vector must now enter the measurement")
+    # CORRECTED 2026-09-08. This asserted that the half-hourly shape had left the blind list --
+    # that the vector was complete. The director refused the result it licensed and he was right:
+    # `peak_window_share` is in the measurement and carries a LEVEL, because two of the three
+    # occupancy patterns have proportional multipliers and a share is scale-invariant. An axis that
+    # is present but does not carry what its name says is worse than an absent one, so the control
+    # now asserts the blindness is DECLARED rather than asserting it is gone.
+    assert dvc.REDUCES_OVER.blind_to == ("half_hourly_electricity_shape",), (
+        "the half-hourly shape must stay declared blind while the axis standing in for it is "
+        "level-driven -- see tests/simulation/test_occupancy_reshapes_rather_than_relevels.py")
+    assert "half_hourly_shape_by_composition" in dvc.UNCOUNTED_AXES
+    assert dvc.PEAK_WINDOW_IS_LEVEL_DRIVEN is True, (
+        "if the multipliers gain a real shape distinction this flag comes off, and this control "
+        "should tighten with it rather than being deleted")
     assert "annual_electricity_kwh" in dvc.AXES, (
         "annual electricity is observed in NEED and has no W2_19 dependency; deferring it is what "
         "kept the answer a floor")
