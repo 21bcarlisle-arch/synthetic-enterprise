@@ -3925,6 +3925,25 @@ def _redraw_band_clause(point, stability: dict | None) -> str:
     to translate first; keeping the sentence free of it means the feed's own bytes are what a
     reader meets, and the attribution rung can compare them without a second copy of the door's
     formatter.
+
+    AND THE SECOND HALF OF THE SENTENCE HAD THE DEFECT THE FIRST HALF WAS FIXED FOR (2026-09-08,
+    the sweep the band-table landing asked for). The pointer at the table became a LANDMARK --
+    "directly below this headline" -- because this sentence has more homes than its producer can
+    know. The very next clause then said "the figure ABOVE", which is a claim about wherever it
+    happens to render, and this sentence renders in at least three places: its own `redraw_band`
+    field, `verdict_withheld_because`, and -- three times over, once per leg -- inside the single
+    `#arms-headline` paragraph that `_leg_clause` composes. In that paragraph "the figure above"
+    resolves to whichever figure a reader last passed, and for the two leg copies that is the
+    WHOLE-ADVANTAGE figure and not the leg's own: on the live publish the selection leg's copy sat
+    below £17,739 and claimed placement in a family spanning -£3,075 to £1,200. Nothing was red,
+    for the same reason nothing was red about the first half -- every control asked whether the
+    sentence named the band table, none asked what "above" was measured from.
+
+    THE REMEDY IS A NAME, NOT A DIRECTION. "the published draw" is the band table's own column
+    header for exactly this quantity, so it names the thing rather than a position, is true from
+    every home, and cannot rot into a lie by the sentence gaining a fourth one.
+    `site/test_a_payload_string_with_more_than_one_home_carries_no_here_relative_pointer.py`
+    sweeps every feed for the same shape rather than trusting this paragraph.
     """
     if not (stability or {}).get("checked"):
         return ""
@@ -3938,9 +3957,13 @@ def _redraw_band_clause(point, stability: dict | None) -> str:
     if None in (low, high, mean, value):
         return ""
     where = "ABOVE" if value > mean else "BELOW" if value < mean else "exactly AT"
+    # A NAME, NEVER A DIRECTION FROM HERE -- see the docstring. This sentence is composed into the
+    # headline once per leg, so "the figure above" named the whole advantage from inside a leg's
+    # own clause; "the published draw" is the band table's column header for this contrast's
+    # figure and means the same thing from every home the sentence has or gains.
     return (
         "The re-draws themselves are set out contrast by contrast in the band table directly "
-        "below this headline, lowest, mean and highest; the figure above sits {where} the "
+        "below this headline, lowest, mean and highest; the published draw sits {where} the "
         "centre of its own family."
     ).format(where=where)
 
