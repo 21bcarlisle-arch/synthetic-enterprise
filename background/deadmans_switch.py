@@ -159,6 +159,7 @@ _ORIGIN_FORK_KEY = "deadman_origin_fork"
 #: class by becoming invisible to it rather than by being repaired.
 ORIGIN_RACE_EPISODE_FILE = OBSERVABILITY_DIR / ".origin_race_episode.json"
 _STATUS_STALE_KEY = "deadman_status_stale"
+_LAUNCH_LIVENESS_KEY = "deadman_launch_liveness"
 
 
 def log(msg: str, path=None) -> None:
@@ -921,6 +922,50 @@ def _check_status_honesty() -> None:
     log(f"STATUS STALE checked (notify-gated): {st['detail']}")
 
 
+def _check_launch_liveness() -> None:
+    """Re-ask every launch record still claiming `live`, and page when one has gone stale.
+
+    THE SAME SHAPE AS `_check_status_honesty` ABOVE, on the same cadence and for the same reason: a
+    document says something is running, and nothing in the architecture ever asks whether that is
+    still true. There it is LATEST.md describing a dead daemon; here it is a record describing a
+    detached run that has since died or finished.
+
+    WHY THIS BELONGS ON A TIMER AND NOT ONLY IN A GATE. The drawn item asks that a document reading
+    "in flight" be contradicted *by something other than a person checking a pid*. A `--check` that
+    only ever runs when someone types it is still a person checking, one indirection along; the
+    contradiction has to arrive without being asked for. Four launches of one job died with a
+    document asserting each of them alive for hours, and every catch was a human going to look.
+
+    IT PAGES ONCE PER STALE CLAIM, NOT EVERY CYCLE. `check()` writes the verdict and the evidence
+    back into the record, so the claim stops being stale the moment it is settled; the next cycle
+    finds nothing and is silent. That is why the alarm is keyed to the settled count and not to a
+    standing condition -- there is no standing condition to re-escalate, only an event.
+
+    A CHECK THAT CANNOT RUN MUST NOT CRASH THE DEADMAN CYCLE, and must not clear the alarm either:
+    an exception here means we did not look, which is the one thing this module refuses to report
+    as an answer.
+    """
+    try:
+        from background import launch_liveness
+        stale, lines = launch_liveness.check()
+    except Exception as e:  # noqa: BLE001 -- see docstring: we did not look, so we say nothing
+        log(f"launch-liveness check error: {e}")
+        return
+    if not stale:
+        clear_transition(_LAUNCH_LIVENESS_KEY)
+        return
+    contradicted = [ln.strip() for ln in lines if ln.strip().startswith("CONTRADICTS")]
+    notify(
+        f"[LAUNCH STALE] {stale} launch record(s) claimed a run was in flight and it is not. "
+        + (" ".join(contradicted) if contradicted else "No document was named as asserting it.")
+        + " The record now carries the verdict and the evidence, so the claim is settled; this is "
+        "the contradiction arriving without anyone checking a pid.",
+        kind="real_alarm", transition_key=_LAUNCH_LIVENESS_KEY,
+        state=f"settled:{stale}", re_escalate_after=RE_ESCALATE_SECONDS,
+    )
+    log(f"LAUNCH STALE settled {stale} record(s): {' | '.join(lines)}")
+
+
 def _check_repo_not_bare() -> None:
     """H26 (2026-07-18): fire the cause-agnostic core.bare corruption guard BETWEEN commits, not
     only at the next `tree_lock()` acquisition. `tree_lock.assert_repo_not_bare()` already covers
@@ -1086,6 +1131,7 @@ def run_cycle() -> None:
     _check_worktree_reap()
     _check_origin_fork()
     _check_status_honesty()
+    _check_launch_liveness()
     _check_repo_not_bare()
     _check_operational_layer_signal()
     _check_content_publishing()
