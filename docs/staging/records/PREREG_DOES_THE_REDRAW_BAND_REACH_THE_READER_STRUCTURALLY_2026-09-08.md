@@ -141,3 +141,70 @@ The level leg's own clause is composed by `_composition_in_this_world`, which pr
 range and its sign change in prose of its own. That is a *fourth* statement of the same family,
 beside the level leg's row in the table, and it was out of scope here: it is a different producer
 with a different sentence and its own controls. It is the next one to collapse.
+
+---
+
+# PRE-REGISTRATION 2 — collapsing the FOURTH home, and what must NOT move
+
+**2026-09-08, later. Lane 0 delivery, `the-level-legs-clause-is-the-bands-fourth-home`.** Written
+and landed BEFORE the edit, so the predictions below can refute the diagnosis rather than describe
+it. The account is appended under this section, beside them, never in place of them.
+
+## The premise, re-measured at draw time
+
+Alive. `656a45f54` is an ancestor of `origin/main` and its own message names this residue as still
+open. At `fdc16f4c6` the recital is still in the tree:
+`_composition_in_this_world` composes `the level leg runs {lo} to {hi} and CHANGES SIGN` from
+`min(measured)`/`max(measured)` over `floor_current["seeds"][*]["level_advantage_gbp"]` — the same
+rows `_verdict_stability(floor_current, bound, LEVEL_CONTRAST)` reduces to `redraw_min_gbp` and
+`redraw_max_gbp`, which `#arms-redraw` renders as the price-level row's Lowest and Highest cells.
+
+## What the item did not know, and it changes what "done" can claim
+
+**On today's publish the refusal does not fire.** `current_world.composition.readable` is `true`
+and `why_not_readable` is `null`, because this world's level leg is sign-stable: £18,582 /
+£20,337 / £19,569, all positive. So the fourth home is **latent, not live** — it is a sentence that
+becomes a second home for the price-level row's numbers on any world whose level leg straddles
+zero, which is the state the leg was in as recently as the `NOISE_FLOOR_ONLY_LIVE` floor
+(-£882.45 / +£1,733.38 / +£9,085.08).
+
+That is a weaker claim than "a reader is meeting two homes today" and it is the true one. It also
+says where the control has to live: on the substituted straddling floor, in the generator's unit
+test, not at the door.
+
+## Predictions — filed before the edit
+
+1. **No published byte moves.** `site/data/value_arms.json` regenerates identical, because the
+   branch being edited is unreachable on this world's floor. If any published figure or sentence
+   moves, the diagnosis above is **wrong** — it would mean the refusal fires somewhere I have not
+   found — and the finding is that, not the collapse.
+2. On the straddling floor the refusal will carry a **pointer** at the band table and will contain
+   **neither** `£-882.45` **nor** `£9,085.08`, while `level_leg.verdict_stability` carries both.
+3. `min(measured)` and `max(measured)` will equal `redraw_min_gbp` and `redraw_max_gbp` **exactly**
+   on that subject. This is asserted, not assumed: a pointer at a table holding different numbers
+   is worse than the recital it replaced, and two routes to one number is this file's named cost.
+4. **The share range stays in prose.** `The share itself spans {slo} to {shi}` is a range of
+   `level_share_of_advantage`, a ratio; `#arms-redraw` has three sterling columns and no share
+   column, so the table is not its home and retiring it would be a **deletion dressed as a
+   collapse**. Same test as `656a45f54` applied to the placement word: what stays is what no cell
+   carries.
+5. **`CHANGES SIGN` stays**, for the same reason. It is a *reading* of the family, not a member of
+   it. `test_the_level_share_is_refused_when_its_numerator_has_no_sign` keys to that string and
+   must stay green with nothing edited in it.
+6. **The door file stays green with no edit.** `_composition_defects` matches
+   `_door_prose(why_not_readable)[:80]`; the first 80 characters are before the clause being
+   replaced. Predicted: 90 passed, 1 skipped, unchanged.
+7. **The pointer must be fail-closed and the fallback must be reachable.** Where the table's
+   price-level row carries no family — no bound read in this world, or a seed row missing the
+   contrast — the refusal must **recite the numbers**, because then prose is the only home and a
+   pointer would send the reader to an amber `NOT RE-DRAWN` cell. Predicted: a two-subject control
+   where `level_stability` is the ONLY thing that moves renders two different refusals.
+
+## The poisons to be run, and what each must red
+
+| Poison | Predicted |
+|---|---|
+| restore the min/max recital beside the pointer | **RED** on the new one-home control, and only there |
+| point at the table with `level_stability` not `checked` | **RED** on the fallback leg of the same control |
+| substitute the whole advantage's family for the level leg's | **RED** on the identity assert (prediction 3) |
+| drop `CHANGES SIGN` | **RED** on the existing sign control, untouched |
