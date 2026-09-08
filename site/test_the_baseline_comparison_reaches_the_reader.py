@@ -100,7 +100,7 @@ DD_ARMS = SITE / "data" / "dd_opening_arms.json"
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
           "arms-market", "arms-sample", "arms-departure", "arms-svt-belief",
-          "arms-composition", "arms-redraw")
+          "arms-composition", "arms-redraw", "arms-legs-first")
 
 
 def _text(fragment: str) -> str:
@@ -4034,3 +4034,158 @@ def test_the_two_ABSENCES_are_told_apart_on_the_page():
     other = _text(_render(missing)["arms-method"])
     assert "generated before the fixed-horizon estimand existed" in other
     assert "does not add up" not in other
+
+
+# ── the split IS the headline, and the selection leg's refusal reaches a reader ───────────────
+#
+# WHY THESE ARE HERE AND NOT IN A NEW FILE. Same page, same door, same harness, same PANELS
+# tuple -- a second module would have re-declared `_render`, `_text` and `live` to control one
+# more element of the section this file already owns.
+#
+# WHAT THEY WERE BUILT OUT OF. `current_world.selection_leg.verdict_withheld_because` and both
+# legs' `redraw_band` were computed on every publish and RENDERED NOWHERE on this site:
+# `redrawBand` collected `withheld` into its row objects and then never printed it. So the page
+# stated a composite advantage of GBP 17,739 as its headline, of which GBP 17,468 is the price
+# LEVEL, while the leg that is actually the thesis -- the choosing, GBP 270 -- carried a
+# computed refusal saying its direction depends on which draw the run made, and no reader could
+# see it. The position on whether that composite is the wrong headline quantity at all is
+# docs/design/THE_LEVEL_LEG_IS_AVAILABLE_TO_THE_FLAT_RULE_SUPPLIER_2026-09-08.md.
+#
+# EACH NAMES THE DEFECT IT FIRES ON. The reachability leg is
+# `test_MUTATION_a_dropped_leg_renders_as_a_named_absence_and_the_sum_is_withheld`, which drives
+# BOTH states -- a guard that refused every feed would pass the absence half and fail the
+# present half.
+
+
+def test_the_split_block_precedes_the_composite_headline_in_the_document():
+    """The ordering claim, and it is a claim about the SOURCE, which is where order lives.
+
+    The render harness returns a dict of elements, so it cannot see document order at all. This
+    is therefore deliberately a source-text control and is named as one: it proves the block is
+    ahead of the headline, and the controls below prove the block says something.
+
+    Fires on: moving `#arms-legs-first` back under the headline, which is the whole defect --
+    a reader who meets the sum first has already read a price level as an inference.
+    """
+    source = DOOR.read_text(encoding="utf-8")
+    legs = source.index('id="arms-legs-first"')
+    headline = source.index('id="arms-headline"')
+    assert legs < headline, (
+        "the split renders BELOW the composite headline, so a reader meets GBP 17,739 as the "
+        "advantage before meeting the two legs it is made of")
+
+
+def test_both_legs_reach_the_reader_with_their_own_figures_before_the_sum(live):
+    """Both legs, both figures, and the total stated AFTER them inside the same block.
+
+    Fires on: rendering only the bigger leg; rendering the total first; dropping either figure.
+    """
+    feed = _live_feed()
+    cw = feed["current_world"]
+    rendered = live["arms-legs-first"]
+
+    selection = _gbp(cw["selection_leg"]["figure_gbp"])
+    level = _gbp(cw["level_leg"]["figure_gbp"])
+    total = _gbp(cw["value_advantage_gbp"])
+
+    for label, figure in (("choosing", selection), ("price level", level)):
+        assert figure in rendered, (
+            "the {} leg's own figure {} never reaches the reader, so the split is a heading "
+            "over one number".format(label, figure))
+    assert total in rendered, "the block states no total at all"
+
+    # THE ORDER INSIDE THE BLOCK, which is the point of the block. The sum is last.
+    assert rendered.index(total) > max(rendered.index(selection), rendered.index(level)), (
+        "the composite total is printed before one of the legs it is made of")
+    # ...and the thesis's own leg is the one the reader meets first.
+    assert rendered.index(selection) < rendered.index(level), (
+        "the price level -- the leg that is value MOVED -- is met before the choosing, which is "
+        "the only leg the thesis is about")
+
+
+def test_the_selection_legs_withheld_verdict_reaches_the_reader(live):
+    """The field this whole block was built for: a computed refusal that rendered nowhere.
+
+    Fires on: dropping `verdict_withheld_because` from the render; printing a direction for a
+    leg the feed refuses to give one for.
+    """
+    feed = _live_feed()
+    selection = feed["current_world"]["selection_leg"]
+    if not selection.get("verdict_withheld_because"):
+        pytest.fail("the live feed states a direction for the selection leg, so this control "
+                    "cannot run -- reported as a failure and never skipped, because a control "
+                    "that quietly stops asking is the failure it was written against")
+
+    rendered = live["arms-legs-first"]
+    assert "NO DIRECTION IS STATED FOR THIS LEG" in rendered
+    # The REASON, in the feed's own words, not a paraphrase this page composed.
+    assert _door_prose(selection["verdict_withheld_because"])[:120] in rendered, (
+        "the leg is marked withheld and the run's own reason for withholding it does not reach "
+        "the reader, which reads as a page being coy rather than a run being unable to say")
+
+
+def test_the_resolved_leg_is_not_given_the_withheld_legs_sentence(live):
+    """The two verdicts must not be interchangeable, or one sentence renders for both states.
+
+    Fires on: ambering both legs; giving the resolved leg a refusal; swapping the two branches.
+    """
+    feed = _live_feed()
+    level = feed["current_world"]["level_leg"]
+    if level.get("resolved") is not True:
+        pytest.fail("the live feed does not resolve the level leg, so the two-state claim this "
+                    "control makes has only one state on screen")
+
+    rendered = live["arms-legs-first"]
+    assert "A direction IS stated for this leg" in rendered
+    # Both states on one screen at once is the whole assertion: one withheld, one stated.
+    assert "NO DIRECTION IS STATED FOR THIS LEG" in rendered, (
+        "only one verdict state renders, so a page that printed the same sentence for every leg "
+        "would pass every other leg of this control")
+    # ...and the resolved leg's own band sentence is what carries its bound.
+    assert _door_prose(level["redraw_band"])[:80] in rendered, (
+        "the resolved leg states a direction and never says across what spread")
+
+
+def test_MUTATION_a_dropped_leg_renders_as_a_named_absence_and_the_sum_is_withheld():
+    """POISON ROUND FIRST, then the absence -- `survived` means two opposite things otherwise.
+
+    A split with one leg on screen and a total beside it reads as a split that was measured and
+    came out one-sided. It was not measured; the leg is missing.
+
+    Fires on: rendering the surviving leg alone with the composite total still printed.
+    """
+    # THE PRESENT STATE, so a renderer that refused everything cannot pass the half below.
+    present = _render(copy.deepcopy(_live_feed()))["arms-legs-first"]
+    assert "NOT SPLIT OUT" not in present, (
+        "the live feed carries both legs and the block already calls one of them absent")
+    assert _gbp(_live_feed()["current_world"]["value_advantage_gbp"]) in present
+
+    feed = copy.deepcopy(_live_feed())
+    feed["current_world"].pop("selection_leg", None)
+    rendered = _render(feed)["arms-legs-first"]
+
+    assert "NOT SPLIT OUT" in rendered, "a leg the feed does not carry vanished from the page"
+    assert "No total is stated here" in rendered, (
+        "one leg is missing and the composite total still prints beside the other, which is the "
+        "undivided headline wearing a split's clothes")
+    assert _gbp(feed["current_world"]["value_advantage_gbp"]) not in rendered
+
+
+def test_MUTATION_a_leg_with_no_verdict_and_no_reason_renders_as_unread_not_as_quiet():
+    """The third state, and it is the flattering one if nothing names it.
+
+    `resolved: null` with no `verdict_withheld_because` is a leg nobody asked about. Rendered
+    silently it reads exactly like a leg with nothing to report.
+
+    Fires on: collapsing the no-verdict branch into either of the other two.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["current_world"]["level_leg"]["resolved"] = None
+    feed["current_world"]["level_leg"]["verdict_withheld_because"] = None
+    rendered = _render(feed)["arms-legs-first"]
+
+    assert "NO DIRECTION IS STATED FOR THIS LEG, AND NO REASON IS GIVEN" in rendered
+    assert "this leg is unread rather than unremarkable" in rendered
+    # It is NOT the resolved sentence, and the figure still renders -- an unread leg is still a leg.
+    assert "A direction IS stated for this leg" not in rendered
+    assert _gbp(feed["current_world"]["level_leg"]["figure_gbp"]) in rendered

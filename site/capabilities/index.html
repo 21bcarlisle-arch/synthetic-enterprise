@@ -399,6 +399,29 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   arm actually charged. The third run is what separates <em>choosing better</em> from
   <em>charging more</em>. Every figure below is what the world did, not what the company
   believed.</p>
+  <!-- THE TWO LEGS BEFORE THE SUM, AND THIS IS THE HEADLINE NOW.
+       Until 2026-09-08 a reader met the composite advantage first — one number, stated as though
+       it were the thesis's own quantity — and reached the split three panels down. £17,468 of
+       £17,739 is the price LEVEL, which is value moved, and £270 is the CHOOSING, which is the
+       only leg that could be value made. A composite headline reads as inference while being
+       98.5% something else, so the legs come first and the sum comes after them.
+       WHAT IS NEW HERE AND NOT A SECOND HOME. Two feed fields reached NO reader anywhere on this
+       site before this block: each leg's `verdict_withheld_because` and each leg's `redraw_band`.
+       The band table below collects `verdict_withheld_because` into its row objects and then
+       never renders it — so the selection leg's refusal, the one thing that says the direction
+       depends on which draw the run made, was computed every publish and published nowhere.
+       This block is that field's one home. The min/mean/max NUMBERS stay the band table's and
+       are deliberately not repeated here, and the level share stays `#arms-composition`'s.
+       WHETHER THE LEVEL LEG IS AN ADVANTAGE AT ALL is a question this page raises and cannot
+       settle in a caption: docs/design/THE_LEVEL_LEG_IS_AVAILABLE_TO_THE_FLAT_RULE_SUPPLIER_2026-09-08.md
+       takes a position on it, and the pointer is a repository path rather than a direction on
+       this page, so it stays true wherever this block is moved to.
+       ON THE ONE POINTER THIS BLOCK CARRIES AND DOES NOT OWN: each leg's `redraw_band` ends
+       "the band table directly below this headline". That sentence is the producer's and stays
+       true here — the band table is still directly below the headline; this block is above it.
+       If the band table is ever moved, the producer's wording is what has to move with it, not
+       a copy of it kept here. -->
+  <div id="arms-legs-first" style="margin:0 0 14px;"></div>
   <p id="arms-headline" style="margin:0 0 10px;font-weight:600;"></p>
   <!-- THE RE-DRAW BAND, FROM THE FIELDS AND NOT FROM A SENTENCE, AND NOW ITS ONLY HOME. Until
        2026-09-08 the headline above ALSO said the advantage spans £451 to £2,434 and averages
@@ -875,6 +898,89 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      with no re-draw renders "NOT RE-DRAWN" in amber and the reason, never a blank cell and never
      a dash — an unbanded figure with an empty column beside it reads as a figure whose band was
      zero, which is the flattering reading of the state this block was built to expose. */
+  /* THE SPLIT AS THE HEADLINE — each leg with its own verdict and its own band sentence, both
+     read straight off the feed, before the reader is shown the sum.
+
+     FAIL CLOSED ON EVERY BRANCH, and the branches are not decoration. A leg the feed does not
+     carry renders as a named absence, never as a missing row: a split with one leg on screen
+     reads as a split that was measured and came out one-sided. A leg that states no direction
+     AND gives no reason renders in amber as exactly that — the flattering reading of a null
+     `resolved` is "no news", and it is the state this block exists to expose.
+
+     NOTHING IS AUTHORED. `figure_gbp`, `what_this_leg_is`, `resolved`,
+     `verdict_withheld_because` and `redraw_band` are all the feed's. The only sentence composed
+     here is the sum line, and it states the two legs' own arithmetic in the published draw. */
+  function legVerdict(leg) {
+    if (leg.verdict_withheld_because) {
+      return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
+        + "<strong>NO DIRECTION IS STATED FOR THIS LEG.</strong> "
+        + prose(leg.verdict_withheld_because) + "</p>";
+    }
+    if (leg.resolved === true) {
+      return '<p style="margin:4px 0 0;font-size:12.5px;">'
+        + "<strong>A direction IS stated for this leg</strong> &mdash; the figure clears the "
+        + "spread its own seed re-draws move it across. " + prose(leg.redraw_band || "") + "</p>";
+    }
+    return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
+      + "<strong>NO DIRECTION IS STATED FOR THIS LEG, AND NO REASON IS GIVEN.</strong> The feed "
+      + "carries neither a resolved verdict nor a withheld one for it, so this leg is unread "
+      + "rather than unremarkable." + "</p>";
+  }
+
+  function legsFirst(cw) {
+    var lead = '<p style="margin:0 0 8px;font-size:13px;">'
+      + '<span style="color:var(--amber);font-weight:600;">The advantage has two legs and only '
+      + "one of them is the thesis.</span> Choosing better is value MADE; charging more is value "
+      + "MOVED. They are shown here separately, each with its own verdict, before they are shown "
+      + "as a sum &mdash; a reader who meets the total first has already read a price level as "
+      + "an inference, and no split met afterwards undoes that.</p>";
+    if (!cw || !cw.available) {
+      return lead + '<p style="margin:0;font-size:13px;color:var(--amber);">'
+        + "<strong>This publish states no split.</strong> There is no current-world run behind "
+        + "this section, so there is no advantage here to divide into legs. "
+        + prose(cw && cw.why_not ? cw.why_not : "") + "</p>";
+    }
+    var specs = [
+      ["selection_leg", "The choosing", "This is the thesis's own quantity"],
+      ["level_leg", "The price level", "This is the other leg, and it is value moved"]
+    ];
+    var present = [];
+    var blocks = specs.map(function (spec) {
+      var leg = cw[spec[0]];
+      if (!leg || gbp(leg.figure_gbp) === null) {
+        return '<div style="margin:0 0 10px;"><p style="margin:0;font-size:13px;'
+          + 'color:var(--amber);"><strong>' + esc(spec[1])
+          + " &mdash; NOT SPLIT OUT.</strong> This publish carries no figure for this leg, so "
+          + "the advantage below is undivided and the other leg on its own is not the split."
+          + "</p></div>";
+      }
+      present.push(leg);
+      return '<div style="margin:0 0 10px;">'
+        + '<p style="margin:0;font-size:13px;"><strong>' + esc(spec[1]) + " &mdash; "
+        + esc(signed(leg.figure_gbp)) + ".</strong> " + esc(spec[2]) + ". "
+        + prose(leg.what_this_leg_is || "") + "</p>"
+        + legVerdict(leg) + "</div>";
+    }).join("");
+    /* THE SUM COMES LAST AND SAYS SO. It is stated only when both legs are on screen: a total
+       printed beside one leg is the composite headline again, wearing a split's clothes. */
+    var sum = null;
+    if (present.length === specs.length && gbp(cw.value_advantage_gbp) !== null) {
+      sum = '<p style="margin:0;font-size:13px;">'
+        + "<strong>Only then, the sum.</strong> In this published draw the two legs together are "
+        + esc(gbp(cw.value_advantage_gbp))
+        + ", and that total is what the sentence below states. The bound on each leg is the band "
+        + "table under it; what the total is made of is the composition panel further down. "
+        + "Whether the price-level leg is an advantage a flat-rule supplier could have taken too "
+        + "is argued in docs/design/"
+        + "THE_LEVEL_LEG_IS_AVAILABLE_TO_THE_FLAT_RULE_SUPPLIER_2026-09-08.md.</p>";
+    } else {
+      sum = '<p style="margin:0;font-size:13px;color:var(--amber);">'
+        + "<strong>No total is stated here.</strong> Both legs are not on screen, so a sum "
+        + "printed beside them would be the undivided figure again.</p>";
+    }
+    return lead + blocks + sum;
+  }
+
   function redrawBand(cw) {
     if (!cw || !cw.available) {
       return '<p style="margin:0;font-size:13px;color:var(--muted);">'
@@ -982,6 +1088,11 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + (d.reason || "");
         return;
       }
+      /* THE SPLIT, ABOVE THE COMPOSITE SENTENCE. Rendered before the headline is assigned so
+         that a throw inside the composite render cannot leave the page showing a sum with no
+         legs — the one ordering this block was built to make impossible. */
+      $("arms-legs-first").innerHTML = legsFirst(d.current_world);
+
       $("arms-headline").innerHTML = prose(d.headline)
         + (d.provisional ? ' <span class="pill pill-building">Provisional</span>' : "");
 
