@@ -13,6 +13,7 @@ from pathlib import Path
 
 from background import generate_units as G
 from background import process_reconciler as R
+from tests.background.test_process_reconciler import kill_path_offenders
 
 _BG = Path(R.__file__).resolve().parent
 
@@ -70,20 +71,22 @@ def test_g_l3_unit_failed_and_crashlooping_alarm():
 # ── §9.4 reaper gone: no process-kill path anywhere; exit-143 impossible by construction ──
 
 def test_reaper_absent_no_kill_path_in_background():
-    kill_call = re.compile(r"os\.kill\s*\(|signal\.SIGTERM|signal\.SIGKILL")
-    import glob
-    # POPULATION FLOOR (2026-08-27). Every assertion is INSIDE this loop, so a glob that
-    # matched nothing would pass and the "impossible by CONSTRUCTION" claim above would be
-    # unbacked. This is a safety control -- the exit-143 vector that kills an interactive
-    # session -- so a vacuous green is the expensive kind.
-    _scanned = glob.glob(str(_BG / "*.py"))
-    assert len(_scanned) >= 20, (
-        f"only {len(_scanned)} background modules scanned -- the population collapsed, so "
+    """THE SCAN IS IMPORTED, NOT RE-SPELLED (2026-09-08). This carried a verbatim copy of
+    `test_process_reconciler`'s substring scan, which contradicted this module's own docstring
+    above: it calls itself the end-to-end re-assertion of §9 and names that module as the
+    piece-wise mechanism. Both copies read raw source, so an accurate comment saying the reaper
+    is gone was a red on a safety wall -- and the fix landing in one copy would have left the
+    other, which is exactly how the substring class survived four instance fixes. The prose and
+    fail-closed reasoning live with the scan."""
+    offenders, scanned = kill_path_offenders(_BG)
+    # POPULATION FLOOR (2026-08-27). The verdict is a list, so a glob that matched nothing would
+    # pass and §9's "impossible by CONSTRUCTION" claim would be unbacked. This is a safety
+    # control -- the exit-143 vector that kills an interactive session -- so a vacuous green is
+    # the expensive kind.
+    assert len(scanned) >= 20, (
+        f"only {len(scanned)} background modules scanned -- the population collapsed, so "
         "this control is asserting nothing about the kill path")
-    for path in glob.glob(str(_BG / "*.py")):
-        src = Path(path).read_text()
-        assert "def reap_orphan" not in src, path
-        assert kill_call.search(src) is None, f"{path}: a process-kill call reappeared"
+    assert offenders == [], offenders
 
 
 def test_exit_143_invariant_still_holds_against_console_sanctity(tmp_path, monkeypatch):

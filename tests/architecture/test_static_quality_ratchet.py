@@ -721,7 +721,17 @@ RUFF_BASELINE: dict[str, int] = {
     #             a `git archive HEAD` extract overlaid with exactly this commit's files: 1326 there
     #             against 1328 at clean HEAD. A baseline frozen from the dirty tree would red the
     #             live-tree control the moment this landed alone.  SHRINK-ONLY.
-    "I001": 1310,  # lowered 2026-09-07 (the CM levy commons derivation control): -1 more, in
+    "I001": 1309,  # lowered 2026-09-08 (the substring-control residue: five source-scanning
+    #             controls re-read through `tools/python_code_text`): -1, in
+    #             `tests/background/test_process_reconciler.py`, whose block was unsorted AT HEAD
+    #             and which this commit had open anyway to give the kill-path scan one home.
+    #             THE SHARED TREE READS I001 1308, ONE LOWER, AND THAT -1 IS NOT BANKED HERE --
+    #             another lane holds an uncommitted I001 fix and it is theirs to lower. Measured
+    #             in a clean `git worktree` extract of HEAD overlaid with exactly this commit's
+    #             five files: 1309 there against 1310 at clean HEAD, and 1308 in the dirty shared
+    #             tree. Banking 1308 would make the floor unreachable the moment this landed
+    #             alone, reding every lane until the neighbour committed.  SHRINK-ONLY.
+    # (was 1310) lowered 2026-09-07 (the CM levy commons derivation control): -1 more, in
     # `tests/simulation/test_phase30a_cm_levy.py`, which this commit had open anyway to re-key
     # `test_clamps_post_2024` off today's answer. Its block was unsorted AT HEAD -- proved with
     # `git show HEAD:tests/simulation/test_phase30a_cm_levy.py | ruff check --select I001 -`,
@@ -832,7 +842,10 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2287  # 2288 -> 2287 on 2026-09-08: the E402 above, same attribution.
+RUFF_BASELINE_TOTAL = 2286  # 2287 -> 2286 on 2026-09-08: the I001 above, same attribution --
+# this commit's own `tests/background/test_process_reconciler.py`, and NOT the neighbouring
+# lane's second uncommitted I001 fix, which the dirty shared tree also shows.
+# 2288 -> 2287 on 2026-09-08: the E402 above, same attribution.
 # 2289 -> 2288: the one I001 in test_phase30a_cm_levy.py above.
                             # 2291 -> 2289 (a51): the two I001s above.
                             # `tests/company/test_phase_nx_ic_flexibility.py` -- a file already red

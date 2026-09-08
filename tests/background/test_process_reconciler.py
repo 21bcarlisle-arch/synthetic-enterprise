@@ -6,11 +6,13 @@ distinguishes intended-down from failed, and today's incident (a HELD daemon res
 a permanent invariant here — incidents become invariants."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
 
 from background import process_reconciler as R
+from tools.python_code_text import searchable
 
 
 def _status(results, session):
@@ -267,29 +269,96 @@ def test_health_check_expected_panes_is_derived_and_excludes_held():
     assert "executor-daemon" not in health_check.EXPECTED_PANES   # dark -> excluded (not a fault when down)
 
 
+#: THE ONE HOME of the kill-path scan. `test_substep4_exit` imports it rather than carrying its
+#: own copy: that module's own docstring calls itself the end-to-end re-assertion of §9 and names
+#: THIS module as the piece-wise mechanism, so two verbatim copies contradicted the architecture
+#: they both describe. A private copy is also how the substring class survived four instance
+#: fixes -- a helper nobody can import gets rewritten rather than reused.
+_KILL_CALL = re.compile(r"os\.kill\s*\(|signal\.SIGTERM|signal\.SIGKILL")
+
+
+def kill_path_offenders(root: Path) -> tuple[list[str], list[str]]:
+    """Modules under `root` carrying the reaper or a process-kill call. `(offenders, scanned)`.
+
+    READ AS CODE, NOT AS TEXT (2026-09-08). This scanned raw source, and an accurate comment was
+    therefore a red on a safety wall. Both live near-misses are prose that describes the very
+    absence being enforced: `worker_seat.py` says *"NO reaping / process-killing (os.kill,
+    signal, pkill)"* and `worker_tick.py` says *"NOT os.kill/signals"*. Neither fires only
+    because the character after `os.kill` is `,` and `/` rather than `(` -- a wall held green by
+    the punctuation of a comment. The old docstring conceded the hazard in prose (*"the word may
+    appear in docstrings"*) instead of fixing it, which is the exemption-by-narration shape.
+
+    `searchable` blanks comments and docstrings and falls back to the ORIGINAL text when the
+    source will not parse, so prose cannot fire this and unparseable source is never read as
+    evidence of absence.
+    """
+    offenders, scanned = [], []
+    for path in sorted(root.glob("*.py")):
+        scanned.append(path.name)
+        src = searchable(path.read_text(encoding="utf-8", errors="replace"))
+        if "def reap_orphan" in src:
+            offenders.append(f"{path.name}: the reaper was reintroduced")
+        m = _KILL_CALL.search(src)
+        if m:
+            offenders.append(f"{path.name}: a process-kill call reappeared: "
+                             f"{src[m.start():m.start() + 50]!r}")
+    return offenders, scanned
+
+
 def test_no_reaper_or_interactive_claude_kill_path_exists_anywhere():
     """OPS1 sub-step 4 / SUBSTEP4 §9 permanent invariant: the exit-143 console-kill vector is
-    impossible by CONSTRUCTION (absence), not inference. Grep proves no background module carries
-    the reaper or any process-kill CALL (os.kill / signal.SIGTERM|SIGKILL) — so no code path can
-    ever SIGTERM an interactive claude. The word may appear in docstrings/OOM-classification
-    strings; only an actual call pattern is a regression."""
-    import re
-    import glob
-    kill_call = re.compile(r"os\.kill\s*\(|signal\.SIGTERM|signal\.SIGKILL")
-    here = Path(R.__file__).resolve().parent
-    # POPULATION FLOOR (2026-08-27). Every assertion is INSIDE this loop, so a glob that
-    # matched nothing would pass and the "impossible by CONSTRUCTION" claim above would be
-    # unbacked. This is a safety control -- the exit-143 vector that kills an interactive
-    # session -- so a vacuous green is the expensive kind.
-    _scanned = glob.glob(str(here / "*.py"))
-    assert len(_scanned) >= 20, (
-        f"only {len(_scanned)} background modules scanned -- the population collapsed, so "
+    impossible by CONSTRUCTION (absence), not inference. No background module carries the reaper
+    or any process-kill CALL (os.kill / signal.SIGTERM|SIGKILL) — so no code path can ever
+    SIGTERM an interactive claude."""
+    offenders, scanned = kill_path_offenders(Path(R.__file__).resolve().parent)
+    # POPULATION FLOOR (2026-08-27). The verdict is a list, so a glob that matched nothing would
+    # pass and the "impossible by CONSTRUCTION" claim above would be unbacked. This is a safety
+    # control -- the exit-143 vector that kills an interactive session -- so a vacuous green is
+    # the expensive kind.
+    assert len(scanned) >= 20, (
+        f"only {len(scanned)} background modules scanned -- the population collapsed, so "
         "this control is asserting nothing about the kill path")
-    for path in glob.glob(str(here / "*.py")):
-        src = Path(path).read_text()
-        assert "def reap_orphan" not in src, f"{path}: the reaper was reintroduced"
-        m = kill_call.search(src)
-        assert m is None, f"{path}: a process-kill call reappeared: {src[m.start():m.start()+50]!r}"
+    assert offenders == [], offenders
+
+
+def test_prose_describing_the_absent_reaper_is_not_the_reaper(tmp_path):
+    """POISON ROUND, and it is the live shape rather than an invented one: the two background
+    modules that mention `os.kill` today both do so to record that it is NOT used. Written with
+    the parenthesis a sentence would naturally carry, each was a red on this wall.
+
+    Mutation: drop `searchable` from `kill_path_offenders` and this reds. The whole-tree leg
+    above does NOT -- which is the point, since a control nobody can red on prose is
+    indistinguishable from one nobody has written the prose for yet."""
+    (tmp_path / "honest.py").write_text(
+        '"""The seat does no reaping: it never calls os.kill() and never sends\n'
+        'signal.SIGTERM to a console."""\n'
+        "# The reaper -- `def reap_orphan` -- was deleted on 2026-08-27.\n"
+        "VALUE = 1\n")
+    offenders, scanned = kill_path_offenders(tmp_path)
+    assert scanned == ["honest.py"]
+    assert offenders == [], offenders
+
+
+def test_a_real_kill_call_is_still_caught(tmp_path):
+    """The other half, and the one that makes the leg above safe to add: blanking prose must not
+    blank code. Mutation: make `kill_path_offenders` return `[]` and this reds."""
+    (tmp_path / "reaper.py").write_text(
+        "import os\n\n\ndef def_not_a_reaper(pid):\n    os.kill(pid, 15)\n")
+    offenders, _ = kill_path_offenders(tmp_path)
+    assert len(offenders) == 1 and "process-kill call" in offenders[0], offenders
+
+    (tmp_path / "reaper.py").write_text("def reap_orphan(pid):\n    pass\n")
+    offenders, _ = kill_path_offenders(tmp_path)
+    assert len(offenders) == 1 and "reaper was reintroduced" in offenders[0], offenders
+
+
+def test_unparseable_source_is_not_evidence_of_absence(tmp_path):
+    """FAIL-CLOSED. `searchable` returns the original text when the file will not parse, so a
+    syntax error cannot launder a kill path past this wall. Mutation: have `searchable` return
+    `""` on a parse failure and this reds."""
+    (tmp_path / "broken.py").write_text("def (((:\n    os.kill(pid, 9)\n")
+    offenders, _ = kill_path_offenders(tmp_path)
+    assert len(offenders) == 1, offenders
 
 # ── Publish-gate scope (R10, 2026-07-18): DAEMON-LIFECYCLE test module ──────────
 # Validates pipeline MACHINERY (process/session lifecycle, scheduling, notify transport,

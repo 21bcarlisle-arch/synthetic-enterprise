@@ -57,6 +57,7 @@ from pathlib import Path
 import pytest
 
 from tools import measure_publish_gate_subject_cost as measure
+from tools.python_code_text import imported_modules, searchable
 
 
 @pytest.fixture
@@ -1215,25 +1216,103 @@ def test_no_test_in_this_module_can_reach_the_live_publishers_lock():
             in_use, measure.QUIET_WAIT_SECONDS))
 
 
-def test_any_test_module_that_enters_the_exclusion_redirects_the_lock():
-    """DERIVED from the tree, not from a list this file remembers to extend.
-
-    The population is every test module that can reach `_publisher_exclusion` -- directly, or
-    through `_time_suite`/`_run_measurement`, which is how it was reached unnoticed here (the
-    checkout phase enters it from `_run_measurement`, which no test names). Each such module
-    must redirect `RUN_LOCK_FILE`, or it inherits the wedge."""
+def _exclusion_drivers(tests_root: Path) -> tuple[list[str], list[str]]:
+    """`(drivers, offenders)` under `tests_root`. Takes a root so the poison rounds run THIS
+    scan over a planted tree rather than calling `searchable`/`imported_modules` themselves."""
     entry_points = ("_publisher_exclusion", "_time_suite", "_run_measurement")
-    tests_root = Path(__file__).resolve().parent.parent
     drivers, offenders = [], []
     for path in sorted(tests_root.rglob("test_*.py")):
-        source = path.read_text(encoding="utf-8", errors="replace")
-        if "measure_publish_gate_subject_cost" not in source:
+        raw = path.read_text(encoding="utf-8", errors="replace")
+        imports = imported_modules(raw)
+        # FAIL-CLOSED both ways: source that will not parse cannot be judged a non-driver, and
+        # `searchable` hands back the original text in that case, so an unparseable driver is
+        # still required to carry the redirect.
+        if imports is not None and "tools.measure_publish_gate_subject_cost" not in imports:
+            continue
+        source = searchable(raw)
+        if imports is None and "measure_publish_gate_subject_cost" not in source:
             continue
         if not any(name in source for name in entry_points):
             continue
         drivers.append(str(path.relative_to(tests_root)))
         if "RUN_LOCK_FILE" not in source:
             offenders.append(str(path.relative_to(tests_root)))
+    return drivers, offenders
+
+
+def test_a_comment_mentioning_the_lock_no_longer_excuses_a_driver(tmp_path):
+    """POISON ROUND on the NEGATED leg, which is the dangerous half of the class. Established as
+    a MISSING TEST rather than an equivalence by running it: reverting the scan to raw substrings
+    leaves the live suite green, because no module happens to carry the excusing comment today.
+
+    The planted module is the one a careful author writes -- it drives the measurement and
+    explains in a comment why it does not redirect `RUN_LOCK_FILE`. Under the old reading that
+    comment WAS the redirect. Mutation: drop `searchable` from `_exclusion_drivers` and this
+    reds."""
+    (tmp_path / "test_driver.py").write_text(
+        "from tools import measure_publish_gate_subject_cost as m\n\n"
+        "# This never redirects RUN_LOCK_FILE -- the phase is short enough not to matter.\n"
+        "def test_it():\n    m._run_measurement()\n")
+    drivers, offenders = _exclusion_drivers(tmp_path)
+    assert drivers == ["test_driver.py"], drivers
+    assert offenders == ["test_driver.py"], offenders
+
+
+def test_prose_naming_the_measurement_does_not_recruit_a_module(tmp_path):
+    """The other direction: a module that only MENTIONS the measurement in a docstring is not a
+    driver, so it is never required to carry a lock it has no use for. Mutation: drop
+    `searchable` from `_exclusion_drivers` and this reds."""
+    (tmp_path / "test_bystander.py").write_text(
+        '"""Unrelated. See measure_publish_gate_subject_cost._run_measurement for the phase\n'
+        'timing this deliberately does not use."""\n\n'
+        "def test_it():\n    assert True\n")
+    drivers, offenders = _exclusion_drivers(tmp_path)
+    assert drivers == [] and offenders == [], (drivers, offenders)
+
+
+def test_a_module_that_shells_out_to_the_measurement_is_not_in_the_population(tmp_path):
+    """WHY MEMBERSHIP IS THE IMPORT GRAPH AND NOT `searchable` ALONE, established by running the
+    mutation rather than asserted. Dropping `imported_modules` against the docstring bystander
+    above changes nothing -- `searchable` blanks the docstring, so both readings agree and that
+    leg says nothing about which one is right.
+
+    This input is where they disagree. `searchable` REJOINS argv literals, by design, so a module
+    that shells out to the measurement reads as naming it and is recruited. It is not a member:
+    the population is modules that enter `_publisher_exclusion` IN PROCESS, and redirecting a
+    module-level `RUN_LOCK_FILE` here cannot reach a subprocess anyway -- so demanding the
+    redirect would be asking for a line that does nothing.
+
+    Mutation: replace `imported_modules(raw)` with `None` and this reds."""
+    (tmp_path / "test_shells_out.py").write_text(
+        "import subprocess\n\n"
+        'CMD = ["python3", "-m", "tools.measure_publish_gate_subject_cost",\n'
+        '       "--phase", "_run_measurement"]\n\n'
+        "def test_it():\n"
+        "    subprocess.run(CMD, check=True)\n")
+    drivers, offenders = _exclusion_drivers(tmp_path)
+    assert drivers == [] and offenders == [], (drivers, offenders)
+
+
+def test_any_test_module_that_enters_the_exclusion_redirects_the_lock():
+    """DERIVED from the tree, not from a list this file remembers to extend.
+
+    The population is every test module that can reach `_publisher_exclusion` -- directly, or
+    through `_time_suite`/`_run_measurement`, which is how it was reached unnoticed here (the
+    checkout phase enters it from `_run_measurement`, which no test names). Each such module
+    must redirect `RUN_LOCK_FILE`, or it inherits the wedge.
+
+    READ AS CODE, NOT AS TEXT (2026-09-08). All three legs were substrings over raw source, and
+    the third is NEGATED -- the dangerous direction. A module that drives the measurement and
+    does NOT redirect the lock was excused outright if any comment in it merely mentioned
+    `RUN_LOCK_FILE`, and the comment a careful author writes here is *"this does not touch
+    RUN_LOCK_FILE because ..."*, so the explanation for the defect was also its cover. The first
+    leg was wrong the other way: a module naming this one in a comment was pulled into the
+    population and then required to carry a lock it never needed.
+
+    Membership is now the import graph (`imported_modules`), and both name legs read
+    `searchable`, so prose neither recruits a module nor excuses one."""
+    tests_root = Path(__file__).resolve().parent.parent
+    drivers, offenders = _exclusion_drivers(tests_root)
     # Vacuity guard: this very module is a driver, so an empty population means the scan has
     # gone blind (a rename, a moved tests root) rather than that everything is safe.
     assert str(Path(__file__).resolve().relative_to(tests_root)) in drivers, (

@@ -24,6 +24,7 @@ R15 doctrine proven here, against all three killer patterns:
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 import sys
 import textwrap
@@ -32,6 +33,7 @@ from pathlib import Path
 import pytest
 
 from tests.background import env_constant_sync as ecs
+from tools.python_code_text import searchable
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -49,23 +51,61 @@ def test_registry_is_not_vacuous():
     assert wake.env_var == "SE_WAKE_HMAC_KEY"
 
 
+_ENV_READ = re.compile(
+    r"^([A-Za-z_][A-Za-z0-9_]*)(?:\s*:[^=]+)?\s*=\s*os\.(?:environ\.get|getenv|environ\[)"
+)
+
+
+def _grep_visible_env_constants(root: Path) -> set[str]:
+    """The textual sweep, over a root, so the poison round runs THIS scan rather than calling
+    `searchable` itself -- the catalogued trap of controlling the estimator and not the wiring."""
+    found = set()
+    for path in sorted(root.glob("*.py")):
+        if path.name == "__init__.py":
+            continue
+        for line in searchable(path.read_text(encoding="utf-8")).splitlines():
+            m = _ENV_READ.match(line)
+            if m:
+                found.add(f"background.{path.stem}.{m.group(1)}")
+    return found
+
+
+def test_a_docstring_example_of_an_env_read_is_not_an_env_constant(tmp_path):
+    """POISON ROUND, and it is a MISSING TEST rather than an equivalence -- established by
+    running it. Dropping `searchable` from the sweep leaves the live suite green, because no
+    background docstring happens to carry an unindented env-read example today. The `^` anchor
+    made that look safe: it does exclude comments, which are indented by their `#`. It does not
+    exclude a docstring, where a worked example sits at column zero exactly as real code does.
+
+    So this leg plants the input the tree does not yet contain. Mutation: drop `searchable` from
+    `_grep_visible_env_constants` and this reds; the live leg below still does not."""
+    (tmp_path / "documented.py").write_text(
+        '"""How to configure this module:\n\n'
+        'SE_DEMO_KEY = os.environ.get("SE_DEMO_KEY")\n\n'
+        'Set it before launch."""\n'
+        "import os\n\n"
+        'REAL = os.environ.get("SE_REAL")\n')
+    found = _grep_visible_env_constants(tmp_path)
+    assert found == {"background.documented.REAL"}, found
+
+
 def test_registry_covers_every_grep_visible_env_constant():
     """Independence check on the scanner: a plain textual sweep of the same files must not find
     a top-level env-read assignment the AST scan missed. Guards against the scan quietly
-    narrowing (e.g. a form it stops recognising) without anyone noticing."""
-    import re
+    narrowing (e.g. a form it stops recognising) without anyone noticing.
 
-    pattern = re.compile(
-        r"^([A-Za-z_][A-Za-z0-9_]*)(?:\s*:[^=]+)?\s*=\s*os\.(?:environ\.get|getenv|environ\[)"
-    )
-    found_by_grep = set()
-    for path in sorted((REPO_ROOT / "background").glob("*.py")):
-        if path.name == "__init__.py":
-            continue
-        for line in path.read_text(encoding="utf-8").splitlines():
-            m = pattern.match(line)
-            if m:
-                found_by_grep.add(f"background.{path.stem}.{m.group(1)}")
+    SWEPT OVER CODE, NOT TEXT (2026-09-08). The pattern is `^`-anchored, so a comment cannot
+    match -- but a DOCSTRING can, and the docstrings here are full of worked examples: any module
+    documenting its own contract with an unindented `KEY = os.environ.get("SE_KEY")` line would
+    be reported as an env constant the AST scan "missed", reding this on prose that runs nothing.
+    `searchable` blanks comments and docstrings while preserving offsets and line numbers, so
+    `.splitlines()` and the `^` anchor behave exactly as before.
+
+    The independence is NOT weakened by sharing `tools.python_code_text` with nothing else here:
+    the subject under test is `ecs.build_registry`, which walks the AST for assignment nodes.
+    This sweep still reaches its verdict by an unrelated route -- a regex over lines."""
+    found_by_grep = _grep_visible_env_constants(REPO_ROOT / "background")
+    assert found_by_grep, "the textual sweep found nothing -- it is not an independent check"
     missed = found_by_grep - {c.dotted for c in ecs.build_registry()}
     assert not missed, f"AST scan missed env constants a grep can see: {sorted(missed)}"
 

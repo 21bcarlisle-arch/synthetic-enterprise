@@ -27,6 +27,7 @@ import pytest
 import yaml
 
 from background import pull_forward_proposal as pfp
+from tools.python_code_text import imported_modules
 
 PROJECT = Path(__file__).resolve().parent.parent.parent
 
@@ -385,10 +386,41 @@ def test_live_rendering_is_current():
 
 def test_the_draw_does_not_consult_this_module():
     """The origin note's standing risk: this must never become a permission gate. The
-    supervisor's draw must not import it, and FUT1 must not either."""
+    supervisor's draw must not import it, and FUT1 must not either.
+
+    ASKED OF THE IMPORT GRAPH, NOT OF THE TEXT (2026-09-08). This was
+    `"pull_forward_proposal" not in src` over raw source, and a NEGATED substring is the
+    dangerous half of the class: a comment in `supervisor.py` saying *"the draw must never
+    consult pull_forward_proposal"* -- the most natural way to record this very rule beside the
+    code it governs -- was a red, so the rule punished its own documentation. It was blind in the
+    other direction too, since `importlib.import_module("background.pull_forward" + "_proposal")`
+    contains no such substring. "Must not consult" is a property of the import graph, and
+    `imported_modules` sees it however the import is spelled -- line-broken, aliased, or in a
+    parenthesised `from ... import (...)`."""
     for rel in ("background/supervisor.py", "background/forward_attachment_register.py"):
-        src = (PROJECT / rel).read_text()
-        assert "pull_forward_proposal" not in src, f"{rel} must not consult the door"
+        imported = imported_modules((PROJECT / rel).read_text())
+        assert imported is not None, f"{rel} did not parse -- cannot claim it is clean"
+        assert "background.pull_forward_proposal" not in imported, (
+            f"{rel} must not consult the door")
+
+
+def test_a_comment_naming_the_door_is_not_consulting_it(tmp_path):
+    """POISON ROUND. The comment this rule most invites someone to write must not red it.
+    Mutation: swap `imported_modules` back for `"pull_forward_proposal" not in src` and this
+    reds while the live leg above stays green -- which is why the substring version looked
+    correct for as long as nobody documented the rule where it applies."""
+    src = ("# The draw must never consult pull_forward_proposal: it is a door, not a gate.\n"
+           "import os\n")
+    assert "background.pull_forward_proposal" not in imported_modules(src)
+
+
+def test_a_real_import_of_the_door_is_still_caught():
+    """The other half. Both spellings the substring check would have to be widened for are one
+    question to the AST."""
+    for src in ("from background import pull_forward_proposal\n",
+                "from background.pull_forward_proposal import (\n    release_verdict,\n)\n",
+                "import background.pull_forward_proposal as door\n"):
+        assert "background.pull_forward_proposal" in imported_modules(src), src
 
 
 # ------------------------------------------------- the discharge control (R10 class fix)
