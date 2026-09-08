@@ -198,3 +198,59 @@ class TestItFailsClosed:
         with pytest.raises(CeilingUnavailable) as caught:
             r4.measure(run_path=path)
         assert "NOT a finding that R4 is worthless" in str(caught.value)
+
+
+class TestTheHeadlineSurvivesTheArmItRefuses:
+    """DEFECT (2026-09-08): `headline` read `households_above_the_reference` unconditionally, and
+    only ONE of `tariff_fit_ceiling`'s two returns carries it. On the data-availability refusal --
+    fewer than MIN_HOUSEHOLDS carrying a rate, a reference and an EAC together -- `--save` died
+    with a KeyError and wrote no artefact at all.
+
+    THE COST WAS NOT THIS TOOL'S, WHICH IS WHY IT IS WORTH A CLASS. `site/data/delivery.json` has
+    published *"re-run `python3 -m tools.r4_product_ceiling --save`"* as the remedy for its stale
+    product table since 2026-09-07; three controls in `site/test_harness_delivery_record.py` are
+    red at HEAD waiting for it; and the site lane gates EVERY lane's commit on those. A refusal
+    branch that cannot write its own artefact leaves a command on a published surface that cannot
+    be run, and every lane pays for it.
+
+    BOTH SUBJECTS COME OUT OF `tariff_fit_ceiling` ITSELF, never hand-built: a control fed a
+    hand-written dict would stay green through exactly the shape change that caused this.
+    """
+
+    def _result(self, arm):
+        """The smallest `result` the headline reads, with the arm under test dropped in."""
+        return {
+            "arms": {"tariff_fit": arm,
+                     "time_shifting": {"kg_co2e_per_household_year": 91.7,
+                                       "carbon_value_gbp_per_household_year": 4.03}},
+            "property_attribute_census": {"logs_scanned": 27, "attributes_found": []},
+            "verdict": {"ceilings": ["tariff_fit", "time_shifting"], "floors": ["solar"]},
+        }
+
+    def _arm(self, n):
+        rows = [_pair(f"C{i}", 150.0, 100.0) for i in range(n)]
+        return r4.tariff_fit_ceiling(_events(rows), {f"C{i}": 2000.0 for i in range(n)})
+
+    def test_a_REFUSED_arm_is_headlined_and_never_crashes_the_write(self):
+        arm = self._arm(3)
+        assert arm["bound_kind"] == r4.UNBOUNDED, "this subject is no longer the refusal branch"
+        said = r4.headline(self._result(arm))
+        assert "CANNOT BE SAID" in said, (
+            "the refused arm's coverage is not stated as a refusal: " + said[-400:])
+        assert arm["why"] in said, "the refusal reaches the headline without its reason"
+        assert "BOTH BOUNDED ARMS ARE SMALL" not in said, (
+            "an arm that was REFUSED is published as bounded and small, which is the flattering "
+            "reading of a data-availability failure")
+
+    def test_a_BOUNDED_arm_still_states_its_count_and_calls_both_arms_bounded(self):
+        """The witness that makes the one above a judgement. A headline hard-wired to the refusal
+        wording would pass every leg there and say nothing."""
+        arm = self._arm(r4.MIN_HOUSEHOLDS + 5)
+        assert arm["bound_kind"] == r4.CEILING, "this subject is no longer the bounded branch"
+        said = r4.headline(self._result(arm))
+        assert "BOTH BOUNDED ARMS ARE SMALL" in said
+        assert "CANNOT BE SAID" not in said, (
+            "a bounded arm is reported as unsayable, so the refusal wording is unconditional")
+        assert "{} of {} households".format(
+            arm["households_above_the_reference"], arm["households"]) in said, (
+            "the bounded arm's own coverage count does not reach the headline")

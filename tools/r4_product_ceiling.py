@@ -517,6 +517,22 @@ def measure(run_path: Path | None = None) -> dict:
 
 
 def headline(result: dict) -> str:
+    """The one-paragraph reading of the run.
+
+    THE REFUSED ARM IS A BRANCH HERE, NOT A CRASH. `tariff_fit_ceiling` has two returns, and only
+    the bounded one carries `households_above_the_reference`; this function read that key
+    unconditionally, so the moment the arm took its data-availability refusal -- fewer than
+    MIN_HOUSEHOLDS carrying a rate, a reference and an EAC together -- `--save` died with a
+    KeyError and wrote nothing at all. The cost was not this tool's: `site/data/delivery.json` has
+    been publishing "re-run `python3 -m tools.r4_product_ceiling --save`" as the remedy for a stale
+    product table since 2026-09-07, three controls in `site/test_harness_delivery_record.py` have
+    been red at HEAD on it, and the site lane gates every lane's commit. A refusal branch that
+    cannot even write its own artefact is worse than the refusal, because the message it leaves on
+    the surface names a command that cannot run.
+
+    THE REFUSAL IS STATED, NEVER PAPERED OVER. An arm that could not be bounded says so, in the
+    arm's own words, and the sentence does not silently drop to a smaller claim.
+    """
     arms = result["arms"]
     tariff = arms["tariff_fit"]
     shifting = arms["time_shifting"]
@@ -525,6 +541,16 @@ def headline(result: dict) -> str:
 
     money = (f"£{tariff['gbp_per_household_year']:.2f}"
              if tariff.get("gbp_per_household_year") is not None else "unbounded")
+    # The coverage clause, and it is the ONLY part of the sentence the refusal branch changes.
+    # Written as an f-string inline it read the bounded branch's key on every path.
+    if tariff.get("households_above_the_reference") is None:
+        coverage = (
+            f"and how many of {tariff['households']} households are priced above the market "
+            f"reference CANNOT BE SAID -- {tariff.get('why', 'the arm reported no bound')}"
+        )
+    else:
+        coverage = (f"only {tariff['households_above_the_reference']} of "
+                    f"{tariff['households']} households priced above the market reference at all")
     return (
         f"R4 SPLITS, AND THE SPLIT IS THE ANSWER. Of six products, "
         f"{len(result['verdict']['ceilings'])} are true CEILINGS and {len(floors)} are FLOORS "
@@ -538,11 +564,18 @@ def headline(result: dict) -> str:
         "household-year -- carries no bill saving at all, because this book holds no "
         "time-of-use tariff for a shifted kWh to be cheaper on. So the canon's charge is "
         "confirmed by arithmetic rather than by assertion: the company can make a household "
-        "cheaper and never greener. AND BOTH BOUNDED ARMS ARE SMALL: "
-        f"{money} of bill saving and "
+        "cheaper and never greener. "
+        # "BOTH BOUNDED ARMS ARE SMALL" is false the moment one of them is not bounded, and the
+        # refusal branch is exactly that case. Kept fixed, the sentence reads "both bounded arms
+        # are small: unbounded of bill saving" -- an arm published as SMALL when what happened is
+        # that it was REFUSED, which is the flattering direction and the one this file exists to
+        # avoid taking.
+        + ("AND THE ONE ARM THAT IS BOUNDED IS SMALL, THE OTHER NOT BOUNDED AT ALL: "
+           if tariff.get("gbp_per_household_year") is None
+           else "AND BOTH BOUNDED ARMS ARE SMALL: ")
+        + f"{money} of bill saving and "
         f"£{shifting['carbon_value_gbp_per_household_year']:.2f} of carbon value per "
-        f"household-year, only {tariff['households_above_the_reference']} of "
-        f"{tariff['households']} households priced above the market reference at all. So the "
+        f"household-year, {coverage}. So the "
         "whole of the part of R4 this book can bound is worth a few pounds a household-year, and "
         "any real value in the programme lives in the arms that are FLOORS. R4 IS NOT RETIRED -- "
         "nothing here bounds the measures from above -- but what stands between it and a bound "
