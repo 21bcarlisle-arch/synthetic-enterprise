@@ -144,28 +144,24 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: Read for its figures ONLY when its own `world_identity` matches the live world -- see
 #: `_current_world_contrast`, which refuses rather than reaching for the nearest artefact.
 #:
-#: DELIBERATELY STILL THE 09-03 RUN, and `value_cycle_ab_s1_three_arm_20260908.json` is on disk
-#: beside it holding the current-book re-take. Moving this constant to it was tried on 2026-09-08
-#: and REVERTED in the same turn, for a reason that is a property and not a preference:
+#: WHY THIS WAS PINNED TO THE 09-03 RUN FOR A DAY. Kept as history because the reason is a property
+#: and not a preference, and a reverted attempt recorded beside its result is the only evidence the
+#: constraint was understood before the answer was known. The level arm takes its level from EACH
+#: RUN'S OWN realised median margin (48.25 in the 09-03 run, 20.00 in the 09-08 one), and until
+#: 04:10Z on 2026-09-08 the only noise floor measured in this world was stamped
+#: 2026-09-03T19:06:31Z. Moving this constant ALONE was tried on 2026-09-08 and REVERTED in the
+#: same turn: `_staleness_caveat` correctly refuses a spread older than the point estimate it would
+#: bound, so the page republished its headline 7.6x larger (GBP 2,335.87 -> 17,738.64) with NO
+#: error bar at all -- and an unbounded figure that moved by 7.6x is the most confidently misread
+#: number this page could carry.
 #:
-#: the level arm takes its level from EACH RUN'S OWN realised median margin (48.25 in the 09-03
-#: run, 20.00 in the 09-08 one), and the only noise floor measured in this world is stamped
-#: 2026-09-03T19:06:31Z. `_staleness_caveat` correctly refuses a spread older than the point
-#: estimate it would bound, so re-pointing here alone republishes the headline 7.6x larger
-#: (GBP 2,335.87 -> 17,738.64) with NO error bar at all -- and an unbounded figure that moved by
-#: 7.6x is the most confidently misread number this page could carry.
-#:
-#: WHAT UNBLOCKS IT, and it is running: the undecomposed floor (`--redraw-mode all`, seeds
-#: 11111/22222/33333) re-taken on the SAME commit as the 09-08 arms, `04361d6c7`. A floor stamped
-#: after 2026-09-08T00:19:54Z in world `39a192ce04c1eda8` clears the staleness guard, and THEN both
-#: this constant and `CURRENT_WORLD_NOISE_FLOOR_PATH` move together. Moving either alone is the
-#: defect. See docs/staging/records/
-#: SEAT_RESULT_THE_CURRENT_BOOK_RETAKE_LANDED_AND_ITS_SPLIT_IS_STILL_UNREADABLE_2026-09-08.md.
 #: MOVED 2026-09-08T04:10Z, TOGETHER with `CURRENT_WORLD_NOISE_FLOOR_PATH` below, which is the only
 #: legal way to move either. The floor this waited on landed: `--redraw-mode all`, seeds
 #: 11111/22222/33333, world `39a192ce04c1eda8`, produced by `04361d6c7` -- the SAME world and the
 #: SAME commit as these arms, and stamped 04:10:26Z against the arms' 00:19:54Z, so the bound is
-#: newer than the figure it bounds and the staleness guard is satisfied rather than bypassed.
+#: newer than the figure it bounds and the staleness guard is satisfied rather than bypassed. Both
+#: constants moved in ONE commit, `8e90037a5`. See docs/staging/records/
+#: SEAT_RESULT_THE_CURRENT_BOOK_RETAKE_LANDED_AND_ITS_SPLIT_IS_STILL_UNREADABLE_2026-09-08.md.
 CURRENT_WORLD_THREE_ARM_PATH = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
