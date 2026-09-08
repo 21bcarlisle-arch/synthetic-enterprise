@@ -2403,14 +2403,21 @@ def test_the_generator_reads_the_current_world_floor_from_its_own_constant(tmp_p
     # control is about the WIRING and must not wait on a run to be able to fail.
     undecomposed = dict(only_leg, redraw_scope=dict(only_leg["redraw_scope"],
                                                     mode=gva.BOUNDING_REDRAW_MODE))
+    three_arm = _world_stamped(_load(gva.CURRENT_WORLD_THREE_ARM_PATH), live)
+    # STAMPED FROM THE POINT ESTIMATE, not left at whatever the real `only` leg happens to carry.
+    # `_staleness_caveat` refuses a floor older than the figure it bounds, so until this line the
+    # test passed on an ACCIDENT OF THE CALENDAR: the 09-03 `only` leg ran at 12:22 and the 09-03
+    # three-arm at 10:17, two hours the fixture never mentions. Re-point
+    # `CURRENT_WORLD_THREE_ARM_PATH` at any newer run -- which is the ordinary act this file exists
+    # to make safe -- and the wiring control goes red for staleness, a property that is not its
+    # subject. Keyed to the pairing it needs rather than to two live artefacts' dates.
+    undecomposed["generated_at"] = three_arm["generated_at"]
     floor_path = tmp_path / "floor_all_live_world.json"
     floor_path.write_text(json.dumps(undecomposed), encoding="utf-8")
     monkeypatch.setattr(gva, "CURRENT_WORLD_NOISE_FLOOR_PATH", floor_path)
 
     three_arm_path = tmp_path / "three_arm_live.json"
-    three_arm_path.write_text(
-        json.dumps(_world_stamped(_load(gva.CURRENT_WORLD_THREE_ARM_PATH), live)),
-        encoding="utf-8")
+    three_arm_path.write_text(json.dumps(three_arm), encoding="utf-8")
     monkeypatch.setattr(gva, "CURRENT_WORLD_THREE_ARM_PATH", three_arm_path)
 
     data = gva.generate(out_path=tmp_path / "value_arms.json")
