@@ -790,6 +790,49 @@ def gate_is_running(project: Path | None = None) -> bool:
         return True
 
 
+def shared_tree(start: Path | None = None) -> Path | None:
+    """The MAIN worktree of this repository — the tree the publisher actually runs from.
+
+    WHY THIS IS NOT `PROJECT_DIR` (2026-09-08, Lane 0). `PROJECT_DIR` is
+    `Path(__file__).resolve().parent.parent`, so it is whichever tree the module was IMPORTED from.
+    That is the shared tree only when the caller happens to be running there. The delivery seat's
+    executor is instructed to work in an isolated linked worktree, and the publisher writes
+    `python3 -m background.origin_reconcile` into its own `cause_evidence` as the remedy for
+    `behind_origin` — so the seat runs the remedy from the worktree, and every leg of this module
+    then asks its question of the wrong tree.
+
+    MEASURED, not reasoned about. At 2026-09-08T22:30Z, from `/var/tmp/se-seat-executor`:
+    `commits_behind()` returned **0** and `reconcile()` returned `LEVEL: local and origin/main
+    agree; nothing to reconcile` with exit code 0, while the shared tree
+    `/home/rich/synthetic-enterprise` was **2 commits behind** origin/main and the publisher running
+    from it had `last_clean_publish: null` and 30 consecutive failures. The remedy reported success
+    about a tree nothing publishes from.
+
+    IT IS NOT ONLY THE LEVEL CHECK. `reconcile` threads `project` into `fork_state`,
+    `gate_is_running` and `advance_shared_tree` alike, so from a linked worktree the gate-lock guard
+    reads a lock file at the wrong path (`docs/observability/.process_run_complete.lock` under the
+    worktree, which no gate ever writes) and reads "no gate running" while one holds the real lock.
+    Fixing the SUBJECT at the entry point fixes every leg at once; that is why this is resolved here
+    and not by patching the level comparison.
+
+    FAILS CLOSED. `None` when the main worktree cannot be established, because this module's whole
+    discipline is "not acting on a state that was not observed" — and a fallback to `PROJECT_DIR`
+    would silently restore the defect on exactly the machines where git could not answer. `main`
+    refuses with the cause named rather than reconciling something it could not identify.
+    """
+    # `start` IS INJECTABLE so this can be asserted on a real main-plus-linked pair in a tmp repo.
+    # Called with the default in production and with a built linked worktree in its control: pinning
+    # it to `PROJECT_DIR` made the only available subject "whichever tree pytest runs in", so the
+    # control would have been vacuous in the shared tree and informative only by accident elsewhere.
+    res = _git(start or PROJECT_DIR, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if res.returncode != 0:
+        return None
+    common = Path((res.stdout or "").strip())
+    # `--git-common-dir` is the MAIN worktree's `.git`, from any linked worktree or from the main
+    # tree itself. Its parent is the tree. A bare repository has no worktree to reconcile.
+    return common.parent if common.name == ".git" and common.parent.is_dir() else None
+
+
 def reconcile(project: Path | None = None, *, worktree: Path | None = None,
               state_fn=None, behind_fn=None, ahead_fn=None, runner=None, pusher=None,
               make_worktree=None, drop_worktree=None, gate_fn=None, blockers_fn=None,
@@ -962,11 +1005,20 @@ def main(argv=None) -> int:
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--check", action="store_true", help="report the fork, reconcile nothing")
     args = ap.parse_args(argv)
+    # THE SUBJECT IS THE SHARED TREE, WHEREVER THIS WAS INVOKED FROM. Resolved once, here, and
+    # passed down: every leg below takes `project` and each would otherwise inherit the importing
+    # worktree. See `shared_tree` for the measurement that made this a defect rather than a tidy-up.
+    subject = shared_tree()
+    if subject is None:
+        print("UNREADABLE: the main worktree could not be established from git, so no tree was "
+              "reconciled -- this is refused rather than defaulted, because defaulting reconciles "
+              "whichever tree this module was imported from")
+        return 1
     if args.check:
-        behind = commits_behind()
-        print(json.dumps({"behind": behind}))
+        behind = commits_behind(subject)
+        print(json.dumps({"behind": behind, "subject": str(subject)}))
         return 1 if behind else 0
-    result = reconcile()
+    result = reconcile(subject)
     print(json.dumps(result, indent=2) if args.json
           else "{}: {}".format(result["status"], result["detail"]))
     return 0 if result["status"] in (LEVEL, RECONCILED, PUSHED) else 1

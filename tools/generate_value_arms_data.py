@@ -4392,11 +4392,132 @@ def _the_level_legs_family(measured: list, stability: dict | None) -> str:
                 lo=_gbp(min(measured)), hi=_gbp(max(measured)))
 
 
+#: The three things about a run that this page can compare between two artefacts. A CONSTANT so
+#: that the sentence enumerating them and the code testing them cannot become two lists edited on
+#: different days -- which is the shape that put "DIFFERENT WORLDS" on a page comparing a run to
+#: itself.
+_RUN_IDENTITY_FIELDS = (
+    ("the world it ran in", lambda r: (r.get("world_identity") or {}).get("digest")),
+    ("the date it ran on", lambda r: r.get("generated_at")),
+    ("the commit that produced it", lambda r: (r.get("producing_commit") or {}).get("commit")),
+)
+
+
+def _what_differs_between_two_runs(current: dict | None, superseded: dict | None) -> dict:
+    """Which of world, date and commit actually differ between two runs -- COUNTED, never asserted.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-08, Lane 0). `against_the_superseded_panel` stated, on
+    every branch and in prose, that the two panels' shares "were measured in DIFFERENT WORLDS, on
+    different dates, by different commits -- more than one thing changed". All three were true of
+    the pair the sentence was written for -- the 2026-08-31 canonical run against the 2026-09-08
+    live-world re-take -- and the sentence ESTABLISHES none of them. Promoting a same-world run to
+    the canonical path makes the first clause false while the sentence goes on asserting it; and
+    pointing both constants at ONE run makes all three false, so the page tells a reader that a
+    figure differs from itself because more than one thing changed. Both were measured before this
+    was written, by building the feed on the candidate artefacts and reading the sentence.
+
+    IT IS THE ATTRIBUTION RULE THAT NEEDS THE COUNT, not the prose. "More than one thing changed,
+    so the difference cannot be attributed to any one of them" is a valid refusal exactly when two
+    or more differ; at one it IS the one-variable comparison this project asks for; at zero there
+    is no difference to attribute at all. A sentence saying "more than one" without counting is
+    right by luck and wrong in silence.
+
+    UNREADABLE IS ITS OWN STATE, and it never counts toward the refusal it would licence. A field
+    absent from either run cannot be shown to differ OR to match, so it is named as unestablished
+    rather than folded into either -- absence reading as "differs" is how a missing stamp would
+    manufacture the attribution refusal, and reading as "same" is how it would manufacture a
+    one-variable claim.
+    """
+    if not isinstance(current, dict) or not isinstance(superseded, dict):
+        return {"available": False, "why_not": (
+            "one of the two runs could not be read, so which of the world, the date and the "
+            "producing commit differ between them has not been established")}
+    differ, same, unestablished = [], [], []
+    for name, read in _RUN_IDENTITY_FIELDS:
+        mine, theirs = read(current), read(superseded)
+        if mine is None or theirs is None:
+            unestablished.append(name)
+        elif mine == theirs:
+            same.append(name)
+        else:
+            differ.append(name)
+    return {
+        "available": True,
+        "differ": differ,
+        "same": same,
+        "unestablished": unestablished,
+        "how_many_differ": len(differ),
+        # THE SAME RUN ONLY WHEN EVERY FIELD WAS READ AND EVERY FIELD MATCHED. Two runs agreeing on
+        # the two fields a third could not be read from are not the same run, and saying they are
+        # is the flattering reading of a missing stamp.
+        "the_same_run": not differ and not unestablished,
+    }
+
+
+def _against_the_superseded_panel(superseded_share, differences: dict | None) -> str:
+    """The two panels' shares, and whether their difference may be attributed to anything.
+
+    THE ATTRIBUTION CLAUSE IS DERIVED FROM `_what_differs_between_two_runs` AND NEVER WRITTEN DOWN.
+    See that docstring for the sentence this replaced and for why a prose "more than one thing
+    changed" is false on two of the three branches it can now meet.
+
+    THE INVARIANT HALF STAYS ON EVERY BRANCH, and it carries the director's refusal rather than
+    only his reading. "This may not be read as the company having got better or worse at choosing"
+    is a property of the QUANTITY -- a share of the advantage mostly reads how much book there is
+    to win or lose -- so it is true on the branch where three things differ, on the branch where
+    one does, and on the branch where the two panels are one run. It used to be written into the
+    two-or-more branch alone, so the refusal a reader most needs was reachable only on the pair the
+    sentence was authored for; `test_the_shares_refusal_reaches_the_headline_and_not_only_the_payload`
+    is what noticed when the other branches became reachable.
+    """
+    old = ("{:.1%}".format(superseded_share) if superseded_share is not None
+           else "a share it does not define")
+    invariant = (
+        " It may not be read as the company having got better or worse at choosing: what a share "
+        "of the advantage is mostly reads is how much book there is to win or lose, which is the "
+        "world's departure level and its price response, not the company's skill.")
+    if not isinstance(differences, dict) or not differences.get("available"):
+        return (
+            "The panel below states {old} for the same quantity. This page has not established "
+            "which of the world, the date and the producing commit differ between the two runs, "
+            "so it states no attribution for the difference between them at all.{inv}"
+        ).format(old=old, inv=invariant)
+    if differences.get("the_same_run"):
+        return (
+            "The panel below states {old} for the same quantity, and it is the SAME RUN as this "
+            "one -- same world, same date, same commit. There is no difference between them to "
+            "attribute: the two figures are one figure printed twice, not a comparison.{inv}"
+        ).format(old=old, inv=invariant)
+    named = " and ".join(differences.get("differ") or [])
+    how_many = differences.get("how_many_differ") or 0
+    if how_many >= 2:
+        return (
+            "The panel below states {old} for the same quantity. {n} things differ between the two "
+            "runs -- {named} -- so more than one thing changed, and the difference between them "
+            "cannot be attributed to any one of them.{inv} The one-variable version of this "
+            "comparison has not been run."
+        ).format(old=old, n=how_many, named=named, inv=invariant)
+    if how_many == 1:
+        return (
+            "The panel below states {old} for the same quantity. Of the world, the date and the "
+            "producing commit, exactly ONE differs between the two runs -- {named} -- so this is "
+            "the one-variable version of the comparison, and the difference is attributable to "
+            "that alone only if nothing this page cannot see also moved.{inv}"
+        ).format(old=old, named=named, inv=invariant)
+    return (
+        "The panel below states {old} for the same quantity. Of the world, the date and the "
+        "producing commit, none that this page could read differ between the two runs and {un} "
+        "could not be read at all -- so no difference between them has been established, and none "
+        "is attributed.{inv}"
+    ).format(old=old, un=" and ".join(differences.get("unestablished") or []), inv=invariant)
+
+
 def _composition_in_this_world(contrast: dict, floor_current: dict | None,
                                superseded_share, live: str,
                                later_runs: list | None = None,
                                published_at=None, published_from=None,
-                               level_stability: dict | None = None) -> dict:
+                               level_stability: dict | None = None,
+                               differences: dict | None = None) -> dict:
     """How the advantage SPLITS between the two legs -- and why that split may not be read.
 
     THE RESIDUE THIS CLOSES, named in `09009c236`'s own discharge as still unwritten anywhere a
@@ -4521,17 +4642,13 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
             part for part in (disagreement["statement"], block.get("why_not_readable"))
             if part)
     # SAID ON EVERY BRANCH, because it is true whether or not the refusal above fires and it is
-    # the sentence the discharge named as missing.
-    block["against_the_superseded_panel"] = (
-        "The panel below states {old} for the same quantity. That figure and this one were "
-        "measured in DIFFERENT WORLDS, on different dates, by different commits -- more than one "
-        "thing changed -- so the difference between them cannot be attributed to any one of them "
-        "and may not be read as the company having got better or worse at choosing. What a share "
-        "of the advantage is mostly reads is how much book there is to win or lose, which is the "
-        "world's departure level and its price response, not the company's skill. The "
-        "one-variable version of this comparison has not been run."
-        .format(old=("{:.1%}".format(superseded_share)
-                     if superseded_share is not None else "a share it does not define")))
+    # the sentence the discharge named as missing. WHAT DIFFERS IS PUBLISHED BESIDE THE SENTENCE
+    # THAT READS IT, so a reader who wants to disagree with the attribution refusal has the count
+    # it was derived from rather than a paraphrase -- and so the sentence cannot go stale against
+    # the pair of runs it describes. See `_what_differs_between_two_runs`.
+    block["differs_from_the_superseded_panel"] = differences
+    block["against_the_superseded_panel"] = _against_the_superseded_panel(
+        superseded_share, differences)
     return block
 
 
@@ -4539,7 +4656,8 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
                             superseded_split: dict | None = None,
                             later_runs: list | None = None,
-                            observability_dir: Path | None = None) -> dict:
+                            observability_dir: Path | None = None,
+                            superseded_run: dict | None = None) -> dict:
     """The same three arms, re-run in the world as it is now — bounded when a live-world floor exists.
 
     WHY THIS IS A SEPARATE BLOCK AND NOT A REPLACEMENT. The direction is "publish the new contrast
@@ -4646,6 +4764,12 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "priced_decisions": funnel.get("priced"),
         "renewals_offered": funnel.get("renewals_the_world_offered"),
         "superseded_floor_ran_in_world": floor_world,
+        # THE FIGURE THE HEADLINE COMPARES THIS ONE AGAINST, carried in the payload so the
+        # comparison can be DERIVED rather than typed. `_current_world_clause` stated "a SMALLER
+        # advantage than the £12,071 below" as a literal with its direction and its cause written
+        # in; £12,071 was the 2026-08-31 canonical run's advantage, so promoting any other run to
+        # that path made a published sentence false in three ways at once. See that function.
+        "superseded_value_advantage_gbp": _f((superseded_split or {}).get("value_advantage_gbp")),
         **bound,
         # NESTED, NOT SPREAD, because the two legs have the same key names and flattening the
         # second over the first is how a page ends up bounding one figure with another's spread.
@@ -4690,7 +4814,10 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             # second implementation this whole file is written against, and it would be WRONG:
             # `_verdict_stability` also refuses when no bound was read or a seed row is short of
             # the contrast, neither of which the floor's row count can see.
-            level_stability=level.get("verdict_stability")),
+            level_stability=level.get("verdict_stability"),
+            # COUNTED FROM THE TWO RUNS, never asserted from the pair this page happened to carry
+            # when the sentence was written. See `_what_differs_between_two_runs`.
+            differences=_what_differs_between_two_runs(current, superseded_run)),
         "what_would_answer_it": (
             None if bound.get("bound_available") and selection.get("bound_available")
             and level.get("bound_available") else
@@ -4704,6 +4831,45 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             "measured and their fault is only being read as current. Compare the two as two "
             "worlds, not as a revision."),
     }
+
+
+def _against_the_panels_figure(advantage, current_world: dict) -> str:
+    """This figure against the one the panel below states -- DIRECTION derived, CAUSE not claimed.
+
+    WHAT STOOD HERE (until 2026-09-08, Lane 0): "It is a SMALLER advantage than the £12,071 below,
+    not a larger one: what moved is the floor, which fell further than the advantage did." Three
+    claims, none of them established by anything the function could see -- a literal figure, a
+    direction, and an attributed cause. All three were true of the pair the sentence was written
+    for: the 2026-08-31 canonical run (£12,071) against the live-world re-take. `£12,071` is
+    reachable ONLY while that exact run sits on `THREE_ARM_PATH`, and that path's own convention is
+    that the newest run is PROMOTED onto it -- so the sentence was one promotion away from telling a
+    reader a larger figure is smaller than a figure the page no longer carries.
+
+    THE CAUSE IS NOT CARRIED OVER, and that is deliberate rather than an omission. "What moved is
+    the floor, which fell further than the advantage did" was measured for one pair of runs. More
+    than one thing differs between any two runs this block can meet, so no one of them can be
+    credited with the move -- `composition.differs_from_the_superseded_panel` is where the count
+    lives, and the honest sentence states the direction and stops. A cause a reader can act on is
+    worth more than a cause a reader can quote, and this function cannot establish one.
+
+    EQUAL IS ITS OWN BRANCH, because it is the state the page enters the moment one run is promoted
+    to both the canonical and the current-world path -- and "SMALLER" would then be a falsehood
+    about a figure compared with itself.
+    """
+    point = _f(advantage)
+    old = _f((current_world or {}).get("superseded_value_advantage_gbp"))
+    if point is None or old is None:
+        return ("The panel below states no advantage this figure could be compared against, so "
+                "this page states no comparison between them. ")
+    if point == old:
+        return ("It is the SAME advantage as the {old} below -- the two panels are one run's "
+                "figure printed twice, not two measurements to compare. ").format(old=_gbp(old))
+    direction = "SMALLER" if point < old else "LARGER"
+    return (
+        "It is a {dir} advantage than the {old} below. WHY it differs is not stated here: more than "
+        "one thing differs between the two runs, so no single one of them can be credited with the "
+        "move, and the count is published beside the share below rather than guessed at here. "
+    ).format(dir=direction, old=_gbp(old))
 
 
 def _current_world_clause(current_world: dict) -> str:
@@ -4739,9 +4905,8 @@ def _current_world_clause(current_world: dict) -> str:
     opening = "IN THE WORLD AS IT IS NOW, the same comparison gives {adv}, measured {when}. "\
         .format(adv=_gbp(advantage), when=when)
     whole = _leg_clause(current_world, opening, resolved_tail=(
-        ", the first bound this page has held that was measured where the figure was. It is a "
-        "SMALLER advantage than the £12,071 below, not a larger one: what moved is the floor, "
-        "which fell further than the advantage did. "))
+        ", the first bound this page has held that was measured where the figure was. "
+        + _against_the_panels_figure(advantage, current_world)))
     # AND THEN THE LEG THAT DECIDES WHETHER ANY OF IT IS VALUE CREATED. The figure above is level
     # PLUS selection, and a level advantage is a price charged: it moves value, it does not make
     # any. A reader who meets only the whole has met the number that cannot answer the question
@@ -5020,7 +5185,12 @@ def build(three_arm: dict | None, floor: dict | None,
     # for the reason `_provisioned` gives about clocks: the block that publishes a figure is the
     # block that must decide what it is, and a second read is a second chance to read it wrong.
     current_world = _current_world_contrast(current_three_arm, floor, current_floor,
-                                            superseded_split=(realised or {}).get("split"))
+                                            superseded_split=(realised or {}).get("split"),
+                                            # THE RUN ITSELF, not only its split: the split carries
+                                            # the figures and the ATTRIBUTION question needs the
+                                            # world, the date and the commit. See
+                                            # `_what_differs_between_two_runs`.
+                                            superseded_run=three_arm)
     return dict(
         base,
         available=True,
