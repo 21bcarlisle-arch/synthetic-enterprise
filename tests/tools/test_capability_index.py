@@ -576,6 +576,111 @@ def test_unparseable_file_is_a_row_and_a_finding_never_a_silent_skip(tree, monke
 
 
 # ---------------------------------------------------------------------------
+# the OTHER launch form: `python3 -m package.module`, which carries no `.py`
+# path and so is invisible to `_PATH_TOKEN`. Measured 2026-09-08 to cost zero
+# orphans; these prove the measurement can move and that the check would say so.
+# ---------------------------------------------------------------------------
+
+def _dotted_launcher(tree, body):
+    """Add a launcher and index the tree. Tracked, so check 5 does not answer for check 7."""
+    (tree / "tools" / "launcher.py").write_text(
+        '"""Launcher."""\n' + body, encoding="utf-8")
+    subprocess.run(["git", "add", "-A"], cwd=tree, check=True)
+    return rows_by_module(ci.build_rows(tree))
+
+
+def test_a_module_launched_by_dotted_name_is_recorded_and_still_reads_orphan(tree):
+    """The POISON ROUND: prove the census reaches, before believing its zero.
+
+    `company.billing.abandoned` has no importer and no `__main__` guard, so
+    `_PATH_TOKEN` cannot see this route at all. Both halves matter — recorded,
+    so check 7 has a subject; still `orphan`, because turning the string into a
+    caller edge is what the comment and docstring prunes just paid to undo.
+    """
+    rows = _dotted_launcher(
+        tree,
+        "import subprocess\n"
+        'subprocess.run(["python3", "-m", "company.billing.abandoned"])\n',
+    )
+    row = rows["company.billing.abandoned"]
+    assert row["named_by_dotted"] == ["tools.launcher"], row["named_by_dotted"]
+    assert row["callers"] == [], (
+        "a `-m` name must not become a caller edge -- that is the prose fail-open "
+        "the path model was just cleaned of, in the easier-to-write direction")
+    assert row["status"] == "orphan"
+
+
+def test_check_seven_fires_on_the_false_orphan_the_dotted_form_can_manufacture(tree):
+    """The defect this control exists for, and it is the one the live repo lacks."""
+    rows = _dotted_launcher(
+        tree,
+        "import subprocess\n"
+        'subprocess.run(["python3", "-m", "company.billing.abandoned"])\n',
+    )
+    findings = [f for f in ci.integrity_findings(list(rows.values()), tree)
+                if f.startswith("FALSE ORPHAN BY DOTTED INVOCATION")]
+    assert len(findings) == 1, ci.integrity_findings(list(rows.values()), tree)
+    assert "company.billing.abandoned" in findings[0]
+    assert "tools.launcher" in findings[0]
+
+
+def test_a_dotted_launch_of_an_ENTRYPOINT_is_not_a_finding(tree, monkeypatch):
+    """Why the live count is 40 and the finding count is 0.
+
+    38 of the 40 carry a `__main__` guard, and the guard is the same fact as the
+    `-m` string. A check that fired on every `-m` target would red on all of
+    them and would be deleted within the week.
+    """
+    monkeypatch.setattr(ci, "ROW_FLOOR", 1)
+    (tree / "company" / "billing" / "abandoned.py").write_text(
+        '"""A register nothing imports any more."""\n'
+        "VALUE = 1\n"
+        'if __name__ == "__main__":\n    print(VALUE)\n',
+        encoding="utf-8",
+    )
+    rows = _dotted_launcher(
+        tree,
+        "import subprocess\n"
+        'subprocess.run(["python3", "-m", "company.billing.abandoned"])\n',
+    )
+    assert rows["company.billing.abandoned"]["status"] == "entrypoint"
+    assert ci.integrity_findings(list(rows.values()), tree) == []
+
+
+def test_a_dotted_name_cited_in_PROSE_is_not_recorded(tree, monkeypatch):
+    """Same rule as the path form, and the reason is stronger here.
+
+    A dotted module name is what a comment writes when it says how to re-run
+    something. If prose counted, check 7 would gain subjects that nothing
+    launches and the finding would be noise the day it first fired.
+    """
+    monkeypatch.setattr(ci, "ROW_FLOOR", 1)
+    rows = _dotted_launcher(
+        tree,
+        "# re-take it with: python3 -m company.billing.abandoned --write\n"
+        "X = 1\n",
+    )
+    assert rows["company.billing.abandoned"]["named_by_dotted"] == []
+    assert ci.integrity_findings(list(rows.values()), tree) == []
+
+
+def test_the_live_repos_dotted_census_is_populated_and_costs_no_orphan():
+    """The measurement itself, keyed to the property and vacuity-guarded.
+
+    The floor is what stops this passing because the regex went blind — the
+    failure mode where a control reports calm for every subject because its own
+    parser stopped matching. 40 were measured at b71f148bc; the floor is well
+    below that so ordinary retirement does not red it.
+    """
+    rows = ci.build_rows(REPO)
+    named = [r for r in rows if r["named_by_dotted"]]
+    assert len(named) >= 10, (
+        "the `-m` census found %d subjects -- below this the regex has gone blind and "
+        "'no false orphans' would be vacuous" % len(named))
+    assert [r["module"] for r in named if r["status"] == "orphan"] == []
+
+
+# ---------------------------------------------------------------------------
 # the live repo, and the CLI contract
 # ---------------------------------------------------------------------------
 

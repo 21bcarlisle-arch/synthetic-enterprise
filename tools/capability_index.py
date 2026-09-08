@@ -105,6 +105,17 @@ So the integrity checks are the substance of this file, not its trim:
                          unavailable check is a FAILED check; without this,
                          check 5 would silently stop firing exactly when git
                          stopped answering.
+  7. NO FALSE ORPHAN BY -- the edge model reads `.py` PATHS, so `python3 -m
+     DOTTED INVOCATION     package.module` is invisible to it. Measured
+                         2026-09-08 the blindness costs nothing (40 modules
+                         named that way, 0 orphans), because a module worth
+                         invoking as `-m` carries the `__main__` guard that
+                         already makes it an entrypoint. This check keys to
+                         that PROPERTY rather than to the count: a `-m` target
+                         with no guard and no importer is a live mechanism the
+                         index is calling dead, and it FAILS. See
+                         `_dotted_invocations` for why the route is recorded
+                         and deliberately not wired as an edge.
 
 Exit codes: 0 = index built and trustworthy, 1 = built but integrity findings
 (do not stand behind it), 2 = could not run at all. rc 2 is distinct from rc 0
@@ -412,7 +423,7 @@ def _seed_rows(rels: list[str]) -> tuple[dict[str, dict], dict[str, str], list[s
         by_module[mod] = {
             "module": mod, "path": rel, "plain_words": None, "status": "orphan",
             "callers": [], "evidence": [], "demo": [], "search_blob": "", "note": None,
-            "tracked": None,
+            "tracked": None, "named_by_dotted": [],
         }
         by_path[rel] = mod
         order.append(mod)
@@ -460,8 +471,12 @@ def _wire_edges(base: Path, by_module: dict[str, dict], by_path: dict[str, str],
         if tree is not None:
             for target in imported_modules(tree, mod, known):
                 by_module[target]["callers"].append(mod)
-        for target in _path_references(texts.get(mod, ""), by_path, mod):
+        text = texts.get(mod, "")
+        spans = _prose_spans(text)
+        for target in _path_references(text, by_path, mod, spans):
             by_module[target]["callers"].append(mod + " (by path)")
+        for target in _dotted_invocations(text, known, mod, spans):
+            by_module[target]["named_by_dotted"].append(mod)
 
     for rel in test_files(base):
         tree, _err = _parse(base / rel)
@@ -482,6 +497,7 @@ def _finalise(by_module: dict[str, dict], order: list[str], texts: dict) -> None
         row = by_module[mod]
         row["callers"] = sorted(set(row["callers"]))
         row["evidence"] = sorted(set(row["evidence"]))
+        row["named_by_dotted"] = sorted(set(row["named_by_dotted"]))
         if row["status"] == "unparsed":
             continue
         if row["callers"]:
@@ -542,6 +558,15 @@ def _searchable(rel: str, doc: str | None) -> str:
 
 _PATH_TOKEN = re.compile(
     r"\b(?:" + "|".join(DECLARED_ROOTS) + r")/[\w./\-]+\.py\b"
+)
+
+#: `python3 -m package.module` — the OTHER way this repo launches a module, and
+#: the one `_PATH_TOKEN` cannot see, because there is no `.py` path in it. The
+#: `-m` and the dotted name are separate list elements at most call sites
+#: (`[sys.executable, "-m", "tools.surgical_land"]`), so the gap between them
+#: may hold quotes, commas, brackets and newlines.
+_DOTTED_INVOCATION = re.compile(
+    r"-m[\"'\s,\]\[]+[\"']?((?:" + "|".join(DECLARED_ROOTS) + r")(?:\.[A-Za-z_]\w*)+)"
 )
 
 
@@ -642,7 +667,68 @@ def _offset_of(text: str, lineno: int) -> int:
     return off
 
 
-def _path_references(text: str, by_path: dict[str, str], own: str | None) -> set[str]:
+def _prose_spans(text: str) -> list[tuple[int, int]]:
+    """Comment and docstring ranges together — the prose a reference may not count from.
+
+    Computed once per source and handed to every reader, because the tokenize
+    pass and the `ast` parse are what `--check` spends its time on; deriving
+    them separately per rule would multiply that by the number of rules.
+    """
+    return _comment_spans(text) + _docstring_spans(text)
+
+
+def _dotted_invocations(text: str, known: set[str], own: str | None,
+                        spans: list[tuple[int, int]] | None = None) -> set[str]:
+    """Modules this source names as `python3 -m dotted.name`. RECORDED, NOT AN EDGE.
+
+    `_PATH_TOKEN` matches repo-relative `.py` PATHS only, so this whole form is
+    invisible to the caller graph — and it is not a rare one. Several tools
+    here can ONLY be launched this way: `background.gap_ledger_reconciler.
+    refresh_command` says so in its own docstring, because the path form dies on
+    `ModuleNotFoundError` before it measures anything.
+
+    So the blindness is real and the question is what it COSTS. MEASURED
+    2026-09-08 at b71f148bc, over the whole tree and again over a clean HEAD
+    extract: 40 production modules are named by a live (non-prose) `-m`
+    invocation, and NOT ONE of them is an orphan. 38 carry a `__main__` guard,
+    which is `_is_entrypoint`'s subject, and the remaining two
+    (`background.boot_sha`, `background.publish_scope`) are held `wired` by 5 and
+    2 ordinary importers. The fail-open is of size ZERO.
+
+    That is not a coincidence, which is why this records rather than wires: a
+    module worth invoking as `-m` is a module with a `__main__` guard, and the
+    guard alone already makes it `entrypoint`. The `-m` string and the guard are
+    the same fact seen twice. Turning the string into a caller edge would buy no
+    verdict and would cost the thing the comment and docstring prunes just
+    bought — the 34 and 128 modules those prunes freed were held up by exactly
+    this kind of NAME-IN-PROSE, and a dotted name is far easier to write in
+    passing than a path is. The broader rule tried first (ANY dotted module name
+    in a string literal) wired exactly one orphan, `company.portal.app`, and it
+    was a FALSE edge: `tools.company_network_isolation.KNOWN_ROUTES` names it as
+    the subject it AUDITS.
+
+    Recorded anyway, because zero is a measurement and not a guarantee. Check 7
+    in `integrity_findings` fails the day a `-m`-invoked module has neither a
+    guard nor an importer — the false orphan this form could manufacture. The
+    check is keyed to that property, not to today's count of 40.
+
+    Production sources only. A module whose only `-m` invocation is in a test is
+    exercised, not wired, and `orphan` is the correct verdict for it.
+    """
+    if spans is None:
+        spans = _prose_spans(text)
+    hits: set[str] = set()
+    for match in _DOTTED_INVOCATION.finditer(text):
+        if any(lo <= match.start() < hi for lo, hi in spans):
+            continue
+        name = match.group(1)
+        if name in known and name != own:
+            hits.add(name)
+    return hits
+
+
+def _path_references(text: str, by_path: dict[str, str], own: str | None,
+                     spans: list[tuple[int, int]] | None = None) -> set[str]:
     """Modules this source names by repo-relative PATH (subprocess, exec, config).
 
     A PATH WRITTEN IN A COMMENT IS NOT AN EDGE, and this is the whole of the
@@ -679,7 +765,8 @@ def _path_references(text: str, by_path: dict[str, str], own: str | None) -> set
     docstring position only, because a path in a `subprocess` argument is a
     real route.
     """
-    spans = _comment_spans(text) + _docstring_spans(text)
+    if spans is None:
+        spans = _prose_spans(text)
     hits: set[str] = set()
     for match in _PATH_TOKEN.finditer(text):
         if any(lo <= match.start() < hi for lo, hi in spans):
@@ -783,6 +870,21 @@ def integrity_findings(rows: list[dict], root: Path | None = None) -> list[str]:
             "is a FAILED check, not a quiet pass: %s"
             % (len(unresolved), ", ".join(sorted(r["path"] for r in unresolved)[:10])
                + (" ..." if len(unresolved) > 10 else ""))
+        )
+
+    # 7. a `python3 -m` route is not an edge, and must never be a module's ONLY one
+    false_orphans = [r for r in rows
+                     if r.get("named_by_dotted") and r["status"] == "orphan"]
+    if false_orphans:
+        findings.append(
+            "FALSE ORPHAN BY DOTTED INVOCATION: %d module(s) are launched as `python3 -m` by "
+            "live production code and are reported orphan anyway, because `_PATH_TOKEN` sees "
+            "only `.py` paths: %s -- each has no `__main__` guard and no importer, so the "
+            "index is calling a running mechanism dead and would get it retired"
+            % (len(false_orphans),
+               ", ".join("%s (run by %s)" % (r["module"], ", ".join(r["named_by_dotted"]))
+                         for r in sorted(false_orphans, key=lambda r: r["module"])[:10])
+               + (" ..." if len(false_orphans) > 10 else ""))
         )
     return findings
 
