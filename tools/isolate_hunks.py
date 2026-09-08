@@ -109,6 +109,49 @@ def _describe(base: list[str], work: list[str], ops, group: list[int]) -> str:
     return "(empty)"
 
 
+def pair_refusal(path: str, isolated: str, root: Path | None = None) -> str:
+    """The refusal text when these bytes need a file that only exists UNCOMMITTED, or "".
+
+    WHY IT IS HERE AND NOT ONLY AT THE LANDING DOOR. `tools/symbol_landing_check.py` asks exactly
+    this question and would red the commit -- but it is reachable only from the gate, so it fires
+    after a seat has surveyed the hunks, chosen them, built the bytes and typed the landing. The
+    addendum to `SEAT_FINDING_THE_STALE_COPY_REMEDY_HAS_NO_MOVE_FOR_A_RIVAL_COPY_HEAD_ALREADY_
+    SUPERSEDES_2026-09-08` measured the case on the live tree:
+    `tests/tools/test_commit_refusal_attribution.py` is one of the eight refused copies and calls
+    `attr.decompose_outage`, which exists only in the shared tree's uncommitted copy of
+    `tools/commit_refusal_attribution.py` -- a file no control names, because it is not stale.
+    Landing the test alone reds the tree at HEAD for every lane.
+
+    A LANE'S WORK IS NOT PATH-SHAPED and every tool in this route is. Asking one pass earlier costs
+    one whole-tree blob read; asking late costs the turn.
+
+    A REFUSAL AND NOT A WARNING, for the same reason nothing is kept unless it is named: the two
+    mistakes are not symmetric. A refusal you disagree with costs you a sentence; a warning printed
+    above a success line costs every lane a red tree.
+    """
+    if not path.endswith(".py"):
+        return ""
+    from tools import landing_pair  # deferred: one whole-tree read, only when it can apply
+
+    base = _REPO if root is None else root
+    try:
+        pairs = landing_pair.pairs_for(isolated, path, landing_pair.index_tree(base, "HEAD"), base)
+    except SyntaxError as exc:
+        # CANNOT ASK IS NOT NO PAIR, and it is not a refusal either. The parse verdict belongs to
+        # the gate, which runs on the tree this file's bytes end up in; refusing here would be this
+        # tool claiming a subject it does not own. What it must not do is stay quiet and let the
+        # silence read as "checked, nothing found".
+        return ("[landing-pair] ⚠ COULD NOT ASK whether these bytes are half a pair: the isolated "
+                "result does not parse ({}). The landing gate will red on it.".format(exc))
+    if not pairs:
+        return ""
+    return ("REFUSED: these bytes are only HALF a landing.\n\n"
+            + "\n".join(p.render() for p in pairs)
+            + "\n\n  Land them together, or deselect the hunk that needs the missing name. "
+              "Nothing was written.\n"
+              "  `python3 -m tools.landing_pair " + path + "` re-asks this on its own.")
+
+
 def survey(path: str) -> int:
     base = head_lines(path)
     work = Path(_REPO / path).read_text().splitlines(keepends=True)
@@ -162,7 +205,14 @@ def build(path: str, selectors: list[str], out: Path) -> int:
         raise SystemExit("REFUSED: no hunk selected. Landing HEAD's own bytes back over itself is "
                          "an empty change wearing a commit's clothes.")
 
-    out.write_text("".join(reconstruct(base, work, ops, groups, keep)))
+    isolated = "".join(reconstruct(base, work, ops, groups, keep))
+    verdict = pair_refusal(path, isolated)
+    if verdict.startswith("REFUSED"):
+        raise SystemExit(verdict)
+    if verdict:
+        print(verdict)
+
+    out.write_text(isolated)
     print(f"{path}: kept {len(keep)} of {len(groups)} hunk(s) -> {out}")
     for gid, group in enumerate(groups):
         mark = "KEPT   " if gid in keep else "dropped"
