@@ -88,11 +88,56 @@ it green and a publish that drops a leg drops that leg's row.
 
 `site/` whole: 620 passed, 34 skipped.
 
-## What is next, and what this does NOT fix
+## What was next — DONE, later the same day
 
-The headline still states the band in prose as well, and that prose is still uncontrolled in its
-own right — a deletion there now leaves the table standing, which is the point, but it would leave
-the page saying less than it did. The durable fix is for `_leg_clause` to stop being the band's
-only structured home; the table is now that home and the prose could be shortened to point at it.
-Not done here: it is a generator change with its own unit-test surface and it is not what makes the
-reader safe today.
+The section below is what this file left open. It is closed; the account is kept beside the
+prediction rather than replacing it.
+
+The prose home is retired. `_redraw_band_clause` no longer recites min, max and mean: it states the
+placement (`sits ABOVE/BELOW/exactly AT the centre of its own family`) and names the table those
+three numbers live in. The band's three edges now render in exactly one place, `#arms-redraw`,
+where each fails on its own column.
+
+**The placement stayed in both, on purpose, and it is the one thing checked for drift.** It is a
+*reading* of the family, not a member of it, and no cell carries it. The door derives the same word
+from two numbers already on screen and
+`test_the_published_advantage_renders_beside_its_own_redraw_band` asserts the two agree.
+
+**Three more homes for the same fact turned up while moving the first one**, all in the test
+surface and each keyed to today's answer rather than to the property:
+
+| Where | What it asserted | Now |
+|---|---|---|
+| `test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it` | the literals `"£451"`, `"£2,434"`, `"£1,451"` inside the reason string | min/mean/max asserted against `verdict_stability` from the floor's own rows; the reason asserted to carry the pointer |
+| `test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantages` | all three edges present in `headline` | the edges asserted CARRIED; the count and the pointer asserted in the headline |
+| `test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verdict` | all three edges present in the stated clause | the pointer present and the three edges **absent** — the one-home control |
+
+The absence control lives in the generator's unit test and not at the door, because that subject's
+family is substituted (£20,000/£20,100/£20,200) and cannot collide. Against the live page `£451`
+is a substring of `£12,451`, and the same assertion would be a coin toss on the next re-run.
+
+### The move off the headline was not a weakening, and that was measured
+
+The edges came off **per-leg regions** of the headline. Landing them on a whole-table presence
+check would have been the project's named fail-open the day a surface gains a second subject — and
+this table has three. So `_the_bands_own_rows` cuts the table into one region per contrast and the
+assertions are per row.
+
+### R15 — the poisons, each run and reverted
+
+| Poison | Result |
+|---|---|
+| swap the choosing and price-level legs' families between rows | **RED** on the choosing row — and all nine edges still on the page, so the whole-table check this replaced is **GREEN** under it (measured, not argued) |
+| render every row from the whole advantage's family | **RED** on the choosing row's `redraw_min_gbp` |
+| strip the band sentence from the published headline | **RED** on `_assert_the_headline_places_the_draw_in_its_family`, in the advantage's own region |
+| restore the min/max/mean recital beside the pointer | **RED** on the one-home control in the generator's unit test |
+
+`tests/tools/test_generate_value_arms_data.py`: 118 passed.
+`site/test_the_baseline_comparison_reaches_the_reader.py`: 90 passed, 1 skipped.
+
+### What this still does NOT fix
+
+The level leg's own clause is composed by `_composition_in_this_world`, which prints that leg's
+range and its sign change in prose of its own. That is a *fourth* statement of the same family,
+beside the level leg's row in the table, and it was out of scope here: it is a different producer
+with a different sentence and its own controls. It is the next one to collapse.

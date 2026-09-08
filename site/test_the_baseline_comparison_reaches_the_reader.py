@@ -2570,8 +2570,9 @@ def _assert_the_verdict_belongs_to_the_leg_that_earned_it(
             "states none" if states_a_direction else "states one"))
 
 
-def _assert_the_redraw_band_reached_the_reader(leg: dict, rendered: str, subject: str) -> None:
-    """The published figure never renders without the family of re-draws it was one of.
+def _assert_the_headline_places_the_draw_in_its_family(
+        leg: dict, region: str, subject: str) -> None:
+    """A leg's headline sentence must place its draw in its family and send the reader to it.
 
     THE DEFECT (2026-09-08, the director's own reading of `site/data/value_arms.json`): the feed
     publishes £2,335.87 while carrying redraw_min £450.99, redraw_mean £1,450.64 and redraw_max
@@ -2579,21 +2580,29 @@ def _assert_the_redraw_band_reached_the_reader(leg: dict, rendered: str, subject
     re-draw. The min and max did reach the page -- but only through the withheld verdict's own
     prose, and so only on the branch that withholds.
 
-    WHY IT IS ASSERTED HERE AND NOT INSIDE THE WITHHELD BRANCH. That placement is this project's
-    named backwards-control shape: it goes green on exactly the day the page states a direction,
-    because a stated verdict prints the stdev and drops the family. "£2,336 CLEARS a £991 spread"
-    is the most quotable sentence this page can produce and the one most in need of "...from a
-    family spanning £451 to £2,434 whose centre is £1,451". So the control is keyed to
-    `verdict_stability.checked` -- did the rung RUN -- and not to what it concluded. Adding a new
-    verdict branch that omits the band now reds here rather than shipping.
+    AND THE FIX WENT ONE STEP FURTHER THE SAME DAY, which is why this helper no longer asserts a
+    single figure. `#arms-redraw` renders the family as structured cells, per contrast, per
+    number; the headline's recital of the same three numbers was a SECOND home for one fact, and
+    the prose home is the one that cannot be partially failed -- the mean was deletable from it
+    with all 84 rungs of this file green, measured before it was fixed. So the numbers are
+    asserted once, in `test_the_published_advantage_renders_beside_its_own_redraw_band`, against
+    the band table's own row for each contrast. What the headline still owes the reader is the
+    READING that no cell carries -- where in its family this draw fell -- and a route to the rest.
 
-    THE MEAN IS NOT OPTIONAL, and the range without it is the flattering reading one layer along:
-    a reader told the quantity spans £451 to £2,434 still takes £2,336 as the answer. On the
-    selection leg the centre is NEGATIVE beneath a positive published draw, which is the whole
-    finding, and it is a finding that fits in no range.
+    KEYED TO THE FEED'S OWN SENTENCE, NEVER TO PROSE THIS FILE WROTE. The subject is
+    `leg["redraw_band"]`, composed by `_redraw_band_clause` and rendered verbatim inside the
+    headline, so a producer that rewords the pointer stays green and a producer that drops it from
+    a branch, or renders it under the OTHER leg's lead, reds. That is the same discipline
+    `_the_legs_own_regions` is written to: a control that hard-codes the words is a second copy of
+    the page.
 
-    FAIL-CLOSED ON A HALF-CARRIED BAND. A stability block that says `checked` and carries no
-    edges is a claim to have measured with nothing to show, so it reds rather than passing over.
+    STILL KEYED TO `checked`, NOT TO THE VERDICT. The pointer must render wherever the stability
+    rung RAN, so a new verdict branch that sends the reader nowhere reds here rather than
+    shipping. That is the placement this was moved out of the `if withheld` block for.
+
+    FAIL-CLOSED ON A CHECKED FAMILY WITH NO SENTENCE. A stability block that says `checked` while
+    the feed composed no band clause is a measured family the page never points at, so it reds
+    rather than passing over.
     """
     stability = (leg or {}).get("verdict_stability") or {}
     if not stability.get("checked"):
@@ -2603,23 +2612,18 @@ def _assert_the_redraw_band_reached_the_reader(leg: dict, rendered: str, subject
             "{} carries a stability block that neither checked nor said why not, so 'the "
             "re-draws agree' and 'nobody re-drew' render as the same silence".format(subject))
         return
-    # THE PRODUCER'S OWN FORMATTER, NEVER A SECOND COPY OF THE SIGN CONVENTION. This module's own
-    # `_gbp` renders the selection leg's -£8,634 centre as `£-8,634`; the page holds `-£8,634`.
-    # A control written against the local one reds on the single leg whose SIGN is the finding,
-    # and the cheapest way to make that red go away is to stop asserting the leg. Imported under
-    # its own name because it is a different convention from this file's `_gbp`, and two things
-    # called `_gbp` in one module is how the next reader picks the wrong one.
-    from tools.generate_value_arms_data import _gbp as _signed_sterling
-
-    for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
-        figure = stability.get(edge)
-        assert isinstance(figure, (int, float)), (
-            "{} claims its verdict was re-drawn and carries no {}, so the claim is "
-            "unfalsifiable".format(subject, edge))
-        assert _signed_sterling(figure) in rendered, (
-            "{} rendered without {} ({}) -- the reader met one draw of a family the feed "
-            "measured and the page did not show".format(
-                subject, edge, _signed_sterling(figure)))
+    band = (leg or {}).get("redraw_band")
+    assert isinstance(band, str) and band.strip(), (
+        "{} claims its verdict was re-drawn and the feed composed no sentence placing the "
+        "published draw in that family, so the headline states a figure whose family the reader "
+        "is never told exists".format(subject))
+    # THROUGH THE DOOR'S OWN `prose()`. A raw feed substring containing ` -- ` is not in the
+    # rendered text -- see `_door_prose` for the day that bit, and for why the translation is
+    # applied here rather than assumed away.
+    assert _door_prose(band) in region, (
+        "{} rendered without the sentence placing it in its own re-draw family ({!r}) -- the "
+        "reader met one draw of a family the feed measured, with no reading of where in that "
+        "family it fell and no route to the rest of it".format(subject, _door_prose(band)))
 
 
 def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_resolved(live):
@@ -2699,45 +2703,45 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
         # attribution were one question only while both legs said the same thing.
         leg = cw.get("selection_leg") or {}
         advantage_region, selection_region = _the_legs_own_regions(rendered, cw)
-        # THE FAMILY REACHES THE READER ON WHICHEVER BRANCH THE VERDICT TAKES. Asserted HERE,
-        # above the branch, and not inside `if withheld` where it lived until 2026-09-08 -- see
-        # `_assert_the_redraw_band_reached_the_reader` for why that placement made it a control
-        # keyed to today's answer. Both legs, because the selection leg is the one whose family
-        # has a NEGATIVE centre under a positive published draw -- and each against its OWN
-        # region, because the two families straddle zero in opposite directions and a band shown
-        # under the wrong leg is a reader told the advantage may be worth nothing.
-        _assert_the_redraw_band_reached_the_reader(cw, advantage_region, "the advantage")
-        _assert_the_redraw_band_reached_the_reader(leg, selection_region, "the selection leg")
+        # THE FAMILY IS PLACED FOR THE READER ON WHICHEVER BRANCH THE VERDICT TAKES. Asserted
+        # HERE, above the branch, and not inside `if withheld` where it lived until 2026-09-08 --
+        # see `_assert_the_headline_places_the_draw_in_its_family` for why that placement made it
+        # a control keyed to today's answer. Both legs, because the selection leg is the one whose
+        # family has a NEGATIVE centre under a positive published draw -- and each against its OWN
+        # region, because the two families straddle zero in opposite directions and a placement
+        # shown under the wrong leg is a reader told the advantage may be worth nothing.
+        _assert_the_headline_places_the_draw_in_its_family(cw, advantage_region, "the advantage")
+        _assert_the_headline_places_the_draw_in_its_family(
+            leg, selection_region, "the selection leg")
         _assert_the_verdict_belongs_to_the_leg_that_earned_it(
             cw, advantage_region, "the advantage")
         if selection_region:
             _assert_the_verdict_belongs_to_the_leg_that_earned_it(
                 leg, selection_region, "the selection leg")
-        # THE WITHHELD LEG'S REVERSING RANGE, whichever leg withholds. Not "the creation leg" as
-        # this block read until 2026-09-08: it hard-named one leg while asserting on the whole
-        # page, so on the mirror state -- advantage withheld, selection leg resolved -- it would
-        # have demanded the resolved leg's edges and refused the honest page. The verdict phrases
-        # themselves are no longer asserted here at all; the attribution rungs above state both
-        # directions per leg, in that leg's own region, which is strictly stronger than the
-        # whole-page presence checks that lived here and were green through a full leg swap.
+        # THE WITHHELD LEG'S REVERSING RANGE, whichever leg withholds -- CARRIED, and shown to the
+        # reader somewhere else. Not "the creation leg" as this block read until 2026-09-08: it
+        # hard-named one leg while asserting on the whole page, so on the mirror state -- advantage
+        # withheld, selection leg resolved -- it would have demanded the resolved leg's edges and
+        # refused the honest page.
+        #
+        # AND THE EDGES ARE NO LONGER ASSERTED AGAINST THIS HEADLINE AT ALL, later the same day.
+        # They were rendered twice -- as a recital in the leg's own sentence and as cells in
+        # `#arms-redraw` -- and one fact with two homes is edited on two days for two reasons.
+        # The recital was retired, so the presence of each edge is asserted once, per contrast,
+        # against that contrast's own ROW of the band table, in
+        # `test_the_published_advantage_renders_beside_its_own_redraw_band`. What stays here is
+        # the fail-closed half that has nothing to do with where it renders: a verdict withheld
+        # FOR a range the feed does not carry is a refusal whose reason cannot be checked, and
+        # that is unfalsifiable wherever the page chooses to print it.
         for judged, region, name in ((cw, advantage_region, "the advantage"),
                                      (leg, selection_region, "the selection leg")):
             if not region or not judged.get("verdict_withheld_because"):
                 continue
             stability = judged.get("verdict_stability") or {}
             for edge in ("redraw_min_gbp", "redraw_max_gbp"):
-                figure = stability.get(edge)
-                assert isinstance(figure, (int, float)), (
+                assert isinstance(stability.get(edge), (int, float)), (
                     "{}'s verdict was withheld for a range the feed does not carry, so the "
                     "reason is unfalsifiable".format(name))
-                # SIGN OUTSIDE THE SYMBOL, as the page renders it. The selection leg's family
-                # straddles zero, so `"£{:,.0f}".format(-3075)` would look for `£-3,075` and never
-                # match the `-£3,075` the reader actually meets.
-                shown = "{}£{:,.0f}".format("-" if figure < 0 else "", abs(figure))
-                assert shown in region, (
-                    "the page withheld {}'s verdict without showing {} ({}) in its own sentence "
-                    "-- the reader is told there is no verdict and not what reverses it".format(
-                        name, edge, shown))
         if withheld:
             return
         stdev = (cw.get("bound") or {}).get("stdev_gbp")
@@ -2838,8 +2842,9 @@ def test_MUTATION_a_verdict_rendered_under_the_other_legs_lead_is_caught_and_the
         mirrored_world, advantage_region, "the advantage")
     _assert_the_verdict_belongs_to_the_leg_that_earned_it(
         leg, selection_region, "the selection leg")
-    _assert_the_redraw_band_reached_the_reader(mirrored_world, advantage_region, "the advantage")
-    _assert_the_redraw_band_reached_the_reader(leg, selection_region, "the selection leg")
+    _assert_the_headline_places_the_draw_in_its_family(
+        mirrored_world, advantage_region, "the advantage")
+    _assert_the_headline_places_the_draw_in_its_family(leg, selection_region, "the selection leg")
 
     # AND THE SWAP IS CAUGHT. The same rendered page, judged against the feed it is NOT -- which
     # is the live feed, unmirrored. This is the poison round: it must fail, and it must fail for
@@ -2922,6 +2927,57 @@ def _current_world_contrasts(feed: dict) -> list:
     return out
 
 
+def _the_bands_own_rows(rendered: str, feed: dict) -> dict:
+    """Split the band table into {label: that contrast's own row}, cut at the labels themselves.
+
+    WHY A ROW AND NOT THE WHOLE TABLE (2026-09-08). This block became the band's ONE home the day
+    the headline's prose recital of the same three numbers was retired, and the assertions that
+    moved here came off PER-LEG REGIONS of that headline -- see
+    `_assert_the_headline_places_the_draw_in_its_family`. A whole-table presence check would have
+    been a strict weakening dressed as a move: three contrasts, nine edges, all asserted to be
+    SOMEWHERE. That is this project's named fail-open the day a surface gains a second subject,
+    and this table has three of them. The choosing leg's family centres BELOW zero while the whole
+    advantage's centres above it, so a mean rendered under the wrong row tells a reader the
+    opposite of the finding while every number is still on the page.
+
+    THE BOUNDARY IS THE DOOR'S OWN ROW LABEL, taken from the same list the door builds its rows
+    from, so a publish that drops or adds a leg moves this with it rather than reddening on it.
+
+    CUT BELOW THE HEADER, AND THE LABELS RENDER MORE THAN ONCE. The block ends in a glossary that
+    repeats every label with what that contrast means, so a naive first-index split would put the
+    whole table in one row. The rows are the FIRST run of label occurrences after the header, in
+    the feed's own order; the glossary is whatever comes after them, and it is where the last row
+    is cut. Derived rather than assumed, so removing the glossary changes nothing here.
+
+    AND THE REFUSAL IS THE POINT. A label the table does not render, or renders out of the feed's
+    order, leaves neither this rung nor a READER able to say which contrast a cell belongs to, so
+    it fails closed in those words rather than falling back to the whole table and quietly
+    becoming the control it replaced.
+    """
+    labels = [label for label, *_ in _current_world_contrasts(feed)]
+    #: The last cell of the door's own header row. Everything above it is the lede and the column
+    #: names, and no contrast's figures are in it.
+    head = "This draw sat"
+    assert head in rendered, (
+        "the band table rendered without its own column header, so there is no table here to "
+        "attribute a row of")
+    body = rendered.index(head) + len(head)
+    marks = sorted((pos, label) for label in labels
+                   for pos in (rendered.find(label, body),) if pos >= 0)
+    assert [label for _, label in marks[:len(labels)]] == labels, (
+        "the band table's first rows are not the contrasts the feed composes, in that order, so "
+        "the slices below would attribute one contrast's family to another: feed {}, table "
+        "{}".format(labels, [label for _, label in marks[:len(labels)]]))
+    # WHERE THE LAST ROW STOPS. The next occurrence of any label after the final row is the
+    # glossary repeating them, so the rows end there; with no glossary, they end at the text.
+    after = [rendered.find(label, marks[-1][0] + len(marks[-1][1])) for label in labels]
+    tail = min([pos for pos in after if pos >= 0] or [len(rendered)])
+    rows = {}
+    for i, (start, label) in enumerate(marks):
+        rows[label] = rendered[start:marks[i + 1][0] if i + 1 < len(marks) else tail]
+    return rows
+
+
 def test_the_published_advantage_renders_beside_its_own_redraw_band(live):
     """Every contrast's re-draw family -- LOWEST, MEAN and HIGHEST -- reaches the reader.
 
@@ -2942,13 +2998,28 @@ def test_the_published_advantage_renders_beside_its_own_redraw_band(live):
     moved -- the family's centre is NEGATIVE (-GBP 1,861) while the published draw is +GBP 2,177.
     That is the whole finding, and it is invisible from min and max alone.
 
+    AND THIS IS NOW THE BAND'S ONLY HOME, so this rung is the whole of its control. Later the
+    same day the headline's recital was retired: it stated the same three numbers as one string
+    that could not be partially failed, edited on different days from the cells beside it, which
+    is the VAT shape CLAUDE.md names by its cost. What the headline kept is the PLACEMENT -- a
+    reading of the family, not a member of it -- and the two statements of that one word are
+    asserted to agree at the foot of this rung.
+
+    SO THE ASSERTIONS ARE PER ROW, not per table. They arrived here off per-LEG regions of the
+    headline; moving nine edges across three contrasts onto a whole-table presence check would
+    have been a weakening dressed as a move, and this page has three subjects whose families sit
+    on opposite sides of zero. See `_the_bands_own_rows`.
+
     KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Every figure is read from the feed. A re-run
     that moves all of them leaves this green; a publish that drops a leg drops its row here too;
-    a contrast with no re-draw family must say NOT RE-DRAWN rather than render a blank beside a
-    bare figure, because an empty band column reads as a band of zero.
+    a contrast with no re-draw family must say NOT RE-DRAWN, WITH THE FEED'S OWN REASON, rather
+    than render a blank beside a bare figure, because an empty band column reads as a band of zero
+    and an amber word with no cause behind it makes "nobody re-drew" and "the re-draws agree" one
+    state.
 
     Fires on: deleting the `#arms-redraw` render; dropping the mean column; rendering the band
-    for the whole advantage only; formatting a negative leg so its own family's sign is lost.
+    for the whole advantage only; formatting a negative leg so its own family's sign is lost;
+    rendering one contrast's family in another contrast's row.
     """
     feed = _live_feed()
     rendered = live["arms-redraw"]
@@ -2963,35 +3034,46 @@ def test_the_published_advantage_renders_beside_its_own_redraw_band(live):
             "why it is empty")
         return
 
+    rows = _the_bands_own_rows(rendered, feed)
     for label, figure, stability, withheld in _current_world_contrasts(feed):
-        assert label in rendered, (
-            "the feed carries the {!r} contrast and the band table has no row for it".format(
-                label))
+        # EACH CONTRAST JUDGED IN ITS OWN ROW, never on the whole table -- see
+        # `_the_bands_own_rows`. This is where the per-leg attribution the headline used to carry
+        # now lives, because this is where the numbers now live.
+        row = rows[label]
         money = _door_gbp(figure)
-        assert money and money in rendered, (
+        assert money and money in row, (
             "{!r} rendered in the band table without its own published draw ({}), so the band "
             "bounds nothing a reader can see".format(label, money))
         if not stability.get("checked"):
-            assert "NOT RE-DRAWN" in rendered, (
+            assert "NOT RE-DRAWN" in row, (
                 "{!r} carries no re-draw family and the page did not say so; a figure beside an "
                 "empty band reads as a figure whose band is zero".format(label))
+            # AND THE REASON, IN THAT ROW. "Nobody re-drew this" and "the re-draws agree" are
+            # different states, and an amber word with no cause behind it renders them as one.
+            why = stability.get("why_not")
+            assert not why or _door_prose(why) in row, (
+                "{!r} says NOT RE-DRAWN and the feed's own reason for it ({!r}) is not in that "
+                "row, so the reader is told there is no family and not why".format(label, why))
             continue
         for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
             value = stability.get(edge)
             assert isinstance(value, (int, float)), (
                 "{!r} claims a checked re-draw family carrying no {}, so the band is "
                 "unfalsifiable".format(label, edge))
-            assert _door_gbp(value) in rendered, (
+            assert _door_gbp(value) in row, (
                 "{!r} rendered without its {} ({}) -- the reader met the winner of the re-draw "
                 "and not the re-draw".format(label, edge, _door_gbp(value)))
         # THE ONE THING THIS PAGE DERIVES, CHECKED AGAINST THE FEED'S OWN WORD. The door compares
         # the published draw with the mean to say where in its family it fell; the generator says
         # the same thing in prose inside `verdict_withheld_because`. Two statements of one fact
-        # is the shape that rots -- so they are asserted to agree rather than left to.
+        # is the shape that rots -- so they are asserted to agree rather than left to. It is also
+        # the ONLY thing this page still says twice: the three edges were retired from the
+        # headline on 2026-09-08 and the placement was kept, because it is a reading of the family
+        # rather than a member of it and no cell carries it.
         mean = float(stability["redraw_mean_gbp"])
         expected = ("ABOVE the centre" if float(figure) > mean
                     else "BELOW the centre" if float(figure) < mean else "AT the centre")
-        assert expected in rendered, (
+        assert expected in row, (
             "{!r} rendered its family without saying the published draw sat {}".format(
                 label, expected))
         if isinstance(withheld, str) and "the centre of its own family" in withheld:

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T04:33:04.430015Z",
+  "generated_at": "2026-09-08T07:20:46.799846Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -301,10 +301,10 @@
     "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
     "short": "fe4df178b",
     "resolved_at": "2026-08-31T03:11:54Z",
-    "publishing_tree_commit": "6be3315236b00304d6bc4818ef38d2a899ceafcc",
+    "publishing_tree_commit": "aa6573a1945ab59df991f411e11149c3808271c0",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at fe4df178b and published from 6be331523 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at fe4df178b and published from aa6573a19 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": false,
@@ -355,7 +355,7 @@
       "redraw_mean_gbp": 19015.454610000004,
       "stable": true
     },
-    "redraw_band": "The re-draws themselves span \u00a317,262 to \u00a320,002 and average \u00a319,015, so the figure above sits BELOW the centre of its own family -- which the range alone would not have told you.",
+    "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the figure above sits BELOW the centre of its own family.",
     "bound_available": true,
     "floor_ran_in_world": "39a192ce04c1eda8",
     "floor_leg": "all",
@@ -371,7 +371,7 @@
     "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the bound beside it is how far that same quantity moves across 3 re-draws of it. 1 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves span -\u00a33,075 to \u00a31,200 and average -\u00a3481, so the figure above sits ABOVE the centre of its own family -- which the range alone would not have told you.",
+      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the bound beside it is how far that same quantity moves across 3 re-draws of it. 1 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the figure above sits ABOVE the centre of its own family.",
       "verdict_stability": {
         "checked": true,
         "n": 3,
@@ -386,7 +386,7 @@
         "redraw_mean_gbp": -480.86460199999664,
         "stable": false
       },
-      "redraw_band": "The re-draws themselves span -\u00a33,075 to \u00a31,200 and average -\u00a3481, so the figure above sits ABOVE the centre of its own family -- which the range alone would not have told you.",
+      "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the figure above sits ABOVE the centre of its own family.",
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
       "floor_leg": "all",
@@ -420,7 +420,7 @@
         "redraw_mean_gbp": 19496.319212000002,
         "stable": true
       },
-      "redraw_band": "The re-draws themselves span \u00a318,582 to \u00a320,337 and average \u00a319,496, so the figure above sits BELOW the centre of its own family -- which the range alone would not have told you.",
+      "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the figure above sits BELOW the centre of its own family.",
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
       "floor_leg": "all",
@@ -480,10 +480,10 @@
       "commit": "fe4df178b0980bf452a88f61ddb280d9e6bb8278",
       "short": "fe4df178b",
       "resolved_at": "2026-08-31T03:11:54Z",
-      "publishing_tree_commit": "6be3315236b00304d6bc4818ef38d2a899ceafcc",
+      "publishing_tree_commit": "aa6573a1945ab59df991f411e11149c3808271c0",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at fe4df178b and published from 6be331523 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at fe4df178b and published from aa6573a19 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -1668,5 +1668,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-08-31. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a317,739, measured 2026-09-08T00:19:54Z. That figure CLEARS the \u00a31,522 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was. It is a SMALLER advantage than the \u00a312,071 below, not a larger one: what moved is the floor, which fell further than the advantage did.  The re-draws themselves span \u00a317,262 to \u00a320,002 and average \u00a319,015, so the figure above sits BELOW the centre of its own family -- which the range alone would not have told you. OF THAT, \u00a3270 IS THE LEG THAT COULD BE VALUE CREATED RATHER THAN MOVED -- what the per-customer choosing was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned; the rest is the level, which is a price charged. THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same contrast re-drawn 3 times in this same world moves against a \u00a32,279 spread -- 1 of the 3 re-draws clears that spread and the rest do not, so a direction here would be a property of which draw was made rather than of the company. The re-draws themselves span -\u00a33,075 to \u00a31,200 and average -\u00a3481, so the figure above sits ABOVE the centre of its own family -- which the range alone would not have told you. The figure and its bound are both published; the verdict is withheld until it survives a re-draw. Running the same book through the per-customer decision engine came out \u00a312,071 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: the noise floor these bounds would come from names no world it was measured in, and a spread whose departure level is unknown cannot be shown to bound a figure from any particular one -- so no contrast on this page takes its direction from it. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two. Its DIRECTION is not stated here, and the reason is not that no floor has been run: the noise floor these bounds would come from names no world it was measured in, and a spread whose departure level is unknown cannot be shown to bound a figure from any particular one -- so no contrast on this page takes its direction from it. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "THE FIGURE BELOW AND THE BOUND ON IT WERE MEASURED IN DIFFERENT WORLDS. The runs behind it are dated 2026-08-31. A spread measured where customers leave at one rate is not a confidence interval on a figure measured where they leave at another, so nothing here bounds anything else and no contrast below may have its direction read as resolved. Departure rate is how much book there is to win or lose, so it is the surface this whole comparison sits on. Every leg is kept with its own date rather than deleted; the remedy is to re-run all of them in one world, never to quote whichever leg is current. IN THE WORLD AS IT IS NOW, the same comparison gives \u00a317,739, measured 2026-09-08T00:19:54Z. That figure CLEARS the \u00a31,522 this same contrast moves across 3 seed re-draws in this same world, the first bound this page has held that was measured where the figure was. It is a SMALLER advantage than the \u00a312,071 below, not a larger one: what moved is the floor, which fell further than the advantage did.  The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the figure above sits BELOW the centre of its own family. OF THAT, \u00a3270 IS THE LEG THAT COULD BE VALUE CREATED RATHER THAN MOVED -- what the per-customer choosing was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned; the rest is the level, which is a price charged. THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same contrast re-drawn 3 times in this same world moves against a \u00a32,279 spread -- 1 of the 3 re-draws clears that spread and the rest do not, so a direction here would be a property of which draw was made rather than of the company. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the figure above sits ABOVE the centre of its own family. The figure and its bound are both published; the verdict is withheld until it survives a re-draw. Running the same book through the per-customer decision engine came out \u00a312,071 from flat rules. Its DIRECTION is not stated here, and the reason is not that no floor has been run: the noise floor these bounds would come from names no world it was measured in, and a spread whose departure level is unknown cannot be shown to bound a figure from any particular one -- so no contrast on this page takes its direction from it. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a32,574 separates the two. Its DIRECTION is not stated here, and the reason is not that no floor has been run: the noise floor these bounds would come from names no world it was measured in, and a spread whose departure level is unknown cannot be shown to bound a figure from any particular one -- so no contrast on this page takes its direction from it. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 120 of 1,953. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 120 of the 1,953 renewals the world offered, 6.14% of them, so every figure here is those decisions and what they cascade into."
 }
