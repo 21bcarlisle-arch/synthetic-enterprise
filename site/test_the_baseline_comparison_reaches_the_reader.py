@@ -34,6 +34,7 @@ from __future__ import annotations
 import copy
 import html as html_lib
 import json
+import math
 import re
 import subprocess
 from pathlib import Path
@@ -52,7 +53,7 @@ DD_ARMS = SITE / "data" / "dd_opening_arms.json"
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
-          "arms-market", "arms-sample", "arms-departure", "arms-svt-belief")
+          "arms-market", "arms-sample", "arms-departure", "arms-svt-belief", "arms-redraw")
 
 
 def _text(fragment: str) -> str:
@@ -2414,6 +2415,158 @@ def test_MUTATION_an_unbounded_current_figure_is_never_rendered_bare():
     assert "STATES NO VERDICT" not in mutated, (
         "the refusal survived its own removal -- the assertion in the rung above is satisfied by "
         "some other sentence, which makes it an equivalence rather than a control")
+
+
+def _door_gbp(value) -> str:
+    """The door's own `gbp()`, in Python, to the character.
+
+    The page rounds with `Math.round` and formats with `toLocaleString("en-GB")`, and prints a
+    real MINUS SIGN outside the £ for a negative leg. `round()` here would be banker's rounding
+    and would disagree with the page on a half; `-£8,634` would disagree on the choosing leg,
+    whose whole finding is that its re-draw family straddles zero. A control that reds because
+    it formats differently from its subject is a control nobody keeps.
+    """
+    if value is None or not isinstance(value, (int, float)):
+        return ""
+    whole = math.floor(float(value) + 0.5)
+    return ("−£" if whole < 0 else "£") + "{:,}".format(abs(whole))
+
+
+def _current_world_contrasts(feed: dict) -> list:
+    """(label, published draw, its re-draw family, the feed's own withheld reason) per contrast.
+
+    Read from the FEED and in the same order the door builds them, so this control follows a
+    publish that drops or adds a leg instead of reddening on it.
+    """
+    cw = feed.get("current_world") or {}
+    out = [("The whole advantage", cw.get("value_advantage_gbp"),
+            cw.get("verdict_stability") or {}, cw.get("verdict_withheld_because"))]
+    for key, label in (("selection_leg", "… of which, the choosing"),
+                       ("level_leg", "… of which, the price level")):
+        leg = cw.get(key)
+        if not leg:
+            continue
+        out.append((label, leg.get("figure_gbp"), leg.get("verdict_stability") or {},
+                    leg.get("verdict_withheld_because")))
+    return out
+
+
+def test_the_published_advantage_renders_beside_its_own_redraw_band(live):
+    """Every contrast's re-draw family -- LOWEST, MEAN and HIGHEST -- reaches the reader.
+
+    THE DEFECT (2026-09-08, measured before it was fixed). The band did reach the page: the
+    generator composes `redraw_min_gbp`, `redraw_max_gbp` and `redraw_mean_gbp` into `headline`
+    and the door renders that string. But it reached it as ONE OPAQUE SENTENCE, and only two of
+    those five numbers had a control -- the sibling rung above asserts min and max and nothing
+    asserted the mean. So the pre-registered prediction was: strip `Those re-draws average GBP X`
+    from the live feed's headline, re-render the real door, and the whole of this file stays
+    green. It did: 84 passed, 1 skipped. The LEVEL leg's centre (GBP 3,312) reached no reader at
+    all, because its clause is composed by `_composition_in_this_world`, which prints that leg's
+    range and its sign change and not its middle.
+
+    WHY THE MEAN IS THE NUMBER THAT MATTERS. The range on its own is the flattering reading. A
+    reader told the advantage spans GBP 451 to GBP 2,434 still takes the published GBP 2,336 as
+    the answer; told the same family averages GBP 1,451, they can see the run drew near the top.
+    On the choosing leg -- the only leg on this page that could be value CREATED rather than
+    moved -- the family's centre is NEGATIVE (-GBP 1,861) while the published draw is +GBP 2,177.
+    That is the whole finding, and it is invisible from min and max alone.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Every figure is read from the feed. A re-run
+    that moves all of them leaves this green; a publish that drops a leg drops its row here too;
+    a contrast with no re-draw family must say NOT RE-DRAWN rather than render a blank beside a
+    bare figure, because an empty band column reads as a band of zero.
+
+    Fires on: deleting the `#arms-redraw` render; dropping the mean column; rendering the band
+    for the whole advantage only; formatting a negative leg so its own family's sign is lost.
+    """
+    feed = _live_feed()
+    rendered = live["arms-redraw"]
+    assert rendered.strip(), "the door rendered nothing where the re-draw band goes"
+
+    cw = feed.get("current_world") or {}
+    if not cw.get("available"):
+        # FAIL CLOSED. No current-world figure means no band to show, and the page says that
+        # rather than rendering an empty table a reader would read as "no spread".
+        assert "No re-draw band is shown" in rendered, (
+            "the feed states no current-world contrast and the band block said nothing about "
+            "why it is empty")
+        return
+
+    for label, figure, stability, withheld in _current_world_contrasts(feed):
+        assert label in rendered, (
+            "the feed carries the {!r} contrast and the band table has no row for it".format(
+                label))
+        money = _door_gbp(figure)
+        assert money and money in rendered, (
+            "{!r} rendered in the band table without its own published draw ({}), so the band "
+            "bounds nothing a reader can see".format(label, money))
+        if not stability.get("checked"):
+            assert "NOT RE-DRAWN" in rendered, (
+                "{!r} carries no re-draw family and the page did not say so; a figure beside an "
+                "empty band reads as a figure whose band is zero".format(label))
+            continue
+        for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
+            value = stability.get(edge)
+            assert isinstance(value, (int, float)), (
+                "{!r} claims a checked re-draw family carrying no {}, so the band is "
+                "unfalsifiable".format(label, edge))
+            assert _door_gbp(value) in rendered, (
+                "{!r} rendered without its {} ({}) -- the reader met the winner of the re-draw "
+                "and not the re-draw".format(label, edge, _door_gbp(value)))
+        # THE ONE THING THIS PAGE DERIVES, CHECKED AGAINST THE FEED'S OWN WORD. The door compares
+        # the published draw with the mean to say where in its family it fell; the generator says
+        # the same thing in prose inside `verdict_withheld_because`. Two statements of one fact
+        # is the shape that rots -- so they are asserted to agree rather than left to.
+        mean = float(stability["redraw_mean_gbp"])
+        expected = ("ABOVE the centre" if float(figure) > mean
+                    else "BELOW the centre" if float(figure) < mean else "AT the centre")
+        assert expected in rendered, (
+            "{!r} rendered its family without saying the published draw sat {}".format(
+                label, expected))
+        if isinstance(withheld, str) and "the centre of its own family" in withheld:
+            side = expected.split()[0]
+            assert "sits {} the centre".format("exactly AT" if side == "AT" else side) in withheld, (
+                "the band table says the {!r} draw sat {} its family and the feed's own prose "
+                "says otherwise -- one page, two answers".format(label, side))
+
+
+def test_MUTATION_a_figure_whose_family_is_missing_never_renders_bare(live):
+    """The rung above must be failable by taking the band away, not only by the page being right.
+
+    Run against the DOOR rather than the builder, because the subject is the render: a feed whose
+    contrasts carry no `verdict_stability` is exactly the state the page was in for every leg
+    before 2026-09-08, and the question is what a reader meets then. The published figures must
+    survive the mutation -- otherwise the mutation removed the subject and proves nothing.
+
+    R15, run and reverted against the live door on 2026-09-08:
+      * delete `$("arms-redraw").innerHTML = redrawBand(d.current_world);` ->
+        `test_the_published_advantage_renders_beside_its_own_redraw_band` reds on the empty panel.
+      * drop the mean column from `redrawBand` -> the same rung reds on `redraw_mean_gbp`.
+      * render the band for the whole advantage and neither leg -> reds on the choosing row.
+    """
+    feed = copy.deepcopy(_live_feed())
+    cw = feed.get("current_world") or {}
+    if not cw.get("available"):
+        pytest.skip("no current-world contrast in this publish, so there is no band to remove")
+    cw.pop("verdict_stability", None)
+    for key in ("selection_leg", "level_leg"):
+        if cw.get(key):
+            cw[key].pop("verdict_stability", None)
+    rendered = _render(feed)["arms-redraw"]
+
+    assert _door_gbp(cw.get("value_advantage_gbp")) in rendered, (
+        "the mutation removed the figure as well as its family, so it tests nothing")
+    assert "NOT RE-DRAWN" in rendered, (
+        "a contrast with no re-draw family rendered without saying so -- the fail-open this "
+        "whole block exists for")
+    live_mean = ((_live_feed().get("current_world") or {}).get("verdict_stability") or {}).get(
+        "redraw_mean_gbp")
+    assert _door_gbp(live_mean) not in rendered, (
+        "the mean survived the removal of the family it comes from, so the assertion in the rung "
+        "above is satisfied by some other text and is an equivalence, not a control")
+    assert live["arms-redraw"] != rendered, (
+        "the door rendered the same band with and without the re-draw families, so it is not "
+        "reading them")
 
 
 # ── can the company order who leaves ─────────────────────────────────────────────────────────
