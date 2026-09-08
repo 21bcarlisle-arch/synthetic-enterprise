@@ -69,10 +69,37 @@ GAS_IC_CONSUMPTION_MONTHLY_PROFILE: dict[int, float] = {
 _GAS_BOILER_HEATING_FRACTION: float = 0.70
 _HDD_REF_ANNUAL: float = sum(REFERENCE_MONTHLY_HDD.values())
 
+#: The annual HDD reference, exported under a public name because
+#: `simulation.household_demand_shape` fits a per-household split against exactly this
+#: reference and the two must not be able to drift apart.
+GAS_HDD_REFERENCE_ANNUAL: float = _HDD_REF_ANNUAL
+
 
 def _daily_consumption_kwh(aq_kwh: int) -> float:
     """Flat daily consumption: AQ / 365."""
     return aq_kwh / 365.0
+
+
+def resi_daily_gas_kwh(
+    aq_kwh: float, hdd_today: float, *, heating_fraction: float | None = None
+) -> float:
+    """One domestic gas day: an HDD-weighted space-heating term plus a flat DHW/cooking
+    term. The ONE implementation of the two-term form — `run_gas_term` settles off it and
+    `simulation.household_demand_shape` fits against it, so a change to the arithmetic
+    cannot leave the fit agreeing with a formula nobody uses.
+
+    `heating_fraction` defaults to the population constant
+    (`_GAS_BOILER_HEATING_FRACTION`, DUKES Table 4.3), which is the shipped behaviour
+    byte for byte. A caller passing this household's OWN fitted fraction changes WHEN the
+    year's gas is consumed and never how much: both terms scale with `aq_kwh`, and at
+    reference HDD the annual total is the AQ whatever the fraction is.
+    """
+    fraction = _GAS_BOILER_HEATING_FRACTION if heating_fraction is None else heating_fraction
+    if not 0.0 <= fraction <= 1.0:
+        raise ValueError(f"a gas heating fraction must lie in [0, 1], got {fraction!r}")
+    daily_heating = aq_kwh * fraction * (hdd_today / _HDD_REF_ANNUAL)
+    daily_dhw = _daily_consumption_kwh(aq_kwh) * (1.0 - fraction)
+    return daily_heating + daily_dhw
 
 
 def run_gas_term(
@@ -88,6 +115,7 @@ def run_gas_term(
     segment: str = "resi",
     pass_through: bool = False,
     weather_factor: float = 1.0,
+    heating_fraction: float | None = None,
 ) -> list[dict]:
     """Settle one gas contract term, returning one record per gas day.
 
@@ -103,6 +131,11 @@ def run_gas_term(
     gas_price_records : list of {settlementDate, systemSellPrice} daily records
     segment : customer segment for CCL exemption ('resi' -> CCL exempt)
     weather_factor : HDD-based scaling applied to I&C gas only (resi/SME use daily HDD internally)
+    heating_fraction : this household's OWN fitted space-heating share of annual gas
+        (`simulation.household_demand_shape.seasonal_gas_split`), or None to keep the
+        population constant. W2_30's gas deliverable: it changes the seasonal SHAPE and
+        never the annual level, so the company's AQ belief is untouched. Ignored for I&C,
+        which settles on a monthly profile rather than the two-term daily form.
     """
     spot_index = {r["settlementDate"]: r["systemSellPrice"] for r in gas_price_records}
     base_daily_kwh = _daily_consumption_kwh(aq_kwh)
@@ -123,9 +156,9 @@ def run_gas_term(
                 daily_kwh = base_daily_kwh * seasonal * weather_factor
             else:
                 hdd_today = get_hdd(str(current), customer_id)
-                daily_heating = aq_kwh * _GAS_BOILER_HEATING_FRACTION * (hdd_today / _HDD_REF_ANNUAL)
-                daily_dhw = base_daily_kwh * (1.0 - _GAS_BOILER_HEATING_FRACTION)
-                daily_kwh = daily_heating + daily_dhw
+                daily_kwh = resi_daily_gas_kwh(
+                    aq_kwh, hdd_today, heating_fraction=heating_fraction
+                )
                 seasonal = daily_kwh / base_daily_kwh if base_daily_kwh > 0 else 1.0
             daily_mwh = daily_kwh / 1000.0
             hedged_mwh = daily_mwh * hedge_fraction

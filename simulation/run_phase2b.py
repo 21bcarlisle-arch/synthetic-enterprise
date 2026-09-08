@@ -137,10 +137,13 @@ from simulation.dwelling_records import (
     build_properties,
 )
 from simulation.fabric_demand_path import (
+    DEFAULT_TRACE_SEED,
     FABRIC_PROVIDER,
     LEGACY_PROVIDER,
     METERED_PROVIDER,
+    build_fabric_series_for_site,
     coverage_refusals,
+    fabric_eligibility,
     fabric_providers_for_book,
     fabric_shape_fn,
     settled_shape_is_physically_textured,
@@ -163,6 +166,7 @@ from simulation.hh_consumption import (
 )
 from simulation.household import household_of
 from simulation.household_demand import HouseholdDemandRegister
+from simulation.household_demand_shape import seasonal_gas_splits_for_book
 from simulation.live_population import (
     campaign_quotes_paid_for,
     founding_capital_gbp,
@@ -1229,6 +1233,58 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         start=_fabric_start,
         end=_fabric_end,
     )
+    # W2_30, the GAS half. The comment above is still right that gas must not be driven
+    # off fabric VOLUME while the AQ belief stays frozen -- and the canon does not ask for
+    # that. It asks for a seasonal SHAPE, because gas prices do not move within a month.
+    # So each domestic gas household's own daily gas trace is projected onto the two-term
+    # form `run_gas_term` already settles (`household_demand_shape.seasonal_gas_split`),
+    # and only the heating FRACTION changes: at reference HDD the annual total is the AQ
+    # whatever the fraction is, so the level -- and therefore the hedge -- is untouched.
+    # One reference year is generated per household rather than the whole window: the
+    # split is a property of fabric and occupancy, not of which year we settle.
+    _gas_fit_end = min(_fabric_end, _fabric_start + timedelta(days=364))
+
+    def _daily_gas_series_for(customer):
+        """This household's own daily gas and the HDD it saw, or None if no trace can be
+        built for it. Takes the customer RECORD because resolving a premise to a weather
+        site reads its `location`. The eligibility predicate is the electricity side's,
+        unchanged -- the two paths must not be able to disagree about which premises have
+        physics."""
+        cid = str(customer["customer_id"])
+        _hh = household_demand_register.household_at_date(cid, _fabric_start.isoformat())
+        _site = _weather_source_customer_id(customer)
+        _verdict = fabric_eligibility(
+            customer,
+            _hh,
+            is_half_hourly_metered=False,
+            weather_available=(WEATHER_DATA_DIR_PATH / f"{_site}.csv").exists(),
+        )
+        if not _verdict.is_eligible:
+            return None
+        _series = build_fabric_series_for_site(
+            customer_id=cid,
+            household_at_date=lambda d, _c=cid: household_demand_register.household_at_date(_c, d),
+            weather_site=_site,
+            latitude_deg=DEFAULT_LATITUDE_DEG,
+            start=_fabric_start,
+            end=_gas_fit_end,
+            seed=DEFAULT_TRACE_SEED,
+        )
+        _dates = sorted(_series.gas_kwh)
+        return (
+            [sum(_series.gas_kwh[d]) for d in _dates],
+            [get_hdd(d, cid) for d in _dates],
+        )
+
+    gas_heating_fraction_by_customer, gas_shape_refusals = seasonal_gas_splits_for_book(
+        customers=[c for c in GAS_CUSTOMERS if c.get("segment") == "resi"],
+        daily_gas_series_for=_daily_gas_series_for,
+    )
+    print(f"Per-household seasonal gas shape (W2_30, MODELLED AND NOT VALIDATED): "
+          f"{sorted(gas_heating_fraction_by_customer)}")
+    for _r in gas_shape_refusals:
+        print(f"  {_r.customer_id}: population 70/30 split -- {_r.reason}")
+
     demand_provider_by_customer: dict[str, str] = {}
     print(f"Fabric-driven premises (W1_11 settlement switch): "
           f"{sorted(fabric_series_by_customer)}")
@@ -2723,12 +2779,17 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
 
             # Phase W: gas HDD shape is now computed daily inside run_gas_term.
             # weather_factor term-level scalar removed; resi/SME uses per-day HDD internally.
+            # W2_30: this household's OWN heating fraction where its physics could supply
+            # one, the population 70/30 split where it could not -- and which it was is in
+            # the run's own record above, never inferred from an absence.
+            _gas_split = gas_heating_fraction_by_customer.get(cid)
             term_records = run_gas_term(
                 cid, term_start_str, term_end_str, aq_kwh,
                 unit_rate, hf, forward_price,
                 risk["monthly_cost_of_capital_gbp"], gas_records,
                 segment=cust_segment,
                 pass_through=(term_tariff_type == "pass_through"),
+                heating_fraction=_gas_split.heating_fraction if _gas_split else None,
             )
             for rec in term_records:
                 rec["data_regime"] = "historical"
