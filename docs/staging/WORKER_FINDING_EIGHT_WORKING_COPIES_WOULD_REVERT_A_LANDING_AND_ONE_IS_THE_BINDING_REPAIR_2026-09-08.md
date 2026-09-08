@@ -72,6 +72,18 @@ deliberate and is printed on the landing, because an exemption nobody can see is
 It **narrows** rather than closes the class: a lane that has already pulled the landing and then
 rewrites over it is invisible to both rules. That is stated in the module's docstring.
 
+**IT COVERS ONE OF THE TWO LANDING ROUTES, AND THIS IS THE GAP TO READ FIRST.** It is wired into
+`tools/surgical_land.py`, not into `tools/git-hooks/pre-commit` (checked: zero occurrences there).
+`CLAUDE.md` sanctions *both* "tree_lock + pathspec commit" and `surgical_land`, so **a plain
+`git commit` by pathspec still reverts a landing with nothing to stop it** — and a plain pathspec
+commit is the cheaper habit, so it is likely the commoner one. Wiring the hook was deliberately NOT
+done in the same turn: the publisher commits through that hook, it had been dark for 24 hours across
+three separate causes, and `site/harness/index.html` is one of the eight — arming a new refusal on
+the publisher's own path at that moment would have risked a fourth. That is a judgement about
+sequencing and it may be the wrong one; what it must not be is invisible, so it is written here
+rather than left for a reader to infer from a green suite. **Until the hook is wired, a green
+landing is evidence about `surgical_land` landings only.**
+
 ## What is next, and it is not this guard
 
 The guard stops the *ninth* one. It does not repair the eight, and it cannot: only the lane holding
@@ -83,7 +95,10 @@ each copy knows which hunks are theirs. Two of the eight are mine to route, six 
 2. The remaining seven, same route. `python3 -m tools.stale_copy_refusal --census
    --root /home/rich/synthetic-enterprise` regenerates this table; it is the check, not this
    document.
-3. **The guard has never fired in production** — it was landed from a clean isolated worktree with
+3. **Wire it into `tools/git-hooks/pre-commit`**, which is what closes the second route. Do it on a
+   turn when the publisher is not mid-recovery, and run the census first: any of the eight that the
+   publisher stages would wedge it, so the repair in (1) and (2) should lead, not follow.
+4. **The guard has never fired in production** — it was landed from a clean isolated worktree with
    nothing stale to refuse. Its reachability is proven by a poison round in
    `tests/tools/test_stale_copy_refusal.py`, not by a live refusal. The first live refusal is worth
    reading rather than assuming: a false positive here wedges the ONE legal landing door, which is
