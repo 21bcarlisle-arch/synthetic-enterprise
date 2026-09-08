@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import ast
 import fcntl
+import io
 import json
 import os
 import re
@@ -3707,29 +3708,54 @@ def _cohort_coverage_gate_permits_publish():
 
 
 def _trigger_frozen_baseline_refresh_out_of_band(git_hash="unknown"):
-    """Spawn the weekly frozen-policy baseline refresh as a DETACHED background
-    process when (and only when) it is stale -- never block the publish path.
+    """Launch the weekly frozen-policy baseline refresh out of band when (and only
+    when) it is stale -- never block the publish path.
 
-    The refresh itself (tools.run_frozen_baseline.generate) holds a non-blocking
-    single-writer lock, so spawning it every cycle a stale baseline is seen
-    cannot stack overlapping multi-minute decade replays: the second and later
-    spawns take the lock's absence and exit at once. Detached via
-    start_new_session so it outlives this publish process; its output is
-    discarded (it writes site/state/frozen_policy_baseline.json directly)."""
+    THIS SPAWN WAS A LIVE INSTANCE OF THE CGROUP DEATH (2026-09-08). It read
+    `start_new_session=True ... so it outlives this publish process`, and that
+    claim is the one three launches of one measurement refuted: every user unit
+    here is KillMode=control-group, `setsid` changes the session and the process
+    group, and a cgroup is neither. A multi-minute decade replay spawned from a
+    publish cycle died with the publisher's teardown -- silently, because both
+    streams went to DEVNULL, so a death and a success left the identical trace.
+
+    `background.launch_long_job` is the one launcher: a transient user unit the
+    publisher's teardown cannot reach, both streams appended to one file, and a
+    liveness record the deadman re-asks. NEVER RAISES INTO THE PUBLISH PATH -- a
+    refusal is logged and publishing continues on the existing baseline, which is
+    what "never blocks" has always meant here.
+
+    THE UNIT NAME NOW DOES THE DE-DUPLICATION THE LOCK WAS DOING ALONE. The
+    refresh still holds its own non-blocking single-writer lock, so nothing here
+    depends on the launcher for correctness; but a second launch while the first
+    is alive is now refused by systemd, by name, before a process is spawned at
+    all -- rather than spawned, only to exit on the lock's absence."""
     sys.path.insert(0, str(PROJECT_DIR))
     from tools.run_frozen_baseline import should_refresh_baseline
     if not should_refresh_baseline():
         return
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "tools.run_frozen_baseline", "--if-stale"],
-        cwd=str(PROJECT_DIR),
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        stdin=subprocess.DEVNULL,
-        start_new_session=True,
-    )
-    log("Frozen-policy baseline stale -> refresh spawned OUT OF BAND (PID {}); "
-        "publishing continues with the existing baseline (never blocks).".format(proc.pid))
+    from background import launch_long_job
+    artefact = str(PROJECT_DIR / "site" / "state" / "frozen_policy_baseline.json")
+    # The launcher narrates to stdout by default; this publish process's stdout is not a log
+    # anyone reads, so it is captured and re-emitted through `log()` -- the whole point of the
+    # change is that a launch stops being invisible.
+    narration = io.StringIO()
+    try:
+        entry = launch_long_job.launch(
+            "frozen-policy-baseline-refresh",
+            [sys.executable, "-m", "tools.run_frozen_baseline", "--if-stale"],
+            artefact=artefact, workdir=str(PROJECT_DIR),
+            description="weekly frozen-policy baseline refresh (out of band from a publish cycle)",
+            out=narration)
+    except Exception as exc:  # noqa: BLE001 -- publishing NEVER blocks on this, see the docstring
+        log("Frozen-policy baseline stale -> refresh NOT launched: {}. Publishing continues "
+            "with the existing baseline.".format(exc))
+        return
+    for line in narration.getvalue().splitlines():
+        log("  frozen-baseline launch: {}".format(line))
+    log("Frozen-policy baseline stale -> refresh launched OUT OF BAND as unit {} (log {}); "
+        "publishing continues with the existing baseline (never blocks).".format(
+            entry["unit"], entry["log"]))
 
 
 def generate_dashboard_json(json_path, git_hash="unknown"):

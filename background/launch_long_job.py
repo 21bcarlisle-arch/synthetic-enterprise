@@ -15,11 +15,16 @@ So did the 09-08 one.
 
 `systemd-run --user` reparents the job to the user manager, so it lives in a cgroup of its own and
 the tick's teardown cannot reach it. That remedy has been known since 2026-08-29 and was
-rediscovered by dying twice since, because it was banked inside ONE tool
-(`tools/measure_publish_gate_subject_cost.py:_systemd_run_argv`) and every other long job
-hand-rolled its own launch in a throwaway `/var/tmp/*.sh`. Five such scripts existed when this was
-written; each had learned a different subset of the same lesson, and the newest still had to
-rediscover the rest.
+rediscovered by dying twice since, because it was banked inside ONE tool as a private
+`_systemd_run_argv` bound to a single measurement's unit name -- the publish-gate subject-cost
+harness, whose module the reuse index will name -- while every other long job hand-rolled its own
+launch in a throwaway `/var/tmp/*.sh`. THAT MODULE IS DELIBERATELY NOT SPELLED AS A PATH HERE: the
+capability index reads a path in prose as a caller edge, so citing it would have made an unrelated
+orphan read as reachable and quietly deleted its row from the ratchet's floor.
+
+Five of those throwaway scripts existed when this was written. Each had learned a different subset
+of the same lesson -- one had `-u`, one had both streams in one file, one had the transient unit
+and no log at all -- and the newest still had to rediscover the rest.
 
 THE RECORD IS NOT A SEPARATE STEP, AND THAT IS THE POINT. `background/launch_liveness.py` holds a
 launch claim a later reader can RE-ASK, and `deadmans_switch._check_launch_liveness` re-asks every
