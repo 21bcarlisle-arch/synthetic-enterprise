@@ -26,18 +26,28 @@ AND FOR THE LAUNCH (2026-08-10, second section below). The checkpoint fix held; 
 not, because it was never in the repo to hold. `3cc60f133` claimed the job was "launched under
 setsid" and `setsid` appeared nowhere in the repository — so the ~50-minute run was still an
 ad-hoc background job of a bounded tick, and it died in the quiet-wait for the second time, at
-the same point, before its first phase. `--detach` is now that launch, in code, and these
-controls pin the property it exists for: **a child started this way survives the death of the
-process group that started it**. The differential is the point — the same scenario without the
-detach is run alongside, and the undetached child dies, so the survival above is produced by
-`start_new_session` and not by the kill being harmless.
+the same point, before its first phase.
+
+WHAT THE LAUNCH CONTROLS BELOW ARE NOW FOR, AND WHY IT IS LESS THAN IT WAS (2026-09-08). They
+used to own the remedy: `--detach`'s group-kill differential, the `systemd-run` argv, the fixed
+unit name, the corpse-clearing. Owning it privately is what made it useless to everything else —
+five long jobs in this repo hand-rolled their own launch and three more died of the same cause in
+September — so the remedy is now `background/launch_long_job.py` and its suite, which asks the
+CGROUP question these never did. `--detach` is deleted outright rather than kept as a fallback:
+it survives a group kill, it does not survive a descendant walk or a cgroup teardown, and it
+looks identical to a good launch while it is alive.
+
+What is left here is the WIRING, which is the only part only this file can be wrong about:
+whether the harness reaches that launcher, with the measurement as the command, and whether a
+refusal reaches the log with its reason intact. Plus one guard that deliberately did NOT move —
+`_measurement_is_running` — because a unit name refuses a second UNIT and says nothing about an
+inline run, and two full suites do not fit in this box.
 """
 import datetime
 import fcntl
 import json
 import os
 import shutil
-import signal
 import subprocess
 import sys
 import time
@@ -221,115 +231,77 @@ def test_every_phase_the_harness_times_is_named_in_the_phase_order():
 
 # ── THE LAUNCH (2026-08-10) ──────────────────────────────────────────────────────────────────
 
-def _launcher_source(detached: bool) -> str:
-    """A stand-in launcher: spawns a sleeper the same way the harness spawns itself, prints the
-    sleeper's pid, and exits — leaving the sleeper as the only member of its old process group.
+def _capture_launch(monkeypatch, out, *, raises=None):
+    """Put a recording stand-in in place of `launch_long_job.launch` and return what it saw.
 
-    The `detached=False` arm is the counterfactual, written here rather than by mutating the
-    production file, so the differential runs on every suite: if the group-kill below could not
-    kill an undetached child, the survival assertion would be vacuous."""
-    spawn = ("measure._detached_popen(argv, None)" if detached else
-             "subprocess.Popen(argv, stdin=subprocess.DEVNULL)")
-    return (
-        "import subprocess, sys\n"
-        "sys.path.insert(0, {repo!r})\n"
-        "from tools import measure_publish_gate_subject_cost as measure\n"
-        "argv = [sys.executable, '-c', 'import time; time.sleep(60)']\n"
-        "child = {spawn}\n"
-        "print(child.pid, flush=True)\n"
-    ).format(repo=str(measure.prc.PROJECT_DIR), spawn=spawn)
+    The launcher's OWN properties -- the transient unit, the cgroup, both streams in one file,
+    the liveness record -- are proven in `tests/background/test_launch_long_job.py`, including
+    against a real systemd. What is left here, and what these controls are for, is the WIRING:
+    whether this harness reaches that launcher at all, and with what."""
+    from background import launch_long_job
 
-
-def _alive(pid: int) -> bool:
-    try:
-        os.kill(pid, 0)
-    except (ProcessLookupError, PermissionError):
-        return False
-    return True
-
-
-def _spawn_then_group_kill(detached: bool) -> bool:
-    """Run a launcher in its own group, kill that group, and report whether its child lived."""
-    launcher = subprocess.Popen([sys.executable, "-c", _launcher_source(detached)],
-                                stdout=subprocess.PIPE, text=True, start_new_session=True)
-    # `start_new_session` makes the launcher its own group leader, so its pgid IS its pid --
-    # read here rather than after `wait()`, which reaps it and makes `getpgid` raise.
-    group = launcher.pid
-    try:
-        child_pid = int(launcher.stdout.readline().strip())
-        launcher.wait(timeout=30)
-        try:
-            os.killpg(group, signal.SIGKILL)
-        except ProcessLookupError:
-            # The group is already empty: the launcher is reaped and nothing else is in it,
-            # which is itself the detached outcome. The aliveness poll below is the verdict.
-            pass
-        deadline = time.time() + 5
-        while _alive(child_pid) and time.time() < deadline:
-            time.sleep(0.1)
-        return _alive(child_pid)
-    finally:
-        launcher.stdout.close()
-        try:
-            os.kill(child_pid, signal.SIGKILL)
-        except (NameError, ProcessLookupError, PermissionError):
-            pass
-
-
-def test_a_detached_child_survives_the_death_of_its_launchers_process_group():
-    """THE property the `--detach` flag exists for, and the one the un-committed `setsid` was
-    supposed to provide: the ~50-minute measurement must outlive the bounded tick that starts it.
-
-    Both arms in one test on purpose. The undetached arm is what actually happened twice on
-    2026-08-10 — a run that died with its launcher, inside the quiet-wait, before phase one."""
-    assert _spawn_then_group_kill(detached=False) is False, (
-        "the undetached child survived a kill of its launcher's group, so this test cannot tell "
-        "the two apart and the assertion below proves nothing"
-    )
-    assert _spawn_then_group_kill(detached=True) is True, (
-        "a child started through `_detached_popen` died with its launcher's group -- the detach "
-        "is not holding, and a 50-minute job started from a bounded tick will die again"
-    )
-
-
-def test_the_detach_flag_hands_the_run_to_a_child_that_is_not_another_launcher(monkeypatch, out):
-    """`--detach` spawns the MEASUREMENT, never a second launcher: a child carrying `--detach`
-    would fork forever without ever timing anything."""
     seen = {}
-    # `_spawn_detached` opens the real launch log before it spawns anything; without this the
-    # test would append a launch header to a live observability file on every suite run.
-    monkeypatch.setattr(measure, "DETACHED_LOG_FILE", Path(out).parent / "launch-log.md")
-    monkeypatch.setattr(measure, "_measurement_is_running", lambda: False)
-    monkeypatch.setattr(measure, "_detached_popen",
-                        lambda argv, handle: seen.setdefault("argv", argv) and None
-                        or type("P", (), {"pid": 4242})())
-    monkeypatch.setattr(measure, "_run_measurement",
-                        lambda *a: pytest.fail("--detach must not measure inline"))
 
-    assert measure.main(["--detach", "--out", out]) == 0
-    assert "--detach" not in seen["argv"]
-    assert seen["argv"][1:3] == ["-m", "tools.measure_publish_gate_subject_cost"]
-    assert out in seen["argv"]
+    def _fake_launch(job, command, **kwargs):
+        seen["job"], seen["command"] = job, command
+        seen.update(kwargs)
+        if raises is not None:
+            raise raises
+        return {"unit": launch_long_job.unit_name(job), "claim": "c", "log": "/tmp/l"}
+
+    monkeypatch.setattr(launch_long_job, "launch", _fake_launch)
+    monkeypatch.setattr(measure, "LAUNCH_LOG_FILE", Path(out).parent / "launch-log.md")
+    monkeypatch.setattr(measure, "_measurement_is_running", lambda: False)
+    monkeypatch.setattr(measure, "_run_measurement",
+                        lambda *a: pytest.fail("--systemd must not measure inline"))
+    return seen
+
+
+def test_the_launch_goes_through_the_one_launcher_and_starts_the_measurement(monkeypatch, out):
+    """WHY THIS IS A WIRING TEST AND NOT AN ARGV TEST. It used to assert the shape of a
+    `systemd-run` argv this file built itself — and that private copy of the remedy is exactly
+    what let every other long job in the repo go on hand-rolling its own launch and dying. The
+    argv is now `launch_long_job`'s, asserted in its suite; what only this file can be wrong
+    about is whether it calls it.
+
+    The command must be the MEASUREMENT, never another launcher: a child carrying `--systemd`
+    would fork forever without ever timing anything."""
+    seen = _capture_launch(monkeypatch, out)
+
+    assert measure.main(["--systemd", "--out", out]) == 0
+    assert seen["job"] == measure.MEASUREMENT_JOB_NAME
+    assert seen["command"][1:3] == ["-m", "tools.measure_publish_gate_subject_cost"]
+    assert "--systemd" not in seen["command"] and "--detach" not in seen["command"]
+    assert out in seen["command"]
+    assert seen["artefact"] == out, (
+        "a liveness record with no artefact cannot be re-asked, which is the whole reason the "
+        "launcher writes one"
+    )
+
+
+def test_the_detach_fallback_is_gone(monkeypatch, out):
+    """THE FOURTH DEATH, as a control rather than a paragraph.
+
+    `--detach` survived a group kill and its record proved it (`is_session_leader: true`) — and
+    the run died anyway, because `setsid` changes neither the ppid a descendant walk follows nor
+    the cgroup a `KillMode=control-group` teardown kills. A fallback that looks identical to a
+    good launch while it is alive is not a fallback; it is a way to lose another 50 minutes, and
+    it must not come back as a convenience the next time systemd-run is missing."""
+    assert not hasattr(measure, "_spawn_detached") and not hasattr(measure, "_detached_popen")
+    with pytest.raises(SystemExit):
+        measure.main(["--detach", "--out", out])
 
 
 def test_without_the_flag_the_measurement_runs_in_this_process(monkeypatch, out):
-    """The other direction: no flag means no spawn. A launcher that ALWAYS detached would make
-    the harness impossible to run in the foreground and impossible to debug."""
-    monkeypatch.setattr(measure, "_detached_popen",
-                        lambda *a, **k: pytest.fail("spawned without --detach"))
+    """The other direction: no flag means no launch. A harness that ALWAYS handed itself to
+    systemd would be impossible to run in the foreground and impossible to debug."""
+    from background import launch_long_job
+
+    monkeypatch.setattr(launch_long_job, "launch",
+                        lambda *a, **k: pytest.fail("launched without --systemd"))
     monkeypatch.setattr(measure, "_run_measurement", lambda out_path, log: 0)
 
     assert measure.main(["--out", out]) == 0
-
-
-def test_a_second_launch_is_refused_while_a_measurement_is_live(monkeypatch, out):
-    """Two concurrent runs would delete the reused checkout under each other's suite and both
-    would report a wrong ratio without saying so."""
-    monkeypatch.setattr(measure, "_measurement_is_running", lambda: True)
-    monkeypatch.setattr(measure, "_detached_popen",
-                        lambda *a, **k: pytest.fail("launched a second concurrent measurement"))
-
-    assert measure.main(["--detach", "--out", out]) == 1
 
 
 def _pgrep_returning(text):
@@ -360,9 +332,11 @@ def test_the_liveness_guard_ignores_its_own_ancestors(monkeypatch):
         pytest.skip("runner is orphaned (ppid=1); it has no ancestor chain to be ignored")
 
     lines = "\n".join([
-        "{} /usr/bin/python3 -m tools.measure_publish_gate_subject_cost --detach".format(
+        # `--systemd`, not the deleted `--detach`: a fixture that hand-types a flag production
+        # no longer has is a fixture standing in for a shape nothing produces.
+        "{} /usr/bin/python3 -m tools.measure_publish_gate_subject_cost --systemd".format(
             os.getpid()),
-        "{} /bin/bash -c python3 -m tools.measure_publish_gate_subject_cost --detach".format(
+        "{} /bin/bash -c python3 -m tools.measure_publish_gate_subject_cost --systemd".format(
             os.getppid()),
         "99991 grep -rn measure_publish_gate_subject_cost .",
         "99992 python3 -m pytest tests/tools/test_measure_publish_gate_subject_cost.py",
@@ -413,110 +387,53 @@ def test_the_record_computes_whether_it_was_detached_rather_than_claiming_it():
 # ── AND FOR THE FOURTH DEATH: SESSION-DETACH IS NOT THE SAME PROTECTION AS SYSTEMD ────────────
 #
 # The 10:42:36Z run went through `--detach` and its own record says `is_session_leader: true`,
-# so the detach HELD -- and it died anyway, 3.5 minutes in, still in the quiet-wait. The control
-# above proves `--detach` survives a kill of the launcher's process GROUP. It never asked the
-# other question, and these do: a session-detached child is STILL A DESCENDANT of its launcher,
-# so anything that reaps a tick by walking /proc reaches it regardless of session.
-#
-# The differential is the point. `test_session_detach_does_not_hide_a_child_from_a_descendant
-# _walk` is the counterfactual that makes the systemd assertion mean something: if a
-# session-detached child were already invisible to a descendant walk, handing the job to init
-# would buy nothing and the test below would pass vacuously.
-
-def _descendants(root_pid: int) -> set:
-    """Every pid whose parent chain reaches `root_pid` -- the shape of a tree-walking reaper."""
-    found, pids = set(), []
-    for entry in Path("/proc").iterdir():
-        if entry.name.isdigit():
-            pids.append(int(entry.name))
-    parent_of = {}
-    for pid in pids:
-        try:
-            stat = (Path("/proc") / str(pid) / "stat").read_text()
-            parent_of[pid] = int(stat.rsplit(")", 1)[1].split()[1])
-        except (OSError, IndexError, ValueError):
-            continue
-    for pid in parent_of:
-        seen, cur = set(), pid
-        while cur in parent_of and cur not in seen:
-            seen.add(cur)
-            cur = parent_of[cur]
-            if cur == root_pid:
-                found.add(pid)
-                break
-    return found
+# so the detach HELD -- and it died anyway, 3.5 minutes in, still in the quiet-wait. Two reasons,
+# both fatal: a session-detached child keeps its `ppid`, so a reaper walking /proc still finds
+# it; and it keeps its CGROUP, so a `KillMode=control-group` teardown still kills it. The
+# descendant-walk differential that used to live here proved the first of those against
+# `_detached_popen`, and both that helper and the flag it served are now DELETED -- so the
+# property has no subject in this file. Its successor is
+# `tests/background/test_launch_long_job.py::test_a_launch_that_lands_in_the_launchers_own_cgroup
+# _is_stopped_and_never_recorded`, which asks the cgroup question against the one launcher and is
+# the stronger of the two: it fires on the killer that took the fourth run, not only on the one
+# `--detach` already survived.
 
 
-def test_session_detach_does_not_hide_a_child_from_a_descendant_walk():
-    """THE DIAGNOSIS of the fourth death, as a control rather than a paragraph.
+def test_a_refused_launch_is_reported_as_a_failure_naming_its_reason(monkeypatch, out):
+    """R15 fail-closed, and the reason is the deliverable.
 
-    `start_new_session` changes the session and the process group. It does not change the
-    child's `ppid`, so a reaper that enumerates a launcher's descendants still finds it. This
-    is why a run whose record says `is_session_leader: true` could still be killed inside the
-    quiet-wait -- and why the escalation is init ownership, not a fifth identical launch."""
-    child = measure._detached_popen([sys.executable, "-c", "import time; time.sleep(30)"], None)
-    try:
-        assert child.pid in _descendants(os.getpid()), (
-            "a session-detached child was NOT a descendant of its launcher -- if that were so, "
-            "`--detach` would already defeat a tree-walking reaper and the systemd launch below "
-            "would be buying nothing"
-        )
-    finally:
-        child.kill()
-        child.wait(timeout=10)
+    A launcher that returns 0 having started nothing is the exact failure of the four attempts
+    above: the next reader sees success and waits for a run that is not there. The launcher
+    refuses -- no `systemd-run`, a LIVE unit already holding the name, an unwritable liveness
+    record -- by raising with WHY in the message, and this harness must surface both the
+    non-zero code AND the why. Swallowing the reason is how a refusal that was itself wrong
+    stays undiscovered."""
+    from background import launch_long_job
 
+    said = []
+    _capture_launch(monkeypatch, out,
+                    raises=launch_long_job.LaunchRefused("a live unit already holds the name"))
+    monkeypatch.setattr(measure, "_run_measurement", lambda *a: 0)
 
-def test_the_systemd_launch_hands_the_job_to_init_under_a_fixed_unit_name():
-    """The argv is the committed launch, so its shape is asserted rather than typed.
-
-    The FIXED unit name is load-bearing: it is what makes double-launch refusal a fact stated
-    by init. Six launches got past the `pgrep` guard within three minutes on 2026-08-10 --
-    correctly, since each previous child had already died -- which is precisely a guard that
-    cannot see what it is guarding against."""
-    argv = measure._systemd_run_argv("/tmp/out.json")
-
-    assert argv[:2] == ["systemd-run", "--user"]
-    assert "--unit={}".format(measure.MEASUREMENT_UNIT_NAME) in argv
-    assert any(a.startswith("--property=WorkingDirectory=") for a in argv), (
-        "without an explicit WorkingDirectory the transient unit inherits the manager's cwd and "
-        "`-m tools.…` does not resolve"
+    assert measure._launch_under_systemd(out, said.append) == 1
+    assert any("a live unit already holds the name" in line for line in said), (
+        "the launch was refused and the reason never reached the log -- the next reader gets a "
+        "bare failure and has to guess between 'no systemd-run' and 'already running'"
     )
-    assert "-m" in argv and "tools.measure_publish_gate_subject_cost" in argv
-    assert "--systemd" not in argv and "--detach" not in argv, (
-        "the unit must run the MEASUREMENT, not another launcher"
-    )
-    assert "/tmp/out.json" in argv
 
 
-def test_an_unavailable_systemd_refuses_rather_than_reporting_a_launch(monkeypatch, out):
-    """R15 fail-closed. A launcher that returns 0 having started nothing is the exact failure
-    of the last four attempts: the next reader sees success and waits for a run that is not
-    there. No systemd-run means rc != 0 and a message naming the alternative."""
-    monkeypatch.setattr(measure.shutil, "which", lambda _name: None)
-    monkeypatch.setattr(measure.subprocess, "run",
-                        lambda *a, **k: pytest.fail("must not try to launch without systemd-run"))
+def test_the_launch_is_refused_while_an_inline_measurement_is_live(monkeypatch, out):
+    """THE GUARD THAT DID NOT MOVE TO THE LAUNCHER, and the reason it did not.
 
-    assert measure._launch_under_systemd(out, lambda _m: None) != 0
+    A unit name refuses a second UNIT -- a fact asserted by init, which is strictly better than
+    the `pgrep` parse it replaced. It says nothing about an INLINE run someone started in a
+    terminal, and two full suites do not fit in this box: two OOM kills proved it. So this
+    harness keeps its own liveness check in front of the launcher's."""
+    from background import launch_long_job
 
-
-def test_a_refused_transient_unit_is_reported_as_a_failure(monkeypatch, out):
-    """systemd refusing the name (a live unit already holds it) must surface as non-zero.
-
-    This is the double-launch guard that the `pgrep` one could not be: it is asserted by init
-    about its own state, not parsed by this harness out of a command line."""
-    monkeypatch.setattr(measure.shutil, "which", lambda _name: "/usr/bin/systemd-run")
-    monkeypatch.setattr(measure.subprocess, "run",
-                        lambda *a, **k: types.SimpleNamespace(
-                            returncode=1, stdout="", stderr="Unit publish-gate-subject-cost.service already exists."))
-
-    assert measure._launch_under_systemd(out, lambda _m: None) == 1
-
-
-def test_the_systemd_launch_is_refused_while_a_measurement_is_live(monkeypatch, out):
-    """`--systemd` runs the same liveness guard as `--detach` before it asks init for a unit."""
     monkeypatch.setattr(measure, "_measurement_is_running", lambda: True)
-    monkeypatch.setattr(measure, "_launch_under_systemd",
-                        lambda *a: pytest.fail("a second measurement must never be launched"))
+    monkeypatch.setattr(launch_long_job, "launch",
+                        lambda *a, **k: pytest.fail("a second measurement must never be launched"))
 
     assert measure.main(["--systemd", "--out", out]) == 1
 
@@ -964,67 +881,20 @@ def test_an_unreadable_meminfo_does_not_block_the_measurement(monkeypatch):
 
 
 # ── THE UNIT NAME MUST BLOCK A LIVE RUN, NOT A DEAD ONE ──────────────────────────────────────
-
-
-class _FakeSystemctl:
-    """Canned `systemctl` replies, recording which subcommands were issued."""
-
-    def __init__(self, active_reply):
-        self.active_reply = active_reply
-        self.calls = []
-
-    def __call__(self, argv, **kwargs):
-        self.calls.append(argv[2] if len(argv) > 2 else "")
-        if argv[2:3] == ["is-active"]:
-            return subprocess.CompletedProcess(argv, 0, stdout=self.active_reply, stderr="")
-        return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
-
-
-def test_a_failed_unit_is_cleared_so_the_next_launch_is_not_blocked_forever(monkeypatch, out):
-    """OBSERVED on the launch right after the OOM. systemd keeps a FAILED unit loaded, and the
-    refusal it produces is byte-identical to a live unit's -- so nothing ever cleared the corpse
-    and every future launch would have been refused by a measurement that died hours earlier.
-
-    DRIVEN THROUGH `_launch_under_systemd`, not through the helper. The first version of this
-    test called `_clear_a_failed_unit` directly and PASSED against a launcher with the call
-    deleted -- a control that proves a helper works while the only caller no longer reaches it.
-
-    MUTATION: drop the `_clear_a_failed_unit(log)` call from `_launch_under_systemd` and this
-    reds."""
-    fake = _FakeSystemctl("failed\n")
-    monkeypatch.setattr(measure.subprocess, "run", fake)
-    monkeypatch.setattr(measure.shutil, "which", lambda _n: "/usr/bin/systemd-run")
-    monkeypatch.setattr(measure, "_record_launch_header", lambda _how: None)
-
-    assert measure._launch_under_systemd(out, lambda m: None) == 0
-    assert "reset-failed" in fake.calls, (
-        "the LAUNCHER left a dead unit's name holding the launch slot -- the corpse-clearing "
-        "helper exists but nothing on the launch path calls it"
-    )
-
-
-def test_a_live_unit_is_never_reset_out_from_under_itself(monkeypatch):
-    """The other direction, and the one that matters more: resetting an ACTIVE unit would free
-    the name for a second measurement, and two of these delete the reused checkout under each
-    other's suite."""
-    fake = _FakeSystemctl("active\n")
-    monkeypatch.setattr(measure.subprocess, "run", fake)
-
-    measure._clear_a_failed_unit(lambda m: None)
-    assert "reset-failed" not in fake.calls, (
-        "reset a LIVE measurement's unit -- the fixed-name protection is gone"
-    )
-
-
-def test_an_unreadable_systemctl_is_treated_as_active(monkeypatch):
-    """FAIL-CLOSED, unlike the memory pre-flight, and deliberately the other way round: this one
-    guards against starting a second suite beside a live one, so an unavailable check is a
-    failed check (R15)."""
-    def _boom(*a, **k):
-        raise OSError("systemctl gone")
-    monkeypatch.setattr(measure.subprocess, "run", _boom)
-
-    assert measure._unit_is_active() is True
+#
+# THESE CONTROLS AND THEIR FAKE ARE NOT DELETED, THEY MOVED, and saying which is the point: a
+# mutation that stops firing is either a missing test or an equivalence, and the reader must not
+# be left to assume the flattering one. systemd keeps a FAILED unit loaded and the refusal it
+# produces is byte-identical to a live unit's, so a corpse blocks every future launch forever
+# unless something clears it; and an unreadable `systemctl` must read as HELD, never as
+# permission to start a second suite beside a live one. Both properties, both directions, now
+# live against the ONE launcher:
+# `tests/background/test_launch_long_job.py::test_a_corpse_is_cleared_but_a_live_unit_is_never_reset`
+# and `::test_an_unreadable_systemctl_refuses_rather_than_starting_a_second_copy`.
+#
+# Re-asserting them here would only re-assert them of a private copy -- which is precisely the
+# shape that made this harness's remedy useless to every other long job in the repo, and cost
+# three more deaths in September before it was pulled out.
 
 
 # ── THE ADMISSION GUARDS DEFER; THEY NEVER MEASURE ANYWAY ────────────────────────────────────

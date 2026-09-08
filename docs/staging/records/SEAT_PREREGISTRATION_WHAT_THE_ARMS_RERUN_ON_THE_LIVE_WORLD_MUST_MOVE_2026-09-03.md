@@ -135,6 +135,12 @@ All four legs (three-arm, floor `all`, floor `only`, floor `except`) must come f
 one tree, as `tools/run_arms_rerun_detached.sh` does, and be written to NEW stamped paths. Grading
 a new contrast against the old floor is the defect `c30b98048` was filed for.
 
+> *2026-09-08: the script named above is RETIRED. `tools/run_arms_rerun.py` is the same session
+> constraint, plus the two things the script could not do for itself — see §3's launch line. It
+> also makes this P5 a refusal rather than a hope: `plan()` refuses a stamp whose artefacts
+> already exist, and refuses a decomposed floor leg whose three-arm roster is neither in the run
+> nor on disk for that stamp. The prediction above is untouched; only the instrument moved.*
+
 > **Refuted if:** the artefacts that end up published carry more than one `producing_commit`, or if
 > any existing artefact is overwritten in place.
 
@@ -152,9 +158,21 @@ suite was at 67% CPU. Launching a duplicate 8-hour run on one box would contend 
 duplicate whatever that seat lands.
 
 **The next turn's first act is to check whether that seat landed the re-run before starting one.**
-If it did not, the launch is
-`systemd-run --user --unit=arms-rerun-20260903 tools/run_arms_rerun_detached.sh` with the stamp
-changed — never a bare background job, which dies with the tick's cgroup.
+If it did not, the launch is:
+
+```
+python3 -m tools.run_arms_rerun --stamp YYYYMMDD --launch \
+    --leg three-arm --leg floor-all --leg floor-only --leg floor-except
+```
+
+*Updated 2026-09-08. What this line used to say was
+`systemd-run --user --unit=arms-rerun-20260903 tools/run_arms_rerun_detached.sh` **with the stamp
+changed** — i.e. the detachment and the stamp were both instructions to a human, and a forgotten
+wrapper is a bare background job that dies with the tick's cgroup. Both are now the module's:
+`--launch` hands the session to `background.launch_long_job` (transient user unit, liveness record
+the deadman re-asks), and `--stamp` is REQUIRED with no default, so it cannot go silently stale the
+way `STAMP=20260829` did. Ask a launched run how it is doing with
+`python3 -m background.launch_liveness --check`.*
 
 ---
 

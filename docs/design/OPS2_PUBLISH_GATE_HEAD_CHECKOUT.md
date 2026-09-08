@@ -280,10 +280,34 @@ criterion itself* is a ratio, and its denominator has now lost the race for the 
 > the file's existence** — a checkpoint is not a result. One of OPS2's two fixes held; the other
 > was never in the repo to hold, which is the whole lesson and is now closed above.
 >
-> Re-launch — **always through `--systemd`** (`--detach` is now known to be insufficient from a
-> bounded tick; see the 11:22Z status above) — only if `complete`
+> **UPDATE 2026-09-08 — `--detach` IS DELETED, AND THE LAUNCH IS NO LONGER THIS HARNESS'S CODE.**
+> Everything above about the four deaths stands and is why. What changed: the remedy those deaths
+> bought was banked *here*, in this one tool's private `_systemd_run_argv`/`_unit_is_active`/
+> `_clear_a_failed_unit`, bound to one unit name — so it helped nothing else, every other long job
+> in the repo went on hand-rolling its own launch, and three more died of the same cause in
+> September. It now lives in `background/launch_long_job.py`, which `--systemd` calls.
+>
+> Three consequences for a reader of this section:
+>
+>   * **`--detach` is gone, not deprecated.** It survives a group kill and survives neither a
+>     descendant walk nor a cgroup teardown, and it looks identical to a good launch while it is
+>     alive. There is no fallback when `systemd-run` is missing: the launcher refuses.
+>   * **Two controls cited above no longer exist**, and the substitution is not like-for-like.
+>     `test_a_detached_child_survives_the_death_of_its_launchers_process_group` and
+>     `test_session_detach_does_not_hide_a_child_from_a_descendant_walk` had `_detached_popen` as
+>     their subject and went with it. Their successor is
+>     `tests/background/test_launch_long_job.py::test_a_launch_that_lands_in_the_launchers_own_cgroup_is_stopped_and_never_recorded`,
+>     which asks the **cgroup** question — the killer that actually took the fourth run, and the
+>     one neither of those two could see. Corpse-clearing and the fixed unit name moved to the same
+>     suite.
+>   * **A launch now leaves a liveness record.** `python3 -m background.launch_liveness --check`
+>     re-asks every claim, and the deadman re-asks it on a timer, so a dead ~50-minute run is
+>     noticed without anyone looking at a pid. The unit is `longjob-publish-gate-subject-cost`.
+>
+> Re-launch — **always through `--systemd`**, which is now the only launch — only if `complete`
 > is false AND no `measure_publish_gate_subject_cost` process is running (`pgrep -af`; the flag
-> refuses on its own if one is live); resume-worthy phases are listed in `phases_missing`. If a
+> refuses on its own if one is live, and systemd refuses a second unit by name); resume-worthy
+> phases are listed in `phases_missing`. If a
 > record shows `is_session_leader: false`, whoever launched it went around the committed path and
 > the run is expected to die at that tick's edge. Do **not** re-launch
 > merely because the recorded SHA is behind HEAD: HEAD moves under a ~50-minute measurement as
