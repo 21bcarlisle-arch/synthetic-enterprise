@@ -3126,6 +3126,20 @@ def _parse_failed_node_ids(out):
 # Each entry is (name, needles, emitter) — `emitter` is the file that PRINTS the needles and is
 # what the control checks against.
 _REFUSING_GATE_BANNERS = (
+    # FIRST in the chain (pre-commit line 35), so it is first here. One needle covers BOTH of the
+    # gate's refusals at HEAD -- the reverted-landing text and the "index would not write out as a
+    # tree" text open with the identical prefix -- and it cannot name a commit it let through:
+    # every non-refusing return prints `[stale-copy] ` with no ❌ (`... staged path(s) -- none
+    # reverts a landing.`, `no HEAD yet`, `already judged on this exact tree`).
+    #
+    # NO ROW FOR THE MERGE REFUSAL, deliberately. `refusal_text(merge_ref=...)` prints
+    # `MERGE REFUSED` and shares no literal with the commit wording -- it says the opposite thing
+    # (`--merge` reads no working-tree copy at all) -- so it would need a second row. That branch
+    # exists ONLY in an uncommitted working-tree copy: it is in no ref, so a row for it here would
+    # be a SIXTH dead row, born from reading the shared tree instead of the tree this commit
+    # creates. When that lane lands, the leg above turns red and names the gate for them.
+    ("stale-copy guard",
+     ("[stale-copy] ❌ COMMIT REFUSED -- ",), "tools/stale_copy_refusal.py"),
     ("finding-class consolidation",
      ("❌ FINDING-CLASS CONSOLIDATION BROKEN",), "tools/pre_commit_test_gate.py"),
     ("finding-severity gate",
