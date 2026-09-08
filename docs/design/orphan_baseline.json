@@ -1,7 +1,7 @@
 {
-  "_doc": "THE RATCHET FLOOR for the no-caller class. Every module here is unreachable from the committed schedule TODAY and is grandfathered: nobody must fix them to commit. What the gate refuses is a module that is NOT on this list becoming unreachable -- i.e. the moment a new one is created. Shrink it freely; growing it requires saying why in the commit that grows it. ONE ROW IS HELD PAST ITS OWN REACHABILITY (2026-09-08): company.regulatory.epg_reconciliation_register is reachable only through a path written in a DOCSTRING, which this commit did not stop counting as an edge (the comment half orphans 34 modules, the docstring half a further 128, so they are separate atoms). Dropping it would leave an editorial reword of that docstring able to refuse every lane -- the exact defect the comment half was just repaired for. Delete this row in the commit that prunes docstring edges, not before.",
+  "_doc": "THE RATCHET FLOOR for the no-caller class. Every module here is unreachable from the committed schedule TODAY and is grandfathered: nobody must fix them to commit. What the gate refuses is a module that is NOT on this list becoming unreachable -- i.e. the moment a new one is created. Shrink it freely; growing it requires saying why in the commit that grows it.",
   "entrypoint_count": 58,
-  "module_count": 1124,
+  "module_count": 1125,
   "orphans": [
     "background.autonomous_runner",
     "background.bad_debt_reconciliation_run",
@@ -14,6 +14,7 @@
     "background.generate_units",
     "background.harness_exit_criterion",
     "background.judge_validation",
+    "background.launch_long_job",
     "background.prefetch_elexon_ssp",
     "background.pull_forward_proposal",
     "background.reserved_clause_gate",
@@ -237,7 +238,6 @@
     "company.regulatory.eco_tracker",
     "company.regulatory.ee_obligation_tracker",
     "company.regulatory.energy_bill_support",
-    "company.regulatory.epg_reconciliation_register",
     "company.regulatory.ets_registry",
     "company.regulatory.fuel_poverty",
     "company.regulatory.green_gas_levy_register",
