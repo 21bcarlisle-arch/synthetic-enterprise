@@ -44,6 +44,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from tools.python_code_text import searchable
+
 PROJECT = Path(__file__).resolve().parents[2]
 
 #: Directories whose committed code could teach a second way. Deliberately not the whole tree:
@@ -72,31 +74,51 @@ _SLEEPS = re.compile(r"\bsleep\s*[(\s][\d.$]", re.MULTILINE)
 #: The R15 mutation appended a fresh `until ! pgrep ...; do sleep 15; done` to an allowed .sh and
 #: the control stayed green. Each entry now names the substring of the offending line it excuses,
 #: so anything else in the same file still fires.
-ALLOWED = {
-    # The canonical waiter itself, whose docstring QUOTES the broken form as the thing it
-    # replaces. A control that fired on its own subject's documentation would be unusable.
-    ("tools/wait_for.py", "pgrep -f \"pytest tests/simulation/test_live_population\""):
-        "2026-08-30: the mechanism; its docstring quotes the shape it refuses",
-}
+#: EMPTY SINCE 2026-09-08, AND THAT IS THE RESULT, NOT AN OVERSIGHT.
+#:
+#: Its only row excused `tools/wait_for.py`, whose docstring QUOTES the broken form as the thing it
+#: replaces -- the mechanism's own documentation reported as a second mechanism. That row was the
+#: class this control belongs to, wearing an exemption: a scan that reads Python by substring
+#: cannot tell a line that DOES the thing from a comment that DESCRIBES it, so it grows one
+#: allowlist row per accurate comment until the allowlist is the control.
+#:
+#: `_scan` now reads `.py` through `tools.python_code_text.searchable`, so the docstring is not
+#: there to excuse. The exemption was RETIRED rather than kept as a harmless leftover: a row that
+#: can no longer fire is a row nobody will re-examine when it starts mattering again.
+ALLOWED: dict[tuple[str, str], str] = {}
 
 
-def _scan() -> list[tuple[str, str]]:
+def _scan(_root: Path = PROJECT) -> list[tuple[str, str]]:
+    """The production scan. `_root` is injected ONLY so the legs below can run THIS function over a
+    planted tree -- a leg that called `searchable` itself would prove the helper works and say
+    nothing about whether this scan uses it."""
     out = []
     for top in SCANNED:
-        root = PROJECT / top
+        root = _root / top
         if not root.is_dir():
             continue
         for path in sorted(root.rglob("*")):
             if path.suffix not in (".py", ".sh") or not path.is_file():
                 continue
-            rel = path.relative_to(PROJECT).as_posix()
+            rel = path.relative_to(_root).as_posix()
             try:
                 text = path.read_text(encoding="utf-8")
             except (OSError, UnicodeDecodeError):
                 continue
-            for m in _LOOP.finditer(text):
+            # PYTHON IS READ AS CODE; SHELL IS READ AS TEXT. A `.sh` has no prose/code distinction
+            # worth drawing -- a `#` line in a shell script is the only place a waiter gets
+            # explained, and the structure regex is the same either way. A `.py` under `background/`
+            # or `tools/` is mostly prose ABOUT other code in this repository, and the one
+            # allowlist row this control ever needed was paid for by exactly that.
+            #
+            # `searchable` blanks prose to spaces IN PLACE, so `m.start()` still indexes the same
+            # offsets and the 400-char body window below is unchanged. Unparseable source returns
+            # its original text, so this can only ever make the control louder than it was, never
+            # quieter.
+            probed = searchable(text) if path.suffix == ".py" else text
+            for m in _LOOP.finditer(probed):
                 # A probe loop is only a WAIT if it sleeps -- otherwise it is doing work.
-                window = text[m.start():m.start() + 400]
+                window = probed[m.start():m.start() + 400]
                 if not _SLEEPS.search(window):
                     continue
                 line = m.group(0).strip()
@@ -120,6 +142,71 @@ def test_no_new_hand_rolled_wait_loop():
         "pattern cannot match the waiter's own cmdline):\n  "
         + "\n  ".join(f"{p}: {line}" for p, line in offenders)
     )
+
+
+#: A REAL Python waiter: the exact shape the 2026-08-30 R15 mutation planted, as executable code.
+_PLANTED_CODE = (
+    "import time, subprocess\n"
+    "def wait():\n"
+    "    while subprocess.run(['pgrep', '-f', 'sim_runner']).returncode == 0:\n"
+    "        time.sleep(5)\n"
+)
+#: The SAME shape, as prose. This is `tools/wait_for.py`'s own docstring in miniature: the
+#: mechanism quoting the form it exists to replace.
+_PLANTED_PROSE = (
+    '"""The broken form this replaces:\n'
+    "    while pgrep -f 'sim_runner' > /dev/null; do sleep 5; done\n"
+    'and that is why it hangs."""\n'
+    "# while pgrep -f 'sim_runner'; do sleep 5; done  <- never do this\n"
+    "x = 1\n"
+)
+
+
+def _plant(tmp_path, name, body):
+    d = tmp_path / "background"
+    d.mkdir(exist_ok=True)
+    (d / name).write_text(body, encoding="utf-8")
+
+
+def test_a_planted_python_waiter_is_still_caught(tmp_path):
+    """POISON ROUND, and it comes first. Reading `.py` as code narrows what this control sees, and
+    a narrowing that went too far would leave every leg below passing on a scan that finds nothing.
+
+    MUTATION: have `_scan` skip `.py` entirely and this fires."""
+    _plant(tmp_path, "waiter.py", _PLANTED_CODE)
+    assert [rel for rel, _ in _scan(tmp_path)] == ["background/waiter.py"], (
+        "the production scan no longer catches a real Python wait loop"
+    )
+
+
+def test_prose_quoting_a_wait_loop_is_not_a_wait_loop(tmp_path):
+    """THE ROW THE ALLOWLIST USED TO HOLD, as a property instead of an exemption.
+
+    `tools/wait_for.py` documents the shape it replaces, and a substring scan reported the
+    mechanism as a second mechanism. Every accurate comment about a stall would have bought another
+    allowlist row. MUTATION: drop the `searchable` call in `_scan` and this fires."""
+    _plant(tmp_path, "explainer.py", _PLANTED_PROSE)
+    assert _scan(tmp_path) == [], (
+        "prose describing a hand-rolled wait was reported as one -- the allowlist grows by a row"
+    )
+
+
+def test_a_shell_script_is_still_read_as_text(tmp_path):
+    """SHELL COVERAGE SURVIVES THE NARROWING. MUTATION: drop `.sh` from the suffix filter and this
+    fires, on the language three of the four recorded stalls were written in.
+
+    THE OBVIOUS MUTATION DOES NOT FIRE, AND IT IS AN EQUIVALENCE RATHER THAN A MISSING LEG --
+    established 2026-09-08 by running it, not by reasoning about it. Routing `.sh` through
+    `searchable` too changes NOTHING: `searchable` fails closed, returning the original text for
+    source that will not parse, and any shell line `_LOOP` can match begins with `until`/`while` in
+    shell syntax, which is never valid Python. So the suffix test in `_scan` is not what protects
+    shell -- fail-closed is. It stays because it says what is meant at the call site, and because
+    a `.sh` that ever DID parse as Python would otherwise be silently narrowed."""
+    d = tmp_path / "tools"
+    d.mkdir(exist_ok=True)
+    (d / "poll.sh").write_text(
+        "#!/bin/bash\nuntil ! pgrep -f sim_runner; do sleep 15; done\n", encoding="utf-8")
+    assert [rel for rel, _ in _scan(tmp_path)] == ["tools/poll.sh"]
 
 
 def test_the_scan_has_subjects_and_the_allowlist_is_reasoned():

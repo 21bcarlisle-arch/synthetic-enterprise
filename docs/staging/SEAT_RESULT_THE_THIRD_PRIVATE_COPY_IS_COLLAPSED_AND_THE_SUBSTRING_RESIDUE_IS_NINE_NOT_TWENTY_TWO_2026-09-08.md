@@ -72,10 +72,31 @@ Claude sessions whose PROMPT TEXT names the tool, and no running process. A cont
 **None of the nine was read line by line and none is claimed clean.** The five fixed instances all
 looked legitimate from the screen too.
 
+## One of the nine, done (same turn)
+
+`tests/architecture/test_a_wait_is_written_one_way.py` was a member, and its **allowlist was the
+tell**. The single row excused `tools/wait_for.py` — *the mechanism this control points at* —
+because its docstring quotes the broken form it replaces. That is the class wearing an exemption:
+one row per accurate comment, until the allowlist is the control.
+
+`_scan` now reads `.py` through `searchable` and `.sh` as raw text. **`ALLOWED` is empty and the row
+was retired, not left behind**, and the whole-tree leg is still green without it — which is the
+evidence the exemption was never needed, only the substring reading was.
+
+`_scan` takes a `_root` so the new legs run the PRODUCTION scan over a planted tree rather than
+calling `searchable` themselves. Mutations: drop `searchable` → 2 legs red (including the whole-tree
+one, since the allowlist is gone); skip `.py` → the poison-round leg red; drop `.sh` → the shell leg
+red.
+
+**One mutation SURVIVED and it is an equivalence, established by running it.** Routing `.sh` through
+`searchable` too changes nothing: `searchable` fails closed on unparseable source, and a shell
+`until`/`while` line is never valid Python. So the suffix test is not what protects shell coverage —
+fail-closed is. Recorded in the leg rather than left as a flattering silence.
+
 ## What is next
 
-- Re-ask the nine, `test_a_wait_is_written_one_way` first. Its subject is a wall-adjacent rule and
-  its glob is unfiltered, which is both risk factors at once.
+- **Eight left.** `test_pull_forward_proposal`, `test_brand_compliance`, `test_surgical_land`
+  (unfiltered walks), and the five that name `*.py`. None read line by line.
 - The screen is still a substring over test source and will keep being wrong in both directions.
   If a third sweep is needed, write it as an AST guard over the scan's SUBJECT expression — the
   census that beats the manual pass — rather than a fourth regex.
