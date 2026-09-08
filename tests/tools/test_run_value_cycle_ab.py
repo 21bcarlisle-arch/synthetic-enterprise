@@ -1162,17 +1162,113 @@ def test_the_verdict_moves_with_the_counts_rather_than_being_a_constant():
     """R15: a reading that says the same thing whatever the funnel holds is not a reading.
 
     The same book, one decision broken two different ways, must produce two different
-    verdicts — and the all-eligibility one must say the sample CANNOT be widened from this
-    book, which is the answer that costs us the argument for a bigger n.
+    verdicts — and the all-eligibility one must say the sample CANNOT be widened by fixing our
+    own code, which is the answer that costs us the argument for a bigger n.
+
+    THE PHRASE MOVED (2026-09-08) and the property did not. This asserted "CANNOT BE WIDENED
+    FROM THIS BOOK", which bundled a measured claim (no join, no coverage) with an unmeasured
+    remedy (only a bigger book helps). The remedy is now the survivorship split's to state, so
+    the leg here is the half the class counts actually support.
     """
     log, records = _a48_rising()
     records[0] = dict(records[0], settlement_date="2023-02-05")
     eligibility_only = method_skill(_a48_run(log, records))["drop_out"]["reading"]
     joined = method_skill(_a48_run(
         log + [_a48_priced("GHOST", 9.0)], records))["drop_out"]["reading"]
-    assert "CANNOT BE WIDENED FROM THIS BOOK" in eligibility_only
-    assert "CANNOT BE WIDENED FROM THIS BOOK" not in joined
+    assert "CANNOT BE WIDENED BY FIXING OUR OWN CODE" in eligibility_only
+    assert "CANNOT BE WIDENED BY FIXING OUR OWN CODE" not in joined
     assert eligibility_only != joined
+
+
+def test_the_funnel_withholds_the_bigger_book_remedy_when_no_split_measured_it():
+    """THE DEFECT (2026-09-08, Lane 0). A remedy is not a count and may not be asserted like one.
+
+    This reading used to close "only a larger settled book adds to it" on every all-eligibility
+    run. That is a claim about what WOULD happen, and nothing had measured it — the split later
+    showed the class is the churn class, so a bigger book drops the same share. A run that did
+    not measure the split must say the remedy is unestablished, not inherit either answer.
+
+    Fires on: composing any remedy at all from the class counts alone.
+    """
+    drop = rvca._skill_drop_out(4, 3, {"the_priced_term_carried_no_settled_row": 1})
+    assert "NOT ESTABLISHED BY THIS RUN" in drop["reading"]
+    assert "only a larger settled book adds to it" not in drop["reading"]
+    # The measured half is still stated, or the correction has thrown away a real finding.
+    assert "CANNOT BE WIDENED BY FIXING OUR OWN CODE" in drop["reading"]
+
+
+@pytest.mark.parametrize("split,expected,forbidden", [
+    ({"available": True, "decisions_dropped_for_no_settled_row": 40,
+      "of_those_not_attributable_to_a_departure": 0,
+      "the_concordance_is_conditioned_on_survival": True},
+     "A LARGER SETTLED BOOK DOES NOT ADD TO IT", "MAY ADD TO IT"),
+    ({"available": True, "decisions_dropped_for_no_settled_row": 40,
+      "of_those_not_attributable_to_a_departure": 7,
+      "the_concordance_is_conditioned_on_survival": False},
+     "ADDS AT MOST PART OF IT", "DOES NOT ADD TO IT"),
+    ({"available": True, "decisions_dropped_for_no_settled_row": 0,
+      "of_those_not_attributable_to_a_departure": 0,
+      "the_concordance_is_conditioned_on_survival": False},
+     "MAY ADD TO IT", "DOES NOT ADD TO IT"),
+])
+def test_the_remedy_clause_is_a_reading_of_the_split_and_not_a_constant(split, expected,
+                                                                       forbidden):
+    """R15: THREE STATES, each driven, because a clause that said one thing on every input is
+    exactly the shape the old sentence had.
+
+    Two of these are the survivor-conditioned world (waiting does not help) and the world with a
+    recoverable residue (waiting helps for that part) — the Lane 0 item's own two hypotheses. If
+    a future run carries the residue, this sentence has to change without anybody editing it.
+
+    Fires on: hard-coding any one of the three; on branching only on `available`.
+    """
+    clause = rvca._widening_remedy(split)
+    assert expected in clause
+    assert forbidden not in clause
+    assert "not established" not in clause.lower()
+
+
+def test_the_remedy_the_funnel_prints_is_the_one_the_SAME_RUNS_split_measured():
+    """THE WIRING, not the composer. `_widening_remedy` being right proves nothing about whether
+    the funnel reaches it — and the two blocks disagreeing on one page is the defect this whole
+    change exists to close.
+
+    Fires on: `method_skill` computing the split but passing the funnel `None`; on the funnel
+    recomputing a second split of its own.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run_with_events(
+        log + [_a48_unsettled_second_term()], records, [_churn_event()]))
+    assert result["survivorship"]["the_concordance_is_conditioned_on_survival"] is True
+    assert "A LARGER SETTLED BOOK DOES NOT ADD TO IT" in result["drop_out"]["reading"]
+    assert "NOT ESTABLISHED BY THIS RUN" not in result["drop_out"]["reading"]
+
+
+def test_a_run_with_no_event_log_tells_the_reader_the_remedy_is_unknown_on_BOTH_blocks():
+    """FAIL CLOSED, on the funnel as well as on the split.
+
+    The split already refuses without an event log. Before this change the funnel beside it went
+    on promising a bigger book regardless — one page, one subject, one block admitting it could
+    not tell and the other answering confidently.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run(log + [_a48_unsettled_second_term()], records))
+    assert result["survivorship"]["available"] is False
+    assert "NOT ESTABLISHED BY THIS RUN" in result["drop_out"]["reading"]
+
+
+def test_the_eligibility_class_description_stops_asserting_the_remedy_too():
+    """THE SECOND HOME of one claim, which is this project's most expensive recurring shape.
+
+    `what_each_class_means` is published in the artefact and rendered on the page beside the
+    counts. It carried "only a LARGER settled book adds decisions here" — the same unmeasured
+    remedy the reading carried, in a place a reader meets it independently. Correcting one and
+    leaving the other is the VAT shape: one requirement, several implementations, fixed in one.
+    """
+    eligibility = rvca.SKILL_DROP_CLASSES[rvca.ELIGIBILITY]
+    assert "only a LARGER settled book adds decisions here" not in eligibility
+    assert "not available by fixing our own code" in eligibility
+    assert "survivorship" in eligibility
 
 
 def test_the_lumped_count_the_funnel_replaces_still_agrees_with_it():
@@ -2374,3 +2470,369 @@ def test_the_refusal_artefact_is_refused_by_the_decomposition_rather_than_split(
 
     assert split["available"] is False
     assert split["why_not"]
+
+
+# ---------------------------------------------------------------------------
+# method_skill.fixed_horizon -- the estimand that does not condition on survival
+# ---------------------------------------------------------------------------
+#
+# WHAT THIS BLOCK IS FOR (2026-09-08, Lane 0). `_survivorship` established that the decisions the
+# concordance cannot score ARE the renewals where the household left, so the published figure
+# answers "GIVEN the household stayed, did the price rank the joint value?" and is blind to every
+# decision where the price is what drove them away. `_fixed_horizon` is the second estimand: every
+# PRICED decision scored over 365 days from its own term start, a departure contributing the
+# small-or-zero value it really produced instead of leaving the sample.
+#
+# Pre-registered before it was built or run:
+# docs/staging/records/SEAT_PREREGISTRATION_THE_FIXED_HORIZON_ESTIMAND_..._2026-09-08.md (e1a7f1a56).
+#
+# THE KILLERS AIMED AT HERE. (1) The zero-outcome branch never firing, so the estimand silently
+# equals the concordance and every mutation "survives" -- hence a POISON ROUND FIRST. (2) A
+# coverage gap quietly becoming an outcome of zero, which is the one substitution the whole
+# estimand exists to refuse. (3) A three-leg bridge whose legs are not nested, which would make
+# the attribution between the UNIT and the POPULATION a sentence rather than a decomposition.
+
+#: FAR ENOUGH OUT THAT NEITHER TERM IN THESE FIXTURES IS CENSORED. 365 days after `_TERM` is
+#: 2023-01-01 and 365 after `_LATER_TERM` is 2024-01-01, so a book ending before that censors
+#: every decision -- which is itself one of the tests below, driven explicitly rather than
+#: inherited from a default nobody looked at.
+_HORIZON_CLOSED = "2024-01-05"
+
+
+def _a48_observed_until(records, on=_HORIZON_CLOSED):
+    """Push the end of the SETTLED BOOK out to `on`, without touching any priced account.
+
+    The extra row belongs to an account the arm never priced, so `_term_period_of` gives it no
+    period and it reaches no outcome -- it moves `_observation_end` and nothing else. Written
+    this way because censoring and scoring must be separable in a fixture, and a row on a priced
+    account would move both at once.
+    """
+    return list(records) + [_a48_settled("SPECTATOR", paid_gbp=1.0, net_gbp=1.0, on=on)]
+
+
+def _fh(log, records, events=None, observed_until=_HORIZON_CLOSED):
+    run = (_a48_run_with_events(log, _a48_observed_until(records, observed_until), events)
+           if events is not None else
+           _a48_run(log, _a48_observed_until(records, observed_until)))
+    return method_skill(run)["fixed_horizon"]
+
+
+def test_the_decision_the_concordance_drops_is_the_one_this_estimand_SCORES():
+    """POISON ROUND ZERO, and it comes first for the reason R15 keeps charging for.
+
+    If the zero-outcome branch never fired, `fixed_horizon` would be the concordance in a
+    different unit, every mutation below would "survive", and the whole block would read like a
+    working mechanism. So: the same decision, asserted DROPPED by one estimand and SCORED by the
+    other, in one run -- before any number either produces is graded.
+
+    Fires on: the estimand inheriting the concordance's `continue`; on `folded.get` being
+    treated as an exclusion rather than a zero.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run_with_events(
+        log + [_a48_unsettled_second_term()], _a48_observed_until(records), [_churn_event()]))
+
+    assert result["drop_out"]["dropped_by_reason"]["the_priced_term_carried_no_settled_row"] == 1
+    horizon = result["fixed_horizon"]
+    assert horizon["decisions_scored_at_zero_because_the_term_settled_nothing"] == 1
+    assert ("A0", _LATER_TERM) in {(row["account"], row["term_start"]) for row in horizon["sample"]}
+    # And the world agrees it is a departure -- measured on a DIFFERENT key from the drop.
+    assert horizon["zero_outcomes_the_world_recorded_as_a_departure"] == 1
+
+
+def test_the_denominator_is_decisions_priced_and_the_reconciliation_balances():
+    """PROPERTY 1 of the three the item requires. The concordance's denominator is decisions
+    SETTLED; this one's is decisions PRICED, and the arithmetic has to prove it rather than the
+    docstring claiming it.
+
+    Fires on: counting `priced` after any exclusion; on folding declines into the denominator.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log + [_a48_unsettled_second_term(),
+                         {"customer_id": "Z9", "term_start": _TERM, "declined": True}], records)
+    assert horizon["decisions_priced"] == 5
+    assert horizon["decisions_scored"] == 5
+    assert horizon["excluded_by_reason"]["declined"] == 1
+    assert horizon["reconciles"] is True
+    assert (horizon["decisions_scored"] + horizon["decisions_excluded"]
+            == horizon["decisions_priced"])
+
+
+def test_a_horizon_still_open_at_the_end_of_the_settled_book_is_CENSORED_not_scored_zero():
+    """PROPERTY 2, and it is the difference between a bound and a finding.
+
+    A term whose 365 days had not finished when the book ended has produced pounds we have not
+    observed. Scoring it reads a short window as a poor outcome; dropping it silently hides a
+    bound a longer run removes. It is excluded, named, and counted as the run-length artefact
+    it is.
+
+    THE SAME BOOK, OBSERVED TWO DISTANCES, so the census is the variable and nothing else.
+
+    Fires on: censoring after the outcome is read; on censoring being merged into any other
+    exclusion; on the boundary being `>=` where the horizon closes exactly on the last day.
+    """
+    log, records = _a48_rising()
+    short = _fh(log, records, observed_until="2022-12-31")
+    assert short["decisions_scored"] == 0
+    assert short["excluded_by_reason"]["horizon_open_at_the_end_of_the_settled_book"] == 4
+    assert "run-length artefact" in short["what_each_exclusion_means"][
+        "horizon_open_at_the_end_of_the_settled_book"].lower()
+    assert short["reconciles"] is True
+
+    # One day further and the horizon has closed. Nothing else about the book changed.
+    closed = _fh(log, records, observed_until="2023-01-01")
+    assert closed["decisions_scored"] == 4
+    assert "horizon_open_at_the_end_of_the_settled_book" not in closed["excluded_by_reason"]
+
+
+def test_a_missing_counterfactual_stays_a_COVERAGE_GAP_and_never_becomes_an_outcome_of_zero():
+    """PROPERTY 3, and it is the single substitution this estimand exists to refuse.
+
+    A term that settled rows but for which no published default tariff rate resolved has no
+    counterfactual to be valued against. That is a gap in what WE sourced. The zero-outcome
+    branch sits inches away in the same loop, and folding this into it would publish a gap of
+    ours as a consequence the world produced.
+
+    The real gap, not an invented one: `published_default_tariff` has no pre-2019 gas series, so
+    a gas-only account settling in 2016 has no rate.
+
+    Fires on: reaching the zero branch for a `no_counterfactual` term; on the exclusion being
+    counted but the decision also scored.
+    """
+    log, _ = _a48_rising()
+    horizon = _fh([_a48_priced("A0", 1.0, term="2016-01-01")] + log[1:],
+                  [_a48_settled("A0", paid_gbp=2000.0, net_gbp=100.0,
+                                on="2016-06-01", commodity="gas")]
+                  + [_a48_settled(f"A{i}", paid_gbp=2000.0, net_gbp=100.0 * (i + 1))
+                     for i in range(1, 4)])
+    assert horizon["excluded_by_reason"]["no_published_counterfactual_rate_for_the_term"] == 1
+    assert horizon["decisions_scored"] == 3
+    assert horizon["decisions_scored_at_zero_because_the_term_settled_nothing"] == 0
+    gap = horizon["what_each_exclusion_means"]["no_published_counterfactual_rate_for_the_term"]
+    assert "A NAMED COVERAGE GAP" in gap
+    assert "Scoring it zero would" in gap
+
+
+def test_an_account_the_settled_book_has_never_seen_is_excluded_rather_than_scored_zero():
+    """The other side of the same rule, and the two are one line apart in the loop.
+
+    An account with no settled row under ANY term is an account we cannot see. "Produced
+    nothing" and "invisible to us" are different worlds and only one of them is an outcome.
+
+    Fires on: the zero branch swallowing an account absent from the settled book.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log + [_a48_priced("GHOST", 9.0)], records)
+    assert horizon["excluded_by_reason"]["account_has_no_settled_row_anywhere"] == 1
+    assert horizon["decisions_scored_at_zero_because_the_term_settled_nothing"] == 0
+    assert horizon["decisions_scored"] == 4
+
+
+def test_every_leg_of_the_bridge_reports_a_null_of_exactly_one_half():
+    """R15 ANTI-FAIL-OPEN, per leg, and the null is INDEPENDENT of both things that vary.
+
+    A constant signal ties every pair and `_concordance` scores a signal tie as exactly a half
+    whatever the outcomes are -- so the null is a function of the signal alone and cannot see the
+    population or the unit. That is what makes it a check on each leg's estimator rather than a
+    restatement of each leg's answer. A leg whose null is not 0.5 is broken, and a reader has no
+    other way to tell a broken estimator from a method with skill.
+
+    Fires on: any leg computing its null from its own concordance; on the pounds legs losing the
+    signal-tie half-credit.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log + [_a48_unsettled_second_term()], records)
+    for name, leg in horizon["legs"].items():
+        assert leg["null_constant_signal_concordance"] == pytest.approx(0.5), name
+    # ...and beside a non-null estimate, or 0.5 everywhere would prove nothing.
+    assert horizon["legs"]["settled_only_ratio_outcome"]["concordance"] != pytest.approx(0.5)
+
+
+def test_the_three_legs_are_NESTED_so_the_bridge_moves_one_variable_at_a_time():
+    """WITHOUT THIS THE ATTRIBUTION IS A SENTENCE, NOT A DECOMPOSITION.
+
+    Two things differ between `method_skill.concordance` and this estimand -- the population and
+    the unit -- and a result that moves when two things changed cannot be attributed. The bridge
+    is only a bridge while legs 1 and 2 hold the SAME decisions and leg 3 holds exactly those
+    plus the zero outcomes.
+
+    Fires on: an exclusion applied to one leg and not another (the reason
+    `counterfactual_not_positive` is excluded from ALL of them); on leg 3 admitting a decision
+    leg 2 never had.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log + [_a48_unsettled_second_term(), _a48_priced("GHOST", 9.0)], records)
+    legs = horizon["legs"]
+    assert legs["settled_only_ratio_outcome"]["decisions"] == 4
+    assert legs["settled_only_pounds_outcome"]["decisions"] == 4
+    assert legs["every_priced_decision_pounds_outcome"]["decisions"] == 5
+    assert (legs["every_priced_decision_pounds_outcome"]["decisions"]
+            == legs["settled_only_pounds_outcome"]["decisions"]
+            + horizon["decisions_scored_at_zero_because_the_term_settled_nothing"])
+
+
+def test_leg_one_reproduces_the_published_concordance_through_a_different_code_path():
+    """THE CONTROL LEG, and it is a control rather than a finding.
+
+    Leg 1 rebuilds the concordance's own construction -- same decisions, same ratio outcome --
+    inside `_fixed_horizon`. With nothing censored the two must agree. A disagreement is a defect
+    in this block's plumbing, and without this leg a wrong `folded` lookup here would show up
+    only as a surprising headline nobody could source.
+
+    Fires on: leg 1 using pounds; on the horizon loop reading a different `folded` key than the
+    concordance does.
+    """
+    log, records = _a48_rising()
+    result = method_skill(_a48_run(log, _a48_observed_until(records)))
+    assert (result["fixed_horizon"]["legs"]["settled_only_ratio_outcome"]["concordance"]
+            == pytest.approx(result["concordance"]))
+
+
+def test_the_reading_names_which_of_the_unit_and_the_population_moved_it_and_flips_with_them():
+    """KEYED TO THE PROPERTY, NEVER TO TODAY'S ANSWER -- the failure this project pays for most.
+
+    ONE CONTROL OVER THE WHOLE PARTITION rather than a leg per branch: a reading pinned to
+    "admitting the departures LOWERS it" would go green on today's book and stay green the day
+    the arm started ranking departures correctly, which is exactly backwards.
+
+    Both directions are driven here from books that differ only in where the zero lands in the
+    signal order, and the verdict must follow.
+    """
+    log, records = _a48_rising()
+
+    # The unsettled term carries the HIGHEST margin, so admitting its zero outcome puts the
+    # arm's most confident price against its worst result: the figure must FALL.
+    lowers = _fh(log + [_a48_priced("A0", 99.0, term=_LATER_TERM)], records)
+    assert "LOWERS the figure" in lowers["reading"]
+    assert (lowers["legs"]["every_priced_decision_pounds_outcome"]["concordance"]
+            < lowers["legs"]["settled_only_pounds_outcome"]["concordance"])
+
+    # THE EXTRACTING BOOK instead -- paid rises with the chosen margin, so joint value falls
+    # exactly where the arm was most confident and the survivors-only figure is 0.0, every pair
+    # discordant. Put the zero outcome on the arm's CHEAPEST price and it is the lowest signal
+    # against the lowest outcome, which AGREES with the ranking: the figure rises off the floor,
+    # and the reading has to say that this is the worse finding rather than the better one --
+    # the arm's dearest prices went to the households that stayed and produced least.
+    extracting = [_a48_settled(f"A{i}", paid_gbp=1000.0 + 400.0 * i, net_gbp=100.0)
+                  for i in range(4)]
+    raises = _fh(log + [_a48_priced("A0", 0.01, term=_LATER_TERM)], extracting)
+    assert "RAISES the figure" in raises["reading"]
+    assert "worse reading" in raises["reading"]
+    assert (raises["legs"]["every_priced_decision_pounds_outcome"]["concordance"]
+            > raises["legs"]["settled_only_pounds_outcome"]["concordance"])
+    assert lowers["reading"] != raises["reading"]
+
+    # THE THIRD BRANCH OF THE PARTITION, so no leg of the verdict is unreachable: a zero outcome
+    # that agrees with the ranking it joins moves the figure by nothing at all.
+    unmoved = _fh(log + [_a48_priced("A0", 0.01, term=_LATER_TERM)], records)
+    assert "by nothing at all" in unmoved["reading"]
+    assert unmoved["decisions_scored_at_zero_because_the_term_settled_nothing"] == 1
+
+
+def test_a_run_where_nobody_left_says_so_rather_than_claiming_a_survivorship_correction():
+    """FAIL CLOSED ON THE CLAIM, not only on the number.
+
+    When every priced decision settled something, this estimand and the concordance are computed
+    over the same decisions and differ only in the unit. Publishing a survivorship reading there
+    would assert a correction the run did not make.
+
+    Fires on: the reading asserting the population term on a book with no zero outcomes.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log, records)
+    assert horizon["decisions_scored_at_zero_because_the_term_settled_nothing"] == 0
+    assert "no departures" in horizon["reading"]
+    assert "LOWERS the figure" not in horizon["reading"]
+    assert "RAISES the figure" not in horizon["reading"]
+
+
+def test_the_departure_check_withholds_rather_than_reporting_zero_with_no_event_log():
+    """"Nobody left" and "we were not told who left" are different worlds, and a 0 published for
+    the second is the fail-silent shape `_survivorship` was built to refuse. The estimand itself
+    does not depend on the event log -- which is the point -- so the check beside it must be
+    absent rather than reassuring.
+
+    Fires on: `churned=None` defaulting to an empty set.
+    """
+    log, records = _a48_rising()
+    blind = _fh(log + [_a48_unsettled_second_term()], records)
+    assert blind["zero_outcomes_the_world_recorded_as_a_departure"] is None
+    assert blind["decisions_scored_at_zero_because_the_term_settled_nothing"] == 1
+    told = _fh(log + [_a48_unsettled_second_term()], records, events=[_churn_event()])
+    assert told["zero_outcomes_the_world_recorded_as_a_departure"] == 1
+
+
+def test_a_book_with_no_settlement_dates_censors_everything_rather_than_scoring_it():
+    """FAIL CLOSED at the boundary itself. With no observation end there is no way to tell a
+    finished horizon from an unfinished one, so nothing may be scored.
+
+    Fires on: `_horizon_is_open` returning False for a missing end, which would score a whole
+    book against a window it never observed.
+    """
+    assert rvca._horizon_is_open("2022-01-01", None) is True
+    assert rvca._horizon_is_open("not-a-date", "2025-01-01") is True
+    assert rvca._observation_end([{"customer_id": "A"}]) is None
+
+
+def test_a_leg_with_nothing_to_rank_reports_NO_null_rather_than_a_half():
+    """MUTATION 7 SURVIVED FIRST, and it was a missing test rather than an equivalence.
+
+    Replacing each leg's computed null with the literal `0.5` passed every assertion above,
+    because a value assertion cannot tell a computed constant from a typed one -- and a constant
+    signal genuinely does score exactly a half on every population and every unit, which is what
+    made the mutation invisible.
+
+    THE PERTURBATION THAT SEPARATES THEM is the one place the two answers differ: a leg where
+    every outcome ties has NO comparable pair, so `_concordance` returns None and the null must
+    too. A literal 0.5 there says "a random signal scores a half" about a population nothing can
+    rank -- the FAIL-OPEN killer, publishing the null where there was nothing to measure.
+
+    THE BOOK: every priced term settled nothing, so every decision scores the same 0.0. That is
+    also the extreme this estimand has to survive -- a book where the whole priced population
+    departed -- and it must say it cannot rank rather than reporting the null.
+    """
+    log, records = _a48_rising()
+    horizon = _fh([_a48_priced(f"A{i}", 1.0 + i, term=_LATER_TERM) for i in range(4)], records)
+    assert horizon["decisions_scored_at_zero_because_the_term_settled_nothing"] == 4
+    assert horizon["available"] is False
+    whole = horizon["legs"]["every_priced_decision_pounds_outcome"]
+    assert whole["decisions"] == 4
+    assert whole["comparable_pairs"] == 0
+    assert whole["concordance"] is None
+    assert whole["null_constant_signal_concordance"] is None
+    assert "nothing could be ranked" in horizon["reading"]
+
+
+def test_the_verdict_names_whichever_of_the_unit_and_the_population_actually_moved_it():
+    """MUTATION 10 SURVIVED FIRST: hard-coding the larger term to POPULATION passed everything,
+    because every fixture above happens to be one where the population term IS the larger.
+
+    A verdict pinned to today's answer is this project's most expensive recurring defect, and
+    "the population is what moved it" is precisely the claim a reader would act on. So it is
+    driven from the other side: accounts whose SIZES differ enough that the pounds ranking and
+    the ratio ranking disagree, with a zero outcome placed where it barely moves anything. The
+    unit term then dominates and the sentence has to say so.
+
+    THIS IS ALSO THE DECLARED WEAKNESS ARRIVING IN A TEST. Pounds carry scale; this fixture is
+    what that costs, and a run where the UNIT term dominates is a run whose headline is being
+    driven by account size rather than by survivorship.
+    """
+    log = [_a48_priced(f"A{i}", 1.0 + i) for i in range(4)]
+    # Paid, net and VOLUME all vary, so the counterfactual each ratio divides by varies too --
+    # the big accounts produce the most pounds on the worst ratios.
+    lopsided = [_a48_settled("A0", paid_gbp=1000.0, net_gbp=500.0, mwh=10.0),
+                _a48_settled("A1", paid_gbp=20000.0, net_gbp=20.0, mwh=200.0),
+                _a48_settled("A2", paid_gbp=3000.0, net_gbp=300.0, mwh=30.0),
+                _a48_settled("A3", paid_gbp=8000.0, net_gbp=60.0, mwh=80.0)]
+    horizon = _fh(log + [_a48_priced("A0", 0.01, term=_LATER_TERM)], lopsided)
+    legs = horizon["legs"]
+    unit = (legs["settled_only_pounds_outcome"]["concordance"]
+            - legs["settled_only_ratio_outcome"]["concordance"])
+    population = (legs["every_priced_decision_pounds_outcome"]["concordance"]
+                  - legs["settled_only_pounds_outcome"]["concordance"])
+    assert abs(unit) > abs(population) > 0
+    assert "The UNIT term is the larger" in horizon["reading"]
+
+    # ...and the same sentence on the ordinary book names the other one, or this asserts nothing.
+    ordinary = _fh(log + [_a48_priced("A0", 99.0, term=_LATER_TERM)], _a48_rising()[1])
+    assert "The POPULATION term is the larger" in ordinary["reading"]

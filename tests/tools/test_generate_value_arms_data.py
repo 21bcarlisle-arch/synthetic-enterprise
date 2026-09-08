@@ -4459,3 +4459,89 @@ def test_a_gate_refusing_only_real_products_says_ceiling_and_not_gate():
     assert who["verdict"] != "the_arms_ceiling", (
         "62 terms the world never decided a product for, and the page still tells the reader "
         "there is nothing here to repair")
+
+
+def test_the_fixed_horizon_estimand_is_withheld_on_a_run_that_did_not_measure_it():
+    """FAIL CLOSED, and it is the leg that keeps this page from inventing a population.
+
+    THE TEMPTATION THIS REFUSES. `decision_shape.priced` and `method_skill.decisions_scored` are
+    on every artefact ever produced, so a "survivorship-free" headline could be assembled here by
+    treating the difference as zeros. That would publish a coverage gap and a censored horizon as
+    outcomes the world produced -- the exact substitution the estimand exists to refuse -- on
+    every page including the ones from runs that never measured it.
+
+    Fires on: defaulting an absent block to available; on synthesising the estimand from counts
+    that predate it; on inlining this docstring's reading.
+    """
+    absent = gva._skill_fixed_horizon({})
+    assert absent["available"] is False
+    assert "predates the fixed-horizon estimand" in absent["reason"]
+    assert "departure" not in absent["reason"], (
+        "the page stated the estimand's verdict for a run that never computed it")
+
+    # A POPULATION THAT DOES NOT ADD UP IS WITHHELD, headline and all. The whole claim of this
+    # estimand is about its denominator, so a broken denominator is not a caveat on the figure.
+    broken = gva._skill_fixed_horizon({"fixed_horizon": {
+        "available": True, "reconciles": False,
+        "reconciliation": "4 scored + 1 excluded = 5 against 9 priced",
+        "legs": {"every_priced_decision_pounds_outcome": {"concordance": 0.9}}}})
+    assert broken["available"] is False
+    assert "does not add up" in broken["reason"]
+    assert "9 priced" in broken["reason"], "the run's own arithmetic is the reader's evidence"
+    assert "concordance" not in broken, "a withheld estimand published its headline anyway"
+
+    # AND A REAL ONE PASSES THROUGH UNCHANGED -- counts, legs, bridge and verdict. Asserted after
+    # the two refusals so a pass here is evidence of a passthrough rather than of a constant.
+    measured = gva._skill_fixed_horizon({"fixed_horizon": {
+        "available": True, "reconciles": True,
+        "horizon_days": 365, "observation_end": "2025-12-31",
+        "decisions_priced": 214, "decisions_scored": 200,
+        "decisions_scored_at_zero_because_the_term_settled_nothing": 40,
+        "decisions_excluded": 14,
+        "excluded_by_reason": {"no_published_counterfactual_rate_for_the_term": 6},
+        "zero_outcomes_the_world_recorded_as_a_departure": 40,
+        "reconciliation": "200 scored + 14 excluded = 214 against 214 priced",
+        "legs": {"settled_only_ratio_outcome": {"concordance": 0.5334},
+                 "settled_only_pounds_outcome": {"concordance": 0.5100},
+                 "every_priced_decision_pounds_outcome": {"concordance": 0.4700}},
+        "reading": "Admitting the departures LOWERS the figure",
+    }})
+    assert measured["available"] is True
+    assert measured["decisions_priced"] == 214
+    assert measured["decisions_scored_at_zero_because_the_term_settled_nothing"] == 40
+    assert measured["concordance"] == pytest.approx(0.47)
+    assert measured["legs"]["settled_only_ratio_outcome"]["concordance"] == pytest.approx(0.5334)
+    assert measured["excluded_by_reason"]["no_published_counterfactual_rate_for_the_term"] == 6
+    assert "LOWERS the figure" in measured["reading"]
+
+    # ...and a run that could rank NOTHING says so, rather than publishing a null or a bare zero.
+    # "The method has no skill" and "there was nothing to measure" must never read the same.
+    unrankable = gva._skill_fixed_horizon({"fixed_horizon": {
+        "available": False, "reconciles": True, "decisions_scored": 40,
+        "legs": {"every_priced_decision_pounds_outcome": {"concordance": None}}}})
+    assert unrankable["available"] is False
+    assert unrankable["concordance"] is None
+    assert "nothing could be ranked" in unrankable["reason"]
+    assert unrankable["decisions_scored"] == 40
+
+
+def test_the_page_carries_BOTH_populations_and_names_each_one():
+    """THE WIRING, and the item's own acceptance test: a rung reported alone is a rung chosen.
+
+    `_skill_fixed_horizon` being right proves nothing about whether `_method_skill` reaches it,
+    and the whole point of this change is that the survivor-only figure and the whole-population
+    figure appear TOGETHER. A page carrying only the concordance is the state this replaced; a
+    page carrying only the fixed horizon would be the same defect facing the other way.
+
+    Fires on: the estimand being computed and not published; on either cut displacing the other.
+    """
+    skill = gva._method_skill(_load(THREE_ARM))
+    assert "concordance" in skill
+    assert "survivorship" in skill
+    assert "fixed_horizon" in skill
+    horizon = skill["fixed_horizon"]
+    # The artefact on disk may or may not predate the estimand -- either way the block is PRESENT
+    # and states which population it speaks for. That is the property; the value is the run's.
+    assert isinstance(horizon, dict) and "available" in horizon
+    assert horizon.get("reason") or horizon.get("what_this_is"), (
+        "the block neither published a population nor said why it could not")

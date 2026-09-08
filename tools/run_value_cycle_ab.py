@@ -74,7 +74,7 @@ import os
 import random
 import statistics
 from dataclasses import replace
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 # THE COMMIT THIS PROCESS BOUND ITS CODE FROM. `background.boot_sha` already answers exactly this
@@ -1411,7 +1411,10 @@ SKILL_DROP_CLASSES = {
                "measurement -- it is a gap in what we have sourced, not in what the world did."),
     ELIGIBILITY: ("the concordance genuinely needs it. There is no settled outcome behind the "
                   "price, so scoring the decision would rank a coverage gap. Widening this is not "
-                  "available at any book size; only a LARGER settled book adds decisions here."),
+                  "available by fixing our own code. WHETHER A LARGER SETTLED BOOK ADDS DECISIONS "
+                  "HERE IS NOT A PROPERTY OF THIS CLASS and is not asserted: it turns on whether "
+                  "these are the renewals where the household LEFT, which `method_skill."
+                  "survivorship` measures per run and this description cannot know."),
 }
 
 #: WHY A PRICED DECISION NEVER REACHED THE CONCORDANCE, one key per `continue` in the scoring loop
@@ -1449,8 +1452,14 @@ SKILL_DROP_REASONS = {
 }
 
 
-def _skill_drop_out(logged: int, scored: int, dropped: dict) -> dict:
+def _skill_drop_out(logged: int, scored: int, dropped: dict, survivorship=None) -> dict:
     """The funnel from every decision the arm logged down to the ones the concordance ranks.
+
+    `survivorship` is the split `_survivorship` measured for the same run, and it is passed in
+    rather than recomputed so the two blocks cannot come to differ about one subject. It reaches
+    exactly one thing: the REMEDY clause of the reading (see `_widening_remedy`). Every count this
+    funnel publishes is its own, and `None` -- the default, and what a caller that has no split to
+    give must pass -- withholds the remedy instead of asserting one.
 
     WHY THIS EXISTS. This block published `decisions_scored: 6` beside `decision_shape.priced: 20`
     on one page, with a single lumped `decisions_the_outcome_could_not_reach: 14` between them and
@@ -1497,7 +1506,8 @@ def _skill_drop_out(logged: int, scored: int, dropped: dict) -> dict:
         "reconciliation": (
             "{scored} scored + {dropped} dropped = {sum} against {logged} logged".format(
                 scored=scored, dropped=total_dropped, sum=scored + total_dropped, logged=logged)),
-        "reading": (_skill_drop_out_reading(priced, scored, counts, by_class) if reconciles else
+        "reading": (_skill_drop_out_reading(priced, scored, counts, by_class, survivorship)
+                    if reconciles else
                     ("THE FUNNEL DOES NOT ADD UP ({}), so no reading is offered from it. That is "
                      "a defect in this drop-out accounting, not a finding about the book.".format(
                          "{} scored + {} dropped against {} logged".format(
@@ -1505,8 +1515,21 @@ def _skill_drop_out(logged: int, scored: int, dropped: dict) -> dict:
     }
 
 
-def _skill_drop_out_reading(priced, scored, counts, by_class) -> str:
-    """The verdict, built FROM the counts. Never a sentence typed beside them."""
+def _skill_drop_out_reading(priced, scored, counts, by_class, survivorship=None) -> str:
+    """The verdict, built FROM the counts. Never a sentence typed beside them.
+
+    WHY `survivorship` IS AN ARGUMENT (2026-09-08, Lane 0). This reading used to close with "THE
+    SAMPLE CANNOT BE WIDENED FROM THIS BOOK: {scored} is what the method has earned, and only a
+    larger settled book adds to it." The first clause is measured. The second is a REMEDY, and
+    nothing had established it -- `_survivorship` then measured that the class being described is
+    the CHURN class, so a larger book adds decisions and drops the same share of them.
+
+    A remedy is a different kind of claim from a count, and this function may only compose it from
+    something a run measured. So the close is now the split's, in all three of its states, and
+    when the split is unavailable this reading says the remedy is UNESTABLISHED rather than
+    asserting either direction. "We cannot tell whether waiting helps" is the honest close; the
+    old sentence was a promise wearing a measurement's clothes.
+    """
     if scored == priced:
         return ("Every priced decision reached the concordance. There is no funnel to explain and "
                 "no join to widen -- the sample IS the book the arm priced.")
@@ -1521,15 +1544,49 @@ def _skill_drop_out_reading(priced, scored, counts, by_class) -> str:
         return (head + " NOT ONE of the {dropped} dropped decisions is a failed join or a missing "
                 "input of ours. Every one of them was dropped because the world settled no "
                 "outcome the concordance could rank the price against, which is the eligibility "
-                "the statistic needs rather than a plumbing gap. THE SAMPLE CANNOT BE WIDENED "
-                "FROM THIS BOOK: {scored} is what the method has earned, and only a larger "
-                "settled book adds to it.".format(
-                    dropped=priced - scored, scored=scored))
+                "the statistic needs rather than a plumbing gap. THE SAMPLE CANNOT BE WIDENED BY "
+                "FIXING OUR OWN CODE: {scored} is what the method has earned here. {remedy}"
+                .format(dropped=priced - scored, scored=scored,
+                        remedy=_widening_remedy(survivorship)))
     return (head + " Of the {dropped} priced decisions that dropped out, {join} are a join that "
             "could be widened here with no world change, {cov} are an input this repository could "
             "supply, and {elig} are the eligibility the concordance genuinely needs.".format(
                 dropped=priced - scored, join=by_class[JOIN], cov=by_class[COVERAGE],
                 elig=by_class[ELIGIBILITY]))
+
+
+def _widening_remedy(survivorship) -> str:
+    """Does a LARGER SETTLED BOOK add to this sample? Composed from the split, or withheld.
+
+    THE THREE STATES ARE DELIBERATELY DISTINCT, because two of them are absences and they are not
+    the same absence. A run that MEASURED the split and found the drops are departures knows the
+    remedy fails; a run that measured it and found a residue knows part of it works; a run with no
+    event log knows NEITHER, and must say so rather than inheriting whichever sentence was here
+    before. The old close asserted the remedy in all three.
+
+    Keyed to the property and not to today's answer: every clause below is a function of counts
+    the split publishes, so the day a run carries a recoverable residue this sentence changes
+    without anybody editing it.
+    """
+    split = survivorship if isinstance(survivorship, dict) else {}
+    if not split.get("available"):
+        return ("WHETHER A LARGER SETTLED BOOK ADDS TO IT IS NOT ESTABLISHED BY THIS RUN: that "
+                "turns on whether these are the renewals where the household LEFT, and this run "
+                "could not tell -- see `method_skill.survivorship`.")
+    dropped = split.get("decisions_dropped_for_no_settled_row") or 0
+    unattributed = split.get("of_those_not_attributable_to_a_departure") or 0
+    if split.get("the_concordance_is_conditioned_on_survival"):
+        return ("A LARGER SETTLED BOOK DOES NOT ADD TO IT: all {dropped} of these are renewals "
+                "the world recorded as DEPARTURES, so a bigger book adds decisions and drops the "
+                "same share of them. This is a selection in the estimand, not a sample-size "
+                "bound -- see `method_skill.survivorship`.").format(dropped=dropped)
+    if unattributed:
+        return ("A LARGER SETTLED BOOK ADDS AT MOST PART OF IT: {n} of these are NOT attributable "
+                "to a departure, so that residue is what a longer run or a re-cut term boundary "
+                "could recover; the rest leave with the household -- see "
+                "`method_skill.survivorship`.").format(n=unattributed)
+    return ("A LARGER SETTLED BOOK MAY ADD TO IT: the split found no departure behind these drops "
+            "and no unattributed residue either -- see `method_skill.survivorship`.")
 
 
 def _churned_renewals(events) -> set | None:
@@ -1656,6 +1713,312 @@ def _survivorship_reading(dropped, departures, unattributed, scored_departures,
             "block was built to publish: the concordance is no longer survivor-conditioned and "
             "the estimand question below has changed shape.".format(n=scored_departures))
     return " ".join(parts)
+
+
+#: THE HORIZON THE SECOND ESTIMAND SCORES OVER, and it is the term boundary ITSELF rather than a
+#: second number standing beside it. `_term_period_of` already attributes a settled row to the
+#: priced term it fell inside, capped at `_TERM_DAYS`; a fixed-horizon estimand declaring its own
+#: 180 or 366 would be summing a window the attribution never used, and the two would drift the
+#: first time either was tuned. One constant, so they cannot.
+_HORIZON_DAYS = _TERM_DAYS
+
+#: WHY EACH PRICED DECISION LEFT THE FIXED-HORIZON POPULATION. Every one of these is an EXCLUSION
+#: -- counted, named, and never scored as a zero it did not earn. The one thing that is NOT here
+#: is the decision whose term settled nothing: that is the whole point of the estimand and it is
+#: SCORED, at 0.0, because nothing billed under the chosen price is an outcome and a low one.
+HORIZON_EXCLUSIONS = {
+    "declined": ("the arm left the rate untouched, so there is no per-customer signal to rank "
+                 "anything by. Excluded for the same reason the concordance excludes it."),
+    "signal_not_a_number": "the log carried no usable `chosen_margin_gbp_per_mwh` for it.",
+    "the_decision_carried_no_term_start": (
+        "without a term start there is no horizon to open, so this decision cannot be placed on "
+        "the clock at all."),
+    "horizon_open_at_the_end_of_the_settled_book": (
+        "THE RUN-LENGTH ARTEFACT, named as one. The 365 days from this decision's term start had "
+        "not finished when the settled book ended, so the pounds it will produce are partly "
+        "unobserved. CENSORED EXPLICITLY: scoring it would read a short window as a poor outcome, "
+        "and dropping it silently would hide a bound that a longer run removes."),
+    "account_has_no_settled_row_anywhere": (
+        "the settled book carries no row for this account under ANY term, so we cannot see the "
+        "account at all. An account we cannot see is not an account that produced nothing."),
+    "no_published_counterfactual_rate_for_the_term": (
+        "A NAMED COVERAGE GAP, and it stays one. The term settled rows but no published default "
+        "tariff rate resolved for them, so there is no counterfactual to value the saving "
+        "against. Scoring it zero would turn a gap in what WE sourced into an outcome the world "
+        "produced -- which is the single substitution this estimand exists to refuse."),
+    "a_settled_row_carried_no_net_margin": (
+        "a leg of this account-term could supply no NET margin, and the view refuses to let the "
+        "gross stand in for it. Also a gap of ours, also not an outcome."),
+    "counterfactual_not_positive": (
+        "the term's counterfactual is zero or negative, so leg 1's ratio is undefined for it. "
+        "Excluded from EVERY leg rather than from one, because the three legs are only a bridge "
+        "while their populations stay nested."),
+}
+
+
+def _observation_end(records: list) -> str | None:
+    """The last day the settled book carries. The censoring boundary, READ and never assumed.
+
+    Taken from the records themselves rather than from `report_end` (which is None on every
+    unbounded run) or from today's date (which is not a fact about the world the run simulated).
+    A horizon reaching past this day is not a poor outcome; it is a day we have not seen yet.
+    """
+    days = [record["settlement_date"] for record in records
+            if isinstance(record, dict) and isinstance(record.get("settlement_date"), str)]
+    return max(days) if days else None
+
+
+def _horizon_is_open(term_start: str, observation_end: str | None) -> bool:
+    """Does this decision's horizon run past the end of the settled book?
+
+    Fails CLOSED: with no observation end there is no way to tell an unfinished horizon from a
+    finished one, so every decision is censored rather than every decision scored. A run that
+    published no settlement dates would otherwise score its whole book against a window it never
+    observed.
+    """
+    if not observation_end:
+        return True
+    try:
+        opened = date.fromisoformat(term_start)
+    except ValueError:
+        return True
+    return (opened + timedelta(days=_HORIZON_DAYS)) > date.fromisoformat(observation_end)
+
+
+def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
+                   observation_end: str | None, churned: set | None = None) -> dict:
+    """THE SECOND ESTIMAND: does the arm's price rank the value EVERY priced decision produced?
+
+    WHY THIS EXISTS BESIDE THE CONCORDANCE AND NOT INSTEAD OF IT. `method_skill.concordance`
+    drops every priced decision whose term settled no day, and `_survivorship` measured that
+    class to be exactly the renewals where the household LEFT -- 144 of 144 sampled drops across
+    nine artefacts. So the published figure answers a narrower question than its name: GIVEN the
+    household stayed, did the price rank the joint value? It is blind by construction to the
+    decisions where the price is what drove the household away, and the bias runs in the
+    direction the mission sentence exists to catch, because over-pricing shows up as a departure
+    and a departure deletes the decision from the sample instead of scoring it low.
+
+    This scores every priced decision over a FIXED HORIZON from its own term start, counting a
+    departure as the small-or-zero joint value it really produced. A price that drove the
+    household away then ranks BELOW one that did not, which is the comparison the whole
+    instrument exists to make.
+
+    Pre-registered before it was built or run:
+    `docs/staging/records/SEAT_PREREGISTRATION_THE_FIXED_HORIZON_ESTIMAND_THAT_DOES_NOT_CONDITION_ON_SURVIVAL_2026-09-08.md`.
+
+    THE DECLARED WEAKNESS, stated here rather than discovered by a reader. The outcome changes
+    UNITS -- pounds, not the concordance's counterfactual-normalised ratio -- and pounds carry
+    SCALE, so a large account can outrank a small one for being large. The concordance normalises
+    precisely to stop that. This estimand cannot: a household that left has no counterfactual
+    over the horizon because it has no metered volumes over the horizon, and imputing one from an
+    earlier term is an inference the world does not hand us. It is not done.
+
+    SO TWO THINGS CHANGE AT ONCE between the published figure and this one -- the POPULATION and
+    the UNIT -- and a result that moves when two things changed cannot be attributed. Hence the
+    three-leg bridge, over NESTED populations, one variable per step:
+
+        leg 1 `settled_only_ratio_outcome`      settled within the horizon, ratio   -- the control
+        leg 2 `settled_only_pounds_outcome`     the SAME decisions,        pounds   -- THE UNIT
+        leg 3 `every_priced_decision_pounds`    leg 2 + the zero outcomes, pounds   -- THE POPULATION
+
+    Leg 1 is a control and not a finding: it reconstructs the concordance's own construction
+    through a different code path over the same decisions, so when nothing is censored it must
+    agree with the published figure. A disagreement means THIS block's plumbing is wrong, not
+    that anything was learned.
+
+    THE NULL IS INDEPENDENT OF BOTH CHANGES, by construction and not by argument. A constant
+    signal ties every pair and `_concordance` scores a signal tie as exactly a half regardless of
+    the outcomes, so every leg's null must be exactly 0.5 whatever the population or the unit. It
+    is published per leg because a leg whose null is not 0.5 is a broken estimator, and that is
+    the only way a reader can tell a broken estimator from a method with skill.
+    """
+    rows: list[dict] = []
+    excluded: dict[str, int] = collections.Counter()
+    priced = 0
+    for entry in log:
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("declined"):
+            excluded["declined"] += 1
+            continue
+        # PRICED IS THE DENOMINATOR, and it is counted HERE -- above every other exclusion and
+        # below the decline. That ordering is the estimand's first required property: everything
+        # after this point is an exclusion FROM a priced decision, so the reconciliation below
+        # can only balance if nothing was quietly dropped before being counted.
+        priced += 1
+        signal = entry.get("chosen_margin_gbp_per_mwh")
+        if not isinstance(signal, (int, float)) or isinstance(signal, bool):
+            excluded["signal_not_a_number"] += 1
+            continue
+        account, term = entry.get("customer_id"), entry.get("term_start")
+        if not isinstance(term, str):
+            excluded["the_decision_carried_no_term_start"] += 1
+            continue
+        # CENSORING IS TESTED BEFORE THE OUTCOME, deliberately. A decision whose horizon is still
+        # open has an outcome we can read -- it just is not the outcome the estimand names, and
+        # reading it anyway is how a short window becomes a low score.
+        if _horizon_is_open(term, observation_end):
+            excluded["horizon_open_at_the_end_of_the_settled_book"] += 1
+            continue
+        acc = folded.get((account, term))
+        if acc is None:
+            if account not in accounts_in_the_settled_book:
+                excluded["account_has_no_settled_row_anywhere"] += 1
+                continue
+            # THE DECISION THE CONCORDANCE DROPS AND THIS ESTIMAND SCORES. The account settled
+            # under other terms, so we can see it; this term settled nothing, so the price it was
+            # given produced nothing. That is a measured 0.0 and it is the whole point.
+            rows.append({"account": account, "term_start": term, "signal": float(signal),
+                         "pounds": 0.0, "ratio": None, "settled_within_the_horizon": False})
+            continue
+        if acc["no_counterfactual"]:
+            excluded["no_published_counterfactual_rate_for_the_term"] += 1
+            continue
+        if acc["no_net"]:
+            excluded["a_settled_row_carried_no_net_margin"] += 1
+            continue
+        if acc["counterfactual"] <= 0:
+            excluded["counterfactual_not_positive"] += 1
+            continue
+        pounds = acc["saving"] + acc["net"]
+        rows.append({"account": account, "term_start": term, "signal": float(signal),
+                     "pounds": pounds, "ratio": pounds / acc["counterfactual"],
+                     "settled_within_the_horizon": True})
+
+    settled = [row for row in rows if row["settled_within_the_horizon"]]
+    zeroes = [row for row in rows if not row["settled_within_the_horizon"]]
+    legs = {
+        "settled_only_ratio_outcome": _horizon_leg(
+            [(row["signal"], row["ratio"]) for row in settled],
+            "the decisions that settled within the horizon, scored on the CONCORDANCE'S OWN "
+            "outcome (the counterfactual-normalised ratio). A control, not a finding: with "
+            "nothing censored this must reproduce `method_skill.concordance` through a different "
+            "code path, and a disagreement is a defect here."),
+        "settled_only_pounds_outcome": _horizon_leg(
+            [(row["signal"], row["pounds"]) for row in settled],
+            "THE SAME decisions, scored in POUNDS. Against leg 1 this isolates the UNIT change "
+            "and nothing else -- one population, two outcomes."),
+        "every_priced_decision_pounds_outcome": _horizon_leg(
+            [(row["signal"], row["pounds"]) for row in rows],
+            "THE ESTIMAND. Leg 2's decisions PLUS the ones whose term settled nothing, at the "
+            "0.0 they produced. Against leg 2 this isolates the POPULATION change and nothing "
+            "else -- one outcome, two populations."),
+    }
+    scored = len(rows)
+    total_excluded = sum(excluded.values())
+    return {
+        "available": legs["every_priced_decision_pounds_outcome"]["concordance"] is not None,
+        "what_this_is": (
+            "the joint value in pounds that each PRICED decision actually produced within "
+            "{days} days of its own term start, ranked against the margin the arm chose for it. "
+            "A household that left contributes what it was billed before leaving -- which is "
+            "nothing under a term it never began -- rather than being dropped from the "
+            "sample.".format(days=_HORIZON_DAYS)),
+        "horizon_days": _HORIZON_DAYS,
+        "horizon_is": ("`_TERM_DAYS`, the same constant `_term_period_of` cuts the attribution "
+                       "on, so the horizon and the attribution boundary cannot become two "
+                       "numbers"),
+        "observation_end": observation_end,
+        "decisions_priced": priced,
+        "decisions_scored": scored,
+        "decisions_scored_at_zero_because_the_term_settled_nothing": len(zeroes),
+        "decisions_excluded": total_excluded - excluded["declined"],
+        "excluded_by_reason": dict(excluded),
+        "what_each_exclusion_means": {reason: HORIZON_EXCLUSIONS[reason] for reason in excluded},
+        "reconciliation": (
+            "{scored} scored + {excluded} excluded = {total} against {priced} priced "
+            "({declined} declines are not priced decisions and are outside the denominator)"
+            .format(scored=scored, excluded=total_excluded - excluded["declined"],
+                    total=scored + total_excluded - excluded["declined"], priced=priced,
+                    declined=excluded["declined"])),
+        "reconciles": scored + total_excluded - excluded["declined"] == priced,
+        "legs": legs,
+        # THE INDEPENDENT CHECK, and it is not part of the estimand. `_survivorship` established
+        # the concordance's drop class IS the churn class on the DROP key; this re-asks the same
+        # question on a different key -- the decisions this estimand scores at ZERO -- and a
+        # residue here refutes that set identity rather than confirming it. Published because the
+        # disagreement is worth more than the agreement.
+        "zero_outcomes_the_world_recorded_as_a_departure": (
+            None if churned is None else
+            sum(1 for row in zeroes if (row["account"], row["term_start"]) in churned)),
+        "sample": rows[:10],
+        "bound": (
+            "READ THIS BEFORE THE NUMBER, and it is a DIFFERENT bound from the concordance's. "
+            "The outcome is POUNDS, so it carries account SIZE as well as decision quality, and "
+            "this estimand cannot normalise it away: a household that left has no counterfactual "
+            "over the horizon because it has no metered volumes over the horizon. Every decision "
+            "scored at zero also TIES with every other one, so the departures are ranked against "
+            "the survivors and not against each other -- which is why `pairs_tied_on_outcome` "
+            "grows with the zero count and is published per leg. R12: a DIAGNOSTIC, never a "
+            "target; nothing optimises this figure."),
+        "reading": _fixed_horizon_reading(legs, len(zeroes), scored),
+    }
+
+
+def _horizon_leg(points: list[tuple[float, float]], what_it_is: str) -> dict:
+    """One leg of the bridge. Same estimator as the concordance, over a stated population."""
+    concordance, pairs, outcome_ties = _concordance(points)
+    return {
+        "what_it_is": what_it_is,
+        "decisions": len(points),
+        "concordance": concordance,
+        # MUST BE EXACTLY 0.5 ON EVERY LEG. A constant signal ties every pair and a signal tie
+        # scores a half, so this is a function of the signal alone -- it cannot see the
+        # population or the unit. That independence is what makes it a check on THIS leg's
+        # estimator rather than a restatement of THIS leg's answer.
+        "null_constant_signal_concordance": _concordance(
+            [(TARGET_MARGIN_GBP_PER_MWH, outcome) for _, outcome in points])[0],
+        "comparable_pairs": pairs,
+        "pairs_tied_on_outcome": outcome_ties,
+    }
+
+
+def _fixed_horizon_reading(legs: dict, zeroes: int, scored: int) -> str:
+    """The verdict, built FROM the legs. Never a sentence typed beside them.
+
+    Keyed to the PROPERTY and not to today's answer: every clause is a function of the three
+    legs' own numbers, so the day the arm starts ranking departures correctly this sentence
+    changes without anybody editing it.
+    """
+    ratio_leg = legs["settled_only_ratio_outcome"]["concordance"]
+    pounds_leg = legs["settled_only_pounds_outcome"]["concordance"]
+    whole = legs["every_priced_decision_pounds_outcome"]["concordance"]
+    if whole is None:
+        return ("No two priced decisions differed in the pounds they produced, so nothing could "
+                "be ranked. That is a statement about this book, not about the method.")
+    if not zeroes:
+        return ("Every priced decision settled something within the horizon, so this estimand "
+                "and the concordance are computed over the SAME {scored} decisions and differ "
+                "only in the unit. Nothing here is survivorship: this run had no departures "
+                "among its priced decisions to add back.".format(scored=scored))
+    if ratio_leg is None or pounds_leg is None:
+        return ("{whole:.4f} over {scored} priced decisions, {zeroes} of which produced nothing "
+                "within the horizon. The bridge legs could not both be computed, so the move "
+                "against `method_skill.concordance` CANNOT BE ATTRIBUTED to the unit or to the "
+                "population and neither attribution is offered.".format(
+                    whole=whole, scored=scored, zeroes=zeroes))
+    unit = pounds_leg - ratio_leg
+    population = whole - pounds_leg
+    return (
+        "{whole:.4f} over all {scored} priced decisions, against {ratio:.4f} over the {settled} "
+        "that settled something -- and the difference is ATTRIBUTABLE because the bridge moves "
+        "one thing at a time. Changing the outcome from the ratio to pounds moves it {unit:+.4f}; "
+        "admitting the {zeroes} decisions whose term settled nothing then moves it "
+        "{population:+.4f}. The {larger} term is the larger. {direction}".format(
+            whole=whole, scored=scored, ratio=ratio_leg,
+            settled=legs["settled_only_ratio_outcome"]["decisions"],
+            unit=unit, zeroes=zeroes, population=population,
+            larger="POPULATION" if abs(population) > abs(unit) else "UNIT",
+            direction=(
+                "Admitting the departures LOWERS the figure, which is what survivor-conditioning "
+                "was hiding: the arm's price ranks the households it kept better than it ranks "
+                "the ones it lost." if population < 0 else
+                "Admitting the departures RAISES the figure. That is the worse reading, not the "
+                "better one: it means the arm's highest margins went to the households that "
+                "STAYED and produced least, so the survivor-only cut was flattering the method "
+                "for the wrong reason." if population > 0 else
+                "Admitting the departures moves the figure by nothing at all, so at this book "
+                "the survivor-only cut and the whole-population cut agree.")))
 
 
 def method_skill(value: dict) -> dict:
@@ -1802,6 +2165,11 @@ def method_skill(value: dict) -> dict:
         [(TARGET_MARGIN_GBP_PER_MWH, outcome) for _, outcome in points])
 
     accounts = sorted({row["account"] for row in scored_rows})
+    # MEASURED BEFORE THE FUNNEL, because the funnel's remedy clause is a reading of it. Order is
+    # load-bearing here and not stylistic: `_skill_drop_out` may not assert whether a larger book
+    # widens the sample without this, and passing it `None` is what makes it withhold.
+    churned = _churned_renewals(phase2b.get("customer_events"))
+    survivorship = _survivorship(dropped_rows, scored_rows, churned)
     return {
         "available": concordance is not None,
         "reason": (None if concordance is not None else
@@ -1829,14 +2197,25 @@ def method_skill(value: dict) -> dict:
         # with nothing between them; this is what is between them, broken out so a reader can tell
         # a failed join from an eligibility rule without reading this file.
         "drop_out": _skill_drop_out(
-            len([e for e in log if isinstance(e, dict)]), len(points), dropped),
-        # WHO THE FUNNEL DROPPED, against the world's own record of who left. `drop_out` above
-        # says the largest class is eligibility and that only a larger settled book adds to the
-        # sample; this says the class IS the departures, so a larger book adds decisions and
-        # drops the same share of them. The two blocks disagree about what is owed and this one
-        # is the measured half -- see `_survivorship`.
-        "survivorship": _survivorship(dropped_rows, scored_rows, _churned_renewals(
-            phase2b.get("customer_events"))),
+            len([e for e in log if isinstance(e, dict)]), len(points), dropped, survivorship),
+        # WHO THE FUNNEL DROPPED, against the world's own record of who left. Computed ABOVE this
+        # dict (the funnel reads it) and published here beside the funnel it qualifies.
+        #
+        # THE TWO BLOCKS NO LONGER DISAGREE, and that is a change of 2026-09-08. `drop_out` used
+        # to close by asserting that only a larger settled book adds to the sample while this
+        # block measured that the class IS the departures -- one subject, two answers, on one
+        # page. The disagreement was left standing deliberately for one commit so that something
+        # could show the two had come apart; it is now resolved in the only direction that is
+        # honest, by making the funnel's remedy clause a reading OF this split.
+        "survivorship": survivorship,
+        # THE SECOND ESTIMAND, BESIDE THE FIRST AND NOT INSTEAD OF IT. `concordance` above answers
+        # "given the household stayed, did the price rank the joint value?"; this answers the same
+        # question over every decision the arm PRICED, counting a departure as the small-or-zero
+        # value it produced rather than dropping it. Two cuts of one subject, both on the page: a
+        # rung reported alone is a rung chosen, and the survivor-only rung has a selection in its
+        # estimand that no book size removes.
+        "fixed_horizon": _fixed_horizon(
+            log, folded, accounts_in_the_settled_book, _observation_end(records), churned),
         "dropped_sample": dropped_rows[:20],
         "comparable_pairs": pairs,
         "pairs_tied_on_outcome": outcome_ties,
