@@ -1758,6 +1758,86 @@ def _skill_survivorship(method_skill: dict) -> dict:
     }
 
 
+def _skill_fixed_horizon(method_skill: dict) -> dict:
+    """THE SECOND ESTIMAND, read off the run and NEVER recomputed here.
+
+    WHY THE PAGE CARRIES TWO CUTS AND NOT ONE (2026-09-08, Lane 0). `_skill_survivorship` above
+    establishes that the decisions `concordance` could not score ARE the renewals where the
+    household left, so the headline answers "GIVEN the household stayed, did the price rank the
+    joint value?". `method_skill.fixed_horizon` answers the same question over every decision the
+    arm PRICED, a departure contributing the small-or-zero value it really produced. Neither
+    replaces the other: one is scale-free over a selected population, the other is unselected in
+    pounds. A RUNG REPORTED ALONE IS A RUNG CHOSEN, so both are published and both name their
+    population.
+
+    FAILS CLOSED, on the same shape as `_skill_drop_out` and `_skill_survivorship` and for the
+    same reason. Nothing on an older artefact can be rearranged into this estimand -- it needs the
+    arm's log and the settled book folded onto the priced term, which exist only inside the
+    producer -- so a run predating it reports the ABSENCE and names what would fix it. It does NOT
+    carry this docstring's reading over: a claim about a run that run never made is precisely what
+    this page exists to refuse, and an estimand whose whole subject is a selection would be the
+    worst possible place to start inventing one.
+
+    AND IT REFUSES A POPULATION THAT DOES NOT ADD UP. `reconciles: false` upstream means the
+    denominator and the exclusions disagree, and the entire claim of this estimand is about its
+    denominator -- so a broken count of the priced population is withheld rather than published
+    with its headline intact.
+    """
+    horizon = (method_skill or {}).get("fixed_horizon") or {}
+    if not horizon:
+        return {
+            "available": False,
+            "reason": (
+                "the run that produced this artefact predates the fixed-horizon estimand, so the "
+                "page can show the concordance over the decisions that settled but not the one "
+                "over every decision the arm priced. Withheld until a run carries "
+                "`method_skill.fixed_horizon`."),
+        }
+    if not horizon.get("reconciles"):
+        return {
+            "available": False,
+            "reason": (
+                "the run's own fixed-horizon population does not reconcile against the decisions "
+                "it priced (" + str(horizon.get("reconciliation")
+                                    or "no reconciliation was reported")
+                + "), so the estimand is withheld. Its whole claim is about its denominator, and "
+                  "a denominator that does not add up is not evidence about a population."),
+        }
+    legs = horizon.get("legs") or {}
+    return {
+        "available": bool(horizon.get("available")),
+        # PRESENT EVEN WHEN `available` IS FALSE, because "nothing could be ranked" is a result
+        # and the counts underneath it are the reader's evidence for which kind of nothing it is.
+        "reason": (None if horizon.get("available") else
+                   "the run scored decisions but no two of them differed in the pounds they "
+                   "produced, so nothing could be ranked. That is a statement about this book."),
+        "what_this_is": horizon.get("what_this_is"),
+        "horizon_days": horizon.get("horizon_days"),
+        "observation_end": horizon.get("observation_end"),
+        # THE THREE COUNTS A READER NEEDS TO SEE THE POPULATIONS NAMED, and they are the point of
+        # publishing this beside the concordance rather than instead of it.
+        "decisions_priced": horizon.get("decisions_priced"),
+        "decisions_scored": horizon.get("decisions_scored"),
+        "decisions_scored_at_zero_because_the_term_settled_nothing": horizon.get(
+            "decisions_scored_at_zero_because_the_term_settled_nothing"),
+        "decisions_excluded": horizon.get("decisions_excluded"),
+        "excluded_by_reason": horizon.get("excluded_by_reason"),
+        "what_each_exclusion_means": horizon.get("what_each_exclusion_means"),
+        "reconciliation": horizon.get("reconciliation"),
+        # THE HEADLINE AND THE BRIDGE THAT MAKES IT ATTRIBUTABLE. Two things differ between this
+        # and the concordance -- the population and the unit -- so the legs travel one at a time
+        # and are published together. A headline without them would be a number nobody could
+        # source, which is the shape this file has already paid for twice.
+        "concordance": _f((legs.get("every_priced_decision_pounds_outcome") or {})
+                          .get("concordance")),
+        "legs": legs,
+        "zero_outcomes_the_world_recorded_as_a_departure": horizon.get(
+            "zero_outcomes_the_world_recorded_as_a_departure"),
+        "bound": horizon.get("bound"),
+        "reading": horizon.get("reading"),
+    }
+
+
 def _skill_drop_out(method_skill: dict) -> dict:
     """The 20 → 6 funnel, read off the run and NEVER recomputed here.
 
@@ -2175,6 +2255,12 @@ def _method_skill(three_arm: dict) -> dict:
         # none of them back. Published beside it deliberately: the two answer the same reader's
         # question and only one of them has been measured against the world's event log.
         "survivorship": _skill_survivorship(ms),
+        # ...AND THE CUT THAT DOES NOT DROP THEM. `survivorship` says the concordance above is
+        # computed over survivors and that no book size fixes it; this is the estimand that scores
+        # every priced decision instead, a departure at the small-or-zero value it produced. BOTH
+        # POPULATIONS ARE NAMED ON THE PAGE -- a rung reported alone is a rung chosen, and the
+        # survivor-only rung is the flattering one.
+        "fixed_horizon": _skill_fixed_horizon(ms),
         "churn_auc_for_contrast": _f(
             ((three_arm or {}).get("belief_vs_outcome") or {}).get("discrimination_auc")),
         # THE CONTRAST FIGURE CARRIES ITS OWN NULL, for the same reason the concordance beside it
