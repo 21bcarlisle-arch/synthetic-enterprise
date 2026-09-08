@@ -311,16 +311,6 @@ _PUBLISHED_UNPINNED: dict[str, str] = {
     "company/market/market_report.py::_UK_DOMESTIC_ACCOUNTS_M":
         "Ofgem's Retail Market Indicators publish domestic account counts; the table is a "
         "market total in millions and is a straightforward pin once the series is fetched.",
-    "simulation/svt_rates.py::_SVT_GAS_PRECAP_PENCE_PER_KWH":
-        "the pre-cap gas SVT estimate for 2016-2018, back-derived from BEIS QEP bills and Ofgem "
-        "SVT league tables; both are real publications, so this is published_unpinned and not "
-        "not_published, but the BACK-DERIVATION from a bill to a unit rate is a reading and the "
-        "pin has to carry it. CLASSIFIED BY THE CM PASS (2026-09-07) FROM THE TABLE'S OWN "
-        "COMMENT, not from independent study of the sources: it arrived unclassified at "
-        "9b373b96c and was reddening `test_every_discovered_table_is_classified` for every lane, "
-        "which is a whole-tree gate, so leaving it would have wedged the repo rather than the "
-        "author. The owning lane should correct the bucket if this reading is wrong — that is a "
-        "cheaper error than a jammed tree, and it is flagged here rather than filed silently.",
     "saas/non_commodity.py::_NON_COMMODITY_ELEC_RESI_BY_YEAR":
         "an aggregate of DUoS, TNUoS, BSUoS, RO, FiT, CfD, CM and metering. No publication "
         "states the aggregate; the pin is each component, which is most of this register.",
@@ -400,6 +390,26 @@ _NOT_PUBLISHED: dict[str, str] = {
 # what the record supports — and it is falsifiable in both directions, which is what makes it a pin
 # rather than a note.
 _BAND_PINNED: dict[str, str] = {
+    "simulation/svt_rates.py::_SVT_GAS_PRECAP_PENCE_PER_KWH":
+        "MOVED here from _PUBLISHED_UNPINNED on 2026-09-08 by the owning lane, which is the "
+        "correction the entry there invited in writing: the CM pass classified it from the "
+        "table's own comment rather than from the sources, to unwedge a whole-tree gate, and said "
+        "so. It was never unpinned. `svt_rates_active_passive_2016_2025.md` §1 states a RANGE per "
+        "year (2016 ~3.8-4.2, 2017 ~2.1-3.5, 2018 ~3.5-4.0) precisely because the figures are "
+        "back-derived from bills, and "
+        "test_svt_rates.py::test_pre_cap_gas_sits_inside_the_PUBLISHED_band holds every year "
+        "inside its own range. That is the band_pinned shape exactly: a source that states a "
+        "range, and a control falsifiable in both directions against it.",
+    "simulation/svt_rates.py::_SVT_ELEC_PRECAP_PENCE_PER_KWH":
+        "the electricity half of the row above, pinned the same way by "
+        "test_svt_rates.py::test_pre_cap_elec_sits_inside_the_PUBLISHED_band against the same "
+        "source's electricity column (2016 ~13.5-14.5, 2017 ~13.5-14.5, 2018 ~14.5-16.0). NEW to "
+        "the census on 2026-09-08, and it is the residue of a table that SHRANK: "
+        "`_SVT_ELEC_PENCE_PER_KWH` carried 46 quarter-keyed rows out to 2029 and was invisible "
+        "here because its keys were tuples. The post-cap rows now load the commons and only the "
+        "three pre-cap years remain — which is how a table becomes discoverable by getting "
+        "smaller, and is worth noticing: this census cannot see a tuple-keyed table, and that one "
+        "was wrong in 11 of its 32 published rows.",
     "company/market/market_report.py::_UK_SWITCHING_RATE_PCT":
         "gb_domestic_switching_rate.json holds the band; "
         "tests/architecture/test_switching_rate_commons.py holds this table inside it year by "
@@ -430,7 +440,15 @@ _BAND_PINNED: dict[str, str] = {
 # lane in the tree. Recorded as two separate movements rather than one net figure, because a
 # ratchet that only ever shows its net is a ratchet you cannot audit: this bucket was PAID DOWN by
 # two and CHARGED one, and the charge is somebody else's table.
-_MAX_PUBLISHED_UNPINNED = 36  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
+# 36 -> 35 on 2026-09-08: `_SVT_GAS_PRECAP_PENCE_PER_KWH` moved to _BAND_PINNED by its owning lane,
+# taking up the correction that entry itself invited. Paid down by re-reading the source rather than
+# by re-labelling a bucket -- the range is in the publication and the control already existed, so
+# this entry was in the wrong bucket from the day it was written, exactly as `_UK_SWITCHING_RATE_PCT`
+# was. AND THE SAME PASS CHARGED NOTHING, which is worth recording because it easily could have:
+# `_SVT_ELEC_PRECAP_PENCE_PER_KWH` is new to the census on the same day and went to _BAND_PINNED
+# with its own control written for it. A new table arriving unclassified is how this ratchet went UP
+# last time.
+_MAX_PUBLISHED_UNPINNED = 35  # 38 -> 37 on 2026-09-07 (a51): the CM supplier
 # obligation rate came off, re-founded on Ofgem Annex 9 in the commons. The ratchet coming down is
 # the point -- pinning a table is the only sanctioned way to move this number.
 #

@@ -48,13 +48,18 @@ def test_before_2016_returns_none():
     assert rate is None
 
 
-def test_2026_extrapolated_returns_float():
+def test_2026_is_published_not_extrapolated():
+    # Named `test_2026_extrapolated_returns_float` until 2026-09-08, when the extrapolation it was
+    # named for was deleted: the commons publishes 2026 from Ofgem's cap level model v1.31.
     rate = get_svt_elec_rate_gbp_per_mwh("2026-06-01")
     assert isinstance(rate, float)
     assert rate > 0
 
 
-def test_2029_extrapolated_returns_float():
+def test_2029_carries_the_standing_instrument_forward():
+    # Not an extrapolation: past the published schedule the last published level stands, which is
+    # `price_cap_enforcement`'s rule and is asserted properly in
+    # `test_the_elec_svt_leg_reads_the_commons.py`.
     rate = get_svt_elec_rate_gbp_per_mwh("2029-09-15")
     assert isinstance(rate, float)
     assert rate > 0
@@ -73,39 +78,12 @@ def test_crisis_rate_much_higher_than_normal():
     assert rate_2022_oct > rate_2020 * 2.5
 
 
-from simulation.svt_rates import _quarter_start_month
-
-
-def test_quarter_start_jan():
-    assert _quarter_start_month(1) == 1
-
-
-def test_quarter_start_march_is_q1():
-    assert _quarter_start_month(3) == 1
-
-
-def test_quarter_start_april():
-    assert _quarter_start_month(4) == 4
-
-
-def test_quarter_start_june_is_q2():
-    assert _quarter_start_month(6) == 4
-
-
-def test_quarter_start_july():
-    assert _quarter_start_month(7) == 7
-
-
-def test_quarter_start_september_is_q3():
-    assert _quarter_start_month(9) == 7
-
-
-def test_quarter_start_october():
-    assert _quarter_start_month(10) == 10
-
-
-def test_quarter_start_december_is_q4():
-    assert _quarter_start_month(12) == 10
+# `_quarter_start_month` and its eight tests were deleted on 2026-09-08. Their subject was the
+# walk-back over a quarterly key table, and the table is gone: the electricity leg reads the
+# published window boundaries from the commons, which are six-monthly to Sep-2022 and quarterly
+# after, so a function that rounded a month to a quarter could not have expressed them. Kept as
+# a note rather than silently: eight green tests disappearing is a thing a reader should be
+# told the reason for.
 
 
 def test_q1_2022_crisis_rate():
@@ -123,9 +101,21 @@ def test_q4_2022_extreme_crisis_rate():
     assert rate == pytest.approx(518.9)
 
 
-def test_q1_2023_epg_rate():
+def test_q1_2023_is_the_OFGEM_CAP_and_the_name_used_to_say_EPG():
+    """674.7, the Ofgem cap for Jan-Mar 2023 -- NOT the 340.0 the EPG held the household's unit
+    rate at. This test was called `test_q1_2023_epg_rate` and asserted 670.0, which is neither
+    instrument: a transcription of the cap under the name of the other one. Both halves are fixed
+    here, and `test_the_elec_svt_leg_reads_the_commons.py` is what keeps the choice deliberate.
+    """
+    from datetime import date as _d
+
+    from simulation.price_cap_enforcement import ofgem_cap_unit_rate_gbp_per_mwh_inc_vat
+
     rate = get_svt_elec_rate_gbp_per_mwh("2023-01-01")
-    assert rate == pytest.approx(670.0)
+    assert rate == pytest.approx(674.7)
+    assert rate == pytest.approx(
+        ofgem_cap_unit_rate_gbp_per_mwh_inc_vat("electricity", _d(2023, 1, 1))
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -205,15 +195,42 @@ def test_the_post_cap_gas_leg_has_no_SECOND_home_in_this_module():
 
 
 def test_the_post_cap_gas_leg_IS_the_commons():
+    """THE OFGEM CAP ROW since 2026-09-08. This asserted the BINDING instrument until then, and
+    the electricity leg carried the cap, so the two fuels answered different questions across
+    2022-10..2023-06 -- one field, two quantities, in the only three quarters where they differ.
+    """
     from simulation.price_cap_enforcement import (
-        binding_cap_unit_rate_gbp_per_mwh_inc_vat,
+        ofgem_cap_unit_rate_gbp_per_mwh_inc_vat,
     )
     for y in range(2019, 2026):
         for q in (1, 4, 7, 10):
             d = f"{y}-{q:02d}-01"
             assert get_svt_gas_rate_gbp_per_mwh(d) == (
-                binding_cap_unit_rate_gbp_per_mwh_inc_vat("gas", _date.fromisoformat(d))
+                ofgem_cap_unit_rate_gbp_per_mwh_inc_vat("gas", _date.fromisoformat(d))
             ), d
+
+
+#: The ELECTRICITY column of the same §1 pre-cap table, p/kWh, same M confidence and same ±15%
+#: caveat. Added 2026-09-08 with the band pin the gas leg already had: until then the electricity
+#: pre-cap years were three values inside a 46-row quarter-keyed table, and a table keyed by tuples
+#: is invisible to `tests/architecture/test_year_keyed_rate_table_census.py`, so nothing anywhere
+#: held them against their source.
+_PUBLISHED_PRECAP_ELEC_BAND_PENCE = {
+    2016: (13.5, 14.5),
+    2017: (13.5, 14.5),
+    2018: (14.5, 16.0),
+}
+
+
+def test_pre_cap_elec_sits_inside_the_PUBLISHED_band():
+    """DEFECT: a midpoint that has quietly moved off its source. The same control the gas leg
+    carries, on the fuel whose pre-cap years had none.
+    """
+    for year, (low, high) in _PUBLISHED_PRECAP_ELEC_BAND_PENCE.items():
+        pence = get_svt_elec_rate_gbp_per_mwh(f"{year}-06-01") / 10.0
+        assert low <= pence <= high, (
+            f"{year}: {pence}p/kWh is outside the published {low}-{high}p range"
+        )
 
 
 def test_pre_cap_gas_sits_inside_the_PUBLISHED_band():

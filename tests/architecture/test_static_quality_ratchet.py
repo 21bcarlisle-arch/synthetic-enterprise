@@ -802,7 +802,13 @@ RUFF_BASELINE: dict[str, int] = {
     #             `company/crm/vulnerability_register.py` at HEAD, removed while that file's
     #             import block was open for the delegation (atom C32, see log).
     "F401": 264,
-    "E402": 173,  # lowered 2026-09-05 with the I001 entry above — same deletion, same attribution
+    # 173 -> 172 on 2026-09-08: `tests/simulation/test_svt_rates.py` carried a mid-file
+    # `from simulation.svt_rates import _quarter_start_month` above its eight tests, and both the
+    # function and the tests went when the quarterly key table they walked was replaced by a
+    # commons read. Attributed: HEAD measures 173 in a clean extract and this working tree 172,
+    # with the same `makefile_lint_scope()` the ratchet uses, so the improvement is inside this
+    # commit rather than banked from a dirty tree.
+    "E402": 172,  # lowered 2026-09-05 with the I001 entry above — same deletion, same attribution
     "F841": 125,  # lowered 2026-09-07 (the Capacity Market price leg): -1, and it is this
     #             commit's. `test_ashp_only_cm_revenue` bound `result = book.compute_year(...)`
     #             and never read it; the rewrite that turned that test from asserting a CM price
@@ -826,7 +832,8 @@ RUFF_BASELINE: dict[str, int] = {
     "F601": 1,
     "invalid-syntax": 1,
 }
-RUFF_BASELINE_TOTAL = 2288  # 2289 -> 2288: the one I001 in test_phase30a_cm_levy.py above.
+RUFF_BASELINE_TOTAL = 2287  # 2288 -> 2287 on 2026-09-08: the E402 above, same attribution.
+# 2289 -> 2288: the one I001 in test_phase30a_cm_levy.py above.
                             # 2291 -> 2289 (a51): the two I001s above.
                             # `tests/company/test_phase_nx_ic_flexibility.py` -- a file already red
                             # at HEAD at COLLECTION, so this commit had to open it regardless. A

@@ -160,6 +160,51 @@ _FUEL_KEY = {"electricity": "elec", "gas": "gas"}
 DOMESTIC_VAT_RATE = 0.05
 
 
+def _window_for(on_date: date) -> dict:
+    """The published window covering `on_date`, or the last one past the schedule.
+
+    The carry-forward is this lane's READING and it lives in one place so the two
+    accessors below cannot come to different views of what "after the last
+    published quarter" means. See the module docstring: a standing statutory
+    instrument does not lapse for want of a next announcement.
+    """
+    return next(
+        (w for w in PUBLISHED_CAP_WINDOWS if w["from"] <= on_date <= w["to"]),
+        PUBLISHED_CAP_WINDOWS[-1],
+    )
+
+
+def ofgem_cap_unit_rate_gbp_per_mwh_inc_vat(fuel: str, on_date: date) -> float | None:
+    """The OFGEM DEFAULT TARIFF CAP level alone, with no EPG selection applied,
+    on the published basis: GBP/MWh, inc-VAT, excluding standing charge.
+
+    THIS IS A DIFFERENT QUESTION FROM THE ONE BELOW AND THE ANSWER DIFFERS BY 33p
+    /kWh IN JANUARY 2023 (2026-09-08). The binding accessor answers *what a
+    household could lawfully be charged*. This one answers *what a default tariff
+    was priced at, and what a supplier of one was compensated to* -- because the
+    Energy Price Guarantee did not reduce supplier revenue, it reduced the
+    customer's bill and HM Treasury paid the supplier the difference
+    (`company/regulatory/epg_reconciliation_register.py`, which states the scheme
+    and has no production caller).
+
+    Two accessors rather than a `which_instrument=` flag, for the reason the gas
+    docstring gives about `get_svt_rate(fuel, date)`: a caller must write down
+    which quantity it wants, and a flag defaulting to either one hides that from
+    the next reader. Outside 2022-10-01..2023-06-30 the two return the same
+    number, which is exactly why one accessor was enough for as long as nobody
+    looked.
+
+    Returns None on the same inputs as the binding accessor: an uncapped fuel, or
+    a date before the first published window.
+    """
+    key = _FUEL_KEY.get(fuel)
+    if key is None:
+        return None
+    if on_date < _FIRST_CAPPED_DAY:
+        return None
+    return _window_for(on_date)[key]
+
+
 def binding_cap_unit_rate_gbp_per_mwh_inc_vat(fuel: str, on_date: date) -> float | None:
     """The ceiling a domestic bill could not lawfully exceed on `on_date`,
     ON THE PUBLISHED BASIS: GBP/MWh, INCLUDING VAT at 5%, excluding standing
@@ -189,13 +234,9 @@ def binding_cap_unit_rate_gbp_per_mwh_inc_vat(fuel: str, on_date: date) -> float
     if on_date < _FIRST_CAPPED_DAY:
         return None
 
-    window = next(
-        (w for w in PUBLISHED_CAP_WINDOWS if w["from"] <= on_date <= w["to"]),
-        None,
-    )
-    if window is None:
-        # Past the published schedule: the standing instrument still binds.
-        window = PUBLISHED_CAP_WINDOWS[-1]
+    # Past the published schedule `_window_for` returns the last window: the
+    # standing instrument still binds.
+    window = _window_for(on_date)
 
     ofgem = window[key]
     epg = window.get(f"{key}_epg")
