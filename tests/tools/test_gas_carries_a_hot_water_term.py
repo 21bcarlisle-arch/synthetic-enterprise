@@ -160,3 +160,43 @@ def test_ONE_HOUSEHOLD_HAS_ONE_SIZE_across_both_axes_that_use_it():
     assert not (singles & fours), (
         "a one-person and a four-person household drew from the same shape pool, so the size "
         "passed in is not reaching the shape")
+
+
+def test_AN_INTERVENTION_CEILING_DOES_NOT_INCLUDE_THE_HOT_WATER_TERM(pop):
+    """A defect I LANDED, found by looking at the correlation structure rather than by any test.
+
+    Adding hot water to `gas` before differencing the counterfactuals charged the whole water term
+    to every intervention: the model claimed that insulating a loft saves you your showers, and
+    claimed it most loudly for the largest households. It showed up as `turndown_ceiling_kwh`
+    correlating +0.38 with HEADCOUNT -- a quantity that has no business knowing how many people
+    live in the house, because turning a thermostat down one degree does not change how much hot
+    water anyone draws.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S NUMBER: no ceiling may exceed the household's SPACE HEAT.
+    That stays true if the water term is re-anchored, if the per-person coefficient moves, or if
+    the space-heat model is replaced by `simulate_premise` -- and it goes red the moment a
+    counterfactual is differenced against the wrong baseline again."""
+    axes = list(pop["axes"])
+    space_heat = np.asarray(pop["space_heat_kwh"])
+    water = np.asarray(pop["hot_water_kwh"])
+    people = np.asarray(pop["people_count"])
+    on_gas = np.asarray(pop["fuel"]) == dvc.MAINS_GAS
+
+    for axis in ("insulation_ceiling_kwh", "turndown_ceiling_kwh"):
+        ceiling = pop["values"][:, axes.index(axis)]
+        over = ceiling > space_heat + 1e-6
+        assert not over.any(), (
+            f"{int(over.sum())} household(s) have a {axis} larger than their whole SPACE HEAT "
+            "demand -- the counterfactual is being differenced against a total that includes hot "
+            "water, so the saving includes energy the intervention cannot touch.")
+
+    # AND THE DIRECT TELL: a saving from insulation or a thermostat must not know the headcount.
+    # The fabric is drawn independently of the people, so any real correlation here is leakage.
+    for axis in ("insulation_ceiling_kwh", "turndown_ceiling_kwh"):
+        ceiling = pop["values"][on_gas, axes.index(axis)]
+        r = float(np.corrcoef(people[on_gas].astype(float), ceiling)[0, 1])
+        assert abs(r) < 0.15, (
+            f"{axis} correlates {r:+.3f} with headcount. Fabric is drawn independently of the "
+            "people, so an intervention saving cannot legitimately depend on how many live there "
+            "-- the hot-water term is leaking into the counterfactual.")
+    assert water[on_gas].mean() > 0, "guard against this passing because the term is gone again"

@@ -212,11 +212,18 @@ KS_CRITICAL = 1.358
 
 #: Sizes the acceptance is reported at. Geometric, because the answer is expected in the thousands
 #: and an arithmetic ladder would spend every step where the curve is already flat.
-#: Sizes the CHOSEN design is reported at. Separate from `NS` because a designed sample
-#: answers one to two orders of magnitude lower and a random ladder would spend every
-#: step past the answer.
+#: Sizes the CHOSEN design is reported at. Separate from `NS` because a designed sample answers
+#: below a random one and a random ladder would spend every step past the answer.
+#:
+#: THE CEILING WAS 5,200 AND IT BECAME THE ANSWER, which is the failure mode a ladder has. This
+#: comment used to read "a designed sample answers one to two orders of magnitude lower", and that
+#: was true of the 243 measured before hot water and headcount were wired. With an axis that varies
+#: INDEPENDENTLY OF FABRIC in the vector, the top of the ladder reported a worst KS of 0.054
+#: against a 0.05 tolerance -- still falling, and out of rungs. A ladder whose top rung has not
+#: accepted does not report a number; it reports "greater than the ceiling", and reading the
+#: ceiling as the answer is how a measurement instrument publishes its own limit as a finding.
 CHOSEN_NS = (34, 55, 89, 110, 130, 150, 175, 200, 230, 260, 300, 377, 500, 700, 1000,
-             1400, 1800, 2300, 3000, 4000, 5200)
+             1400, 1800, 2300, 3000, 4000, 5200, 6800, 8800, 11500, 15000)
 
 NS = (13, 21, 34, 55, 89, 144, 233, 300, 377, 450, 520, 610, 700, 800, 987, 1200, 1597, 2000,
       2584, 3300, 4181, 5400, 6765, 8500, 10946, 14000, 17711, 23000, 30000)
@@ -537,12 +544,26 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
     # with gas either, and adding a gas term to it would be a worse error than the one being fixed.
     water = np.where(fuel == MAINS_GAS,
                      np.array([hw.annual_kwh(_hw_rng, people_count=int(n)) for n in people]), 0.0)
-    gas = gas + water
+    space_heat = gas
+    gas = space_heat + water
 
+    # THE INTERVENTION CEILINGS ARE DIFFERENCED ON SPACE HEAT, NOT ON THE TOTAL, and getting this
+    # wrong is how the hot-water term turned into a defect in the thing the mission is FOR.
+    #
+    # Both retrofit and turn-down counterfactuals are SPACE-HEAT models: `demand()` knows nothing
+    # about hot water. Differencing them against a total that now INCLUDES hot water charges the
+    # whole 2,243 kWh water term to every intervention -- so the model would claim that insulating
+    # a loft saves you your showers, and it would claim it most loudly for the largest households.
+    # The ranking of interventions is the deliverable, so an error that inflates every ceiling by a
+    # fifth is not a rounding.
+    #
+    # Insulation and a degree off the thermostat change the HEAT, and neither changes how much hot
+    # water a household draws. If a future intervention does move hot water -- a lower cylinder
+    # set-point, a shower timer -- it gets its own counterfactual rather than being folded in here.
     peak_share = _peak_window_share(points, rng, people=people)
     values = np.stack([gas, elec_obs, swing, hlc * 24.0, peak_share,
-                       np.maximum(0.0, gas - gas_retrofit),
-                       np.maximum(0.0, gas - gas_turndown)], axis=1)
+                       np.maximum(0.0, space_heat - gas_retrofit),
+                       np.maximum(0.0, space_heat - gas_turndown)], axis=1)
     # PAYMENT METHOD, DRAWN AND CARRIED BUT NOT GIVEN A CONSUMPTION EFFECT. The canon keeps the
     # physical and commercial layers separate, and this is the commercial one; inventing an
     # under-heating effect to make it "matter" would merge them and would also be unsourced.
@@ -564,7 +585,7 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
             # households the fabric spread swamps it -- the first version of that control went red
             # on noise while the code was right, which is the fastest way to teach a reader to
             # ignore it.
-            "hot_water_kwh": water,
+            "hot_water_kwh": water, "space_heat_kwh": space_heat,
             "cells": cell_pick, "cell_nation": cell_nation[cell_pick],
             "distinct_cells": int(len(set(cell_pick.tolist()))),
             "generated": True, "n_need_rows": len(rows)}
