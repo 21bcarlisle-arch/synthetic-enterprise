@@ -879,12 +879,78 @@ def _base_seed_for(premise_id: str, seed: int | None) -> int:
     return int.from_bytes(hashlib.md5(key.encode("utf-8")).digest()[:8], "big")
 
 
-# `domain-knowledge` — BEIS/EST measured living-room setpoint distribution and the
-# conventional two-period UK heating schedule.
-_SETPOINT_MEAN_C = 20.5
-_SETPOINT_SD_C = 1.2
+# ANCHORED TO EFUS 2017, replacing a bare `domain-knowledge` comment that cited "BEIS/EST" with no
+# document, table or date. DESNZ Energy Follow-Up Survey 2017, thermostat set-points for centrally
+# heated dwellings (n=1,008): MEDIAN 20°C, INTERQUARTILE RANGE 19–21°C, reported range 10–35°C.
+# EFUS 2011 also found a median of 20°C with a slightly wider IQR of 18–21°C.
+#
+# The old constants were 20.5 and 1.2. Both were wrong in the same direction -- upward. An IQR of
+# 19–21 is 2°C wide, and for a normal distribution that is 1.349 standard deviations, so the sd the
+# published spread implies is 2 / 1.349 = 1.48, not 1.2. A half-degree of set-point is roughly 3.5%
+# of space-heat demand on a 5°C day, so this was a systematic overstatement of every gas bill in the
+# book.
+_SETPOINT_MEAN_C = 20.0
+_SETPOINT_SD_C = 1.48
 _SETPOINT_MIN_C = 17.0
 _SETPOINT_MAX_C = 24.0
+
+#: THE MEASURED INTERNAL TEMPERATURE RUNS OPPOSITE TO FABRIC QUALITY, and modelling it as constant
+#: is the defect the director named as the most important in the gas report: *"a model that heats a
+#: leaky home like a new build overstates the saving in exactly the homes we'd target, which biases
+#: intervention ranking toward the measures we most want to recommend."*
+#:
+#: EFUS 2017 measured mean living-room temperature over the heating season, by EPC band:
+#:
+#:      F/G   17.2°C          D   18.6–19.3°C (band midpoint used)          A–C   19.3°C
+#:
+#: and the same gradient by fabric age (pre-1919 17.7°C against post-1990 19.1°C) and by insulation
+#: (none 17.5°C against two-or-more measures 18.8–19.0°C). Roughly a 2°C spread, running AGAINST the
+#: fabric effect and partially cancelling it.
+#:
+#: OFFSETS, NOT ABSOLUTE TEMPERATURES. What EFUS measures is the ACHIEVED living-room temperature;
+#: what this module draws is a THERMOSTAT SET-POINT, and the two differ (the population sets a
+#: median 20°C and achieves a mean 19.3°C). So the published band means are used for their
+#: DIFFERENCES, centred on the population mean, and the level continues to come from the set-point
+#: distribution above.
+#:
+#: WHAT THIS CONFLATES, STATED RATHER THAN HIDDEN: a household in a leaky home may set a lower
+#: temperature, or may set the same one and never reach it. Both are real and EFUS measures their
+#: SUM, not the split. Attributing it to the set-point is the simpler of the two and it reproduces
+#: the measured internal temperature; it would be wrong to read this offset as "poor households
+#: choose to be cold".
+_INTERNAL_TEMPERATURE_BY_EPC_C = {
+    "A": 19.3, "B": 19.3, "C": 19.3, "D": 18.95, "E": 18.0, "F": 17.2, "G": 17.2,
+}
+#: THE CENTRE IS THE POPULATION-WEIGHTED MEAN OF THE BAND TABLE, NOT THE PUBLISHED HEADLINE MEAN,
+#: and the difference is a defect the first version shipped. Centring on 19.3 -- EFUS's published
+#: population mean, which happens to equal its A–C figure -- made every offset zero or negative and
+#: dragged the whole book's set-point below the 20.0 median it is anchored to. Weighted by NEED's
+#: own EPC mix (A/B 15.2%, C 35.5%, D 37.3%, E 10.2%, F/G 1.8%) the band table means 19.00, so that
+#: is the centre: the offsets then REDISTRIBUTE temperature across the stock and leave the level
+#: where the set-point anchor puts it.
+#:
+#: It is deliberately DERIVED rather than written as 19.0, so a change to the band table or to the
+#: stock mix cannot silently re-level every gas bill in the book.
+def _population_centre_c() -> float:
+    import collections
+    import csv as _csv
+
+    from tools.need_stock_joint import EPC_CLASS, NEED_CSV
+
+    if not NEED_CSV.is_file():
+        return 19.0          # the derived value at the time of writing; see the docstring
+    with NEED_CSV.open(encoding="utf-8-sig") as fh:
+        counts = collections.Counter(
+            r["EPC"] for r in _csv.DictReader(fh) if r["EPC"] in EPC_CLASS)
+    total = sum(counts.values())
+    if not total:
+        return 19.0
+    by_class = {"A/B": "A", "C": "C", "D": "D", "E": "E", "F/G": "F"}
+    return sum(_INTERNAL_TEMPERATURE_BY_EPC_C[by_class[k]] * v
+               for k, v in counts.items()) / total
+
+
+_INTERNAL_TEMPERATURE_POPULATION_MEAN_C = _population_centre_c()
 _SETBACK_OFFSET_MIN_C = 2.5
 _SETBACK_OFFSET_MAX_C = 6.0
 DEFAULT_DEADBAND_C = 1.0  # +/- 0.5 deg C about the setpoint
@@ -916,16 +982,75 @@ class HeatingSchedule:
         return self.setback_setpoint_c
 
 
+#: HEATING DURATION AND PATTERN BY DAYTIME PRESENCE -- EFUS 2017, weekday medians. This is the join
+#: between the people layer and the gas physics, and it is published at exactly the grain needed:
+#:
+#:      someone in all day     8h30    48% heat twice a day
+#:      variable occupancy     7h00    60%
+#:      out all day            6h00    77%
+#:
+#: On a typical WEEKEND day EFUS found no significant difference between the three groups (median
+#: 8h00 for all), which is why the weekend is a single figure rather than a third column.
+_HEATING_HOURS_BY_PRESENCE = {"in_all_day": 8.5, "variable": 7.0, "out_all_day": 6.0}
+_TWICE_DAILY_SHARE_BY_PRESENCE = {"in_all_day": 0.48, "variable": 0.60, "out_all_day": 0.77}
+_WEEKEND_HEATING_HOURS = 8.0
+
+#: EFUS's own split of the twice-a-day pattern: 89% have a wake-up period under 4 hours (median 2)
+#: then a home-time period of 4-10 hours (median 5). The two medians sum to 7h, which is the
+#: variable-occupancy figure -- so the pattern and the duration anchors agree, which is worth noting
+#: because they come from different tables.
+_MORNING_SHARE_OF_TWICE_DAILY = 2.0 / 7.0
+
+
+def presence_band(daytime_occupancy_rate: float | None) -> str:
+    """EFUS's three daytime-presence groups from the people layer's own occupancy rate.
+
+    The people layer already produces an EFUS-anchored daytime-occupancy RATE
+    (`demand_model._daytime_occupancy_rate`), and EFUS's heating tables are cut by the same
+    concept, so the two join without inventing a mapping. The cut points are the population
+    tertiles of that rate rather than round numbers, so a household lands in the band its own
+    occupancy earns.
+    """
+    if daytime_occupancy_rate is None:
+        return "variable"
+    if daytime_occupancy_rate >= 0.60:
+        return "in_all_day"
+    if daytime_occupancy_rate <= 0.45:
+        return "out_all_day"
+    return "variable"
+
+
+def setpoint_offset_for_fabric(household: Household) -> float:
+    """How much colder or warmer this dwelling's band runs than the population, in °C.
+
+    Zero for a band EFUS does not distinguish, so an unknown rating cannot invent a gradient.
+    """
+    band = (household.epc_rating or "").strip().upper()[:1]
+    measured = _INTERNAL_TEMPERATURE_BY_EPC_C.get(band)
+    if measured is None:
+        return 0.0
+    return measured - _INTERNAL_TEMPERATURE_POPULATION_MEAN_C
+
+
 def heating_schedule_for(
     premise_id: str,
     household: Household,
     *,
     seed: int | None = None,
     deadband_c: float = DEFAULT_DEADBAND_C,
+    daytime_occupancy_rate: float | None = None,
 ) -> HeatingSchedule:
-    """Draw a premise's fixed schedule from this module's named substream."""
+    """Draw a premise's fixed schedule from this module's named substream.
+
+    `daytime_occupancy_rate` joins the schedule to the PEOPLE layer. Without it the schedule keeps
+    its previous fixed duration, so every existing caller is unchanged; with it the duration and the
+    once-or-twice-a-day pattern come from EFUS's measured cut by daytime presence. That is the term
+    the director named as missing: two houses with identical fabric, one heated eight hours and one
+    heated constantly, are different customers and nothing here could previously tell them apart.
+    """
     base = _base_seed_for(premise_id, seed)
     setpoint = _substream(base, "setpoint").gauss(_SETPOINT_MEAN_C, _SETPOINT_SD_C)
+    setpoint += setpoint_offset_for_fabric(household)
     setpoint = max(_SETPOINT_MIN_C, min(_SETPOINT_MAX_C, setpoint))
     setback_offset = _substream(base, "setback").uniform(
         _SETBACK_OFFSET_MIN_C, _SETBACK_OFFSET_MAX_C
@@ -936,6 +1061,21 @@ def heating_schedule_for(
     evening_start = 32 + jitter.randint(-3, 3)
     morning_len = 4 + jitter.randint(0, 2)
     evening_len = 12 + jitter.randint(-2, 2)
+
+    if daytime_occupancy_rate is not None:
+        band = presence_band(daytime_occupancy_rate)
+        hours = _HEATING_HOURS_BY_PRESENCE[band]
+        if _substream(base, "pattern").random() < _TWICE_DAILY_SHARE_BY_PRESENCE[band]:
+            # TWICE A DAY: a short wake-up period then a longer home-time one, split on EFUS's own
+            # medians rather than evenly.
+            morning_len = max(1, round(hours * _MORNING_SHARE_OF_TWICE_DAILY * 2))
+            evening_len = max(1, round(hours * (1 - _MORNING_SHARE_OF_TWICE_DAILY) * 2))
+        else:
+            # ONCE A DAY: one block from home-time, which is what EFUS's single-period households
+            # overwhelmingly report. The morning period is not shortened to zero length -- it is
+            # removed by making it empty, so `setpoint_at` sees setback there.
+            morning_len = 0
+            evening_len = max(1, round(hours * 2))
     continuous = _CONTROL_MODE.get(household.heating_system) == ControlMode.WEATHER_COMPENSATED
     return HeatingSchedule(
         comfort_setpoint_c=setpoint,
@@ -1150,6 +1290,8 @@ def simulate_premise(
     latitude_deg: float,
     deadband_c: float = DEFAULT_DEADBAND_C,
     initial_state: ThermalState | None = None,
+    daytime_occupancy_rate: float | None = None,
+    schedule: "HeatingSchedule | None" = None,
 ) -> list[FabricDayResult]:
     """Run one premise across consecutive days, CHAINING thermal state.
 
@@ -1158,7 +1300,13 @@ def simulate_premise(
     Reset the state each day and the character disappears.
     """
     params = fabric_parameters(household)
-    schedule = heating_schedule_for(premise_id, household, seed=seed, deadband_c=deadband_c)
+    # PRESENCE REACHES THE PHYSICS, or the schedule term is drawn and then thrown away. `schedule`
+    # is accepted directly too, so a caller asking "what would this household pay if it changed its
+    # timer or its thermostat" can pass the changed one -- which is the use case this whole change
+    # exists for and was previously unanswerable.
+    schedule = schedule or heating_schedule_for(
+        premise_id, household, seed=seed, deadband_c=deadband_c,
+        daytime_occupancy_rate=daytime_occupancy_rate)
     source = heat_source_for(household, params, schedule.comfort_setpoint_c)
     state = initial_state or ThermalState(
         indoor_air_c=schedule.setback_setpoint_c, mass_c=schedule.setback_setpoint_c

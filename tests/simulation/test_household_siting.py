@@ -148,8 +148,14 @@ def test_a_drawn_household_carries_a_coordinate_when_it_carries_a_real_region():
         f"{len(unsited)} of {len(drawn)} drawn households carry a real region and no coordinate: "
         f"{sorted({c['location']['region'] for c in unsited})}")
     for c in drawn:
-        assert -8.5 <= c["location"]["lon"] <= 2.0 and 49.8 <= c["location"]["lat"] <= 56.0, (
-            f"{c['customer_id']} is sited outside England and Wales at {c['location']}")
+        # GREAT BRITAIN, NOT ENGLAND AND WALES, since 2026-09-07. The bound was 56.0N when the
+        # world could not place a Scottish household at all -- the stock joint was SELECTED from
+        # NEED, which has no Scottish dwellings, so the cell filter excluded S92000003 by name.
+        # Households are now GENERATED from a fitted joint raked onto Scotland's own published
+        # stock, so a household at 57.16N in Aberdeen is the world working rather than a defect.
+        # The northern bound is Unst at 60.85N; the western is St Kilda at -8.65.
+        assert -8.7 <= c["location"]["lon"] <= 2.0 and 49.8 <= c["location"]["lat"] <= 61.0, (
+            f"{c['customer_id']} is sited outside Great Britain at {c['location']}")
 
 
 def test_the_default_draw_stays_honestly_unsited_rather_than_guessing(frame_csv):
