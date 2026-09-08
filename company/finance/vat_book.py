@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Dict, List, Optional, Tuple
 
+from company.billing.dual_fuel_bill import SME_VAT_DE_MINIMIS_KWH_PER_DAY
+
 
 class VATRateCategory(str, Enum):
     DOMESTIC_REDUCED = "domestic_reduced"   # 5%: residential / qualifying SME
@@ -21,22 +23,72 @@ _VAT_RATES: Dict[VATRateCategory, float] = {
     VATRateCategory.EXEMPT: 0.00,
 }
 
-# SME qualifying threshold (HMRC concession: domestic rate if <= 33kWh/day elec or 145kWh/day gas)
-SME_ELEC_THRESHOLD_KWH_PER_DAY = 33.0
-SME_GAS_THRESHOLD_KWH_PER_DAY = 145.0
+#: THE DE MINIMIS LIMITS, DERIVED FROM THE COMMONS RATHER THAN RESTATED.
+#: These were literals here — 33.0 and 145.0 — while
+#: `docs/domain_artefact_library/regulatory/vat_fuel_and_power_de_minimis.json` held the same two
+#: figures as the published law, and `company/billing/dual_fuel_bill` already read them from it.
+#: Two homes for one legal requirement, which is the shape CLAUDE.md names as this project's most
+#: expensive recurring defect. Found by `tools/published_row_scalar_census.py`, which ranks a
+#: module-level scalar against every row of the commons: both literals came back as
+#: specificity-1, units-agreeing collisions with the artefact — i.e. exact copies of published law.
+#:
+#: IMPORTED, NOT RE-READ. `dual_fuel_bill.SME_VAT_DE_MINIMIS_KWH_PER_DAY` is already a public
+#: commons load that raises rather than failing open. A second loader against the same file would
+#: be a second thing to keep in step, which is the defect one level up.
+SME_ELEC_THRESHOLD_KWH_PER_DAY = SME_VAT_DE_MINIMIS_KWH_PER_DAY["electricity"]
+SME_GAS_THRESHOLD_KWH_PER_DAY = SME_VAT_DE_MINIMIS_KWH_PER_DAY["gas"]
 
 
 def classify_vat_category(
     is_residential: bool,
     daily_consumption_kwh: Optional[float] = None,
+    fuel: Optional[str] = None,
 ) -> VATRateCategory:
+    """Which VAT band a supply falls in. `fuel` is "electricity" or "gas".
+
+    THE FUEL IS NOT OPTIONAL DETAIL, IT IS HALF THE RULE. Gas is 145 kWh/day and electricity 33
+    — a factor of 4.39 — so between those two numbers the same consumption is reduced-rated for
+    one fuel and standard-rated for the other. This function used to take `max()` of the two
+    limits and apply it to everything, which silently answered every business electricity supply
+    in the 33–145 band with GAS's rule: reduced-rated where the law says standard. That is the
+    same defect `dual_fuel_bill._sme_vat_rate` carried until 2026-08-31, mirrored, and it is why
+    the artefact says in its own text that the limits are NOT the same for the two fuels.
+
+    WITH NO FUEL NAMED IT REFUSES RATHER THAN GUESSES — but only where the fuel actually decides
+    the answer. Below the smallest limit and above the largest, every fuel agrees and the question
+    is answerable without knowing which one it is; inside the band they disagree and there is no
+    honest default, so it raises with the reason named. Picking a side there is how an invented
+    reading gets read as the law.
+    """
     if is_residential:
+        # Unconditional: the artefact's `domestic_is_unconditional` — genuine domestic use is
+        # reduced-rated with no quantity test at all. A de minimis check applied to a domestic
+        # account is not redundant, it is a different rule.
         return VATRateCategory.DOMESTIC_REDUCED
-    if daily_consumption_kwh is not None and daily_consumption_kwh <= max(
-        SME_ELEC_THRESHOLD_KWH_PER_DAY, SME_GAS_THRESHOLD_KWH_PER_DAY
-    ):
+    if daily_consumption_kwh is None:
+        return VATRateCategory.STANDARD
+    if fuel is not None:
+        if fuel not in SME_VAT_DE_MINIMIS_KWH_PER_DAY:
+            raise ValueError(
+                f"no published de minimis limit for fuel {fuel!r}; VAT Notice 701/19 states one "
+                f"for {sorted(SME_VAT_DE_MINIMIS_KWH_PER_DAY)} and this book does not invent others"
+            )
+        limit = SME_VAT_DE_MINIMIS_KWH_PER_DAY[fuel]
+        return (
+            VATRateCategory.DOMESTIC_REDUCED
+            if daily_consumption_kwh <= limit
+            else VATRateCategory.STANDARD
+        )
+    limits = SME_VAT_DE_MINIMIS_KWH_PER_DAY.values()
+    if daily_consumption_kwh <= min(limits):
         return VATRateCategory.DOMESTIC_REDUCED
-    return VATRateCategory.STANDARD
+    if daily_consumption_kwh > max(limits):
+        return VATRateCategory.STANDARD
+    raise ValueError(
+        f"{daily_consumption_kwh} kWh/day falls between the per-fuel de minimis limits "
+        f"({SME_VAT_DE_MINIMIS_KWH_PER_DAY}), where the two fuels take opposite VAT rates, and no "
+        "fuel was named. Pass `fuel=` — there is no answer here that is right for both."
+    )
 
 
 @dataclass(frozen=True)
