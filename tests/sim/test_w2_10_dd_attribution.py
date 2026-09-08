@@ -26,6 +26,7 @@ from pathlib import Path
 import pytest
 
 from simulation import dd_attribution as dd
+from tools.epistemic_wall import forbidden_wall_imports
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -284,6 +285,12 @@ def test_arrears_prob_monotonic_in_organisation():
 # -- 7. Epistemic wall --------------------------------------------------------
 
 def test_module_does_not_import_company_or_saas():
-    src = (REPO_ROOT / "simulation" / "dd_attribution.py").read_text()
-    for banned in ("import company", "from company", "import saas", "from saas"):
-        assert banned not in src, f"epistemic-wall violation: '{banned}' in dd_attribution.py"
+    """The wall, asked of the IMPORT GRAPH rather than of the file's punctuation.
+
+    This was four verbatim copies of `for banned in ("import company", ...): assert banned not
+    in src` -- a substring over raw source, which cannot tell an import from a comment ABOUT the
+    wall and cannot see `from ..company.billing import engine` at all. `forbidden_wall_imports`
+    is the one home; `tools/epistemic_wall.py` states what it does and does not reach.
+    """
+    crossed = forbidden_wall_imports(str(REPO_ROOT / "simulation" / "dd_attribution.py"))
+    assert not crossed, f"epistemic-wall violation: dd_attribution.py imports {sorted(crossed)}"

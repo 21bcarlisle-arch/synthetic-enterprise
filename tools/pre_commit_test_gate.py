@@ -181,6 +181,17 @@ CONTROL_TESTS = [
     # an unproven prefilter on a control this shape is a fail-open waiting to happen, and the
     # cheap version of this file would be the one that stops seeing things.
     "tests/architecture/test_the_one_launcher_is_the_only_launcher.py",
+
+    # The substring-scan census, and it is here for the same reason as the line above: its subject
+    # is every test in the tree, so ANY commit touching `tests/` can add the 118th instance and no
+    # pathspec-selected run would look. Ten instances of this class were fixed one at a time across
+    # three hand sweeps, each sweep closing by recommending the guard and none building it.
+    #
+    # ~7.4s, of which substantially all is the walk itself, and there is DELIBERATELY NO PREFILTER.
+    # The neighbour above prefilters to ~0.1s and then spends 6.2s proving the prefilter is not a
+    # blind spot, which is the correct trade there and a wash here: the same total, plus a second
+    # mechanism that can go blind. One walk, nothing to prove about it.
+    "tests/architecture/test_a_control_reads_python_as_code.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own

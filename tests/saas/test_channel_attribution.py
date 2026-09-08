@@ -27,6 +27,7 @@ from saas.channel_attribution import (
     make_observations,
 )
 from background.gap_metric import attribution_gap
+from tools.epistemic_wall import forbidden_wall_imports
 
 
 # ---------------------------------------------------------------------------
@@ -34,11 +35,17 @@ from background.gap_metric import attribution_gap
 # ---------------------------------------------------------------------------
 
 def test_twin_imports_nothing_from_the_sim():
-    """The wall, mechanically: the twin's source must not import simulation/sim."""
-    src = pathlib.Path("saas/channel_attribution.py").read_text(encoding="utf-8")
-    for banned in ("import simulation", "from simulation", "import sim.",
-                   "from sim.", "from sim import"):
-        assert banned not in src, f"twin illegally references the SIM: {banned!r}"
+    """The wall, mechanically: the twin's source must not import simulation/sim.
+
+    ASKED OF THE IMPORT GRAPH, not of the file's punctuation. The five-string substring list this
+    replaces could not tell an import from this module's own docstring -- which states the rule in
+    the sentence "imports nothing from the SIM", four lines above the code that enforced it -- and
+    could not see `from ..sim.prices import x` either. `forbidden_wall_imports` reads the twin's
+    side of the wall from its side of the tree, so the mirror of this assertion under `tests/sim/`
+    is now the SAME function rather than a fifth copy with the arguments swapped.
+    """
+    crossed = forbidden_wall_imports("saas/channel_attribution.py")
+    assert not crossed, f"twin illegally references the SIM: {sorted(crossed)}"
 
 
 def test_delta_naive_is_the_observed_arrears_difference_credited_to_dd():
