@@ -707,8 +707,16 @@ def _build_gas_renewal_schedule(
 
 
 def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
-    """Phase 11b + 39a: Build churn basis risk records with SVT comparison."""
-    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+    """Phase 11b + 39a: Build churn basis risk records with SVT comparison.
+
+    `rate_vs_svt_pct` is against WHAT THE HOUSEHOLD WAS CHARGED (2026-09-08), because the record
+    is about a household's churn and it must be the same quantity as the customer event's
+    `price_differential_vs_svt` that `_svt_position` writes. Reading the Ofgem cap here while the
+    event read the guarantee would have put the two 50% apart across 2022-10-01..2023-06-30 under
+    names that both say `svt` -- the exact shape `run_price_ladder`'s reconciliation caught in
+    August, and it is caught here before it lands rather than after.
+    """
+    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
 
     records = []
     for e in customer_events_log:
@@ -716,7 +724,7 @@ def _build_churn_basis_risk(customer_events_log: list) -> list[dict]:
             continue
         unit_rate = e.get("unit_rate_gbp_per_mwh")
         term_start = e["event_date"]
-        svt_rate = get_svt_elec_rate_gbp_per_mwh(term_start)
+        svt_rate = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start)
         rate_vs_svt_pct = None
         if unit_rate is not None and svt_rate is not None and svt_rate > 0:
             rate_vs_svt_pct = round((unit_rate - svt_rate) / svt_rate * 100.0, 2)

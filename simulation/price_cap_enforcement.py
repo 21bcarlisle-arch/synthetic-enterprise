@@ -243,6 +243,64 @@ def binding_cap_unit_rate_gbp_per_mwh_inc_vat(fuel: str, on_date: date) -> float
     return min(ofgem, epg) if epg is not None else ofgem
 
 
+def hmt_epg_receipt_gbp_per_mwh(fuel: str, on_date: date) -> float | None:
+    """THE RECEIPT LEG. What HM Treasury paid the supplier, per MWh billed, on
+    `on_date` — the third number the two accessors above imply and that nothing
+    in this world could name until 2026-09-08.
+
+    Same basis as the two it is a difference of: GBP/MWh, inc-VAT, excluding
+    standing charge. `0.0` wherever no EPG level is published, which is every day
+    outside 2022-10-01..2023-06-30, and strictly positive inside it.
+
+    ZERO BEFORE THE CAP EXISTED, NOT NONE, AND THAT IS NOT THE RULE THE TWO
+    ACCESSORS ABOVE FOLLOW. They return `None` before 2019-01-01 because there
+    was no ceiling to state and a made-up one would un-cap a bill. This is a
+    different question with a definite answer: the Energy Price Guarantee ran for
+    nine named months and HM Treasury paid a supplier nothing in 2016, which is a
+    fact and not a gap. Returning `None` here would have been the tidier-looking
+    choice and it would have put a second, disagreeing answer into the world —
+    `svt_product` bills the same pre-cap table on both legs, so its receipt for
+    2016 is 0.0 whatever this says. One name, two numbers, in the first commit.
+
+    `None` only for a fuel with no domestic cap and therefore no domestic EPG.
+
+    WHY THIS IS ARITHMETIC AND NOT A SECOND READING. The Energy Price Guarantee
+    did not reduce supplier revenue; it reduced the customer's bill, and HM
+    Treasury paid the difference (`company/regulatory/epg_reconciliation_register`
+    states the scheme, and this is the world's own leg of it — the company's
+    register is behind the wall and is not imported here, nor could it be). So
+    the supplier's revenue per MWh is what a default tariff was priced at, the
+    household's payment is the binding ceiling, and this is what closes the two:
+
+        ofgem_cap = binding_cap + hmt_epg_receipt      on every day, both fuels
+
+    Deriving it rather than publishing a third table is what makes that identity
+    hold by construction instead of by a control that would have to be believed.
+    The identity IS controlled, in
+    `tests/simulation/test_the_hmt_receipt_leg_and_the_household_charged_rate.py`,
+    because "by construction" has been wrong here before whenever the two sides
+    grew apart — but it is controlled as a property of the published span, not
+    pinned to today's three windows.
+
+    WHAT THIS DOES NOT COVER, said plainly rather than implied. The EPG reached
+    every domestic tariff, fixed terms included. This world applies it only where
+    a default-tariff rate is read — `simulation/svt_product` — because a fixed
+    term here is priced by the company through `request_renewal_offer` and
+    subsidising it would mean reaching into a price the company struck. That is a
+    real gap in the crisis quarters for fixed-term households and it is named
+    here rather than left for the next reader to discover from a number.
+    """
+    if fuel not in _FUEL_KEY:
+        return None
+    if on_date < _FIRST_CAPPED_DAY:
+        return 0.0
+    ofgem = ofgem_cap_unit_rate_gbp_per_mwh_inc_vat(fuel, on_date)
+    binding = binding_cap_unit_rate_gbp_per_mwh_inc_vat(fuel, on_date)
+    if ofgem is None or binding is None:  # unreachable given the guards above
+        return None
+    return ofgem - binding
+
+
 def binding_cap_unit_rate_gbp_per_mwh_ex_vat(fuel: str, on_date: date) -> float | None:
     """The same ceiling, restated EXCLUDING VAT, for comparison against an
     ex-VAT unit rate.

@@ -119,7 +119,12 @@ from datetime import date, timedelta
 from sim.forward_curve import generate_forward_price
 from simulation.departure_risks import svt_inertia_hazard
 from simulation.market_switching_propensity import market_switching_multiplier
-from simulation.svt_rates import CAP_PERIOD_START_MONTHS, get_svt_elec_rate_gbp_per_mwh
+from simulation.price_cap_enforcement import hmt_epg_receipt_gbp_per_mwh
+from simulation.svt_rates import (
+    CAP_PERIOD_START_MONTHS,
+    get_svt_elec_rate_charged_to_household_gbp_per_mwh,
+    get_svt_elec_rate_gbp_per_mwh,
+)
 
 # Cap-period starts are now IMPORTED from `simulation/svt_rates.py`, which is where the published
 # series lives. This file used to carry its own copy of the tuple under a comment saying
@@ -192,6 +197,29 @@ def build_svt_schedule(
       * `unit_rate_gbp_per_mwh` is the published cap rate for the period, not a struck price.
         No company module is asked to price it, because no supplier prices a capped default
         tariff — it is handed the number.
+      * `household_charged_unit_rate_gbp_per_mwh` and `hmt_epg_receipt_gbp_per_mwh` SPLIT that
+        rate into who paid it, and they sum back to it exactly. See below.
+
+    WHO ACTUALLY PAID THE BILL (2026-09-08, and until today this world could not say). From
+    2022-10-01 to 2023-06-30 the Energy Price Guarantee held a household's unit rate at
+    34.0p/kWh while the Ofgem cap ran to 67.47p. It did that WITHOUT reducing supplier revenue:
+    the supplier billed the guaranteed rate and HM Treasury paid it the difference. A world
+    carrying one rate here has to choose which of those to be wrong about — bill the cap and
+    every household-facing reading (its bill jumped, its offer looks cheap, it should churn) is
+    taken against a number no household ever paid; bill the guarantee and roughly half the unit
+    revenue leaves the three quarters that carry the most weight in the whole 2016–2025 record.
+
+    So the segment carries all three and the identity is closed by construction:
+
+        unit_rate = household_charged + hmt_epg_receipt
+
+    `unit_rate_gbp_per_mwh` is UNCHANGED and remains what settlement bills, because it is the
+    supplier's revenue and that is what it always was. What is new is that a consumer asking a
+    question ABOUT THE HOUSEHOLD now has a field to read instead of the revenue one, and
+    `simulation/bill_shock_tracker` is the first to take it. Outside the EPG windows the receipt
+    is 0.0 and the two rate fields are the same number, so nothing before 2022-10 or after
+    2023-06 moves at all.
+
 
     The first segment starts on the acquisition date rather than on a cap boundary, so a
     household that arrives mid-quarter is billed from the day it arrived at the rate then in
@@ -212,6 +240,26 @@ def build_svt_schedule(
         segment_end = min(next_start, report_end + timedelta(days=1))
 
         rate = get_svt_elec_rate_gbp_per_mwh(segment_start_str)
+        # THE RECEIPT IS ASKED FOR, NOT DIFFERENCED, and the reason is about what the CONTROL
+        # means, not about what the number is. `receipt = rate - charged` returns the identical
+        # value on every date -- proven by mutation, 2026-09-08: swapping this line for the
+        # subtraction leaves all fifteen controls green, so the two are equivalent and this
+        # comment does not get to claim otherwise. What the subtraction would change is that
+        # `unit_rate == household_charged + hmt_epg_receipt` becomes true by arithmetic, so the
+        # control asserting it stops being able to fail while still reading as coverage of the
+        # one property that matters here. Asking the accessor keeps the identity a claim about
+        # three independent readings of the commons. Only `test_the_segment_asks_for_the_receipt
+        # _rather_than_differencing_it` can see the difference, because no behaviour can.
+        #
+        # Both rate legs are None on exactly the same dates (pre-2016), and a receipt against a
+        # bill that could not be computed is unknown rather than zero, so the split is only
+        # written where both legs are numbers.
+        charged = get_svt_elec_rate_charged_to_household_gbp_per_mwh(segment_start_str)
+        receipt = (
+            None
+            if (rate is None or charged is None)
+            else hmt_epg_receipt_gbp_per_mwh("electricity", segment_start)
+        )
         lookback_temps = (
             lookback_temps_fn(segment_start_str) if lookback_temps_fn else None
         )
@@ -225,6 +273,10 @@ def build_svt_schedule(
             # ending and the supplier must say so. Nothing is ending here.
             "notice_date": segment_start_str,
             "unit_rate_gbp_per_mwh": rate,
+            # WHO PAID IT. Equal to `unit_rate_gbp_per_mwh` with a 0.0 receipt on every day
+            # outside 2022-10-01..2023-06-30; inside, the household's share and HM Treasury's.
+            "household_charged_unit_rate_gbp_per_mwh": charged,
+            "hmt_epg_receipt_gbp_per_mwh": receipt,
             "forward_price_gbp_per_mwh": sim_fwd,
             # The company did not price this and is not asked to. Handing it the SIM's own
             # forward keeps the settlement arithmetic whole without inventing a company belief

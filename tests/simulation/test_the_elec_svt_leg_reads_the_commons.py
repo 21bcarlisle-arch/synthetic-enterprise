@@ -17,11 +17,11 @@ WHAT IS CONTROLLED NOW, and each of these could not fail before:
   2. WHICH OF THE TWO 2022-23 NUMBERS IT RETURNS. Between 2022-10-01 and 2023-06-30 the Ofgem cap
      and the instrument that bound a household's bill differ by up to 33p/kWh. `svt_rates` answers
      the CAP -- what a default tariff was priced at and what its supplier was compensated to --
-     because the Energy Price Guarantee was funded by HM Treasury and this world has no HMT
-     receipt leg (`company/regulatory/epg_reconciliation_register.py` states the scheme and has no
-     production caller). Re-pointing the accessor at the binding instrument without wiring that
-     leg would halve the crisis quarters' unit revenue and call it fidelity. The control fails
-     with that named.
+     because the Energy Price Guarantee was funded by HM Treasury. Re-pointing THIS accessor at
+     the binding instrument would halve the crisis quarters' unit revenue and call it fidelity.
+     The control fails with that named. Since 2026-09-08 the household's own number is a separate
+     named accessor over the world's receipt leg, and this control is what stops the two being
+     collapsed back into one: see `test_the_hmt_receipt_leg_and_the_household_charged_rate.py`.
 
   3. NO INVENTED FORWARD SERIES. The table used to carry "Extrapolated 2026+ -- moderate decline
      as renewables penetration rises" across 2026-2029, standing exactly where the commons
@@ -140,9 +140,11 @@ def test_it_answers_the_cap_and_not_what_the_household_was_charged(fuel):
             f"{fuel} {when}: `svt_rates` returns the BINDING instrument ({binding}) rather than "
             "the Ofgem cap. The Energy Price Guarantee reduced the household's bill and HM "
             "Treasury paid the supplier the difference -- see "
-            "`company/regulatory/epg_reconciliation_register.py`, which states the scheme and "
-            "still has no production caller. Until that receipt leg is wired, answering the "
-            "binding instrument here takes revenue the real supplier received out of the book."
+            "`simulation/price_cap_enforcement.hmt_epg_receipt_gbp_per_mwh`, the world's own "
+            "receipt leg, wired 2026-09-08. Answering the binding instrument HERE takes revenue "
+            "the real supplier received out of the book; the household's number has its own "
+            "accessor, `get_svt_elec_rate_charged_to_household_gbp_per_mwh`, and its own "
+            "controls in `test_the_hmt_receipt_leg_and_the_household_charged_rate.py`."
         )
 
 

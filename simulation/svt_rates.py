@@ -22,28 +22,45 @@ THE EPG, AND WHY THIS ACCESSOR DOES NOT RETURN IT (2026-09-08)
 The Energy Price Guarantee held a household's unit rate at 34.0p/kWh from
 2022-10-01 to 2023-06-30 while the Ofgem cap ran to 67.47p. It did that WITHOUT
 reducing supplier revenue: the supplier billed the EPG rate and HM Treasury paid
-it the difference. This tree already states the scheme —
+it the difference. This tree states the scheme in the company's own words —
 `company/regulatory/epg_reconciliation_register.py`, "HM Treasury paid suppliers
-the difference between EPG rates and their [actual rates]" — and that register has
-no production caller, so the world has no HMT receipt leg.
+the difference between EPG rates and their [actual rates]".
+
+THE WORLD NOW HAS ITS OWN RECEIPT LEG (2026-09-08):
+`price_cap_enforcement.hmt_epg_receipt_gbp_per_mwh`, wired into every SVT segment
+by `svt_product`, so a billed rate is recorded as the two receipts it was made of.
+It is the WORLD's leg and not the company's register, because `simulation/` may
+not import `company/` — the register is the supplier's audit trail behind the
+wall and still has no production caller, which is separate filed work.
 
 So there are two honest numbers for those three quarters and this accessor is the
 CAP one, deliberately:
 
-  * `simulation/svt_product.py` bills a default-tariff household at it. With no
-    subsidy leg wired, returning 34.0p here would take roughly half the unit
-    revenue out of the crisis quarters and call it fidelity, when a real GB
-    supplier was made whole in exactly those quarters.
+  * `simulation/svt_product.py` bills a default-tariff household at it, because
+    that is the supplier's REVENUE and the receipt leg beside it says who paid.
+    Returning 34.0p here would take roughly half the unit revenue out of the
+    crisis quarters and call it fidelity, when a real GB supplier was made whole
+    in exactly those quarters.
   * `simulation/competitor_reference.py` already documents its reading of this
     module as "the published cap series … the anchor and the ceiling".
 
-  * WHAT IS THEREFORE STILL WRONG, NAMED RATHER THAN IMPLIED: the household-facing
-    consumers — `customer_events._price_differential_vs_market`, the churn
-    reference — want what the household PAID, and get the cap. The repair is the
-    HMT leg plus a second accessor over
-    `price_cap_enforcement.binding_cap_unit_rate_gbp_per_mwh_inc_vat`, which is
-    filed work and not a line to add here. An accessor that quietly answered the
-    other question would be the same defect with the sign flipped.
+  * THE HOUSEHOLD-FACING CONSUMERS ASK THE OTHER QUESTION and now have their own
+    accessor: `get_svt_elec_rate_charged_to_household_gbp_per_mwh` below, landed
+    2026-09-08 together with the receipt leg
+    (`price_cap_enforcement.hmt_epg_receipt_gbp_per_mwh`, wired into every SVT
+    segment by `svt_product`). The two had to land together: the accessor alone
+    re-breaks billing, and the receipt leg alone leaves the churn reference
+    reading the cap. An accessor that quietly answered the other question under
+    THIS name would still be the same defect with the sign flipped, which is why
+    the name is eight words long.
+
+GAS HAS NO `charged_to_household` TWIN AND THAT IS A GAP, NOT A SYMMETRY CLAIM.
+The EPG capped gas at 10.3p against a 17.08p cap, so the same 6.8p/kWh split
+exists there. It is not built because it would have no caller: every consumer
+re-pointed on 2026-09-08 — the price differential, the SVT position, the churn
+basis reference — is electricity-only, and an accessor with no caller is an
+orphan that reads as coverage. When a gas consumer appears, the twin is two lines
+over `binding_cap_unit_rate_gbp_per_mwh_inc_vat` and this paragraph is its brief.
 
 R13: every value reaching this module is published regulatory history, sourced
 blind to company P&L.
@@ -101,6 +118,44 @@ def get_svt_elec_rate_gbp_per_mwh(date_str: str) -> float | None:
     )
 
     return ofgem_cap_unit_rate_gbp_per_mwh_inc_vat("electricity", d)
+
+
+def get_svt_elec_rate_charged_to_household_gbp_per_mwh(date_str: str) -> float | None:
+    """Return what a domestic default-tariff household was actually CHARGED per
+    MWh of electricity on `date_str`, £/MWh inc-VAT, excluding standing charge.
+
+    THE OTHER OF THE TWO NUMBERS. `get_svt_elec_rate_gbp_per_mwh` above answers
+    what the tariff was priced at and what its supplier was compensated to; this
+    answers what came out of the household's pocket. From 2022-10-01 to
+    2023-06-30 they differ, reaching 33p/kWh in January 2023, and the difference
+    is the HM Treasury receipt (`price_cap_enforcement.hmt_epg_receipt_gbp_per_mwh`).
+    Everywhere else the two are the same number, which is why one accessor was
+    enough for as long as nobody asked.
+
+    ASK THIS ONE WHEN THE ANSWER IS ABOUT A HOUSEHOLD'S EXPERIENCE — what it pays,
+    what it compares an offer against, whether its bill jumped. Ask the other when
+    the answer is about the supplier's book — revenue, the ceiling a bill may not
+    exceed, what a rival's default tariff was priced at.
+
+    Delegates to the binding instrument, `min(Ofgem cap, EPG)`, because a
+    household could not lawfully be charged above either — the world's reading of
+    which instrument binds lives in one place and this is not it. The pre-cap
+    years read the same table as the accessor above: before 2019 there was no cap
+    and no EPG, so what the household paid and what the tariff was priced at were
+    one number with nothing between them.
+
+    Returns None before 2016 (no data), on the same rule as the cap accessor.
+    """
+    d = date.fromisoformat(date_str)
+    if d.year < 2016:
+        return None
+    if d.year in _SVT_ELEC_PRECAP_PENCE_PER_KWH:
+        return round(_SVT_ELEC_PRECAP_PENCE_PER_KWH[d.year] * 10, 2)
+    from simulation.price_cap_enforcement import (
+        binding_cap_unit_rate_gbp_per_mwh_inc_vat,
+    )
+
+    return binding_cap_unit_rate_gbp_per_mwh_inc_vat("electricity", d)
 
 
 # ---------------------------------------------------------------------------

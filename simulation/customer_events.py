@@ -157,53 +157,104 @@ def _price_differential_vs_market(
 
     THE SVT IS THE REFERENCE because it is the published default a real household is compared
     against, it is what `company/pricing/renewal_desk._apply_competitive_ceiling` already prices
-    against, and `_build_churn_basis_risk` already reports the same quantity as
-    `rate_vs_svt_pct`. Introducing a second notion of "the market" here would be one name and two
-    numbers, which this repository has paid for before.
+    against, and `_build_churn_basis_risk` reports the same quantity as `rate_vs_svt_pct`.
+    Introducing a second notion of "the market" here would be one name and two numbers, which
+    this repository has paid for before.
+
+    WHICH SVT (2026-09-08): the one the household was CHARGED, not the one the supplier was
+    compensated to. See `_reference_level_gbp_per_mwh` below, which is now the only place either
+    question is answered.
     """
     if new_rate_gbp_per_mwh is None:
         return None
-    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
-
-    reference = get_svt_elec_rate_gbp_per_mwh(term_start_str)
-
-    # THE REFERENCE DEFENDS (2026-08-28, director's C2: "nothing in the world responds to what
-    # the company does. Nobody undercuts it, nobody defends, nobody targets its book"). With no
-    # ledger this is byte-identically the published cap, which is what every measurement before
-    # today was taken against; with one, a rival that has seen the company undercut it follows
-    # that price down over quarters, so a price advantage DECAYS instead of persisting.
-    #
-    # THE LAG IS WHY IT IS SAFE TO READ THE COMPANY'S OWN RATE HERE. The ledger reports the
-    # PREVIOUS quarter's mean, never this term's rate, so nothing about the offer being priced
-    # right now can reach the reference it is being measured against -- which would be a rival
-    # with foresight, and a tautology besides.
-    if position_ledger is not None:
-        from simulation.competitor_reference import competitor_reference_rate_gbp_per_mwh
-
-        moved = competitor_reference_rate_gbp_per_mwh(
-            term_start_str,
-            company_rate_gbp_per_mwh=position_ledger.position_for(term_start_str),
-            wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
-        )
-        if moved is not None:
-            reference = moved
-
+    reference = _reference_level_gbp_per_mwh(
+        term_start_str,
+        position_ledger=position_ledger,
+        wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
+    )
     if not reference or reference <= 0:
         return None
     return (float(new_rate_gbp_per_mwh) - float(reference)) / float(reference)
 
 
+def _reference_level_gbp_per_mwh(
+    term_start_str: str, *, position_ledger=None, wholesale_gbp_per_mwh: float | None = None
+) -> float | None:
+    """The one level every reading in this module is taken against. ONE FUNCTION, because
+    `_price_differential_vs_market` and `_market_reference_gbp_per_mwh` used to compute this
+    twice and the second one's own docstring records what it costs when a duplicated reference
+    drifts: `run_price_ladder`'s SVT reconciliation went from agreeing to 21.3 points apart while
+    both names still said SVT. A duplication under a comment saying it must not drift is the
+    shape `svt_product` was carrying on 2026-09-08 with a control that had never existed.
+
+    THE BASE IS WHAT THE HOUSEHOLD WAS CHARGED. A household deciding whether to switch compares
+    an offer against the bill it is actually paying, and from 2022-10-01 to 2023-06-30 that was
+    the Energy Price Guarantee's 34.0p/kWh and not the 67.47p Ofgem cap the supplier was
+    compensated to. On the cap basis every offer in those three quarters looked up to 50% cheaper
+    than the household's real alternative, and the churn that followed was priced off a saving
+    nobody could have banked. Outside those windows the two are the same number.
+
+    THE REFERENCE DEFENDS (2026-08-28, director's C2: "nothing in the world responds to what
+    the company does. Nobody undercuts it, nobody defends, nobody targets its book"). With no
+    ledger this is the published default; with one, a rival that has seen the company undercut it
+    follows that price down over quarters, so a price advantage DECAYS instead of persisting.
+
+    THE LAG IS WHY IT IS SAFE TO READ THE COMPANY'S OWN RATE HERE. The ledger reports the
+    PREVIOUS quarter's mean, never this term's rate, so nothing about the offer being priced
+    right now can reach the reference it is being measured against -- which would be a rival with
+    foresight, and a tautology besides.
+
+    THE EPG BINDS THE RIVAL TOO, which is why the moved reference is clamped and not simply
+    substituted. `competitor_reference` is anchored on the CAP and says so, correctly -- it is
+    the world's model of how a rival prices, and a rival priced a default tariff at the cap. But
+    no domestic supplier could lawfully charge a household above the guarantee either, so a
+    reference above it is a price the switching household could not have been offered. Outside
+    the EPG windows the ceiling IS the cap and the clamp is a no-op, which is why this is one
+    `min` rather than a second reading of the schedule.
+    """
+    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
+
+    reference = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start_str)
+    if position_ledger is None:
+        return reference
+
+    from simulation.competitor_reference import competitor_reference_rate_gbp_per_mwh
+
+    moved = competitor_reference_rate_gbp_per_mwh(
+        term_start_str,
+        company_rate_gbp_per_mwh=position_ledger.position_for(term_start_str),
+        wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
+    )
+    if moved is None:
+        return reference
+    if reference is None:
+        return moved
+    return min(float(moved), float(reference))
+
+
 def _svt_position(rate_gbp_per_mwh: float | None, term_start_str: str) -> float | None:
-    """This customer's position against the PUBLISHED CAP, whatever the competitor is doing.
+    """This customer's position against THE DEFAULT TARIFF IT WOULD OTHERWISE PAY, whatever the
+    competitor is doing.
 
     Deliberately re-derived rather than reusing `differential`: the whole point is that it stays
     the SVT position after the reference moves, so it may never be the same call.
+
+    IT WAS "against the PUBLISHED CAP" UNTIL 2026-09-08 and that was the wrong SVT for what this
+    field is for. It is logged as `price_differential_vs_svt` on a customer event and read as how
+    good this household's deal is; a household's deal is measured against its own alternative
+    bill, which under the Energy Price Guarantee was 34.0p/kWh and not the cap. The cap reading
+    survives, under its own name, wherever the question is about the supplier's book --
+    `competitor_reference`, and `svt_product`'s billed rate.
+
+    `tools/run_price_ladder._svt_position_pct` recomputes this for decisions the world rolled no
+    event for and is reconciled against the logged field, so it moved in the same commit. That
+    reconciliation is the reason a change here cannot be made in one file.
     """
-    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+    from simulation.svt_rates import get_svt_elec_rate_charged_to_household_gbp_per_mwh
 
     if rate_gbp_per_mwh is None:
         return None
-    svt = get_svt_elec_rate_gbp_per_mwh(term_start_str)
+    svt = get_svt_elec_rate_charged_to_household_gbp_per_mwh(term_start_str)
     if not svt or svt <= 0:
         return None
     return round((float(rate_gbp_per_mwh) - float(svt)) / float(svt), 4)
@@ -220,18 +271,20 @@ def _market_reference_gbp_per_mwh(
     quietly stopped being against the SVT while keeping the name. The control was right and the
     field was lying. Publishing the LEVEL as well as the ratio means a consumer reconciles
     against the number that was actually used rather than re-deriving one that used to match.
+
+    IT IS NOW THE SAME CALL, not the same arithmetic written twice (2026-09-08). This function
+    restated `_price_differential_vs_market`'s reference logic, and the two had already drifted
+    in a way nothing could see: the differential SUBSTITUTED a non-None competitor reference,
+    while this one fell back to the SVT on a falsy one, so a competitor reference of exactly 0.0
+    gave the published level and the used level different answers. Re-deriving a level whose only
+    purpose is to equal the one that was used is the defect this docstring describes, committed
+    by the fix for it.
     """
-    from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
-
-    if position_ledger is None:
-        return get_svt_elec_rate_gbp_per_mwh(term_start_str)
-    from simulation.competitor_reference import competitor_reference_rate_gbp_per_mwh
-
-    return competitor_reference_rate_gbp_per_mwh(
+    return _reference_level_gbp_per_mwh(
         term_start_str,
-        company_rate_gbp_per_mwh=position_ledger.position_for(term_start_str),
+        position_ledger=position_ledger,
         wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
-    ) or get_svt_elec_rate_gbp_per_mwh(term_start_str)
+    )
 
 #: Segments the Ofgem/BMG evidence actually covers. Its sample is 3,235 GB **domestic energy bill
 #: payers**; it says nothing whatever about how an industrial site buys power.
