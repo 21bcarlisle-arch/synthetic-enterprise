@@ -110,7 +110,16 @@ def test_the_rate_is_the_published_series_and_is_never_struck(schedule):
     peak = max(schedule, key=lambda s: s["unit_rate_gbp_per_mwh"])
     assert peak["acquisition_date"].startswith("2023-01"), (
         f"peak SVT rate falls in {peak['acquisition_date']}, not the Jan-2023 cap ceiling")
-    assert peak["unit_rate_gbp_per_mwh"] == pytest.approx(670.0), peak
+    # Keyed to the publication, not to 670.0. That literal was a transcription of the Jan-2023
+    # Ofgem cap (674.7) and it pinned this control to the typo: the series becoming MORE honest on
+    # 2026-09-08 turned it red, which is the wrong direction for a control to move.
+    from datetime import date as _d
+
+    from simulation.price_cap_enforcement import ofgem_cap_unit_rate_gbp_per_mwh_inc_vat
+    assert peak["unit_rate_gbp_per_mwh"] == pytest.approx(
+        ofgem_cap_unit_rate_gbp_per_mwh_inc_vat("electricity", _d(2023, 1, 1))
+    ), peak
+    assert peak["unit_rate_gbp_per_mwh"] > 600.0, peak
 
 
 def test_there_is_no_notice_because_nothing_ends(schedule):

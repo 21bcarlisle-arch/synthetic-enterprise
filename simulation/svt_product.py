@@ -119,12 +119,13 @@ from datetime import date, timedelta
 from sim.forward_curve import generate_forward_price
 from simulation.departure_risks import svt_inertia_hazard
 from simulation.market_switching_propensity import market_switching_multiplier
-from simulation.svt_rates import get_svt_elec_rate_gbp_per_mwh
+from simulation.svt_rates import CAP_PERIOD_START_MONTHS, get_svt_elec_rate_gbp_per_mwh
 
-#: Cap-period starts, straight off `simulation/svt_rates.py`'s own key structure. Named here
-#: rather than imported because that module keeps it private; the duplication is one tuple and
-#: `test_the_segment_starts_match_the_published_series` fails if the two ever disagree.
-CAP_PERIOD_START_MONTHS: tuple[int, ...] = (1, 4, 7, 10)
+# Cap-period starts are now IMPORTED from `simulation/svt_rates.py`, which is where the published
+# series lives. This file used to carry its own copy of the tuple under a comment saying
+# `test_the_segment_starts_match_the_published_series` failed if the two disagreed — a control that
+# has never existed in this tree, so the duplication was unguarded for as long as it stood. The
+# import keeps every existing `svt_product.CAP_PERIOD_START_MONTHS` reader working unchanged.
 
 #: What the world calls this product wherever a `tariff_type` is read.
 SVT_TARIFF_TYPE = "svt"
