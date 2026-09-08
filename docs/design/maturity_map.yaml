@@ -2256,3 +2256,307 @@
   file_scope: []
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "the customer who thanks you warmly for the advice that cut their bill, recommends you to a neighbour, and has never once bought anything -- counted as engaged by every model that never asked the two questions separately."
+
+- id: W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over
+  title: "the demand vector as the declared subject of every coverage, ceiling and sufficiency claim, and the control that refuses one measured on an undeclared reduction dimension"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  # LEVEL 0, NOT 1, AND THE CORRECTION IS THE HONEST ONE. The row was written claiming level 1 on
+  # `tests/architecture/test_a_coverage_claim_declares_what_it_reduces_over.py`, which is BUILT and
+  # passes 14/14 -- and is not at HEAD, and could not be landed with this row. It is the consumer of
+  # ten `reduction_dimension` declarations, all ten uncommitted; naming the tenth
+  # (`simulation/weather_cell_siting.py`) in a pathspec selects
+  # `test_derive_reproduces_the_committed_artefact`, which is RED AT HEAD for a reason belonging to
+  # lane W1_market_weather and its live BLOCKING artefact-cut finding. A level is a claim about
+  # evidence in the tree, so while the evidence cannot reach the tree the level is 0.
+  # Move it to 1 in the same commit that lands the control; the work is done and waiting.
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W2_21_the_premise_joint_is_fitted_not_drawn_independently]
+  # EXECUTABLE CONTROLS, not directories: the census is runnable
+  # (`python3 -m tools.reduction_dimension --undeclared`, exit 1 when any claim in scope is
+  # silent) and the control is a pytest file. A `file_scope` naming `docs/design` cannot be
+  # asserted past by anything, which is why 28 of 34 level-0 rows name no control a runner can
+  # execute.
+  file_scope:
+    - tools/reduction_dimension.py
+    - tests/architecture/test_a_coverage_claim_declares_what_it_reduces_over.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a cold well-insulated house and a mild leaky one with the same annual kWh -- one number, one case, and two customers who want opposite things from a supplier."
+  # THE DELIVERABLE, verbatim from DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07 section 2. The
+  # drawn population must reproduce the observed DISTRIBUTION of, per household: annual gas,
+  # annual electricity, the seasonal shape of gas, the half-hourly shape of electricity, and
+  # heating fuel type. Held as `tools.reduction_dimension.DEMAND_VECTOR` so a claim declares
+  # itself against one list rather than five drifting copies.
+  #
+  # LEVEL 1, NOT 2, AND THE GAP IS NAMED. What landed is item 3 of the canon's WORK THIS
+  # CREATES -- the refusal, mutation-proven, with its poison round on the record: before any
+  # declaration existed the census was red on 11 claim modules including both the canon names
+  # (the 13-case demand coverage on annual kWh, and the 21/21/5 separable weather grids), and
+  # is green only because each now states what it reduces over and what it is blind to. Not a
+  # single figure moved and none was withdrawn: what changed is that every one of them is now
+  # readable as the reduction it is. The WEIGHTED DISTRIBUTIONAL ACCEPTANCE TEST (item 1) is
+  # deliberately NOT stubbed here -- `tools/demand_vector_coverage.py` measures it and its N is
+  # a FLOOR until per-household electricity exists. Items 1, 2, 4 and 5 are MINTED 2026-09-07 as
+  # W2_29, W1_28, W2_30 and W2_31 below; this row carries item 3 and nothing else.
+
+- id: W2_29_the_coverage_is_re_measured_against_the_demand_vector
+  title: "coverage re-measured against the demand vector under a weighted distributional acceptance test, with the dominant term named and both N figures reported"
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 1
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: [W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape]
+  couples_with: [W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over]
+  file_scope:
+    - tools/demand_vector_coverage.py
+    - tests/tools/test_demand_vector_coverage.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that sizes its customer sample on a number, ships it, and cannot say whether the sample it drew is distinguishable from its own book."
+  # ITEM 1 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07's WORK THIS CREATES. Minted at LEVEL 1
+  # and not 0, because the measurement already landed and was published (8,500 once electricity
+  # and the non-gas stratum are in; the earlier 1,200 was measured on a population missing a
+  # fifth of the stock). The atom is the gap between that and target, not the build from nothing.
+  #
+  # WHAT IS ALREADY TRUE. `demand_vector_coverage` runs a WEIGHTED distributional acceptance at a
+  # stated power over NEED rows crossed with cells -- not the 274 aggregated cases, because the
+  # intervention axes are per-dwelling (LI_FLAG, CWI_FLAG, PV_FLAG) and bucketing averages away
+  # exactly the collapse the canon names. Both N figures are reported and the second is the real
+  # one: N to reproduce the distribution, and N to also span intervention response.
+  #
+  # WHY IT IS NOT AT TARGET, in the canon's own words: N is a FLOOR. The measurement runs on the
+  # heat-driven axes by the director's sequencing decision of section 6, and the electricity gap
+  # is named rather than closed -- there is no non-heat electrical base until the physical layer
+  # lands, and no per-household half-hourly shape until W2_30 does. This row SUPERSEDES the
+  # subject of the closed W2_27 (13 cases on annual kWh); that figure was correct arithmetic on a
+  # scalar and is not withdrawn, it is re-measured against the vector here.
+  #
+  # EXIT: the acceptance re-run over the FULL five-component vector once W2_30 lands, with the
+  # dominant term named, both N figures republished, and the floor either cleared or restated
+  # with what still bounds it. HARDEN when the two N figures survive a cold-eyes pass.
+
+- id: W1_28_the_weather_partition_is_joint_over_a_stock_with_varying_fabric
+  title: "the weather partition re-opened as a joint question over a stock whose response to each driver depends on its fabric"
+  lane: W1_market_weather
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 60
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W1_14_weather_cells_for_household_heat_load, W2_18_the_housing_joint_the_sample_and_the_ceiling]
+  file_scope:
+    - tools/weather_cell_joint_partition.py
+    - tests/tools/test_weather_cell_joint_partition.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that partitions its weather three ways because it has three drivers, and cannot say why the same cold snap costs one street twice what it costs the next."
+  # ITEM 2 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07. The named files do not exist yet and
+  # that is legal at the mint -- naming is the bar, existing is what the build clears.
+  #
+  # THE DEFECT, and it is OUR OWN measurement that refutes us. Three separate grids -- 21
+  # temperature, 21 wind, 5 irradiance -- assume a household's response to weather is SEPARABLE.
+  # `weather_driver_sensitivity` says it is not: solar gain moves fuel -1.2% in a leaky pre-1919
+  # house and -7.9% in a tight post-2000 one; wind moves the heat loss coefficient +18.6%
+  # mid-stock and +2.9% in that same modern house, because Part F's minimum air change rate
+  # clamps the calm end. The response to each driver DEPENDS ON THE FABRIC, so the subject is the
+  # joint weather condition over a varying stock, not each driver in turn.
+  #
+  # W1_21's 987 IS NOT THIS. It was coverage of the three drivers' own variance on one shared
+  # partition -- a partition of weather against itself, which knows nothing about fabric. Right
+  # shape, wrong subject, and that is why this is a new rung rather than a level move on W1_21.
+  #
+  # THE CELL COUNT IS DERIVED, NOT DESIGNED (canon section 5). Once the sample is a set of
+  # (household, cell) cases the number of cells is whatever the drawn sample lands in; wanting it
+  # in advance is a data-pull sizing constraint, not a modelling one. A row here that opens by
+  # choosing a cell count has taken the wrong question.
+  #
+  # EXIT: a partition whose subject is (weather condition x fabric), a control that fails when
+  # the partition is rebuilt separably, and the derived cell count reported as an OUTPUT of the
+  # drawn sample. It declares what it reduces over under `tools.reduction_dimension` or it does
+  # not land.
+
+- id: W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape
+  title: "per-household half-hourly electricity shape and seasonal gas shape as the demand deliverable, published as modelled and explicitly not validated"
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W1_5_premise_demand_shape, W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over]
+  file_scope:
+    - simulation/household_demand_shape.py
+    - tests/simulation/test_household_demand_shape.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier whose every customer has the same half-hourly shape, so time-of-use, flexibility and hedging by physics are all worth exactly zero in its own model, and it cannot tell that this is a modelling artefact."
+  # ITEM 4 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07, and the canon is explicit that this is
+  # NOT AN ENHANCEMENT to the demand work -- it IS the deliverable. The world today rescales one
+  # national profile, so every household has the same time-of-use cost profile and the price
+  # signal is invisible to the model.
+  #
+  # THE TWO RESOLUTIONS DIFFER, AND THE PRICE SETS THEM, NOT THE PHYSICS. Gas: seasonal shape is
+  # enough, because the price does not move within a month. Electricity: half-hourly is required,
+  # because that is where the price and the settlement live. Two households at identical annual
+  # kWh -- one with a sharp evening peak, one flat -- are a different cost to serve and a
+  # different hedge.
+  #
+  # A DIRECTOR DECISION IS ALREADY TAKEN AND IT BOUNDS THE EXIT (canon section 6). The only
+  # household shape artefact available is Elexon Profile Class 1 -- one population-average curve
+  # on a 1997 reference year -- and NEED is annual. SERL has half-hourly with EPC linkage but is
+  # accredited-access and is NOT pursued. So shape is published as MODELLED AND EXPLICITLY NOT
+  # VALIDATED, said plainly on the page. A row that closes claiming validated shape has crossed
+  # a director decision, not raised a level.
+  #
+  # EXIT: a per-household shape the draw actually carries, the not-validated statement on the
+  # reader-facing surface (not a footnote), and W2_29's acceptance re-run over the full vector
+  # with this in it.
+
+- id: W2_31_people_phase1_the_physical_layer_stands_alone
+  title: "people phase 1 re-cut so the physical layer stands alone, with the commercial layer correlated rather than merged"
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 3
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W2_19_who_lives_where_money_and_composition]
+  file_scope:
+    - simulation/household_physical_layer.py
+    - tests/simulation/test_household_physical_layer.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that cannot tell a household which used less because nobody was home from one that could not afford it -- and those two want opposite things done to their direct debit."
+  # ITEM 5 of DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07. NOT a re-mint of W2_19 and the
+  # distinction is the whole point of the item. W2_19 is "money and who they are" -- the
+  # COMMERCIAL layer (income, fuel poverty, payment method, credit risk, attitude), which drives
+  # payment, arrears, churn and elasticity. This row is the PHYSICAL layer -- occupancy count,
+  # presence pattern, heating schedule and setpoint, appliance and asset ownership -- which
+  # drives kWh and shape. People phase 1 as currently ruled MIXES them, and the canon rules that
+  # the physical layer is what stage 1 needs and the commercial layer follows.
+  #
+  # THE CORRELATIONS ARE MODELLED, THE LAYERS ARE NOT MERGED. Income to house size to occupancy
+  # is real and must be in the draw; what may not happen is one layer standing in for the other.
+  # A build here that samples occupancy FROM income and stops has re-merged them under a new
+  # name.
+  #
+  # THIS IS ALSO WHAT UNBLOCKS THE ELECTRICITY GAP. Appliance and asset ownership is the non-heat
+  # electrical base W2_29's N is floored for want of; the canon names `W2_19` verbatim there,
+  # written before this re-cut existed, and under the re-cut that base sits in THIS layer.
+  #
+  # EXIT: a physical layer the draw carries independently of the commercial one, a control that
+  # fails when a physical quantity is derived solely from a commercial one, and the correlation
+  # structure stated and measured rather than assumed.
+
+- id: W2_32_the_billing_and_commercial_axes_are_measured_against_the_demand_sample
+  title: "whether the demand sample spans billing and commercial complexity, answered as a measurement -- spanned, or named as an uncounted dimension"
+  lane: W2_customer_generator
+  value_stream: meter_to_cash
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: [W2_29_the_coverage_is_re_measured_against_the_demand_vector]
+  couples_with: [W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over]
+  # EXECUTABLE CONTROL, not a directory. The census is runnable and the control is a pytest file,
+  # because a `file_scope` naming `docs/` cannot be asserted past by anything.
+  file_scope:
+    - tools/billing_axis_coverage.py
+    - tests/tools/test_billing_axis_coverage.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "two households with the same annual kWh, one on quarterly estimates in arrears and one half-hourly on direct debit -- identical to the demand model and entirely different to bill, to serve and to lose."
+  # ITEM 4 of DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07, section 4, verbatim: "a sample
+  # sized against the demand vector may not be sized against billing complexity... Whether the
+  # demand sample spans that is an OPEN MEASUREMENT, NOT AN ASSUMPTION."
+  #
+  # THE ANSWER MAY BE "NO", AND "NO" IS THE DELIVERABLE. This row is not "make the sample span
+  # billing"; it is "find out, and publish which". The canon offers both outcomes as acceptable --
+  # spanned, or NAMED AS AN UNCOUNTED DIMENSION -- and the failure mode is neither of those: it is
+  # the sample being sized on demand and read as if it were sized on billing. That is the
+  # undeclared-reduction shape W2_28's control exists to refuse, one seam further out.
+  #
+  # THE AXES ARE NAMED BY THE CANON AND ARE NOT FOR THIS ROW TO INVENT: meter type and read
+  # pattern, payment method, tariff with its dates, move history, credit position. A quantity this
+  # row needs that the book does not carry is a GAP TO FILE, never a value to pick.
+  #
+  # SECOND HALF, AND IT IS THE HALF THAT ROTS IF LEFT OUT: the canon also rules that the demand
+  # sample "must not be built in a way that forecloses adding those axes". A measurement taken once
+  # and left as prose goes stale beside the next change to the draw, so the exit below asks for a
+  # control, not a document.
+  #
+  # EXIT: (1) a runnable census reporting, per named billing/commercial axis, whether the drawn
+  # book spans it, with the population figure it is measured against and the N the answer earns;
+  # (2) every axis that is NOT spanned published as an uncounted dimension on a reader-facing
+  # surface rather than in a footnote; (3) a control that reds when an axis is added to the canon's
+  # list and not to the census.
+
+- id: W2_33_a_weighted_case_can_still_be_inflated_into_a_small_population
+  title: "the two reversibility properties the canon requires of the book -- inflating a weighted case into a small population, and raising the count on a high-volume case -- kept open by a control rather than by intention"
+  lane: W2_customer_generator
+  value_stream: price_to_bill
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 50
+  provenance: director_ruling
+  blocked_on: null
+  block_reason: null
+  depends_on: []
+  couples_with: [W2_29_the_coverage_is_re_measured_against_the_demand_vector]
+  file_scope:
+    - tests/architecture/test_a_weighted_case_can_still_be_inflated.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier that can show it beats the average on one distinct household and cannot separate two that look alike and behave differently -- which is the harder problem and the one that is commercially real."
+  # ITEM 5 of DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07, section 3. Two properties,
+  # both stated as "neither is built now, both must stay possible":
+  #   (a) a weighted case can LATER be inflated into a small population with within-group variation;
+  #   (b) the count on high-volume cases can be RAISED where a use case makes it worth doing.
+  #
+  # THIS IS A NEGATIVE DELIVERABLE AND THAT IS WHY IT NEEDS A CONTROL RATHER THAN A BUILD. Nothing
+  # is to be built here. What is asked is that nothing ELSE forecloses these -- and a foreclosure
+  # arrives as somebody else's reasonable change, in a lane that has never read this canon, with a
+  # green suite. An intention cannot catch that; only a control keyed to the property can. Keying it
+  # to today's answer would be exactly backwards: it must red when the build stops ADMITTING
+  # inflation, not when the book's current contents change.
+  #
+  # THE KNOWN HAZARD IS ALREADY VISIBLE. The canon's own stated limit is that near-duplicates are
+  # rejected by construction (`tools/space_filling_sample.py` draws for difference), so the world
+  # holds no two households that are similar but not identical. Any code that reads "one case, one
+  # household" -- an integer count, a 1:1 case-to-account join, a uniqueness assumption on the
+  # roster -- is the foreclosure, and it will look like a simplification when it lands.
+  #
+  # EXIT: (1) the seam through which a case's weight becomes a count named and stated to be
+  # inflatable, with the within-group variation slot present and honestly empty rather than absent;
+  # (2) a control that reds when a caller assumes a case stands for exactly one household; proven by
+  # a poison round, because a control over a property nobody violates today passes vacuously and
+  # "survived" would mean two opposite things.
