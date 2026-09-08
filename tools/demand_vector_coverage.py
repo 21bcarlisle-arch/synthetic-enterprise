@@ -601,6 +601,12 @@ def generated_population(points: int = POPULATION_POINTS, seed: int = 0) -> dict
             # on noise while the code was right, which is the fastest way to teach a reader to
             # ignore it.
             "hot_water_kwh": water, "space_heat_kwh": space_heat,
+            # THE TWO GAIN TERMS, PER HOUSEHOLD. `demand()` collapses them into one annual number
+            # and a seasonal question cannot use that: solar gain follows the sun and internal gain
+            # follows the calendar, so a probe that splits an annual total by a median household
+            # measures the geography and calls it the household. Returned rather than recomputed,
+            # because recomputing means a second opinion about which fabric each household had.
+            "solar_aperture_m2": as_built[:, 3], "internal_gain_kw": as_built[:, 4],
             "cells": cell_pick, "cell_nation": cell_nation[cell_pick],
             "distinct_cells": int(len(set(cell_pick.tolist()))),
             "generated": True, "n_need_rows": len(rows)}

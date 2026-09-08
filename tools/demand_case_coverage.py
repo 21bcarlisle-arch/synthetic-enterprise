@@ -73,6 +73,10 @@ PROJECT = Path(__file__).resolve().parent.parent
 if str(PROJECT) not in sys.path:
     sys.path.insert(0, str(PROJECT))
 
+# AFTER the path fix, not with the stdlib block: run as a script from `tools/`, `sys.path[0]` is
+# this directory and `tools.` does not resolve until the line above has run.
+from tools.reduction_dimension import DEMAND_VECTOR, declare  # noqa: E402
+
 CACHE = Path.home() / ".cache" / "synthetic-enterprise"
 ONSUD_CELLS = CACHE / "onsud" / "oa_cell_addresses.pkl"
 ONSUD_REGION = CACHE / "onsud" / "oa_region.pkl"
@@ -258,10 +262,16 @@ def demand_grid(include_scotland: bool = False):
     index = {(int(x) // 1000, int(y) // 1000): i
              for i, (x, y) in enumerate(zip(d["east"], d["north"]))}
     winter, wind, sun, weight, region_of, nation = [], [], [], [], [], []
+    monthly, monthly_sun = [], []
     for cell, regions in cells.items():
         i = index.get(cell)
         if i is None:
             continue
+        # THE TWELVE MONTHLY NORMALS FOR THIS CELL, carried in the SAME ORDER as every other array
+        # built by this loop. A seasonal quantity needs the months; `winter_temp` alone can only
+        # ever produce a level, which is why the swing axis downstream was a rescaling of one.
+        monthly.append(d["monthly_temp"][:, i])
+        monthly_sun.append(d["monthly_sun"][:, i])
         winter.append(d["winter_temp"][i])
         wind.append(d["annual_wind"][i])
         sun.append(d["annual_sun"][i])
@@ -269,6 +279,8 @@ def demand_grid(include_scotland: bool = False):
         region_of.append(max(regions, key=regions.get))
         nation.append("S" if max(regions, key=regions.get) == "S92000003" else "EW")
     winter = np.array(winter)
+    monthly = np.array(monthly).T if monthly else np.zeros((12, 0))          # (12, cells)
+    monthly_sun = np.array(monthly_sun).T if monthly_sun else np.zeros((12, 0))
     wind = np.array(wind)
     sun = np.array(sun)
     weight = np.array(weight)
@@ -287,6 +299,7 @@ def demand_grid(include_scotland: bool = False):
         # households sit in them.
         return {"cell_weights": weight, "cell_hdd": hdd, "cell_wind": wind,
                 "cell_solar_index": solar_index, "cell_nation": np.array(nation),
+                "cell_monthly_temp": monthly, "cell_monthly_sun": monthly_sun,
                 "per_case_demand_grid": None}
 
     keys, params, by_region, national = house_cases()
@@ -351,6 +364,25 @@ def coverage(values, weights, ks, seed: int = 0, sample: int = 400_000) -> dict:
 
 KS = (1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233)
 TARGETS = (0.90, 0.95, 0.99)
+
+#: WHAT THE HEADLINE FIGURE REDUCES OVER, and this module is one of the two claims
+#: `DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07` names. The 13-case answer is coverage of variance
+#: in a SCALAR -- annual space-heat demand, `demand.ravel()` in `measurement` -- and the canon's
+#: section 1 is about exactly that: "a cold-and-insulated house and a mild-and-leaky one can produce
+#: the same annual total and be completely different customers".
+#:
+#: THE FIGURE IS NOT WITHDRAWN AND NOTHING HERE IS RECOMPUTED. It is correct arithmetic on the
+#: quantity it names. What was missing is this line: 13 is a case count over ONE component of a
+#: five-component vector, and a reader who cannot see that reads it as a sample size.
+REDUCES_OVER = declare(
+    "how many household cases cover 99% of demand variation",
+    kind="coverage",
+    of=DEMAND_VECTOR,
+    reduces_over=("total_annual_heat_demand_kwh",),
+    derived_from={"total_annual_heat_demand_kwh": ("annual_gas_kwh", "annual_electricity_kwh")},
+    blind_to=("seasonal_gas_shape", "half_hourly_electricity_shape", "heating_fuel"),
+    joint=True,
+)
 
 
 def measurement(grid=None) -> dict:

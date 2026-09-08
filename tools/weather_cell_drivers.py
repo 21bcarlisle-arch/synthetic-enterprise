@@ -112,6 +112,18 @@ def drivers() -> dict:
         # the third decimal of a correlation. W1_19's first, ad hoc run reported -0.806 against
         # latitude and this module reproduces -0.807 against northing; both are below, so which
         # was quoted is answerable rather than assumed.
+        # ALL TWELVE MONTHS, not another aggregate. Every other key here is a reduction -- an
+        # annual mean, a winter mean, a sum -- and for a year this loader read the (12, y, x)
+        # array and returned nothing that could tell January from July. That is why
+        # `demand_vector_coverage.seasonal_swing` was an invented constant: the quantity it claims
+        # to be, the share of the year's demand in the coldest half, was computable from data
+        # already on disk and there was no accessor for it.
+        "monthly_temp": tas[:, mask],
+        # AND THE MONTHLY SUNSHINE, for the same reason and one that is specific: solar gain is the
+        # most seasonal term in the heat balance, so distributing an ANNUAL gain evenly across the
+        # year would bias exactly the quantity a seasonal axis measures -- it would flatten the
+        # winter deficit and understate the swing. Monthly totals in hours, like `annual_sun`.
+        "monthly_sun": sun[:, mask],
         "latitude": lat[mask],
         "land_cells": n,
     }
