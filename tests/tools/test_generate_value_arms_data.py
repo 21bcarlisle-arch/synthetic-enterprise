@@ -39,6 +39,7 @@ all five.
 from __future__ import annotations
 
 import copy
+import datetime
 import json
 import re
 from pathlib import Path
@@ -3016,20 +3017,28 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
         "the committed current-world run no longer names the live world, so this control's "
         "subject is gone -- re-run the arms rather than re-pointing the constant")
 
-    # THE REAL PAIRING FIRST, AND IT IS REFUSED FOR AGE -- asserted here rather than worked around,
-    # because it is the state the page is actually in. `CURRENT_WORLD_THREE_ARM_PATH` moved to the
-    # 2026-09-08 re-take and every floor on disk predates it, so `_staleness_caveat` withholds the
-    # bound. That guard is right and this control is not about it: what is on trial below is
-    # WHICH SPREAD the creation leg reaches for, which the age of the floor says nothing about.
-    # Re-run the floor (`--noise-floor-seeds … --redraw-mode all`) and this leg goes quiet by
-    # itself; delete the age guard and it reds -- so it is keyed to the property either way.
-    as_found = gva._current_world_contrast(current, superseded, floor_live)["selection_leg"]
+    # STALE -- the age guard, on a floor stamped BEFORE the run it bounds.
+    #
+    # WHY THIS IS SYNTHESISED AND NO LONGER READ FROM DISK (2026-09-08). This leg used to assert
+    # the REAL pairing was refused for age, and it was: `CURRENT_WORLD_THREE_ARM_PATH` had moved
+    # to the 09-08 re-take while every floor on disk predated it. Its own comment said re-running
+    # the floor would make it go quiet, and its own message said to drop the leg when that
+    # happened. Then the floor landed -- same world, same commit as the arms, 04:10:26Z against
+    # their 00:19:54Z -- and the leg reddened for the one reason a control must never redden: the
+    # page got a BETTER bound. Dropping it would have taken the only witness that the age guard
+    # fires at all, so the subject is manufactured instead of found. Same move the LIVE block
+    # below makes, one hour the other way, and it holds whichever artefact's clock leads.
+    stale_at = (datetime.datetime.strptime(current["generated_at"], "%Y-%m-%dT%H:%M:%SZ")
+                - datetime.timedelta(hours=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    as_found = gva._current_world_contrast(
+        current, superseded, dict(floor_live, generated_at=stale_at))["selection_leg"]
     assert as_found["bound_available"] is False, (
-        "the floor on disk is no longer older than the run this page publishes, so the age "
-        "refusal below has no subject -- drop this leg and keep the LIVE one")
+        "a floor stamped an hour BEFORE the run it bounds was accepted, so the page can publish "
+        "a spread measured on code that predates the figure it claims to bound")
     assert "OLDER THAN THE FIGURE IT BOUNDS" in str(as_found.get("why_no_bound")), (
-        "the creation leg is unbounded in the live world for some reason OTHER than the floor's "
-        "age, which is a different finding: " + str(as_found.get("why_no_bound"))[:300])
+        "the creation leg is unbounded on a deliberately-stale floor for a reason OTHER than its "
+        "age, so this leg witnesses the age guard no longer: "
+        + str(as_found.get("why_no_bound"))[:300])
 
     # LIVE. The creation leg is bounded, in the world it was measured in, on its own contrast --
     # on a floor stamped onto the point estimate's clock, so the wiring is what answers here.
@@ -3056,10 +3065,31 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
                          current, floor_live)["headline"]
     assert leg["verdict_withheld_because"], (
         "a verdict was stated on a leg whose own re-draws reverse it, or withheld with no reason")
-    for shown in ("-£8,634", "£2,350", "-£1,861", "1 of the 3"):
+    # DERIVED FROM THE FLOOR, NOT WRITTEN DOWN. Until 2026-09-08 these four were the literals
+    # "-£8,634", "£2,350", "-£1,861" and "1 of the 3" -- the 09-03 floor's own figures. That made
+    # the control keyed to THAT DAY'S ANSWER: re-pointing the constants at a floor measured in the
+    # same world, on the same commit as the arms it bounds -- the strictly more honest pairing this
+    # file exists to make safe -- turned it red, and nothing about the property had changed. A
+    # control that goes red when the page gets a BETTER bound is backwards. The property is that
+    # the centre, both ends of the range and the resolving count reach the reader; the numbers are
+    # whichever floor is current.
+    stability = leg["verdict_stability"]
+    for label, shown in (
+        ("range low", gva._gbp(stability["redraw_min_gbp"])),
+        ("range high", gva._gbp(stability["redraw_max_gbp"])),
+        ("family centre", gva._gbp(stability["redraw_mean_gbp"])),
+        ("resolving count", "{} of the {}".format(
+            stability["redraw_resolving"], stability["n"])),
+    ):
         assert shown in headline, (
-            "the creation leg's {} is not on the surface -- the reader meets the point estimate "
-            "and cannot place it in its own family".format(shown))
+            "the creation leg's {} ({}) is not on the surface -- the reader meets the point "
+            "estimate and cannot place it in its own family".format(label, shown))
+    # AND THE CENTRE IS NOT THE PUBLISHED DRAW. The whole reason the centre is on the surface is
+    # that a single draw can sit anywhere in its own family; asserting only that "a number
+    # appears" would pass if the page printed the point estimate three times.
+    assert gva._gbp(stability["redraw_mean_gbp"]) != gva._gbp(leg["figure_gbp"]), (
+        "the family centre renders identically to the published draw, so this control cannot "
+        "tell the two apart and the reader cannot either")
 
     # WORLD. The inherited guard still bites on the parameterised leg.
     elsewhere = gva._current_world_contrast(

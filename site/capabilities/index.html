@@ -400,6 +400,19 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
   <em>charging more</em>. Every figure below is what the world did, not what the company
   believed.</p>
   <p id="arms-headline" style="margin:0 0 10px;font-weight:600;"></p>
+  <!-- THE RE-DRAW BAND, FROM THE FIELDS AND NOT FROM A SENTENCE. The headline above already says
+       the advantage spans £451 to £2,434 and averages £1,451 — but it says it as one opaque
+       string composed in `tools/generate_value_arms_data._leg_clause`, and on 2026-09-08 the mean
+       could be deleted from that string with the whole of
+       `site/test_the_baseline_comparison_reaches_the_reader.py` staying green (84 rungs, measured,
+       not argued). Two of the band's five numbers had a control and three did not, and the LEVEL
+       leg's centre reached no reader at all. A published cause authored as prose goes stale beside
+       the measurement that refutes it, so the band is rendered here from
+       `current_world.verdict_stability.*` directly, per contrast, where each number can be failed
+       on its own. It sits BETWEEN the headline and everything else for the same reason the market
+       bound does: a reader who meets the figure and reaches the band three paragraphs later has
+       already formed the impression. -->
+  <div id="arms-redraw" style="margin:0 0 16px;"></div>
   <p id="arms-published" style="margin:0 0 16px;"></p>
   <!-- WHAT THE WORLD COULD DO ABOUT EITHER ARM. Above the tables on purpose, for the same reason
        the coverage clause sits inside the headline: a reader who meets "£159,423 against £154,699"
@@ -668,6 +681,116 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      just without the account count in it. The second upgrades the same sentence in place. */
   growthFeed.then(function (g) { renderSample(null, g); });
 
+  /* THE RE-DRAW BAND, PER CONTRAST, FROM THE FIELDS. See the comment on `#arms-redraw` for why
+     this exists beside a headline that already states the range in prose.
+
+     WHAT IT IS NOT. It is not a second authority on the verdict: `resolved` and
+     `verdict_withheld_because` are the feed's and are rendered nowhere here. The only thing
+     derived on this page is the WHERE-IN-THE-FAMILY word, from one comparison of two numbers
+     already on screen, and the door asserts it agrees with the feed's own prose — a divergence
+     between them is a red rather than two pages of the same site disagreeing quietly.
+
+     FAIL CLOSED, ON EVERY BRANCH. No current-world run renders as "no figure, so no band". A run
+     with no re-draw renders "NOT RE-DRAWN" in amber and the reason, never a blank cell and never
+     a dash — an unbanded figure with an empty column beside it reads as a figure whose band was
+     zero, which is the flattering reading of the state this block was built to expose. */
+  function redrawBand(cw) {
+    if (!cw || !cw.available) {
+      return '<p style="margin:0;font-size:13px;color:var(--muted);">'
+        + "<strong>No re-draw band is shown.</strong> This publish states no contrast for the "
+        + "world as it is now, so there is no figure here for a band to bound. "
+        + prose(cw && cw.why_not ? cw.why_not : "") + "</p>";
+    }
+    /* KEYED TO WHAT THE FEED CARRIES. Each leg is included only when the feed holds it, so a
+       publish that drops one renders two rows rather than a row of nulls. */
+    var legs = [{
+      label: "The whole advantage",
+      what: "what deciding household by household earned over flat rules, both legs together",
+      figure: cw.value_advantage_gbp,
+      stability: cw.verdict_stability,
+      withheld: cw.verdict_withheld_because
+    }];
+    [["selection_leg", "… of which, the choosing",
+      "the leg that could be value CREATED — what per-customer choosing was worth once a flat "
+      + "margin at the same level is credited with everything a level alone would have earned"],
+     ["level_leg", "… of which, the price level",
+      "the leg that is value MOVED — one flat margin set at the level the per-customer arm "
+      + "actually charged, with no choosing in it at all"]].forEach(function (spec) {
+      var leg = cw[spec[0]];
+      if (!leg) return;
+      legs.push({ label: spec[1], what: spec[2], figure: leg.figure_gbp,
+                  stability: leg.verdict_stability, withheld: leg.verdict_withheld_because });
+    });
+
+    var anyChecked = false;
+    var rows = legs.map(function (leg) {
+      var st = leg.stability || {};
+      var head = "<tr><td style=\"padding:3px 10px 3px 0;\">" + esc(leg.label)
+        + "</td><td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;"
+        + "font-weight:600;\">" + esc(gbp(leg.figure) === null ? "—" : gbp(leg.figure))
+        + "</td>";
+      if (!st.checked || gbp(st.redraw_mean_gbp) === null) {
+        return head + '<td colspan="4" style="padding:3px 0;color:var(--amber);">'
+          + "<strong>NOT RE-DRAWN.</strong> "
+          + prose(st.why_not || "This contrast carries no re-draw family, so how far the figure "
+              + "above moves when only the seed changes is unmeasured — not zero.")
+          + "</td></tr>";
+      }
+      anyChecked = true;
+      /* WHERE THIS DRAW FELL IN ITS OWN FAMILY. The range alone is the flattering reading: a
+         reader who meets "£451 to £2,434" still takes £2,336 as the answer, and told the same
+         family averages £1,451 can see the published run drew high. On the choosing leg the
+         centre is NEGATIVE while the published draw is positive, which is the finding. */
+      var mean = Number(st.redraw_mean_gbp), drew = Number(leg.figure);
+      var where = drew > mean ? "ABOVE the centre" : (drew < mean ? "BELOW the centre"
+                                                                 : "AT the centre");
+      return head
+        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
+        + esc(st.n) + "</td>"
+        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
+        + esc(gbp(st.redraw_min_gbp)) + "</td>"
+        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
+        + esc(gbp(st.redraw_mean_gbp)) + "</td>"
+        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
+        + esc(gbp(st.redraw_max_gbp)) + "</td>"
+        + "<td style=\"padding:3px 0;white-space:nowrap;color:var(--amber);font-weight:600;\">"
+        + esc(where) + "</td></tr>";
+    }).join("");
+
+    return '<p style="margin:0 0 6px;font-size:13px;">'
+      + '<span style="color:var(--amber);font-weight:600;">The figure is one draw of this '
+      + "band.</span> Nothing about the company changed between the rows of each family below "
+      + "— same book, same code, same world; only the per-household price-sensitivity draw "
+      + "moved. So the published figure is not the answer with noise on it, it is one member of "
+      + "the family beside it, and where in that family it fell is a property of the run and not "
+      + "of the supplier.</p>"
+      + '<div class="table-scroll"><table style="font-size:11.5px;color:var(--muted);margin:0;'
+      + 'border-collapse:collapse;"><tr>'
+      + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Contrast</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Published "
+      + "draw</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Re-draws</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Lowest</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Mean</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Highest</th>"
+      + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">This draw sat</th></tr>"
+      + rows + "</table></div>"
+      + '<ul style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
+      + legs.map(function (leg) {
+          return "<li><strong>" + esc(leg.label) + "</strong> &mdash; " + prose(leg.what)
+            + ".</li>";
+        }).join("")
+      + "</ul>"
+      + (anyChecked
+          ? '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
+            + "Every number in this table is read from `current_world.verdict_stability` in the "
+            + "feed. None is authored on this page, and the two legs sum to the whole advantage "
+            + "only in the published draw &mdash; a mean of a difference is not the difference of "
+            + "the means, so the rows below the first do not add up to it and are not meant to."
+            + "</p>"
+          : "");
+  }
+
   fetch("../data/value_arms.json?t=" + Date.now())
     .then(function (r) { return r.json(); })
     .then(function (d) {
@@ -680,6 +803,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       }
       $("arms-headline").innerHTML = prose(d.headline)
         + (d.provisional ? ' <span class="pill pill-building">Provisional</span>' : "");
+
+      /* THE BAND, IMMEDIATELY UNDER THE FIGURE IT BOUNDS. Rendered on every branch, including
+         the one where there is no current-world run at all — see `redrawBand`. */
+      $("arms-redraw").innerHTML = redrawBand(d.current_world);
 
       /* THE CHECKED CLAIM. "The supplier on this site IS the baseline arm" is recomputed from the
          published run every publish, and renders as its own negative if the two stop matching. */

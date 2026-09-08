@@ -433,6 +433,49 @@ def attribute_added(added: list[str], head_orphans: set[str] | None) -> tuple[li
             [m for m in added if m in head_orphans])
 
 
+def baseline_tree_note(state: dict, baseline: dict) -> str | None:
+    """One line naming the tree the baseline was frozen in, when that is not this tree.
+
+    THE DEFECT THIS EXISTS FOR, 2026-09-08. A `freeze()` output taken in a tree twelve modules
+    smaller was pasted into the shared baseline. The refusal that followed named a module and a
+    file, correctly, and said nothing about the one thing that separated a JUSTIFIED SHRINK of the
+    floor from A STALE PASTE — and those two have opposite remedies. Landing the paste (which the
+    drawn item, reading it as a shrink, said to do) would have converted an attributable refusal
+    into an unattributable one and left every lane still refused. Telling them apart cost a full
+    re-measurement of the premise.
+
+    `freeze()` has always written `module_count` from the tree it ran in, and until today NOTHING
+    READ IT BACK. It was the only evidence in the file, sitting beside the list it contradicted.
+
+    This is a note, never a refusal, and the distinction is the design. `module_count` moves on
+    every commit that adds or deletes a module, so a gate keyed to it would be red in the ordinary
+    case and would wedge every lane — the always-red shape this module's own docstring refuses. A
+    disagreement is EVIDENCE about which tree the list beside it describes, not a verdict; the
+    reader is the one who knows whether two modules of drift or twelve is the story. So it is
+    printed where a reader is already looking: inside a refusal, and in `--report`.
+    """
+    frozen = baseline.get("module_count")
+    here = state["module_count"]
+    if not isinstance(frozen, int):
+        return ("BASELINE PROVENANCE: this baseline records no module_count, so the tree it was "
+                "frozen in cannot be compared with this one ({} module(s)).".format(here))
+    if frozen == here:
+        return None
+    delta = abs(frozen - here)
+    direction = "SMALLER" if frozen < here else "LARGER"
+    return (
+        "BASELINE PROVENANCE: the floor was frozen in a tree of {frozen} module(s); this tree has "
+        "{here} -- {delta} module(s) {direction}.\n"
+        "`freeze()` writes module_count from the tree it ran in, so a floor taken HERE agrees "
+        "exactly. A disagreement is\n"
+        "either ordinary drift since the last freeze, or a freeze() output from ANOTHER tree -- an "
+        "older checkout, an\n"
+        "isolated worktree -- pasted in, in which case the orphan list beside it is that tree's "
+        "reachability and the\n"
+        "rows it omits are that tree's, not this one's.".format(
+            frozen=frozen, here=here, delta=delta, direction=direction))
+
+
 #: The two refusals, kept apart as named constants because the whole repair is that they READ
 #: differently. A control asserts both that they differ and that each run prints only its own —
 #: collapsing them back into one text is the regression, and it is invisible to any test that only
@@ -475,6 +518,9 @@ def run(root: Path | None = None, path: Path | None = None, report: bool = False
             state["module_count"], state["tracked_py"]))
         print("orphans now: {} | baseline: {}".format(
             len(state["orphans"]), len(baseline.get("orphans") or [])))
+        note = baseline_tree_note(state, baseline)
+        if note:
+            print("\n{}".format(note))
 
     added = new_orphans(state, baseline)
     if added:
@@ -515,6 +561,15 @@ def run(root: Path | None = None, path: Path | None = None, report: bool = False
                 "\nWire it to something that runs, or -- if it is deliberately dormant -- say so by\n"
                 "adding it with `python3 tools/orphan_ratchet.py --freeze` in the SAME commit, so "
                 "the\ndecision is on the record instead of in someone's head.\n", file=sys.stderr)
+
+        # Printed under EITHER headline, and last, because it does not change what is accused --
+        # it says which tree the list doing the accusing was measured in. Under UNFROZEN it tells
+        # the owning lane whether their deletion is a shrink of THIS floor or a paste of another
+        # tree's; under ADDED it is how a lane finds out the accusation is only as current as a
+        # freeze() somebody ran somewhere else.
+        note = baseline_tree_note(state, baseline)
+        if note:
+            print("{}\n".format(note), file=sys.stderr)
         return 1
 
     gone = sorted(set(baseline.get("orphans") or []) - set(state["orphans"]))

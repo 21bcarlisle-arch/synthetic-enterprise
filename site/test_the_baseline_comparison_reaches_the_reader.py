@@ -47,6 +47,7 @@ from __future__ import annotations
 import copy
 import html as html_lib
 import json
+import math
 import re
 import subprocess
 from pathlib import Path
@@ -65,7 +66,8 @@ DD_ARMS = SITE / "data" / "dd_opening_arms.json"
 #: is a red rather than a silently thinner page.
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
-          "arms-market", "arms-sample", "arms-departure", "arms-svt-belief", "arms-composition")
+          "arms-market", "arms-sample", "arms-departure", "arms-svt-belief",
+          "arms-composition", "arms-redraw")
 
 
 def _text(fragment: str) -> str:
@@ -266,6 +268,30 @@ def _composition_words() -> str:
     return CANNOT_TELL_SELECTION_OR_LEVEL.upper()
 
 
+def _door_prose(s: str) -> str:
+    """The door's own `prose()`, in Python, to the character.
+
+    The page assigns every sentence it takes from the feed through
+    `var prose = function (s) { return esc(s).replace(/ -- /g, " &mdash; "); };`, so a feed
+    sentence containing ` -- ` reaches the reader with an EM DASH and a raw substring of the feed
+    is not in the rendered text. Same class as `_door_gbp` below, and it bit for the same reason:
+    a control that reds because it formats differently from its subject is a control nobody keeps.
+
+    THIS WAS LATENT UNTIL THE SPLIT BECAME READABLE (2026-09-08). The readable branch below had
+    never been visited by the live rung -- `readable` was False on every publish until the bound
+    and the arms moved to the 09-08 run together -- and the mutation rungs that prove the branch
+    reachable feed it text the test itself wrote, which has no ` -- ` in it. So the first feed the
+    branch ever met in production was the first thing to disagree with it. A branch that exists to
+    be taken rarely gets asserted for what it does long before anything proves what it MEETS.
+
+    WHITESPACE COLLAPSED TOO, because `_text` above collapses it: a feed sentence that wraps
+    across lines reaches the reader on one, and every caller here slices a PREFIX, so transform
+    first and slice second -- slicing first can cut through the ` -- ` this exists to translate
+    and put the raw form back into the comparison.
+    """
+    return re.sub(r"\s+", " ", s.replace(" -- ", " — "))
+
+
 def _composition_defects(comp: dict, rendered: str) -> list[str]:
     """Every way the rendered composition can disagree with the feed that produced it.
 
@@ -297,7 +323,7 @@ def _composition_defects(comp: dict, rendered: str) -> list[str]:
         if not said:
             defects.append("the feed refuses to read the split and states no reason, so a reader "
                            "meets a bare refusal and cannot tell which of them it is")
-        elif said[:80] not in rendered:
+        elif _door_prose(said)[:80] not in rendered:
             defects.append("the refusal's reason does not reach the reader")
         if comp.get("later_runs_disagree") and words not in rendered:
             defects.append("a later run over this same world disagrees about which leg is bigger "
@@ -305,14 +331,14 @@ def _composition_defects(comp: dict, rendered: str) -> list[str]:
     elif comp.get("readable") is None:
         if not comp.get("why_not_readable"):
             defects.append("the feed neither read the split nor said why it could not")
-        elif comp["why_not_readable"][:80] not in rendered:
+        elif _door_prose(comp["why_not_readable"])[:80] not in rendered:
             defects.append("the split was never tested for readability and the page does not say "
                            "so, which reads exactly like a split that passed")
         if words in rendered:
             defects.append("'not asked' renders as a disagreement between runs")
     else:
         reading = comp.get("what_each_part_counts") or ""
-        if not reading or reading[:60] not in rendered:
+        if not reading or _door_prose(reading)[:60] not in rendered:
             defects.append("the feed reads the split and the page does not state what the two "
                            "parts count, so the reading a reader meets is not the feed's: "
                            + rendered[:400])
@@ -2585,9 +2611,41 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
         # AND THE VERDICT MUST REACH THE READER. A feed that resolves while the page still prints
         # the refusal is the same fail-open one step along: the reader meets "STATES NO VERDICT"
         # under a figure the site has in fact bounded.
-        assert "STATES NO VERDICT" not in rendered, (
-            "the feed holds a bound measured in this world and the page still tells the reader it "
-            "has none")
+        #
+        # TWO LEGS, ONE SENTENCE (2026-09-08). This rung's subject is the WHOLE advantage, and the
+        # string it asserts on is produced by the SELECTION leg -- a different quantity, with its
+        # own bound and its own verdict. That never mattered while one floor left both unreadable.
+        # It matters now: on the current book the advantage's own re-draws span £17,262 to £20,002
+        # and RESOLVE, while the selection leg's span -£3,075 to £1,200 and reverse. So the page
+        # legitimately states a verdict on one and withholds on the other, in one headline -- and
+        # this rung read the resolved leg's flag against the withheld leg's sentence and called the
+        # page fail-open. Exactly the shape its own comment above records being repaired for, one
+        # leg along. The reader is still never left to infer an absence; the phrase must correspond
+        # to SOME leg that actually withheld, and carry that leg's own reversing range.
+        leg = cw.get("selection_leg") or {}
+        leg_withheld = leg.get("verdict_withheld_because")
+        if not leg_withheld:
+            assert "STATES NO VERDICT" not in rendered, (
+                "the feed holds a bound measured in this world, neither the advantage nor the "
+                "creation leg withheld a verdict, and the page still tells the reader it has none")
+        else:
+            assert "STATES NO VERDICT" in rendered, (
+                "the creation leg withheld its verdict ({}) and the page did not tell the reader"
+                .format(str(leg_withheld)[:120]))
+            leg_stability = leg.get("verdict_stability") or {}
+            for edge in ("redraw_min_gbp", "redraw_max_gbp"):
+                figure = leg_stability.get(edge)
+                assert isinstance(figure, (int, float)), (
+                    "the creation leg's verdict was withheld for a range the feed does not carry, "
+                    "so the reason is unfalsifiable")
+                # SIGN OUTSIDE THE SYMBOL, as the page renders it. This leg's family straddles
+                # zero, so `"£{:,.0f}".format(-3075)` would look for `£-3,075` and never match the
+                # `-£3,075` the reader actually meets.
+                shown = "{}£{:,.0f}".format("-" if figure < 0 else "", abs(figure))
+                assert shown in rendered, (
+                    "the page withheld the creation leg's verdict without showing {} ({}) -- the "
+                    "reader is told there is no verdict and not what reverses it".format(
+                        edge, shown))
         stdev = (cw.get("bound") or {}).get("stdev_gbp")
         assert isinstance(stdev, (int, float)), (
             "the feed claims a bound and carries no spread to show, so the verdict is unfalsifiable")
@@ -2669,6 +2727,158 @@ def test_MUTATION_an_unbounded_current_figure_is_never_rendered_bare():
     assert "STATES NO VERDICT" not in mutated, (
         "the refusal survived its own removal -- the assertion in the rung above is satisfied by "
         "some other sentence, which makes it an equivalence rather than a control")
+
+
+def _door_gbp(value) -> str:
+    """The door's own `gbp()`, in Python, to the character.
+
+    The page rounds with `Math.round` and formats with `toLocaleString("en-GB")`, and prints a
+    real MINUS SIGN outside the £ for a negative leg. `round()` here would be banker's rounding
+    and would disagree with the page on a half; `-£8,634` would disagree on the choosing leg,
+    whose whole finding is that its re-draw family straddles zero. A control that reds because
+    it formats differently from its subject is a control nobody keeps.
+    """
+    if value is None or not isinstance(value, (int, float)):
+        return ""
+    whole = math.floor(float(value) + 0.5)
+    return ("−£" if whole < 0 else "£") + "{:,}".format(abs(whole))
+
+
+def _current_world_contrasts(feed: dict) -> list:
+    """(label, published draw, its re-draw family, the feed's own withheld reason) per contrast.
+
+    Read from the FEED and in the same order the door builds them, so this control follows a
+    publish that drops or adds a leg instead of reddening on it.
+    """
+    cw = feed.get("current_world") or {}
+    out = [("The whole advantage", cw.get("value_advantage_gbp"),
+            cw.get("verdict_stability") or {}, cw.get("verdict_withheld_because"))]
+    for key, label in (("selection_leg", "… of which, the choosing"),
+                       ("level_leg", "… of which, the price level")):
+        leg = cw.get(key)
+        if not leg:
+            continue
+        out.append((label, leg.get("figure_gbp"), leg.get("verdict_stability") or {},
+                    leg.get("verdict_withheld_because")))
+    return out
+
+
+def test_the_published_advantage_renders_beside_its_own_redraw_band(live):
+    """Every contrast's re-draw family -- LOWEST, MEAN and HIGHEST -- reaches the reader.
+
+    THE DEFECT (2026-09-08, measured before it was fixed). The band did reach the page: the
+    generator composes `redraw_min_gbp`, `redraw_max_gbp` and `redraw_mean_gbp` into `headline`
+    and the door renders that string. But it reached it as ONE OPAQUE SENTENCE, and only two of
+    those five numbers had a control -- the sibling rung above asserts min and max and nothing
+    asserted the mean. So the pre-registered prediction was: strip `Those re-draws average GBP X`
+    from the live feed's headline, re-render the real door, and the whole of this file stays
+    green. It did: 84 passed, 1 skipped. The LEVEL leg's centre (GBP 3,312) reached no reader at
+    all, because its clause is composed by `_composition_in_this_world`, which prints that leg's
+    range and its sign change and not its middle.
+
+    WHY THE MEAN IS THE NUMBER THAT MATTERS. The range on its own is the flattering reading. A
+    reader told the advantage spans GBP 451 to GBP 2,434 still takes the published GBP 2,336 as
+    the answer; told the same family averages GBP 1,451, they can see the run drew near the top.
+    On the choosing leg -- the only leg on this page that could be value CREATED rather than
+    moved -- the family's centre is NEGATIVE (-GBP 1,861) while the published draw is +GBP 2,177.
+    That is the whole finding, and it is invisible from min and max alone.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Every figure is read from the feed. A re-run
+    that moves all of them leaves this green; a publish that drops a leg drops its row here too;
+    a contrast with no re-draw family must say NOT RE-DRAWN rather than render a blank beside a
+    bare figure, because an empty band column reads as a band of zero.
+
+    Fires on: deleting the `#arms-redraw` render; dropping the mean column; rendering the band
+    for the whole advantage only; formatting a negative leg so its own family's sign is lost.
+    """
+    feed = _live_feed()
+    rendered = live["arms-redraw"]
+    assert rendered.strip(), "the door rendered nothing where the re-draw band goes"
+
+    cw = feed.get("current_world") or {}
+    if not cw.get("available"):
+        # FAIL CLOSED. No current-world figure means no band to show, and the page says that
+        # rather than rendering an empty table a reader would read as "no spread".
+        assert "No re-draw band is shown" in rendered, (
+            "the feed states no current-world contrast and the band block said nothing about "
+            "why it is empty")
+        return
+
+    for label, figure, stability, withheld in _current_world_contrasts(feed):
+        assert label in rendered, (
+            "the feed carries the {!r} contrast and the band table has no row for it".format(
+                label))
+        money = _door_gbp(figure)
+        assert money and money in rendered, (
+            "{!r} rendered in the band table without its own published draw ({}), so the band "
+            "bounds nothing a reader can see".format(label, money))
+        if not stability.get("checked"):
+            assert "NOT RE-DRAWN" in rendered, (
+                "{!r} carries no re-draw family and the page did not say so; a figure beside an "
+                "empty band reads as a figure whose band is zero".format(label))
+            continue
+        for edge in ("redraw_min_gbp", "redraw_mean_gbp", "redraw_max_gbp"):
+            value = stability.get(edge)
+            assert isinstance(value, (int, float)), (
+                "{!r} claims a checked re-draw family carrying no {}, so the band is "
+                "unfalsifiable".format(label, edge))
+            assert _door_gbp(value) in rendered, (
+                "{!r} rendered without its {} ({}) -- the reader met the winner of the re-draw "
+                "and not the re-draw".format(label, edge, _door_gbp(value)))
+        # THE ONE THING THIS PAGE DERIVES, CHECKED AGAINST THE FEED'S OWN WORD. The door compares
+        # the published draw with the mean to say where in its family it fell; the generator says
+        # the same thing in prose inside `verdict_withheld_because`. Two statements of one fact
+        # is the shape that rots -- so they are asserted to agree rather than left to.
+        mean = float(stability["redraw_mean_gbp"])
+        expected = ("ABOVE the centre" if float(figure) > mean
+                    else "BELOW the centre" if float(figure) < mean else "AT the centre")
+        assert expected in rendered, (
+            "{!r} rendered its family without saying the published draw sat {}".format(
+                label, expected))
+        if isinstance(withheld, str) and "the centre of its own family" in withheld:
+            side = expected.split()[0]
+            assert "sits {} the centre".format("exactly AT" if side == "AT" else side) in withheld, (
+                "the band table says the {!r} draw sat {} its family and the feed's own prose "
+                "says otherwise -- one page, two answers".format(label, side))
+
+
+def test_MUTATION_a_figure_whose_family_is_missing_never_renders_bare(live):
+    """The rung above must be failable by taking the band away, not only by the page being right.
+
+    Run against the DOOR rather than the builder, because the subject is the render: a feed whose
+    contrasts carry no `verdict_stability` is exactly the state the page was in for every leg
+    before 2026-09-08, and the question is what a reader meets then. The published figures must
+    survive the mutation -- otherwise the mutation removed the subject and proves nothing.
+
+    R15, run and reverted against the live door on 2026-09-08:
+      * delete `$("arms-redraw").innerHTML = redrawBand(d.current_world);` ->
+        `test_the_published_advantage_renders_beside_its_own_redraw_band` reds on the empty panel.
+      * drop the mean column from `redrawBand` -> the same rung reds on `redraw_mean_gbp`.
+      * render the band for the whole advantage and neither leg -> reds on the choosing row.
+    """
+    feed = copy.deepcopy(_live_feed())
+    cw = feed.get("current_world") or {}
+    if not cw.get("available"):
+        pytest.skip("no current-world contrast in this publish, so there is no band to remove")
+    cw.pop("verdict_stability", None)
+    for key in ("selection_leg", "level_leg"):
+        if cw.get(key):
+            cw[key].pop("verdict_stability", None)
+    rendered = _render(feed)["arms-redraw"]
+
+    assert _door_gbp(cw.get("value_advantage_gbp")) in rendered, (
+        "the mutation removed the figure as well as its family, so it tests nothing")
+    assert "NOT RE-DRAWN" in rendered, (
+        "a contrast with no re-draw family rendered without saying so -- the fail-open this "
+        "whole block exists for")
+    live_mean = ((_live_feed().get("current_world") or {}).get("verdict_stability") or {}).get(
+        "redraw_mean_gbp")
+    assert _door_gbp(live_mean) not in rendered, (
+        "the mean survived the removal of the family it comes from, so the assertion in the rung "
+        "above is satisfied by some other text and is an equivalence, not a control")
+    assert live["arms-redraw"] != rendered, (
+        "the door rendered the same band with and without the re-draw families, so it is not "
+        "reading them")
 
 
 # ── can the company order who leaves ─────────────────────────────────────────────────────────

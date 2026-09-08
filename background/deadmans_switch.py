@@ -159,6 +159,7 @@ _ORIGIN_FORK_KEY = "deadman_origin_fork"
 #: class by becoming invisible to it rather than by being repaired.
 ORIGIN_RACE_EPISODE_FILE = OBSERVABILITY_DIR / ".origin_race_episode.json"
 _STATUS_STALE_KEY = "deadman_status_stale"
+_LAUNCH_LIVENESS_KEY = "deadman_launch_liveness"
 
 
 def log(msg: str, path=None) -> None:
@@ -921,6 +922,73 @@ def _check_status_honesty() -> None:
     log(f"STATUS STALE checked (notify-gated): {st['detail']}")
 
 
+def _check_launch_liveness() -> None:
+    """Re-ask every launch record still claiming `live`, and page when one has gone stale.
+
+    THE SAME SHAPE AS `_check_status_honesty` ABOVE, on the same cadence and for the same reason: a
+    document says something is running, and nothing in the architecture ever asks whether that is
+    still true. There it is LATEST.md describing a dead daemon; here it is a record describing a
+    detached run that has since died or finished.
+
+    WHY THIS BELONGS ON A TIMER AND NOT ONLY IN A GATE. The drawn item asks that a document reading
+    "in flight" be contradicted *by something other than a person checking a pid*. A `--check` that
+    only ever runs when someone types it is still a person checking, one indirection along; the
+    contradiction has to arrive without being asked for. Four launches of one job died with a
+    document asserting each of them alive for hours, and every catch was a human going to look.
+
+    IT PAGES ONCE PER STALE CLAIM, NOT EVERY CYCLE. `check()` writes the verdict and the evidence
+    back into the record, so the claim stops being stale the moment it is settled; the next cycle
+    finds nothing and is silent. That is why the alarm is keyed to the settled count and not to a
+    standing condition -- there is no standing condition to re-escalate, only an event.
+
+    A CHECK THAT CANNOT RUN MUST NOT CRASH THE DEADMAN CYCLE, and must not clear the alarm either:
+    an exception here means we did not look, which is the one thing this module refuses to report
+    as an answer.
+    """
+    try:
+        from background import launch_liveness
+        stale, lines, settled = launch_liveness.check()
+    except Exception as e:  # noqa: BLE001 -- see docstring: we did not look, so we say nothing
+        log(f"launch-liveness check error: {e}")
+        return
+    if not stale:
+        clear_transition(_LAUNCH_LIVENESS_KEY)
+        return
+    log(f"LAUNCH settled {stale} record(s): {' | '.join(lines)}")
+
+    # A DEATH AND A COMPLETION ARE NOT THE SAME EVENT, and the first draft of this wiring paged
+    # `real_alarm` for both. Both contradict a document reading "in flight" -- but one is an
+    # incident and the other is the good news the run was launched for, and a channel that pages
+    # him for success is how this project has buried its own signal before. Caught here, before it
+    # fired, because the floor leg was minutes from finishing successfully when this was written.
+    died = [e for e in settled if e.get("claim") == launch_liveness.DIED]
+    done = [e for e in settled if e.get("claim") == launch_liveness.FINISHED]
+
+    def _docs(entries) -> str:
+        named = [d for e in entries for d in (e.get("asserted_live_by") or [])]
+        return (" Now wrong: " + ", ".join(named)) if named else " No document asserted it."
+
+    if died:
+        notify(
+            f"[LAUNCH DIED] {len(died)} detached run(s) claimed in flight are dead: "
+            + ", ".join(str(e.get("job")) for e in died) + "." + _docs(died)
+            + " The verdict is systemd's, from outside the job's own cgroup, so it survives the "
+            "kill it reports. The record now carries it; nobody checked a pid.",
+            kind="real_alarm", transition_key=_LAUNCH_LIVENESS_KEY,
+            state=f"died:{len(died)}", re_escalate_after=RE_ESCALATE_SECONDS,
+        )
+    if done:
+        # Batched, not paged: `routine_landing` is a deferrable class, so this reaches the digest.
+        notify(
+            f"[LAUNCH FINISHED] {len(done)} detached run(s) completed: "
+            + ", ".join(str(e.get("job")) for e in done) + "." + _docs(done),
+            kind="work_done", transition_key=_LAUNCH_LIVENESS_KEY + "_done",
+            state=f"done:{len(done)}", topic_class="routine_landing",
+        )
+    if not died:
+        clear_transition(_LAUNCH_LIVENESS_KEY)
+
+
 def _check_repo_not_bare() -> None:
     """H26 (2026-07-18): fire the cause-agnostic core.bare corruption guard BETWEEN commits, not
     only at the next `tree_lock()` acquisition. `tree_lock.assert_repo_not_bare()` already covers
@@ -1086,6 +1154,7 @@ def run_cycle() -> None:
     _check_worktree_reap()
     _check_origin_fork()
     _check_status_honesty()
+    _check_launch_liveness()
     _check_repo_not_bare()
     _check_operational_layer_signal()
     _check_content_publishing()

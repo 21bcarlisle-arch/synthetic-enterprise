@@ -66,6 +66,7 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_FINDING_R1S_MAGNITUDE_WAS_NEVER_A_COVERAGE_PROBLEM_AND_THE_RUNG_THAT_FIXES_IT_WAS_MEASURED_AND_NEVER_LANDED_2026-09-07.md` — lane `W2_customer_generator`
+- `SEAT_FINDING_THE_CANONS_CONTROL_WAS_GREEN_IN_THE_WORKING_TREE_AND_RED_IN_EVERY_COMMIT_BECAUSE_ALL_TEN_OF_ITS_SUPPLIERS_WERE_ORPHANED_2026-09-08.md` — lane `W2_customer_generator`
 
 ## Disposition
 

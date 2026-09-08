@@ -2,10 +2,15 @@
 from __future__ import annotations
 
 import datetime as dt
+import importlib
+import json
+from pathlib import Path
 
 import pytest
 
 from company.finance.vat_book import (
+    SME_ELEC_THRESHOLD_KWH_PER_DAY,
+    SME_GAS_THRESHOLD_KWH_PER_DAY,
     VATBook,
     VATQuarterlyReturn,
     VATRateCategory,
@@ -32,6 +37,114 @@ class TestClassifyVATCategory:
 
     def test_sme_below_threshold_is_reduced(self):
         assert classify_vat_category(is_residential=False, daily_consumption_kwh=30.0) == VATRateCategory.DOMESTIC_REDUCED
+
+
+class TestTheDeMinimisIsPerFuelAndNotTheLargerOfTheTwo:
+    """THE DEFECT: `classify_vat_category` took `max(elec_limit, gas_limit)` and applied it to
+    every fuel, so a business ELECTRICITY supply anywhere in the 33-145 kWh/day band was
+    reduced-rated where VAT Notice 701/19 s5.2 says standard. Over-charging or under-charging VAT
+    is money, and this direction under-charges: the supplier owes HMRC the difference.
+
+    The whole band is asserted, not one point in it, because a single point passes for a
+    limit set anywhere below it.
+    """
+
+    #: Strictly inside the band where the two fuels take OPPOSITE rates: above electricity's
+    #: 33 kWh/day, at or below gas's 145.
+    BAND = [33.5, 50.0, 100.0, 144.9, 145.0]
+
+    @pytest.mark.parametrize("kwh_per_day", BAND)
+    def test_business_electricity_in_the_band_is_standard_rated(self, kwh_per_day):
+        assert classify_vat_category(
+            is_residential=False, daily_consumption_kwh=kwh_per_day, fuel="electricity"
+        ) == VATRateCategory.STANDARD
+
+    @pytest.mark.parametrize("kwh_per_day", BAND)
+    def test_business_gas_in_the_same_band_is_reduced_rated(self, kwh_per_day):
+        assert classify_vat_category(
+            is_residential=False, daily_consumption_kwh=kwh_per_day, fuel="gas"
+        ) == VATRateCategory.DOMESTIC_REDUCED
+
+    def test_the_band_is_non_empty_so_the_two_tests_above_disagree(self):
+        """Reachability. Both tests above pass vacuously if the two limits are ever equal --
+        every case would be on the same side of both. Assert the partition can be entered."""
+        assert SME_ELEC_THRESHOLD_KWH_PER_DAY < SME_GAS_THRESHOLD_KWH_PER_DAY
+        assert any(
+            SME_ELEC_THRESHOLD_KWH_PER_DAY < k <= SME_GAS_THRESHOLD_KWH_PER_DAY
+            for k in self.BAND
+        )
+
+    def test_an_unnamed_fuel_inside_the_band_refuses_and_says_why(self):
+        """Fail closed. Outside the band every fuel agrees, so the answer is honest without
+        knowing the fuel; inside it there is no answer right for both."""
+        with pytest.raises(ValueError, match="no fuel was named"):
+            classify_vat_category(is_residential=False, daily_consumption_kwh=100.0)
+
+    @pytest.mark.parametrize(
+        "kwh_per_day,expected",
+        [(30.0, VATRateCategory.DOMESTIC_REDUCED), (500.0, VATRateCategory.STANDARD)],
+    )
+    def test_an_unnamed_fuel_outside_the_band_still_answers(self, kwh_per_day, expected):
+        assert classify_vat_category(
+            is_residential=False, daily_consumption_kwh=kwh_per_day
+        ) == expected
+
+    def test_the_limits_are_the_published_ones_not_a_local_copy(self):
+        """The point of the change: these are DERIVED from the regulation commons, so a
+        correction to the artefact cannot leave this module behind. Compares against the
+        published file directly rather than against the loader that produced them."""
+        published = json.loads(
+            (
+                Path(__file__).resolve().parents[3]
+                / "docs" / "domain_artefact_library" / "regulatory"
+                / "vat_fuel_and_power_de_minimis.json"
+            ).read_text()
+        )["de_minimis_by_fuel"]
+        assert SME_ELEC_THRESHOLD_KWH_PER_DAY == published["electricity"]["kwh_per_day"]
+        assert SME_GAS_THRESHOLD_KWH_PER_DAY == published["gas"]["kwh_per_day"]
+
+    def test_a_move_in_the_published_limit_carries_into_this_module(self):
+        """THE PROPERTY IS PROVENANCE, AND A VALUE ASSERTION CANNOT REACH IT.
+
+        Restoring the old literals `33.0`/`145.0` passes every other test in this class, because
+        today the literals and the publication agree -- that is an EQUIVALENT mutation against a
+        value check, and it is exactly the state the module was in for months while being wrong in
+        principle. What distinguishes a copy from a derivation is only visible when the two
+        disagree, so this moves the published limit and asserts the module follows it.
+        """
+        import company.billing.dual_fuel_bill as dfb
+        import company.finance.vat_book as vb
+
+        original = dict(dfb.SME_VAT_DE_MINIMIS_KWH_PER_DAY)
+        try:
+            dfb.SME_VAT_DE_MINIMIS_KWH_PER_DAY.clear()
+            dfb.SME_VAT_DE_MINIMIS_KWH_PER_DAY.update({"electricity": 40.0, "gas": 160.0})
+            importlib.reload(vb)
+            assert vb.SME_ELEC_THRESHOLD_KWH_PER_DAY == 40.0
+            assert vb.SME_GAS_THRESHOLD_KWH_PER_DAY == 160.0
+            # and the READING moves with the limit, not just the constant: 35 kWh/day of
+            # business electricity is standard-rated under the real 33 and reduced under 40.
+            assert vb.classify_vat_category(
+                is_residential=False, daily_consumption_kwh=35.0, fuel="electricity"
+            ) == vb.VATRateCategory.DOMESTIC_REDUCED
+        finally:
+            dfb.SME_VAT_DE_MINIMIS_KWH_PER_DAY.clear()
+            dfb.SME_VAT_DE_MINIMIS_KWH_PER_DAY.update(original)
+            importlib.reload(vb)
+        assert vb.SME_ELEC_THRESHOLD_KWH_PER_DAY == original["electricity"]
+
+    def test_domestic_is_unconditional_even_above_every_limit(self):
+        """The artefact's `domestic_is_unconditional`: a quantity test applied to a domestic
+        account is not redundant, it is a different rule."""
+        assert classify_vat_category(
+            is_residential=True, daily_consumption_kwh=10_000.0, fuel="electricity"
+        ) == VATRateCategory.DOMESTIC_REDUCED
+
+    def test_an_unpublished_fuel_refuses_rather_than_inventing_a_limit(self):
+        with pytest.raises(ValueError, match="no published de minimis limit"):
+            classify_vat_category(
+                is_residential=False, daily_consumption_kwh=50.0, fuel="heat_network"
+            )
 
 
 class TestVATTransaction:

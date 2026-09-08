@@ -1,0 +1,31 @@
+[
+  {
+    "job": "value-cycle-ab-current-book",
+    "unit": "value-cycle-ab-current-book.service",
+    "artefact": "/var/tmp/value_cycle_ab_current_book_2026-09-08.json",
+    "log": "/var/tmp/value_cycle_ab_current_book_2026-09-08.log",
+    "rc_path": "/var/tmp/value_cycle_ab_current_book_2026-09-08.rc",
+    "launched_at": "2026-09-07T23:32:23Z",
+    "asserted_live_by": [
+      "docs/staging/records/SEAT_CORRECTION_THE_FIRST_RETAKE_LEFT_NO_EVIDENCE_IT_SURVIVED_ITS_OWN_LAUNCH_AND_THE_RELAUNCH_IS_PINNED_TO_A_LATER_SHA_2026-09-07.md",
+      "docs/staging/records/SEAT_FINDING_THE_RETAKE_DIED_A_THIRD_TIME_AND_THE_KILLER_WAS_NEVER_THE_SESSION_IT_IS_THE_TICKS_CGROUP_2026-09-08.md"
+    ],
+    "claim": "finished",
+    "settled_at": "2026-09-08T01:06:46Z",
+    "evidence": "the artefact `/var/tmp/value_cycle_ab_current_book_2026-09-08.json` exists, the unit's Result=success and ExecMainStatus=0, and the job's own rc file says 0"
+  },
+  {
+    "job": "value-cycle-floor-current-book",
+    "unit": "value-cycle-floor-current-book.service",
+    "artefact": "/var/tmp/value_cycle_ab_current_book_floor_2026-09-08.json",
+    "log": "/var/tmp/value_cycle_ab_current_book_floor_2026-09-08.log",
+    "rc_path": null,
+    "launched_at": "2026-09-08T01:39:56Z",
+    "asserted_live_by": [
+      "docs/staging/records/SEAT_RESULT_THE_CURRENT_BOOK_RETAKE_LANDED_AND_ITS_SPLIT_IS_STILL_UNREADABLE_2026-09-08.md"
+    ],
+    "claim": "finished",
+    "settled_at": "2026-09-08T04:10:57Z",
+    "evidence": "the artefact `/var/tmp/value_cycle_ab_current_book_floor_2026-09-08.json` exists, the unit's Result=success and ExecMainStatus=0, and the job's own rc file says nothing"
+  }
+]

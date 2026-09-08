@@ -207,6 +207,24 @@ NEUTRALISED_BY_DMS_ISOLATED = (
     # tag was written after it. It is neutralised because the NEXT lane to leave a fork on disk
     # would have had it deleted by a unit test, not because damage was observed.
     "_check_worktree_reap",
+    # ADDED 2026-09-08 in the SAME commit that `run_cycle` gained it, by reading this guard's own
+    # rule rather than by waiting for it to fire. Disqualified on both counts that matter here:
+    # `launch_liveness.check()` reads `launch_liveness.RECORDS_PATH`, an ABSOLUTE path into the
+    # real docs/observability/ that this fixture's OBSERVABILITY_DIR patch does not reach; and a
+    # stale claim `notify(kind="real_alarm")`s, which _capture_ntfy records -- so it would append
+    # to `calls` and break the `assert len(calls) == 1` every test here is built on.
+    #
+    # KEYED TO THE PROPERTY, NOT TO TODAY'S STORE. The live store currently holds one settled
+    # record and one live one whose unit is genuinely running, so a real run right now would be
+    # silent -- and justifying the entry on that would make it look removable the moment the
+    # floor leg finishes and the record settles. The disqualifier is that it reads an unpatched
+    # absolute path AND can page at all; whether it is currently paging is the weather.
+    #
+    # WORSE THAN A BROKEN ASSERTION, and the reason this is not merely tidiness: `check()` WRITES
+    # the store. Left live, these 12 mutation cycles would settle real launch records against
+    # whatever systemd happened to say during a unit test, and settling is deliberately one-way.
+    # A test run could permanently mark a live run dead.
+    "_check_launch_liveness",
 )
 
 # Allowed to run for real, each for a stated reason. A check earns a place here only if it is
