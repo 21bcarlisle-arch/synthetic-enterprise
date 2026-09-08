@@ -87,6 +87,15 @@ def _drive(monkeypatch, tmp_path, *, ahead_reads, advances):
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
+    # THE COMMIT IS A SURGICAL LANDING (2026-09-08), so "did this cycle reach the commit" is no
+    # longer a `git commit` in `calls` -- it is this call. Recorded in the same argv shape so
+    # `_committed` keeps reading one list, and so the assertions below stay about the ADVANCE
+    # loop, which is this file's subject and is untouched by the route change.
+    def fake_land(pathspec, msg, git_hash):
+        calls.append(["git", "commit", "-m", msg, "--"] + list(pathspec))
+        return {"sha": "0" * 40, "refusal": "", "lost": []}
+    monkeypatch.setattr(prc, "_land_publish_commit", fake_land)
+
     outcome = {}
     returned = prc.git_commit_push("abc1234", 1000.0, outcome=outcome)
     # THE EVIDENCE IS READ BACK FROM THE CAUSE FILE, which is where the reader reads it -- the

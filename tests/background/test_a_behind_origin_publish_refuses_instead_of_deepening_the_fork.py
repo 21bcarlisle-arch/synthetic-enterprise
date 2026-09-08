@@ -208,6 +208,15 @@ def _publish_with_origin_ahead_by(monkeypatch, tmp_path, ahead):
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
     monkeypatch.setattr(prc.subprocess, "run", fake_run)
 
+    # THE COMMIT IS A SURGICAL LANDING (2026-09-08). "Did a commit get created" is this call
+    # now, not a `git commit` argv -- recorded in the same shape so both legs of this pair keep
+    # reading one list. The property under test (a behind-origin tree creates NO commit, a level
+    # one creates one) is exactly as falsifiable through this seam as through the argv.
+    def fake_land(pathspec, msg, git_hash):
+        calls.append(["git", "commit", "-m", msg, "--"] + list(pathspec))
+        return {"sha": "0" * 40, "refusal": "", "lost": []}
+    monkeypatch.setattr(prc, "_land_publish_commit", fake_land)
+
     outcome = {}
     returned = prc.git_commit_push("abc1234", 1000.0, outcome=outcome)
     return returned, outcome.get("reason"), calls

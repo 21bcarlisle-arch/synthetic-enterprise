@@ -1090,7 +1090,6 @@ from background import (  # noqa: E402
 # stamp (correct for its own code) and the next cycle upgrades it; a mixed pair is what could
 # not be made to work.
 from background.child_diagnostics import (  # noqa: E402  (H30)
-    STDERR_TAIL_LINES,
     failure_detail,
     stderr_tail,
 )
@@ -4959,6 +4958,99 @@ def _advance_to_origin_or_say_why(project=None, *, ahead_fn=None, runner=None, b
                           "was found".format(type(exc).__name__, exc)}
 
 
+#: How many times the publish landing may re-gate after LOSING the race to another writer.
+#: `surgical_land.land` re-reads HEAD and re-gates from the new base on each attempt, and on this
+#: tree a commit arrives roughly every 3.8 minutes against a gate that costs minutes -- so an
+#: unbounded retry would spend the whole cycle proving the tree is hot. TWO: the first attempt is
+#: the ordinary case, the second covers the one arrival that happened during it. A third would be
+#: a second full gate on a tree already shown to be moving, and the next cycle is a cheaper place
+#: to try again. Deliberately smaller than `surgical_land.DEFAULT_ATTEMPTS`, which is written for
+#: a human at a terminal who has nowhere cheaper to retry.
+PUBLISH_LAND_ATTEMPTS = 2
+
+
+def _gate_was_killed(refusal: str) -> bool:
+    """Did the landing fail because the hook chain outran its DEADLINE, rather than refusing?
+
+    A killed child has no verdict, so this is the one refusal shape where the reader must not be
+    sent to the tests at all -- the same distinction the old `git commit` path drew with
+    `subprocess.TimeoutExpired` and `COMMIT_TIMEOUT`, kept alive across the route change. It has
+    to be read out of the text because `surgical_land.run_gate` converts the kill into a
+    `LandingRefused` (fail-closed: an unavailable gate is a failed gate), which is right for the
+    tool and lossy for a caller that publishes a cause.
+    """
+    text = (refusal or "").lower()
+    return "could not be executed" in text and "timed out" in text
+
+
+def _land_publish_commit(pathspec, msg, git_hash):
+    """Land the publish commit through `tools.surgical_land`. Never raises.
+
+    Returns {"sha": <sha or "">, "refusal": <text>, "lost": [<attempt numbers>]}. The caller
+    classifies the refusal text; this function's only job is to make every failure a value.
+
+    WHY A VALUE AND NOT AN EXCEPTION. `git_commit_push` is the one funnel every publish outcome
+    passes through, and it names its outcome on every branch. A raise from here would leave the
+    cycle with no recorded outcome at all, which is the shape that got read as a red test suite
+    for hours (see the `TimeoutExpired` note this replaces).
+    """
+    try:
+        from tools import surgical_land
+    except Exception as exc:  # noqa: BLE001 -- an unimportable lander is a refusal, not a crash
+        return {"sha": "", "lost": [],
+                "refusal": "the publish landing could not be attempted: `tools.surgical_land` "
+                           "would not import ({}: {}). Nothing was committed.".format(
+                               type(exc).__name__, exc)}
+    # REPO-RELATIVE, AND THIS IS NOT COSMETIC. `_commit_pathspec` builds ABSOLUTE paths, which is
+    # right for `git commit -- <spec>` run in the shared tree and WRONG here: `surgical_land`
+    # replays the same pathspec inside its EXTRACT (`materialise` runs `git add -A -- <paths>`
+    # with cwd set to the checkout), where an absolute path under the real repo is "outside
+    # repository" and the landing fails rc=128 before the gate ever runs. Every cycle, not some.
+    # Caught by driving the real tool -- `test_the_publisher_classifies_the_tools_real_refusals`
+    # -- which is the whole argument for that file existing.
+    root = Path(PROJECT_DIR).resolve()
+    relative, outside = [], []
+    for candidate in pathspec:
+        try:
+            relative.append(str(Path(candidate).resolve().relative_to(root)))
+        except ValueError:
+            outside.append(candidate)
+    if outside:
+        return {"sha": "", "lost": [],
+                "refusal": "the publish pathspec names {} path(s) outside the repository, which "
+                           "no commit can carry: {}. Nothing was committed.".format(
+                               len(outside), ", ".join(outside[:5]))}
+    lost = []
+
+    def _on_lost(attempt, exc):
+        lost.append(attempt)
+        log("Publish landing lost the race on attempt {}/{} (base {} -> {}) -- re-gating against "
+            "the new base rather than committing a verdict about a tree that no longer exists."
+            .format(attempt, PUBLISH_LAND_ATTEMPTS, exc.parent[:9], exc.observed[:9]))
+
+    started = time.monotonic()
+    try:
+        sha = surgical_land.land(root, relative, msg,
+                                 attempts=PUBLISH_LAND_ATTEMPTS, on_lost=_on_lost)
+    except surgical_land.LandingRefused as exc:
+        # The gate ran (or refused to run) and said no. Same measurement as the old `git commit`
+        # path recorded, against the same deadline vocabulary, so the duration series does not
+        # break across this change -- including the KILLED case, which stays a distinct label
+        # because "the chain outran its deadline" and "the chain returned a verdict" are the two
+        # facts a reader of that series most needs to be able to tell apart.
+        _record_commit_hook_duration(time.monotonic() - started, git_hash,
+                                     "timeout" if _gate_was_killed(str(exc)) else "refused")
+        return {"sha": "", "refusal": str(exc), "lost": lost}
+    except Exception as exc:  # noqa: BLE001 -- see the docstring: every failure is a value
+        _record_commit_hook_duration(time.monotonic() - started, git_hash, "refused")
+        return {"sha": "", "lost": lost,
+                "refusal": "the publish landing raised {} rather than refusing: {}. Treated as a "
+                           "refusal, so nothing is committed and the next cycle "
+                           "retries.".format(type(exc).__name__, exc)}
+    _record_commit_hook_duration(time.monotonic() - started, git_hash, "pass")
+    return {"sha": sha, "refusal": "", "lost": lost}
+
+
 def git_commit_push(git_hash, net_margin, outcome=None):
     """Commit and push the publish surface. Returns True iff the content is committed.
 
@@ -5346,185 +5438,148 @@ def git_commit_push(git_hash, net_margin, outcome=None):
     msg = "Auto-process run complete: report + LATEST.md + site/ (git={}, net=\xa3{:,.0f})".format(
         git_hash, net_margin
     )
-    # Serialize against other git writers (interactive session, autonomous_runner
-    # turns, a concurrent process_run_complete.py invocation) -- see
-    # background/tree_lock.py. Without this, a `git add` from another writer
-    # staged between this one's add and commit gets swept into this commit
-    # (observed directly: a manually-staged code change landed inside an
-    # unrelated auto-process commit message).
+    # THE PUBLISH COMMIT IS A SURGICAL LANDING, NOT A PATHSPEC `git commit` (2026-09-08, closing
+    # "twenty-four publish cycles and not one clean publish").
     #
-    # ACQUISITION IS GUARDED SEPARATELY FROM THE BODY (2026-08-30, see
-    # EXIT_TREE_LOCK_UNAVAILABLE). Losing the lock is a contention outcome this publisher
-    # already knows how to name; letting it escape `main()` as an uncaught TreeLockTimeout
-    # made it rc=1, which the wedge classifier reads as a red test. ExitStack, rather than an
-    # outer `try` around the whole `with`, so the except clause below can ONLY see a failure
-    # to ACQUIRE -- a TreeLockTimeout raised from anywhere INSIDE the body would be a
-    # different fact (a nested acquisition, i.e. the deadlock shape documented at
-    # `_git_add_or_refuse`) and must not be mislabelled as contention in its turn.
+    # THE DEFECT. A pathspec `git commit` still runs the pre-commit hook chain against the SHARED
+    # WORKING TREE, and this tree routinely holds three other lanes' uncommitted work. So the
+    # publish was graded on a tree it did not author and could not repair: `last_clean_publish`
+    # was null across 24 consecutive failures and a 21.1-hour wedge, each cycle naming a
+    # DIFFERENT gate -- the site lane's untracked-control census one day, the scope-evidence
+    # ratchet the next, on a file a different lane committed sixteen minutes later. Neither was
+    # anything this publisher had written, and no number of retries could make either go away.
+    #
+    # THE ROUTE THIS MODULE ALREADY ARGUES FOR. `_land_repaired_artefacts` makes exactly this
+    # argument for the derived-artefact repair and takes exactly this door: `surgical_land.land`
+    # builds HEAD-plus-these-paths, runs the repo's own pre-commit hook against THAT tree in a
+    # clean extract, and refuses on red. It is not a hook bypass -- it is the same gate, one step
+    # earlier, on the subject this process is actually responsible for. Another lane's
+    # uncommitted file is not in the extract, so it can no longer refuse us.
+    #
+    # WHAT IT DOES NOT FIX, said out loud because assuming otherwise is how this class recurs: a
+    # red that is TRUE OF OUR OWN PATHS still refuses, and `behind_origin` is decided above this
+    # line and is untouched by it. The claim is narrow and falsifiable -- a refusal caused by a
+    # path this publisher does not name can no longer happen.
+    #
+    # NO OUTER `tree_lock`, and that is load-bearing rather than tidiness: `land()` takes the
+    # tree lock ITSELF for its compare-and-swap, and `tree_lock` is an flock, so a nested
+    # acquisition from this process would block until the 900s swap timeout and then report as
+    # contention. The lock is now held for the three plumbing calls of the swap instead of for
+    # the whole hook chain, which is strictly less contention than the version it replaces.
+    pathspec = _commit_pathspec(
+        files, ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
+                "docs/design/atom_status"))
+    if not pathspec:
+        log("Publish commit REFUSED: nothing in the publish surface is known to git, so there is "
+            "no pathspec to land -- and a landing with no paths is refused by the tool itself. "
+            "The site keeps serving its last honest state and the next cycle retries.")
+        # COMMIT_REFUSED, deliberately not NOTHING_TO_COMMIT: the latter is in
+        # RETRYABLE_PUBLISH_OUTCOMES and would fingerprint this cycle as a genuine no-op, so the
+        # run would never be published again. An empty pathspec is a broken state, and the next
+        # cycle must really retry it.
+        return _outcome(COMMIT_REFUSED, False)
+    # A staging duplicate written WHILE this run was going refuses the landing below, and the
+    # worker's own sweep ran before this run started. Repair at the point of use -- see
+    # `_clear_two_rooms_before_commit` for the 45-minute blind window.
+    _rooms = _clear_two_rooms_before_commit()
+    if _rooms.get("repaired"):
+        log("Cleared {} redundant staging duplicate(s) that would have refused this "
+            "publish commit: {}".format(len(_rooms["repaired"]),
+                                        ", ".join(_rooms["repaired"])))
+    if _rooms.get("conflicts"):
+        # Said BEFORE the refusal rather than after it, so the log reads as a diagnosis rather
+        # than a surprise. This branch cannot fix itself: the repairer is timid by construction
+        # and will not delete a copy that carries text the other room lacks.
+        log("TWO ROOMS, not safely repairable, so the landing below is expected to be REFUSED "
+            "and every other commit in the tree with it: {} -- resolve by hand."
+            .format(", ".join(_rooms["conflicts"])))
+    landing = _land_publish_commit(pathspec, msg, git_hash)
+    if not landing["sha"]:
+        _text = landing["refusal"]
+        if "are already at HEAD" in _text:
+            log("Publish landing: the named paths are already at HEAD, so the resulting tree is "
+                "identical to the committed one and there is nothing to land. A no-op cycle, "
+                "not a refusal -- and this is a PROPERTY OF THE TREE rather than of git's "
+                "stderr, which is what the old route had to parse to answer the same question.")
+            return _outcome(NOTHING_TO_COMMIT, False)
+        if _gate_was_killed(_text):
+            log("Publish landing: the pre-commit hook chain outran its deadline and was KILLED, "
+                "so NO test returned a verdict. Nothing was committed; retrying next cycle. If "
+                "this repeats, the hook chain (not the run) is the cause:\n{}"
+                .format(_text[:1500]))
+            return _outcome(
+                COMMIT_TIMEOUT, False,
+                evidence="the gate the landing runs was killed on its own deadline -- the suite "
+                         "was still running, so NO test returned a verdict and none is "
+                         "implicated")
+        if "held the tree lock for the whole" in _text:
+            log("Publish landing: the gate PASSED and the swap could not take the tree lock -- "
+                "another writer held it for the whole wait. NOTHING was committed and no test is "
+                "implicated; the next cycle re-gates and lands.")
+            return _outcome(TREE_LOCK_UNAVAILABLE, False)
+        # The gate's verdict reaches the RECORD, not just this log line -- see
+        # `_record_commit_refusal_reds`. Called on EVERY remaining refusal, including the lost
+        # race, so a spent blocking list from an earlier cycle cannot survive into the record
+        # every reader quotes.
+        _reds = _record_commit_refusal_reds(_text, "", git_hash)
+        _gate = _parse_refusing_gate(_text)
+        if landing["lost"]:
+            log("Publish landing REFUSED: HEAD moved under the gate on all {} attempt(s), so no "
+                "verdict ever described the tree the commit would have created. Nothing was "
+                "committed and no test is implicated -- the gate is longer than the gap between "
+                "commits on this tree.".format(PUBLISH_LAND_ATTEMPTS))
+            return _outcome(
+                COMMIT_REFUSED, False,
+                cause=None if _reds else NON_TEST_REFUSAL_CAUSE,
+                evidence="the surgical landing lost the race to another writer on all {} "
+                         "attempt(s), so the gate's verdict was about a tree that no longer "
+                         "existed and NO test is implicated".format(PUBLISH_LAND_ATTEMPTS))
+        log("Publish landing REFUSED on the tree the commit WOULD create -- which is HEAD plus "
+            "this publisher's own paths, so the red is ours and not another lane's uncommitted "
+            "work:\n{}".format(_text[:4000]))
+        return _outcome(
+            COMMIT_REFUSED, False,
+            cause=None if _reds else NON_TEST_REFUSAL_CAUSE,
+            evidence="`surgical_land.land` refused the resulting tree and the gate named {} red "
+                     "test(s){}".format(
+                         len(_reds),
+                         (" -- so the refusal came from a NON-TEST gate, {}. No test was judged, "
+                          "so no blocking list describes this cycle; read the refusal in "
+                          "docs/observability/sim-runner-log.md rather than running the "
+                          "suite".format("namely the {}".format(_gate) if _gate else
+                                         "and no banner this classifier knows named which one"))
+                         if not _reds
+                         else " -- recorded in .last_gate_blocking_tests.json against this same "
+                              "commit"))
+    log("Publish commit LANDED as {} over {} path(s) -- gated in a clean extract of the tree the "
+        "commit created, so no other lane's uncommitted work was read, carried, or able to "
+        "refuse it.".format(landing["sha"][:9], len(pathspec)))
+
+    # THE COMMIT LANDED, so the hook chain passed over this tree. Symmetric with the fold in
+    # `_record_commit_refusal_reds` above -- see `_record_commit_hook_pass` for why the two
+    # must stay paired. Placed BEFORE the push throttle on purpose: the discharge is evidence
+    # about the pre-commit CHAIN, and whether the push is deferred says nothing about it.
+    _record_commit_hook_pass(git_hash)
+
+    # Serialize the PUSH against the other git writers (interactive session, autonomous_runner
+    # turns, a concurrent process_run_complete.py invocation) -- see background/tree_lock.py.
+    # The COMMIT no longer needs this lock, because `land()` takes it for its own
+    # compare-and-swap; what is left to serialise here is the push.
+    #
+    # ACQUISITION IS GUARDED SEPARATELY FROM THE BODY (2026-08-30, see EXIT_TREE_LOCK_UNAVAILABLE)
+    # -- and the OUTCOME moved with the commit (2026-09-08). By the time we reach this line the
+    # commit has already landed, so reporting TREE_LOCK_UNAVAILABLE would say "nothing was
+    # published" about a cycle that published. Committed-and-push-deferred is what happened, and
+    # the next cycle pushes immediately because no push time was recorded.
     stack = ExitStack()
     try:
         stack.enter_context(tree_lock())
     except TreeLockTimeout as exc:
-        log("Auto-process publish: tree lock held by another writer ({}) -- publishing NOTHING "
-            "this cycle and retrying next. No test was run, so no test is implicated.".format(exc))
-        return _outcome(TREE_LOCK_UNAVAILABLE, False)
+        log("Auto-process publish: the commit LANDED as {} and the push could not take the tree "
+            "lock ({}) -- push deferred to the next cycle, which is due immediately because no "
+            "push time was recorded.".format(landing["sha"][:9], exc))
+        return _outcome(COMMITTED_PUSH_THROTTLED, True)
     with stack:
-        try:
-            if not _git_add_or_refuse(files, timeout=120, label="Auto-process publish"):
-                return _outcome(COMMIT_REFUSED, False,
-                                evidence="`git add` of the publish surface failed, so NOTHING "
-                                         "was staged -- the hook chain never ran and no test "
-                                         "was judged. See the `git add` FAILED line in "
-                                         "docs/observability/sim-runner-log.md")
-            # Publish the pre-gate inbox fold too (maturity_map.yaml change + the deleted
-            # atom_status inboxes) so a reconciled map lands WITH the run it belongs to,
-            # never dangling uncommitted. -A stages the inbox DELETIONS. No-op if nothing
-            # was folded this cycle.
-            if not _git_add_or_refuse(
-                    ["-A", "docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
-                     "docs/design/atom_status"],
-                    timeout=120, label="Auto-process publish (map fold)"):
-                return _outcome(COMMIT_REFUSED, False,
-                                evidence="`git add` of the maturity-map fold failed, so the "
-                                         "commit was never attempted -- the hook chain never "
-                                         "ran and no test was judged. See the `git add` FAILED "
-                                         "line in docs/observability/sim-runner-log.md")
-            # COMMIT TIMEOUT (2026-08-03): this is NOT a bare `git commit` -- it runs
-            # the whole pre-commit hook chain (tools/git-hooks/pre-commit: status-honesty,
-            # pre_commit_test_gate, level_promotion_gate, site_lane_gate,
-            # moap_coherence_gate, ruling_archive_question_gate). A publish commit stages
-            # site/data/**, which fires site_lane_gate's BROAD trigger -- the WHOLE site
-            # suite, measured at 27.3s on its own, against the 30s cap this used to carry.
-            # The cap was set when the hooks were trivial and quietly became a
-            # publish-blocker as the suite grew: the deadline is now a property of how many
-            # tests exist, not of whether the commit is healthy.
-            # H30 (2026-08-08): BOTH streams, because the diagnostic here is the
-            # pre-commit HOOK CHAIN's output (a gate refusal, a failing test),
-            # which the hooks split across stdout and stderr. Without it,
-            # "Nothing to commit or commit failed" below is unfalsifiable: a
-            # clean no-op and a gate rejection produce the identical log line.
-            # UNBUFFERED (2026-08-13): see GIT_COMMIT_HOOK_ENV_UNBUFFERED. Without it the
-            # TimeoutExpired branch below prints "nothing captured before the kill" every
-            # time, because each hook's progress is still in its own userspace buffer.
-            # PATHSPEC, NOT THE INDEX (2026-08-18) -- see `_commit_pathspec`. The two
-            # `docs/design` paths are the ones the `-A` add above stages, including the
-            # atom_status inbox DELETIONS, so they must be named here or the fold never lands.
-            pathspec = _commit_pathspec(
-                files, ("docs/design/maturity_map.yaml", "docs/design/maturity_map_closed.yaml",
-                        "docs/design/atom_status"))
-            if not pathspec:
-                log("Publish commit REFUSED: nothing in the publish surface is known to git, "
-                    "so there is no pathspec to commit. Committing the bare index here would "
-                    "carry whatever another lane had staged -- refusing instead; the site keeps "
-                    "serving its last honest state and the next cycle retries.")
-                # COMMIT_REFUSED, deliberately not NOTHING_TO_COMMIT: the latter is in
-                # RETRYABLE_PUBLISH_OUTCOMES and would fingerprint this cycle as a genuine
-                # no-op, so the run would never be published again. An empty pathspec is a
-                # broken state, and the next cycle must really retry it.
-                return _outcome(COMMIT_REFUSED, False)
-            # A staging duplicate written WHILE this run was going refuses the commit below,
-            # and the worker's own sweep ran before this run started. Repair at the point of
-            # use -- see `_clear_two_rooms_before_commit` for the 45-minute blind window.
-            _rooms = _clear_two_rooms_before_commit()
-            if _rooms.get("repaired"):
-                log("Cleared {} redundant staging duplicate(s) that would have refused this "
-                    "publish commit: {}".format(len(_rooms["repaired"]),
-                                                ", ".join(_rooms["repaired"])))
-            if _rooms.get("conflicts"):
-                # Said BEFORE the refusal rather than after it, so the log reads as a diagnosis
-                # rather than a surprise. This branch cannot fix itself: the repairer is timid by
-                # construction and will not delete a copy that carries text the other room lacks.
-                log("TWO ROOMS, not safely repairable, so the commit below is expected to be "
-                    "REFUSED and every other commit in the tree with it: {} -- resolve by hand."
-                    .format(", ".join(_rooms["conflicts"])))
-            _hook_started = time.monotonic()
-            result = subprocess.run(["git", "commit", "-m", msg, "--"] + pathspec,
-                                    cwd=str(PROJECT_DIR),
-                                    timeout=GIT_COMMIT_HOOK_TIMEOUT_SECONDS,
-                                    env=_commit_hook_env(),
-                                    capture_output=True, text=True)
-            _record_commit_hook_duration(time.monotonic() - _hook_started, git_hash,
-                                         "pass" if result.returncode == 0 else "refused")
-        except subprocess.TimeoutExpired as exc:
-            # UNCAUGHT, THIS CRASHED THE PUBLISH (CLAUDE.md's own standing learning:
-            # "sim_runner TimeoutExpired must be caught -- uncaught exception kills the
-            # loop"). It propagated out of _process(), so process_run_complete exited
-            # rc=1 having logged NEITHER "Nothing to commit or commit failed" NOR "Done"
-            # -- the wedge detector recorded it as a test_regression, which it was not,
-            # and the diagnosis pointed at the test suite for hours. A slow hook chain
-            # must degrade to "retry next cycle", never take the pipeline down, and must
-            # say SO in the log.
-            _hook_elapsed = time.monotonic() - _hook_started
-            _record_commit_hook_duration(_hook_elapsed, git_hash, "timeout")
-            _tail = stderr_tail(exc.stderr) or stderr_tail(exc.stdout)
-            log("Commit TIMED OUT after {}s ({}) -- the pre-commit hook chain outran its "
-                "deadline. Nothing committed; retrying next cycle. If this repeats, the "
-                "hook chain (not the run) is the cause.{}".format(
-                    GIT_COMMIT_HOOK_TIMEOUT_SECONDS, exc.__class__.__name__,
-                    "\n  hook output before the kill (names the SLOW hook):\n{}".format(_tail)
-                    if _tail else "\n  hook output: nothing captured before the kill"))
-            # THE EVIDENCE IS A STOPWATCH, NOT A STATUS. A killed child has no return code to
-            # reason from -- the elapsed wall time against the budget that killed it is the
-            # only observation that separates this from a refusal, and it is exact.
-            return _outcome(COMMIT_TIMEOUT, False,
-                            evidence="the pre-commit hook chain was killed after {:.0f}s "
-                                     "against its own {}s budget -- the suite was still "
-                                     "running, so NO test returned a verdict and none is "
-                                     "implicated".format(_hook_elapsed,
-                                                         GIT_COMMIT_HOOK_TIMEOUT_SECONDS))
-        if result.returncode != 0:
-            # H30: which of the two it was is now IN the log, not inferred.
-            _tail = (stderr_tail(getattr(result, "stderr", None))
-                     or stderr_tail(getattr(result, "stdout", None)))
-            log("Nothing to commit or commit failed (rc={}){}".format(
-                result.returncode,
-                "\n  git/hook output (last {} lines):\n{}".format(STDERR_TAIL_LINES, _tail)
-                if _tail else "\n  git said nothing -- consistent with an empty index"))
-            # H30 named the two in the LOG; this makes the caller able to act on the difference.
-            # An empty index is a no-op; a hook refusal is a publish that FAILED and must retry.
-            # Note the direction: an unreadable tail reads as REFUSED, never as a clean no-op --
-            # the same fail-toward-retrying rule as RETRYABLE_PUBLISH_OUTCOMES.
-            refused = not _git_said_nothing_to_commit(_tail)
-            if refused:
-                # The hook chain's verdict reaches the RECORD, not just this log line -- see
-                # `_record_commit_refusal_reds`. Keyed on the REFUSAL, not on the no-op, so the
-                # empty-index case cannot write a record at all.
-                _reds = _record_commit_refusal_reds(getattr(result, "stdout", None),
-                                                    getattr(result, "stderr", None), git_hash)
-                # The red COUNT is part of the evidence, including when it is zero: "refused
-                # naming no test" is what a non-test gate (orphan-ratchet, finding-class,
-                # level-promotion) looks like, and saying so is what stops the reader running
-                # the suite. Zero reds here is a fact about the refusal, not a missing answer.
-                # WHICH REFUSAL THIS WAS, decided by the observation and not by the exit code:
-                # zero reds means no test returned a verdict, so the cause must be the one
-                # `publish_cause.no_test_was_judged` answers True for -- otherwise the stale
-                # blocking list from an earlier cycle survives into the record every reader
-                # quotes. That is the 18.7h wedge of 2026-09-02, where five GREEN tests were
-                # named as the blockers of an orphan-ratchet refusal.
-                _gate = _parse_refusing_gate("{}\n{}".format(
-                    getattr(result, "stdout", None) or "", getattr(result, "stderr", None) or ""))
-                return _outcome(
-                    COMMIT_REFUSED, False,
-                    cause=None if _reds else NON_TEST_REFUSAL_CAUSE,
-                    evidence="`git commit` returned rc={} and the pre-commit hook chain named "
-                             "{} red test(s){}".format(
-                                 result.returncode, len(_reds),
-                                 (" -- so the refusal came from a NON-TEST gate, {}. No test was "
-                                  "judged, so no blocking list describes this cycle; read the "
-                                  "hook output in docs/observability/sim-runner-log.md rather "
-                                  "than running the suite".format(
-                                      "namely the {}".format(_gate) if _gate else
-                                      "and no banner this classifier knows named which one")
-                                  ) if not _reds
-                                 else " -- recorded in .last_gate_blocking_tests.json against "
-                                      "this same commit"))
-            return _outcome(NOTHING_TO_COMMIT, False)
-
-        # THE COMMIT LANDED, so the hook chain passed over this tree. Symmetric with the fold in
-        # `_record_commit_refusal_reds` above -- see `_record_commit_hook_pass` for why the two
-        # must stay paired. Placed BEFORE the push throttle on purpose: the discharge is evidence
-        # about the pre-commit CHAIN, and whether the push is deferred says nothing about it.
-        _record_commit_hook_pass(git_hash)
 
         if not _push_due():
             log("Committed locally, push deferred (throttled to every {}min)".format(
@@ -6190,7 +6245,11 @@ def _commit_and_push_paths(paths, msg, *, label, git_hash="unknown"):
         # paused_since does not re-stamp; a heartbeat that has not ticked) and stays quiet.
         # Anything else -- a hook refusal, a lock, a broken index -- says what it was, because
         # a banner silently refused by a gate is the failure this whole build exists to end.
-        if _tail and "nothing to commit" not in _tail.lower():
+        # THE PREDICATE, not a second copy of it (2026-09-08). `_git_said_nothing_to_commit`
+        # already said it owned this distinction "shared with `_commit_and_push_paths`" while
+        # this line spelled it out by hand -- the exact drift its own docstring warns about, and
+        # visible the moment the content path stopped being its other caller.
+        if _tail and not _git_said_nothing_to_commit(_tail):
             log("{} commit FAILED (rc={}):\n{}".format(label, result.returncode, _tail))
             # R10, the class and not the instance: this is the SAME hook chain refusing the SAME
             # tree, and a banner/heartbeat refusal discards the node ids exactly as the content

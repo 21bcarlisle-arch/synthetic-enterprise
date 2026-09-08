@@ -328,6 +328,19 @@ def _fake_git(calls):
     return _run
 
 
+def _fake_landing(calls):
+    """The publish COMMIT, which is a `surgical_land` landing since 2026-09-08.
+
+    Recorded in the same argv shape `_fake_git` uses, so "did this cycle publish" stays one
+    question over one list. The stamp guard these tests are about runs BEFORE the commit either
+    way, so the route change moves where the answer is observed and not what is being asked.
+    """
+    def _land(pathspec, msg, git_hash):
+        calls.append(["git", "commit", "-m", msg, "--"] + list(pathspec))
+        return {"sha": "0" * 40, "refusal": "", "lost": []}
+    return _land
+
+
 def _green_cycle_tree(tmp_path, run_id, sha):
     """A tree shaped like the real one at the moment of a green publish: both published files
     present, so `git_commit_push` puts both in its commit list."""
@@ -362,6 +375,7 @@ def test_the_green_cycle_publish_refuses_a_false_provenance(tmp_path, monkeypatc
     monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", root / ".last_publish_cause.json")
     calls = []
     monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
+    monkeypatch.setattr(prc, "_land_publish_commit", _fake_landing(calls))
     said = []
     monkeypatch.setattr(prc, "log", lambda m: said.append(str(m)))
 
@@ -399,6 +413,7 @@ def test_the_green_cycle_publish_commits_a_genuine_stamp(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "PUBLISH_CAUSE_FILE", root / ".last_publish_cause.json")
     calls = []
     monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
+    monkeypatch.setattr(prc, "_land_publish_commit", _fake_landing(calls))
 
     prc.git_commit_push(sha, 1000.0)
     assert any(c[:2] == ["git", "commit"] for c in calls), \
@@ -423,6 +438,7 @@ def test_the_green_cycle_refusal_is_the_guards_doing(tmp_path, monkeypatch):
     monkeypatch.setattr(prc, "_provenance_is_publishable", lambda *a, **k: True)
     calls = []
     monkeypatch.setattr(prc.subprocess, "run", _fake_git(calls))
+    monkeypatch.setattr(prc, "_land_publish_commit", _fake_landing(calls))
 
     prc.git_commit_push("3abd6e1df", 1000.0)
     assert any(c[:2] == ["git", "commit"] for c in calls), \
