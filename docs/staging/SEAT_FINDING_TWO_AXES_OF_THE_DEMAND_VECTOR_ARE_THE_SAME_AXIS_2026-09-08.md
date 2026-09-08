@@ -95,3 +95,37 @@ with another and would still be exactly collinear with `weather_sensitivity`.
 beside; the control is red at `41501920c` and must be red on any tree where two declared axes are
 exactly collinear. It is not written yet -- this document is filed before the fix rather than after,
 so the claim that it was found before it was convenient is checkable.
+
+
+---
+
+## AMENDED 2026-09-08, same day -- the one-variable experiment ran and it settles the direction
+
+Above I wrote: *"Two things pull opposite ways and I have not separated them... that is the
+measurement to run, not a thing to reason about."* It ran. Same population, same seed, same ladder,
+one variable changed -- `seasonal_swing` dropped from the scored vector.
+
+| vector | axes declared | independent | smallest eigenvalue | **N at tolerance 0.05** |
+|---|---:|---:|---:|---:|
+| with `seasonal_swing` | 7 | 6 | 0.000000 | **6,816** |
+| without it | 6 | 6 | 0.000003 | **5,215** |
+
+**The duplicated axis INFLATES N by 31%.** Of the two effects I could not separate by reasoning, the
+harder one dominates: a direction that appears twice is double-weighted in the joint slices, so the
+acceptance must satisfy it twice while learning nothing new from the second copy. The sample was
+being made larger by an axis that carries no information.
+
+So the correction to the published figure runs the same way as the correction to its honesty. The
+number was not merely scored over a mislabelled vector -- **it was too big, by about a third, for a
+reason that is an artefact of the instrument rather than a property of the population.**
+
+**The prediction I filed hours earlier was wrong in a way worth recording.** The gas brief predicted
+that breaking the collinearity would RAISE N ("a 2-4x rise from breaking the r ~ 0.99 degeneracy").
+That is right about set-point and schedule, which add real independent variation. It is exactly
+backwards for this axis, and the difference is the thing to keep: **adding an independent axis
+raises N; removing a DUPLICATE axis also lowers N.** Both are "breaking a degeneracy" in loose
+speech, and they move the answer in opposite directions. The loose speech is what made one
+prediction cover both.
+
+Item 1 of "what is next" is therefore discharged, and item 3 -- the full-rank control -- is now the
+whole of what is outstanding before the axis is rebuilt on `simulate_premise`.
