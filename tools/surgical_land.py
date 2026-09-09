@@ -1212,6 +1212,49 @@ def _write_lock(root: Path):
                 COMMIT_SWAP_LOCK_TIMEOUT_SECONDS, exc)) from exc
 
 
+def _swap_head(root: Path, new: str, parent: str) -> None:
+    """`update-ref HEAD new parent`, classifying GIT'S OWN compare-and-swap failure as `BaseMoved`.
+
+    THE RACE HAS TWO DOORS AND ONLY ONE WAS CLASSIFIED. `_commit_and_swap` reads HEAD and refuses
+    if it moved -- but the read, `commit-tree` and the ref update are three commands, and the tree
+    lock only serialises writers that TAKE it. A lane committing by ordinary `git commit` moves
+    HEAD without it, and when it lands in that window git's own CAS refuses:
+
+        fatal: cannot lock ref 'HEAD': is at 5469f7b92 but expected dba27b77d
+
+    That went through `_git_text`, which raises a plain `LandingRefused` -- and `land()`'s loop is
+    deliberately over `BaseMoved` ALONE, so the identical race that is retried when this module
+    detects it was TERMINAL when git detected it. Observed 2026-09-09 02:19Z: the liveness
+    heartbeat died on exactly that line with the gate GREEN, one of the 32 consecutive publish
+    failures, and it burned none of its remaining attempts.
+
+    THE CONDITION IS RE-ESTABLISHED, NEVER STRING-MATCHED. Matching "cannot lock ref" would make
+    the retry/terminal split depend on git's wording, which is the drift the `BaseMoved` docstring
+    argues a subclass exists to prevent -- so re-read HEAD and let the SAME predicate the
+    pre-check uses decide. HEAD != parent is proof the base moved, established by git rather than
+    by us. HEAD == parent means the ref update failed for some other reason -- a stale
+    `.git/HEAD.lock`, a full disk, a permission -- and that stays TERMINAL, because retrying it is
+    retrying until the world agrees with you and it would spin through every attempt.
+
+    The unreferenced commit `commit-tree` already wrote is left for gc, which is what it is for.
+    """
+    r = _git(root, "update-ref", "-m", "surgical-land", "HEAD", new, parent)
+    if r.returncode == 0:
+        return
+    stderr = r.stderr.decode("utf-8", "replace").strip()[-400:]
+    now = _git_text(root, "rev-parse", "HEAD")
+    if now != parent:
+        raise BaseMoved(
+            "HEAD moved from {} to {} between the pre-check and the ref update, so git's own "
+            "compare-and-swap refused it and the gated tree is no longer the tree this commit "
+            "would create. Nothing was committed; re-run and it will gate the new base. "
+            "git said: {}".format(parent[:9], now[:9], stderr), parent, now)
+    raise LandingRefused(
+        "the gate PASSED and the ref update failed with HEAD still at {} -- so this is NOT the "
+        "base-moved race and retrying it would spin. Nothing was committed. git said: {}".format(
+            parent[:9], stderr))
+
+
 def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
                      files: list[str], merge_parent: str | None = None) -> str:
     """commit-tree + a compare-and-swap ref update, under the tree lock.
@@ -1239,7 +1282,7 @@ def _commit_and_swap(root: Path, result_tree: str, parent: str, message: str,
         dispositions = merge_dispositions(root, files) if merge_parent else None
         extra = ["-p", merge_parent] if merge_parent else []
         new = _git_text(root, "commit-tree", result_tree, "-p", parent, *extra, "-m", message)
-        _git_text(root, "update-ref", "-m", "surgical-land", "HEAD", new, parent)
+        _swap_head(root, new, parent)
         if dispositions is not None:
             # A merge moves paths this caller never named, so unlike a pathspec landing it has to
             # ask the shared tree what it is holding before touching anything. See

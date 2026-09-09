@@ -1633,3 +1633,87 @@ def test_the_hook_can_re_derive_the_gated_tree_from_inside_the_extract(repo: Pat
         "the extract's index writes out as {} but the tool handed over {} -- the skip is keyed to "
         "a sha that never matches, which makes it dead code that looks alive".format(
             seen["INDEX"][:9], seen["TOKEN"][:9]))
+
+
+# --------------------------------------------------------------------------------------------
+# The base-moved race has TWO doors: this module's own pre-check, and git's compare-and-swap on
+# `update-ref`. Only the first was classified, so the SAME race was retryable through one door
+# and terminal through the other (observed 2026-09-09 02:19Z on the liveness heartbeat, gate
+# GREEN, none of its attempts spent).
+# --------------------------------------------------------------------------------------------
+
+def _mover_between_precheck_and_swap(repo: Path, filename: str):
+    """A writer that moves HEAD in the window `_commit_and_swap` cannot hold: after the pre-check
+    read and before `update-ref`. Hooked onto `commit-tree` because that is the one command that
+    runs between them. It takes NO tree lock, which is the whole point -- an ordinary `git commit`
+    in another lane is not obliged to."""
+    real = sl._git_text
+    fired: list[str] = []
+
+    def hooked(root, *args, **kwargs):
+        out = real(root, *args, **kwargs)
+        if args and args[0] == "commit-tree" and not fired:
+            fired.append("yes")
+            (repo / filename).write_text("a lane that does not take the tree lock\n")
+            _run(repo, "git", "add", "--", filename)
+            _run(repo, "git", "commit", "-q", "-m", "the mover")
+        return out
+
+    return hooked, fired
+
+
+def test_gits_own_compare_and_swap_refusal_IS_the_base_moved_race_and_is_retried(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """REACHABILITY FIRST: prove the window is real and git -- not our pre-check -- is what
+    refuses, then prove the landing survives it.
+
+    Before the fix this raised a bare `LandingRefused` out of `_git_text` ("git update-ref failed
+    rc=128: fatal: cannot lock ref 'HEAD'"), which `land()`'s loop does not retry, so a green gate
+    committed NOTHING and burned none of its remaining attempts."""
+    hooked, fired = _mover_between_precheck_and_swap(repo, "mover.txt")
+    monkeypatch.setattr(sl, "_git_text", hooked)
+    (repo / "code.py").write_text("VALUE = 2\n")
+
+    sha = sl.land(repo, ["code.py"], "land against a lane that moved HEAD mid-swap", attempts=3)
+
+    assert fired, "the mover never ran, so this test proves nothing about the window"
+    assert _head(repo) == sha
+    assert _run(repo, "git", "show", sha + ":code.py").stdout == "VALUE = 2\n"
+    assert (repo / "mover.txt").exists(), "the retry reverted the mover's working tree"
+    assert _run(repo, "git", "cat-file", "-e", sha + ":mover.txt").returncode == 0, \
+        "the mover's commit is not an ancestor of the landing -- its work was dropped"
+
+
+def test_a_ref_update_that_fails_with_HEAD_UNMOVED_stays_terminal(
+        repo: Path, monkeypatch: pytest.MonkeyPatch):
+    """THE DISCRIMINATION, and the reason the fix re-establishes the CONDITION instead of matching
+    git's wording.
+
+    This failure carries git's exact "cannot lock ref 'HEAD'" text while HEAD has NOT moved -- a
+    stale `HEAD.lock`, a full disk, a permission. Retrying that spins through every attempt and
+    commits nothing, so it must be terminal. An implementation that decided by string match would
+    retry it, which is precisely what this test refuses."""
+    real_git = sl._git
+    swaps: list[int] = []
+
+    def failing_update_ref(root, *args, **kwargs):
+        if args and args[0] == "update-ref":
+            swaps.append(len(swaps) + 1)
+            return subprocess.CompletedProcess(
+                args=["git", *args], returncode=128, stdout=b"",
+                stderr=b"fatal: cannot lock ref 'HEAD': unable to create lock file "
+                       b".git/HEAD.lock: File exists\n")
+        return real_git(root, *args, **kwargs)
+
+    monkeypatch.setattr(sl, "_git", failing_update_ref)
+    (repo / "code.py").write_text("VALUE = 2\n")
+    before = _head(repo)
+
+    with pytest.raises(sl.LandingRefused) as caught:
+        sl.land(repo, ["code.py"], "a ref lock that is not the race", attempts=3)
+
+    assert not isinstance(caught.value, sl.BaseMoved), (
+        "a ref-update failure with HEAD UNMOVED was classified as the base-moved race, so it "
+        "will be retried until the attempts run out")
+    assert swaps == [1], "a non-race ref failure was retried: {} swap(s)".format(len(swaps))
+    assert _head(repo) == before
