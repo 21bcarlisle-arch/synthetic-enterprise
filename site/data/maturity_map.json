@@ -910,7 +910,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -959,7 +959,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1191,
       "forward_attachments": []
     },
     {
@@ -1027,7 +1027,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 26,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -1095,7 +1095,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -1161,7 +1161,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1191,
       "forward_attachments": []
     },
     {
@@ -1300,7 +1300,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1136,
+      "stall_consecutive_unchanged": 1191,
       "forward_attachments": []
     },
     {
@@ -1322,7 +1322,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1191,
       "forward_attachments": []
     },
     {
@@ -1342,7 +1342,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 464,
+      "stall_consecutive_unchanged": 472,
       "forward_attachments": []
     },
     {
@@ -1457,7 +1457,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 19128,
+      "stall_consecutive_unchanged": 21055,
       "forward_attachments": []
     },
     {
@@ -1523,7 +1523,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1191,
       "forward_attachments": []
     },
     {
@@ -1545,7 +1545,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1136,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -1567,7 +1567,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1136,
+      "stall_consecutive_unchanged": 1191,
       "forward_attachments": []
     },
     {
@@ -1589,7 +1589,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1136,
+      "stall_consecutive_unchanged": 1191,
       "forward_attachments": []
     },
     {
@@ -1633,7 +1633,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -1813,7 +1813,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 465,
+      "stall_consecutive_unchanged": 472,
       "forward_attachments": []
     },
     {
@@ -1834,8 +1834,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4,
       "forward_attachments": []
     },
     {
@@ -1857,8 +1857,8 @@
       ],
       "chain": null,
       "at_target": false,
-      "stalled": false,
-      "stall_consecutive_unchanged": null,
+      "stalled": true,
+      "stall_consecutive_unchanged": 4,
       "forward_attachments": []
     },
     {
@@ -2082,7 +2082,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -2130,7 +2130,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -2155,7 +2155,7 @@
       "chain": null,
       "at_target": false,
       "stalled": true,
-      "stall_consecutive_unchanged": 1137,
+      "stall_consecutive_unchanged": 1192,
       "forward_attachments": []
     },
     {
@@ -2296,6 +2296,186 @@
       "at_target": false,
       "stalled": true,
       "stall_consecutive_unchanged": 18,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_21_the_premise_joint_is_fitted_not_drawn_independently"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 104,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_29_the_coverage_is_re_measured_against_the_demand_vector",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape"
+      ],
+      "couples_with": [
+        "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 223,
+      "forward_attachments": []
+    },
+    {
+      "id": "W1_28_the_weather_partition_is_joint_over_a_stock_with_varying_fabric",
+      "name": "",
+      "lane": "W1_market_weather",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 60,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_14_weather_cells_for_household_heat_load",
+        "W2_18_the_housing_joint_the_sample_and_the_ceiling"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 223,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_30_per_household_half_hourly_electricity_and_seasonal_gas_shape",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W1_5_premise_demand_shape",
+        "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 158,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_31_people_phase1_the_physical_layer_stands_alone",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_19_who_lives_where_money_and_composition"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 223,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_32_the_billing_and_commercial_axes_are_measured_against_the_demand_sample",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "meter_to_cash",
+      "value_stream_label": "Meter to Cash",
+      "epoch": 3,
+      "level_current": 2,
+      "level_target": 2,
+      "loop_stage": "verify",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [
+        "W2_29_the_coverage_is_re_measured_against_the_demand_vector"
+      ],
+      "couples_with": [
+        "W2_28_a_household_is_a_vector_and_a_claim_declares_what_it_reduces_over"
+      ],
+      "chain": null,
+      "at_target": true,
+      "stalled": true,
+      "stall_consecutive_unchanged": 219,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_33_a_weighted_case_can_still_be_inflated_into_a_small_population",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 0,
+      "level_target": 2,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [
+        "W2_29_the_coverage_is_re_measured_against_the_demand_vector"
+      ],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 223,
+      "forward_attachments": []
+    },
+    {
+      "id": "W2_34_the_company_has_one_piece_of_advice_that_costs_the_customer_nothing",
+      "name": "",
+      "lane": "W2_customer_generator",
+      "value_stream": "price_to_bill",
+      "value_stream_label": "Price to Bill",
+      "epoch": 3,
+      "level_current": 1,
+      "level_target": 3,
+      "loop_stage": "build",
+      "dial_inherited": 50,
+      "expert_hour_status": "not_attempted",
+      "depends_on": [],
+      "couples_with": [],
+      "chain": null,
+      "at_target": false,
+      "stalled": true,
+      "stall_consecutive_unchanged": 223,
       "forward_attachments": []
     },
     {
@@ -7708,7 +7888,7 @@
       "loop_stage_now": "harden"
     }
   },
-  "total_atoms": 340,
+  "total_atoms": 348,
   "epoch2_movements": [
     {
       "id": "M1",

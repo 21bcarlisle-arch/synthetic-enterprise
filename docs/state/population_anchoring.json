@@ -8,7 +8,7 @@
     "arrears_ledger_available": true,
     "arrears_ledger_note": "billing ledger loaded",
     "churn_population": {
-      "table": "/home/rich/synthetic-enterprise/docs/reports/run_output_456f2b413_20260907T144545Z.json",
+      "table": "/home/rich/synthetic-enterprise/docs/reports/run_output_c440337ad_20260909T060205Z.json",
       "svt_source": "run output `svt_decisions`",
       "routes_readable": [
         "renewal",
@@ -64,23 +64,23 @@
     {
       "year": 2016,
       "bad_debt_gbp": 493.0,
-      "bad_debt_rate": 1.77,
+      "bad_debt_rate": 1.76,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2017,
-      "bad_debt_gbp": 666.0,
-      "bad_debt_rate": 1.55,
+      "bad_debt_gbp": 758.0,
+      "bad_debt_rate": 1.75,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "GREEN"
     },
     {
       "year": 2018,
-      "bad_debt_gbp": 1940.0,
-      "bad_debt_rate": 4.49,
+      "bad_debt_gbp": 1980.0,
+      "bad_debt_rate": 4.55,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "RED"
@@ -88,7 +88,7 @@
     {
       "year": 2019,
       "bad_debt_gbp": 1382.0,
-      "bad_debt_rate": 2.88,
+      "bad_debt_rate": 2.89,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 2.5,
       "rag": "RED"
@@ -119,8 +119,8 @@
     },
     {
       "year": 2023,
-      "bad_debt_gbp": 1649.0,
-      "bad_debt_rate": 1.16,
+      "bad_debt_gbp": 1719.0,
+      "bad_debt_rate": 1.15,
       "benchmark_low_pct": 0.5,
       "benchmark_high_pct": 4.0,
       "rag": "GREEN"
@@ -417,7 +417,7 @@
     },
     {
       "year": 2017,
-      "complaint_rate_pct": 3.02,
+      "complaint_rate_pct": 3.03,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -425,7 +425,7 @@
     },
     {
       "year": 2018,
-      "complaint_rate_pct": 2.95,
+      "complaint_rate_pct": 2.98,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -433,7 +433,7 @@
     },
     {
       "year": 2019,
-      "complaint_rate_pct": 3.18,
+      "complaint_rate_pct": 3.21,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -465,7 +465,7 @@
     },
     {
       "year": 2023,
-      "complaint_rate_pct": 3.45,
+      "complaint_rate_pct": 3.46,
       "benchmark_green_hi": 8.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": true,
@@ -473,7 +473,7 @@
     },
     {
       "year": 2024,
-      "complaint_rate_pct": 2.98,
+      "complaint_rate_pct": 2.99,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,
@@ -481,7 +481,7 @@
     },
     {
       "year": 2025,
-      "complaint_rate_pct": 2.44,
+      "complaint_rate_pct": 2.42,
       "benchmark_green_hi": 6.0,
       "benchmark_lo": 1.0,
       "is_crisis_year": false,

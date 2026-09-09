@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T05:11:32.091226Z",
+  "generated_at": "2026-09-09T06:20:04.718274Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -327,10 +327,10 @@
     "commit": "b8bcbac2c8d1bbd8649de048429a9278b182a624",
     "short": "b8bcbac2c",
     "resolved_at": "2026-09-08T20:23:01Z",
-    "publishing_tree_commit": "9d7cd5e4f621df70603edd1ba7aba5948c1d1caa",
+    "publishing_tree_commit": "71a98ddc088055b27015bfab2ba57e3c0f212e2b",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at b8bcbac2c and published from 9d7cd5e4f -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at b8bcbac2c and published from 71a98ddc0 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -500,6 +500,16 @@
           "also_on_disk_as": [
             "value_cycle_ab_s1_three_arm.json"
           ]
+        },
+        {
+          "artefact": "value_cycle_ab_s1_three_arm_20260909.json",
+          "generated_at": "2026-09-09T01:24:34Z",
+          "ran_in_world": "39a192ce04c1eda8",
+          "level_share_of_advantage": 0.981707098049328,
+          "the_bigger_leg": "level",
+          "value_advantage_gbp": 17443.974545999983,
+          "level_advantage_gbp": 17124.873629999987,
+          "selection_gbp": 319.1009159999958
         }
       ],
       "later_runs_disagree": null,
@@ -546,10 +556,10 @@
       "commit": "b8bcbac2c8d1bbd8649de048429a9278b182a624",
       "short": "b8bcbac2c",
       "resolved_at": "2026-09-08T20:23:01Z",
-      "publishing_tree_commit": "9d7cd5e4f621df70603edd1ba7aba5948c1d1caa",
+      "publishing_tree_commit": "71a98ddc088055b27015bfab2ba57e3c0f212e2b",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at b8bcbac2c and published from 9d7cd5e4f -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at b8bcbac2c and published from 71a98ddc0 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -598,11 +608,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": false,
-      "same_supplier": null,
-      "published_run_net_gbp": 131289.339938,
-      "dashboard_net_gbp": 140143.53,
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3140,143.53 -- a gap of \u00a38,854.19 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
+      "checked": true,
+      "same_supplier": true,
+      "published_run_net_gbp": 147886.781507,
+      "gap_gbp": -2.9976945370435715e-09,
+      "statement": "The net margin this site publishes for the company is the same figure, to the penny, as the flat-rules baseline arm below. The supplier on the front of this site IS the baseline."
     }
   },
   "provisioned": {
@@ -1843,5 +1853,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "Running the same book through the per-customer decision engine earned \u00a317,453 MORE than flat rules, clearing the \u00b1\u00a31,457 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a3324 separates the two -- INSIDE the \u00b1\u00a32,292 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 98% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 214 of the 2,035 renewals the world offered, 10.52% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "The comparison below is against the very supplier this site publishes. Running the same book through the per-customer decision engine earned \u00a317,453 MORE than flat rules, clearing the \u00b1\u00a31,457 this figure moves across 3 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a3324 separates the two -- INSIDE the \u00b1\u00a32,292 that the same figure moves across 3 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 98% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 214 of the 2,035 renewals the world offered, 10.52% of them, so every figure here is those decisions and what they cascade into."
 }
