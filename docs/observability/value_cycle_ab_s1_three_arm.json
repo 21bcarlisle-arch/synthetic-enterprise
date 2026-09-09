@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-09T01:24:34Z",
+  "generated_at": "2026-09-09T13:58:12Z",
   "producing_commit": {
-    "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
-    "resolved_at": "2026-09-09T00:33:16Z",
+    "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
+    "resolved_at": "2026-09-09T13:20:33Z",
     "resolved_when": "at process start, when Python bound the modules this run executed -- NOT at artefact assembly, which is a later tree",
     "unavailable_because": null,
     "why_this_is_here": "This run takes hours and the tree moves under it. A consumer that wants to publish these counts needs to know which code drew them, and no diff between two artefacts can supply that."
@@ -2200,10 +2200,10 @@
     "realised_margin_movement": {
       "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
       "billing_accounts_with_a_bound_decided_renewal": 64,
-      "net_delta_gbp_on_those_accounts": 16354.040091999937,
-      "net_delta_gbp_elsewhere": 1089.9344539999943,
+      "net_delta_gbp_on_those_accounts": 16354.040091999934,
+      "net_delta_gbp_elsewhere": 1089.9344539999934,
       "absolute_movement_gbp_on_those_accounts": 24884.09720199996,
-      "absolute_movement_gbp_elsewhere": 8298.451171999985,
+      "absolute_movement_gbp_elsewhere": 8298.451171999983,
       "share_of_absolute_movement_on_those_accounts": 0.7499
     },
     "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
@@ -3246,7 +3246,7 @@
       "seed": 20260828,
       "signal_ties_in_the_observed_data": 1154,
       "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
-      "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+      "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. WHY it does not is a separate question this interval cannot answer: too few decisions, no effect to find, or a population selected so the effect cannot appear are all consistent with it, and telling them apart needs a second cut, not a second reading of this one."
     },
     "signal": "chosen_margin_gbp_per_mwh (the arm's own per-customer decision)",
     "outcome": "(household_saving_gbp + our_net_margin_gbp) / counterfactual_gbp, per priced term",
@@ -3365,7 +3365,7 @@
             "seed": 20260828,
             "signal_ties_in_the_observed_data": 1154,
             "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
-            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. WHY it does not is a separate question this interval cannot answer: too few decisions, no effect to find, or a population selected so the effect cannot appear are all consistent with it, and telling them apart needs a second cut, not a second reading of this one."
           },
           "null_constant_signal_concordance": 0.5,
           "comparable_pairs": 14000,
@@ -3390,7 +3390,7 @@
             "seed": 20260828,
             "signal_ties_in_the_observed_data": 543,
             "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
-            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. WHY it does not is a separate question this interval cannot answer: too few decisions, no effect to find, or a population selected so the effect cannot appear are all consistent with it, and telling them apart needs a second cut, not a second reading of this one."
           },
           "null_constant_signal_concordance": 0.5,
           "comparable_pairs": 7606,
@@ -3415,7 +3415,7 @@
             "seed": 20260828,
             "signal_ties_in_the_observed_data": 543,
             "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
-            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. WHY it does not is a separate question this interval cannot answer: too few decisions, no effect to find, or a population selected so the effect cannot appear are all consistent with it, and telling them apart needs a second cut, not a second reading of this one."
           },
           "null_constant_signal_concordance": 0.5,
           "comparable_pairs": 7606,
@@ -3447,7 +3447,134 @@
           "pairs_tied_on_outcome": 686
         }
       },
+      "pair_strata": {
+        "available": true,
+        "what_this_is": "a partition of the estimand's own comparable pairs into the three strata that can carry its departure from 0.5, so a reader can tell the TIE MASS from the ARM. An identity over the two legs' published counts, not a second ranking.",
+        "strata": {
+          "within_settled": {
+            "decisions": 124,
+            "decision_pairs": 7626,
+            "comparable_pairs": 7606,
+            "what_it_is": "leg 2's own population -- the decisions whose term settled something, ranked against each other",
+            "concordance": 0.5129503023928478,
+            "null_95_low": 0.44031028135682354,
+            "null_95_high": 0.5587693925848015,
+            "p_two_sided": 0.66645,
+            "inside_the_null": true,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
+          },
+          "within_zero": {
+            "decisions": 37,
+            "decision_pairs": 666,
+            "comparable_pairs": 0,
+            "concordance": null,
+            "why_no_concordance": "not a withheld figure but an undefined one: with no comparable pair there is nothing to rank, and `_concordance` returns None rather than the 0.5 a fail-open would report here",
+            "what_it_is": "THE TIE MASS. Both rows scored 0.0, so every one of these pairs is tied on the outcome and `_concordance` excludes it. This stratum supplies no comparable pair and therefore cannot move the statistic in either direction -- which is the item's hypothesis, answered."
+          },
+          "cross": {
+            "decisions": 161,
+            "decision_pairs": 4588,
+            "comparable_pairs": 4588,
+            "what_it_is": "each decision that settled nothing against each that settled something. Below 0.5 means the arm gave the DEPARTURE the higher margin -- it priced up the decisions that went on to produce nothing.",
+            "concordance": 0.2686355710549259,
+            "null_95_low": 0.4105274629468178,
+            "null_95_high": 0.5887096774193549,
+            "p_two_sided": 0.0,
+            "inside_the_null": false,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
+          }
+        },
+        "zero_decisions": 37,
+        "settled_decisions": 124,
+        "estimand_concordance": 0.4210267344595703,
+        "comparable_pairs": 12194,
+        "tie_mass_share_of_decisions": 0.22981366459627328,
+        "tie_mass_share_of_comparable_pairs": 0.0,
+        "cross_share_of_comparable_pairs": 0.3762506150565852,
+        "the_tie_mass_can_move_the_estimand": false,
+        "the_stratum_that_carries_the_departure": "cross",
+        "departure_from_no_information": {
+          "estimand": -0.07897326554042972,
+          "from_the_within_settled_stratum": 0.008077743152370035,
+          "from_the_cross_stratum": -0.08705100869279973,
+          "from_the_tie_mass": 0.0,
+          "these_sum_to_the_departure": true,
+          "what_this_is": "the estimand's distance from 0.5, split additively across the strata by their share of the comparable pairs. The three terms sum to it exactly, because the concordance is a mean over pairs and this is that mean's own decomposition."
+        },
+        "the_estimand_if_the_cross_stratum_carried_no_information": 0.50807774315237,
+        "the_two_cuts_the_item_asked_for": {
+          "the_zero_rows_excluded": {
+            "is_leg": "settled_only_pounds_outcome",
+            "decisions": 124,
+            "read_against": "its OWN permutation null at its own n -- never the estimand's, which belongs to a different sample",
+            "concordance": 0.5129503023928478,
+            "null_95_low": 0.44031028135682354,
+            "null_95_high": 0.5587693925848015,
+            "p_two_sided": 0.66645,
+            "inside_the_null": true,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
+          },
+          "the_zero_rows_included": {
+            "is_leg": "every_priced_decision_pounds_outcome",
+            "decisions": 161,
+            "read_against": "its OWN permutation null at its own n, which reproduces this sample's outcome ties exactly by permuting the signals against the FIXED outcomes",
+            "concordance": 0.4210267344595703,
+            "null_95_low": 0.4458340167295391,
+            "null_95_high": 0.5540429719534197,
+            "p_two_sided": 0.0045,
+            "inside_the_null": false,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
+          },
+          "what_separates_them": "POPULATION, not tie handling. The excluded cut drops the 37 departures as well as their ties, so the difference between these two numbers is not the tie correction and must not be read as it. The tie correction is the permutation null itself, and it is unbiased under outcome ties by symmetry: each comparable pair is equally likely to fall either way under a shuffled signal, whatever the outcome ties do, so both nulls centre on 0.5 and the ties only WIDEN them."
+        },
+        "reading": "37 of 161 scored decisions (23%) sit tied at 0.0, and every one of the 666 pairs among them is excluded by the estimator as an outcome tie -- so the tie mass supplies NONE of the 12,194 comparable pairs and cannot move the figure. The departure is carried by the 4,588 cross pairs, which read 0.2686 against the 0.4105\u20130.5887 a no-information signal reaches on this stratum's own 4,588 pairs: in 73% of departure-against-survivor pairs the arm had given the DEPARTURE the higher margin. Had the cross stratum carried no information the estimand would read 0.5081 rather than 0.4210 -- INSIDE the 0.4458\u20130.5540 a no-information signal reaches on its 161 decisions. THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own departures above the customers it kept."
+      },
       "zero_outcomes_the_world_recorded_as_a_departure": 37,
+      "leg_conditioning": {
+        "available": true,
+        "what_this_is": "which of the bridge's four legs are computed over decisions the household STAYED for. The leg population is a join against the settled book; the departure is a tally of the world's own event log. Neither is computed from the other, and neither is taken from `method_skill.survivorship`.",
+        "priced_decisions_the_world_recorded_as_a_departure": 40,
+        "priced_decisions_that_could_not_be_keyed": 0,
+        "by_leg": {
+          "the_published_population_ratio_outcome": {
+            "decisions": 168,
+            "of_those_the_world_recorded_as_a_departure": 0,
+            "departures_this_leg_cannot_see": 40,
+            "conditioned_on_survival": true
+          },
+          "settled_only_ratio_outcome": {
+            "decisions": 124,
+            "of_those_the_world_recorded_as_a_departure": 0,
+            "departures_this_leg_cannot_see": 40,
+            "conditioned_on_survival": true
+          },
+          "settled_only_pounds_outcome": {
+            "decisions": 124,
+            "of_those_the_world_recorded_as_a_departure": 0,
+            "departures_this_leg_cannot_see": 40,
+            "conditioned_on_survival": true
+          },
+          "every_priced_decision_pounds_outcome": {
+            "decisions": 161,
+            "of_those_the_world_recorded_as_a_departure": 37,
+            "departures_this_leg_cannot_see": 3,
+            "conditioned_on_survival": false
+          }
+        },
+        "the_estimand_admits_the_departures": true,
+        "departures_the_estimand_cannot_see": 3,
+        "why_the_estimand_cannot_see_them": {
+          "horizon_open_at_the_end_of_the_settled_book": 3
+        },
+        "what_each_residue_reason_means": {
+          "horizon_open_at_the_end_of_the_settled_book": "THE RUN-LENGTH ARTEFACT, named as one. The 365 days from this decision's term start had not finished when the settled book ended, so the pounds it will produce are partly unobserved. CENSORED EXPLICITLY: scoring it would read a short window as a poor outcome, and dropping it silently would hide a bound that a longer run removes."
+        },
+        "reading": "The estimand admits 37 of the 40 priced decisions the world recorded as DEPARTURES, so it is not a survivor cut and the worse-than-chance reading it carries is a statement about the book rather than about the households that stayed. The other 3 legs admit none of them: those are survivor cuts, and the concordance's own bound applies to every one of them. IT IS NOT UNCONDITIONED, and the residue is 3 of 40: 3 for `horizon_open_at_the_end_of_the_settled_book`. So the reading survives the conditioning with a stated limit rather than cleanly."
+      },
       "sample": [
         {
           "account": "C5",

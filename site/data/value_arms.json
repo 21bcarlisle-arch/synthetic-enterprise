@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T18:27:43.531964Z",
+  "generated_at": "2026-09-09T21:10:43.753260Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -322,16 +322,16 @@
     ],
     "withdrawals": 4
   },
-  "run_generated_at": "2026-09-09T01:24:34Z",
+  "run_generated_at": "2026-09-09T13:58:12Z",
   "producing_commit": {
     "stated": true,
-    "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
-    "short": "62334dc76",
-    "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": "39065da9d64ed9cdcf2e69ea6dd76e309b0d1f1d",
+    "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
+    "short": "8b846013e",
+    "resolved_at": "2026-09-09T13:20:33Z",
+    "publishing_tree_commit": "36c3902c207c31b1d63cef12823496fb9267cbc5",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76 and published from 39065da9d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 8b846013e and published from 36c3902c2 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -347,7 +347,7 @@
       "the current-world three-arm run (2026-09-08T00:19:54Z)",
       "the floor decomposition",
       "the noise floor (2026-09-09T15:17:31Z)",
-      "the three-arm run (2026-09-09T01:24:34Z)"
+      "the three-arm run (2026-09-09T13:58:12Z)"
     ],
     "reason": null,
     "what_this_costs": null,
@@ -369,8 +369,8 @@
     "priced_decisions": 214,
     "renewals_offered": 2035,
     "is_the_later_run": false,
-    "superseded_generated_at": "2026-09-09T01:24:34Z",
-    "why_the_headline_omits_it": "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at 2026-09-08T00:19:54Z; the run below it was taken at 2026-09-09T01:24:34Z. Both name this world, so nothing here is stale and every figure in this block was honestly measured -- but 'the world as it is now' is a claim about which run is more recent, and on these two it is false. So the headline states no sentence from this block, and what is published here is a SECOND reading of the same world at a different hour and a different commit. Read the two as two draws, not as a revision.",
+    "superseded_generated_at": "2026-09-09T13:58:12Z",
+    "why_the_headline_omits_it": "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at 2026-09-08T00:19:54Z; the run below it was taken at 2026-09-09T13:58:12Z. Both name this world, so nothing here is stale and every figure in this block was honestly measured -- but 'the world as it is now' is a claim about which run is more recent, and on these two it is false. So the headline states no sentence from this block, and what is published here is a SECOND reading of the same world at a different hour and a different commit. Read the two as two draws, not as a revision.",
     "superseded_floor_ran_in_world": "39a192ce04c1eda8",
     "superseded_value_advantage_gbp": 17443.974545999983,
     "resolved": true,
@@ -525,10 +525,7 @@
           "the_bigger_leg": "level",
           "value_advantage_gbp": 17443.974545999983,
           "level_advantage_gbp": 17124.873629999987,
-          "selection_gbp": 319.1009159999958,
-          "also_on_disk_as": [
-            "value_cycle_ab_s1_three_arm.json"
-          ]
+          "selection_gbp": 319.1009159999958
         },
         {
           "artefact": "value_cycle_ab_s1_three_arm_20260909b.json",
@@ -548,7 +545,10 @@
           "the_bigger_leg": "level",
           "value_advantage_gbp": 17443.974545999983,
           "level_advantage_gbp": 17124.873629999987,
-          "selection_gbp": 319.1009159999958
+          "selection_gbp": 319.1009159999958,
+          "also_on_disk_as": [
+            "value_cycle_ab_s1_three_arm.json"
+          ]
         }
       ],
       "later_runs_disagree": null,
@@ -568,7 +568,7 @@
       "against_the_superseded_panel": "The panel above states 98.2% for the same quantity. 2 things differ between the two runs -- the date it ran on and the commit that produced it -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run."
     },
     "what_would_answer_it": null,
-    "how_to_read_this": "The same book, the same three arms and the same code as the figures above, run at a different hour of the same world and from a different commit. It is NOT the more recent of the two -- the run above it was taken at 2026-09-09T01:24:34Z and this one at 2026-09-08T00:19:54Z -- so nothing here is a statement about how things stand relative to that panel. Compare the two as two draws of one world, not as a revision and not as a trend."
+    "how_to_read_this": "The same book, the same three arms and the same code as the figures above, run at a different hour of the same world and from a different commit. It is NOT the more recent of the two -- the run above it was taken at 2026-09-09T13:58:12Z and this one at 2026-09-08T00:19:54Z -- so nothing here is a statement about how things stand relative to that panel. Compare the two as two draws of one world, not as a revision and not as a trend."
   },
   "book": {
     "served_segments": [
@@ -592,13 +592,13 @@
     "available": true,
     "produced_by": {
       "stated": true,
-      "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
-      "short": "62334dc76",
-      "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": "39065da9d64ed9cdcf2e69ea6dd76e309b0d1f1d",
+      "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
+      "short": "8b846013e",
+      "resolved_at": "2026-09-09T13:20:33Z",
+      "publishing_tree_commit": "36c3902c207c31b1d63cef12823496fb9267cbc5",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76 and published from 39065da9d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 8b846013e and published from 36c3902c2 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -1490,9 +1490,13 @@
             "decision_pairs": 4588,
             "comparable_pairs": 4588,
             "what_it_is": "each decision that settled nothing against each that settled something. Below 0.5 means the arm gave the DEPARTURE the higher margin -- it priced up the decisions that went on to produce nothing.",
-            "concordance": null,
-            "concordance_withheld": 0.2686355710549259,
-            "reason": "this stratum's own interval needs the run's per-decision signals and this caller has only the legs' published totals, so the figure is withheld rather than shown bare. What IS bounded is the estimand itself, and the counterfactual below carries the attribution on that scale: a run carrying `pair_strata` supplies this directly."
+            "concordance": 0.2686355710549259,
+            "null_95_low": 0.4105274629468178,
+            "null_95_high": 0.5887096774193549,
+            "p_two_sided": 0.0,
+            "inside_the_null": false,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
           }
         },
         "zero_decisions": 37,
@@ -1540,9 +1544,8 @@
           },
           "what_separates_them": "POPULATION, not tie handling. The excluded cut drops the 37 departures as well as their ties, so the difference between these two numbers is not the tie correction and must not be read as it. The tie correction is the permutation null itself, and it is unbiased under outcome ties by symmetry: each comparable pair is equally likely to fall either way under a shuffled signal, whatever the outcome ties do, so both nulls centre on 0.5 and the ties only WIDEN them."
         },
-        "reading": "37 of 161 scored decisions (23%) sit tied at 0.0, and every one of the 666 pairs among them is excluded by the estimator as an outcome tie -- so the tie mass supplies NONE of the 12,194 comparable pairs and cannot move the figure. The departure is carried by the 4,588 cross pairs, whose own concordance is withheld here for want of an interval computed on this run's own signals -- so the attribution is carried on the scale that IS bounded. Had the cross stratum carried no information the estimand would read 0.5081 rather than 0.4210 -- INSIDE the 0.4458\u20130.5540 a no-information signal reaches on its 161 decisions. THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own departures above the customers it kept.",
-        "derived_by_identity_here": true,
-        "derived_because": "the run that produced this artefact predates `method_skill.fixed_horizon.pair_strata`, so the split was solved here from the two legs' own published counts by `run_value_cycle_ab.pair_strata` -- the producer's own function, over an identity that adds no data and re-ranks nothing. A fresh run carries it and this stops."
+        "reading": "37 of 161 scored decisions (23%) sit tied at 0.0, and every one of the 666 pairs among them is excluded by the estimator as an outcome tie -- so the tie mass supplies NONE of the 12,194 comparable pairs and cannot move the figure. The departure is carried by the 4,588 cross pairs, which read 0.2686 against the 0.4105\u20130.5887 a no-information signal reaches on this stratum's own 4,588 pairs: in 73% of departure-against-survivor pairs the arm had given the DEPARTURE the higher margin. Had the cross stratum carried no information the estimand would read 0.5081 rather than 0.4210 -- INSIDE the 0.4458\u20130.5540 a no-information signal reaches on its 161 decisions. THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own departures above the customers it kept.",
+        "derived_by_identity_here": false
       },
       "the_control_leg_agreement": {
         "available": true,
@@ -1564,8 +1567,45 @@
       },
       "zero_outcomes_the_world_recorded_as_a_departure": 37,
       "leg_conditioning": {
-        "available": false,
-        "reason": "the run that produced this artefact predates the per-leg conditioning split, so the page can show the four cuts but not which of them are computed over households that STAYED. Withheld until a run carries `method_skill.fixed_horizon.leg_conditioning`."
+        "available": true,
+        "what_this_is": "which of the bridge's four legs are computed over decisions the household STAYED for. The leg population is a join against the settled book; the departure is a tally of the world's own event log. Neither is computed from the other, and neither is taken from `method_skill.survivorship`.",
+        "priced_decisions_the_world_recorded_as_a_departure": 40,
+        "priced_decisions_that_could_not_be_keyed": 0,
+        "by_leg": {
+          "the_published_population_ratio_outcome": {
+            "decisions": 168,
+            "of_those_the_world_recorded_as_a_departure": 0,
+            "departures_this_leg_cannot_see": 40,
+            "conditioned_on_survival": true
+          },
+          "settled_only_ratio_outcome": {
+            "decisions": 124,
+            "of_those_the_world_recorded_as_a_departure": 0,
+            "departures_this_leg_cannot_see": 40,
+            "conditioned_on_survival": true
+          },
+          "settled_only_pounds_outcome": {
+            "decisions": 124,
+            "of_those_the_world_recorded_as_a_departure": 0,
+            "departures_this_leg_cannot_see": 40,
+            "conditioned_on_survival": true
+          },
+          "every_priced_decision_pounds_outcome": {
+            "decisions": 161,
+            "of_those_the_world_recorded_as_a_departure": 37,
+            "departures_this_leg_cannot_see": 3,
+            "conditioned_on_survival": false
+          }
+        },
+        "the_estimand_admits_the_departures": true,
+        "departures_the_estimand_cannot_see": 3,
+        "why_the_estimand_cannot_see_them": {
+          "horizon_open_at_the_end_of_the_settled_book": 3
+        },
+        "what_each_residue_reason_means": {
+          "horizon_open_at_the_end_of_the_settled_book": "THE RUN-LENGTH ARTEFACT, named as one. The 365 days from this decision's term start had not finished when the settled book ended, so the pounds it will produce are partly unobserved. CENSORED EXPLICITLY: scoring it would read a short window as a poor outcome, and dropping it silently would hide a bound that a longer run removes."
+        },
+        "reading": "The estimand admits 37 of the 40 priced decisions the world recorded as DEPARTURES, so it is not a survivor cut and the worse-than-chance reading it carries is a statement about the book rather than about the households that stayed. The other 3 legs admit none of them: those are survivor cuts, and the concordance's own bound applies to every one of them. IT IS NOT UNCONDITIONED, and the residue is 3 of 40: 3 for `horizon_open_at_the_end_of_the_settled_book`. So the reading survives the conditioning with a stated limit rather than cleanly."
       },
       "bound": "READ THIS BEFORE THE NUMBER, and it is a DIFFERENT bound from the concordance's. The outcome is POUNDS, so it carries account SIZE as well as decision quality, and this estimand cannot normalise it away: a household that left has no counterfactual over the horizon because it has no metered volumes over the horizon. Every decision scored at zero also TIES with every other one, so the departures are ranked against the survivors and not against each other -- which is why `pairs_tied_on_outcome` grows with the zero count and is published per leg. R12: a DIAGNOSTIC, never a target; nothing optimises this figure.",
       "reading": "0.4210 over all 161 priced decisions, against 0.5338 over the 168 the published concordance is computed on -- and the difference is ATTRIBUTABLE because the bridge moves one thing at a time. Dropping the 44 decisions whose horizon had not closed moves it -0.0345; changing the outcome from the ratio to pounds then moves it +0.0137; admitting the 37 decisions whose term settled nothing then moves it -0.0919. The POPULATION term is the largest. Admitting the departures LOWERS the figure, which is what survivor-conditioning was hiding: the arm's price ranks the households it kept better than it ranks the ones it lost."
@@ -1600,7 +1640,7 @@
       "sentence": "AND TOO FEW DECISIONS IS NOT WHY. The cut below that scores every priced decision, departures included, distinguishes itself from chance on 161 decisions against this figure's 168, against an interval that is WIDER (0.054 either side, against 0.050). A cut with less power to find anything found something here, so however few decisions this book has earned is not what stops the figure above saying anything. What the two cuts differ in is the population and the unit -- and the population above is the households that STAYED."
     },
     "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created -- what the household kept plus what we kept, over what the household would have paid on the published default tariff? 0.5 is no information. Below 0.5 is a company ranking confidently and using the ranking to extract.",
-    "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+    "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. WHY it does not is a separate question this interval cannot answer: too few decisions, no effect to find, or a population selected so the effect cannot appear are all consistent with it, and telling them apart needs a second cut, not a second reading of this one."
   },
   "inference_claim": {
     "available": true,
