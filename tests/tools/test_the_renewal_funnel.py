@@ -467,42 +467,57 @@ def roster(monkeypatch):
 
 
 def test_the_census_counts_what_the_guard_reads_not_whether_the_key_is_there():
-    """MUTATION: census on `"tariff_type" in record` instead of `record.get(..., "fixed")`.
+    """MUTATION: census on `"tariff_type" in record` instead of the world's own read.
 
-    The two are DIFFERENT CENSUSES and only the second is what the arm sees. A won electricity
-    record carries the key PRESENT with value `None`, so `run_phase2b`'s `"fixed"` fallback never
-    fires; a census keyed on key-presence would report those legs as labelled and the structural
-    verdict below would invert. Both fields are published for exactly that reason, and this pins
-    them apart on the live roster.
+    The two are DIFFERENT CENSUSES and only the second is what the arm sees. A drawn or won
+    record carries the key PRESENT with value `None`, and what that resolves to depends on which
+    commodity's schedule builder reads it -- so a census keyed on key-presence would report every
+    such leg as labelled, and be wrong about the ones that are not.
+
+    KEYED TO THE PROPERTY. This asserts that key-presence and the resolved value COME APART, and
+    names on which leg. It does not assert which value either one takes: this control was
+    previously pinned to `resolved_tariff_type is None` for won electricity, which was the
+    then-current answer, and it went red on 2026-09-07 when the census stopped restating a
+    spelling `run_phase2b` had repaired on 2026-08-30 -- i.e. it went red because the reader got
+    more honest, which is exactly backwards. See
+    `SEAT_FINDING_THE_158_UNLABELLED_REFUSALS_ARE_THE_DRAWN_GAS_BOOK_...`.
     """
     census = product_label_by_account_class()
-    won_elec = [r for r in census["legs"]
-                if r["account_class"] == "won_by_the_funnel"
-                and r["commodity"] == "electricity"]
-    assert won_elec, "the roster has no won electricity leg, so this control has no subject"
-    for row in won_elec:
-        assert row["tariff_type_key_present"] is True
-        assert row["resolved_tariff_type"] is None
-        assert row["the_guard_admits_it"] is False
+    present_key = [r for r in census["legs"] if r["tariff_type_key_present"] is True]
+    assert present_key, "no leg on the roster carries the key, so this control has no subject"
+
+    # The whole point: legs that are identical on key-presence are NOT identical on what the
+    # guard reads. Both sides of that must be on the live roster or the two fields are the same
+    # field and one of them is dead weight.
+    resolutions = {r["resolved_tariff_type"] for r in present_key}
+    assert len(resolutions) > 1, (
+        f"every leg carrying the key resolves to {resolutions} -- key-presence and the resolved "
+        "value no longer come apart, so this census has collapsed into the one it exists to "
+        "differ from")
+    assert {r["the_guard_admits_it"] for r in present_key} == {True, False}
 
 
 def test_MUTATION_a_labelled_won_record_makes_the_gate_reachable(roster):
     """NULL RUNG on the verdict the live page's sentence turns on.
 
-    `a_found_account_can_reach_the_product_gate` is False on every roster to date. A boolean only
-    ever observed False cannot be told from one that is structurally unable to leave False --
-    R15's unreachable-PASS-branch shape -- and this is the field that decides whether the page
-    says "a GATE" or "book size". So: label one won electricity record and the verdict must
-    follow it and NAME the account.
+    A boolean only ever observed one way cannot be told from one that is structurally unable to
+    leave it -- R15's unreachable-branch shape -- and this is the field that decides whether the
+    page says "a GATE" or "book size". So BOTH legs are exercised here.
+
+    THE SUBJECT IS A GAS LEG since 2026-09-07. The unlabelled leg has to be one the world's own
+    read still resolves to `None`, and after the electricity call site was repaired on 2026-08-30
+    that is only true of gas (`simulation.run_phase2b.resolved_tariff_type`). This control used a
+    won ELECTRICITY leg, which is why it went red when the census stopped restating the
+    pre-repair spelling: the record it called unlabelled had been labelled for eight days.
     """
     unlabelled = roster([
-        {"customer_id": "PROS-2019-0015", "commodity": "electricity",
+        {"customer_id": "PROS-2019-0015g", "commodity": "gas",
          "acquisition_type": "net_new_won", "tariff_type": None}])
     assert unlabelled["a_found_account_can_reach_the_product_gate"] is False
     assert unlabelled["found_accounts_the_guard_would_admit"] == []
 
     labelled = roster([
-        {"customer_id": "PROS-2019-0015", "commodity": "electricity",
+        {"customer_id": "PROS-2019-0015g", "commodity": "gas",
          "acquisition_type": "net_new_won", "tariff_type": "fixed"}])
     assert labelled["a_found_account_can_reach_the_product_gate"] is True
     assert labelled["found_accounts_the_guard_would_admit"] == ["PROS-2019-0015"]
@@ -512,13 +527,16 @@ def test_a_founder_account_passing_the_gate_is_not_a_found_account_reaching_it(r
     """MUTATION: drop the `name in _FOUND_ACCOUNT_CLASSES` clause from the reachability test.
 
     Every founder electricity leg resolves to `"fixed"` and IS admitted by the guard, so a
-    reachability check that did not filter by class would report True on today's roster and the
-    page would say the gate is passable while no found household has ever passed it. The
-    flattering answer, produced by deleting one condition.
+    reachability check that did not filter by class would report True on this roster and the page
+    would say the gate is passable while no found household on it had passed. The flattering
+    answer, produced by deleting one condition.
+
+    The found leg is GAS for the reason given in the null-rung control above: it has to be a leg
+    the world's own read still resolves to `None`, and since 2026-08-30 that is not electricity.
     """
     census = roster([
         {"customer_id": "C1", "commodity": "electricity"},
-        {"customer_id": "PROS-2019-0015", "commodity": "electricity",
+        {"customer_id": "PROS-2019-0015g", "commodity": "gas",
          "acquisition_type": "net_new_won", "tariff_type": None}])
     founder = [r for r in census["legs"] if r["account_class"] == "founder_hand_authored"]
     assert [r["the_guard_admits_it"] for r in founder] == [True]

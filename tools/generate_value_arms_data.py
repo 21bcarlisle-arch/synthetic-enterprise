@@ -163,6 +163,30 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: newer than the figure it bounds and the staleness guard is satisfied rather than bypassed. Both
 #: constants moved in ONE commit, `8e90037a5`. See docs/staging/records/
 #: SEAT_RESULT_THE_CURRENT_BOOK_RETAKE_LANDED_AND_ITS_SPLIT_IS_STILL_UNREADABLE_2026-09-08.md.
+#:
+#: HELD HERE ON 2026-09-09 WHEN THE 09-08b PAIR WAS PROMOTED TO THE CANONICAL PATH, and the move
+#: that was tried and reverted is written down because the reason is a property.
+#:
+#: The case for moving: `THREE_ARM_PATH` now carries the 21:01:30Z run in world `39a192ce04c1eda8`
+#: -- the live world -- so `error_bar.world_caveat` is `None`, and what this block exists to correct
+#: (a headline measured in a SUPERSEDED world) no longer exists. Pointing both constants at one run
+#: makes the block a tautology that ANNOUNCES itself, in `_against_the_superseded_panel`'s
+#: `the_same_run` branch: "the two figures are one figure printed twice, not a comparison".
+#:
+#: WHY IT WAS REVERTED, AND THE DOOR IS WHAT SAID SO. Both runs then publish the SAME selection
+#: figure, £324, and `_the_legs_own_regions` in
+#: `site/test_the_baseline_comparison_reaches_the_reader.py` refuses it in words: "the selection
+#: leg's own figure renders 2 times in this headline, so neither this rung nor a reader can tell
+#: where the advantage's statement ends and the leg's begins -- and the two carry different
+#: verdicts". A page a reader cannot attribute a verdict on is worse than an older contrast, and a
+#: tautology that announces itself in prose still renders as two identical numbers on the surface.
+#: Measured by promoting, rebuilding and running the door -- not decided from the two descriptions.
+#:
+#: WHAT MAKES HOLDING HONEST rather than merely convenient: this block is a genuinely different run
+#: (00:19:54Z) under a heading that says "the world as it is now" while a LATER run leads the page,
+#: and `_later_runs_in_this_world` fires and names `_20260908b.json` for exactly that reason. The
+#: page states its own staleness. It states it ONCE per run since 2026-09-09 -- see that function
+#: for the promoted-copy twin the census used to count twice.
 CURRENT_WORLD_THREE_ARM_PATH = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260908.json")
 NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
@@ -175,6 +199,9 @@ NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise
 #: MOVED 2026-09-08 in the SAME commit as `CURRENT_WORLD_THREE_ARM_PATH` above. Moving either alone
 #: is the defect this pair exists to prevent, in BOTH directions: the figure alone republishes an
 #: unbounded headline, and the bound alone bounds the wrong run.
+#: HELD on 2026-09-09 with the constant above, for the constant above's reason. The 09-08b floor
+#: went to `NOISE_FLOOR_PATH` and not here: this pair bounds the 00:19:54Z run and the 04:10:26Z
+#: floor is the one measured against it.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260908.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
@@ -1449,6 +1476,34 @@ def _resolvable(value, spread) -> bool | None:
     if value is None or stdev is None:
         return None
     return abs(value) > stdev
+
+
+def _sign_determined(values) -> bool | None:
+    """Do these re-draws of ONE quantity all fall on the SAME side of zero?
+
+    THE QUESTION `_resolvable` CANNOT ASK, because it takes `abs()`. "Did this draw land more than
+    a spread from zero" is answerable about a family that straddles zero -- and the answer is
+    meaningless there, because the quantity has no direction to state. A point estimate drawn from
+    a family that contains zero cannot carry a sign, however far from zero that particular draw
+    happened to fall.
+
+    `None` MEANS NOT ASKABLE, never "fine". Fewer than two rows is a family nobody measured, and
+    the two callers both treat it as its own state rather than folding it into "no sign".
+
+    ZERO ITSELF IS NOT A SIDE. A row of exactly 0.0 satisfies neither `> 0` nor `< 0`, so a family
+    touching zero reads undetermined. That is the fail-CLOSED direction, and it is the same strict
+    inequality `_resolvable` documents above.
+
+    ONE IMPLEMENTATION, TWO CALLERS, AND THE SECOND ONE IS WHY THIS IS A FUNCTION. The identical
+    test was written inline in `_composition_in_this_world` on 2026-09-08 to refuse a SHARE whose
+    numerator changes sign. `_leg_in_this_world` needed the same property about a LEG on
+    2026-09-09, and writing it inline a second time is this repository's named defect class -- one
+    rule, five implementations, fixed in one of them and live in another a month later.
+    """
+    measured = [v for v in (values or []) if isinstance(v, (int, float))]
+    if len(measured) < 2:
+        return None
+    return all(v > 0 for v in measured) or all(v < 0 for v in measured)
 
 
 #: The funnel stages that are DELIBERATE SCOPE rather than a gap in the world. Named here, not
@@ -3122,15 +3177,72 @@ def _belief_buckets(belief: dict) -> dict:
         "scored": counted,
         "agrees_with_auc_population": True,
         "buckets": buckets,
-        "reading": (
-            "Read down the two rate columns. The band the arm was LEAST confident of keeping is "
-            "the band that mostly stayed, and the renewals it was most confident of kept none of "
-            "them -- that reversal IS the score, and it is what the figure above asserts. This "
-            "table cannot tell you the labels are the right way round: flip them and it reads "
-            "monotone the right way and looks better than any belief on this page, which is why "
-            "the sign question is settled on the LEVEL beside it and not here. Every band is "
-            "single-digit; nothing in this table carries a bound of its own."),
+        "reading": _bucket_reading(buckets),
     }
+
+
+def _bucket_reading(buckets: list) -> str:
+    """What this table actually shows, DERIVED from its own rows.
+
+    THE DEFECT (2026-09-09, found by promoting). This sentence was written against the 2026-08-31
+    run and hard-coded four claims about it: that the least-confident band mostly stayed, that "the
+    renewals it was most confident of kept none of them", that flipping the labels reads monotone
+    the right way, and that "every band is single-digit". Promoting the 09-08b run onto
+    `THREE_ARM_PATH` -- which is what that path is for -- left all four on the page and made all
+    four false: the bands realise 63%, 53%, 74%, 77% on 8, 40, 23 and 52 decisions, so the belief
+    runs mostly the RIGHT way, the flipped column is not monotone either, and no band is
+    single-digit. Nothing could notice, because prose about a run is not a figure any clock or
+    world guard on this page reads.
+
+    THE FLATTERING DIRECTION IS NOT THE OBVIOUS ONE, which is why this is worth deriving rather
+    than deleting. The stale sentence understated the arm: it told a reader the belief was
+    backwards on a run where it mostly is not. Prose keyed to one run is wrong in whichever
+    direction the next run happens to fall, and the point is that it cannot be read at all.
+
+    WHAT IS KEPT ON EVERY BRANCH is the refusal, not the reading: this table cannot settle which
+    way round the labels are, and the sign question is answered on the level arm beside it. That
+    was true of the run this was written for and is true of any run it can meet.
+    """
+    rated = [b for b in buckets
+             if b.get("realised_retention_rate") is not None
+             and b.get("believed_from") is not None]
+    rated.sort(key=lambda b: b["believed_from"])
+    settled = ("This table cannot tell you the labels are the right way round, and the sign "
+               "question is settled on the LEVEL beside it and not here.")
+    if len(rated) < 2:
+        return ("Read down the two rate columns. Fewer than two bands carry a realised rate, so "
+                "this table states no direction for the belief at all. " + settled)
+    low, high = rated[0]["realised_retention_rate"], rated[-1]["realised_retention_rate"]
+    falls = all(b["realised_retention_rate"] > c["realised_retention_rate"]
+                for b, c in zip(rated, rated[1:]))
+    if high < low:
+        # NAMED, NEVER POINTED AT. "what the figure above asserts" is what the hard-coded sentence
+        # said, and a here-relative pointer on a branch nothing drives is a direction no rung can
+        # check -- see `tests/tools/test_the_value_arms_pages_undriven_pointers.py`. The rank
+        # statistic has a name, so it is used.
+        claim = ("the belief runs BACKWARDS against what happened across the table's two ends, and "
+                 "that reversal is what the rank statistic scores")
+    elif high > low:
+        claim = ("the belief runs the SAME way as what happened across the table's two ends, so "
+                 "this table does not show a reversal")
+    else:
+        claim = ("the two ends realised the same rate, so this table states no direction for the "
+                 "belief")
+    flip = ("Flip the labels and it reads monotone the right way and looks better than any belief "
+            "on this page." if falls else
+            "Flipping the labels does not make it monotone either, so neither labelling is what "
+            "this table settles.")
+    smallest = min(b["n"] for b in rated if isinstance(b.get("n"), int)) if any(
+        isinstance(b.get("n"), int) for b in rated) else None
+    size = ("The smallest band rests on {} decisions; nothing in this table carries a bound of its "
+            "own.".format(smallest) if smallest is not None else
+            "No band states how many decisions it rests on, and nothing in this table carries a "
+            "bound of its own.")
+    return ("Read down the two rate columns. The band the arm was LEAST confident of keeping "
+            "realised {low}, and the band it was most confident of realised {high} -- {claim}. "
+            "{settled} {flip} {size}").format(
+                low="{:.0%}".format(low), high="{:.0%}".format(high), claim=claim,
+                settled=settled, flip=flip, size=size)
 
 
 def _departures(belief: dict) -> dict:
@@ -4131,6 +4243,24 @@ def _verdict_stability(floor_current: dict | None, spread: dict | None,
         # so that this block cannot report a centre for a family it did not measure.
         "redraw_mean_gbp": sum(values) / len(values),
         "stable": len(set(verdicts)) == 1,
+        # AND THE SECOND PROPERTY OF THE SAME FAMILY, WHICH `stable` ABOVE CANNOT SEE. Every
+        # verdict here goes through `_resolvable`, and `_resolvable` takes `abs()` -- so a family
+        # running from well below zero to well above it can be UNANIMOUS about clearing its own
+        # spread while having no direction to clear it in. `stable` then says the verdict survives
+        # a re-draw, and the verdict it certifies is a sign the quantity does not have.
+        #
+        # AT n=3 AND n=4 THIS IS AN EQUIVALENCE, AND IT IS RECORDED HERE RATHER THAN DISCOVERED
+        # LATER AS A DEAD BRANCH. For a family straddling zero, every member exceeding the sample
+        # standard deviation of that same family is arithmetically impossible at three or four
+        # rows: with two values at +a and one at -b the sample sd is (a+b)/sqrt(3), and
+        # min(a, b) > 0.577(a+b) has no solution. It becomes possible at n>=5 with a lopsided
+        # split -- [-9.68, -9.79, -8.10, +8.40, -8.75] is a family in which every draw clears its
+        # own spread and the quantity still has no sign. So today, at three seeds, this field can
+        # only fire where `stable` is already False; the day a floor is re-run with more seeds it
+        # is the only thing standing between the reader and a stated direction on a quantity that
+        # has none. Proven by exhaustion in
+        # `test_a_leg_whose_own_redraws_straddle_zero_states_no_direction_however_stable`.
+        "sign_determined": _sign_determined(values),
     }
 
 
@@ -4265,6 +4395,11 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
     # for BOTH legs -- the whole leg keys it `value_advantage_gbp` and the selection leg keys it
     # `figure_gbp`, and a clause-side implementation would have had to know that.
     redraw_band = _redraw_band_clause(point, stability)
+    # THE SIGN CLAUSE IS COMPOSED BEFORE THE BRANCHES AND APPENDED TO WHICHEVER ONE FIRES, because
+    # the two reasons are independent and both can be true. Folding "it changes sign" into "the
+    # verdict is one draw's" would delete the stronger of the two from the surface exactly when
+    # both hold -- which is the state the live selection leg is in.
+    no_sign = _no_sign_clause(point, stability)
     if resolved is not None and stability.get("checked") and not stability.get("stable"):
         # WHERE IN THE FAMILY THE PUBLISHED DRAW FELL, not just how wide the family is. Said in
         # the same breath as the range because the range on its own is the flattering reading:
@@ -4280,8 +4415,83 @@ def _leg_in_this_world(point, floor_current: dict | None, current: dict | None, 
             "states none. {band}"
         ).format(n=stability.get("n"), res=stability.get("redraw_resolving"), band=redraw_band)
         resolved = None
+    # THE SECOND GATE, AND IT IS NOT THE FIRST ONE RESTATED. The gate above asks whether the
+    # verdict survives a re-draw; this one asks whether there is a direction to survive. A family
+    # that straddles zero has none, and `_resolvable`'s `abs()` is blind to it by construction --
+    # see `_sign_determined` and the `sign_determined` comment in `_verdict_stability` for why the
+    # branch where this fires ALONE needs five seeds and cannot be reached at three.
+    if resolved is not None and stability.get("sign_determined") is False:
+        verdict_withheld_because = no_sign
+        resolved = None
+    elif verdict_withheld_because and no_sign:
+        # BOTH TRUE, BOTH PUBLISHED. Appended rather than substituted, for the same reason
+        # `_composition_in_this_world` prepends its second refusal: a reason that replaced the
+        # other is a reason deleted from the page.
+        verdict_withheld_because = verdict_withheld_because + " " + no_sign
+    # CARRIED AS A FIELD, LIKE `redraw_band` AND FOR THE SAME REASON. The headline needs this
+    # sentence too, and `_leg_clause` composing its own draft of it is the third copy that
+    # `_redraw_band_clause`'s docstring records the cost of. One producer, two consumers, and a
+    # control can assert the rendered page contains the feed's own bytes rather than prose a test
+    # file wrote.
     return {"resolved": resolved, "verdict_withheld_because": verdict_withheld_because,
-            "verdict_stability": stability, "redraw_band": redraw_band, **bound}
+            "verdict_stability": stability, "redraw_band": redraw_band,
+            "no_sign": no_sign, **bound}
+
+
+def _no_sign_clause(point, stability: dict | None) -> str:
+    """The family straddles zero, said in words -- and WHERE the published draw sits against it.
+
+    THE DEFECT IT CLOSES (2026-09-09, Lane 0, the director's reading of the live page). The
+    selection leg publishes +GBP 270.21 under a headline that withholds its verdict, and every
+    word of the refusal is about STABILITY: "it is a single draw", "a property of which draw was
+    made". A reader is never told the thing that actually disqualifies the figure -- the same
+    contrast re-drawn in this same world runs from below zero to above it, and the CENTRE of that
+    family is on the other side of zero from the published draw. "No verdict, +GBP 270" and "no
+    verdict, and the centre of its own family says this leg is worth less than nothing" are
+    different pages, and the reader was getting the first.
+
+    THIS IS THE THESIS'S OWN NUMBER. The selection leg is the only figure on this page that could
+    be value CREATED rather than moved, so it is the one a reader will quote, and a positive sign
+    on it is the company's central claim. The page has already withdrawn four claims of this exact
+    shape.
+
+    NO FIGURES IN THIS SENTENCE, on purpose and against the obvious draft. `#arms-redraw` renders
+    Lowest, Mean and Highest per contrast as cells that fail one at a time; reciting them here
+    would be a second home for one fact, which is the failure `_redraw_band_clause`'s own docstring
+    was written for after the mean was found deletable from the prose with all door rungs green.
+    What this sentence owes is the READING no cell carries: that the two edges are on opposite
+    sides of zero, and which side the centre is on relative to the draw.
+
+    COMPOSED, NEVER HARD-CODED. "the other side of zero from the published draw" is derived from
+    the comparison, so the day a run draws the low member of a family whose centre is positive
+    this sentence says so instead of being false on the page.
+
+    EMPTY STRING WHEN THE FAMILY HAS A SIGN OR WAS NEVER ASKED. Both are states in which this
+    sentence would be a claim nothing measured, and the callers append it only when non-empty.
+
+    THE POINTER'S WORDING IS THE REGISTERED ONE, deliberately, and the first draft was not.
+    "directly below this headline" is a landmark `_POINTER_PHRASES` already knows the direction of,
+    so this sentence is judged by
+    `test_every_band_table_pointer_in_the_producer_is_one_this_control_judges` from the day it
+    ships. "below this headline" is the same claim in words that control cannot check, and it
+    failed closed on it -- which is the rung working, and the reason the wording here is not a
+    matter of taste.
+    """
+    stability = stability or {}
+    if stability.get("sign_determined") is not False:
+        return ""
+    mean, value = _f(stability.get("redraw_mean_gbp")), _f(point)
+    where = ""
+    if mean is not None and value is not None and (mean > 0) != (value > 0) and mean != 0:
+        where = (" The CENTRE of that family is on the other side of zero from the published "
+                 "draw, so the draw's own sign is not the family's.")
+    return (
+        "AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn {n} times in this "
+        "same world falls on BOTH sides of zero, so there is no direction here for a bound to "
+        "clear: the plus or minus on the published draw is a property of which draw was made. The "
+        "band table directly below this headline gives that family, and its Lowest and Highest "
+        "sit on opposite sides of zero.{where}"
+    ).format(n=stability.get("n"), where=where)
 
 
 #: Where every A/B artefact this repository has ever written lives. Scanned rather than enumerated,
@@ -4342,11 +4552,27 @@ def _later_runs_in_this_world(current: dict | None, live: str,
     IT RETURNS ROWS, NEVER A VERDICT. Deciding is `_the_later_runs_disagree`'s job, and keeping the
     census separate is what makes the census assertable on the real directory without the verdict's
     fixtures in the way.
+
+    ONE ROW PER RUN, NOT PER FILE (2026-09-09, Lane 0). Promotion in this project is a FILE COPY --
+    `THREE_ARM_PATH`'s own comment calls it "the path the newest run is PROMOTED to" and the dated
+    copy stays on disk on purpose, so superseded-with-provenance survives. That convention
+    GUARANTEES the newest run is on disk under two names, and this scan globbed both: the census
+    published two rows for one run and `_the_later_runs_disagree`'s sentence would have said "2
+    later runs over the SAME world exist" and listed the same figures twice. Measured on the real
+    directory the moment the 09-08b pair was promoted, not reasoned about. Identity is
+    `generated_at` PLUS `producing_commit` -- the same pair `_name_of_the_run` matches on, and the
+    same pair `_what_differs_between_two_runs` calls `the_same_run`.
+
+    THE SURVIVING NAME IS THE DATED ONE, AND THAT IS THE POINT OF THE DEDUPE. `THREE_ARM_PATH` is a
+    MOVING POINTER: a reader who goes to it tomorrow reads a different run than the figures beside
+    it. The dated copy is the only name that still means this run next week. The name that lost is
+    kept in `also_on_disk_as` rather than dropped, because a row that silently discarded a filename
+    would be this module asserting which copy a reader should care about instead of showing both.
     """
     when = (current or {}).get("generated_at")
     if not isinstance(when, str) or not when:
         return []
-    rows = []
+    by_run: dict = {}
     for path in sorted((directory or OBSERVABILITY_DIR).glob(_AB_ARTEFACT_GLOB)):
         run = _read(path)
         if not isinstance(run, dict):
@@ -4362,7 +4588,21 @@ def _later_runs_in_this_world(current: dict | None, live: str,
         share = _f(split.get("level_share_of_advantage"))
         if share is None:
             continue
-        rows.append({
+        # UNSTAMPED RUNS ARE NEVER FOLDED TOGETHER. A missing `producing_commit` is not evidence that
+        # two files are one run, and collapsing on it would hide a genuine second run behind the
+        # first. Keyed by the path when the commit cannot be read, which is one row per file again --
+        # the state this dedupe is not entitled to improve on.
+        commit = (run.get("producing_commit") or {}).get("commit")
+        key = (ran_at, commit) if isinstance(commit, str) and commit else (ran_at, path.name)
+        row = by_run.get(key)
+        if row is not None:
+            row.setdefault("also_on_disk_as", []).append(path.name)
+            if row["artefact"] == THREE_ARM_PATH.name:
+                row["also_on_disk_as"] = sorted(
+                    set(row["also_on_disk_as"] + [row["artefact"]]) - {path.name})
+                row["artefact"] = path.name
+            continue
+        by_run[key] = {
             "artefact": path.name,
             "generated_at": ran_at,
             "ran_in_world": live,
@@ -4371,8 +4611,8 @@ def _later_runs_in_this_world(current: dict | None, live: str,
             "value_advantage_gbp": _f(split.get("value_advantage_gbp")),
             "level_advantage_gbp": _f(split.get("level_advantage_gbp")),
             "selection_gbp": _f(split.get("selection_gbp")),
-        })
-    return rows
+        }
+    return sorted(by_run.values(), key=lambda r: (r["generated_at"], r["artefact"]))
 
 
 def _name_of_the_run(run: dict | None, directory: Path | None = None) -> str | None:
@@ -4624,13 +4864,13 @@ def _against_the_superseded_panel(superseded_share, differences: dict | None) ->
         "world's departure level and its price response, not the company's skill.")
     if not isinstance(differences, dict) or not differences.get("available"):
         return (
-            "The panel below states {old} for the same quantity. This page has not established "
+            "The panel above states {old} for the same quantity. This page has not established "
             "which of the world, the date and the producing commit differ between the two runs, "
             "so it states no attribution for the difference between them at all.{inv}"
         ).format(old=old, inv=invariant)
     if differences.get("the_same_run"):
         return (
-            "The panel below states {old} for the same quantity, and it is the SAME RUN as this "
+            "The panel above states {old} for the same quantity, and it is the SAME RUN as this "
             "one -- same world, same date, same commit. There is no difference between them to "
             "attribute: the two figures are one figure printed twice, not a comparison.{inv}"
         ).format(old=old, inv=invariant)
@@ -4638,20 +4878,20 @@ def _against_the_superseded_panel(superseded_share, differences: dict | None) ->
     how_many = differences.get("how_many_differ") or 0
     if how_many >= 2:
         return (
-            "The panel below states {old} for the same quantity. {n} things differ between the two "
+            "The panel above states {old} for the same quantity. {n} things differ between the two "
             "runs -- {named} -- so more than one thing changed, and the difference between them "
             "cannot be attributed to any one of them.{inv} The one-variable version of this "
             "comparison has not been run."
         ).format(old=old, n=how_many, named=named, inv=invariant)
     if how_many == 1:
         return (
-            "The panel below states {old} for the same quantity. Of the world, the date and the "
+            "The panel above states {old} for the same quantity. Of the world, the date and the "
             "producing commit, exactly ONE differs between the two runs -- {named} -- so this is "
             "the one-variable version of the comparison, and the difference is attributable to "
             "that alone only if nothing this page cannot see also moved.{inv}"
         ).format(old=old, named=named, inv=invariant)
     return (
-        "The panel below states {old} for the same quantity. Of the world, the date and the "
+        "The panel above states {old} for the same quantity. Of the world, the date and the "
         "producing commit, none that this page could read differ between the two runs and {un} "
         "could not be read at all -- so no difference between them has been established, and none "
         "is attributed.{inv}"
@@ -4719,8 +4959,13 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
     # THE PROPERTY: is the leg on top of the ratio even determined in SIGN across re-draws of the
     # same quantity? Two or more rows are needed before the question can be asked at all, and not
     # being able to ask it is its own state -- never a licence to read the share.
-    sign_stable = (len(measured) >= 2
-                   and (all(n > 0 for n in measured) or all(n < 0 for n in measured)))
+    #
+    # THROUGH `_sign_determined` SINCE 2026-09-09, and it was written inline here first. The same
+    # property is now asked of a LEG's verdict in `_leg_in_this_world`, and the second inline copy
+    # is the shape CLAUDE.md names by its cost. `is True` keeps this caller's semantics exactly:
+    # not-askable reads as not-sign-stable here, and the `len(measured) < 2` branch below still
+    # catches it first so the two states stay distinguishable on the page.
+    sign_stable = _sign_determined(measured) is True
     block = {
         "available": True,
         "level_share_of_advantage": share,
@@ -5131,16 +5376,42 @@ def _leg_clause(leg: dict, lead: str, resolved_tail: str) -> str:
         # selection leg the centre is NEGATIVE while the published draw is positive, and that is
         # the finding the table's own Mean column now carries and can be failed on.
         clearing = stability.get("redraw_resolving")
+        # ONE CAUSE PER SENTENCE, AND EVERY CAUSE THAT FIRED REACHES THE READER. Until 2026-09-09
+        # this branch printed the stability sentence unconditionally, because stability was the
+        # only reason a verdict could be withheld. It is not any more, and an unconditional recital
+        # would be FALSE on the leg withheld for its sign alone: "{res} of the {n} re-draws clear
+        # that spread and the rest do not" is a lie about a family in which every draw clears it.
+        causes = []
+        if not stability.get("stable"):
+            causes.append(
+                "It is a single draw, and the same contrast re-drawn {n} times in this same "
+                "world moves against a {sd} spread -- {res} of the {n} re-draws {verb} that "
+                "spread and the rest do not, so a direction here would be a property of which "
+                "draw was made rather than of the company.".format(
+                    sd=_gbp(stdev if stdev is not None else 0),
+                    n=stability.get("n"), res=clearing,
+                    verb="clears" if clearing == 1 else "clear"))
+        # THE FEED'S OWN BYTES, NOT A SECOND DRAFT -- see the field's comment in
+        # `_leg_in_this_world`. Empty whenever the family has a sign or was never asked.
+        if leg.get("no_sign"):
+            causes.append(leg["no_sign"])
+        if not causes:
+            # FAIL-CLOSED ON A WITHHELD LEG WHOSE CAUSE THIS BRANCH CANNOT NAME. Unreachable while
+            # the two gates above are the only two, and it must not become a silent refusal the
+            # day a third is added: a page that withholds without saying why is the conflation
+            # this whole module refuses everywhere else.
+            causes.append(
+                "The feed withheld the verdict on that figure and this page cannot state which "
+                "of its tests refused it, so the refusal stands and its cause does not.")
+        # THE CLOSING IS DERIVED FROM THE CAUSE. "Until it survives a re-draw" is what a stability
+        # refusal is waiting for; a sign refusal is waiting for a family that stops straddling
+        # zero, and more seeds of the same straddling family would never deliver it.
+        until = ("until the family it is drawn from stops straddling zero"
+                 if leg.get("no_sign") else "until it survives a re-draw")
         return lead + (
-            "THIS PAGE STATES NO VERDICT ON THAT FIGURE. It is a single draw, and the same "
-            "contrast re-drawn {n} times in this same world moves against a {sd} spread -- "
-            "{res} of the {n} re-draws {verb} that spread and the rest do not, so a direction "
-            "here would be a property of which draw was made rather than of the company. {band} "
-            "The figure and its bound are both published; the verdict is withheld until it "
-            "survives a re-draw. "
-        ).format(sd=_gbp(stdev if stdev is not None else 0),
-                 n=stability.get("n"), res=clearing,
-                 verb="clears" if clearing == 1 else "clear", band=band)
+            "THIS PAGE STATES NO VERDICT ON THAT FIGURE. {causes} {band} The figure and its "
+            "bound are both published; the verdict is withheld {until}. "
+        ).format(causes=" ".join(causes), band=band, until=until)
     verdict = ("CLEARS the £{sd:,.0f} this same contrast moves across {n} seed re-draws in this "
                "same world" if leg.get("resolved") else
                "DOES NOT CLEAR the £{sd:,.0f} this same contrast moves across {n} seed re-draws "

@@ -62,6 +62,13 @@ THREE_ARM = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm.js
 #: PROPERTY keep reading `THREE_ARM`; tests of a RUN read this.
 THREE_ARM_20260829 = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260829.json")
+#: THE RUN THAT NAMES NO WORLD -- sole witness for every control whose subject is a run whose
+#: departure level is UNKNOWN. This was `THREE_ARM` until 2026-09-09, when the 09-08b run was
+#: promoted onto that path and brought a `world_identity` with it; the property was held by
+#: accident and two controls lost the only subject that can reach their refusal. World stamping
+#: began on 2026-09-03, so every run before it is permanently unstamped and this name cannot expire.
+THREE_ARM_NO_WORLD = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260831.json")
 NOISE_FLOOR = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
@@ -1703,15 +1710,78 @@ def test_buckets_that_do_not_sum_to_the_rank_statistics_own_population_are_withh
 
     Fires on: publishing `buckets` without reconciling their counts, or reconciling the bucket
     counts against themselves.
+
+    BOTH COUNTS ARE READ, NEVER WRITTEN DOWN (2026-09-09). The bucket total used to be the literal
+    "20 decisions", which is what the 2026-08-31 run happened to carry; `THREE_ARM` is the path each
+    new run is promoted to, so the 09-08b promotion took the same table to 123 and reddened a
+    control whose subject had changed rather than whose code had. The population side is the test's
+    own injection and stays a literal, because a literal there is the contradiction being staged.
     """
     art = _load(THREE_ARM)
     art["belief_vs_outcome"] = dict(art["belief_vs_outcome"],
                                     auc_population={"retained": 10, "left": 4})
+    in_the_buckets = sum(row["n"] for row
+                         in (art["belief_vs_outcome"].get("by_believed_bucket") or []))
+    assert in_the_buckets != 14, (
+        "the promoted run's buckets happen to tally the injected population, so the two routes "
+        "agree and this subject stages no contradiction at all")
     table = gva.build(art, _load(NOISE_FLOOR),
                       _load(RUN_OUTPUT))["decisions"]["auc_attribution"]["by_believed_bucket"]
     assert table["available"] is False
-    assert "20 decisions" in table["reason"] and "counts 14" in table["reason"]
+    assert "{} decisions".format(in_the_buckets) in table["reason"], (
+        "the refusal does not name what the buckets actually tally, so a reader cannot tell which "
+        "of the two routes to go and look at: " + table["reason"])
+    assert "counts 14" in table["reason"]
     assert "buckets" not in table, "an unavailable table published its rows anyway"
+
+
+def test_the_bucket_readings_direction_is_read_off_the_bands_and_never_written_down():
+    """The sentence under this table must say what THIS run's bands do, not what one run's did.
+
+    THE DEFECT (2026-09-09, found by promoting, not by reading). The reading was authored against
+    the 2026-08-31 run and asserted four things about it in prose: the least-confident band mostly
+    stayed, the most confident "kept none of them", flipping the labels reads monotone the right
+    way, and every band is single-digit. `THREE_ARM_PATH` is the path each new run is PROMOTED to,
+    so the 09-08b promotion put a table realising 63/53/74/77 on 8/40/23/52 decisions under all
+    four claims and made every one of them false. No clock, world or staleness guard on this page
+    can see a stale SENTENCE, so the miss was structural rather than careless.
+
+    BOTH DIRECTIONS ARE WITNESSED, because a reading that always says "backwards" passes any
+    assertion written against a reversed table, and that is the shape the hard-coded sentence had.
+
+    Fires on: writing the direction down; reading it off the wrong end; claiming the flipped column
+    is monotone when the real one does not fall at every band; or reciting a band size.
+    """
+    def reading(rates, sizes=(9, 9, 9)):
+        return gva._bucket_reading([
+            {"believed_from": lo, "believed_to": lo + 0.2, "n": n,
+             "realised_retention_rate": rate}
+            for lo, rate, n in zip((0.2, 0.4, 0.6), rates, sizes)])
+
+    reversed_table = reading((0.9, 0.5, 0.1))
+    assert "BACKWARDS" in reversed_table, reversed_table
+    assert "90%" in reversed_table and "10%" in reversed_table, (
+        "the two ends' own rates are not in the sentence, so a reader cannot check the direction "
+        "it states against the table it sits under: " + reversed_table)
+    assert "monotone the right way" in reversed_table, (
+        "the flipped column rises at every band here and the reading does not say so")
+
+    # THE OTHER DIRECTION, and it is the live one since 2026-09-08b. A reading that cannot say this
+    # is the hard-coded sentence with extra steps.
+    agreeing = reading((0.63, 0.53, 0.77))
+    assert "SAME way" in agreeing and "BACKWARDS" not in agreeing, agreeing
+    assert "does not make it monotone either" in agreeing, (
+        "the real column does not fall at every band, so the flipped one is not monotone -- and "
+        "the reading still offers the flip as the tidy reading: " + agreeing)
+
+    # THE SIZE CLAIM IS READ, not recited: "every band is single-digit" was true of one run.
+    assert "rests on 40 decisions" in reading((0.63, 0.53, 0.77), sizes=(52, 40, 61)), (
+        "the smallest band's size is not read off the bands")
+
+    # THE REFUSAL SURVIVES EVERY BRANCH -- it is a property of the table, not of a run's answer.
+    for sentence in (reversed_table, agreeing, reading((0.5, 0.5, 0.5))):
+        assert "settled on the LEVEL beside it and not here" in sentence, (
+            "a branch dropped the one claim this table can actually support")
 
 
 def test_a_run_without_the_bucket_table_says_so_rather_than_rendering_an_empty_one():
@@ -2438,6 +2508,17 @@ def test_a_current_world_block_refuses_a_run_that_names_another_world():
 #: world while the undecomposed one is still being measured. Sole witness for the leg guard.
 NOISE_FLOOR_ONLY_LIVE = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_only_20260903.json")
+#: SOLE WITNESS FOR THE WORLD GUARD: the right LEG (`all`) naming NO world, so only the world check
+#: can refuse it.
+#:
+#: NAMED DIRECTLY, NOT REACHED THROUGH `NOISE_FLOOR` (2026-09-09). This was `NOISE_FLOOR` -- the
+#: canonical path -- which held exactly this artefact's bytes and therefore had the property by
+#: accident. `NOISE_FLOOR` is where the newest floor is PROMOTED to, so on 2026-09-09 it became a
+#: live-world floor and the world guard correctly admitted it, reddening a test whose subject had
+#: silently changed under it. A witness for "names no world" has to be a file that will never gain
+#: a world stamp, which is a dated copy and never a moving pointer.
+NOISE_FLOOR_NO_WORLD = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260831.json")
 
 
 def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world():
@@ -2453,9 +2534,9 @@ def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world()
     single seed family where all three legs have been measured.
 
     SOLE WITNESSES, so neither guard is an equivalence the other covers for. No subject here
-    satisfies both alternations: `NOISE_FLOOR` is mode `all` and names no world; the `only` leg
-    names the live world and is the wrong mode. Drop the world check and the first is admitted;
-    drop the leg check and the second is.
+    satisfies both alternations: `NOISE_FLOOR_NO_WORLD` is mode `all` and names no world; the
+    `only` leg names the live world and is the wrong mode. Drop the world check and the first is
+    admitted; drop the leg check and the second is.
 
     Fires on: dropping either guard; reading a bound from the superseded `floor` argument;
     admitting a refusal stub with no `generated_at`; or bounding the contrast with the floor's
@@ -2464,13 +2545,17 @@ def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world()
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
+    no_world = _load(NOISE_FLOOR_NO_WORLD)
     only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
 
     # SOLE WITNESS FOR THE WORLD GUARD: the undecomposed leg, naming no world.
-    assert (superseded.get("redraw_scope") or {}).get("mode") == gva.BOUNDING_REDRAW_MODE, (
+    assert (no_world.get("redraw_scope") or {}).get("mode") == gva.BOUNDING_REDRAW_MODE, (
         "this subject no longer isolates the WORLD guard -- it must be the right leg so that only "
         "the world check can refuse it")
-    stale = gva._current_world_contrast(current, superseded, superseded)
+    assert ((no_world.get("world_identity") or {}).get("digest")) is None, (
+        "this subject now names a world, so the world guard has nothing to refuse it for and the "
+        "leg below would pass vacuously")
+    stale = gva._current_world_contrast(current, superseded, no_world)
     assert stale["bound_available"] is False, (
         "a floor from the superseded world bounded a figure measured in this one -- the "
         "c30b98048 defect, and the ratio it forms is not a quantity")
@@ -2498,8 +2583,9 @@ def test_the_current_world_bound_takes_only_the_undecomposed_leg_of_this_world()
 
     # THE PASS BRANCH IS REACHABLE, or every refusal above is graded by a function that can only
     # refuse -- the constant-verdict shape this whole control was written to remove.
-    admitted = dict(only_leg, redraw_scope=dict(only_leg["redraw_scope"],
-                                                mode=gva.BOUNDING_REDRAW_MODE))
+    admitted = _stamped_after(
+        dict(only_leg, redraw_scope=dict(only_leg["redraw_scope"],
+                                         mode=gva.BOUNDING_REDRAW_MODE)), current)
     bounded = gva._current_world_contrast(current, superseded, admitted)
     assert bounded["bound_available"] is True, (
         "no subject reaches the bounding branch, so `bound_available` is still a constant and the "
@@ -2591,17 +2677,20 @@ def test_MUTATION_the_leg_guard_and_the_world_guard_each_fail_alone():
     """
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
-    superseded = _load(NOISE_FLOOR)
-    only_leg = _load(NOISE_FLOOR_ONLY_LIVE)
+    # BOTH WITNESSES ARE STAMPED AFTER THE RUN THEY BOUND, so the guard named in each leg is the
+    # one that can refuse. A dated fixture against a promoted run is refused by the STALENESS guard
+    # first, and a mutation battery whose witnesses die on a third guard reports SURVIVED for both.
+    no_world = _stamped_after(_load(NOISE_FLOOR_NO_WORLD), current)
+    only_leg = _stamped_after(_load(NOISE_FLOOR_ONLY_LIVE), current)
 
     # MUTATION 1: the world guard drops. The superseded floor -- right leg, no world -- is the
     # only subject that tells the mutated function from the real one.
     world_blind = gva._current_world_bound(
-        dict(superseded, world_identity={"digest": live}), current, live)
+        dict(no_world, world_identity={"digest": live}), current, live)
     assert world_blind["bound_available"] is True, (
         "the superseded floor does not become admissible when its digest is faked to the live "
         "one, so it cannot witness the removal of the world guard")
-    assert gva._current_world_bound(superseded, current, live)["bound_available"] is False, (
+    assert gva._current_world_bound(no_world, current, live)["bound_available"] is False, (
         "the world guard is not what refuses the superseded floor")
 
     # MUTATION 2: the leg guard drops. The `only` leg -- live world, wrong mode -- is the only
@@ -2657,9 +2746,10 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
-    admitted = dict(_load(NOISE_FLOOR_ONLY_LIVE),
-                    redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
-                                      mode=gva.BOUNDING_REDRAW_MODE))
+    admitted = _stamped_after(
+        dict(_load(NOISE_FLOOR_ONLY_LIVE),
+             redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+                               mode=gva.BOUNDING_REDRAW_MODE)), current)
 
     # WITNESS A -- the re-draws straddle the bound they generate. These are the live artefact's
     # own three rows, which is why this needs no new compute leg.
@@ -2731,6 +2821,145 @@ def test_the_verdict_is_withheld_when_the_floors_own_redraws_reverse_it():
         "a reason for withholding was published beside a stated verdict")
 
 
+def _floor_with_n_advantages(floor: dict, values: list) -> dict:
+    """The same floor re-seeded to ANY number of rows, with its published spread moved to match.
+
+    WHY THE ROW COUNT HAS TO BE A PARAMETER. `_floor_with_advantages` zips against the artefact's
+    existing three seeds, so it can only ever produce a three-row family -- and three rows is
+    exactly the count at which the property under test below is arithmetically unreachable. A
+    witness for the n>=5 branch has to be able to add rows.
+
+    `selection_gbp_spread` MOVES WITH THE ROWS, because `_seed_spreads` reconciles the spread it
+    derives from the seed rows against the one the floor publishes and withholds ALL THREE
+    contrasts when they disagree. A fixture that added rows and left that block alone would be
+    refused by the reconciliation guard, and the control above it would then report the failure of
+    the guard it names rather than the one that actually fired -- the shape `_stamped_after`
+    documents ten instances of. The recomputation here is the artefact's own definition, so what
+    this builds is a floor that could really have been measured.
+    """
+    template = floor["seeds"][0]
+    seeds = [dict(template, value_advantage_gbp=value) for value in values]
+    selections = [seed["selection_gbp"] for seed in seeds]
+    mean = sum(selections) / len(selections)
+    stdev = (sum((s - mean) ** 2 for s in selections) / (len(selections) - 1)) ** 0.5
+    return dict(floor, seeds=seeds,
+                selection_gbp_spread=dict(floor.get("selection_gbp_spread") or {}, stdev=stdev))
+
+
+def test_a_leg_whose_own_redraws_straddle_zero_states_no_direction_however_stable():
+    """A quantity that changes sign across re-draws of itself has no direction to state.
+
+    THE DEFECT (2026-09-09, Lane 0, the director's reading of the live page). The selection leg --
+    the ONLY figure on this page that could be value CREATED rather than moved, and therefore the
+    one a reader will quote -- publishes +GBP 270.21 over a family running from -GBP 3,075 to
+    +GBP 1,199 whose CENTRE is -GBP 481. The page withheld its verdict, correctly, and every word
+    of the refusal was about STABILITY: "it is a single draw", "a property of which draw was made".
+    Nothing on the page said the quantity has no sign, and nothing said the centre of its own
+    family is on the other side of zero from the published figure. "No verdict, +GBP 270" and "no
+    verdict, and this leg's own re-draws centre below zero" are different pages.
+
+    WHY `stable` COULD NOT CATCH IT AND NEVER WILL. Every verdict in `_verdict_stability` goes
+    through `_resolvable`, which takes `abs()`. It asks how FAR from zero a draw fell, never which
+    SIDE. A family unanimous about clearing its own spread can be unanimous about nothing else.
+
+    THE EQUIVALENCE IS THE POINT OF THE THIRD WITNESS, and it was established before the gate was
+    written rather than discovered afterwards as a dead branch. At three rows -- today's seed count
+    -- a family that straddles zero CANNOT be verdict-stable: with two draws at +a and one at -b the
+    sample standard deviation is (a+b)/sqrt(3), and min(a, b) > 0.577(a+b) has no solution. The same
+    holds at four. So on today's artefact this gate can only ever fire where `stable` is already
+    False, and a control resting on the live floor alone would be asserting an equivalence while
+    reading like a gate. It becomes reachable at n>=5, which is a floor re-run with more seeds and
+    nothing more exotic than that, and WITNESS C is that floor.
+
+    Fires on: dropping the sign clause; folding it into the stability reason so one deletes the
+    other; keying it to the figure being small or negative rather than to the family straddling
+    zero; hard-coding the centre's side; or letting the stated-verdict branch keep a direction on a
+    family with no sign.
+    """
+    live = _live_digest()
+    current = _world_stamped(_load(THREE_ARM), live)
+    superseded = _load(NOISE_FLOOR)
+    admitted = _admitted_live_floor(current)
+
+    # WITNESS A -- the live artefact, unedited, on the leg the director was reading. The selection
+    # leg's own three rows straddle zero, so the clause is due on the page as it stands today.
+    block = gva._current_world_contrast(current, superseded, admitted, later_runs=[])
+    leg = block["selection_leg"]
+    assert leg["verdict_stability"]["sign_determined"] is False, (
+        "the live selection leg's re-draws no longer straddle zero, so this subject cannot "
+        "witness the sign gate -- re-point it at a leg that does rather than deleting the rung")
+    assert leg["no_sign"], (
+        "the selection leg's family straddles zero and the feed composed no sentence saying so, "
+        "so a reader meets a positive figure whose own re-draws change sign with nothing on the "
+        "page telling them")
+    assert leg["no_sign"] in leg["verdict_withheld_because"], (
+        "the sign clause was composed and never reached the published reason, so it renders "
+        "nowhere a reader looks")
+    # BOTH CAUSES SURVIVE. This leg is withheld for stability AND for sign, and a reason that
+    # dropped either is a reason that deleted a finding from the surface.
+    # KEYED TO THERE BEING TWO CAUSES, NOT TO EITHER ONE'S WORDS. Take the sign clause out of the
+    # published reason and what is left must still say something -- that is the stability refusal,
+    # whatever it is currently worded as, and a producer that reworded it stays green while one
+    # that substituted one cause for the other reds.
+    assert leg["verdict_withheld_because"].replace(leg["no_sign"], "").strip(), (
+        "the stability reason was replaced by the sign one rather than joined to it")
+    # THE CENTRE'S SIDE IS COMPOSED, NOT ASSERTED. -GBP 481 against a published +GBP 270, so this
+    # subject must say the centre is on the other side; WITNESS B is what shows the sentence is
+    # capable of saying nothing at all about a family that agrees with its draw.
+    assert "CENTRE of that family is on the other side of zero" in leg["no_sign"], (
+        "the published draw is positive and the centre of its own family is negative, and the "
+        "page did not say so")
+
+    # WITNESS B -- SOLE WITNESS THAT THE CLAUSE IS A JUDGEMENT. The same rows shifted so every
+    # draw is on one side of zero, and nothing else touched. A family with a sign gets no sign
+    # clause, and the stated-verdict branch stays exactly as it was.
+    one_sided = _floor_with_advantages(admitted, [10000.0, 10100.0, 10200.0])
+    stated = gva._current_world_contrast(current, superseded, one_sided, later_runs=[])
+    assert stated["verdict_stability"]["sign_determined"] is True, (
+        "a family every one of whose draws is positive was read as having no sign")
+    assert not stated["no_sign"], (
+        "a sign clause was published about a family that holds one sign, so the clause is "
+        "unconditional and WITNESS A carries no information")
+    assert stated["resolved"] in (True, False) and not stated["verdict_withheld_because"], (
+        "the sign gate withheld a verdict on a family with a sign: "
+        + str(stated.get("verdict_withheld_because"))[:200])
+
+    # WITNESS C -- THE GATE FIRING ALONE, which needs five rows and cannot be built with three.
+    # Every draw here clears the family's own GBP 8.06 spread, so `stable` is True and the
+    # stability gate is silent; four of the five are negative and one is positive, so the quantity
+    # has no sign. Without this branch the whole gate is an equivalence at today's seed count and
+    # this control would be asserting one while reading like a gate.
+    straddling = _floor_with_n_advantages(
+        admitted, [-9.676, -9.785, -8.095, 8.400, -8.754])
+    low_draw = dict(current, level_vs_selection=dict(
+        current["level_vs_selection"], value_advantage_gbp=-9.0))
+    alone = gva._current_world_contrast(low_draw, superseded, straddling, later_runs=[])
+    stability = alone["verdict_stability"]
+    assert stability["checked"] is True and alone["bound_available"] is True, (
+        "the five-row floor was refused before the sign gate could be reached, so this witness "
+        "is measuring another guard: " + str(alone.get("why_no_bound"))[:200])
+    assert stability["stable"] is True, (
+        "the five draws do not all agree about clearing their own spread, so the stability gate "
+        "is what withholds here and this witness cannot show the sign gate doing work of its own")
+    assert stability["sign_determined"] is False, (
+        "four negative draws and one positive were read as holding a sign")
+    assert alone["resolved"] is None and alone["no_sign"], (
+        "a direction was stated on a quantity whose own re-draws change sign, on the one branch "
+        "where nothing else would have caught it")
+    assert alone["verdict_withheld_because"] == alone["no_sign"], (
+        "the sign gate fired alone and the published reason is not the sign clause, so the page "
+        "states a refusal whose cause it cannot name")
+    # AND THE HEADLINE CANNOT RECITE THE STABILITY SENTENCE HERE. Every draw clears the spread, so
+    # "N of the M re-draws clear that spread and the rest do not" would be a falsehood -- which is
+    # what an unconditional recital of that sentence would print.
+    rendered = gva._leg_clause(alone, "LEAD. ", resolved_tail=". ")
+    assert "STATES NO VERDICT" in rendered and alone["no_sign"] in rendered, (
+        "the headline withheld the verdict without telling the reader the quantity has no sign")
+    assert "the rest do not" not in rendered, (
+        "the headline recited the stability refusal on a family whose draws all clear their own "
+        "spread, so the page states as fact something its own numbers contradict")
+
+
 def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verdict():
     """A STATED verdict places its draw in its family and sends the reader to it, not only a
     withheld one -- AND STATES THE FAMILY'S NUMBERS NOWHERE, because they have one home.
@@ -2780,9 +3009,10 @@ def test_the_redraw_family_reaches_the_headline_on_the_branch_that_states_a_verd
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
-    admitted = dict(_load(NOISE_FLOOR_ONLY_LIVE),
-                    redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
-                                      mode=gva.BOUNDING_REDRAW_MODE))
+    admitted = _stamped_after(
+        dict(_load(NOISE_FLOOR_ONLY_LIVE),
+             redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+                               mode=gva.BOUNDING_REDRAW_MODE)), current)
     unanimous = _floor_with_advantages(admitted, [20000.0, 20100.0, 20200.0])
     stated = gva._current_world_contrast(current, superseded, unanimous)
     assert stated["resolved"] is not None and not stated["verdict_withheld_because"], (
@@ -2834,9 +3064,10 @@ def test_MUTATION_the_stability_guard_fails_on_its_own_witness_and_only_there():
     live = _live_digest()
     current = _world_stamped(_load(THREE_ARM), live)
     superseded = _load(NOISE_FLOOR)
-    admitted = dict(_load(NOISE_FLOOR_ONLY_LIVE),
-                    redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
-                                      mode=gva.BOUNDING_REDRAW_MODE))
+    admitted = _stamped_after(
+        dict(_load(NOISE_FLOOR_ONLY_LIVE),
+             redraw_scope=dict(_load(NOISE_FLOOR_ONLY_LIVE)["redraw_scope"],
+                               mode=gva.BOUNDING_REDRAW_MODE)), current)
     straddling = _floor_with_advantages(admitted, [1467.230551, 2433.696987, 450.9949])
     unanimous = _floor_with_advantages(admitted, [10000.0, 10100.0, 10200.0])
 
@@ -3323,7 +3554,12 @@ def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_t
     floor with any digest at all is the null rung, and it must put the direction BACK -- otherwise
     this is a control satisfied by a feed that refuses everything for ever.
     """
-    floor = _load(NOISE_FLOOR)
+    # THE WITNESS IS A DATED FLOOR, NEVER THE CANONICAL PATH (2026-09-09). This read `NOISE_FLOOR`,
+    # which HELD these bytes and therefore had the property by accident; promoting the 09-08b floor
+    # onto that path gave it a world digest and this control lost the only subject that can reach
+    # its refusal. A witness for "names no world" has to be a file that can never gain a stamp.
+    # Stamped forward so the AGE guard is not what refuses it -- the world guard is on trial.
+    floor = _stamped_after(_load(NOISE_FLOOR_NO_WORLD), _load(THREE_ARM))
     assert ((floor.get("world_identity") or {}).get("digest")) is None, (
         "the superseded floor now names a world, so this control has lost its witness -- the "
         "refusal it guards can no longer be reached from the real artefact")
@@ -3375,11 +3611,40 @@ def _floor_with_level_legs(floor: dict, values: list) -> dict:
     return dict(floor, seeds=seeds)
 
 
-def _admitted_live_floor() -> dict:
-    """The live-world floor relabelled to the bounding leg -- the subject the world/leg guards pass."""
+def _stamped_after(floor: dict, run: dict | None = None) -> dict:
+    """The same floor, stamped LATER than the run it will bound.
+
+    THE FIXTURE FLOORS ON DISK ARE DATED AND `THREE_ARM` IS A MOVING POINTER (2026-09-09). Every
+    subject in this file pairs a dated floor artefact with whatever run is currently promoted to the
+    canonical path, and `_staleness_caveat` refuses a bound stamped before the figure it bounds --
+    correctly, and it is one of this page's load-bearing refusals. So the day the 2026-09-08b run
+    was promoted, ten controls whose subject is the WORLD guard, the LEG guard or the STABILITY
+    guard were refused by the STALENESS guard instead, and each of them reported the failure of the
+    guard it names rather than the one that fired. A green suite would have told the same lie in
+    reverse the day the floor artefact was newer by accident.
+
+    THE STAMP IS DERIVED FROM THE RUN, NEVER READ OFF THE ARTEFACT. What these subjects need is the
+    PROPERTY "this floor postdates the figure it bounds", and a fixed date has that property only
+    against the runs that happen to predate it.
+    """
+    when = ((run if isinstance(run, dict) else _load(THREE_ARM)) or {}).get("generated_at")
+    if not isinstance(when, str) or not when:
+        return dict(floor)
+    later = (datetime.datetime.fromisoformat(when.replace("Z", "+00:00"))
+             + datetime.timedelta(hours=1))
+    return dict(floor, generated_at=later.strftime("%Y-%m-%dT%H:%M:%SZ"))
+
+
+def _admitted_live_floor(run: dict | None = None) -> dict:
+    """The live-world floor relabelled to the bounding leg -- the subject the world/leg guards pass.
+
+    Stamped after the run it bounds by `_stamped_after`, so the staleness guard is not what refuses
+    it; see that helper for the ten controls that went red reporting the wrong guard.
+    """
     only_live = _load(NOISE_FLOOR_ONLY_LIVE)
-    return dict(only_live,
-                redraw_scope=dict(only_live["redraw_scope"], mode=gva.BOUNDING_REDRAW_MODE))
+    return _stamped_after(
+        dict(only_live, redraw_scope=dict(only_live["redraw_scope"],
+                                          mode=gva.BOUNDING_REDRAW_MODE)), run)
 
 
 def test_the_level_leg_carries_its_own_bound_measured_in_this_world():
@@ -4238,6 +4503,88 @@ def _read_current_world_run() -> dict:
     return gva._read(gva.CURRENT_WORLD_THREE_ARM_PATH)
 
 
+def _dir_named(tmp_path, artefacts: dict):
+    """A directory holding these artefacts under names the CALLER chose.
+
+    `_dir_of` numbers its files, which is right for every leg that only needs the glob to admit
+    them and useless for the one leg where the FILENAME is the subject -- the promoted copy and its
+    dated twin have to be named to be told apart.
+    """
+    room = tmp_path / "named{}".format(len(list(tmp_path.glob("named*"))))
+    room.mkdir()
+    for name, artefact in artefacts.items():
+        (room / name).write_text(json.dumps(artefact), encoding="utf-8")
+    return room
+
+
+def test_the_promoted_copy_and_its_dated_twin_are_one_row_in_the_census_not_two(tmp_path):
+    """One RUN on disk under two names may not be published as two later runs disagreeing.
+
+    THE DEFECT (2026-09-09, Lane 0, found by promoting). Promotion here is a FILE COPY -- the
+    2026-09-08b run was copied onto `THREE_ARM_PATH` and its dated original stayed on disk, which
+    is how this project keeps superseded-with-provenance. The census globs `value_cycle_ab*.json`,
+    so it took BOTH copies, and `current_world.composition.later_runs_in_this_world` came back with
+    two rows carrying identical figures. `_the_later_runs_disagree`'s sentence counts those rows:
+    it would have told a reader "2 later runs over the SAME world exist and are not published
+    above" and then printed one run's figures twice. The convention that creates the twin is
+    permanent, so this fires on every future promotion, not on this one.
+
+    THE POISON ROUND IS FIRST AND IT IS NOT DECORATION. "One row" is the answer a dedupe that
+    collapses EVERYTHING also gives, and a census that returned one row for two genuinely different
+    runs would be a fail-closed blindness with the same green as the fix. So two distinct runs are
+    asserted to stay two rows before the twin is shown at all.
+
+    THE SURVIVING NAME IS THE DATED ONE, and that is the substance rather than a tidy-up.
+    `THREE_ARM_PATH` is a moving pointer -- a reader who follows it next week reads a different run
+    beside these figures -- so naming it against a run is a name that expires. The losing name is
+    kept in `also_on_disk_as`: dropping it would be this module choosing which copy a reader may
+    know about.
+
+    Fires on: counting files instead of runs; collapsing two distinct runs; surviving under the
+    moving pointer's name; discarding the other name; or folding two UNSTAMPED files together on a
+    shared date, which is the flattering reading of a missing `producing_commit`.
+    """
+    live = _live_digest()
+    vantage = {"generated_at": "2000-01-01T00:00:00Z"}
+    promoted = gva.THREE_ARM_PATH.name
+    dated = "value_cycle_ab_s1_three_arm_29990101b.json"
+
+    # POISON ROUND -- two genuinely different runs must still be two rows.
+    two = gva._later_runs_in_this_world(
+        vantage, live,
+        _dir_named(tmp_path, {promoted: _a_later_run("2099-01-01T00:00:00Z", live, 0.10),
+                              dated: _a_later_run("2099-01-02T00:00:00Z", live, 0.80)}))
+    assert len(two) == 2, (
+        "the census collapsed two DIFFERENT runs, so the one-row leg below would pass for a "
+        "dedupe that has gone blind rather than for one that works")
+
+    # THE SUBJECT -- one run, two filenames, exactly as a promotion leaves the directory.
+    run = _a_later_run("2099-01-01T00:00:00Z", live, 0.10)
+    rows = gva._later_runs_in_this_world(
+        vantage, live, _dir_named(tmp_path, {promoted: run, dated: run}))
+    assert len(rows) == 1, (
+        "one run on disk under two names is published as {} later runs, and the sentence a reader "
+        "meets counts these rows".format(len(rows)))
+    assert rows[0]["artefact"] == dated, (
+        "the census named the promoted path, which is a pointer that will hold a different run "
+        "next week, over the dated copy that still identifies this one")
+    assert promoted in rows[0].get("also_on_disk_as", []), (
+        "the other copy's name was discarded rather than shown, so the row hides that the run is "
+        "on disk twice")
+
+    # UNSTAMPED FILES ARE NOT ONE RUN. Same date, no commit either side: nothing establishes they
+    # are the same run, and folding them would hide a second run behind the first.
+    unstamped = _a_later_run("2099-01-01T00:00:00Z", live, 0.10)
+    unstamped.pop("producing_commit")
+    other = _a_later_run("2099-01-01T00:00:00Z", live, 0.80)
+    other.pop("producing_commit")
+    assert len(gva._later_runs_in_this_world(
+        vantage, live,
+        _dir_named(tmp_path, {promoted: unstamped, dated: other}))) == 2, (
+        "two runs with no producing commit were folded together on a shared date, which reads a "
+        "missing stamp as evidence of sameness")
+
+
 def _dir_of(tmp_path, artefacts: list):
     """A directory holding exactly these artefacts, under names the census's glob admits.
 
@@ -4278,7 +4625,7 @@ def test_an_auc_null_from_a_run_that_names_no_world_withholds_its_direction_and_
       D -- a run that names no world and does NOT clear its null: "we cannot tell" must still go
            out. This is the branch a guard keyed to the world alone would wrongly silence.
     """
-    three_arm = _load(THREE_ARM)
+    three_arm = _load(THREE_ARM_NO_WORLD)
     assert ((three_arm.get("world_identity") or {}).get("digest")) is None, (
         "the three-arm run now names a world, so this control has lost its witness -- the refusal "
         "it guards can no longer be reached from the real artefact")
@@ -4383,7 +4730,9 @@ def test_both_auc_nulls_on_the_page_name_the_same_world_as_the_run_they_came_fro
     # THE UNSTAMPED CASE, as its own witness. Here the claim is not that both name a world -- there
     # is none to name -- but that both WITHHOLD. One call site wired and the other not shows up as
     # one block refusing while its twin, over the same population, states a direction.
-    bare = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))
+    # THE SUBJECT IS THE DATED UNSTAMPED RUN, not the canonical path: promotion put a world digest
+    # on `THREE_ARM` on 2026-09-09, and "there is none to name" stopped being true of it.
+    bare = gva.build(_load(THREE_ARM_NO_WORLD), _load(NOISE_FLOOR_NO_WORLD), _load(RUN_OUTPUT))
     both = [(bare.get("method_skill") or {}).get("churn_auc_null") or {},
             ((bare.get("decisions") or {}).get("auc_attribution") or {}).get("null_bound") or {}]
     for block in both:

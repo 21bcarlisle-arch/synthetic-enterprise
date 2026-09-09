@@ -78,6 +78,7 @@ refusing everything. Neutering that helper reds it (DID NOT RAISE), which is how
 from __future__ import annotations
 
 import copy
+import decimal
 import html as html_lib
 import json
 import math
@@ -1852,11 +1853,22 @@ def test_the_departures_reach_the_reader_by_name_once_a_run_carries_them():
 
 
 def _row(bucket: dict) -> str:
-    """One believed-retention band as a reader reads across it, in `_text`'s collapsed form."""
+    """One believed-retention band as a reader reads across it, in `_text`'s collapsed form.
+
+    ROUNDED THE DOOR'S WAY AND NOT PYTHON'S (2026-09-09). The door renders these with
+    `Math.round`, which is half-UP; Python's `round` is half-to-EVEN. No band had ever landed on a
+    half until the 09-08b run put 0.625 in the first one, and then this helper expected "62%" of a
+    page rendering "63%" -- a red that named the table as missing when the table was there and
+    correct. Every cell a rung predicts for a door has to be rounded the way the door rounds it.
+    """
+    def half_up(rate):
+        return int(decimal.Decimal(rate * 100).quantize(
+            decimal.Decimal("1"), rounding=decimal.ROUND_HALF_UP))
+
     return "{:.1f}–{:.1f} {} {}% {}%".format(
         bucket["believed_from"], bucket["believed_to"], bucket["n"],
-        round(bucket["realised_retention_rate"] * 100),
-        round(bucket["realised_retention_rate_under_a_flipped_label"] * 100))
+        half_up(bucket["realised_retention_rate"]),
+        half_up(bucket["realised_retention_rate_under_a_flipped_label"]))
 
 
 def test_the_reversal_reaches_the_reader_as_a_TABLE_and_not_an_adjective(live):
@@ -3033,6 +3045,50 @@ def _assert_the_verdict_belongs_to_the_leg_that_earned_it(
             "states none" if states_a_direction else "states one"))
 
 
+def _assert_a_leg_with_no_sign_says_so_in_its_own_region(
+        leg: dict, region: str, subject: str) -> None:
+    """A leg whose own re-draws straddle zero must say so where the reader meets the figure.
+
+    THE DEFECT (2026-09-09, Lane 0). The selection leg -- the one figure on this page that could be
+    value CREATED rather than moved -- rendered as `+£270` under a refusal whose every word was
+    about stability: a single draw, which draw was made. The reader was never told the quantity has
+    no sign at all, nor that the centre of its own family sits on the other side of zero from the
+    figure they had just read. The band table does carry Lowest and Highest, and a reader who
+    compares two cells four hundred words apart can derive it; the page's own rule is that "we
+    cannot tell" belongs on the surface and not in a footnote.
+
+    BOTH DIRECTIONS, FROM THE FEED'S OWN FLAG. `sign_determined` is the subject, so this follows
+    the page on the day a re-run gives the selection leg a sign -- the clause must then be ABSENT,
+    and a control that only checked for presence would stay green on a producer that had started
+    printing it unconditionally. That is the asymmetry this file has been repaired for twice.
+
+    THE FEED'S OWN BYTES, NOT PROSE THIS FILE WROTE. The subject is `leg["no_sign"]`, composed by
+    `_no_sign_clause` and rendered verbatim, so a reworded clause stays green and a clause dropped
+    from a branch -- or rendered under the OTHER leg's lead -- reds. Translated through the door's
+    `prose()` first, for the reason `_door_prose` records.
+    """
+    stability = (leg or {}).get("verdict_stability") or {}
+    determined = stability.get("sign_determined")
+    clause = (leg or {}).get("no_sign") or ""
+    if determined is False:
+        assert clause, (
+            "{}: the feed says this leg's own re-draws fall on both sides of zero and composed no "
+            "sentence saying so, so the reader meets a signed figure drawn from a family that has "
+            "no sign".format(subject))
+        assert _door_prose(clause) in region, (
+            "{}: the page renders this leg's figure without the clause saying the quantity has no "
+            "sign ({!r}), so a reader takes a direction from evidence that cannot carry "
+            "one".format(subject, _door_prose(clause)))
+        return
+    # NOT-ASKABLE IS NOT "HAS A SIGN". `None` means fewer than two re-draws were read, and a page
+    # that printed the clause there would be claiming a measurement nobody made -- so the clause
+    # must be absent on BOTH of the other two states, and for different reasons.
+    assert not clause, (
+        "{}: the page tells the reader this leg has no sign while the feed says its re-draws {}, "
+        "so the refusal is unconditional and its presence above carries no information".format(
+            subject, "all fall on one side of zero" if determined else "were never asked"))
+
+
 def _assert_the_headline_places_the_draw_in_its_family(
         leg: dict, region: str, subject: str) -> None:
     """A leg's headline sentence must place its draw in its family and send the reader to it.
@@ -3178,8 +3234,16 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
             leg, selection_region, "the selection leg")
         _assert_the_verdict_belongs_to_the_leg_that_earned_it(
             cw, advantage_region, "the advantage")
+        # AND WHETHER THE QUANTITY HAS A SIGN AT ALL, per leg and in each leg's own region. The
+        # two families straddle zero in opposite ways -- today the advantage holds a sign and the
+        # choosing does not -- so a clause shown under the wrong lead tells a reader the opposite
+        # of the finding with every word still on the page.
+        _assert_a_leg_with_no_sign_says_so_in_its_own_region(
+            cw, advantage_region, "the advantage")
         if selection_region:
             _assert_the_verdict_belongs_to_the_leg_that_earned_it(
+                leg, selection_region, "the selection leg")
+            _assert_a_leg_with_no_sign_says_so_in_its_own_region(
                 leg, selection_region, "the selection leg")
         # THE WITHHELD LEG'S REVERSING RANGE, whichever leg withholds -- CARRIED, and shown to the
         # reader somewhere else. Not "the creation leg" as this block read until 2026-09-08: it
@@ -3306,7 +3370,11 @@ def test_MUTATION_a_verdict_rendered_under_the_other_legs_lead_is_caught_and_the
     # THE TRADE IS OF EVERY FIELD THE VERDICT IS COMPOSED FROM, not of the flags alone. A mirror
     # that swapped `resolved` and left the stability block behind would render a leg withholding
     # for the other leg's range, which is a third state and not the mirror.
-    swap = ("resolved", "verdict_withheld_because", "verdict_stability", "redraw_band")
+    # `no_sign` JOINED THE TRADE ON 2026-09-09. It is composed from `verdict_stability` and
+    # rendered inside the withheld sentence, so a mirror that moved the stability block and left
+    # this behind would render one leg's family under the other leg's sign clause -- the exact
+    # third state this list exists to prevent, and the one the new rung is about.
+    swap = ("resolved", "verdict_withheld_because", "verdict_stability", "redraw_band", "no_sign")
     for field in swap:
         mirrored_world[field], leg[field] = leg.get(field), mirrored_world.get(field)
     mirrored = gvad._current_world_clause(mirrored_world)
@@ -3326,6 +3394,14 @@ def test_MUTATION_a_verdict_rendered_under_the_other_legs_lead_is_caught_and_the
     _assert_the_headline_places_the_draw_in_its_family(
         mirrored_world, advantage_region, "the advantage")
     _assert_the_headline_places_the_draw_in_its_family(leg, selection_region, "the selection leg")
+    # THE SIGN CLAUSE FOLLOWS THE LEG IT WAS MEASURED FOR. On the mirror the leg with no sign is
+    # the ADVANTAGE's region, which is the state the live page has never been in -- so this is the
+    # only subject on which the clause's attribution is tested in the direction it will one day
+    # take.
+    _assert_a_leg_with_no_sign_says_so_in_its_own_region(
+        mirrored_world, advantage_region, "the advantage")
+    _assert_a_leg_with_no_sign_says_so_in_its_own_region(
+        leg, selection_region, "the selection leg")
 
     # AND THE SWAP IS CAUGHT. The same rendered page, judged against the feed it is NOT -- which
     # is the live feed, unmirrored. This is the poison round: it must fail, and it must fail for
