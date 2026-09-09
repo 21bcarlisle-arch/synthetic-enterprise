@@ -43,7 +43,10 @@ _PROJECT_ROOT = str(Path(__file__).resolve().parent.parent)
 if _PROJECT_ROOT not in sys.path:
     sys.path.insert(0, _PROJECT_ROOT)
 
-from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402 -- ditto
+from background.live_ledger_guard import (  # noqa: E402 -- ditto
+    guard_live_ledger_write,
+    in_test_process,
+)
 from background.publish_step_ledger import PublishStepLedger  # noqa: E402 -- needs the path above
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -3771,6 +3774,89 @@ def _trigger_frozen_baseline_refresh_out_of_band(git_hash="unknown"):
             entry["unit"], entry["log"]))
 
 
+# The published feed directories. Everything the public site reads at runtime is under
+# one of these, so the containment IS the definition -- a feed added tomorrow is covered
+# on the day it is created.
+PUBLISHED_FEED_DIRS = (
+    PROJECT_DIR / "site" / "data",
+    PROJECT_DIR / "site" / "state",
+    PROJECT_DIR / "docs" / "state",
+)
+
+
+class SitePublishUnderTest(RuntimeError):
+    """A test process tried to run the live site publish pipeline."""
+
+
+def guard_site_publish_pipeline(*, entry_point: str) -> None:
+    """Refuse a test process's invocation of the site publish pipeline.
+
+    WHY THE ENTRY POINT AND NOT THE WRITE (2026-09-09, LATENT finding `SEAT_FINDING_A_TEST_
+    REWROTE_TWENTY_SIX_LIVE_FEEDS_INTO_A_DEGRADED_PUBLISH_STATE_AND_THE_ONLY_THING_THAT_
+    NOTICED_BLAMED_THE_WRITER`).
+
+    `live_ledger_guard.guard_live_ledger_write` guards at the WRITE because every ledger
+    writer takes a `path` it can be handed a `tmp_path` for. **The site pipeline has no
+    such seam.** `generate_dashboard_json` below runs ~40 generators; 92 modules under
+    `tools/` and `background/` reference `site/data`, and each resolves its own root as
+    `Path(__file__).resolve().parents[1]` at IMPORT time. There is nothing a caller can
+    pass to redirect them, so the only place the refusal can be both real and honest is
+    before the pipeline starts.
+
+    WHAT WAS MEASURED. One test -- `test_website_integrity_fix.py::test_generate_dashboard_
+    json_returns_gate_status` -- called this pipeline for real. It left 27 paths dirty (26
+    tracked feeds plus one NEW untracked feed) and rewrote `site/data/publish_steps.json`
+    from (degraded false, run_stamp `c440337ad`, 0 failing) to (**degraded true, run_stamp
+    `"unknown"`, 6 failing**), every failure naming a pytest tmpdir. The test passed; the
+    site suite passed afterwards; `degraded: true` is a state the ledger is designed to
+    hold. The only thing that noticed was `promote_worktree_landing`, and it told the
+    writer they had left work uncommitted -- sending them to add `site/data/` to a pathspec
+    and publish a unit test's exhaust as a run.
+
+    WHY THERE IS NO `dest_root` PARAMETER, WHICH WAS THE OBVIOUS FIX. A parameter accepted
+    and not honoured is worse than none: it reads as containment at every call site while
+    92 import-time roots ignore it -- a fake more permissive than its subject, which turns
+    a fail-open into a green suite (R15). Threading a real destination root through those
+    92 modules is the correct fix and is NOT done; it is recorded as a named gap, not
+    filled with a placeholder that looks like an answer.
+
+    WHY IT DOES NOT COST THE SUITE ANYTHING. Censused before landing: of the four tests
+    that reach this entry point, **three already monkeypatch it away**, one saying why in
+    its own comment -- *"generate_dashboard_json writes to the REAL site/data/dashboard.json
+    (hardcoded path inside generate_dashboard_data.py) -- mock it to avoid corrupting the
+    live dashboard"*. The class was known and solved three times as an instance (R10).
+
+    WHY THIS LIVES HERE AND NOT IN `live_ledger_guard.py`, WHICH IS ITS PROPER HOME. Same
+    doctrine, same `in_test_process()` (imported, not copied), second subject -- it belongs
+    beside the ledger guard and was written there first. It was moved because
+    `tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_
+    is_measured_not_assumed` is RED AT HEAD (86 unguarded observability writers against a
+    bound of 74) for reasons unrelated to this work -- proved by running its census over
+    `background/` extracted clean at HEAD: 86 both sides. The commit gate selects any test
+    that NAMES a staged path, so editing `live_ledger_guard.py` pulls that red into this
+    landing. **Raising the bound to 86 banks two weeks of drift and that test's own failure
+    message says so in advance, so it was not raised.** The red is filed as its own BLOCKING
+    finding, `SEAT_FINDING_THE_UNGUARDED_LEDGER_WRITER_RATCHET_HAS_BEEN_RED_AT_HEAD_FOR_TWO_
+    WEEKS_AND_ITS_OWN_MESSAGE_SAYS_DO_NOT_DO_THE_EASY_THING_2026-09-09.md`. **Move this
+    function to `live_ledger_guard.py` when that red is cleared** -- this note is the whole
+    reason a later reader will know it is misplaced on purpose rather than by accident.
+
+    NO ESCAPE HATCH: the process that must not have the override is exactly the one able to
+    set it (`live_ledger_guard`'s own argument, and it applies unchanged here).
+    """
+    if not in_test_process():
+        return
+    raise SitePublishUnderTest(
+        f"{entry_point} refused: this is a test process, and this pipeline publishes into "
+        f"{', '.join(str(d) for d in PUBLISHED_FEED_DIRS)} through ~40 generators that "
+        "resolve their own output root at import and cannot be redirected by any argument "
+        "you can pass. On 2026-09-09 one test that called it rewrote 26 tracked feeds and "
+        "flipped publish_steps.json to degraded with run_stamp 'unknown' and 6 pytest-tmpdir "
+        "errors. Mock this entry point, as the three other tests that reach it already do. "
+        "There is no env-var override by design."
+    )
+
+
 def generate_dashboard_json(json_path, git_hash="unknown"):
     """Generate site/data/dashboard.json and every downstream site/state artifact.
 
@@ -3784,6 +3870,13 @@ def generate_dashboard_json(json_path, git_hash="unknown"):
     gate outcome. (QG_REOPENED_R2.md, 2026-07-04: an early `return ok` here
     made all of the below dead code since Phase QF -- none of it had run on
     any auto-processed cycle since.)"""
+    # A TEST PROCESS MAY NOT PUBLISH. First statement in the function, before the
+    # coverage gate below, because that gate writes too. See
+    # `live_ledger_guard.guard_site_publish_pipeline` for what this cost when it
+    # was absent: 26 tracked feeds rewritten and a publish ledger carrying
+    # run_stamp 'unknown'. No-op outside a test process -- the real daemons are
+    # untouched, which is the whole point.
+    guard_site_publish_pipeline(entry_point="generate_dashboard_json")
     ok = True
     # Coverage-report publish gate (director condition #3). MUST run before any
     # derived-figure generator below so a thin R13 draw cannot reach a surface.

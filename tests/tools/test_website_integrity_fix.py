@@ -330,54 +330,81 @@ def test_the_retired_exec_summary_comparison_has_not_come_back(tmp_path, monkeyp
     )
 
 
-def test_generate_dashboard_json_returns_gate_status(tmp_path, monkeypatch):
-    import background.process_run_complete as prc
+def test_generate_dashboard_json_refuses_to_publish_from_a_test_process(tmp_path):
+    """THIS TEST USED TO BE THE DEFECT IT NOW GUARDS (2026-09-09, LATENT finding
+    `SEAT_FINDING_A_TEST_REWROTE_TWENTY_SIX_LIVE_FEEDS_INTO_A_DEGRADED_PUBLISH_STATE...`).
 
-    monkeypatch.setattr(prc, "LOG_FILE", tmp_path / "log.md")  # isolate from real sim-runner-log.md
-    # Test throughput fix (TEST_THROUGHPUT_MEASUREMENT_AND_PROPOSAL.md root
-    # cause #2). generate_dashboard_json() unconditionally runs the ENTIRE
-    # site-regeneration pipeline (~40 generator calls) after the dashboard-data
-    # call this test cares about -- most take json_path and fail fast on the
-    # nonexistent tmp_path/run.json (caught + logged), but a handful take NO
-    # json_path at all and read/write real repo state regardless, with no
-    # staleness gate this test can rely on:
-    #   - tools.run_frozen_baseline.generate(): weekly-gated internally
-    #     (should_refresh_baseline()) -- replays the full decade TWICE
-    #     (current vs naive policy) whenever that gate is stale/missing.
-    #     The design doc's original profiling attributed the whole ~117s to
-    #     this call alone.
-    #   - Direct re-profiling (2026-07-19, via a timed instrumentation of
-    #     every generate_dashboard_json step with only the two mocks above
-    #     applied) found that in THIS repo/test environment the frozen
-    #     baseline was already fresh (a fast no-op) but the test still took
-    #     ~107s -- almost entirely two OTHER unconditional, non-json_path-gated
-    #     calls: tools.generate_provisional_plan_data.main() (~57s) and
-    #     tools.generate_test_mix_data.generate() (~47s, documented in that
-    #     module as "20 pytest --collect-only subprocess calls"). Neither is
-    #     part of what this test asserts (dashboard-data's gate-status return
-    #     value propagating through), so they are pure orthogonal cost here.
-    # All three are mocked below (frozen-baseline defensively, per the design
-    # doc, plus the two calls actually measured as dominant); every other
-    # downstream generator in the pipeline is left real since each already
-    # runs in well under a second (measured total for the rest: ~3s).
-    monkeypatch.setattr(
-        "tools.run_frozen_baseline.generate",
-        lambda *args, **kwargs: None,
+    It called `generate_dashboard_json` for real, asserted `result is False`, and
+    passed. Measured: it also left **27** paths dirty -- 26 tracked feeds under
+    `site/data/`, `site/state/` and `docs/state/`, plus one NEW untracked feed --
+    and rewrote `site/data/publish_steps.json` from (degraded false, run_stamp
+    `c440337ad`, 0 failing) to (degraded true, run_stamp `"unknown"`, 6 failing),
+    every failure naming a pytest tmpdir. It took 143s to do it.
+
+    THE OLD MOCKS WERE CHOSEN FOR RUNTIME, NOT CONTAINMENT, and the comment they
+    carried said so out loud: three generators were mocked because they were slow
+    (~117s, ~57s, ~47s), closing with *"every other downstream generator in the
+    pipeline is left real since each already runs in well under a second"*.
+    Cheapness was the admission criterion, so the set of generators touching the
+    real tree was defined by a property unrelated to the one that mattered -- and
+    the next sub-second generator added would have been born writing live feeds.
+
+    WHAT WAS LOST AND WHY THAT IS THE RIGHT TRADE. The old assertion was
+    behavioural: gate verdict False propagates out of the return. It is now split
+    into two controls that are each honest -- the refusal here, and
+    `test_the_gate_verdict_is_what_generate_dashboard_json_returns` below, which
+    is a source-level control and therefore WEAKER. Saying so plainly: this is a
+    downgrade of that one property. It is worth it because the property one level
+    down is still tested behaviourally and at the right seam by
+    `test_a_failing_check_propagates_out_of_generate` in this same file, and
+    because the old test bought its behavioural strength by publishing a unit
+    test's exhaust into the live feed set."""
+    # Function-local, matching this file's own idiom for every other import.
+    # A top-level `import pytest` splits the module's already-unsorted import
+    # block into two and adds an I001 the frozen ruff ratchet refuses -- and
+    # SORTING the block instead would put the tree BELOW the frozen census,
+    # which that ratchet refuses in the same breath (it demands equality).
+    import pytest
+
+    import background.process_run_complete as prc
+    from background.process_run_complete import SitePublishUnderTest
+
+    with pytest.raises(SitePublishUnderTest) as exc:
+        prc.generate_dashboard_json(tmp_path / "run.json")
+    # The refusal must NAME what to do instead, because whoever hits it is reading
+    # a traceback from a test they did not write.
+    assert "Mock this entry point" in str(exc.value)
+
+
+def test_the_gate_verdict_is_what_generate_dashboard_json_returns():
+    """The consistency-gate verdict must reach the caller, which NTFYs on it --
+    an unconditional `return True` would silently retire the alarm.
+
+    SOURCE-LEVEL, AND WEAKER FOR IT (see the test above for why the behavioural
+    version was retired). Keyed to the PROPERTY, not to today's answer: it asserts
+    the function's LAST return is the accumulated verdict name, so it stays green
+    if the gate grows more checks and reds if anyone returns a literal.
+
+    MUTATION: change the trailing `return ok` to `return True` -- this reds."""
+    import ast
+    import inspect
+    import textwrap
+
+    from background import process_run_complete as prc
+
+    fn = ast.parse(textwrap.dedent(inspect.getsource(prc.generate_dashboard_json))).body[0]
+    # `fn.body[-1]`, NOT `ast.walk(...)[-1]`: walk is breadth-first, so its last
+    # Return is the DEEPEST one -- the coverage gate's early `return False`,
+    # nested inside an `if`. Caught by this test failing on its first run, which
+    # is the only reason it is not silently pinned to the wrong statement.
+    last = fn.body[-1]
+    assert isinstance(last, ast.Return), (
+        f"generate_dashboard_json does not end in a return: {type(last).__name__}")
+    assert isinstance(last.value, ast.Name), (
+        "the final return is a literal, not the accumulated gate verdict: "
+        f"{ast.dump(last)}"
     )
-    monkeypatch.setattr(
-        "tools.generate_provisional_plan_data.main",
-        lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        "tools.generate_test_mix_data.generate",
-        lambda *args, **kwargs: None,
-    )
-    monkeypatch.setattr(
-        "tools.generate_dashboard_data.generate",
-        lambda json_path: False,
-    )
-    result = prc.generate_dashboard_json(tmp_path / "run.json")
-    assert result is False
+    assert last.value.id == "ok"
 
 
 def test_main_ntfys_immediately_on_consistency_gate_failure():
