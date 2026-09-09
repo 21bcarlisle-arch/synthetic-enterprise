@@ -2358,10 +2358,14 @@ def generate(run_json_path=None):
     _bad_debt_ok = _check_bad_debt_reconciliation_present(dashboard["financial"])
     _period_ok = _check_period_coverage_present(dashboard["financial"])
     mix_claim_ok = _check_front_door_segment_claim(dashboard)
+    # THE SECOND CLAIM ON THAT DOOR. The mix claim guards WHOSE book the figures are about; this
+    # guards what the run says about the thesis those figures exist to test. Both are sentences a
+    # reader meets above the fold and neither can be allowed to rot into a false public claim.
+    selection_verdict_ok = _check_front_door_selection_verdict()
     # Only the checks whose figures a reader can actually reach decide the verdict. The other
     # five still ran above and printed their diagnosis; see REPORTED_NOT_BLOCKING for why they
     # are reported rather than gating, and what would put them back.
-    consistency_ok = population_ok and mix_claim_ok
+    consistency_ok = population_ok and mix_claim_ok and selection_verdict_ok
 
     # THE OPENING DIRECT DEBIT, BOTH ARMS. Written on the publish path rather than
     # composed into `dashboard` because the block is a comparison of two runs of one
@@ -2404,6 +2408,12 @@ PUBLISH_VERDICT_CHECKS = {
     # sentence that has always been there.
     "_check_population_consistency": ("/", "the account count and settlement window on the front page"),
     "_check_front_door_segment_claim": ("/", "the front door's segment-mix claim matches the book"),
+    # ADDED 2026-09-09 with the paragraph it guards. The front door now states that the money
+    # side of the personalisation claim has been run and returned "we cannot tell"; this holds
+    # that sentence against `value_arms.json`'s own verdict field every publish, both ways.
+    "_check_front_door_selection_verdict": (
+        "/", "the front door's selection-leg verdict matches what the run actually says"
+    ),
 }
 
 #: REPORTED, NEVER BLOCKING -- and the reason is a genuine conflict between two director
@@ -2679,6 +2689,101 @@ def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
                 "sentence (it is a disclosure, not a target: never reweight the book to "
                 "make it true, R12/R13).".format(symbol, threshold, actual,
                                                  mix["composition_class"]),
+                file=sys.stderr,
+            )
+            return False
+    return True
+
+
+# ---------------------------------------------------------------------------
+# THE FRONT DOOR'S SELECTION VERDICT (2026-09-09)
+#
+# The front door states the personalisation claim -- "you create value fastest by knowing each
+# household well" -- and since 2026-09-09 also states that the money side of it has been run and
+# came back "we cannot tell". That second sentence is a claim about the CURRENT state of the
+# evidence, so it rots in a way the first one does not, and it rots in the FLATTERING direction
+# if left alone: a page still refusing to name a direction after the evidence resolved is quietly
+# understating what we know, and nobody files a defect against modesty.
+#
+# So it is keyed to the property and not to today's answer. `value_arms.json`'s
+# `current_world.selection_leg.resolved` is the feed's own machine-readable verdict -- null while
+# the leg names no direction, non-null once it does -- and this gate holds the page's attribute
+# against it BOTH WAYS.
+#
+# NAMING BOTH DIRECTIONS IN THE GRAMMAR, deliberately, and the reason is in this file's own
+# history: for six days in August the mix-claim refusal offered only `gt` while the book was
+# domestic, so the true claim was unwritable and the refusal read as "you typed it wrong" when
+# the answer was "the vocabulary cannot say what is true". `withheld` and `resolved` are both
+# writable here from the day this ships.
+#
+# FAIL-CLOSED throughout: an unreadable front door, an unreadable or unavailable feed, a missing
+# attribute or one whose value is outside the vocabulary all FAIL. "No claim found" must never
+# read as "claim fine".
+# ---------------------------------------------------------------------------
+VALUE_ARMS_FEED_PATH = PROJECT / "site" / "data" / "value_arms.json"
+_SELECTION_VERDICT_RE = re.compile(r'data-selection-verdict="(withheld|resolved)"')
+
+
+def _check_front_door_selection_verdict(
+    front_door_path=FRONT_DOOR_PATH, feed_path=VALUE_ARMS_FEED_PATH
+):
+    try:
+        html = front_door_path.read_text()
+    except OSError as exc:
+        print(
+            "FRONT-DOOR SELECTION-VERDICT GATE FAILED: front door unreadable ({}) -- an "
+            "unavailable check is a FAILED check, not a pass".format(exc),
+            file=sys.stderr,
+        )
+        return False
+
+    matches = _SELECTION_VERDICT_RE.findall(html)
+    if not matches:
+        print(
+            'FRONT-DOOR SELECTION-VERDICT GATE FAILED: no data-selection-verdict="withheld" '
+            "(the selection leg names no direction) or "
+            'data-selection-verdict="resolved" (it does) on the front door. The front door '
+            "states the personalisation claim, so the state of the evidence for it must be "
+            "stated beside it in a form this gate can check. The attribute is missing or was "
+            "edited into an unverifiable form.",
+            file=sys.stderr,
+        )
+        return False
+
+    try:
+        feed = json.loads(feed_path.read_text())
+    except (OSError, ValueError) as exc:
+        print(
+            "FRONT-DOOR SELECTION-VERDICT GATE FAILED: the value-arms feed is unreadable ({}), "
+            "so the front door's published verdict cannot be verified".format(exc),
+            file=sys.stderr,
+        )
+        return False
+
+    leg = (feed.get("current_world") or {}).get("selection_leg") or {}
+    if "resolved" not in leg:
+        print(
+            "FRONT-DOOR SELECTION-VERDICT GATE FAILED: the feed carries no "
+            "current_world.selection_leg.resolved, so there is nothing to hold the front door's "
+            "verdict against. Absence of the field is NOT absence of a claim on the page.",
+            file=sys.stderr,
+        )
+        return False
+
+    feed_says = "withheld" if leg["resolved"] is None else "resolved"
+    for page_says in matches:
+        if page_says != feed_says:
+            print(
+                "FRONT-DOOR SELECTION-VERDICT GATE FAILED: the front door says the selection "
+                "leg's verdict is {!r}, but this run's feed says {!r} "
+                "(current_world.selection_leg.resolved = {!r}). The published sentence is now "
+                "FALSE -- fix the sentence. It is a disclosure, not a target: never tune the "
+                "arm to make it true (R12/R13). If the feed has RESOLVED, the front door is "
+                "understating what we know and the paragraph must say what the leg says; if "
+                "the feed has gone back to WITHHELD, the front door is asserting a direction "
+                "the evidence no longer supports.".format(
+                    page_says, feed_says, leg["resolved"]
+                ),
                 file=sys.stderr,
             )
             return False
