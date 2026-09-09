@@ -100,3 +100,35 @@ root path positionally with the file already gone from disk does **not** land a 
 ran on the tree the commit *would* create, found TWO ROOMS still live in it, and refused.
 `--content-remove` **and** the positional path are both required. A working tree that passes while
 the resulting tree does not is exactly what landing this way exists to catch.
+
+---
+
+## POSTSCRIPT, same tick, minutes later — item 1 above is already spent
+
+Written before this document's own ink was dry, and kept beside the claim rather than folded into
+it. While the finding was landing, another lane committed `b10ce4bed`, *"merge origin/main:
+automatic reconciliation in an isolated worktree"*. It took this tree's side of the rename, and it
+pushed. Re-measured after `git fetch`:
+
+```
+$ git rev-list --left-right --count origin/main...HEAD
+0       1                         <- origin no longer ahead; only this finding is unpushed
+$ git ls-tree -r origin/main --name-only | grep SEAT_PREREG_RECONCILING_THE_TWO_VALUE_ARMS
+docs/staging/records/SEAT_PREREG_..._2026-09-09.md      <- records/ ONLY. The root path is gone.
+```
+
+**So "what is next" item 1 is done, by a lane that was not asked and while this was being written.**
+A later reader should not spend a turn on it. Items 2 and 3 stand untouched: the module's docstring
+still records a stopping condition this tick refuted, and `_git_rm` still cannot remove the
+untracked copy that completing a move now produces.
+
+**And the reconciliation turns the mechanism claim into a real falsifier, which it was not while
+origin disagreed.** The finding above says origin-restore is the mechanism the evidence makes
+available, and explicitly does not claim a writer was caught. Origin and HEAD now agree, so that
+mechanism can no longer fire. **If the root copy reappears again from here, origin-restore is
+refuted too and the writer is a third thing** — and that observation is worth more than this whole
+document, because it is the one the repair module has been missing since 2026-08-19. Whoever sees
+it next: record it, do not re-derive it.
+
+State at the end of this tick, measured: root absent, `records/` present, HEAD tracking one room,
+`finding_classes --check` PASS (0 failures).
