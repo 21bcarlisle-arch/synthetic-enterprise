@@ -326,8 +326,49 @@ def test_every_real_census_hit_is_covered():
             "on disk -- an exemption citing a control that does not exist is the prose inventory "
             "this rung exists to refuse")
 
+    # DELIBERATELY CONFLATED, WHICH IS THE OPPOSITE DIRECTION TO EVERY BUCKET ABOVE, and the
+    # reason it is a bucket of its own rather than another row in `covered_by_a_sibling`. Those
+    # exemptions say "a sibling proves this carrier TELLS THE TWO APART". These say "this carrier
+    # deliberately does NOT, and a sibling proves BOTH branches reach the same answer on purpose".
+    # Filing the second under the first would have this rung reporting that a conflation was
+    # distinguished, which is a worse failure than the gap it closes.
+    #
+    # `publish_standing_reds.json` became a `real` row on 2026-09-09 and wedged the publish gate
+    # from the moment it did. Its disposition ASKED the loader question and answered it from the
+    # module's own code: `publish_standing_red.load_ledger` is fail-open by design and says so in
+    # its docstring -- a missing store, an OSError/ValueError read and a structurally wrong
+    # document all return `empty_ledger()`. That is the DANGEROUS direction (an empty ledger
+    # reports less standing work, not more), and it is argued for rather than assumed: the
+    # alternative escalates a subject the ledger cannot name, and an escalation carrying no node
+    # id is the wallpaper that module replaced. The cost is bounded to one publish cycle, because
+    # the next refusal repopulates through `record_refusal` and `save_ledger` rewrites the whole
+    # document rather than merging, so a corrupt read cannot be half-carried forward.
+    #
+    # THE CITATION IS CHECKED ONE LEG HARDER THAN ABOVE: the named test FUNCTIONS must be in the
+    # file, not merely the file on disk. A sibling that still exists with its control deleted is
+    # exactly the prose inventory this rung refuses, and the file-exists check alone cannot see it.
+    deliberately_conflated = {
+        "publish_standing_reds.json": (
+            "test_a_standing_red_becomes_work_instead_of_a_retry.py",
+            ("test_an_unreadable_ledger_reads_as_empty_rather_than_as_a_nameless_escalation",
+             "test_a_broken_ledger_cannot_take_the_publish_cycle_down"),
+        ),
+    }
+    for exempt_path, (sibling_name, functions) in sorted(deliberately_conflated.items()):
+        sibling = Path(__file__).parent / sibling_name
+        assert sibling.is_file(), (
+            f"{exempt_path} is exempted here on the word of {sibling_name}, and that file is not "
+            "on disk -- an exemption citing a control that does not exist is the prose inventory "
+            "this rung exists to refuse")
+        source = sibling.read_text()
+        for function in functions:
+            assert f"def {function}(" in source, (
+                f"{exempt_path} is exempted on the word of {sibling_name}::{function}, and that "
+                f"test is not in the file -- the file surviving its control is how an exemption "
+                f"outlives the proof it rests on")
+
     uncovered = (real - covered - already_distinguishing - guarded_elsewhere
-                 - set(covered_by_a_sibling))
+                 - set(covered_by_a_sibling) - set(deliberately_conflated))
     assert not uncovered, (
         f"census `real` hits with no absent-vs-unreadable coverage: {sorted(uncovered)}. "
         "A new carrier of this class must either be probed above or named with its reason."
