@@ -1,0 +1,138 @@
+{
+  "subject": "the demand sample -- tools.demand_vector_coverage.generated_population",
+  "sample": {
+    "points": 20000,
+    "seed": 0
+  },
+  "canon": {
+    "document": "docs/staging/DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07.md",
+    "axes_named": [
+      "meter type and read pattern",
+      "payment method",
+      "tariff with its dates",
+      "move history",
+      "credit position"
+    ]
+  },
+  "declaration": "coverage of whether the demand sample spans the billing and commercial axes: measured over payment_method (jointly); blind to meter_type_and_read_pattern, tariff_and_dates, move_history, credit_position",
+  "axes": [
+    {
+      "axis": "meter_type_and_read_pattern",
+      "canon_phrase": "meter type and read pattern",
+      "carried_by": null,
+      "population_figure": {
+        "category": "smart_meter_installed",
+        "share": 0.689,
+        "source": "DESNZ Q4 2024 Smart Meters Statistics Table 5a: 10.6% (2016) to 68.9% (2024) of premises, read at 2024",
+        "reached_at": "simulation.premise_population.smart_meter_penetration"
+      },
+      "categories_in_the_world": 2,
+      "categories_in_the_sample": null,
+      "observed": null,
+      "n_the_answer_earns": null,
+      "agrees_by_construction": false,
+      "uncounted_as": [
+        "meter_read_pattern"
+      ],
+      "why": "no field of the drawn sample carries it (looked for ['meter_type', 'smart_meter', 'read_pattern']), so no figure about it exists at any sample size. It is an UNCOUNTED DIMENSION of the demand N, enumerated as ['meter_read_pattern'].",
+      "verdict": "ABSENT"
+    },
+    {
+      "axis": "payment_method",
+      "canon_phrase": "payment method",
+      "carried_by": "payment_method",
+      "population_figure": {
+        "category": "direct_debit",
+        "share": 0.72,
+        "source": "DESNZ \"Quarterly Energy Prices: June 2026\", payment methods section (end-March 2026): direct debit 72% of standard electricity customers, 75% of gas; via docs/market_research/ASSUMPTIONS.md",
+        "reached_at": "simulation.population_draw.DD_SHARE_ELEC"
+      },
+      "categories_in_the_world": 3,
+      "categories_in_the_sample": 2,
+      "observed": {
+        "direct_debit": 0.7208,
+        "not_direct_debit": 0.2792
+      },
+      "n_the_answer_earns": {
+        "n": 20000,
+        "half_width_95": 0.006222807083623917,
+        "n_for_tolerance": 310,
+        "tolerance": 0.05
+      },
+      "agrees_by_construction": true,
+      "uncounted_as": [
+        "payment_method_third_category"
+      ],
+      "why": "the sample carries 2 categories and the published record establishes that the world has 3; the sample draws this axis from the same published constant the census would score it against, so agreement on the margin is arithmetic and not evidence",
+      "verdict": "CARRIED_NOT_SPANNED"
+    },
+    {
+      "axis": "tariff_and_dates",
+      "canon_phrase": "tariff with its dates",
+      "carried_by": null,
+      "population_figure": {
+        "category": "actively_chosen_tariff",
+        "share": 0.45,
+        "source": "Ofgem Retail Market Indicators, October 2025 stock split: 45.1% of non-prepayment domestic electricity accounts on actively-chosen tariffs, 54.9% on default; ratified as the archetype shares by director console 2026-07-22. Anchors the CHOICE margin only -- no published figure establishes the distribution of tariff start dates or term lengths",
+        "reached_at": "simulation.household_segments.ENGAGEMENT_POPULATION_SHARE"
+      },
+      "categories_in_the_world": 2,
+      "categories_in_the_sample": null,
+      "observed": null,
+      "n_the_answer_earns": null,
+      "agrees_by_construction": false,
+      "uncounted_as": [
+        "tariff_and_dates"
+      ],
+      "why": "no field of the drawn sample carries it (looked for ['tariff_type', 'tariff_start', 'tariff_end']), so no figure about it exists at any sample size. It is an UNCOUNTED DIMENSION of the demand N, enumerated as ['tariff_and_dates'].",
+      "verdict": "ABSENT"
+    },
+    {
+      "axis": "move_history",
+      "canon_phrase": "move history",
+      "carried_by": null,
+      "population_figure": null,
+      "categories_in_the_world": null,
+      "categories_in_the_sample": null,
+      "observed": null,
+      "n_the_answer_earns": null,
+      "agrees_by_construction": false,
+      "uncounted_as": [
+        "move_history"
+      ],
+      "why": "no field of the drawn sample carries it (looked for ['move_history', 'moves', 'occupancy_start']), so no figure about it exists at any sample size. It is an UNCOUNTED DIMENSION of the demand N, enumerated as ['move_history']. No published figure establishes its distribution either, so the size of what is missing is itself unmeasured.",
+      "verdict": "ABSENT"
+    },
+    {
+      "axis": "credit_position",
+      "canon_phrase": "credit position",
+      "carried_by": null,
+      "population_figure": null,
+      "categories_in_the_world": null,
+      "categories_in_the_sample": null,
+      "observed": null,
+      "n_the_answer_earns": null,
+      "agrees_by_construction": false,
+      "uncounted_as": [
+        "arrears_position",
+        "credit_position"
+      ],
+      "why": "no field of the drawn sample carries it (looked for ['credit_position', 'arrears_balance_gbp', 'credit_score']), so no figure about it exists at any sample size. It is an UNCOUNTED DIMENSION of the demand N, enumerated as ['arrears_position', 'credit_position']. No published figure establishes its distribution either, so the size of what is missing is itself unmeasured.",
+      "verdict": "ABSENT"
+    }
+  ],
+  "verdict_counts": {
+    "SPANNED": 0,
+    "CARRIED_NOT_SPANNED": 1,
+    "ABSENT": 4
+  },
+  "uncounted_axes_of_the_demand_n": [
+    "half_hourly_shape_by_composition",
+    "payment_method_third_category",
+    "meter_read_pattern",
+    "arrears_position",
+    "move_history",
+    "credit_position",
+    "tariff_and_dates"
+  ]
+}

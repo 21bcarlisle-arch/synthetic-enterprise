@@ -161,6 +161,43 @@ def test_no_sample_size_is_published_without_the_reference_it_was_scored_against
             "within 400 characters of it, so a reader cannot tell what it is a count against")
 
 
+def test_EVERY_UNCOUNTED_BILLING_AXIS_REACHES_THE_READER_ON_THE_RENDERED_PAGE():
+    """The canon's second acceptable outcome, and it only counts if a reader meets it.
+
+    `DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07` section 4 allows two answers -- the
+    billing axes are spanned, or they are NAMED AS AN UNCOUNTED DIMENSION -- and W2_32's exit asks
+    for the naming to be on a reader-facing surface rather than in a footnote. Four of the five are
+    absent from the sample, so four names have to survive the trip from the census to the page.
+
+    SUBJECT IS THE RENDERED DOM, not the feed. The feed carrying the sentence proves the sentence
+    was written; only the render proves it is published. The same page's own history is why: a
+    complete, correct, valid per-page feed that nothing read was the defect this file was built
+    for.
+
+    KEYED TO THE CENSUS AND NOT TO TODAY'S PROSE. The axis names come from
+    `tools.billing_axis_coverage`, so an axis that stops being uncounted -- because the sample
+    gained a field for it -- drops out of this control by itself, and an axis the canon adds is
+    required here the moment the census reports it absent."""
+    from tools import billing_axis_coverage as bac
+
+    rendered = _text("r-evidence").lower()
+    absent = [a for a in bac.CANON_AXES
+              if bac._sample_carrier({}, a) is None]  # every axis, against an empty sample
+    assert absent, "no billing axis is absent from the sample at all, so this control is vacuous"
+    # The canon's own words for each axis, reduced to the noun a reader would recognise. A page
+    # that named four axes in a vocabulary of its own would pass a check on the count and tell a
+    # reader nothing.
+    for axis in absent:
+        head = axis.canon_phrase.split(" and ")[0].split(" with ")[0].strip().lower()
+        assert head in rendered, (
+            f"the rendered evidence rung never names {head!r}, which the census reports as an "
+            f"uncounted dimension of the published sample size. The canon allows the sample not to "
+            f"span an axis; it does not allow the reader not to be told.")
+    assert "uncounted" in rendered, (
+        "the four absent axes appear on the page without being called uncounted, so a reader meets "
+        "them as description rather than as a limit on the figure above them")
+
+
 def test_the_superseded_figure_is_marked_superseded_and_not_offered_as_the_answer():
     """The director refused 243 as an answer: *"report it as a floor for a partial vector, not an
     answer, and say so wherever it's published."* It may appear; it may not lead."""

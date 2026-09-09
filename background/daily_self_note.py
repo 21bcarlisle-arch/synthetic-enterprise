@@ -449,6 +449,16 @@ def render_note(now_iso: str, window_hours: int = 24, _runner=_run_git) -> str:
     except Exception as e:  # noqa: BLE001 — honest RED, never a silent "no drift"
         lines.append(f"- {_red(f'canon drift check unavailable: {e}')}")
 
+    # W2_32 / DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07 §4. The canon allows the demand
+    # sample not to span the billing axes; it does not allow that to go quiet. This is the trigger
+    # half — the census exists to be RE-ASKED, because the answer changes the moment the draw gains
+    # a field or the canon gains an axis, and neither of those arrives announcing itself.
+    try:
+        from tools.billing_axis_coverage import note_line as _billing_axis_line
+        lines.append(f"- {_billing_axis_line()}")
+    except Exception as e:  # noqa: BLE001 — honest RED, never a silent "still spanned"
+        lines.append(f"- {_red(f'billing axis census unavailable: {e}')}")
+
     lines += ["", "**Resource inputs**"]
     lines.append(f"- {res if res else _red(res_err)}")
 

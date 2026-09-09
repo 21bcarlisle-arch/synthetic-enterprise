@@ -2506,9 +2506,9 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 2
-  loop_stage: build
+  loop_stage: verify
   dial_inherited: 50
   provenance: director_ruling
   blocked_on: null
@@ -2546,6 +2546,26 @@
   # (2) every axis that is NOT spanned published as an uncounted dimension on a reader-facing
   # surface rather than in a footnote; (3) a control that reds when an axis is added to the canon's
   # list and not to the census.
+  #
+  # ANSWERED 2026-09-09, AND THE ANSWER IS "NO" ON ALL FIVE -- which the canon offers as an
+  # acceptable outcome and which this row was written to be able to return. `tools/
+  # billing_axis_coverage.py --measure`: 0 spanned, 1 carried-but-not-spanned, 4 absent. Meter type
+  # and read pattern, tariff and its dates, move history and credit position have NO FIELD in the
+  # drawn sample, so no larger sample produces a figure about them. Payment method is carried and
+  # still not spanned for two independent reasons -- two categories where the published record
+  # establishes three, and a margin the sample DRAWS from the very constant it would be scored
+  # against, so agreement there is arithmetic. That second reason is the one a reader of the output
+  # could not have caught, and `test_AN_AGREEMENT_THE_SAMPLE_WAS_BUILT_TO_PRODUCE_IS_NOT_SCORED_AS_
+  # FIDELITY` is what stops it being published as fidelity.
+  #
+  # WHAT IS AT L2 AND WHAT IS NOT. Exit (1) and (3) are the census and its controls; exit (2) is
+  # the `how-many-synthetic-households` knowledge page's evidence rung, proven to reach a reader by
+  # `site/test_the_sampling_page_reaches_the_reader.py::test_EVERY_UNCOUNTED_BILLING_AXIS_REACHES_
+  # THE_READER_ON_THE_RENDERED_PAGE` (red under a poisoned page). The census is re-asked daily
+  # through `background/daily_self_note.py`, because the answer changes the moment the draw gains a
+  # field or the canon gains an axis and neither arrives announcing itself. NOT done here, and not
+  # this row's: giving the sample any of the four absent axes. That is a build, it belongs where the
+  # draw is, and this row's job was to find out and publish which -- not to close the gap.
 
 - id: W2_33_a_weighted_case_can_still_be_inflated_into_a_small_population
   title: "the two reversibility properties the canon requires of the book -- inflating a weighted case into a small population, and raising the count on a high-volume case -- kept open by a control rather than by intention"
