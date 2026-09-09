@@ -2736,6 +2736,13 @@ def test_the_detectability_block_going_unavailable_says_so_rather_than_going_qui
     reading beside it, and nothing telling the reader anything is absent.
 
     Fires on: rendering the qualifier only when available and emitting nothing otherwise.
+
+    SCOPED TO THE SURVIVOR CUT'S OWN REGION (2026-09-09). The withheld-sentence leg used to read
+    the WHOLE panel, and it went red the first time a run carried an interval on the estimand
+    below -- because THAT cut's detectability block renders the same phrase about a different
+    population. A whole-page presence check has no way to tell "the block this test blanked came
+    back" from "a second subject appeared", and the second is what happened. The blanked block is
+    the survivor cut's, so the region is everything above the estimand's own heading.
     """
     feed = copy.deepcopy(_live_feed())
     msk = feed.get("method_skill") or {}
@@ -2745,11 +2752,22 @@ def test_the_detectability_block_going_unavailable_says_so_rather_than_going_qui
         "available": False, "reason": "this run carries no permuted interval and no sample size"}
 
     rendered = _render(feed)["arms-method"]
+    #: The estimand's block opens with this heading, so what precedes it is the survivor cut's.
+    below = "And the same question over every decision the arm priced?"
+    survivor_region = rendered.split(below)[0]
+    #: THE SPLIT HAS TO BE LOAD-BEARING, or the scoping is furniture that happens to pass. When
+    #: the estimand below carries an interval, its own detectability sentence IS on the page --
+    #: so the phrase is present in the panel and absent from this region, and only the partition
+    #: can tell those apart. When it is withheld there is no second subject and no split to make.
+    if below in rendered:
+        assert "smallest departure" in rendered, (
+            "the estimand's block is on the page and rendered no detectability sentence, so the "
+            "region assertion below would pass for the wrong reason")
 
-    assert "could have detected" in rendered, (
+    assert "could have detected" in survivor_region, (
         "the power reading is absent and the page says nothing about its absence")
-    assert "no permuted interval" in rendered
-    assert "smallest departure" not in rendered, (
+    assert "no permuted interval" in survivor_region
+    assert "smallest departure" not in survivor_region, (
         "the unavailable branch rendered the sentence it exists to withhold")
 
 

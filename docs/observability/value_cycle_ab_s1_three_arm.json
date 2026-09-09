@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-08T21:01:30Z",
+  "generated_at": "2026-09-09T01:24:34Z",
   "producing_commit": {
-    "commit": "b8bcbac2c8d1bbd8649de048429a9278b182a624",
-    "resolved_at": "2026-09-08T20:23:01Z",
+    "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
+    "resolved_at": "2026-09-09T00:33:16Z",
     "resolved_when": "at process start, when Python bound the modules this run executed -- NOT at artefact assembly, which is a later tree",
     "unavailable_because": null,
     "why_this_is_here": "This run takes hours and the tree moves under it. A consumer that wants to publish these counts needs to know which code drew them, and no diff between two artefacts can supply that."
@@ -149,15 +149,15 @@
     "why_it_matters": "`name` and `renewal_margin_arm` are the only two, and `name` does not reach a decision. Any third field here means the delta below carries an uncontrolled variable, which is the defect WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10 recorded on the sibling comparison."
   },
   "control_arm": {
-    "total_net_gbp": 147886.781507,
-    "total_gross_margin_gbp": 384027.4524114101,
-    "total_capital_cost_gbp": 6604.909435701396,
-    "total_bad_debt_gbp": 11807.41,
-    "final_treasury_gbp": 397886.78,
-    "provisioned_net_gbp": 128631.288519,
-    "provisioned_bad_debt_gbp": 31062.902988,
-    "provisioned_final_treasury_gbp": 378631.2885189954,
-    "enterprise_value_gbp": 132830.47879847753,
+    "total_net_gbp": 147954.255661,
+    "total_gross_margin_gbp": 383688.9722023295,
+    "total_capital_cost_gbp": 6601.938199876588,
+    "total_bad_debt_gbp": 11675.76,
+    "final_treasury_gbp": 397954.26,
+    "provisioned_net_gbp": 128576.389238,
+    "provisioned_bad_debt_gbp": 31053.626423,
+    "provisioned_final_treasury_gbp": 378576.3892379955,
+    "enterprise_value_gbp": 132807.33098233916,
     "account_count": 73,
     "churned_accounts": 77,
     "renewals_priced_by_the_arm": 0,
@@ -171,15 +171,15 @@
     }
   },
   "value_arm": {
-    "total_net_gbp": 165339.391531,
-    "total_gross_margin_gbp": 382277.44306152826,
-    "total_capital_cost_gbp": 6286.434685612741,
-    "total_bad_debt_gbp": 8382.57,
-    "final_treasury_gbp": 415339.39,
-    "provisioned_net_gbp": 144426.451229,
-    "provisioned_bad_debt_gbp": 29295.510302,
-    "provisioned_final_treasury_gbp": 394426.4512290274,
-    "enterprise_value_gbp": 149669.90747789014,
+    "total_net_gbp": 165398.230207,
+    "total_gross_margin_gbp": 381930.37726073404,
+    "total_capital_cost_gbp": 6283.473554171131,
+    "total_bad_debt_gbp": 8250.96,
+    "final_treasury_gbp": 415398.23,
+    "provisioned_net_gbp": 144363.096556,
+    "provisioned_bad_debt_gbp": 29286.093651,
+    "provisioned_final_treasury_gbp": 394363.09655602544,
+    "enterprise_value_gbp": 149639.6709217507,
     "account_count": 71,
     "churned_accounts": 80,
     "renewals_priced_by_the_arm": 278,
@@ -193,15 +193,15 @@
     }
   },
   "level_arm": {
-    "total_net_gbp": 165015.869721,
-    "total_gross_margin_gbp": 391463.20647968387,
-    "total_capital_cost_gbp": 6420.123564964787,
-    "total_bad_debt_gbp": 8620.76,
-    "final_treasury_gbp": 415015.87,
-    "provisioned_net_gbp": 143743.706845,
-    "provisioned_bad_debt_gbp": 29892.922876,
-    "provisioned_final_treasury_gbp": 393743.70684500877,
-    "enterprise_value_gbp": 147323.87896763624,
+    "total_net_gbp": 165079.129291,
+    "total_gross_margin_gbp": 391120.48978154914,
+    "total_capital_cost_gbp": 6417.14047574146,
+    "total_bad_debt_gbp": 8489.1,
+    "final_treasury_gbp": 415079.13,
+    "provisioned_net_gbp": 143684.631662,
+    "provisioned_bad_debt_gbp": 29883.597629,
+    "provisioned_final_treasury_gbp": 393684.6316620081,
+    "enterprise_value_gbp": 147294.7547697564,
     "account_count": 71,
     "churned_accounts": 79,
     "renewals_priced_by_the_arm": 281,
@@ -218,7 +218,7 @@
     "priced": 281,
     "declined": 0,
     "declined_share_of_renewals_seen": 0.0,
-    "distinct_margins": 139,
+    "distinct_margins": 140,
     "modal_margin_share_of_book": 0.4911,
     "median_margin_gbp_per_mwh": 19.52,
     "control_margin_gbp_per_mwh": 2.0,
@@ -234,13 +234,13 @@
     "available": true,
     "level_gbp_per_mwh": 20.0,
     "level_source": "the value arm's own realised median margin in THIS run (`decision_shape.median_margin_gbp_per_mwh`), not a constant",
-    "control_net_gbp": 147886.781507,
-    "value_arm_net_gbp": 165339.391531,
-    "level_arm_net_gbp": 165015.869721,
-    "value_advantage_gbp": 17452.610023999994,
-    "level_advantage_gbp": 17129.08821399999,
-    "selection_gbp": 323.52181000000564,
-    "level_share_of_advantage": 0.9814628408269529,
+    "control_net_gbp": 147954.255661,
+    "value_arm_net_gbp": 165398.230207,
+    "level_arm_net_gbp": 165079.129291,
+    "value_advantage_gbp": 17443.974545999983,
+    "level_advantage_gbp": 17124.873629999987,
+    "selection_gbp": 319.1009159999958,
+    "level_share_of_advantage": 0.981707098049328,
     "share_undefined_reason": null,
     "clock": "settled-realised",
     "basis": "settled net margin (R14) on the SETTLED-REALISED clock -- `net_margin_gbp` summed from the world's own settled records after the arrears engine has replaced the flat-rate provision with realised write-offs and DCA recoveries.",
@@ -248,12 +248,12 @@
     "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
   },
   "realised_delta": {
-    "net_margin_gbp": 17452.610023999994,
-    "enterprise_value_gbp": 16839.42867941261,
+    "net_margin_gbp": 17443.974545999983,
+    "enterprise_value_gbp": 16832.339939411526,
     "accounts_at_end": -2,
     "churned_accounts": 3,
-    "gross_margin_gbp": -1750.009349881846,
-    "bad_debt_gbp": -3424.84
+    "gross_margin_gbp": -1758.5949415954528,
+    "bad_debt_gbp": -3424.800000000001
   },
   "gross_to_net_bridge": {
     "what_this_is": "The arithmetic between gross and net, per arm, summed from the world's own settled records. Answers `gross fell and net rose` with named lines and figures instead of a candidate list.",
@@ -289,45 +289,45 @@
     },
     "control_arm": {
       "records": 324696,
-      "gross_margin_gbp": 384027.4524114112,
-      "policy_and_levies_gbp": 70715.47447635744,
-      "network_gbp": 147012.87808155623,
-      "capital_cost_gbp": 6604.909435700737,
-      "bad_debt_gbp": 11807.40999999738,
-      "total_deductions_gbp": 236140.6719936118,
-      "net_margin_gbp": 147886.781507003,
-      "unexplained_residual_gbp": 0.0010892035788856447,
-      "revenue_gbp": 677289.1839427407,
-      "wholesale_cost_gbp": 293261.73102144897,
-      "volume_kwh": 6146690.267686366
+      "gross_margin_gbp": 383688.9722023388,
+      "policy_and_levies_gbp": 70620.05299226874,
+      "network_gbp": 146836.9666427972,
+      "capital_cost_gbp": 6601.938199875988,
+      "bad_debt_gbp": 11675.759999997219,
+      "total_deductions_gbp": 235734.71783493913,
+      "net_margin_gbp": 147954.25566100073,
+      "unexplained_residual_gbp": 0.0012936010607518256,
+      "revenue_gbp": 676791.5332468956,
+      "wholesale_cost_gbp": 293102.560200689,
+      "volume_kwh": 6142470.861562666
     },
     "value_arm": {
       "records": 313057,
-      "gross_margin_gbp": 382277.44306155207,
-      "policy_and_levies_gbp": 64266.55169571062,
-      "network_gbp": 138002.49651469235,
-      "capital_cost_gbp": 6286.434685612931,
-      "bad_debt_gbp": 8382.569999996791,
-      "total_deductions_gbp": 216938.0528960127,
-      "net_margin_gbp": 165339.39153100466,
-      "unexplained_residual_gbp": 0.0013654652866534889,
-      "revenue_gbp": 657923.9093924324,
-      "wholesale_cost_gbp": 275646.46566299436,
-      "volume_kwh": 5885571.787125757
+      "gross_margin_gbp": 381930.3772607578,
+      "policy_and_levies_gbp": 64171.13021162111,
+      "network_gbp": 137826.58507592714,
+      "capital_cost_gbp": 6283.473554171386,
+      "bad_debt_gbp": 8250.959999996709,
+      "total_deductions_gbp": 216532.14884171635,
+      "net_margin_gbp": 165398.23020700354,
+      "unexplained_residual_gbp": 0.0017879621009342372,
+      "revenue_gbp": 657417.7263082482,
+      "wholesale_cost_gbp": 275487.3483166075,
+      "volume_kwh": 5881352.381002053
     },
     "net_delta_contribution_gbp": {
-      "network_gbp": 9010.381566863885,
-      "policy_and_levies_gbp": 6448.922780646819,
-      "bad_debt_gbp": 3424.8400000005895,
-      "gross_margin_gbp": -1750.009349859145,
-      "capital_cost_gbp": 318.47475008780566
+      "network_gbp": 9010.381566870055,
+      "policy_and_levies_gbp": 6448.922780647634,
+      "bad_debt_gbp": 3424.8000000005104,
+      "gross_margin_gbp": -1758.5949415810173,
+      "capital_cost_gbp": 318.46464570460193
     },
     "largest_contribution": "network_gbp",
-    "net_delta_gbp": 17452.610024001653,
-    "net_delta_reconstructed_gbp": 17452.609747739953,
-    "reconstruction_error_gbp": -0.0002762617004918866,
+    "net_delta_gbp": 17443.974546002806,
+    "net_delta_reconstructed_gbp": 17443.974051641784,
+    "reconstruction_error_gbp": -0.0004943610219925176,
     "reconstruction_closes": true,
-    "unexplained_residual_delta_gbp": 0.0002762617077678442
+    "unexplained_residual_delta_gbp": 0.0004943610401824117
   },
   "churn_volume_attribution": {
     "what_this_is": "Whether the accounts that churned under ONE arm and not the other carry the gross-margin fall. Measured, so it can rule the candidate out.",
@@ -349,34 +349,34 @@
     ],
     "control_arm": {
       "differentially_churned": {
-        "gross_gbp": 13278.718290376877,
+        "gross_gbp": 13278.718472376831,
         "volume_kwh": 205555.76432697783
       },
       "everyone_else": {
-        "gross_gbp": 370748.73412103613,
-        "volume_kwh": 5941134.503359344
+        "gross_gbp": 370410.25372996455,
+        "volume_kwh": 5936915.097235681
       }
     },
     "value_arm": {
       "differentially_churned": {
-        "gross_gbp": 14719.847640281449,
+        "gross_gbp": 14717.081857968555,
         "volume_kwh": 207674.50655911976
       },
       "everyone_else": {
-        "gross_gbp": 367557.5954212673,
-        "volume_kwh": 5677897.280566742
+        "gross_gbp": 367213.2954027866,
+        "volume_kwh": 5673677.87444303
       }
     },
-    "gross_delta_gbp": -1750.0093498642673,
-    "gross_delta_from_differentially_churned_gbp": 1441.1293499045714,
-    "share_of_gross_delta": -0.8234980858909966,
-    "volume_delta_kwh": -261118.48056046013
+    "gross_delta_gbp": -1758.594941586256,
+    "gross_delta_from_differentially_churned_gbp": 1438.3633855917233,
+    "share_of_gross_delta": -0.8179048805259935,
+    "volume_delta_kwh": -261118.48056050856
   },
   "decision_shape": {
     "priced": 214,
     "declined": 64,
     "declined_share_of_renewals_seen": 0.2302,
-    "distinct_margins": 65,
+    "distinct_margins": 63,
     "modal_margin_share_of_book": 0.1589,
     "median_margin_gbp_per_mwh": 20.0,
     "control_margin_gbp_per_mwh": 2.0,
@@ -2200,58 +2200,18 @@
     "realised_margin_movement": {
       "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
       "billing_accounts_with_a_bound_decided_renewal": 64,
-      "net_delta_gbp_on_those_accounts": 16359.265739999933,
-      "net_delta_gbp_elsewhere": 1093.344283999988,
-      "absolute_movement_gbp_on_those_accounts": 24889.322485999965,
-      "absolute_movement_gbp_elsewhere": 8301.013905999991,
+      "net_delta_gbp_on_those_accounts": 16354.040091999937,
+      "net_delta_gbp_elsewhere": 1089.9344539999943,
+      "absolute_movement_gbp_on_those_accounts": 24884.09720199996,
+      "absolute_movement_gbp_elsewhere": 8298.451171999985,
       "share_of_absolute_movement_on_those_accounts": 0.7499
     },
     "what_would_change_this": "NOT moving the ceiling. A price pinned to the Ofgem cap becomes an inference the moment the company's own belief turns the expected value over BELOW that cap -- i.e. when the churn model punishes a supplier-specific rise hard enough that the optimum is interior for a reason about the customer. Any change to that sensitivity is a fidelity change: it must cite a published source and be decided blind to what it does to this delta (R13, R12). If no defensible curve makes the optimum interior, that is the answer and it belongs here rather than in a moved bound.",
     "reading": "`decided_by` is a description of THIS run and never a target (R12). \"the customer\" means no priced answer was bound-decided; \"a bound\" means a bound decided at least half of the answers or at least half of the money; \"mixed\" is everything between, and it means the headline must not be attributed to either without naming which half. A positive delta under \"a bound\" is not a refutation of value-based pricing -- it is a statement that this run did not test it."
   },
   "cross_section_reconciliation": {
-    "available": true,
-    "read_from": "docs/observability/value_based_pricing_arms.json",
-    "why_this_is_here": "Both artefacts publish `endpoint_at_ceiling` and `ceiling_bound` from the same module, and on 2026-08-26 the two counts were read as contradicting each other. They are measured over different populations under different ceilings. Neither is wrong; the names are.",
-    "cross_section": {
-      "unit": "one renewal decision per ACCOUNT, taken at a single moment",
-      "as_of_year": 2025,
-      "decisions": 251,
-      "distinct_accounts": 251,
-      "lawful_ceiling_passed": false,
-      "priced_under_a_lawful_ceiling": 0,
-      "endpoint_bound": 26,
-      "endpoint_at_ceiling": 23,
-      "endpoint_at_floor": 3,
-      "extrapolation_bound": 0,
-      "what_endpoint_at_ceiling_means": "the top of the candidate grid under the churn model's own support bound, and NOT the Ofgem price cap: this call site passes no `max_offered_rate_gbp_per_mwh`, so `ceiling_bound` is structurally False for every account here and its count is not a measurement of anything. A run that DOES price under the cap will report a far larger ceiling count on the same book and the same module, and that is not a contradiction."
-    },
-    "this_run": {
-      "unit": "one renewal decision per RENEWAL EVENT the run actually reached",
-      "decisions": 214,
-      "declined": 64,
-      "lawful_ceiling_passed": true,
-      "endpoint_bound": 151,
-      "endpoint_at_ceiling": 151,
-      "endpoint_at_floor": 0,
-      "extrapolation_bound": 5,
-      "what_endpoint_at_ceiling_means": "the highest margin the Ofgem domestic cap allowed at that term's own cap window, threaded into the search by `renewal_rate_chain` (8b450a839) rather than clamped on afterwards."
-    },
-    "the_three_differences": [
-      {
-        "difference": "population",
-        "measured": "251 decision(s) over 251 account(s) priced once at 2025, against 214 renewal event(s) this run actually reached across its whole window -- repeat visits to a smaller roster, at each term's own rate."
-      },
-      {
-        "difference": "ceiling",
-        "measured": "the cross-section priced 0 of 251 decision(s) under a lawful ceiling; this run priced every one under the domestic cap for its own term. Where no ceiling is passed `ceiling_bound` cannot fire at all, so a low ceiling count there is not evidence that the cap does not bind."
-      },
-      {
-        "difference": "conditions",
-        "measured": "the cross-section prices every account at one year's rates and one cap window; this run prices each renewal at the rate and cap in force when it fell, including the 2021-23 crisis window where the base rate is nearest the cap and the ceiling therefore binds hardest."
-      }
-    ],
-    "what_this_does_NOT_reconcile": "Interior on the cross-section and ceiling-bound here are consistent AND both unflattering: they say the belief's optimum is interior to the model's own support but lies ABOVE what the company may lawfully charge. The customer-level question -- does the churn model punish a supplier-specific rise before the law does -- is open either way. See `bound_attribution.what_would_change_this`."
+    "available": false,
+    "why_not": "docs/observability/value_based_pricing_arms.json predates the `population` block, so it does not say which ceiling its `endpoint_at_ceiling` counts or how many decisions it took per account. Re-run `python3 -m tools.couple_value_based_pricing`. Reconciling against it without that block would mean assuming the very thing the two artefacts were read as disagreeing about."
   },
   "belief_vs_outcome": {
     "available": true,
@@ -2403,9 +2363,9 @@
       {
         "account": "SYN-2016-018",
         "term_start": "2017-03-08",
-        "believed_p_retain": 0.4415,
+        "believed_p_retain": 0.4304,
         "retained": false,
-        "chosen_margin_gbp_per_mwh": 45.75
+        "chosen_margin_gbp_per_mwh": 47.25
       },
       {
         "account": "SYN-2016-019",
@@ -2508,7 +2468,7 @@
       {
         "account": "C5_2",
         "term_start": "2017-12-31",
-        "believed_p_retain": 0.5056,
+        "believed_p_retain": 0.5065,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 84.25
       },
@@ -2522,511 +2482,511 @@
       {
         "account": "SYN-2016-001",
         "term_start": "2018-01-01",
-        "believed_p_retain": 0.7165,
+        "believed_p_retain": 0.7166,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 86.25
       },
       {
         "account": "SYN-2016-004",
         "term_start": "2018-01-16",
-        "believed_p_retain": 0.439,
+        "believed_p_retain": 0.4392,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 49.75
       },
       {
         "account": "SYN-2016-007",
         "term_start": "2018-01-26",
-        "believed_p_retain": 0.6298,
+        "believed_p_retain": 0.63,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 82.75
       },
       {
         "account": "PROS-2017-0038",
         "term_start": "2018-01-27",
-        "believed_p_retain": 0.4544,
+        "believed_p_retain": 0.4527,
         "retained": false,
-        "chosen_margin_gbp_per_mwh": 48.0
+        "chosen_margin_gbp_per_mwh": 48.25
       },
       {
         "account": "PROS-2016-0042",
         "term_start": "2018-02-09",
-        "believed_p_retain": 0.4456,
+        "believed_p_retain": 0.4458,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 42.25
       },
       {
         "account": "PROS-2017-0065",
         "term_start": "2018-02-16",
-        "believed_p_retain": 0.332,
+        "believed_p_retain": 0.3304,
         "retained": true,
-        "chosen_margin_gbp_per_mwh": 40.0
+        "chosen_margin_gbp_per_mwh": 40.25
       },
       {
         "account": "PROS-2017-0065",
         "term_start": "2018-02-16",
-        "believed_p_retain": 0.3498,
+        "believed_p_retain": 0.35,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 13.5
       },
       {
         "account": "SYN-2016-015",
         "term_start": "2018-02-27",
-        "believed_p_retain": 0.4118,
+        "believed_p_retain": 0.412,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 47.0
       },
       {
         "account": "SYN-2016-019",
         "term_start": "2018-03-11",
-        "believed_p_retain": 0.6004,
+        "believed_p_retain": 0.6006,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 67.0
       },
       {
         "account": "SYN-2016-020",
         "term_start": "2018-03-11",
-        "believed_p_retain": 0.4012,
+        "believed_p_retain": 0.4014,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 49.75
       },
       {
         "account": "C8",
         "term_start": "2018-04-01",
-        "believed_p_retain": 0.6507,
+        "believed_p_retain": 0.6493,
         "retained": false,
-        "chosen_margin_gbp_per_mwh": 101.25
+        "chosen_margin_gbp_per_mwh": 101.5
       },
       {
         "account": "SYN-2016-028",
         "term_start": "2018-04-08",
-        "believed_p_retain": 0.4701,
+        "believed_p_retain": 0.4703,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 52.5
       },
       {
         "account": "SYN-2016-032",
         "term_start": "2018-04-26",
-        "believed_p_retain": 0.374,
+        "believed_p_retain": 0.3742,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 40.0
       },
       {
         "account": "SYN-2016-034",
         "term_start": "2018-05-03",
-        "believed_p_retain": 0.4079,
+        "believed_p_retain": 0.4081,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 41.5
       },
       {
         "account": "SYN-2016-036",
         "term_start": "2018-05-07",
-        "believed_p_retain": 0.3945,
+        "believed_p_retain": 0.3947,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 43.5
       },
       {
         "account": "SYN-2016-042",
         "term_start": "2018-05-30",
-        "believed_p_retain": 0.5094,
+        "believed_p_retain": 0.5096,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 48.25
       },
       {
         "account": "PROS-2017-0185",
         "term_start": "2018-06-15",
-        "believed_p_retain": 0.4166,
+        "believed_p_retain": 0.4168,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 24.75
       },
       {
         "account": "PROS-2017-0185",
         "term_start": "2018-06-15",
-        "believed_p_retain": 0.4424,
+        "believed_p_retain": 0.4426,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 8.0
       },
       {
         "account": "C9",
         "term_start": "2018-07-01",
-        "believed_p_retain": 0.6271,
+        "believed_p_retain": 0.6273,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 90.75
       },
       {
         "account": "SYN-2016-060",
         "term_start": "2018-08-24",
-        "believed_p_retain": 0.4282,
+        "believed_p_retain": 0.4723,
         "retained": false,
-        "chosen_margin_gbp_per_mwh": 53.5
+        "chosen_margin_gbp_per_mwh": 48.0
       },
       {
         "account": "C5_2",
         "term_start": "2018-12-31",
-        "believed_p_retain": 0.5291,
+        "believed_p_retain": 0.53,
         "retained": false,
-        "chosen_margin_gbp_per_mwh": 92.75
+        "chosen_margin_gbp_per_mwh": 92.5
       },
       {
         "account": "SYN-2016-001",
         "term_start": "2019-01-01",
-        "believed_p_retain": 0.9117,
+        "believed_p_retain": 0.9116,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2018-0039",
         "term_start": "2019-01-31",
-        "believed_p_retain": 0.6883,
+        "believed_p_retain": 0.688,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 8.0
       },
       {
         "account": "PROS-2018-0039",
         "term_start": "2019-01-31",
-        "believed_p_retain": 0.8998,
+        "believed_p_retain": 0.8997,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 3.0
       },
       {
         "account": "PROS-2016-0042",
         "term_start": "2019-02-09",
-        "believed_p_retain": 0.9117,
+        "believed_p_retain": 0.9116,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2017-0065",
         "term_start": "2019-02-16",
-        "believed_p_retain": 0.9117,
+        "believed_p_retain": 0.9116,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "SYN-2016-030",
         "term_start": "2019-04-14",
-        "believed_p_retain": 0.6109,
+        "believed_p_retain": 0.6106,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2018-0137",
         "term_start": "2019-05-02",
-        "believed_p_retain": 0.675,
+        "believed_p_retain": 0.6747,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2018-0137",
         "term_start": "2019-05-02",
-        "believed_p_retain": 0.9117,
+        "believed_p_retain": 0.9116,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 12.0
       },
       {
         "account": "SYN-2016-034",
         "term_start": "2019-05-03",
-        "believed_p_retain": 0.9117,
+        "believed_p_retain": 0.9116,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "C9",
         "term_start": "2019-07-01",
-        "believed_p_retain": 0.9117,
+        "believed_p_retain": 0.9116,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2018-0238",
         "term_start": "2019-08-13",
-        "believed_p_retain": 0.5354,
+        "believed_p_retain": 0.537,
         "retained": true,
-        "chosen_margin_gbp_per_mwh": 58.0
+        "chosen_margin_gbp_per_mwh": 57.75
       },
       {
         "account": "PROS-2018-0238",
         "term_start": "2019-08-13",
-        "believed_p_retain": 0.7417,
+        "believed_p_retain": 0.7415,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2019-0024",
         "term_start": "2020-01-29",
-        "believed_p_retain": 0.625,
+        "believed_p_retain": 0.6247,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2018-0137",
         "term_start": "2020-05-01",
-        "believed_p_retain": 0.7848,
+        "believed_p_retain": 0.7846,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2018-0137",
         "term_start": "2020-05-01",
-        "believed_p_retain": 0.8996,
+        "believed_p_retain": 0.8995,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 12.0
       },
       {
         "account": "PROS-2019-0135",
         "term_start": "2020-05-05",
-        "believed_p_retain": 0.5008,
+        "believed_p_retain": 0.5025,
         "retained": false,
-        "chosen_margin_gbp_per_mwh": 48.25
+        "chosen_margin_gbp_per_mwh": 48.0
       },
       {
         "account": "PROS-2019-0164",
         "term_start": "2020-06-04",
-        "believed_p_retain": 0.5956,
+        "believed_p_retain": 0.5977,
         "retained": true,
-        "chosen_margin_gbp_per_mwh": 35.5
+        "chosen_margin_gbp_per_mwh": 35.25
       },
       {
         "account": "PROS-2019-0164",
         "term_start": "2020-06-04",
-        "believed_p_retain": 0.7564,
+        "believed_p_retain": 0.7562,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 11.75
       },
       {
         "account": "PROS-2019-0190",
         "term_start": "2020-06-25",
-        "believed_p_retain": 0.5423,
+        "believed_p_retain": 0.5419,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 42.0
       },
       {
         "account": "PROS-2019-0190",
         "term_start": "2020-06-25",
-        "believed_p_retain": 0.6973,
+        "believed_p_retain": 0.697,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 13.0
       },
       {
         "account": "C9",
         "term_start": "2020-06-30",
-        "believed_p_retain": 0.8996,
+        "believed_p_retain": 0.8995,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2018-0223",
         "term_start": "2020-07-29",
-        "believed_p_retain": 0.7658,
+        "believed_p_retain": 0.7656,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "SYN-2016-055",
         "term_start": "2020-08-03",
-        "believed_p_retain": 0.8034,
+        "believed_p_retain": 0.8032,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2019-0255",
         "term_start": "2020-08-25",
-        "believed_p_retain": 0.5258,
+        "believed_p_retain": 0.5255,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 36.75
       },
       {
         "account": "PROS-2019-0310",
         "term_start": "2020-10-08",
-        "believed_p_retain": 0.4438,
+        "believed_p_retain": 0.4435,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 36.75
       },
       {
         "account": "SYN-2016-001",
         "term_start": "2020-12-31",
-        "believed_p_retain": 0.8996,
+        "believed_p_retain": 0.8995,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 30.0
       },
       {
         "account": "PROS-2018-0016",
         "term_start": "2021-01-11",
-        "believed_p_retain": 0.9153,
+        "believed_p_retain": 0.9152,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2018-0016",
         "term_start": "2021-01-11",
-        "believed_p_retain": 0.9153,
+        "believed_p_retain": 0.9152,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 3.0
       },
       {
         "account": "PROS-2020-0032",
         "term_start": "2021-01-23",
-        "believed_p_retain": 0.824,
+        "believed_p_retain": 0.8239,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2020-0032",
         "term_start": "2021-01-23",
-        "believed_p_retain": 0.9153,
+        "believed_p_retain": 0.9152,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 2.0
       },
       {
         "account": "PROS-2019-0164",
         "term_start": "2021-06-04",
-        "believed_p_retain": 0.6493,
+        "believed_p_retain": 0.6464,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2019-0164",
         "term_start": "2021-06-04",
-        "believed_p_retain": 0.9153,
+        "believed_p_retain": 0.9152,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 1.0
       },
       {
         "account": "PROS-2020-0221",
         "term_start": "2021-07-05",
-        "believed_p_retain": 0.33,
+        "believed_p_retain": 0.3297,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2020-0249",
         "term_start": "2021-07-26",
-        "believed_p_retain": 0.3459,
+        "believed_p_retain": 0.3456,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2018-0238",
         "term_start": "2021-08-12",
-        "believed_p_retain": 0.9153,
+        "believed_p_retain": 0.9152,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 12.0
       },
       {
         "account": "SYN-2016-057",
         "term_start": "2021-08-15",
-        "believed_p_retain": 0.9153,
+        "believed_p_retain": 0.9152,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 12.0
       },
       {
         "account": "SYN-2016-055",
         "term_start": "2023-08-03",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 80.0
       },
       {
         "account": "PROS-2021-0288",
         "term_start": "2023-09-18",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 80.0
       },
       {
         "account": "PROS-2021-0288",
         "term_start": "2023-09-18",
-        "believed_p_retain": 0.7915,
+        "believed_p_retain": 0.7913,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2021-0324",
         "term_start": "2023-10-24",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2020-0347",
         "term_start": "2023-11-14",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2020-0347",
         "term_start": "2023-11-14",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 5.0
       },
       {
         "account": "PROS-2021-0362",
         "term_start": "2023-11-23",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2021-0362",
         "term_start": "2023-11-23",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 3.0
       },
       {
         "account": "PROS-2020-0391",
         "term_start": "2023-12-25",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2020-0391",
         "term_start": "2023-12-25",
-        "believed_p_retain": 0.949,
+        "believed_p_retain": 0.9489,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 5.0
       },
       {
         "account": "PROS-2019-0009",
         "term_start": "2024-01-11",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2023-0025",
         "term_start": "2024-01-21",
-        "believed_p_retain": 0.7878,
+        "believed_p_retain": 0.7877,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
       {
         "account": "PROS-2023-0025",
         "term_start": "2024-01-21",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 8.0
       },
       {
         "account": "PROS-2021-0029",
         "term_start": "2024-01-26",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 30.0
       },
       {
         "account": "PROS-2022-0049",
         "term_start": "2024-02-17",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 80.0
       },
       {
         "account": "PROS-2022-0049",
         "term_start": "2024-02-17",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
@@ -3040,42 +3000,42 @@
       {
         "account": "PROS-2021-0060",
         "term_start": "2024-02-25",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2020-0067",
         "term_start": "2024-02-26",
-        "believed_p_retain": 0.9081,
+        "believed_p_retain": 0.908,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 80.0
       },
       {
         "account": "PROS-2020-0067",
         "term_start": "2024-02-26",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2021-0105",
         "term_start": "2024-04-04",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2021-0105",
         "term_start": "2024-04-04",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 12.0
       },
       {
         "account": "SYN-2016-048",
         "term_start": "2024-06-18",
-        "believed_p_retain": 0.8652,
+        "believed_p_retain": 0.8651,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 60.0
       },
@@ -3089,35 +3049,35 @@
       {
         "account": "PROS-2020-0221",
         "term_start": "2024-07-04",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 12.0
       },
       {
         "account": "PROS-2021-0288",
         "term_start": "2024-09-17",
-        "believed_p_retain": 0.9364,
+        "believed_p_retain": 0.9363,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 30.0
       },
       {
         "account": "PROS-2021-0362",
         "term_start": "2024-11-22",
-        "believed_p_retain": 0.8061,
+        "believed_p_retain": 0.806,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 45.0
       },
       {
         "account": "PROS-2021-0362",
         "term_start": "2024-11-22",
-        "believed_p_retain": 0.858,
+        "believed_p_retain": 0.8579,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 5.0
       },
       {
         "account": "PROS-2020-0391",
         "term_start": "2024-12-24",
-        "believed_p_retain": 0.7951,
+        "believed_p_retain": 0.795,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 12.0
       },
@@ -3131,7 +3091,7 @@
       {
         "account": "PROS-2023-0025",
         "term_start": "2025-01-20",
-        "believed_p_retain": 0.913,
+        "believed_p_retain": 0.9129,
         "retained": false,
         "chosen_margin_gbp_per_mwh": 8.0
       },
@@ -3159,63 +3119,63 @@
       {
         "account": "PROS-2021-0105",
         "term_start": "2025-04-04",
-        "believed_p_retain": 0.6535,
+        "believed_p_retain": 0.6534,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 8.0
       },
       {
         "account": "PROS-2021-0105",
         "term_start": "2025-04-04",
-        "believed_p_retain": 0.7014,
+        "believed_p_retain": 0.7013,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 3.0
       },
       {
         "account": "PROS-2024-0110",
         "term_start": "2025-04-11",
-        "believed_p_retain": 0.4878,
+        "believed_p_retain": 0.4876,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 20.0
       },
       {
         "account": "PROS-2024-0110",
         "term_start": "2025-04-11",
-        "believed_p_retain": 0.5129,
+        "believed_p_retain": 0.5128,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 3.0
       },
       {
         "account": "PROS-2018-0137",
         "term_start": "2025-04-30",
-        "believed_p_retain": 0.7122,
+        "believed_p_retain": 0.7121,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 30.0
       },
       {
         "account": "PROS-2018-0137",
         "term_start": "2025-04-30",
-        "believed_p_retain": 0.828,
+        "believed_p_retain": 0.8279,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 8.0
       },
       {
         "account": "PROS-2021-0133",
         "term_start": "2025-04-30",
-        "believed_p_retain": 0.6875,
+        "believed_p_retain": 0.6873,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 30.0
       },
       {
         "account": "PROS-2021-0133",
         "term_start": "2025-04-30",
-        "believed_p_retain": 0.818,
+        "believed_p_retain": 0.8179,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 8.0
       },
       {
         "account": "PROS-2021-0175",
         "term_start": "2025-06-07",
-        "believed_p_retain": 0.6926,
+        "believed_p_retain": 0.6925,
         "retained": true,
         "chosen_margin_gbp_per_mwh": 60.0
       },
@@ -3227,10 +3187,10 @@
         "chosen_margin_gbp_per_mwh": 20.0
       }
     ],
-    "mean_believed_p_retain": 0.6910951219512195,
+    "mean_believed_p_retain": 0.6913056910569105,
     "realised_retention_rate": 0.6747967479674797,
-    "calibration_error": 0.01629837398373979,
-    "discrimination_auc": 0.6284638554216867,
+    "calibration_error": 0.01650894308943085,
+    "discrimination_auc": 0.6269578313253013,
     "auc_population": {
       "retained": 83,
       "left": 40
@@ -3240,28 +3200,28 @@
         "believed_from": 0.2,
         "believed_to": 0.4,
         "n": 8,
-        "mean_believed_p_retain": 0.3620375,
+        "mean_believed_p_retain": 0.3618375,
         "realised_retention_rate": 0.625
       },
       {
         "believed_from": 0.4,
         "believed_to": 0.6,
         "n": 40,
-        "mean_believed_p_retain": 0.4705449999999999,
+        "mean_believed_p_retain": 0.4715200000000001,
         "realised_retention_rate": 0.525
       },
       {
         "believed_from": 0.6,
         "believed_to": 0.8,
         "n": 23,
-        "mean_believed_p_retain": 0.6974173913043478,
+        "mean_believed_p_retain": 0.6971173913043477,
         "realised_retention_rate": 0.7391304347826086
       },
       {
         "believed_from": 0.8,
         "believed_to": 1.0,
         "n": 52,
-        "mean_believed_p_retain": 0.908576923076923,
+        "mean_believed_p_retain": 0.9084884615384614,
         "realised_retention_rate": 0.7692307692307693
       }
     ],
@@ -3270,21 +3230,21 @@
   "method_skill": {
     "available": true,
     "reason": null,
-    "concordance": 0.5338214285714286,
+    "concordance": 0.5337857142857143,
     "null_constant_signal_concordance": 0.5,
     "null_spread": {
       "available": true,
-      "null_mean": 0.49980480178571424,
-      "null_sd": 0.025931478285825937,
+      "null_mean": 0.49980515178571433,
+      "null_sd": 0.025931418196289198,
       "null_95_interval": [
         0.44939285714285715,
-        0.5503928571428571
+        0.5503571428571429
       ],
-      "p_two_sided": 0.1904,
+      "p_two_sided": 0.1907,
       "observed_inside_the_null_interval": true,
       "draws": 20000,
       "seed": 20260828,
-      "signal_ties_in_the_observed_data": 1155,
+      "signal_ties_in_the_observed_data": 1154,
       "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
       "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
     },
@@ -3389,7 +3349,24 @@
         "the_published_population_ratio_outcome": {
           "what_it_is": "THE PUBLISHED FIGURE, rebuilt. Every priced decision whose term settled something, on the counterfactual-normalised ratio, with NO horizon test -- which is exactly the population and outcome `method_skill.concordance` uses. A control, not a finding: the two must agree through different code paths, and a disagreement is a defect here rather than anything about the book.",
           "decisions": 168,
-          "concordance": 0.5338214285714286,
+          "accounts": 72,
+          "concordance": 0.5337857142857143,
+          "null_spread": {
+            "available": true,
+            "null_mean": 0.49980515178571433,
+            "null_sd": 0.025931418196289198,
+            "null_95_interval": [
+              0.44939285714285715,
+              0.5503571428571429
+            ],
+            "p_two_sided": 0.1907,
+            "observed_inside_the_null_interval": true,
+            "draws": 20000,
+            "seed": 20260828,
+            "signal_ties_in_the_observed_data": 1154,
+            "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
+            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+          },
           "null_constant_signal_concordance": 0.5,
           "comparable_pairs": 14000,
           "pairs_tied_on_outcome": 28
@@ -3397,7 +3374,24 @@
         "settled_only_ratio_outcome": {
           "what_it_is": "the same decisions LESS the ones whose horizon had not closed. Against leg 0 this isolates CENSORING and nothing else -- one outcome, two populations, and the difference is a bound a longer run removes rather than anything about the method.",
           "decisions": 124,
-          "concordance": 0.4993426242440179,
+          "accounts": 63,
+          "concordance": 0.4992768866684197,
+          "null_spread": {
+            "available": true,
+            "null_mean": 0.49969701222718904,
+            "null_sd": 0.03007905155390817,
+            "null_95_interval": [
+              0.4410333946884039,
+              0.5581777544044175
+            ],
+            "p_two_sided": 0.9891,
+            "observed_inside_the_null_interval": true,
+            "draws": 20000,
+            "seed": 20260828,
+            "signal_ties_in_the_observed_data": 543,
+            "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
+            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+          },
           "null_constant_signal_concordance": 0.5,
           "comparable_pairs": 7606,
           "pairs_tied_on_outcome": 20
@@ -3405,7 +3399,24 @@
         "settled_only_pounds_outcome": {
           "what_it_is": "THE SAME decisions, scored in POUNDS. Against leg 1 this isolates the UNIT change and nothing else -- one population, two outcomes.",
           "decisions": 124,
-          "concordance": 0.5130160399684459,
+          "accounts": 63,
+          "concordance": 0.5129503023928478,
+          "null_spread": {
+            "available": true,
+            "null_mean": 0.49991570141993164,
+            "null_sd": 0.030098925044405422,
+            "null_95_interval": [
+              0.44031028135682354,
+              0.5587693925848015
+            ],
+            "p_two_sided": 0.66645,
+            "observed_inside_the_null_interval": true,
+            "draws": 20000,
+            "seed": 20260828,
+            "signal_ties_in_the_observed_data": 543,
+            "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
+            "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."
+          },
           "null_constant_signal_concordance": 0.5,
           "comparable_pairs": 7606,
           "pairs_tied_on_outcome": 20
@@ -3413,7 +3424,24 @@
         "every_priced_decision_pounds_outcome": {
           "what_it_is": "THE ESTIMAND. Leg 2's decisions PLUS the ones whose term settled nothing, at the 0.0 they produced. Against leg 2 this isolates the POPULATION change and nothing else -- one outcome, two populations.",
           "decisions": 161,
-          "concordance": 0.42094472691487617,
+          "accounts": 88,
+          "concordance": 0.4210267344595703,
+          "null_spread": {
+            "available": true,
+            "null_mean": 0.5000819152862064,
+            "null_sd": 0.027625035068672938,
+            "null_95_interval": [
+              0.4458340167295391,
+              0.5540429719534197
+            ],
+            "p_two_sided": 0.0045,
+            "observed_inside_the_null_interval": false,
+            "draws": 20000,
+            "seed": 20260828,
+            "signal_ties_in_the_observed_data": 690,
+            "method": "permutation of the observed signal values against the fixed outcomes, 20,000 draws at seed 20260828 -- reproduces the tie structure exactly, where the untied Kendall closed form would overstate the spread",
+            "reading": "The observed value sits OUTSIDE the interval a random signal produces at this sample size. Read it with the clustering bound above: the permutation assumes exchangeable decisions and these are clustered on a handful of accounts, so the true interval is wider than this one."
+          },
           "null_constant_signal_concordance": 0.5,
           "comparable_pairs": 12194,
           "pairs_tied_on_outcome": 686
@@ -3469,7 +3497,7 @@
         {
           "account": "SYN-2016-018",
           "term_start": "2017-03-08",
-          "signal": 45.75,
+          "signal": 47.25,
           "pounds": 0.0,
           "ratio": null,
           "settled_within_the_horizon": false,
@@ -3513,7 +3541,7 @@
         }
       ],
       "bound": "READ THIS BEFORE THE NUMBER, and it is a DIFFERENT bound from the concordance's. The outcome is POUNDS, so it carries account SIZE as well as decision quality, and this estimand cannot normalise it away: a household that left has no counterfactual over the horizon because it has no metered volumes over the horizon. Every decision scored at zero also TIES with every other one, so the departures are ranked against the survivors and not against each other -- which is why `pairs_tied_on_outcome` grows with the zero count and is published per leg. R12: a DIAGNOSTIC, never a target; nothing optimises this figure.",
-      "reading": "0.4209 over all 161 priced decisions, against 0.5338 over the 168 the published concordance is computed on -- and the difference is ATTRIBUTABLE because the bridge moves one thing at a time. Dropping the 44 decisions whose horizon had not closed moves it -0.0345; changing the outcome from the ratio to pounds then moves it +0.0137; admitting the 37 decisions whose term settled nothing then moves it -0.0921. The POPULATION term is the largest. Admitting the departures LOWERS the figure, which is what survivor-conditioning was hiding: the arm's price ranks the households it kept better than it ranks the ones it lost."
+      "reading": "0.4210 over all 161 priced decisions, against 0.5338 over the 168 the published concordance is computed on -- and the difference is ATTRIBUTABLE because the bridge moves one thing at a time. Dropping the 44 decisions whose horizon had not closed moves it -0.0345; changing the outcome from the ratio to pounds then moves it +0.0137; admitting the 37 decisions whose term settled nothing then moves it -0.0919. The POPULATION term is the largest. Admitting the departures LOWERS the figure, which is what survivor-conditioning was hiding: the arm's price ranks the households it kept better than it ranks the ones it lost."
     },
     "dropped_sample": [
       {
@@ -3679,7 +3707,7 @@
         "account": "C5_2",
         "term_start": "2017-12-31",
         "chosen_margin_gbp_per_mwh": 84.25,
-        "joint_value_ratio": 0.019300404068527437
+        "joint_value_ratio": 0.019300409933133277
       }
     ],
     "bound": "READ THIS BEFORE THE NUMBER. A rank statistic over this few decisions, clustered on this few accounts, has a wide confidence interval and every account is potentially influential. This is the same resolution wall that made the 2026-08-28 chase-on/chase-off comparison unreadable, arriving on a different question. Two things make it less bad here: the outcome is continuous, so pounds have no 1/17 quantum and a small effect is small rather than invisible; and every priced decision with settled pounds behind it contributes, not only the ones the world rolled an event for. It is still a handful of accounts, and `A46` (book depth) is upstream of this being worth much -- which remains the director's decision.",
@@ -3692,13 +3720,13 @@
       "customer_years": 1122,
       "customer_years_without_any_counterfactual": 92,
       "records_this_view_could_not_value": 0,
-      "coverage_pct": 86.3543679171639,
-      "paid_gbp": 646836.8794638381,
-      "counterfactual_gbp": 572396.7750576503,
-      "household_saving_gbp": -74440.10440618778,
-      "household_saving_pct_of_counterfactual": -13.00498319521286,
-      "our_gross_margin_gbp": 366904.4658034101,
-      "household_share_of_the_split_pct": -25.452709537174663,
+      "coverage_pct": 86.34499441505548,
+      "paid_gbp": 646339.2287679969,
+      "counterfactual_gbp": 571834.7976388477,
+      "household_saving_gbp": -74504.43112914918,
+      "household_saving_pct_of_counterfactual": -13.029013175970407,
+      "our_gross_margin_gbp": 366565.9855943295,
+      "household_share_of_the_split_pct": -25.50983859056041,
       "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
     },
     "value_arm": {
@@ -3707,13 +3735,13 @@
       "customer_years": 1092,
       "customer_years_without_any_counterfactual": 92,
       "records_this_view_could_not_value": 0,
-      "coverage_pct": 85.74896765281652,
-      "paid_gbp": 625313.2630885122,
-      "counterfactual_gbp": 535053.5623968255,
-      "household_saving_gbp": -90259.70069168667,
-      "household_saving_pct_of_counterfactual": -16.869283196127014,
-      "our_gross_margin_gbp": 362996.11452752823,
-      "household_share_of_the_split_pct": -33.09411435834653,
+      "coverage_pct": 85.7387436619282,
+      "paid_gbp": 624807.0800043313,
+      "counterfactual_gbp": 534491.584978023,
+      "household_saving_gbp": -90315.49502630836,
+      "household_saving_pct_of_counterfactual": -16.89745873735728,
+      "our_gross_margin_gbp": 362649.04872673406,
+      "household_share_of_the_split_pct": -33.16355762964774,
       "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
     },
     "level_arm": {
@@ -3722,13 +3750,13 @@
       "customer_years": 1098,
       "customer_years_without_any_counterfactual": 92,
       "records_this_view_could_not_value": 0,
-      "coverage_pct": 85.97153028892444,
-      "paid_gbp": 641596.4200241165,
-      "counterfactual_gbp": 554067.6101457654,
-      "household_saving_gbp": -87528.80987835108,
-      "household_saving_pct_of_counterfactual": -15.797496239732151,
-      "our_gross_margin_gbp": 371694.9898576839,
-      "household_share_of_the_split_pct": -30.8019799839365,
+      "coverage_pct": 85.96162325765404,
+      "paid_gbp": 641094.5674978906,
+      "counterfactual_gbp": 553505.6327269629,
+      "household_saving_gbp": -87588.93477092769,
+      "household_saving_pct_of_counterfactual": -15.824398089573583,
+      "our_gross_margin_gbp": 371352.27315954916,
+      "household_share_of_the_split_pct": -30.866896079074284,
       "what_this_is_not": "NOT value created. Creation is a comparison of COSTS and the counterfactual supplier's cost is not observable to us; this is how a surplus whose size we cannot yet measure was SPLIT. Atom A48."
     }
   },
@@ -3740,7 +3768,7 @@
       {
         "account": "C5_2",
         "segment": null,
-        "realised_lifetime_margin_gbp": 1179.5491850000008
+        "realised_lifetime_margin_gbp": 1176.7834190000003
       },
       {
         "account": "PROS-2019-0024",
@@ -3765,9 +3793,9 @@
         "realised_lifetime_margin_gbp": 431.43218499999955
       }
     ],
-    "only_in_value_arm_realised_gbp": 2103.906181000002,
+    "only_in_value_arm_realised_gbp": 2101.1404150000017,
     "only_in_control_arm_realised_gbp": 431.43218499999955,
-    "largest_single_difference_gbp": 1179.5491850000008,
+    "largest_single_difference_gbp": 1176.7834190000003,
     "realised_coverage": {
       "only_in_value_arm": {
         "accounts": 4,
@@ -3785,10 +3813,10 @@
     "accounts_compared": 165,
     "margin_basis": "net_margin_gbp summed from the world's own settled records (phase2b.all_records) -- after wholesale, levies, network, capital and bad debt, BEFORE cost-to-serve",
     "accounts_that_moved": 114,
-    "net_delta_gbp": 17452.610023999925,
-    "total_absolute_movement_gbp": 33190.33639199995,
+    "net_delta_gbp": 17443.974545999925,
+    "total_absolute_movement_gbp": 33182.54837399993,
     "top_n": 15,
-    "concentration_top_n_share_of_absolute_movement": 0.6478474023596461,
+    "concentration_top_n_share_of_absolute_movement": 0.6479270562548517,
     "biggest_movers": [
       {
         "account": "PROS-2018-0137",
@@ -3822,8 +3850,8 @@
         "account": "PROS-2017-0065",
         "segment": null,
         "control_gbp": -834.967373000004,
-        "value_arm_gbp": 813.3927909999975,
-        "delta_gbp": 1648.3601640000015
+        "value_arm_gbp": 814.492754999998,
+        "delta_gbp": 1649.460128000002
       },
       {
         "account": "SYN-2016-034",
@@ -3835,16 +3863,16 @@
       {
         "account": "C4",
         "segment": null,
-        "control_gbp": 538.9781980000001,
+        "control_gbp": 539.0353369999996,
         "value_arm_gbp": 1981.4462859999962,
-        "delta_gbp": 1442.468087999996
+        "delta_gbp": 1442.4109489999967
       },
       {
         "account": "C5_2",
         "segment": null,
         "control_gbp": null,
-        "value_arm_gbp": 1179.5491850000008,
-        "delta_gbp": 1179.5491850000008
+        "value_arm_gbp": 1176.7834190000003,
+        "delta_gbp": 1176.7834190000003
       },
       {
         "account": "PROS-2022-0049",
@@ -3870,16 +3898,16 @@
       {
         "account": "PROS-2021-0324",
         "segment": null,
-        "control_gbp": 967.5294829999981,
+        "control_gbp": 967.5296649999976,
         "value_arm_gbp": 395.9131280000002,
-        "delta_gbp": -571.6163549999978
+        "delta_gbp": -571.6165369999974
       },
       {
         "account": "PROS-2018-0238",
         "segment": null,
         "control_gbp": 572.9548110000022,
-        "value_arm_gbp": 1138.8981590000058,
-        "delta_gbp": 565.9433480000035
+        "value_arm_gbp": 1138.2185900000056,
+        "delta_gbp": 565.2637790000034
       },
       {
         "account": "PROS-2020-0067",
@@ -3902,15 +3930,15 @@
     "available": true,
     "read_from": "docs/observability/value_based_pricing_arms.json",
     "source": "Ofgem Default Tariff Cap EBIT allowance, decision 25 August 2023, cap period 11a -- docs/domain_artefact_library/regulatory/price_cap_ebit_allowance.md",
-    "accounts_scored": 251,
+    "accounts_scored": 397,
     "regulated_allowance_median_gbp_per_mwh": [
-      2.14,
-      7.99
+      2.5,
+      7.58
     ],
     "control_gbp_per_mwh": 2.0,
     "control_as_share_of_allowance": [
-      0.25,
-      0.935
+      0.264,
+      0.8
     ],
     "what_it_means": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },

@@ -87,3 +87,19 @@ artefact will be stamped **after** `01:24:34Z`, which is the one thing the promo
 exists to prevent, in both directions.
 
 Do not re-derive any of the first four rows of the table at the top. They are at HEAD.
+
+---
+
+## CORRECTED IN THE SAME TURN — the floor I launched was not needed
+
+Written beside the claim rather than revised out of it. `value_cycle_ab_s1_noise_floor_20260909.json`
+already existed, finished at `06:57:00Z` in world `39a192ce04c1eda8` at seeds 11111/22222/33333,
+`--redraw-mode all` — **newer than the arms run**, which is the one thing the promotion needed. I did
+not find it before launching because I listed the floors at 07:02 and the artefact was not on disk
+under that name yet, and I did not ask `background.launch_liveness --check`, which knew: it reports
+`noise-floor-20260909: FINISHED` and contradicts a staging record still saying that run is in flight.
+**Ask the liveness register before launching, not the glob.** `longjob-arms-rerun-20260909b` was
+stopped; it wrote no artefact and nothing depends on it.
+
+The pair was promoted in this turn. See
+[the promotion record](SEAT_RESULT_THE_WORSE_THAN_CHANCE_CUT_REACHES_THE_READER_AND_THE_DETECTABILITY_CONTROL_READ_THE_WHOLE_PAGE_2026-09-09.md).
