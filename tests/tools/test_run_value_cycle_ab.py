@@ -2820,6 +2820,138 @@ def test_the_departure_check_withholds_rather_than_reporting_zero_with_no_event_
     assert told["zero_outcomes_the_world_recorded_as_a_departure"] == 1
 
 
+def test_the_estimand_leg_can_report_that_it_admits_NO_departure():
+    """POISON ROUND ONE for `_leg_conditioning`, and it comes before any leg is graded.
+
+    `the_estimand_admits_the_departures` is the field the Lane 0 item's premise turns on. A block
+    that reported `True` on every input would pass a test written only against today's answer --
+    and today's answer is the flattering one, because the estimand was built to admit them. So
+    the FALSE branch is proved reachable first: a departure whose horizon had not closed is
+    censored out of leg 3, and the block must say the estimand is a survivor cut like the rest.
+
+    Fires on: `the_estimand_admits_the_departures` being hardcoded True or read off the presence
+    of the block; on censored departures being counted as admitted.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log + [_a48_unsettled_second_term()], records,
+                  events=[_churn_event()], observed_until="2023-06-01")
+    conditioning = horizon["leg_conditioning"]
+    assert conditioning["available"] is True
+    assert conditioning["priced_decisions_the_world_recorded_as_a_departure"] == 1
+    assert conditioning["the_estimand_admits_the_departures"] is False
+    assert conditioning["departures_the_estimand_cannot_see"] == 1
+    assert conditioning["why_the_estimand_cannot_see_them"] == {
+        "horizon_open_at_the_end_of_the_settled_book": 1}
+    assert "THE ESTIMAND ADMITS NONE" in conditioning["reading"]
+
+
+def test_a_survivor_leg_that_admits_a_departure_says_it_is_NOT_conditioned_on_survival():
+    """POISON ROUND TWO, and it keys the per-leg verdict to the property rather than to the shape
+    every artefact on disk happens to have.
+
+    Legs 0-2 score only decisions whose term settled something, and a household that leaves at
+    the renewal settles nothing -- so today they admit no departures. If a world settles a term
+    the household left part-way through, that decision IS in leg 0's population and leg 0 stops
+    being a survivor cut. This asserts the block reads its own population rather than carrying
+    the sentence over a changed world.
+
+    Fires on: `conditioned_on_survival` being asserted for the ratio legs rather than measured;
+    on the per-leg join using the estimand's population for every leg.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log, records, events=[_churn_event("A1", on=_TERM)])
+    by_leg = horizon["leg_conditioning"]["by_leg"]
+    assert by_leg["the_published_population_ratio_outcome"][
+        "of_those_the_world_recorded_as_a_departure"] == 1
+    assert by_leg["the_published_population_ratio_outcome"]["conditioned_on_survival"] is False
+    assert by_leg["settled_only_ratio_outcome"]["conditioned_on_survival"] is False
+
+
+def test_the_estimand_admits_the_departures_the_survivor_legs_cannot_see():
+    """THE SHAPE THE BRIDGE WAS BUILT TO PRODUCE, asserted last and deliberately.
+
+    The two poison rounds above establish that both verdicts are reachable, so a pass here is
+    evidence the block read the run rather than evidence it always says this.
+
+    This is the measurement the Lane 0 item asked for and the one that REFUTES the premise it was
+    drawn on: *"every one of those four numbers, including the worse-than-chance estimand, is a
+    statement about survivors"*. Three of the four are. The estimand is not, which is why it
+    exists.
+
+    Fires on: the estimand's zero rows being excluded from its own conditioning population; on
+    the survivor legs and the estimand being joined against different keys.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log + [_a48_unsettled_second_term()], records, events=[_churn_event()])
+    conditioning = horizon["leg_conditioning"]
+    by_leg = conditioning["by_leg"]
+
+    assert conditioning["priced_decisions_the_world_recorded_as_a_departure"] == 1
+    assert by_leg["every_priced_decision_pounds_outcome"][
+        "of_those_the_world_recorded_as_a_departure"] == 1
+    assert by_leg["every_priced_decision_pounds_outcome"]["conditioned_on_survival"] is False
+    for survivor in ("the_published_population_ratio_outcome", "settled_only_ratio_outcome",
+                     "settled_only_pounds_outcome"):
+        assert by_leg[survivor]["of_those_the_world_recorded_as_a_departure"] == 0
+        assert by_leg[survivor]["conditioned_on_survival"] is True
+        assert by_leg[survivor]["departures_this_leg_cannot_see"] == 1
+
+    assert conditioning["the_estimand_admits_the_departures"] is True
+    assert conditioning["departures_the_estimand_cannot_see"] == 0
+    assert conditioning["why_the_estimand_cannot_see_them"] == {}
+    assert "is not a survivor cut" in conditioning["reading"]
+    assert "without a residue" in conditioning["reading"]
+
+
+def test_a_departure_the_estimand_cannot_see_is_named_by_the_reason_that_removed_it():
+    """THE RESIDUE, and the reason it is published rather than totalled.
+
+    The estimand admitting SOME departures is not the estimand admitting all of them, and the two
+    read identically to anyone shown only `the_estimand_admits_the_departures`. A censoring
+    reason here is a bound a longer run removes; a coverage or join reason would be a departure
+    dropped for something we control, which is a DEFECT in the estimand rather than a limit on
+    it. The page cannot tell those apart unless the reasons reach it.
+
+    One departure admitted at its measured 0.0, one censored out, in one book.
+
+    Fires on: the residue being reported as a bare count; on it being computed by subtracting
+    `method_skill.survivorship`'s drop count from this block's zero count -- the two funnels this
+    block exists to stop being differenced.
+    """
+    log, records = _a48_rising()
+    horizon = _fh(log + [_a48_unsettled_second_term(), _a48_priced("A1", 9.0, term="2023-09-01")],
+                  records, events=[_churn_event(), _churn_event("A1", on="2023-09-01")],
+                  observed_until="2024-03-01")
+    conditioning = horizon["leg_conditioning"]
+
+    assert conditioning["priced_decisions_the_world_recorded_as_a_departure"] == 2
+    assert conditioning["the_estimand_admits_the_departures"] is True
+    assert conditioning["departures_the_estimand_cannot_see"] == 1
+    assert conditioning["why_the_estimand_cannot_see_them"] == {
+        "horizon_open_at_the_end_of_the_settled_book": 1}
+    assert "THE RUN-LENGTH ARTEFACT" in conditioning["what_each_residue_reason_means"][
+        "horizon_open_at_the_end_of_the_settled_book"]
+    assert "IT IS NOT UNCONDITIONED" in conditioning["reading"]
+    assert "1 of 2" in conditioning["reading"]
+
+
+def test_the_per_leg_split_withholds_rather_than_reporting_four_clean_legs_with_no_event_log():
+    """FAIL CLOSED, on the same shape as `_survivorship` and for a sharper reason.
+
+    With `churned=None` an empty-set default would report every leg admitting zero departures --
+    which renders as "all four legs are survivor cuts", the single most misleading thing this
+    block could say, and it would say it on a run that simply never published an event log.
+
+    Fires on: `churned=None` defaulting to an empty set; on the refusal omitting its reason.
+    """
+    log, records = _a48_rising()
+    blind = _fh(log + [_a48_unsettled_second_term()], records)["leg_conditioning"]
+    assert blind["available"] is False
+    assert "no `customer_events`" in blind["why_not"]
+    assert "by_leg" not in blind
+    assert "different worlds" in blind["why_not"]
+
+
 def test_every_leg_carries_the_interval_ITS_OWN_population_earns_and_never_a_neighbours():
     """THE PROPERTY, and it is a property rather than today's answer: **no cut of this bridge
     carries a concordance without an interval permuted on that cut's own decisions.**

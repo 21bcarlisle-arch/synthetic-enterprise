@@ -4229,6 +4229,74 @@ def test_the_page_shows_the_BRIDGE_and_not_only_the_headline():
     assert "carries account SIZE" in rendered or "POUNDS" in rendered
 
 
+def test_WHICH_of_the_four_cuts_can_see_the_departures_reaches_the_reader():
+    """THE DEFECT THIS EXISTS FOR, and it was live and it was read by a reader (2026-09-09).
+
+    The survivorship block tells the reader that `method_skill.concordance` is computed over
+    households that STAYED. The bridge table then shows four concordances over four populations,
+    and nothing between them said which of the four inherited that conditioning. A Lane 0 item
+    read the page in exactly that state and concluded all four did -- *"every one of those four
+    numbers, INCLUDING the worse-than-chance estimand, is a statement about survivors and not
+    about the book"*. Three are. The estimand is not, and that is the only reason it was built:
+    the page was carrying its own best evidence and had no way to show it.
+
+    So the count each cut can see is a COLUMN, rendered per row from that row's own measured
+    number, and the verdict beneath it is the producer's sentence rather than one typed here.
+
+    Driven through BOTH producers on a book with a real departure, so a pass is evidence the page
+    read the run.
+
+    Fires on: the column being dropped; on every row being given the estimand's count; on the
+    survivor rows rendering a bare 0 that a reader cannot tell from "not measured".
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_book())
+    conditioning = produced["leg_conditioning"]
+    rendered = _text(_render(feed)["arms-method"])
+
+    # REACHABILITY FIRST: the fixture must actually contain a departure the estimand admits, or
+    # every assertion below passes against a block that always says the flattering thing.
+    assert conditioning["available"] is True
+    assert conditioning["priced_decisions_the_world_recorded_as_a_departure"] == 1
+    assert conditioning["the_estimand_admits_the_departures"] is True
+
+    assert "Departures this cut can see" in rendered
+    # The estimand's row can see the departure; the three survivor rows cannot. Both readings are
+    # on the surface, in the cells, next to the numbers they qualify.
+    assert "1 of 1" in rendered
+    assert "0 of 1" in rendered
+    # ...and the verdict the producer composed from those counts, never a sentence this page types.
+    assert conditioning["reading"][:60] in rendered
+    assert "is not a survivor cut" in rendered
+
+
+def test_a_feed_that_never_measured_the_conditioning_says_so_and_never_renders_a_ZERO():
+    """FAIL CLOSED AT THE SURFACE, and this is the fail-open the column could most easily become.
+
+    "This cut can see 0 of the departures" and "we were not told who left" render as the same
+    cell to a reader if the absence is allowed to reach the page as a number. The second is what
+    every feed generated before this split carries, and printing 0 for it would tell a reader
+    that ALL FOUR cuts are survivor cuts -- the single most misleading thing this table could
+    say, and the exact claim the block exists to refute.
+
+    Fires on: `departures()` defaulting to 0 or to a dash; on the refusal omitting its reason;
+    on the verdict paragraph rendering the available branch's sentence for an absent split.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_book())
+    assert produced["leg_conditioning"]["available"] is True, "reachability, before the absence"
+
+    blind = copy.deepcopy(feed)
+    blind["method_skill"]["fixed_horizon"].pop("leg_conditioning", None)
+    rendered = _text(_render(blind)["arms-method"])
+
+    assert "not measured" in rendered
+    assert "Which of these four cuts can see the households that left?" in rendered
+    assert "regenerating the feed" in rendered
+    # The number the available branch produces must be GONE, or the absence rendered as an answer.
+    assert "0 of 1" not in rendered
+    assert "1 of 1" not in rendered
+    assert "is not a survivor cut" not in rendered
+
+
 def test_the_control_rows_AGREEMENT_is_not_published_as_corroboration():
     """TWO IDENTICAL INTERVALS ON ONE PAGE, AND A READER COUNTS THEM AS TWO.
 
