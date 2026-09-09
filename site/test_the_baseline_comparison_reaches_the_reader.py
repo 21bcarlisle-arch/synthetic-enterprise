@@ -4452,6 +4452,110 @@ def test_a_feed_that_never_measured_the_conditioning_says_so_and_never_renders_a
     assert "is not a survivor cut" not in rendered
 
 
+def test_the_conditioning_column_on_the_LIVE_feed_carries_THAT_FEEDS_own_state():
+    """THE LIFT, and every other control on this column is blind to it.
+
+    The two tests above drive the door through `_fixed_horizon_feed`, which BUILDS a feed. They
+    establish that the door renders a conditioning block correctly and they establish nothing
+    about whether the block `site/data/value_arms.json` actually carries reaches the page -- a
+    door test that builds its own feed controls the RENDER, not the LIFT. That gap is not
+    hypothetical here: this column's whole purpose is to say which state the published run is in,
+    and the published run changes by a file copy that touches no source and runs no test.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER, which is the only reason it can be written now.
+    Today the live feed carries the named absence and this asserts the absence reached the reader
+    WITH THE FEED'S OWN REASON. After a run carrying `method_skill.fixed_horizon.leg_conditioning`
+    is promoted, the same test asserts the four measured counts reached the reader instead. A
+    control pinned to today's state would go red on the promotion -- green when the claim rots and
+    red when the page becomes more honest, which is exactly backwards.
+
+    THE FAIL-OPEN THIS IS WRITTEN AROUND, found by writing it the naive way first: the door's
+    absence branch carries its OWN fallback sentence (`|| "this page's own feed was generated
+    before..."`), so if the lift broke completely -- the key gone from the feed -- "Not measured by
+    this run." would still render and a test asserting only that string would pass on a page
+    reading nothing at all. So the feed's reason is required to be NON-EMPTY before it is required
+    to reach the reader, and that assertion is what makes this a lift control rather than a
+    second copy of the render controls above.
+
+    EACH CELL IS CHECKED ON ITS OWN ROW, and the first draft of this test did not do that. Written
+    the obvious way -- `assert cell in rendered` for each leg -- it survived a door mutation that
+    puts the ESTIMAND's cell on all four rows: three of the four legs carry the same count on
+    every honest run, so "0 of 40" is somewhere in the text whatever row it came from, and a
+    page-wide substring check is vacuous exactly when the table is telling the truth. So each cell
+    is looked for in its own row's text slice, bounded by the two labels the door renders.
+
+    ONE MUTATION SURVIVES AND IT IS AN EQUIVALENCE, recorded rather than left for a reader to
+    assume the flattering answer. Changing a COUNT IN THE FEED -- giving the estimand the survivor
+    rows' 0 -- does not fire this test, and cannot: the subject here is the CORRESPONDENCE between
+    the feed and the page, so a feed-side edit moves both sides together and they still agree.
+    That is the control working, not a hole in it. What separates the two readings is the
+    door-side twin of the same mutation (the page attributing one leg's count to another row),
+    and that one kills. A feed publishing a wrong count is a different defect with a different
+    owner, and `_leg_conditioning`'s own producer suite is where it is refused.
+
+    Fires on: the column disappearing; on the page rendering counts the feed did not measure or an
+    absence when it did; on any leg's cell carrying another leg's count; on the verdict paragraph
+    being a sentence typed here rather than the producer's; on the feed's own reason not reaching
+    a reader in the absence state.
+    """
+    feed = _live_feed()
+    lc = (((feed.get("method_skill") or {}).get("fixed_horizon") or {})
+          .get("leg_conditioning") or {})
+    rendered = _text(_render(feed)["arms-method"])
+
+    # THE COLUMN ITSELF, asserted before either branch, because "the page dropped the column" and
+    # "the page is in the other state" are different defects and only one of them is about the feed.
+    assert "Departures this cut can see" in rendered
+
+    if lc.get("available"):
+        by_leg = lc.get("by_leg") or {}
+        # REACHABILITY BEFORE THE READING. A block that measured no legs would satisfy every
+        # assertion in the loop below by never entering it.
+        assert len(by_leg) == 4, "the split names four legs or this branch asserts nothing"
+        total = lc["priced_decisions_the_world_recorded_as_a_departure"]
+        # The table's own row order, each leg named beside the label the door renders for it. The
+        # cell sits before its label in the row, so a leg's slice runs from the previous label to
+        # this one.
+        #
+        # THE SPACE BEFORE THE COMMA IS NOT A TYPO. The door emphasises a word mid-label
+        # (`term <strong>settled</strong>,`) and `_text` replaces each tag with a space, so what a
+        # reader's text stream carries is "term settled , on the ratio". Written the way the
+        # source reads, these labels match nothing and the whole branch reds -- which is how they
+        # were found, by running the poison round before trusting the battery.
+        rows = (("the_published_population_ratio_outcome",
+                 "every decision whose term settled , on the ratio"),
+                ("settled_only_ratio_outcome",
+                 "the same, less the terms whose 365 days had not closed"),
+                ("settled_only_pounds_outcome", "those decisions, in pounds"),
+                ("every_priced_decision_pounds_outcome",
+                 "every decision the arm priced , in pounds"))
+        cursor = rendered.index("Departures this cut can see")
+        for name, label in rows:
+            assert name in by_leg, "the split names no leg {}".format(name)
+            here = rendered.find(label, cursor)
+            assert here > -1, (
+                "the page renders no row labelled {!r}, so no cell can be attributed to leg "
+                "{}".format(label, name))
+            leg = by_leg[name]
+            cell = "{} of {}".format(leg["of_those_the_world_recorded_as_a_departure"], total)
+            assert cell in rendered[cursor:here], (
+                "leg {} measured {!r} and its own row on the page reads {!r}".format(
+                    name, cell, rendered[cursor:here]))
+            cursor = here + len(label)
+        # ...and the verdict COMPOSED from those counts, never a sentence this page types.
+        assert lc["reading"][:60] in rendered
+        assert "Not measured by this run." not in rendered
+    else:
+        reason = lc.get("reason") or ""
+        # THE NON-EMPTY LEG IS THE WHOLE CONTROL -- see the docstring. Without it the door's own
+        # fallback sentence satisfies the assertion below on a feed carrying nothing.
+        assert reason, ("the live feed neither measured the split nor said why, so the page's "
+                        "'not measured' is the door's own sentence and no reader is being told "
+                        "anything this run knows")
+        assert reason[:60] in rendered
+        assert "Not measured by this run." in rendered
+
+
 def test_the_control_rows_AGREEMENT_is_not_published_as_corroboration():
     """TWO IDENTICAL INTERVALS ON ONE PAGE, AND A READER COUNTS THEM AS TWO.
 
