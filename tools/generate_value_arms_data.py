@@ -1915,6 +1915,93 @@ def _horizon_leg_published(name: str, leg: dict | None) -> dict:
     )
 
 
+#: The leg whose whole job is to rebuild the headline through a second code path.
+CONTROL_LEG = "the_published_population_ratio_outcome"
+
+
+def _control_leg_agreement(method_skill: dict) -> dict:
+    """Whether the control leg's interval CORROBORATES the headline's, or is the same one twice.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09, Lane 0). The bridge's first row is published as "the
+    figure above, rebuilt here as a control", and on every run this book has produced its interval
+    matches `method_skill.null_spread` to the last bit. A reader meeting two identical intervals a
+    few hundred pixels apart reads that as two samples agreeing. It is not: one permutation, at one
+    seed, over one population, performed twice. Agreement is guaranteed by construction, and a
+    quantity guaranteed by construction is not evidence about anything.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. The three facts that make it one computation --
+    same permutation seed, same draw count, same number of decisions -- are read off the run's own
+    fields rather than assumed, so the day the control leg is permuted independently this block
+    says the agreement IS a check and nobody edits it.
+
+    THREE STATES, TOLD APART, and the third is the one worth having:
+      * one computation, intervals identical -- the state every run has been in. Not corroboration.
+      * one computation, intervals DIFFER -- same seed, same draws, same n, two different answers.
+        That is a defect in one of the two code paths and is reported as one, not softened into a
+        caveat about sample size.
+      * independently permuted -- the seeds, the draws or the populations differ, so whether the
+        two agree is a real question and the answer means something.
+
+    FAILS CLOSED: with either spread missing there is nothing to compare, and this block says so
+    rather than letting a silent absence read as "no problem here".
+    """
+    ms = method_skill or {}
+    leg = ((ms.get("fixed_horizon") or {}).get("legs") or {}).get(CONTROL_LEG) or {}
+    leg_spread, head_spread = leg.get("null_spread") or {}, ms.get("null_spread") or {}
+    if not leg_spread.get("available") or not head_spread.get("available"):
+        return {
+            "available": False,
+            "reason": (
+                "one of the two intervals this compares was not permuted on this run, so whether "
+                "the control row reproduces the headline cannot be asked of it. Nothing is claimed "
+                "about the pair until both carry a spread."),
+        }
+    leg_interval = list(leg_spread.get("null_95_interval") or [None, None])
+    head_interval = list(head_spread.get("null_95_interval") or [None, None])
+    same_seed = leg_spread.get("seed") == head_spread.get("seed")
+    same_draws = leg_spread.get("draws") == head_spread.get("draws")
+    same_n = leg.get("decisions") == ms.get("decisions_scored")
+    one_computation = bool(same_seed and same_draws and same_n)
+    identical = bool(None not in leg_interval and leg_interval == head_interval)
+    #: The three numbers, said once, so the sentences below cannot disagree about them.
+    how = "{draws:,} draws at seed {seed} over {n} decisions".format(
+        draws=head_spread.get("draws") or 0, seed=head_spread.get("seed"),
+        n=ms.get("decisions_scored"))
+    if one_computation and identical:
+        reading, sentence = "one_computation_twice", (
+            "The control row above and the headline figure agree to the last bit, and that is NOT "
+            "corroboration. Both intervals are the same permutation -- " + how + " -- performed "
+            "twice. Two independent samples agreeing would be evidence about the method; one "
+            "computation agreeing with itself is arithmetic, and the only thing it establishes is "
+            "that the two code paths meet.")
+    elif one_computation:
+        reading, sentence = "one_computation_and_they_disagree", (
+            "DEFECT, AND READ IT BEFORE THE TABLE. The control row and the headline figure were "
+            "permuted identically -- " + how + " -- and their intervals DIFFER: " + str(
+                leg_interval) + " against " + str(head_interval) + ". One of the two code paths "
+            "is wrong. Neither reading on this page should be relied on until it is found.")
+    else:
+        differs = ", ".join(name for name, same in (
+            ("the permutation seed", same_seed), ("the draw count", same_draws),
+            ("the number of decisions", same_n)) if not same)
+        reading, sentence = "independent", (
+            "The control row and the headline figure were not permuted the same way -- " + differs
+            + " differs -- so whether their intervals agree is a real question about this "
+            "instrument. They " + ("agree." if identical else "do not agree."))
+    return {
+        "available": True,
+        "reading": reading,
+        "is_one_computation_performed_twice": one_computation,
+        "intervals_identical": identical,
+        "same_permutation_seed": same_seed,
+        "same_draw_count": same_draws,
+        "same_decision_count": same_n,
+        "control_leg_null_95": leg_interval,
+        "headline_null_95": head_interval,
+        "sentence": sentence,
+    }
+
+
 def _skill_fixed_horizon(method_skill: dict) -> dict:
     """THE SECOND ESTIMAND, read off the run and NEVER recomputed here.
 
@@ -2032,6 +2119,11 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
             n=estimand.get("decisions"),
             accounts=estimand.get("accounts")),
         "legs": published_legs,
+        # WHY THE FIRST ROW AGREEING WITH THE HEADLINE IS NOT A SECOND OPINION. The bridge's
+        # control leg reproduces the published figure through a different code path, and its
+        # interval is the SAME permutation as the headline's rather than a second sample of it.
+        # Published beside the table because the table is where a reader forms the belief.
+        "the_control_leg_agreement": _control_leg_agreement(method_skill),
         "zero_outcomes_the_world_recorded_as_a_departure": horizon.get(
             "zero_outcomes_the_world_recorded_as_a_departure"),
         "bound": horizon.get("bound"),

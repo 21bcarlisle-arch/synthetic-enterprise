@@ -4005,10 +4005,32 @@ def _fixed_horizon_feed(log, records, events=None):
     phase2b = {"value_arm_log": log, "all_records": records}
     if events is not None:
         phase2b["customer_events"] = list(events)
-    produced = method_skill({"phase2b": phase2b})["fixed_horizon"]
+    # THE WHOLE `method_skill` BLOCK, as `_method_skill` hands it over in production. It used to
+    # be `{"fixed_horizon": produced}`, which was enough for the legs and blind to everything the
+    # block says about the SURVIVOR cut beside them -- `_control_leg_agreement` compares the two
+    # and would have had no headline spread to compare against, in the harness only.
+    whole = method_skill({"phase2b": phase2b})
     feed = copy.deepcopy(_live_feed())
-    feed["method_skill"]["fixed_horizon"] = _skill_fixed_horizon({"fixed_horizon": produced})
-    return produced, feed
+    feed["method_skill"]["fixed_horizon"] = _skill_fixed_horizon(whole)
+    return whole["fixed_horizon"], feed
+
+
+def _fh_produced_ms(log, records, events=None):
+    """The run's own `method_skill` block, for controls that need to perturb it before the feed."""
+    phase2b = {"value_arm_log": log, "all_records": records}
+    if events is not None:
+        phase2b["customer_events"] = list(events)
+    from tools.run_value_cycle_ab import method_skill
+    return method_skill({"phase2b": phase2b})
+
+
+def _fh_feed_from_ms(ms):
+    """A live feed whose fixed-horizon block was composed from `ms` by the real producer."""
+    from tools.generate_value_arms_data import _skill_fixed_horizon
+
+    feed = copy.deepcopy(_live_feed())
+    feed["method_skill"]["fixed_horizon"] = _skill_fixed_horizon(ms)
+    return feed
 
 
 def _fh_settled(account, *, paid, net, mwh=10.0, on="2022-06-01"):
@@ -4091,6 +4113,73 @@ def test_the_page_shows_the_BRIDGE_and_not_only_the_headline():
     # weakness of this cut. A figure whose weakness lives only in a docstring is published without
     # it, so its absence from the page is the defect this leg names.
     assert "carries account SIZE" in rendered or "POUNDS" in rendered
+
+
+def test_the_control_rows_AGREEMENT_is_not_published_as_corroboration():
+    """TWO IDENTICAL INTERVALS ON ONE PAGE, AND A READER COUNTS THEM AS TWO.
+
+    The bridge's first row is labelled "the figure above, rebuilt here as a control", and its
+    interval matches the headline's to the last bit on every run this book has produced. That
+    agreement is guaranteed: one permutation, one seed, one population, performed twice. Left
+    unsaid, the page shows a reader what looks like two samples agreeing and is one arithmetic
+    identity printed in two places -- the corroboration-from-a-shared-cause shape this file
+    already refuses once, arriving on the surface a second way.
+
+    ONE CONTROL OVER THE WHOLE PARTITION rather than a leg per branch: a block that printed "not
+    corroboration" unconditionally would pass any single-branch test, and it is the FLATTERING
+    reading in exactly one of the three states -- the one where the two paths disagree.
+
+    Fires on: the sentence not reaching the reader; on it being a constant rather than derived
+    from the run's own seed, draw count and population (the independent branch below); on the
+    same-permutation-different-answer defect rendering as a caveat about sample size; on the
+    amber styling applied unconditionally, which would make the emphasis say nothing.
+    """
+    ms = _fh_produced_ms(*_fh_book())
+    leg = ms["fixed_horizon"]["legs"]["the_published_population_ratio_outcome"]
+    assert leg["null_spread"]["available"] and ms["null_spread"]["available"], (
+        "the fixture never permuted both sides, so nothing below is attributable")
+
+    same = _text(_render(_fh_feed_from_ms(copy.deepcopy(ms)))["arms-method"])
+    assert "that is NOT corroboration" in same
+    assert "%d draws at seed %d" % (
+        ms["null_spread"]["draws"], ms["null_spread"]["seed"]) in same.replace(",", "")
+    assert "one computation agreeing with itself is arithmetic" in same
+
+    # THE INDEPENDENT BRANCH, and it is what proves the sentence above is derived. A run whose
+    # control leg is permuted at its own seed makes the agreement a real check, and the page has
+    # to stop calling it arithmetic without anyone editing this file.
+    independent = copy.deepcopy(ms)
+    independent["fixed_horizon"]["legs"][
+        "the_published_population_ratio_outcome"]["null_spread"]["seed"] += 1
+    told = _text(_render(_fh_feed_from_ms(independent))["arms-method"])
+    assert "the permutation seed differs" in told
+    assert "NOT corroboration" not in told, (
+        "the page called an independently permuted agreement arithmetic, so the sentence is a "
+        "constant and not a reading of the run")
+
+    # ...AND THE STATE NOBODY HAS SEEN: permuted identically, two different answers. That is a
+    # defect in one of the two code paths and the page has to say so rather than soften it.
+    broken = copy.deepcopy(ms)
+    broken["fixed_horizon"]["legs"][
+        "the_published_population_ratio_outcome"]["null_spread"]["null_95_interval"] = [0.2, 0.9]
+    defect = _text(_render(_fh_feed_from_ms(broken))["arms-method"])
+    assert "DEFECT, AND READ IT BEFORE THE TABLE" in defect
+    assert "One of the two code paths is wrong" in defect
+
+    # THE STYLING CARRIES THE MEANING and `_text` is blind to it, exactly as for the verdict
+    # sentence above: the two states that qualify the table are amber, the one that makes the
+    # agreement meaningful is not.
+    def _paragraph_around(raw, phrase):
+        at = raw.index(phrase)
+        return raw[raw.rindex("<p", 0, at):raw.index("</p>", at)]
+
+    assert "--amber" in _paragraph_around(
+        _render(_fh_feed_from_ms(copy.deepcopy(ms)), raw=True)["arms-method"],
+        "NOT corroboration")
+    assert "--amber" not in _paragraph_around(
+        _render(_fh_feed_from_ms(independent), raw=True)["arms-method"],
+        "the permutation seed differs"), (
+        "an agreement that IS a check was styled as a caveat, so the amber says nothing")
 
 
 def test_a_censored_horizon_is_named_on_the_page_as_a_run_length_artefact():

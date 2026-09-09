@@ -818,6 +818,17 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + row("every decision the arm <strong>priced</strong>, in pounds &mdash; the POPULATION "
             + "change alone", legs.every_priced_decision_pounds_outcome, true)
       + "</table></div>"
+      /* THE FIRST ROW AGREEING WITH THE FIGURE ABOVE IS NOT A SECOND OPINION, and this is the one
+         place a reader could take it for one. Amber whenever the agreement is guaranteed by
+         construction or the two paths disagree; muted only when the two were permuted
+         independently, which is the state where agreement would actually mean something. */
+      + (fh.the_control_leg_agreement && fh.the_control_leg_agreement.available
+          ? '<p style="margin:0 0 6px;font-size:11px;'
+            + (fh.the_control_leg_agreement.reading === "independent"
+                ? "color:var(--muted);"
+                : 'color:var(--amber);font-weight:600;')
+            + '">' + prose(fh.the_control_leg_agreement.sentence) + "</p>"
+          : "")
       + '<p style="margin:0 0 4px;font-size:11px;color:var(--muted);">'
       + esc(fh.decisions_scored) + " of " + esc(fh.decisions_priced)
       + " priced decisions are scored here, "
