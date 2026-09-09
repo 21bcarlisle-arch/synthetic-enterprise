@@ -2811,7 +2811,17 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
             null_low=estimand.get("null_95_low"),
             null_high=estimand.get("null_95_high"),
             n=estimand.get("decisions"),
-            accounts=estimand.get("accounts")),
+            accounts=estimand.get("accounts"),
+            # NEITHER `window_years` NOR `settled_book_accounts` IS PASSED, AND THAT IS THE
+            # ANSWER (2026-09-10). The artefact declares no window its accounts are counted over
+            # -- `report_end` is null and nothing else names one -- so the settled-book ceiling,
+            # which is per customer-YEAR, has no window to be read at. And the settled book count
+            # that would carry a scored-account requirement into the ceiling's own population is
+            # `book_identity.control_arm`, which `_book` WITHHOLDS whenever the run cannot name
+            # the code that drew it; passing it from here would republish a gated count under a
+            # different key, which is the defect `_decisions` names in its own docstring. So the
+            # block refuses, names both gaps, and says what would close them.
+            ),
         "legs": published_legs,
         # WHICH PAIRS PUT THE HEADLINE BELOW CHANCE. The table above shows four numbers and the
         # sentence under it says the ranking is inverted; this says WHAT the inversion is made of,
@@ -3291,7 +3301,11 @@ def _method_skill(three_arm: dict) -> dict:
             null_low=_f((spread.get("null_95_interval") or [None, None])[0]),
             null_high=_f((spread.get("null_95_interval") or [None, None])[1]),
             n=ms.get("decisions_scored"),
-            accounts=ms.get("accounts")),
+            accounts=ms.get("accounts"),
+            # SAME REFUSAL AS THE FIXED-HORIZON CUT ABOVE, and for the same two reasons -- see the
+            # comment there. Both cuts feed the same `detectability`, so a window declared for one
+            # is a window declared for both, and neither may reach for it before then.
+            ),
         "decisions_scored": ms.get("decisions_scored"),
         "accounts": ms.get("accounts"),
         # THE FUNNEL BETWEEN THE TWO COUNTS THIS PAGE SHOWS. `decisions.value_arm_priced` says 20

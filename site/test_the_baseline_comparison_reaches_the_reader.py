@@ -3169,13 +3169,39 @@ def test_the_page_says_what_the_concordance_COULD_have_detected_beside_what_it_d
     assert "{:.3f}".format(block["detectable_excess"]) in rendered
     # The book side of it: the floor is priced against a book this world can actually supply, and
     # the verdict -- either way -- is on the surface rather than in the artefact.
-    attainable = block["the_book_this_would_need"]["the_observed_effect_is_attainable"]
+    book = block["the_book_this_would_need"]
+    attainable = book["the_observed_effect_is_attainable"]
     if attainable is False:
         assert "No attainable book" in rendered, (
             "the arithmetic says no book this world can supply reads an effect this size and the "
             "page does not say so in those words")
-    elif attainable is True:
-        assert "does reach it" in rendered
+    else:
+        # THE REFUSAL IS A RESULT AND IT HAS TO REACH THE READER (2026-09-10). There is no `True`
+        # branch here any more -- `_attainability` cannot return one, because the only bound this
+        # page has on the book is an UPPER one and an upper bound refuses or is silent. What used
+        # to be the affirmative branch is now this, and it is the branch the LIVE feed takes, so
+        # a silent `else` would leave the page's actual state ungraded. The reason travels with
+        # the refusal: "we cannot tell" with no cause is what a reader cannot act on.
+        assert attainable is None, (
+            "the attainability verdict is affirmative, and no arithmetic on this page can support "
+            "that: the settled-book ceiling is an upper bound, so a requirement fitting under it "
+            "is not a requirement the world can meet")
+        why = book["why_no_attainability_verdict"]
+        assert why, "the page declines a verdict without naming what stopped it"
+        # SCOPED TO THE SURVIVOR CUT'S OWN REGION, on the same partition and for the same reason
+        # as `test_the_detectability_block_going_unavailable_says_so_rather_than_going_quiet`
+        # below -- and here it is load-bearing rather than cautious. The estimand's cut renders
+        # the IDENTICAL refusal about a different population, so a whole-panel check passes with
+        # this cut's copy deleted. Measured: blanking only this block leaves every assertion below
+        # green against the panel, and red against the region.
+        below = "And the same question over every decision the arm priced?"
+        region = rendered.split(below)[0]
+        assert "cannot say" in region, (
+            "the page prices a book the instrument would need and says nothing about whether this "
+            "world can supply it, so the reader is left to assume it can")
+        # A distinctive clause of the reason itself, so a generic refusal cannot pass for this one.
+        assert why.rstrip(". ")[-40:] in region, (
+            "the page refuses without the cause the arithmetic gave it: " + why)
 
 
 def test_the_detectability_block_going_unavailable_says_so_rather_than_going_quiet():
