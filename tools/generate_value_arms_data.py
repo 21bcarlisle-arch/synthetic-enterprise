@@ -383,6 +383,101 @@ SAME_SUPPLIER_TOLERANCE_GBP = 0.01
 #: from, so it is what a reader actually meets.
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
+#: WHICH RUN THE SITE IS SHOWING, in the site's own committed words. `showing_run.git_commit` and
+#: `showing_run.run_id` are written by the publish cycle and ship in the SAME commit as
+#: `dashboard.json` (`process_run_complete.git_commit_push` names both), so the two can never be a
+#: cycle apart. This is the only artefact in the tree that states the published run's identity
+#: rather than one of its figures.
+PUBLISH_PROVENANCE_PATH = PROJECT / "site" / "data" / "publish_provenance.json"
+
+
+def _same_commit(a, b) -> bool:
+    """Do two commit strings name the same commit? One side is `git rev-parse --short` output and
+    the other may be the full 40 characters, so the comparison is by PREFIX and never by equality.
+    Same rule, and for the same reason, as `generate_dashboard_data._same_commit`."""
+    if not a or not b:
+        return False
+    a, b = str(a), str(b)
+    return a.startswith(b) or b.startswith(a)
+
+
+def _published_run_identity() -> dict | None:
+    """`{"commit": ..., "run_id": ...}` for the run the site is currently showing, or None."""
+    try:
+        loaded = json.loads(PUBLISH_PROVENANCE_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    showing = (loaded or {}).get("showing_run")
+    if not isinstance(showing, dict):
+        return None
+    commit = showing.get("git_commit")
+    return {"commit": commit if isinstance(commit, str) and commit else None,
+            "run_id": showing.get("run_id")}
+
+
+#: Why the run artefact at `RUN_OUTPUT_PATH` cannot be shown to be the published run. Each value is
+#: a distinct defect with a distinct remedy, and collapsing them is what the old check did.
+_IDENTITY_ARTEFACT_SILENT = "the run artefact does not say which run produced it"
+_IDENTITY_SITE_SILENT = "the site does not say which run it is showing"
+_IDENTITY_DIFFERENT_RUN = "the run artefact is a different run from the one the site is showing"
+
+
+def _same_run_verdict(published_run: dict | None) -> dict:
+    """Is the run artefact this feed read THE RUN THE SITE IS SHOWING? Established, never inferred.
+
+    WHY THIS REPLACED AN ARITHMETIC TEST (2026-09-10). Until today the answer was inferred from
+    `run_output_latest.json`'s `total_net_gbp` matching `dashboard.json`'s
+    `portfolio.net_margin_gbp` -- two figures whose agreement is evidence of identity and is not
+    identity. That inference has both failures at once:
+
+      * FALSE PASS. Two different runs whose net margins land within a penny read as one run, and
+        the feed then makes a claim about "the supplier this site publishes" on an artefact that
+        is not it. Nothing in the check could notice.
+      * FALSE REFUSAL, and this is the one that was live. `docs/reports/run_output_latest.json` is
+        refreshed on disk by `background/sim_runner` after every run, but it is NOT in
+        `background.process_run_complete.git_commit_push`'s publish surface -- a gap `0247f3061`
+        named in its own STILL OWED section and 19 publishes in the following week walked straight
+        into. So the tree's WORKING copy is the published run while its COMMITTED copy is weeks
+        behind, and the published verdict alternated by which tree regenerated the feed: six
+        consecutive commits to `site/data/value_arms.json` read
+        checked=True/147,886.78, checked=False/131,289.34, True, False, True, False. Same
+        generator, same code, opposite sentence to the reader -- and the refusal blamed a subject
+        mismatch that did not exist.
+
+    `fe895db3a` is what makes the honest test possible: it put `producing_commit` at the top of the
+    run output's payload, so the artefact now states its own identity. `showing_run.git_commit` on
+    the other side has always been committed by the publish cycle. Both sides name a run, so the
+    question is answered by comparing RUN IDENTITIES and the money is left to answer the question
+    it can actually answer -- how big the difference is, once the subject is settled.
+
+    Returns `state` in {"same", "different", "unestablished"} with both identities and, when it
+    cannot tell, WHICH SIDE was silent. A refusal that does not name which half is missing sends
+    the reader to fix the wrong file.
+    """
+    artefact = (published_run or {}).get("producing_commit")
+    artefact_commit = artefact.get("commit") if isinstance(artefact, dict) else None
+    site = _published_run_identity()
+    site_commit = (site or {}).get("commit")
+    out = {
+        "artefact_commit": artefact_commit,
+        "showing_run_commit": site_commit,
+        "showing_run_id": (site or {}).get("run_id"),
+        # DOES THE ARTEFACT ADMIT IT CANNOT TELL? A flag and not the artefact's own prose, which
+        # runs to twelve hundred characters and belongs in the artefact rather than copied into
+        # every feed that reads it. What a consumer needs from here is whether the silence is
+        # STATED (a backfilled artefact, which `reconcile_and_stamp` marks with this key and only
+        # this key) or merely absent -- those are a refusal and a gap, and they read alike.
+        "artefact_says_it_cannot_tell": bool(
+            (published_run or {}).get("run_identity_unavailable_because")),
+    }
+    if not artefact_commit:
+        return {**out, "state": "unestablished", "why": _IDENTITY_ARTEFACT_SILENT}
+    if not site_commit:
+        return {**out, "state": "unestablished", "why": _IDENTITY_SITE_SILENT}
+    if not _same_commit(artefact_commit, site_commit):
+        return {**out, "state": "different", "why": _IDENTITY_DIFFERENT_RUN}
+    return {**out, "state": "same", "why": None}
+
 
 def _published_dashboard_net():
     """`portfolio.net_margin_gbp` from the site's own dashboard feed, or None if unreadable.
@@ -400,6 +495,51 @@ def _published_dashboard_net():
         return None
     return _f(((loaded.get("portfolio") or {}) if isinstance(loaded.get("portfolio"), dict)
                else {}).get("net_margin_gbp"))
+
+
+def _withheld_statement(identity: dict, published, dashboard_net) -> str:
+    """The refusal, NAMING WHICH OF THREE THINGS IS WRONG and what would settle it.
+
+    A refusal that says why is how you find out the refusal itself was wrong, and the one this
+    replaced could not: "the two are not the same run" was the sentence a reader met whether the
+    artefact was a genuinely different run, or the SAME run at a path whose committed copy is
+    behind its working copy. Those have opposite remedies -- re-publish, versus nothing is wrong
+    with the run at all -- and for the nine days before this was written the page said the first
+    while the second was true.
+    """
+    figures = ""
+    if published is not None and dashboard_net is not None:
+        figures = (" The run artefact reports £{p:,.2f} and the figure the site publishes reports "
+                   "£{d:,.2f}, a gap of £{g:,.2f}.").format(
+                       p=published, d=dashboard_net, g=abs(dashboard_net - published))
+    head = "This feed cannot say whether the baseline arm is the supplier the site publishes. "
+
+    if identity["state"] == "different":
+        return (head + "The run artefact it reads was produced at commit {a}, and the site says it "
+                "is showing run {s}. Those are two different runs, so the claim is withheld rather "
+                "than answered from whichever figure is nearer.{f}").format(
+                    a=identity["artefact_commit"], s=identity["showing_run_id"] or
+                    identity["showing_run_commit"], f=figures)
+
+    if identity["why"] == _IDENTITY_SITE_SILENT:
+        return (head + "The site does not state which run it is currently showing, so there is "
+                "nothing to check the run artefact against. The claim is withheld rather than "
+                "answered from whichever figure is nearer.{f}").format(f=figures)
+
+    # THE LIVE CASE, and the reason the remedy is spelled out rather than left to the reader.
+    # `docs/reports/run_output_latest.json` is refreshed on disk every run and committed by no
+    # publish, so a clean checkout of this repository reads a run that has not been current for
+    # weeks while every figure beside it is today's.
+    showing = identity["showing_run_id"] or identity["showing_run_commit"]
+    return (head + "The run artefact it reads does not say which run produced it{because}, and the "
+            "site says it is showing {s}. `docs/reports/run_output_latest.json` is refreshed on "
+            "disk after every run but is not in the publish surface, so its committed copy can be "
+            "many runs behind the figures published beside it -- and this feed cannot tell that "
+            "apart from a genuinely different run. The claim is withheld rather than answered from "
+            "whichever figure is nearer.{f}").format(
+                because=(" (and says so in its own payload)"
+                         if identity.get("artefact_says_it_cannot_tell") else ""),
+                s=showing or "a run it does not name", f=figures)
 
 
 def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
@@ -420,33 +560,47 @@ def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
                 "statement": ("The published run's own net margin could not be read, so this feed "
                               "does not claim any relationship between it and the baseline arm.")}
 
-    # IS THE SUBJECT EVEN THE FIGURE THE SITE PUBLISHES? Added 2026-08-28, after a concurrent lane
-    # raised the independence failure and the evidence corrected its premise. Two facts, both
-    # verified: `run_output_latest.json` is written by `simulation.run_phase4c_on_phase2b`, which is
-    # the same entry point the A/B calls once per arm -- so an A/B pass can make this check compare
-    # its own output against itself. And the figure the SITE actually publishes for the company is
-    # `site/data/dashboard.json`'s `portfolio.net_margin_gbp`, fetched live at 153,244.79 while
-    # `run_output_latest.json` at HEAD read 1,529,288.58.
+    # IS THE SUBJECT EVEN THE RUN THE SITE PUBLISHES? Added 2026-08-28, after a concurrent lane
+    # raised the independence failure and the evidence corrected its premise: `run_output_latest`
+    # is written by `simulation.run_phase4c_on_phase2b`, the same entry point the A/B calls once
+    # per arm, so an A/B pass can make this check compare its own output against itself.
     #
-    # So when the two disagree, the file this check reads is NOT the figure the site publishes, and
-    # the sentence below cannot be made either way. It is WITHHELD with both numbers rather than
-    # answered from the wrong one -- which is the fail-closed form of "I do not know which run is
-    # published". Deciding which one SHOULD be published is the publish lane's, not this
-    # generator's, and this refusal does not decide it.
+    # THE GATE IS AN IDENTITY TEST NOW AND WAS AN ARITHMETIC ONE UNTIL 2026-09-10. See
+    # `_same_run_verdict` for what that cost and why `fe895db3a` is what made the honest version
+    # possible. The money keeps a job -- it sizes the difference once the subject is settled, and
+    # it contradicts the identity below -- but it no longer ESTABLISHES the subject.
     dashboard_net = _published_dashboard_net()
+    identity = _same_run_verdict(published_run)
+    if identity["state"] != "same":
+        return {
+            "checked": False,
+            "same_supplier": None,
+            "published_run_net_gbp": published,
+            "dashboard_net_gbp": dashboard_net,
+            "run_identity": identity,
+            "statement": _withheld_statement(identity, published, dashboard_net),
+        }
+
+    # IDENTITY SAYS ONE RUN AND THE FIGURES SAY TWO. Kept as its own branch rather than folded
+    # into the one above, because it is a different defect with a different remedy: the run the
+    # provenance names is not the run the dashboard was built from, so one of those two producers
+    # is publishing the other's subject. Naming it "a different run" would send the reader to
+    # re-publish the run output, which would not touch it.
     if dashboard_net is not None and abs(dashboard_net - published) > SAME_SUPPLIER_TOLERANCE_GBP:
         return {
             "checked": False,
             "same_supplier": None,
             "published_run_net_gbp": published,
             "dashboard_net_gbp": dashboard_net,
+            "run_identity": identity,
             "statement": (
                 "This feed cannot say whether the baseline arm is the supplier the site publishes. "
-                "The run artefact it reads reports £{p:,.2f} and the figure the site actually "
-                "publishes for the company reports £{d:,.2f} -- a gap of £{g:,.2f} -- so the two "
-                "are not the same run and the claim is withheld rather than answered from "
-                "whichever one is nearer."
-            ).format(p=published, d=dashboard_net, g=abs(dashboard_net - published)),
+                "The run artefact it reads and the figure the site publishes both claim to be run "
+                "{r} -- and they report £{p:,.2f} and £{d:,.2f}, a gap of £{g:,.2f}. One run cannot "
+                "have two net margins, so the claim is withheld rather than answered from whichever "
+                "one is nearer."
+            ).format(r=identity["showing_run_id"] or identity["showing_run_commit"],
+                     p=published, d=dashboard_net, g=abs(dashboard_net - published)),
         }
 
     gap = published - control_net
@@ -455,7 +609,9 @@ def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
         "checked": True,
         "same_supplier": same,
         "published_run_net_gbp": published,
+        "dashboard_net_gbp": dashboard_net,
         "gap_gbp": gap,
+        "run_identity": identity,
         "statement": (
             "The net margin this site publishes for the company is the same figure, to the penny, "
             "as the flat-rules baseline arm below. The supplier on the front of this site IS the "

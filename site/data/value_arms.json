@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T22:15:37.676484Z",
+  "generated_at": "2026-09-09T23:20:13.746188Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -328,10 +328,10 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "73d3aefc7630f8451575a6871ad87fc730c46a53",
+    "publishing_tree_commit": "fd9d6292aef87c8d1cfbcef211b3d2e222e9c760",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 8b846013e and published from 73d3aefc7 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 8b846013e and published from fd9d6292a -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -644,10 +644,10 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "73d3aefc7630f8451575a6871ad87fc730c46a53",
+      "publishing_tree_commit": "fd9d6292aef87c8d1cfbcef211b3d2e222e9c760",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 8b846013e and published from 73d3aefc7 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 8b846013e and published from fd9d6292a -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -700,7 +700,15 @@
       "same_supplier": null,
       "published_run_net_gbp": 131289.339938,
       "dashboard_net_gbp": 147886.78,
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3147,886.78 -- a gap of \u00a316,597.44 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
+      "run_identity": {
+        "artefact_commit": null,
+        "showing_run_commit": "36e3ee8c4",
+        "showing_run_id": "run_output_36e3ee8c4_20260909T210648Z.json",
+        "artefact_says_it_cannot_tell": true,
+        "state": "unestablished",
+        "why": "the run artefact does not say which run produced it"
+      },
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads does not say which run produced it (and says so in its own payload), and the site says it is showing run_output_36e3ee8c4_20260909T210648Z.json. `docs/reports/run_output_latest.json` is refreshed on disk after every run but is not in the publish surface, so its committed copy can be many runs behind the figures published beside it -- and this feed cannot tell that apart from a genuinely different run. The claim is withheld rather than answered from whichever figure is nearer. The run artefact reports \u00a3131,289.34 and the figure the site publishes reports \u00a3147,886.78, a gap of \u00a316,597.44."
     }
   },
   "provisioned": {

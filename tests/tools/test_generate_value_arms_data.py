@@ -105,6 +105,41 @@ def dashboard_agreeing_with(monkeypatch, tmp_path):
     return _set
 
 
+#: The commit the tests below have the site showing. Any hex string; what matters is that the run
+#: artefact and the provenance either agree on it or do not.
+_SHOWN = "abc1234"
+
+
+@pytest.fixture
+def the_run_the_site_is_showing(monkeypatch, tmp_path):
+    """Point the generator's publish provenance at a run of the test's choosing, and mint run
+    artefacts that either ARE that run or are not.
+
+    WHY THIS EXISTS (2026-09-10). `_is_the_published_supplier` establishes its subject from RUN
+    IDENTITY now, not from two net-margin figures agreeing (see `_same_run_verdict`). So a test
+    that hands `build()` a bare `{"total_net_gbp": ...}` no longer exercises the branch it names
+    -- it exercises the identity refusal, because a dict with no `producing_commit` is an artefact
+    that cannot say which run it is. Every test driving the match/divergence branches has to say
+    which run each side is, exactly as `dashboard_agreeing_with` made it say which figure the site
+    published when the money gate went in.
+    """
+    def _showing(commit=_SHOWN, run_id="run_output_{}_20260909T210648Z.json"):
+        path = tmp_path / "publish_provenance.json"
+        path.write_text(json.dumps({"showing_run": {
+            "git_commit": commit,
+            "run_id": run_id.format(commit) if "{}" in run_id else run_id,
+        }}), encoding="utf-8")
+        monkeypatch.setattr(gva, "PUBLISH_PROVENANCE_PATH", path)
+        return path
+    return _showing
+
+
+def _run_at(net, commit=_SHOWN):
+    """A run artefact reporting `net` and stating the commit it was produced at -- the shape
+    `tools/run_annual_report.reconcile_and_stamp` has written since `fe895db3a`."""
+    return {"total_net_gbp": net, "producing_commit": {"commit": commit}}
+
+
 def _load(path: Path) -> dict:
     if not path.is_file():
         pytest.fail("{} is missing -- this control's subject is UNAVAILABLE, and an unavailable "
@@ -689,13 +724,14 @@ def test_the_published_supplier_claim_is_HONEST_whichever_state_the_tree_is_in(r
         assert pub["statement"].strip(), "the check withheld the claim and said nothing about why"
 
 
-def test_a_divergent_published_run_is_reported_as_a_divergence(real, dashboard_agreeing_with):
+def test_a_divergent_published_run_is_reported_as_a_divergence(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
     """THE LOAD-BEARING NULL. The day the site publishes a different run, the claim must invert
     itself and name both figures -- not quietly go on asserting an identity that has lapsed."""
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     dashboard_agreeing_with(control + 40_000.0)
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
-                    {"total_net_gbp": control + 40_000.0})
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control + 40_000.0))
     pub = out["realised"]["is_the_published_supplier"]
 
     assert pub["same_supplier"] is False
@@ -719,7 +755,7 @@ def test_a_divergent_published_run_is_reported_as_a_divergence(real, dashboard_a
         "the headline went on claiming the published supplier is the baseline after they diverged")
     dashboard_agreeing_with(control)
     assert "The comparison below is against" in gva.build(
-        _load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})["headline"], (
+        _load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control))["headline"], (
         "the null rung: while the two DO match, the headline must make the claim -- otherwise the "
         "assertion above passes on a headline that never carries it")
 
@@ -732,28 +768,43 @@ def test_an_unreadable_published_run_claims_nothing_either_way(real):
         "an unread run was treated as agreement -- fail-open on the check itself")
 
 
-def test_a_penny_of_divergence_is_still_the_same_supplier(real, dashboard_agreeing_with):
+def test_a_penny_of_divergence_is_still_the_same_supplier(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
     """The null on the OTHER side: both figures are pounds summed from settlement records, so
-    sub-penny float noise must not be reported as two different suppliers."""
+    sub-penny float noise must not be reported as two different suppliers.
+
+    THIS IS ALSO THE GATE'S OWN NULL RUNG. A guard that refuses everything passes every test that
+    asks whether it refuses correctly, and the identity gate added on 2026-09-10 sits ahead of
+    every other branch here. This is the one control that proves it can be PASSED -- delete the
+    `state == "same"` route and it is what reddens.
+    """
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     dashboard_agreeing_with(control + 0.004)
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control + 0.004})
-    assert out["realised"]["is_the_published_supplier"]["same_supplier"] is True
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control + 0.004))
+    pub = out["realised"]["is_the_published_supplier"]
+    assert pub["same_supplier"] is True
+    assert pub["run_identity"]["state"] == "same", (
+        "the claim was made without establishing that the run artefact IS the published run")
 
 
-def test_a_run_artefact_that_is_not_the_published_figure_WITHHOLDS_the_claim(
-        real, dashboard_agreeing_with):
-    """THE INDEPENDENCE REPAIR (2026-08-28). `run_output_latest.json` is written by the same entry
-    point the A/B calls once per arm, so an A/B pass can make this check compare its own output
-    against itself. And on that day the figure the SITE published was 153,244.79 while the run
-    artefact read 159,423.50 -- different runs, so the check's subject was not the published
-    figure at all.
+def test_one_run_reported_with_two_net_margins_WITHHOLDS_the_claim(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """THE INDEPENDENCE REPAIR (2026-08-28), kept as its own branch after the 2026-09-10 identity
+    gate went in ahead of it. `run_output_latest.json` is written by the same entry point the A/B
+    calls once per arm, so an A/B pass can make this check compare its own output against itself.
+
+    WHAT THIS BRANCH MEANS NOW, AND WHY IT IS NOT THE SAME DEFECT AS A DIFFERENT RUN. Both sides
+    agree on the run's identity and disagree on its net margin. One run cannot have two net
+    margins, so one of the two producers is publishing the other's subject -- and the remedy is
+    not "re-publish the run output", which is what the identity refusal would send a reader to do.
 
     Fires on: answering the claim from whichever file is nearer, in either direction.
     """
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     dashboard_agreeing_with(control - 6_178.71)      # what the site publishes
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control))
     pub = out["realised"]["is_the_published_supplier"]
     assert pub["checked"] is False and pub["same_supplier"] is None
     assert "cannot say whether the baseline arm is the supplier the site publishes" in pub["statement"]
@@ -764,15 +815,117 @@ def test_a_run_artefact_that_is_not_the_published_figure_WITHHOLDS_the_claim(
 
 
 def test_an_unreadable_dashboard_leaves_the_original_comparison_alone(
-        real, monkeypatch, tmp_path):
+        real, monkeypatch, tmp_path, the_run_the_site_is_showing):
     """The refusal must only fire on a mismatch it can PROVE. A missing dashboard is not evidence
     of one, and inventing a mismatch from an unreadable file would be the opposite failure —
     withholding a true claim.
     """
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     monkeypatch.setattr(gva, "DASHBOARD_PATH", tmp_path / "nope.json")
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control))
     assert out["realised"]["is_the_published_supplier"]["same_supplier"] is True
+
+
+# ── the identity gate: the subject is ESTABLISHED, never inferred from two figures agreeing ──
+
+
+def test_a_DIFFERENT_run_is_caught_by_IDENTITY_even_when_every_figure_agrees(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """THE MUTATION THE OLD CHECK COULD NOT SURVIVE, and the whole reason the gate moved off
+    arithmetic (2026-09-10).
+
+    Here the run artefact is a DIFFERENT run from the one the site says it is showing, and its net
+    margin agrees to the penny with both the dashboard and the baseline arm. Under the money-only
+    check every comparison passed and the feed asserted "the supplier on the front of this site IS
+    the baseline" about an artefact that is not the published run at all. Two runs on one world
+    landing within a penny is not far-fetched -- the A/B's own arms sit £67 apart on ~£148k.
+
+    Fires on: inferring identity from equal money. Delete the `state != "same"` branch and this is
+    the only control in the file that reddens.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing(commit="abc1234")
+    dashboard_agreeing_with(control)
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control, commit="9999999"))
+    pub = out["realised"]["is_the_published_supplier"]
+
+    assert pub["checked"] is False and pub["same_supplier"] is None, (
+        "identity was inferred from two figures agreeing -- the claim was made about a run the "
+        "site is not showing")
+    assert pub["run_identity"]["state"] == "different"
+    assert "9999999" in pub["statement"] and "abc1234" in pub["statement"], (
+        "the refusal names neither run, so a reader cannot tell which artefact to go and look at")
+    assert "IS the baseline" not in pub["statement"]
+    assert "The comparison below is against" not in out["headline"]
+
+
+def test_a_run_artefact_that_cannot_NAME_its_run_names_the_publish_surface_as_the_cause(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """THE LIVE DEFECT THIS REPAIR WAS WRITTEN FOR. `docs/reports/run_output_latest.json` is
+    refreshed on disk after every run by `background/sim_runner` and committed by no publish, so a
+    clean checkout reads a run that has not been current for weeks. The committed copy predates run
+    stamping entirely and says so in its own payload.
+
+    The old refusal called this "the two are not the same run", which is a claim about the RUN and
+    is false -- nothing is wrong with any run. Fires on: a refusal that names a subject mismatch
+    when the cause is an unpublished path, sending the reader to fix the wrong thing.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing(commit="abc1234")
+    dashboard_agreeing_with(control)
+    stale = {"total_net_gbp": control - 16_597.44,
+             "run_identity_unavailable_because": "written before run identities were stamped"}
+    pub = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
+                    stale)["realised"]["is_the_published_supplier"]
+
+    assert pub["checked"] is False and pub["same_supplier"] is None
+    assert "not in the publish surface" in pub["statement"], (
+        "the refusal does not name the cause, so it reads as a subject mismatch that is not there")
+    assert "run_output_latest.json" in pub["statement"], (
+        "the refusal names no path, so nothing tells a reader which file to publish")
+    assert "16,597.44" in pub["statement"], "the gap is withheld without its size"
+    assert "IS the baseline" not in pub["statement"]
+
+
+def test_a_short_sha_and_a_full_sha_for_ONE_run_are_the_same_run(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """The two sides are stamped by different producers and neither promises a length.
+    `publish_provenance` carries `git rev-parse --short` output; the run artefacts under
+    `docs/observability/` carry the full 40. Comparing those by equality would refuse every real
+    pair while looking exactly like a working identity gate -- a guard that refuses everything,
+    which is the failure this project has walked into by three separate doors.
+
+    Fires on: `_same_commit` comparing by equality rather than by prefix.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing(commit="36e3ee8c4")
+    dashboard_agreeing_with(control)
+    long_sha = ("36e3ee8c4" + "b1f7948fabbe2b325a6535b38561020ff11")[:40]
+    assert len(long_sha) == 40 and long_sha.startswith("36e3ee8c4")
+    pub = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
+                    _run_at(control, commit=long_sha))["realised"]["is_the_published_supplier"]
+    assert pub["run_identity"]["state"] == "same", (
+        "one run stamped short on one side and long on the other read as two runs")
+    assert pub["same_supplier"] is True
+
+
+def test_a_site_that_does_not_say_which_run_it_shows_WITHHOLDS_rather_than_confirming(
+        real, dashboard_agreeing_with, monkeypatch, tmp_path):
+    """FAIL CLOSED ON THE OTHER HALF. Unreadable provenance is the case where the check has one
+    identity and not two, and the tempting branch is to fall back on the money -- which is exactly
+    the inference this repair removed. Fires on: a missing provenance file reading as agreement.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    monkeypatch.setattr(gva, "PUBLISH_PROVENANCE_PATH", tmp_path / "gone.json")
+    dashboard_agreeing_with(control)
+    pub = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
+                    _run_at(control))["realised"]["is_the_published_supplier"]
+
+    assert pub["checked"] is False and pub["same_supplier"] is None
+    assert "does not state which run it is currently showing" in pub["statement"], (
+        "the refusal blames the run artefact when it was the site that was silent")
+    assert "IS the baseline" not in pub["statement"]
 
 
 # ── the R12 wall, carried in the feed rather than only in a design note ──────────────────────
