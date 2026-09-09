@@ -199,6 +199,45 @@ def paths_blocking_fast_forward(project: Path | None = None) -> list[dict] | Non
     return blocking
 
 
+def _split_generated(modified: list[str]) -> tuple[list[str], list[str], str]:
+    """Split modified blockers into a PRODUCER'S OUTPUT and a lane's actual work.
+
+    THE THIRD KIND (delivery seat, 2026-09-09). `paths_blocking_fast_forward` names two kinds and
+    `_landing_clause` gives each a step. Both steps assume the modified bytes are somebody's WORK,
+    so the first thing the refusal says about a modified path is how to LAND it. On 2026-09-09 the
+    one path holding the whole shared tree behind origin was `site/data/value_arms.json` -- the
+    proof page's feed, written by a publisher, not by a person. Its local bytes were generated at
+    04:25:38Z; origin's at 05:11:32Z. Landing the local ones, which is what this refusal advises
+    first and in the most detail, would have re-published the "IN THE WORLD AS IT IS NOW" headline
+    that origin's own commit `77d92e0d1` had just been written to DELETE. The remedy pointed at the
+    one action that undoes another lane's fix.
+
+    A GENERATED PATH IS NEVER A LANDING. Its bytes are a photograph of a run, so "whose work is
+    this" has no answer and the question that does have one -- which run is later -- is settled by
+    the fast-forward plus the next regeneration. Reverting is not a loss here, which is exactly
+    what makes it the cheap move and exactly what the old text talked the reader out of.
+
+    THE ORACLE ALREADY EXISTED. `tools/file_scope_generated_paths.generated_artefacts()` derives
+    the set (176 members on 2026-09-09) for a different gate; 71 of the 658 modified paths in the
+    live shared tree are in it, so this is a class and not one file.
+
+    FAIL-SOFT, DELIBERATELY, AND THIS IS THE ONE PLACE THAT IS RIGHT. Everywhere else in this
+    repository an oracle that cannot answer must fail CLOSED. Here the output is REMEDY PROSE, not
+    a gate: raising would turn "I cannot classify these paths" into "the tree may not advance",
+    which is strictly worse than the refusal we already print. So an unavailable oracle returns
+    every path as authored AND the reason, and `_landing_clause` prints that reason -- an unsplit
+    list that SAYS it is unsplit, never one that is silently indistinguishable from a clean split.
+    """
+    try:
+        from tools.file_scope_generated_paths import generated_artefacts
+        known = {str(p) for p in generated_artefacts()}
+    except Exception as exc:  # oracle unavailable -- say so, do not guess and do not block
+        return [], list(modified), "{}: {}".format(type(exc).__name__, exc)
+    generated = [p for p in modified if p in known]
+    authored = [p for p in modified if p not in known]
+    return generated, authored, ""
+
+
 def _landing_clause(blocking: list[dict]) -> str:
     """The step that clears the named paths, per KIND, and the property that makes it the step.
 
@@ -224,13 +263,27 @@ def _landing_clause(blocking: list[dict]) -> str:
     """
     modified = [b["path"] for b in blocking if b.get("kind") == FF_MODIFIED]
     untracked = [b["path"] for b in blocking if b.get("kind") == FF_UNTRACKED]
+    generated, authored, oracle_failed = _split_generated(modified)
     steps = []
-    if modified:
+    if generated:
+        steps.append(
+            "the {} GENERATED path(s) ({}) are a PRODUCER'S OUTPUT, not work -- do NOT land them: "
+            "their bytes are exhaust from a run this tree has already superseded, and landing "
+            "them re-publishes whatever the producer last wrote over what origin brings. Clear "
+            "them with `git show HEAD:<path> > <path>`, then let the fast-forward install "
+            "origin's copy and the producer regenerate".format(
+                len(generated), ", ".join(generated[:3]) + ("..." if len(generated) > 3 else "")))
+    if authored:
         steps.append(
             "the {} MODIFIED path(s) are this tree's uncommitted work and clear by LANDING or "
             "reverting them here -- `python3 tools/isolate_hunks.py --survey <path>` lists the "
             "hunks and `python3 -m tools.surgical_land --content <path>=<isolated> <path>` lands "
-            "your bytes without swapping the shared worktree".format(len(modified)))
+            "your bytes without swapping the shared worktree".format(len(authored)))
+    if oracle_failed and modified:
+        steps.append(
+            "NOTE: the generated-path oracle could not be asked ({}), so the {} modified path(s) "
+            "above are UNSPLIT -- check by hand whether any is a producer's output before landing "
+            "it".format(oracle_failed, len(modified)))
     if untracked:
         steps.append(
             "the {} UNTRACKED path(s) clear by landing them (`python3 -m tools.surgical_land "
