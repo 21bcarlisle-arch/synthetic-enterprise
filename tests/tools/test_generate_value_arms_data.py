@@ -2017,6 +2017,58 @@ def test_a_stamp_carrying_no_commit_is_not_read_as_a_commit():
     )["producing_commit"]["reason"]
 
 
+def test_the_per_leg_conditioning_is_withheld_on_a_run_that_did_not_measure_it():
+    """FAIL CLOSED, and the absence here is the one that would read as an ANSWER.
+
+    An absent split defaulted to `available: True` with empty legs renders, on the page, as every
+    cut seeing zero departures -- which is "all four cuts are survivor cuts", the claim this
+    block was built to refute. So the refusal is the default and it names whose problem it is.
+
+    AND THE FINDING'S OWN VERDICT MUST NOT BE INLINED. "The estimand admits the departures" is
+    true of every run measured so far and is not a property of the mechanism; writing it here
+    would publish it for runs that never measured it -- the same defect `_skill_survivorship` was
+    written to avoid, arriving on the block that carries the flattering direction.
+
+    Fires on: defaulting an absent block to available; on the generic reason swallowing the run's
+    own; on the finding's sentence being typed into the passthrough.
+    """
+    absent = gva._skill_leg_conditioning({})
+    assert absent["available"] is False
+    assert "predates the per-leg conditioning split" in absent["reason"]
+    assert "admits" not in absent["reason"], (
+        "the page stated the estimand's verdict for a run that never measured it")
+    assert "by_leg" not in absent
+
+    # A run that TRIED and could not: its own reason wins, because "predates the split" and
+    # "published no event log" are different states and only one of them is ours to fix.
+    refused = gva._skill_leg_conditioning({"leg_conditioning": {
+        "available": False, "why_not": "the run published no `customer_events`"}})
+    assert refused["available"] is False
+    assert "no `customer_events`" in refused["reason"]
+
+    # AND A REAL ONE PASSES THROUGH UNCHANGED -- the residue with it, which is the field a
+    # passthrough would most plausibly drop as detail. Asserted after the refusals, so a pass is
+    # evidence of a passthrough rather than of a constant.
+    measured = gva._skill_leg_conditioning({"leg_conditioning": {
+        "available": True,
+        "priced_decisions_the_world_recorded_as_a_departure": 40,
+        "by_leg": {"every_priced_decision_pounds_outcome": {
+            "of_those_the_world_recorded_as_a_departure": 37,
+            "conditioned_on_survival": False}},
+        "the_estimand_admits_the_departures": True,
+        "departures_the_estimand_cannot_see": 3,
+        "why_the_estimand_cannot_see_them": {
+            "horizon_open_at_the_end_of_the_settled_book": 3},
+        "reading": "IT IS NOT UNCONDITIONED",
+    }})
+    assert measured["available"] is True
+    assert measured["the_estimand_admits_the_departures"] is True
+    assert measured["departures_the_estimand_cannot_see"] == 3
+    assert measured["why_the_estimand_cannot_see_them"] == {
+        "horizon_open_at_the_end_of_the_settled_book": 3}
+    assert measured["reading"] == "IT IS NOT UNCONDITIONED"
+
+
 def test_the_survivorship_split_is_withheld_on_a_run_that_did_not_measure_it():
     """FAIL CLOSED, and the leg that stops this page carrying a finding its run never made.
 

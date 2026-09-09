@@ -2242,8 +2242,65 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
         "the_control_leg_agreement": _control_leg_agreement(method_skill),
         "zero_outcomes_the_world_recorded_as_a_departure": horizon.get(
             "zero_outcomes_the_world_recorded_as_a_departure"),
+        # WHICH OF THE FOUR ROWS ABOVE ARE SURVIVOR CUTS, read off the run and never recomputed.
+        # See `_skill_leg_conditioning` for why this is a separate passthrough rather than four
+        # more fields on the legs.
+        "leg_conditioning": _skill_leg_conditioning(horizon),
         "bound": horizon.get("bound"),
         "reading": horizon.get("reading"),
+    }
+
+
+def _skill_leg_conditioning(horizon: dict) -> dict:
+    """WHICH LEGS ADMIT THE DEPARTURES, read off the run and NEVER recomputed here.
+
+    WHY THE PAGE NEEDS IT (2026-09-09, Lane 0). `_skill_survivorship` above tells a reader that
+    `method_skill.concordance` is a survivor cut. The table this block annotates then shows FOUR
+    concordances over four populations, and nothing on the surface said which of them inherited
+    that conditioning. The Lane 0 item that commissioned this read the table the way a reader
+    would and concluded all four did -- *"every one of those four numbers, including the
+    worse-than-chance estimand, is a statement about survivors"*. Three do. The estimand does
+    not, and the whole reason it was built is the one thing the page did not say.
+
+    AND THE RESIDUE TRAVELS WITH THE ADMISSION, never without it. "The estimand admits the
+    departures" and "the estimand admits ALL the departures" are different claims, and censoring
+    removes decisions before leg 3 sees them. A page carrying the first while the run measured
+    the second would be over-claiming in the direction that flatters the estimand -- the mirror
+    image of the defect the survivorship block was built to fix, which is exactly why it is worth
+    naming here.
+
+    FAILS CLOSED, on the same shape as `_skill_survivorship` and `_skill_fixed_horizon`. A run
+    predating the split cannot have it reconstructed -- it needs every priced decision's fate and
+    the world's event log in one pass -- so the ABSENCE is published with its reason. It does NOT
+    carry this docstring's reading over: the sentence above is about the runs measured so far,
+    and a claim about a run that run never made is what this page exists to refuse.
+    """
+    split = (horizon or {}).get("leg_conditioning") or {}
+    if not split.get("available"):
+        return {
+            "available": False,
+            "reason": (
+                "the run that produced this artefact predates the per-leg conditioning split, so "
+                "the page can show the four cuts but not which of them are computed over "
+                "households that STAYED. Withheld until a run carries "
+                "`method_skill.fixed_horizon.leg_conditioning`."
+                + ("" if not split.get("why_not") else " The run reported: " + str(
+                    split.get("why_not")))),
+        }
+    return {
+        "available": True,
+        "what_this_is": split.get("what_this_is"),
+        "priced_decisions_the_world_recorded_as_a_departure": split.get(
+            "priced_decisions_the_world_recorded_as_a_departure"),
+        "priced_decisions_that_could_not_be_keyed": split.get(
+            "priced_decisions_that_could_not_be_keyed"),
+        "by_leg": split.get("by_leg"),
+        "the_estimand_admits_the_departures": split.get("the_estimand_admits_the_departures"),
+        # THE RESIDUE, and it is published beside the admission for the reason in the docstring.
+        "departures_the_estimand_cannot_see": split.get("departures_the_estimand_cannot_see"),
+        "why_the_estimand_cannot_see_them": split.get("why_the_estimand_cannot_see_them"),
+        "what_each_residue_reason_means": split.get("what_each_residue_reason_means"),
+        "reading": split.get("reading"),
     }
 
 

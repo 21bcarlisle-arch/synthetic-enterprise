@@ -1856,6 +1856,17 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
     """
     rows: list[dict] = []
     excluded: dict[str, int] = collections.Counter()
+    # EVERY PRICED DECISION'S FATE, ON ONE KEY AND FROM ONE PASS. This is what lets
+    # `_leg_conditioning` below MEASURE which legs admit the departures instead of subtracting
+    # one funnel's count from another's. `method_skill`'s drop count and this block's zero count
+    # are two different funnels with two different gate orders, so their difference is not a
+    # quantity -- and "the estimand excludes N departures" is precisely the sentence that must
+    # not be arrived at that way.
+    fates: list[dict] = []
+    # A DECISION WITH NO TERM START CANNOT BE KEYED, so it cannot be joined to a departure either.
+    # Counted rather than dropped: the conditioning split's reconciliation has to name the
+    # decisions it could not place, or a book full of them would read as a book with no departures.
+    unkeyable = 0
     priced = 0
     for entry in log:
         if not isinstance(entry, dict):
@@ -1869,12 +1880,18 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
         # can only balance if nothing was quietly dropped before being counted.
         priced += 1
         signal = entry.get("chosen_margin_gbp_per_mwh")
+        account, term = entry.get("customer_id"), entry.get("term_start")
         if not isinstance(signal, (int, float)) or isinstance(signal, bool):
             excluded["signal_not_a_number"] += 1
+            if isinstance(term, str):
+                fates.append({"account": account, "term_start": term,
+                              "excluded_for": "signal_not_a_number"})
+            else:
+                unkeyable += 1
             continue
-        account, term = entry.get("customer_id"), entry.get("term_start")
         if not isinstance(term, str):
             excluded["the_decision_carried_no_term_start"] += 1
+            unkeyable += 1
             continue
         # CENSORING IS TESTED BEFORE THE OUTCOME, deliberately. A decision whose horizon is still
         # open has an outcome we can read -- it just is not the outcome the estimand names, and
@@ -1889,11 +1906,21 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
         if acc is None:
             if account not in accounts_in_the_settled_book:
                 excluded["account_has_no_settled_row_anywhere"] += 1
+                fates.append({"account": account, "term_start": term,
+                              "excluded_for": "account_has_no_settled_row_anywhere"})
                 continue
             if censored:
                 # An unfinished horizon with nothing settled in it yet is NOT a departure. The
                 # pounds may still arrive; we have not seen the year out.
+                #
+                # AND IT IS THE ONE PLACE A DEPARTURE CAN LEAVE THE ESTIMAND. A household that
+                # left inside a horizon we have not seen out lands here rather than at the 0.0
+                # below, so this branch is where leg 3 stops being unconditioned. Recorded per
+                # decision so the size of that residue is measured and published rather than
+                # argued about.
                 excluded["horizon_open_at_the_end_of_the_settled_book"] += 1
+                fates.append({"account": account, "term_start": term,
+                              "excluded_for": "horizon_open_at_the_end_of_the_settled_book"})
                 continue
             # THE DECISION THE CONCORDANCE DROPS AND THIS ESTIMAND SCORES. The account settled
             # under other terms, so we can see it; this term settled nothing, so the price it was
@@ -1901,15 +1928,22 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
             rows.append({"account": account, "term_start": term, "signal": float(signal),
                          "pounds": 0.0, "ratio": None, "settled_within_the_horizon": False,
                          "censored": False})
+            fates.append({"account": account, "term_start": term, "excluded_for": None})
             continue
         if acc["no_counterfactual"]:
             excluded["no_published_counterfactual_rate_for_the_term"] += 1
+            fates.append({"account": account, "term_start": term,
+                          "excluded_for": "no_published_counterfactual_rate_for_the_term"})
             continue
         if acc["no_net"]:
             excluded["a_settled_row_carried_no_net_margin"] += 1
+            fates.append({"account": account, "term_start": term,
+                          "excluded_for": "a_settled_row_carried_no_net_margin"})
             continue
         if acc["counterfactual"] <= 0:
             excluded["counterfactual_not_positive"] += 1
+            fates.append({"account": account, "term_start": term,
+                          "excluded_for": "counterfactual_not_positive"})
             continue
         pounds = acc["saving"] + acc["net"]
         row = {"account": account, "term_start": term, "signal": float(signal),
@@ -1921,6 +1955,9 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
             # reader can see what that costs is to have both legs computed from one pass.
             excluded["horizon_open_at_the_end_of_the_settled_book"] += 1
         rows.append(row)
+        fates.append({"account": account, "term_start": term,
+                      "excluded_for": ("horizon_open_at_the_end_of_the_settled_book"
+                                       if censored else None)})
 
     scorable = [row for row in rows if not row["censored"]]
     settled = [row for row in scorable if row["settled_within_the_horizon"]]
@@ -1994,6 +2031,16 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
         "zero_outcomes_the_world_recorded_as_a_departure": (
             None if churned is None else
             sum(1 for row in zeroes if (row["account"], row["term_start"]) in churned)),
+        # WHICH LEGS ARE SURVIVOR CUTS AND WHICH IS NOT, measured per leg. The block above tells a
+        # reader the estimand's zero rows are departures; this tells them which of the four
+        # numbers in the table can see those departures at all -- and the item that commissioned
+        # it assumed the answer was "none of them".
+        "leg_conditioning": _leg_conditioning(
+            {"the_published_population_ratio_outcome": published,
+             "settled_only_ratio_outcome": settled,
+             "settled_only_pounds_outcome": settled,
+             "every_priced_decision_pounds_outcome": scorable},
+            fates, unkeyable, churned),
         # THE SAMPLE CARRIES `censored` ON EVERY ROW, so a reader looking at a 0.0 can tell a
         # departure from a year we have not seen out. Drawn from ALL rows, not the scorable ones:
         # the censored decisions are the population leg 0 has and leg 1 does not.
@@ -2009,6 +2056,145 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
             "target; nothing optimises this figure."),
         "reading": _fixed_horizon_reading(legs, len(zeroes), scored),
     }
+
+
+def _leg_conditioning(populations: dict, fates: list, unkeyable: int,
+                      churned: set | None) -> dict:
+    """WHICH OF THE FOUR LEGS ADMIT THE DEPARTURES. Measured per leg, on one key, in one pass.
+
+    WHY THIS EXISTS. `_survivorship` established that `method_skill.concordance` is computed over
+    survivors: every decision it drops for want of a settled row is a renewal the world recorded
+    as a departure. The Lane 0 item that commissioned this drew the consequence one step too far
+    -- *"every one of those four numbers, INCLUDING the worse-than-chance estimand, is a statement
+    about survivors"* -- and that is a claim about four populations nothing had measured. Three of
+    the bridge's legs are survivor cuts and one is not, and a page that labels all four the same
+    way is wrong whichever label it picks.
+
+    THE SUBTRACTION THIS REPLACES, and it is why the block is a measurement rather than two
+    published counts and a minus sign. `method_skill.survivorship.decisions_dropped_for_no_settled_row`
+    is a drop count in the CONCORDANCE's funnel; `fixed_horizon.zero_outcomes_the_world_recorded_as_a_departure`
+    is a row count in THIS block's. Different gate orders, different populations, so their
+    difference is not a quantity -- and "N departures are excluded from the estimand too" is
+    exactly the sentence a reader would build out of them. It is answered here instead, on the
+    (account, term_start) key both sides already use, so the number means what it says.
+
+    THE TWO SIDES STAY INDEPENDENT, which is the whole value of the split. A leg's population
+    comes from joining the arm's log against the settled book; `churned` is a tally of
+    `event_type` in the world's own event log. Nothing here is derived from `_survivorship`'s
+    output -- if it were, the two agreeing would stop being evidence of anything.
+
+    FAILS CLOSED on the same shape as `_survivorship` and for the same reason: a run that
+    published no event log is "we were not told who left", never "nobody left", and a clean split
+    reported from an absent log is a fail-open that would read as the estimand being unconditioned.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. `the_estimand_admits_the_departures` is a
+    function of the estimand leg's own count, so the day a change stops it admitting them this
+    block says so without anybody editing prose. The residue is published beside it for the
+    mirror-image reason: leg 3 is LESS conditioned than the concordance, not unconditioned, and a
+    block that printed the admission without the exclusion would be over-claiming in the
+    direction that flatters the estimand.
+    """
+    if churned is None:
+        return {
+            "available": False,
+            "why_not": ("the run published no `customer_events`, so no leg's population could be "
+                        "joined to a departure. Reported as unknown rather than as a clean split: "
+                        "an absent event log and a book nobody left are different worlds, and "
+                        "only one of them means the estimand admits every departure."),
+        }
+    keyed = [fate for fate in fates if isinstance(fate.get("term_start"), str)]
+    priced_departures = [fate for fate in keyed
+                         if (fate["account"], fate["term_start"]) in churned]
+    estimand = "every_priced_decision_pounds_outcome"
+
+    def _admitted(population: list) -> int:
+        return sum(1 for row in population
+                   if (row["account"], row["term_start"]) in churned)
+
+    by_leg = {}
+    for name, population in populations.items():
+        admitted = _admitted(population)
+        by_leg[name] = {
+            "decisions": len(population),
+            "of_those_the_world_recorded_as_a_departure": admitted,
+            # THE SHARE OF THE BOOK'S DEPARTURES THIS LEG CAN SEE. Published rather than left to
+            # the reader because "0 of 40" and "37 of 40" are the same cell to anyone reading
+            # only the count, and they are the two opposite answers to the item's question.
+            "departures_this_leg_cannot_see": len(priced_departures) - admitted,
+            "conditioned_on_survival": bool(priced_departures) and admitted == 0,
+        }
+    # WHERE THE DEPARTURES THE ESTIMAND CANNOT SEE WENT, by the reason that removed them. A
+    # coverage or join reason here is a DEFECT -- a departure dropped for something we control --
+    # and a censoring reason is a bound a longer run removes. The page must be able to tell those
+    # apart, so the reasons are published rather than totalled.
+    scored_keys = {(row["account"], row["term_start"])
+                   for row in populations.get(estimand, [])}
+    residue: dict[str, int] = collections.Counter()
+    for fate in priced_departures:
+        if (fate["account"], fate["term_start"]) not in scored_keys:
+            residue[fate["excluded_for"] or "in_no_leg_and_excluded_for_no_recorded_reason"] += 1
+    estimand_admitted = by_leg.get(estimand, {}).get(
+        "of_those_the_world_recorded_as_a_departure", 0)
+    return {
+        "available": True,
+        "what_this_is": (
+            "which of the bridge's four legs are computed over decisions the household STAYED "
+            "for. The leg population is a join against the settled book; the departure is a tally "
+            "of the world's own event log. Neither is computed from the other, and neither is "
+            "taken from `method_skill.survivorship`."),
+        "priced_decisions_the_world_recorded_as_a_departure": len(priced_departures),
+        "priced_decisions_that_could_not_be_keyed": unkeyable,
+        "by_leg": by_leg,
+        "the_estimand_admits_the_departures": bool(priced_departures) and estimand_admitted > 0,
+        "departures_the_estimand_cannot_see": len(priced_departures) - estimand_admitted,
+        "why_the_estimand_cannot_see_them": dict(residue),
+        "what_each_residue_reason_means": {
+            reason: HORIZON_EXCLUSIONS.get(
+                reason, "no exclusion reason was recorded for this decision, which is a defect "
+                        "in this block's bookkeeping rather than a fact about the book.")
+            for reason in residue},
+        "reading": _leg_conditioning_reading(
+            by_leg, len(priced_departures), estimand_admitted, dict(residue), estimand),
+    }
+
+
+def _leg_conditioning_reading(by_leg: dict, priced_departures: int, estimand_admitted: int,
+                              residue: dict, estimand: str) -> str:
+    """The verdict, composed FROM the per-leg counts. Never a sentence typed beside them."""
+    if not priced_departures:
+        return ("The world recorded no departure among the priced decisions in this run, so no "
+                "leg can be conditioned on survival and the question the bridge was built to "
+                "answer does not arise here. That is a statement about this book.")
+    survivor_legs = sorted(name for name, leg in by_leg.items()
+                           if leg["conditioned_on_survival"] and name != estimand)
+    if not estimand_admitted:
+        return (
+            "THE ESTIMAND ADMITS NONE of the {total} departures this book recorded, so it is a "
+            "survivor cut like the legs above it and does not answer the question it was built "
+            "for. The figure it publishes must be read as conditional on the household having "
+            "stayed, exactly as the concordance is.".format(total=priced_departures))
+    parts = [
+        "The estimand admits {admitted} of the {total} priced decisions the world recorded as "
+        "DEPARTURES, so it is not a survivor cut and the worse-than-chance reading it carries is "
+        "a statement about the book rather than about the households that stayed.".format(
+            admitted=estimand_admitted, total=priced_departures)]
+    if survivor_legs:
+        parts.append(
+            "The other {n} legs admit none of them: those are survivor cuts, and the "
+            "concordance's own bound applies to every one of them.".format(n=len(survivor_legs)))
+    missing = priced_departures - estimand_admitted
+    if missing:
+        parts.append(
+            "IT IS NOT UNCONDITIONED, and the residue is {missing} of {total}: {reasons}. So the "
+            "reading survives the conditioning with a stated limit rather than cleanly.".format(
+                missing=missing, total=priced_departures,
+                reasons="; ".join("{n} for `{reason}`".format(n=count, reason=reason)
+                                  for reason, count in sorted(residue.items()))))
+    else:
+        parts.append(
+            "And every departure this book recorded reaches it, so the reading survives the "
+            "conditioning without a residue.")
+    return " ".join(parts)
 
 
 def _horizon_leg(points: list[tuple[float, float]], what_it_is: str,

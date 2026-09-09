@@ -735,7 +735,43 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
 
        A leg the run could not permute renders WITHHELD and its reason, never its number. That is
        the producer's own refusal reaching the surface rather than being smoothed into a dash. */
-    var row = function (label, leg, emphasis) {
+    /* WHICH ROWS ARE SURVIVOR CUTS, AS A COLUMN RATHER THAN A PARAGRAPH (2026-09-09).
+
+       The survivorship block above tells a reader that the published concordance is computed
+       over households that STAYED. This table then shows four concordances over four
+       populations, and until this column existed nothing on the surface said which of them
+       inherited that conditioning. The Lane 0 item that commissioned the column read the page
+       exactly as a reader would and concluded ALL FOUR did — including the estimand, whose whole
+       purpose is that it does not. That is a misreading the page invited: the warning was a few
+       hundred pixels above, in prose, attached to one number, beside a table of four.
+
+       A COLUMN AND NOT A SENTENCE, because the conditioning is a property of each ROW. A
+       paragraph under the table has to name the rows it applies to, and the day a leg's
+       population changes the paragraph goes on naming the old ones. The cell is rendered from
+       that leg's own measured count, so it cannot say the wrong thing about the row it sits on.
+
+       NEVER BLANK AND NEVER INFERRED. A feed whose run predates the split renders an amber
+       refusal in every cell, not a dash and not a zero — "this leg admits no departures" and
+       "we were not told who left" are the two opposite readings, and a 0 published for the
+       second is the fail-open the producer refuses upstream. */
+    var lc = fh.leg_conditioning || null;
+    var departures = function (name) {
+      if (!lc || !lc.available) {
+        return '<span style="color:var(--amber);" title="'
+          + esc((lc && lc.reason) || "this page's own feed was generated before the per-leg "
+                + "conditioning split existed.") + '">not measured</span>';
+      }
+      var leg = (lc.by_leg || {})[name];
+      if (!leg) { return '<span style="color:var(--amber);">not measured</span>'; }
+      var total = lc.priced_decisions_the_world_recorded_as_a_departure;
+      var cell = esc(leg.of_those_the_world_recorded_as_a_departure) + " of " + esc(total);
+      return leg.conditioned_on_survival
+        ? '<span style="color:var(--amber);font-weight:600;" title="this cut scores only '
+          + 'decisions the household stayed for, so its figure is conditional on survival">'
+          + cell + "</span>"
+        : cell;
+    };
+    var row = function (label, leg, emphasis, name) {
       var c = leg && (leg.concordance === 0 || leg.concordance) ? leg.concordance : null;
       var lo = leg && (leg.null_95_low === 0 || leg.null_95_low) ? leg.null_95_low : null;
       var hi = leg && (leg.null_95_high === 0 || leg.null_95_high) ? leg.null_95_high : null;
@@ -782,6 +818,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + bound
         + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
         + esc(leg && leg.decisions !== undefined ? leg.decisions : "—")
+        + '</td><td style="text-align:right;padding:1px 10px 1px 0;white-space:nowrap;">'
+        + departures(name)
         + '</td><td style="padding:1px 0;' + (emphasis ? "font-weight:600;" : "") + '">'
         + label + "</td></tr>";
     };
@@ -806,18 +844,44 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">What a "
       + "no-information signal reaches on THIS cut&rsquo;s n</th>"
       + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Decisions</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Departures "
+      + "this cut can see</th>"
       + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Population and outcome</th>"
       + "</tr>"
       + row("every decision whose term <strong>settled</strong>, on the ratio &mdash; the figure "
             + "above, rebuilt here as a control", legs.the_published_population_ratio_outcome,
-            false)
+            false, "the_published_population_ratio_outcome")
       + row("the same, less the terms whose <strong>365 days had not closed</strong> &mdash; "
-            + "CENSORING alone", legs.settled_only_ratio_outcome, false)
+            + "CENSORING alone", legs.settled_only_ratio_outcome, false,
+            "settled_only_ratio_outcome")
       + row("those decisions, in <strong>pounds</strong> &mdash; the UNIT change alone",
-            legs.settled_only_pounds_outcome, false)
+            legs.settled_only_pounds_outcome, false, "settled_only_pounds_outcome")
       + row("every decision the arm <strong>priced</strong>, in pounds &mdash; the POPULATION "
-            + "change alone", legs.every_priced_decision_pounds_outcome, true)
+            + "change alone", legs.every_priced_decision_pounds_outcome, true,
+            "every_priced_decision_pounds_outcome")
       + "</table></div>"
+      /* THE VERDICT THE COLUMN COMPOSES, and it answers the question the Lane 0 item asked in
+         the item's own terms: does the worse-than-chance reading survive the conditioning?
+
+         NOT WRITTEN HERE. `_leg_conditioning_reading` composes it from the per-leg counts, so
+         the day the estimand stops admitting the departures — or starts admitting all of them —
+         this sentence changes without anybody editing the page. Amber whenever the estimand is
+         itself a survivor cut, because that is the state in which the figure above it must not
+         be read as a statement about the book. */
+      + (lc && lc.available
+          ? '<p style="margin:0 0 6px;font-size:11.5px;color:var('
+            + (lc.the_estimand_admits_the_departures ? "--muted" : "--amber") + ");"
+            + (lc.the_estimand_admits_the_departures ? "" : "font-weight:600;") + '">'
+            + prose(lc.reading) + "</p>"
+          : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--amber);">'
+            + "<strong>Which of these four cuts can see the households that left?</strong> "
+            + '<span style="font-weight:600;">Not measured by this run.</span> '
+            + prose((lc && lc.reason)
+                || "this page's own feed was generated before the per-leg conditioning split "
+                   + "existed, so it carries no answer either way. That one is OURS: "
+                   + "regenerating the feed from a run that measured the split is all it needs, "
+                   + "and until then the four rows above are four populations the page cannot "
+                   + "tell apart on this question.") + "</p>")
       /* THE FIRST ROW AGREEING WITH THE FIGURE ABOVE IS NOT A SECOND OPINION, and this is the one
          place a reader could take it for one. Amber whenever the agreement is guaranteed by
          construction or the two paths disagree; muted only when the two were permuted
