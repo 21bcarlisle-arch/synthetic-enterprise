@@ -4829,10 +4829,27 @@ def test_NO_cut_ANYWHERE_in_the_feed_renders_its_number_without_its_OWN_interval
         strata_on_the_page += 1
         assert split.get("available"), (
             "{} rendered a decomposition term while the split itself is unavailable".format(path))
-        assert "NO interval of their own" in rendered, (
-            "{} is on the page and nothing tells the reader it carries no interval of its "
-            "own".format(path))
         inherited = split["the_interval_these_terms_carry"]
+        # KEYED TO THE CLAUSE THE PRODUCER COMPOSED, NOT TO ITS 2026-09-09 WORDING. The literal
+        # "NO interval of their own" was asserted here, which is a control pinned to today's
+        # answer: a run supplying `cross_null` gives the cross stratum a permutation of its own,
+        # and this control would have gone on DEMANDING the denial of an interval the same page
+        # prints. It now asks the property instead -- the reader meets the sentence, and the
+        # sentence is true of this term.
+        # The prefix, not the whole sentence: `prose()` rewrites the "--" both openings carry into
+        # an em-dash, so a full-string match tests the renderer's typography and not the claim.
+        # Sixty characters is inside the first clause of either opening -- the same idiom the
+        # reading is matched by above.
+        assert inherited.get("sentence") and inherited["sentence"][:60] in rendered, (
+            "{} is on the page and the clause saying what bound these terms carry is not".format(
+                path))
+        # ...AND THE TERM REALLY HAS NONE. A term with its own permutation must never be one of
+        # the ones this clause speaks for; `_measured_cuts_only` should have classified it as a
+        # measured cut and held it to the interval rule above. This is the leg that fires if a
+        # producer starts emitting an interval on something still typed as a decomposition term.
+        assert term.get("null_95_low") is None and term.get("null_95_high") is None, (
+            "{} carries a permutation interval of its own and is being held to the decomposition "
+            "rule, whose clause tells the reader these terms have none".format(path))
         assert ("%.4f" % inherited["null_95_low"]) in rendered, (
             "{} is on the page without the bound it inherits from the estimand".format(path))
     assert strata_on_the_page >= 1, (
@@ -4995,6 +5012,58 @@ def test_an_out_of_null_estimand_reaches_the_reader_with_WHICH_PAIRS_carry_its_d
     # strata have no interval of their own and the cross pairs are leveraged on the departures.
     assert "NO interval of their own" in rendered
     assert "leverage and clustering" in rendered
+
+    # ...AND THE BRANCH A RUN LANDING BESIDE THIS ONE MAKES REACHABLE, which is the leg neither
+    # lane could have written (2026-09-09). This page and `run_value_cycle_ab.pair_strata` were
+    # built twice concurrently: the copy here composes the categorical sentence above, and the
+    # copy on origin computes `cross_stratum_null_spread` -- a real permutation over the cross
+    # stratum's own pairs -- and publishes it as `null_95_low`/`null_95_high` on that stratum. No
+    # artefact on disk reaches that branch yet, so on today's feed both copies render correctly and
+    # each lane's door control is green. The first run to carry a `cross_null` puts the denial
+    # directly beside the interval it denies. The property that spans both: a reader shown a
+    # stratum is never told that stratum has no interval while an interval for it is in the feed.
+    from tools.generate_value_arms_data import _pair_strata_interval_clause
+
+    clause = split["the_interval_these_terms_carry"]
+    # THE RECONSTRUCTION IS PROVEN AGAINST THE LIVE CLAUSE BEFORE IT IS TRUSTED. These three fields
+    # are the whole of what the producer reads off the estimand; if that ever stops being true this
+    # fails here rather than silently driving the bounded branch with the wrong input.
+    estimand_shape = {"concordance": estimand["concordance"],
+                      "null_95_low": low, "null_95_high": high}
+    assert _pair_strata_interval_clause(split, estimand_shape) == clause, (
+        "the clause rebuilt from this fixture's estimand is not the one the page carries, so the "
+        "bounded branch below would be driven with an input the producer never sees")
+
+    cross_low, cross_high = 0.4402, 0.5598
+    assert "0.4402" not in rendered and "0.5598" not in rendered, (
+        "the injected cross interval already appears on the clean page, so a hit below would not "
+        "be attributable to the injection")
+    bounded_split = copy.deepcopy(split)
+    bounded_split["strata"]["cross"].update(
+        {"null_95_low": cross_low, "null_95_high": cross_high})
+    bounded_clause = _pair_strata_interval_clause(bounded_split, estimand_shape)
+    assert bounded_clause["of_their_own"] == {"cross": [cross_low, cross_high]}, (
+        "the clause does not name the stratum that carries its own interval, so nothing "
+        "downstream can ask the question without parsing prose")
+    assert "NO interval of their own" not in bounded_clause["sentence"], (
+        "the clause still denies these strata an interval on a feed that publishes one for the "
+        "cross stratum -- the contradiction this control exists for")
+    # THE LEVERAGE SURVIVES THE BRANCH. It is a property of how the cross pairs are built and not
+    # of whether anybody permuted them, and it was the item's own third deliverable.
+    assert "leverage and clustering" in bounded_clause["sentence"]
+
+    bounded_feed = copy.deepcopy(feed)
+    bounded_ps = bounded_feed["method_skill"]["fixed_horizon"]["pair_strata"]
+    bounded_ps["strata"]["cross"].update(
+        {"null_95_low": cross_low, "null_95_high": cross_high})
+    bounded_ps["the_interval_these_terms_carry"] = bounded_clause
+    bounded_rendered = _text(_render(bounded_feed)["arms-method"])
+    assert "NO interval of their own" not in bounded_rendered, (
+        "the page tells the reader the strata carry no interval while rendering one for the cross "
+        "stratum")
+    assert "0.4402" in bounded_rendered and "0.5598" in bounded_rendered, (
+        "the cross stratum's own interval is in the feed and reaches no reader")
+    assert "leverage and clustering" in bounded_rendered
 
     # THE ABSENCE SIDE. A feed whose run and page could not attribute the figure must SAY so where
     # the figure is, or the reader meets an out-of-null estimand and silence -- the state this

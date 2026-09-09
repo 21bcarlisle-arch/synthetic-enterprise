@@ -2395,42 +2395,77 @@ def _skill_pair_strata(horizon: dict, estimand: dict) -> dict:
 
 
 def _pair_strata_interval_clause(split: dict, estimand: dict) -> dict:
-    """The bound the strata DO NOT have, composed from their own counts.
+    """What bound these terms carry -- WHICH IS NOT ALWAYS NONE, read off the feed each time.
 
     Three numbers arrive on the page with no interval beside them, on a page whose standing
     property is that no cut reaches a reader without the interval its own sample earns. Both facts
     are true at once and the resolution is not silence: these are TERMS of the bounded figure above
-    -- they sum to its distance from 0.5 exactly -- and they carry no permutation of their own.
+    -- they sum to its distance from 0.5 exactly -- and they inherit that figure's permutation.
 
     AND THE LEVERAGE, which is the honest limit of the attribution and the reason the estimand's
     own interval is optimistic. The cross stratum's pairs are `z * s` of them determined by only
     `z` rows' signals, drawn from a wider account set than leg 2's. That is clustering, not bias:
     it does not move the direction this split attributes, and it does mean the interval the page
-    shows is narrower than the sample really earns.
+    shows is narrower than the sample really earns. It is true under BOTH branches below, which is
+    why it is composed once and appended to either opening.
+
+    WHY THE OPENING IS A CONDITIONAL AND NOT THE CATEGORICAL SENTENCE IT WAS (2026-09-09). The
+    first draft stated "these strata carry NO interval of their own" as a flat claim, and it was
+    true of the producer in front of it and false of the one landing beside it: a run that supplies
+    `pair_strata` with a `cross_null` gives the cross stratum a permutation over its own pairs, and
+    `run_value_cycle_ab._stratum_figure` publishes it as `null_95_low`/`null_95_high` on that
+    stratum. The two were built concurrently by two lanes, each internally consistent and each with
+    a green door control, and a merge would have printed the categorical denial directly beside the
+    interval it denies -- see `SEAT_FINDING_THE_LANE_0_ITEM_WAS_BUILT_TWICE_...2026-09-09`.
+
+    So the discrimination is on THE FEED'S OWN EVIDENCE and never on which producer wrote it: the
+    two interval keys are present exactly when a permutation was computed, and absent when none
+    was. A producer that cannot compute one composes the categorical sentence again, unchanged.
+    That is what makes this correct under both trees without either having to know about the other.
 
     Composed from the counts so it cannot rot: the day the departures stop dominating the cross
     stratum these numbers change with nobody editing the sentence.
     """
     strata = split.get("strata") or {}
-    cross = (strata.get("cross") or {}).get("comparable_pairs")
+    cross_stratum = strata.get("cross") or {}
+    cross = cross_stratum.get("comparable_pairs")
     zeroes, settled = split.get("zero_decisions"), split.get("settled_decisions")
+    c_low, c_high = cross_stratum.get("null_95_low"), cross_stratum.get("null_95_high")
+    bounded = c_low is not None and c_high is not None
+    obs = estimand.get("concordance")
+    low, high = estimand.get("null_95_low"), estimand.get("null_95_high")
+    # THE HALF THAT IS TRUE ON BOTH BRANCHES. The leverage is a property of how the cross pairs are
+    # built, not of whether anybody permuted them, so it must not be lost when the interval arrives.
+    leverage = (
+        "And the {cross:,} cross pairs are {z} departures against {s} survivors: {cross:,} pairs "
+        "determined by only {z} rows' signals, over a wider account set than the settled leg's. "
+        "That is leverage and clustering rather than bias -- it does not move which stratum "
+        "carries the departure, and it does mean the interval beside the estimand is narrower "
+        "than this sample really earns.")
+    opening = (
+        "Only the cross stratum carries a permutation of its own here, {clo:.4f}–{chi:.4f} over "
+        "its own {cross:,} pairs. The other two are terms of the {obs:.4f} above -- the three sum "
+        "to its distance from 0.5 exactly -- and the only bound they carry is the one that "
+        "figure's own permutation earned, {low:.4f}–{high:.4f}. "
+        if bounded else
+        "These strata carry NO interval of their own. They are terms of the {obs:.4f} above -- "
+        "they sum to its distance from 0.5 exactly -- so the only bound here is the one that "
+        "figure's own permutation earned, {low:.4f}–{high:.4f}. ")
     return {
-        "of_their_own": None,
+        # NAMES THE STRATA THAT DO CARRY ONE, so a control downstream can ask the question this
+        # clause answers without parsing the prose. Empty is `None` and not `{}`: the absence is
+        # the older state and reads as it did.
+        "of_their_own": ({"cross": [c_low, c_high]} if bounded else None),
         "inherited_from": UNCONDITIONED_LEG,
-        "null_95_low": estimand.get("null_95_low"),
-        "null_95_high": estimand.get("null_95_high"),
-        "sentence": (
-            "These strata carry NO interval of their own. They are terms of the {obs:.4f} above -- "
-            "they sum to its distance from 0.5 exactly -- so the only bound here is the one that "
-            "figure's own permutation earned, {low:.4f}–{high:.4f}. And the {cross:,} cross "
-            "pairs are {z} departures against {s} survivors: {cross:,} pairs determined by only "
-            "{z} rows' signals, over a wider account set than the settled leg's. That is leverage "
-            "and clustering rather than bias -- it does not move which stratum carries the "
-            "departure, and it does mean the interval beside the estimand is narrower than this "
-            "sample really earns.".format(
-                obs=estimand.get("concordance"), low=estimand.get("null_95_low"),
-                high=estimand.get("null_95_high"), cross=cross, z=zeroes, s=settled)
-            if None not in (cross, zeroes, settled, estimand.get("concordance")) else None),
+        "null_95_low": low,
+        "null_95_high": high,
+        # FAIL-CLOSED ON THE INHERITED BOUND TOO. The first draft formatted `low`/`high` with
+        # `:.4f` while guarding only the counts, so a leg with no interval crashed the page rather
+        # than withholding the sentence.
+        "sentence": ((opening + leverage).format(
+            obs=obs, low=low, high=high, cross=cross, z=zeroes, s=settled,
+            clo=c_low, chi=c_high)
+            if None not in (cross, zeroes, settled, obs, low, high) else None),
     }
 
 
