@@ -152,3 +152,35 @@ is recorded as an equivalence rather than a kill**, with the leg that separates 
    instance.** Defect 2 is the second half of `pair_strata`'s own prose, green in every suite,
    unreachable by every feed. There is no census of that shape and this is the first time it has
    been named here. Filed as a thread to pull, not as work claimed.
+
+---
+
+## Addendum, 14:00Z — the corrected run exists and the door is green on it
+
+Written after the fact and marked as such. When the section above was drafted,
+`value_cycle_ab_s1_three_arm_20260909c.json` was still executing and everything said about it was a
+statement of intent.
+
+It finished at 13:58:12Z, world digest `39a192ce04c1eda8`. **P1–P6 grade identically** — 0/0/0/37
+of 40, residue 3, single censoring reason — and **0 published-figure diffs** against the run graded
+above, so nothing in the grading rests on which of the two artefacts a reader opens. It carries the
+repaired sentence:
+
+> *"The departure is carried by the 4,588 cross pairs, which read 0.2686 against the 0.4105–0.5887
+> a no-information signal reaches on this stratum's own 4,588 pairs: in 73% of
+> departure-against-survivor pairs the arm had given the DEPARTURE the higher margin."*
+
+Driven through the real door on a feed built from it, **the whole capabilities suite passes: 123
+passed, 0 skipped.** Two of those are worth naming because they were not exercisable before:
+
+- `test_the_attribution_of_the_inversion_reaches_the_reader_BESIDE_the_figure` — the control that
+  refused the `..._20260909b` feed in one line — now passes on the branch it had never seen.
+- `test_an_error_bar_older_than_its_figure_says_so_on_the_page` **runs instead of skipping**. On
+  the live feed the caveat is `None` and it skips, so the assertions repaired today had no subject.
+  On this feed the caveat fires, and they hold: the rendered sentence names both run stamps and
+  says what is known about whether the two runs share a world. **The repair is exercised, not
+  asserted** — which is the one thing a control repaired against a feed that cannot reach it could
+  not otherwise claim.
+
+`..._20260909c.json` is the artefact to promote when the floor lands. `..._20260909b.json` stays as
+the run P1–P6 were graded against.
