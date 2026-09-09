@@ -708,97 +708,6 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      THE VERDICT IS NOT WRITTEN HERE, for the same reason the survivorship verdict is not:
      `_fixed_horizon_reading` composes it from the legs' own numbers, so the day admitting the
      departures stops lowering the figure this page says so without anybody editing it. */
-  /* WHICH PAIRS CARRY THE ESTIMAND'S DEPARTURE — the tie mass, or the arm?
-
-     THE DEFECT THIS EXISTS FOR (2026-09-09). The estimand is the least flattering figure this
-     site publishes about its own method, and it went out with the least beside it: below its own
-     null, with 23% of its scored decisions tied at 0.0 and nothing on the surface saying whether
-     those ties were what put it there. That is a reading a reader — including the director — would
-     be right to reach, and the answer already existed in the producer and reached nobody.
-
-     THE THREE STRATA ARE NOT THREE ESTIMATES. They are the estimand's own comparable pairs
-     partitioned, and their departures SUM to its distance from 0.5. The tie mass renders as
-     "no comparable pair" rather than as a dash or a zero: the estimator excludes every pair tied
-     on the outcome, so that stratum contributes nothing BY CONSTRUCTION and a reader has to be
-     able to see that is what the cell means.
-
-     NO VERDICT IS TYPED HERE. `_pair_strata_reading` composes the sentence from the counts, and
-     the amber is a function of the cross stratum's own number — so the day the arm stops pricing
-     its departures above the customers it kept, this block says so and its emphasis drops away
-     without anybody editing the page.
-
-     FAIL-CLOSED, ON THE SAME SHAPE AS EVERY OTHER BLOCK HERE. A feed with no split, or one whose
-     identity the producer refused, renders the ABSENCE and its reason in amber — never a blank
-     beneath an unattributed figure, which is the state this whole block was built to end. */
-  function pairStrataBlock(ps) {
-    if (!ps || !ps.available) {
-      return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--amber);">'
-        + "<strong>Which pairs carry that departure &mdash; the tie mass, or the arm?</strong> "
-        + '<span style="font-weight:600;">Not attributed on this feed.</span> '
-        + prose((ps && ps.reason)
-            || "this page's own feed was generated before the pair split existed, so the figure "
-               + "above arrives with no attribution at all. That one is OURS: the split is an "
-               + "identity over counts this feed already carries, and regenerating it is all it "
-               + "needs.") + "</p>";
-    }
-    var strata = ps.strata || {};
-    var figure = function (st) {
-      var c = st && (st.concordance === 0 || st.concordance) ? st.concordance : null;
-      /* NEVER A DASH AND NEVER A ZERO. "This stratum supplies no comparable pair" and "this
-         stratum ranks at 0.0" are opposite readings, and a dash renders them identically. */
-      return c === null
-        ? '<span style="color:var(--muted);" title="every pair in this stratum is tied on the '
-          + 'outcome, so the estimator excludes it">no comparable pair</span>'
-        : Number(c).toFixed(4);
-    };
-    var row = function (label, st) {
-      return "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;\">" + figure(st)
-        + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
-        + esc(st && st.comparable_pairs !== undefined ? st.comparable_pairs : "—")
-        + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
-        + esc(st && st.decision_pairs !== undefined ? st.decision_pairs : "—")
-        + '</td><td style="padding:1px 0;">' + label + "</td></tr>";
-    };
-    var cross = strata.cross || null;
-    /* THE ARM'S OWN NUMBER DECIDES THE EMPHASIS, not a constant. Below 0.5 on the cross stratum
-       means the arm gave its departures the higher margin — the reading that qualifies the figure
-       above. At or above it, the block is a footnote and is styled as one. */
-    var carriedByTheArm = !!(cross && (cross.concordance === 0 || cross.concordance)
-                             && cross.concordance < 0.5);
-    return '<p style="margin:8px 0 4px;font-size:11.5px;color:var(--muted);">'
-      + "<strong>Which pairs carry that departure &mdash; the tie mass, or the arm?</strong> "
-      + prose(ps.what_this_is) + "</p>"
-      + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
-      + 'margin:0 0 6px;border-collapse:collapse;"><tr>'
-      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Rank</th>"
-      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Pairs the "
-      + "estimator could compare</th>"
-      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Pairs of "
-      + "decisions</th>"
-      + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Stratum</th></tr>"
-      + row("<strong>within settled</strong> &mdash; the decisions whose term settled something, "
-            + "ranked against each other", strata.within_settled)
-      + row("<strong>the tie mass</strong> &mdash; both rows scored 0.0, so every pair is tied on "
-            + "the outcome and excluded", strata.within_zero)
-      + row("<strong>cross</strong> &mdash; each decision that settled nothing against each that "
-            + "settled something", strata.cross)
-      + "</table></div>"
-      + '<p style="margin:0 0 6px;font-size:11.5px;'
-      + (carriedByTheArm ? 'color:var(--amber);font-weight:600;' : "color:var(--muted);") + '">'
-      + prose(ps.reading) + "</p>"
-      /* WHERE THE SPLIT WAS COMPUTED, because a reader is owed the difference between a run that
-         measured this and a page that decomposed the run's own counts afterwards. */
-      + '<p style="margin:0 0 6px;font-size:11px;color:var(--muted);">'
-      + "Attributed by " + prose(ps.computed_by) + ".</p>"
-      /* THE BOUND THESE THREE NUMBERS DO NOT HAVE, and the leverage that makes the estimand's own
-         interval optimistic. Rendered rather than footnoted for the reason the bridge's bound is:
-         a weakness that lives only in the producer's docstring is a figure published without it. */
-      + (ps.the_interval_these_terms_carry && ps.the_interval_these_terms_carry.sentence
-          ? '<p style="margin:0 0 6px;font-size:11px;color:var(--muted);font-style:italic;">'
-            + prose(ps.the_interval_these_terms_carry.sentence) + "</p>"
-          : "");
-  }
-
   function fixedHorizonBlock(fh) {
     if (!fh || !fh.available) {
       /* TWO DIFFERENT ABSENCES, told apart — the same three-state problem the survivorship block
@@ -1003,12 +912,6 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
          carrying nothing BEFORE being told what the legs decompose into, or the decomposition
          reads as an account of a real effect that may not be one. */
       + verdict(fh.reading_of_the_estimand)
-      /* ...AND WHICH PAIRS PUT IT THERE, immediately beside the reading it qualifies.
-         A reader met a figure below its own null with nothing attributing it, on a cut where a
-         QUARTER of the scored decisions sit tied at 0.0 — so "the tie handling did it" was a
-         reading the page invited and could not answer. It is answered by the estimator's own
-         construction, and the producer measures it rather than asserting it. */
-      + pairStrataBlock(fh.pair_strata)
       /* ...AND WHAT THIS CUT COULD HAVE DETECTED, which the interval alone does not say. "We
          cannot tell" from an instrument that could never have said anything else is a statement
          about the instrument, and it reads identically to a flat method without this. */
