@@ -290,6 +290,20 @@ def run_decisions(portfolio_path=None, run_output_path=None, out_dir=None, marke
     decision = {
         "decision_run_at": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "portfolio_as_of": portfolio.get("generated_at"),
+        # WHICH OF THESE FIELDS IS THE RUN IDENTITY, said here because only this function knows
+        # which of its three dates is a real-world clock and which is a date in the simulated
+        # world. `live_decisions_latest.json` is a promote-by-copy target and
+        # `tools.promoted_artefact_claim_census` grades claims about it against this list alone.
+        #
+        # `portfolio_as_of` IS IN, and it looks exactly like the field that is out.
+        # It is the upstream portfolio artefact's own `generated_at` -- a real-world stamp
+        # identifying the input run this decision consumed, and prose about this file cites it as
+        # such. `market_as_of_date` IS OUT for the opposite reason: it is the settlement date of
+        # the market record the company read, a date inside the world, and a sentence citing "the
+        # 2026-09-08 run" of this file must not grade as supported against it. Same English, same
+        # depth, opposite populations -- which is why this cannot be decided by a field-name rule
+        # written on the census's side.
+        "run_identity_fields": ["decision_run_at", "portfolio_as_of"],
         "market_as_of_date": as_of,
         "market_data_stale_days": market_data_stale_days,
         "elec_spot_gbp_per_mwh": market["elec_spot_gbp_per_mwh"],

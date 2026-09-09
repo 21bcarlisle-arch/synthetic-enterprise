@@ -116,7 +116,8 @@ def test_a_bare_clock_citation_can_match_the_stamp_an_artefact_actually_writes()
     from pathlib import Path
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "a.json"
-        p.write_text(json.dumps({"generated_at": "2026-09-08T21:01:30Z"}))
+        p.write_text(json.dumps({"generated_at": "2026-09-08T21:01:30Z",
+                                 "run_identity_fields": ["generated_at"]}))
         tokens = census_mod._artefact_dates(p)
     assert "21:01:30Z" in tokens, "a bare-clock citation can never be matched against a payload"
     assert "2026-09-08T21:01:30Z" in tokens
@@ -131,8 +132,10 @@ def test_a_stale_claim_is_caught_and_a_true_one_is_not(tmp_path):
     import json
     obs = tmp_path / "docs" / "observability"
     obs.mkdir(parents=True)
-    (obs / "thing_20260908.json").write_text(json.dumps({"generated_at": "2026-09-08T04:00:00Z"}))
-    (obs / "thing.json").write_text(json.dumps({"generated_at": "2026-09-08T04:00:00Z"}))
+    stamped = {"generated_at": "2026-09-08T04:00:00Z",
+               "run_identity_fields": ["generated_at"]}
+    (obs / "thing_20260908.json").write_text(json.dumps(stamped))
+    (obs / "thing.json").write_text(json.dumps(stamped))
     tools = tmp_path / "tools"
     tools.mkdir()
 
@@ -150,26 +153,91 @@ def test_a_stale_claim_is_caught_and_a_true_one_is_not(tmp_path):
                    'X = "thing.json"\n')
 
 
-def test_grading_reads_run_identity_metadata_and_not_the_whole_payload(tmp_path):
-    """The repair for a leg that was useless without ever looking fail-open.
+def test_grading_reads_only_what_the_producer_declared_as_run_identity(tmp_path):
+    """The defect this replaced, and it is a SECOND repair on the same leg -- not a re-tune.
 
-    `run_output_latest.json` graded against its raw text yielded 28,676 distinct run-identity
-    tokens -- every customer's acquisition date -- so every claim about it was "supported" and the
-    leg could not fail. Reading shallow metadata only takes it to 17. This asserts the SHAPE (data
-    inside collections is excluded, metadata is not), not today's counts, so it stays true as the
-    artefacts move.
+    The first repair read shallow metadata only, on the theory that run identity is shallow and
+    data is deep. Its own docstring recorded `run_output_latest.json` going "to none". Measured
+    again on 2026-09-09 it was SEVENTEEN, and every one of the seventeen was a date inside the
+    simulated world or another producer's stamp folded in whole -- `mark_date`, `stressed_date`,
+    `clv_snapshot_as_of`. Shallowness is not the property, because `portfolio_as_of` (a real
+    run stamp) and `wholesale_credit_exposure.mark_date` (a date in 2025 the company lived
+    through) are the same English at the same depth.
+
+    So the fixture below is the shape that defeats every consumer-side rule: a real run stamp and
+    a simulation-world date, BOTH shallow, BOTH named like a clock. Only the producer's own
+    declaration separates them, and this asserts that separation rather than today's counts.
     """
     import json
     p = tmp_path / "a.json"
     p.write_text(json.dumps({
         "generated_at": "2026-09-09T01:24:34Z",
+        "run_identity_fields": ["generated_at", "world_identity.digest"],
+        # Shallow, scalar, and NOT this run -- the case the depth rule could never exclude.
+        "mark_date": "2025-06-07",
+        "world_identity": {"digest": "39a192ce04c1eda8", "anchors": {"2016": "2016-12-31"}},
         "rows": [{"acquisition_date": "2016-01-01"} for _ in range(50)],
-        "per_customer": {f"C{i}": {"inner": {"date": "2019-04-01"}} for i in range(50)},
     }))
     tokens = census_mod._artefact_dates(p)
-    assert "2026-09-09" in tokens, "run identity must be read"
-    assert "2016-01-01" not in tokens, "a date inside a list is DATA, not which run this is"
-    assert "2019-04-01" not in tokens, "nor is one buried in a per-entity collection"
+    assert "2026-09-09" in tokens, "a declared run stamp must be read"
+    assert "39a192ce04c1eda8" in tokens, "a declared nested leaf must be read"
+    assert "2025-06-07" not in tokens, (
+        "an UNDECLARED shallow scalar is a date in the world, and grading a run claim against it "
+        "is the fail-open this repair exists to close")
+    assert "2016-12-31" not in tokens, (
+        "declaring `world_identity.digest` must not drag in the block's world anchors")
+    assert "2016-01-01" not in tokens
+
+
+def test_an_artefact_that_declares_nothing_grades_nothing(tmp_path):
+    """The fail-closed direction, asserted over the whole partition of malformed declarations.
+
+    A missing key, an empty list, a list of non-strings and a non-list all mean one thing: this
+    artefact does not say which of its fields identify it, so nothing about which run sits here
+    can be checked. The alternative -- falling back to the old walk when the declaration is
+    absent -- would be a fail-open that never gets closed, because nothing would ever go red to
+    say a producer had not adopted the convention.
+    """
+    import json
+    stamp = {"generated_at": "2026-09-09T01:24:34Z"}
+    for undeclared in ({}, {"run_identity_fields": []}, {"run_identity_fields": [1, 2]},
+                       {"run_identity_fields": "generated_at"}, {"run_identity_fields": None}):
+        p = tmp_path / "a.json"
+        p.write_text(json.dumps({**stamp, **undeclared}))
+        assert census_mod._artefact_dates(p) == set(), undeclared
+        assert census_mod.declared_run_identity_fields({**stamp, **undeclared}) is None
+    # And a declaration naming a path that does not resolve contributes nothing rather than
+    # falling back to a guess.
+    p = tmp_path / "a.json"
+    p.write_text(json.dumps({**stamp, "run_identity_fields": ["renamed_at", "generated_at.x"]}))
+    assert census_mod._artefact_dates(p) == set()
+
+
+def test_a_pinned_dated_sibling_is_read_whole_because_it_cannot_be_promoted_onto(tmp_path):
+    """The asymmetry, and it is what stops this repair firing as a false red on every old pin.
+
+    A dated sibling is named by the reader and nothing is ever copied onto it, so the question is
+    only "is this literal in the file you named" -- no declaration is required or possible for
+    artefacts written before the convention existed. Requiring one would turn every pin to a
+    2026-09-08 artefact into a STALE row caused by the control changing rather than the tree.
+    """
+    import json
+    obs = tmp_path / "docs" / "observability"
+    obs.mkdir(parents=True)
+    # The sibling predates the convention: a stamp, no declaration.
+    (obs / "thing_20260908.json").write_text(json.dumps({"generated_at": "2026-09-08T21:01:30Z"}))
+    (obs / "thing.json").write_text(json.dumps({"generated_at": "2026-09-09T04:00:00Z",
+                                                "run_identity_fields": ["generated_at"]}))
+    body = ('"""`thing_20260908.json` (21:01:30Z) is the pin `thing.json` was cut from."""\n'
+            'X = "thing.json"\nY = "thing_20260908.json"\n')
+    result = census_mod.census(root=tmp_path, sources={"tools/m.py": body})
+    assert not result["stale"], (
+        "a bare clock recoverable only from the pinned sibling's payload must excuse the claim")
+    # The same leg still refuses a clock that is in NEITHER file.
+    poisoned = census_mod.census(
+        root=tmp_path,
+        sources={"tools/m.py": body.replace("21:01:30Z", "09:09:09Z")})["stale"]
+    assert poisoned and poisoned[0]["token"] == "09:09:09Z"
 
 
 def test_a_target_publishing_no_run_identity_is_reported_as_we_cannot_tell(tmp_path):

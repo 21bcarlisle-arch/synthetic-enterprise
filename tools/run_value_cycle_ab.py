@@ -243,6 +243,25 @@ ARM_FIGURE_CLOCKS = {
 }
 
 
+#: WHICH FIELDS OF THIS FILE'S ARTEFACTS ARE THEIR RUN IDENTITY. Read by
+#: `tools.promoted_artefact_claim_census` under the key `run_identity_fields`, and by nothing else.
+#: One constant rather than a literal at each of the write sites, because two copies of this list
+#: computed separately are two facts: a field renamed in one artefact and not the other would
+#: silently stop grading claims about that target while the other kept grading, and the census's
+#: own output would look exactly the same either way.
+#:
+#: WHAT IS DELIBERATELY OUT. `book_identity` (which book the run was measured over),
+#: `world_identity.anchors` (the per-year departure levels) and `report_end` are all facts ABOUT
+#: THE WORLD the run ran in, not about which run it is -- and `report_end` in particular is a
+#: simulation-world date that would grade a claim about a real-world run if it were in.
+_RUN_IDENTITY_FIELDS = [
+    "generated_at",
+    "producing_commit.commit",
+    "producing_commit.resolved_at",
+    "world_identity.digest",
+]
+
+
 def producing_commit() -> dict:
     """The commit that made this artefact, as a block a consumer can fail closed on.
 
@@ -4344,6 +4363,12 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # level it was built over -- and that is the quantity a later reader has to compare, not
         # the hash. See `world_identity`.
         "world_identity": world_identity(),
+        # WHICH OF THESE FIELDS IS THE RUN IDENTITY, SAID HERE BECAUSE ONLY THE PRODUCER KNOWS.
+        # `tools/promoted_artefact_claim_census` reads this list and nothing else when it grades a
+        # sentence claiming which run sits at this promoted path. `book_identity` and
+        # `world_identity`'s anchors are NOT identity: they are what the run was measured over,
+        # and a reader citing them is not citing a run. See `RUN_IDENTITY_DECLARATION`.
+        "run_identity_fields": _RUN_IDENTITY_FIELDS,
         "report_end": report_end,
         # EVERY CLOCK USED IN THIS FILE, defined once and above every figure. `clock_audit`
         # resolves each figure's label against this and refuses a label that is not in it.
@@ -4755,6 +4780,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         # informational: a spread measured over one departure level is not an error bar on a point
         # estimate measured over another. See `world_identity`.
         "world_identity": world_identity(),
+        "run_identity_fields": _RUN_IDENTITY_FIELDS,
         # WHICH BOOK THIS BOUND WAS DRAWN OVER, beside which world. The world digest is the
         # departure level and the book can move without it, so a consumer pairing a floor with a
         # figure has two questions to ask and until 2026-09-09 this artefact could answer only
@@ -5136,6 +5162,15 @@ def floor_refusal_artefact(reason: str) -> dict:
         "refused_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "producing_commit": producing_commit(),
         "world_identity": world_identity(),
+        # A REFUSAL SITTING AT A PROMOTED PATH IS STILL A RUN, and it must still be able to say
+        # which one -- otherwise a refusal landing on the noise-floor target takes that target's
+        # grading away entirely, and "we cannot tell which run is here" would be caused by the
+        # thing that exists to make refused and still-running distinguishable. `refused_at`
+        # stands where `generated_at` would; the omission of `generated_at` is deliberate and
+        # explained above, so the declaration names the field that IS here rather than the one a
+        # convention would expect.
+        "run_identity_fields": ["refused_at", "producing_commit.commit",
+                                "producing_commit.resolved_at", "world_identity.digest"],
         "how_to_read_this": (
             "No spread was measured, so no bound can be quoted from this file and every consumer "
             "reads it as unavailable. Re-run the leg when the machine can hold it; this file is "

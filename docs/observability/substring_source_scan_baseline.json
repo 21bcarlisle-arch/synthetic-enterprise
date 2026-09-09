@@ -7,7 +7,7 @@
   ],
   "why": "docs/staging/SEAT_RESULT_THE_CENSUS_FINDS_117_WHERE_THREE_HAND_PASSES_FOUND_NINE_2026-09-08.md",
   "why_this_scope": "docs/staging/SEAT_RESULT_THE_CENSUS_DISMISSAL_RULE_WAS_FAIL_OPEN_AND_THE_SCOPE_IS_NOW_THE_WHOLE_CLASS_2026-09-08.md",
-  "why_this_count": "187 -> 352 on 2026-09-09, when taint began crossing a call boundary within a module. The 165 are not new controls and not a regression: they are what the per-scope rule could never see, and the old floor was a floor over the visible half. 2 rows went the other way, where a module's own ast.parse helper now reads as the parse it is.",
+  "why_this_count": "187 -> 352 on 2026-09-09, when taint began crossing a call boundary within a module. The 165 are not new controls and not a regression: they are what the per-scope rule could never see, and the old floor was a floor over the visible half. 2 rows went the other way, where a module's own ast.parse helper now reads as the parse it is. 355 -> 361 on 2026-09-09: the six added are all `tools/promoted_artefact_claim_census.py` and NOT six new scanners. One nested closure moved out of `_artefact_dates` into `_tokens_anywhere_in` when run-identity grading stopped guessing and started reading the producer's declaration, and taint that used to terminate inside that closure now crosses the call. The module's one real source-as-text reader, `_module_strings`, already goes through `ast` and `tokenize`; the rest are dismissals over a JSON payload or a container-membership test. Added by hand, not by `--freeze`, which would have rewritten every other lane's rows from a dirty tree. A SEVENTH row on the same day, and `--check` could not see it: the census reads `git ls-files`, so the new test module was invisible while untracked and only the commit gate -- which runs against the tree the commit creates -- reported it. The row is a dismissal: that test walks JSON payloads on disk and splits dotted field paths; the module's Python-source legs go through `ast.parse` and are correctly not flagged.",
   "a_row_is_not_a_verdict": "most rows outside tests/ are dismissals carrying a reason -- a non-Python subject, a container-membership test, or a widening prefilter whose verdict comes from a parse tree. The floor bounds GROWTH; read the row before routing it.",
   "how_to_shrink": "route the scan through tools/python_code_text.py, then delete its row",
   "rows": [
@@ -812,6 +812,11 @@
       "subject": "unknown"
     },
     {
+      "path": "tests/tools/test_every_promote_target_producer_declares_its_run_identity.py",
+      "function": "test_a_declared_field_that_no_longer_resolves_is_caught_on_the_live_artefacts",
+      "subject": "unknown"
+    },
+    {
       "path": "tests/tools/test_evidence_pages.py",
       "function": "test_the_front_door_does_not_route_a_reader_to_the_retired_evidence_door",
       "subject": "unknown"
@@ -1605,6 +1610,36 @@
       "path": "tools/project_portfolio_to_2026.py",
       "function": "_last_renewal_by_cid",
       "subject": "unknown"
+    },
+    {
+      "path": "tools/promoted_artefact_claim_census.py",
+      "function": "_artefact_dates",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/promoted_artefact_claim_census.py",
+      "function": "_normalise",
+      "subject": "python"
+    },
+    {
+      "path": "tools/promoted_artefact_claim_census.py",
+      "function": "_normalise_all",
+      "subject": "python"
+    },
+    {
+      "path": "tools/promoted_artefact_claim_census.py",
+      "function": "_references",
+      "subject": "python"
+    },
+    {
+      "path": "tools/promoted_artefact_claim_census.py",
+      "function": "_resolve_declared_field",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/promoted_artefact_claim_census.py",
+      "function": "census",
+      "subject": "python"
     },
     {
       "path": "tools/promoted_artefact_claim_census.py",

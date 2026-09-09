@@ -183,28 +183,97 @@ def _module_strings(path: Path, source: str | None = None) -> list[tuple[int, st
     return sorted(out)
 
 
+#: THE KEY BY WHICH A PROMOTE TARGET SAYS WHICH OF ITS OWN FIELDS ARE ITS RUN IDENTITY. A list of
+#: dotted paths into the payload, written by the producer, at the top level: e.g.
+#: `["generated_at", "producing_commit.resolved_at", "world_identity.digest"]`. Absent, empty or
+#: the wrong shape means the artefact declares nothing, and `_artefact_dates` then returns nothing
+#: -- which routes the target to `ungradable_targets` and every claim about it to `cannot_tell`.
+#: Additive by design: the declaration names fields that were already there, so no consumer of any
+#: of these artefacts sees a field move or change type.
+RUN_IDENTITY_DECLARATION = "run_identity_fields"
+
+
+def declared_run_identity_fields(payload: object) -> list[str] | None:
+    """The dotted field paths a payload declares as its run identity, or None if it declares none.
+
+    None and `[]` are the same answer on purpose -- a declaration that names nothing IS no
+    declaration -- and the caller must not be able to tell a missing key from a malformed one by
+    accident, because both mean the same thing: we cannot grade a claim about this artefact.
+    """
+    if not isinstance(payload, dict):
+        return None
+    decl = payload.get(RUN_IDENTITY_DECLARATION)
+    if not isinstance(decl, list):
+        return None
+    fields = [f for f in decl if isinstance(f, str) and f]
+    return fields or None
+
+
+def _resolve_declared_field(payload: dict, dotted: str) -> str | None:
+    """The scalar at a dotted path, or None if the path does not reach one.
+
+    Refuses to descend into a list and refuses to return a container. A declaration must name a
+    LEAF: `world_identity` resolves to a dict holding per-year anchors, and returning it would put
+    the whole thing back through the regex -- which is the guessing this function exists to end.
+    A declaration naming a path that no longer resolves contributes nothing, so a producer that
+    renames a field silently loses grading rather than grading against the wrong slot;
+    `tests/tools/test_promoted_artefact_claim_census.py` holds the control that every declared
+    path in every live target still resolves.
+    """
+    node: object = payload
+    for part in dotted.split("."):
+        if not isinstance(node, dict) or part not in node:
+            return None
+        node = node[part]
+    if isinstance(node, bool) or node is None or isinstance(node, (dict, list)):
+        return None
+    return str(node)
+
+
 def _artefact_dates(path: Path) -> set[str]:
-    """The run-identity tokens an artefact carries AS METADATA -- what run it is, not what it says.
+    """The run-identity tokens an artefact DECLARES -- what run it is, not what it says.
 
     READING THE WHOLE PAYLOAD MADE THIS LEG VACUOUS, and the number is worth keeping. Graded
     against its raw text, `docs/reports/run_output_latest.json` yields **28,676** distinct
     run-identity tokens -- every customer's `acquisition_date`, every bill date, thousands of them.
     Against a set that size ANY date claim is "supported", so the leg returned quiet for every
-    reader of the most-read promote target in the tree. That is a control that is useless without
-    ever being fail-open in a way anyone would notice: it went green because it could not fail.
+    reader of the most-read promote target in the tree.
 
-    The repair is structural rather than a threshold. Run identity lives in a payload's shallow
-    METADATA -- `generated_at`, `world_identity.digest`, `producing_commit.commit` -- while dates
-    that are DATA live inside its collections. So this walks scalars to a shallow depth and refuses
-    to descend into lists, which is where per-customer and per-period rows live. `three_arm.json`
-    goes from 131 tokens to its handful of stamps; `run_output_latest.json` goes to none, which is
-    the correct answer and not a failure: that artefact publishes no run identity at all, so no
-    claim about which run it is can be checked against it. `_UNGRADABLE` names that on the surface
-    rather than letting an unanswerable question read as a pass.
+    THE FIRST REPAIR WAS A SHALLOW WALK, AND IT WAS ITSELF KEYED TO TODAY'S ANSWER. It read every
+    scalar to depth 2 and refused to descend into lists, on the theory that run identity lives in
+    shallow metadata while data lives in collections. Its docstring recorded the result --
+    "`run_output_latest.json` goes to none, which is the correct answer". Measured again on
+    2026-09-09 that number was **seventeen**, and not one of the seventeen was this run's
+    identity: twelve are dates INSIDE THE SIMULATED WORLD (`clv_snapshot_as_of` 2016-12-31 to
+    2025-06-07, `wholesale_credit_exposure.mark_date`, a collateral stress test's
+    `stressed_date`), and five belong to a different producer's artefact folded in whole. So a
+    sentence claiming "the 2021-12-31 run" of this target graded as SUPPORTED against a stress
+    test. The shallow walk cannot separate the two, because shallowness is not the property:
+    `portfolio_as_of` and `wholesale_credit_exposure.mark_date` are the same English at the same
+    depth over opposite populations -- one is when the run happened, the other is a date in 2025
+    that the company lived through.
+
+    NARROWING TO A CONSUMER-SIDE LIST OF FIELD NAMES IS REFUTED AND MUST NOT BE RETRIED. Measured
+    2026-09-09: `site/data/snapshots/LATEST.json` and `site/state/live_decisions_latest.json`
+    publish their identity as `snapshot_ts`, `decision_run_at` and `portfolio_as_of`, so a name
+    list drawn from `generated_at`/`producing_commit`/`world_identity` strips all 15 of their
+    tokens and silences grading that works today. Four producers name one fact five ways, and no
+    rule written on this side of the seam can separate when-this-was-made from a date inside the
+    simulated world.
+
+    SO THE DEFINITION COMES FROM THE PRODUCER. Each promote target publishes
+    `RUN_IDENTITY_DECLARATION` naming which of its own fields are its run identity, and this reads
+    ONLY those. A target that declares nothing yields nothing -- which is the honest answer and is
+    reported as `cannot_tell`, not as a pass. That also makes the leg fail CLOSED under promotion:
+    bytes copied onto a canonical path by a producer that has not declared take the target's
+    grading away rather than quietly regrading it against whatever dates the new bytes contain.
     """
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
+        return set()
+    fields = declared_run_identity_fields(payload)
+    if fields is None:
         return set()
     found: set[str] = set()
 
@@ -215,6 +284,62 @@ def _artefact_dates(path: Path) -> set[str]:
     # read Python source, `_module_strings`, already goes through `ast` and `tokenize` and is
     # correctly not flagged. Added by hand rather than by `--freeze`, which would have rewritten
     # every other lane's rows from a dirty tree.
+    for dotted in fields:
+        value = _resolve_declared_field(payload, dotted)
+        if value is not None:
+            found.update(m.group(0) for m in _RUN_IDENTITY.finditer(value))
+
+    # A BARE CLOCK CAN NEVER MATCH AN ARTEFACT WITHOUT THIS, and it took a false STALE to notice.
+    # An artefact writes `2026-09-08T21:01:30Z`; prose cites the run as "the 21:01:30Z run". The
+    # `\b` before the clock alternative cannot fire inside the full stamp -- the preceding `T` is a
+    # word character -- and the ISO alternative consumes the whole thing first anyway. So the
+    # clock leg matched prose, never payloads, and every bare-clock citation was stale by
+    # construction. Emit the clock sub-token of every full stamp so the two can meet.
+    # The same applies to a bare DATE: prose cites "the 2026-09-08 run" and the payload writes
+    # `2026-09-08T04:00:00Z`. Both sub-tokens are emitted, so a citation can meet a stamp whichever
+    # precision it was written at. Found by the poison round, not by reading the regex.
+    return _with_sub_tokens(found)
+
+
+def _with_sub_tokens(found: set[str]) -> set[str]:
+    """Every token, plus the date and clock halves of every full stamp among them."""
+    for stamp in list(found):
+        parts = re.match(r"^(20\d{2}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}Z?)$", stamp)
+        if parts:
+            date, clock = parts.groups()
+            found |= _normalise(date)
+            found.add(clock)
+            found.add(clock.rstrip("Z") + "Z")
+    return found
+
+
+def _tokens_anywhere_in(path: Path) -> set[str]:
+    """Every run-identity token in a FIXED artefact's shallow metadata -- a different question.
+
+    THE ASYMMETRY IS THE POINT, and getting it wrong turns this control's own repair into a
+    false red. `_artefact_dates` grades a claim about a CANONICAL path, where the bytes change
+    under the reader without any diff, so the only trustworthy answer is the producer's
+    declaration. This grades two things that cannot move that way:
+
+      * a DATED SIBLING a reader has pinned by name. The reader named the exact file; nothing is
+        ever copied onto it; the question is only "is this literal in the file you named". No
+        promotion hazard exists, so no declaration is needed -- and requiring one would make every
+        pin to an artefact written before 2026-09-09 read as stale, which is a red caused by the
+        control changing rather than the tree.
+      * a source a published FEED declares in `sources`, for `feed_claims`, which asks the same
+        presence question and reports rather than refuses.
+
+    Shallow (depth 2, no lists) for the reason the first repair gave: it keeps the 28,676
+    per-customer dates in `run_output_latest.json` out. That is not sufficient to establish which
+    run an artefact IS -- which is why it is no longer used for that -- but it is the right
+    breadth for "does this literal appear in this fixed file at all".
+    """
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    found: set[str] = set()
+
     def walk(node, depth: int) -> None:
         if depth > 2 or isinstance(node, list):
             return
@@ -225,23 +350,7 @@ def _artefact_dates(path: Path) -> set[str]:
                 walk(v, depth + 1)
 
     walk(payload, 0)
-    # A BARE CLOCK CAN NEVER MATCH AN ARTEFACT WITHOUT THIS, and it took a false STALE to notice.
-    # An artefact writes `2026-09-08T21:01:30Z`; prose cites the run as "the 21:01:30Z run". The
-    # `\b` before the clock alternative cannot fire inside the full stamp -- the preceding `T` is a
-    # word character -- and the ISO alternative consumes the whole thing first anyway. So the
-    # clock leg matched prose, never payloads, and every bare-clock citation was stale by
-    # construction. Emit the clock sub-token of every full stamp so the two can meet.
-    # The same applies to a bare DATE: prose cites "the 2026-09-08 run" and the payload writes
-    # `2026-09-08T04:00:00Z`. Both sub-tokens are emitted, so a citation can meet a stamp whichever
-    # precision it was written at. Found by the poison round, not by reading the regex.
-    for stamp in list(found):
-        parts = re.match(r"^(20\d{2}-\d{2}-\d{2})T(\d{2}:\d{2}:\d{2}Z?)$", stamp)
-        if parts:
-            date, clock = parts.groups()
-            found |= _normalise(date)
-            found.add(clock)
-            found.add(clock.rstrip("Z") + "Z")
-    return found
+    return _with_sub_tokens(found)
 
 
 def _normalise(token: str) -> set[str]:
@@ -366,7 +475,7 @@ def census(root: Path | None = None, sources: dict[str, str] | None = None) -> d
                 pin_forms: set[str] = set()
                 for p in same_stem_pins:
                     pin_forms |= _normalise_all(p)
-                    pin_forms |= _artefact_dates((base / tgt["canonical"]).parent / p)
+                    pin_forms |= _tokens_anywhere_in((base / tgt["canonical"]).parent / p)
                 for token in ids or [None]:
                     forms = _normalise(token) if token else set()
                     rows.append({
@@ -386,6 +495,17 @@ def census(root: Path | None = None, sources: dict[str, str] | None = None) -> d
     # among the stale (where it would read as a defect) or among the quiet (where it would read as
     # a pass). `run_output_latest.json` is in exactly this state.
     ungradable = sorted(n for n, toks in live_tokens.items() if not toks)
+    # What each target SAYS its run identity is, on the surface beside the grading it drives. A
+    # reader who sees a claim graded needs to be able to see what it was graded against without
+    # opening a 27MB artefact, and a target that declares nothing is named here as `null` rather
+    # than left out -- an absent row would read as "not asked".
+    declared = {}
+    for t in targets:
+        try:
+            payload = json.loads((base / t["canonical"]).read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            payload = None
+        declared[t["name"]] = declared_run_identity_fields(payload)
     stale = [r for r in rows if r["token"]
              and not r["matches_current_run"] and not r["matches_a_pinned_sibling"]
              and r["target"].rsplit("/", 1)[-1] not in ungradable]
@@ -399,6 +519,7 @@ def census(root: Path | None = None, sources: dict[str, str] | None = None) -> d
         "ordering_only": ordering_only,
         "stale": stale,
         "ungradable_targets": ungradable,
+        "declared_run_identity": declared,
         "cannot_tell": cannot_tell,
     }
 
@@ -465,7 +586,7 @@ def feed_claims(root: Path | None = None) -> list[dict]:
             continue
         supported: set[str] = set()
         for s in declared:
-            for tok in _artefact_dates(base / s):
+            for tok in _tokens_anywhere_in(base / s):
                 supported |= _normalise(tok)
         for path, text in _walk_strings(payload):
             for m in _RUN_IDENTITY.finditer(text):
@@ -513,7 +634,9 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"PROMOTE-BY-COPY TARGETS  {len(result['targets'])}")
     for t in result["targets"]:
-        print(f"  {t['canonical']}  <- {len(t['dated_siblings'])} dated sibling(s)")
+        decl = result["declared_run_identity"].get(t["name"])
+        print(f"  {t['canonical']}  <- {len(t['dated_siblings'])} dated sibling(s)"
+              f"   run identity: {', '.join(decl) if decl else 'DECLARES NOTHING'}")
     print(f"\nREADERS  {len(result['readers'])}")
     for m in result["readers"]:
         print(f"  {m}")
@@ -526,8 +649,9 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\nWE CANNOT TELL  {len(result['cannot_tell'])} claim(s) against "
               f"{len(result['ungradable_targets'])} target(s) that publish NO run identity:")
         for n in result["ungradable_targets"]:
-            print(f"  {n} -- carries no generated_at/digest/commit, so no claim about WHICH RUN "
-                  f"sits here can be checked against it")
+            print(f"  {n} -- declares no `{RUN_IDENTITY_DECLARATION}`, so no claim about WHICH "
+                  f"RUN sits here can be checked against it. The remedy is at the PRODUCER: name "
+                  f"the fields that are this artefact's run identity, in the artefact.")
         for r in result["cannot_tell"]:
             print(f"  UNCHECKABLE {r['module']}:{r['line']} token={r['token']!r}\n"
                   f"        {r['text']}")

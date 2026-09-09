@@ -295,6 +295,24 @@ def _run_identity_header(
         # Published at the top level as well because the census reads shallow metadata only, and
         # under `_cache_meta` this digest is one level too deep to be read at all.
         "world_identity": world,
+        # WHICH OF THESE FIELDS IS THE RUN IDENTITY, SAID BY THE PRODUCER, because no consumer-side
+        # rule can work it out. This artefact carries twelve dates INSIDE THE SIMULATED WORLD --
+        # `clv_snapshot_as_of` 2016-12-31..2025-06-07, `wholesale_credit_exposure.mark_date`,
+        # `mc2_collateral_death_test.stressed_date` -- and they are the same English, at the same
+        # depth, as the three stamps above. `tools/promoted_artefact_claim_census` graded claims
+        # about this file against those twelve until 2026-09-09; it now reads THIS LIST and
+        # nothing else, and reports "we cannot tell" for any target that omits it.
+        #
+        # `producing_commit.commit` is named although a 40-char SHA matches no run-identity token
+        # today: the declaration says what IS the identity, not what a particular reader can
+        # currently parse out of it. `world_identity.digest` is named and `world_identity` is not,
+        # because the block also holds per-year anchors, which are world DATA.
+        "run_identity_fields": [
+            "generated_at",
+            "producing_commit.commit",
+            "producing_commit.resolved_at",
+            "world_identity.digest",
+        ],
     }
     return {**header, **{k: v for k, v in data.items() if k not in header}}
 

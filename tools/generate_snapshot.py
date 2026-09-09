@@ -38,6 +38,18 @@ def generate_snapshot():
     snap = {
         "snapshot_ts": now.isoformat(),
         "snapshot_label": timestamp,
+        # WHICH OF THESE FIELDS IS THIS SNAPSHOT'S RUN IDENTITY, said by the producer because no
+        # consumer-side rule can work it out. Read by `tools.promoted_artefact_claim_census` to
+        # grade any sentence claiming which run sits at `site/data/snapshots/LATEST.json`, which
+        # is a promote-by-copy target: these bytes are also written to `LATEST_<stamp>.json` and
+        # copied onto the bare name, so nothing in a diff ever shows the promotion.
+        #
+        # `dashboard`, `agent_status` and `latest_run` are three OTHER producers' artefacts folded
+        # in whole. Each carries its own stamps -- `dashboard.meta.generated_at`,
+        # `agent_status.last_updated`, and every simulation-world date in the annual report -- and
+        # not one of them says when THIS snapshot was taken. Until 2026-09-09 the census walked
+        # them and graded claims about this file against `agent_status.last_updated`.
+        "run_identity_fields": ["snapshot_ts", "snapshot_label"],
         "dashboard": dashboard,
         "agent_status": agent_status,
         "latest_run": run_output,
