@@ -4174,6 +4174,58 @@ def _departure_statement(world_mean: float, published_mean: float, inside: int, 
     return (measured + ", and {} of {} sit OUTSIDE it -- {}".format(outside, total, direction))
 
 
+def _publisher_bound_statement(publisher: dict, whole_book: dict, world_mean: float,
+                               published_mean: float) -> str:
+    """What the band above is worth, given its own publisher refutes it — COMPOSED, never pinned.
+
+    THE DEFECT IT SERVES, and it is two defects that happen to sit on the same sentence. The block
+    above tells a reader "the record says 13.5–14.0%" for 2017; the record's own publisher, DESNZ
+    QEP 2.7.1, says 18.20%, and the commons has said so about itself since 2026-09-07 in a
+    machine-readable block nothing downstream read. AND the level the reader is shown against that
+    band is a mean over renewal decisions — over households who demonstrably shop — while the band
+    is stated over every account. So the page carried a wrong standard and an incomparable measure,
+    and each one on its own is enough to make the verdict unreadable.
+
+    EVERY CLAUSE IS COMPOSED FROM THE MEASUREMENT. When the re-capture lands and `rates` becomes the
+    publisher's own figures, `publisher_comparison` returns unavailable and this returns the empty
+    string — the caveat leaves the page with the defect rather than being remembered and deleted.
+    That is the shape `_departure_statement` above was written against and it applies twice as hard
+    here, because a caveat about a refutation is exactly the kind of text that outlives its subject.
+
+    IT STATES BOTH RATIOS AND REFUSES TO CHOOSE BETWEEN THEM. Which record you take changes the size
+    of the miss, and on a world sitting the other side of the band it changes the DIRECTION. Naming
+    one and not the other is how a reader ends up believing the disagreement is settled.
+    """
+    if not publisher.get("available"):
+        return ""
+    band_ratio = world_mean / published_mean if published_mean else float("inf")
+    lead = (
+        "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. "
+        "The regulation commons this page reads declares its own switching bands outside DESNZ "
+        "Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is "
+        "a world re-capture that has not run. Against the bands above, the renewal-decision level "
+        "reads {:.2f}x the record; against the publisher's own figures for the same years it reads "
+        "{:.2f}x. The refuted band is the FLATTERING one here."
+    ).format(band_ratio, publisher["ratio_of_means"])
+    if not whole_book.get("available"):
+        return lead + (" The comparable whole-book reading could not be taken off this capture ({}"
+                       "), so neither figure above is over the population the record counts."
+                       ).format(whole_book.get("reason"))
+    book_pub = whole_book.get("against_the_publisher") or {}
+    if not book_pub.get("available"):
+        return lead
+    return lead + (
+        " AND NEITHER FIGURE IS THE COMPARABLE ONE. Both are means over renewal decisions — the "
+        "households who took a fixed deal and so demonstrably shop. Every departure the world "
+        "expects on either route, over the accounts on the book, averages {:.2f}% across {} years "
+        "against the publisher's {:.2f}% — {:.2f}x, not {:.2f}x. The gap this page has been "
+        "reporting is mostly the population it was measured over, and how much of the remainder is "
+        "the world is NOT established here."
+    ).format(book_pub["world_mean_pct"], book_pub["years_compared"],
+             book_pub["published_mean_pct"], book_pub["ratio_of_means"],
+             publisher["ratio_of_means"])
+
+
 def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
     """Whether the world these figures were measured in is still the world. FAILS CLOSED.
 
@@ -5828,9 +5880,12 @@ def _world_departure_level() -> dict:
     try:
         from tools.measure_departure_level import (
             COMMONS,
+            COMPARISON_YEARS,
             DEFAULT_TABLE,
             inside_band,
             published_bands,
+            publisher_comparison,
+            world_book_rate_pct,
             world_outcome,
             world_realised_rate_pct,
         )
@@ -5861,6 +5916,42 @@ def _world_departure_level() -> dict:
                                       round((world[year] - lo) / (hi - lo), 3)),
                 "renewals": counts.get(year, (0, 0, 0.0))[0],
             })
+        # THE SAME LEVELS AGAINST THE PUBLISHER'S OWN FIGURES. Not measured here -- the module that
+        # owns the denominators owns this too, for the reason the docstring gives.
+        publisher = publisher_comparison(world)
+        # THE COMPARABLE QUANTITY, beside the one this block has always published. It carries its
+        # own refusal rather than raising: a capture that cannot bear an account denominator must
+        # leave the renewal reading standing WITH the reason the other is missing, never silently
+        # drop to one number that then reads as the whole book.
+        book, book_refusal = world_book_rate_pct()
+        book_years = []
+        for year in sorted(y for y in book if y in COMPARISON_YEARS):
+            if year not in bands:
+                raise ValueError(
+                    "the commons carries no published band for {}".format(year))
+            lo, hi = bands[year]
+            book_years.append({
+                "year": year,
+                "world_pct": round(book[year], 2),
+                "band_lo_pct": lo,
+                "band_hi_pct": hi,
+                "inside_band": inside_band(book[year], lo, hi),
+            })
+        whole_book = (
+            {"available": False, "reason": book_refusal} if book_refusal or not book_years
+            else {
+                "available": True,
+                "what_it_is": ("Every departure the world expects on EITHER route, over the "
+                               "accounts on the book -- the same numerator and denominator the "
+                               "published record states."),
+                "years": book_years,
+                "years_compared": len(book_years),
+                "years_inside_the_band": sum(1 for y in book_years if y["inside_band"]),
+                "world_mean_pct": round(
+                    statistics.fmean(y["world_pct"] for y in book_years), 2),
+                "against_the_publisher": publisher_comparison(
+                    {y["year"]: y["world_pct"] for y in book_years}),
+            })
     except Exception as exc:  # noqa: BLE001 -- any failure here is "cannot establish", not "fine"
         return {
             "available": False,
@@ -5885,15 +5976,42 @@ def _world_departure_level() -> dict:
         "world_mean_pct": round(world_mean, 2),
         "published_midpoint_mean_pct": round(published_mean, 2),
         "mean_share_of_the_band": None if placement is None else round(placement, 3),
-        "denominator": ("EXTERNAL changes of supplier on a GB domestic electricity meter point, "
-                        "over all GB domestic electricity accounts. Both sides count the same "
-                        "pair; a per-renewal denominator is a different quantity and reads about "
-                        "a third high."),
+        # CORRECTED 2026-09-09. The sentence that stood here declared the ACCOUNT denominator --
+        # "over all GB domestic electricity accounts" -- and the column beside it is
+        # `world_realised_rate_pct`, a mean over renewal DECISIONS. Post-C1b those are the
+        # households who took a fixed deal, i.e. the ones who demonstrably shop, and
+        # `measure_departure_level.world_book_rate_pct`'s own docstring says in terms that "a mean
+        # over shoppers is not the book's departure level". The page declared one quantity and
+        # published the other, against a band stated on the first. The comparable reading is in
+        # `whole_book` below and it is a different number; which one is the headline is a
+        # re-siting with its own preregistration, and until it lands the reader gets both, named.
+        "denominator": ("The column above is the world's mean expected departure at a RENEWAL "
+                        "decision -- post-C1b, the households who took a fixed deal and so "
+                        "demonstrably shop. The published band is stated over ALL domestic "
+                        "electricity accounts, which is a different denominator and a different "
+                        "population: a mean over shoppers reads high against it. The comparable "
+                        "whole-book reading, every departure on either route over the accounts on "
+                        "the book, is stated separately below."),
         "measured_by": "tools/measure_departure_level.py",
         "published_record": str(COMMONS.relative_to(PROJECT))
         if str(COMMONS).startswith(str(PROJECT)) else str(COMMONS),
         "statement": _departure_statement(
             world_mean, published_mean, inside, len(years), placement),
+        # THE BAND ABOVE IS DECLARED REFUTED BY ITS OWN PUBLISHER, and until this commit no reader
+        # of this page could know. Two BLOCKING findings of 2026-09-07 established that DESNZ QEP
+        # 2.7.1's own figures fall outside `rates` in 8 of 10 years; the commons carries them, and
+        # every consumer went on reading the refuted side. Re-siting `rates` is a world re-capture
+        # and is deferred for that reason -- but the DEFERRAL must not also buy silence, because a
+        # reader told "the record says 13.5-14.0%" is being told something the record's publisher
+        # does not say. Both verdicts, labelled, on the same surface.
+        #
+        # KEYED TO THE ARTEFACT'S OWN DECLARATION. When the re-capture lands, the refutation block
+        # goes with it, `publisher_comparison` returns unavailable, and this whole caveat leaves
+        # the page without anyone remembering to delete it.
+        "against_the_publisher": publisher,
+        "whole_book": whole_book,
+        "bounding_statement": _publisher_bound_statement(publisher, whole_book, world_mean,
+                                                         published_mean),
     }
 
 

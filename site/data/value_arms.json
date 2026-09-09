@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T07:59:48.941871Z",
+  "generated_at": "2026-09-09T10:02:38.356719Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -327,10 +327,10 @@
     "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
     "short": "62334dc76",
     "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": "766b82d045f914992f3a370a5deb6fe592c3c434",
+    "publishing_tree_commit": "566fcf366acdd0106c41947f861f64ddb7d1774e",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76 and published from 766b82d04 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 62334dc76 and published from 566fcf366 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -556,10 +556,10 @@
       "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
       "short": "62334dc76",
       "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": "766b82d045f914992f3a370a5deb6fe592c3c434",
+      "publishing_tree_commit": "566fcf366acdd0106c41947f861f64ddb7d1774e",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76 and published from 766b82d04 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 62334dc76 and published from 566fcf366 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -793,10 +793,203 @@
     "world_mean_pct": 28.08,
     "published_midpoint_mean_pct": 17.2,
     "mean_share_of_the_band": 16.116,
-    "denominator": "EXTERNAL changes of supplier on a GB domestic electricity meter point, over all GB domestic electricity accounts. Both sides count the same pair; a per-renewal denominator is a different quantity and reads about a third high.",
+    "denominator": "The column above is the world's mean expected departure at a RENEWAL decision -- post-C1b, the households who took a fixed deal and so demonstrably shop. The published band is stated over ALL domestic electricity accounts, which is a different denominator and a different population: a mean over shoppers reads high against it. The comparable whole-book reading, every departure on either route over the accounts on the book, is stated separately below.",
     "measured_by": "tools/measure_departure_level.py",
     "published_record": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json",
-    "statement": "Over the 7 years this run can be compared on, the world's own departures averaged 28.08% of electricity accounts a year against a published GB record averaging 17.20%. Each year is judged against its OWN published band, never against that average, and 7 of 7 sit OUTSIDE it -- 1.63x ABOVE the record's own midpoint of 17.20%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor."
+    "statement": "Over the 7 years this run can be compared on, the world's own departures averaged 28.08% of electricity accounts a year against a published GB record averaging 17.20%. Each year is judged against its OWN published band, never against that average, and 7 of 7 sit OUTSIDE it -- 1.63x ABOVE the record's own midpoint of 17.20%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor.",
+    "against_the_publisher": {
+      "available": true,
+      "years": [
+        {
+          "year": 2017,
+          "world_pct": 23.96,
+          "published_rate_pct": 18.195,
+          "ratio": 1.317,
+          "world_is_above": true
+        },
+        {
+          "year": 2018,
+          "world_pct": 25.97,
+          "published_rate_pct": 19.064,
+          "ratio": 1.362,
+          "world_is_above": true
+        },
+        {
+          "year": 2019,
+          "world_pct": 31.7,
+          "published_rate_pct": 20.822,
+          "ratio": 1.523,
+          "world_is_above": true
+        },
+        {
+          "year": 2020,
+          "world_pct": 40.98,
+          "published_rate_pct": 20.213,
+          "ratio": 2.027,
+          "world_is_above": true
+        },
+        {
+          "year": 2021,
+          "world_pct": 26.05,
+          "published_rate_pct": 15.569,
+          "ratio": 1.674,
+          "world_is_above": true
+        },
+        {
+          "year": 2023,
+          "world_pct": 15.75,
+          "published_rate_pct": 6.332,
+          "ratio": 2.488,
+          "world_is_above": true
+        },
+        {
+          "year": 2024,
+          "world_pct": 32.12,
+          "published_rate_pct": 9.028,
+          "ratio": 3.558,
+          "world_is_above": true
+        }
+      ],
+      "years_compared": 7,
+      "years_the_world_is_above": 7,
+      "world_mean_pct": 28.08,
+      "published_mean_pct": 15.6,
+      "ratio_of_means": 1.799,
+      "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
+    },
+    "whole_book": {
+      "available": true,
+      "what_it_is": "Every departure the world expects on EITHER route, over the accounts on the book -- the same numerator and denominator the published record states.",
+      "years": [
+        {
+          "year": 2017,
+          "world_pct": 14.0,
+          "band_lo_pct": 13.5,
+          "band_hi_pct": 14.0,
+          "inside_band": true
+        },
+        {
+          "year": 2018,
+          "world_pct": 20.0,
+          "band_lo_pct": 19.5,
+          "band_hi_pct": 20.0,
+          "inside_band": true
+        },
+        {
+          "year": 2019,
+          "world_pct": 21.3,
+          "band_lo_pct": 20.7,
+          "band_hi_pct": 21.3,
+          "inside_band": true
+        },
+        {
+          "year": 2020,
+          "world_pct": 22.97,
+          "band_lo_pct": 22.5,
+          "band_hi_pct": 23.0,
+          "inside_band": true
+        },
+        {
+          "year": 2021,
+          "world_pct": 18.53,
+          "band_lo_pct": 17.9,
+          "band_hi_pct": 18.4,
+          "inside_band": false
+        },
+        {
+          "year": 2022,
+          "world_pct": 2.5,
+          "band_lo_pct": 2.9,
+          "band_hi_pct": 4.3,
+          "inside_band": false
+        },
+        {
+          "year": 2023,
+          "world_pct": 12.4,
+          "band_lo_pct": 8.9,
+          "band_hi_pct": 12.5,
+          "inside_band": true
+        },
+        {
+          "year": 2024,
+          "world_pct": 15.96,
+          "band_lo_pct": 12.5,
+          "band_hi_pct": 16.1,
+          "inside_band": true
+        }
+      ],
+      "years_compared": 8,
+      "years_inside_the_band": 6,
+      "world_mean_pct": 15.96,
+      "against_the_publisher": {
+        "available": true,
+        "years": [
+          {
+            "year": 2017,
+            "world_pct": 14.0,
+            "published_rate_pct": 18.195,
+            "ratio": 0.769,
+            "world_is_above": false
+          },
+          {
+            "year": 2018,
+            "world_pct": 20.0,
+            "published_rate_pct": 19.064,
+            "ratio": 1.049,
+            "world_is_above": true
+          },
+          {
+            "year": 2019,
+            "world_pct": 21.3,
+            "published_rate_pct": 20.822,
+            "ratio": 1.023,
+            "world_is_above": true
+          },
+          {
+            "year": 2020,
+            "world_pct": 22.97,
+            "published_rate_pct": 20.213,
+            "ratio": 1.136,
+            "world_is_above": true
+          },
+          {
+            "year": 2021,
+            "world_pct": 18.53,
+            "published_rate_pct": 15.569,
+            "ratio": 1.19,
+            "world_is_above": true
+          },
+          {
+            "year": 2022,
+            "world_pct": 2.5,
+            "published_rate_pct": 3.056,
+            "ratio": 0.818,
+            "world_is_above": false
+          },
+          {
+            "year": 2023,
+            "world_pct": 12.4,
+            "published_rate_pct": 6.332,
+            "ratio": 1.958,
+            "world_is_above": true
+          },
+          {
+            "year": 2024,
+            "world_pct": 15.96,
+            "published_rate_pct": 9.028,
+            "ratio": 1.768,
+            "world_is_above": true
+          }
+        ],
+        "years_compared": 8,
+        "years_the_world_is_above": 6,
+        "world_mean_pct": 15.96,
+        "published_mean_pct": 14.03,
+        "ratio_of_means": 1.137,
+        "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
+      }
+    },
+    "bounding_statement": "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the bands above, the renewal-decision level reads 1.63x the record; against the publisher's own figures for the same years it reads 1.80x. The refuted band is the FLATTERING one here. AND NEITHER FIGURE IS THE COMPARABLE ONE. Both are means over renewal decisions \u2014 the households who took a fixed deal and so demonstrably shop. Every departure the world expects on either route, over the accounts on the book, averages 15.96% across 8 years against the publisher's 14.03% \u2014 1.14x, not 1.80x. The gap this page has been reporting is mostly the population it was measured over, and how much of the remainder is the world is NOT established here."
   },
   "method_skill": {
     "available": true,
@@ -1239,6 +1432,10 @@
         "sentence": "The control row above and the headline figure agree to the last bit, and that is NOT corroboration. Both intervals are the same permutation -- 20,000 draws at seed 20260828 over 168 decisions -- performed twice. Two independent samples agreeing would be evidence about the method; one computation agreeing with itself is arithmetic, and the only thing it establishes is that the two code paths meet."
       },
       "zero_outcomes_the_world_recorded_as_a_departure": 37,
+      "leg_conditioning": {
+        "available": false,
+        "reason": "the run that produced this artefact predates the per-leg conditioning split, so the page can show the four cuts but not which of them are computed over households that STAYED. Withheld until a run carries `method_skill.fixed_horizon.leg_conditioning`."
+      },
       "bound": "READ THIS BEFORE THE NUMBER, and it is a DIFFERENT bound from the concordance's. The outcome is POUNDS, so it carries account SIZE as well as decision quality, and this estimand cannot normalise it away: a household that left has no counterfactual over the horizon because it has no metered volumes over the horizon. Every decision scored at zero also TIES with every other one, so the departures are ranked against the survivors and not against each other -- which is why `pairs_tied_on_outcome` grows with the zero count and is published per leg. R12: a DIAGNOSTIC, never a target; nothing optimises this figure.",
       "reading": "0.4210 over all 161 priced decisions, against 0.5338 over the 168 the published concordance is computed on -- and the difference is ATTRIBUTABLE because the bridge moves one thing at a time. Dropping the 44 decisions whose horizon had not closed moves it -0.0345; changing the outcome from the ratio to pounds then moves it +0.0137; admitting the 37 decisions whose term settled nothing then moves it -0.0919. The POPULATION term is the largest. Admitting the departures LOWERS the figure, which is what survivor-conditioning was hiding: the arm's price ranks the households it kept better than it ranks the ones it lost."
     },

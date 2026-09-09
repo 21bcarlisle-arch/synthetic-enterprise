@@ -1305,6 +1305,19 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               : '<span style="color:var(--amber);font-weight:600;">OUTSIDE</span>')
           + "</td></tr>";
       }).join("");
+      var dlPub = dl.against_the_publisher || {};
+      var dlPubRows = (dlPub.available && dlPub.years ? dlPub.years : []).map(function (y) {
+        return "<tr><td style=\"padding:1px 10px 1px 0;\">" + esc(y.year)
+          + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+          + Number(y.world_pct).toFixed(2) + "%"
+          + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+          + Number(y.published_rate_pct).toFixed(2) + "%"
+          + "</td><td style=\"padding:1px 0;white-space:nowrap;\">"
+          + (y.ratio === null || y.ratio === undefined
+              ? "&mdash;"
+              : Number(y.ratio).toFixed(2) + "x")
+          + "</td></tr>";
+      }).join("");
       $("arms-departure").innerHTML =
         '<p style="margin:0 0 6px;">' + dlLead + dlBody + "</p>"
         + (dlRows
@@ -1320,6 +1333,29 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + '<p style="margin:4px 0 0;font-size:11px;color:var(--muted);">'
               + prose(dl.denominator || "") + " Measured by " + esc(dl.measured_by || "")
               + " against " + esc(dl.published_record || "") + ".</p>"
+            : "")
+        /* THE BAND IS REFUTED BY ITS OWN PUBLISHER, and the table above cannot say so. Rendered
+           from `bounding_statement`, which the PRODUCER composes and returns EMPTY once the
+           commons stops declaring the refutation -- so this caveat leaves the page with the
+           defect rather than being remembered and deleted. Nothing is authored here. */
+        + (dl.bounding_statement
+            ? '<p style="margin:6px 0 0;font-size:11px;color:var(--amber);">'
+              + prose(dl.bounding_statement) + "</p>"
+            : "")
+        /* THE PUBLISHER'S OWN FIGURE PER YEAR, beside the band that does not contain it. The
+           sentence states the means; a reader who wants to check which years it turns on needs
+           the rows, and a summary ratio with no rows behind it is the shape this page keeps
+           having to repair. */
+        + (dlPubRows
+            ? '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:4px 0 0;border-collapse:collapse;"><tr>'
+              + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Year</th>"
+              + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">This "
+              + "world left at</th>"
+              + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">DESNZ "
+              + "2.7.1 says</th>"
+              + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Ratio</th></tr>"
+              + dlPubRows + "</table></div>"
             : "");
 
       /* BOTH SIDES OF ONE COMPARISON, ON ONE ROW. Keyed by arm so a household figure can only

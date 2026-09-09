@@ -127,6 +127,45 @@ def published_bands() -> dict[int, tuple[float, float]]:
     return {int(r["year"]): (float(r["rate_pct_lo"]), float(r["rate_pct_hi"])) for r in raw["rates"]}
 
 
+def publisher_rates() -> dict[int, float]:
+    """`{year: published_rate_pct}` from the commons' REFUTATION block, `{}` when it carries none.
+
+    THE BANDS IN `rates` ARE NOT THE PUBLISHER'S FIGURES, and since 2026-09-07 the artefact says so
+    about itself: `values_refuted_by_the_publisher` holds DESNZ QEP 2.7.1's own transfers and
+    accounts for all ten years, and eight of the ten bands do not contain them. Every reader in this
+    tree — this module, the level anchor, the value-arms page — went on reading `rates`, so the
+    refutation was checkable and unread. This is the reader for the other side.
+
+    IT DOES NOT REPLACE `published_bands`. The band is what the fitted world is judged against and
+    re-siting it is a world re-capture (both 2026-09-07 findings measured that and deferred it, for
+    the same reason: correcting `rates` alone reds the containment family and wedges every lane).
+    What was missing was not the repair — it was that nothing downstream could state the corrected
+    verdict AT ALL while the repair waited. A refutation nobody can read past is a refutation that
+    only delays the wrong number.
+
+    EMPTY IS A LEGITIMATE ANSWER AND IS NOT A FAILURE. When the repair lands the block goes with it,
+    and callers must read that as "the band IS the publisher now", not as a missing input. Callers
+    that need the distinction ask `band_is_refuted()`.
+    """
+    raw = json.loads(COMMONS.read_text())
+    block = raw.get("values_refuted_by_the_publisher") or {}
+    return {
+        int(r["year"]): float(r["published_rate_pct"])
+        for r in block.get("comparison", ())
+        if r.get("published_rate_pct") is not None
+    }
+
+
+def band_is_refuted() -> bool:
+    """Does the commons declare its OWN bands refuted by the publisher it names?
+
+    Keyed to the artefact's declaration rather than to today's answer: when the repair lands and the
+    block goes, this reads False without anyone editing it, and every consumer's "judged against a
+    refuted band" caveat disappears with the defect rather than being remembered.
+    """
+    return bool(publisher_rates())
+
+
 def band_decimals() -> int:
     """How many decimal places the commons publishes its band endpoints to.
 
@@ -182,6 +221,62 @@ def inside_band(value_pct: float, lo: float, hi: float) -> bool:
     and fails here, as it should, and the pre-anchor world's 4.93% fails every year by miles.
     """
     return lo <= round(value_pct, band_decimals()) <= hi
+
+
+def publisher_comparison(world: dict[int, float]) -> dict:
+    """The same levels, re-read against the PUBLISHER's own figures instead of the refuted band.
+
+    WHY A SECOND VERDICT AND NOT A CORRECTED FIRST ONE. The band decides what the world is fitted
+    to, and moving it is a world re-capture. This says what the answer WOULD be, on the figures the
+    artefact already holds, so the wait for that re-capture does not also buy silence. Both verdicts
+    go out together and labelled — a reader who sees only the band's is being told the record says
+    something its own publisher does not.
+
+    THE RATIO IS OF MEANS AND THAT IS DELIBERATE, matching `_world_departure_level`'s existing
+    `world_mean / published_midpoint_mean`, so the two summary figures are the same quantity on two
+    records and their difference is attributable to the record alone. A mean of per-year ratios is a
+    different quantity and would make the move unreadable.
+
+    FAILS CLOSED on a year the refutation block does not carry: an unpriced year must not drop out
+    of an aggregate silently, which is the emptied-subject shape `realised_rate_coverage` was
+    written for one level down.
+    """
+    published = publisher_rates()
+    if not published:
+        return {
+            "available": False,
+            "reason": "the commons declares no refutation, so the band above IS the publisher",
+        }
+    years = []
+    for year in sorted(world):
+        if year not in published:
+            raise ValueError(
+                "the commons' refutation block carries no publisher figure for {}".format(year))
+        level, pub = world[year], published[year]
+        years.append({
+            "year": year,
+            "world_pct": round(level, 2),
+            "published_rate_pct": round(pub, 3),
+            # SIGNED, and the sign is the whole content: the refuted band and the publisher's own
+            # figure move the verdict in OPPOSITE directions for a world sitting above the band,
+            # and the commons' own note predicts only the other case.
+            "ratio": None if pub == 0 else round(level / pub, 3),
+            "world_is_above": level > pub,
+        })
+    world_mean = statistics.fmean(y["world_pct"] for y in years)
+    published_mean = statistics.fmean(y["published_rate_pct"] for y in years)
+    above = sum(1 for y in years if y["world_is_above"])
+    return {
+        "available": True,
+        "years": years,
+        "years_compared": len(years),
+        "years_the_world_is_above": above,
+        "world_mean_pct": round(world_mean, 2),
+        "published_mean_pct": round(published_mean, 2),
+        "ratio_of_means": None if published_mean == 0 else round(world_mean / published_mean, 3),
+        "publisher": ("DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the "
+                      "same table, as tabulated in the commons' own refutation block"),
+    }
 
 
 def world_curve_pct(year: int) -> float:
@@ -468,7 +563,31 @@ def main(argv: list[str]) -> int:
           f"   ({pub_mean / rate_mean:.2f}x short of the record)")
     print(f"  {COMPARISON_YEARS.start}–{COMPARISON_YEARS.stop - 1} mean world E[depart]    : {world_mean:5.2f}%"
           f"   ({pub_mean / world_mean:.2f}x short of the record)")
-    print()
+    # THE OTHER RECORD, AND IT IS THE PUBLISHER'S OWN. Printed here rather than in a note because
+    # the eight lines above compare the world to a band the commons declares REFUTED, and a reader
+    # who stops at them has been told the record says something its publisher does not.
+    pub_cmp = publisher_comparison(readings)
+    if pub_cmp.get("available"):
+        print("  ── AND AGAINST THE PUBLISHER'S OWN FIGURES, which the band above does not carry ──")
+        print()
+        print("  The commons declares its own bands refuted in 8 of 10 years"
+              " (`values_refuted_by_the_publisher`).")
+        print("  Same levels, same years, read against DESNZ QEP 2.7.1 instead of `rates`:")
+        print()
+        print(f"  {'year':<8}{'world %':>9}{'publisher %':>13}{'ratio':>9}")
+        for row in pub_cmp["years"]:
+            ratio = "—" if row["ratio"] is None else f"{row['ratio']:.2f}x"
+            print(f"  {row['year']:<8}{row['world_pct']:>9.2f}{row['published_rate_pct']:>13.3f}"
+                  f"{ratio:>9}")
+        print()
+        print(f"  mean {pub_cmp['world_mean_pct']:.2f}% against {pub_cmp['published_mean_pct']:.2f}%"
+              f" = {pub_cmp['ratio_of_means']:.2f}x, world above in "
+              f"{pub_cmp['years_the_world_is_above']} of {pub_cmp['years_compared']} years.")
+        print(f"  Against the REFUTED band's midpoints the same levels read "
+              f"{world_mean / pub_mean:.2f}x. WHICH RECORD YOU TAKE CHANGES THE SIZE OF THE MISS")
+        print("  and, for a world sitting the other side of the band, its DIRECTION. See the")
+        print("  fidelity finding filed 2026-09-09 against the baseline world.")
+        print()
     print("  THE THREE COLUMNS ARE THREE DIFFERENT THINGS AND ONLY THE LAST ONE IS AN OUTCOME.")
     print("  `savings curve` is what `_savings_to_rate` computes at each year's own savings; since")
     print("  2026-08-30 it no longer sets the market level for a year the record covers, because a")

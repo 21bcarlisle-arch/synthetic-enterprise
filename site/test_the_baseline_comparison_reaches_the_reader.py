@@ -2651,6 +2651,94 @@ def test_the_level_on_the_page_is_the_one_the_measuring_tool_REPORTS(live):
         assert ("inside" if inside_band(level, lo, hi) else "OUTSIDE") in rendered
 
 
+def test_the_reader_is_told_the_band_its_OWN_PUBLISHER_refutes(live):
+    """A REFUTED STANDARD, RENDERED AS THE STANDARD, is a wrong number a reader cannot detect.
+
+    The commons has declared its own switching bands outside DESNZ QEP 2.7.1 in 8 of 10 years since
+    2026-09-07 (`values_refuted_by_the_publisher`, two BLOCKING findings). Re-siting `rates` is a
+    world re-capture and is deferred — but for two days every consumer went on reading the refuted
+    side, and this page told a reader "the record says 13.5–14.0%" for a year whose publisher says
+    18.20%. The deferral of the repair must not also buy silence about the defect.
+
+    KEYED TO THE ARTEFACT'S DECLARATION, NOT TO TODAY'S ANSWER. When the re-capture lands the block
+    goes, `publisher_comparison` returns unavailable, and this test asserts the caveat is GONE. It
+    cannot rot into a stale apology, which is the failure `_departure_statement` was written against
+    one level up.
+
+    Fires on: dropping the `bounding_statement` render; dropping the per-year publisher table;
+    a producer that stops reading the refutation while the commons still declares one.
+
+    R15 -- the mutations, run 2026-09-09 against a COPY of the door driven through this file's own
+    harness (never the shared tree's, for the reason the block above this one gives):
+      * drop the `bounding_statement` render -> this test reds on "reached the feed and not the
+        reader", and only this one.
+      * drop `dlPubRows` from the render -> this test reds on 2017's publisher figure.
+      * render the publisher table with no publisher reading behind it -> the null rung below
+        reds, and only it.
+      * hard-code the caveat (BOTH its guard and its text) -> the null rung below reds.
+    ONE MUTATION DID NOT FIRE AND IT IS AN EQUIVALENCE, established rather than assumed: replacing
+    the guard `dl.bounding_statement ?` with `true ?` while leaving `prose(dl.bounding_statement)`
+    in place renders an EMPTY `<p>` when the statement is empty. No reader sees a difference and
+    `_text` correctly reports none. The defect that mutation gestures at -- a caveat rendered
+    whatever the commons says -- needs the text hard-coded too, and that one fires.
+    """
+    from tools.measure_departure_level import band_is_refuted
+
+    dl = _live_feed().get("departure_level") or {}
+    rendered = live["arms-departure"]
+    if not band_is_refuted():
+        assert not dl.get("bounding_statement"), (
+            "the commons no longer declares its bands refuted and the page still carries the "
+            "caveat -- a stale apology nobody remembered to delete")
+        return
+    pub = dl.get("against_the_publisher") or {}
+    assert pub.get("available") is True, (
+        "the commons declares its own bands refuted and the producer published no reading "
+        "against the publisher, so the page's verdict rests on a standard its publisher denies")
+    assert dl["bounding_statement"].replace(" -- ", " — ") in rendered, (
+        "the refutation reached the feed and not the reader")
+    for year in pub["years"]:
+        assert "{:.2f}%".format(year["published_rate_pct"]) in rendered, (
+            "{}'s publisher figure is not on the page, so a reader cannot see which years the "
+            "ratio turns on".format(year["year"]))
+    assert "{:.2f}x".format(pub["ratio_of_means"]) in rendered, (
+        "the corrected ratio is not on the page a reader opens")
+
+
+def test_MUTATION_a_page_carrying_ONLY_the_refuted_band_is_a_different_page():
+    """THE NULL RUNG for the control above, and it is the state this page was in until today.
+
+    A feed whose commons declares no refutation must render WITHOUT the caveat, and the two pages
+    must differ. Without this, the assertions above pass on a page that hard-codes the sentence —
+    R15's unreachable-branch shape, entered here through the flattering door: a caveat that renders
+    unconditionally reads exactly like a caveat that was measured.
+
+    Fires on: rendering `bounding_statement` from a constant; rendering the publisher table when
+    the feed carries no publisher reading.
+    """
+    feed = copy.deepcopy(_live_feed())
+    dl = feed["departure_level"]
+    if not (dl.get("against_the_publisher") or {}).get("available"):
+        pytest.skip("the live commons declares no refutation, so there is no branch to poison")
+    unrefuted = copy.deepcopy(feed)
+    unrefuted["departure_level"]["against_the_publisher"] = {
+        "available": False,
+        "reason": "the commons declares no refutation, so the band above IS the publisher",
+    }
+    unrefuted["departure_level"]["bounding_statement"] = ""
+    rendered = _render(unrefuted)["arms-departure"]
+
+    assert rendered.strip(), "a feed with no refutation rendered nothing at all"
+    assert "REFUTED BY ITS OWN PUBLISHER" not in rendered, (
+        "the page accuses the commons of a refutation it does not declare, so the caveat is a "
+        "constant and not a reading")
+    assert "DESNZ 2.7.1 says" not in rendered, (
+        "the publisher column renders with no publisher reading behind it")
+    assert rendered != _render(_live_feed())["arms-departure"], (
+        "the page renders identically with and without the refutation, so it is printing a "
+        "constant and reads nothing from the commons")
+
+
 def test_MUTATION_a_world_OUTSIDE_the_published_band_says_so_and_says_which_way():
     """THE NULL RUNG, and it is the state the world was in when this was written.
 
