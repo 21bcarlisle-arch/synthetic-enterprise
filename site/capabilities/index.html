@@ -745,12 +745,27 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + '">withheld</span>';
       } else if (c === null) {
         figure = "&mdash;";
+      } else if (lo === null || hi === null) {
+        /* THE SURFACE REFUSES IT TOO, and this branch is why the sentence below changed
+           (2026-09-09). It used to read "a leg with a number and no interval cannot occur — the
+           row above withholds the number". That was true of the PRODUCER and was never true of
+           this function: driven with a leg carrying `concordance` and no `null_95_low`, this row
+           printed 0.4210 and put "no interval on this cut's own n" in the cell beside it. The
+           number reached the reader unbounded, which is the one thing this table exists to stop.
+
+           `_horizon_leg_published` withholding upstream is right and stays. It is not enough on
+           its own: the property is stated about the PAGE, and a page that holds it in exactly one
+           place holds it until the day somebody relaxes that place. So the number is dropped here
+           as well, on the same fail-closed shape, and the reason names which side refused. */
+        figure = '<span style="color:var(--amber);" title="'
+          + esc(leg.reason || "this leg carries a concordance and no interval computed on its own "
+                + "decisions, so the figure is withheld rather than rendered bare.")
+          + '">withheld</span>';
       } else {
         figure = Number(c).toFixed(4);
       }
-      /* THE BOUND IS NEVER BLANK. A leg with a number and no interval cannot occur — the row
-         above withholds the number — so an empty cell here would be a rendering defect and is
-         written as one rather than left to look like a missing value. */
+      /* THE BOUND IS NEVER BLANK, and a missing one now costs the number rather than annotating
+         it — see the branch above. This cell names the absence; it does not excuse it. */
       var bound;
       if (lo === null || hi === null) {
         bound = '<span style="color:var(--amber);">no interval on this cut’s own n</span>';

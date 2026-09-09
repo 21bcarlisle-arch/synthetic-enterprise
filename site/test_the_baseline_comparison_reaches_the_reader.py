@@ -4260,6 +4260,173 @@ def test_NO_CUT_of_the_bridge_reaches_the_reader_without_the_interval_its_own_n_
     assert ("%.4f" % kept["concordance"]) in text
 
 
+def _every_cut_carrying_a_concordance(node, path="method_skill"):
+    """Every cut in the feed with a concordance of its own, DISCOVERED and never enumerated.
+
+    The enumeration is the thing being avoided. Two controls already hold this property and both
+    name their subject: one the survivor headline, one the bridge legs. A THIRD cut added to the
+    feed tomorrow is covered by neither, and the page would render it bare with a full green
+    suite -- the shape this project has paid for as "a whole-page presence check becomes a
+    fail-open the day the page gains a second subject".
+    """
+    found = []
+    if isinstance(node, dict):
+        if node.get("concordance") is not None:
+            found.append((path, node))
+        for key, value in node.items():
+            found.extend(_every_cut_carrying_a_concordance(value, path + "." + key))
+    elif isinstance(node, list):
+        for index, value in enumerate(node):
+            found.extend(_every_cut_carrying_a_concordance(value, "%s[%d]" % (path, index)))
+    return found
+
+
+def _concordance_reaches_the_reader(value, rendered):
+    """Does this cut's number appear, in either precision the page renders numbers at?"""
+    return ("%.4f" % value) in rendered or ("%.3f" % value) in rendered
+
+
+#: THE WORD `concordance` NAMES TWO DIFFERENT QUANTITIES IN THIS FEED, and the first draft of the
+#: control below read straight past the difference -- it collected
+#: `what_it_could_have_detected.floor[]` and demanded an interval for each, which is nonsense: a
+#: floor row is the effect size you would NEED, paired with the `decisions_needed` to reach it. It
+#: is a requirement, not a measurement, and it has no sample to compute an interval on.
+#:
+#: The discrimination is therefore on the SAMPLE, not on the path: a measured cut carries the n it
+#: was computed over (`decisions` on a bridge leg, `decisions_scored` on a headline); a
+#: hypothetical carries `decisions_needed`. Measured at the time of writing: 6 measured, 12
+#: hypothetical, and NOTHING in neither class.
+#:
+#: A narrowing that kills a false positive can only hide things, so this one refuses to be silent:
+#: a block carrying a `concordance` that fits neither shape FAILS the control rather than being
+#: skipped. That is the branch a future block would arrive on.
+_SAMPLE_KEYS = ("decisions", "decisions_scored")
+_HYPOTHETICAL_KEYS = ("decisions_needed",)
+
+
+def _measured_cuts_only(cuts):
+    """Split discovered blocks into measured cuts and hypotheticals, refusing the unclassifiable."""
+    measured, hypothetical, unclassifiable = [], [], []
+    for path, cut in cuts:
+        if any(key in cut for key in _SAMPLE_KEYS):
+            measured.append((path, cut))
+        elif any(key in cut for key in _HYPOTHETICAL_KEYS):
+            hypothetical.append(path)
+        else:
+            unclassifiable.append(path)
+    assert not unclassifiable, (
+        "these blocks carry a `concordance` and neither the sample it was measured on nor the "
+        "sample it would need, so this control cannot tell a published figure from a target and "
+        "refuses to guess: {}".format(unclassifiable))
+    return measured, hypothetical
+
+
+def test_NO_cut_ANYWHERE_in_the_feed_renders_its_number_without_its_OWN_interval():
+    """THE PROPERTY OVER THE WHOLE PARTITION, and at the surface rather than upstream of it.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09, and it was live). `fixedHorizonBlock`'s `row()` set
+    its figure from the concordance alone and gated the withheld branch on `c === null`. Driven
+    with a leg carrying a number and no `null_95_low`, it printed **0.4210** and wrote "no
+    interval on this cut's own n" in the cell beside it. Its own comment said that "cannot occur
+    -- the row above withholds the number", which was a true statement about
+    `_horizon_leg_published` and never a statement about this function.
+
+    So the property was held in exactly ONE place, upstream, and the page inherited it. That is
+    the arrangement that ends with a lane relaxing the producer and nothing going red.
+
+    TWO THINGS MAKE THIS DIFFERENT FROM THE TWO CONTROLS ABOVE IT, which is why it is not a
+    third copy of them:
+
+      * **The cuts are discovered, not named.** `_every_cut_carrying_a_concordance` walks the
+        payload, so a leg added to `fixed_horizon.legs` -- or any future block that carries a
+        `concordance` and gets rendered -- is held to the same rule by construction. The other
+        two name `method_skill` and `produced["legs"]` respectively.
+      * **The subject bypasses the producer.** The poison leg below is injected into the feed
+        directly, which is a shape `_skill_fixed_horizon` will not emit. `test_NO_CUT_of_the_
+        bridge...` builds its subject THROUGH that producer and so cannot construct this input
+        at all -- it is testing the refusal, and this is testing what happens without one.
+
+    ITS HONEST LIMIT, named rather than left for the next reader, and CORRECTED after the first
+    draft got it wrong. This can only speak about cuts the page actually RENDERS, and
+    `fixedHorizonBlock` is NOT generic over `legs` -- it names its four rows in four `row(...)`
+    calls. So a leg added to the producer under a new name renders nothing, reaches no reader, and
+    passes here vacuously. The first draft of the poison round below injected exactly such a leg
+    and went green against the unrepaired page, which is how the claim was caught.
+
+    What this does cover by construction is the discovery side: every cut ALREADY drawn is found
+    by walking the feed rather than by being named here, so the day one of them loses its interval
+    -- or a fifth row is drawn for a leg the feed already carries -- this fires without being
+    edited.
+
+    Fires on: the surface printing a number it has no interval for; a bounded cut losing its
+    interval; the withheld branch leaking the figure it exists to withhold.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_book())
+    rendered = _text(_render(feed)["arms-method"])
+
+    discovered = _every_cut_carrying_a_concordance(feed.get("method_skill") or {})
+    cuts, hypothetical = _measured_cuts_only(discovered)
+    assert len(cuts) >= 2, (
+        "the walker found fewer than two measured cuts, so this control is not measuring a "
+        "partition: {}".format([p for p, _ in cuts]))
+    # BOTH CLASSES MUST BE PRESENT, or the splitter above is an equivalence nobody would notice.
+    assert hypothetical, (
+        "no hypothetical block was discovered, so the measured/hypothetical split is untested "
+        "here and could be returning everything it is handed")
+
+    bounded_and_rendered = 0
+    for path, cut in cuts:
+        low, high = cut.get("null_95_low"), cut.get("null_95_high")
+        if low is None or high is None:
+            assert not _concordance_reaches_the_reader(cut["concordance"], rendered), (
+                "{} renders its concordance with no interval computed on its own sample".format(
+                    path))
+            continue
+        if not _concordance_reaches_the_reader(cut["concordance"], rendered):
+            continue
+        assert ("%.4f" % low) in rendered or ("%.3f" % low) in rendered, (
+            "{} is on the page without the low end of its own interval".format(path))
+        assert ("%.4f" % high) in rendered or ("%.3f" % high) in rendered, (
+            "{} is on the page without the high end of its own interval".format(path))
+        bounded_and_rendered += 1
+
+    # THE BRANCH THAT MUST BE REACHABLE. A feed that rendered nothing would satisfy every
+    # assertion above, so the pass is worth nothing until this holds -- one control over the
+    # whole partition rather than a leg per branch.
+    assert bounded_and_rendered >= 2, (
+        "no two bounded cuts reached the reader, so the loop above proved nothing: only "
+        "{} did".format(bounded_and_rendered))
+
+    # THE POISON ROUND. A leg the page DRAWS, with its number kept and its interval taken away --
+    # the shape `_horizon_leg_published` will not emit, applied to the published feed directly so
+    # the producer's refusal is out of the path. A leg under a NEW name would not do: the block
+    # names its four rows, so an unknown leg renders nothing and would pass this vacuously.
+    # The value is 0.4210267 -- the real estimand from the 09-09 run -- and NOT the fixture's own
+    # 1.0, which renders as "1.000" and collides with other digits on the page. Asserted absent
+    # from the clean render first, so a hit below is attributable to the poison and to nothing
+    # else. (The first draft used the fixture's value and went red on a substring collision.)
+    poisoned = copy.deepcopy(feed)
+    bare = poisoned["method_skill"]["fixed_horizon"]["legs"]["settled_only_pounds_outcome"]
+    bare["concordance"] = 0.4210267
+    bare.pop("null_95_low", None)
+    bare.pop("null_95_high", None)
+    assert not _concordance_reaches_the_reader(bare["concordance"], rendered), (
+        "the poison value already appears on the clean page, so a hit below would not be "
+        "attributable to the poisoned leg")
+    poison_text = _text(_render(poisoned)["arms-method"])
+    assert not _concordance_reaches_the_reader(bare["concordance"], poison_text), (
+        "the page rendered a concordance it has no interval for: the surface is relying on the "
+        "producer's refusal and does not hold the property itself")
+    assert "withheld" in poison_text, (
+        "the unbounded cut vanished instead of being refused in words -- a reader cannot tell a "
+        "withheld figure from a cut nobody computed")
+    # ...and the poison did not simply blank the table, or the assertion above is furniture.
+    kept = produced["legs"]["every_priced_decision_pounds_outcome"]
+    assert ("%.4f" % kept["concordance"]) in poison_text, (
+        "the bounded legs stopped rendering, so 'withheld' above is not attributable to the "
+        "poisoned one")
+
+
 def test_the_page_tells_WORSE_THAN_CHANCE_apart_from_WE_CANNOT_TELL():
     """THE WHOLE PARTITION, on the surface, from the real producer.
 
