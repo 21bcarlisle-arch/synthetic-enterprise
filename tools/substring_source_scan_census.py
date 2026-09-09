@@ -37,6 +37,32 @@ a member; and a scan whose evidence names both Python and non-Python is a member
 false positives, which a reader retires with a floor row; the alternative is the failure mode this
 whole class is made of.
 
+TAINT CROSSES A CALL, and until 2026-09-09 it did not. The rule was computed per SCOPE out of
+ASSIGNMENTS only, so a control that read the tree in one function and substring-matched in a helper
+taking the text as a PARAMETER was invisible: the parameter is never assigned, so it was never
+tainted, so the match was never a site. `capability_index._wire_edges` -> `_path_references(text,
+...)` was the live instance, and `_root_parameter` already conceded this exact shape existed for
+PATHS with nothing equivalent for TEXT.
+
+The same blindness ran the other way and cost a FALSE POSITIVE. `ROUTERS` is matched against the
+call names in one expression, so a module's own `ast.parse` helper -- `publisher_budget.
+_module_int_constants(source)` -- did not read as routing, and its caller was reported as reading
+Python by substring when what it holds is a dict of parsed constants.
+
+So a call to a function defined in the SAME module is now followed, CALL-SITE SENSITIVELY: the
+callee is analysed with exactly those parameters seeded that received tainted arguments here. That
+sensitivity is not a refinement, it is the whole mechanism -- `_module_int_constants` only launders
+because `_evaluate_int(node.value, known)` is reached with NOTHING tainted, and a summary computed
+once with every parameter seeded concludes the opposite and keeps the false positive.
+
+Three things a call boundary still does not cross, named rather than left for a reader to discover:
+a call into ANOTHER module (the callee's source is not in hand at this point in the walk); a call
+spelled as an attribute, `self._helper(text)` or `mod.helper(text)`, since only a bare `Name` is
+resolved against this module's own defs; and a chain deeper than `_CALL_DEPTH` or one that recurses,
+which yields the unknown summary. The unknown summary is fail-closed in the direction that matters:
+an unresolved call never LAUNDERS text, so it can never excuse a member. It can hide one, and that
+is the residue this paragraph exists to state.
+
 THE FLOOR IS A SET OF ROWS, NOT A COUNT. `tools/launch_shape_census.py` ratchets counts per
 (path, shape) because its shapes recur legitimately in one file. Here a member is a specific
 control, so the row is (path, function) and a row that stops firing is deleted rather than left
@@ -46,6 +72,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import functools
 import json
 import subprocess
 import sys
@@ -112,6 +139,15 @@ class Scan:
 #: recorded rather than deleted, because a named prior that the measurement refutes is the only
 #: evidence the measurement was not fitted to it.
 #:
+#: AND THAT DISMISSAL WAS ITSELF WRONG, ON 2026-09-09, BY THE BLIND SPOT IT WAS READ THROUGH.
+#: Both files ARE members. `capability_index` reads each module's source into `texts` and hands it
+#: to `_path_references` and `_dotted_invocations`, which regex it -- `ast.parse` is used beside
+#: that, not instead of it -- and `canon_drift_check.load_register` is the same shape. The
+#: measurement that refuted the guess was taken with a rule that could not see across a call, so
+#: what it actually established was that the two files do not scan by substring IN ONE SCOPE.
+#: Kept here in all three layers, because the point of the note above is that a prior survives its
+#: own refutation being refuted.
+#:
 #: The reading itself held up: most of this scope dismisses. Roughly two thirds are scanners whose
 #: subject is Markdown, JSON, a systemd unit or a log, reported only because the census fails
 #: closed when path evidence is absent; the rest are container-membership tests (`key not in data`
@@ -156,7 +192,11 @@ def _string_constants(node: ast.AST) -> list[str]:
             if isinstance(n, ast.Constant) and isinstance(n.value, str)]
 
 
-def _attr_names(node: ast.AST) -> set[str]:
+#: The three walks below are re-asked thousands of times per file once calls are followed, and each
+#: answer depends only on the node. Memoised on the node OBJECT (never on `id()`, which a garbage
+#: collector reuses) and CLEARED between files by `census`, so the cache is bounded by one module.
+@functools.lru_cache(maxsize=None)
+def _attr_names(node: ast.AST) -> frozenset[str]:
     """Every attribute and function name called anywhere under `node`."""
     names: set[str] = set()
     for sub in _walk_own(node):
@@ -166,25 +206,64 @@ def _attr_names(node: ast.AST) -> set[str]:
                 names.add(func.attr)
             elif isinstance(func, ast.Name):
                 names.add(func.id)
-    return names
+    return frozenset(names)
 
 
-def _names_used(node: ast.AST) -> set[str]:
-    return {n.id for n in _walk_own(node) if isinstance(n, ast.Name)}
+@functools.lru_cache(maxsize=None)
+def _names_used(node: ast.AST) -> frozenset[str]:
+    return frozenset(n.id for n in _walk_own(node) if isinstance(n, ast.Name))
+
+
+@functools.lru_cache(maxsize=None)
+def _name_calls(node: ast.AST) -> tuple[ast.Call, ...]:
+    """Every call under `node` spelled as a bare `Name` -- the only shape resolvable to a def here.
+
+    `self._helper(text)` and `mod.helper(text)` are deliberately NOT resolved: the first needs a
+    class binding this census does not build, the second needs another module's source. Both are
+    named as limits in this file's docstring rather than guessed at.
+    """
+    return tuple(n for n in _walk_own(node)
+                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name))
+
+
+def _clear_node_caches() -> None:
+    _attr_names.cache_clear()
+    _names_used.cache_clear()
+    _name_calls.cache_clear()
 
 
 def _reads_a_file(node: ast.AST) -> bool:
-    return "read_text" in _attr_names(node) or "read_bytes" in _attr_names(node)
+    """Is this expression a read of file text, here in this expression?
+
+    TEXT COMING BACK OUT OF A CALL IS A NAMED LIMIT AND NOT AN OVERSIGHT. Following it was built
+    and measured on 2026-09-09: it takes the floor from 187 rows to 408, and essentially none of
+    the 222 are this class. A helper that reads a file, parses JSON and returns a DICT makes every
+    `"key" in payload` in every caller a "substring match over file text" -- the container-membership
+    false positive this file's own docstring already records, amplified by however many callers the
+    helper has. `tests/tools/test_generate_value_arms_data.py` alone went from 2 rows to 57.
+
+    A floor that grows 2.2x in false positives is not a stricter floor; it is a floor a reader
+    stops reading, and the one true row this turn was after -- `capability_index._path_references`
+    -- would have been shelved behind 221 others. So the return direction stays shut, beside the
+    nested-function limit already pinned in `test_a_control_reads_python_as_code.py`, and both are
+    reachable again the day the container false positive is separated from the text one.
+    """
+    return bool(_attr_names(node) & {"read_text", "read_bytes"})
 
 
-def _routes(node: ast.AST) -> bool:
+def _routes(node: ast.AST, tainted: frozenset[str], module: _Module, depth: int) -> bool:
     """Does this expression put the text through the remedy?
 
     `ast.parse` counts: a control that walks the tree is asking about code by construction. The
     check is on the CALL NAME rather than on the import, because a module may import both and use
     one -- and it is the use that decides how the text was read.
+
+    A call to a same-module helper that launders its argument counts too, and that clause is why
+    `publisher_budget.declared_publisher_budget_seconds` stopped being a false positive.
     """
-    return bool(_attr_names(node) & ROUTERS)
+    if _attr_names(node) & ROUTERS:
+        return True
+    return any(module.call_summary(call, tainted, depth).launders for call in _name_calls(node))
 
 
 def _subject_of(evidence: list[str]) -> str:
@@ -205,6 +284,30 @@ def _subject_of(evidence: list[str]) -> str:
     return UNKNOWN
 
 
+@dataclass(frozen=True)
+class _Summary:
+    """What one call to a same-module helper does to the text handed into it.
+
+    `launders` -- everything it returns came back through the remedy, so the caller holds CODE.
+    `returns_text` -- something it returns is still raw file text, so the caller holds TEXT.
+
+    Both false is the unknown answer, and it is deliberately not symmetric: refusing to launder is
+    fail-closed (a member stays a member), refusing to return text is the residue this census owns
+    and states.
+    """
+
+    launders: bool
+    returns_text: bool
+
+
+_UNKNOWN = _Summary(launders=False, returns_text=False)
+
+#: How far a chain of same-module calls is followed. Every shape measured on this tree resolves in
+#: one hop; the cap is a runaway guard on mutual recursion and on the combinatorial cost of
+#: re-analysing a callee once per distinct seed set, not a claim about how deep the class goes.
+_CALL_DEPTH = 3
+
+
 class _Module:
     """One source file, read as code, with the tree-rooted names it defines."""
 
@@ -212,6 +315,57 @@ class _Module:
         self.path = path
         self.tree = tree
         self.roots = self._tree_roots()
+        self.functions = self._functions()
+        self._summaries: dict[tuple[str, frozenset[str]], _Summary] = {}
+        self._pending: set[tuple[str, frozenset[str]]] = set()
+
+    def _functions(self) -> dict[str, ast.AST]:
+        """Every `def` in the file by name, nested ones included.
+
+        `ast.walk` and not `_walk_own` on purpose: a helper defined inside the function that calls
+        it is the same call boundary as one defined beside it, and the shape appears in tests. A
+        name defined twice keeps the LAST definition, which is what Python itself binds.
+        """
+        out: dict[str, ast.AST] = {}
+        for node in ast.walk(self.tree):
+            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                out[node.name] = node
+        return out
+
+    def call_summary(self, call: ast.Call, tainted: frozenset[str], depth: int) -> _Summary:
+        """What `call` does to the text the CALLER is holding, at this call site.
+
+        CALL-SITE SENSITIVE, and that is load-bearing rather than tidy. A summary computed once
+        with every parameter seeded says `publisher_budget._module_int_constants` returns text --
+        because `_evaluate_int(node.value, known)` would be reached with both arguments seeded --
+        and the false positive this method exists to kill survives. Seeded from the actual
+        arguments, `_evaluate_int` is reached with nothing tainted, `known` stays clean, and the
+        helper reads as the parse it is.
+        """
+        func = self.functions.get(call.func.id) if isinstance(call.func, ast.Name) else None
+        if func is None or depth >= _CALL_DEPTH:
+            return _UNKNOWN
+        seeds = _seeded_parameters(func, call, tainted, self, depth)
+        key = (call.func.id, seeds)
+        if key in self._summaries:
+            return self._summaries[key]
+        if key in self._pending:
+            return _UNKNOWN  # A cycle. Unknown, not assumed clean.
+        self._pending.add(key)
+        try:
+            inner = _tainted_names(func, self, seeds, depth + 1)
+            returned = [n.value for n in _walk_own(func)
+                        if isinstance(n, ast.Return) and n.value is not None]
+            returns_text = any(_is_tainted(v, inner, self, depth + 1) for v in returned)
+            summary = _Summary(
+                launders=(bool(returned) and not returns_text
+                          and _routes(func, inner, self, depth + 1)),
+                returns_text=returns_text,
+            )
+        finally:
+            self._pending.discard(key)
+        self._summaries[key] = summary
+        return summary
 
     def _tree_roots(self) -> set[str]:
         """Module-level names bound to a path inside the repository.
@@ -277,7 +431,8 @@ def _scopes(module: _Module) -> list[tuple[str, ast.AST]]:
     return out
 
 
-def _tainted_names(scope: ast.AST, module: _Module) -> set[str]:
+def _tainted_names(scope: ast.AST, module: _Module,
+                   seed: frozenset[str] = frozenset(), depth: int = 0) -> frozenset[str]:
     """Names in `scope` holding file text that has NOT been through the remedy.
 
     A generous rule on purpose: any binding whose value reads a file, or mentions an
@@ -285,14 +440,44 @@ def _tainted_names(scope: ast.AST, module: _Module) -> set[str]:
     and `blob = "\\n".join(texts)` are all carried. A binding that ROUTES is dropped from the set
     rather than never added, so `text = searchable(p.read_text())` is clean even though the read
     is right there in the expression.
+
+    `seed` is how a call boundary is crossed: the parameters a caller handed tainted arguments to
+    start the sweep already tainted, so a helper that only ever RECEIVES the tree is analysed as
+    holding it. A parameter is never assigned, so without the seed it could never be tainted at
+    all, and that was the whole of the blind spot.
     """
-    tainted: set[str] = set()
+    tainted: frozenset[str] = seed
     for _ in range(_TAINT_PASSES):
-        grown = _taint_pass(scope, tainted)
+        grown = _taint_pass(scope, tainted, module, depth)
         if grown == tainted:
             break
         tainted = grown
     return tainted
+
+
+def _seeded_parameters(func: ast.AST, call: ast.Call, tainted: frozenset[str],
+                       module: _Module, depth: int) -> frozenset[str]:
+    """Which of `func`'s parameters receive tainted text at THIS call site.
+
+    Positionally for positional arguments, by name for keywords, and onto the `*args`/`**kwargs`
+    name when the call overflows the named parameters -- a helper that takes the text through
+    `*parts` is the same boundary in a different spelling.
+    """
+    positional = [a.arg for a in (*func.args.posonlyargs, *func.args.args)]
+    by_name = {a.arg for a in (*func.args.args, *func.args.kwonlyargs)}
+    seeds: set[str] = set()
+    for index, arg in enumerate(call.args):
+        overflow = isinstance(arg, ast.Starred) or index >= len(positional)
+        target = func.args.vararg.arg if (overflow and func.args.vararg) else (
+            positional[index] if not overflow else None)
+        if target is not None and _is_tainted(arg, tainted, module, depth + 1):
+            seeds.add(target)
+    for keyword in call.keywords:
+        target = keyword.arg if keyword.arg in by_name else (
+            func.args.kwarg.arg if (keyword.arg is None and func.args.kwarg) else None)
+        if target is not None and _is_tainted(keyword.value, tainted, module, depth + 1):
+            seeds.add(target)
+    return frozenset(seeds)
 
 
 #: How many times the taint sweep is repeated. `_walk_own` yields in stack order rather than in
@@ -304,9 +489,10 @@ def _tainted_names(scope: ast.AST, module: _Module) -> set[str]:
 _TAINT_PASSES = 8
 
 
-def _taint_pass(scope: ast.AST, tainted: set[str]) -> set[str]:
+def _taint_pass(scope: ast.AST, seen: frozenset[str], module: _Module,
+                depth: int) -> frozenset[str]:
     """One sweep of the taint rule over `scope`, starting from what is already known."""
-    tainted = set(tainted)
+    tainted = set(seen)
     for node in _walk_own(scope):
         value, targets = None, []
         if isinstance(node, ast.Assign):
@@ -324,34 +510,82 @@ def _taint_pass(scope: ast.AST, tainted: set[str]) -> set[str]:
         names = {n.id for t in targets for n in ast.walk(t) if isinstance(n, ast.Name)}
         if not names:
             continue
-        if _routes(value):
+        frozen = frozenset(tainted)
+        if _routes(value, frozen, module, depth):
             tainted -= names
             continue
         if _reads_a_file(value) or (_names_used(value) & tainted):
             tainted |= names
-    return tainted
+    return frozenset(tainted)
 
 
-def _is_tainted(node: ast.AST, tainted: set[str]) -> bool:
+def _is_tainted(node: ast.AST, tainted: frozenset[str], module: _Module, depth: int = 0) -> bool:
     """Is this expression file text? Either an unbound read, or a name holding one."""
-    if _routes(node):
+    if _routes(node, tainted, module, depth):
         return False
     return _reads_a_file(node) or bool(_names_used(node) & tainted)
 
 
-def _match_sites(scope: ast.AST, tainted: set[str]) -> list[ast.AST]:
-    """`x in text`, `x not in text`, and `PATTERN.search(text)` over tainted text."""
+def _match_sites(scope: ast.AST, tainted: frozenset[str], module: _Module,
+                 depth: int = 0) -> list[ast.AST]:
+    """`x in text`, `x not in text`, and `PATTERN.search(text)` over tainted text, IN THIS SCOPE.
+
+    Local on purpose. A helper's match belongs to the HELPER, and the first draft of the
+    interprocedural pass attributed it to the caller instead: 152 new rows on the real tree, where
+    every entry point that transitively reaches a grep became a row of its own and the function
+    actually doing the matching was named in none of them. The row is a specific control, so the
+    control is where the match is. `_reached_helpers` is the other half.
+    """
     sites: list[ast.AST] = []
     for node in _walk_own(scope):
         if isinstance(node, ast.Compare):
             for op, comparator in zip(node.ops, node.comparators):
-                if isinstance(op, (ast.In, ast.NotIn)) and _is_tainted(comparator, tainted):
+                if isinstance(op, (ast.In, ast.NotIn)) and _is_tainted(comparator, tainted,
+                                                                       module, depth):
                     sites.append(node)
         elif isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) \
                 and node.func.attr in _MATCH_CALLS:
-            if any(_is_tainted(a, tainted) for a in node.args):
+            if any(_is_tainted(a, tainted, module, depth) for a in node.args):
                 sites.append(node)
     return sites
+
+
+def _reached_helpers(scope: ast.AST, tainted: frozenset[str], module: _Module,
+                     depth: int = 0,
+                     seen: set[tuple[str, frozenset[str]]] | None = None,
+                     ) -> list[tuple[str, list[ast.AST]]]:
+    """Same-module helpers this scope hands the tree to, each with its OWN match sites.
+
+    Transitive, so `build_rows` -> `_wire_edges` -> `_path_references` arrives at the function that
+    holds the regex rather than at the entry point three frames above it. Depth-capped and
+    cycle-guarded by the seed-set key, which also makes the recursion terminate: a helper reached
+    twice with the same tainted parameters cannot produce a different answer.
+
+    Nothing tainted goes in, nothing comes out. A helper called with only clean arguments is not
+    handed the tree by THIS caller, and if it reads the tree itself then its own scope is already a
+    row without any of this.
+    """
+    if depth >= _CALL_DEPTH:
+        return []
+    seen = set() if seen is None else seen
+    out: list[tuple[str, list[ast.AST]]] = []
+    for node in _walk_own(scope):
+        if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+            continue
+        func = module.functions.get(node.func.id)
+        if func is None:
+            continue
+        seeds = _seeded_parameters(func, node, tainted, module, depth)
+        key = (node.func.id, seeds)
+        if not seeds or key in seen:
+            continue
+        seen.add(key)
+        inner = _tainted_names(func, module, seeds, depth + 1)
+        sites = _match_sites(func, inner, module, depth + 1)
+        if sites:
+            out.append((node.func.id, sites))
+        out.extend(_reached_helpers(func, inner, module, depth + 1, seen))
+    return out
 
 
 def _reaches_the_tree(scope: ast.AST, module: _Module, root_param: bool,
@@ -380,6 +614,40 @@ def _reaches_the_tree(scope: ast.AST, module: _Module, root_param: bool,
     if any("ls-files" in s for s in literals):
         return True
     return any(s.split("/", 1)[0] in packages and "/" in s for s in literals)
+
+
+def _tree_reaching(module: _Module, packages: frozenset[str]) -> set[str]:
+    """Every scope in this file that is part of a control reading the tree, callees included.
+
+    THE TEST FOR "READS THE REPOSITORY" IS ALSO PER-SCOPE, AND CROSSING THE CALL WITHOUT CROSSING
+    THIS ONE CATCHES NOTHING. `capability_index._wire_edges` is handed the repository root as its
+    `base` parameter, holds a real `read_text` over it, and hands the text to `_path_references` --
+    the live instance this pass was drawn for -- and every clause above answers no about it,
+    because the root arrived as an argument named neither `root` nor `tree`.
+
+    So the answer is taken from the CALL GRAPH rather than from the spelling of one parameter:
+    a scope reaches the tree if it says so itself, or if anything that reaches the tree calls it.
+    `_root_parameter` was the hand-cut approximation of exactly this and stays as the direct
+    clause -- it still answers for a function nothing in its own file calls.
+
+    Bare `Name` calls only, so this is bounded by the file. A control assembled across modules is
+    the same limit the taint pass has and is stated in this file's docstring once, for both.
+    """
+    reached = {name for name, scope in _scopes(module)
+               if _reaches_the_tree(scope, module, _root_parameter(scope), packages)}
+    frontier = set(reached)
+    while frontier:
+        following = set()
+        for name in frontier:
+            scope = module.tree if name == "<module>" else module.functions.get(name)
+            if scope is None:
+                continue
+            for call in _name_calls(scope):
+                if call.func.id in module.functions and call.func.id not in reached:
+                    reached.add(call.func.id)
+                    following.add(call.func.id)
+        frontier = following
+    return reached
 
 
 def _top_level_packages(root: Path) -> frozenset[str]:
@@ -423,17 +691,27 @@ def census(root: Path | None = None, paths: list[Path] | None = None) -> list[Sc
         except (SyntaxError, ValueError):
             found.append(Scan(rel, "<unparseable>", 1, UNKNOWN, ("UNPARSEABLE",)))
             continue
+        # The node memos are keyed by node object and this file's tree is about to become garbage;
+        # clearing per file bounds the cache to one module rather than to the whole tree.
+        _clear_node_caches()
         module = _Module(path, tree)
         # Module-level bindings are visible inside every function, so a helper that reads the tree
         # once at import time and a test that searches it are ONE scan, not two halves of none.
         module_tainted = _tainted_names(module.tree, module)
         module_evidence = _path_evidence(module.tree)
+        seen_rows: set[tuple[str, str]] = set()
+        reaching = _tree_reaching(module, packages)
         for name, scope in _scopes(module):
             tainted = _tainted_names(scope, module) | module_tainted
-            sites = _match_sites(scope, tainted)
-            if not sites:
+            sites = _match_sites(scope, tainted, module)
+            if name not in reaching:
                 continue
-            if not _reaches_the_tree(scope, module, _root_parameter(scope), packages):
+            # A HELPER HANDED THE TREE IS A ROW OF ITS OWN, under its own name and at its own line.
+            # It inherits this scope's SUBJECT because the caller is what chose the file -- the
+            # helper is handed text and can say nothing about where it came from, which is the
+            # whole reason the taint had to cross the call to reach it.
+            helpers = _reached_helpers(scope, tainted, module)
+            if not sites and not helpers:
                 continue
             # THE SCOPE'S OWN EVIDENCE IS THE ONLY EVIDENCE THE VERDICT RESTS ON. Concatenating
             # scope and module evidence made a test that reads `site/capabilities/index.html`
@@ -457,9 +735,13 @@ def census(root: Path | None = None, paths: list[Path] | None = None) -> list[Sc
             subject = _subject_of(own)
             if subject not in MEMBER_SUBJECTS:
                 continue
-            evidence = own or module_evidence
-            first = min(sites, key=lambda n: n.lineno)
-            found.append(Scan(rel, name, first.lineno, subject, tuple(sorted(set(evidence)))))
+            evidence = tuple(sorted(set(own or module_evidence)))
+            for who, where in [(name, sites), *helpers]:
+                if not where or (rel, who) in seen_rows:
+                    continue
+                seen_rows.add((rel, who))
+                first = min(where, key=lambda n: n.lineno)
+                found.append(Scan(rel, who, first.lineno, subject, evidence))
     return sorted(found, key=lambda s: (s.path, s.lineno))
 
 
@@ -480,6 +762,11 @@ def freeze(root: Path = _REPO, path: Path = BASELINE_PATH) -> int:
         "scope": list(SCANNED),
         "why": "docs/staging/SEAT_RESULT_THE_CENSUS_FINDS_117_WHERE_THREE_HAND_PASSES_FOUND_NINE_2026-09-08.md",
         "why_this_scope": "docs/staging/SEAT_RESULT_THE_CENSUS_DISMISSAL_RULE_WAS_FAIL_OPEN_AND_THE_SCOPE_IS_NOW_THE_WHOLE_CLASS_2026-09-08.md",
+        "why_this_count": "187 -> 352 on 2026-09-09, when taint began crossing a call boundary "
+                          "within a module. The 165 are not new controls and not a regression: "
+                          "they are what the per-scope rule could never see, and the old floor "
+                          "was a floor over the visible half. 2 rows went the other way, where a "
+                          "module's own ast.parse helper now reads as the parse it is.",
         "a_row_is_not_a_verdict": "most rows outside tests/ are dismissals carrying a reason -- a "
                                   "non-Python subject, a container-membership test, or a widening "
                                   "prefilter whose verdict comes from a parse tree. The floor "

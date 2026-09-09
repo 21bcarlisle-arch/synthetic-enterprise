@@ -7,9 +7,20 @@
   ],
   "why": "docs/staging/SEAT_RESULT_THE_CENSUS_FINDS_117_WHERE_THREE_HAND_PASSES_FOUND_NINE_2026-09-08.md",
   "why_this_scope": "docs/staging/SEAT_RESULT_THE_CENSUS_DISMISSAL_RULE_WAS_FAIL_OPEN_AND_THE_SCOPE_IS_NOW_THE_WHOLE_CLASS_2026-09-08.md",
+  "why_this_count": "187 -> 352 on 2026-09-09, when taint began crossing a call boundary within a module. The 165 are not new controls and not a regression: they are what the per-scope rule could never see, and the old floor was a floor over the visible half. 2 rows went the other way, where a module's own ast.parse helper now reads as the parse it is.",
   "a_row_is_not_a_verdict": "most rows outside tests/ are dismissals carrying a reason -- a non-Python subject, a container-membership test, or a widening prefilter whose verdict comes from a parse tree. The floor bounds GROWTH; read the row before routing it.",
   "how_to_shrink": "route the scan through tools/python_code_text.py, then delete its row",
   "rows": [
+    {
+      "path": "background/alarm_repetition.py",
+      "function": "_note_instance",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/alarm_repetition.py",
+      "function": "_note_still_live",
+      "subject": "unknown"
+    },
     {
       "path": "background/autonomous_runner.py",
       "function": "main",
@@ -21,8 +32,43 @@
       "subject": "python"
     },
     {
+      "path": "background/class_debt.py",
+      "function": "parse_disposition",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/class_debt.py",
+      "function": "persisted_spans",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/claude_md_integrity.py",
+      "function": "_glob_prefix_dir",
+      "subject": "unfiltered"
+    },
+    {
+      "path": "background/claude_md_integrity.py",
+      "function": "_rule_globs",
+      "subject": "unfiltered"
+    },
+    {
+      "path": "background/claude_md_integrity.py",
+      "function": "_skill_fires",
+      "subject": "unknown"
+    },
+    {
       "path": "background/claude_md_integrity.py",
       "function": "hollow_skills",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/deploy_restart.py",
+      "function": "_unit_of_pid",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/direction.py",
+      "function": "validate",
       "subject": "unknown"
     },
     {
@@ -33,6 +79,16 @@
     {
       "path": "background/director_twin.py",
       "function": "current_canon_version",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/discovery_agent.py",
+      "function": "_assess_assumption",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/discovery_agent.py",
+      "function": "_extract_assumption_rows",
       "subject": "unknown"
     },
     {
@@ -52,7 +108,57 @@
     },
     {
       "path": "background/finding_classes.py",
+      "function": "classify_subject",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_classes.py",
+      "function": "cost_evidence",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_classes.py",
+      "function": "declared_class_of",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_classes.py",
       "function": "existing_disposition_section",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_severity.py",
+      "function": "_discharge_claim",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_severity.py",
+      "function": "_head_blob",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_severity.py",
+      "function": "_index_blob",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_severity.py",
+      "function": "_is_denied",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_severity.py",
+      "function": "by_construction_evidence",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_severity.py",
+      "function": "parse_discharge",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/finding_severity.py",
+      "function": "parse_severity_text",
       "subject": "unknown"
     },
     {
@@ -76,6 +182,26 @@
       "subject": "unknown"
     },
     {
+      "path": "background/naive_organ.py",
+      "function": "is_purpose_claim",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/process_run_complete.py",
+      "function": "_gate_was_killed",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/process_run_complete.py",
+      "function": "_parse_failed_node_ids",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/process_run_complete.py",
+      "function": "_parse_refusing_gate",
+      "subject": "unknown"
+    },
+    {
       "path": "background/process_run_complete.py",
       "function": "_update_latest_md_effort_section",
       "subject": "unknown"
@@ -87,17 +213,57 @@
     },
     {
       "path": "background/process_run_complete.py",
+      "function": "git_commit_push",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/process_run_complete.py",
       "function": "linked_findings",
       "subject": "unfiltered"
     },
     {
-      "path": "background/publisher_budget.py",
-      "function": "declared_publisher_budget_seconds",
+      "path": "background/process_run_complete.py",
+      "function": "parse_marker",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/pull_forward_proposal.py",
+      "function": "_remove_scalar_field",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/reserved_clause_gate.py",
+      "function": "has_section2_justification",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/reserved_clause_gate.py",
+      "function": "scan_reserved_clauses",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/run_queued_tasks.py",
+      "function": "_find_first_queued_task",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/run_queued_tasks.py",
+      "function": "_move_task_to_done",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/sanity_daemon.py",
+      "function": "_categorize_audit_note",
       "subject": "unknown"
     },
     {
       "path": "background/schedule_reconciler.py",
       "function": "load_manifest",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/seat_continuity.py",
+      "function": "_append_episode",
       "subject": "unknown"
     },
     {
@@ -111,13 +277,48 @@
       "subject": "unknown"
     },
     {
+      "path": "background/staging_archive_policy.py",
+      "function": "classify",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/staging_rooms.py",
+      "function": "chain_of_text",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/staging_two_rooms_repair.py",
+      "function": "classify",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/status_honesty.py",
+      "function": "check_status_honesty",
+      "subject": "unknown"
+    },
+    {
       "path": "background/supervisor.py",
       "function": "_actionable_backlog_item",
       "subject": "unknown"
     },
     {
       "path": "background/supervisor.py",
+      "function": "_commit_is_ancestor",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
       "function": "_director_axes_present",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_extract_blocking_reason",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_first_graduation_line",
       "subject": "unknown"
     },
     {
@@ -142,7 +343,27 @@
     },
     {
       "path": "background/supervisor.py",
+      "function": "_is_ruling_or_steer",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "_names_abolished_permission_block",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
       "function": "forward_discovery_graduation_proposal",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/supervisor.py",
+      "function": "work_this_creates_deliverables",
+      "subject": "unknown"
+    },
+    {
+      "path": "background/suppression_lint.py",
+      "function": "_scan_file",
       "subject": "unknown"
     },
     {
@@ -163,6 +384,11 @@
     {
       "path": "tests/architecture/test_household_identity_is_the_worlds.py",
       "function": "test_the_two_switched_call_sites_still_ask_the_world",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/architecture/test_market_at_the_seams.py",
+      "function": "parse_baseline",
       "subject": "unknown"
     },
     {
@@ -361,6 +587,11 @@
       "subject": "python"
     },
     {
+      "path": "tests/background/test_tmux_target_qualification.py",
+      "function": "_bare_pane_targets",
+      "subject": "python"
+    },
+    {
       "path": "tests/company/carbon/test_half_hourly_footprint.py",
       "function": "test_the_annual_LEVEL_comes_from_the_single_owner_and_is_not_restated_here",
       "subject": "unknown"
@@ -421,6 +652,16 @@
       "subject": "python"
     },
     {
+      "path": "tests/controls/test_no_pane_injection.py",
+      "function": "_raw_line_scan",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/domain/test_battery_checks.py",
+      "function": "_therm_constants",
+      "subject": "unknown"
+    },
+    {
       "path": "tests/domain/test_battery_register_integrity.py",
       "function": "test_no_battery_check_can_skip_itself",
       "subject": "python"
@@ -428,6 +669,11 @@
     {
       "path": "tests/hooks/test_pull_next_work.py",
       "function": "test_hook_cannot_write_to_a_pane_structurally",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/saas/reporting/test_a_year_bucket_is_not_a_treasury_series.py",
+      "function": "_parse_published_drawdowns",
       "subject": "unknown"
     },
     {
@@ -447,7 +693,7 @@
     },
     {
       "path": "tests/saas/test_sourced_acquisition_costs.py",
-      "function": "test_the_debt_register_cannot_outlive_its_debt",
+      "function": "_money_constants",
       "subject": "unknown"
     },
     {
@@ -546,6 +792,11 @@
       "subject": "python"
     },
     {
+      "path": "tests/tools/test_couple_w2_11_d5.py",
+      "function": "_consumer_tree",
+      "subject": "unknown"
+    },
+    {
       "path": "tests/tools/test_couple_w2_5_c7.py",
       "function": "test_the_r13_record_exists_and_names_every_candidate",
       "subject": "unknown"
@@ -603,6 +854,11 @@
     {
       "path": "tests/tools/test_grid_intensity_feed_and_explore_carbon.py",
       "function": "test_the_LIVE_page_data_carries_the_household_gap_for_every_day_it_prices",
+      "subject": "unknown"
+    },
+    {
+      "path": "tests/tools/test_interim_bypass_retirement.py",
+      "function": "_mentions_the_carve_out",
       "subject": "unknown"
     },
     {
@@ -807,7 +1063,22 @@
     },
     {
       "path": "tools/canon_drift_check.py",
+      "function": "load_register",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/canon_drift_check.py",
       "function": "probe_text_in_file",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/capability_index.py",
+      "function": "_dotted_invocations",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/capability_index.py",
+      "function": "_path_references",
       "subject": "unknown"
     },
     {
@@ -816,13 +1087,88 @@
       "subject": "python"
     },
     {
+      "path": "tools/cold_eyes_battery.py",
+      "function": "_blob_at",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/cold_eyes_battery.py",
+      "function": "cited_symbols",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/cold_eyes_battery.py",
+      "function": "load_reconciliations",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commit_refusal_attribution.py",
+      "function": "_cause_at",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commit_refusal_attribution.py",
+      "function": "_hook_blocks",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commit_refusal_attribution.py",
+      "function": "_hook_order",
+      "subject": "python"
+    },
+    {
+      "path": "tools/commit_refusal_attribution.py",
+      "function": "attribute",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commit_refusal_attribution.py",
+      "function": "cycles",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/commit_refusal_attribution.py",
       "function": "gate_ranks",
       "subject": "python"
     },
     {
+      "path": "tools/commons_citation_supports_provenance.py",
+      "function": "_entries",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commons_citation_supports_provenance.py",
+      "function": "check_artefact",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commons_citation_supports_provenance.py",
+      "function": "period_year",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commons_citation_supports_provenance.py",
+      "function": "years_in",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/commons_source_supersession.py",
+      "function": "_version_tokens_in",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/commons_source_supersession.py",
       "function": "check_artefact",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/dd_opening_arms.py",
+      "function": "_matched_window0",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/dd_opening_arms.py",
+      "function": "per_account_comparison",
       "subject": "unknown"
     },
     {
@@ -831,8 +1177,153 @@
       "subject": "unknown"
     },
     {
+      "path": "tools/domain_constant_origins.py",
+      "function": "_classify",
+      "subject": "python"
+    },
+    {
+      "path": "tools/domain_constant_origins.py",
+      "function": "_comment_block",
+      "subject": "python"
+    },
+    {
+      "path": "tools/ep13_biomass_oracle_bound.py",
+      "function": "treatment_bite",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_ccgt_swap_ceiling.py",
+      "function": "level_swap",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/ep13_ccgt_swap_ceiling.py",
       "function": "measure",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_ccgt_swap_ceiling.py",
+      "function": "measure_year",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_ccgt_swap_ceiling.py",
+      "function": "shuffled_days",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_ccgt_swap_ceiling.py",
+      "function": "timing_swap",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_ccgt_swap_ceiling.py",
+      "function": "within_day_correlation",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_embedded_generation_bound.py",
+      "function": "apply_surface_nd",
+      "subject": "python"
+    },
+    {
+      "path": "tools/ep13_embedded_generation_bound.py",
+      "function": "build_coordinates",
+      "subject": "python"
+    },
+    {
+      "path": "tools/ep13_embedded_generation_bound.py",
+      "function": "fit_surface_nd",
+      "subject": "python"
+    },
+    {
+      "path": "tools/ep13_embedded_generation_bound.py",
+      "function": "measure_year",
+      "subject": "python"
+    },
+    {
+      "path": "tools/ep13_input_ceiling.py",
+      "function": "apply_1d",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_input_ceiling.py",
+      "function": "apply_surface",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_input_ceiling.py",
+      "function": "fit_1d",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_input_ceiling.py",
+      "function": "fit_surface",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_peer_bound.py",
+      "function": "measure_year",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_peer_bound.py",
+      "function": "peer_equivalent_lag",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_peer_bound.py",
+      "function": "verdicts",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/ep13_per_fuel_oracle_bound.py",
+      "function": "measure_year",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/epistemic_verifier.py",
+      "function": "_scan_lines",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/epistemic_verifier.py",
+      "function": "_scan_seam_files_for_forbidden_symbols",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/fetch_haduk_grid.py",
+      "function": "_load_credentials",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/fetch_haduk_grid.py",
+      "function": "_process_identity_in",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/fetch_haduk_grid.py",
+      "function": "daily_season_coverage",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/file_director_document.py",
+      "function": "file_document",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/file_director_document.py",
+      "function": "severity_of",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/fit_year_level_anchor.py",
+      "function": "_headline_at_the_observed_mix",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/fit_year_level_anchor.py",
+      "function": "_internal_return_vs_record",
       "subject": "unknown"
     },
     {
@@ -841,13 +1332,73 @@
       "subject": "unknown"
     },
     {
+      "path": "tools/generate_capabilities_door.py",
+      "function": "_evidence_for",
+      "subject": "python"
+    },
+    {
       "path": "tools/generate_dashboard_data.py",
       "function": "_check_front_door_segment_claim",
       "subject": "unknown"
     },
     {
+      "path": "tools/generate_delivery_page.py",
+      "function": "_read_artefact",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_director_data.py",
+      "function": "load_stamp",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_evidence_data.py",
+      "function": "citation_paths",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_grid_intensity_feed.py",
+      "function": "build",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_insights.py",
+      "function": "_is_ic",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/generate_insights.py",
       "function": "append_run_history",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_phases_json.py",
+      "function": "_extract_test_count",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_phases_json.py",
+      "function": "_extract_title",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_phases_json.py",
+      "function": "_iter_phase_entries",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_proof_data.py",
+      "function": "citation_path",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_regulatory_data.py",
+      "function": "derive_scheme_status",
+      "subject": "python"
+    },
+    {
+      "path": "tools/generate_system_status.py",
+      "function": "_parse_boundary_events",
       "subject": "unknown"
     },
     {
@@ -861,13 +1412,78 @@
       "subject": "unknown"
     },
     {
+      "path": "tools/head_green_census.py",
+      "function": "parse_causes",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/head_green_census.py",
+      "function": "parse_failures",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/head_green_census.py",
+      "function": "parse_passed_count",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/isolate_hunks.py",
       "function": "build",
       "subject": "unknown"
     },
     {
+      "path": "tools/isolate_hunks.py",
+      "function": "reconstruct",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/knife_hotspot_measure.py",
+      "function": "_parse_overlaps",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/knife_hotspot_measure.py",
+      "function": "parse_plan",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/knowledge_layer_gate.py",
+      "function": "declared_knowledge_of",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/knowledge_layer_gate.py",
+      "function": "verdict",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/landing_pair.py",
       "function": "pairs_for",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/launch_shape_census.py",
+      "function": "_census_python",
+      "subject": "python"
+    },
+    {
+      "path": "tools/launch_shape_census.py",
+      "function": "_census_shell",
+      "subject": "python"
+    },
+    {
+      "path": "tools/map_assertion_provenance.py",
+      "function": "assertion_lines",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/maturity_map_store.py",
+      "function": "_closed_text",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/maturity_map_store.py",
+      "function": "_cut_blocks",
       "subject": "unknown"
     },
     {
@@ -881,6 +1497,56 @@
       "subject": "unknown"
     },
     {
+      "path": "tools/merge_atom_status.py",
+      "function": "_apply_inbox_to_lines",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/merge_atom_status.py",
+      "function": "_atom_field_indent",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/merge_atom_status.py",
+      "function": "_block_declares_field",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/merge_atom_status.py",
+      "function": "_set_or_create_scalar",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_atom_lists.py",
+      "function": "_rewrite_block",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_atom_names.py",
+      "function": "_duplicate_declarations",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_atom_names.py",
+      "function": "_rewrite_block",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_atom_notes.py",
+      "function": "_rewrite_block",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_gain_to_store.py",
+      "function": "_declaration_span",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/migrate_gain_to_store.py",
+      "function": "_rewrite_block",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/migrate_gain_to_store.py",
       "function": "migrate",
       "subject": "unknown"
@@ -888,6 +1554,31 @@
     {
       "path": "tools/migrate_simplifications.py",
       "function": "is_migrated",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/model_tier_report.py",
+      "function": "_rework",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/model_tier_report.py",
+      "function": "build_report",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/next_step_gate.py",
+      "function": "_looks_like_atom_id",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/next_step_gate.py",
+      "function": "atoms_named_in",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/next_step_gate.py",
+      "function": "verdict",
       "subject": "unknown"
     },
     {
@@ -901,8 +1592,28 @@
       "subject": "python"
     },
     {
+      "path": "tools/project_portfolio_to_2026.py",
+      "function": "_last_renewal_by_cid",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/published_route_split.py",
       "function": "where_the_worlds_joint_point_falls",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/r1_inference_ceiling.py",
+      "function": "_pair_grid",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/r1_inference_ceiling.py",
+      "function": "measure",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/r4_product_ceiling.py",
+      "function": "property_attribute_census",
       "subject": "unknown"
     },
     {
@@ -916,6 +1627,31 @@
       "subject": "python"
     },
     {
+      "path": "tools/scale_probe_10k.py",
+      "function": "_recover_extras",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/site_reachability.py",
+      "function": "_normalise_target",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/site_reachability.py",
+      "function": "internal_links",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/site_reachability.py",
+      "function": "redirect_pages",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/site_reachability.py",
+      "function": "redirect_sources",
+      "subject": "unknown"
+    },
+    {
       "path": "tools/size_ratchet.py",
       "function": "load_baseline",
       "subject": "unknown"
@@ -924,6 +1660,16 @@
       "path": "tools/staging_migrate_rooms.py",
       "function": "_alarm_key_of",
       "subject": "python"
+    },
+    {
+      "path": "tools/stale_copy_refusal.py",
+      "function": "judge",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/stale_copy_refusal.py",
+      "function": "symbols",
+      "subject": "unknown"
     },
     {
       "path": "tools/startup_anchor_freshness.py",
@@ -943,6 +1689,86 @@
     {
       "path": "tools/stretch_log.py",
       "function": "newest_entry_head",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/surgical_land.py",
+      "function": "_test_summary",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/surgical_land.py",
+      "function": "build_resulting_tree",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/surgical_land.py",
+      "function": "name_the_contested_paths",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/target_design_delta.py",
+      "function": "_parse_block",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/target_design_delta.py",
+      "function": "parse_targets",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/target_design_delta.py",
+      "function": "reconcile",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/wall_channel_census.py",
+      "function": "_literal_key_reads",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/wall_channel_census.py",
+      "function": "artefact_wire_conformance",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/wall_channel_census.py",
+      "function": "nested_schema",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/wall_channel_census.py",
+      "function": "wire_on_artefact",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/wall_crossing_dispositions.py",
+      "function": "_parse_edge_line",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/wall_crossing_dispositions.py",
+      "function": "_split_fields",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/write_time_gate.py",
+      "function": "claims_nothing_exists",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/write_time_gate.py",
+      "function": "index_terms",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/write_time_gate.py",
+      "function": "names_a_match",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/write_time_gate.py",
+      "function": "parse_records",
       "subject": "unknown"
     }
   ]

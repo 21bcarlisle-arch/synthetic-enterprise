@@ -16,12 +16,14 @@ every "does it see this one" leg, so the poison round asserts the found set EQUA
 members -- the four clean shapes beside them are half of that single assertion, not a separate
 courtesy.
 
-WHY THE FLOOR IS 117 AND NOT 0. Three hand passes over this same class converged on nine members
-and called the population closed. The census returns 117 scan sites in `tests/` alone. They are
-not 117 defects -- most are a test reading one named module for one token, where the prose hazard
-is small -- but the number is the finding: the population was never enumerable by hand, and every
-attempt to enumerate it exhibited the class. The floor freezes what exists so the 118th is
-refused, and shrinks as rows are routed through the remedy.
+WHY THE FLOOR IS LARGE AND NOT 0. Three hand passes over this same class converged on nine members
+and called the population closed. The census returned 117 scan sites in `tests/` alone, then 187
+once `tools/` and `background/` were added, and 352 once taint crossed a call boundary on
+2026-09-09. They are not 352 defects -- most are one function reading one named module for one
+token, where the prose hazard is small -- but the number is the finding: the population was never
+enumerable by hand, and every attempt to enumerate it exhibited the class, the detector's own
+per-scope blind spot included. The floor freezes what exists so the next one is refused, and
+shrinks as rows are routed through the remedy.
 """
 from __future__ import annotations
 
@@ -78,6 +80,27 @@ def _poison_tree(tmp_path: Path) -> Path:
         'def test_e():\n'
         '    src = pathlib.Path("saas/twin.py").read_text()\n'
         '    assert "import simulation" not in src\n', encoding="utf-8")
+    # THE SHAPE THE CENSUS WAS BLIND TO UNTIL 2026-09-09. The read is in one function and the
+    # match is in a helper that takes the text as a PARAMETER -- and a parameter is never
+    # assigned, so the per-scope taint rule could never reach it. `capability_index
+    # ._wire_edges` -> `_path_references(text, ...)` is the live instance this stands for.
+    (tmp_path / "tests" / "test_helper_matches_a_parameter.py").write_text(
+        root + 'def _has_a_kill(text):\n'
+        '    return "os.kill(" in text\n'
+        'def test_j():\n'
+        '    assert not _has_a_kill((R / "background" / "worker.py").read_text())\n',
+        encoding="utf-8")
+    # AND THE SAME BOUNDARY IN THE OTHER PREDICATE. Here the match and the read are in ONE scope,
+    # so no taint has to cross anything -- but that scope is handed the repository root as a
+    # parameter spelled `base`, and "does this read the REPOSITORY" was also answered per scope.
+    # `_root_parameter` guesses at four names; the call graph knows. This is the shape of
+    # `capability_index._wire_edges(base, ...)`, and without it the live instance the whole pass
+    # was drawn for is invisible while every other leg here still passes.
+    (tmp_path / "tests" / "test_root_arrives_as_an_argument.py").write_text(
+        root + 'def _scan(base):\n'
+        '    return "os.kill(" in (base / "background" / "worker.py").read_text()\n'
+        'def test_m():\n'
+        '    assert not _scan(R)\n', encoding="utf-8")
 
     # NOT MEMBERS, and each is a different reason.
     (tmp_path / "tests" / "test_routed.py").write_text(
@@ -98,6 +121,18 @@ def _poison_tree(tmp_path: Path) -> Path:
         root + 'def test_i():\n'
         '    src = (R / "tools" / "thing.py").read_text()\n'
         '    assert len(src) > 10\n', encoding="utf-8")
+    # THE SAME BLIND SPOT RUNNING THE OTHER WAY, and it cost a FALSE POSITIVE rather than a
+    # missed member. The remedy is applied in a helper defined in this same file, so matching
+    # `ROUTERS` against the call names in the CALLER's expression saw `_names(...)` and nothing
+    # else. `publisher_budget.declared_publisher_budget_seconds` was the live instance: what it
+    # holds is a dict of parsed constants, and it was reported as reading Python by substring.
+    (tmp_path / "tests" / "test_local_parse_helper.py").write_text(
+        root + "import ast\n"
+        'def _names(source):\n'
+        '    return {n.id for n in ast.walk(ast.parse(source)) if isinstance(n, ast.Name)}\n'
+        'def test_k():\n'
+        '    assert "os" not in _names((R / "background" / "worker.py").read_text())\n',
+        encoding="utf-8")
     return tmp_path
 
 
@@ -116,7 +151,61 @@ def test_the_poison_tree_fires_every_member_shape_and_no_other(tmp_path):
         "test_regex_over_source.py",
         "test_taint_through_a_join.py",
         "test_bare_package_literal.py",
+        "test_helper_matches_a_parameter.py",
+        "test_root_arrives_as_an_argument.py",
     }
+
+
+def test_a_scope_handed_the_ROOT_by_a_caller_is_reading_the_tree(tmp_path):
+    """`_reaches_the_tree` is per-scope too, and crossing one boundary without the other catches
+    nothing. A function whose repository root arrives as an argument named `base` says nothing
+    about the tree in its own body; the thing that calls it does.
+
+    Written because the mutation that removes the call-graph clause survived every other leg in
+    this file while losing `capability_index._path_references` -- the live instance the
+    interprocedural pass was built for -- from the real tree.
+
+    KILLS `_reaches_the_tree(scope, ...)` in place of the call-graph closure.
+    """
+    tree = _poison_tree(tmp_path)
+    handed = tree / "tests" / "test_root_arrives_as_an_argument.py"
+    assert [s.function for s in census.census(tree, [handed])] == ["_scan"]
+
+
+def test_a_scan_in_a_HELPER_is_named_for_the_helper_and_not_for_its_caller(tmp_path):
+    """WHERE the interprocedural row lands, which the partition leg above cannot see.
+
+    The first draft attributed a helper's match to the CALLER, and on the real tree that was 152
+    new rows in which every entry point transitively reaching a grep became a member and the
+    function holding the match was named in none of them. A row is a specific control, so the
+    control is the function the match is in -- reported once, however many callers hand it the
+    tree.
+
+    KILLS attributing to the caller: swap the two and this leg reads `test_j`.
+    """
+    tree = _poison_tree(tmp_path)
+    helper = tree / "tests" / "test_helper_matches_a_parameter.py"
+    assert [s.function for s in census.census(tree, [helper])] == ["_has_a_kill"]
+
+
+def test_a_helper_called_with_NOTHING_tainted_is_not_handed_the_tree(tmp_path):
+    """The other half of crossing the call: taint is seeded from the ARGUMENTS at the call site,
+    not from the fact that a helper has parameters at all.
+
+    Without this, every helper taking a string in a tree-reading module becomes a member and the
+    census says nothing. KILLS seeding all parameters unconditionally.
+    """
+    tree = _poison_tree(tmp_path)
+    clean = tree / "tests" / "test_clean_argument.py"
+    clean.write_text(
+        "from pathlib import Path\n"
+        "R = Path(__file__).resolve().parents[2]\n"
+        "def _mentions(text, token):\n"
+        "    return token in text\n"
+        "def test_l():\n"
+        '    assert not _mentions("a literal, not the tree", "zzz")\n'
+        '    assert len((R / "tools" / "thing.py").read_text()) > 1\n', encoding="utf-8")
+    assert census.census(tree, [clean]) == []
 
 
 def test_a_scan_is_attributed_to_the_TEST_and_not_to_the_FILE(tmp_path):
