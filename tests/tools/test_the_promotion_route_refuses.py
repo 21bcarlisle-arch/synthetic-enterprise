@@ -18,6 +18,7 @@ where work leaves the machine, not trusted where it was made.
 """
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -397,3 +398,65 @@ def test_a_range_of_gated_commits_is_promotable(tmp_path, monkeypatch):
                         __import__("subprocess").CompletedProcess(argv, 0, stdout="", stderr=""))
 
     promote._refuse_if_ungated(tmp_path, commits[-1])  # must not raise
+
+
+def test_a_test_processs_exhaust_is_not_reported_as_the_writers_unfinished_work(worktree):
+    """THE REFUSAL WAS RIGHT TO FIRE AND WRONG ABOUT WHY, and being wrong about why is what made
+    it dangerous (2026-09-09, LATENT finding `SEAT_FINDING_A_TEST_REWROTE_TWENTY_SIX_LIVE_FEEDS_
+    INTO_A_DEGRADED_PUBLISH_STATE_AND_THE_ONLY_THING_THAT_NOTICED_BLAMED_THE_WRITER`).
+
+    Measured that day: `pytest tests/tools/` left 27 paths dirty and flipped
+    `site/data/publish_steps.json` to run_stamp `"unknown"`. This route was the ONLY thing in the
+    system that noticed, and it said *"this landing is not the whole of what was done"* — which
+    sends the writer to look for their own missing commit, find regenerated feeds, and add
+    `site/data/` to the pathspec. That publishes a unit test's exhaust as a run.
+
+    FOUR LEGS, AND LEG 3 IS THE LOAD-BEARING ONE. A narrowing that only ever adds a friendlier
+    message is asymmetric: nothing would notice if it started firing on everything. Leg 3 is the
+    control over the other side of the partition.
+      1. the tell fires and names the cause — MUTATION: return `generic` unconditionally, fires;
+      2. the refusal is still a refusal, and still lists the paths — MUTATION: return the message
+         instead of raising, fires;
+      3. a dirty ledger with a REAL run_stamp gets the ORIGINAL sentence — MUTATION: drop the
+         `stamp != NO_RUN_STAMP` check and this fires. Leg 1 does not catch that;
+      4. an unreadable ledger falls back to the original sentence rather than guessing —
+         MUTATION: let the `json.loads` raise, and this fires.
+    """
+    import tools.promote_worktree_landing as mod
+
+    _git(worktree, "commit", "-q", "--allow-empty", "--no-verify", "-m", "a landing")
+    ledger = worktree / mod.PUBLISH_LEDGER
+    assert ledger.exists(), "fixture assumption: the publish-state ledger is tracked"
+    original = json.loads(ledger.read_text(encoding="utf-8"))
+    assert original.get("run_stamp") != mod.NO_RUN_STAMP, (
+        "fixture assumption: origin/main's ledger carries a real run stamp, so this test is "
+        "measuring the flip and not a state the tree was already in"
+    )
+
+    # Leg 1 + 2: exactly what the test process left behind.
+    ledger.write_text(json.dumps({**original, "run_stamp": mod.NO_RUN_STAMP, "degraded": True}))
+    with pytest.raises(PromotionRefused) as exc:
+        mod._refuse_if_dirty(worktree)
+    msg = str(exc.value)
+    assert "TEST PROCESS wrote these files" in msg, "the refusal still blames the writer"
+    assert "not the whole of what was done" not in msg, (
+        "the misleading sentence survived alongside the accurate one"
+    )
+    assert mod.PUBLISH_LEDGER in msg, "the refusal no longer lists the offending paths"
+
+    # Leg 3: a real publish cycle's ledger must NOT be called a test's exhaust.
+    ledger.write_text(json.dumps({**original, "run_stamp": "c440337ad", "degraded": True}))
+    with pytest.raises(PromotionRefused) as exc:
+        mod._refuse_if_dirty(worktree)
+    msg = str(exc.value)
+    assert "not the whole of what was done" in msg, (
+        "a real run_stamp got the test-exhaust message, so the tell fires on everything and "
+        "discriminates nothing"
+    )
+    assert "TEST PROCESS" not in msg
+
+    # Leg 4: unreadable is not evidence of anything. Fall back, never guess.
+    ledger.write_text("{ this is not json")
+    with pytest.raises(PromotionRefused) as exc:
+        mod._refuse_if_dirty(worktree)
+    assert "not the whole of what was done" in str(exc.value)

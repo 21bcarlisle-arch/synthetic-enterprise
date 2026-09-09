@@ -55,6 +55,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -121,10 +122,60 @@ def _refuse_if_dirty(worktree: Path) -> None:
     ]
     if dirty:
         raise PromotionRefused(
-            "the worktree has uncommitted tracked changes outside the directories where machine "
-            "churn is expected, so this landing is not the whole of what was done:\n"
-            + "\n".join(dirty)[:600]
+            _dirty_cause(worktree, dirty) + "\n" + "\n".join(dirty)[:600]
         )
+
+
+# The publish-state ledger, and the value its `run_stamp` carries when whatever wrote it was not
+# a real publish cycle. `PublishStepLedger(run_stamp=git_hash)` is constructed with the commit
+# being published; only a caller that had no commit to name leaves the default.
+PUBLISH_LEDGER = "site/data/publish_steps.json"
+NO_RUN_STAMP = "unknown"
+
+
+def _dirty_cause(worktree: Path, dirty: list[str]) -> str:
+    """Name WHICH of the two causes made the tree dirty, when the tree can say.
+
+    WHY THIS IS NOT ONE SENTENCE (2026-09-09, LATENT finding `SEAT_FINDING_A_TEST_REWROTE_TWENTY_
+    SIX_LIVE_FEEDS_INTO_A_DEGRADED_PUBLISH_STATE_AND_THE_ONLY_THING_THAT_NOTICED_BLAMED_THE_WRITER`).
+
+    This refusal was the ONLY thing in the system that noticed a test process had rewritten 26
+    tracked feeds, and it told the writer they had left work uncommitted. That sentence is true of
+    one cause and actively misleading for the other: a writer who believes it goes looking for
+    their own missing commit, finds regenerated feeds, adds `site/data/` to the pathspec — and
+    publishes a unit test's exhaust as a run, with every staleness control keyed to that ledger
+    reading it as a publish cycle.
+
+    THE TELL IS CHEAP AND SPECIFIC, which is why it is worth one leg and not a register: a dirty
+    `publish_steps.json` whose `run_stamp` is `"unknown"` cannot have come from a publish cycle,
+    because a real one is constructed with the commit it is publishing. Reading it costs one file
+    read on a path `git status` has already named.
+
+    FAILS TOWARD THE OLD SENTENCE. Unreadable, absent, malformed, or a real stamp all fall through
+    to the generic message — this only ever ADDS specificity, never withholds the refusal. The
+    refusal itself is unchanged in both cases; only its explanation moves.
+    """
+    generic = (
+        "the worktree has uncommitted tracked changes outside the directories where machine "
+        "churn is expected, so this landing is not the whole of what was done:"
+    )
+    if not any(line[3:].strip() == PUBLISH_LEDGER for line in dirty):
+        return generic
+    try:
+        stamp = json.loads((worktree / PUBLISH_LEDGER).read_text(encoding="utf-8")).get("run_stamp")
+    except (OSError, ValueError, AttributeError):
+        return generic
+    if stamp != NO_RUN_STAMP:
+        return generic
+    return (
+        "a TEST PROCESS wrote these files, not you — do NOT add them to your pathspec. "
+        f"{PUBLISH_LEDGER} is dirty and its run_stamp is '{NO_RUN_STAMP}', which no real publish "
+        "cycle leaves (it is constructed with the commit being published). Something invoked the "
+        "site pipeline from a test and rewrote the live feed set; committing it would publish that "
+        "exhaust as a run. Restore these paths to HEAD (back them up first if you are not certain) "
+        "and re-run. A test that reaches the site publish pipeline is a defect in the test, not "
+        "something for you to commit around:"
+    )
 
 
 def _commits_being_promoted(worktree: Path, commit: str) -> list[str]:
