@@ -686,10 +686,48 @@ def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
     measured over, the generator's reading correctly changed to say so, and this test reddened on
     a page that had become MORE honest, not less. A control keyed to a sentence goes red when the
     sentence improves and stays green when the claim rots -- exactly backwards.
+
+    AND THE LINE BELOW THAT DOCSTRING WAS THE SAME DEFECT, ONE QUANTITY ALONG (2026-09-09). It
+    read `assert eb["distinguishable_from_zero"] is False` -- an unconditional pin to today's
+    answer, sitting directly under the paragraph that names pinning today's answer as the thing
+    this control stopped doing. Two things were wrong with it and only the second is about seeds:
+
+      * IT IS NOT THIS PAGE'S GATE. `distinguishable_from_zero` is the FLOOR's own key, `|mean of
+        the seed family| > 2 * SEM`. Nothing rendered depends on it -- a grep of `site/` finds it
+        in this assertion and in the feed, and on no page. The sentence the two branches below
+        assert is due whenever `generate_value_arms_data._resolvable` withholds the direction, and
+        that gate is `|point estimate| > stdev` over `realised.split.selection_gbp`. The two use
+        different quantities of OPPOSITE SIGN on the live feed: the point estimate is +GBP 319.10
+        and the seed family's mean is -GBP 426.96. A control graded on a quantity that does not
+        gate its subject is this repository's named shape, and the pre-registration filed for the
+        nine-seed run repeated it the same morning (P6, threshold GBP 640 against the page's real
+        GBP 319) -- see
+        docs/staging/records/SEAT_FINDING_THE_ERROR_BAR_CONTROL_AND_ITS_OWN_PREREGISTRATION_WERE_BOTH_GRADED_ON_A_QUANTITY_THE_PAGE_DOES_NOT_GATE_ON_2026-09-09.md.
+      * IT WOULD HAVE WEDGED THE TREE ON THE RESULT IT WAS WAITING FOR. `2 * SEM` shrinks as
+        1/sqrt(n) while the gate below does not move at all, so the nine-seed floor in flight when
+        this was written can flip `distinguishable_from_zero` to True -- it needs only
+        |mean| > 0.667 * sd at n=9 -- with the page's own refusal, and every sentence this test
+        checks, completely unchanged. A site red wedges every lane, so the delivery item's own
+        deliverable would have been the thing that stopped it landing.
+
+    SO THE PRECONDITION IS DERIVED FROM THE PAGE'S GATE. `spread_to_point_estimate_ratio` is
+    `|stdev / point estimate|`, so `>= 1` is exactly `_resolvable(...) is not True` -- the
+    condition under which the refusal below is owed. It goes red the day the spread narrows past
+    the estimate and the page goes on saying it cannot resolve, which is the claim rotting, and it
+    stays green while the page becomes more honest. `distinguishable_from_zero` is still checked,
+    as the PROPERTY that the producer declares it at all rather than as the answer it declares.
     """
     feed = _live_feed()
     eb = feed["error_bar"]
-    assert eb["distinguishable_from_zero"] is False
+    assert isinstance(eb["distinguishable_from_zero"], bool), (
+        "the floor's own verdict key is missing or unparsed, so the artefact behind this band is "
+        "a stub rather than a completed run")
+    ratio = eb["spread_to_point_estimate_ratio"]
+    assert isinstance(ratio, (int, float)) and ratio >= 1.0, (
+        "the spread is NARROWER than the figure it bounds ({}), so the page's own gate no longer "
+        "withholds the direction and the refusal this test asserts below is not the sentence a "
+        "reader is owed -- extend this control to check the STATED direction, do not re-pin "
+        "it".format(ratio))
     rendered = live["arms-errorbar"]
     inside = eb["point_estimate_inside_the_measured_band"]
     if inside:
