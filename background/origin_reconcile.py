@@ -472,9 +472,29 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
     the five tracked blockers on the live tree that day were byte-identical to origin, holding nine
     untracked twins hostage behind them. `identical_tracked_twins` carries that measurement. Both
     kinds are now proven the same way (hash against origin's blob) and cleared differently
-    (`unlink` for untracked, `restore_tracked_twin` for tracked), and the length comparison is over
+    (`unlink` for untracked, `restore_tracked_twin` for tracked), and the comparison is over
     the union, so one genuinely dirty path still refuses everything -- which is what
     `background/process_run_complete.py`, the fifth path, correctly did.
+
+    AND THE TWO SIDES OF THAT COMPARISON WERE DIFFERENT DOMAINS UNTIL 2026-09-09. `resolvable` is a
+    deduplicated set of PATHS; `blocking` is a list of (path, kind) ENTRIES, and ONE PATH CAN BE
+    BOTH KINDS AT ONCE -- a staged deletion whose file is still on disk is reported by `git diff
+    --name-only HEAD` (worktree differs from HEAD) *and* by `git ls-files --others` (the index has
+    no entry for it). Comparing `len(resolvable) != len(blocking)` then counted that single path
+    twice on one side and once on the other, and refused an advance its own rule permitted.
+
+    THE TELL WAS IN THE REFUSAL'S OWN WORDS and no reader had cause to disbelieve it: *"0 of 2
+    blocking path(s) are NOT byte-identical to what origin brings, so clearing the 1 that are would
+    delete files and still not advance. Held by: "* -- zero held, and a refusal anyway. Measured on
+    the live shared tree 2026-09-09, where it had held the tree 2 commits behind origin and
+    `.publish_gate_state.json` recorded `last_clean_publish: null` with `wedge_since` 32 hours old.
+    The arithmetic was the wedge; the tree's bytes at the one blocking path were already EXACTLY
+    origin's blob.
+
+    SO THE COMPARISON IS OVER PATH SETS ON BOTH SIDES, and it is expressed as "which paths are
+    held" rather than as two lengths. A refusal that can name nothing it is holding is not a
+    refusal, and stating it that way makes the domain error unrepresentable rather than merely
+    fixed -- `held` is now the thing tested, and it is the thing reported.
 
     THE REMOVAL AND THE ADVANCE ARE UNDER ONE TREE LOCK. Between them the tree is missing files it
     is about to be given back; another writer landing in that window would see a tree that never
@@ -532,13 +552,19 @@ def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_
                           "established, so nothing was removed -- a file is never deleted on an "
                           "unread comparison"}
     resolvable = sorted(set(twins) | set(tracked))
-    if len(resolvable) != len(blocking):
-        held = [b["path"] for b in blocking if b["path"] not in set(resolvable)]
+    # BOTH SIDES ARE PATH SETS. `blocking` carries one ENTRY PER (path, kind) and a single path can
+    # hold both kinds at once -- a staged deletion whose file is still on disk is `FF_MODIFIED` and
+    # `FF_UNTRACKED` together. Comparing lengths counted it twice against a deduplicated union and
+    # refused with an EMPTY held list, which is the 2026-09-09 wedge. What refuses is a path nobody
+    # hash-proved, so that is what is computed and what is reported.
+    blocked_paths = {b["path"] for b in blocking}
+    held = sorted(blocked_paths - set(resolvable))
+    if held:
         return {"advanced": False, "cleared": [],
                 "reason": "{} of {} blocking path(s) are NOT byte-identical to what origin brings, "
                           "so clearing the {} that are would delete files and still not advance. "
                           "Nothing was removed. Held by: {}".format(
-                              len(held), len(blocking), len(resolvable), "; ".join(held[:12]))}
+                              len(held), len(blocked_paths), len(resolvable), "; ".join(held[:12]))}
 
     try:
         from background.tree_lock import TreeLockTimeout, tree_lock
