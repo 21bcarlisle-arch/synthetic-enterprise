@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T15:18:19.430460Z",
+  "generated_at": "2026-09-09T16:31:25.222035Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -8,7 +8,7 @@
     "docs/observability/value_cycle_ab_s1_three_arm.json",
     "docs/observability/value_cycle_ab_s1_noise_floor.json",
     "docs/observability/value_cycle_ab_s1_three_arm_20260908.json",
-    "docs/observability/value_cycle_ab_s1_noise_floor_20260908.json",
+    "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
     "docs/observability/value_cycle_ab_floor_decomposition.json"
   ],
   "available": true,
@@ -327,10 +327,10 @@
     "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
     "short": "62334dc76",
     "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": "58b6cec1f94c97efd307ee22521735d9c2eaa4d3",
+    "publishing_tree_commit": "bf929f77fc7847a65790af0f3e2a615e98f7f304",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76 and published from 58b6cec1f -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 62334dc76 and published from bf929f77f -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -342,7 +342,7 @@
     "one_world_across_every_figure": true,
     "runs_measured_in_a_superseded_world": [],
     "runs_measured_in_the_live_world": [
-      "the current-world noise floor (2026-09-08T04:10:26Z)",
+      "the current-world noise floor (2026-09-09T15:17:31Z)",
       "the current-world three-arm run (2026-09-08T00:19:54Z)",
       "the floor decomposition",
       "the noise floor (2026-09-09T15:17:31Z)",
@@ -376,16 +376,22 @@
     "verdict_withheld_because": null,
     "verdict_stability": {
       "checked": true,
-      "n": 3,
+      "n": 9,
       "redraw_values_gbp": [
-        19781.964809000026,
-        17262.06530299998,
-        20002.33371800001
+        19607.507551999995,
+        17244.433779999992,
+        19903.595164,
+        16890.32416399999,
+        20742.894054000004,
+        21546.838982000016,
+        14329.175675999984,
+        17170.483406000014,
+        17456.516900000017
       ],
-      "redraw_resolving": 3,
-      "redraw_min_gbp": 17262.06530299998,
-      "redraw_max_gbp": 20002.33371800001,
-      "redraw_mean_gbp": 19015.454610000004,
+      "redraw_resolving": 9,
+      "redraw_min_gbp": 14329.175675999984,
+      "redraw_max_gbp": 21546.838982000016,
+      "redraw_mean_gbp": 18321.307742,
       "stable": true,
       "sign_determined": true
     },
@@ -394,46 +400,52 @@
     "bound_available": true,
     "floor_ran_in_world": "39a192ce04c1eda8",
     "floor_leg": "all",
-    "floor_generated_at": "2026-09-08T04:10:26Z",
+    "floor_generated_at": "2026-09-09T15:17:31Z",
     "bound": {
-      "n": 3,
-      "stdev_gbp": 1522.4720557172732,
-      "mean_gbp": 19015.454610000004,
-      "min_gbp": 17262.06530299998,
-      "max_gbp": 20002.33371800001
+      "n": 9,
+      "stdev_gbp": 2281.524306779542,
+      "mean_gbp": 18321.307742,
+      "min_gbp": 14329.175675999984,
+      "max_gbp": 21546.838982000016
     },
     "bound_contrast": "value_advantage_gbp",
     "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the bound beside it is how far that same quantity moves across 3 re-draws of it. 1 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 3 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
+      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the bound beside it is how far that same quantity moves across 9 re-draws of it. 5 of those 9 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
       "verdict_stability": {
         "checked": true,
-        "n": 3,
+        "n": 9,
         "redraw_values_gbp": [
-          1199.5500600000087,
-          -3075.215559000004,
-          433.0716930000053
+          1260.9261999999871,
+          -3036.2544110000017,
+          494.4478329999838,
+          -2644.3478250000044,
+          286.0552489999973,
+          1090.000177000009,
+          -2482.5793040000135,
+          -2719.108798000001,
+          -1952.6304309999978
         ],
-        "redraw_resolving": 1,
-        "redraw_min_gbp": -3075.215559000004,
-        "redraw_max_gbp": 1199.5500600000087,
-        "redraw_mean_gbp": -480.86460199999664,
+        "redraw_resolving": 5,
+        "redraw_min_gbp": -3036.2544110000017,
+        "redraw_max_gbp": 1260.9261999999871,
+        "redraw_mean_gbp": -1078.1657011111156,
         "stable": false,
         "sign_determined": false
       },
       "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
-      "no_sign": "AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 3 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
+      "no_sign": "AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
       "floor_leg": "all",
-      "floor_generated_at": "2026-09-08T04:10:26Z",
+      "floor_generated_at": "2026-09-09T15:17:31Z",
       "bound": {
-        "n": 3,
-        "stdev_gbp": 2279.2246352290263,
-        "mean_gbp": -480.86460199999664,
-        "min_gbp": -3075.215559000004,
-        "max_gbp": 1199.5500600000087
+        "n": 9,
+        "stdev_gbp": 1810.5007782810442,
+        "mean_gbp": -1078.1657011111156,
+        "min_gbp": -3036.2544110000017,
+        "max_gbp": 1260.9261999999871
       },
       "bound_contrast": "selection_gbp",
       "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws, and it is the quantity the floor publishes as `selection_gbp_spread`: this feed's reading of the seed rows had to reproduce that scalar to the penny before any bound on this page was admitted.",
@@ -445,16 +457,22 @@
       "verdict_withheld_because": null,
       "verdict_stability": {
         "checked": true,
-        "n": 3,
+        "n": 9,
         "redraw_values_gbp": [
-          18582.414749000018,
-          20337.280861999985,
-          19569.262025000004
+          18346.58135200001,
+          20280.688190999994,
+          19409.147331000015,
+          19534.671988999995,
+          20456.838805000007,
+          20456.838805000007,
+          16811.754979999998,
+          19889.592204000015,
+          19409.147331000015
         ],
-        "redraw_resolving": 3,
-        "redraw_min_gbp": 18582.414749000018,
-        "redraw_max_gbp": 20337.280861999985,
-        "redraw_mean_gbp": 19496.319212000002,
+        "redraw_resolving": 9,
+        "redraw_min_gbp": 16811.754979999998,
+        "redraw_max_gbp": 20456.838805000007,
+        "redraw_mean_gbp": 19399.473443111117,
         "stable": true,
         "sign_determined": true
       },
@@ -463,13 +481,13 @@
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
       "floor_leg": "all",
-      "floor_generated_at": "2026-09-08T04:10:26Z",
+      "floor_generated_at": "2026-09-09T15:17:31Z",
       "bound": {
-        "n": 3,
-        "stdev_gbp": 879.7040747405734,
-        "mean_gbp": 19496.319212000002,
-        "min_gbp": 18582.414749000018,
-        "max_gbp": 20337.280861999985
+        "n": 9,
+        "stdev_gbp": 1176.6548593147284,
+        "mean_gbp": 19399.473443111117,
+        "min_gbp": 16811.754979999998,
+        "max_gbp": 20456.838805000007
       },
       "bound_contrast": "level_advantage_gbp",
       "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
@@ -576,10 +594,10 @@
       "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
       "short": "62334dc76",
       "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": "58b6cec1f94c97efd307ee22521735d9c2eaa4d3",
+      "publishing_tree_commit": "bf929f77fc7847a65790af0f3e2a615e98f7f304",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76 and published from 58b6cec1f -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 62334dc76 and published from bf929f77f -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {

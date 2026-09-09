@@ -220,8 +220,37 @@ NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise
 #: HELD on 2026-09-09 with the constant above, for the constant above's reason. The 09-08b floor
 #: went to `NOISE_FLOOR_PATH` and not here: this pair bounds the 00:19:54Z run and the 04:10:26Z
 #: floor is the one measured against it.
+#:
+#: MOVED ALONE 2026-09-09 TO THE NINE-SEED FLOOR, and the paragraph above says moving either alone
+#: is the defect. It is the defect in ONE of its two directions, not both, and the two are not
+#: symmetric. "The figure alone republishes an unbounded headline" is about `..._THREE_ARM_PATH`
+#: and is untouched here -- that constant does not move. "The bound alone bounds the wrong run" is
+#: the direction this move is in, and *wrong run* means a floor drawn over a DIFFERENT WORLD from
+#: the arms it bounds. Both floors carry world digest `39a192ce04c1eda8`, which is the 00:19:54Z
+#: arms' own world, so the bound is over the right world before and after. What changes is only
+#: how many draws of it there are: 3 -> 9.
+#:
+#: WHAT THIS MOVE IS NOT INNOCENT OF, MEASURED RATHER THAN WAVED THROUGH. The two floors were
+#: produced by DIFFERENT COMMITS -- `04361d6c7` (04:10:26Z) and `c066c114b` (15:17:31Z) -- and the
+#: arms being bounded are `04361d6c7`'s. That is not free: on the three seeds both floors share,
+#: the SAME seed in the SAME world returns a DIFFERENT `selection_gbp` under the two trees
+#: (11111 +61.38, 22222 +38.96, 33333 +61.38). So the nine-seed spread carries a code-tree
+#: difference the figure it bounds does not. It is admitted here rather than in a footnote because
+#: it cannot be removed without re-running the arms. It is judged tolerable because the shift is
+#: +38.96..+61.38 against a spread of 4,297.18 -- about 1% of the width, and the verdict the bound
+#: gates on is "does the family cross zero", which a 60-unit shift on a family spanning -3,036 to
+#: +1,261 cannot change. If the arms are ever re-run, this pair should move together again and
+#: this paragraph goes away.
+#:
+#: WHY IT MOVES AT ALL. `current_world.selection_leg` is the page's whole claim -- whether the
+#: advantage is per-customer selection or level -- and it was reading a 3-draw floor while
+#: `contrast_bounds` beside it already read the 9-draw one. Two blocks on one page answering one
+#: question at two sample sizes, with the wider-sampled one in the flattering position. The leg
+#: still states NO DIRECTION at n=9 (5 of 9 re-draws clear the bound, and the family still falls
+#: on both sides of zero); what the move buys is that the refusal now names the sample the rest of
+#: the page is already using. A refusal at n=9 and a refusal at n=3 are not the same refusal.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260908.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260909b.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".
