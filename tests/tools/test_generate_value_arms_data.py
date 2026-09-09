@@ -4576,6 +4576,163 @@ def test_a_gate_refusing_only_real_products_says_ceiling_and_not_gate():
         "there is nothing here to repair")
 
 
+def _spread_leg(concordance, decisions, low, high, *, p=0.4, accounts=None, null_point=0.5):
+    """A producer leg carrying the interval its own sample earns.
+
+    Written as a helper rather than repeated inline because the shape is the CONTRACT between
+    `_horizon_leg` and `_horizon_leg_published`, and four hand-copied dicts is four places for it
+    to drift. `accounts` defaults to half the decisions, which is roughly this book's real rate
+    and is never asserted on -- it exists so the detectability arithmetic has a denominator.
+    """
+    return {
+        "what_it_is": "a leg of the bridge",
+        "decisions": decisions,
+        "accounts": accounts if accounts is not None else max(1, decisions // 2),
+        "concordance": concordance,
+        "null_constant_signal_concordance": null_point,
+        "comparable_pairs": decisions * (decisions - 1) // 2,
+        "pairs_tied_on_outcome": 0,
+        "null_spread": {"available": True, "null_95_interval": [low, high], "p_two_sided": p,
+                        "observed_inside_the_null_interval": low <= concordance <= high,
+                        "draws": 20000, "seed": 20260828},
+    }
+
+
+def test_no_cut_of_this_bridge_is_published_without_the_interval_its_OWN_sample_earns():
+    """THE PROPERTY, on the publisher: a concordance without a bound on its own n is WITHHELD.
+
+    THE DEFECT (2026-09-09). This block published four concordances over four populations and no
+    interval at all, while `_method_skill` a few lines above published the survivor cut's 0.5338
+    with [0.4494, 0.5503], a p and a detectability block. The estimand's 0.4209 on 161 decisions
+    went out bare. A reader with both on one page reads the unbounded number against the bounded
+    one's interval, which is two correct figures whose relationship is not a quantity -- this
+    project's most expensive recurring shape.
+
+    BOTH SIDES ARE DRIVEN, because a rule that withholds everything passes every one-sided test.
+    A leg WITH its spread publishes its number, its interval, its p and a reading; a leg WITHOUT
+    one publishes no number at all and names what is missing.
+
+    AND THE ESTIMAND TAKES THE WHOLE BLOCK WITH IT. It is this block's headline, so a run that
+    ranked its priced decisions and permuted none of them has no publishable estimand and the
+    block reports the absence -- the same fail-closed rule `_method_skill` applies to the survivor
+    cut, arriving on the cut whose direction is the unflattering one.
+
+    Fires on: publishing `concordance` from a leg with no spread; on defaulting a missing interval
+    to the headline's; on the estimand's absence being tolerated while its legs render.
+    """
+    full = {
+        "available": True, "reconciles": True, "decisions_priced": 214, "decisions_scored": 161,
+        "reconciliation": "161 scored + 53 excluded = 214 against 214 priced",
+        "legs": {
+            "the_published_population_ratio_outcome": _spread_leg(
+                0.5338, 168, 0.4494, 0.5503, p=0.192),
+            "settled_only_ratio_outcome": _spread_leg(0.4993, 124, 0.4415, 0.5585),
+            "settled_only_pounds_outcome": _spread_leg(0.5130, 124, 0.4415, 0.5585),
+            "every_priced_decision_pounds_outcome": _spread_leg(
+                0.4209, 161, 0.4480, 0.5520, p=0.014),
+        },
+    }
+    published = gva._skill_fixed_horizon({"fixed_horizon": full})
+
+    assert published["available"] is True
+    for name, leg in published["legs"].items():
+        assert leg["available"] is True, name
+        assert leg["concordance"] is not None, name
+        assert leg["null_95_low"] is not None and leg["null_95_high"] is not None, name
+        assert leg["reading"]["sentence"], name
+    # THE INTERVALS ARE THE LEGS' OWN and not one number four times -- the shape a broadcast
+    # bound would take, and the cheap wrong fix for the defect above.
+    assert (published["legs"]["the_published_population_ratio_outcome"]["null_95_low"]
+            != published["legs"]["every_priced_decision_pounds_outcome"]["null_95_low"])
+    # ...and the headline of the block is the ESTIMAND's, bound and all.
+    assert published["concordance"] == pytest.approx(0.4209)
+    assert published["null_95_low"] == pytest.approx(0.4480)
+    assert published["p_two_sided"] == pytest.approx(0.014)
+    assert published["reading_of_the_estimand"]["reading"] == "worse_than_chance"
+    assert published["what_it_could_have_detected"]["available"] is True
+    assert published["what_it_could_have_detected"]["decisions_scored"] == 161, (
+        "the detectability block was computed on a population other than this cut's")
+
+    # ONE LEG LOSES ITS SPREAD: that leg alone is withheld and the others are untouched.
+    one_short = copy.deepcopy(full)
+    one_short["legs"]["settled_only_pounds_outcome"].pop("null_spread")
+    partial = gva._skill_fixed_horizon({"fixed_horizon": one_short})
+    bare = partial["legs"]["settled_only_pounds_outcome"]
+    assert bare["available"] is False and bare["withheld"] is True
+    assert bare["concordance"] is None, "a leg with no interval published its number anyway"
+    assert bare["concordance_withheld"] == pytest.approx(0.5130)
+    assert "124 decisions" in bare["reason"]
+    assert partial["legs"]["every_priced_decision_pounds_outcome"]["concordance"] is not None, (
+        "one leg's absence withheld a leg that had its own bound")
+
+    # THE ESTIMAND LOSES ITS SPREAD: the whole block is withheld, headline and legs.
+    no_estimand = copy.deepcopy(full)
+    no_estimand["legs"]["every_priced_decision_pounds_outcome"]["null_spread"] = {
+        "available": False, "reason": "fewer than three ranked decisions"}
+    withheld = gva._skill_fixed_horizon({"fixed_horizon": no_estimand})
+    assert withheld["available"] is False and withheld["withheld"] is True
+    assert "concordance" not in withheld, "a withheld estimand published its headline anyway"
+    assert withheld["concordance_withheld"] == pytest.approx(0.4209)
+    assert "no bound of its own" in withheld["reason"]
+    assert "fewer than three ranked decisions" in withheld["reason"], (
+        "the refusal did not carry the run's own reason for it")
+
+
+def test_the_three_readings_a_reader_would_conflate_are_told_APART_by_the_publisher():
+    """CARRIES NO INFORMATION, WORSE THAN CHANCE, AND WE CANNOT TELL ARE THREE ANSWERS.
+
+    A reader arriving at 0.4209 has three live possibilities and they need three different things.
+    *Inside its own interval* means a larger book. *Below it* means the arm's ranking is real and
+    inverted -- the director's own case, and the finding this instrument exists to be able to
+    report. *No interval at all* means running something, costs nothing to establish, and says
+    nothing whatever about the method.
+
+    ONE CONTROL OVER THE WHOLE PARTITION rather than a leg per branch, because a publisher that
+    returned "we cannot tell" for everything would pass every single-branch test. All four
+    readings are driven from the same producer shape with only the numbers moved, so a verdict
+    pinned to today's answer cannot survive here.
+
+    Fires on: `reading` hard-coded; on the below-interval case rendering as "we cannot tell",
+    which is the flattering error and therefore the one nobody checks.
+    """
+    def _estimand(concordance, low, high):
+        return gva._skill_fixed_horizon({"fixed_horizon": {
+            "available": True, "reconciles": True, "decisions_scored": 161,
+            "legs": {"every_priced_decision_pounds_outcome": _spread_leg(
+                concordance, 161, low, high)}}})["reading_of_the_estimand"]
+
+    flat = _estimand(0.5100, 0.4480, 0.5520)
+    assert flat["reading"] == "not_distinguishable_from_no_information"
+    assert flat["distinguishable_from_no_information"] is False
+    assert gva.CANNOT_TELL in flat["sentence"]
+
+    worse = _estimand(0.4209, 0.4480, 0.5520)
+    assert worse["reading"] == "worse_than_chance"
+    assert worse["distinguishable_from_no_information"] is True
+    assert gva.CANNOT_TELL not in worse["sentence"]
+    assert "INVERTED" in worse["sentence"]
+
+    better = _estimand(0.6100, 0.4480, 0.5520)
+    assert better["reading"] == "better_than_chance"
+    assert "INVERTED" not in better["sentence"]
+
+    # ...AND THE FOURTH: no interval at all. It arrives through the withheld branch, so the
+    # question a reader asks -- "is this flat or is there no instrument?" -- is answered by the
+    # refusal rather than by a sentence that reads like a flat result.
+    undecidable = gva._skill_fixed_horizon({"fixed_horizon": {
+        "available": True, "reconciles": True, "decisions_scored": 161,
+        "legs": {"every_priced_decision_pounds_outcome": dict(
+            _spread_leg(0.4209, 161, 0.448, 0.552),
+            null_spread={"available": False, "reason": "the spread is absent"})}}})
+    assert undecidable["available"] is False
+    assert "reading_of_the_estimand" not in undecidable
+    assert "no bound of its own" in undecidable["reason"]
+
+    # THE THREE SENTENCES ARE THREE SENTENCES. A page that rendered any two of them identically
+    # would tell a reader the wrong thing a third of the time.
+    assert len({flat["sentence"], worse["sentence"], better["sentence"]}) == 3
+
+
 def test_the_fixed_horizon_estimand_is_withheld_on_a_run_that_did_not_measure_it():
     """FAIL CLOSED, and it is the leg that keeps this page from inventing a population.
 
@@ -4607,6 +4764,12 @@ def test_the_fixed_horizon_estimand_is_withheld_on_a_run_that_did_not_measure_it
 
     # AND A REAL ONE PASSES THROUGH UNCHANGED -- counts, legs, bridge and verdict. Asserted after
     # the two refusals so a pass here is evidence of a passthrough rather than of a constant.
+    #
+    # EVERY LEG CARRIES A `null_spread` FROM 2026-09-09, and this fixture gained them the day the
+    # contract did. A leg with a concordance and no interval on its own n is now WITHHELD rather
+    # than published -- see `test_no_cut_of_this_bridge_is_published_without_...` below, which
+    # drives that branch on purpose. Without the spreads here this fixture would exercise the
+    # refusal and prove nothing about the passthrough.
     measured = gva._skill_fixed_horizon({"fixed_horizon": {
         "available": True, "reconciles": True,
         "horizon_days": 365, "observation_end": "2025-12-31",
@@ -4616,9 +4779,10 @@ def test_the_fixed_horizon_estimand_is_withheld_on_a_run_that_did_not_measure_it
         "excluded_by_reason": {"no_published_counterfactual_rate_for_the_term": 6},
         "zero_outcomes_the_world_recorded_as_a_departure": 40,
         "reconciliation": "200 scored + 14 excluded = 214 against 214 priced",
-        "legs": {"settled_only_ratio_outcome": {"concordance": 0.5334},
-                 "settled_only_pounds_outcome": {"concordance": 0.5100},
-                 "every_priced_decision_pounds_outcome": {"concordance": 0.4700}},
+        "legs": {"settled_only_ratio_outcome": _spread_leg(0.5334, 124, 0.44, 0.56),
+                 "settled_only_pounds_outcome": _spread_leg(0.5100, 124, 0.44, 0.56),
+                 "every_priced_decision_pounds_outcome": _spread_leg(
+                     0.4700, 161, 0.45, 0.55, p=0.021)},
         "reading": "Admitting the departures LOWERS the figure",
     }})
     assert measured["available"] is True

@@ -33,6 +33,11 @@ WHAT EACH TEST HERE NAMES AS ITS OWN DEFECT (CONTROLS_THAT_CANNOT_FAIL):
   * `test_the_INDEPENDENCE_leg_is_untouched_by_the_withdrawal` — the paired control, because one
     list of years now answers one question and refuses the other, and the obvious over-correction
     is to let the refusal swallow both.
+  * `test_the_reading_partitions_the_FOUR_things_a_concordance_can_say` (2026-09-09) — the defect
+    is a figure BELOW its own interval published as "we cannot tell". `cannot_tell_sentence`
+    returns one sentence for two states on purpose, and routing the below-interval case through
+    it would report a real, inverted ranking as an absence of evidence. That is the flattering
+    error, so it is the one nobody checks.
 
 R15 MUTATIONS, each applied in place and reverted, with the OBSERVED result recorded:
   * `inference_claim`: `and` -> `or` in the composition -> **4 red**, the two named cases plus
@@ -74,6 +79,29 @@ R15 MUTATIONS, each applied in place and reverted, with the OBSERVED result reco
     "market". The assertion was strengthened to pin the claim ("two different quantities") rather
     than the vocabulary, and the mutation now fires **1 red**
     (`..._the_distance_is_NOT_published_as_an_accuracy_reading`).
+
+THE 2026-09-09 ROUND, on `concordance_reading` and the interval-per-cut rule it serves. Each was
+applied in place, run, and reverted; the selection is named beside the count because a count over
+an unnamed selection is not a measurement.
+  * `concordance_reading`: `if cannot is not None:` -> `if True:`, i.e. every decided reading
+    routed to "not distinguishable" -> **3 red** across
+    `tests/tools/test_inference_claim.py` and `tests/tools/test_generate_value_arms_data.py`.
+    This is the defect the function exists for: a real inverted ranking published as an absence.
+  * `concordance_reading`: `below = observed < null_low` -> `observed > null_high`, the side flip
+    -> **3 red**, same selection. A control that only asserted "not cannot_tell" would have
+    survived it, which is why both outer readings are driven.
+  * `concordance_reading`: the undecidable branch's `None` -> `False` -> **1 red**. "We could not
+    ask" recorded as "it did not clear" is the fail-closed leg, and it fires alone because it is
+    the only control that distinguishes the two.
+  * `run_value_cycle_ab._horizon_leg`: the per-leg `null_spread` replaced by a permanent refusal
+    -> **2 red** in `tests/tools/test_run_value_cycle_ab.py`.
+  * `generate_value_arms_data._horizon_leg_published`: the withhold-a-bare-leg branch removed ->
+    **3 red** across the publisher's and the door's controls.
+  * `generate_value_arms_data._skill_fixed_horizon`: the withheld-estimand branch removed ->
+    **2 red**.
+  * `generate_value_arms_data._skill_fixed_horizon`: the estimand's interval broadcast onto every
+    published leg -- the cheap wrong fix, and the one a "does each leg have a bound?" check would
+    pass -> **2 red**, one of them at the door.
 """
 from __future__ import annotations
 
@@ -221,6 +249,80 @@ def test_the_page_says_WE_CANNOT_TELL_in_those_words():
 
     assert ic.CANNOT_TELL in claim["sentence"]
     assert "we cannot tell" in claim["sentence"]
+
+
+def test_the_reading_partitions_the_FOUR_things_a_concordance_can_say():
+    """"WE CANNOT TELL" IS TWO DIFFERENT ANSWERS AND "BELOW THE INTERVAL" IS A THIRD.
+
+    `cannot_tell_sentence` deliberately returns one sentence for two states -- the interval
+    swallows the reading, and there is no interval -- because to a reader deciding whether to
+    BELIEVE a number those are one answer. They are not one answer to a reader deciding what to
+    DO: the first is fixed by a larger book, the second by running something and says nothing
+    whatever about the method.
+
+    AND A CONCORDANCE BELOW ITS OWN INTERVAL IS NOT A WEAK RESULT. It is a strong result pointing
+    the other way -- the price ranks the value it produced in the wrong order. Publishing that as
+    "we cannot tell" because it failed to clear UPWARD is the flattering error, and the flattering
+    error is the one nobody checks.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, not a leg per branch: a function returning
+    `this_run_cannot_tell` for everything passes any single-branch test, and every branch here is
+    driven from the same call with only the numbers moved.
+
+    Fires on: the below-interval case routed to `not_distinguishable_from_no_information`; on
+    `distinguishable_from_no_information` defaulting to False when it could not be asked; on the
+    key and `cannot_tell_sentence` disagreeing about which side of the interval the value is on.
+    """
+    def _read(observed, low=0.45, high=0.55):
+        return ic.concordance_reading(subject="whether the method carries any information",
+                                      observed=observed, null_low=low, null_high=high, n=161)
+
+    inside = _read(0.51)
+    assert inside["reading"] == "not_distinguishable_from_no_information"
+    assert inside["distinguishable_from_no_information"] is False
+    assert ic.CANNOT_TELL in inside["sentence"]
+
+    below = _read(0.4209)
+    assert below["reading"] == "worse_than_chance"
+    assert below["distinguishable_from_no_information"] is True
+    assert ic.CANNOT_TELL not in below["sentence"]
+    assert "WORSE than chance" in below["sentence"] and "INVERTED" in below["sentence"]
+
+    above = _read(0.61)
+    assert above["reading"] == "better_than_chance"
+    assert above["distinguishable_from_no_information"] is True
+    assert "BETTER than chance" in above["sentence"]
+
+    # THE FOURTH, and it is None rather than False: "we could not ask" is not "it did not clear".
+    for missing in ({"observed": None}, {"low": None}, {"high": None}):
+        undecidable = _read(**{"observed": 0.4209, "low": 0.45, "high": 0.55, **missing})
+        assert undecidable["reading"] == "this_run_cannot_tell", missing
+        assert undecidable["distinguishable_from_no_information"] is None, missing
+        assert ic.CANNOT_TELL in undecidable["sentence"], missing
+
+    # EVERY READING IS ONE THIS MODULE ENUMERATED, so a surface cannot be handed a key nobody
+    # wrote a rendering for.
+    for result in (inside, below, above, undecidable):
+        assert result["reading"] in ic.CONCORDANCE_READINGS
+    # ...and no two of them say the same thing to a reader.
+    assert len({inside["sentence"], below["sentence"], above["sentence"],
+                undecidable["sentence"]}) == 4
+
+    # THE BOUNDARY IS THE INTERVAL'S OWN, INCLUSIVE, and it agrees with `cannot_tell_sentence`
+    # rather than restating the comparison. A value exactly ON the bound has not cleared it.
+    edge = _read(0.45)
+    assert edge["reading"] == "not_distinguishable_from_no_information"
+    assert edge["sentence"] == ic.cannot_tell_sentence(
+        subject="whether the method carries any information", observed=0.45, null_low=0.45,
+        null_high=0.55, n=161)
+
+    # THE SENTENCE CARRIES THE SAMPLE SIZE, because a reading without the n it rests on is the
+    # figure this whole module exists to stop publishing.
+    assert "161 decisions" in below["sentence"]
+    # ...and a caller with no n gets a sentence that claims none, rather than the last one's.
+    assert "161" not in ic.concordance_reading(
+        subject="whether the method carries any information", observed=0.4209, null_low=0.45,
+        null_high=0.55)["sentence"]
 
 
 def test_no_sentence_names_the_reading_without_its_interval():

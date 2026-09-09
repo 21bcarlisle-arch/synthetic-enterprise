@@ -127,6 +127,7 @@ from tools.decisions_that_existed import decisions_that_existed
 from tools.inference_claim import (
     CANNOT_TELL,
     cannot_tell_sentence,
+    concordance_reading,
     detectability,
     inference_claim,
 )
@@ -1758,6 +1759,107 @@ def _skill_survivorship(method_skill: dict) -> dict:
     }
 
 
+#: WHAT EACH LEG'S READING IS ABOUT, in words, so a sentence rendered on a surface says WHICH
+#: population it is a claim about. Keyed by the producer's own leg names on purpose: a leg the
+#: producer renames or stops writing loses its subject here and is published without a reading,
+#: rather than silently borrowing the neighbouring leg's words for a different population.
+#: `subject` is the only thing this file writes into the sentence -- the arithmetic is the run's.
+HORIZON_LEG_SUBJECTS: dict[str, str] = {
+    "the_published_population_ratio_outcome": (
+        "whether the arm's price ranks joint value over the decisions that SETTLED -- the "
+        "published cut, rebuilt"),
+    "settled_only_ratio_outcome": (
+        "whether the arm's price ranks joint value over the settled decisions whose horizon had "
+        "CLOSED"),
+    "settled_only_pounds_outcome": (
+        "whether the arm's price ranks the POUNDS those same decisions produced"),
+    "every_priced_decision_pounds_outcome": (
+        "whether the arm's price ranks the pounds EVERY decision it priced produced"),
+}
+
+
+def _horizon_leg_published(name: str, leg: dict | None) -> dict:
+    """One leg of the bridge, and NEVER its number without the interval its own sample earns.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09). The bridge published four concordances and one
+    interval, and the interval belonged to none of them -- it was `method_skill.null_spread`,
+    permuted over the SURVIVOR cut's 168 decisions, sitting a few hundred pixels above an estimand
+    computed on 161 different ones. A reader who took 0.4209 as "below [0.4494, 0.5503], therefore
+    worse than chance" would have borrowed a bound from another population, and the page invited
+    exactly that by showing one number with a bound and four without.
+
+    So: no interval on this leg's own points, no number from this leg. The concordance is moved to
+    `concordance_withheld` and the reason names what is missing, on the same fail-closed shape
+    `_method_skill` above uses for the headline. The alternative -- recomputing the interval here
+    from the leg's published n -- is refused for the reason that function refuses it: it is a
+    SECOND source for one figure, and the two drift the first time either is touched.
+
+    THREE ABSENCES, TOLD APART, because they need three different things:
+      * no concordance at all -- nothing in this population could be ranked. Nothing fixes it but
+        a book where two decisions differ in the outcome.
+      * a concordance and no spread -- the run predates this bound, or its population is too small
+        or too degenerate to permute. Re-running fixes the first; only a bigger book fixes the
+        rest.
+      * a leg with no subject -- the producer wrote a leg this file has never heard of. Published
+        with its interval and WITHOUT a reading, because a reading needs to name its population and
+        this file would be guessing which one.
+    """
+    leg = leg or {}
+    spread = leg.get("null_spread") or {}
+    base = {
+        "what_it_is": leg.get("what_it_is"),
+        "decisions": leg.get("decisions"),
+        "accounts": leg.get("accounts"),
+        "comparable_pairs": leg.get("comparable_pairs"),
+        "pairs_tied_on_outcome": leg.get("pairs_tied_on_outcome"),
+        # THE POINT NULL IS NOT THE INTERVAL AND IS PUBLISHED EVEN WHEN THE FIGURE IS WITHHELD. It
+        # is a function of the signal alone -- a constant signal ties every pair -- so it says the
+        # ESTIMATOR is not broken and says nothing about this leg's sample size. Carrying it
+        # through the withheld branch is what stops it reading as the missing bound.
+        "null_point": _f(leg.get("null_constant_signal_concordance")),
+    }
+    observed = leg.get("concordance")
+    if observed is None:
+        return dict(base, available=False, concordance=None, reason=(
+            "no two decisions in this population differed in the outcome, so nothing could be "
+            "ranked. That is a statement about this book and not about the method."))
+    if not spread.get("available"):
+        return dict(base, available=False, withheld=True, concordance=None,
+                    concordance_withheld=_f(observed), reason=(
+                        "this leg carries a concordance and NO interval computed on its own {n} "
+                        "decisions, so the figure is withheld: {why}. The cut above it on this "
+                        "page has an interval and this one does not, and a reader shown both "
+                        "numbers would borrow the wrong one."
+                    ).format(n=leg.get("decisions"),
+                             why=str(spread.get("reason") or "the spread is absent")))
+    low, high = (spread.get("null_95_interval") or [None, None])
+    return dict(
+        base,
+        available=True,
+        concordance=_f(observed),
+        null_95_low=_f(low),
+        null_95_high=_f(high),
+        p_two_sided=_f(spread.get("p_two_sided")),
+        inside_the_null=spread.get("observed_inside_the_null_interval"),
+        permutation_draws=spread.get("draws"),
+        permutation_seed=spread.get("seed"),
+        # WHICH OF THE FOUR READINGS THIS LEG SUPPORTS, composed from the three numbers by
+        # `tools.inference_claim` and never from the `inside_the_null` flag beside them, so a
+        # stale flag cannot change what the page says. A leg this file has no subject for gets no
+        # reading rather than a sentence about the wrong population.
+        reading=(concordance_reading(
+            subject=HORIZON_LEG_SUBJECTS[name], observed=_f(observed), null_low=_f(low),
+            null_high=_f(high), n=leg.get("decisions"))
+            if name in HORIZON_LEG_SUBJECTS else {
+                "reading": None, "distinguishable_from_no_information": None,
+                "sentence": None,
+                "why_no_reading": (
+                    "this leg's name is not one this page has a population for, so its interval "
+                    "is published and its reading is not -- a verdict has to name what it is a "
+                    "verdict about")}),
+    )
+
+
 def _skill_fixed_horizon(method_skill: dict) -> dict:
     """THE SECOND ESTIMAND, read off the run and NEVER recomputed here.
 
@@ -1804,6 +1906,27 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
                   "a denominator that does not add up is not evidence about a population."),
         }
     legs = horizon.get("legs") or {}
+    #: THE ESTIMAND IS THE HEADLINE OF THIS BLOCK, so the block stands or falls with it. A run that
+    #: ranked 161 decisions and permuted none of them publishes the ABSENCE, not the number: this
+    #: is the same fail-closed rule `_method_skill` applies to the survivor cut, arriving on the
+    #: cut whose direction is the unflattering one -- which is exactly why it had to be written
+    #: down rather than left to whoever reads the page next.
+    estimand = _horizon_leg_published("every_priced_decision_pounds_outcome",
+                                      legs.get("every_priced_decision_pounds_outcome"))
+    if estimand.get("withheld"):
+        return {
+            "available": False,
+            "withheld": True,
+            "concordance_withheld": estimand.get("concordance_withheld"),
+            "decisions_scored": horizon.get("decisions_scored"),
+            "reason": (
+                "the run that produced this artefact ranked its priced decisions and never "
+                "permuted them, so the estimand would go out as a point estimate with no bound "
+                "of its own while the survivor cut above it carries one. It is withheld until a "
+                "run carries an interval on this cut's own decisions: " + str(
+                    estimand.get("reason") or "the spread is absent")),
+        }
+    published_legs = {name: _horizon_leg_published(name, leg) for name, leg in legs.items()}
     return {
         "available": bool(horizon.get("available")),
         # PRESENT EVEN WHEN `available` IS FALSE, because "nothing could be ranked" is a result
@@ -1828,9 +1951,32 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
         # and the concordance -- the population and the unit -- so the legs travel one at a time
         # and are published together. A headline without them would be a number nobody could
         # source, which is the shape this file has already paid for twice.
-        "concordance": _f((legs.get("every_priced_decision_pounds_outcome") or {})
-                          .get("concordance")),
-        "legs": legs,
+        "concordance": estimand.get("concordance"),
+        # THE BOUND THE ESTIMAND'S OWN 161 DECISIONS EARN, and the verdict those three numbers
+        # compose. Until 2026-09-09 this line published `0.4209` and nothing else, while the
+        # survivor cut a few hundred pixels above carried `[0.4494, 0.5503]`, `p`, `inside_the_null`
+        # and a detectability block -- one number a reader could weigh and one they could not, on
+        # one page, inviting the subtraction.
+        "null_95_low": estimand.get("null_95_low"),
+        "null_95_high": estimand.get("null_95_high"),
+        "p_two_sided": estimand.get("p_two_sided"),
+        "inside_the_null": estimand.get("inside_the_null"),
+        "reading_of_the_estimand": estimand.get("reading"),
+        # ...AND WHAT THIS CUT COULD HAVE DETECTED, which the interval alone does not say. A null
+        # result from an instrument with no power to return anything else is not evidence of no
+        # effect. Every number is arithmetic on the interval one line above -- there is no second
+        # permutation here, so nothing can drift away from the figure it qualifies.
+        #
+        # THE ACCOUNT COUNT IS THIS LEG'S OWN. `ms.accounts` belongs to the survivor cut and
+        # putting it over this leg's n would be a decisions-per-account ratio built from two
+        # different populations, which is the shape this file exists to stop publishing.
+        "what_it_could_have_detected": detectability(
+            observed=estimand.get("concordance"),
+            null_low=estimand.get("null_95_low"),
+            null_high=estimand.get("null_95_high"),
+            n=estimand.get("decisions"),
+            accounts=estimand.get("accounts")),
+        "legs": published_legs,
         "zero_outcomes_the_world_recorded_as_a_departure": horizon.get(
             "zero_outcomes_the_world_recorded_as_a_departure"),
         "bound": horizon.get("bound"),

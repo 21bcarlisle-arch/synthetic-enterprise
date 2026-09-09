@@ -1918,6 +1918,10 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
     # is what `method_skill.concordance` is computed over, rebuilt here so the bridge starts where
     # the published figure is rather than somewhere near it.
     published = [row for row in rows if row["settled_within_the_horizon"]]
+
+    def _accounts(population: list[dict]) -> int:
+        return len({row["account"] for row in population})
+
     legs = {
         "the_published_population_ratio_outcome": _horizon_leg(
             [(row["signal"], row["ratio"]) for row in published],
@@ -1925,21 +1929,22 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
             "on the counterfactual-normalised ratio, with NO horizon test -- which is exactly the "
             "population and outcome `method_skill.concordance` uses. A control, not a finding: "
             "the two must agree through different code paths, and a disagreement is a defect "
-            "here rather than anything about the book."),
+            "here rather than anything about the book.", _accounts(published)),
         "settled_only_ratio_outcome": _horizon_leg(
             [(row["signal"], row["ratio"]) for row in settled],
             "the same decisions LESS the ones whose horizon had not closed. Against leg 0 this "
             "isolates CENSORING and nothing else -- one outcome, two populations, and the "
-            "difference is a bound a longer run removes rather than anything about the method."),
+            "difference is a bound a longer run removes rather than anything about the method.",
+            _accounts(settled)),
         "settled_only_pounds_outcome": _horizon_leg(
             [(row["signal"], row["pounds"]) for row in settled],
             "THE SAME decisions, scored in POUNDS. Against leg 1 this isolates the UNIT change "
-            "and nothing else -- one population, two outcomes."),
+            "and nothing else -- one population, two outcomes.", _accounts(settled)),
         "every_priced_decision_pounds_outcome": _horizon_leg(
             [(row["signal"], row["pounds"]) for row in scorable],
             "THE ESTIMAND. Leg 2's decisions PLUS the ones whose term settled nothing, at the "
             "0.0 they produced. Against leg 2 this isolates the POPULATION change and nothing "
-            "else -- one outcome, two populations."),
+            "else -- one outcome, two populations.", _accounts(scorable)),
     }
     scored = len(scorable)
     total_excluded = sum(excluded.values())
@@ -1995,13 +2000,46 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
     }
 
 
-def _horizon_leg(points: list[tuple[float, float]], what_it_is: str) -> dict:
-    """One leg of the bridge. Same estimator as the concordance, over a stated population."""
+def _horizon_leg(points: list[tuple[float, float]], what_it_is: str,
+                 accounts: int | None = None) -> dict:
+    """One leg of the bridge. Same estimator as the concordance, over a stated population.
+
+    EVERY LEG CARRIES THE INTERVAL ITS OWN SAMPLE EARNS, and that is a change of 2026-09-09. Until
+    it landed, the only permuted null in this file ran on `method_skill`'s points -- so the
+    estimand's 0.4209 on 161 decisions was published bare while the SURVIVOR cut's [0.4494,
+    0.5503] sat a few lines above it on the same page, computed over a different population. The
+    reader is then one subtraction away from borrowing an interval that does not belong to the
+    figure, which is this project's most expensive recurring shape: two correct numbers whose
+    relationship is not a quantity.
+
+    THE INTERVAL IS A FUNCTION OF THE POPULATION AND THE POINT NULL IS NOT, which is why both are
+    here and why they are different kinds of thing. `null_constant_signal_concordance` above must
+    be exactly 0.5 on every leg whatever the population -- a constant signal ties every pair -- so
+    it proves the ESTIMATOR is not broken and says nothing about whether THIS leg's number can be
+    told from a random signal at THIS leg's n. Two legs with different n carrying the same interval
+    would mean the interval was copied rather than computed.
+
+    COST, measured rather than assumed: 20,000 permutations of a 161-point leg is about eleven
+    seconds, against the two and a half hours the three simulation passes above it take. Four legs
+    is a rounding error on the run and the alternative -- recomputing the spread downstream from a
+    published n -- was rejected for `method_skill` and is rejected here for the same reason: it is
+    a SECOND source for one figure and the two would drift the first time either was touched.
+    """
     concordance, pairs, outcome_ties = _concordance(points)
     return {
         "what_it_is": what_it_is,
         "decisions": len(points),
+        # THIS LEG'S OWN ACCOUNT COUNT, and it is here because the decisions-per-account ratio is
+        # what turns an interval into a book size a reader can weigh. It is NOT the concordance's
+        # account count borrowed: the legs have different populations, and a count from one
+        # population over an n from another is a ratio that is not a quantity.
+        "accounts": accounts,
         "concordance": concordance,
+        # THE BOUND THIS LEG'S OWN SAMPLE EARNS. Computed on THIS leg's points -- never the
+        # concordance's, never another leg's. A leg whose population cannot support a permutation
+        # (fewer than three decisions, or every outcome identical) reports the ABSENCE with its
+        # reason, and the publisher withholds that leg's number rather than showing it bare.
+        "null_spread": concordance_null_spread(points, concordance),
         # MUST BE EXACTLY 0.5 ON EVERY LEG. A constant signal ties every pair and a signal tie
         # scores a half, so this is a function of the signal alone -- it cannot see the
         # population or the unit. That independence is what makes it a check on THIS leg's

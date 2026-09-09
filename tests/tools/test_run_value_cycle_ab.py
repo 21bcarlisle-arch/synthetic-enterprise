@@ -2820,6 +2820,107 @@ def test_the_departure_check_withholds_rather_than_reporting_zero_with_no_event_
     assert told["zero_outcomes_the_world_recorded_as_a_departure"] == 1
 
 
+def test_every_leg_carries_the_interval_ITS_OWN_population_earns_and_never_a_neighbours():
+    """THE PROPERTY, and it is a property rather than today's answer: **no cut of this bridge
+    carries a concordance without an interval permuted on that cut's own decisions.**
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09). The bridge published four concordances over four
+    different populations and the file's only permuted null ran on `method_skill`'s points. So the
+    estimand's 0.4209 on 161 decisions went out bare while the SURVIVOR cut's [0.4494, 0.5503] on
+    168 sat beside it, and a reader was one subtraction away from calling the arm worse than chance
+    using a bound belonging to a different population.
+
+    HOW THE PROPERTY IS PROVED, and why a value assertion would not do it. "Each leg has an
+    interval" is satisfied by copying ONE interval onto all four -- the exact defect -- so the
+    control perturbs a population and watches which intervals move. A0's 2023 renewal settles in
+    March against a book observed only to June, so it is CENSORED: leg 0 has it (the concordance
+    applies no horizon test) and legs 1-3 do not. One decision, one leg.
+
+    So: leg 0's interval MOVES and the other three are byte-identical. A spread copied from the
+    headline moves none of them; a spread copied across legs moves all four. Both die here.
+
+    Fires on: `null_spread` computed once and shared; on it computed from `method_skill`'s points;
+    on a leg publishing `concordance` with an unavailable spread.
+    """
+    log, records = _a48_rising()
+    # THE EXTRA SETTLEMENT IS INERT IN THE BASE RUN and that is what makes this one variable. With
+    # no 2023 term in the log, `_term_period_of` attributes a 2023-03-01 row to nothing (it is
+    # past `_TERM` + `_TERM_DAYS`), so both runs see the SAME settled book and differ only in the
+    # one priced decision. Putting it in only the perturbed run would move the book too.
+    records2 = list(records) + [_a48_settled("A0", paid_gbp=2000.0, net_gbp=900.0,
+                                             on="2023-03-01")]
+    base = method_skill(_a48_run(
+        log, _a48_observed_until(records2, "2023-06-01")))["fixed_horizon"]
+    censored = method_skill(_a48_run(
+        log + [_a48_priced("A0", 3.0, term=_LATER_TERM)],
+        _a48_observed_until(records2, "2023-06-01")))["fixed_horizon"]
+
+    # REACHABILITY FIRST. "Survived" means two opposite things when a branch was never entered,
+    # so the perturbation is asserted to have landed where it was aimed before anything is graded.
+    assert censored["excluded_by_reason"]["horizon_open_at_the_end_of_the_settled_book"] == 1
+    moved = "the_published_population_ratio_outcome"
+    assert (censored["legs"][moved]["decisions"]
+            == base["legs"][moved]["decisions"] + 1), "the fixture never moved leg 0"
+
+    for name, leg in censored["legs"].items():
+        spread = leg["null_spread"]
+        assert leg["concordance"] is not None, name
+        assert spread["available"] is True, (name, spread.get("reason"))
+        low, high = spread["null_95_interval"]
+        assert low < high, name
+
+    # THE ONE LEG WHOSE POPULATION CHANGED IS THE ONE WHOSE INTERVAL CHANGED.
+    assert (censored["legs"][moved]["null_spread"]["null_95_interval"]
+            != base["legs"][moved]["null_spread"]["null_95_interval"])
+    for name in censored["legs"]:
+        if name == moved:
+            continue
+        assert (censored["legs"][name]["null_spread"]["null_95_interval"]
+                == base["legs"][name]["null_spread"]["null_95_interval"]), name
+        assert censored["legs"][name]["decisions"] == base["legs"][name]["decisions"], name
+
+    # ...AND WITHIN ONE RUN, TWO LEGS OF DIFFERENT SIZE DO NOT SHARE A BOUND. This is what a
+    # single interval broadcast across the table would look like, and it is the cheap wrong fix.
+    assert (censored["legs"][moved]["null_spread"]["null_95_interval"]
+            != censored["legs"]["every_priced_decision_pounds_outcome"]["null_spread"][
+                "null_95_interval"])
+
+    # THE POINT NULL IS NOT THE INTERVAL. It is a function of the signal alone -- a constant
+    # signal ties every pair -- so it must be exactly 0.5 on every leg whatever the population,
+    # while the interval must not be. A leg where the two moved together would mean one of them
+    # is not what its name says.
+    for name, leg in censored["legs"].items():
+        assert leg["null_constant_signal_concordance"] == 0.5, name
+
+    # THE ACCOUNT COUNT IS THE LEG'S OWN, because decisions-per-account is what turns an interval
+    # into a book size and a count from one population over an n from another is not a quantity.
+    assert censored["legs"][moved]["accounts"] == 4
+    for name, leg in censored["legs"].items():
+        assert 0 < leg["accounts"] <= leg["decisions"], name
+
+
+def test_a_leg_whose_population_cannot_be_permuted_reports_the_ABSENCE_not_a_bound():
+    """FAIL CLOSED at the small end, because that is where this figure lives.
+
+    A leg with fewer than three decisions, or one where every decision produced the same outcome,
+    has no sampling distribution -- and `concordance_null_spread` says so rather than returning a
+    width. That refusal has to survive the trip through `_horizon_leg`, or the publisher above it
+    has nothing to withhold on and the page shows a bare number.
+
+    Fires on: `_horizon_leg` swallowing an unavailable spread into a default interval; on it
+    calling the permutation with the concordance's points when its own are too few.
+    """
+    two = rvca._horizon_leg([(1.0, 10.0), (2.0, 20.0)], "two decisions cannot be permuted")
+    assert two["concordance"] == 1.0
+    assert two["null_spread"]["available"] is False
+    assert "three" in two["null_spread"]["reason"]
+
+    # ...and the other refusal: a population that could be permuted and has nothing to rank.
+    flat = rvca._horizon_leg([(float(i), 7.0) for i in range(6)], "one outcome for everybody")
+    assert flat["concordance"] is None, "the fixture never reached the unrankable branch"
+    assert flat["null_spread"]["available"] is False
+
+
 def test_a_book_with_no_settlement_dates_censors_everything_rather_than_scoring_it():
     """FAIL CLOSED at the boundary itself. With no observation end there is no way to tell a
     finished horizon from an unfinished one, so nothing may be scored.

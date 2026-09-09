@@ -724,15 +724,63 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + "needs.") + "</p>";
     }
     var legs = fh.legs || {};
+    /* EVERY ROW CARRIES THE INTERVAL ITS OWN SAMPLE EARNS, OR IT CARRIES NO NUMBER (2026-09-09).
+
+       Until this column existed the table showed four concordances over four different
+       populations and ONE interval — `method_skill.null_spread`, permuted over the survivor cut's
+       decisions and rendered a few hundred pixels above. A reader who read 0.4209 as "below
+       0.4494, therefore worse than chance" was borrowing a bound from a population that figure
+       was never computed on, and the page invited it by showing one bounded number beside four
+       bare ones.
+
+       A leg the run could not permute renders WITHHELD and its reason, never its number. That is
+       the producer's own refusal reaching the surface rather than being smoothed into a dash. */
     var row = function (label, leg, emphasis) {
       var c = leg && (leg.concordance === 0 || leg.concordance) ? leg.concordance : null;
+      var lo = leg && (leg.null_95_low === 0 || leg.null_95_low) ? leg.null_95_low : null;
+      var hi = leg && (leg.null_95_high === 0 || leg.null_95_high) ? leg.null_95_high : null;
+      var figure;
+      if (c === null && leg && leg.withheld) {
+        figure = '<span style="color:var(--amber);" title="' + esc(leg.reason || "")
+          + '">withheld</span>';
+      } else if (c === null) {
+        figure = "&mdash;";
+      } else {
+        figure = Number(c).toFixed(4);
+      }
+      /* THE BOUND IS NEVER BLANK. A leg with a number and no interval cannot occur — the row
+         above withholds the number — so an empty cell here would be a rendering defect and is
+         written as one rather than left to look like a missing value. */
+      var bound;
+      if (lo === null || hi === null) {
+        bound = '<span style="color:var(--amber);">no interval on this cut’s own n</span>';
+      } else {
+        bound = Number(lo).toFixed(4) + "&ndash;" + Number(hi).toFixed(4)
+          + (leg.p_two_sided === 0 || leg.p_two_sided
+              ? '<span style="color:var(--muted);"> · p ' + Number(leg.p_two_sided).toFixed(3)
+                + "</span>"
+              : "");
+      }
       return "<tr><td style=\"text-align:right;padding:1px 10px 1px 0;"
-        + (emphasis ? "font-weight:600;" : "") + '">'
-        + (c === null ? "&mdash;" : Number(c).toFixed(4))
+        + (emphasis ? "font-weight:600;" : "") + '">' + figure
+        + '</td><td style="text-align:right;padding:1px 10px 1px 0;white-space:nowrap;">'
+        + bound
         + '</td><td style="text-align:right;padding:1px 10px 1px 0;">'
         + esc(leg && leg.decisions !== undefined ? leg.decisions : "—")
         + '</td><td style="padding:1px 0;' + (emphasis ? "font-weight:600;" : "") + '">'
         + label + "</td></tr>";
+    };
+    /* THE THREE READINGS A READER WOULD OTHERWISE CONFLATE, in the page's own words. The producer
+       permutes; `tools.inference_claim.concordance_reading` decides which of the four things the
+       three numbers support; this renders the sentence it composed. Nothing here types a verdict,
+       so the day the arm starts ranking its departures correctly this block says so and nobody
+       edits it. Amber for the two that qualify the figure, muted for the one that clears it. */
+    var verdict = function (r) {
+      if (!r || !r.sentence) { return ""; }
+      var flat = r.reading === "better_than_chance";
+      return '<p style="margin:0 0 6px;font-size:11.5px;'
+        + (flat ? "color:var(--muted);" : 'color:var(--amber);font-weight:600;') + '">'
+        + prose(r.sentence) + "</p>";
     };
     return '<p style="margin:10px 0 4px;font-size:11.5px;color:var(--muted);">'
       + "<strong>And the same question over every decision the arm priced?</strong> "
@@ -740,6 +788,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
       + 'margin:0 0 6px;border-collapse:collapse;"><tr>'
       + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Rank</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">What a "
+      + "no-information signal reaches on THIS cut&rsquo;s n</th>"
       + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Decisions</th>"
       + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Population and outcome</th>"
       + "</tr>"
@@ -767,6 +817,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
             + "ended &mdash; a run-length artefact, not a poor outcome"
           : "")
       + ". " + esc(fh.reconciliation || "") + ".</p>"
+      /* WHICH OF THE THREE READINGS THE ESTIMAND SUPPORTS, before the bridge's own prose. A
+         reader arriving at 0.4209 has to be told whether it is distinguishable from a signal
+         carrying nothing BEFORE being told what the legs decompose into, or the decomposition
+         reads as an account of a real effect that may not be one. */
+      + verdict(fh.reading_of_the_estimand)
+      /* ...AND WHAT THIS CUT COULD HAVE DETECTED, which the interval alone does not say. "We
+         cannot tell" from an instrument that could never have said anything else is a statement
+         about the instrument, and it reads identically to a flat method without this. */
+      + (fh.what_it_could_have_detected && fh.what_it_could_have_detected.available
+          ? '<p style="margin:0 0 6px;font-size:11px;color:var(--muted);">'
+            + prose(fh.what_it_could_have_detected.sentence) + "</p>"
+          : (fh.what_it_could_have_detected
+              ? '<p style="margin:0 0 6px;font-size:11px;color:var(--amber);">'
+                + prose(fh.what_it_could_have_detected.reason) + "</p>"
+              : ""))
       + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
       + prose(fh.reading) + "</p>"
       /* THE BOUND, AND IT IS A DIFFERENT BOUND FROM THE ONE ABOVE. Pounds carry account size and

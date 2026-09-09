@@ -285,6 +285,82 @@ def cannot_tell_sentence(*, subject: str, observed, null_low, null_high,
     return None
 
 
+#: THE FOUR THINGS A CONCORDANCE CAN SAY, named here before any of them is computed, because the
+#: cause split follows from the definition and never the other way round. Held as a tuple so a
+#: reading nobody enumerated cannot appear on a surface.
+#:
+#: The first two are the pair a reader conflates and they are OPPOSITE claims: one says the
+#: instrument returned nothing, the other says the instrument had nothing to return with. The last
+#: two exist so this is keyed to the PROPERTY rather than to today's answer -- on the day the arm
+#: starts ranking its departures correctly the same code says so and nobody edits a sentence.
+CONCORDANCE_READINGS = (
+    "this_run_cannot_tell",
+    "not_distinguishable_from_no_information",
+    "worse_than_chance",
+    "better_than_chance",
+)
+
+
+def concordance_reading(*, subject: str, observed, null_low, null_high, n=None,
+                        unit: str = "decisions") -> dict:
+    """WHICH of the four readings this figure supports, and the words for it.
+
+    WHY THIS EXISTS BESIDE `cannot_tell_sentence` AND NOT INSTEAD OF IT. That function answers one
+    question -- may a reader take this figure as carrying information? -- and answers it correctly
+    for BOTH of the cases where the answer is no. It returns the same sentence when the interval
+    swallows the reading and when there is no interval at all, and its docstring says so on
+    purpose: to a reader deciding whether to believe a number, those are one answer.
+
+    They are not one answer to a reader deciding what to DO. "The figure is flat on the sample we
+    have" is fixed by a larger book; "this run carries no interval" is fixed by running something,
+    costs nothing to establish, and says nothing whatever about the method. A page that renders one
+    sentence for both tells the reader the wrong one half the time.
+
+    AND THE DIRECTION IS A THIRD THING AGAIN. A concordance BELOW its own interval is not a weak
+    result -- it is a strong result pointing the other way: the price ranks the value it produced
+    in the wrong order, which is the director's own case for what a maximiser on a one-sided
+    objective does. Publishing that as "we cannot tell" because it failed to clear upward would be
+    the flattering error, and the flattering error is the one nobody checks.
+
+    THE INSIDE/OUTSIDE TEST IS NOT REPEATED HERE. `cannot_tell_sentence` is asked, and its answer
+    is what routes the first two readings, so the sentence and the key cannot come apart. Only the
+    SIDE is decided below, and only once the bounds are known to exist.
+
+    Returns `reading` (one of `CONCORDANCE_READINGS`), `distinguishable_from_no_information`
+    (True/False/None -- None is "we could not ask", never False), and `sentence`, which is always
+    a string: there is no state of this function in which a surface has nothing to render.
+    """
+    cannot = cannot_tell_sentence(subject=subject, observed=observed, null_low=null_low,
+                                  null_high=null_high, n=n, unit=unit)
+    undecidable = observed is None or null_low is None or null_high is None
+    if undecidable:
+        return {"reading": "this_run_cannot_tell",
+                "distinguishable_from_no_information": None,
+                "sentence": cannot}
+    if cannot is not None:
+        return {"reading": "not_distinguishable_from_no_information",
+                "distinguishable_from_no_information": False,
+                "sentence": cannot}
+    span = "" if n is None else " on {} {}".format(n, unit)
+    below = observed < null_low
+    return {
+        "reading": "worse_than_chance" if below else "better_than_chance",
+        "distinguishable_from_no_information": True,
+        "sentence": (
+            "On {subject}, this run reads {word} chance: {obs:.3f} sits {side} the "
+            "{lo:.3f}–{hi:.3f} a signal carrying no information reaches{span}. {gloss}"
+        ).format(
+            subject=subject, obs=observed, lo=null_low, hi=null_high, span=span,
+            word="WORSE than" if below else "BETTER than",
+            side="BELOW" if below else "ABOVE",
+            gloss=(
+                "The ranking is real and INVERTED -- which is not the same as carrying nothing, "
+                "and is the worse of the two findings."
+                if below else
+                "The ranking carries information at this sample size.")),
+    }
+
+
 #: The multiples of the run's own sample the published curve is drawn at. Multiples rather than
 #: absolute counts so the curve always brackets the sample it describes: a fixed ladder of round
 #: numbers would sit entirely above or entirely below a small n and the reader could not place the

@@ -4054,6 +4054,148 @@ def test_the_two_ABSENCES_are_told_apart_on_the_page():
     assert "does not add up" not in other
 
 
+def _fh_ranked(descending: bool, n: int = 8):
+    """A book the arm ranked PERFECTLY, one way or the other, on `n` decisions.
+
+    Eight decisions is the smallest population whose permuted interval (0.214–0.786) a perfect
+    ranking clears in EITHER direction, which is what makes both outer readings reachable from
+    the real producer rather than from a hand-written leg. The margin rises across accounts; the
+    net margin either falls with it (the arm's dearest prices produced least — the extracting
+    book) or rises with it.
+    """
+    log = [_fh_priced("A%d" % i, 1.0 + i) for i in range(n)]
+    records = [_fh_settled("A%d" % i, paid=2000.0,
+                           net=100.0 * ((n - i) if descending else (i + 1)))
+               for i in range(n)]
+    records.append(_fh_settled("SPECTATOR", paid=1.0, net=1.0, on="2024-01-05"))
+    return log, records, None
+
+
+def test_NO_CUT_of_the_bridge_reaches_the_reader_without_the_interval_its_own_n_earns():
+    """THE PROPERTY, at the surface where the defect actually bit.
+
+    Until 2026-09-09 this table rendered four concordances over four populations and no interval,
+    while the survivor cut a few hundred pixels above carried [0.4494, 0.5503], a p and a
+    detectability block. The published estimand was 0.4209 on 161 decisions and the visible
+    interval belonged to 168 different ones. Nothing stopped a reader subtracting.
+
+    BOTH SIDES ARE DRIVEN. A leg with its own interval shows both; a leg whose run could not
+    permute it shows WITHHELD and no number. A page that withheld everything would pass the
+    second half alone, which is why the first half is asserted on the same feed.
+
+    Fires on: the interval column dropped; on one interval broadcast across the rows; on a leg
+    with no spread rendering its concordance anyway.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_book())
+    rendered = _text(_render(feed)["arms-method"])
+
+    assert "no-information signal reaches on THIS cut" in rendered
+    for name, leg in produced["legs"].items():
+        low, high = leg["null_spread"]["null_95_interval"]
+        assert ("%.4f" % leg["concordance"]) in rendered, name
+        assert ("%.4f–%.4f" % (low, high)) in rendered, name
+
+    # A LEG WITH NO INTERVAL LOSES ITS NUMBER, and the page says which state it is in. The run's
+    # own refusal is what travels: `_horizon_leg_published` withholds and this renders it.
+    from tools.generate_value_arms_data import _skill_fixed_horizon
+    stripped = copy.deepcopy(produced)
+    bare_leg = stripped["legs"]["settled_only_pounds_outcome"]
+    bare_leg.pop("null_spread")
+    partial = copy.deepcopy(feed)
+    partial["method_skill"]["fixed_horizon"] = _skill_fixed_horizon({"fixed_horizon": stripped})
+    text = _text(_render(partial)["arms-method"])
+    assert "withheld" in text
+    assert "no interval on this cut" in text
+    # ...and the legs that DO have their own bound are untouched, or "withheld" is furniture.
+    kept = stripped["legs"]["every_priced_decision_pounds_outcome"]
+    assert ("%.4f" % kept["concordance"]) in text
+
+
+def test_the_page_tells_WORSE_THAN_CHANCE_apart_from_WE_CANNOT_TELL():
+    """THE WHOLE PARTITION, on the surface, from the real producer.
+
+    These are three answers a reader conflates and they need three different things. *Inside its
+    own interval* means a larger book. *Below it* means the arm's ranking is real and INVERTED --
+    the director's own case, and the finding this instrument exists to be able to report. *No
+    interval at all* means running something and says nothing about the method.
+
+    ONE CONTROL OVER THE PARTITION rather than a leg per branch: a page that printed "we cannot
+    tell" for every state would pass any single-branch test, and "we cannot tell" is the
+    flattering reading of a figure that points the wrong way.
+
+    Fires on: the verdict sentence not rendered; on the below-interval case reading as "we cannot
+    tell"; on the amber styling applied unconditionally, which would make the emphasis say nothing.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_ranked(descending=True))
+    estimand = produced["legs"]["every_priced_decision_pounds_outcome"]
+    low, _high = estimand["null_spread"]["null_95_interval"]
+    assert estimand["concordance"] < low, "the fixture never reached the below-interval branch"
+    worse = _text(_render(feed)["arms-method"])
+    assert "reads WORSE than chance" in worse
+    assert "ranking is real and INVERTED" in worse
+    assert "we cannot tell: 0.000" not in worse
+
+    # THE OTHER SIDE OF THE PARTITION, same book with the outcome order reversed.
+    rising, feed_up = _fixed_horizon_feed(*_fh_ranked(descending=False))
+    up = rising["legs"]["every_priced_decision_pounds_outcome"]
+    assert up["concordance"] > up["null_spread"]["null_95_interval"][1]
+    better = _text(_render(feed_up)["arms-method"])
+    assert "reads BETTER than chance" in better
+
+    # ...AND THE MIDDLE, which is where every real run of this book has sat. The small fixture's
+    # 0.6 on five decisions cannot clear an interval that runs 0.100-0.900.
+    flat_produced, flat_feed = _fixed_horizon_feed(*_fh_book())
+    flat_leg = flat_produced["legs"]["every_priced_decision_pounds_outcome"]
+    flat_low, flat_high = flat_leg["null_spread"]["null_95_interval"]
+    assert flat_low <= flat_leg["concordance"] <= flat_high
+    flat = _text(_render(flat_feed)["arms-method"])
+    assert "we cannot tell" in flat
+    assert "reads WORSE than chance" not in flat
+    assert "reads BETTER than chance" not in flat
+
+    # THE STYLING CARRIES THE MEANING and `_text` is blind to it. A verdict that qualifies the
+    # figure is amber; one that clears it is not. Ambering both would make the emphasis furniture.
+    def _paragraph_around(raw, phrase):
+        """The one `<p>` element carrying `phrase`, so the styling asserted is that verdict's own
+        and not whatever markup happens to sit near it."""
+        at = raw.index(phrase)
+        return raw[raw.rindex("<p", 0, at):raw.index("</p>", at)]
+
+    assert "--amber" in _paragraph_around(
+        _render(feed, raw=True)["arms-method"], "reads WORSE than chance")
+    assert "--amber" not in _paragraph_around(
+        _render(feed_up, raw=True)["arms-method"], "reads BETTER than chance"), (
+        "the clearing verdict was styled as a caveat, so the amber says nothing")
+
+
+def test_what_the_UNSELECTED_cut_could_have_detected_reaches_the_reader():
+    """"WE CANNOT TELL" FROM AN INSTRUMENT THAT COULD NEVER HAVE SAID ANYTHING ELSE.
+
+    The interval says the figure is flat. It does not say whether a flat reading was the only
+    reading available, and those look identical on a page. The survivor cut has carried this block
+    since 2026-09-04; the estimand carried nothing until 2026-09-09, so the unflattering cut was
+    the one a reader could not weigh.
+
+    THE COUNT IS THIS CUT'S OWN. `method_skill.accounts` and `method_skill.decisions_scored`
+    belong to the survivor population, and either of them over this leg's n is a ratio that is not
+    a quantity.
+
+    Fires on: the block rendered from `msk.what_it_could_have_detected` (the survivor cut's) --
+    which would put the wrong n on the page and pass every text check that does not read it.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_book())
+    estimand = produced["legs"]["every_priced_decision_pounds_outcome"]
+    rendered = _text(_render(feed)["arms-method"])
+
+    assert "smallest departure from 0.5 this instrument could have called" in rendered
+    assert "On the %d decisions it had" % estimand["decisions"] in rendered
+    survivors = (feed["method_skill"] or {}).get("decisions_scored")
+    if survivors and survivors != estimand["decisions"]:
+        assert "On the %d decisions it had" % survivors not in rendered.split(
+            "And the same question over every decision the arm priced?")[-1], (
+            "the estimand's detectability block was computed on the survivor cut's population")
+
+
 # ── the split IS the headline, and the selection leg's refusal reaches a reader ───────────────
 #
 # WHY THESE ARE HERE AND NOT IN A NEW FILE. Same page, same door, same harness, same PANELS
