@@ -59,14 +59,17 @@ GRAPH = DATA / "knowledge_wholesale.json"
 #: Pages whose body carries no `written` date, so the comparison has no second term. Named with
 #: the reason, and held by equality below -- this is a printed gap, never a silent skip.
 UNGRADED = {
-    # its body IS the topic graph, which every topic's record also lives in; that file carries a
-    # claim_freshness with no `written` date and a note explaining why its review date is held
-    # still. Tying it to itself would grade the record against the record.
-    "electricity-wholesale",
     # its body is `weather_cells.json`, a data artefact rather than a written Knowledge record;
     # it carries no claim_freshness at all, so there is no claim of authorship to compare.
     "weather-cells",
 }
+# `electricity-wholesale` was here for one commit, on the reasoning that its body IS the topic
+# graph so grading it would grade the record against the record. That was wrong, and the record
+# said so itself: its claim_freshness carried a `written_sections_2026_08_24` list naming FIVE of
+# its SEVEN rungs. The page was rendering "Reviewed 2026-07-25" over a body five-sevenths written
+# a month after that check -- the same defect as the six, in the file the rule reads from, and
+# invisible to this control only because the date was spelled in a field name instead of a field.
+# The note holding that date still was right; what the page rendered beside it was not.
 
 
 def _graph() -> dict:
@@ -115,9 +118,9 @@ def _gradeable() -> list[str]:
 def test_the_graded_set_has_not_emptied():
     """POPULATION FLOOR. A control keyed to a structure that moved reports PASS on an empty
     subject list, and this one derives its subjects from markup and from a `written` field --
-    two things that can both stop being found. Fourteen of sixteen topics are gradeable."""
+    two things that can both stop being found. Fifteen of sixteen topics are gradeable."""
     graded = _gradeable()
-    assert len(graded) >= 14, f"only {len(graded)} pages gradeable: {graded}"
+    assert len(graded) >= 15, f"only {len(graded)} pages gradeable: {graded}"
 
 
 def test_the_ungraded_set_is_exactly_what_it_says():

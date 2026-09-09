@@ -118,22 +118,62 @@ The first poison round I wrote **did not fire**, and that is worth keeping: it p
 so the comparison returned early and a live rule read exactly like a dead one. The poison round
 found the defect in the poison round. The reason is written into the test.
 
+## 5. Increment 2: the seventh page, and two more defects under it
+
+Landed separately after `6ad1aa5d3`. "What is next" item 2 said `electricity-wholesale` was
+ungraded and should not stay that way. Following it produced **a live instance, not a tidy-up.**
+
+Its `claim_freshness` carried a field named `written_sections_2026_08_24` listing **five of its
+seven rungs**, beside a note that was exactly right — *"That is authorship, not verification …
+`last_verified` stays where it was"* — and correctly refused to move the date. But the badge went
+on rendering **"Claims verified: 2026-07-25"** over a body five-sevenths written a month later.
+**The note was honest and what it rendered was not**, and my new control could not see it purely
+because the date was spelled in a *field name* instead of a field.
+
+So the same correction was applied: `last_verified: null`, `written: 2026-08-24`,
+`superseded_check` holding the void date. Honest tally is now **`{fresh 9, unchecked 7}`**.
+`electricity-wholesale` leaves the ungraded set — only `weather-cells` remains, and it is not a
+written Knowledge record at all.
+
+Two further defects fell out, and both are the same shape as the finding itself:
+
+1. **A control that went red when the page became more honest.**
+   `test_both_staleness_dimensions_present` asserted `claim_freshness["last_verified"]` was
+   *truthy* — it demanded the page claim a check, and fired on the day it admitted it had none.
+   That is CLAUDE.md's *"key a control to the property, not to today's answer"*, with a live
+   instance. Rekeyed: the dimension must be **answered** — a date, or a null **with what it
+   supersedes**. A missing key and a bare unexplained null are both still red, poison-checked.
+
+2. **The honest state reached the reader as the literal word `null`.** The stamp did
+   `'Claims verified: '+esc(cf.last_verified)` with no branch, so the first render after the
+   correction served **"Claims verified: null"**. Caught by driving the real markup against the
+   real feed rather than by reading the diff. The page now branches, and
+   `test_the_unchecked_state_reaches_the_reader_as_words_and_never_as_null` grades the sentence a
+   reader actually gets: **"Claims: written 2026-08-24, awaiting check"**.
+
+The poison round for that last one was run before the fix, not after: the unbranched page was
+driven through the live harness and did serve the word `null`. 126 green in `site/knowledge/`.
+
+**The general lesson, which is the finding's own shape one turn later:** telling the truth in a
+record is not enough on its own. Three separate things — a control, a template, and a badge —
+were each built assuming the answer would always be a date, and every one of them broke or lied
+when the answer became *"we have not checked"*. **A system that cannot render "we cannot tell"
+will quietly pressure every record into claiming it can.**
+
 ## What is next
 
-1. **Six Knowledge pages now honestly say they have never been checked, and that is a real debt,
-   not a formatting change.** `gb-electricity-market`, `merit-order-residual-demand`,
+1. **Seven Knowledge pages now honestly say they have never been checked, and that is a real
+   debt, not a formatting change.** `gb-electricity-market`, `merit-order-residual-demand`,
    `gas-wholesale`, `carbon-price`, `imbalance-cashout-settlement`, `hedging-forward-market` —
    written 2026-08-24 from established mechanism, never checked against a published source. The
    2026-08-19 review of their predecessors found **two of six materially wrong**, which is the
    best available prior for what a real check of these six would turn up. This is the largest
    thing this turn leaves open and it is now visible on the pages themselves rather than hidden
    behind a badge that said otherwise.
-2. **`electricity-wholesale` is ungraded and should not stay that way.** Its body IS the topic
-   graph, which carries no `written` date, so the comparison has no second term — and that file
-   is edited constantly, including by this commit. Its 2026-07-25 review date is the one
-   remaining place where a check could drift from its body unnoticed. Giving that record a
-   `written` date would bring it into grading; deciding what that date should be is a judgement
-   about a note that deliberately holds its review date still, and I did not make it here.
+2. ~~`electricity-wholesale` is ungraded and should not stay that way.~~ **Done in increment 2
+   (§5)** — and it was a live instance, not the tidy-up this line expected. Every one of the
+   sixteen topics is now either graded or, in the single remaining case, not a written Knowledge
+   record.
 3. **The `checked_by: "worker"` shape deserves a sweep beyond Knowledge.** A write stamping
    itself verified survived five days after the control against it shipped, because it lived in
    an unrendered, ungraded home. Nothing here establishes whether other feeds carry the same

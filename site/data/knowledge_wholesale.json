@@ -12,7 +12,9 @@
    "note": "Every chart on this page is the real Elexon SSP extract captured 2025-06-07, covering 2015-11 to 2025-05; the header stamp is that vintage and not the date of the last review. Corrected 2026-08-12: this said 2026-07 with a cadence of 'monthly' while the series beneath it ended 2025-05, so the header claimed data thirteen months newer than any datum on the page. The claims are reviewed separately -- see claim_freshness."
   },
   "claim_freshness": {
-   "last_verified": "2026-07-25",
+   "last_verified": null,
+   "written": "2026-08-24",
+   "superseded_check": {"last_verified": "2026-07-25", "source": "GB multi-plant SRMC dispatch stack DISCOVER", "why_void": "It covered the two rungs that existed then. Five of the seven this page now serves were written on 2026-08-24 and have never been checked, so the date described two-sevenths of the body a reader meets."},
    "source_pass": "GB multi-plant SRMC dispatch stack DISCOVER",
    "note": "REVIEW DATE DELIBERATELY NOT MOVED. Five of this page's seven sections were EMPTY STRINGS until 2026-08-24 — it rendered its headings over nothing, and its 21kB HTML file did not look like a stub next to its siblings. Those five were WRITTEN on 2026-08-24 from established market mechanism. That is authorship, not verification: the two original claims were checked against sources on 2026-07-25 and nobody has re-checked them since, so `last_verified` stays where it was. site/knowledge/test_review_state.py::test_no_review_date_exists_without_evidence_of_the_check caught the first attempt to move it, which is exactly what it is for — a date must not be typed in without saying what it was checked against, and 'I wrote some prose' is not a check.",
    "written_sections_2026_08_24": [
@@ -861,9 +863,14 @@
    "blurb": "How the GB wholesale electricity price is set at the margin.",
    "rate_of_change": "medium",
    "reviewed": {
-    "last_verified": "2026-07-25",
-    "source": "GB multi-plant SRMC dispatch stack DISCOVER"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-07-25",
+      "source": "GB multi-plant SRMC dispatch stack DISCOVER",
+      "why_void": "Held deliberately at 2026-07-25 by the note in meta.claim_freshness, which was right that authorship is not verification -- and the badge went on reading Reviewed 2026-07-25 over a body five-sevenths written a month later. The note was honest; what it rendered was not."
+     }
+    }
   },
   {
    "id": "gas-wholesale",
