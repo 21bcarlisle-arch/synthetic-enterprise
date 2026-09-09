@@ -173,9 +173,21 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: HELD HERE ON 2026-09-09 WHEN THE 09-08b PAIR WAS PROMOTED TO THE CANONICAL PATH, and the move
 #: that was tried and reverted is written down because the reason is a property.
 #:
-#: The case for moving: `THREE_ARM_PATH` now carries the 21:01:30Z run in world `39a192ce04c1eda8`
-#: -- the live world -- so `error_bar.world_caveat` is `None`, and what this block exists to correct
-#: (a headline measured in a SUPERSEDED world) no longer exists. Pointing both constants at one run
+#: The case for moving, AS IT STOOD ON 2026-09-09: `THREE_ARM_PATH` then carried
+#: `value_cycle_ab_s1_three_arm_20260908b.json` (21:01:30Z) in world `39a192ce04c1eda8`
+#: -- the live world -- so `error_bar.world_caveat` was `None`, and what this block exists to correct
+#: (a headline measured in a SUPERSEDED world) did not exist.
+#:
+#: THE STAMP IS NOW NAMED VIA ITS DATED SIBLING RATHER THAN AS A PRESENT-TENSE CLAIM, because the
+#: sentence "`THREE_ARM_PATH` now carries the 21:01:30Z run" WENT FALSE without this file being
+#: touched: the 09-09 pair was promoted onto the canonical path later the same day and the comment
+#: still said 21:01:30Z. Found by `tools/promoted_artefact_claim_census.py`, which is the census of
+#: exactly this class -- a promote-by-copy moves BYTES, so no constant, import or source line
+#: changes and every control keyed to a constant is blind to it. A claim about which run is at a
+#: promoted path either names the dated sibling it means or is derived from the payload; stating a
+#: stamp in the present tense beside a canonical path is the defect itself.
+#:
+#: The argument the case makes is unaffected by that repair. Pointing both constants at one run
 #: makes the block a tautology that ANNOUNCES itself, in `_against_the_superseded_panel`'s
 #: `the_same_run` branch: "the two figures are one figure printed twice, not a comparison".
 #:
