@@ -341,13 +341,112 @@ def test_cost_to_serve_is_only_paid_on_a_customer_who_STAYS():
     inside, raising the margin until they leave is a legitimate outcome the arithmetic can reach."""
     kept = vbr.expected_value_gbp(margin_gbp_per_mwh=5.0, eac_mwh=3.1,
                                   cost_to_serve_gbp_per_year=55.0, p_retain=1.0,
-                                  expected_periods=1.0, discount_rate=0.0)
+                                  expected_periods=1.0, discount_rate=0.0,
+                                  departure_cost_gbp=0.0)
     gone = vbr.expected_value_gbp(margin_gbp_per_mwh=5.0, eac_mwh=3.1,
                                   cost_to_serve_gbp_per_year=55.0, p_retain=0.0,
-                                  expected_periods=1.0, discount_rate=0.0)
+                                  expected_periods=1.0, discount_rate=0.0,
+                                  departure_cost_gbp=0.0)
 
     assert kept == pytest.approx(5.0 * 3.1 - 55.0)
+    # The DEPARTURE TERM IS ZEROED HERE ON PURPOSE, because this leg is about where cost to serve
+    # sits and nothing else. With a replacement cost the departed branch is -K rather than 0, and
+    # a test that let both terms move at once could not say which one it had measured.
     assert gone == 0.0, "a departed customer still cost something to serve"
+
+
+# --------------------------------------------------------------------------- #
+# The departure term                                                           #
+# --------------------------------------------------------------------------- #
+
+def test_a_DEPARTURE_costs_the_sourced_replacement_and_not_zero():
+    """THE DEFECT: until 2026-09-09 losing a customer subtracted exactly nothing, so no price this
+    arm chose was ever charged for the departure it caused. Keyed to the PROPERTY -- the gap
+    between the two branches is the replacement cost -- and not to today's 27.50, so it stays true
+    when the sourced figure is re-measured and goes red if the term is dropped."""
+    args = dict(margin_gbp_per_mwh=5.0, eac_mwh=3.1, cost_to_serve_gbp_per_year=55.0,
+                expected_periods=1.0, discount_rate=0.0)
+    half_priced = vbr.expected_value_gbp(p_retain=0.5, departure_cost_gbp=40.0, **args)
+    half_free = vbr.expected_value_gbp(p_retain=0.5, departure_cost_gbp=0.0, **args)
+
+    assert half_priced == pytest.approx(half_free - 0.5 * 40.0)
+    assert half_priced < half_free, "a departure that costs something must lower the value"
+
+    # AND IT IS PROPORTIONAL TO THE DEPARTURE, not a flat toll on every decision. A customer the
+    # company is certain of pays it nothing; the same term at p_retain 1.0 would be a constant
+    # across the grid and could not move any choice.
+    certain = vbr.expected_value_gbp(p_retain=1.0, departure_cost_gbp=40.0, **args)
+    assert certain == pytest.approx(vbr.expected_value_gbp(p_retain=1.0, departure_cost_gbp=0.0,
+                                                           **args))
+
+
+def test_the_departure_cost_cannot_be_silently_DEFAULTED_back_to_zero():
+    """R15 fail-silent, at the seam that matters. A default of 0.0 would let any caller restore
+    the pre-2026-09-09 objective and have it reported as this one -- the arm would publish
+    `expected_value_gbp` figures that no longer meant what the field says they mean, and nothing
+    would be red. The argument is REQUIRED, and this is what proves it."""
+    with pytest.raises(TypeError):
+        vbr.expected_value_gbp(margin_gbp_per_mwh=5.0, eac_mwh=3.1,
+                               cost_to_serve_gbp_per_year=55.0, p_retain=0.5,
+                               expected_periods=1.0)
+
+
+def test_the_replacement_cost_is_the_SOURCED_constant_and_not_a_literal_here():
+    """KNOWLEDGE FIRST. The number must arrive from `saas`'s own acquisition figure, so that a
+    re-measurement of what a customer costs to acquire reaches the renewal desk automatically.
+    A literal copied into this module is the VAT-rule shape: one fact, two implementations, and
+    nothing able to notice when they drift."""
+    from saas.growth_mandate import cost_per_acquisition_gbp
+
+    cost, unsourced = vbr.replacement_cost_gbp(vbr.RESI_SEGMENT)
+
+    assert cost == pytest.approx(cost_per_acquisition_gbp(vbr.RESI_SEGMENT))
+    assert cost > 0.0, "the residential replacement cost is sourced and is not zero"
+    assert unsourced is None
+
+
+def test_the_replacement_cost_partition_can_be_taken_BOTH_ways():
+    """ONE CONTROL OVER THE WHOLE PARTITION, because a helper that returned a named zero for
+    EVERY segment would satisfy a leg-per-branch battery. Both branches are asserted reachable in
+    a single statement before either is described."""
+    priced, priced_why = vbr.replacement_cost_gbp(vbr.RESI_SEGMENT)
+    free, free_why = vbr.replacement_cost_gbp(vbr.SME_SEGMENT)
+
+    assert priced > 0.0 and free == 0.0, (
+        "both sides of the segment split must be reachable, or this test grades one branch twice"
+    )
+    assert priced_why is None
+    # A ZERO WITHOUT A REASON READS AS "a departure here is free", which is false: SME acquisition
+    # is a broker TRAIL, a real ongoing cost this objective does not price.
+    assert free_why and "trail" in free_why.lower()
+
+
+def test_the_departure_term_MOVES_THE_CHOICE_and_not_only_the_reported_level(monkeypatch):
+    """A term that changed the number but never the argmax would be an equivalence, and the
+    finding this closes is about the DECISION. Measured on the probe's own anchor household: the
+    chosen margin falls 88.25 -> 82.50 GBP/MWh at 2019. Asserted as a DIRECTION and a
+    non-equivalence, never as 82.50, so it survives a re-measured replacement cost."""
+    priced = _decide(vbr.VALUE_BASED)
+
+    monkeypatch.setattr(vbr, "cost_per_acquisition_gbp", lambda _segment: 0.0)
+    free = _decide(vbr.VALUE_BASED)
+
+    assert priced.departure_cost_gbp > 0.0 and free.departure_cost_gbp == 0.0, (
+        "the monkeypatch must actually reach the decision, or this compares a thing with itself"
+    )
+    assert priced.margin_gbp_per_mwh < free.margin_gbp_per_mwh, (
+        "making a departure expensive must make retention worth buying, so the arm charges LESS"
+    )
+
+
+def test_a_decision_CARRIES_the_departure_cost_it_charged_itself():
+    """The term is on the decision, not only inside the sum, because `expected_value_gbp` is a
+    published belief and a reader cannot otherwise tell a decision that priced the departure from
+    one that did not."""
+    decision = _decide(vbr.VALUE_BASED)
+
+    assert decision.departure_cost_gbp > 0.0
+    assert decision.departure_cost_unsourced is None
 
 
 def test_both_arms_are_scored_by_the_SAME_function():
