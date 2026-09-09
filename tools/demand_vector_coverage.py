@@ -1013,6 +1013,80 @@ def fit_weights(values, chosen, reference, seed: int = 999):
     return weights if weights.sum() > 0 else np.ones(len(chosen))
 
 
+#: THE SLOT, PRESENT AND EMPTY ON PURPOSE, and the reason it is empty rather than absent.
+#: `DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07` §3 rules two things reversible and says
+#: of both "neither is built now, both must stay possible": a weighted case can later be inflated
+#: into a small population WITH WITHIN-GROUP VARIATION, and the count on a high-volume case can be
+#: raised. `None` here is not a placeholder for zero and not a number waiting to be picked -- it is
+#: the honest gap, because no published source resolves two households that share a NEED row and a
+#: weather cell. The survey collapses them, which is the same limit that makes near-duplicates
+#: unchoosable in `choose_for_difference`, and it is why the canon's own stated limit is that this
+#: world holds no two households that are similar but not identical.
+WITHIN_GROUP_VARIATION_IS_UNSET_BECAUSE = (
+    "no published distribution resolves two households inside one NEED row and one weather cell -- "
+    "the survey collapses them -- so a spread written here would be invented rather than measured. "
+    "The canon rules that inflating a weighted case into a small population must stay POSSIBLE, "
+    "not that it is built (DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07 s3)."
+)
+
+
+def gb_households() -> int | None:
+    """GB households the book stands in for, counted -- or None when the tables are off this machine.
+
+    Not a number written here. `weather_cell_weights.read_households` merges Census 2021 TS041
+    (England and Wales) with Scotland's Census 2022 by output area, 235,243 areas between them, and
+    this sums it. A transcribed 27-million total is exactly the constant that goes stale with
+    nothing able to notice, and an honest `None` cannot be read as an established figure.
+    """
+    try:
+        from tools import weather_cell_weights
+        rows = weather_cell_weights.read_households()
+    except (ImportError, OSError, ValueError):
+        return None
+    total = sum(rows.values())
+    return int(round(total)) if total > 0 else None
+
+
+def case_household_counts(weights, households: int | None) -> list[dict]:
+    """THE SEAM: a chosen case's fitted WEIGHT becomes the NUMBER OF HOUSEHOLDS it stands for.
+
+    This is where the canon's "one case stands for many" stops being prose. `fit_weights` solves for
+    a share of the population; multiplying by the population's own household count is the whole of
+    the conversion, and naming it is the point -- an unnamed conversion is one another lane can make
+    differently, or assume away.
+
+    WHAT MUST STAY TRUE OF IT, because the canon rules both reversible:
+
+      * A case's count is not one. It is whatever mass the case carries, and at GB scale the biggest
+        chosen case stands for over a million households. Any caller that reads a case as a single
+        household -- an integer count, a 1:1 case-to-account join, a uniqueness assumption on the
+        roster -- forecloses the inflation, and it will arrive looking like a simplification.
+      * The count is LINEAR in `households`, so raising the count on a high-volume case is a change
+        to one argument and not a change to this design.
+      * The within-group variation slot is carried and empty. See
+        `WITHIN_GROUP_VARIATION_IS_UNSET_BECAUSE`.
+
+    WHY THE COUNT IS A FLOAT. Rounding it to an integer is the foreclosure wearing a tidy-up's
+    clothes: a case carrying 0.4 households rounds either to 0, and vanishes from the aggregate, or
+    to 1, which is the assumption this seam exists to keep open. The mass is what aggregates
+    correctly; an integer roster is a LATER decision for whoever inflates, made with a rule for the
+    remainder, and this function deliberately does not make it for them.
+
+    `households=None` is propagated rather than defaulted, so a caller without the census tables
+    gets a stated absence instead of a plausible count.
+    """
+    total = float(sum(float(w) for w in weights))
+    return [{
+        "case": int(i),
+        "weight": float(w),
+        "share_of_households": (float(w) / total) if total > 0 else 0.0,
+        "households": ((float(w) / total) * float(households)
+                       if (total > 0 and households is not None) else None),
+        "within_group_variation": None,
+        "within_group_variation_unset_because": WITHIN_GROUP_VARIATION_IS_UNSET_BECAUSE,
+    } for i, w in enumerate(weights)]
+
+
 def weighted_ks(sample_values, sample_weights, sorted_reference) -> float:
     """KS distance between a WEIGHTED empirical distribution and an equal-mass reference.
 
@@ -1093,6 +1167,8 @@ def smallest_n_chosen(pop, axes, ns=CHOSEN_NS, seed: int = 0,
     # module already fixed for the population reference, committed again one level down. It ran for
     # twenty-five minutes without finishing.
     stratum_refs = {}
+    # Counted once, not per ladder step: the population's household total does not depend on k.
+    households = gb_households()
     if labels is not None and len(set(labels.tolist())) > 1:
         for f in sorted(set(labels.tolist())):
             members = np.flatnonzero(labels == f)
@@ -1141,8 +1217,15 @@ def smallest_n_chosen(pop, axes, ns=CHOSEN_NS, seed: int = 0,
                 r_f = accepts_weighted(subset[inside], w_f, ref_f, tolerance=tolerance)
                 ok = ok and all(v["accepts"] for v in r_f.values())
                 worst = max(worst, max(v["d"] for v in r_f.values()))
+        # THE MASS ONE CASE STANDS FOR, reported rather than asserted. The canon's claim is that a
+        # single household may carry the mass of tens of thousands; this is that claim measured, and
+        # it is also what a reader needs to see before believing a book of ~50 cases is a supplier.
+        carried = [r["households"] for r in case_household_counts(weights, households)
+                   if r["households"] is not None and r["weight"] > 1e-9]
         verdicts[len(chosen)] = {"worst_ks_distance": round(worst, 4), "accepts": ok,
                                  "carrying_weight": int((weights > 1e-9).sum()),
+                                 "households_the_biggest_case_stands_for": (
+                                     round(max(carried)) if carried else None),
                                  "tolerance": tolerance}
         if ok:
             answer = int(len(chosen))
@@ -1197,6 +1280,12 @@ def measurement(points: int = POPULATION_POINTS, seed: int = 0, generated: bool 
                    "random-sample figure is the comparator, not the answer"),
         "distribution_curve": curve_d,
         "response_curve": curve_r,
+        # THE TWO REVERSIBILITY PROPERTIES the canon requires of the book, on the surface rather
+        # than in a comment. The household total is counted, not transcribed; the variation slot is
+        # carried and empty, with its reason, so its absence would be a change a reader can see.
+        "gb_households_the_book_stands_for": gb_households(),
+        "within_group_variation": None,
+        "within_group_variation_unset_because": WITHIN_GROUP_VARIATION_IS_UNSET_BECAUSE,
         "every_n_is_a_floor_because": (
             "annual electricity and its half-hourly shape are absent until W2_19 lands, so adding "
             "them can only raise N"),

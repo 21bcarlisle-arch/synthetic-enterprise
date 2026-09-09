@@ -2599,7 +2599,14 @@
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 2   # 2026-09-09 L0->L2 SELF-CERTIFIED (ledger row in gate_authorizations.jsonl).
+  # The seam DID NOT EXIST -- `fit_weights` solved for a share and nothing multiplied it by a
+  # household count -- so the property had no place it could be foreclosed AND none where it could
+  # be asserted. `case_household_counts` names it, `gb_households()` counts 27,291,846 from the two
+  # censuses at call time, and the variation slot is carried empty with its reason. The control's
+  # poison round: 5 mutations, 5 kills, none survived. Measured, the biggest chosen case stands for
+  # 1,575,773 households -- the canon says "tens of thousands"; it is millions.
+  # L2 not L1 because the household total is a counted artefact, not a handed-in figure.
   level_target: 2
   loop_stage: build
   dial_inherited: 50
@@ -2609,6 +2616,7 @@
   depends_on: []
   couples_with: [W2_29_the_coverage_is_re_measured_against_the_demand_vector]
   file_scope:
+    - tools/demand_vector_coverage.py
     - tests/architecture/test_a_weighted_case_can_still_be_inflated.py
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a supplier that can show it beats the average on one distinct household and cannot separate two that look alike and behave differently -- which is the harder problem and the one that is commercially real."
