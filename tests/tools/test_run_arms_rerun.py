@@ -129,10 +129,11 @@ def test_without_the_flag_the_legs_run_in_this_process(repo, monkeypatch):
     monkeypatch.setattr(launch_long_job, "launch",
                         lambda *a, **k: pytest.fail("launched without --launch"))
     ran = []
-    monkeypatch.setattr(arms, "run", lambda legs, stamp: ran.append((legs, stamp)) or 0)
+    monkeypatch.setattr(arms, "run",
+                        lambda legs, stamp, **kw: ran.append((legs, stamp, kw)) or 0)
 
     assert arms.main(["--stamp", "20260910"]) == 0
-    assert ran == [(list(arms.DEFAULT_LEGS), "20260910")]
+    assert ran == [(list(arms.DEFAULT_LEGS), "20260910", {"seeds": arms.DEFAULT_SEEDS})]
 
 
 # ── THE STAMP IS A DECISION ──────────────────────────────────────────────────────────────────
@@ -209,6 +210,69 @@ def test_the_default_legs_are_what_the_retired_script_ran(repo):
     assert arms.DEFAULT_SEEDS == "11111,22222,33333"
     assert "--noise-floor-seeds" in arms.leg_argv("floor-all", "20260829")
     assert "--level-arm" in arms.leg_argv("three-arm", "20260829")
+
+
+# ── THE SEED COUNT IS A DECISION ─────────────────────────────────────────────────────────────
+
+def test_a_repeated_seed_is_refused_because_the_artefact_it_writes_looks_healthy(repo):
+    """THE DEFECT: `--seeds 11111,22222,11111` runs the same draw twice, and `noise_floor` takes
+    its spread over the rows. n goes to 3, the SEM shrinks by sqrt(3/2) for nothing, and every
+    consumer -- `selection_distinguishable_from_zero`, the page's `_resolvable` gate -- reads a
+    better-resolved measurement. The rows are well-formed and their arithmetic is consistent, so
+    NOTHING downstream can tell. That is why it is refused here and not detected later.
+
+    MUTATION: drop the `repeated` branch from `check_seeds` and this reds."""
+    with pytest.raises(arms.RunRefused) as refusal:
+        arms.check_seeds("11111,22222,11111")
+    assert "11111" in str(refusal.value), "a refusal that does not name the seed cannot be acted on"
+
+    # THE PARTITION IS REACHABLE IN BOTH DIRECTIONS -- a guard that refused everything would pass
+    # the leg above and say nothing. Distinct seeds go through, and come back normalised.
+    assert arms.check_seeds(" 11111 , 22222 ,33333, ") == "11111,22222,33333"
+    assert arms.check_seeds("1,2,3,4,5,6,7,8,9") == "1,2,3,4,5,6,7,8,9"
+
+
+def test_one_seed_and_a_malformed_list_are_refused_before_the_hours_are_spent(repo):
+    """`run_value_cycle_ab.noise_floor` refuses a single seed itself -- an hour in, after the
+    three-arm leg has already run, and only for the leg that reaches it. The refusal is worth
+    nothing there and free here."""
+    for bad in ("11111", "", "11111,abc"):
+        with pytest.raises(arms.RunRefused):
+            arms.check_seeds(bad)
+
+
+def test_the_seeds_reach_the_leg_and_the_unit_names_them(repo, monkeypatch):
+    """THE DEFECT THIS FIRES ON: `leg_argv` read `DEFAULT_SEEDS` directly, so a nine-seed run was
+    an edit to the module. Both halves are checked -- the seeds must reach the SUBPROCESS, and the
+    unit's own command line must carry them, because that command line is the record of what ran
+    and a child inheriting the default stops describing itself the day the default moves."""
+    from background import launch_long_job
+
+    argv = arms.leg_argv("floor-all", "20260910", "44444,55555,66666")
+    assert argv[argv.index("--noise-floor-seeds") + 1] == "44444,55555,66666"
+
+    seen = {}
+    monkeypatch.setattr(launch_long_job, "launch",
+                        lambda job, command, **kw: seen.update(kw, command=command) or {"unit": "u"})
+    assert arms.main(["--stamp", "20260910", "--launch", "--leg", "floor-all",
+                      "--seeds", "44444,55555,66666"]) == 0
+    assert seen["command"][seen["command"].index("--seeds") + 1] == "44444,55555,66666"
+
+
+def test_the_hours_estimate_counts_seeds_and_not_legs(repo):
+    """A nine-seed floor described as the three-seed one's "~1h" reads as overdue after 90 minutes
+    and gets relaunched on top of itself -- which is the state `launch_long_job`'s liveness record
+    exists to abolish. The estimate must MOVE with the seed count.
+
+    Keyed to the property (more seeds cost more) and not to today's constant, so tightening
+    `_HOURS_PER_FLOOR_SEED` against a better measurement does not red it."""
+    three = float(arms._hours(["floor-all"], "11111,22222,33333"))
+    nine = float(arms._hours(["floor-all"], "1,2,3,4,5,6,7,8,9"))
+    assert nine > three * 2.5, (
+        "tripling the seeds must roughly triple the estimate; got {}h vs {}h".format(nine, three))
+    # A three-arm leg is not per-seed, so adding it moves the estimate by the SAME amount at any n.
+    assert (float(arms._hours(["three-arm", "floor-all"], "1,2,3,4,5,6,7,8,9")) - nine
+            == pytest.approx(float(arms._hours(["three-arm"], "11111,22222")) , abs=0.05))
 
 
 def test_the_hand_rolled_shell_launch_is_gone(repo):

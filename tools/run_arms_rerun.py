@@ -28,6 +28,14 @@ the defect `c30b98048` was filed for, and it is what a per-leg launch invites. T
 subprocesses, exactly as the shell ran them: a leg is a full A/B pass and must not share
 interpreter state with the one before it.
 
+AND SO IS THE SEED COUNT (2026-09-09). `DEFAULT_SEEDS` was reached straight from `leg_argv`, so
+running a floor at any n but three meant editing this file -- the same defect as the hardcoded
+`STAMP=20260829` above, one field along, and it bound the moment `selection_gbp` was published at
+n=3 with a mean of -426.96 against an sd of 2,291.98. The default is unchanged, so a re-run without
+the flag is still comparable to every floor on disk; the count is now a REFUSABLE argument, and the
+hours estimate the liveness record carries is derived from it rather than from the leg count (see
+`_hours`).
+
 AND THE LEG SET IS NOW SAYABLE. The script ran two legs; the decomposition the floor feeds needs
 four (`all`, `only`, `except` and the three-arm run they bound), and `only`/`except` need the
 three-arm artefact's priced roster to cut along. That dependency used to live in a human's head
@@ -97,6 +105,49 @@ def log_path(stamp: str) -> Path:
     return _REPO / "docs" / "observability" / "arms_rerun_{}.log".format(stamp)
 
 
+def check_seeds(seeds: str) -> str:
+    """The seed list a floor leg is drawn with, checked before hours are spent on a bad one.
+
+    THE SEED COUNT IS A DECISION AND IT USED TO BE UNSAYABLE. `DEFAULT_SEEDS` was reached directly
+    from `leg_argv`, so the only way to run a floor at any n but three was to edit this file --
+    which is the same shape as the hardcoded `STAMP=20260829` the module docstring above describes
+    retiring, one field along. It became load-bearing on 2026-09-09: `selection_gbp` was published
+    at n=3 with a mean of -426.96 against an sd of 2,291.98, and n was the only input that could
+    move it.
+
+    TWO REFUSALS, both for defects that produce a HEALTHY-LOOKING artefact rather than an error:
+
+      * FEWER THAN TWO. `run_value_cycle_ab.noise_floor` refuses this itself -- but it refuses it
+        an hour in, after `three-arm` has already run, and only for the leg it reaches. Refusing
+        here costs nothing and refuses before anything starts.
+      * A REPEATED SEED. The spread is taken over the rows, and a duplicated seed is the SAME row
+        twice: it inflates `n`, shrinks the SEM by a factor that measures nothing, and every field
+        downstream reads as a better-resolved measurement. Nothing further down looks -- the rows
+        are well-formed and their arithmetic is consistent -- so this is the one that would have
+        been believed.
+    """
+    tokens = [tok.strip() for tok in seeds.split(",") if tok.strip()]
+    try:
+        values = [int(tok) for tok in tokens]
+    except ValueError:
+        raise RunRefused(
+            "seeds {!r} is not a comma-separated list of integers. The seeds ARE the "
+            "measurement; a malformed list is hours spent drawing something nobody asked "
+            "for.".format(seeds)) from None
+    if len(values) < 2:
+        raise RunRefused(
+            "a noise floor needs at least two seeds; got {}. One seed is a run, not a spread, and "
+            "the leg would refuse an hour in rather than now.".format(len(values)))
+    repeated = sorted({v for v in values if values.count(v) > 1})
+    if repeated:
+        raise RunRefused(
+            "seed(s) {} appear more than once in {!r}. A repeated seed is the same row twice: it "
+            "raises `n` and shrinks the SEM without adding an observation, and the artefact it "
+            "writes is well-formed, so nothing downstream can tell.".format(
+                ", ".join(str(v) for v in repeated), seeds))
+    return ",".join(str(v) for v in values)
+
+
 def check_stamp(stamp: str) -> str:
     """A stamp must be a date-shaped token, optionally suffixed.
 
@@ -149,19 +200,19 @@ def plan(legs, stamp: str) -> list:
     return ordered
 
 
-def leg_argv(leg: str, stamp: str) -> list:
+def leg_argv(leg: str, stamp: str, seeds: str = DEFAULT_SEEDS) -> list:
     """The `run_value_cycle_ab` command line for one leg. Built here so a test can read it."""
     spec = LEGS[leg]
     argv = [sys.executable, "-m", "tools.run_value_cycle_ab", *spec["argv"],
             "--out", str(artefact_path(leg, stamp))]
     if leg.startswith("floor-"):
-        argv += ["--noise-floor-seeds", DEFAULT_SEEDS]
+        argv += ["--noise-floor-seeds", seeds]
     if spec["depends_on"]:
         argv += ["--redraw-accounts-from", str(artefact_path(spec["depends_on"], stamp))]
     return argv
 
 
-def run(legs, stamp: str, *, runner=subprocess.run, out=None) -> int:
+def run(legs, stamp: str, *, seeds: str = DEFAULT_SEEDS, runner=subprocess.run, out=None) -> int:
     """Run each leg in turn, in this process's session. Returns 0 only if every leg succeeded.
 
     A FAILED LEG SKIPS ITS DEPENDANTS AND NOTHING ELSE. The shell script this replaces ran both
@@ -191,7 +242,11 @@ def run(legs, stamp: str, *, runner=subprocess.run, out=None) -> int:
             handle.write(line + "\n")
             handle.flush()
 
-        record("START {} stamp={} legs={}".format(_now(), stamp, ",".join(ordered)))
+        # THE SEEDS GO IN THE LOG'S FIRST LINE, beside the legs, because the seed list is the only
+        # input to a floor leg that the artefact's FILENAME does not carry -- two runs at the same
+        # stamp-shaped name and different n are otherwise told apart only by opening them.
+        record("START {} stamp={} legs={} seeds={}".format(
+            _now(), stamp, ",".join(ordered), seeds))
         for index, leg in enumerate(ordered, 1):
             need = LEGS[leg]["depends_on"]
             if need in failed:
@@ -200,7 +255,7 @@ def run(legs, stamp: str, *, runner=subprocess.run, out=None) -> int:
                        "roster that leg never wrote decomposes a different book ===".format(
                            index, len(ordered), leg, need))
                 continue
-            argv = leg_argv(leg, stamp)
+            argv = leg_argv(leg, stamp, seeds)
             record("=== LEG {}/{}: {} ({}) -> {} ===".format(
                 index, len(ordered), leg, LEGS[leg]["what"], artefact_path(leg, stamp).name))
             res = runner(argv, cwd=str(_REPO), stdout=handle, stderr=subprocess.STDOUT)
@@ -220,7 +275,29 @@ def _now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
-def launch(legs, stamp: str, *, out=None) -> int:
+#: WHAT A LEG ACTUALLY TOOK, from the kill that established it. systemd's own accounting for
+#: `se-noise-floor-20260903` (`--redraw-mode all`, three seeds): 1h 09min 07s CPU over 1h 09min 36s
+#: wall -- and it was OOM-killed at ~90%, so the full three seeds is ~1h 17m, i.e. ~0.43h per seed.
+#: A three-arm leg is three passes and lands near an hour. Quoted here rather than in the format
+#: string because the estimate is what a reader plans a day around.
+_HOURS_PER_FLOOR_SEED = 0.43
+_HOURS_PER_THREE_ARM = 1.0
+
+
+def _hours(ordered, seeds: str) -> str:
+    """Roughly how long this session runs, as a string for the liveness record's description.
+
+    THE OLD ESTIMATE WAS `1 + 2 * (legs - 1)`, which was right only while every floor leg carried
+    exactly three seeds -- it counted LEGS and a floor leg's cost is per SEED. A nine-seed floor
+    reported as "~1h" is a run that reads as overdue after 90 minutes and gets relaunched on top
+    of itself."""
+    n = len([tok for tok in seeds.split(",") if tok.strip()])
+    total = sum(_HOURS_PER_THREE_ARM if leg == "three-arm" else _HOURS_PER_FLOOR_SEED * n
+                for leg in ordered)
+    return "{:.1f}".format(total)
+
+
+def launch(legs, stamp: str, *, seeds: str = DEFAULT_SEEDS, out=None) -> int:
     """Hand the whole session to `background.launch_long_job` and return.
 
     THE POINT OF THIS FILE. The shell script could not do this for itself, so its detachment was
@@ -241,11 +318,14 @@ def launch(legs, stamp: str, *, out=None) -> int:
     try:
         launch_long_job.launch(
             "arms-rerun-{}".format(stamp),
-            [sys.executable, "-m", "tools.run_arms_rerun", "--stamp", stamp,
+            # THE SEEDS ARE NAMED EXPLICITLY for the same reason the legs are: the unit's own
+            # command line is the record of what was run, and a child inheriting the default would
+            # stop describing its own run the day the default moves.
+            [sys.executable, "-m", "tools.run_arms_rerun", "--stamp", stamp, "--seeds", seeds,
              *[arg for leg in ordered for arg in ("--leg", leg)]],
             artefact=str(artefact), workdir=str(_REPO), log=str(log_path(stamp)),
-            description="arms re-run {} ({} legs, ~{}h)".format(
-                stamp, len(ordered), 1 + 2 * (len(ordered) - 1)),
+            description="arms re-run {} ({} legs, {} seed(s), ~{}h)".format(
+                stamp, len(ordered), len(seeds.split(",")), _hours(ordered, seeds)),
             out=narration)
     except launch_long_job.LaunchRefused as exc:
         say("REFUSED: {}".format(exc))
@@ -264,6 +344,12 @@ def main(argv: list | None = None) -> int:
                              "correct on exactly one day")
     parser.add_argument("--leg", action="append", dest="legs", choices=sorted(LEGS),
                         help="repeatable; default is {}".format(", ".join(DEFAULT_LEGS)))
+    parser.add_argument("--seeds", default=DEFAULT_SEEDS,
+                        help="comma-separated seeds for the floor legs; default {} -- the list "
+                             "every floor on disk was drawn with, so a re-run at the default is "
+                             "comparable to them. Each seed costs three full passes (~{:.0f} min), "
+                             "and the seed count is what sets the SEM on the spread the page "
+                             "publishes".format(DEFAULT_SEEDS, _HOURS_PER_FLOOR_SEED * 60))
     parser.add_argument("--launch", action="store_true",
                         help="hand the session to background.launch_long_job -- a transient user "
                              "unit with a liveness record. THE launch from a bounded tick: an "
@@ -272,10 +358,11 @@ def main(argv: list | None = None) -> int:
 
     try:
         stamp = check_stamp(args.stamp)
+        seeds = check_seeds(args.seeds)
         legs = args.legs or list(DEFAULT_LEGS)
         if args.launch:
-            return launch(legs, stamp)
-        return run(legs, stamp)
+            return launch(legs, stamp, seeds=seeds)
+        return run(legs, stamp, seeds=seeds)
     except RunRefused as exc:
         print("REFUSED: {}".format(exc))
         return 2
