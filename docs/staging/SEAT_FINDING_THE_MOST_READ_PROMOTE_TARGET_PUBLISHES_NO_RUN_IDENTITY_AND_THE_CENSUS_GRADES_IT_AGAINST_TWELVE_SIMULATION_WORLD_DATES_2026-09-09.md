@@ -165,8 +165,37 @@ keyed to *"a field the artefact declares as its own identity"* and those names a
 excused with an allowlist row, which would be an allowlist excusing the mechanism the control
 points at.
 
+## RESULT — prediction 4 is REFUTED, and it kills the narrowing as drafted
+
+Measured immediately after the landing above, and kept here beside the prediction rather than
+replacing it. **Both targets publish run identity, and neither uses any of the three field names.**
+
+| target | its identity fields |
+|---|---|
+| `site/data/snapshots/LATEST.json` | `snapshot_ts`, `snapshot_label`, and `dashboard.meta.generated_at` / `.git_commit` |
+| `site/state/live_decisions_latest.json` | `decision_run_at`, `portfolio_as_of` |
+
+Narrowing `_artefact_dates` to `{generated_at, producing_commit.*, world_identity.digest}` would
+have taken **all 15 tokens** off these two and made both `ungradable` — silencing grading that is
+real and currently working. That is precisely the narrowing-that-can-only-hide shape, and the only
+reason it did not ship is that the prediction was written down before the measurement instead of
+after it. Predictions 1, 2, 3 and 5 stand and are untested until the repair exists.
+
+**So the repair is not a narrowing.** Four producers name the same fact five ways
+(`generated_at`, `snapshot_ts`, `decision_run_at`, `_cache_meta.generated_at_utc`), and no rule
+over field *names* can separate "when this artefact was made" from "a date inside the simulated
+world" — `portfolio_as_of` and `wholesale_credit_exposure.mark_date` are the same English and
+opposite populations. **The definition has to come from the producer, not be inferred by the
+consumer**: each promote target declares which of its fields are its identity, and the census reads
+that declaration. Anything else is the census guessing, which is what it does today.
+
 ## What is next
 
-The narrowing above, with its own mutation round. It is a separate landing because it changes how
-five targets are graded, and because a repair that makes the census's stated result true again
-should be able to be reverted on its own.
+**A run-identity declaration, producer-side, across the four promote targets.** Done means: each
+target names its own identity fields in its payload; `_artefact_dates` reads only what is declared
+and returns nothing for a target that declares nothing; `run_output_latest.json` lands in
+`ungradable_targets` with its rows in `cannot_tell`, which is the state this finding's premise
+described and the tree has never had. It is a separate landing from this one because it changes how
+five targets are graded and touches three producers this turn did not.
+
+Explicitly **not** the next step: narrowing to a name list. It is refuted above.
