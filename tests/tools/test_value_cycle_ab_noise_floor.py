@@ -848,3 +848,164 @@ def test_the_leg_census_does_not_count_a_sibling_shell_quoting_the_command(tmp_p
     assert [pid for pid, _ in census] == [999003], (
         "a sibling shell quoting the command was counted as a running floor leg, so the refusal "
         "fires on a guest that has room: " + repr(census))
+
+
+# ---------------------------------------------------------------------------
+# 8. WHICH BOOK THE FLOOR WAS DRAWN OVER -- and why the two halves of a book
+#    identity behave in opposite ways
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT, from SEAT_FINDING_THE_NOISE_FLOOR_CARRIES_NO_BOOK_IDENTITY_SO_THE_PAIRING_RULE_IS_A_
+# STAMP_PROXY_WRONG_IN_BOTH_DIRECTIONS_2026-09-09. `contrast_bounds` gates every directional claim
+# on the value-arms page on this floor's spread, and whether a given floor may bound a given run
+# was decided from `generated_at` -- because there was nothing else in the artefact to decide it
+# from. A stamp is wrong in both directions and both were MEASURED: it refused a pair proven to be
+# the same world, and it admitted a floor from world `ffffffffffffffff` as the bound on the live
+# run on one second of stamp order. The property all of it proxies for is *was this spread drawn
+# over the book this figure is made of*, and only a book identity can answer that.
+#
+# THE TRAP THIS SECTION IS REALLY GUARDING. A noise floor re-runs the same book once per seed, and
+# moving the elasticity assignment moves who churns and therefore who settles. So the DECLARED half
+# of a book identity (the segments the run was given) is identical on every seed and the REALISED
+# half (the counts the seed's own churn produced) is not, by construction. A rule that compared the
+# whole block would refuse every honest floor; a rule that compared none of it is the stamp proxy
+# again. `test_seeds_whose_REALISED_counts_differ_are_the_normal_case` is the leg that separates
+# them, and it is the one a plausible "tighten the refusal" edit fails.
+
+
+def _runner_with_book(book, clock="settled-realised"):
+    """A three-arm result carrying `book` as its control arm's identity, still moving with the draw."""
+    def _run() -> dict:
+        result = _runner_declaring(clock)()
+        result["book_identity"] = {"control_arm": book, "same_book_across_arms": True}
+        return result
+    return _run
+
+
+def _book(segments=("resi", "SME"), settled=164, resolved_from="curriculum"):
+    return {
+        "served_segments": list(segments),
+        "served_segments_resolved_from": resolved_from,
+        "served_segments_override_env": None,
+        "billing_accounts_settled_in_window": settled,
+        "with_an_electricity_leg": settled - 18,
+        "with_a_gas_leg": settled - 59,
+        "dual_fuel": settled - 77,
+        "accounts_at_end_of_window": 73,
+    }
+
+
+def test_the_book_block_can_be_populated_AND_withheld_over_the_whole_partition():
+    """REACHABILITY FIRST, both ways, before any leg asserts what the block says.
+
+    A guard that populates nothing passes every "it withheld correctly" leg below, and a producer
+    that populates unconditionally passes every "it named the book" leg. Neither is separable from
+    the working mechanism without a control over the whole partition -- learned three times in one
+    afternoon through three different doors.
+    """
+    named = noise_floor([11111, 22222], runner=_runner_with_book(_book()))["book_identity"]
+    silent = noise_floor([11111, 22222], runner=_fake_runner)["book_identity"]
+
+    assert named["declared"] and silent["declared"] is None, (
+        "the block is not able to take both branches, so nothing below measures anything: "
+        "named={!r} silent={!r}".format(named["declared"], silent["declared"]))
+
+
+def test_the_floor_names_the_book_ITS_OWN_SEEDS_ran_over():
+    """Fires on: writing the segments down here, or dropping the block back to absent."""
+    for segments in (("resi", "SME"), ("resi",)):
+        floor = noise_floor([11111, 22222], runner=_runner_with_book(_book(segments=segments)))
+        block = floor["book_identity"]
+        assert block["declared"] == {
+            "served_segments": tuple(segments),
+            "served_segments_resolved_from": "curriculum",
+            "served_segments_override_env": None,
+        }, "the floor published {!r} where its seeds ran over {!r}".format(
+            block["declared"], segments)
+        assert block["unavailable_because"] is None
+        assert block["seeds_that_recorded_no_book"] == 0
+
+
+def test_a_run_that_records_no_book_leaves_the_floor_UNPAIRABLE_not_guessed():
+    """The consumer must be able to see that it cannot pair. A `None` is what stops it; a block
+    filled in from the current curriculum would report a book this floor may never have run over --
+    the same fail-open `book_identity` itself fails closed on, one artefact up."""
+    block = noise_floor([11111, 22222], runner=_fake_runner)["book_identity"]
+
+    assert block["declared"] is None
+    assert block["seeds_that_recorded_no_book"] == 2
+    assert "2 of 2 seeds recorded no book" in block["unavailable_because"]
+
+
+def test_a_PARTIAL_record_does_not_pair_on_the_seeds_that_did_declare():
+    """One seed silent is not "the floor's book is what the other one said". Taking the declared
+    half from the seeds that have it pairs the whole spread on a book part of it never ran over,
+    and the part that did not is exactly the part a reader cannot check."""
+    seen = {"n": 0}
+
+    def _one_silent():
+        # The silent seed declares the same CLOCK, so the clock refusal one section up cannot be
+        # what makes this pass -- the only thing that differs between the two seeds is the book.
+        seen["n"] += 1
+        return (_runner_with_book(_book())() if seen["n"] == 1
+                else _runner_declaring("settled-realised")())
+
+    block = noise_floor([11111, 22222], runner=_one_silent)["book_identity"]
+    assert block["declared"] is None, (
+        "a floor with one silent seed published a book identity anyway: " + repr(block))
+    assert "1 of 2 seeds recorded no book" in block["unavailable_because"]
+
+
+def test_seeds_drawn_over_DIFFERENT_books_are_refused_rather_than_reconciled():
+    """Same argument as the clock refusal one section up: repeated draws over two populations are
+    not repeated draws of one quantity, so no error bar can be taken from them."""
+    seen = {"n": 0}
+
+    def _alternating_books():
+        seen["n"] += 1
+        segments = ("resi", "SME") if seen["n"] == 1 else ("SME",)
+        return _runner_with_book(_book(segments=segments))()
+
+    with pytest.raises(AssertionError, match="different books"):
+        noise_floor([11111, 22222], runner=_alternating_books)
+
+
+def test_seeds_whose_REALISED_counts_differ_are_the_normal_case_and_not_a_mixed_floor():
+    """THE LEG THAT SEPARATES THE TWO HALVES, and the reason the refusal above is scoped.
+
+    Re-drawing the elasticity moves who churns, so two seeds of the SAME book settle different
+    numbers of accounts. A refusal keyed to the whole `book_identity` block would fire here -- on
+    every real floor ever produced -- and the obvious repair, loosening it until this passes, is
+    what would put the declared half back out of scope. Both directions are asserted in one place
+    so neither edit can be made without meeting the other.
+    """
+    seen = {"n": 0}
+
+    def _same_book_different_outcomes():
+        seen["n"] += 1
+        return _runner_with_book(_book(settled=164 if seen["n"] == 1 else 151))()
+
+    block = noise_floor([11111, 22222], runner=_same_book_different_outcomes)["book_identity"]
+
+    assert block["declared"] == {
+        "served_segments": ("resi", "SME"),
+        "served_segments_resolved_from": "curriculum",
+        "served_segments_override_env": None,
+    }, "a floor of one book was refused or blanked because its seeds churned differently"
+    # The range is published rather than reconciled, and it is NOT a pairing key.
+    assert block["realised_across_seeds"]["billing_accounts_settled_in_window"] == {
+        "min": 151, "max": 164, "n": 2}
+    assert "never on `realised_across_seeds`" in block["how_a_consumer_should_pair_this"]
+
+
+def test_each_seed_row_carries_the_book_size_the_range_is_taken_over():
+    """A published range whose rows a reader cannot check is a figure to be trusted rather than
+    re-answered, which is the shape every other spread in this artefact already avoids."""
+    seen = {"n": 0}
+
+    def _same_book_different_outcomes():
+        seen["n"] += 1
+        return _runner_with_book(_book(settled=164 if seen["n"] == 1 else 151))()
+
+    floor = noise_floor([11111, 22222], runner=_same_book_different_outcomes)
+    assert [r["billing_accounts_settled_in_window"] for r in floor["seeds"]] == [164, 151]

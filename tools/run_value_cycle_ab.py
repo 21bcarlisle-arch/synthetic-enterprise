@@ -743,6 +743,103 @@ def book_identity(result: dict, at_run: dict | None = None) -> dict:
     }
 
 
+#: WHICH OF `book_identity`'S FIELDS ARE INPUTS TO A RUN AND WHICH ARE OUTCOMES OF IT. Split
+#: named here because a noise floor re-runs the same book once per seed and the two halves then
+#: behave in OPPOSITE ways: the declared half must be identical on every seed or the floor is not
+#: a spread of one quantity, and the realised half must NOT be, because moving the elasticity
+#: assignment moves who churns and therefore who settles. Requiring agreement on the realised
+#: counts would refuse every real floor; permitting disagreement on the declared ones would admit
+#: a floor drawn over a different book. Neither half can stand in for the other.
+BOOK_DECLARED_FIELDS = (
+    "served_segments",
+    "served_segments_resolved_from",
+    "served_segments_override_env",
+)
+BOOK_REALISED_FIELDS = (
+    "billing_accounts_settled_in_window",
+    "with_an_electricity_leg",
+    "with_a_gas_leg",
+    "dual_fuel",
+    "accounts_at_end_of_window",
+)
+
+
+def _book_declared(book: dict | None) -> tuple | None:
+    """The comparable form of the declared half, or `None` when the seed recorded no book."""
+    if not isinstance(book, dict):
+        return None
+    if book.get("served_segments") is None:
+        # `book_identity` already fails closed to a `None` here with its reason beside it, so an
+        # absent segment list is "this seed's book was not observed" and never "no segments".
+        return None
+    return tuple(
+        tuple(book[f]) if isinstance(book.get(f), list) else book.get(f)
+        for f in BOOK_DECLARED_FIELDS)
+
+
+def floor_book_identity(books: list[dict | None]) -> dict:
+    """WHICH BOOK a noise floor was drawn over, reconciled across its seeds.
+
+    `SEAT_FINDING_THE_NOISE_FLOOR_CARRIES_NO_BOOK_IDENTITY_SO_THE_PAIRING_RULE_IS_A_STAMP_PROXY_
+    WRONG_IN_BOTH_DIRECTIONS_2026-09-09` is what this discharges, and the defect it names is not
+    that the floor was hard to read: it is that the question *was this spread drawn over the book
+    this figure is made of* had no answer in the artefact, so every consumer answered a DIFFERENT
+    question -- is the floor newer -- and a stamp is wrong in both directions. It refused a pair
+    proven to be the same world, and it admitted, measured, a floor from world `ffffffffffffffff`
+    against the live run on one second of stamp order.
+
+    THE WORLD DIGEST IS NOT THIS. The digest is the departure level; the book can change without
+    it moving, which is the 2026-08-31 defect the ordering guard was extended for. This is the
+    population, and the two are separate questions a consumer has to be able to ask separately.
+
+    REFUSES A MIXED FLOOR, for the same reason `clock` does one block down: seeds drawn over
+    different books are not repeated draws of one quantity, so no error bar can be taken from
+    them. FAILS CLOSED to `None` with a named reason when ANY seed recorded no book -- a partial
+    record must not pair, and a `None` a consumer can see is what stops it.
+    """
+    declared = [_book_declared(b) for b in books]
+    distinct = {d for d in declared if d is not None}
+    if len(distinct) > 1:
+        raise AssertionError(
+            "the seeds were drawn over {} different books ({}), so their spread is not the "
+            "spread of one quantity and no error bar can be taken from it".format(
+                len(distinct),
+                sorted(str(list(d)) for d in distinct)))
+    silent = sum(1 for d in declared if d is None)
+    block: dict = {
+        "declared": (
+            dict(zip(BOOK_DECLARED_FIELDS, distinct.pop()))
+            if distinct and not silent else None),
+        "seeds_reconciled": len(declared),
+        "seeds_that_recorded_no_book": silent,
+        "unavailable_because": (
+            None if declared and not silent else
+            "{} of {} seeds recorded no book, so which population this floor was drawn over is "
+            "not established for the floor as a whole -- stated rather than taken from the seeds "
+            "that did record one, which would pair this spread on a book some of it never ran "
+            "over".format(silent, len(declared))),
+        # THE OUTCOME HALF, AS A RANGE AND NEVER AS AN IDENTITY. Published because a reader
+        # checking whether the seed did anything at all needs it, and because a floor whose book
+        # size does NOT move across seeds is the fail-silent shape this tool already refuses one
+        # cut up. It is not a pairing key and the sentence below says so on the artefact.
+        "realised_across_seeds": {
+            f: {
+                "min": min(vals), "max": max(vals), "n": len(vals),
+            }
+            for f in BOOK_REALISED_FIELDS
+            for vals in [[b[f] for b in books
+                          if isinstance(b, dict) and isinstance(b.get(f), (int, float))]]
+            if vals
+        },
+        "how_a_consumer_should_pair_this": (
+            "Pair on `declared` and never on `realised_across_seeds`. The declared half is the "
+            "book the run was given; the realised half is what the seed's own churn did to it, "
+            "so two floors of the SAME book differ there by construction. A consumer that "
+            "compared the counts would refuse every honest re-run."),
+    }
+    return block
+
+
 #: R14 -- the two bases an account's realised margin can be stated on, named where they
 #: are used rather than left for a reader to infer from a key.
 SETTLED_BASIS = ("net_margin_gbp summed from the world's own settled records "
@@ -4333,6 +4430,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
 
     run = runner or (lambda: run_value_cycle_ab(report_end=report_end, level_arm=True))
     rows = []
+    seed_books: list[dict | None] = []
     for seed in seeds:
         calls = {"n": 0, "redrawn": 0, "held": 0, "ids": set()}
 
@@ -4378,9 +4476,19 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             raise AssertionError(
                 "seed {}: the runner produced no level arm ({}), so there is no selection figure "
                 "to take a spread of.".format(seed, lvs.get("why_not")))
+        # THE BOOK THIS SEED RAN OVER, off the seed's own artefact and never resolved here.
+        # `control_arm` because that is the arm every consumer of a book identity already reads
+        # (`generate_value_arms_data` at `_survivorship`), and because the run refuses above
+        # unless all three arms agree, so which arm is read is not a free choice being made here.
+        seed_books.append(((result.get("book_identity") or {}).get("control_arm")))
         rows.append({
             "seed": int(seed),
             "elasticity_draws": calls["n"],
+            # WHAT THE SEED DID TO THE POPULATION, per row, because the floor's own book block
+            # publishes only the range and a reader checking the range needs the rows under it.
+            # Not a pairing key -- see `floor_book_identity.how_a_consumer_should_pair_this`.
+            "billing_accounts_settled_in_window": (
+                (seed_books[-1] or {}).get("billing_accounts_settled_in_window")),
             # THE CUT, MEASURED PER SEED RATHER THAN ASSERTED ONCE. `redrawn + held == draws` is
             # what makes the two legs a partition of one call stream; a reader can check it on
             # every row, and `accounts_redrawn` says how much of the roster the run actually met.
@@ -4432,6 +4540,12 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         # informational: a spread measured over one departure level is not an error bar on a point
         # estimate measured over another. See `world_identity`.
         "world_identity": world_identity(),
+        # WHICH BOOK THIS BOUND WAS DRAWN OVER, beside which world. The world digest is the
+        # departure level and the book can move without it, so a consumer pairing a floor with a
+        # figure has two questions to ask and until 2026-09-09 this artefact could answer only
+        # one -- leaving the other to be argued from `generated_at`, which was wrong in both
+        # directions. See `floor_book_identity`.
+        "book_identity": floor_book_identity(seed_books),
         "report_end": report_end,
         "what_this_is": (
             "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
