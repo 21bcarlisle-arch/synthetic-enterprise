@@ -97,6 +97,7 @@ from company.crm.payment_behaviour_analytics import BehaviourScore
 from company.regulatory.pricing_permissions import check_class_margin
 from saas.clv_model import DISCOUNT_RATE_ANNUAL, _annuity_factor
 from saas.customer_reaction import _billing_account_id
+from saas.growth_mandate import cost_per_acquisition_gbp
 from saas.payment_behaviour import DEFAULT_CREDIT_RISK, bad_debt_provision_gbp
 from saas.tariff_pricing import TARGET_MARGIN_GBP_PER_MWH
 
@@ -375,6 +376,16 @@ class MarginDecision:
     current_rate_gbp_per_mwh: float | None = None
     #: The rate actually offered: `base_rate + margin`. The numerator of both references.
     offered_rate_gbp_per_mwh: float | None = None
+    #: What this decision charged itself for LOSING the customer — the sourced one-off cost of
+    #: replacing them, applied to the `1 - p_retain` branch. Carried out so a reader can see the
+    #: term rather than infer it: before 2026-09-09 it was structurally zero and no price this arm
+    #: chose was ever penalised for causing a departure.
+    departure_cost_gbp: float = 0.0
+    #: WHY that cost is zero, when it is. `None` on a decision that really did charge itself. A
+    #: zero with no reason beside it reads as "a departure here is free", which is a claim this
+    #: company cannot make and, for the broker-acquired segments, is false — see
+    #: `replacement_cost_gbp`.
+    departure_cost_unsourced: str | None = None
 
     @property
     def rate_increase_pct(self) -> float | None:
@@ -500,6 +511,45 @@ def expected_annual_costs(
     )
 
 
+def replacement_cost_gbp(segment: str) -> tuple[float, str | None]:
+    """What losing this customer obliges the company to spend to stand still, and the hole in it.
+
+    NOT A NEW NUMBER, and deliberately not one this module chooses.
+    `saas.growth_mandate.cost_per_acquisition_gbp` is the company's own answer to "what does one
+    billing account cost to acquire" — it reads `saas.opex_ledger`'s sourced single-fuel PCS
+    commission (27.50 GBP, CMA Energy market investigation Appendix 8.3 via
+    `docs/market_research/B2_CATEGORY6_CAC_ANCHORS.md`) and it already holds the segment split. It
+    is called rather than copied so that a change to what acquisition costs cannot leave the
+    renewal desk pricing against last month's figure — the VAT-rule shape this project has paid
+    for four times.
+
+    SINGLE FUEL IS THE RIGHT UNIT HERE and it is not a thrifty choice. `decide_margin` prices ONE
+    fuel: a dual-fuel household reaches it twice, once for each commodity, and charging the
+    dual-fuel band on each would count the same 55.00 GBP replacement twice.
+
+    THE ZERO IS A HOLE AND IT SAYS SO. SME and I&C are acquired on a broker TRAIL — an ongoing
+    per-kWh commission, not a one-off — so `cost_per_acquisition_gbp` correctly returns 0.0 for
+    them. That is a true statement about the one-off and a false one about the cost of the
+    departure, and the difference matters here in a way it does not in the opex ledger: summed
+    silently into an objective, it says a business departure is FREE and hands the arm a reason to
+    price those accounts hardest of all. So the reason travels with the number and lands on the
+    decision (`MarginDecision.departure_cost_unsourced`) rather than being inferred from a zero.
+    Pricing the trail is a real gap: it needs the replacement's expected lifetime volume, which is
+    a different quantity from anything in this module, and inventing one would be exactly the
+    placeholder that looks like an answer.
+    """
+    cost = float(cost_per_acquisition_gbp(segment))
+    if cost > 0.0:
+        return cost, None
+    return 0.0, (
+        f"replacement cost for segment {segment!r}: acquisition in this segment is a broker TRAIL "
+        "(saas.opex_ledger.BROKER_COMMISSION_GBP_PER_KWH), not a one-off, so the sourced one-off "
+        "is 0.00 and this objective counts a departure here as costing NOTHING. That is a FLOOR "
+        "and it is the direction that flatters the maximiser -- do not read a price chosen for "
+        "this segment as having been penalised for the departure it causes"
+    )
+
+
 def expected_value_gbp(
     *,
     margin_gbp_per_mwh: float,
@@ -507,10 +557,37 @@ def expected_value_gbp(
     cost_to_serve_gbp_per_year: float,
     p_retain: float,
     expected_periods: float,
+    departure_cost_gbp: float,
     discount_rate: float = DISCOUNT_RATE_ANNUAL,
     fixed_revenue_gbp_per_year: float = 0.0,
 ) -> float:
     """Expected discounted contribution from one customer at one candidate margin.
+
+    A DEPARTURE COSTS SOMETHING, AND UNTIL 2026-09-09 IT COST EXACTLY ZERO. The sum was
+    `p_retain x contribution x annuity` and nothing else, so the only thing losing a customer did
+    to this number was stop earning from them. No price the arm chose was ever charged for causing
+    a departure, which is not a modelling simplification but a missing cost line: a supplier that
+    loses an account and wants to stand still pays a PCS commission to replace it. That term is
+    `-(1 - p_retain) x departure_cost_gbp`, and `departure_cost_gbp` is REQUIRED rather than
+    defaulted to zero precisely because a default would let a caller silently restore the old
+    objective and report it as this one (R15 fail-silent).
+
+    WHY IT MOVES THE ANSWER AND NOT ONLY THE LEVEL, which is the same trap the standing charge
+    sprang. At the old optimum `[p'C + pC']A = 0`, so the new objective's gradient there is
+    exactly `p'(m) x departure_cost_gbp` — and `p'` is negative everywhere on this grid, because
+    charging more loses more customers. The gradient at the old answer is therefore negative and
+    the arm moves DOWN. Making a departure expensive makes retention worth buying, in the same
+    direction and for the same reason that counting the standing charge did.
+
+    UNDISCOUNTED, ON PURPOSE. The departure and the spend that replaces it both sit at the renewal
+    boundary; discounting the replacement would make it smaller, so leaving it undiscounted is the
+    direction that does NOT flatter the maximiser. It is also the only treatment that needs no
+    assumption about when the replacement is acquired, which is a quantity this company has not
+    measured.
+
+    WHAT IS STILL MISSING, so the total is read as a floor: the replacement's own onboarding cost,
+    the margin foregone between the departure and the replacement, and the broker trail for the
+    segments `replacement_cost_gbp` returns zero for. None of them has a figure in this tree.
 
     FIXED REVENUE IS PART OF THE SUM AND LEAVING IT OUT NEARLY PUBLISHED A FALSE CLAIM. The
     first version compared the commodity margin against the WHOLE cost of serving, and every
@@ -543,7 +620,8 @@ def expected_value_gbp(
     annual_contribution = (
         margin_gbp_per_mwh * eac_mwh + fixed_revenue_gbp_per_year - cost_to_serve_gbp_per_year
     )
-    return p_retain * annual_contribution * _annuity_factor(expected_periods, discount_rate)
+    retained = p_retain * annual_contribution * _annuity_factor(expected_periods, discount_rate)
+    return retained - (1.0 - p_retain) * float(departure_cost_gbp)
 
 
 def _refine(
@@ -673,6 +751,12 @@ def decide_margin(
     observed_revenue = (current_rate_gbp_per_mwh * eac_mwh
                         if annual_revenue_gbp is None else float(annual_revenue_gbp))
 
+    # RESOLVED ONCE, OUTSIDE THE SCORER, because it must not vary with the candidate margin. The
+    # cost of replacing this customer is a property of the customer and the channel, not of the
+    # price they were offered -- a departure cost that moved with the margin would be a second,
+    # unsourced elasticity smuggled in beside the churn model's.
+    departure_cost, departure_cost_unsourced = replacement_cost_gbp(segment)
+
     def _score(margin: float) -> tuple[float, float, ExpectedAnnualCosts]:
         costs = expected_annual_costs(
             cost_to_serve_gbp_per_year=cost_to_serve_gbp_per_year,
@@ -697,6 +781,7 @@ def decide_margin(
             margin_gbp_per_mwh=margin, eac_mwh=eac_mwh,
             cost_to_serve_gbp_per_year=costs.total_gbp,
             p_retain=p_stay, expected_periods=periods,
+            departure_cost_gbp=departure_cost,
             fixed_revenue_gbp_per_year=costs.fixed_revenue_gbp,
         ), costs
 
@@ -714,6 +799,8 @@ def decide_margin(
             current_rate_gbp_per_mwh=float(current_rate_gbp_per_mwh),
             offered_rate_gbp_per_mwh=(
                 float(base_rate_gbp_per_mwh) + TARGET_MARGIN_GBP_PER_MWH),
+            departure_cost_gbp=departure_cost,
+            departure_cost_unsourced=departure_cost_unsourced,
         )
 
     if arm == FLAT_AT_LEVEL:
@@ -761,6 +848,8 @@ def decide_margin(
             considered=((level, value),),
             current_rate_gbp_per_mwh=float(current_rate_gbp_per_mwh),
             offered_rate_gbp_per_mwh=float(base_rate_gbp_per_mwh) + level,
+            departure_cost_gbp=departure_cost,
+            departure_cost_unsourced=departure_cost_unsourced,
         )
 
     if not candidates:
@@ -919,6 +1008,8 @@ def decide_margin(
         ladder_above_support_bound=above_support,
         current_rate_gbp_per_mwh=float(current_rate_gbp_per_mwh),
         offered_rate_gbp_per_mwh=float(base_rate_gbp_per_mwh) + best_margin,
+        departure_cost_gbp=departure_cost,
+        departure_cost_unsourced=departure_cost_unsourced,
     )
 
 
