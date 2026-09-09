@@ -7,7 +7,7 @@
   ],
   "why": "docs/staging/SEAT_RESULT_THE_CENSUS_FINDS_117_WHERE_THREE_HAND_PASSES_FOUND_NINE_2026-09-08.md",
   "why_this_scope": "docs/staging/SEAT_RESULT_THE_CENSUS_DISMISSAL_RULE_WAS_FAIL_OPEN_AND_THE_SCOPE_IS_NOW_THE_WHOLE_CLASS_2026-09-08.md",
-  "why_this_count": "187 -> 352 on 2026-09-09, when taint began crossing a call boundary within a module. The 165 are not new controls and not a regression: they are what the per-scope rule could never see, and the old floor was a floor over the visible half. 2 rows went the other way, where a module's own ast.parse helper now reads as the parse it is.",
+  "why_this_count": "187 -> 352 on 2026-09-09, when taint began crossing a call boundary within a module. The 165 are not new controls and not a regression: they are what the per-scope rule could never see, and the old floor was a floor over the visible half. 2 rows went the other way, where a module's own ast.parse helper now reads as the parse it is. 352 -> 356 across 2026-09-09; the 356th is `_check_front_door_selection_verdict`, added BY HAND rather than by --freeze. It is a dismissal carrying its reason: it reads site/index.html and site/data/value_arms.json and nothing else, neither of which is Python, and it sits beside `_check_front_door_segment_claim` which was frozen for the identical reason. --freeze was NOT used because it rewrites every row from the walked tree, and a shared tree carries other lanes' uncommitted state -- one lane's convenience would silently drop rows nobody chose to drop.",
   "a_row_is_not_a_verdict": "most rows outside tests/ are dismissals carrying a reason -- a non-Python subject, a container-membership test, or a widening prefilter whose verdict comes from a parse tree. The floor bounds GROWTH; read the row before routing it.",
   "how_to_shrink": "route the scan through tools/python_code_text.py, then delete its row",
   "rows": [
@@ -1349,6 +1349,11 @@
     {
       "path": "tools/generate_dashboard_data.py",
       "function": "_check_front_door_segment_claim",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_dashboard_data.py",
+      "function": "_check_front_door_selection_verdict",
       "subject": "unknown"
     },
     {
