@@ -115,11 +115,43 @@ Three controls, mutation battery run:
 this instance: a refusal on the twin comparison that can name no held path is an arithmetic error
 whatever produced it. It runs over three shapes and catches the *next* domain mismatch here too.
 
-## What is NOT done
+## The repair reached origin
 
-`last_clean_publish` is still `null`. Clearing the fork was the precondition, not the publish — the
-last recorded publish failure was `non_test_gate_refusal` (the level-promotion gate), which is a
-different cause and is now the next thing in front of this lane. The 32 `episode_failures` are not
-yet re-tested-before-counted; the item's proposed structural fix stands, and is now correctly
-motivated: not because causes expire, but because a cause is only worth counting if it is still true
-when read.
+`5469f7b92`, pushed via the reconciler's own leg (`PUSHED: pushed 1 gated landing(s) that were
+sitting local-only` — `surgical_land` never pushes). HEAD == remote == `5469f7b92`, 0 ahead / 0
+behind. Receipt verified: `tree f62f3ea11, 3 path(s), gate-rc 0`.
+
+## What is NOT done, and the honest reason
+
+`last_clean_publish` is still `null`, and **it could not have been set by this turn.**
+
+I first wrote here that the next thing in front of this lane was the level-promotion gate, because
+that is what the last recorded failure names (`non_test_gate_refusal`). **That was wrong, and it is
+the same mistake this item has now cost four stretches.** Two measurements, both taken after the
+fork closed:
+
+* `python3 tools/level_promotion_gate.py` at the new HEAD → **rc=0, no output. Green.**
+* The recorded failure is keyed to `git_hash: 7e699a126`. By `publish_cause`'s own contract a record
+  keyed to a different commit is `UNATTRIBUTED` for any current cycle. **It is evidence about a
+  cycle that no longer exists**, and I read it as a live cause for the second time in one turn.
+
+The actual reason is structural and has nothing to do with a gate: **there is no pending
+`run_complete_*.md` marker.** The publisher is marker-driven — `process_run_complete.main()` takes
+one marker path, and markers are produced by a sim run. With no marker there is nothing to publish,
+so `last_clean_publish` stays `null` however healthy the tree is. `docs/observability/` holds none.
+
+So the done-condition as written (`last_clean_publish` non-null) is **not reachable from a repair
+turn at all** — it needs a sim run first. What this turn could do, it did: the 32-hour fork that
+would have refused that publish is closed, and the tree is level with origin.
+
+## For whoever picks this up
+
+1. **Do not read `.publish_gate_state.json`'s `failures[-1].cause` as live.** Check its `git_hash`
+   against HEAD first. Three of the four wrong diagnoses on this item, including one of mine in this
+   turn, came from that field. The re-test-before-counting fix the item proposes is right, and its
+   motivation is now measured: not that causes expire, but that a cause is only worth counting — or
+   paging on — **if it is still true when read**.
+2. The next real question is whether a sim run's marker now publishes cleanly. The fork is closed
+   and the level gate is green, so the preconditions hold for the first time in 32 hours.
+3. `episode_failures: 32` still counts refusals nobody re-tested. That count is not evidence of 32
+   prevented publishes.
