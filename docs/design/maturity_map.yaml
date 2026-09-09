@@ -2695,3 +2695,48 @@
   # EXIT to L3: FLOW TEMPERATURE in the book. It is the measure that actually answers the finding
   # -- zero capital, and it does not make the home one degree colder, so it never meets this floor
   # at all. It is blocked on a source for the saving, not on physics.
+- id: A50_the_supplier_use_case_register_is_published_with_a_status_per_item
+  title: "the supplier use-case register reaches a reader on Capabilities, each item carrying its SIM-native test and a status derived from the tree"
+  notes_rehomed: [gain]
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 2
+  loop_stage: build
+  dial_inherited: 45    # the same dial as G14/G15, its two sibling deliverables from the same
+  #   ruling, and derived from the ruling rather than picked: its header says "P1 for
+  #   registration" while its own Priority section ranks 1.1/2.1 first, so the register is
+  #   authorised now and the use cases it describes are not.
+  provenance: director_ruling
+  depends_on: []
+  couples_with: [A51_the_plain_english_report_on_the_use_case_register_reaches_the_director]
+  file_scope:
+    - docs/staging/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md
+    - tools/generate_capabilities_door.py
+    - site/capabilities/index.html
+    - site/capabilities/test_capabilities_door.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a supplier's capability deck listing twenty things it can do, with no way for the reader to tell which three are live, which twelve are slideware, and which five depend on data the company does not hold."
+- id: A51_the_plain_english_report_on_the_use_case_register_reaches_the_director
+  title: "one plain-English report to the director: the register as published, the gaps folded, the two pulls landed, and the envelope decision awaiting him"
+  notes_rehomed: [gain]
+  lane: A_strategy_governance
+  value_stream: close_to_learn
+  epoch: 3
+  level_current: 0
+  level_target: 1
+  loop_stage: build
+  dial_inherited: 45
+  provenance: director_ruling
+  depends_on:
+    - A50_the_supplier_use_case_register_is_published_with_a_status_per_item
+    - G14_half_hourly_grid_carbon_intensity_aligned_to_settlement
+    - G15_forward_curve_series_to_backtest_hedging_by_physics
+  couples_with: []
+  file_scope:
+    - docs/staging/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06.md
+    - docs/staging/records/
+    - tests/design/test_the_use_case_report_reached_the_director.py
+  expert_hour: {status: not_attempted, last: null, findings: []}
+  real_world_twin: "a board paper that never gets written because the analysis it summarises keeps getting extended."

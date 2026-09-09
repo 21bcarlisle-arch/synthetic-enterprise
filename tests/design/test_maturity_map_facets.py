@@ -88,6 +88,26 @@ REVIEWED_CLOSE_TO_LEARN = {
     # is to inherit their stream -- but an instrument that measures a flow is not that flow, which
     # is precisely the distinction this set exists to hold.
     "A49_the_ceiling_comes_before_the_programme_on_r3_and_r4",
+    # 2026-09-09 reviewed (delivery seat, minting the two deliverables of
+    # DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY that the 09-07 mint doc claimed
+    # and never wrote to the map). Reviewed on their merits, and the near miss is worth naming
+    # because it is the one G14 fell into from the SAME ruling: G14 was first written
+    # close_to_learn and re-classified price_to_bill, its comment recording that "close_to_learn
+    # is what you pick when you have not decided". These two are the opposite case and the
+    # distinction is the one this set exists to hold — an instrument that DESCRIBES a set of
+    # revenue flows is not those flows.
+    # A50 publishes the register of what a supplier could do with this world, each item carrying
+    # its SIM-native test and a derived status. It prices nothing, bills nobody and authorises no
+    # build — the ruling says so in its own first line ("a product document, not a build order").
+    # Its whole output is the seat's and the director's ability to tell live capability from
+    # slideware, which is the identical class as A46 and A49 above.
+    "A50_the_supplier_use_case_register_is_published_with_a_status_per_item",
+    # A51 is the plain-English report on that register. A report about an instrument is one step
+    # further from any flow than the instrument, so it cannot be a narrower class than A50's; and
+    # the fourth of its four sections exists purely to put a reserved decision (the hedging risk
+    # envelope) in front of the director. Same class as A46 — knowledge for a decision the seat
+    # does not take.
+    "A51_the_plain_english_report_on_the_use_case_register_reaches_the_director",
     # SITE14 was minted by the canon drift check's first live run (A45) while the mission rewrite
     # was in flight, and is reviewed here on its merits rather than waved through to clear a gate:
     # it removes two claims from a published schematic that the code does not support. It changes

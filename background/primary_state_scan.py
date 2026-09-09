@@ -154,6 +154,32 @@ _RULING_STEER_PREFIXES = (
 
 # COVERAGE SIGNAL 1 -- a PLANNER_MINTED doc's `Source: <ruling>.md, deliverable N` line.
 _SOURCE_DELIVERABLE_RE = re.compile(r"deliverable\s*\*{0,2}\s*(\d+)", re.IGNORECASE)
+
+#: THE REFERENT, NOT THE CLAIM. A coverage line that names an atom is only coverage if that atom
+#: EXISTS on the map. Signal 1 used to accept the sentence alone, so a mint doc saying
+#: "deliverable 1 -- MINTED here as `A50`" discharged the deliverable whether or not `A50` was
+#: ever written into docs/design/maturity_map.yaml.
+#:
+#: MEASURED 2026-09-09, and it is not hypothetical: `PLANNER_MINTED_the_ruling_and_the_canon_are_
+#: seven_eighths_minted_2026-09-07` claimed A50 and A51 on its Source lines and said in its OWN
+#: body, under "What this tick did and did not do" -- *"Did not: write A50/A51 into
+#: docs/design/maturity_map.yaml"*. Neither id has ever appeared in any of the three map files,
+#: in the working tree or in any commit. The doc was archived to done/, so nothing re-drew it;
+#: the ruling stayed in the staging root and re-drew every tick; and LAW C's independent read --
+#: the source built to CONTRADICT a false claim -- reported both deliverables covered for two
+#: days on the strength of a sentence that disclaimed itself three paragraphs later.
+#:
+#: A backticked citation is matched against the atom-id PREFIX (`G14` resolves
+#: `G14_half_hourly_grid_carbon_intensity_aligned_to_settlement`) because docs cite the short
+#: form and the map stores the slug. Case-sensitive and anchored to the whole backtick span, so
+#: a cited path or a ruling filename is not mistaken for an atom.
+_CITED_ATOM_RE = re.compile(r"`([A-Z]{1,3}\d{1,3})(?:_[A-Za-z0-9_]*)?`")
+_MAP_ATOM_ID_RE = re.compile(r"^\s*-\s*id:\s*([A-Za-z0-9_]+)", re.MULTILINE)
+_MAP_FILES = (
+    PROJECT_DIR / "docs" / "design" / "maturity_map.yaml",
+    PROJECT_DIR / "docs" / "design" / "maturity_map_closed.yaml",
+    PROJECT_DIR / "docs" / "design" / "maturity_map_retired.yaml",
+)
 # COVERAGE SIGNAL 2 -- the machine-authored MINT COVERAGE MAP banner in a ruling's
 # leading HTML comment: `[N] ... (MINTED:|LANDED|ALREADY COVERED|COVERED|DONE)`.
 _COVERAGE_MAP_ENTRY_RE = re.compile(r"\[(\d+)\]\s*(.*?)(?=\n\s*\[\d+\]|\Z)", re.DOTALL)
@@ -213,10 +239,45 @@ def _iter_docs(*dirs: Path):
                 continue
 
 
-def _minted_deliverables(ruling_names: set[str], *mint_dirs: Path) -> set[tuple[str, int]]:
+def _map_atom_prefixes(*map_files: Path) -> set[str] | None:
+    """Every atom-id prefix on the maturity map (live + closed + retired), e.g. {'G14', 'W2_29'}.
+
+    None means NO map file could be read at all -- distinct from an empty set, and the caller must
+    treat it as "cannot check" rather than "nothing exists". FAIL-SAFE, in this module's declared
+    direction: unable to verify a referent => the coverage claim is accepted as before, so a read
+    error can never FABRICATE residue. A partially-readable map degrades the same way (a missing
+    closed map makes a closed atom look absent), which is why the caller only ever REMOVES
+    coverage for an id absent from every file it could read."""
+    prefixes: set[str] = set()
+    read_any = False
+    for p in map_files:
+        try:
+            text = Path(p).read_text(encoding="utf-8")
+        except OSError:
+            continue
+        read_any = True
+        for m in _MAP_ATOM_ID_RE.finditer(text):
+            prefixes.add(m.group(1).split("_")[0])
+            prefixes.add(m.group(1))
+    return prefixes if read_any else None
+
+
+def _minted_deliverables(
+    ruling_names: set[str], *mint_dirs: Path, map_files: tuple[Path, ...] | None = None
+) -> set[tuple[str, int]]:
     """COVERAGE SIGNAL 1: (ruling_name, deliverable_index) pairs claimed by a PLANNER_MINTED doc's
     `Source:` line. A mint doc references exactly one ruling + one deliverable; we key off its
-    Source line only (not prose) so a deliverable number mentioned elsewhere can't over-cover."""
+    Source line only (not prose) so a deliverable number mentioned elsewhere can't over-cover.
+
+    THE CLAIM IS CHECKED AGAINST ITS REFERENT (see _CITED_ATOM_RE): when the Source line names one
+    or more atoms, EVERY named atom must resolve on the map or the line covers nothing. A doc that
+    says "MINTED here as `A50`" while A50 is on no map is not a mint, it is a sentence.
+
+    STATED LIMIT, measured rather than glossed: 18 of the 28 live coverage lines name no atom at
+    all -- the older one-mint-doc-per-deliverable form, where the DOC is the mint record. Those are
+    left exactly as they were. Requiring an id on every line would red all 18 correct ones, which
+    is fabricating residue to close a hole; that hole is filed as a finding, not patched blind."""
+    known = _map_atom_prefixes(*(map_files if map_files is not None else _MAP_FILES))
     covered: set[tuple[str, int]] = set()
     for name, body in _iter_docs(*mint_dirs):
         if not name.startswith(_MINT_GLOB.split("*")[0]):
@@ -227,6 +288,9 @@ def _minted_deliverables(ruling_names: set[str], *mint_dirs: Path) -> set[tuple[
             dm = _SOURCE_DELIVERABLE_RE.search(line)
             if not dm:
                 continue
+            cited = set(_CITED_ATOM_RE.findall(line))
+            if cited and known is not None and not cited <= known:
+                continue  # the atoms this line rests on are not on the map: it covers nothing
             idx = int(dm.group(1))
             for rn in ruling_names:
                 if rn in line:
@@ -238,16 +302,24 @@ def named_but_unminted(
     staging_dir: Path | None = None,
     in_progress_dir: Path | None = None,
     done_dir: Path | None = None,
+    map_files: tuple[Path, ...] | None = None,
 ) -> list[dict]:
     """§5's FIRST OUTPUT (RESTATED): the current NAMED-BUT-UNMINTED set, derived from PRIMARY state.
 
     For every staged/in_progress [DIRECTOR-RULING]/[STEER] carrying a WORK THIS CREATES block, each
     named deliverable is either COVERED or it is RESIDUE (named, not done). A deliverable is COVERED
     when EITHER (signal 1) a PLANNER_MINTED_* doc -- in the staging root, in_progress/, or done/ --
-    names the ruling + that deliverable index on its `Source:` line, OR (signal 2) the ruling's own
+    names the ruling + that deliverable index on its `Source:` line -- AND, where that line names
+    atoms, every one of them resolves on the maturity map -- OR (signal 2) the ruling's own
     machine-authored MINT COVERAGE MAP banner marks that index LANDED/MINTED/COVERED/DONE (the
     landed-as-code-without-a-mint-doc case). The residue is everything neither signal covers -- the
     §0 failure class, where a ruling names work that was never minted into an atom AND never landed.
+
+    THE MAP IS PRIMARY STATE AND LAW C NAMES IT ("in_progress/, the campaign registers, the defect
+    ledger, THE MATURITY MAP"). Signal 1 now reads it directly off disk, by the same rule as every
+    other read here: no supervisor import, no tick argument, nothing that could make this a
+    restatement of the enumeration's own belief. Before this, signal 1 believed a mint doc's
+    sentence about itself -- see _CITED_ATOM_RE for the two-day instance it missed.
 
     Returns a list of {ruling, index, deliverable} dicts, sorted (ruling, index). Empty list == the
     checkable proof that no named deliverable sits unminted. LAW C: reads ONLY the rulings and the
@@ -271,7 +343,7 @@ def named_but_unminted(
         return []
 
     # 2. COVERAGE SIGNAL 1: mint-doc Source references, scanning root + in_progress + done.
-    minted = _minted_deliverables(set(rulings), sroot, sip, sdone)
+    minted = _minted_deliverables(set(rulings), sroot, sip, sdone, map_files=map_files)
 
     # 3. Diff each ruling's deliverables against coverage; emit the residue.
     residue: list[dict] = []

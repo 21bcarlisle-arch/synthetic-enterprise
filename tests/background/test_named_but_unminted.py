@@ -123,10 +123,22 @@ def test_law_c_no_supervisor_import():
 
 def test_law_c_takes_no_tick_or_enumeration_argument():
     """The derivation's signature accepts ONLY primary-state paths — it cannot be handed the tick's
-    own belief, so it can never be a restatement of it (the LAW-C independence wall, structural)."""
+    own belief, so it can never be a restatement of it (the LAW-C independence wall, structural).
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. This asserted the literal set
+    {staging_dir, in_progress_dir, done_dir} until 2026-09-09, when `map_files` was added so
+    signal 1 could check a cited atom against the map. The maturity map is primary state — LAW C's
+    own text names it — so that addition is exactly what this wall permits, and the literal-set
+    form went red for a change that made the module MORE independent, not less. That is the
+    backwards direction CLAUDE.md warns about. The property is: every parameter is path-typed and
+    defaults to None, so nothing that is not a primary-state location can be injected at all."""
     import inspect
-    params = set(inspect.signature(pss.named_but_unminted).parameters)
-    assert params == {"staging_dir", "in_progress_dir", "done_dir"}, params
+    sig = inspect.signature(pss.named_but_unminted)
+    assert sig.parameters, "the derivation must still be redirectable at fixture primary state"
+    for name, prm in sig.parameters.items():
+        assert "Path" in str(prm.annotation), f"{name} is not path-typed: {prm.annotation}"
+        assert prm.default is None, f"{name} carries a non-None default: {prm.default!r}"
+        assert not any(w in name for w in ("tick", "enum", "status", "verdict", "belief")), name
 
 
 def test_law_c_output_derives_from_primary_state_mutation(tmp_path):
@@ -218,3 +230,110 @@ def test_real_repo_work_definition_ruling_fully_covered():
     res = pss.named_but_unminted()  # real repo dirs
     wd = [r for r in res if "WORK_DEFINITION_AND_COHERENCE" in r["ruling"]]
     assert wd == [], f"WORK_DEFINITION deliverables unexpectedly unminted: {wd}"
+
+
+# --------------------------------------------------------------------------- #
+# THE REFERENT, NOT THE CLAIM — signal 1 used to believe a mint doc's sentence
+# about itself. Defect: PLANNER_MINTED_..._seven_eighths_minted_2026-09-07 wrote
+# "deliverable 1 — MINTED here as `A50`" and, three paragraphs later, "Did not:
+# write A50/A51 into docs/design/maturity_map.yaml". Both were true. LAW C's
+# independent read — the source built to CONTRADICT a false claim — reported the
+# ruling's deliverables 1 and 4 covered for two days on the strength of the first
+# sentence, while the ruling re-drew in every tick's doorbell.
+# --------------------------------------------------------------------------- #
+def _map(dir_: Path, *atom_ids: str) -> tuple[Path, ...]:
+    """A three-file maturity map carrying exactly these atom ids. Returns the map_files tuple."""
+    dir_.mkdir(parents=True, exist_ok=True)
+    live = dir_ / "maturity_map.yaml"
+    live.write_text(
+        "".join(f"- id: {a}\n  lane: X\n  level_current: 0\n" for a in atom_ids), encoding="utf-8")
+    closed = dir_ / "maturity_map_closed.yaml"
+    closed.write_text("", encoding="utf-8")
+    retired = dir_ / "maturity_map_retired.yaml"
+    retired.write_text("", encoding="utf-8")
+    return (live, closed, retired)
+
+
+def _mint_citing(dir_: Path, slug: str, source_ruling: str, index: int, cited: str) -> Path:
+    dir_.mkdir(parents=True, exist_ok=True)
+    p = dir_ / f"PLANNER_MINTED_{slug}.md"
+    p.write_text(
+        "<!-- SUPERVISOR_DRAW: self-drawable -->\n"
+        f"# Mint for {slug}\n\n"
+        f"- Source: `{source_ruling}`, deliverable {index} — MINTED here as `{cited}`\n",
+        encoding="utf-8",
+    )
+    return p
+
+
+def test_a_mint_doc_citing_an_atom_that_is_on_no_map_covers_nothing(tmp_path):
+    """THE DEFECT ITSELF. The mint doc's Source line is well-formed and names the right ruling and
+    the right deliverable index — and the atom it rests on was never written to the map. The
+    deliverable is NOT done, so it must stay in the residue."""
+    root, ip, done = _dirs(tmp_path)
+    _ruling(root, "DIRECTOR_RULING_R_2026-09-06.md", ["publish the register"])
+    _mint_citing(done, "claims_a50", "DIRECTOR_RULING_R_2026-09-06.md", 1, "A50")
+    residue = pss.named_but_unminted(root, ip, done, map_files=_map(tmp_path / "map", "Z9_other"))
+    assert [r["index"] for r in residue] == [1], residue
+
+
+def test_the_same_mint_doc_covers_once_the_atom_reaches_the_map(tmp_path):
+    """R15 THE OTHER WAY, and the leg that makes the one above a control rather than a refusal:
+    nothing about the DOCUMENT changes — only the map gains the row — and the deliverable clears.
+    Without this leg a check that refused every citation would pass the test above."""
+    root, ip, done = _dirs(tmp_path)
+    _ruling(root, "DIRECTOR_RULING_R_2026-09-06.md", ["publish the register"])
+    _mint_citing(done, "claims_a50", "DIRECTOR_RULING_R_2026-09-06.md", 1, "A50")
+    minted_map = _map(tmp_path / "map2", "A50_the_register_is_published_with_a_status_per_item")
+    assert pss.named_but_unminted(root, ip, done, map_files=minted_map) == []
+
+
+def test_a_short_citation_resolves_the_full_slug_and_a_near_miss_does_not(tmp_path):
+    """Docs cite `G14`; the map stores `G14_half_hourly_...`. The prefix rule is what makes the
+    check usable — and it must not degenerate into a substring match, or `A5` would resolve `A50`
+    and every two-character citation would cover something."""
+    root, ip, done = _dirs(tmp_path)
+    _ruling(root, "DIRECTOR_RULING_R_2026-09-06.md", ["one", "two"])
+    _mint_citing(done, "short", "DIRECTOR_RULING_R_2026-09-06.md", 1, "G14")
+    _mint_citing(done, "near", "DIRECTOR_RULING_R_2026-09-06.md", 2, "G1")
+    m = _map(tmp_path / "map3", "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement")
+    residue = pss.named_but_unminted(root, ip, done, map_files=m)
+    assert [r["index"] for r in residue] == [2], residue
+
+
+def test_a_coverage_line_naming_no_atom_is_untouched(tmp_path):
+    """THE STATED LIMIT, held by a control so it cannot be quietly tightened. 18 of the 28 live
+    coverage lines name no atom at all — the older one-mint-doc-per-deliverable form, where the
+    DOC is the mint record. Requiring an id on every line would fabricate residue for 18 correct
+    mints, which is the opposite failure. This test reds if someone closes that hole blind."""
+    root, ip, done = _dirs(tmp_path)
+    _ruling(root, "DIRECTOR_RULING_R_2026-09-06.md", ["one"])
+    _mint(done, "no_atom_named", "DIRECTOR_RULING_R_2026-09-06.md", 1)
+    assert pss.named_but_unminted(root, ip, done, map_files=_map(tmp_path / "map4")) == []
+
+
+def test_an_unreadable_map_accepts_the_claim_rather_than_fabricating_residue(tmp_path):
+    """FAIL-SAFE DIRECTION, matching this module's declared positive-detection contract: it may
+    fail to ADD work it cannot substantiate, never invent work that is not on disk. No map file
+    readable => 'cannot check' => the citation is accepted exactly as it was before this change.
+    Distinct from an EMPTY map, which is a readable statement that the atom is absent."""
+    root, ip, done = _dirs(tmp_path)
+    _ruling(root, "DIRECTOR_RULING_R_2026-09-06.md", ["one"])
+    _mint_citing(done, "claims_a50", "DIRECTOR_RULING_R_2026-09-06.md", 1, "A50")
+    assert pss._map_atom_prefixes(tmp_path / "nothing_here.yaml") is None
+    assert pss.named_but_unminted(root, ip, done, map_files=(tmp_path / "nothing_here.yaml",)) == []
+    # ...and the empty-but-readable map is the opposite verdict, on the same input.
+    empty = _map(tmp_path / "map5")
+    assert pss._map_atom_prefixes(*empty) == set()
+    assert [r["index"] for r in pss.named_but_unminted(root, ip, done, map_files=empty)] == [1]
+
+
+def test_the_two_atoms_the_defect_lost_are_on_the_real_map_now():
+    """Keyed to the PROPERTY (the ruling's two uncovered deliverables have map rows), not to the
+    residue count, which moves whenever any ruling is filed. Reds if A50/A51 are ever swept out
+    of the map again — which is exactly how they were lost the first time."""
+    from tools import maturity_map_store as store
+    ids = {a["id"] for a in store.load_atoms()}
+    for want in ("A50_the_supplier_use_case_register_is_published_with_a_status_per_item",
+                 "A51_the_plain_english_report_on_the_use_case_register_reaches_the_director"):
+        assert want in ids, f"{want} is not on the maturity map"
