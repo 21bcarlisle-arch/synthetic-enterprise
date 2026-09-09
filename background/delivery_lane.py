@@ -614,8 +614,154 @@ def drawn_without_landing(cutoff: float | None = None, now: float | None = None,
         if float(row.get("last_landing_at") or 0.0) >= drawn:
             continue
         out.append({"id": str(fid), "drawn_at": drawn,
-                    "hours_since_draw": round((stamp - drawn) / 3600.0, 1)})
+                    "hours_since_draw": round((stamp - drawn) / 3600.0, 1),
+                    **_disposition(row, drawn)})
     return sorted(out, key=lambda r: r["drawn_at"], reverse=True)
+
+
+#: The three things a window that closed with no landing of its own can mean, and the ONLY three.
+#: `NOT_DONE` is the residual and carries no evidence by construction — it is what is left when
+#: neither join holds, which is why it is named here rather than left as the absence of the other
+#: two. `LANDED_ELSEWHERE` is `note_landing_under`'s; `PREMISE_SPENT` is `note_premise_spent`'s.
+NOT_DONE = "not_done"
+LANDED_ELSEWHERE = "landed_elsewhere"
+PREMISE_SPENT = "premise_spent"
+
+#: The two answers `disposition_of` can give that are NOT one of the three, because they are not
+#: windows that closed with nothing: the id delivered under its own name, or was never handed out.
+#: Kept distinct from `NOT_DONE` on purpose -- collapsing "nobody did it" into "nobody was asked"
+#: is the same conflation one rung up, and it is the one that would make the dial read healthy.
+DELIVERED = "delivered"
+NOT_DRAWN = "not_drawn"
+
+
+def disposition_of(focus_id: str, *, path: Path | None = None) -> dict:
+    """WHICH of the three `focus_id`'s most recent window was. The row-level reader.
+
+    `drawn_without_landing` answers "which windows closed with nothing", and by construction it
+    never sees a row settled by `--landed-under`: the credit writes a landing instant and the
+    row leaves the list. So that reading can only ever name TWO of the three, and asking it to
+    name the third would be a branch that cannot be taken -- the R15 shape this project has
+    walked into repeatedly. This is where all three are reachable, because it is asked ABOUT A
+    ROW rather than about a list: give it an id and it says what became of the last thing handed
+    out under that name, including the credited case.
+
+    ONE DEFINITION OF THE THREE, and `drawn_without_landing` consumes this rather than repeating
+    it. A second place deciding what a null means is how the two would drift, and drift between
+    two readings of one store is the defect one rung up from the one being fixed.
+
+    `{"disposition": ..., "evidence": ...}`; an id the ledger has never heard of gets `NOT_DRAWN`,
+    which is not one of the three because it is not a window at all.
+    """
+    try:
+        row = claims_mod._load(_ledger_path(path or CLAIMS_FILE)).get(focus_id)
+    except Exception:
+        row = None
+    if not isinstance(row, dict):
+        return {"disposition": NOT_DRAWN, "evidence": ""}
+    drawn = float(row.get("last_drawn_at") or 0.0)
+    if float(row.get("last_landing_at") or 0.0) >= drawn and not row.get("landed_under"):
+        return {"disposition": DELIVERED,
+                "evidence": ", ".join(str(p) for p in (row.get("last_landing_paths") or [])[:4])}
+    return _disposition(row, drawn)
+
+
+def _disposition(row: dict, drawn: float) -> dict:
+    """WHICH of the three a row whose window closed without a landing of its own is.
+
+    THE DEFECT THIS ENDS (director, 2026-09-09, on this lane's own ledger): 61 of 224 rows read
+    `last_landing_at: null` and the reading built on them said one thing — "handed out, window
+    closed, nothing committed, go and check `git status`" — about three different situations. One
+    of them is a real miss. One is work that landed under a name that read better, and the other
+    is an item whose premise was already spent before it was drawn. Grading a steer on a figure
+    that conflates those is guessing, and the same open error was restated for seven stretches
+    partly because the dial could not be read.
+
+    IT IS A READING OF EVIDENCE ALREADY ON THE ROW, never a judgement made here. `landed_under`
+    is written only by a join between two ledger rows; `premise_spent` only by a join against git.
+    This function chooses between them and falls to `NOT_DONE`, so the residual is the shape with
+    NO evidence rather than the shape nobody bothered to classify — the direction that keeps a
+    real miss loud when a disposition is missing, and the reason there is no fourth value.
+
+    A STALE CREDIT DOES NOT SETTLE A NEW WINDOW. `landed_under` sits on the row forever, so a
+    credited id that is DRAWN AGAIN and lands nothing has both the credit and a genuine second
+    miss. Reading the old credit as an explanation would let one join silence every future draw
+    of the same id -- the across-windows fail-open. The instant is therefore compared against THIS
+    draw, exactly as `drawn_without_landing`'s own third clause does.
+    """
+    spent = row.get("premise_spent")
+    if isinstance(spent, dict) and spent.get("commit"):
+        return {"disposition": PREMISE_SPENT,
+                "evidence": f"{str(spent['commit'])[:9]}: {spent.get('reason') or ''}".strip()}
+    other = row.get("landed_under")
+    if other and float(row.get("last_landing_at") or 0.0) >= drawn:
+        return {"disposition": LANDED_ELSEWHERE, "evidence": f"landed under {other}"}
+    return {"disposition": NOT_DONE, "evidence": ""}
+
+
+def note_premise_spent(focus_id: str, commit: str, reason: str, *,
+                       path: Path | None = None) -> str:
+    """Record that `focus_id`'s window closed because its premise was already spent. "" on success.
+
+    THE THIRD DISPOSITION, and the one that had no route at all. `--landed` covers work that
+    landed under its own name and `--landed-under` covers work that landed under another id, but
+    an item drawn against a premise that was ALREADY TRUE has nothing to bind: no commit of this
+    tick's delivered it, because there was nothing left to deliver. The lane's own doorbell has
+    printed the premise check since 2026-09-05 — *"all N commit id(s) this item cites are ALREADY
+    ancestors of origin/main"* — and told the reader to say so in `docs/staging/` and release the
+    claim, and the row it came from was then indistinguishable from an abandoned one forever.
+
+    THE JOIN IS AGAINST GIT, NOT AGAINST THE CALLER. `commit` must resolve here AND be an ancestor
+    of `origin/main`: a premise is spent only if the thing that spent it is in the published
+    record. A caller free-typing a plausible sha would turn the quietest disposition into a way to
+    make a real miss disappear, which is the one failure this must not have — so the assertion the
+    caller controls is WHICH commit, and whether that commit is in the record is git's answer.
+
+    `reason` is REQUIRED and is not decoration: it is the sentence a reader auditing why an item
+    left the missed list has to have, and a disposition with no reason is the null this replaces
+    wearing a better name.
+
+    REFUSALS NAME THEMSELVES, and each is a different instruction to the caller:
+
+      * `focus_id` was never drawn — nothing was handed out, so there is no window to dispose of;
+      * the row already holds a landing at or after its last draw — it DELIVERED, and recording it
+        as premise-spent would overwrite the stronger fact with the weaker one;
+      * `reason` is empty — see above;
+      * `commit` does not resolve here — the evidence cannot be read, so it is not evidence;
+      * `commit` is not an ancestor of `origin/main` — it may yet be reverted or rebased away, and
+        an unpublished spender is a claim about the future.
+
+    Fails CLOSED on an unwritable store, for `note_landing_under`'s reason: the caller prints this
+    and a silent success over a store that did not change trains the next seat to stop checking.
+    """
+    try:
+        if not (reason or "").strip():
+            return ("a disposition with no reason is the null it replaces -- say in one line what "
+                    "spent the premise, because that sentence is the whole record")
+        ledger_path = _ledger_path(path or CLAIMS_FILE)
+        ledger = claims_mod._load(ledger_path)
+        row = ledger.get(focus_id)
+        if not isinstance(row, dict):
+            return (f"{focus_id} was never drawn -- the ledger has no row for it, so there is no "
+                    f"window for a spent premise to explain")
+        drawn = float(row.get("last_drawn_at") or 0.0)
+        if float(row.get("last_landing_at") or 0.0) >= drawn > 0.0:
+            return (f"{focus_id} already holds a landing at or after its last draw -- it "
+                    f"DELIVERED, and premise-spent is the weaker fact; nothing to record")
+        resolved = (_git("rev-parse", "--verify", "--quiet", commit + "^{commit}") or "").strip()
+        if not resolved:
+            return (f"{commit} does not resolve to a commit here -- evidence that cannot be read "
+                    f"is not evidence, so the row keeps its unnamed window")
+        if _git("merge-base", "--is-ancestor", resolved, "origin/main") is None:
+            return (f"{resolved[:9]} is NOT an ancestor of origin/main -- an unpublished spender "
+                    f"is a claim about the future, and it may still be rebased away")
+        row["premise_spent"] = {"commit": resolved, "reason": reason.strip(),
+                                "at": time.time()}
+        ledger[focus_id] = row
+        claims_mod._save(ledger, ledger_path)
+        return ""
+    except Exception as exc:  # noqa: BLE001 - the caller prints this; a silent success is worse
+        return f"the draw ledger could not be written: {exc}"
 
 
 def _binding_instant(focus_id: str, rec: dict, store: Path) -> float:
@@ -1360,6 +1506,10 @@ def main(argv=None) -> int:
                     help="credit a DRAWN id with the landing already bound to another id, for "
                          "work that landed under a different name; writes the draw ledger only, "
                          "takes no claim and restarts no deadline")
+    ap.add_argument("--premise-spent", nargs=3, metavar=("FOCUS_ID", "COMMIT", "REASON"),
+                    help="record that this drawn id's window closed because COMMIT had already "
+                         "spent its premise -- the third disposition, for work there was nothing "
+                         "left to deliver on. COMMIT must be an ancestor of origin/main.")
     ap.add_argument("--commit", default="HEAD",
                     help="which commit --landed reads its paths from (default: HEAD)")
     ap.add_argument("--since", default=None, metavar="REF",
@@ -1414,6 +1564,17 @@ def main(argv=None) -> int:
         paths = last_landing(focus_id)[1]
         print("credited {} with {}'s landing ({} path(s)): {}".format(
             focus_id, other_id, len(paths), ", ".join(paths[:8])))
+        return 0
+    if args.premise_spent:
+        focus_id, commit, reason = args.premise_spent
+        refusal = note_premise_spent(focus_id, commit, reason)
+        if refusal:
+            # NON-ZERO, matching --landed and --landed-under: the caller believes the window is
+            # explained and the lane disagrees, so the row is still an unnamed miss on the seat's
+            # list and the caller needs to hear it now rather than in the next orientation.
+            print(f"recorded NOTHING for {focus_id}: {refusal}")
+            return 1
+        print(f"{focus_id}'s window is disposed as premise-spent by {commit}: {reason}")
         return 0
     if args.hand_off:
         focus_id, done_means = args.hand_off

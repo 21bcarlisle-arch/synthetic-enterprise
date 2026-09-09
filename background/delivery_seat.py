@@ -757,6 +757,12 @@ def _resolve_claude() -> str | None:
 
 
 def _prompt(brief: dict) -> str:
+    # Imported here, not at module level, for `_drawn_never_landed`'s reason: `delivery_lane`
+    # reaches back into this package and the pair is kept loadable by keeping the edge one-way at
+    # import time. Read from the lane rather than restated, so the prose and the reader that
+    # writes it cannot drift into two vocabularies for one store.
+    from background.delivery_lane import NOT_DONE as delivery_lane_NOT_DONE
+
     # THE LIST GOES ABOVE THE JSON, AND OUTSIDE THE TRUNCATION. `brief` is dumped with a 60k cap
     # and `commits` is the first big key in it, so a long stretch can push everything after it off
     # the end -- including the one part of this brief that is meant to be READ rather than counted.
@@ -784,15 +790,30 @@ def _prompt(brief: dict) -> str:
     # would otherwise be started instead.
     rows = brief.get("focus_drawn_never_landed") or []
     if rows:
+        # AND EACH ROW NOW NAMES ITS DISPOSITION, because this sentence used to say one thing --
+        # "nobody did it, check `git status`" -- about three different situations, and the seat
+        # was grading its own steer on the total. A row whose premise was already spent is not
+        # work sitting in the tree, and sending the reader to look for it there is how the same
+        # open error got restated for seven stretches. `not_done` is the residual and the only
+        # one the `git status` instruction is about, so it is the one the count is over.
+        undisposed = [r for r in rows if r.get("disposition", delivery_lane_NOT_DONE)
+                      == delivery_lane_NOT_DONE]
         missed = (
-            "\n\nDRAWN, GIVEN ITS WINDOW, AND NOTHING LANDED. The lane handed each of these out "
-            "and the claim was swept back into the pool with no commit bound to it. THE WORK MAY "
-            "ALREADY BE DONE AND SITTING IN THE WORKING TREE -- that is what this looked like on "
-            "2026-09-07, twice, and finished work that never left the tree is worse than work not "
-            "started, because the ledger says the item was drawn. CHECK `git status` FOR THESE "
-            "BEFORE STARTING ANYTHING NEW:\n\n"
-            + "\n".join("- {} (drawn {}h ago, no landing)".format(
-                r.get("id"), r.get("hours_since_draw")) for r in rows)
+            "\n\nDRAWN, GIVEN ITS WINDOW, AND NOTHING LANDED UNDER ITS OWN NAME. The lane handed "
+            "each of these out and the claim was swept back into the pool with no commit bound "
+            "to it. {} of the {} have NO disposition recorded, and THAT WORK MAY ALREADY BE DONE "
+            "AND SITTING IN THE WORKING TREE -- that is what this looked like on 2026-09-07, "
+            "twice, and finished work that never left the tree is worse than work not started, "
+            "because the ledger says the item was drawn. CHECK `git status` FOR THE `not_done` "
+            "ROWS BEFORE STARTING ANYTHING NEW. A row that is NOT `not_done` has been explained "
+            "already and is not yours to redo; if one of the `not_done` rows landed under "
+            "another id or was drawn against a premise something else had already spent, say so "
+            "with `--landed-under` or `--premise-spent` rather than leaving it "
+            "unnamed:\n\n".format(len(undisposed), len(rows))
+            + "\n".join("- {} (drawn {}h ago, {}{})".format(
+                r.get("id"), r.get("hours_since_draw"),
+                r.get("disposition", delivery_lane_NOT_DONE),
+                ": " + r["evidence"] if r.get("evidence") else "") for r in rows)
         )
     else:
         missed = ("\n\nNO DRAWN LANE 0 ITEM finished its window without landing in the last day, "
