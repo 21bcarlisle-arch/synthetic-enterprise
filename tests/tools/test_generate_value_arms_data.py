@@ -69,6 +69,19 @@ THREE_ARM_20260829 = (
 #: began on 2026-09-03, so every run before it is permanently unstamped and this name cannot expire.
 THREE_ARM_NO_WORLD = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260831.json")
+#: THE RUN THAT PREDATES THE CURRENT-WORLD RE-TAKE -- sole witness for every control that needs
+#: `_current_world_clause` to actually COMPOSE something. The clause is silent unless the
+#: current-world block is the LATER of the two runs the page carries, so a control asserting on
+#: its prose must pair `CURRENT_WORLD_THREE_ARM_PATH` with a run stamped before it.
+#:
+#: THE SAME FILE AS `THREE_ARM_NO_WORLD` AND A SEPARATE NAME ON PURPOSE. What is wanted here is
+#: the STAMP; what is wanted there is the absent world. Two properties that happen to live in one
+#: artefact today, and reaching through one name for the other property is how a control silently
+#: stops measuring what it says it measures the day the two part company. This was `THREE_ARM`
+#: until 2026-09-09, which held the ordering by accident until the 21:01Z re-take was promoted
+#: onto it -- and then a control went red on a page that had become more honest.
+THREE_ARM_BEFORE_THE_CURRENT_WORLD_RUN = (
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260831.json")
 NOISE_FLOOR = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor.json"
 RUN_OUTPUT = PROJECT / "docs" / "reports" / "run_output_latest.json"
 
@@ -3415,8 +3428,15 @@ def test_the_creation_leg_carries_its_own_live_world_bound_and_not_the_advantage
     # THE FAMILY REACHES THE READER, and the count and the placement are in the headline. The
     # placement is the half a range alone will not tell you: this draw is +£2,177 and its own
     # family averages BELOW zero.
-    headline = gva.build(_load(THREE_ARM), superseded, _load(RUN_OUTPUT), None,
-                         current, floor_live)["headline"]
+    # THE PANEL RUN IS PINNED BY ITS STAMP, not read off `THREE_ARM` (2026-09-09). This composed
+    # its headline from the canonical path, which is the PROMOTION TARGET -- so when the 21:01Z
+    # re-take was copied onto it, the panel below became LATER than the current-world run, the
+    # currency clause went correctly silent, and the count below had nowhere to render. Red on a
+    # page that had become more honest, which is the same shape the comment above records this
+    # control being bitten by once already. The clause needs the current-world block to be the
+    # later of the two, so the pairing is named here instead of inherited from today's release.
+    headline = gva.build(_load(THREE_ARM_BEFORE_THE_CURRENT_WORLD_RUN), superseded,
+                         _load(RUN_OUTPUT), None, current, floor_live)["headline"]
     assert leg["verdict_withheld_because"], (
         "a verdict was stated on a leg whose own re-draws reverse it, or withheld with no reason")
     # DERIVED FROM THE FLOOR, NOT WRITTEN DOWN. Until 2026-09-08 these four were the literals
@@ -5173,3 +5193,119 @@ def test_the_page_carries_BOTH_populations_and_names_each_one():
     assert isinstance(horizon, dict) and "available" in horizon
     assert horizon.get("reason") or horizon.get("what_this_is"), (
         "the block neither published a population nor said why it could not")
+
+
+# ── which of the two panels is the LATER run, and what the headline may say about it ──────────
+#
+# WHAT THIS PARTITION IS FOR (2026-09-09, Lane 0). `_current_world_contrast` had four guards and
+# every one of them asked about the WORLD -- does this run name the live digest, is its floor the
+# live digest, is the floor the undecomposed leg. None could ask whether the run offered as "the
+# world as it is now" is actually the more recent of the two on the page, because for as long as
+# the block existed it always was: the panel below was the 2026-08-31 canonical run and anything
+# in the live world postdated it by construction. Promoting the 21:01Z re-take onto
+# `value_cycle_ab_s1_three_arm.json` ended that, and the composed headline read "IN THE WORLD AS
+# IT IS NOW, the same comparison gives £17,739, measured 2026-09-08T00:19:54Z ... It is a LARGER
+# advantage than the £17,453 below" -- with the figure below measured TWENTY-ONE HOURS LATER.
+# Every world guard passed, and `_later_runs_in_this_world` named the later run in its own census
+# in the same feed while the headline went on claiming currency. A footnote is not a withdrawal.
+#
+# ONE CONTROL OVER THE WHOLE PARTITION, and not a leg per branch. `is_the_later_run` is a boolean
+# on a rarely-taken branch, and a field that were always False would satisfy every assertion about
+# the refusal while making the page permanently silent about its own current-world run. So both
+# sides are driven here, from artefacts on disk, in one test.
+
+
+def test_which_panel_is_the_LATER_run_decides_whether_the_headline_may_claim_currency():
+    """Both sides of `is_the_later_run`, from three real runs, and the clause that follows each.
+
+    THE SUBJECTS ARE ON DISK AND THEY DIFFER ONLY IN THEIR STAMP. `current` is the 00:19Z
+    live-world re-take in both legs. What changes is which run it is published beside: the
+    2026-08-31 run (earlier, so the current-world block IS the later one) and the 21:01Z re-take
+    (later, so it is NOT). Nothing else about the two legs differs, which is what makes the field
+    attributable to the ordering rather than to anything else about the artefacts.
+
+    BOTH SUBJECTS ARE PINNED BY THEIR DATED NAMES, and `THREE_ARM` -- the canonical path -- is
+    deliberately not used for either. That path is the PROMOTION TARGET: bytes are copied onto it,
+    so which run it holds is a property of the last release and not of this control. Naming it for
+    the `earlier` leg is how this control would silently invert, because on 2026-09-09 it holds
+    the 21:01Z re-take and would have made both legs the same comparison.
+
+    AND IT ASSERTS THE POSITIVE LEG RESOLVES, which is what keeps the negative one from being
+    vacuous. If the live world ever moves off these artefacts' digest, the world guard refuses
+    first and `available` goes False -- so the negative leg would pass for the wrong reason and
+    nothing would say so. The positive leg fails loudly instead.
+
+    Fires on: hard-coding `is_the_later_run`; comparing the stamps the wrong way round; letting
+    `_current_world_clause` compose "IN THE WORLD AS IT IS NOW" over the older of the two runs;
+    withdrawing the block's figures instead of only its currency claim.
+    """
+    obs = PROJECT / "docs" / "observability"
+    current = _load(obs / "value_cycle_ab_s1_three_arm_20260908.json")
+    earlier = _load(obs / "value_cycle_ab_s1_three_arm_20260831.json")   # 2026-08-31T03:47:57Z
+    later = _load(obs / "value_cycle_ab_s1_three_arm_20260908b.json")    # 2026-09-08T21:01:30Z
+    assert earlier["generated_at"] < current["generated_at"] < later["generated_at"], (
+        "the three subjects no longer straddle the current-world run's stamp, so this control "
+        "cannot drive both sides of the partition and is measuring nothing")
+
+    floor = _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH)
+    against_earlier = gva._current_world_contrast(current, {}, floor, superseded_run=earlier)
+    against_later = gva._current_world_contrast(current, {}, floor, superseded_run=later)
+
+    # THE POSITIVE LEG. Published, the later of the two, and the headline says so.
+    assert against_earlier["available"], (
+        "the 00:19Z re-take no longer names the live world, so every leg below would pass by "
+        "refusing and this control would be measuring the world guard instead: {}".format(
+            against_earlier.get("why_not")))
+    assert against_earlier["is_the_later_run"] is True
+    assert against_earlier["why_the_headline_omits_it"] is None
+    spoken = gva._current_world_clause(against_earlier)
+    assert "IN THE WORLD AS IT IS NOW" in spoken
+
+    # THE NEGATIVE LEG. Still published, still bounded, still composed -- and silent in the
+    # headline. Withdrawing the block instead was tried and reverted: `composition` lives in this
+    # payload, so an unavailable block takes the mission's own question off the page with it.
+    assert against_later["available"] is True, (
+        "the block was withdrawn rather than quietened, which takes `composition` -- value made "
+        "or value moved -- off the page along with the currency claim that was the actual defect")
+    assert against_later["is_the_later_run"] is False
+    assert "NOT THE LATER OF THE TWO" in (against_later["why_the_headline_omits_it"] or "")
+    assert later["generated_at"] in against_later["why_the_headline_omits_it"], (
+        "the refusal does not name the stamp it lost to, so a reader cannot check it")
+    assert gva._current_world_clause(against_later) == "", (
+        "the headline still composes a currency claim over the older of the two runs")
+
+    # ...and the two legs are the SAME MEASUREMENTS either way. The figures were honestly taken
+    # and the ordering does not touch them -- only what may be said about them.
+    for key in ("value_advantage_gbp", "selection_gbp", "level_advantage_gbp", "generated_at"):
+        assert against_earlier[key] == against_later[key], (
+            "the ordering changed {}, so it is doing more than withdrawing a claim".format(key))
+
+
+def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens():
+    """`sources[]` is derived from the constants `generate` reads, never typed beside them.
+
+    THE DEFECT (2026-09-09). Four literals stood here and only two were true. It cited
+    `value_cycle_ab_s1_three_arm_20260903.json`, which `generate` never opens, and it named
+    NEITHER current-world path -- the two artefacts the whole current-world block is built from.
+    A page citing an artefact it does not read and omitting two it does, in the one field a
+    reader would use to check it.
+
+    KEYED TO THE PROPERTY. This asserts the citation matches what `generate` opens, not that it
+    equals today's five names, so it stays true through every constant move and every
+    promote-by-copy and goes red only when the two genuinely diverge.
+
+    Fires on: re-typing any entry as a literal; dropping a path `generate` reads; adding one it
+    does not.
+    """
+    cited = gva.build({}, {})["sources"]
+    opened = [gva.THREE_ARM_PATH, gva.NOISE_FLOOR_PATH, gva.CURRENT_WORLD_THREE_ARM_PATH,
+              gva.CURRENT_WORLD_NOISE_FLOOR_PATH, gva.DECOMPOSITION_PATH]
+    assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
+        "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
+        "named would open the wrong files".format(cited, [p.name for p in opened]))
+    # ...and every cited file is ON DISK. A citation naming a path that does not exist is worse
+    # than none: it reads as provenance and cannot be followed.
+    for name in cited:
+        assert (PROJECT / name).is_file(), (
+            "the page cites {}, which is not in the tree -- provenance a reader cannot "
+            "follow".format(name))

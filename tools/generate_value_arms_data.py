@@ -4105,8 +4105,26 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
 
     TWO INDEPENDENT GUARDS, AND EACH HAS A SOLE WITNESS ON DISK. A floor is admitted only if it
     names the live world AND is the undecomposed leg.
-      * WORLD -- sole witness `value_cycle_ab_s1_noise_floor.json`: mode `all`, names no world at
-        all. Satisfies the leg guard and must still be refused.
+      * WORLD -- sole witness `value_cycle_ab_s1_noise_floor_20260831.json`: mode `all`, three seed
+        rows, and NO `world_identity` key at all (it predates world stamping). Satisfies the leg
+        guard and must still be refused.
+        NAMED BY ITS DATED PATH SINCE 2026-09-09, AND THAT IS NOT TIDYING. This bullet said
+        `value_cycle_ab_s1_noise_floor.json` -- which is also the CANONICAL PATH THE NEWEST FLOOR IS
+        PROMOTED TO, and promotion here is a file copy. When the 09-08b pair was promoted onto the
+        canonical names, that file began naming world `39a192ce04c1eda8` and stopped having the one
+        property this bullet claims for it. A control's subject may not live at a path the release
+        machinery overwrites; the dated copy is the same bytes and no promotion can reach it.
+
+        WHAT WAS ACTUALLY BROKEN WAS THIS SENTENCE, NOT THE GUARD, and the distinction is worth the
+        line. `NOISE_FLOOR_NO_WORLD` in
+        tests/tools/test_generate_value_arms_data.py -- the constant that really drives the world
+        leg -- was moved to the dated path the same day, by the lane that did the promoting, and
+        carries its own note saying why. So the guard kept its witness and went on being drivable.
+        What went stale was the PRODUCER'S PROSE: this docstring named one file and the control
+        named another, and a reader following the module's own account of its guards would have
+        opened an artefact that no longer refuses. A path in a comment is a reachability edge, and
+        an edge pointing at the wrong end is not caught by the control it describes. Filed as
+        docs/staging/SEAT_FINDING_THE_PRODUCERS_NAMED_WITNESS_AND_THE_CONTROLS_REAL_ONE_DIVERGED_WHEN_A_PROMOTION_OVERWROTE_THE_PATH_2026-09-09.md.
       * LEG -- sole witness `value_cycle_ab_s1_noise_floor_only_20260903.json`: the live world,
         finished, on disk, and the wrong half. Satisfies the world guard and must still be
         refused.
@@ -5107,6 +5125,45 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
                 "is {live}, so it is not a statement about now either".format(
                     ran=ran_in or "no world at all", live=live)),
         }
+    # THE RUN OFFERED AS "NOW" MAY NOT BE OLDER THAN THE RUN IT IS PUBLISHED BESIDE AS HISTORY.
+    #
+    # THE DEFECT THIS EXISTS FOR (2026-09-09, Lane 0). The guards above ask whether this run names
+    # the live world. They cannot ask whether it is the LATER of the two runs on this page, because
+    # for as long as the block existed it always was: the panel below was the 2026-08-31 canonical
+    # run and anything in the live world postdated it by construction. Promoting the 21:01Z re-take
+    # onto `value_cycle_ab_s1_three_arm.json` ended that. Both panels then named `39a192ce04c1eda8`,
+    # every world guard passed, and the composed headline read "IN THE WORLD AS IT IS NOW, the same
+    # comparison gives GBP 17,739, measured 2026-09-08T00:19:54Z ... It is a LARGER advantage than
+    # the GBP 17,453 below" -- with the figure below measured at 21:01:30Z, TWENTY-ONE HOURS LATER.
+    # A day-old run presented as the present, in the headline sentence rather than a footnote.
+    #
+    # NOT COVERED BY `_later_runs_in_this_world`, which was written against the same promotion and
+    # is kept. That function names the later runs it finds on disk, in a census beside the block;
+    # it does not reach the sentence. The headline went on claiming currency with that census
+    # firing and naming `_20260908b.json` in the same feed. A footnote is not a withdrawal.
+    #
+    # KEYED TO THE PROPERTY AND NOT TO TODAY'S PAIR, which is why it is a comparison of the two
+    # artefacts' own stamps and not a pin on either constant: it stays true through every future
+    # move of either path AND through every promote-by-copy onto the canonical names, and it goes
+    # quiet of its own accord the moment a re-run lands on `CURRENT_WORLD_THREE_ARM_PATH` that is
+    # genuinely later.
+    #
+    # BOTH SIDES ARE REACHABLE FROM ARTEFACTS ON DISK, and that is the check this guard has to
+    # survive: against the 2026-08-31 run it does not fire, and against the 21:01Z re-take it does.
+    # A guard whose refusal branch is the only one anything can reach refuses everything and passes
+    # every test of a refusal.
+    #
+    # IT REMOVES THE HEADLINE SENTENCE, NOT THE BLOCK, and that distinction is the whole design.
+    # Refusing the block outright was tried first and reverted in the same turn: `composition`
+    # lives inside this payload, so `available: False` also withdraws the census that answers the
+    # mission's own question -- value made or value moved -- and left the page saying "THIS
+    # PUBLISH STATES NO COMPOSITION OF THE ADVANTAGE" three inches under a headline stating the
+    # level leg is 98% of the advantage. What is wrong when the runs invert is the CURRENCY CLAIM,
+    # not the figures: they were honestly measured, they name this world, and their composition is
+    # as readable as it ever was. So the claim goes and the measurement stays.
+    current_at = current.get("generated_at")
+    superseded_at = (superseded_run or {}).get("generated_at")
+    is_the_later_run = not (current_at and superseded_at and current_at < superseded_at)
     contrast = current.get("level_vs_selection") or {}
     if not contrast.get("available"):
         return {"available": False, "resolved": None, "live_world": live,
@@ -5154,6 +5211,23 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "clock": contrast.get("clock"),
         "priced_decisions": funnel.get("priced"),
         "renewals_offered": funnel.get("renewals_the_world_offered"),
+        # WHETHER THIS RUN IS ACTUALLY THE LATER OF THE TWO ON THIS PAGE, and it is published on
+        # the branch where it is TRUE as well as the branch where it is not -- a field that only
+        # appears when something is wrong is a field a reader never learns to look for.
+        "is_the_later_run": is_the_later_run,
+        # THE OTHER PANEL'S STAMP, CARRIED SO THE ORDERING IS CHECKABLE FROM THE PAYLOAD rather
+        # than from the prose above it. `why_the_headline_omits_it` states both dates in a
+        # sentence, and a sentence is not something a control can compare.
+        "superseded_generated_at": superseded_at,
+        "why_the_headline_omits_it": (None if is_the_later_run else (
+            "THIS RUN IS NOT THE LATER OF THE TWO ON THIS PAGE. It was taken at {cur}; the run "
+            "below it was taken at {sup}. Both name this world, so nothing here is stale and "
+            "every figure in this block was honestly measured -- but 'the world as it is now' is "
+            "a claim about which run is more recent, and on these two it is false. So the "
+            "headline states no sentence from this block, and what is published here is a SECOND "
+            "reading of the same world at a different hour and a different commit. Read the two "
+            "as two draws, not as a revision."
+        ).format(cur=current_at, sup=superseded_at)),
         "superseded_floor_ran_in_world": floor_world,
         # THE FIGURE THE HEADLINE COMPARES THIS ONE AGAINST, carried in the payload so the
         # comparison can be DERIVED rather than typed. `_current_world_clause` stated "a SMALLER
@@ -5215,12 +5289,29 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             "the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same world "
             "and seed family, which is what the contrast above must be priced against before any "
             "direction is read from it"),
+        # THE DATE IS THE OTHER PANEL'S OWN, NEVER A LITERAL. This sentence read "published beside
+        # the 2026-08-31 run" until 2026-09-09, which was true for as long as `THREE_ARM_PATH`
+        # resolved to that run and became false the moment the 21:01Z re-take was promoted onto
+        # the canonical name -- the same defect `_against_the_panels_figure` was written for, one
+        # key down in the same dict, and it survived that repair because the repair was aimed at
+        # the figure and not at the date. A promote-by-copy moves no constant, so nothing that
+        # reads a constant could have caught it.
         "how_to_read_this": (
-            "The same book, the same three arms and the same code as the figures above, re-run "
-            "over the departure level this world runs at TODAY. It is published beside the "
-            "2026-08-31 run rather than instead of it, because those figures were honestly "
-            "measured and their fault is only being read as current. Compare the two as two "
-            "worlds, not as a revision."),
+            (
+                "The same book, the same three arms and the same code as the figures above, "
+                "re-run over the departure level this world runs at TODAY. It is published "
+                "beside the {when} run rather than instead of it, because those figures were "
+                "honestly measured and their fault is only being read as current. Compare the "
+                "two as two worlds, not as a revision."
+            ) if is_the_later_run else (
+                "The same book, the same three arms and the same code as the figures above, run "
+                "at a different hour of the same world and from a different commit. It is NOT "
+                "the more recent of the two -- the run above it was taken at {when} and this one "
+                "at {mine} -- so nothing here is a statement about how things stand relative to "
+                "that panel. Compare the two as two draws of one world, not as a revision and "
+                "not as a trend."
+            )).format(when=superseded_at or "superseded",
+                      mine=current_at or "an unstated date"),
     }
 
 
@@ -5280,6 +5371,16 @@ def _current_world_clause(current_world: dict) -> str:
     noise a reader learns to skip on the one day it changes.
     """
     if not isinstance(current_world, dict) or not current_world.get("available"):
+        return ""
+    # AND SILENT WHEN THE BLOCK IS NOT THE LATER RUN, which is a different state from unavailable
+    # and had to be, because the block's figures stay on the page (2026-09-09). Every sentence
+    # this function composes opens "IN THE WORLD AS IT IS NOW" and closes by calling the panel
+    # below the older one; both are false when the run on `THREE_ARM_PATH` was taken after
+    # `CURRENT_WORLD_THREE_ARM_PATH`'s, which is the state the page entered when the 21:01Z
+    # re-take was promoted onto the canonical name. The block goes on publishing its measurements
+    # under its own date and its own `why_the_headline_omits_it`; what is withdrawn is the
+    # currency claim.
+    if current_world.get("is_the_later_run") is False:
         return ""
     advantage = current_world.get("value_advantage_gbp")
     if not isinstance(advantage, (int, float)):
@@ -5537,12 +5638,18 @@ def build(three_arm: dict | None, floor: dict | None,
         "provisional": True,
         "provisional_note": PROVISIONAL_NOTE,
         "not_a_target": NOT_A_TARGET,
-        "sources": [
-            "docs/observability/value_cycle_ab_s1_three_arm.json",
-            "docs/observability/value_cycle_ab_s1_three_arm_20260903.json",
-            "docs/observability/value_cycle_ab_s1_noise_floor.json",
-            "docs/observability/value_cycle_ab_floor_decomposition.json",
-        ],
+        # NAMED FROM THE CONSTANTS, NOT TYPED BESIDE THEM. This list was four literals and only
+        # two of them were true: `..._three_arm_20260903.json` is an artefact `generate` never
+        # opens, and the two current-world paths -- which it does open, and which the whole
+        # current-world block is built from -- were absent. A page citing an artefact it does not
+        # read and omitting two it does, in the one field a reader would use to check it.
+        # Deriving it means the citation cannot drift from what `generate` actually opens.
+        # REDIRECTED PATHS STAY ABSOLUTE rather than raising. Several controls monkeypatch these
+        # constants to a `tmp_path` outside the tree, and `relative_to` throws on those -- a
+        # citation field is not worth an exception on any input it can be handed.
+        "sources": [_cited_path(p) for p in (
+            THREE_ARM_PATH, NOISE_FLOOR_PATH, CURRENT_WORLD_THREE_ARM_PATH,
+            CURRENT_WORLD_NOISE_FLOOR_PATH, DECOMPOSITION_PATH)],
     }
     if not isinstance(three_arm, dict) or not three_arm:
         return dict(base, available=False, reason=(
@@ -5988,6 +6095,14 @@ def _arm_vs_control_clause(advantage, spread=None, spreads=None) -> str:
                 "£{:,.0f} MORE than flat rules{}.".format(advantage, _clears_its_floor(spread)))
     return ("Running the same book through the per-customer decision engine earned "
             "£{:,.0f} LESS than flat rules{}.".format(abs(advantage), _clears_its_floor(spread)))
+
+
+def _cited_path(path: Path) -> str:
+    """A source path as a reader would check it — repo-relative when it is in the repo."""
+    try:
+        return str(path.relative_to(PROJECT))
+    except ValueError:
+        return str(path)
 
 
 def _read(path: Path):
