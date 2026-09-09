@@ -135,3 +135,32 @@ Against the run launched with this document — a full three-arm pass over 2016�
 the same book and the same world as the 09-08b run. Graded on `method_skill.fixed_horizon.legs`,
 leg by leg, in a RESULT document beside this one, with each prediction's verdict written next to
 the number that settled it.
+
+### THE RUN'S ADDRESS, so a later turn can find it rather than relaunching it
+
+Launched 2026-09-09T00:33Z, after the mechanism landed as `62334dc76` and from a worktree at that
+commit, so it carries the per-leg permutation.
+
+| | |
+|---|---|
+| unit | `longjob-concordance-null-20260909` (`systemctl --user is-active …`) |
+| artefact | `docs/observability/value_cycle_ab_s1_three_arm_20260909.json`, written into the SHARED tree so it survives the worktree |
+| log | `/var/tmp/concordance_null_20260909.log` |
+| worktree | `/var/tmp/se-concordance-null-20260909`, LOCKED at `62334dc76` |
+| re-ask | `python3 -m background.launch_liveness --check` |
+
+World `39a192ce04c1eda8`, checked live against the 09-08b artefact's own digest before launch —
+same world, so the leg-by-leg comparison in the table above is one variable and not two.
+
+**CHECK THE ARTEFACT AND THE UNIT BEFORE RELAUNCHING ANYTHING.** The comparable run took about two
+and a half hours for its three passes, so this does not finish inside the turn that launched it,
+and a turn that finds no result document has almost certainly found a run still going rather than
+a run that never happened.
+
+**AND IT IS NOT ENOUGH FOR A READER ON ITS OWN.** The page reads `THREE_ARM_PATH`, still the
+2026-08-31 run, whose `method_skill.fixed_horizon` is the withheld branch. Moving it needs
+`NOISE_FLOOR_PATH` moved in the same commit and therefore a noise floor measured on THIS run —
+nine more passes. That pair move is the already-owed item recorded in
+`SEAT_RESULT_THE_UNSELECTED_CUT_IS_0_POINT_42_…_2026-09-08.md` §1 and is not made in passing here.
+Until it lands the page states the absence in its own words, which is the honest branch and not a
+gap.
