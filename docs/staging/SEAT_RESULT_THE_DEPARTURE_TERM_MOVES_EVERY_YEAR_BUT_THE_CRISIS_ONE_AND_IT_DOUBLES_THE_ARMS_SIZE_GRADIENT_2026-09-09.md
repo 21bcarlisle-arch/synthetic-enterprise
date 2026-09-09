@@ -158,6 +158,30 @@ row that moves proves the term *can* reach the price at these inputs and says no
 often it does. Direction, not magnitude, on everything book-side — which is not measured here at
 all.
 
+## THE RUN IS IN FLIGHT — this document is its address
+
+`background.launch_long_job` was given this file as `--asserted-live-by`, so
+`launch_liveness --check` and the deadman re-ask the claim against this paragraph. It is stated
+here rather than left implied, because a liveness record whose address does not make the claim is
+the vacuity that mechanism exists to close.
+
+| | |
+|---|---|
+| job | `value-cycle-ab-departure-term-20260909` |
+| unit | `longjob-value-cycle-ab-departure-term-20260909.service` — **its own cgroup**, verified at launch, so this tick's teardown cannot reach it |
+| command | `python3 -m tools.run_value_cycle_ab --level-arm --out docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json` |
+| artefact | `docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json` |
+| log | `/var/tmp/longjob-value-cycle-ab-departure-term-20260909.log` |
+| launched | 2026-09-09T20:58:05Z · **~1h50m**, three full passes |
+| producing commit | `e1895d6c8` — the departure term's own landing, so the artefact's run identity contains the change it measures |
+
+**Whoever grades it:** the predictions are at `8a1164c5e` and were landed before any of this ran.
+Compare against `docs/observability/value_cycle_ab_s1_three_arm_20260909.json` (world digest
+`39a192ce04c1eda8`, producing commit `62334dc76`) — **the same world and seed, so the only thing
+that differs between the two artefacts is the departure term.** Re-ask the claim with
+`python3 -m background.launch_liveness --check` before assuming it is still running; a dead unit
+that wrote no artefact reads exactly like one still working.
+
 ## What is next, ranked
 
 1. **The three-arm run, against predictions already landed.** P7 (cross-stratum concordance
