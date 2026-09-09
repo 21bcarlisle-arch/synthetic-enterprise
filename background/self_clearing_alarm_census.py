@@ -71,6 +71,14 @@ for its own refusal. A red clearable by deleting the evidence is a fail-open wit
 The baseline is the register at HEAD, so this bites on the WORKING COPY at commit time, which is
 where the gates run and where the 33-annotation rewrite would have been stopped.
 
+AND WHETHER THE ANSWER IS THE ROW'S OWN (2026-09-05) -- `rows_graded_by_resemblance()`, a field
+that cites a SIBLING row and names no carrier the census attributes to its own path. The re-audit
+that opened the eight rows closing on "same shape as X" found SEVEN wrong about their own carrier
+and NONE wrong about the verdict, which is precisely why nothing would ever have re-asked them; the
+rule it wrote down went into the file as prose beside the prose that had just cost 33 annotations.
+Every rung above guards a row's existence, its verdict, or the PRESENCE of an answer -- this one
+asks whether the answer was derived from this path's code.
+
 VACUITY GUARD (R15 -- the fail-open shape here is a census that finds NOTHING): a derivation that
 silently stops matching -- a renamed attribute, a moved root, a regex that stops firing -- would
 report an empty class and read as "clean". `census_is_vacuous()` makes that state an explicit
@@ -1085,6 +1093,104 @@ def shared_loader_answers(document: dict[str, Any] | None = None) -> list[str]:
                    "\"{}\". Either give each row its own answer, or declare the sentence in `{}` "
                    "if it is provenance rather than an answer".format(
                        len(keys), ", ".join(keys), sentence[:160], PROVENANCE_SECTION))
+
+
+#: The fields a row makes its case in. Each is checked INDEPENDENTLY by
+#: `rows_graded_by_resemblance()`: a `why` that concludes on a sibling is not rescued by a `loader`
+#: written a day later by a different pass, because the `why` is what a later reader reads first
+#: and the two fields answer different questions.
+REASONED_FIELDS = ("why", LOADER_FIELD)
+
+
+def _cited_siblings(text: str, key: str, census: dict[str, Any]) -> list[str]:
+    """Other state paths this text names. The candidate set is the CENSUS's own derived path keys,
+    never a phrase list -- "same shape as" is only the commonest wording and a check keyed to the
+    wording would be defeated by the next author's phrasing."""
+    paths = census.get("state_paths") or {}
+    return sorted(p for p in paths
+                  if p != key
+                  # Not `in`: `.lock` is a substring of half the prose in this file. A path counts
+                  # as cited only where it stands as a whole token.
+                  and re.search(r"(?<![\w./-])" + re.escape(p) + r"(?![\w/-])", text))
+
+
+def _own_carriers_named(text: str, key: str, census: dict[str, Any]) -> list[str]:
+    """The functions the CENSUS attributes to this path that the text actually names.
+
+    Checked against the derived writer/reader set rather than against free prose, and that is the
+    whole point of the rung. Naming an inner or shared helper reads as opening the carrier while
+    saying nothing about WHICH carriers are on it -- `.atom_stall_tracker.json` closed on "already
+    on `load_episode_prior`. Same as `.supervisor_stuck_state.json`", which is true of the three
+    supervisor readers and FALSE of the fourth, `generate_maturity_map_data._load_stall_state`, a
+    hand-rolled loader that fails open to `{}` on a corrupt read and publishes "nothing is stalled"
+    to the maturity map page. Requiring an ATTRIBUTED name forces the enumeration that finds it."""
+    rec = (census.get("state_paths") or {}).get(key) or {}
+    quals = set(rec.get("writers") or ()) | set(rec.get("readers") or ())
+    syms = {q.split("::")[-1] for q in quals if "::" in q}
+    return sorted(s for s in syms
+                  # A 1-3 char name ("run", "_id") matches inside ordinary words too often to be
+                  # evidence that a carrier was opened.
+                  if len(s) > 3 and re.search(r"(?<!\w)" + re.escape(s) + r"(?!\w)", text))
+
+
+def rows_graded_by_resemblance(census: dict[str, Any],
+                               dispositions: dict[str, dict[str, str]] | None = None
+                               ) -> list[str]:
+    """THE FALSIFIER FOR `_scope_of_resemblance`: a field that cites a sibling row and names no
+    carrier of its own.
+
+    A REASON THAT DEFERS TO A SIBLING IS AN UNOPENED ROW, AND IT READS AS ASKED-AND-ANSWERED. The
+    2026-09-05 delivery-seat re-audit opened the eight rows that had closed on "same shape as X" /
+    "same reasoning as X": SEVEN were wrong about their own carrier and not one was wrong about the
+    VERDICT -- which is exactly why nothing would ever have re-asked them. The rule it wrote down
+    ("a row may cite a sibling to CORROBORATE, never to CONCLUDE: it must first name what its own
+    carrier's writer and reader do") went into the dispositions file as prose, and prose has no
+    falsifier -- the same shape, in the same file, that cost 33 `loader` annotations nine hours
+    after they landed.
+
+    WHY THE FOUR EXISTING RUNGS ALL MISS IT. `undispositioned()` is satisfied by a verdict and any
+    non-empty reason -- "same shape as X" IS a non-empty reason. `unguarded_real_hits()` reads
+    `real` rows only. `eroded_dispositions()` asks whether the row still has a hit. And
+    `unasked_loader_rows()` asks whether the row has a `loader` field, not whether that field
+    stands on its own carrier. Every rung guards the row's EXISTENCE, its VERDICT or the PRESENCE
+    of an answer; none asks whether the answer was derived from this path's own code.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. No remembered set, no recorded count, no list of
+    the eight rows the hand re-audit happened to find: the citation set is the census's own derived
+    path keys and the naming set is the census's own writer/reader attribution, so a row that goes
+    BACK to a resemblance tomorrow fires identically to one that never left, and a genuinely new
+    hit is judged by the same bar. It cannot go red for the file becoming more honest.
+
+    WHAT IT DOES NOT CATCH, stated rather than left for the reader to discover: three of the eight
+    rows the hand re-audit found wrong (`run_history.json`, `.sent_ntfy_ids.json`,
+    `.ntfy_responder_seen_hashes.json`) cited no sibling at all -- they made a FALSE CLAIM about
+    their own carrier ("append-only" over a whole-list rewrite and two `[-500:]` rolling windows).
+    That is a different defect and needs a different rung; this one would not have fired on them.
+    Backtested at `c30738d77`, the commit before the re-audit, it fires on five rows, three of
+    which the re-audit independently found wrong.
+
+    It also does not try to tell a live citation from one the row QUOTES in order to withdraw it.
+    Deliberately: a row that mentions a sibling at all can still be asked to name its own carrier,
+    and that bar is cheap to clear honestly and impossible to clear by resemblance.
+
+    `or ""` BEFORE `str`: a field carrying an explicit JSON `null` stringifies to "None", which is
+    truthy -- the trap that made a mandatory reason fall open one rung above."""
+    disp = load_dispositions() if dispositions is None else dispositions
+    out = []
+    for key in census.get("hits", []):
+        row = disp.get(key)
+        if not isinstance(row, dict):
+            continue  # no row at all is `undispositioned()`'s refusal, not this one
+        for field in REASONED_FIELDS:
+            text = str(row.get(field) or "")
+            if not text.strip():
+                continue  # an ABSENT field is the loader rung's refusal, not this one
+            cited = _cited_siblings(text, key, census)
+            if cited and not _own_carriers_named(text, key, census):
+                out.append(
+                    "{} [{}] -- cites {} but names no function the census attributes to this "
+                    "path: the field concludes on a sibling instead of on its own carrier".format(
+                        key, field, ", ".join("`{}`".format(c) for c in cited[:3])))
     return out
 
 
@@ -1131,7 +1237,8 @@ def main() -> int:
     ap.add_argument("--check", action="store_true",
                     help="read-only: exit 1 on a vacuous census, an undispositioned hit, an "
                          "unguarded real hit, an eroded row, an unasked loader question or a row "
-                         "removed from the register without a reason")
+                         "removed from the register without a reason, one answer standing "
+                         "on several rows, or a row graded by resemblance to a sibling")
     args = ap.parse_args()
     census = derive()
     vacuous = census_is_vacuous(census)
@@ -1151,6 +1258,7 @@ def main() -> int:
     unasked = unasked_loader_rows(census, disp)
     removed = removed_dispositions(disp)
     shared = shared_loader_answers()
+    resembled = rows_graded_by_resemblance(census, disp)
     if not args.check:
         write_census(census)
         print("census written to {}".format(CENSUS_PATH))
@@ -1178,7 +1286,11 @@ def main() -> int:
               "an inherited answer reads as asked-and-answered, so nothing asks it again):")
         for line in shared:
             print("  {}".format(line))
-    if missing or unguarded or eroded or unasked or removed or shared:
+    if resembled:
+        print("ROWS GRADED BY RESEMBLANCE (a reason that defers to a sibling is an unopened row):")
+        for line in resembled:
+            print("  {}".format(line))
+    if missing or unguarded or eroded or unasked or removed or shared or resembled:
         return 1
     return 0
 
