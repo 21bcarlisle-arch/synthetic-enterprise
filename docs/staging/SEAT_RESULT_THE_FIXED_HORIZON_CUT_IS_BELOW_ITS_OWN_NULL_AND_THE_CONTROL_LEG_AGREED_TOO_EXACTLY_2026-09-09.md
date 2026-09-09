@@ -104,12 +104,31 @@ figure.
 ## What is next
 
 1. **The 09-09 run has no noise floor, so it cannot be promoted and this interval does not yet
-   render.** `docs/observability/value_cycle_ab_s1_three_arm_20260909.json` is on disk **untracked**;
-   there is no `value_cycle_ab_s1_noise_floor_20260909.json` and no floor job is live
-   (`launch_liveness --check`: PASS, no stale claim; no `longjob-*` unit). Promoting it without one
-   republishes the headline contrast with no error bar — the documented defect this page already
-   refuses. **Its floor is a run, not an edit, and it is the single thing standing between this
-   measurement and the reader.**
+   render.** Promoting it without one republishes the headline contrast with no error bar — the
+   documented defect this page already refuses. **Its floor is a run, not an edit, and it is the
+   single thing standing between this measurement and the reader.**
+
+   **UPDATE 2026-09-09T04:56Z — the three-arm artefact is landed and the floor run is IN FLIGHT.**
+   `docs/observability/value_cycle_ab_s1_three_arm_20260909.json` is at `4e853a83e`, no longer
+   untracked. The floor was launched by the sanctioned route, so it is in its own cgroup and does
+   not die with the tick that started it:
+
+   ```
+   python3 -m background.launch_long_job --job noise-floor-20260909 \
+     --artefact docs/observability/value_cycle_ab_s1_noise_floor_20260909.json \
+     -- python3 -m tools.run_value_cycle_ab --noise-floor-seeds 11111,22222,33333 \
+        --redraw-mode all \
+        --redraw-accounts-from docs/observability/value_cycle_ab_s1_three_arm_20260909.json \
+        --out docs/observability/value_cycle_ab_s1_noise_floor_20260909.json
+   ```
+
+   Unit `longjob-noise-floor-20260909`, log `/var/tmp/longjob-noise-floor-20260909.log`, launched
+   2026-09-09T04:56:04Z. All three flags are the ones the 09-08b replacement run established, on
+   the 09-09 accounts. `floor_run_headroom_refusal()` returned `None` before launch (19.0 GB
+   available of 24.0 GB). The 09-08b floor took 1h58m, so expect this one around two hours.
+   **CHECK THE ARTEFACT AND THE UNIT BEFORE RELAUNCHING ANYTHING** —
+   `python3 -m background.launch_liveness --check`. When it lands, the 09-09 pair can be promoted
+   together and this interval reaches the reader.
 2. Until then the publisher's withholding of `method_skill.fixed_horizon` on the promoted 09-08b
    pair is **correct and should not be edited around**: that artefact predates `62334dc76` and
    genuinely carries no per-leg interval. The withholding names the absence and the reason.
