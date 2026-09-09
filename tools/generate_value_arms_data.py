@@ -2234,6 +2234,9 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
             null_high=estimand.get("null_95_high"),
             n=estimand.get("decisions"),
             accounts=estimand.get("accounts")),
+        # WHICH PAIRS PUT THE ESTIMAND WHERE IT IS -- the tie mass, or the arm. Beside the figure
+        # rather than under the table, because the reading of that number is what it qualifies.
+        "pair_strata": _skill_pair_strata(horizon, estimand),
         "legs": published_legs,
         # WHY THE FIRST ROW AGREEING WITH THE HEADLINE IS NOT A SECOND OPINION. The bridge's
         # control leg reproduces the published figure through a different code path, and its
@@ -2301,6 +2304,133 @@ def _skill_leg_conditioning(horizon: dict) -> dict:
         "why_the_estimand_cannot_see_them": split.get("why_the_estimand_cannot_see_them"),
         "what_each_residue_reason_means": split.get("what_each_residue_reason_means"),
         "reading": split.get("reading"),
+    }
+
+
+def _skill_pair_strata(horizon: dict, estimand: dict) -> dict:
+    """WHICH PAIRS CARRY THE ESTIMAND'S DEPARTURE -- the tie mass, or the arm?
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09, Lane 0). The most damaging figure this project
+    publishes about itself is the estimand, and it went out with the least explanation beside it: a
+    reader met `0.4210`, below its own null, and nothing on the surface said which pairs put it
+    there. A quarter of the scored decisions sit tied at 0.0, and *"a rank concordance with a
+    quarter of its mass tied at the floor can read below chance from the tie handling alone"* is a
+    reading the page invited and could not answer. `run_value_cycle_ab.pair_strata` answers it --
+    landed, tested and mutation-proven at `8d3fe6836` -- and reached no reader at all.
+
+    NOT A SECOND SOURCE, WHICH IS WHY THIS FILE MAY COMPUTE IT (contrast `_horizon_leg_published`,
+    which refuses to recompute an interval here). The split is an IDENTITY over counts the two legs
+    already publish: the producer's own function is CALLED, never reimplemented, and its own
+    docstring states it is safe to apply to an artefact written before the block existed. So a run
+    that carries the block is passed through and a run that predates it is decomposed here, and
+    `computed_by` says which happened rather than leaving a reader to assume.
+
+    FAILS CLOSED ON BOTH SIDES. `pair_strata` refuses -- naming the identity that failed -- when
+    the strata cannot be sized or the pair counts do not add up, and that refusal is published as
+    the reason. And a run whose estimand carries no interval of its own gets no split either: the
+    block above withholds that figure, and decomposing a figure the page will not show would put
+    its parts on the surface without it.
+    """
+    #: FUNCTION-LEVEL BECAUSE THE PRODUCER DRAGS THE WHOLE SIMULATION STACK (8.5s at import,
+    #: measured). This module is imported by the site door's own controls; the arithmetic it needs
+    #: from that module is four counts wide, and paying a simulation import on every page test to
+    #: get it would be a real cost for no reader.
+    from tools.run_value_cycle_ab import ESTIMAND_LEG, SETTLED_POUNDS_LEG, pair_strata
+
+    horizon = horizon or {}
+    published = horizon.get("pair_strata")
+    if published:
+        split = published
+        computed_by = ("the run itself, which carries the split in its own artefact")
+    else:
+        legs = horizon.get("legs") or {}
+        split = pair_strata(
+            legs.get(SETTLED_POUNDS_LEG), legs.get(ESTIMAND_LEG),
+            horizon.get("decisions_scored_at_zero_because_the_term_settled_nothing"))
+        computed_by = (
+            "this page, by calling the run producer's own `pair_strata` over the two legs this "
+            "artefact already carries. The run predates the block; the split is an identity over "
+            "its published counts and not a second ranking, so no re-run is needed to state it")
+    if not split.get("available"):
+        return {"available": False, "computed_by": computed_by, "reason": split.get("reason")}
+    low, high = estimand.get("null_95_low"), estimand.get("null_95_high")
+    if low is None or high is None:
+        return {
+            "available": False,
+            "computed_by": computed_by,
+            "reason": ("the estimand these strata decompose carries no interval computed on its "
+                       "own decisions, so the block above withholds it -- and the parts of a "
+                       "figure this page will not show do not go out without it."),
+        }
+    return {
+        "available": True,
+        "computed_by": computed_by,
+        "what_this_is": split.get("what_this_is"),
+        "strata": split.get("strata"),
+        "zero_decisions": split.get("zero_decisions"),
+        "settled_decisions": split.get("settled_decisions"),
+        "comparable_pairs": split.get("comparable_pairs"),
+        "tie_mass_share_of_decisions": split.get("tie_mass_share_of_decisions"),
+        "tie_mass_share_of_comparable_pairs": split.get("tie_mass_share_of_comparable_pairs"),
+        "cross_share_of_comparable_pairs": split.get("cross_share_of_comparable_pairs"),
+        # BOTH OF THESE ARE FUNCTIONS OF THE COUNTS upstream, so the day a change makes the tie
+        # mass scorable, or moves the departure into leg 2's own pairs, the page says so with
+        # nobody editing prose here or a string in the door.
+        "the_tie_mass_can_move_the_estimand": split.get("the_tie_mass_can_move_the_estimand"),
+        "the_stratum_that_carries_the_departure": split.get(
+            "the_stratum_that_carries_the_departure"),
+        "departure_from_no_information": split.get("departure_from_no_information"),
+        "the_estimand_if_the_cross_stratum_carried_no_information": split.get(
+            "the_estimand_if_the_cross_stratum_carried_no_information"),
+        # WHAT THE SPLIT DOES **NOT** SETTLE, on the surface rather than in the producer's
+        # docstring -- which is where it lived, and a weakness only a reader of the source can
+        # find is a figure published without it.
+        "the_interval_these_terms_carry": _pair_strata_interval_clause(split, estimand),
+        "reading": split.get("reading"),
+        # `the_two_cuts_the_item_asked_for` is deliberately NOT carried through. Its two rows ARE
+        # the bridge table above -- leg 2 and the estimand, with the same concordances and the
+        # same intervals -- and republishing them under a second key would give one figure two
+        # homes on one page, which is the shape this file has already paid for.
+    }
+
+
+def _pair_strata_interval_clause(split: dict, estimand: dict) -> dict:
+    """The bound the strata DO NOT have, composed from their own counts.
+
+    Three numbers arrive on the page with no interval beside them, on a page whose standing
+    property is that no cut reaches a reader without the interval its own sample earns. Both facts
+    are true at once and the resolution is not silence: these are TERMS of the bounded figure above
+    -- they sum to its distance from 0.5 exactly -- and they carry no permutation of their own.
+
+    AND THE LEVERAGE, which is the honest limit of the attribution and the reason the estimand's
+    own interval is optimistic. The cross stratum's pairs are `z * s` of them determined by only
+    `z` rows' signals, drawn from a wider account set than leg 2's. That is clustering, not bias:
+    it does not move the direction this split attributes, and it does mean the interval the page
+    shows is narrower than the sample really earns.
+
+    Composed from the counts so it cannot rot: the day the departures stop dominating the cross
+    stratum these numbers change with nobody editing the sentence.
+    """
+    strata = split.get("strata") or {}
+    cross = (strata.get("cross") or {}).get("comparable_pairs")
+    zeroes, settled = split.get("zero_decisions"), split.get("settled_decisions")
+    return {
+        "of_their_own": None,
+        "inherited_from": UNCONDITIONED_LEG,
+        "null_95_low": estimand.get("null_95_low"),
+        "null_95_high": estimand.get("null_95_high"),
+        "sentence": (
+            "These strata carry NO interval of their own. They are terms of the {obs:.4f} above -- "
+            "they sum to its distance from 0.5 exactly -- so the only bound here is the one that "
+            "figure's own permutation earned, {low:.4f}–{high:.4f}. And the {cross:,} cross "
+            "pairs are {z} departures against {s} survivors: {cross:,} pairs determined by only "
+            "{z} rows' signals, over a wider account set than the settled leg's. That is leverage "
+            "and clustering rather than bias -- it does not move which stratum carries the "
+            "departure, and it does mean the interval beside the estimand is narrower than this "
+            "sample really earns.".format(
+                obs=estimand.get("concordance"), low=estimand.get("null_95_low"),
+                high=estimand.get("null_95_high"), cross=cross, z=zeroes, s=settled)
+            if None not in (cross, zeroes, settled, estimand.get("concordance")) else None),
     }
 
 

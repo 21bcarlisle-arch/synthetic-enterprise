@@ -4697,25 +4697,48 @@ def _concordance_reaches_the_reader(value, rendered):
 #: A narrowing that kills a false positive can only hide things, so this one refuses to be silent:
 #: a block carrying a `concordance` that fits neither shape FAILS the control rather than being
 #: skipped. That is the branch a future block would arrive on.
+#: A THIRD CLASS ARRIVED ON 2026-09-09 and it is named here rather than admitted by widening one
+#: of the two above. `fixed_horizon.pair_strata` partitions the ESTIMAND's own comparable pairs
+#: into three strata; each carries a concordance over PAIRS, no `decisions` of its own, and no
+#: permutation -- the split is an identity whose terms sum to the estimand's departure from 0.5,
+#: not three independent estimates. Demanding an interval per stratum would be the
+#: `decisions_needed` mistake again (an interval on something that has no sample of its own); and
+#: letting them fall through as measured cuts would have failed this control on a correct page.
+#:
+#: SO THE CLASS CARRIES ITS OWN OBLIGATION, and it is stricter rather than looser: a decomposition
+#: term that reaches the reader must reach them WITH the sentence saying it has no interval of its
+#: own and naming the figure whose bound it inherits. That is asserted in the control below, so
+#: this is not an excuse list -- a stratum rendered bare and silent fails here exactly as a leg
+#: would.
 _SAMPLE_KEYS = ("decisions", "decisions_scored")
 _HYPOTHETICAL_KEYS = ("decisions_needed",)
+_DECOMPOSITION_KEYS = ("comparable_pairs", "decision_pairs")
 
 
 def _measured_cuts_only(cuts):
-    """Split discovered blocks into measured cuts and hypotheticals, refusing the unclassifiable."""
-    measured, hypothetical, unclassifiable = [], [], []
+    """Split discovered blocks into measured cuts, hypotheticals and decomposition terms.
+
+    The unclassifiable still FAIL: a narrowing that only ever hides is the shape this project has
+    paid for, so a block carrying a `concordance` that fits none of the three shapes is reported
+    rather than skipped. `decisions` is tested FIRST, because a bridge leg carries both an n and
+    its pair counts and it is a measured cut -- the decomposition class is the one with pairs and
+    no sample.
+    """
+    measured, hypothetical, decomposition, unclassifiable = [], [], [], []
     for path, cut in cuts:
         if any(key in cut for key in _SAMPLE_KEYS):
             measured.append((path, cut))
         elif any(key in cut for key in _HYPOTHETICAL_KEYS):
             hypothetical.append(path)
+        elif any(key in cut for key in _DECOMPOSITION_KEYS):
+            decomposition.append((path, cut))
         else:
             unclassifiable.append(path)
     assert not unclassifiable, (
-        "these blocks carry a `concordance` and neither the sample it was measured on nor the "
-        "sample it would need, so this control cannot tell a published figure from a target and "
-        "refuses to guess: {}".format(unclassifiable))
-    return measured, hypothetical
+        "these blocks carry a `concordance` and none of: the sample it was measured on, the "
+        "sample it would need, or the pairs it decomposes. This control cannot tell a published "
+        "figure from a target and refuses to guess: {}".format(unclassifiable))
+    return measured, hypothetical, decomposition
 
 
 def test_NO_cut_ANYWHERE_in_the_feed_renders_its_number_without_its_OWN_interval():
@@ -4762,7 +4785,7 @@ def test_NO_cut_ANYWHERE_in_the_feed_renders_its_number_without_its_OWN_interval
     rendered = _text(_render(feed)["arms-method"])
 
     discovered = _every_cut_carrying_a_concordance(feed.get("method_skill") or {})
-    cuts, hypothetical = _measured_cuts_only(discovered)
+    cuts, hypothetical, decomposition = _measured_cuts_only(discovered)
     assert len(cuts) >= 2, (
         "the walker found fewer than two measured cuts, so this control is not measuring a "
         "partition: {}".format([p for p, _ in cuts]))
@@ -4793,6 +4816,27 @@ def test_NO_cut_ANYWHERE_in_the_feed_renders_its_number_without_its_OWN_interval
     assert bounded_and_rendered >= 2, (
         "no two bounded cuts reached the reader, so the loop above proved nothing: only "
         "{} did".format(bounded_and_rendered))
+
+    # THE THIRD CLASS, HELD TO ITS OWN RULE. A decomposition term has no sample to permute, so the
+    # obligation is not an interval: it is that a reader meeting the number is told it has none and
+    # told which figure's bound it decomposes. Silence here would put three bare concordances under
+    # a bounded one and let a reader take them for four measurements.
+    split = ((feed["method_skill"]["fixed_horizon"]).get("pair_strata") or {})
+    strata_on_the_page = 0
+    for path, term in decomposition:
+        if not _concordance_reaches_the_reader(term["concordance"], rendered):
+            continue
+        strata_on_the_page += 1
+        assert split.get("available"), (
+            "{} rendered a decomposition term while the split itself is unavailable".format(path))
+        assert "NO interval of their own" in rendered, (
+            "{} is on the page and nothing tells the reader it carries no interval of its "
+            "own".format(path))
+        inherited = split["the_interval_these_terms_carry"]
+        assert ("%.4f" % inherited["null_95_low"]) in rendered, (
+            "{} is on the page without the bound it inherits from the estimand".format(path))
+    assert strata_on_the_page >= 1, (
+        "no decomposition term reached the reader, so the obligation above proved nothing")
 
     # THE POISON ROUND. A leg the page DRAWS, with its number kept and its interval taken away --
     # the shape `_horizon_leg_published` will not emit, applied to the published feed directly so
@@ -4879,6 +4923,113 @@ def test_the_page_tells_WORSE_THAN_CHANCE_apart_from_WE_CANNOT_TELL():
     assert "--amber" not in _paragraph_around(
         _render(feed_up, raw=True)["arms-method"], "reads BETTER than chance"), (
         "the clearing verdict was styled as a caveat, so the amber says nothing")
+
+
+def _fh_ranked_with_a_departure(departure_priced_at: float, n: int = 8):
+    """`_fh_ranked(descending=True)` plus ONE decision whose term settled nothing.
+
+    The settled book is perfectly inverted, so the estimand sits below its own null and the block
+    under test is reachable at all. The departure is the variable: priced ABOVE most survivors, the
+    cross stratum reads below chance and the arm carries the departure; priced below all of them it
+    reads above chance and the same block is a footnote. One thing moves between the two calls.
+    """
+    log = [_fh_priced("A%d" % i, 1.0 + i) for i in range(n)]
+    records = [_fh_settled("A%d" % i, paid=2000.0, net=100.0 * (n - i)) for i in range(n)]
+    records.append(_fh_settled("SPECTATOR", paid=1.0, net=1.0, on="2024-01-05"))
+    log.append(_fh_priced("A0", departure_priced_at, term="2023-01-01"))
+    events = [{"customer_id": "A0", "event_date": "2023-01-01", "event_type": "churned"}]
+    return log, records, events
+
+
+def test_an_out_of_null_estimand_reaches_the_reader_with_WHICH_PAIRS_carry_its_departure():
+    """THE DEFECT THIS EXISTS FOR (2026-09-09, Lane 0), and it was live.
+
+    The page published `0.4210` -- below its own null, the least flattering figure this site
+    carries about its own method -- with nothing beside it saying which pairs put it there. Nearly
+    a QUARTER of the scored decisions sit tied at 0.0, so *"a rank concordance with a quarter of
+    its mass tied at the floor can read below chance from the tie handling alone"* was a reading
+    the page invited and could not answer. `run_value_cycle_ab.pair_strata` had answered it since
+    `8d3fe6836` and reached no reader: the identity existed and the page did not carry it.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S NUMBERS, which is the defect `81127c854` repaired one
+    quantity along: the claim is that a reader shown an estimand OUTSIDE its own null is also shown
+    which stratum carries the departure. Nothing here pins 0.4210, 0.2686 or the word "cross" as
+    constants -- every figure asserted is read from what the producers composed on this fixture, so
+    the day the arm stops pricing its departures above the customers it kept, this control goes on
+    holding and the page's own sentence changes underneath it.
+
+    BOTH SIDES ARE DRIVEN, because a page that rendered the refusal unconditionally would pass any
+    single-branch version of this and say nothing.
+
+    Fires on: the split not rendered; on it rendered without the tie-mass stratum, which is the
+    hypothesis being ruled out; on a feed with no split rendering silence under an unattributed
+    figure; on the amber emphasis applied whatever the cross stratum says.
+    """
+    produced, feed = _fixed_horizon_feed(*_fh_ranked_with_a_departure(departure_priced_at=6.5))
+    estimand = produced["legs"]["every_priced_decision_pounds_outcome"]
+    low, high = estimand["null_spread"]["null_95_interval"]
+    assert not low <= estimand["concordance"] <= high, (
+        "the fixture never put the estimand outside its own null, so the state this control is "
+        "about was never reached")
+    split = feed["method_skill"]["fixed_horizon"]["pair_strata"]
+    assert split["available"] is True, (
+        "the split refused on this fixture ({}), so nothing below is about a rendered "
+        "attribution".format(split.get("reason")))
+    rendered = _text(_render(feed)["arms-method"])
+
+    # THE ATTRIBUTION ITSELF, in the producer's own composed sentence rather than one typed here.
+    assert split["reading"][:70] in rendered, (
+        "the page carries an out-of-null estimand and not the sentence attributing it")
+    # THE HYPOTHESIS THAT WAS RULED OUT, on the surface as a STRATUM and not as a claim: the tie
+    # mass renders the count of pairs it holds and the zero it contributes.
+    assert "no comparable pair" in rendered, (
+        "the tie mass rendered as a dash or a zero, which a reader cannot tell from a stratum that "
+        "ranks at 0.0 -- and telling those apart is the whole point of the block")
+    tie = split["strata"]["within_zero"]
+    assert str(tie["decision_pairs"]) in rendered, "the tie mass's own size never reached a reader"
+    # ...AND THE STRATUM THAT DOES CARRY IT, by its own measured number.
+    carrier = split["strata"][split["the_stratum_that_carries_the_departure"]]
+    assert ("%.4f" % carrier["concordance"]) in rendered, (
+        "the stratum the producer says carries the departure is not on the page with its number")
+    # THE LIMIT OF THE ATTRIBUTION, which is the part the page did NOT make until this landed: the
+    # strata have no interval of their own and the cross pairs are leveraged on the departures.
+    assert "NO interval of their own" in rendered
+    assert "leverage and clustering" in rendered
+
+    # THE ABSENCE SIDE. A feed whose run and page could not attribute the figure must SAY so where
+    # the figure is, or the reader meets an out-of-null estimand and silence -- the state this
+    # block was built to end.
+    blind = copy.deepcopy(feed)
+    blind["method_skill"]["fixed_horizon"].pop("pair_strata", None)
+    blind_text = _text(_render(blind)["arms-method"])
+    assert "Not attributed on this feed" in blind_text, (
+        "the split went missing and the page went quiet about it")
+    assert ("%.4f" % estimand["concordance"]) in blind_text, (
+        "the estimand stopped rendering too, so the refusal above is not attributable to the "
+        "missing split")
+
+    # THE EMPHASIS IS THE CROSS STRATUM'S OWN NUMBER, not a constant. `_text` is blind to styling,
+    # and a block ambered whatever it says is a caveat that means nothing -- which is a mutation
+    # this page has already survived once.
+    def _paragraph_around(raw, phrase):
+        at = raw.index(phrase)
+        return raw[raw.rindex("<p", 0, at):raw.index("</p>", at)]
+
+    assert split["strata"]["cross"]["concordance"] < 0.5, "the amber branch was never reached"
+    assert "--amber" in _paragraph_around(_render(feed, raw=True)["arms-method"],
+                                         split["reading"][:40])
+
+    kept, kept_feed = _fixed_horizon_feed(*_fh_ranked_with_a_departure(departure_priced_at=0.1))
+    kept_split = kept_feed["method_skill"]["fixed_horizon"]["pair_strata"]
+    assert kept_split["strata"]["cross"]["concordance"] >= 0.5, (
+        "the second fixture did not reach the other side of the partition")
+    assert "--amber" not in _paragraph_around(_render(kept_feed, raw=True)["arms-method"],
+                                              kept_split["reading"][:40]), (
+        "the attribution was styled as a caveat on a book where the arm ranked its departures "
+        "correctly, so the amber says nothing")
+    # ...and the two readings are DIFFERENT sentences, or the styling leg above is comparing one
+    # verdict with itself.
+    assert kept_split["reading"] != split["reading"]
 
 
 def test_what_the_UNSELECTED_cut_could_have_detected_reaches_the_reader():

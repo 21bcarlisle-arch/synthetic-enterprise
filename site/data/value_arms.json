@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T10:02:38.356719Z",
+  "generated_at": "2026-09-09T12:32:12.093603Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -327,10 +327,10 @@
     "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
     "short": "62334dc76",
     "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": "566fcf366acdd0106c41947f861f64ddb7d1774e",
+    "publishing_tree_commit": "8fb7d357e4397cd6f0270224d3def9eff7e2d415",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76 and published from 566fcf366 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 62334dc76 and published from 8fb7d357e -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -556,10 +556,10 @@
       "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
       "short": "62334dc76",
       "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": "566fcf366acdd0106c41947f861f64ddb7d1774e",
+      "publishing_tree_commit": "8fb7d357e4397cd6f0270224d3def9eff7e2d415",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76 and published from 566fcf366 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 62334dc76 and published from 8fb7d357e -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -1326,6 +1326,56 @@
         "method": "The half-width of the permutation null falls as 0.687 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(161), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=161 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
         "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
         "sentence": "On the 161 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.054 \u2014 a concordance of 0.554 or 0.446. It read 0.421, a departure of 0.079, about 146% of that. Reading a departure that small needs about 76 scored decisions \u2014 roughly 42 settled accounts at this run's rate. The settled book can hold 632 accounts, so a book this world can supply does reach it \u2014 and that is a statement about the instrument, never a plan."
+      },
+      "pair_strata": {
+        "available": true,
+        "computed_by": "this page, by calling the run producer's own `pair_strata` over the two legs this artefact already carries. The run predates the block; the split is an identity over its published counts and not a second ranking, so no re-run is needed to state it",
+        "what_this_is": "a partition of the estimand's own comparable pairs into the three strata that can carry its departure from 0.5, so a reader can tell the TIE MASS from the ARM. An identity over the two legs' published counts, not a second ranking.",
+        "strata": {
+          "within_settled": {
+            "decision_pairs": 7626,
+            "comparable_pairs": 7606,
+            "concordance": 0.5129503023928478,
+            "what_it_is": "leg 2's own population -- the decisions whose term settled something, ranked against each other"
+          },
+          "within_zero": {
+            "decision_pairs": 666,
+            "comparable_pairs": 0,
+            "concordance": null,
+            "what_it_is": "THE TIE MASS. Both rows scored 0.0, so every one of these pairs is tied on the outcome and `_concordance` excludes it. This stratum supplies no comparable pair and therefore cannot move the statistic in either direction -- which is the item's hypothesis, answered."
+          },
+          "cross": {
+            "decision_pairs": 4588,
+            "comparable_pairs": 4588,
+            "concordance": 0.2686355710549259,
+            "what_it_is": "each decision that settled nothing against each that settled something. Below 0.5 means the arm gave the DEPARTURE the higher margin -- it priced up the decisions that went on to produce nothing."
+          }
+        },
+        "zero_decisions": 37,
+        "settled_decisions": 124,
+        "comparable_pairs": 12194,
+        "tie_mass_share_of_decisions": 0.22981366459627328,
+        "tie_mass_share_of_comparable_pairs": 0.0,
+        "cross_share_of_comparable_pairs": 0.3762506150565852,
+        "the_tie_mass_can_move_the_estimand": false,
+        "the_stratum_that_carries_the_departure": "cross",
+        "departure_from_no_information": {
+          "estimand": -0.07897326554042972,
+          "from_the_within_settled_stratum": 0.008077743152370035,
+          "from_the_cross_stratum": -0.08705100869279973,
+          "from_the_tie_mass": 0.0,
+          "these_sum_to_the_departure": true,
+          "what_this_is": "the estimand's distance from 0.5, split additively across the strata by their share of the comparable pairs. The three terms sum to it exactly, because the concordance is a mean over pairs and this is that mean's own decomposition."
+        },
+        "the_estimand_if_the_cross_stratum_carried_no_information": 0.50807774315237,
+        "the_interval_these_terms_carry": {
+          "of_their_own": null,
+          "inherited_from": "every_priced_decision_pounds_outcome",
+          "null_95_low": 0.4458340167295391,
+          "null_95_high": 0.5540429719534197,
+          "sentence": "These strata carry NO interval of their own. They are terms of the 0.4210 above -- they sum to its distance from 0.5 exactly -- so the only bound here is the one that figure's own permutation earned, 0.4458\u20130.5540. And the 4,588 cross pairs are 37 departures against 124 survivors: 4,588 pairs determined by only 37 rows' signals, over a wider account set than the settled leg's. That is leverage and clustering rather than bias -- it does not move which stratum carries the departure, and it does mean the interval beside the estimand is narrower than this sample really earns."
+        },
+        "reading": "37 of 161 scored decisions (23%) sit tied at 0.0, and every one of the 666 pairs among them is excluded by the estimator as an outcome tie -- so the tie mass supplies NONE of the 12,194 comparable pairs and cannot move the figure. The departure is carried by the 4,588 cross pairs, which read 0.2686: in 73% of departure-against-survivor pairs the arm had given the DEPARTURE the higher margin. Leg 2's own 7,606 pairs read 0.5130. Had the cross stratum carried no information the estimand would read 0.5081 rather than 0.4210. THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own departures above the customers it kept."
       },
       "legs": {
         "the_published_population_ratio_outcome": {
