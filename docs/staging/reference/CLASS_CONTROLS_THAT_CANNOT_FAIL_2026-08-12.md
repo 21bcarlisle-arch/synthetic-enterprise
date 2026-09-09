@@ -68,6 +68,7 @@ This document supersedes the individual findings listed below, which are **archi
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
 - `SEAT_RESULT_THE_DOTTED_MODULE_FAIL_OPEN_IS_ZERO_BECAUSE_THE_LAUNCH_FORM_AND_THE_GUARD_ARE_THE_SAME_FACT_2026-09-08.md` — lane `A_strategy_governance`
+- `SEAT_RESULT_THE_PROMOTE_BY_COPY_CLASS_IS_FIVE_TARGETS_AND_THE_CENSUS_IS_BLIND_TO_THE_HALF_THAT_REACHES_THE_READER_2026-09-09.md` — lane `A_strategy_governance`
 
 ## Disposition
 

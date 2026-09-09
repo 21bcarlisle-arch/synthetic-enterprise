@@ -794,6 +794,20 @@ def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     emitting the key at all would have skipped this control silently and forever, which is the
     exact fail-open shape this suite exists to refuse. Skipping on a VALUE the producer
     guarantees is legitimate; skipping on a KEY's absence is a control that cannot fail.
+
+    THE SECOND LEG WAS PINNED TO THE 2026-08-28 ANSWER AND IS NOW ON THE PROPERTY (2026-09-09).
+    It asserted `"DEFEND" in rendered` -- the word from the one incident this guard was built
+    for -- under a message saying the page must "name what changed between the two runs". Those
+    are not the same claim, and the gap between them is the whole defect: a page that named a
+    DIFFERENT change, correctly, would have gone red, and a page that named that change when it
+    had not happened stayed green. Which is what it did. The producer's clause asserted the
+    2026-08-28 market change on every firing regardless of the interval, so this leg was pinning
+    the page to a sentence that goes false the first time the guard fires on any other pair.
+
+    What the page owes a reader is the two RUNS the ordering is about and what is known about
+    whether they describe one world -- so that is what is asserted, off the feed's own digests.
+    Fires on: dropping either stamp from the rendered sentence, or dropping the world clause,
+    whichever branch the two artefacts put it on.
     """
     error_bar = _live_feed()["error_bar"]
     assert "staleness_caveat" in error_bar, (
@@ -806,8 +820,23 @@ def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     rendered = live["arms-errorbar"]
     assert "OLDER THAN THE FIGURE IT BOUNDS" in rendered, (
         "the published error bar predates the figure it bounds and the page does not say so")
-    assert "DEFEND" in rendered, (
-        "the page says the error bar is old without naming what changed between the two runs")
+    # THE TWO RUNS THE ORDERING IS ABOUT. A reader told a bound is stale and not told which two
+    # runs that is between cannot judge how stale it is. Read off the caveat itself rather than
+    # hardcoded, so this holds for whatever pair is promoted next.
+    stamps = re.findall(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", caveat)
+    assert len(stamps) == 2, (
+        "the feed's staleness caveat names {} run stamps, not the two the ordering is between: "
+        "{}".format(len(stamps), caveat[:300]))
+    for stamp in stamps:
+        assert stamp in rendered, (
+            "the page says the bound is older without naming the run of {} that it is older "
+            "between".format(stamp))
+    # WHAT IS KNOWN ABOUT THE WORLD BETWEEN THEM, on whichever branch the artefacts earn. Never
+    # the name of one historical change: the clause is composed from the digests, so a pair
+    # sharing a world says what is still unestablished and a pair that does not names both.
+    assert ("same world digest" in rendered) or ("DIFFERENT WORLDS" in rendered), (
+        "the page says the error bar is old without saying what is known about whether the two "
+        "runs describe the same world -- which is the part a reader acts on: " + rendered[:400])
 
 
 def _feed_admitted_by(**admission) -> dict:
@@ -4514,6 +4543,110 @@ def test_a_feed_that_never_measured_the_conditioning_says_so_and_never_renders_a
     assert "is not a survivor cut" not in rendered
 
 
+def test_the_conditioning_column_on_the_LIVE_feed_carries_THAT_FEEDS_own_state():
+    """THE LIFT, and every other control on this column is blind to it.
+
+    The two tests above drive the door through `_fixed_horizon_feed`, which BUILDS a feed. They
+    establish that the door renders a conditioning block correctly and they establish nothing
+    about whether the block `site/data/value_arms.json` actually carries reaches the page -- a
+    door test that builds its own feed controls the RENDER, not the LIFT. That gap is not
+    hypothetical here: this column's whole purpose is to say which state the published run is in,
+    and the published run changes by a file copy that touches no source and runs no test.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER, which is the only reason it can be written now.
+    Today the live feed carries the named absence and this asserts the absence reached the reader
+    WITH THE FEED'S OWN REASON. After a run carrying `method_skill.fixed_horizon.leg_conditioning`
+    is promoted, the same test asserts the four measured counts reached the reader instead. A
+    control pinned to today's state would go red on the promotion -- green when the claim rots and
+    red when the page becomes more honest, which is exactly backwards.
+
+    THE FAIL-OPEN THIS IS WRITTEN AROUND, found by writing it the naive way first: the door's
+    absence branch carries its OWN fallback sentence (`|| "this page's own feed was generated
+    before..."`), so if the lift broke completely -- the key gone from the feed -- "Not measured by
+    this run." would still render and a test asserting only that string would pass on a page
+    reading nothing at all. So the feed's reason is required to be NON-EMPTY before it is required
+    to reach the reader, and that assertion is what makes this a lift control rather than a
+    second copy of the render controls above.
+
+    EACH CELL IS CHECKED ON ITS OWN ROW, and the first draft of this test did not do that. Written
+    the obvious way -- `assert cell in rendered` for each leg -- it survived a door mutation that
+    puts the ESTIMAND's cell on all four rows: three of the four legs carry the same count on
+    every honest run, so "0 of 40" is somewhere in the text whatever row it came from, and a
+    page-wide substring check is vacuous exactly when the table is telling the truth. So each cell
+    is looked for in its own row's text slice, bounded by the two labels the door renders.
+
+    ONE MUTATION SURVIVES AND IT IS AN EQUIVALENCE, recorded rather than left for a reader to
+    assume the flattering answer. Changing a COUNT IN THE FEED -- giving the estimand the survivor
+    rows' 0 -- does not fire this test, and cannot: the subject here is the CORRESPONDENCE between
+    the feed and the page, so a feed-side edit moves both sides together and they still agree.
+    That is the control working, not a hole in it. What separates the two readings is the
+    door-side twin of the same mutation (the page attributing one leg's count to another row),
+    and that one kills. A feed publishing a wrong count is a different defect with a different
+    owner, and `_leg_conditioning`'s own producer suite is where it is refused.
+
+    Fires on: the column disappearing; on the page rendering counts the feed did not measure or an
+    absence when it did; on any leg's cell carrying another leg's count; on the verdict paragraph
+    being a sentence typed here rather than the producer's; on the feed's own reason not reaching
+    a reader in the absence state.
+    """
+    feed = _live_feed()
+    lc = (((feed.get("method_skill") or {}).get("fixed_horizon") or {})
+          .get("leg_conditioning") or {})
+    rendered = _text(_render(feed)["arms-method"])
+
+    # THE COLUMN ITSELF, asserted before either branch, because "the page dropped the column" and
+    # "the page is in the other state" are different defects and only one of them is about the feed.
+    assert "Departures this cut can see" in rendered
+
+    if lc.get("available"):
+        by_leg = lc.get("by_leg") or {}
+        # REACHABILITY BEFORE THE READING. A block that measured no legs would satisfy every
+        # assertion in the loop below by never entering it.
+        assert len(by_leg) == 4, "the split names four legs or this branch asserts nothing"
+        total = lc["priced_decisions_the_world_recorded_as_a_departure"]
+        # The table's own row order, each leg named beside the label the door renders for it. The
+        # cell sits before its label in the row, so a leg's slice runs from the previous label to
+        # this one.
+        #
+        # THE SPACE BEFORE THE COMMA IS NOT A TYPO. The door emphasises a word mid-label
+        # (`term <strong>settled</strong>,`) and `_text` replaces each tag with a space, so what a
+        # reader's text stream carries is "term settled , on the ratio". Written the way the
+        # source reads, these labels match nothing and the whole branch reds -- which is how they
+        # were found, by running the poison round before trusting the battery.
+        rows = (("the_published_population_ratio_outcome",
+                 "every decision whose term settled , on the ratio"),
+                ("settled_only_ratio_outcome",
+                 "the same, less the terms whose 365 days had not closed"),
+                ("settled_only_pounds_outcome", "those decisions, in pounds"),
+                ("every_priced_decision_pounds_outcome",
+                 "every decision the arm priced , in pounds"))
+        cursor = rendered.index("Departures this cut can see")
+        for name, label in rows:
+            assert name in by_leg, "the split names no leg {}".format(name)
+            here = rendered.find(label, cursor)
+            assert here > -1, (
+                "the page renders no row labelled {!r}, so no cell can be attributed to leg "
+                "{}".format(label, name))
+            leg = by_leg[name]
+            cell = "{} of {}".format(leg["of_those_the_world_recorded_as_a_departure"], total)
+            assert cell in rendered[cursor:here], (
+                "leg {} measured {!r} and its own row on the page reads {!r}".format(
+                    name, cell, rendered[cursor:here]))
+            cursor = here + len(label)
+        # ...and the verdict COMPOSED from those counts, never a sentence this page types.
+        assert lc["reading"][:60] in rendered
+        assert "Not measured by this run." not in rendered
+    else:
+        reason = lc.get("reason") or ""
+        # THE NON-EMPTY LEG IS THE WHOLE CONTROL -- see the docstring. Without it the door's own
+        # fallback sentence satisfies the assertion below on a feed carrying nothing.
+        assert reason, ("the live feed neither measured the split nor said why, so the page's "
+                        "'not measured' is the door's own sentence and no reader is being told "
+                        "anything this run knows")
+        assert reason[:60] in rendered
+        assert "Not measured by this run." in rendered
+
+
 def test_the_control_rows_AGREEMENT_is_not_published_as_corroboration():
     """TWO IDENTICAL INTERVALS ON ONE PAGE, AND A READER COUNTS THEM AS TWO.
 
@@ -5153,3 +5286,141 @@ def test_MUTATION_a_leg_with_no_verdict_and_no_reason_renders_as_unread_not_as_q
     # It is NOT the resolved sentence, and the figure still renders -- an unread leg is still a leg.
     assert "A direction IS stated for this leg" not in rendered
     assert _gbp(feed["current_world"]["level_leg"]["figure_gbp"]) in rendered
+
+
+# --------------------------------------------------------------------------------------------
+# WHAT THE INVERSION IS MADE OF, ON THE SURFACE, BESIDE THE FIGURE.
+#
+# The estimand reached this page reading 0.4210 with p=0.0045 and the sentence "the ranking is
+# real and INVERTED", and nothing beside it said what produced that. The count of decisions
+# scored at zero was rendered a few lines below as a bare number, which made "a quarter of the
+# sample is tied at the floor, so it is a tie artefact" the most natural reading available on
+# the surface -- and that reading is wrong in the direction that lets us dismiss our own worst
+# finding. Pre-registered against in `docs/staging/records/SEAT_PREREGISTRATION_WHETHER_THE_
+# ESTIMANDS_INVERSION_IS_THE_TIE_MASS_OR_THE_ARM_2026-09-09.md`.
+# --------------------------------------------------------------------------------------------
+
+
+def _fh_book_with_two_departures(*zero_margins):
+    """`_fh_book`'s four settled decisions, with the departures' own margins as the free variable.
+
+    Two of them, not one: with a single zero row the tie mass is C(1, 2) = 0 pairs and the block
+    would be graded on a fixture that has no tie mass to be wrong about -- the vacuous pass this
+    whole split exists to argue against.
+    """
+    log = [_fh_priced("A%d" % i, 1.0 + i) for i in range(4)]
+    records = [_fh_settled("A%d" % i, paid=2000.0, net=100.0 * (i + 1)) for i in range(4)]
+    records.append(_fh_settled("SPECTATOR", paid=1.0, net=1.0, on="2024-01-05"))
+    events = []
+    for i, margin in enumerate(zero_margins):
+        log.append(_fh_priced("A%d" % i, margin, term="2023-01-01"))
+        events.append({"customer_id": "A%d" % i, "event_date": "2023-01-01",
+                       "event_type": "churned"})
+    return log, records, events
+
+
+def test_the_attribution_of_the_inversion_reaches_the_reader_BESIDE_the_figure():
+    """REACHABILITY FIRST, and on the LIVE feed, because the lift is the thing at issue.
+
+    A door test that builds its own feed controls the RENDER and not the LIFT: it proves the page
+    can draw a pair-stratum sentence and says nothing about whether the published feed carries
+    one. So this drives the page's own JavaScript over `site/data/value_arms.json` as shipped, and
+    requires the cross stratum's number and the estimand's number to be on the surface TOGETHER.
+    Apart, the figure gets quoted alone, which is the entire premise of the item that commissioned
+    this block.
+
+    Fires on: the producer dropping `pair_strata`; the renderer rendering it somewhere the reader
+    is not; the feed being regenerated from a run whose split refused.
+    """
+    feed = _live_feed()
+    strata = ((feed.get("method_skill") or {}).get("fixed_horizon") or {}).get("pair_strata") or {}
+    estimand = ((feed.get("method_skill") or {}).get("fixed_horizon") or {}).get("concordance")
+    if not strata.get("available"):
+        pytest.fail(
+            "the published feed carries no pair-stratum attribution ({}), so the estimand is on "
+            "the page with nothing saying what produces it -- reported as a failure and never "
+            "skipped".format(strata.get("reason") or "no reason given"))
+
+    rendered = _text(_render(feed)["arms-method"])
+    cross = strata["strata"]["cross"]
+
+    assert estimand is not None and ("%.4f" % estimand) in rendered, (
+        "the estimand's own figure is not on the page, so 'beside the figure' is not a claim "
+        "this render can support")
+    # THE FINDING ITSELF, and it is a statement about the ESTIMATOR rather than about the book:
+    # every pair among the zero rows is tied on the outcome and excluded, so the tie mass
+    # supplies none of the comparable pairs. This is the one sentence that stops the estimand
+    # being dismissed as an artefact of its own ties.
+    assert "cannot move the figure" in rendered
+    assert "NOT A TIE-HANDLING ARTEFACT" in rendered, (
+        "the live feed no longer says what the inversion is made of, so the figure above it is "
+        "on the page unexplained")
+
+    # AND THE ATTRIBUTION IS CARRIED ON A BOUNDED SCALE, never as a bare rank. Whichever way the
+    # cross stratum arrives, the page holds `test_NO_cut_ANYWHERE...`'s rule: a figure with no
+    # interval computed on its own pairs does not reach a reader. Both branches are graded here
+    # because which one the feed is in depends on the run, not on this control.
+    counterfactual = strata["the_estimand_if_the_cross_stratum_carried_no_information"]
+    assert ("%.4f" % counterfactual) in rendered, (
+        "the page does not tell the reader what the estimand would read without the cross "
+        "stratum's information ({:.4f}), which is the attribution on the only scale that "
+        "carries an interval here".format(counterfactual))
+    if cross.get("concordance") is None:
+        assert ("%.4f" % cross["concordance_withheld"]) not in rendered, (
+            "the cross stratum's figure is withheld for want of its own interval and the page "
+            "rendered it anyway")
+        assert "withheld" in rendered
+    else:
+        assert ("%.4f" % cross["concordance"]) in rendered
+        assert ("%.4f" % cross["null_95_low"]) in rendered, (
+            "the cross stratum's number is on the page without the interval that let it be "
+            "published")
+
+
+def test_the_pages_verdict_FLIPS_when_the_arm_prices_its_departures_the_other_way():
+    """KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER -- proved on the surface, not in the producer.
+
+    A page that printed "NOT A TIE-HANDLING ARTEFACT" whatever the run said would pass the control
+    above on today's feed forever. So the same fixture is driven through BOTH producers twice --
+    departures priced above every survivor, then below every one -- and the rendered text has to
+    change. Both renders come from `run_value_cycle_ab.method_skill` and
+    `generate_value_arms_data._skill_fixed_horizon`, so this cannot pass by a string the test
+    handed the page.
+    """
+    _, up = _fixed_horizon_feed(*_fh_book_with_two_departures(99.0, 98.0))
+    _, down = _fixed_horizon_feed(*_fh_book_with_two_departures(0.2, 0.1))
+    up_text, down_text = _text(_render(up)["arms-method"]), _text(_render(down)["arms-method"])
+
+    # POISON ROUND: both fixtures must actually reach the block, or the difference below is two
+    # absences rather than two readings.
+    for name, text in (("priced-up", up_text), ("priced-down", down_text)):
+        assert "comparable pairs" in text, (
+            "the {} fixture rendered no pair-stratum sentence at all".format(name))
+
+    assert "NOT A TIE-HANDLING ARTEFACT" in up_text
+    assert "NOT A TIE-HANDLING ARTEFACT" not in down_text, (
+        "the page says the inversion is the arm on a book where the arm priced its departures "
+        "BELOW the customers it kept, so the sentence is furniture rather than a reading")
+
+
+def test_a_feed_with_no_attribution_says_so_rather_than_rendering_a_blank():
+    """The third state, and it must not read as either of the other two.
+
+    "The tie mass is not the cause" and "we could not check" are opposite claims, and a page that
+    renders the second as whitespace publishes the first by omission. A run predating the split
+    has to say the figure above it stands unexplained.
+    """
+    _, feed = _fixed_horizon_feed(*_fh_book_with_two_departures(99.0, 98.0))
+    ok = _text(_render(feed)["arms-method"])
+    assert "Not attributable from this run" not in ok, (
+        "the clean render already refuses, so a hit below would not be attributable to the "
+        "removal")
+
+    stripped = copy.deepcopy(feed)
+    stripped["method_skill"]["fixed_horizon"].pop("pair_strata", None)
+    text = _text(_render(stripped)["arms-method"])
+
+    assert "Not attributable from this run" in text
+    assert "must not be quoted as a fact about the method" in text
+    # ...and the removal did not blank the block, or the assertion above is furniture.
+    assert "priced decisions are scored here" in text

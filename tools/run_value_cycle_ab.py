@@ -2124,7 +2124,14 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
         # the two legs above and NOT a second ranking, which is why the page producer may apply it
         # to an artefact written before this block existed. See `pair_strata` for why re-cutting
         # with the zero rows dropped is the wrong instrument for that question.
-        "pair_strata": pair_strata(legs[SETTLED_POUNDS_LEG], legs[ESTIMAND_LEG], len(zeroes)),
+        "pair_strata": pair_strata(
+            legs[SETTLED_POUNDS_LEG], legs[ESTIMAND_LEG], len(zeroes),
+            # THE ROWS ARE HERE, so the cross stratum gets the interval its own pairs earn rather
+            # than being published bare. A downstream caller working from the artefact's totals
+            # cannot have this and withholds the figure instead.
+            cross_null=cross_stratum_null_spread(
+                [(row["signal"], row["pounds"]) for row in zeroes],
+                [(row["signal"], row["pounds"]) for row in settled])),
         # THE INDEPENDENT CHECK, and it is not part of the estimand. `_survivorship` established
         # the concordance's drop class IS the churn class on the DROP key; this re-asks the same
         # question on a different key -- the decisions this estimand scores at ZERO -- and a
@@ -2357,8 +2364,130 @@ SETTLED_POUNDS_LEG = "settled_only_pounds_outcome"
 ESTIMAND_LEG = "every_priced_decision_pounds_outcome"
 
 
+def _stratum_figure(value: float, spread: dict | None, withheld_reason: str) -> dict:
+    """A stratum's number WITH the interval its own pairs earn, or no number at all.
+
+    The rule `_horizon_leg_published` holds the bridge's legs to, applied one level down and in
+    the producer rather than downstream of it. A stratum with a concordance and no interval is
+    exactly the shape the page's whole-feed walker refuses, and it refuses it wherever it comes
+    from -- so this is where it stops being emitted.
+    """
+    spread = spread or {}
+    low, high = (spread.get("null_95_interval") or [None, None])
+    if not spread.get("available") or low is None or high is None:
+        return {"concordance": None, "concordance_withheld": value,
+                "reason": ("{} ({})".format(withheld_reason, spread["reason"])
+                           if spread.get("reason") else withheld_reason)}
+    return {
+        "concordance": value,
+        "null_95_low": low,
+        "null_95_high": high,
+        "p_two_sided": spread.get("p_two_sided"),
+        "inside_the_null": spread.get("observed_inside_the_null_interval"),
+        "permutation_draws": spread.get("draws"),
+        "permutation_seed": spread.get("seed"),
+    }
+
+
+def _cross_concordance(zero_points: list[tuple[float, float]],
+                       settled_points: list[tuple[float, float]]) -> tuple[float | None, int]:
+    """The cross stratum by COUNTING its pairs. `_concordance`'s conventions, one stratum.
+
+    Deliberately not `_concordance` over the union: that would score the within-settled pairs
+    too, which is the whole thing this stratum is being separated from. The tie rules are the
+    same rules -- outcome ties excluded, signal ties a half -- because a stratum scored under
+    different conventions from the statistic it decomposes is not a decomposition of it.
+    """
+    concordant = signal_ties = comparable = 0
+    for zero_signal, zero_outcome in zero_points:
+        for signal, outcome in settled_points:
+            if zero_outcome == outcome:
+                continue
+            comparable += 1
+            if zero_signal == signal:
+                signal_ties += 1
+            elif (zero_signal > signal) == (zero_outcome > outcome):
+                concordant += 1
+    if not comparable:
+        return None, 0
+    return (concordant + 0.5 * signal_ties) / comparable, comparable
+
+
+def cross_stratum_null_spread(zero_points: list[tuple[float, float]],
+                              settled_points: list[tuple[float, float]],
+                              draws: int = NULL_DRAWS, seed: int = NULL_SEED) -> dict:
+    """The bound the CROSS stratum's own pairs earn. Permuted, never a closed form.
+
+    WHY IT HAS TO EXIST AT ALL, and the page is what settled it. `pair_strata` publishes a
+    concordance for this stratum, and `site/test_the_baseline_comparison_reaches_the_reader.py`
+    walks the feed for every block carrying one and refuses to let it reach a reader without an
+    interval computed on its OWN sample. That control is right and it caught this: an
+    attribution's headline is a figure like any other, and a figure whose departure from 0.5
+    cannot be told from sampling is not an attribution.
+
+    THE SAME PERMUTATION AS EVERY OTHER NULL HERE, and it must be: the signals of ALL scored
+    decisions are shuffled against the FIXED outcomes and the stratum is recomputed, so the
+    outcome ties, the signal ties and the group sizes are reproduced exactly. The untied
+    two-sample closed form is not used for the reason `concordance_null_spread` gives -- a tied
+    signal is the normal case on this arm, not the exception.
+
+    ITS DECLARED WEAKNESS, and it is the same one the estimand carries. The permutation assumes
+    exchangeable decisions and these are clustered on accounts, so the true interval is wider
+    than this one. This narrows nothing that the estimand's own bound did not already narrow.
+
+    AVAILABLE ONLY WHERE THE ROWS ARE. A caller holding published aggregates and no rows cannot
+    have this, and `pair_strata` withholds the stratum's number rather than showing it bare.
+    """
+    observed, comparable = _cross_concordance(zero_points, settled_points)
+    if observed is None or not zero_points or len(settled_points) < 2:
+        return {"available": False,
+                "reason": ("the cross stratum has no comparable pair, or too few decisions on "
+                           "one side of it to permute -- there is no sampling distribution")}
+    signals = [signal for signal, _ in zero_points] + [signal for signal, _ in settled_points]
+    zero_outcomes = [outcome for _, outcome in zero_points]
+    settled_outcomes = [outcome for _, outcome in settled_points]
+    split = len(zero_points)
+
+    rng = random.Random(seed)
+    shuffled = list(signals)
+    null = []
+    for _ in range(draws):
+        rng.shuffle(shuffled)
+        value, _pairs = _cross_concordance(
+            list(zip(shuffled[:split], zero_outcomes)),
+            list(zip(shuffled[split:], settled_outcomes)))
+        if value is not None:
+            null.append(value)
+    if len(null) < draws // 2:
+        return {"available": False,
+                "reason": "more than half the permutations produced no comparable cross pair"}
+
+    null.sort()
+    mean = sum(null) / len(null)
+    sd = math.sqrt(sum((x - mean) ** 2 for x in null) / len(null))
+    lo = null[int(0.025 * len(null))]
+    hi = null[min(len(null) - 1, int(0.975 * len(null)))]
+    reach = sum(1 for x in null if abs(x - mean) >= abs(observed - mean))
+    return {
+        "available": True,
+        "observed": observed,
+        "comparable_pairs": comparable,
+        "null_mean": mean,
+        "null_sd": sd,
+        "null_95_interval": [lo, hi],
+        "p_two_sided": reach / len(null),
+        "observed_inside_the_null_interval": lo <= observed <= hi,
+        "draws": len(null),
+        "seed": seed,
+        "method": ("permutation of every scored decision's signal against the fixed outcomes, "
+                   "{:,} draws at seed {} -- the cross stratum recomputed each draw, so the "
+                   "group sizes and both tie structures are reproduced exactly".format(
+                       len(null), seed)),
+    }
+
+
 def pair_strata(settled_leg: dict | None, estimand_leg: dict | None,
-                zero_decisions: int | None) -> dict:
+                zero_decisions: int | None, cross_null: dict | None = None) -> dict:
     """WHICH PAIRS CARRY THE ESTIMAND'S DEPARTURE FROM 0.5 -- the tie mass, or the arm?
 
     THE QUESTION THIS ANSWERS, in the words of the Lane 0 item that commissioned it: *"a rank
@@ -2459,6 +2588,17 @@ def pair_strata(settled_leg: dict | None, estimand_leg: dict | None,
             "value. The tie mass is not what this split assumes it is, and it is refused."
             .format(got=tie_mass, want=expected_tie_mass, z=zero_decisions))
     c_cross = (c_whole * n_whole - c_within * n_within) / cross_pairs
+    # THE SECOND ROUTE, AND IT IS A REFUSAL RATHER THAN A RECONCILIATION. When the caller holds
+    # the rows it also holds a cross statistic found by COUNTING the pairs; the identity above
+    # solves for the same quantity from four totals. They must agree, and a disagreement means
+    # this block's plumbing is wrong rather than that the arm did anything -- so it refuses.
+    bounded = bool((cross_null or {}).get("available"))
+    if bounded and abs(cross_null["observed"] - c_cross) > 1e-9:
+        return _refuse(
+            "the cross stratum solved from the legs' totals is {solved!r} and the one found by "
+            "counting its own pairs is {counted!r}. Two routes to one quantity disagree, so the "
+            "split is refused rather than published under whichever number looks right."
+            .format(solved=c_cross, counted=cross_null["observed"]))
     # WHAT THE ESTIMAND WOULD READ IF THE ITEM WERE RIGHT. If the cross stratum carried no
     # information -- every departure as likely to have been priced above a survivor as below --
     # the whole statistic would sit here. The distance between this and the published figure IS
@@ -2472,33 +2612,61 @@ def pair_strata(settled_leg: dict | None, estimand_leg: dict | None,
             "a partition of the estimand's own comparable pairs into the three strata that can "
             "carry its departure from 0.5, so a reader can tell the TIE MASS from the ARM. An "
             "identity over the two legs' published counts, not a second ranking."),
+        # EVERY STRATUM CARRYING A NUMBER CARRIES THE INTERVAL ITS OWN PAIRS EARN, OR CARRIES NO
+        # NUMBER. The same rule the bridge's legs are held to, and it arrived here the same way:
+        # the page's own walker found this block publishing a concordance with no bound and
+        # refused it. `within_settled` IS leg 2's population on leg 2's outcome, so leg 2's own
+        # permutation is that stratum's own interval and not one borrowed from a neighbour. The
+        # cross stratum's needs the rows, so a caller holding only published totals gets
+        # `concordance_withheld` and the reason -- never the figure bare.
         "strata": {
-            "within_settled": {
-                "decision_pairs": s * (s - 1) // 2,
-                "comparable_pairs": n_within,
-                "concordance": c_within,
-                "what_it_is": ("leg 2's own population -- the decisions whose term settled "
-                               "something, ranked against each other"),
-            },
+            "within_settled": dict(
+                {
+                    "decisions": s,
+                    "decision_pairs": s * (s - 1) // 2,
+                    "comparable_pairs": n_within,
+                    "what_it_is": ("leg 2's own population -- the decisions whose term settled "
+                                   "something, ranked against each other"),
+                },
+                **_stratum_figure(
+                    c_within, settled_leg.get("null_spread"),
+                    "leg 2 carries a concordance and no permutation of its own decisions, so "
+                    "this stratum's figure is withheld exactly as the leg's own is")),
             "within_zero": {
+                "decisions": zero_decisions,
                 "decision_pairs": expected_tie_mass,
                 "comparable_pairs": 0,
                 "concordance": None,
+                "why_no_concordance": (
+                    "not a withheld figure but an undefined one: with no comparable pair there "
+                    "is nothing to rank, and `_concordance` returns None rather than the 0.5 a "
+                    "fail-open would report here"),
                 "what_it_is": (
                     "THE TIE MASS. Both rows scored 0.0, so every one of these pairs is tied on "
                     "the outcome and `_concordance` excludes it. This stratum supplies no "
                     "comparable pair and therefore cannot move the statistic in either "
                     "direction -- which is the item's hypothesis, answered."),
             },
-            "cross": {
-                "decision_pairs": expected_cross,
-                "comparable_pairs": cross_pairs,
-                "concordance": c_cross,
-                "what_it_is": (
-                    "each decision that settled nothing against each that settled something. "
-                    "Below 0.5 means the arm gave the DEPARTURE the higher margin -- it priced "
-                    "up the decisions that went on to produce nothing."),
-            },
+            "cross": dict(
+                {
+                    # ITS SAMPLE IS EVERY SCORED DECISION, because the statistic uses all of
+                    # them -- each departure against each survivor. Naming it `z` or `s` alone
+                    # would be a count from one side of a two-sample statistic.
+                    "decisions": whole_n,
+                    "decision_pairs": expected_cross,
+                    "comparable_pairs": cross_pairs,
+                    "what_it_is": (
+                        "each decision that settled nothing against each that settled something. "
+                        "Below 0.5 means the arm gave the DEPARTURE the higher margin -- it "
+                        "priced up the decisions that went on to produce nothing."),
+                },
+                **_stratum_figure(
+                    c_cross, cross_null,
+                    "this stratum's own interval needs the run's per-decision signals and this "
+                    "caller has only the legs' published totals, so the figure is withheld "
+                    "rather than shown bare. What IS bounded is the estimand itself, and the "
+                    "counterfactual below carries the attribution on that scale: a run "
+                    "carrying `pair_strata` supplies this directly.")),
         },
         "zero_decisions": zero_decisions,
         "settled_decisions": s,
@@ -2525,28 +2693,31 @@ def pair_strata(settled_leg: dict | None, estimand_leg: dict | None,
                 "concordance is a mean over pairs and this is that mean's own decomposition."),
         },
         "the_estimand_if_the_cross_stratum_carried_no_information": at_chance,
+        # THE TWO CUTS SIDE BY SIDE, EACH WITH ITS OWN INTERVAL AND NEVER THE OTHER'S. Both are
+        # legs of the bridge above rather than new estimates -- pointed at by name so a reader
+        # can check that -- and both carry the bound their own sample earned, on the same shape
+        # `_stratum_figure` holds the strata to. Reading one against the other's null is the
+        # single error the item that commissioned this block warned about.
         "the_two_cuts_the_item_asked_for": {
-            "the_zero_rows_excluded": {
-                "is_leg": SETTLED_POUNDS_LEG,
-                "decisions": s,
-                "concordance": c_within,
-                "null_95_interval": (settled_leg.get("null_spread") or {}).get(
-                    "null_95_interval"),
-                "p_two_sided": (settled_leg.get("null_spread") or {}).get("p_two_sided"),
-                "read_against": ("its OWN permutation null at its own n -- never the estimand's, "
-                                 "which belongs to a different sample"),
-            },
-            "the_zero_rows_included": {
-                "is_leg": ESTIMAND_LEG,
-                "decisions": whole_n,
-                "concordance": c_whole,
-                "null_95_interval": (estimand_leg.get("null_spread") or {}).get(
-                    "null_95_interval"),
-                "p_two_sided": (estimand_leg.get("null_spread") or {}).get("p_two_sided"),
-                "read_against": ("its OWN permutation null at its own n, which reproduces this "
-                                 "sample's outcome ties exactly by permuting the signals against "
-                                 "the FIXED outcomes"),
-            },
+            "the_zero_rows_excluded": dict(
+                {
+                    "is_leg": SETTLED_POUNDS_LEG,
+                    "decisions": s,
+                    "read_against": ("its OWN permutation null at its own n -- never the "
+                                     "estimand's, which belongs to a different sample"),
+                },
+                **_stratum_figure(c_within, settled_leg.get("null_spread"),
+                                  "leg 2 was never permuted on its own decisions")),
+            "the_zero_rows_included": dict(
+                {
+                    "is_leg": ESTIMAND_LEG,
+                    "decisions": whole_n,
+                    "read_against": ("its OWN permutation null at its own n, which reproduces "
+                                     "this sample's outcome ties exactly by permuting the "
+                                     "signals against the FIXED outcomes"),
+                },
+                **_stratum_figure(c_whole, estimand_leg.get("null_spread"),
+                                  "the estimand was never permuted on its own decisions")),
             "what_separates_them": (
                 "POPULATION, not tie handling. The excluded cut drops the {z} departures as well "
                 "as their ties, so the difference between these two numbers is not the tie "
@@ -2556,40 +2727,84 @@ def pair_strata(settled_leg: dict | None, estimand_leg: dict | None,
                 "outcome ties do, so both nulls centre on 0.5 and the ties only WIDEN them."
                 .format(z=zero_decisions)),
         },
-        "reading": _pair_strata_reading(c_whole, c_cross, c_within, at_chance,
-                                        zero_decisions, whole_n, cross_pairs, n_whole),
+        "reading": _pair_strata_reading(
+            c_whole, c_cross, at_chance, zero_decisions, whole_n, cross_pairs, n_whole,
+            bounded, estimand_leg.get("null_spread"), cross_null),
     }
 
 
-def _pair_strata_reading(c_whole: float, c_cross: float, c_within: float, at_chance: float,
-                         zero_decisions: int, whole_n: int, cross_pairs: int,
-                         comparable: int) -> str:
+def _pair_strata_reading(c_whole: float, c_cross: float, at_chance: float, zero_decisions: int,
+                         whole_n: int, cross_pairs: int, comparable: int, bounded: bool,
+                         estimand_spread: dict | None, cross_spread: dict | None = None) -> str:
     """The verdict, composed FROM the split. Never a sentence typed beside it.
 
     Every clause is a function of the numbers above, so the day the arm stops pricing its
     departures above its survivors this reading changes without anybody editing it -- and the
-    tie-mass clause stays true either way, because it is a statement about the estimator.
+    tie-mass clause stays true either way, because it is a statement about the estimator and not
+    about the book.
+
+    IT DOES NOT QUOTE THE CROSS FIGURE WHEN THE CROSS FIGURE IS WITHHELD, which is the whole
+    point of withholding it. The attribution is carried instead on the scale that IS bounded:
+    what the estimand itself would read if that stratum carried no information, against the
+    estimand's own published interval. That comparison is stronger than the bare number anyway --
+    it says the departure survives or does not survive in the units the reader is already
+    weighing.
+
+    ...AND WHEN IT DOES QUOTE IT, IT QUOTES THE INTERVAL WITH IT (2026-09-09). The bounded branch
+    printed "which read 0.2686" and stopped, while the very spread that made the branch reachable
+    sat unused in `cross_null`. The withheld branch was fail-closed and the bounded branch was
+    not, which is the harder half to notice: one is a refusal anybody reads twice and the other
+    is a number that looks finished. **No run on disk could reach it** -- `pair_strata` landed the
+    same day and every artefact predated it, so `_skill_pair_strata`'s identity fallback served
+    the withheld branch to every reader and the defect shipped invisible. The first run to carry
+    the block found it, and the page's own door control refused it in one line.
+
+    Same rule as `_stratum_figure` and `_horizon_leg_published`, in the sentence rather than in
+    the payload: a number this page states carries the bound its own pairs earn, wherever on the
+    surface it is stated.
     """
-    return (
+    low, high = ((estimand_spread or {}).get("null_95_interval") or [None, None])
+    inside = (None if low is None or high is None else low <= at_chance <= high)
+    cross_low, cross_high = ((cross_spread or {}).get("null_95_interval") or [None, None])
+    opening = (
         "{z} of {n} scored decisions ({share:.0%}) sit tied at 0.0, and every one of the "
         "{tied:,} pairs among them is excluded by the estimator as an outcome tie -- so the tie "
         "mass supplies NONE of the {comparable:,} comparable pairs and cannot move the figure. "
-        "The departure is carried by the {cross:,} cross pairs, which read {c_cross:.4f}: in "
-        "{against:.0%} of departure-against-survivor pairs the arm had given the DEPARTURE the "
-        "higher margin. Leg 2's own {within:,} pairs read {c_within:.4f}. Had the cross stratum "
-        "carried no information the estimand would read {at_chance:.4f} rather than {whole:.4f}. "
-        "{verdict}".format(
+        "The departure is carried by the {cross:,} cross pairs".format(
             z=zero_decisions, n=whole_n, share=zero_decisions / whole_n,
             tied=zero_decisions * (zero_decisions - 1) // 2, comparable=comparable,
-            cross=cross_pairs, c_cross=c_cross, against=1 - c_cross,
-            within=comparable - cross_pairs, c_within=c_within, at_chance=at_chance,
-            whole=c_whole,
-            verdict=(
-                "THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own "
-                "departures above the customers it kept."
-                if c_cross < 0.5 else
-                "The cross stratum ranks at or above chance, so the estimand's position is not "
-                "the arm pricing its departures up.")))
+            cross=cross_pairs))
+    if bounded and cross_low is not None and cross_high is not None:
+        middle = (
+            ", which read {c:.4f} against the {lo:.4f}–{hi:.4f} a no-information signal reaches "
+            "on this stratum's own {pairs:,} pairs: in {against:.0%} of departure-against-"
+            "survivor pairs the arm had given the DEPARTURE the higher margin. ".format(
+                c=c_cross, lo=cross_low, hi=cross_high, pairs=cross_pairs, against=1 - c_cross))
+    elif bounded:
+        # A SPREAD THAT SAYS IT IS AVAILABLE AND CARRIES NO INTERVAL. `_stratum_figure` withholds
+        # the number in the payload for exactly this; the sentence must not go on stating it.
+        middle = (
+            ", whose own concordance is withheld here: this run reported a spread for the cross "
+            "stratum with no interval on it, so the figure has no bound to be read against. ")
+    else:
+        middle = (
+            ", whose own concordance is withheld here for want of an interval computed on this "
+            "run's own signals -- so the attribution is carried on the scale that IS bounded. ")
+    counterfactual = (
+        "Had the cross stratum carried no information the estimand would read {at:.4f} rather "
+        "than {whole:.4f}{clause}. ".format(
+            at=at_chance, whole=c_whole,
+            clause=("" if inside is None else
+                    " -- {where} the {lo:.4f}–{hi:.4f} a no-information signal reaches on "
+                    "its {n} decisions".format(
+                        where="INSIDE" if inside else "still outside", lo=low, hi=high,
+                        n=whole_n))))
+    return opening + middle + counterfactual + (
+        "THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own departures "
+        "above the customers it kept."
+        if c_cross < 0.5 else
+        "The cross stratum ranks at or above chance, so the estimand's position is not the arm "
+        "pricing its departures up.")
 
 
 def _fixed_horizon_reading(legs: dict, zeroes: int, scored: int) -> str:

@@ -3296,11 +3296,13 @@ def test_the_two_cuts_carry_their_OWN_nulls_and_the_difference_is_named_a_POPULA
     cuts = strata["the_two_cuts_the_item_asked_for"]
 
     assert cuts["the_zero_rows_excluded"]["decisions"] < cuts["the_zero_rows_included"]["decisions"]
-    assert cuts["the_zero_rows_excluded"]["null_95_interval"] is not None
-    assert cuts["the_zero_rows_included"]["null_95_interval"] is not None
+    assert cuts["the_zero_rows_excluded"]["null_95_low"] is not None
+    assert cuts["the_zero_rows_included"]["null_95_low"] is not None
     # Two samples, two intervals -- never one borrowed across both.
-    assert (cuts["the_zero_rows_excluded"]["null_95_interval"]
-            != cuts["the_zero_rows_included"]["null_95_interval"])
+    assert ((cuts["the_zero_rows_excluded"]["null_95_low"],
+             cuts["the_zero_rows_excluded"]["null_95_high"])
+            != (cuts["the_zero_rows_included"]["null_95_low"],
+                cuts["the_zero_rows_included"]["null_95_high"]))
     assert "POPULATION, not tie handling" in cuts["what_separates_them"]
 
 
@@ -3367,3 +3369,114 @@ def test_the_split_REFUSES_legs_that_do_not_NEST_and_a_run_that_predates_the_pai
     settled_only = _fh(log, records)["pair_strata"]
     assert settled_only["available"] is False
     assert "no decision at zero" in settled_only["reason"]
+
+
+def test_the_reading_carries_the_attribution_on_the_scale_that_IS_bounded():
+    """The clause the whole split rests on when the cross figure cannot be published.
+
+    THE GAP THIS CLOSES, found by mutating and watching nothing go red. The door test over this
+    block reads `site/data/value_arms.json` -- a file on disk -- so deleting the counterfactual
+    clause from this reading left it green: the feed still carried the sentence written before
+    the mutation. A control on a stored artefact cannot grade the producer that wrote it.
+
+    So it is graded here. Whenever the cross stratum's own figure is withheld, the reading must
+    still say what the estimand WOULD read with that stratum carrying no information, and must
+    place it against the estimand's own interval -- because that is the only bounded form the
+    attribution has left, and a reading that dropped it would leave "not a tie artefact" resting
+    on nothing a reader could weigh.
+    """
+    horizon = _strata_fixture(99.0, 98.0)
+    legs, zeroes = horizon["legs"], 2
+    withheld = rvca.pair_strata(legs[rvca.SETTLED_POUNDS_LEG], legs[rvca.ESTIMAND_LEG], zeroes)
+
+    # POISON ROUND: this IS the withheld branch, or the assertions below grade the other one.
+    assert withheld["strata"]["cross"]["concordance"] is None
+    assert withheld["strata"]["cross"]["concordance_withheld"] is not None
+
+    at_chance = withheld["the_estimand_if_the_cross_stratum_carried_no_information"]
+    reading = withheld["reading"]
+    assert ("%.4f" % at_chance) in reading, (
+        "the cross figure is withheld and the reading does not say what the estimand would read "
+        "without it, so the attribution reaches the reader in no bounded form at all")
+    low, high = legs[rvca.ESTIMAND_LEG]["null_spread"]["null_95_interval"]
+    assert ("%.4f" % low) in reading and ("%.4f" % high) in reading, (
+        "the counterfactual is on the page with no interval to read it against, which is the "
+        "borrowed-bound defect this block was corrected for one level up")
+    # ...and the withheld figure itself is NEVER in the sentence, or withholding it was theatre.
+    assert ("%.4f" % withheld["strata"]["cross"]["concordance_withheld"]) not in reading
+
+    # THE OTHER BRANCH, so this is not a test of one arm of an if. With the rows in hand the
+    # figure is bounded, published, and the sentence quotes it.
+    bounded = horizon["pair_strata"]
+    assert bounded["strata"]["cross"]["concordance"] is not None
+    assert ("%.4f" % bounded["strata"]["cross"]["concordance"]) in bounded["reading"]
+    assert ("%.4f" % bounded["the_estimand_if_the_cross_stratum_carried_no_information"]
+            ) in bounded["reading"]
+
+
+_EST_SPREAD = {"null_95_interval": [0.4458340167295391, 0.5540429719534197]}
+_CROSS_SPREAD = {"available": True, "observed": 0.2686355710549259,
+                 "null_95_interval": [0.4105274629468178, 0.5887096774193549]}
+
+
+def _cross_sentence(bounded, cross_spread):
+    """`_pair_strata_reading` on the 09-09 figures, with only the cross stratum's bound moved."""
+    return rvca._pair_strata_reading(
+        0.4210267, 0.2686355710549259, 0.5081, 37, 161, 4588, 12194,
+        bounded, _EST_SPREAD, cross_spread)
+
+
+def test_the_cross_stratums_number_is_never_stated_without_the_interval_it_is_read_against():
+    """THE DEFECT, and it shipped invisible for the only reason a defect can (2026-09-09).
+
+    `_pair_strata_reading`'s bounded branch printed "which read 0.2686" and stopped, while the
+    spread that made the branch reachable at all sat unused in `cross_null`. The withheld branch
+    was fail-closed and the bounded one was not -- the harder half to notice, because a refusal
+    gets read twice and a number looks finished.
+
+    IT COULD NOT BE REACHED BY ANY ARTEFACT ON DISK. `pair_strata` landed on 2026-09-09 and every
+    run predated it, so `generate_value_arms_data._skill_pair_strata`'s identity fallback served
+    the WITHHELD branch to every reader, on every feed, and nothing exercised the other one. The
+    first run to carry the block is what found it, and the page's own door control
+    (`site/test_the_baseline_comparison_reaches_the_reader.py::
+    test_the_attribution_of_the_inversion_reaches_the_reader_BESIDE_the_figure`) refused it in one
+    line -- correctly, and it had never had a feed that could make it fire.
+
+    THE PARTITION IS ASSERTED BEFORE ITS LEGS, because a composer that withheld on EVERY input
+    would satisfy every "does not state a bare number" assertion ever written about it.
+
+    R15 -- the mutations, each run and reverted:
+      * restore the bare `", which read {c:.4f}: ..."` bounded branch -> the `bounded` leg reds,
+        which is the defect exactly as it shipped.
+      * fall through to the bounded branch when the interval is absent -> the
+        `bounded_without_an_interval` leg reds, which is the fail-open one level down.
+      * quote the ESTIMAND's interval beside the cross figure -> the `bounded` leg reds on the
+        borrowed-bound assertion, which is the error the whole block exists to prevent.
+    """
+    bounded = _cross_sentence(True, _CROSS_SPREAD)
+    bounded_without_an_interval = _cross_sentence(True, {"available": True})
+    unbounded = _cross_sentence(False, None)
+    assert "0.2686" in bounded and "0.2686" not in bounded_without_an_interval \
+        and "0.2686" not in unbounded, (
+        "the three branches are not all reachable, so every leg below is vacuous -- a composer "
+        "that withheld on every input would pass them all")
+
+    # THE NUMBER AND ITS OWN BOUND TRAVEL TOGETHER.
+    assert "0.4105" in bounded and "0.5887" in bounded, (
+        "the cross stratum's concordance reaches the reader without the interval its own pairs "
+        "earn, which is the rule `_stratum_figure` holds the payload to: " + bounded)
+    assert "4,588 pairs" in bounded, (
+        "the interval is stated without the sample it was computed on, so a reader cannot tell "
+        "it from the estimand's: " + bounded)
+    # ...AND IT IS THE CROSS STRATUM'S OWN BOUND, NEVER THE ESTIMAND'S. Reading one against the
+    # other's null is the single error the item that commissioned this block warned about, and
+    # the two intervals are both in scope in this one sentence.
+    assert bounded.index("0.4105") < bounded.index("0.4458"), (
+        "the estimand's interval is quoted before the cross stratum's own, so the number closest "
+        "to 0.2686 is the wrong bound: " + bounded)
+
+    # THE FAIL-OPEN ONE LEVEL DOWN. `available: True` with no interval on it is a spread that
+    # bounds nothing, and the sentence must withhold rather than state a number against nothing.
+    assert "withheld" in bounded_without_an_interval, (
+        "a spread that says it is available and carries no interval let the figure through: "
+        + bounded_without_an_interval)

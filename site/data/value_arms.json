@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T17:01:48.467106Z",
+  "generated_at": "2026-09-09T18:18:42.313862Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -8,7 +8,7 @@
     "docs/observability/value_cycle_ab_s1_three_arm.json",
     "docs/observability/value_cycle_ab_s1_noise_floor.json",
     "docs/observability/value_cycle_ab_s1_three_arm_20260908.json",
-    "docs/observability/value_cycle_ab_s1_noise_floor_20260908.json",
+    "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
     "docs/observability/value_cycle_ab_floor_decomposition.json"
   ],
   "available": true,
@@ -328,10 +328,10 @@
     "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
     "short": "62334dc76",
     "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": "97cb0a35638d1bbf59ea9d471622e2f4a2608199",
-    "produced_by_the_tree_it_publishes_from": false,
+    "publishing_tree_commit": null,
+    "produced_by_the_tree_it_publishes_from": null,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76 and published from 97cb0a356 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 62334dc76; this publish could not resolve its own tree, so the two cannot be compared."
   },
   "world_provenance": {
     "available": true,
@@ -343,7 +343,7 @@
     "one_world_across_every_figure": true,
     "runs_measured_in_a_superseded_world": [],
     "runs_measured_in_the_live_world": [
-      "the current-world noise floor (2026-09-08T04:10:26Z)",
+      "the current-world noise floor (2026-09-09T15:17:31Z)",
       "the current-world three-arm run (2026-09-08T00:19:54Z)",
       "the floor decomposition",
       "the noise floor (2026-09-09T15:17:31Z)",
@@ -377,16 +377,22 @@
     "verdict_withheld_because": null,
     "verdict_stability": {
       "checked": true,
-      "n": 3,
+      "n": 9,
       "redraw_values_gbp": [
-        19781.964809000026,
-        17262.06530299998,
-        20002.33371800001
+        19607.507551999995,
+        17244.433779999992,
+        19903.595164,
+        16890.32416399999,
+        20742.894054000004,
+        21546.838982000016,
+        14329.175675999984,
+        17170.483406000014,
+        17456.516900000017
       ],
-      "redraw_resolving": 3,
-      "redraw_min_gbp": 17262.06530299998,
-      "redraw_max_gbp": 20002.33371800001,
-      "redraw_mean_gbp": 19015.454610000004,
+      "redraw_resolving": 9,
+      "redraw_min_gbp": 14329.175675999984,
+      "redraw_max_gbp": 21546.838982000016,
+      "redraw_mean_gbp": 18321.307742,
       "stable": true,
       "sign_determined": true
     },
@@ -395,46 +401,52 @@
     "bound_available": true,
     "floor_ran_in_world": "39a192ce04c1eda8",
     "floor_leg": "all",
-    "floor_generated_at": "2026-09-08T04:10:26Z",
+    "floor_generated_at": "2026-09-09T15:17:31Z",
     "bound": {
-      "n": 3,
-      "stdev_gbp": 1522.4720557172732,
-      "mean_gbp": 19015.454610000004,
-      "min_gbp": 17262.06530299998,
-      "max_gbp": 20002.33371800001
+      "n": 9,
+      "stdev_gbp": 2281.524306779542,
+      "mean_gbp": 18321.307742,
+      "min_gbp": 14329.175675999984,
+      "max_gbp": 21546.838982000016
     },
     "bound_contrast": "value_advantage_gbp",
     "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
     "selection_leg": {
       "resolved": null,
-      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the bound beside it is how far that same quantity moves across 3 re-draws of it. 1 of those 3 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 3 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
+      "verdict_withheld_because": "THE VERDICT WOULD BE ONE DRAW'S. The figure above is a single realisation and the bound beside it is how far that same quantity moves across 9 re-draws of it. 5 of those 9 re-draws clear the bound and the rest do not, so whether this page could state a direction depends on which draw the run happened to make. It states none. The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family. AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
       "verdict_stability": {
         "checked": true,
-        "n": 3,
+        "n": 9,
         "redraw_values_gbp": [
-          1199.5500600000087,
-          -3075.215559000004,
-          433.0716930000053
+          1260.9261999999871,
+          -3036.2544110000017,
+          494.4478329999838,
+          -2644.3478250000044,
+          286.0552489999973,
+          1090.000177000009,
+          -2482.5793040000135,
+          -2719.108798000001,
+          -1952.6304309999978
         ],
-        "redraw_resolving": 1,
-        "redraw_min_gbp": -3075.215559000004,
-        "redraw_max_gbp": 1199.5500600000087,
-        "redraw_mean_gbp": -480.86460199999664,
+        "redraw_resolving": 5,
+        "redraw_min_gbp": -3036.2544110000017,
+        "redraw_max_gbp": 1260.9261999999871,
+        "redraw_mean_gbp": -1078.1657011111156,
         "stable": false,
         "sign_determined": false
       },
       "redraw_band": "The re-draws themselves are set out contrast by contrast in the band table directly below this headline, lowest, mean and highest; the published draw sits ABOVE the centre of its own family.",
-      "no_sign": "AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 3 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
+      "no_sign": "AND THE QUANTITY DOES NOT CARRY A SIGN. The same contrast re-drawn 9 times in this same world falls on BOTH sides of zero, so there is no direction here for a bound to clear: the plus or minus on the published draw is a property of which draw was made. The band table directly below this headline gives that family, and its Lowest and Highest sit on opposite sides of zero. The CENTRE of that family is on the other side of zero from the published draw, so the draw's own sign is not the family's.",
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
       "floor_leg": "all",
-      "floor_generated_at": "2026-09-08T04:10:26Z",
+      "floor_generated_at": "2026-09-09T15:17:31Z",
       "bound": {
-        "n": 3,
-        "stdev_gbp": 2279.2246352290263,
-        "mean_gbp": -480.86460199999664,
-        "min_gbp": -3075.215559000004,
-        "max_gbp": 1199.5500600000087
+        "n": 9,
+        "stdev_gbp": 1810.5007782810442,
+        "mean_gbp": -1078.1657011111156,
+        "min_gbp": -3036.2544110000017,
+        "max_gbp": 1260.9261999999871
       },
       "bound_contrast": "selection_gbp",
       "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws, and it is the quantity the floor publishes as `selection_gbp_spread`: this feed's reading of the seed rows had to reproduce that scalar to the penny before any bound on this page was admitted.",
@@ -446,16 +458,22 @@
       "verdict_withheld_because": null,
       "verdict_stability": {
         "checked": true,
-        "n": 3,
+        "n": 9,
         "redraw_values_gbp": [
-          18582.414749000018,
-          20337.280861999985,
-          19569.262025000004
+          18346.58135200001,
+          20280.688190999994,
+          19409.147331000015,
+          19534.671988999995,
+          20456.838805000007,
+          20456.838805000007,
+          16811.754979999998,
+          19889.592204000015,
+          19409.147331000015
         ],
-        "redraw_resolving": 3,
-        "redraw_min_gbp": 18582.414749000018,
-        "redraw_max_gbp": 20337.280861999985,
-        "redraw_mean_gbp": 19496.319212000002,
+        "redraw_resolving": 9,
+        "redraw_min_gbp": 16811.754979999998,
+        "redraw_max_gbp": 20456.838805000007,
+        "redraw_mean_gbp": 19399.473443111117,
         "stable": true,
         "sign_determined": true
       },
@@ -464,13 +482,13 @@
       "bound_available": true,
       "floor_ran_in_world": "39a192ce04c1eda8",
       "floor_leg": "all",
-      "floor_generated_at": "2026-09-08T04:10:26Z",
+      "floor_generated_at": "2026-09-09T15:17:31Z",
       "bound": {
-        "n": 3,
-        "stdev_gbp": 879.7040747405734,
-        "mean_gbp": 19496.319212000002,
-        "min_gbp": 18582.414749000018,
-        "max_gbp": 20337.280861999985
+        "n": 9,
+        "stdev_gbp": 1176.6548593147284,
+        "mean_gbp": 19399.473443111117,
+        "min_gbp": 16811.754979999998,
+        "max_gbp": 20456.838805000007
       },
       "bound_contrast": "level_advantage_gbp",
       "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws -- not the floor's published `selection_gbp_spread`, which measures a different quantity.",
@@ -511,6 +529,26 @@
           "also_on_disk_as": [
             "value_cycle_ab_s1_three_arm.json"
           ]
+        },
+        {
+          "artefact": "value_cycle_ab_s1_three_arm_20260909b.json",
+          "generated_at": "2026-09-09T13:15:17Z",
+          "ran_in_world": "39a192ce04c1eda8",
+          "level_share_of_advantage": 0.981707098049328,
+          "the_bigger_leg": "level",
+          "value_advantage_gbp": 17443.974545999983,
+          "level_advantage_gbp": 17124.873629999987,
+          "selection_gbp": 319.1009159999958
+        },
+        {
+          "artefact": "value_cycle_ab_s1_three_arm_20260909c.json",
+          "generated_at": "2026-09-09T13:58:12Z",
+          "ran_in_world": "39a192ce04c1eda8",
+          "level_share_of_advantage": 0.981707098049328,
+          "the_bigger_leg": "level",
+          "value_advantage_gbp": 17443.974545999983,
+          "level_advantage_gbp": 17124.873629999987,
+          "selection_gbp": 319.1009159999958
         }
       ],
       "later_runs_disagree": null,
@@ -557,10 +595,10 @@
       "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
       "short": "62334dc76",
       "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": "97cb0a35638d1bbf59ea9d471622e2f4a2608199",
-      "produced_by_the_tree_it_publishes_from": false,
+      "publishing_tree_commit": null,
+      "produced_by_the_tree_it_publishes_from": null,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76 and published from 97cb0a356 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 62334dc76; this publish could not resolve its own tree, so the two cannot be compared."
     }
   },
   "realised": {
@@ -609,11 +647,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": true,
-      "same_supplier": false,
-      "published_run_net_gbp": 147886.781507,
-      "gap_gbp": -67.4741540007235,
-      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.47. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "checked": false,
+      "same_supplier": null,
+      "published_run_net_gbp": 131289.339938,
+      "dashboard_net_gbp": 147886.78,
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3147,886.78 -- a gap of \u00a316,597.44 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
     }
   },
   "provisioned": {
@@ -867,138 +905,10 @@
       "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
     },
     "whole_book": {
-      "available": true,
-      "what_it_is": "Every departure the world expects on EITHER route, over the accounts on the book -- the same numerator and denominator the published record states.",
-      "years": [
-        {
-          "year": 2017,
-          "world_pct": 14.0,
-          "band_lo_pct": 13.5,
-          "band_hi_pct": 14.0,
-          "inside_band": true
-        },
-        {
-          "year": 2018,
-          "world_pct": 20.0,
-          "band_lo_pct": 19.5,
-          "band_hi_pct": 20.0,
-          "inside_band": true
-        },
-        {
-          "year": 2019,
-          "world_pct": 21.3,
-          "band_lo_pct": 20.7,
-          "band_hi_pct": 21.3,
-          "inside_band": true
-        },
-        {
-          "year": 2020,
-          "world_pct": 22.97,
-          "band_lo_pct": 22.5,
-          "band_hi_pct": 23.0,
-          "inside_band": true
-        },
-        {
-          "year": 2021,
-          "world_pct": 18.53,
-          "band_lo_pct": 17.9,
-          "band_hi_pct": 18.4,
-          "inside_band": false
-        },
-        {
-          "year": 2022,
-          "world_pct": 2.5,
-          "band_lo_pct": 2.9,
-          "band_hi_pct": 4.3,
-          "inside_band": false
-        },
-        {
-          "year": 2023,
-          "world_pct": 12.4,
-          "band_lo_pct": 8.9,
-          "band_hi_pct": 12.5,
-          "inside_band": true
-        },
-        {
-          "year": 2024,
-          "world_pct": 15.96,
-          "band_lo_pct": 12.5,
-          "band_hi_pct": 16.1,
-          "inside_band": true
-        }
-      ],
-      "years_compared": 8,
-      "years_inside_the_band": 6,
-      "world_mean_pct": 15.96,
-      "against_the_publisher": {
-        "available": true,
-        "years": [
-          {
-            "year": 2017,
-            "world_pct": 14.0,
-            "published_rate_pct": 18.195,
-            "ratio": 0.769,
-            "world_is_above": false
-          },
-          {
-            "year": 2018,
-            "world_pct": 20.0,
-            "published_rate_pct": 19.064,
-            "ratio": 1.049,
-            "world_is_above": true
-          },
-          {
-            "year": 2019,
-            "world_pct": 21.3,
-            "published_rate_pct": 20.822,
-            "ratio": 1.023,
-            "world_is_above": true
-          },
-          {
-            "year": 2020,
-            "world_pct": 22.97,
-            "published_rate_pct": 20.213,
-            "ratio": 1.136,
-            "world_is_above": true
-          },
-          {
-            "year": 2021,
-            "world_pct": 18.53,
-            "published_rate_pct": 15.569,
-            "ratio": 1.19,
-            "world_is_above": true
-          },
-          {
-            "year": 2022,
-            "world_pct": 2.5,
-            "published_rate_pct": 3.056,
-            "ratio": 0.818,
-            "world_is_above": false
-          },
-          {
-            "year": 2023,
-            "world_pct": 12.4,
-            "published_rate_pct": 6.332,
-            "ratio": 1.958,
-            "world_is_above": true
-          },
-          {
-            "year": 2024,
-            "world_pct": 15.96,
-            "published_rate_pct": 9.028,
-            "ratio": 1.768,
-            "world_is_above": true
-          }
-        ],
-        "years_compared": 8,
-        "years_the_world_is_above": 6,
-        "world_mean_pct": 15.96,
-        "published_mean_pct": 14.03,
-        "ratio_of_means": 1.137,
-        "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
-      }
+      "available": false,
+      "reason": "whether this capture is committed could not be established (git ls-files exited 128), so its verdict cannot be shown to be reproducible outside this working tree."
     },
-    "bounding_statement": "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the bands above, the renewal-decision level reads 1.63x the record; against the publisher's own figures for the same years it reads 1.80x. The refuted band is the FLATTERING one here. AND NEITHER FIGURE IS THE COMPARABLE ONE. Both are means over renewal decisions \u2014 the households who took a fixed deal and so demonstrably shop. Every departure the world expects on either route, over the accounts on the book, averages 15.96% across 8 years against the publisher's 14.03% \u2014 1.14x, not 1.80x. The gap this page has been reporting is mostly the population it was measured over, and how much of the remainder is the world is NOT established here."
+    "bounding_statement": "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the bands above, the renewal-decision level reads 1.63x the record; against the publisher's own figures for the same years it reads 1.80x. The refuted band is the FLATTERING one here. The comparable whole-book reading could not be taken off this capture (whether this capture is committed could not be established (git ls-files exited 128), so its verdict cannot be shown to be reproducible outside this working tree.), so neither figure above is over the population the record counts."
   },
   "method_skill": {
     "available": true,
@@ -1336,56 +1246,6 @@
         "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
         "sentence": "On the 161 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.054 \u2014 a concordance of 0.554 or 0.446. It read 0.421, a departure of 0.079, about 146% of that. Reading a departure that small needs about 76 scored decisions \u2014 roughly 42 settled accounts at this run's rate. The settled book can hold 632 accounts, so a book this world can supply does reach it \u2014 and that is a statement about the instrument, never a plan."
       },
-      "pair_strata": {
-        "available": true,
-        "computed_by": "this page, by calling the run producer's own `pair_strata` over the two legs this artefact already carries. The run predates the block; the split is an identity over its published counts and not a second ranking, so no re-run is needed to state it",
-        "what_this_is": "a partition of the estimand's own comparable pairs into the three strata that can carry its departure from 0.5, so a reader can tell the TIE MASS from the ARM. An identity over the two legs' published counts, not a second ranking.",
-        "strata": {
-          "within_settled": {
-            "decision_pairs": 7626,
-            "comparable_pairs": 7606,
-            "concordance": 0.5129503023928478,
-            "what_it_is": "leg 2's own population -- the decisions whose term settled something, ranked against each other"
-          },
-          "within_zero": {
-            "decision_pairs": 666,
-            "comparable_pairs": 0,
-            "concordance": null,
-            "what_it_is": "THE TIE MASS. Both rows scored 0.0, so every one of these pairs is tied on the outcome and `_concordance` excludes it. This stratum supplies no comparable pair and therefore cannot move the statistic in either direction -- which is the item's hypothesis, answered."
-          },
-          "cross": {
-            "decision_pairs": 4588,
-            "comparable_pairs": 4588,
-            "concordance": 0.2686355710549259,
-            "what_it_is": "each decision that settled nothing against each that settled something. Below 0.5 means the arm gave the DEPARTURE the higher margin -- it priced up the decisions that went on to produce nothing."
-          }
-        },
-        "zero_decisions": 37,
-        "settled_decisions": 124,
-        "comparable_pairs": 12194,
-        "tie_mass_share_of_decisions": 0.22981366459627328,
-        "tie_mass_share_of_comparable_pairs": 0.0,
-        "cross_share_of_comparable_pairs": 0.3762506150565852,
-        "the_tie_mass_can_move_the_estimand": false,
-        "the_stratum_that_carries_the_departure": "cross",
-        "departure_from_no_information": {
-          "estimand": -0.07897326554042972,
-          "from_the_within_settled_stratum": 0.008077743152370035,
-          "from_the_cross_stratum": -0.08705100869279973,
-          "from_the_tie_mass": 0.0,
-          "these_sum_to_the_departure": true,
-          "what_this_is": "the estimand's distance from 0.5, split additively across the strata by their share of the comparable pairs. The three terms sum to it exactly, because the concordance is a mean over pairs and this is that mean's own decomposition."
-        },
-        "the_estimand_if_the_cross_stratum_carried_no_information": 0.50807774315237,
-        "the_interval_these_terms_carry": {
-          "of_their_own": null,
-          "inherited_from": "every_priced_decision_pounds_outcome",
-          "null_95_low": 0.4458340167295391,
-          "null_95_high": 0.5540429719534197,
-          "sentence": "These strata carry NO interval of their own. They are terms of the 0.4210 above -- they sum to its distance from 0.5 exactly -- so the only bound here is the one that figure's own permutation earned, 0.4458\u20130.5540. And the 4,588 cross pairs are 37 departures against 124 survivors: 4,588 pairs determined by only 37 rows' signals, over a wider account set than the settled leg's. That is leverage and clustering rather than bias -- it does not move which stratum carries the departure, and it does mean the interval beside the estimand is narrower than this sample really earns."
-        },
-        "reading": "37 of 161 scored decisions (23%) sit tied at 0.0, and every one of the 666 pairs among them is excluded by the estimator as an outcome tie -- so the tie mass supplies NONE of the 12,194 comparable pairs and cannot move the figure. The departure is carried by the 4,588 cross pairs, which read 0.2686: in 73% of departure-against-survivor pairs the arm had given the DEPARTURE the higher margin. Leg 2's own 7,606 pairs read 0.5130. Had the cross stratum carried no information the estimand would read 0.5081 rather than 0.4210. THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own departures above the customers it kept."
-      },
       "legs": {
         "the_published_population_ratio_outcome": {
           "what_it_is": "THE PUBLISHED FIGURE, rebuilt. Every priced decision whose term settled something, on the counterfactual-normalised ratio, with NO horizon test -- which is exactly the population and outcome `method_skill.concordance` uses. A control, not a finding: the two must agree through different code paths, and a disagreement is a defect here rather than anything about the book.",
@@ -1471,6 +1331,90 @@
             "sentence": "On whether the arm's price ranks the pounds EVERY decision it priced produced, this run reads WORSE than chance: 0.421 sits BELOW the 0.446\u20130.554 a signal carrying no information reaches on 161 decisions. The ranking is real and INVERTED -- which is not the same as carrying nothing, and is the worse of the two findings."
           }
         }
+      },
+      "pair_strata": {
+        "available": true,
+        "what_this_is": "a partition of the estimand's own comparable pairs into the three strata that can carry its departure from 0.5, so a reader can tell the TIE MASS from the ARM. An identity over the two legs' published counts, not a second ranking.",
+        "strata": {
+          "within_settled": {
+            "decisions": 124,
+            "decision_pairs": 7626,
+            "comparable_pairs": 7606,
+            "what_it_is": "leg 2's own population -- the decisions whose term settled something, ranked against each other",
+            "concordance": 0.5129503023928478,
+            "null_95_low": 0.44031028135682354,
+            "null_95_high": 0.5587693925848015,
+            "p_two_sided": 0.66645,
+            "inside_the_null": true,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
+          },
+          "within_zero": {
+            "decisions": 37,
+            "decision_pairs": 666,
+            "comparable_pairs": 0,
+            "concordance": null,
+            "why_no_concordance": "not a withheld figure but an undefined one: with no comparable pair there is nothing to rank, and `_concordance` returns None rather than the 0.5 a fail-open would report here",
+            "what_it_is": "THE TIE MASS. Both rows scored 0.0, so every one of these pairs is tied on the outcome and `_concordance` excludes it. This stratum supplies no comparable pair and therefore cannot move the statistic in either direction -- which is the item's hypothesis, answered."
+          },
+          "cross": {
+            "decisions": 161,
+            "decision_pairs": 4588,
+            "comparable_pairs": 4588,
+            "what_it_is": "each decision that settled nothing against each that settled something. Below 0.5 means the arm gave the DEPARTURE the higher margin -- it priced up the decisions that went on to produce nothing.",
+            "concordance": null,
+            "concordance_withheld": 0.2686355710549259,
+            "reason": "this stratum's own interval needs the run's per-decision signals and this caller has only the legs' published totals, so the figure is withheld rather than shown bare. What IS bounded is the estimand itself, and the counterfactual below carries the attribution on that scale: a run carrying `pair_strata` supplies this directly."
+          }
+        },
+        "zero_decisions": 37,
+        "settled_decisions": 124,
+        "estimand_concordance": 0.4210267344595703,
+        "comparable_pairs": 12194,
+        "tie_mass_share_of_decisions": 0.22981366459627328,
+        "tie_mass_share_of_comparable_pairs": 0.0,
+        "cross_share_of_comparable_pairs": 0.3762506150565852,
+        "the_tie_mass_can_move_the_estimand": false,
+        "the_stratum_that_carries_the_departure": "cross",
+        "departure_from_no_information": {
+          "estimand": -0.07897326554042972,
+          "from_the_within_settled_stratum": 0.008077743152370035,
+          "from_the_cross_stratum": -0.08705100869279973,
+          "from_the_tie_mass": 0.0,
+          "these_sum_to_the_departure": true,
+          "what_this_is": "the estimand's distance from 0.5, split additively across the strata by their share of the comparable pairs. The three terms sum to it exactly, because the concordance is a mean over pairs and this is that mean's own decomposition."
+        },
+        "the_estimand_if_the_cross_stratum_carried_no_information": 0.50807774315237,
+        "the_two_cuts_the_item_asked_for": {
+          "the_zero_rows_excluded": {
+            "is_leg": "settled_only_pounds_outcome",
+            "decisions": 124,
+            "read_against": "its OWN permutation null at its own n -- never the estimand's, which belongs to a different sample",
+            "concordance": 0.5129503023928478,
+            "null_95_low": 0.44031028135682354,
+            "null_95_high": 0.5587693925848015,
+            "p_two_sided": 0.66645,
+            "inside_the_null": true,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
+          },
+          "the_zero_rows_included": {
+            "is_leg": "every_priced_decision_pounds_outcome",
+            "decisions": 161,
+            "read_against": "its OWN permutation null at its own n, which reproduces this sample's outcome ties exactly by permuting the signals against the FIXED outcomes",
+            "concordance": 0.4210267344595703,
+            "null_95_low": 0.4458340167295391,
+            "null_95_high": 0.5540429719534197,
+            "p_two_sided": 0.0045,
+            "inside_the_null": false,
+            "permutation_draws": 20000,
+            "permutation_seed": 20260828
+          },
+          "what_separates_them": "POPULATION, not tie handling. The excluded cut drops the 37 departures as well as their ties, so the difference between these two numbers is not the tie correction and must not be read as it. The tie correction is the permutation null itself, and it is unbiased under outcome ties by symmetry: each comparable pair is equally likely to fall either way under a shuffled signal, whatever the outcome ties do, so both nulls centre on 0.5 and the ties only WIDEN them."
+        },
+        "reading": "37 of 161 scored decisions (23%) sit tied at 0.0, and every one of the 666 pairs among them is excluded by the estimator as an outcome tie -- so the tie mass supplies NONE of the 12,194 comparable pairs and cannot move the figure. The departure is carried by the 4,588 cross pairs, whose own concordance is withheld here for want of an interval computed on this run's own signals -- so the attribution is carried on the scale that IS bounded. Had the cross stratum carried no information the estimand would read 0.5081 rather than 0.4210 -- INSIDE the 0.4458\u20130.5540 a no-information signal reaches on its 161 decisions. THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own departures above the customers it kept.",
+        "derived_by_identity_here": true,
+        "derived_because": "the run that produced this artefact predates `method_skill.fixed_horizon.pair_strata`, so the split was solved here from the two legs' own published counts by `run_value_cycle_ab.pair_strata` -- the producer's own function, over an identity that adds no data and re-ranks nothing. A fresh run carries it and this stops."
       },
       "the_control_leg_agreement": {
         "available": true,

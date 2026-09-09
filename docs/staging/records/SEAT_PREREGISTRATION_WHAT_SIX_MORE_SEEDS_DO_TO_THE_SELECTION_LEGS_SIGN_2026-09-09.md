@@ -154,3 +154,24 @@ same way it does today, the result of this run is the sentence in §"what would 
 ---
 
 *Filed before launch. The result goes beside this document, whichever way it lands.*
+
+---
+
+> **GRADED 2026-09-09, after the run.** It landed against this document.
+> `SEAT_RESULT_THE_SELECTION_LEGS_SIGN_WENT_THE_OTHER_WAY_AND_THE_PREREGISTRATIONS_BET_IS_REFUTED_2026-09-09.md`,
+> beside this file, carries every prediction quoted verbatim with its grade.
+>
+> **P1 held · P2 held · P3 REFUTED · P4 held · P5 REFUTED · P6 held vacuously · P7 held.**
+>
+> n = 9, mean **−£1,078.17** (not the predicted [−900, +900], and *further* from zero, not nearer),
+> sd £1,810.50, **4 of 9 positive** against the 5 P5 required. The six new seeds' own mean is
+> −£1,403.77 — more negative than the three they were added to.
+>
+> **The bet in §"Which way the two cuts then point" is refuted.** The negative sign was not seed
+> 22222's geometry. It also did not reach this document's other branch: the mean sits in the gap
+> between the two outcomes offered here, so neither pre-registered reading applies, and the result
+> document names that third state rather than assimilating it to the nearer one.
+>
+> The two corrections above — both filed before the artefact existed — were graded as they
+> instructed. One counterfactual inside the 10:13Z correction is itself refuted and is corrected in
+> the result document beside its claim.

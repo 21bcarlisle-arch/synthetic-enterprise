@@ -182,19 +182,28 @@ def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
     #
     # The code that produced these numbers is the code the process IMPORTED, so the answer is
     # HEAD at launch, which is precisely what the caller already captured to build the filename.
+    #
+    # RESOLVED ONCE, WRITTEN TWICE, AND THAT IS THE POINT. `_cache_meta` below and the header
+    # `_run_identity_header` builds are the SAME three facts in two slots, and they come from
+    # these three locals so they cannot drift apart. Two copies of a fact that are computed
+    # separately are two facts; two copies bound to one local are one fact with two readers.
+    stamped_at = datetime.now(timezone.utc)
+    commit = code_commit or _git_commit_hash()
+    world = _world_level_or_reason()
+
     data["_cache_meta"] = {
-        "git_commit": code_commit or _git_commit_hash(),
-        "generated_at_utc": datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ"),
+        "git_commit": commit,
+        "generated_at_utc": stamped_at.strftime("%Y%m%dT%H%M%SZ"),
         # Fail-closed and NAMED. A run output that cannot say which world it ran in must say
         # that, in the slot a reader looks in -- an absent key reads as "nobody asked".
-        "world_level": _world_level_or_reason(),
+        "world_level": world,
     }
-    return data
+    return _run_identity_header(data, stamped_at, commit, world, from_launch=bool(code_commit))
 
 
 def _world_level_or_reason() -> dict:
     try:
-        return world_level_identity()
+        return dict(world_level_identity(), unavailable_because=None)
     except Exception as exc:  # noqa: BLE001 -- the reason is the payload
         return {
             "digest": None,
@@ -204,6 +213,90 @@ def _world_level_or_reason() -> dict:
                 "figure in it may be compared with a figure from another run".format(exc)
             ),
         }
+
+
+#: The wall-clock shape a run identity is published in, and it is NOT `_cache_meta`'s.
+#: `%Y%m%dT%H%M%SZ` exists to make a FILENAME; this exists to be READ -- by a person opening a
+#: 27MB artefact, and by `tools/promoted_artefact_claim_census`, whose `_RUN_IDENTITY` regex
+#: matches a dated token only at a word boundary and so cannot see `20260904T060810Z` at all.
+#: The same shape the other four promote-by-copy targets already publish.
+_GENERATED_AT_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+def _run_identity_header(
+    data: dict, stamped_at, commit: str | None, world: dict, *, from_launch: bool
+) -> dict:
+    """Put WHICH RUN THIS IS at the top of the artefact, in the shape every other promote target
+    already uses -- `generated_at`, `producing_commit`, `world_identity`.
+
+    WHY THIS EXISTS AT ALL, GIVEN `_cache_meta` HAS THE SAME THREE FACTS. `run_output_latest.json`
+    is a promote-by-copy target: bytes are copied onto that name and nothing else changes. Eighteen
+    modules bind the path, and until this header none of them could check WHICH RUN was sitting
+    there -- the truth was establishable only from `git log`. `_cache_meta` did not answer it, for
+    three reasons that are each about reachability rather than content:
+
+      * its stamp is `20260901T054223Z`, and the census that grades run claims cannot match a
+        compact stamp (see `_GENERATED_AT_FORMAT`);
+      * its world digest sits at `_cache_meta.world_level.digest`, one level deeper than the
+        census walks, because run identity is supposed to live in SHALLOW metadata; and
+      * it was absent from every artefact written before 2026-09-04 anyway.
+
+    MEASURED ON THE ARTEFACT THIS REPLACES (2026-09-09). Graded by
+    `promoted_artefact_claim_census._artefact_dates`, `docs/reports/run_output_latest.json`
+    yielded 17 run-identity tokens and NOT ONE of them was this run's identity: twelve are
+    simulation-world dates (`clv_snapshot_as_of` 2016-12-31..2025-06-07, a portfolio mark date, a
+    successor activation) and the other five belong to `scenario_analysis`, which
+    `saas/reporting/annual_report._load_scenario_analysis` READS OFF DISK from a different
+    producer. So a sentence claiming "the 2021-12-31 run" graded as SUPPORTED against a stress
+    test's mark date. The census's own docstring records that this target "goes to none, which is
+    the correct answer" -- true when written, false since, and the reason the leg that should have
+    said "we cannot tell" reported nothing at all.
+
+    THE HEADER GOES FIRST, and that is not cosmetic on a 27MB file: a reader who has to find out
+    which run they are holding must not have to parse the whole artefact to do it.
+
+    `commit` MAY BE THE STRING `"unknown"`, which is `_git_commit_hash`'s failure sentinel and is
+    truthy. `_cache_meta` publishes it as-is on purpose (`tools/generate_dashboard_data` wants the
+    honest word). A `producing_commit` block may not: every consumer of that shape in this tree
+    keys on `commit` being None and reads `unavailable_because` for the reason, and a placeholder
+    that satisfies a presence check is the fail-open the block exists to close.
+    """
+    resolvable = commit and commit != "unknown"
+    header = {
+        "generated_at": stamped_at.strftime(_GENERATED_AT_FORMAT),
+        "producing_commit": {
+            "commit": commit if resolvable else None,
+            "resolved_at": stamped_at.strftime(_GENERATED_AT_FORMAT),
+            "resolved_when": (
+                "at process start, before the world ran -- this is the commit whose code drew "
+                "every figure below"
+                if from_launch else
+                "AT STAMPING TIME, AFTER THE RUN. This caller did not capture HEAD at launch, so "
+                "this names the tree the artefact was assembled in, which is not necessarily the "
+                "tree that produced the figures -- a full run takes ~13 minutes and several lanes "
+                "land commits into this tree every hour"
+            ),
+            "unavailable_because": (
+                None if resolvable else
+                "`git rev-parse --short HEAD` did not answer in this process, so this run cannot "
+                "name the code that produced it"
+            ),
+            "why_this_is_here": (
+                "`docs/reports/run_output_latest.json` is a promote-by-copy target: a newer run's "
+                "bytes are copied onto this name and no source file changes. Without a stamp in "
+                "the payload, no reader of it can tell which run they are holding, and no claim "
+                "any of its eighteen binders makes about which run sits here can be checked "
+                "against anything but `git log`."
+            ),
+        },
+        # THE SAME OBJECT `_cache_meta.world_level` HOLDS, not a second computation of it. A
+        # commit moves for every reason and a timestamp cannot see a re-fit; the digest is the
+        # only one of the three that answers "are these two figures from the same world".
+        # Published at the top level as well because the census reads shallow metadata only, and
+        # under `_cache_meta` this digest is one level too deep to be read at all.
+        "world_identity": world,
+    }
+    return {**header, **{k: v for k, v in data.items() if k not in header}}
 
 
 def save_run_output_json(run_output: dict) -> tuple[Path, Path]:

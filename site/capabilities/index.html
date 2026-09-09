@@ -912,6 +912,42 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
          carrying nothing BEFORE being told what the legs decompose into, or the decomposition
          reads as an account of a real effect that may not be one. */
       + verdict(fh.reading_of_the_estimand)
+      /* ...AND WHAT THE INVERSION IS MADE OF, IN THE SAME BREATH AS THE FIGURE (2026-09-09,
+         Lane 0). The sentence above says the ranking is real and inverted. Until this block the
+         page then left the reader to guess what produced it, while rendering the count of
+         decisions scored at zero a few lines BELOW as a bare number — so the most natural
+         reading available on the surface was "a quarter of the sample is tied at the floor, so
+         the statistic is a tie artefact". That reading is wrong, and it was wrong in the
+         direction that would have let us dismiss our own worst finding.
+
+         IT SITS HERE AND NOT UNDER THE COUNTS for that reason. A published figure and its
+         attribution have to travel together or the figure gets quoted alone, which is the whole
+         premise of the item that commissioned this.
+
+         THE VERDICT IS NOT WRITTEN HERE. `_pair_strata_reading` composes it from the strata's own
+         pair counts, so the day the arm stops pricing its departures above the customers it keeps
+         this paragraph changes and nobody edits the page. Amber while the cross stratum is the
+         one carrying the departure, muted when it is not — and a refusal renders its own reason,
+         never a blank, because "the tie mass is not the cause" and "we could not check" are the
+         two opposite things a reader must never see rendered the same way. */
+      + (fh.pair_strata && fh.pair_strata.available
+          ? '<p style="margin:0 0 6px;font-size:11.5px;color:var('
+            + (fh.pair_strata.the_stratum_that_carries_the_departure === "cross"
+                ? "--amber);font-weight:600;" : "--muted);")
+            + '">' + prose(fh.pair_strata.reading)
+            + (fh.pair_strata.derived_by_identity_here
+                ? ' <span style="font-weight:400;color:var(--muted);">'
+                  + prose(fh.pair_strata.derived_because) + "</span>"
+                : "")
+            + "</p>"
+          : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--amber);">'
+            + "<strong>Is the figure above the tie mass or the arm?</strong> "
+            + '<span style="font-weight:600;">Not attributable from this run.</span> '
+            + prose((fh.pair_strata && fh.pair_strata.reason)
+                || "this page's own feed was generated before the pair-stratum split existed, so "
+                   + "nothing here says what the inversion is made of. Until it does, the figure "
+                   + "above stands unexplained and must not be quoted as a fact about the "
+                   + "method.") + "</p>")
       /* ...AND WHAT THIS CUT COULD HAVE DETECTED, which the interval alone does not say. "We
          cannot tell" from an instrument that could never have said anything else is a statement
          about the instrument, and it reads identically to a flat method without this. */

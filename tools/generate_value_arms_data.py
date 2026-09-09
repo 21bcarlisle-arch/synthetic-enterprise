@@ -133,6 +133,12 @@ from tools.inference_claim import (
 )
 from tools.product_gate_refusal import refusal_breakdown
 
+# THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
+# one place this file derives instead of reading, and it derives by calling the same function the
+# run stores -- so the page and the artefact cannot carry two answers to one question. See that
+# function for why the "never recomputed here" rule does not reach a pair-count identity.
+from tools.run_value_cycle_ab import pair_strata
+
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
 #: `producing_commit`; when they differ, the page says so beside the figures rather than letting
@@ -167,9 +173,21 @@ THREE_ARM_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_a
 #: HELD HERE ON 2026-09-09 WHEN THE 09-08b PAIR WAS PROMOTED TO THE CANONICAL PATH, and the move
 #: that was tried and reverted is written down because the reason is a property.
 #:
-#: The case for moving: `THREE_ARM_PATH` now carries the 21:01:30Z run in world `39a192ce04c1eda8`
-#: -- the live world -- so `error_bar.world_caveat` is `None`, and what this block exists to correct
-#: (a headline measured in a SUPERSEDED world) no longer exists. Pointing both constants at one run
+#: The case for moving, AS IT STOOD ON 2026-09-09: `THREE_ARM_PATH` then carried
+#: `value_cycle_ab_s1_three_arm_20260908b.json` (21:01:30Z) in world `39a192ce04c1eda8`
+#: -- the live world -- so `error_bar.world_caveat` was `None`, and what this block exists to correct
+#: (a headline measured in a SUPERSEDED world) did not exist.
+#:
+#: THE STAMP IS NOW NAMED VIA ITS DATED SIBLING RATHER THAN AS A PRESENT-TENSE CLAIM, because the
+#: sentence "`THREE_ARM_PATH` now carries the 21:01:30Z run" WENT FALSE without this file being
+#: touched: the 09-09 pair was promoted onto the canonical path later the same day and the comment
+#: still said 21:01:30Z. Found by `tools/promoted_artefact_claim_census.py`, which is the census of
+#: exactly this class -- a promote-by-copy moves BYTES, so no constant, import or source line
+#: changes and every control keyed to a constant is blind to it. A claim about which run is at a
+#: promoted path either names the dated sibling it means or is derived from the payload; stating a
+#: stamp in the present tense beside a canonical path is the defect itself.
+#:
+#: The argument the case makes is unaffected by that repair. Pointing both constants at one run
 #: makes the block a tautology that ANNOUNCES itself, in `_against_the_superseded_panel`'s
 #: `the_same_run` branch: "the two figures are one figure printed twice, not a comparison".
 #:
@@ -202,8 +220,37 @@ NOISE_FLOOR_PATH = PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise
 #: HELD on 2026-09-09 with the constant above, for the constant above's reason. The 09-08b floor
 #: went to `NOISE_FLOOR_PATH` and not here: this pair bounds the 00:19:54Z run and the 04:10:26Z
 #: floor is the one measured against it.
+#:
+#: MOVED ALONE 2026-09-09 TO THE NINE-SEED FLOOR, and the paragraph above says moving either alone
+#: is the defect. It is the defect in ONE of its two directions, not both, and the two are not
+#: symmetric. "The figure alone republishes an unbounded headline" is about `..._THREE_ARM_PATH`
+#: and is untouched here -- that constant does not move. "The bound alone bounds the wrong run" is
+#: the direction this move is in, and *wrong run* means a floor drawn over a DIFFERENT WORLD from
+#: the arms it bounds. Both floors carry world digest `39a192ce04c1eda8`, which is the 00:19:54Z
+#: arms' own world, so the bound is over the right world before and after. What changes is only
+#: how many draws of it there are: 3 -> 9.
+#:
+#: WHAT THIS MOVE IS NOT INNOCENT OF, MEASURED RATHER THAN WAVED THROUGH. The two floors were
+#: produced by DIFFERENT COMMITS -- `04361d6c7` (04:10:26Z) and `c066c114b` (15:17:31Z) -- and the
+#: arms being bounded are `04361d6c7`'s. That is not free: on the three seeds both floors share,
+#: the SAME seed in the SAME world returns a DIFFERENT `selection_gbp` under the two trees
+#: (11111 +61.38, 22222 +38.96, 33333 +61.38). So the nine-seed spread carries a code-tree
+#: difference the figure it bounds does not. It is admitted here rather than in a footnote because
+#: it cannot be removed without re-running the arms. It is judged tolerable because the shift is
+#: +38.96..+61.38 against a spread of 4,297.18 -- about 1% of the width, and the verdict the bound
+#: gates on is "does the family cross zero", which a 60-unit shift on a family spanning -3,036 to
+#: +1,261 cannot change. If the arms are ever re-run, this pair should move together again and
+#: this paragraph goes away.
+#:
+#: WHY IT MOVES AT ALL. `current_world.selection_leg` is the page's whole claim -- whether the
+#: advantage is per-customer selection or level -- and it was reading a 3-draw floor while
+#: `contrast_bounds` beside it already read the 9-draw one. Two blocks on one page answering one
+#: question at two sample sizes, with the wider-sampled one in the flattering position. The leg
+#: still states NO DIRECTION at n=9 (5 of 9 re-draws clear the bound, and the family still falls
+#: on both sides of zero); what the move buys is that the refusal now names the sample the rest of
+#: the page is already using. A refusal at n=9 and a refusal at n=3 are not the same refusal.
 CURRENT_WORLD_NOISE_FLOOR_PATH = (
-    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260908.json")
+    PROJECT / "docs" / "observability" / "value_cycle_ab_s1_noise_floor_20260909b.json")
 #: The ONE redraw mode whose seed spread bounds the published contrast, in the undecomposed
 #: artefact's own words (`redraw_scope.means`): "every household re-drawn -- the undecomposed
 #: floor, and the only mode whose spread bounds the published figure directly".
@@ -636,6 +683,31 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
     can, and no amount of clock-labelling says so.
 
     The test is a comparison of timestamps, so it stays true whatever the next world change is.
+
+    THE ORDERING TEST IS UNCHANGED AND THE CAUSAL CLAUSE IS NOT (2026-09-09). The sentence this
+    function returned asserted, on every firing, *"and something did, on 2026-08-28: the market
+    gained the ability to DEFEND"*. That is the 2026-08-28 incident this block was BUILT for, and
+    typing it into the output made a general refusal state one particular history. It goes wrong
+    the first time the guard fires on any other pair: the leg-conditioning re-run of 2026-09-09
+    is stamped seven hours after the floor it would be published beside, in the same world digest,
+    from a tree whose diff against the floor's own touches no simulation file -- and the page
+    would have told a reader the market gained a capability inside those seven hours. A refusal
+    whose REASON is false is worse than no refusal, because the reason is the part a reader acts
+    on.
+
+    So the clause is composed from what the two artefacts say about themselves. Same digest: the
+    departure surface did not move between them and the page says only what remains unknown.
+    Different or absent digests: both are named, which is the strong form and the one the
+    2026-08-28 pair would have rendered.
+
+    NOTHING IS NARROWED. `floor_at >= point_at` still clears and every other ordering still
+    refuses, on the identical predicate, so no pair that was refused before is admitted now --
+    only the words differ. That matters because the timestamp is a PROXY for the property (was
+    this spread measured over the book this figure comes from?) and it is wrong in both
+    directions: the floor artefact carries no book identity, so a floor measured on a DIFFERENT
+    book that happens to be stamped later still clears this guard silently. Widening the clean
+    branch on the digest would have traded a true refusal for that fail-open; see
+    `docs/staging/SEAT_FINDING_THE_NOISE_FLOOR_CARRIES_NO_BOOK_IDENTITY_SO_THE_PAIRING_RULE_IS_A_STAMP_PROXY_WRONG_IN_BOTH_DIRECTIONS_2026-09-09.md`.
     """
     floor_at = (floor or {}).get("generated_at")
     point_at = (three_arm or {}).get("generated_at")
@@ -647,15 +719,34 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
                 "scale statement about the instrument, not as a confidence interval.")
     if floor_at >= point_at:
         return None
+    floor_world = ((floor or {}).get("world_identity") or {}).get("digest")
+    point_world = ((three_arm or {}).get("world_identity") or {}).get("digest")
+    if floor_world and point_world and floor_world == point_world:
+        # WHAT IS KNOWN AND WHAT IS NOT, and the refusal stands on the second half. Sharing a
+        # digest rules out a move in the departure surface and rules out nothing else -- the
+        # book can change without the anchors moving, which is precisely the 2026-08-31 defect
+        # this guard was extended for.
+        between = (
+            "Both runs carry the same world digest {digest}, so the departure surface did not "
+            "move between them. What that does NOT establish is that they measured the same "
+            "BOOK: the noise floor names no book identity of its own, so nothing here can show "
+            "that this spread was drawn over the decisions the figure is made of."
+        ).format(digest=floor_world)
+    else:
+        between = (
+            "The two runs name DIFFERENT WORLDS -- {floor_world} for the spread against "
+            "{point_world} for the figure -- so whatever moved the departure surface between "
+            "them is inside the point estimate and outside the spread. A spread measured where "
+            "the market could not react is not a confidence interval on a figure measured where "
+            "it can."
+        ).format(floor_world=floor_world or "no digest at all",
+                 point_world=point_world or "no digest at all")
     return (
         "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run "
-        "of {floor_at} and the point estimate on the run of {point_at}. Anything that changed the "
-        "world between those two runs is inside the point estimate and outside the spread -- and "
-        "something did, on 2026-08-28: the market gained the ability to DEFEND against a company "
-        "that undercuts it. A spread measured where nothing could react is not a confidence "
-        "interval on a figure measured where it can. Read it as the size of this instrument's seed "
-        "sensitivity; re-running the noise floor on the current world is owed work."
-    ).format(floor_at=floor_at, point_at=point_at)
+        "of {floor_at} and the point estimate on the run of {point_at}. {between} Read it as the "
+        "size of this instrument's seed sensitivity; re-running the noise floor on the run "
+        "published above is owed work."
+    ).format(floor_at=floor_at, point_at=point_at, between=between)
 
 
 #: WHICH AUTHORITY ADMITTED THE FLOOR THIS PAGE IS STANDING ON. Two named values and never a
@@ -1542,6 +1633,28 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
             "the noise floor these bounds would come from names no world it was measured in, and "
             "a spread whose departure level is unknown cannot be shown to bound a figure from any "
             "particular one -- so no contrast on this page takes its direction from it")}
+    # THE PAIR'S OWN WORLDS, AND THIS IS THE FAIL-OPEN HALF (2026-09-09). The two gates around it
+    # are an age test and a names-a-world test, and NEITHER compares the floor's world to the
+    # figure's. Measured, not argued: this block admitted a floor carrying digest `ffffffffff...`
+    # against the live 09-09 run, stamped one second later, and published its spread as the bound
+    # every directional claim on the page is gated on. The age test is the only thing that has
+    # ever stood between a mismatched pair and a stated direction, and it is a proxy -- one second
+    # of stamp order is all it asks for.
+    #
+    # DISTINCT FROM THE LIVE-WORLD CLAIM the docstring above declines to make, and the distinction
+    # is the whole reason this is admissible here. That one asks whether the floor's world is
+    # TODAY's; this asks whether it is the world of the figure it is a bound ON. The superseded
+    # panel is published on purpose and keeps its own bound, because its floor and its run share
+    # a world with each other.
+    point_world = ((three_arm or {}).get("world_identity") or {}).get("digest")
+    if three_arm is not None and point_world and world != point_world:
+        return {"available": False, "world_measured_in": world, "reason": (
+            "the seed spread was measured in world {world} and the figure it would bound in "
+            "world {point_world}. A spread from one world is not a bound on a figure from "
+            "another however the two runs are stamped, so no contrast on this page takes its "
+            "direction from it").format(world=world, point_world=point_world),
+            "what_this_costs": ("no contrast on this page can have its direction stated until a "
+                                "noise floor measured in the figure's own world is run")}
     stale = _staleness_caveat(floor or {}, three_arm or {}) if three_arm is not None else None
     if stale:
         return {"available": False, "reason": stale,
@@ -2160,6 +2273,59 @@ def _control_leg_agreement(method_skill: dict) -> dict:
 #: is to NOT condition on survival.
 UNCONDITIONED_LEG = "every_priced_decision_pounds_outcome"
 
+#: The leg the estimand's population is leg 2's PLUS the zeroes, which is the nesting the pair
+#: split is an identity over.
+SETTLED_POUNDS_LEG = "settled_only_pounds_outcome"
+
+
+def _skill_pair_strata(horizon: dict, legs: dict) -> dict:
+    """WHICH PAIRS PUT THE ESTIMAND BELOW CHANCE -- the tie mass, or the arm? On the page.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09, Lane 0). The estimand's 0.4210 reached this page with
+    its own interval, its own p and the sentence "the ranking is real and INVERTED", and nothing
+    beside it said what produced the inversion. `decisions_scored_at_zero_because_the_term_settled
+    _nothing` was rendered two lines below as a bare count, so a reader could see that 23% of the
+    sample sat tied at the floor and had no way to tell whether that was the cause. A published
+    figure that says our own method ranks backwards is load-bearing within a week; this is the
+    attribution travelling with it rather than a week behind it.
+
+    THE ONE PLACE THIS FILE DERIVES RATHER THAN READS, and the exemption is narrow and argued.
+    `_skill_fixed_horizon` above refuses to rearrange an older artefact into the estimand, for a
+    reason it states: the estimand needs the arm's log and the settled book folded onto the priced
+    term, and neither survives into the artefact. THAT REASON DOES NOT REACH THIS SPLIT. The pair
+    strata are an identity over four counts the legs already publish -- `concordance`,
+    `comparable_pairs` and `pairs_tied_on_outcome` on two nested legs -- so the derivation adds no
+    data source, re-ranks nothing, and cannot disagree with the figure it decomposes.
+
+    NOT A SECOND IMPLEMENTATION EITHER, which is the objection that would otherwise stand. It
+    calls `run_value_cycle_ab.pair_strata` -- the producer's own function, the same one a fresh
+    run stores -- so there is exactly one place the arithmetic lives and the two cannot drift.
+
+    AND IT SAYS WHICH IT DID. `derived_by_identity_here` is true only on the fallback, so a
+    reader is never left guessing whether the block came from the run or from this file, and the
+    day every artefact carries its own it quietly stops firing.
+
+    FAILS CLOSED through `pair_strata`'s own refusals: legs that do not nest, a run predating the
+    pair counts, a tie mass that is not C(z, 2), or an estimand whose comparable pairs are not
+    leg 2's plus z*s all return `available: False` with the arithmetic that failed. None of them
+    is smoothed into a dash here.
+    """
+    stored = horizon.get("pair_strata")
+    if isinstance(stored, dict) and stored:
+        return dict(stored, derived_by_identity_here=False)
+    derived = pair_strata(
+        (legs or {}).get(SETTLED_POUNDS_LEG),
+        (legs or {}).get(UNCONDITIONED_LEG),
+        horizon.get("decisions_scored_at_zero_because_the_term_settled_nothing"))
+    return dict(
+        derived,
+        derived_by_identity_here=True,
+        derived_because=(
+            "the run that produced this artefact predates `method_skill.fixed_horizon."
+            "pair_strata`, so the split was solved here from the two legs' own published counts "
+            "by `run_value_cycle_ab.pair_strata` -- the producer's own function, over an identity "
+            "that adds no data and re-ranks nothing. A fresh run carries it and this stops."))
+
 
 def _skill_sample_size_explanation(method_skill: dict) -> dict:
     """Whether "too few decisions" survives as the explanation for the headline's "we cannot tell".
@@ -2389,6 +2555,10 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
             n=estimand.get("decisions"),
             accounts=estimand.get("accounts")),
         "legs": published_legs,
+        # WHICH PAIRS PUT THE HEADLINE BELOW CHANCE. The table above shows four numbers and the
+        # sentence under it says the ranking is inverted; this says WHAT the inversion is made of,
+        # in the same breath, so the figure and its attribution never travel apart.
+        "pair_strata": _skill_pair_strata(horizon, legs),
         # WHY THE FIRST ROW AGREEING WITH THE HEADLINE IS NOT A SECOND OPINION. The bridge's
         # control leg reproduces the published figure through a different code path, and its
         # interval is the SAME permutation as the headline's rather than a second sample of it.
