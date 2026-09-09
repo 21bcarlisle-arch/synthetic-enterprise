@@ -1647,6 +1647,23 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
                 + prose(eb.world_caveat) + "</span>"
               : "")
+          /* ON WHAT AUTHORITY THIS FLOOR IS BOUNDING THIS FIGURE AT ALL. The three caveats above
+             all qualify a pairing they take for granted; this one IS the pairing, and until
+             2026-09-09 the page never said which rule made it. The rule was a comparison of two
+             `generated_at` stamps standing in for "was this spread drawn over the book this
+             figure is made of" -- a proxy measured wrong in both directions. It is rendered
+             unconditionally, not only when it is a proxy: a reader who is told nothing when the
+             bound is properly paired cannot tell the silence from the page not asking. */
+          + (eb.floor_admission
+              ? '<span style="display:block;margin-top:8px;color:'
+                + (eb.floor_admission.rule === "declared_book" && eb.floor_admission.admitted
+                    ? "var(--muted)" : "var(--amber)")
+                + ';">' + prose(eb.floor_admission.why_this_rule) + "</span>"
+              : "")
+          + (eb.floor_admission && eb.floor_admission.refusal
+              ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
+                + prose(eb.floor_admission.refusal) + "</span>"
+              : "")
         : "No spread has been measured for this reading yet, so the figure above is a point "
           + "estimate with no error bar. " + prose(eb.reason || "");
 

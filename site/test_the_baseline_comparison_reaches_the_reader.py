@@ -810,6 +810,97 @@ def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
         "the page says the error bar is old without naming what changed between the two runs")
 
 
+def _feed_admitted_by(**admission) -> dict:
+    """The live feed with one thing moved: which rule let its floor bound the headline."""
+    feed = copy.deepcopy(_live_feed())
+    feed["error_bar"]["floor_admission"] = admission
+    return feed
+
+
+def test_the_page_says_WHICH_RULE_admitted_the_floor_it_is_standing_on(live):
+    """THE PAIRING ITSELF, on the page, and until 2026-09-09 it was never stated anywhere.
+
+    Three caveats already rendered here -- clock, staleness, world -- and every one of them
+    qualifies a pairing it takes for granted. The pairing rule was a comparison of two
+    `generated_at` stamps standing in for *was this spread drawn over the book this figure is made
+    of*, and the producer's answer to the real question (`run_value_cycle_ab.floor_book_identity`)
+    had no reader at all. A reader met a bounded headline with nothing saying what admitted the
+    bound, so a date read as a population.
+
+    KEYED TO THE PROPERTY. It asserts the page NAMES its rule, at whichever rule the feed is on,
+    so it survives the day a floor carrying a book identity is promoted -- and reds if the page
+    goes back to saying nothing. The three-way render partition is
+    `test_MUTATION_every_admission_rule_renders_as_a_different_page`.
+    """
+    error_bar = _live_feed()["error_bar"]
+    assert "floor_admission" in error_bar, (
+        "the feed's error_bar carries no `floor_admission` key at all. The producer emits it "
+        "unconditionally on the available branch, so its ABSENCE means the producer changed and "
+        "this control must red for that rather than skip past it")
+    admission = error_bar["floor_admission"]
+    rendered = live["arms-errorbar"]
+
+    assert admission["rule"] in ("declared_book", "stamp_proxy"), admission["rule"]
+    assert _door_prose(admission["why_this_rule"]) in rendered, (
+        "the page publishes a bound without saying on what authority it bounds this figure, so a "
+        "reader takes a pairing by DATE for a pairing by POPULATION -- which is the reading the "
+        "stamp proxy was measured wrong in both directions about")
+    if admission["rule"] == "stamp_proxy":
+        assert "ADMITTED BY ITS DATE" in rendered and "wrong in BOTH directions" in rendered, (
+            "the page's bound was let through by a stamp and the page does not say the stamp is "
+            "standing in for a question it cannot answer")
+    if admission["refusal"]:
+        assert _door_prose(admission["refusal"]) in rendered, (
+            "the producer refused this floor and the reader is not told")
+
+
+def test_MUTATION_every_admission_rule_renders_as_a_different_page():
+    """THE PARTITION IN ONE CONTROL. The live feed can only ever visit ONE of these three states --
+    no floor on disk carries a book identity yet -- so every branch the page has for the other two
+    is unreachable from the live leg above, and an unreachable render branch is where a fail-open
+    lives. A page that prints the same sentence whatever admitted the floor passes the leg above.
+
+    The refusal branch is the one that costs a reader most: a spread drawn over another population
+    is not a confidence interval on this figure at any width, and it arrives on a page whose
+    headline is otherwise unchanged.
+    """
+    on_the_book = _feed_admitted_by(
+        rule="declared_book", admitted=True, refusal=None,
+        floor_declared_book={"served_segments": ["resi", "SME"]},
+        figure_declared_book={"served_segments": ["resi", "SME"]},
+        why_this_rule="The bound on this figure was admitted on the BOOK it was drawn over "
+                      "rather than on its date.")
+    on_a_proxy = _feed_admitted_by(
+        rule="stamp_proxy", admitted=True, refusal=None,
+        floor_declared_book=None, figure_declared_book=None,
+        why_this_rule="THE BOUND ON THIS FIGURE WAS ADMITTED BY ITS DATE, NOT BY THE BOOK IT WAS "
+                      "DRAWN OVER, and a date is wrong in BOTH directions.")
+    refused = _feed_admitted_by(
+        rule="declared_book", admitted=False,
+        refusal="THE ERROR BAR WAS DRAWN OVER A DIFFERENT BOOK FROM THE FIGURE IT WOULD BOUND.",
+        floor_declared_book={"served_segments": ["resi"]},
+        figure_declared_book={"served_segments": ["resi", "SME"]},
+        why_this_rule="The floor's seeds and this run's arms do NOT both declare ['resi'].")
+
+    book_text = _render(on_the_book)["arms-errorbar"]
+    proxy_text = _render(on_a_proxy)["arms-errorbar"]
+    refused_text = _render(refused)["arms-errorbar"]
+
+    assert "admitted on the BOOK it was drawn over" in book_text
+    assert "ADMITTED BY ITS DATE" in proxy_text
+    assert "DRAWN OVER A DIFFERENT BOOK" in refused_text, (
+        "a spread measured over another population bounds the headline and the page says nothing")
+    assert len({book_text, proxy_text, refused_text}) == 3, (
+        "two of the three admission rules render identically, so a reader cannot tell which one "
+        "the bound in front of them was let through by")
+    # AND THE STYLING, which `_text` is blind to and which carries the meaning here: a bound
+    # admitted on the book is a footnote, a bound admitted by a date is a qualification of the
+    # figure above it. One survived mutation on this page (2026-09-08) was exactly this shape.
+    assert "var(--amber)" in _render(on_a_proxy, raw=True)["arms-errorbar"].split(
+        "ADMITTED BY ITS DATE")[0].rsplit("<span", 1)[-1], (
+        "the proxy admission renders as a muted footnote, which reads as the page having checked")
+
+
 def test_the_coverage_denominator_is_renewals_and_not_accounts(live):
     """THE DENOMINATOR IS THE CLAIM. Until 2026-08-28 this panel read "25 renewals ... out of a
     book of 210 settled accounts" -- a renewal numerator over an account denominator. It reads as

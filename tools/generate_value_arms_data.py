@@ -658,6 +658,137 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
     ).format(floor_at=floor_at, point_at=point_at)
 
 
+#: WHICH AUTHORITY ADMITTED THE FLOOR THIS PAGE IS STANDING ON. Two named values and never a
+#: boolean, because "the floor is admitted" and "the floor is admitted ON A PROXY FOR THE QUESTION"
+#: are different claims, and a reader shown only the first takes the weaker one for the stronger.
+ADMITTED_ON_THE_DECLARED_BOOK = "declared_book"
+ADMITTED_ON_A_STAMP_PROXY = "stamp_proxy"
+
+
+def _comparable(value):
+    """One declared field in a form two artefacts can be compared on -- JSON lists are unhashable."""
+    return tuple(value) if isinstance(value, list) else value
+
+
+def _the_runs_declared_book(three_arm: dict, fields: tuple) -> tuple[dict | None, str | None]:
+    """The declared book of the RUN a floor would bound, reconciled across its arms.
+
+    The floor side of this comparison is reconciled across SEEDS by
+    `run_value_cycle_ab.floor_book_identity`; this is the same reconciliation across ARMS, and it
+    fails closed the same way. An arm that recorded no book, or arms that declare different books,
+    leave the figure's own population unestablished -- and an unestablished population must not
+    read as agreement with whatever the floor happens to declare.
+    """
+    identity = (three_arm or {}).get("book_identity") or {}
+    if not isinstance(identity, dict):
+        return None, "the run this floor would bound carries no readable `book_identity` block"
+    arms = {name: block for name, block in identity.items()
+            if isinstance(block, dict) and "served_segments" in block}
+    if not arms:
+        return None, ("the run this floor would bound records no `book_identity` for any arm, so "
+                      "which population the figure is made of is not established")
+    silent = sorted(name for name, block in arms.items() if block.get("served_segments") is None)
+    if silent:
+        return None, ("{} of this run's {} arms recorded no book ({}), so the population the "
+                      "figure is made of is not established for the run as a whole".format(
+                          len(silent), len(arms), ", ".join(silent)))
+    distinct = {tuple(_comparable(block.get(f)) for f in fields) for block in arms.values()}
+    if len(distinct) > 1:
+        return None, ("this run's arms declare {} different books between them, so the figure is "
+                      "not made of one population and no floor can be paired to it".format(
+                          len(distinct)))
+    first = arms[sorted(arms)[0]]
+    return {f: first.get(f) for f in fields}, None
+
+
+def _admitted_on_a_stamp_proxy(floor: dict, three_arm: dict, why_not: str,
+                               floor_book: dict | None = None) -> dict:
+    """The fail-closed branch: the book question could not be asked, so the DATE stood in for it.
+
+    Named on the page rather than in this comment, which is the whole point of the block. The
+    stamp is not a weaker form of the book test, it is a different test: it can refuse a pair
+    proven to be the same population and admit one drawn over a different one, and both have been
+    measured on this feed's own artefacts.
+    """
+    return {
+        "rule": ADMITTED_ON_A_STAMP_PROXY,
+        "admitted": _staleness_caveat(floor, three_arm) is None,
+        "floor_declared_book": floor_book,
+        "figure_declared_book": None,
+        "refusal": None,
+        "why_this_rule": (
+            "THE BOUND ON THIS FIGURE WAS ADMITTED BY ITS DATE, NOT BY THE BOOK IT WAS DRAWN "
+            "OVER: {why_not}. A date is a proxy for that question and it is wrong in BOTH "
+            "directions -- measured on this page's own artefacts, it has refused a pair proven to "
+            "be the same world, and admitted a floor drawn over a different one on a single "
+            "second of stamp order. Read this bound as paired by when it was taken and not by "
+            "whom it was taken over. A noise floor produced since `run_value_cycle_ab."
+            "floor_book_identity` landed declares its own population, and this page pairs on that "
+            "instead the moment one reaches it.".format(why_not=why_not)),
+    }
+
+
+def _floor_admission(floor: dict, three_arm: dict) -> dict:
+    """WHICH RULE admitted the floor that bounds this page -- on the page, never in a comment.
+
+    THE DEFECT (2026-09-09, `SEAT_FINDING_THE_NOISE_FLOOR_CARRIES_NO_BOOK_IDENTITY_SO_THE_PAIRING_
+    RULE_IS_A_STAMP_PROXY_WRONG_IN_BOTH_DIRECTIONS`). Every directional claim this page makes is
+    gated on a floor being paired to the figure it bounds, and the only pairing rule that existed
+    was `_staleness_caveat` -- a comparison of two `generated_at` stamps. The question a bound has
+    to answer is *was this spread drawn over the book this figure is made of*, and a stamp cannot
+    see a book at all. The producer gained an answer (`run_value_cycle_ab.floor_book_identity`)
+    and nothing read it, so the defect stayed live on the surface: built, not wired.
+
+    PAIRS ON THE DECLARED HALF AND NEVER ON THE REALISED ONE, which is the producer's own
+    instruction in `how_a_consumer_should_pair_this` and not this function's choice. The declared
+    half is the book the run was given; the realised counts are what each seed's own churn did to
+    it, so two floors of the SAME book differ there by construction and a consumer comparing them
+    would refuse every honest re-run.
+
+    IT ADDS A REFUSAL AND NEVER REMOVES ONE. `_staleness_caveat` stays exactly as it was and still
+    gates: "were these two runs contemporaneous" and "were they drawn over the same population"
+    are different questions, and passing the second is no evidence about the first. What changes
+    is that when the book CAN be asked, the page stops claiming the stamp answered it.
+    """
+    floor_book = (floor or {}).get("book_identity")
+    declared = floor_book.get("declared") if isinstance(floor_book, dict) else None
+    if not isinstance(declared, dict) or not declared:
+        why_not = (isinstance(floor_book, dict) and floor_book.get("unavailable_because")) or (
+            "this noise floor carries no book identity of its own -- it was drawn before its "
+            "producer recorded one")
+        return _admitted_on_a_stamp_proxy(floor or {}, three_arm or {}, why_not)
+
+    fields = tuple(declared)
+    run_book, why_not = _the_runs_declared_book(three_arm or {}, fields)
+    if run_book is None:
+        return _admitted_on_a_stamp_proxy(floor or {}, three_arm or {}, why_not, declared)
+
+    same = all(_comparable(declared.get(f)) == _comparable(run_book.get(f)) for f in fields)
+    return {
+        "rule": ADMITTED_ON_THE_DECLARED_BOOK,
+        "admitted": same,
+        "floor_declared_book": declared,
+        "figure_declared_book": run_book,
+        # REFUSES rather than caveats, because this is not a shading of confidence: a spread over
+        # one population is not an interval on a figure over another at any width.
+        "refusal": (None if same else (
+            "THE ERROR BAR WAS DRAWN OVER A DIFFERENT BOOK FROM THE FIGURE IT WOULD BOUND. The "
+            "seeds behind this spread declare {floor}; the run it would bound declares {run}. A "
+            "spread measured over one population is not a confidence interval on a figure "
+            "measured over another, however recently it was taken -- so no contrast on this page "
+            "takes its direction from it.").format(
+                floor=declared.get("served_segments"), run=run_book.get("served_segments"))),
+        "why_this_rule": (
+            "The bound on this figure was admitted on the BOOK it was drawn over rather than on "
+            "its date: the floor's seeds and this run's arms {verdict} declare {floor}. Pairing "
+            "is on the declared half of the book identity only -- the realised account counts "
+            "differ between two floors of the same book by construction, because moving the "
+            "price-sensitivity draw moves who churns and therefore who settles.").format(
+                verdict="both" if same else "do NOT both",
+                floor=declared.get("served_segments")),
+    }
+
+
 def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
                point_clock: str | None = None) -> dict:
     """The seed spread on the selection leg -- the reason the point estimate cannot be quoted bare.
@@ -742,6 +873,13 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # clock caveat because they are different failures: one is a basis label, the other is a
         # different WORLD, and a reader shown only the first would take the spread for current.
         "staleness_caveat": _staleness_caveat(floor, three_arm or {}),
+        # WHICH RULE ADMITTED THIS FLOOR, on the same footing as which clock, which figure and
+        # which world -- and a fourth distinct key for a fourth distinct failure. The three
+        # caveats above all take the pairing for granted and then qualify it; this one is the
+        # pairing. It STATES rather than refuses here for the reason `world_measured_in` states:
+        # this block is the superseded panel's own bar on the superseded panel's own figure. The
+        # refusal lives in `_seed_spreads`, which is where a DIRECTION is taken.
+        "floor_admission": _floor_admission(floor or {}, three_arm or {}),
         # WHICH WORLD THE BAR WAS MEASURED IN, on the same footing as which CLOCK and which FIGURE.
         # A third distinct failure and therefore a third key: the staleness caveat compares two
         # TIMESTAMPS and goes quiet when the floor is the newer of the two, which says nothing
@@ -1409,6 +1547,18 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
         return {"available": False, "reason": stale,
                 "what_this_costs": ("no contrast on this page can have its direction stated until "
                                     "the noise floor is re-run on the book published above")}
+    # AND WHETHER IT WAS DRAWN OVER THIS FIGURE'S BOOK AT ALL -- see `_floor_admission`. Ordered
+    # AFTER the staleness leg on purpose: this adds a refusal and removes none, so the weaker
+    # question keeps its own answer and a floor has to pass both. When the book cannot be asked
+    # the admission falls back to the stamp already tested above and nothing refuses twice; what
+    # the page then says is that its bound was admitted by a date, which is the honest statement
+    # of a rule this file spent three weeks taking for the other one.
+    admission = _floor_admission(floor or {}, three_arm or {}) if three_arm is not None else None
+    if admission and admission["refusal"]:
+        return {"available": False, "reason": admission["refusal"],
+                "admitted_by": admission["rule"],
+                "what_this_costs": ("no contrast on this page can have its direction stated until "
+                                    "a floor drawn over the book published above is measured")}
     seeds = [s for s in ((floor or {}).get("seeds") or []) if isinstance(s, dict)]
     if len(seeds) < 2:
         return {"available": False,
@@ -1444,6 +1594,10 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
         # panel they happen to sit under. A reader comparing this block against `current_world`
         # can now see whether the two are the same departure surface without taking anyone's word.
         "world_measured_in": world,
+        # AND ON WHICH AUTHORITY, on the admitting branch for the same reason `world_measured_in`
+        # is: a bound that was let through by a date is checkable as such from the artefact rather
+        # than only from the page's prose.
+        "admitted_by": (admission or {}).get("rule"),
         "what_was_re_drawn": (
             "The same three arms re-run on the same world once per seed, with only the "
             "per-household price-sensitivity draw changed. Nothing about the company moved."),

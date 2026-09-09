@@ -357,6 +357,166 @@ def test_a_one_seed_noise_floor_is_not_a_spread():
         "a single seed was published as a measured spread of zero")
 
 
+# ── WHICH RULE ADMITTED THE FLOOR: the pairing itself, not a caveat on it ────────────────────
+#
+# THE DEFECT (SEAT_FINDING_THE_NOISE_FLOOR_CARRIES_NO_BOOK_IDENTITY_SO_THE_PAIRING_RULE_IS_A_
+# STAMP_PROXY_WRONG_IN_BOTH_DIRECTIONS_2026-09-09). Every directional claim this feed makes is
+# gated on a floor being paired to the figure it bounds, and the pairing rule was a comparison of
+# two `generated_at` stamps -- a proxy for "was this spread drawn over the book this figure is
+# made of" that cannot see a book at all. `run_value_cycle_ab.floor_book_identity` answers the
+# real question and had ONE caller and NO reader for a day, so the defect stayed live where a
+# reader meets it. These controls are the reader.
+
+def _declared(segments):
+    """One arm's or one floor's DECLARED half, in the producer's own three fields."""
+    return {"served_segments": list(segments),
+            "served_segments_resolved_from": "curriculum",
+            "served_segments_override_env": None}
+
+
+def _floor_declaring(segments, realised=None):
+    """The real nine-seed floor, given the `book_identity` block its producer now writes.
+
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ARTEFACT. No floor on disk carries a book identity
+    yet -- every one of them predates the writer -- so a control that waited for one would be a
+    control that cannot fail. The block is the shape `floor_book_identity` returns, and the day a
+    real floor carries one these read it without changing.
+    """
+    floor = copy.deepcopy(_load(NOISE_FLOOR))
+    floor["book_identity"] = {
+        "declared": _declared(segments),
+        "seeds_reconciled": len(floor.get("seeds") or []),
+        "seeds_that_recorded_no_book": 0,
+        "unavailable_because": None,
+        "realised_across_seeds": realised or {},
+        "how_a_consumer_should_pair_this": "Pair on `declared` and never on `realised_across_seeds`.",
+    }
+    return floor
+
+
+def _the_runs_own_segments() -> list:
+    arms = _load(THREE_ARM)["book_identity"]
+    return arms["control_arm"]["served_segments"]
+
+
+def test_a_floor_that_declares_the_runs_OWN_book_is_admitted_ON_THE_BOOK_not_the_date():
+    """The rule the stamp was standing in for, once the artefact can answer it."""
+    admission = gva._floor_admission(_floor_declaring(_the_runs_own_segments()), _load(THREE_ARM))
+    assert admission["rule"] == gva.ADMITTED_ON_THE_DECLARED_BOOK, (
+        "a floor that names the book it was drawn over was still admitted on its date: "
+        "{!r}".format(admission["rule"]))
+    assert admission["admitted"] is True and admission["refusal"] is None
+    assert admission["figure_declared_book"]["served_segments"] == _the_runs_own_segments()
+
+
+def test_a_floor_drawn_over_a_DIFFERENT_book_is_refused_however_recent_it_is():
+    """The direction the stamp proxy is wrong in that costs the page most.
+
+    This floor is NEWER than the run it would bound, so `_staleness_caveat` admits it in silence
+    and every directional claim on the page rests on a spread measured over another population.
+    """
+    floor = _floor_declaring(["resi"])
+    three_arm = _load(THREE_ARM)
+    assert gva._staleness_caveat(floor, three_arm) is None, (
+        "this control's whole subject is a floor the STAMP rule admits -- if the stamp already "
+        "refused it, the book rule is not what is being measured here")
+
+    admission = gva._floor_admission(floor, three_arm)
+    assert admission["admitted"] is False and admission["refusal"], (
+        "a spread drawn over a different book was admitted as a confidence interval")
+    assert "DIFFERENT BOOK" in admission["refusal"]
+
+    out = gva.build(three_arm, floor, _load(RUN_OUTPUT))
+    bounds = out["contrast_bounds"]
+    assert bounds["available"] is False, (
+        "the page still took a DIRECTION from a spread measured over another population")
+    assert bounds["admitted_by"] == gva.ADMITTED_ON_THE_DECLARED_BOOK
+    # STATES rather than refuses in the error bar, and refuses in the block that takes a sign --
+    # the split `world_measured_in` already makes, for the same reason.
+    assert out["error_bar"]["floor_admission"]["refusal"] == admission["refusal"]
+
+
+def test_the_pairing_is_on_the_DECLARED_half_and_never_on_the_realised_counts():
+    """The producer's own instruction, and a consumer that got it wrong would refuse every re-run.
+
+    Two floors of the SAME book differ in their realised counts by construction: moving the
+    price-sensitivity draw moves who churns and therefore who settles. A consumer pairing on those
+    would be a control that goes red when the world behaves normally.
+    """
+    segments = _the_runs_own_segments()
+    lean = _floor_declaring(segments, realised={"billing_accounts_settled_in_window":
+                                                {"min": 180, "max": 181, "n": 9}})
+    fat = _floor_declaring(segments, realised={"billing_accounts_settled_in_window":
+                                               {"min": 900, "max": 1100, "n": 9}})
+    three_arm = _load(THREE_ARM)
+    assert (gva._floor_admission(lean, three_arm)["admitted"]
+            is gva._floor_admission(fat, three_arm)["admitted"] is True), (
+        "the realised account counts moved the verdict, so an honest re-run of the same book "
+        "would be refused as a different one")
+
+
+def test_a_run_whose_arms_disagree_about_their_book_falls_CLOSED_to_the_stamp():
+    """An unestablished figure-side population must not read as agreement with the floor."""
+    three_arm = copy.deepcopy(_load(THREE_ARM))
+    three_arm["book_identity"]["value_arm"] = _declared(["resi"])
+    admission = gva._floor_admission(_floor_declaring(_the_runs_own_segments()), three_arm)
+    assert admission["rule"] == gva.ADMITTED_ON_A_STAMP_PROXY, (
+        "the floor was paired to a run whose own arms declare different books")
+    assert "different books between them" in admission["why_this_rule"]
+
+
+def test_a_run_that_recorded_no_book_at_an_arm_falls_CLOSED_to_the_stamp():
+    """`book_identity` fails closed to a `None` segment list with its reason beside it; a consumer
+    that read that as "no segments" would pair on an absence."""
+    three_arm = copy.deepcopy(_load(THREE_ARM))
+    three_arm["book_identity"]["level_arm"] = dict(
+        three_arm["book_identity"]["level_arm"], served_segments=None)
+    admission = gva._floor_admission(_floor_declaring(_the_runs_own_segments()), three_arm)
+    assert admission["rule"] == gva.ADMITTED_ON_A_STAMP_PROXY
+    assert "level_arm" in admission["why_this_rule"]
+
+
+def test_the_floor_on_disk_names_the_stamp_as_a_PROXY_rather_than_claiming_the_book(real):
+    """THE STATE THE PAGE IS ACTUALLY IN, and it is published rather than assumed.
+
+    Not pinned to that state: the day a floor carrying a book identity is promoted this control
+    keeps passing, because what it asserts is that the rule is NAMED and that a proxy says it is
+    one. `test_a_floor_that_declares_the_runs_OWN_book...` owns the other branch.
+    """
+    admission = real["error_bar"]["floor_admission"]
+    assert admission["rule"] in (gva.ADMITTED_ON_THE_DECLARED_BOOK, gva.ADMITTED_ON_A_STAMP_PROXY)
+    if admission["rule"] == gva.ADMITTED_ON_A_STAMP_PROXY:
+        assert "proxy" in admission["why_this_rule"], (
+            "the page's bound is admitted by a date and the page does not say the date is "
+            "standing in for the question a reader would assume was asked")
+        assert "BOTH directions" in admission["why_this_rule"]
+
+
+def test_EVERY_admission_outcome_IS_REACHABLE_from_this_feeds_own_inputs():
+    """One control over the whole partition, because a rule that only ever returns its fail-closed
+    branch passes every per-branch test above and tells a reader nothing.
+
+    MUTATION: make `_floor_admission` return the proxy branch unconditionally and this is the only
+    control here that reds -- the four above go green on a rule that has stopped asking.
+    """
+    three_arm = _load(THREE_ARM)
+    disagreeing = copy.deepcopy(three_arm)
+    disagreeing["book_identity"]["value_arm"] = _declared(["resi"])
+    outcomes = {
+        (gva._floor_admission(_floor_declaring(_the_runs_own_segments()), three_arm)["rule"],
+         gva._floor_admission(_floor_declaring(_the_runs_own_segments()), three_arm)["admitted"]),
+        (gva._floor_admission(_floor_declaring(["resi"]), three_arm)["rule"],
+         gva._floor_admission(_floor_declaring(["resi"]), three_arm)["admitted"]),
+        gva._floor_admission(_load(NOISE_FLOOR), three_arm)["rule"],
+        gva._floor_admission(_floor_declaring(_the_runs_own_segments()), disagreeing)["rule"],
+    }
+    assert outcomes == {
+        (gva.ADMITTED_ON_THE_DECLARED_BOOK, True),
+        (gva.ADMITTED_ON_THE_DECLARED_BOOK, False),
+        gva.ADMITTED_ON_A_STAMP_PROXY,
+    }, "the admission rule cannot reach all three of its outcomes: {!r}".format(outcomes)
+
+
 # ── THE CLAIM THAT COULD ROT: is the published supplier the baseline arm? ────────────────────
 
 def test_the_published_supplier_claim_is_HONEST_whichever_state_the_tree_is_in(real):
