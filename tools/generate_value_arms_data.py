@@ -133,6 +133,12 @@ from tools.inference_claim import (
 )
 from tools.product_gate_refusal import refusal_breakdown
 
+# THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
+# one place this file derives instead of reading, and it derives by calling the same function the
+# run stores -- so the page and the artefact cannot carry two answers to one question. See that
+# function for why the "never recomputed here" rule does not reach a pair-count identity.
+from tools.run_value_cycle_ab import pair_strata
+
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
 #: `producing_commit`; when they differ, the page says so beside the figures rather than letting
@@ -2006,6 +2012,59 @@ def _control_leg_agreement(method_skill: dict) -> dict:
 #: is to NOT condition on survival.
 UNCONDITIONED_LEG = "every_priced_decision_pounds_outcome"
 
+#: The leg the estimand's population is leg 2's PLUS the zeroes, which is the nesting the pair
+#: split is an identity over.
+SETTLED_POUNDS_LEG = "settled_only_pounds_outcome"
+
+
+def _skill_pair_strata(horizon: dict, legs: dict) -> dict:
+    """WHICH PAIRS PUT THE ESTIMAND BELOW CHANCE -- the tie mass, or the arm? On the page.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09, Lane 0). The estimand's 0.4210 reached this page with
+    its own interval, its own p and the sentence "the ranking is real and INVERTED", and nothing
+    beside it said what produced the inversion. `decisions_scored_at_zero_because_the_term_settled
+    _nothing` was rendered two lines below as a bare count, so a reader could see that 23% of the
+    sample sat tied at the floor and had no way to tell whether that was the cause. A published
+    figure that says our own method ranks backwards is load-bearing within a week; this is the
+    attribution travelling with it rather than a week behind it.
+
+    THE ONE PLACE THIS FILE DERIVES RATHER THAN READS, and the exemption is narrow and argued.
+    `_skill_fixed_horizon` above refuses to rearrange an older artefact into the estimand, for a
+    reason it states: the estimand needs the arm's log and the settled book folded onto the priced
+    term, and neither survives into the artefact. THAT REASON DOES NOT REACH THIS SPLIT. The pair
+    strata are an identity over four counts the legs already publish -- `concordance`,
+    `comparable_pairs` and `pairs_tied_on_outcome` on two nested legs -- so the derivation adds no
+    data source, re-ranks nothing, and cannot disagree with the figure it decomposes.
+
+    NOT A SECOND IMPLEMENTATION EITHER, which is the objection that would otherwise stand. It
+    calls `run_value_cycle_ab.pair_strata` -- the producer's own function, the same one a fresh
+    run stores -- so there is exactly one place the arithmetic lives and the two cannot drift.
+
+    AND IT SAYS WHICH IT DID. `derived_by_identity_here` is true only on the fallback, so a
+    reader is never left guessing whether the block came from the run or from this file, and the
+    day every artefact carries its own it quietly stops firing.
+
+    FAILS CLOSED through `pair_strata`'s own refusals: legs that do not nest, a run predating the
+    pair counts, a tie mass that is not C(z, 2), or an estimand whose comparable pairs are not
+    leg 2's plus z*s all return `available: False` with the arithmetic that failed. None of them
+    is smoothed into a dash here.
+    """
+    stored = horizon.get("pair_strata")
+    if isinstance(stored, dict) and stored:
+        return dict(stored, derived_by_identity_here=False)
+    derived = pair_strata(
+        (legs or {}).get(SETTLED_POUNDS_LEG),
+        (legs or {}).get(UNCONDITIONED_LEG),
+        horizon.get("decisions_scored_at_zero_because_the_term_settled_nothing"))
+    return dict(
+        derived,
+        derived_by_identity_here=True,
+        derived_because=(
+            "the run that produced this artefact predates `method_skill.fixed_horizon."
+            "pair_strata`, so the split was solved here from the two legs' own published counts "
+            "by `run_value_cycle_ab.pair_strata` -- the producer's own function, over an identity "
+            "that adds no data and re-ranks nothing. A fresh run carries it and this stops."))
+
 
 def _skill_sample_size_explanation(method_skill: dict) -> dict:
     """Whether "too few decisions" survives as the explanation for the headline's "we cannot tell".
@@ -2235,6 +2294,10 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
             n=estimand.get("decisions"),
             accounts=estimand.get("accounts")),
         "legs": published_legs,
+        # WHICH PAIRS PUT THE HEADLINE BELOW CHANCE. The table above shows four numbers and the
+        # sentence under it says the ranking is inverted; this says WHAT the inversion is made of,
+        # in the same breath, so the figure and its attribution never travel apart.
+        "pair_strata": _skill_pair_strata(horizon, legs),
         # WHY THE FIRST ROW AGREEING WITH THE HEADLINE IS NOT A SECOND OPINION. The bridge's
         # control leg reproduces the published figure through a different code path, and its
         # interval is the SAME permutation as the headline's rather than a second sample of it.
