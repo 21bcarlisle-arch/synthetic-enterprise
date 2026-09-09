@@ -1384,10 +1384,21 @@ def concordance_null_spread(points: list[tuple[float, float]], observed,
         "method": ("permutation of the observed signal values against the fixed outcomes, {:,} "
                    "draws at seed {} -- reproduces the tie structure exactly, where the untied "
                    "Kendall closed form would overstate the spread".format(len(null), seed)),
+        # THE INSIDE BRANCH NAMED A CAUSE IT COULD NOT KNOW, until 2026-09-09. It read "that is a
+        # statement about how few decisions there are, not about the method" -- an attribution the
+        # interval cannot support and which this book refutes: the unconditioned cut lands OUTSIDE
+        # its null on FEWER decisions and a WIDER interval than the survivor cut that says this.
+        # An inside-the-null reading has at least three causes -- too few decisions, no effect,
+        # and a sample selected so the effect cannot appear -- and one interval tells them apart
+        # from each other not at all. `generate_value_arms_data._skill_sample_size_explanation`
+        # decides between them where BOTH cuts are in hand; here, the honest word is "why not".
         "reading": (
             ("The observed value sits INSIDE the interval a random signal produces, so this run "
-             "does not distinguish the method from chance in either direction. That is a "
-             "statement about how few decisions there are, not about the method.")
+             "does not distinguish the method from chance in either direction. WHY it does not "
+             "is a separate question this interval cannot answer: too few decisions, no effect "
+             "to find, or a population selected so the effect cannot appear are all consistent "
+             "with it, and telling them apart needs a second cut, not a second reading of this "
+             "one.")
             if inside else
             ("The observed value sits OUTSIDE the interval a random signal produces at this "
              "sample size. Read it with the clustering bound above: the permutation assumes "

@@ -1,5 +1,16 @@
 **Severity:** BLOCKING · **Lane:** A_strategy_governance · **Epoch:** 3 · **Atom:** (Lane 0 delivery — no attainable book can read the effect the skill instrument measured) · **Class:** controls_that_cannot_fail
 
+**Discharged:** `site/test_the_baseline_comparison_reaches_the_reader.py::test_the_refutation_of_the_bigger_book_reading_reaches_the_reader`, `tests/tools/test_generate_value_arms_data.py::test_the_sample_size_explanation_needs_BOTH_legs_of_its_power_comparison`
+— 2026-09-09, closing item 4 of "what is next" and with it the last leg of this finding. The
+conditioning now reaches a reader three ways on the surface that publishes the figure: the
+survivorship split (who the unscored decisions are), the fixed-horizon cut that does not drop them
+(`SEAT_RESULT_THE_FIXED_HORIZON_CUT_IS_BELOW_ITS_OWN_NULL...`, 09-09), and the refutation of the
+"a bigger book fixes it" reading this finding named as the misleading half
+(`SEAT_RESULT_THE_PAGE_TOLD_THE_READER_A_BIGGER_BOOK_WOULD_FIX_A_NULL_ITS_OWN_SECOND_CUT_REFUTES_2026-09-09.md`).
+The estimand this document called for is built, permuted and published; its prediction is graded
+there and was wrong about the count. What is NOT claimed: the replacement estimand does not
+un-condition the headline, which stays a survivor cut and is published as one.
+
 # RESULT — the unscored decisions are exactly the departures, so the method concordance conditions on survival
 
 The Lane 0 item asked one question with two allowed answers. The measurement returns a third, and

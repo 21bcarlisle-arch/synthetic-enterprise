@@ -2002,6 +2002,123 @@ def _control_leg_agreement(method_skill: dict) -> dict:
     }
 
 
+#: The leg that scores every priced decision, departures included -- the cut whose whole purpose
+#: is to NOT condition on survival.
+UNCONDITIONED_LEG = "every_priced_decision_pounds_outcome"
+
+
+def _skill_sample_size_explanation(method_skill: dict) -> dict:
+    """Whether "too few decisions" survives as the explanation for the headline's "we cannot tell".
+
+    THE DEFECT THIS EXISTS FOR (2026-09-09, Lane 0, closing item 4 of
+    `SEAT_RESULT_THE_UNSCORED_DECISIONS_ARE_EXACTLY_THE_DEPARTURES...`). The producer's own
+    `_null_spread` reading -- rendered muted under the headline -- ends *"That is a statement about
+    how few decisions there are, not about the method."* On the 2026-09-08 book that sentence is
+    refuted a few hundred pixels lower on the same page: the unconditioned cut lands OUTSIDE its
+    null at 161 decisions against the headline's 168, on an interval that is WIDER, not narrower.
+    An instrument with strictly less power found what the headline could not, so however few
+    decisions there are is not what stops the headline saying anything.
+
+    THE RUN'S OWN SENTENCE IS NOT EDITED HERE. It stays exactly as the run wrote it and this block
+    is published beside it, for the reason the finding gave for leaving it alone in the first
+    place: the disagreement between the two IS the evidence, and a page that quietly rewrites what
+    a run said is the thing this file exists to refuse. The producer no longer emits the causal
+    claim (`run_value_cycle_ab._null_spread`), so on a future run the two sentences agree and this
+    block still reads correctly -- it is keyed to the numbers, not to the words.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here matches on the sentence's text --
+    a substring rule is wrong in both directions. The refutation is a POWER comparison off the
+    run's own two intervals, and it needs BOTH legs of it to hold:
+
+      * the unconditioned cut is scored on NO MORE decisions than the headline, and
+      * its interval is NO NARROWER than the headline's.
+
+    Either one failing means the second cut simply had more power, which explains its verdict
+    without saying anything about the first -- so that case is reported as unsettled rather than
+    as a refutation. The day the headline clears its own null there is no "we cannot tell" for a
+    cause to be named for, and this block says so instead of finding a defect in a page that has
+    none.
+
+    FAILS CLOSED. A run predating the fixed-horizon estimand, or one that ranked it and permuted
+    nothing, has no second interval to compare -- and then the sample-size claim is simply
+    unchecked. It is published as unchecked. A silent absence here would read as "the sentence
+    above is fine", which is the one reading the absence cannot support.
+    """
+    ms = method_skill or {}
+    head_spread = ms.get("null_spread") or {}
+    if not head_spread.get("available"):
+        return {"available": False, "reason": (
+            "this run carries no interval on the headline, so there is no 'we cannot tell' whose "
+            "cause could be checked.")}
+    head_interval = list(head_spread.get("null_95_interval") or [None, None])
+    head_n = ms.get("decisions_scored")
+    if not head_spread.get("observed_inside_the_null_interval"):
+        return {"available": False, "reason": (
+            "the headline figure sits outside its own null on this run, so it is not reporting "
+            "'we cannot tell' and no explanation for one is owed.")}
+    leg = ((ms.get("fixed_horizon") or {}).get("legs") or {}).get(UNCONDITIONED_LEG) or {}
+    leg_spread = leg.get("null_spread") or {}
+    if not leg_spread.get("available"):
+        return {"available": False, "reason": (
+            "the headline says 'we cannot tell' and this run carries no permuted interval on the "
+            "cut that scores every priced decision, so whether too few decisions is the reason "
+            "CANNOT BE CHECKED from this run. It is unchecked, not answered.")}
+    leg_interval = list(leg_spread.get("null_95_interval") or [None, None])
+    leg_n = leg.get("decisions")
+    if None in head_interval or None in leg_interval or head_n is None or leg_n is None:
+        return {"available": False, "reason": (
+            "one of the two intervals or decision counts this compares is absent, so the "
+            "comparison cannot be made.")}
+    head_half = (head_interval[1] - head_interval[0]) / 2.0
+    leg_half = (leg_interval[1] - leg_interval[0]) / 2.0
+    leg_distinguishes = not leg_spread.get("observed_inside_the_null_interval")
+    #: WITH NO MORE DECISIONS AND NO NARROWER AN INTERVAL -- both, or the comparison says nothing.
+    on_less_power = leg_n <= head_n and leg_half >= head_half
+    if leg_distinguishes and on_less_power:
+        verdict = "refuted_by_this_run"
+        sentence = (
+            "AND TOO FEW DECISIONS IS NOT WHY. The cut below that scores every priced decision, "
+            "departures included, distinguishes itself from chance on {ln} decisions against this "
+            "figure's {hn}, against an interval that is WIDER ({lw:.3f} either side, against "
+            "{hw:.3f}). A cut with less power to find anything found something here, so however "
+            "few decisions this book has earned is not what stops the figure above saying "
+            "anything. What the two cuts differ in is the population and the unit -- and the "
+            "population above is the households that STAYED."
+        ).format(ln=leg_n, hn=head_n, lw=leg_half, hw=head_half)
+    elif leg_distinguishes:
+        verdict = "not_settled_the_other_cut_had_more_power"
+        sentence = (
+            "The cut below that scores every priced decision does distinguish itself from chance, "
+            "but on {ln} decisions against this figure's {hn} and an interval of {lw:.3f} either "
+            "side against {hw:.3f} -- so it had at least as much power to find something, and its "
+            "verdict says nothing about why this one is silent. Whether too few decisions is the "
+            "reason is NOT settled here."
+        ).format(ln=leg_n, hn=head_n, lw=leg_half, hw=head_half)
+    else:
+        verdict = "still_live"
+        sentence = (
+            "Neither this figure nor the cut below that scores every priced decision "
+            "distinguishes itself from chance on this run, so too few decisions remains a live "
+            "explanation for both. This run does not refute it and does not confirm it.")
+    return {
+        "available": True,
+        "what_this_is": (
+            "whether 'there are too few decisions' survives as the explanation for the figure "
+            "above being unreadable. The test is a power comparison against this run's own "
+            "unconditioned cut, not a re-reading of either figure."),
+        "verdict": verdict,
+        "too_few_decisions_survives_as_the_explanation": verdict != "refuted_by_this_run",
+        "headline_decisions": head_n,
+        "headline_null_half_width": _f(head_half),
+        "unconditioned_leg": UNCONDITIONED_LEG,
+        "unconditioned_decisions": leg_n,
+        "unconditioned_null_half_width": _f(leg_half),
+        "unconditioned_cut_distinguishes_itself_from_chance": leg_distinguishes,
+        "it_did_so_on_no_more_decisions_and_no_narrower_an_interval": on_less_power,
+        "sentence": sentence,
+    }
+
+
 def _skill_fixed_horizon(method_skill: dict) -> dict:
     """THE SECOND ESTIMAND, read off the run and NEVER recomputed here.
 
@@ -2053,8 +2170,7 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
     #: is the same fail-closed rule `_method_skill` applies to the survivor cut, arriving on the
     #: cut whose direction is the unflattering one -- which is exactly why it had to be written
     #: down rather than left to whoever reads the page next.
-    estimand = _horizon_leg_published("every_priced_decision_pounds_outcome",
-                                      legs.get("every_priced_decision_pounds_outcome"))
+    estimand = _horizon_leg_published(UNCONDITIONED_LEG, legs.get(UNCONDITIONED_LEG))
     if estimand.get("withheld"):
         return {
             "available": False,
@@ -2569,6 +2685,12 @@ def _method_skill(three_arm: dict) -> dict:
             # never from the live world: the question is which departure level THIS figure saw, and
             # a page that answered it with today's digest would stamp a superseded run as current.
             measured_in_world=((three_arm or {}).get("world_identity") or {}).get("digest")),
+        # ...AND WHETHER THE RUN'S OWN REASON FOR SAYING NOTHING STANDS UP. `reading` below is the
+        # producer's sentence, unedited, and it ends "that is a statement about how few decisions
+        # there are". This run's unconditioned cut refutes that from the same book with fewer
+        # decisions and a wider interval, so the two are published together: the disagreement is
+        # the evidence, and the reader meets it rather than the flattering half of it.
+        "the_sample_size_explanation": _skill_sample_size_explanation(ms),
         "what_it_is": (
             "Does the arm's own per-customer price rank the value JOINTLY created -- what the "
             "household kept plus what we kept, over what the household would have paid on the "

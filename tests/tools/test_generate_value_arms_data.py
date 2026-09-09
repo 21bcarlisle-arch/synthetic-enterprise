@@ -2074,6 +2074,147 @@ def test_the_survivorship_split_is_withheld_on_a_run_that_did_not_measure_it():
     assert refuted["scored_decisions_the_world_recorded_as_a_departure"] == 2
 
 
+def _sample_size_ms(head=(0.45, 0.55), head_n=168, head_inside=True,
+                    leg=(0.446, 0.554), leg_n=161, leg_inside=False, leg_available=True):
+    """A run's method-skill block with the two intervals this comparison reads, and nothing else.
+
+    Both legs are parameters because the verdict is a comparison and a fixture that could only
+    produce one side of it would make every assertion below vacuous.
+    """
+    legs = {}
+    if leg_available:
+        legs[gva.UNCONDITIONED_LEG] = {
+            "decisions": leg_n,
+            "null_spread": {"available": True, "null_95_interval": list(leg),
+                            "observed_inside_the_null_interval": leg_inside},
+        }
+    else:
+        legs[gva.UNCONDITIONED_LEG] = {"decisions": leg_n, "null_spread": {"available": False}}
+    return {
+        "decisions_scored": head_n,
+        "null_spread": {"available": True, "null_95_interval": list(head),
+                        "observed_inside_the_null_interval": head_inside},
+        "fixed_horizon": {"legs": legs},
+    }
+
+
+def test_the_sample_size_explanation_refuses_before_it_asserts():
+    """POISON ROUNDS FIRST. "Refuted" is the answer this book happens to give, and a block that
+    returned it on every input would pass a control written only against today's run.
+
+    THE DEFECT (2026-09-09, Lane 0, item 4 of the survivorship finding). The producer's own
+    inside-the-null reading ended "that is a statement about how few decisions there are, not
+    about the method" -- an attribution one interval cannot support, and one this run refutes from
+    its own second cut. This block decides between the causes where BOTH cuts are in hand and
+    refuses where they are not.
+
+    Fires on: defaulting an absent or unaskable comparison to a verdict; on answering "the
+    sentence is fine" where the honest answer is "nobody checked".
+    """
+    # (1) NO HEADLINE INTERVAL -- there is no "we cannot tell" whose cause could be named.
+    nothing = gva._skill_sample_size_explanation({})
+    assert nothing["available"] is False
+    assert "no interval on the headline" in nothing["reason"]
+
+    # (2) THE HEADLINE CLEARS ITS OWN NULL -- it is not saying "we cannot tell", so no
+    #     explanation is owed and finding a defect here would be finding one in a page with none.
+    cleared = gva._skill_sample_size_explanation(_sample_size_ms(head_inside=False))
+    assert cleared["available"] is False
+    assert "outside its own null" in cleared["reason"]
+
+    # (3) NO SECOND CUT TO COMPARE AGAINST -- the claim is UNCHECKED, and says so. A silent
+    #     absence here renders as "the sentence above is fine", which is the one reading it
+    #     cannot support.
+    unchecked = gva._skill_sample_size_explanation(_sample_size_ms(leg_available=False))
+    assert unchecked["available"] is False
+    assert "CANNOT BE CHECKED" in unchecked["reason"]
+    assert "too few decisions" not in unchecked["reason"].replace(
+        "whether too few decisions is", "")
+
+
+def test_the_sample_size_explanation_needs_BOTH_legs_of_its_power_comparison():
+    """The verdict turns on a conjunction, so each half is driven to fail on its own.
+
+    A second cut that distinguishes itself from chance refutes "too few decisions" ONLY if it did
+    so with no more decisions AND no narrower an interval. Either one failing means it simply had
+    more power, which explains its own verdict and says nothing about the first -- and widening
+    one predicate of an ANDed pair catches nothing, so both are driven here separately.
+
+    Fires on: dropping either predicate; on reading "the other cut distinguishes" as the whole
+    test.
+    """
+    refuted = gva._skill_sample_size_explanation(_sample_size_ms())
+    assert refuted["verdict"] == "refuted_by_this_run"
+    assert refuted["too_few_decisions_survives_as_the_explanation"] is False
+    assert "TOO FEW DECISIONS IS NOT WHY" in refuted["sentence"]
+    assert "161" in refuted["sentence"] and "168" in refuted["sentence"]
+
+    # MORE DECISIONS: the second cut outranks the first on n, so its verdict is unsurprising.
+    bigger = gva._skill_sample_size_explanation(_sample_size_ms(leg_n=200))
+    assert bigger["verdict"] == "not_settled_the_other_cut_had_more_power"
+    assert bigger["too_few_decisions_survives_as_the_explanation"] is True
+    assert "NOT settled here" in bigger["sentence"]
+
+    # NARROWER INTERVAL: same n, more power per decision -- same refusal, for the other reason.
+    tighter = gva._skill_sample_size_explanation(_sample_size_ms(leg=(0.47, 0.53)))
+    assert tighter["verdict"] == "not_settled_the_other_cut_had_more_power"
+    assert tighter["it_did_so_on_no_more_decisions_and_no_narrower_an_interval"] is False
+
+    # AND THE OTHER VERDICT ENTIRELY: neither cut clears its null, so the explanation stands.
+    both_silent = gva._skill_sample_size_explanation(_sample_size_ms(leg_inside=True))
+    assert both_silent["verdict"] == "still_live"
+    assert both_silent["too_few_decisions_survives_as_the_explanation"] is True
+    assert "remains a live explanation" in both_silent["sentence"]
+    assert "TOO FEW DECISIONS IS NOT WHY" not in both_silent["sentence"]
+
+
+def test_the_sample_size_explanation_reads_the_published_runs_own_two_intervals():
+    """AGAINST THE REAL ARTEFACT, and keyed to the property rather than to today's verdict.
+
+    The expected verdict is derived here from the run's own two intervals rather than written
+    down, so this stays green the day an honest run changes the answer and goes red the day the
+    block stops reading the run.
+
+    Fires on: computing the comparison from anything but the run's own permutations.
+    """
+    ms = _load(THREE_ARM)["method_skill"]
+    block = gva._skill_sample_size_explanation(ms)
+    head = ms["null_spread"]
+    leg = (ms["fixed_horizon"]["legs"] or {}).get(gva.UNCONDITIONED_LEG) or {}
+    if not (head.get("available") and (leg.get("null_spread") or {}).get("available")
+            and head.get("observed_inside_the_null_interval")):
+        assert block["available"] is False
+        return
+    head_lo, head_hi = head["null_95_interval"]
+    leg_lo, leg_hi = leg["null_spread"]["null_95_interval"]
+    distinguishes = not leg["null_spread"]["observed_inside_the_null_interval"]
+    less_power = (leg["decisions"] <= ms["decisions_scored"]
+                  and (leg_hi - leg_lo) >= (head_hi - head_lo))
+    expected = ("refuted_by_this_run" if distinguishes and less_power
+                else "not_settled_the_other_cut_had_more_power" if distinguishes
+                else "still_live")
+    assert block["available"] is True
+    assert block["verdict"] == expected
+    assert block["headline_decisions"] == ms["decisions_scored"]
+    assert block["unconditioned_decisions"] == leg["decisions"]
+
+
+def test_the_page_publishes_the_runs_own_sentence_beside_the_verdict_and_never_instead_of_it():
+    """THE DISAGREEMENT IS THE EVIDENCE, so neither sentence is allowed to eat the other.
+
+    The finding this closes left the producer's claim standing on purpose: correcting it in the
+    same commit as the block that refutes it would leave nothing able to show the two disagreed.
+    A generator that rewrote `reading` would destroy the same evidence a commit later.
+
+    Fires on: editing or dropping the run's own reading; on publishing the verdict without it.
+    """
+    built = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT))["method_skill"]
+    assert built["reading"] == _load(THREE_ARM)["method_skill"]["null_spread"]["reading"], (
+        "the page edited the run's own sentence instead of publishing a verdict beside it")
+    assert built["the_sample_size_explanation"], (
+        "the run's reading is published with nothing checking the cause it names")
+
+
 def test_the_drop_out_consequence_names_the_class_that_is_ours_to_fix():
     """The unflattering half of "widenable: yes", said out loud and DERIVED from the counts.
 

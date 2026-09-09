@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T07:10:14.712254Z",
+  "generated_at": "2026-09-09T07:59:48.941871Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -327,10 +327,10 @@
     "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
     "short": "62334dc76",
     "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": "429bfab5d87d2a360e6ee99bd9f117a3df1187a3",
+    "publishing_tree_commit": "766b82d045f914992f3a370a5deb6fe592c3c434",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76 and published from 429bfab5d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 62334dc76 and published from 766b82d04 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -556,10 +556,10 @@
       "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
       "short": "62334dc76",
       "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": "429bfab5d87d2a360e6ee99bd9f117a3df1187a3",
+      "publishing_tree_commit": "766b82d045f914992f3a370a5deb6fe592c3c434",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76 and published from 429bfab5d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 62334dc76 and published from 766b82d04 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -1256,6 +1256,20 @@
       "measured_in_world": "39a192ce04c1eda8",
       "verdict_withheld_because": null,
       "basis": "exact Mann-Whitney null over all 377306602809499280834401376471811 arrangements of 83 retained and 40 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
+    },
+    "the_sample_size_explanation": {
+      "available": true,
+      "what_this_is": "whether 'there are too few decisions' survives as the explanation for the figure above being unreadable. The test is a power comparison against this run's own unconditioned cut, not a re-reading of either figure.",
+      "verdict": "refuted_by_this_run",
+      "too_few_decisions_survives_as_the_explanation": false,
+      "headline_decisions": 168,
+      "headline_null_half_width": 0.050482142857142864,
+      "unconditioned_leg": "every_priced_decision_pounds_outcome",
+      "unconditioned_decisions": 161,
+      "unconditioned_null_half_width": 0.05410447761194029,
+      "unconditioned_cut_distinguishes_itself_from_chance": true,
+      "it_did_so_on_no_more_decisions_and_no_narrower_an_interval": true,
+      "sentence": "AND TOO FEW DECISIONS IS NOT WHY. The cut below that scores every priced decision, departures included, distinguishes itself from chance on 161 decisions against this figure's 168, against an interval that is WIDER (0.054 either side, against 0.050). A cut with less power to find anything found something here, so however few decisions this book has earned is not what stops the figure above saying anything. What the two cuts differ in is the population and the unit -- and the population above is the households that STAYED."
     },
     "what_it_is": "Does the arm's own per-customer price rank the value JOINTLY created -- what the household kept plus what we kept, over what the household would have paid on the published default tariff? 0.5 is no information. Below 0.5 is a company ranking confidently and using the ranking to extract.",
     "reading": "The observed value sits INSIDE the interval a random signal produces, so this run does not distinguish the method from chance in either direction. That is a statement about how few decisions there are, not about the method."

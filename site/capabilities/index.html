@@ -1761,6 +1761,25 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                   : ""))
           + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
           + prose(msk.reading) + "</p>"
+          /* ...AND WHETHER THE REASON THAT SENTENCE GIVES STANDS UP. The run's own words above
+             ended "that is a statement about how few decisions there are", and on this book the
+             cut further down this page refutes it: it distinguishes itself from chance on FEWER
+             decisions and a WIDER interval. Amber and immediately underneath, because a reader
+             who takes "we just need a bigger book" away from the muted line has taken away the
+             one reading the evidence on this page does not support. The verdict is composed in
+             the feed from the two intervals — nothing here matches on the sentence's text, and
+             the day a run's own wording changes this still reads correctly. The unavailable
+             branch prints too: "we could not check it" and "it is fine" are different, and a
+             blank renders as the second. */
+          + (msk.the_sample_size_explanation
+              ? (msk.the_sample_size_explanation.available
+                  ? '<p style="margin:0 0 6px;font-size:12.5px;font-weight:600;'
+                    + 'color:var(--amber);">'
+                    + prose(msk.the_sample_size_explanation.sentence) + "</p>"
+                  : '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                    + "Whether too few decisions is the reason: "
+                    + prose(msk.the_sample_size_explanation.reason) + "</p>")
+              : "")
           /* WHY THE FIGURE RESTS ON FEWER DECISIONS THAN THE ARM PRICED. This page shows
              "20 decisions priced" a few hundred pixels above a concordance scored on 6, and
              said nothing between them — so a reader had every reason to believe the interval

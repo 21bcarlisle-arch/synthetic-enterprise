@@ -1290,6 +1290,102 @@ def test_a_run_predating_the_funnel_says_so_rather_than_showing_nothing():
     assert "predates the drop-out funnel" in rendered
 
 
+# ── and whether "too few decisions" is the reason ─────────────────────────────────────────────
+#
+# THE DEFECT (2026-09-09, Lane 0). The muted line under the headline is the producer's own
+# sentence and it ended "that is a statement about how few decisions there are, not about the
+# method". A reader took away "we just need a bigger book". The same page, further down, carries a
+# cut that distinguishes itself from chance on FEWER decisions and a WIDER interval — so a bigger
+# book is exactly what this book's evidence does not support. The feed decides the verdict from
+# the two intervals; these control what a reader actually meets.
+
+
+def _skill_feed_with_sample_size(block):
+    """The live feed with the sample-size-explanation block under test."""
+    feed = copy.deepcopy(_live_feed())
+    feed["method_skill"]["the_sample_size_explanation"] = block
+    return feed
+
+
+_SAMPLE_SIZE_REFUTED = {
+    "available": True, "verdict": "refuted_by_this_run",
+    "too_few_decisions_survives_as_the_explanation": False,
+    "headline_decisions": 168, "unconditioned_decisions": 161,
+    "sentence": "AND TOO FEW DECISIONS IS NOT WHY. The cut below that scores every priced "
+                "decision distinguishes itself from chance on 161 decisions against this "
+                "figure's 168, against an interval that is WIDER.",
+}
+
+
+def test_the_refutation_of_the_bigger_book_reading_reaches_the_reader(live):
+    """THE LIFT, on the published feed and not on a fixture built to succeed.
+
+    Fires on: the block being dropped from the render, or the feed publishing the verdict where
+    no page element reads it — which is the state this page was in until 2026-09-09, with the
+    muted "how few decisions there are" sentence the only reading a reader took away.
+    """
+    block = _live_feed()["method_skill"].get("the_sample_size_explanation")
+    assert block, "the published feed carries no sample-size-explanation block at all"
+    rendered = live["arms-method"]
+    if block.get("available"):
+        assert _door_prose(block["sentence"])[:60] in _door_prose(rendered), (
+            "the feed's verdict on the bigger-book reading reaches no reader: {}".format(
+                rendered))
+        # ...AND THE TWO COUNTS THAT ARE THE EVIDENCE FOR IT, not the verdict alone.
+        assert str(block["unconditioned_decisions"]) in rendered
+        assert str(block["headline_decisions"]) in rendered
+    else:
+        assert _door_prose(block["reason"])[:60] in _door_prose(rendered), (
+            "the feed could not check the bigger-book reading and the page renders nothing, "
+            "which reads as 'it is fine': {}".format(rendered))
+
+
+def test_MUTATION_a_run_where_the_bigger_book_reading_survives_reads_differently():
+    """REACHABILITY FIRST, then the shape. A block that printed the same words on every verdict
+    would pass a test written against today's answer, and today's answer is the refutation.
+
+    MUTATION: the same page, on a run where neither cut clears its null — the honest verdict is
+    that too few decisions remains a live explanation. The render must say the opposite thing.
+    """
+    still_live = {
+        "available": True, "verdict": "still_live",
+        "too_few_decisions_survives_as_the_explanation": True,
+        "headline_decisions": 168, "unconditioned_decisions": 161,
+        "sentence": "Neither this figure nor the cut below distinguishes itself from chance on "
+                    "this run, so too few decisions remains a live explanation for both.",
+    }
+    refuted_text = _render(_skill_feed_with_sample_size(_SAMPLE_SIZE_REFUTED))["arms-method"]
+    live_text = _render(_skill_feed_with_sample_size(still_live))["arms-method"]
+
+    assert refuted_text != live_text, (
+        "a run that refutes the bigger-book reading and one that does not render identically")
+    assert "TOO FEW DECISIONS IS NOT WHY" in _door_prose(refuted_text)
+    assert "remains a live explanation" in _door_prose(live_text)
+    assert "TOO FEW DECISIONS IS NOT WHY" not in _door_prose(live_text), (
+        "a run where the explanation survives still tells the reader it is refuted")
+
+
+def test_MUTATION_a_run_that_could_not_check_it_says_so_rather_than_nothing():
+    """FAIL-CLOSED, and visibly. A run predating the unconditioned cut cannot check the sentence
+    above it, and an empty render there reads as "the sentence is fine" — the one reading an
+    absence cannot support.
+
+    Fires on: rendering an empty string when the feed reports the check as unavailable.
+    """
+    unchecked = {
+        "available": False,
+        "reason": "the headline says 'we cannot tell' and this run carries no permuted interval "
+                  "on the cut that scores every priced decision, so whether too few decisions is "
+                  "the reason CANNOT BE CHECKED from this run.",
+    }
+    rendered = _door_prose(_render(_skill_feed_with_sample_size(unchecked))["arms-method"])
+    assert "Whether too few decisions is the reason" in rendered, (
+        "an unchecked sample-size claim renders as nothing at all: {}".format(rendered))
+    assert "CANNOT BE CHECKED from this run" in rendered
+    assert "TOO FEW DECISIONS IS NOT WHY" not in rendered, (
+        "a run that could not make the comparison tells the reader it made it")
+
+
 # ── how few decisions it rests on ────────────────────────────────────────────────────────────
 
 def test_the_decision_count_and_its_concentration_reach_the_reader(live):
