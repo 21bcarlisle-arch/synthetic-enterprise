@@ -6031,3 +6031,211 @@ def test_a_spread_from_another_world_bounds_nothing_however_it_is_stamped():
         "a floor and a run measured in the SAME world lost their bound because that world is not "
         "today's -- which is the live-world claim this block declines to make: {}".format(
             str(both_elsewhere.get("reason"))[:300]))
+
+
+# ── what would settle the sign of the leg the thesis turns on ────────────────────────────────
+#
+# THE DEFECT THESE GUARD (2026-09-09). The page bounded the selection leg, found its nine re-draws
+# straddle zero, said so -- and stopped. The only remedy arithmetic it carried, `floor_decomposition`,
+# refuses itself twice for good reasons: it was measured where the arm priced 104 of 2,009 renewals
+# against this page's 214 of 2,035, and it splits `value_advantage_gbp` and not this leg. So the
+# page's central refusal was a dead end, and `current_world.what_would_answer_it` was `None` --
+# which reads as "nothing left to answer" beside a leg with no direction.
+#
+# R15 -- the mutations, each run and reverted:
+#   * price the remedy off `remedy_price_table(..., shares=(0.5,))` instead of `(1.0,)`
+#     -> `test_the_book_a_sign_would_need_is_a_lower_bound_over_every_split` reds: the number stops
+#        being a bound over the family and becomes one guess inside it.
+#   * read the funnel off the module's own `THREE_ARM_PATH` instead of the run passed in
+#     -> `test_the_price_is_on_the_book_this_page_publishes` reds.
+#   * publish only the published draw's row and drop the family centre
+#     -> `test_both_figures_a_reader_could_mean_are_priced_and_they_disagree` reds.
+#   * return the block unconditionally instead of gating on `sign_determined is False`
+#     -> `test_a_leg_that_carries_a_direction_is_priced_no_remedy` reds.
+#   * leave `what_would_answer_it` as the two-branch original
+#     -> `test_a_panel_that_can_state_no_direction_says_what_would_give_it_one` reds.
+# The null rung is `test_the_real_page_prices_the_selection_legs_sign`: on the artefacts actually
+# on disk the block must be available with both rows priced, and it stays green under all five.
+
+
+@pytest.fixture(scope="module")
+def real_current_world() -> dict:
+    """The page as `generate` actually builds it -- current-world run AND current-world floor.
+
+    THE `real` FIXTURE ABOVE CANNOT SERVE THIS. It passes neither, so `_current_world_contrast`
+    gets no floor, every leg refuses its bound, and a control reading the selection leg's remedy
+    through it would be reading the no-bound refusal while asserting on the priced branch.
+    """
+    return gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT),
+                     current_three_arm=_load(gva.CURRENT_WORLD_THREE_ARM_PATH),
+                     current_floor=_load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH))
+
+
+def _settle(page: dict) -> dict:
+    return ((page.get("current_world") or {}).get("selection_leg") or {}).get(
+        "what_would_settle_the_sign") or {}
+
+
+def test_the_real_page_prices_the_selection_legs_sign(real_current_world):
+    """THE NULL RUNG. On the artefacts on disk the page must say what would settle the sign."""
+    leg = (real_current_world["current_world"] or {})["selection_leg"]
+    assert (leg.get("verdict_stability") or {}).get("sign_determined") is False, (
+        "this control's subject is a leg whose SIGN IS UNDETERMINED, and this leg now carries one "
+        "-- so the remedy branch below is unreachable and the assertion under it would pass "
+        "vacuously. Re-point it at whichever leg is signless, or retire it.")
+    block = _settle(real_current_world)
+    assert block.get("available") is True, (
+        "the page states no price for settling the sign of the only leg that could be value "
+        "CREATED: {}".format(str(block.get("why_not"))[:300]))
+    priced = [row for row in block["rows"] if row.get("times_this_book")]
+    assert len(priced) == len(gva._SIGN_REMEDY_FIGURES), (
+        "only {} of {} figures a reader could mean was priced, so the page answers one reading of "
+        "its own refusal and leaves the other".format(len(priced), len(gva._SIGN_REMEDY_FIGURES)))
+    for row in priced:
+        assert row["priced_decisions_needed"] > 0 and row["renewals_the_world_must_offer"] > 0, (
+            "the {} row carries a multiplier and no counts, so a reader is handed a ratio with no "
+            "unit".format(row["which_figure"]))
+
+
+def test_the_book_a_sign_would_need_is_a_lower_bound_over_every_split(real_current_world):
+    """THE MATHEMATICAL CLAIM, RE-ASKED OF THE PRODUCER THE PAGE SHARES WITH THE ARTEFACT.
+
+    The block publishes the corner where the whole spread is the priced households' own draw. Its
+    whole licence to be published without the two missing floor legs is that this corner is the
+    SMALLEST member of the family: `m = (V - V_rest)/(c^2 - V_rest)` rises with `V_rest`. If that
+    is false the number is not a bound, it is a guess wearing a bound's words -- and the page says
+    "the real book is LARGER than this, never smaller" underneath it.
+
+    KEYED TO THE PROPERTY AND NOT TO 44.9x. Asserting today's multiplier would go red the day the
+    floor is re-measured and stay green if the direction inverted, which is exactly backwards.
+    """
+    block = _settle(real_current_world)
+    variance, book = block["floor_variance_gbp2"], block["book"]
+    checked = [r for r in block["rows"] if r.get("times_this_book")]
+    # THE LOOP MUST RUN, AND THIS LINE IS NOT DECORATION. Caught in this control's own poison
+    # round: pricing at share 0.5 instead of 1.0 drives BOTH rows' headroom negative, every
+    # multiplier becomes `None`, and the comparison below iterates over nothing and passes. A
+    # mutation that empties a control's subject is indistinguishable from one it survives.
+    assert len(checked) == len(gva._SIGN_REMEDY_FIGURES), (
+        "{} of {} rows carry a multiplier, so the comparison below would run over a subset of the "
+        "family it claims to bound -- and over none of it if the count is zero".format(
+            len(checked), len(gva._SIGN_REMEDY_FIGURES)))
+    for row in checked:
+        ladder = gva.remedy_price_table(
+            variance, row["contrast_gbp"], book["priced_decisions"],
+            book["priced_share_of_renewals_offered"], shares=(1.0, 0.9, 0.7, 0.5))
+        priced_at = [r["times_this_book"] for r in ladder if r["times_this_book"]]
+        assert row["times_this_book"] == min(priced_at), (
+            "the {} row publishes {:.2f}x as a lower bound and a split with MORE of the spread in "
+            "the rest of the book prices at {:.2f}x, which is smaller -- so the published figure "
+            "bounds nothing".format(row["which_figure"], row["times_this_book"], min(priced_at)))
+        assert block["is_a_lower_bound"] is True
+
+
+def test_the_price_is_on_the_book_this_page_publishes():
+    """THE RECONCILIATION THE EXISTING DECOMPOSITION FAILS, which is why this block exists at all.
+
+    A remedy priced on another book is not a weaker remedy, it is a price for another question --
+    the page already refuses `floor_decomposition` on exactly that ground. So the counts here must
+    MOVE when the book under them moves. A block that reads its funnel from a module constant
+    rather than from the run it was handed would pass every other control in this section.
+    """
+    leg = {"verdict_stability": {"sign_determined": False},
+           "bound": {"stdev_gbp": 1000.0, "mean_gbp": -400.0, "n": 9}}
+    small = gva._what_would_settle_the_sign(
+        leg, {"renewal_funnel": {"value_arm": {
+            "priced": 200, "renewals_the_world_offered": 2000,
+            "priced_share_of_renewals_offered": 0.1}}}, 250.0)
+    large = gva._what_would_settle_the_sign(
+        leg, {"renewal_funnel": {"value_arm": {
+            "priced": 400, "renewals_the_world_offered": 4000,
+            "priced_share_of_renewals_offered": 0.1}}}, 250.0)
+    assert small["available"] and large["available"]
+    assert small["rows"][0]["times_this_book"] == large["rows"][0]["times_this_book"], (
+        "the MULTIPLE moved when only the book's size did. It is scale-free by construction -- "
+        "n0 cancels -- so a multiplier that moves means the two sides are indexed differently.")
+    assert large["rows"][0]["priced_decisions_needed"] == \
+        2 * small["rows"][0]["priced_decisions_needed"], (
+        "the same multiple over a book twice the size gave the same COUNT, so the count is not "
+        "this page's book wearing the multiple -- it is a number from somewhere else")
+
+
+def test_both_figures_a_reader_could_mean_are_priced_and_they_disagree(real_current_world):
+    """ONE CONTROL OVER THE WHOLE PARTITION, because the finding IS the disagreement.
+
+    The published draw and the centre of its own re-draw family are on opposite sides of zero on
+    this page, and they are answered by books an order of magnitude apart. A page that priced only
+    one would be picking which reading of its own refusal to answer -- this project's most
+    expensive recurring shape, arriving on the sentence written to end it.
+    """
+    block = _settle(real_current_world)
+    figures = {row["which_figure"]: row for row in block["rows"]}
+    assert set(figures) == {label for label, _, _, _ in gva._SIGN_REMEDY_FIGURES}
+    multiples = sorted(row["times_this_book"] for row in figures.values()
+                       if row.get("times_this_book"))
+    assert len(multiples) > 1 and multiples[0] != multiples[-1], (
+        "the two figures priced to the same book, so nothing here tells a reader the choice "
+        "between them matters: {}".format(multiples))
+    assert block["the_two_figures_disagree"] is True, (
+        "the rows price to {} and the block reports no disagreement, so the caveat a reader needs "
+        "is missing from the one payload that carries it".format(multiples))
+    for row in figures.values():
+        assert row["what_this_figure_counts"], (
+            "the {} row is a number with no statement of what it counts, which is the division "
+            "this page refuses everywhere else".format(row["which_figure"]))
+
+
+def test_a_leg_that_carries_a_direction_is_priced_no_remedy():
+    """THE REFUSAL BRANCH, AND IT MUST BE REACHABLE. A remedy for a question already answered is
+    noise at best; a control that never drove this branch would not notice the gate was gone."""
+    current = {"renewal_funnel": {"value_arm": {
+        "priced": 200, "renewals_the_world_offered": 2000,
+        "priced_share_of_renewals_offered": 0.1}}}
+    bound = {"stdev_gbp": 1000.0, "mean_gbp": -400.0, "n": 9}
+    signless = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"sign_determined": False}, "bound": bound}, current, 250.0)
+    signed = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"sign_determined": True}, "bound": bound}, current, 250.0)
+    unmeasured = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"checked": False}, "bound": bound}, current, 250.0)
+    unbounded = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"sign_determined": False}, "bound": {}}, current, 250.0)
+    assert signless["available"] is True, "the branch this block exists for is unreachable"
+    assert signed["available"] is False and signed["why_not"], (
+        "a leg that already carries a direction was handed a price for earning one")
+    assert unmeasured["available"] is False, (
+        "a leg whose sign was never CHECKED was priced as though it had been measured and found "
+        "signless -- 'we did not ask' and 'we asked and could not tell' are different states")
+    assert unbounded["available"] is False and "spread" in unbounded["why_not"], (
+        "a leg with no measured spread was priced anyway, so the floor under the arithmetic was "
+        "an absence read as a number")
+
+
+def test_a_panel_that_can_state_no_direction_says_what_would_give_it_one(real_current_world):
+    """`what_would_answer_it` must distinguish its two causes, and know it still has one.
+
+    THE DEFECT. That key was `None` exactly when all three bounds existed -- so the floor legs
+    landing emptied it while the panel still could not state a direction for the leg the thesis
+    turns on. Reading `None` as "nothing left to answer" was the page's own dead end.
+    """
+    bounded = {"bound_available": True, "verdict_stability": {"sign_determined": True}}
+    signless = {"bound_available": True, "verdict_stability": {"sign_determined": False}}
+    unbounded = {"bound_available": False}
+    assert gva._what_would_answer_it(bounded, bounded, bounded) is None, (
+        "a panel where every leg carries a direction still asks for work, so the key can never "
+        "empty and a reader learns to skip it")
+    no_bound = gva._what_would_answer_it(unbounded, bounded, bounded)
+    assert no_bound and "noise-floor leg" in no_bound, (
+        "the missing-bound cause stopped naming the floor leg that would fix it: {}".format(
+            str(no_bound)[:200]))
+    no_sign = gva._what_would_answer_it(bounded, signless, bounded)
+    assert no_sign and "what_would_settle_the_sign" in no_sign, (
+        "a panel with every bound measured and a leg with no sign points at nothing: {}".format(
+            str(no_sign)[:200]))
+    assert no_sign != no_bound, (
+        "the two causes read identically, so a reader cannot tell 'run the floor leg' from "
+        "'grow the book' -- different work, one sentence")
+    live = (real_current_world["current_world"] or {}).get("what_would_answer_it")
+    assert live and "what_would_settle_the_sign" in live, (
+        "the real page's panel cannot state a direction for the selection leg and still names "
+        "nothing that would give it one: {}".format(str(live)[:300]))
