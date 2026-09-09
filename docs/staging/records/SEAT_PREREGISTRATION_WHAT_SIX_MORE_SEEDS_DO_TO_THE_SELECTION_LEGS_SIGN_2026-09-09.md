@@ -91,6 +91,15 @@ below **£640**, against a point estimate of £2,292 — so P6 fails only if the
 which P4 does not expect. But it is a live branch and not a foregone one; if the sd really was one
 seed's artefact, nine seeds can resolve this.
 
+> **CORRECTED 2026-09-09T10:13Z, before the run wrote anything and before any figure from it was
+> read.** The threshold in the paragraph above is the FLOOR key's arithmetic, and the floor key
+> gates no page. P6 must be graded against the condition `generate_value_arms_data._resolvable`
+> actually applies, which is a different rule over a different quantity of the opposite sign. The
+> corrected threshold, the window in which the error changes P6's score, and what it does to
+> §"what would actually settle it" below are in
+> `SEAT_FINDING_THE_ERROR_BAR_CONTROL_AND_ITS_OWN_PREREGISTRATION_WERE_BOTH_GRADED_ON_A_QUANTITY_THE_PAGE_DOES_NOT_GATE_ON_2026-09-09.md`,
+> beside this file. The numbers are stated there once and deliberately not repeated here.
+
 **P7 — what will NOT move, and it is not merely conceptually separate.** `level_share_of_advantage`
 stays within [0.90, 1.20] on its nine-seed mean. This is independent of P3–P6 in the arithmetic
 sense that matters: `selection_gbp` is a *difference in pounds* between the value arm and
@@ -111,6 +120,12 @@ At the measured cost of a `floor-all` leg (≈25 min/seed: the 2026-09-03 three-
 intact, **the honest finding is that this instrument cannot resolve the selection sign at any count
 this machine can afford, and the remedy is not more seeds** — it is a lower-variance estimand, or
 the fixed-horizon cut standing as the answer on its own evidence.
+
+> **CORRECTED 2026-09-09T10:13Z, before the run wrote anything.** The 116 above comes from the same
+> wrong rule as P6. Under the gate the page actually applies there is **no seed count that settles
+> it** — the 48 hours buys a probability with 76 zeroes after the decimal point, and should not be
+> spent. The conclusion of this paragraph is therefore reached ahead of the run rather than
+> conditionally on it. Arithmetic in the finding named above.
 
 ## Which way the two cuts then point
 
