@@ -2632,13 +2632,13 @@ def pair_strata(settled_leg: dict | None, estimand_leg: dict | None,
         },
         "reading": _pair_strata_reading(
             c_whole, c_cross, at_chance, zero_decisions, whole_n, cross_pairs, n_whole,
-            bounded, estimand_leg.get("null_spread")),
+            bounded, estimand_leg.get("null_spread"), cross_null),
     }
 
 
 def _pair_strata_reading(c_whole: float, c_cross: float, at_chance: float, zero_decisions: int,
                          whole_n: int, cross_pairs: int, comparable: int, bounded: bool,
-                         estimand_spread: dict | None) -> str:
+                         estimand_spread: dict | None, cross_spread: dict | None = None) -> str:
     """The verdict, composed FROM the split. Never a sentence typed beside it.
 
     Every clause is a function of the numbers above, so the day the arm stops pricing its
@@ -2652,9 +2652,23 @@ def _pair_strata_reading(c_whole: float, c_cross: float, at_chance: float, zero_
     estimand's own published interval. That comparison is stronger than the bare number anyway --
     it says the departure survives or does not survive in the units the reader is already
     weighing.
+
+    ...AND WHEN IT DOES QUOTE IT, IT QUOTES THE INTERVAL WITH IT (2026-09-09). The bounded branch
+    printed "which read 0.2686" and stopped, while the very spread that made the branch reachable
+    sat unused in `cross_null`. The withheld branch was fail-closed and the bounded branch was
+    not, which is the harder half to notice: one is a refusal anybody reads twice and the other
+    is a number that looks finished. **No run on disk could reach it** -- `pair_strata` landed the
+    same day and every artefact predated it, so `_skill_pair_strata`'s identity fallback served
+    the withheld branch to every reader and the defect shipped invisible. The first run to carry
+    the block found it, and the page's own door control refused it in one line.
+
+    Same rule as `_stratum_figure` and `_horizon_leg_published`, in the sentence rather than in
+    the payload: a number this page states carries the bound its own pairs earn, wherever on the
+    surface it is stated.
     """
     low, high = ((estimand_spread or {}).get("null_95_interval") or [None, None])
     inside = (None if low is None or high is None else low <= at_chance <= high)
+    cross_low, cross_high = ((cross_spread or {}).get("null_95_interval") or [None, None])
     opening = (
         "{z} of {n} scored decisions ({share:.0%}) sit tied at 0.0, and every one of the "
         "{tied:,} pairs among them is excluded by the estimator as an outcome tie -- so the tie "
@@ -2663,12 +2677,22 @@ def _pair_strata_reading(c_whole: float, c_cross: float, at_chance: float, zero_
             z=zero_decisions, n=whole_n, share=zero_decisions / whole_n,
             tied=zero_decisions * (zero_decisions - 1) // 2, comparable=comparable,
             cross=cross_pairs))
-    middle = (
-        ", which read {c:.4f}: in {against:.0%} of departure-against-survivor pairs the arm had "
-        "given the DEPARTURE the higher margin. ".format(c=c_cross, against=1 - c_cross)
-        if bounded else
-        ", whose own concordance is withheld here for want of an interval computed on this "
-        "run's own signals -- so the attribution is carried on the scale that IS bounded. ")
+    if bounded and cross_low is not None and cross_high is not None:
+        middle = (
+            ", which read {c:.4f} against the {lo:.4f}–{hi:.4f} a no-information signal reaches "
+            "on this stratum's own {pairs:,} pairs: in {against:.0%} of departure-against-"
+            "survivor pairs the arm had given the DEPARTURE the higher margin. ".format(
+                c=c_cross, lo=cross_low, hi=cross_high, pairs=cross_pairs, against=1 - c_cross))
+    elif bounded:
+        # A SPREAD THAT SAYS IT IS AVAILABLE AND CARRIES NO INTERVAL. `_stratum_figure` withholds
+        # the number in the payload for exactly this; the sentence must not go on stating it.
+        middle = (
+            ", whose own concordance is withheld here: this run reported a spread for the cross "
+            "stratum with no interval on it, so the figure has no bound to be read against. ")
+    else:
+        middle = (
+            ", whose own concordance is withheld here for want of an interval computed on this "
+            "run's own signals -- so the attribution is carried on the scale that IS bounded. ")
     counterfactual = (
         "Had the cross stratum carried no information the estimand would read {at:.4f} rather "
         "than {whole:.4f}{clause}. ".format(

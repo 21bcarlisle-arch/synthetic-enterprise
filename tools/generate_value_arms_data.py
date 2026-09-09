@@ -654,6 +654,31 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
     can, and no amount of clock-labelling says so.
 
     The test is a comparison of timestamps, so it stays true whatever the next world change is.
+
+    THE ORDERING TEST IS UNCHANGED AND THE CAUSAL CLAUSE IS NOT (2026-09-09). The sentence this
+    function returned asserted, on every firing, *"and something did, on 2026-08-28: the market
+    gained the ability to DEFEND"*. That is the 2026-08-28 incident this block was BUILT for, and
+    typing it into the output made a general refusal state one particular history. It goes wrong
+    the first time the guard fires on any other pair: the leg-conditioning re-run of 2026-09-09
+    is stamped seven hours after the floor it would be published beside, in the same world digest,
+    from a tree whose diff against the floor's own touches no simulation file -- and the page
+    would have told a reader the market gained a capability inside those seven hours. A refusal
+    whose REASON is false is worse than no refusal, because the reason is the part a reader acts
+    on.
+
+    So the clause is composed from what the two artefacts say about themselves. Same digest: the
+    departure surface did not move between them and the page says only what remains unknown.
+    Different or absent digests: both are named, which is the strong form and the one the
+    2026-08-28 pair would have rendered.
+
+    NOTHING IS NARROWED. `floor_at >= point_at` still clears and every other ordering still
+    refuses, on the identical predicate, so no pair that was refused before is admitted now --
+    only the words differ. That matters because the timestamp is a PROXY for the property (was
+    this spread measured over the book this figure comes from?) and it is wrong in both
+    directions: the floor artefact carries no book identity, so a floor measured on a DIFFERENT
+    book that happens to be stamped later still clears this guard silently. Widening the clean
+    branch on the digest would have traded a true refusal for that fail-open; see
+    `docs/staging/SEAT_FINDING_THE_NOISE_FLOOR_CARRIES_NO_BOOK_IDENTITY_SO_THE_PAIRING_RULE_IS_A_STAMP_PROXY_WRONG_IN_BOTH_DIRECTIONS_2026-09-09.md`.
     """
     floor_at = (floor or {}).get("generated_at")
     point_at = (three_arm or {}).get("generated_at")
@@ -665,15 +690,34 @@ def _staleness_caveat(floor: dict, three_arm: dict) -> str | None:
                 "scale statement about the instrument, not as a confidence interval.")
     if floor_at >= point_at:
         return None
+    floor_world = ((floor or {}).get("world_identity") or {}).get("digest")
+    point_world = ((three_arm or {}).get("world_identity") or {}).get("digest")
+    if floor_world and point_world and floor_world == point_world:
+        # WHAT IS KNOWN AND WHAT IS NOT, and the refusal stands on the second half. Sharing a
+        # digest rules out a move in the departure surface and rules out nothing else -- the
+        # book can change without the anchors moving, which is precisely the 2026-08-31 defect
+        # this guard was extended for.
+        between = (
+            "Both runs carry the same world digest {digest}, so the departure surface did not "
+            "move between them. What that does NOT establish is that they measured the same "
+            "BOOK: the noise floor names no book identity of its own, so nothing here can show "
+            "that this spread was drawn over the decisions the figure is made of."
+        ).format(digest=floor_world)
+    else:
+        between = (
+            "The two runs name DIFFERENT WORLDS -- {floor_world} for the spread against "
+            "{point_world} for the figure -- so whatever moved the departure surface between "
+            "them is inside the point estimate and outside the spread. A spread measured where "
+            "the market could not react is not a confidence interval on a figure measured where "
+            "it can."
+        ).format(floor_world=floor_world or "no digest at all",
+                 point_world=point_world or "no digest at all")
     return (
         "THE ERROR BAR IS OLDER THAN THE FIGURE IT BOUNDS. The seed spread was measured on the run "
-        "of {floor_at} and the point estimate on the run of {point_at}. Anything that changed the "
-        "world between those two runs is inside the point estimate and outside the spread -- and "
-        "something did, on 2026-08-28: the market gained the ability to DEFEND against a company "
-        "that undercuts it. A spread measured where nothing could react is not a confidence "
-        "interval on a figure measured where it can. Read it as the size of this instrument's seed "
-        "sensitivity; re-running the noise floor on the current world is owed work."
-    ).format(floor_at=floor_at, point_at=point_at)
+        "of {floor_at} and the point estimate on the run of {point_at}. {between} Read it as the "
+        "size of this instrument's seed sensitivity; re-running the noise floor on the run "
+        "published above is owed work."
+    ).format(floor_at=floor_at, point_at=point_at, between=between)
 
 
 def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
@@ -1422,6 +1466,28 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
             "the noise floor these bounds would come from names no world it was measured in, and "
             "a spread whose departure level is unknown cannot be shown to bound a figure from any "
             "particular one -- so no contrast on this page takes its direction from it")}
+    # THE PAIR'S OWN WORLDS, AND THIS IS THE FAIL-OPEN HALF (2026-09-09). The two gates around it
+    # are an age test and a names-a-world test, and NEITHER compares the floor's world to the
+    # figure's. Measured, not argued: this block admitted a floor carrying digest `ffffffffff...`
+    # against the live 09-09 run, stamped one second later, and published its spread as the bound
+    # every directional claim on the page is gated on. The age test is the only thing that has
+    # ever stood between a mismatched pair and a stated direction, and it is a proxy -- one second
+    # of stamp order is all it asks for.
+    #
+    # DISTINCT FROM THE LIVE-WORLD CLAIM the docstring above declines to make, and the distinction
+    # is the whole reason this is admissible here. That one asks whether the floor's world is
+    # TODAY's; this asks whether it is the world of the figure it is a bound ON. The superseded
+    # panel is published on purpose and keeps its own bound, because its floor and its run share
+    # a world with each other.
+    point_world = ((three_arm or {}).get("world_identity") or {}).get("digest")
+    if three_arm is not None and point_world and world != point_world:
+        return {"available": False, "world_measured_in": world, "reason": (
+            "the seed spread was measured in world {world} and the figure it would bound in "
+            "world {point_world}. A spread from one world is not a bound on a figure from "
+            "another however the two runs are stamped, so no contrast on this page takes its "
+            "direction from it").format(world=world, point_world=point_world),
+            "what_this_costs": ("no contrast on this page can have its direction stated until a "
+                                "noise floor measured in the figure's own world is run")}
     stale = _staleness_caveat(floor or {}, three_arm or {}) if three_arm is not None else None
     if stale:
         return {"available": False, "reason": stale,

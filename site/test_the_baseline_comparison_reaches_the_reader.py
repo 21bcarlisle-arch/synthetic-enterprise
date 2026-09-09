@@ -794,6 +794,20 @@ def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     emitting the key at all would have skipped this control silently and forever, which is the
     exact fail-open shape this suite exists to refuse. Skipping on a VALUE the producer
     guarantees is legitimate; skipping on a KEY's absence is a control that cannot fail.
+
+    THE SECOND LEG WAS PINNED TO THE 2026-08-28 ANSWER AND IS NOW ON THE PROPERTY (2026-09-09).
+    It asserted `"DEFEND" in rendered` -- the word from the one incident this guard was built
+    for -- under a message saying the page must "name what changed between the two runs". Those
+    are not the same claim, and the gap between them is the whole defect: a page that named a
+    DIFFERENT change, correctly, would have gone red, and a page that named that change when it
+    had not happened stayed green. Which is what it did. The producer's clause asserted the
+    2026-08-28 market change on every firing regardless of the interval, so this leg was pinning
+    the page to a sentence that goes false the first time the guard fires on any other pair.
+
+    What the page owes a reader is the two RUNS the ordering is about and what is known about
+    whether they describe one world -- so that is what is asserted, off the feed's own digests.
+    Fires on: dropping either stamp from the rendered sentence, or dropping the world clause,
+    whichever branch the two artefacts put it on.
     """
     error_bar = _live_feed()["error_bar"]
     assert "staleness_caveat" in error_bar, (
@@ -806,8 +820,23 @@ def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     rendered = live["arms-errorbar"]
     assert "OLDER THAN THE FIGURE IT BOUNDS" in rendered, (
         "the published error bar predates the figure it bounds and the page does not say so")
-    assert "DEFEND" in rendered, (
-        "the page says the error bar is old without naming what changed between the two runs")
+    # THE TWO RUNS THE ORDERING IS ABOUT. A reader told a bound is stale and not told which two
+    # runs that is between cannot judge how stale it is. Read off the caveat itself rather than
+    # hardcoded, so this holds for whatever pair is promoted next.
+    stamps = re.findall(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", caveat)
+    assert len(stamps) == 2, (
+        "the feed's staleness caveat names {} run stamps, not the two the ordering is between: "
+        "{}".format(len(stamps), caveat[:300]))
+    for stamp in stamps:
+        assert stamp in rendered, (
+            "the page says the bound is older without naming the run of {} that it is older "
+            "between".format(stamp))
+    # WHAT IS KNOWN ABOUT THE WORLD BETWEEN THEM, on whichever branch the artefacts earn. Never
+    # the name of one historical change: the clause is composed from the digests, so a pair
+    # sharing a world says what is still unestablished and a pair that does not names both.
+    assert ("same world digest" in rendered) or ("DIFFERENT WORLDS" in rendered), (
+        "the page says the error bar is old without saying what is known about whether the two "
+        "runs describe the same world -- which is the part a reader acts on: " + rendered[:400])
 
 
 def test_the_coverage_denominator_is_renewals_and_not_accounts(live):

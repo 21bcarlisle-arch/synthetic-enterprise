@@ -695,15 +695,29 @@ def _floor_with_spread(stdev: float) -> dict:
     `_seed_spreads` refuses every bound whose floor names no world, an unstamped fixture here
     would witness the WORLD guard on every one of the seven tests below -- each of which is about
     the DIRECTION gate, and each of which would go green for the wrong reason the day the
-    direction gate broke. The digest is deliberately not the live one: this helper's subject is
-    the superseded panel, whose bounds are admitted on naming a world and not on naming THIS one.
+    direction gate broke.
+
+    THE DIGEST IS DERIVED FROM THE RUN, NEVER TYPED, and it used to be the literal
+    `"fibre"`-style constant `"fixture-world"` (2026-09-09). The reasoning beside it was that this
+    helper's subject is the superseded panel, "whose bounds are admitted on naming a world and not
+    on naming THIS one" -- but every caller pairs this floor with `_load(THREE_ARM)`, the LIVE
+    run. So it was never the superseded panel; it was a mismatched pair, and it went green only
+    because nothing compared the floor's world to the run's. On the day `_seed_spreads` gained
+    that comparison, nine controls about the DIRECTION gate were refused by the WORLD gate
+    instead, each reporting the failure of the guard it names rather than the one that fired.
+
+    Exactly the shape `_stamped_after` was written for one property along, and the remedy is the
+    same: what these subjects need is the PROPERTY "this floor was measured in the world of the
+    figure it bounds", and a typed digest has that property only against runs that happen to
+    carry it.
     """
     values = (-stdev, 0.0, stdev)
+    world = ((_load(THREE_ARM).get("world_identity") or {}).get("digest")) or "fixture-world"
     return {
         # Later than any real three-arm run, so these tests exercise the direction gate and never
         # trip the separate staleness caveat.
         "generated_at": "2999-01-01T00:00:00Z",
-        "world_identity": {"digest": "fixture-world", "unavailable_because": None},
+        "world_identity": {"digest": world, "unavailable_because": None},
         "seeds": [{"seed": 11111 + i, "value_advantage_gbp": v, "level_advantage_gbp": v,
                    "selection_gbp": v} for i, v in enumerate(values)],
         "selection_gbp_spread": {"n": 3, "stdev": stdev, "mean": 0.0,
@@ -3764,8 +3778,18 @@ def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_t
     demanded, and it still is.
 
     TWO SUBJECTS. The real superseded floor is the sole witness that the refusal fires; the same
-    floor with any digest at all is the null rung, and it must put the direction BACK -- otherwise
-    this is a control satisfied by a feed that refuses everything for ever.
+    floor stamped with the RUN'S OWN world is the null rung, and it must put the direction BACK --
+    otherwise this is a control satisfied by a feed that refuses everything for ever.
+
+    THE NULL RUNG USED TO SAY "any digest at all" AND THAT IS NOW FALSE (2026-09-09), which is
+    the point rather than an inconvenience. `_seed_spreads` gained the comparison this docstring's
+    second paragraph never made: not equality with the LIVE world -- that is still refused, and
+    `_current_world_bound` is still where it is demanded -- but equality with the world of the
+    FIGURE this spread would bound. A floor stamped `"any-world"` against a run in
+    `39a192ce04c1eda8` is exactly the pair that block was measured admitting, one second of stamp
+    order being all it asked for. So the rung is stamped with the run's own digest: it still
+    proves the guard is the world-naming and not a machine for refusing, and it no longer proves
+    it by licensing the mismatch.
     """
     # THE WITNESS IS A DATED FLOOR, NEVER THE CANONICAL PATH (2026-09-09). This read `NOISE_FLOOR`,
     # which HELD these bytes and therefore had the property by accident; promoting the 09-08b floor
@@ -3793,14 +3817,25 @@ def test_a_bound_whose_floor_names_no_world_is_refused_and_the_refusal_reaches_t
             "the headline still states a direction off an unstamped bound: " + claim)
     assert "names no world it was measured in" in headline
 
-    # THE NULL RUNG. Stamp it -- any world -- and the direction comes back with nothing else
-    # edited, which is what proves the guard is the world and not a machine for refusing.
-    stamped = gva._seed_spreads(_world_stamped(floor, "any-world"), _load(THREE_ARM))
+    # THE NULL RUNG. Stamp it with the run's own world and the direction comes back with nothing
+    # else edited, which is what proves the guard is the world and not a machine for refusing.
+    run = _load(THREE_ARM)
+    stamped = gva._seed_spreads(
+        _world_stamped(floor, run["world_identity"]["digest"]), run)
     assert stamped["available"] is True, str(stamped.get("reason"))[:200]
-    assert stamped["world_measured_in"] == "any-world", (
+    # ...AND A WORLD THAT IS NOT THE RUN'S DOES NOT. The two rungs together are what separate
+    # "names a world" from "names the figure's world": before 2026-09-09 this leg was the null
+    # rung, and it passed.
+    mismatched = gva._seed_spreads(_world_stamped(floor, "any-world"), run)
+    assert mismatched["available"] is False, (
+        "a floor stamped with a world that is not the figure's published its spread as the bound "
+        "on that figure, which is the fail-open the age guard was the only thing standing in "
+        "front of")
+    assert stamped["world_measured_in"] == run["world_identity"]["digest"], (
         "the admitting branch does not publish which world these bounds describe, so the pairing "
         "is checkable only from a docstring")
-    back = gva.build(_load(THREE_ARM), _world_stamped(floor, "any-world"),
+    back = gva.build(_load(THREE_ARM),
+                     _world_stamped(floor, run["world_identity"]["digest"]),
                      _load(RUN_OUTPUT))["headline"]
     assert any(claim in back for claim in _DIRECTIONAL_CLAIMS), (
         "a stamped floor still states no direction, so this guard refuses regardless of its "
@@ -5502,3 +5537,187 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
         assert (PROJECT / name).is_file(), (
             "the page cites {}, which is not in the tree -- provenance a reader cannot "
             "follow".format(name))
+
+
+def _pair_for_staleness(floor_at: str, point_at: str, floor_world: str, point_world: str):
+    """The two artefacts `_staleness_caveat` reads, cut down to exactly what it looks at.
+
+    A THREE-FIELD FIXTURE AND NOT A LOADED ARTEFACT, deliberately. This function reads two stamps
+    and two digests and nothing else, so a fixture carrying a whole run would let a later reader
+    believe some other field was on trial here. It also cannot be re-tuned into agreement: there
+    is nothing in it to tune.
+    """
+    return ({"generated_at": floor_at, "world_identity": {"digest": floor_world}},
+            {"generated_at": point_at, "world_identity": {"digest": point_world}})
+
+
+def test_the_staleness_refusal_reaches_every_branch_of_its_own_partition():
+    """REACHABILITY FIRST, over the whole partition, before any leg is asserted about.
+
+    A guard that refused EVERYTHING would pass each of the three legs below written separately,
+    and a guard that cleared everything would pass none of them in a way anybody would notice --
+    `_staleness_caveat` returning `None` unconditionally makes the two firing legs red with a
+    message about wording rather than about the guard. So the partition is asserted as one
+    control: the clean branch, the same-world refusal and the different-world refusal are all
+    reachable from the same function on the same day.
+    """
+    clean = gva._staleness_caveat(*_pair_for_staleness(
+        "2026-09-09T14:00:00Z", "2026-09-09T06:57:00Z", "39a192ce04c1eda8", "39a192ce04c1eda8"))
+    same_world = gva._staleness_caveat(*_pair_for_staleness(
+        "2026-09-09T06:57:00Z", "2026-09-09T14:00:00Z", "39a192ce04c1eda8", "39a192ce04c1eda8"))
+    other_world = gva._staleness_caveat(*_pair_for_staleness(
+        "2026-08-27T00:00:00Z", "2026-08-28T12:37:00Z", "aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbb"))
+    assert clean is None and same_world and other_world, (
+        "the three branches of the staleness partition are not all reachable -- clean={!r}, "
+        "same_world={!r}, other_world={!r}. Every leg below is vacuous until they are".format(
+            clean, bool(same_world), bool(other_world)))
+    assert same_world != other_world, (
+        "the two refusing branches return the identical sentence, so the digests reach the "
+        "reader nowhere and the composition below is decoration")
+
+
+def test_a_stale_bound_in_one_world_does_not_tell_the_reader_the_world_changed():
+    """THE DEFECT, and it would have shipped on this turn's own promotion (2026-09-09).
+
+    The clause returned here asserted, on EVERY firing, "and something did, on 2026-08-28: the
+    market gained the ability to DEFEND against a company that undercuts it". That is the
+    incident the guard was built for, typed into a refusal that fires on any ordering. The
+    leg-conditioning re-run of 2026-09-09 is stamped seven hours after the floor it is published
+    beside, in the same world, from a tree whose diff against the floor's touches no simulation
+    file -- and the page would have told a reader the market gained a capability inside those
+    seven hours. A refusal whose reason is false is worse than no refusal: the reason is the part
+    a reader acts on.
+
+    KEYED TO THE PROPERTY, which is what the two artefacts establish and not what happened in
+    August. Same digest: the departure surface did not move, and the page says so and says what
+    is still unknown -- that the floor names no book identity, so it cannot be shown to have been
+    drawn over the decisions the figure is made of. That last clause is why this is not a
+    softening: the refusal STANDS on it.
+
+    R15 -- the mutations, each run and reverted:
+      * restore the hardcoded "on 2026-08-28 ... DEFEND" clause -> this leg reds on the first
+        assertion, which is the defect exactly as it stood.
+      * return `None` on a shared digest (the cheap "same world, so it's fine" widening) ->
+        `test_the_staleness_refusal_reaches_every_branch_of_its_own_partition` reds, and the
+        fail-open it would have bought is named in the docstring above.
+      * drop the digest from the sentence -> the third assertion reds.
+    """
+    caveat = gva._staleness_caveat(*_pair_for_staleness(
+        "2026-09-09T06:57:00Z", "2026-09-09T14:00:00Z", "39a192ce04c1eda8", "39a192ce04c1eda8"))
+    assert "2026-08-28" not in caveat and "DEFEND" not in caveat, (
+        "the page tells a reader the market gained a capability between two runs seven hours "
+        "apart in one world, because the reason is typed rather than composed: " + caveat)
+    assert "OLDER THAN THE FIGURE IT BOUNDS" in caveat, (
+        "the ordering refusal itself was softened, which is not what this repair is: " + caveat)
+    assert "39a192ce04c1eda8" in caveat, (
+        "the page refuses the bound without naming the world both runs agree on, so a reader "
+        "cannot tell this refusal from the one where they disagree: " + caveat)
+    assert "book" in caveat.lower(), (
+        "the refusal drops the reason it still STANDS -- that the floor names no book identity, "
+        "so a shared world does not establish a shared book: " + caveat)
+
+
+def test_a_stale_bound_across_two_worlds_names_both_of_them():
+    """The strong branch, and the one the 2026-08-28 pair would have rendered.
+
+    Two different digests is the state the typed sentence was describing, and it is the one state
+    where the page may say the world moved between the runs. It names BOTH digests rather than
+    asserting a change in the abstract, so a reader can check the claim against
+    `world_provenance` on the same page.
+
+    Fires on: collapsing the two branches back into one sentence, or naming one digest.
+    """
+    caveat = gva._staleness_caveat(*_pair_for_staleness(
+        "2026-08-27T00:00:00Z", "2026-08-28T12:37:00Z", "aaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbb"))
+    assert "DIFFERENT WORLDS" in caveat, caveat
+    assert "aaaaaaaaaaaaaaaa" in caveat and "bbbbbbbbbbbbbbbb" in caveat, (
+        "the page says the two runs are different worlds without naming them, so the claim "
+        "cannot be checked against anything: " + caveat)
+
+
+def test_an_unnamed_world_on_a_stale_bound_is_not_read_as_agreement():
+    """FAIL-SILENT killer. An artefact with no digest must not fall to the reassuring branch.
+
+    "Both runs carry the same world digest" is the softer of the two sentences, and the one an
+    absent digest would reach if the test were `floor_world == point_world` -- `None == None`.
+    """
+    caveat = gva._staleness_caveat(*_pair_for_staleness(
+        "2026-08-27T00:00:00Z", "2026-08-28T12:37:00Z", None, None))
+    assert "same world digest" not in caveat, (
+        "two artefacts that name NO world were reported as agreeing about it: " + caveat)
+    assert "no digest at all" in caveat, (
+        "the refusal does not say the worlds are unnamed, so unknown provenance reads as "
+        "known: " + caveat)
+
+
+def test_a_spread_from_another_world_bounds_nothing_however_it_is_stamped():
+    """THE FAIL-OPEN HALF of the pairing rule, measured before it was fixed (2026-09-09).
+
+    `_seed_spreads` gates every directional claim on this page, and until this control it asked
+    two questions of the floor -- is it newer than the run, and does it name A world -- and never
+    whether that world is the RUN's. So a floor measured somewhere else, stamped one second after
+    the run, published its spread and the page stated directions off it. The age test was the
+    only thing standing between a mismatched pair and a stated direction, and one second of stamp
+    order is all it asks for.
+
+    THE MIRROR OF THE OTHER HALF, and they are one defect. `_staleness_caveat` refuses a pair
+    that is provably the same world for being a few hours out of order, and this admitted a pair
+    that is provably NOT. Fixing only the noisy direction is the asymmetry this project keeps
+    paying for: the false positive gets a comment and the fail-open gets nothing.
+
+    NOT the live-world claim `_seed_spreads` deliberately declines to make. That asks whether the
+    floor's world is TODAY's; this asks whether it is the world of the figure it bounds. The
+    superseded panel keeps its own bound, which is what the `same_world` leg below witnesses.
+
+    R15 -- the mutations, each run and reverted:
+      * delete the new gate -> the `mismatched` leg reds, which is the defect as it shipped.
+      * refuse whenever the run names no world -> the `run_names_no_world` leg reds, and the
+        page would lose its bound for a fact about the RUN that this block cannot act on.
+      * compare against the LIVE world digest instead of the run's -> SURVIVED on the first pass,
+        and it is an EQUIVALENCE rather than a missing test, established rather than assumed:
+        every three-arm artefact on disk today is in the live world, so no pair the tree holds
+        can tell the two rules apart. Recorded here because the flattering reading is that the
+        control caught it. The `third_world` leg below is the one that separates them -- a floor
+        and a run agreeing with each other in a world that is NOT the live one, which is a state
+        this tree will reach the next time the world moves and the pair is re-run together. With
+        that leg the mutation reds.
+    """
+    floor = _load(NOISE_FLOOR)
+    three_arm = _load(THREE_ARM)
+    same_world = gva._seed_spreads(floor, three_arm)
+    assert same_world.get("available") is True, (
+        "the live pair lost its bound, so every leg below measures that instead: {}".format(
+            str(same_world.get("reason"))[:300]))
+
+    elsewhere = dict(floor,
+                     generated_at="2999-01-01T00:00:00Z",
+                     world_identity=dict(floor["world_identity"], digest="ffffffffffffffff"))
+    mismatched = gva._seed_spreads(elsewhere, three_arm)
+    assert mismatched.get("available") is False, (
+        "a spread measured in world ffffffffffffffff was published as the bound on a figure from "
+        "world {}, because it was stamped later".format(three_arm["world_identity"]["digest"]))
+    assert "ffffffffffffffff" in str(mismatched.get("reason")) and \
+        three_arm["world_identity"]["digest"] in str(mismatched.get("reason")), (
+        "the refusal does not name the two worlds it is between, so a reader cannot tell it from "
+        "the age refusal: {}".format(str(mismatched.get("reason"))[:300]))
+
+    # AND IT DOES NOT FIRE ON A FACT ABOUT THE RUN. A three-arm artefact naming no world is a gap
+    # in the RUN, and refusing the bound for it would take the page's directions away for
+    # something this block cannot establish either way.
+    run_names_no_world = gva._seed_spreads(floor, dict(three_arm, world_identity={}))
+    assert run_names_no_world.get("available") is True, (
+        "the bound was withdrawn because the RUN names no world, which this block cannot act on: "
+        "{}".format(str(run_names_no_world.get("reason"))[:300]))
+
+    # THE PAIR IS WHAT IS ASKED ABOUT, NOT THE LIVE WORLD, and this is the only leg that can tell
+    # those two rules apart -- see the equivalence recorded in the docstring. A floor and a run
+    # that agree with EACH OTHER in some world neither is today's must keep their bound: that is
+    # the superseded panel's whole shape, published on purpose beside the live one.
+    third = "cccccccccccccccc"
+    both_elsewhere = gva._seed_spreads(
+        dict(floor, world_identity=dict(floor["world_identity"], digest=third)),
+        dict(three_arm, world_identity=dict(three_arm["world_identity"], digest=third)))
+    assert both_elsewhere.get("available") is True, (
+        "a floor and a run measured in the SAME world lost their bound because that world is not "
+        "today's -- which is the live-world claim this block declines to make: {}".format(
+            str(both_elsewhere.get("reason"))[:300]))
