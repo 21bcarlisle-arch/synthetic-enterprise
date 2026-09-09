@@ -67,7 +67,8 @@ different claims that read identically in a list of three names, which is exactl
 read as a statement about the weather a household sees. A multi-dimension claim must say which.
 
 Run:  python3 -m tools.reduction_dimension            # the census, and what each claim reduces over
-      python3 -m tools.reduction_dimension --undeclared   # exit 1 if any claim in scope is silent
+      python3 -m tools.reduction_dimension --undeclared   # exit 1 if a claim outside OUTSTANDING is
+                                                          # silent; known debt prints and passes
 """
 from __future__ import annotations
 
@@ -343,8 +344,59 @@ def declaration_of(dotted: str):
     return getattr(module, DECLARATION, None)
 
 
+#: A claim whose declaration IS WRITTEN and cannot reach a commit, why, and the document whose
+#: discharge deletes the row. Not an amnesty and not a placeholder: the declaration exists, the
+#: census sees the module, and the row records that the obstruction is in another lane.
+#:
+#: WHY THIS LIST EXISTS AT ALL, and it is the reason the control is landable (measured 2026-09-09,
+#: three trees). `undeclared() == []` is STRICTER than the property this control holds, and the extra
+#: strictness is not honesty -- it is unlandability. The property, from this file's own suite: *a new
+#: claim cannot arrive silent*. Pinning the census to empty also refuses a claim whose declaration is
+#: blocked elsewhere, and there the control has no move: the tenth declaration
+#: (`simulation/weather_cell_siting.py`) selects `tests/simulation/test_weather_cell_siting.py`,
+#: which is RED AT PRISTINE HEAD on `test_derive_reproduces_the_committed_artefact` -- the committed
+#: `sim/weather_cells/site_cells.json` does not reproduce from the committed grid ({'annual_wind':
+#: 0.2062} derived against 0.2782 published). That red belongs to lane W1_market_weather. So the
+#: whole control sat uncommittable for two days, waiting on an artefact dispute it has no part in,
+#: while nine landed declarations went unguarded. A control that cannot land guards nothing.
+#:
+#: SHRINK-ONLY, AND THE ROUTE OUT IS THE ROW ITSELF. Each row names a document that must EXIST, so
+#: when W1_market_weather's artefact-cut finding is discharged and archived this control goes red and
+#: the debt is re-measured rather than inherited. The count may only fall
+#: (`test_the_outstanding_debt_is_shrink_only`); raising it in the same commit as a new silent claim
+#: is the amnesty this shape is otherwise prone to.
+OUTSTANDING: dict[str, str] = {
+    "simulation.weather_cell_siting": (
+        "the declaration is written and landing it selects tests/simulation/"
+        "test_weather_cell_siting.py, red at pristine HEAD on an artefact cut owned by lane "
+        "W1_market_weather -- docs/staging/done/SEAT_FINDING_TWO_LANES_BUILT_W1_14S_ARTEFACT_CUT"
+        "_TWICE_AND_THE_SHARED_TREE_HELD_THE_LOSING_ONE_IN_A_STATE_THAT_COULD_NOT_COLLECT"
+        "_2026-09-07.md"
+    ),
+}
+
+
+def unexpected_silence(root: Path | None = None) -> list[tuple[str, list[str]]]:
+    """Silent claims that `OUTSTANDING` does not account for. THIS is the passing state's subject:
+    empty means no claim arrived silent, which is what the census is for. A row of `OUTSTANDING`
+    that is no longer silent is a stale row rather than a failure -- `stale_outstanding` names it,
+    the CLI prints it, and it is a row to delete."""
+    return [(dotted, reasons) for dotted, reasons in undeclared(root) if dotted not in OUTSTANDING]
+
+
+def stale_outstanding(root: Path | None = None) -> list[str]:
+    """`OUTSTANDING` rows whose module now carries a declaration -- the debt is paid and the row
+    should go. NOT asserted by the suite, and the reason is the whole lesson of the finding this
+    list comes from: the shared working tree and every clean HEAD extract disagree about whether
+    `simulation.weather_cell_siting` is silent, so a leg keyed to it is green in one tree and red in
+    the other. Printed instead, because a cap nobody can see reads as coverage."""
+    silent = {dotted for dotted, _ in undeclared(root)}
+    return sorted(dotted for dotted in OUTSTANDING if dotted not in silent)
+
+
 def undeclared(root: Path | None = None) -> list[tuple[str, list[str]]]:
-    """Claim modules in scope carrying no valid declaration. Empty is the only passing state."""
+    """Claim modules in scope carrying no valid declaration. Every one is either a row of
+    `OUTSTANDING` or a defect; `unexpected_silence` is the split."""
     missing = []
     for dotted, reasons in claim_modules(root):
         found = declaration_of(dotted)
@@ -360,15 +412,21 @@ def undeclared(root: Path | None = None) -> list[tuple[str, list[str]]]:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--undeclared", action="store_true",
-                        help="exit 1 if any claim in scope declares no reduction dimension")
+                        help="exit 1 if a claim in scope declares no reduction dimension and is not "
+                             "a named row of OUTSTANDING")
     args = parser.parse_args(argv)
 
     silent = undeclared()
     if args.undeclared:
+        unexpected = unexpected_silence()
         for dotted, reasons in silent:
-            print(f"UNDECLARED  {dotted}  ({', '.join(reasons)})")
-        print(f"\n{len(silent)} claim module(s) declare no reduction dimension.")
-        return 1 if silent else 0
+            label = "DEBT      " if dotted in OUTSTANDING else "UNDECLARED"
+            print(f"{label}  {dotted}  ({', '.join(reasons)})")
+        for dotted in stale_outstanding():
+            print(f"STALE ROW   {dotted}  declares now -- delete its OUTSTANDING row")
+        print(f"\n{len(unexpected)} claim module(s) declare no reduction dimension and are not "
+              f"named debt ({len(OUTSTANDING)} outstanding row(s)).")
+        return 1 if unexpected else 0
 
     for dotted, reasons in claim_modules():
         found = declaration_of(dotted)

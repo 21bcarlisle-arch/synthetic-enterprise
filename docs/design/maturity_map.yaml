@@ -2262,16 +2262,36 @@
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  # LEVEL 0, NOT 1, AND THE CORRECTION IS THE HONEST ONE. The row was written claiming level 1 on
-  # `tests/architecture/test_a_coverage_claim_declares_what_it_reduces_over.py`, which is BUILT and
-  # passes 14/14 -- and is not at HEAD, and could not be landed with this row. It is the consumer of
-  # ten `reduction_dimension` declarations, all ten uncommitted; naming the tenth
-  # (`simulation/weather_cell_siting.py`) in a pathspec selects
-  # `test_derive_reproduces_the_committed_artefact`, which is RED AT HEAD for a reason belonging to
-  # lane W1_market_weather and its live BLOCKING artefact-cut finding. A level is a claim about
-  # evidence in the tree, so while the evidence cannot reach the tree the level is 0.
-  # Move it to 1 in the same commit that lands the control; the work is done and waiting.
-  level_current: 0
+  # LEVEL 1, AND WHAT UNSTUCK IT WAS THE CONTROL'S OWN SPECIFICATION, NOT THE BLOCKER. The row stood
+  # at 0 for two days because the control could not be committed: its live leg asserted
+  # `undeclared() == []`, and the tenth of ten declarations lives in
+  # `simulation/weather_cell_siting.py`, whose pathspec selects
+  # `tests/simulation/test_weather_cell_siting.py` -- RED AT PRISTINE HEAD on
+  # `test_derive_reproduces_the_committed_artefact` ({'annual_wind': 0.2062} derived against 0.2782
+  # published), an artefact cut owned by lane W1_market_weather. MEASURED, not inferred, in a
+  # `git worktree add --detach HEAD` extract 2026-09-09: 1 failed, 13 passed at pristine HEAD; the
+  # shared tree is 2 failed, 12 passed on two DIFFERENT tests. No state of the tree is 14/14.
+  # THE DIAGNOSIS: `== []` is stricter than the property the file's own docstring names -- "a new
+  # claim cannot arrive silent" -- and the extra strictness bought nothing and cost everything,
+  # leaving nine landed declarations unguarded while the control waited on a dispute it has no part
+  # in. `tools.reduction_dimension.OUTSTANDING` now names that one debt with the finding that
+  # discharges it, shrink-only and citation-checked. R15: four mutations, one leg each (drop the
+  # OUTSTANDING filter; add a second debt row; break the citation; remove it).
+  #
+  # CORRECTION 2026-09-09, beside the claim it replaces. This comment previously read "16 passed in
+  # the shared tree AND in a clean HEAD extract". That was false, and the word doing the damage was
+  # CLEAN: a pristine-HEAD extract is 1 failed, 15 passed, because
+  # `test_every_outstanding_row_names_a_document_that_still_exists` asserts `.exists()` on the
+  # document the single OUTSTANDING row cites -- and that document was UNTRACKED, never committed.
+  # Measured both ways in a `git worktree add --detach HEAD` extract: 16/16 with the citation copied
+  # in, 1 failed/15 passed with it removed, so the citation is load-bearing rather than incidental.
+  # THE CONSEQUENCE IS THE LANDABLE UNIT, not the count: this row's `file_scope` names two paths and
+  # a two-path commit is RED. The minimum unit is FOUR -- the two below, this map row, and
+  # docs/staging/done/SEAT_FINDING_TWO_LANES_BUILT_W1_14S_ARTEFACT_CUT_TWICE_AND_THE_SHARED_TREE_
+  # HELD_THE_LOSING_ONE_IN_A_STATE_THAT_COULD_NOT_COLLECT_2026-09-07.md, the cited document. A
+  # control whose green depends on a file no commit contains is the `uncommitted_and_orphaned_work`
+  # class wearing a passing suite, and the shared tree cannot see it because `.exists()` is true there.
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 50
@@ -2281,8 +2301,9 @@
   depends_on: []
   couples_with: [W2_21_the_premise_joint_is_fitted_not_drawn_independently]
   # EXECUTABLE CONTROLS, not directories: the census is runnable
-  # (`python3 -m tools.reduction_dimension --undeclared`, exit 1 when any claim in scope is
-  # silent) and the control is a pytest file. A `file_scope` naming `docs/design` cannot be
+  # (`python3 -m tools.reduction_dimension --undeclared`, exit 1 when a claim in scope is silent and
+  # is not a named OUTSTANDING debt row) and the control is a pytest file. A `file_scope` naming
+  # `docs/design` cannot be
   # asserted past by anything, which is why 28 of 34 level-0 rows name no control a runner can
   # execute.
   file_scope:
@@ -2306,6 +2327,12 @@
   # deliberately NOT stubbed here -- `tools/demand_vector_coverage.py` measures it and its N is
   # a FLOOR until per-household electricity exists. Items 1, 2, 4 and 5 are MINTED 2026-09-07 as
   # W2_29, W1_28, W2_30 and W2_31 below; this row carries item 3 and nothing else.
+  #
+  # WHAT LEVEL 1 IS NOT: nine of the ten declarations are at HEAD and the tenth
+  # (`simulation.weather_cell_siting`) is a named row of `OUTSTANDING`, not a covered claim. The
+  # control refuses a NEW silent claim and does not assert that every existing one has spoken. Level
+  # 2 needs that debt paid, which needs W1_market_weather's artefact cut settled -- it is the row's
+  # own citation, and archiving that finding turns this control red until somebody re-measures.
 
 - id: W2_29_the_coverage_is_re_measured_against_the_demand_vector
   title: "coverage re-measured against the demand vector under a weighted distributional acceptance test, with the dominant term named and both N figures reported"
