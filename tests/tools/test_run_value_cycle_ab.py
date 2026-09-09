@@ -3296,11 +3296,13 @@ def test_the_two_cuts_carry_their_OWN_nulls_and_the_difference_is_named_a_POPULA
     cuts = strata["the_two_cuts_the_item_asked_for"]
 
     assert cuts["the_zero_rows_excluded"]["decisions"] < cuts["the_zero_rows_included"]["decisions"]
-    assert cuts["the_zero_rows_excluded"]["null_95_interval"] is not None
-    assert cuts["the_zero_rows_included"]["null_95_interval"] is not None
+    assert cuts["the_zero_rows_excluded"]["null_95_low"] is not None
+    assert cuts["the_zero_rows_included"]["null_95_low"] is not None
     # Two samples, two intervals -- never one borrowed across both.
-    assert (cuts["the_zero_rows_excluded"]["null_95_interval"]
-            != cuts["the_zero_rows_included"]["null_95_interval"])
+    assert ((cuts["the_zero_rows_excluded"]["null_95_low"],
+             cuts["the_zero_rows_excluded"]["null_95_high"])
+            != (cuts["the_zero_rows_included"]["null_95_low"],
+                cuts["the_zero_rows_included"]["null_95_high"]))
     assert "POPULATION, not tie handling" in cuts["what_separates_them"]
 
 
@@ -3367,3 +3369,46 @@ def test_the_split_REFUSES_legs_that_do_not_NEST_and_a_run_that_predates_the_pai
     settled_only = _fh(log, records)["pair_strata"]
     assert settled_only["available"] is False
     assert "no decision at zero" in settled_only["reason"]
+
+
+def test_the_reading_carries_the_attribution_on_the_scale_that_IS_bounded():
+    """The clause the whole split rests on when the cross figure cannot be published.
+
+    THE GAP THIS CLOSES, found by mutating and watching nothing go red. The door test over this
+    block reads `site/data/value_arms.json` -- a file on disk -- so deleting the counterfactual
+    clause from this reading left it green: the feed still carried the sentence written before
+    the mutation. A control on a stored artefact cannot grade the producer that wrote it.
+
+    So it is graded here. Whenever the cross stratum's own figure is withheld, the reading must
+    still say what the estimand WOULD read with that stratum carrying no information, and must
+    place it against the estimand's own interval -- because that is the only bounded form the
+    attribution has left, and a reading that dropped it would leave "not a tie artefact" resting
+    on nothing a reader could weigh.
+    """
+    horizon = _strata_fixture(99.0, 98.0)
+    legs, zeroes = horizon["legs"], 2
+    withheld = rvca.pair_strata(legs[rvca.SETTLED_POUNDS_LEG], legs[rvca.ESTIMAND_LEG], zeroes)
+
+    # POISON ROUND: this IS the withheld branch, or the assertions below grade the other one.
+    assert withheld["strata"]["cross"]["concordance"] is None
+    assert withheld["strata"]["cross"]["concordance_withheld"] is not None
+
+    at_chance = withheld["the_estimand_if_the_cross_stratum_carried_no_information"]
+    reading = withheld["reading"]
+    assert ("%.4f" % at_chance) in reading, (
+        "the cross figure is withheld and the reading does not say what the estimand would read "
+        "without it, so the attribution reaches the reader in no bounded form at all")
+    low, high = legs[rvca.ESTIMAND_LEG]["null_spread"]["null_95_interval"]
+    assert ("%.4f" % low) in reading and ("%.4f" % high) in reading, (
+        "the counterfactual is on the page with no interval to read it against, which is the "
+        "borrowed-bound defect this block was corrected for one level up")
+    # ...and the withheld figure itself is NEVER in the sentence, or withholding it was theatre.
+    assert ("%.4f" % withheld["strata"]["cross"]["concordance_withheld"]) not in reading
+
+    # THE OTHER BRANCH, so this is not a test of one arm of an if. With the rows in hand the
+    # figure is bounded, published, and the sentence quotes it.
+    bounded = horizon["pair_strata"]
+    assert bounded["strata"]["cross"]["concordance"] is not None
+    assert ("%.4f" % bounded["strata"]["cross"]["concordance"]) in bounded["reading"]
+    assert ("%.4f" % bounded["the_estimand_if_the_cross_stratum_carried_no_information"]
+            ) in bounded["reading"]

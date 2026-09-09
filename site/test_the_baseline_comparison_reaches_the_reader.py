@@ -5062,3 +5062,141 @@ def test_MUTATION_a_leg_with_no_verdict_and_no_reason_renders_as_unread_not_as_q
     # It is NOT the resolved sentence, and the figure still renders -- an unread leg is still a leg.
     assert "A direction IS stated for this leg" not in rendered
     assert _gbp(feed["current_world"]["level_leg"]["figure_gbp"]) in rendered
+
+
+# --------------------------------------------------------------------------------------------
+# WHAT THE INVERSION IS MADE OF, ON THE SURFACE, BESIDE THE FIGURE.
+#
+# The estimand reached this page reading 0.4210 with p=0.0045 and the sentence "the ranking is
+# real and INVERTED", and nothing beside it said what produced that. The count of decisions
+# scored at zero was rendered a few lines below as a bare number, which made "a quarter of the
+# sample is tied at the floor, so it is a tie artefact" the most natural reading available on
+# the surface -- and that reading is wrong in the direction that lets us dismiss our own worst
+# finding. Pre-registered against in `docs/staging/records/SEAT_PREREGISTRATION_WHETHER_THE_
+# ESTIMANDS_INVERSION_IS_THE_TIE_MASS_OR_THE_ARM_2026-09-09.md`.
+# --------------------------------------------------------------------------------------------
+
+
+def _fh_book_with_two_departures(*zero_margins):
+    """`_fh_book`'s four settled decisions, with the departures' own margins as the free variable.
+
+    Two of them, not one: with a single zero row the tie mass is C(1, 2) = 0 pairs and the block
+    would be graded on a fixture that has no tie mass to be wrong about -- the vacuous pass this
+    whole split exists to argue against.
+    """
+    log = [_fh_priced("A%d" % i, 1.0 + i) for i in range(4)]
+    records = [_fh_settled("A%d" % i, paid=2000.0, net=100.0 * (i + 1)) for i in range(4)]
+    records.append(_fh_settled("SPECTATOR", paid=1.0, net=1.0, on="2024-01-05"))
+    events = []
+    for i, margin in enumerate(zero_margins):
+        log.append(_fh_priced("A%d" % i, margin, term="2023-01-01"))
+        events.append({"customer_id": "A%d" % i, "event_date": "2023-01-01",
+                       "event_type": "churned"})
+    return log, records, events
+
+
+def test_the_attribution_of_the_inversion_reaches_the_reader_BESIDE_the_figure():
+    """REACHABILITY FIRST, and on the LIVE feed, because the lift is the thing at issue.
+
+    A door test that builds its own feed controls the RENDER and not the LIFT: it proves the page
+    can draw a pair-stratum sentence and says nothing about whether the published feed carries
+    one. So this drives the page's own JavaScript over `site/data/value_arms.json` as shipped, and
+    requires the cross stratum's number and the estimand's number to be on the surface TOGETHER.
+    Apart, the figure gets quoted alone, which is the entire premise of the item that commissioned
+    this block.
+
+    Fires on: the producer dropping `pair_strata`; the renderer rendering it somewhere the reader
+    is not; the feed being regenerated from a run whose split refused.
+    """
+    feed = _live_feed()
+    strata = ((feed.get("method_skill") or {}).get("fixed_horizon") or {}).get("pair_strata") or {}
+    estimand = ((feed.get("method_skill") or {}).get("fixed_horizon") or {}).get("concordance")
+    if not strata.get("available"):
+        pytest.fail(
+            "the published feed carries no pair-stratum attribution ({}), so the estimand is on "
+            "the page with nothing saying what produces it -- reported as a failure and never "
+            "skipped".format(strata.get("reason") or "no reason given"))
+
+    rendered = _text(_render(feed)["arms-method"])
+    cross = strata["strata"]["cross"]
+
+    assert estimand is not None and ("%.4f" % estimand) in rendered, (
+        "the estimand's own figure is not on the page, so 'beside the figure' is not a claim "
+        "this render can support")
+    # THE FINDING ITSELF, and it is a statement about the ESTIMATOR rather than about the book:
+    # every pair among the zero rows is tied on the outcome and excluded, so the tie mass
+    # supplies none of the comparable pairs. This is the one sentence that stops the estimand
+    # being dismissed as an artefact of its own ties.
+    assert "cannot move the figure" in rendered
+    assert "NOT A TIE-HANDLING ARTEFACT" in rendered, (
+        "the live feed no longer says what the inversion is made of, so the figure above it is "
+        "on the page unexplained")
+
+    # AND THE ATTRIBUTION IS CARRIED ON A BOUNDED SCALE, never as a bare rank. Whichever way the
+    # cross stratum arrives, the page holds `test_NO_cut_ANYWHERE...`'s rule: a figure with no
+    # interval computed on its own pairs does not reach a reader. Both branches are graded here
+    # because which one the feed is in depends on the run, not on this control.
+    counterfactual = strata["the_estimand_if_the_cross_stratum_carried_no_information"]
+    assert ("%.4f" % counterfactual) in rendered, (
+        "the page does not tell the reader what the estimand would read without the cross "
+        "stratum's information ({:.4f}), which is the attribution on the only scale that "
+        "carries an interval here".format(counterfactual))
+    if cross.get("concordance") is None:
+        assert ("%.4f" % cross["concordance_withheld"]) not in rendered, (
+            "the cross stratum's figure is withheld for want of its own interval and the page "
+            "rendered it anyway")
+        assert "withheld" in rendered
+    else:
+        assert ("%.4f" % cross["concordance"]) in rendered
+        assert ("%.4f" % cross["null_95_low"]) in rendered, (
+            "the cross stratum's number is on the page without the interval that let it be "
+            "published")
+
+
+def test_the_pages_verdict_FLIPS_when_the_arm_prices_its_departures_the_other_way():
+    """KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER -- proved on the surface, not in the producer.
+
+    A page that printed "NOT A TIE-HANDLING ARTEFACT" whatever the run said would pass the control
+    above on today's feed forever. So the same fixture is driven through BOTH producers twice --
+    departures priced above every survivor, then below every one -- and the rendered text has to
+    change. Both renders come from `run_value_cycle_ab.method_skill` and
+    `generate_value_arms_data._skill_fixed_horizon`, so this cannot pass by a string the test
+    handed the page.
+    """
+    _, up = _fixed_horizon_feed(*_fh_book_with_two_departures(99.0, 98.0))
+    _, down = _fixed_horizon_feed(*_fh_book_with_two_departures(0.2, 0.1))
+    up_text, down_text = _text(_render(up)["arms-method"]), _text(_render(down)["arms-method"])
+
+    # POISON ROUND: both fixtures must actually reach the block, or the difference below is two
+    # absences rather than two readings.
+    for name, text in (("priced-up", up_text), ("priced-down", down_text)):
+        assert "comparable pairs" in text, (
+            "the {} fixture rendered no pair-stratum sentence at all".format(name))
+
+    assert "NOT A TIE-HANDLING ARTEFACT" in up_text
+    assert "NOT A TIE-HANDLING ARTEFACT" not in down_text, (
+        "the page says the inversion is the arm on a book where the arm priced its departures "
+        "BELOW the customers it kept, so the sentence is furniture rather than a reading")
+
+
+def test_a_feed_with_no_attribution_says_so_rather_than_rendering_a_blank():
+    """The third state, and it must not read as either of the other two.
+
+    "The tie mass is not the cause" and "we could not check" are opposite claims, and a page that
+    renders the second as whitespace publishes the first by omission. A run predating the split
+    has to say the figure above it stands unexplained.
+    """
+    _, feed = _fixed_horizon_feed(*_fh_book_with_two_departures(99.0, 98.0))
+    ok = _text(_render(feed)["arms-method"])
+    assert "Not attributable from this run" not in ok, (
+        "the clean render already refuses, so a hit below would not be attributable to the "
+        "removal")
+
+    stripped = copy.deepcopy(feed)
+    stripped["method_skill"]["fixed_horizon"].pop("pair_strata", None)
+    text = _text(_render(stripped)["arms-method"])
+
+    assert "Not attributable from this run" in text
+    assert "must not be quoted as a fact about the method" in text
+    # ...and the removal did not blank the block, or the assertion above is furniture.
+    assert "priced decisions are scored here" in text
