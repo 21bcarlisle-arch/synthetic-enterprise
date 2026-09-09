@@ -63,7 +63,10 @@ offered **18.50 GBP/MWh less** and the largest **1.50 less**.
 | **P4** | 2022's fall is strictly smaller than 2019's | **CONFIRMED, and to the limit — but my stated MECHANISM was incomplete.** See below |
 | **P5** | `bill_shock_count` and `satisfaction_score` stay SILENCED | **CONFIRMED.** Both 0.00 GBP/MWh. The falls are ~5 GBP/MWh and 2019's payment floor binds only below 12.0, so the arm never walks into the band that would have un-silenced them |
 | **P6** | `test_the_household_distress_channel_cannot_reach_the_price` stays GREEN | **CONFIRMED.** 7 passed. The `max()` is untouched, as intended |
-| **P7–P10** | book-side: inversion, AUC, mediation, realised sign | **NOT SETTLED HERE.** Three-arm run launched; see "What is next" |
+| **P7** | inversion softens: cross-stratum concordance into 0.28–0.40, AUC into 0.58–0.66 | **REFUTED ON BOTH LEGS, and in the opposite direction.** Concordance 0.2686 → **0.2652**; AUC 0.6667 → **0.6713**. See below |
+| **P8** | within-belief AUC stays above pooled−0.02 — *"the one I most expect to be wrong"* | **CONFIRMED.** Pooled 0.6713, within-belief **0.6643**, floor 0.6513. The gap NARROWED, 0.0154 → 0.0070 |
+| **P9** | realised net sign — **no prediction filed** | **REPORTED, NOT GRADED.** Selection **−£335.40** (was +£319.10); level share **1.0200** (was 0.9817) |
+| **P10** | what would make this item wrong | **SUBSTANTIALLY MET, not literally.** The book moved; every move is inside the noise the page already publishes. See below |
 
 ### P4 — confirmed, and my reason for it was not the operative one
 
@@ -107,13 +110,152 @@ widens that gap by 93%. **Whether that helps or hurts the inversion is exactly w
 not answerable from a response surface** — it depends on whether departures on the real book are
 small households, which this sweep cannot see.
 
+---
+
+# P7–P10, graded against the three-arm run
+
+`docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json`, generated
+**2026-09-09T21:35:40Z**, producing commit **`e1895d6c8`** — the departure term's own landing —
+world digest **`39a192ce04c1eda8`**. The run finished at 21:35Z and sat **untracked on disk for a
+day**; this section is written from it and it is landed in the same commit. Finished work that
+never left the tree is worse than work not started.
+
+## First: the pre-registration named the wrong comparison artefact
+
+P7's baseline figures are quoted as coming from
+`docs/observability/value_cycle_ab_s1_three_arm_20260909.json`. **The cross-stratum concordance
+0.2686 is not in that file and never was** — it has no `method_skill.fixed_horizon.pair_strata`
+block at all, because the block was built after that run. 0.2686 lives in
+`value_cycle_ab_s1_three_arm_20260909b.json` (producing commit `8b846013e`, generated 13:15Z).
+
+**This does not invalidate the comparison and it is recorded rather than quietly corrected.** The
+`b` run carries the **same world digest `39a192ce04c1eda8`** and the same seed as the departure
+run, and its own `level_vs_selection` and `method_skill.concordance` are identical to the named
+artefact's to every published place — the two are the same world re-read by a later producer. So
+the baseline is sound and the address written on it was wrong. *A prediction that names the wrong
+file is still a prediction; one whose figure cannot be found in any file is not.*
+
+The margin-against-departure AUC baseline (0.6667 pooled, 0.6513 within belief quartiles) is in no
+artefact at all: it was computed ad hoc in the turn that filed
+`SEAT_RESULT_THE_ARM_PRICES_UP_A_YEAR_NOT_A_HOUSEHOLD_AND_CANNOT_HEAR_DISTRESS_AT_ALL_2026-09-09.md`.
+**Before grading anything against it I re-ran the same statistic on the old artefact and reproduced
+0.6667 over 3,320 pairs and 0.6513 over 783, with mean margins 48.98 against 34.30** — every figure
+to four places and both pair counts. Only then was it applied to the new run. A baseline I cannot
+reproduce is not a baseline, and grading against one would be grading against a memory.
+
+## P7 — REFUTED on both legs, and the direction is the finding
+
+| | baseline | predicted | observed | |
+|---|---:|---|---:|---|
+| cross-stratum concordance | 0.2686 | rise into **0.28–0.40** | **0.2652** | **REFUTED** — fell 0.0034 |
+| …stated as the 73% | 73.14% | fall into **60–72%** | **73.48%** | **REFUTED** — rose |
+| margin-against-departure AUC | 0.6667 | fall into **0.58–0.66** | **0.6713** | **REFUTED** — rose 0.0046 |
+
+I predicted the inversion would **soften and not close**. It did neither: on all three readings it
+**very slightly hardened**. The arm still gives the customer it is about to lose the higher margin,
+and after paying £27.50 for each departure it does so marginally more often than before.
+
+**The mechanism is in the same artefact and it is not subtle.**
+
+| | before | after |
+|---|---:|---:|
+| priced renewals | 214 | 215 |
+| decided by the lawful Ofgem ceiling | 143 | **138** |
+| decided by the churn model's support frontier | 1 | 1 |
+| **chosen freely** | **70** | **76** |
+| share decided by a bound | 0.6729 | **0.6465** |
+| median margin, freely chosen | 45.0 | **35.0** |
+| median margin, ceiling-decided | 12.0 | 12.0 |
+
+The departure term worked exactly as the function sweep said it would — **on the decisions it can
+reach**. It pulled the freely-chosen median down by **10.00 GBP/MWh** and released **six** renewals
+from the cap. But **139 of 215 answers are still set by a bound**, and on those the term is
+arithmetically incapable of moving anything: a price pinned to the Ofgem ceiling does not care what
+a departure costs. P7 assumed a tenth-sized nudge to the objective would produce a tenth-sized
+nudge to the book. **It cannot, when two thirds of the book's prices are not being chosen by the
+objective at all.** That is the operative reason and I did not have it when I wrote the prediction.
+
+## P8 — CONFIRMED, and it was the one I said I most expected to be wrong
+
+Pooled AUC **0.6713**, within-belief-quartile pooled **0.6643** over 782 pairs, against a stated
+floor of pooled−0.02 = **0.6513**. The belief still fails to mediate the arm's own price — and the
+gap **narrowed**, from 0.0154 to 0.0070. Making the objective *more* sensitive to `p_retain` made
+belief a *worse* explanation of price, not a better one, which is the opposite of the reason I gave
+for expecting the prediction to fail. **Consistent with P7's mechanism**: the ceiling, not the
+belief, is what sets most of these prices, and adding a belief-weighted term to an objective that
+is not binding cannot make belief a better statistic for the answer.
+
+## P9 — reported, and it was correctly not predicted
+
+Declining to predict this was right: the sign flipped.
+
+| `level_vs_selection`, settled-realised clock | before | after |
+|---|---:|---:|
+| control arm net | £147,954.26 | £147,886.78 |
+| value arm net | £165,398.23 | £164,680.47 |
+| level arm net | £165,079.13 | £165,015.87 |
+| value advantage | £17,443.97 | £16,793.69 |
+| **selection** | **+£319.10** | **−£335.40** |
+| **level share of advantage** | 0.9817 | **1.0200** |
+
+**The sign of the selection leg flipped and this settles nothing about the sign.** The move is
+£654.50 on a quantity whose own nine-seed spread in this same world is **±£1,810.50**, with re-draws
+running from −£3,036.25 to +£1,260.93 — a family that already straddles zero. This is **one draw**,
+and one draw moving a third of a standard deviation is what one draw does. `site/data/value_arms.json`
+already withholds a verdict on that leg for exactly this reason and it still should.
+
+The method-skill reading agrees, and note that it is **a different statistic from P7's**:
+`method_skill.concordance` ranks the arm's price against realised value **created** per priced
+term, where P7's cross-stratum concordance ranks it against **departure**. It moved 0.5338 →
+**0.5442** and remains **inside the null interval** [0.4496, 0.5506] (p 0.1907 → 0.0854, 20,000
+permutations at seed 20260828). This run does not distinguish the method from chance in either
+direction, before or after.
+
+## P10 — substantially met, and the literal antecedent is not what happened
+
+P10 said: if P1 and P2 hold but P7 fails **in the direction of no book-side movement at all**, the
+honest verdict is "this changed nothing that matters". P1 and P2 hold. P7 failed. **But not in the
+shape P10 named** — the book did move: six decisions off the cap, the freely-chosen median down
+10.00 GBP/MWh, the selection leg through zero, value-arm net down £717.76.
+
+**Every one of those moves is inside the noise this page already publishes**, and the two that
+speak to the item's own question — the inversion and the selection leg — moved the wrong way and
+by less than a re-draw. So P10's *substance* is met by a route it did not anticipate: not "the term
+reaches the function and not the book", but **"the term reaches the function decisively, reaches
+the book measurably, and reaches the QUESTION not at all"**. Recorded this way rather than ticked,
+because a prediction that is right about the conclusion and wrong about the road is the shape that
+gets quoted as understanding — the same correction P4 needed above.
+
+## What this run cannot settle, and what it now says to do
+
+One world, one seed, 215 priced decisions, 124 scored. Nothing here carries an account-level
+standard error and the AUC pairs are clustered on 73 accounts.
+
+**The ranked next step changes on this evidence.** The noisy-OR was already step 1 of three, and
+this run raises its priority rather than confirming a plan: **while 65% of the arm's answers are
+set by the lawful cap, no change to the objective can be measured on the book.** Any further work
+on the objective — the noisy-OR included — should expect the same result on the same population
+unless it moves decisions off the ceiling. `bound_attribution.what_would_change_this` says what
+would, and says correctly that it is a **fidelity** change that must be decided blind to what it
+does to this delta.
+
+---
+
 ## The honest verdict on the item's own question
 
 The item asked whether this could move the selection leg off zero. **On the function: yes,
 decisively — the term is roughly a tenth of the objective and it changes eight of nine answers.
-On the book: not yet established, and this result does not claim it.** What is settled is that the
-old objective was not a simplification but a missing cost line, and that a departure now costs the
-arm the sourced price of replacing the customer instead of zero.
+On the book: it moved the leg from +£319.10 to −£335.40, and that answers nothing, because the
+same leg re-drawn nine times in this world runs from −£3,036.25 to +£1,260.93.** The leg was not
+moved off zero; it was moved by less than a third of its own noise, and it has no sign to be moved
+off.
+
+What is settled is that the old objective was not a simplification but a missing cost line; that a
+departure now costs the arm the sourced price of replacing the customer instead of zero; and — the
+part I did not know when this section was first written — **that the arm's answers are mostly not
+the objective's answers at all.** 139 of 215 are set by the lawful cap or the model's support
+frontier. That is why a tenth-sized change to the objective bought a book-side movement
+indistinguishable from a re-draw, and it is the reading that should govern what is attempted next.
 
 ## What is still wrong, said plainly
 
@@ -158,7 +300,17 @@ row that moves proves the term *can* reach the price at these inputs and says no
 often it does. Direction, not magnitude, on everything book-side — which is not measured here at
 all.
 
-## THE RUN IS IN FLIGHT — this document is its address
+## THE RUN IS LANDED — this document was its address
+
+**Superseded 2026-09-10: the run completed at 21:35:40Z on 2026-09-09 and is graded above.** Its
+artefact then sat **untracked** — invisible to git, to origin and to every reader — until this
+commit. The liveness claim below did its job; nothing was watching for the *finished* artefact to
+be filed, which is the second time in three days a completed run stayed in the tree. The launch
+record and the deadman both key on the job being alive, so **a job that succeeds and writes an
+untracked artefact looks exactly like a job that is done.** Recorded here rather than as a separate
+finding, because the remedy belongs to whoever next builds a launch record and not to a register.
+
+The original in-flight block, kept as written:
 
 `background.launch_long_job` was given this file as `--asserted-live-by`, so
 `launch_liveness --check` and the deadman re-ask the claim against this paragraph. It is stated
@@ -184,14 +336,19 @@ that wrote no artefact reads exactly like one still working.
 
 ## What is next, ranked
 
-1. **The three-arm run, against predictions already landed.** P7 (cross-stratum concordance
-   0.2686 → 0.28–0.40, the 73% into 60–72%; AUC 0.6667 → 0.58–0.66, not reaching 0.50), P8 (the
-   within-belief gap survives — *the one I most expect to be wrong*), P9 (**no prediction** on the
-   realised sign), P10 (what "this changed nothing" would look like). Those are at `8a1164c5e` and
-   are unreadable-ahead by construction, so whoever grades them inherits a real pre-registration.
-2. **The noisy-OR.** Step 1 of the finding's three, and the only one that reaches 2022 and the
-   silenced distress channel. It changes every churn estimate in the tree and needs its own
-   three-arm run.
+1. ~~**The three-arm run, against predictions already landed.**~~ **DONE — graded above.** P7
+   refuted on both legs and in the opposite direction, P8 confirmed, P9 reported, P10 met by a
+   route it did not name. The artefact is landed in the same commit as this grading.
+2. **The bound, ahead of the noisy-OR — and this is a change of order made on the evidence.**
+   139 of 215 priced answers are set by the lawful ceiling or the support frontier, so **no change
+   to the objective can be measured on this book until fewer of them are.** The noisy-OR is still
+   step 1 of the finding's three and still the only repair that reaches 2022 and the silenced
+   distress channel — but run on this population it should be expected to produce exactly what the
+   departure term produced: a decisive move on the function and a re-draw-sized move on the book.
+   `bound_attribution.what_would_change_this` names the only honest lever, and names it as a
+   **fidelity** change that must cite a published source and be decided blind to what it does to
+   this delta (R13, R12). **Establishing whether any defensible churn curve makes the optimum
+   interior below the cap is the question, and if none does, that is the answer.**
 3. **The practitioner question, raised on NTFY while this ran.** A retention desk that cannot see
    arrears is odd against how the trade actually works and no published source will say so. That is
    the director's side of the knowledge layer and it is not a thing to build on unasked.
