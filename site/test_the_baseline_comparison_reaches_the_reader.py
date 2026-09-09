@@ -1852,6 +1852,56 @@ def test_the_departures_reach_the_reader_by_name_once_a_run_carries_them():
     assert "not listed" not in rendered
 
 
+def _feed_whose_current_world_block_speaks() -> dict:
+    """A feed the producer composes a current-world CLAUSE for, built from real runs on disk.
+
+    ITS SUBJECT IS A CONSTRUCTED FEED, NOT THE LIVE ONE (2026-09-09), and for the reason this
+    file already records one directory down: a control whose subject is a state the live publish
+    happens to be in stops existing the day the publish moves, and gets quietly dropped with it.
+    `_current_world_clause` composes nothing at all unless the current-world block is the LATER of
+    the two runs the page carries. On 2026-09-09 the 2026-09-08 21:01Z re-take was promoted onto
+    the canonical name `THREE_ARM_PATH` reads -- later than the 00:19Z run on
+    `CURRENT_WORLD_THREE_ARM_PATH` -- so the live feed's clause is empty by design and the two
+    mutation rungs below had no sentence to mutate.
+
+    THE PAIRING IS NAMED HERE AND THE PROSE IS STILL THE PRODUCER'S. The runs are read off disk
+    and handed to the real `build`, so every sentence these rungs mutate is composed by the
+    module under test and never authored in this file -- the distinction "a mutation-proven branch
+    that never met the producer's real prose" was written for. What this helper fixes is only
+    WHICH two runs are paired, so that the ordering the clause needs is a property of the fixture
+    rather than of today's publish.
+
+    THE LIVE FEED'S OWN STATE IS STILL CONTROLLED, in
+    `test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_resolved`, which
+    asserts all three of its states -- unavailable, available-and-later, available-and-not-later --
+    against the rendered page. This helper is for the render, that rung is for the lift.
+    """
+    from tools import generate_value_arms_data as gvad
+
+    # THE 2026-08-31 RUN, PINNED BY ITS DATED NAME because what is wanted from it is its STAMP: it
+    # predates every live-world re-take, which is the only property that makes the current-world
+    # block the later of the two. Naming `gvad.THREE_ARM_PATH` would be naming whichever run was
+    # last PROMOTED onto the canonical file, and that is exactly the thing this helper must not
+    # depend on -- on 2026-09-09 that path holds the 21:01Z re-take and would invert the fixture.
+    earlier = SITE.parent / "docs" / "observability" / "value_cycle_ab_s1_three_arm_20260831.json"
+    if not earlier.is_file():
+        pytest.fail("{} is missing -- this fixture's subject is UNAVAILABLE, and an unavailable "
+                    "check is a FAILED check (R15)".format(earlier))
+    feed = gvad.build(
+        json.loads(earlier.read_text(encoding="utf-8")),
+        json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
+        None, None,
+        json.loads(gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8")),
+        json.loads(gvad.CURRENT_WORLD_NOISE_FLOOR_PATH.read_text(encoding="utf-8")))
+    cw = feed.get("current_world") or {}
+    if not cw.get("available") or cw.get("is_the_later_run") is False:
+        pytest.fail(
+            "the committed runs no longer pair into a spoken current-world block ({}), so the "
+            "rungs below would pass by having nothing to mutate".format(
+                cw.get("why_not") or cw.get("why_the_headline_omits_it")))
+    return feed
+
+
 def _row(bucket: dict) -> str:
     """One believed-retention band as a reader reads across it, in `_text`'s collapsed form.
 
@@ -3185,6 +3235,24 @@ def test_the_figure_from_the_world_that_is_live_reaches_the_reader_and_never_as_
             "in that world was readable ({})".format(cw.get("why_not")))
         return
 
+    # THE THIRD STATE, AND IT IS NEITHER OF THE OTHER TWO (2026-09-09). A block can be available,
+    # in this world, fully bounded -- and still not be the LATER of the two runs the page carries,
+    # which is what happened when the 21:01Z re-take was promoted onto `THREE_ARM_PATH`'s
+    # canonical name and left the current-world constant on the 00:19Z run. Its figures are
+    # honestly measured and stay on the page; what it may not do is call itself now. Asserted
+    # rather than skipped, because "the page says nothing about now" is exactly the reassuring
+    # silence this rung exists to refuse.
+    if cw.get("is_the_later_run") is False:
+        assert "IN THE WORLD AS IT IS NOW" not in rendered, (
+            "the headline claims currency for a run taken at {} while the panel below it was "
+            "taken LATER, at {} -- so a reader is told the newer figure is the history".format(
+                cw.get("generated_at"), cw.get("superseded_generated_at")
+                or "a later stamp the feed does not carry"))
+        assert cw.get("why_the_headline_omits_it"), (
+            "the headline is silent about the current-world block and the feed states no reason "
+            "for it, which is silence a reader cannot tell from having nothing to say")
+        return
+
     advantage = cw.get("value_advantage_gbp")
     assert isinstance(advantage, (int, float)), (
         "the current-world block is available and carries no advantage figure, so the page has "
@@ -3358,12 +3426,17 @@ def test_MUTATION_a_verdict_rendered_under_the_other_legs_lead_is_caught_and_the
     """
     from tools import generate_value_arms_data as gvad
 
-    feed = copy.deepcopy(_live_feed())
+    # THE PAIRING THAT MAKES THE CLAUSE EXIST, not the live feed (2026-09-09). The clause is
+    # composed only when the current-world block is the LATER of the two runs on the page, and
+    # promoting the 21:01Z re-take onto the canonical name made it the older one -- so the live
+    # feed's clause went empty by design and this rung had no sentence to splice a mirror into.
+    # `_feed_whose_current_world_block_speaks` names the pairing once, for both rungs.
+    feed = copy.deepcopy(_feed_whose_current_world_block_speaks())
     cw = feed["current_world"]
     original = gvad._current_world_clause(cw)
     assert original and original in feed["headline"], (
-        "the published headline does not contain the clause its own producer composes from the "
-        "published feed, so this rung cannot splice a mirror into it")
+        "the headline does not contain the clause its own producer composes from the same feed, "
+        "so this rung cannot splice a mirror into it")
 
     mirrored_world = copy.deepcopy(cw)
     leg = mirrored_world["selection_leg"]
@@ -3419,14 +3492,14 @@ def test_MUTATION_an_unbounded_current_figure_is_never_rendered_bare():
     tidier and is the fail-open. Run against the builder rather than the door so it needs no
     browser, and asserted on the composed headline, which is what the door renders.
     """
-    from tools import generate_value_arms_data as gvad
-
-    # THE MODULE'S OWN PATHS, not a second copy of them here. A path written down twice is a path
-    # that goes stale in one place, and this rung would then measure a file the page never reads.
-    three_arm = json.loads(gvad.THREE_ARM_PATH.read_text(encoding="utf-8"))
-    current = json.loads(gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8"))
-    floor = json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8"))
-    built = gvad.build(three_arm, floor, None, None, current)
+    # THE PAIRING THAT MAKES THE CLAUSE EXIST, not `THREE_ARM_PATH` and its neighbour (2026-09-09).
+    # This built its subject from the module's own primary path on the reasoning that a path
+    # written down twice goes stale in one place. True, and it missed a second dependency: the
+    # clause is composed only when the current-world block is the LATER of the two runs, and the
+    # 21:01Z re-take was promoted onto that path. So the subject went silent and this rung red on
+    # a page that had become MORE honest -- a control keyed to today's pairing rather than to the
+    # property. `_feed_whose_current_world_block_speaks` names the pairing once, for both rungs.
+    built = _feed_whose_current_world_block_speaks()
     headline = built["headline"]
     cw = built["current_world"]
     assert cw["available"], "the committed current-world artefact no longer names the live world"
