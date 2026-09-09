@@ -30,24 +30,41 @@ HARNESS_AUTOCREATES_THE_ELEMENT_A_DELETED_PARAGRAPH_WOULD_LOSE_2026-08-29.md`). 
 here is therefore also asserted to exist in the page's own markup, against the file, before its
 rendered content is judged. Without that half, deleting `<div id="r-headline">` passes.
 
-THE SHADOW ENTRIES, and why they are a measurement rather than an exclusion. Six keys in
-`pages` are rendered by nothing: `gb-electricity-market`, `merit-order-residual-demand`,
+THE SHADOW ENTRIES ARE GONE, and the exception list went with them. Six keys in `pages` used to
+be rendered by nothing -- `gb-electricity-market`, `merit-order-residual-demand`,
 `gas-wholesale`, `carbon-price`, `imbalance-cashout-settlement` and `hedging-forward-market`
-each have a per-page json that their html actually fetches, and a SECOND, DIFFERENT body in the
-consolidated file. Measured 2026-08-30: all seven rungs differ on all six pages, and the
-consolidated copies are the older draft (`last_verified` 2026-08-19 against the live pages'
-2026-08-24). Nothing published is wrong today -- the reader gets the newer text -- but anyone
-completing the migration the record's own `_note` invites would silently revert six pages to a
-draft eleven days stale. Filed as `WORKER_FINDING_THE_CONSOLIDATED_KNOWLEDGE_RECORD_HOLDS_A_
-SECOND_STALER_COPY_OF_SIX_PAGES_2026-08-30.md`, not fixed on sight. They are enumerated here so
-that the gap is a NUMBER this file prints rather than an absence nobody counts.
+each had a per-page json that their html actually fetches, and a SECOND, DIFFERENT body here.
+Declared rather than fixed on 2026-08-30 (`WORKER_FINDING_THE_CONSOLIDATED_KNOWLEDGE_RECORD_
+HOLDS_A_SECOND_STALER_COPY_OF_SIX_PAGES_2026-08-30.md`) so the gap was a number this file
+printed. Re-measured 2026-09-09: still all seven rungs differing on all six, two of them
+differing in the page TITLE, and the per-page copy carrying every field its shadow did -- so
+the six were DELETED from the record rather than kept under a declaration.
 
-R15 MUTATIONS, both run against a copy of the tree:
+Why deletion beat declaration. A declared exception makes the trap visible; it does not disarm
+it. The record's own `_note` invites the migration, and the body a migrator would reach for was
+the older draft sitting right there under the right key. Nothing published was ever wrong --
+the reader always got the newer text -- and that is precisely what made it dangerous, because
+the copy nobody reads is the copy that can rot with no reader to notice. Removing it collapses
+one fact to one home, which is the only remedy this project has ever found for that shape.
+
+What replaced the list is a STRONGER claim, not a weaker one: the record's key set must EQUAL
+the scanned consumer set. Before, six named keys were permitted to render nowhere and a seventh
+would have been caught; now none is permitted. A future migration is still welcome and is still
+a content change -- register the page's key here with the body its page serves TODAY, never the
+body git shows used to be here.
+
+R15 MUTATIONS, all run against a copy of the tree:
   * point one page's `pages[...]` lookup at another page's slug ->
     `test_each_page_renders_its_own_headline_and_not_a_neighbours` reds; the fail-closed branch
     does not catch it, because the fetch succeeded and a body rendered.
   * delete `<div id="r-headline">` from one page -> `test_every_rendered_id_exists_in_the_markup`
     reds while every render assertion still passes, which is the whole reason that test exists.
+  * add a key to `pages` that no page fetches -> `test_the_record_holds_exactly_the_pages_that
+    _render_it` reds. This is the leg that used to be satisfiable by writing the new key into
+    SHADOW_ENTRIES, and it is why the exception list had to go rather than be emptied in place.
+  * drop a consumer's key from `pages` -> the SAME test reds on the other side, before the
+    render tests reach it. Both directions of one equality, proven separately, because a
+    subset test in either direction passes the mutation aimed at the other.
 
 NOT a check on the CONTENT of any page. What a page says is graded by its sources; this grades
 only that what it says reaches the reader.
@@ -75,16 +92,9 @@ RENDERED_IDS = ("hero-sub", "r-headline", "r-plain", "r-theory", "r-shape",
 #: rather than by a blank string an empty rung would also produce.
 FAIL_CLOSED = "is not in the consolidated Knowledge file"
 
-#: Keys in the record that NO page renders, each with a per-page json its html fetches instead.
-#: See the module docstring. Shrinking this set is the migration; growing it is a regression.
-SHADOW_ENTRIES = {
-    "gb-electricity-market",
-    "merit-order-residual-demand",
-    "gas-wholesale",
-    "carbon-price",
-    "imbalance-cashout-settlement",
-    "hedging-forward-market",
-}
+#: There is deliberately NO exception set here. Six keys once sat in one and were deleted from
+#: the record on 2026-09-09; see the module docstring. A key that renders nowhere is now a red,
+#: not a row.
 
 
 def _record() -> dict:
@@ -117,29 +127,47 @@ def _render(slug: str) -> dict:
 
 
 def test_the_consumer_set_has_not_emptied():
-    """POPULATION FLOOR, dated 2026-08-30: three pages read the record.
+    """POPULATION FLOOR, raised 2026-09-09: five pages read the record. It was three.
 
     A scan that finds nothing passes every parametrized test below by having no subjects. This
     is the one assertion that cannot be satisfied by the scan's own blindness. Raise the floor
     when pages are migrated; never lower it without saying which page stopped reading the record.
+
+    Raised on the ordinary ground that five is the measured truth and three was two years of
+    slack. NOT, as this docstring first claimed, because the equality above would otherwise pass
+    vacuously on an emptied record: poisoned on 2026-09-09 by emptying `pages` in a clean
+    extract, the equality reds on all five consumers and THIS test still passes. The consumer
+    set is scanned from html and does not empty when the record does, so the equality has no
+    vacuous case for this floor to cover. Kept as written, with the wrong reason recorded beside
+    the right one -- the floor's real job is the parametrized tests below, which genuinely do
+    pass by having no subjects.
     """
     consumers = _consumers()
-    assert len(consumers) >= 3, f"only {len(consumers)} pages read the record: {consumers}"
+    assert len(consumers) >= 5, f"only {len(consumers)} pages read the record: {consumers}"
 
 
-def test_the_shadow_entries_are_exactly_the_unrendered_keys():
-    """Every key in the record is either rendered by a page or a DECLARED shadow entry.
+def test_the_record_holds_exactly_the_pages_that_render_it():
+    """The record's key set EQUALS the scanned consumer set. No exceptions, either direction.
 
-    Keyed to the property, not to today's answer: adding a page renders it or forces it to be
-    declared, and migrating a page forces the declaration to be withdrawn -- at which point
-    whoever migrates it is looking at this docstring, which tells them the consolidated copy is
-    the older draft and that the migration is a content change, not a plumbing change.
+    Keyed to the property, not to today's answer, and to BOTH halves of it because a subset
+    test in one direction is blind to the mutation aimed at the other:
+
+      * a key no page fetches is a second home for a fact -- the shape that put six stale
+        bodies in here for eleven days with no reader to notice them rotting;
+      * a consumer with no key takes the page's fail-closed branch, which the render tests
+        below also catch, but this one names the cause instead of the symptom.
+
+    Neither side can pass vacuously, and that was poisoned rather than assumed: emptying
+    `pages` in a clean extract reds this test on all five consumers, because the consumer set
+    comes from the pages' own html and does not empty when the record does.
     """
     keys = set(_record()["pages"])
-    unrendered = keys - set(_consumers())
-    assert unrendered == SHADOW_ENTRIES, (
-        f"unrendered record keys are {sorted(unrendered)}, declared {sorted(SHADOW_ENTRIES)}; "
-        f"a new undeclared key renders nowhere, and a withdrawn one is a content change")
+    consumers = set(_consumers())
+    assert keys == consumers, (
+        f"keys no page renders: {sorted(keys - consumers)}; "
+        f"pages fetching the record with no key: {sorted(consumers - keys)}. "
+        f"An unrendered key is a second home for a fact -- delete it, or migrate its page and "
+        f"copy the body that page serves TODAY. A missing key is a fail-closed page.")
 
 
 @pytest.mark.parametrize("slug", _consumers())
