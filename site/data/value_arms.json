@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T18:27:43.531964Z",
+  "generated_at": "2026-09-09T20:54:47.130927Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -328,10 +328,10 @@
     "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
     "short": "62334dc76",
     "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": "39065da9d64ed9cdcf2e69ea6dd76e309b0d1f1d",
+    "publishing_tree_commit": "aac7da7e2f4bad417532fab4d10c5181f033ee01",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76 and published from 39065da9d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 62334dc76 and published from aac7da7e2 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -359,6 +359,14 @@
     "ran_in_world": "39a192ce04c1eda8",
     "generated_at": "2026-09-08T00:19:54Z",
     "producing_commit": "04361d6c7a01c3c55554762eb247aad40bc69d70",
+    "bound_tree_pairing": {
+      "rule": "producing_commit",
+      "same_tree": false,
+      "floor_producing_commit": "c066c114b4746d9fa6a16da1848ef1f2c610c9e1",
+      "figure_producing_commit": "04361d6c7a01c3c55554762eb247aad40bc69d70",
+      "why_this_rule": "THIS SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY DIFFERENT CODE: the floor at c066c114b, the run it bounds at 04361d6c7. Neither is thereby wrong and both name the same world -- what is not true of them is that the width below and the number beside it are two readings of one tree.",
+      "caveat": "HOW LARGE THAT CODE DIFFERENCE IS IS NOT STATED HERE, and it is not stated because this page cannot measure it: sizing it needs the same seed drawn under both trees, and only re-running the arms under the floor's tree removes it rather than estimating it. Until then the direction this bound gates on -- does the family of re-draws cross zero -- is the claim to read, and the width itself is the claim to read carefully."
+    },
     "value_advantage_gbp": 17738.642093000002,
     "level_advantage_gbp": 17468.435006000014,
     "selection_gbp": 270.20708699998795,
@@ -595,10 +603,10 @@
       "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
       "short": "62334dc76",
       "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": "39065da9d64ed9cdcf2e69ea6dd76e309b0d1f1d",
+      "publishing_tree_commit": "aac7da7e2f4bad417532fab4d10c5181f033ee01",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76 and published from 39065da9d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 62334dc76 and published from aac7da7e2 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -647,11 +655,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": true,
-      "same_supplier": false,
-      "published_run_net_gbp": 147886.781507,
-      "gap_gbp": -67.4741540007235,
-      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.47. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "checked": false,
+      "same_supplier": null,
+      "published_run_net_gbp": 131289.339938,
+      "dashboard_net_gbp": 147886.78,
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3147,886.78 -- a gap of \u00a316,597.44 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
     }
   },
   "provisioned": {
@@ -719,6 +727,14 @@
       "figure_declared_book": null,
       "refusal": null,
       "why_this_rule": "THE BOUND ON THIS FIGURE WAS ADMITTED BY ITS DATE, NOT BY THE BOOK IT WAS DRAWN OVER: this noise floor carries no book identity of its own -- it was drawn before its producer recorded one. A date is a proxy for that question and it is wrong in BOTH directions -- measured on this page's own artefacts, it has refused a pair proven to be the same world, and admitted a floor drawn over a different one on a single second of stamp order. Read this bound as paired by when it was taken and not by whom it was taken over. A noise floor produced since `run_value_cycle_ab.floor_book_identity` landed declares its own population, and this page pairs on that instead the moment one reaches it."
+    },
+    "floor_tree_pairing": {
+      "rule": "producing_commit",
+      "same_tree": false,
+      "floor_producing_commit": "c066c114b4746d9fa6a16da1848ef1f2c610c9e1",
+      "figure_producing_commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
+      "why_this_rule": "THIS SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY DIFFERENT CODE: the floor at c066c114b, the run it bounds at 62334dc76. Neither is thereby wrong and both name the same world -- what is not true of them is that the width below and the number beside it are two readings of one tree.",
+      "caveat": "HOW LARGE THAT CODE DIFFERENCE IS IS NOT STATED HERE, and it is not stated because this page cannot measure it: sizing it needs the same seed drawn under both trees, and only re-running the arms under the floor's tree removes it rather than estimating it. Until then the direction this bound gates on -- does the family of re-draws cross zero -- is the claim to read, and the width itself is the claim to read carefully."
     },
     "world_measured_in": "39a192ce04c1eda8",
     "world_caveat": null,

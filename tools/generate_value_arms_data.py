@@ -880,6 +880,102 @@ def _floor_admission(floor: dict, three_arm: dict) -> dict:
     }
 
 
+def _floor_tree_pairing(floor: dict, three_arm: dict) -> dict:
+    """WHETHER THE SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY THE SAME CODE.
+
+    THE DEFECT (2026-09-09). `CURRENT_WORLD_NOISE_FLOOR_PATH` was moved alone onto the nine-seed
+    floor to close a worse defect -- the page was publishing two selection spreads at two sample
+    sizes, n=9 in `contrast_bounds` and n=3 in the leg that is the whole thesis. That move was
+    right and it left a smaller split in its place: the floor is `c066c114b`'s and the arms it
+    bounds are `04361d6c7`'s. The constant's own comment measures what that costs -- on the three
+    seeds the two floors share, the SAME seed in the SAME world returns a `selection_gbp` that
+    differs by +38.96 to +61.38 under the two trees -- and that measurement lives in a source
+    comment where no reader of the page can reach it.
+
+    IT IS THE ONE PAIRING QUESTION NOTHING HERE ASKED. `_current_world_bound` gates a bound on
+    five things and its own docstring says what they have in common: "every one of them is about
+    the DENOMINATOR's provenance" -- this world, this leg, this contrast, a real timestamp, real
+    seed rows. `_staleness_caveat` asks whether the two runs were contemporaneous;
+    `_floor_admission` asks whether they were drawn over the same book. None of the seven asks
+    whether they were drawn by the same CODE, and two artefacts cannot be diffed into that answer:
+    both sides of such a diff are outputs and the question is about the tree. `_producing_commit`
+    already asks exactly this of the artefact against the PUBLISHING tree and says so on the
+    surface when they differ. This asks it of the two artefacts that get divided into a verdict.
+
+    STATED UNCONDITIONALLY, ON ALL THREE BRANCHES. A reader told nothing when the two trees match
+    cannot tell that silence from the page never having asked -- the rule `_floor_admission`'s
+    render already follows, for the same reason. So `why_this_rule` is always a sentence and
+    `caveat` carries the amber only when there is something to be amber about.
+
+    IT DOES NOT SIZE THE DIFFERENCE, AND THE REFUSAL IS THE POINT. The +38.96..+61.38 above was
+    measured by comparing two FLOOR artefacts that share three seeds, which is a comparison this
+    page cannot make in general: it has one floor in hand, not two, and the superseded floor it
+    can see is read for its date and its world and never for a number. A figure derived from
+    whichever second artefact happened to be on disk would be a bound that changes when an
+    unrelated file lands. So the page states that the width and the number are not two readings
+    of one tree, names both trees, and says what would remove the difference rather than
+    publishing an estimate of it.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S PAIR. Nothing here asserts that today's floor and
+    today's arms differ. It asserts that a bound is published with the trees that drew both sides
+    or as an unknown -- so the day the arms are re-run under the floor's tree this goes quiet with
+    nobody editing a string, and the day either constant moves again it speaks up on its own.
+    """
+    floor_commit = ((floor or {}).get("producing_commit") or {}).get("commit")
+    figure_commit = ((three_arm or {}).get("producing_commit") or {}).get("commit")
+
+    def _short(commit):
+        return commit[:9] if isinstance(commit, str) and commit.strip() else None
+
+    floor_short, figure_short = _short(floor_commit), _short(figure_commit)
+    if not floor_short or not figure_short:
+        # UNSTAMPED IS ITS OWN ANSWER AND NEVER THE FLATTERING ONE. A missing stamp on either side
+        # is not evidence the trees agree, and defaulting `same_tree` to True here would make the
+        # oldest artefacts on this page -- the ones that predate the stamp entirely -- render as
+        # the cleanest pairing on it.
+        which = ("neither the floor nor the run it bounds carries one"
+                 if not floor_short and not figure_short else
+                 "the floor carries no such stamp" if not floor_short else
+                 "the run it bounds carries no such stamp")
+        return {
+            "rule": "unstamped",
+            "same_tree": None,
+            "floor_producing_commit": floor_commit,
+            "figure_producing_commit": figure_commit,
+            "why_this_rule": (
+                "WHETHER THIS SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY THE SAME CODE CANNOT "
+                "BE TOLD FROM THIS PAGE: {which}. A run takes hours and the tree moves under it, "
+                "so this is read as an unknown and never as a match.").format(which=which),
+            "caveat": (
+                "THE BOUND BELOW AND THE FIGURE IT BOUNDS CANNOT BE SHOWN TO SHARE A CODE TREE. "
+                "Read the width as a bound whose provenance is short by one question, not as a "
+                "bound that answered it."),
+        }
+
+    same = floor_commit == figure_commit
+    return {
+        "rule": "producing_commit",
+        "same_tree": same,
+        "floor_producing_commit": floor_commit,
+        "figure_producing_commit": figure_commit,
+        "why_this_rule": (
+            ("This spread and the figure it bounds were drawn by the SAME code, at {fig} -- so "
+             "nothing in the width below is a difference between two trees.")
+            if same else
+            ("THIS SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY DIFFERENT CODE: the floor at "
+             "{flr}, the run it bounds at {fig}. Neither is thereby wrong and both name the same "
+             "world -- what is not true of them is that the width below and the number beside it "
+             "are two readings of one tree.")).format(flr=floor_short, fig=figure_short),
+        "caveat": (None if same else (
+            "HOW LARGE THAT CODE DIFFERENCE IS IS NOT STATED HERE, and it is not stated because "
+            "this page cannot measure it: sizing it needs the same seed drawn under both trees, "
+            "and only re-running the arms under the floor's tree removes it rather than "
+            "estimating it. Until then the direction this bound gates on -- does the family of "
+            "re-draws cross zero -- is the claim to read, and the width itself is the claim to "
+            "read carefully.")),
+    }
+
+
 def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
                point_clock: str | None = None) -> dict:
     """The seed spread on the selection leg -- the reason the point estimate cannot be quoted bare.
@@ -971,6 +1067,12 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # this block is the superseded panel's own bar on the superseded panel's own figure. The
         # refusal lives in `_seed_spreads`, which is where a DIRECTION is taken.
         "floor_admission": _floor_admission(floor or {}, three_arm or {}),
+        # AND WHICH CODE DREW EACH SIDE OF THE PAIRING -- a fifth distinct key for a fifth
+        # distinct failure, and the only one of the five that is about the TREE rather than the
+        # artefacts. Clock, world, staleness and book are all questions two artefacts can be
+        # diffed into; this one cannot, because both sides of that diff are outputs. See
+        # `_floor_tree_pairing`.
+        "floor_tree_pairing": _floor_tree_pairing(floor or {}, three_arm or {}),
         # WHICH WORLD THE BAR WAS MEASURED IN, on the same footing as which CLOCK and which FIGURE.
         # A third distinct failure and therefore a third key: the staleness caveat compares two
         # TIMESTAMPS and goes quiet when the floor is the newer of the two, which says nothing
@@ -5849,6 +5951,14 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "ran_in_world": ran_in,
         "generated_at": current.get("generated_at"),
         "producing_commit": (current.get("producing_commit") or {}).get("commit"),
+        # WHICH CODE DREW THE BOUND BESIDE THESE FIGURES, published ONCE for the block and not
+        # once per leg. All three legs are bounded by the same floor against the same arms, so
+        # the answer is one answer; rendering it three times would put one sentence in three
+        # places and `_the_legs_own_regions` in the site door refuses exactly that shape, for the
+        # reason it gives -- a reader cannot tell where one leg's statement ends and the next
+        # begins. See `_floor_tree_pairing` for why this is not a question the five guards in
+        # `_current_world_bound` already cover.
+        "bound_tree_pairing": _floor_tree_pairing(floor_current or {}, current or {}),
         "value_advantage_gbp": contrast.get("value_advantage_gbp"),
         "level_advantage_gbp": contrast.get("level_advantage_gbp"),
         "selection_gbp": contrast.get("selection_gbp"),
