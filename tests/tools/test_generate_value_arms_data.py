@@ -517,6 +517,156 @@ def test_EVERY_admission_outcome_IS_REACHABLE_from_this_feeds_own_inputs():
     }, "the admission rule cannot reach all three of its outcomes: {!r}".format(outcomes)
 
 
+# ── WHICH CODE DREW EACH SIDE OF THE BOUND ──────────────────────────────────────────────────
+#
+# THE DEFECT (2026-09-09). `CURRENT_WORLD_NOISE_FLOOR_PATH` moved alone onto the nine-seed floor,
+# which was the right repair for a worse defect -- two selection spreads at two sample sizes on
+# one page, n=9 in `contrast_bounds` and n=3 in the leg that is the whole thesis. It left the
+# floor at `c066c114b` and the arms it bounds at `04361d6c7`, and the page said nothing: the split
+# was admitted in a source comment, where the measurement that sizes it (the same seed in the same
+# world returns a `selection_gbp` +38.96..+61.38 apart under the two trees) is unreachable by any
+# reader of the page. Seven guards ask about this pairing -- world, leg, contrast, timestamp, seed
+# rows, staleness, book -- and none of them asks about the tree.
+
+
+def _floor_produced_by(commit):
+    """The real floor with its producing-commit stamp set, or stripped when `commit` is None.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ARTEFACTS. Both live pairings on this feed are split
+    across two trees TODAY, so a control that read the artefacts as they are would be green on the
+    live split and equally green on a function that returned `same_tree: False` unconditionally.
+    Every case below is therefore constructed, and the wiring control further down is what ties
+    the constructed cases to what the feed actually publishes.
+    """
+    floor = copy.deepcopy(_load(NOISE_FLOOR))
+    if commit is None:
+        floor.pop("producing_commit", None)
+    else:
+        floor["producing_commit"] = dict(floor.get("producing_commit") or {}, commit=commit)
+    return floor
+
+
+def _the_runs_own_commit() -> str:
+    return _load(THREE_ARM)["producing_commit"]["commit"]
+
+
+def test_a_bound_drawn_by_a_DIFFERENT_TREE_from_the_figure_says_so_and_names_both():
+    """The live state on 2026-09-09, made reachable as a property rather than read off disk."""
+    mine = _the_runs_own_commit()
+    other = ("f" * 40) if mine != "f" * 40 else ("e" * 40)
+    pairing = gva._floor_tree_pairing(_floor_produced_by(other), _load(THREE_ARM))
+    assert pairing["same_tree"] is False, (
+        "a floor and the arms it bounds came from different trees and the page called it a "
+        "match: {!r}".format(pairing["same_tree"]))
+    assert other[:9] in pairing["why_this_rule"] and mine[:9] in pairing["why_this_rule"], (
+        "the page says the two trees differ and does not name them, so a reader cannot check "
+        "which two: {!r}".format(pairing["why_this_rule"]))
+    assert pairing["caveat"], "the split is stated with no reading of what it costs"
+
+
+def test_a_bound_drawn_by_the_SAME_TREE_still_gets_a_sentence():
+    """A reader told nothing when the trees match cannot tell that silence from an unasked
+    question. This is the branch that makes the amber one legible."""
+    mine = _the_runs_own_commit()
+    pairing = gva._floor_tree_pairing(_floor_produced_by(mine), _load(THREE_ARM))
+    assert pairing["same_tree"] is True
+    assert pairing["caveat"] is None, "a matched pairing carries a caveat about nothing"
+    assert mine[:9] in pairing["why_this_rule"] and "DIFFERENT CODE" not in pairing["why_this_rule"]
+
+
+def test_an_UNSTAMPED_side_reads_as_UNKNOWN_and_never_as_a_match():
+    """The fail-open this function would have if absence defaulted to agreement.
+
+    The oldest artefacts on this page predate the producing-commit stamp entirely, so defaulting a
+    missing stamp to `same_tree: True` would render them as the cleanest pairing on the page --
+    absence wearing the flattering answer, which is this repository's own named defect.
+    """
+    pairing = gva._floor_tree_pairing(_floor_produced_by(None), _load(THREE_ARM))
+    assert pairing["same_tree"] is None and pairing["rule"] == "unstamped"
+    assert pairing["caveat"], "an unknowable pairing is published as a silence"
+
+
+def test_EVERY_tree_pairing_OUTCOME_IS_REACHABLE_from_this_feeds_own_inputs():
+    """One control over the whole partition, because a function that returns one branch always
+    passes all three tests above.
+
+    MUTATION: return the `same_tree: False` branch unconditionally -- the live artefacts are split
+    today, so the feed looks correct, the split test above stays green, and only this reds.
+    """
+    mine = _the_runs_own_commit()
+    other = ("f" * 40) if mine != "f" * 40 else ("e" * 40)
+    arms = _load(THREE_ARM)
+    outcomes = {
+        (gva._floor_tree_pairing(_floor_produced_by(mine), arms)["rule"],
+         gva._floor_tree_pairing(_floor_produced_by(mine), arms)["same_tree"]),
+        (gva._floor_tree_pairing(_floor_produced_by(other), arms)["rule"],
+         gva._floor_tree_pairing(_floor_produced_by(other), arms)["same_tree"]),
+        (gva._floor_tree_pairing(_floor_produced_by(None), arms)["rule"],
+         gva._floor_tree_pairing(_floor_produced_by(None), arms)["same_tree"]),
+    }
+    assert outcomes == {("producing_commit", True), ("producing_commit", False),
+                        ("unstamped", None)}, (
+        "the tree pairing cannot reach all three of its outcomes: {!r}".format(outcomes))
+
+
+def _the_feed_with_its_current_world() -> dict:
+    """`real` omits the two current-world artefacts, so its `current_world` is an ABSENCE.
+
+    A wiring control run against that fixture asks nothing of the block it exists to check -- it
+    would have gone green on the day the block was unavailable and on every day after. This builds
+    the production shape: all four artefacts, through `build`, the same call `generate` makes.
+    """
+    return gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT), None,
+                     _load(gva.CURRENT_WORLD_THREE_ARM_PATH),
+                     _load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH))
+
+
+def test_BOTH_bounds_on_the_real_feed_CARRY_a_tree_pairing(real):
+    """WIRING, not arithmetic. Every test above calls the function directly and is blind to
+    whether `build()` reaches it -- the exact shape that let `_floor_admission`'s producer-side
+    answer sit built-and-unwired while the defect stayed live on the surface.
+
+    Asserts the FIELD and its keys, never today's verdict: pinning `same_tree is False` here would
+    go red on the day the arms are re-run under the floor's tree, which is the day the page gets
+    MORE honest.
+    """
+    live = _the_feed_with_its_current_world()
+    cw = live.get("current_world") or {}
+    assert cw.get("available"), (
+        "there is no current-world block to check, so half this control has no subject: "
+        "{}".format(cw.get("why_not")))
+    for where, block in (("error_bar", real.get("error_bar") or {}), ("current_world", cw)):
+        key = "floor_tree_pairing" if where == "error_bar" else "bound_tree_pairing"
+        pairing = block.get(key)
+        assert isinstance(pairing, dict), (
+            "the {} block publishes a bound and does not say which tree drew it".format(where))
+        assert set(pairing) >= {"rule", "same_tree", "floor_producing_commit",
+                                "figure_producing_commit", "why_this_rule", "caveat"}, (
+            "{}.{} is short of the keys a reader and a control both need: {!r}".format(
+                where, key, sorted(pairing)))
+        assert pairing["why_this_rule"], (
+            "{}.{} states no sentence, so the page asks the question and publishes no "
+            "answer".format(where, key))
+        assert (pairing["caveat"] is None) == (pairing["same_tree"] is True), (
+            "{}.{} carries a caveat that does not follow its own verdict: {!r} / {!r}".format(
+                where, key, pairing["same_tree"], pairing["caveat"]))
+
+
+def test_the_tree_pairing_is_published_ONCE_per_block_and_not_once_per_leg():
+    """The three legs share one floor and one arms run, so the answer is one answer.
+
+    Rendering it per leg would put one sentence in three places, which is the shape
+    `_the_legs_own_regions` in the site door already refuses for the reason it gives: a reader
+    cannot tell where one leg's statement ends and the next begins.
+    """
+    cw = _the_feed_with_its_current_world().get("current_world") or {}
+    assert cw.get("selection_leg"), "there are no legs here, so this control has no subject"
+    for leg in ("selection_leg", "level_leg"):
+        assert "bound_tree_pairing" not in (cw.get(leg) or {}), (
+            "the tree pairing is published on {} as well as on the block, so the page states one "
+            "answer three times".format(leg))
+
+
 # ── THE CLAIM THAT COULD ROT: is the published supplier the baseline arm? ────────────────────
 
 def test_the_published_supplier_claim_is_HONEST_whichever_state_the_tree_is_in(real):

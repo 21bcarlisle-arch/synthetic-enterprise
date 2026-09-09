@@ -930,6 +930,114 @@ def test_MUTATION_every_admission_rule_renders_as_a_different_page():
         "the proxy admission renders as a muted footnote, which reads as the page having checked")
 
 
+def _feed_paired_across(where: str, **pairing) -> dict:
+    """The live feed with one thing moved: which trees drew the two sides of a bound."""
+    feed = copy.deepcopy(_live_feed())
+    if where == "error_bar":
+        feed["error_bar"]["floor_tree_pairing"] = pairing
+    else:
+        feed["current_world"]["bound_tree_pairing"] = pairing
+    return feed
+
+
+def test_the_page_says_WHICH_TREES_drew_the_two_sides_of_its_bound(live):
+    """A FIFTH PAIRING QUESTION, and the only one two artefacts cannot be diffed into.
+
+    THE DEFECT (2026-09-09). `CURRENT_WORLD_NOISE_FLOOR_PATH` was moved alone onto the nine-seed
+    floor -- the right repair for a worse defect, two selection spreads at two sample sizes on one
+    page -- and it left the floor at `c066c114b` bounding arms at `04361d6c7`. The constant's own
+    comment measures what that costs: the SAME seed in the SAME world returns a `selection_gbp`
+    +38.96..+61.38 apart under the two trees. That measurement lived in a source comment, three
+    inches of source from a band table whose lead says "same book, same code, same world" -- true
+    of the family's rows among themselves, and not of the published draw sitting beside them.
+
+    Clock, world, staleness and book all qualify or establish this pairing and all four are
+    questions two artefacts answer. This one is about the CODE, and both sides of an
+    artefact-to-artefact diff are outputs.
+
+    KEYED TO THE PROPERTY. It asserts the page NAMES its trees, at whichever verdict the feed is
+    on -- so it goes on holding the day the arms are re-run under the floor's tree, which is the
+    day the page gets more honest and a control pinned to `same_tree is False` would red. The
+    three-way render partition is `test_MUTATION_every_tree_pairing_renders_as_a_different_page`.
+    """
+    feed = _live_feed()
+    for where, key, element in (("error_bar", "floor_tree_pairing", "arms-errorbar"),
+                                ("current_world", "bound_tree_pairing", "arms-redraw")):
+        block = feed.get(where) or {}
+        assert key in block, (
+            "the feed's {} carries no `{}` key at all. The producer emits it unconditionally on "
+            "the branch that publishes a bound, so its ABSENCE means the producer changed and "
+            "this control must red for that rather than skip past it".format(where, key))
+        pairing = block[key]
+        rendered = live[element]
+        assert pairing["rule"] in ("producing_commit", "unstamped"), pairing["rule"]
+        assert _door_prose(pairing["why_this_rule"]) in rendered, (
+            "the page publishes a bound and does not say which code drew each side of it, so a "
+            "reader takes a width and a figure from two trees for two readings of one")
+        if pairing["same_tree"] is False:
+            # THE COMMITS THEMSELVES, read off the feed rather than hardcoded, so this holds for
+            # whichever pair is promoted next. A reader told the trees differ and not told which
+            # two cannot check the claim against the repository.
+            for side in ("floor_producing_commit", "figure_producing_commit"):
+                assert pairing[side][:9] in rendered, (
+                    "the page says the bound and the figure came from different trees without "
+                    "naming the {} it means".format(side))
+        if pairing["caveat"]:
+            assert _door_prose(pairing["caveat"]) in rendered, (
+                "the producer says the split has a cost and the reader is not told what it is")
+
+
+def test_MUTATION_every_tree_pairing_renders_as_a_different_page():
+    """THE PARTITION IN ONE CONTROL. The live feed visits ONE of these three states per publish,
+    so the page's branches for the other two are unreachable from the live leg above -- and an
+    unreachable render branch is where a fail-open lives. A page printing the same sentence
+    whatever drew its two sides passes the leg above on every one of them.
+
+    THE MATCHED BRANCH IS THE ONE THAT MAKES THE OTHERS LEGIBLE, and it is the reason this render
+    is unconditional: a reader told nothing when the trees agree cannot tell that silence from a
+    page that never asked, so "no sentence here" and "we checked and they match" would be one
+    state on the surface.
+    """
+    split = dict(rule="producing_commit", same_tree=False,
+                 floor_producing_commit="c" * 40, figure_producing_commit="0" * 40,
+                 why_this_rule="THIS SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY DIFFERENT "
+                               "CODE: the floor at ccccccccc, the run it bounds at 000000000.",
+                 caveat="HOW LARGE THAT CODE DIFFERENCE IS IS NOT STATED HERE.")
+    matched = dict(rule="producing_commit", same_tree=True,
+                   floor_producing_commit="c" * 40, figure_producing_commit="c" * 40,
+                   why_this_rule="This spread and the figure it bounds were drawn by the SAME "
+                                 "code, at ccccccccc.",
+                   caveat=None)
+    unstamped = dict(rule="unstamped", same_tree=None,
+                     floor_producing_commit=None, figure_producing_commit="0" * 40,
+                     why_this_rule="WHETHER THIS SPREAD AND THE FIGURE IT BOUNDS WERE DRAWN BY "
+                                   "THE SAME CODE CANNOT BE TOLD FROM THIS PAGE.",
+                     caveat="THE BOUND BELOW AND THE FIGURE IT BOUNDS CANNOT BE SHOWN TO SHARE A "
+                            "CODE TREE.")
+
+    for where, element in (("error_bar", "arms-errorbar"), ("current_world", "arms-redraw")):
+        texts = [_render(_feed_paired_across(where, **p))[element]
+                 for p in (split, matched, unstamped)]
+        assert "DRAWN BY DIFFERENT" in texts[0], (
+            "a bound drawn by another tree than the figure it bounds reaches {} silently".format(
+                element))
+        assert "drawn by the SAME" in texts[1]
+        assert "CANNOT BE TOLD" in texts[2], (
+            "an unknowable pairing renders as a match, which is absence wearing the flattering "
+            "answer")
+        assert len(set(texts)) == 3, (
+            "two of the three tree pairings render identically in {}, so a reader cannot tell "
+            "which one the bound in front of them was published under".format(element))
+        # AND THE STYLING, which the text extraction is blind to and which carries the meaning: a
+        # matched pairing is a footnote, a split one is a qualification of the figure beside it.
+        # The admission line one block down survived exactly this mutation on 2026-09-08.
+        raw_split = _render(_feed_paired_across(where, **split), raw=True)[element]
+        assert "var(--amber)" in raw_split.split("DRAWN BY DIFFERENT")[0].rsplit("<", 1)[-1] or (
+            "var(--amber)" in raw_split.split("DRAWN BY DIFFERENT")[0][-260:]), (
+            "a bound drawn by a different tree from its figure renders as a muted footnote in "
+            "{}, which reads as the page having checked and found nothing".format(element))
+
+
 def test_the_coverage_denominator_is_renewals_and_not_accounts(live):
     """THE DENOMINATOR IS THE CLAIM. Until 2026-08-28 this panel read "25 renewals ... out of a
     book of 210 settled accounts" -- a renewal numerator over an account denominator. It reads as

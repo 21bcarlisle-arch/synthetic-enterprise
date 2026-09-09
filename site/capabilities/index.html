@@ -1266,6 +1266,26 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
             + "only in the published draw &mdash; a mean of a difference is not the difference of "
             + "the means, so the rows below the first do not add up to it and are not meant to."
             + "</p>"
+          : "")
+      /* WHICH CODE DREW THE RE-DRAWS AND WHICH DREW THE PUBLISHED DRAW, directly under the table
+         where the two sit in one row. The lead above says "same book, same code, same world" and
+         that is a claim about the rows of each FAMILY among themselves, which is true — the
+         Published draw column is not a member of that family, it is the arms run the family
+         bounds, and on 2026-09-09 it stopped coming from the same tree. Nothing on this page said
+         so: the split was admitted in a comment on `CURRENT_WORLD_NOISE_FLOOR_PATH`, three
+         inches of source from a sentence a reader would take to cover it.
+
+         RENDERED ON ALL THREE BRANCHES, matching the floor-admission line further down for the
+         same reason it gives — told nothing when the trees match, a reader cannot tell that
+         silence from this page never having asked. Muted when they match, amber when they do
+         not or cannot be told. */
+      + (cw.bound_tree_pairing
+          ? '<p style="margin:6px 0 0;font-size:11.5px;color:'
+            + (cw.bound_tree_pairing.same_tree === true ? "var(--muted)" : "var(--amber)")
+            + ';">' + prose(cw.bound_tree_pairing.why_this_rule)
+            + (cw.bound_tree_pairing.caveat
+                ? " " + prose(cw.bound_tree_pairing.caveat) : "")
+            + "</p>"
           : "");
   }
 
@@ -1602,6 +1622,19 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + (eb.floor_admission && eb.floor_admission.refusal
               ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
                 + prose(eb.floor_admission.refusal) + "</span>"
+              : "")
+          /* AND WHICH CODE DREW EACH SIDE, the fifth question about this pairing and the only one
+             of the five that two artefacts cannot be diffed into — both sides of that diff are
+             outputs and the question is about the tree. Clock, world, staleness and book all
+             qualify or establish the pairing; this one says whether the width and the number are
+             two readings of one codebase. Unconditional for the same reason the line above is. */
+          + (eb.floor_tree_pairing
+              ? '<span style="display:block;margin-top:8px;color:'
+                + (eb.floor_tree_pairing.same_tree === true ? "var(--muted)" : "var(--amber)")
+                + ';">' + prose(eb.floor_tree_pairing.why_this_rule)
+                + (eb.floor_tree_pairing.caveat
+                    ? " " + prose(eb.floor_tree_pairing.caveat) : "")
+                + "</span>"
               : "")
         : "No spread has been measured for this reading yet, so the figure above is a point "
           + "estimate with no error bar. " + prose(eb.reason || "");
