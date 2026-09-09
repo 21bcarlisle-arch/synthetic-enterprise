@@ -2397,7 +2397,7 @@
   lane: W2_customer_generator
   value_stream: price_to_bill
   epoch: 3
-  level_current: 0
+  level_current: 2
   level_target: 3
   loop_stage: build
   dial_inherited: 50
@@ -2432,6 +2432,34 @@
   # EXIT: a per-household shape the draw actually carries, the not-validated statement on the
   # reader-facing surface (not a footnote), and W2_29's acceptance re-run over the full vector
   # with this in it.
+  #
+  # 2026-09-08, LEVEL 0 -> 2. Evidence:
+  # docs/staging/SEAT_RESULT_THE_GAS_HEATING_FRACTION_SPANS_0_25_TO_0_95_AND_EVERY_HOUSEHOLD_
+  # WAS_HANDED_0_70_2026-09-08.md.
+  #
+  # THE ELECTRICITY HALF WAS ALREADY DONE and the row's own premise above is stale on it:
+  # `fabric_demand_path.fabric_providers_for_book` has driven every eligible premise's
+  # half-hourly electricity from W1_11/W1_12 since the settlement switch, and `run_phase2b`
+  # settles money off it. `tools/book_shape_spread.py` measures it with the level divided out
+  # (2022-01, 5,778 pairs): mean absolute half-hourly share difference 0.006463 on the fabric
+  # path, and the LEGACY path's closest pair at 1.6e-4 -- the collapse the switch removed. The
+  # correct action was to establish that and NOT build a second copy.
+  #
+  # THE GAS HALF WAS THE REAL GAP and `run_phase2b` had refused it for a reason that answers a
+  # different question: it assumed switching gas meant replacing the AQ LEVEL with fabric volume
+  # (a 4x hedge mismatch). The canon asks for a seasonal SHAPE. `simulation/household_demand_
+  # shape.py` fits each household's own daily gas onto the two-term form `gas_settlement`
+  # already settles and moves only the heating FRACTION, so the annual total is the AQ whatever
+  # the fraction is -- level preserved by construction and mutation-tested as such.
+  # MEASURED over 27 households (era x insulation x type, C1, 2021): the fitted fraction spans
+  # 0.250 to 0.945, median 0.746, where the shipped code handed every household the DUKES
+  # population figure of 0.70. The population figure is confirmed and was wrong per household.
+  #
+  # NOT AT TARGET, and both remaining criteria are exit criteria 2 and 3 verbatim:
+  # `NOT_VALIDATED_STATEMENT` exists and is tested but reaches no reader-facing surface (it is
+  # in the run's stdout, which is not a page), and W2_29's acceptance has not been re-run --
+  # `population_coverage.REDUCES_OVER` still declares itself `blind_to` both of this row's two
+  # components. HARDEN when those two land and the fitted distribution survives a cold-eyes pass.
 
 - id: W2_31_people_phase1_the_physical_layer_stands_alone
   title: "people phase 1 re-cut so the physical layer stands alone, with the commercial layer correlated rather than merged"
