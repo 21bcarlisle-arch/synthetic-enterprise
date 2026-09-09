@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T18:18:42.313862Z",
+  "generated_at": "2026-09-09T18:27:43.531964Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -328,10 +328,10 @@
     "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
     "short": "62334dc76",
     "resolved_at": "2026-09-09T00:33:16Z",
-    "publishing_tree_commit": null,
-    "produced_by_the_tree_it_publishes_from": null,
+    "publishing_tree_commit": "39065da9d64ed9cdcf2e69ea6dd76e309b0d1f1d",
+    "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 62334dc76; this publish could not resolve its own tree, so the two cannot be compared."
+    "reading": "Produced at 62334dc76 and published from 39065da9d -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -595,10 +595,10 @@
       "commit": "62334dc76b1f7948fabbe2b325a6535b38561020",
       "short": "62334dc76",
       "resolved_at": "2026-09-09T00:33:16Z",
-      "publishing_tree_commit": null,
-      "produced_by_the_tree_it_publishes_from": null,
+      "publishing_tree_commit": "39065da9d64ed9cdcf2e69ea6dd76e309b0d1f1d",
+      "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 62334dc76; this publish could not resolve its own tree, so the two cannot be compared."
+      "reading": "Produced at 62334dc76 and published from 39065da9d -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -647,11 +647,11 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": false,
-      "same_supplier": null,
-      "published_run_net_gbp": 131289.339938,
-      "dashboard_net_gbp": 147886.78,
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads reports \u00a3131,289.34 and the figure the site actually publishes for the company reports \u00a3147,886.78 -- a gap of \u00a316,597.44 -- so the two are not the same run and the claim is withheld rather than answered from whichever one is nearer."
+      "checked": true,
+      "same_supplier": false,
+      "published_run_net_gbp": 147886.781507,
+      "gap_gbp": -67.4741540007235,
+      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.47. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -905,10 +905,138 @@
       "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
     },
     "whole_book": {
-      "available": false,
-      "reason": "whether this capture is committed could not be established (git ls-files exited 128), so its verdict cannot be shown to be reproducible outside this working tree."
+      "available": true,
+      "what_it_is": "Every departure the world expects on EITHER route, over the accounts on the book -- the same numerator and denominator the published record states.",
+      "years": [
+        {
+          "year": 2017,
+          "world_pct": 14.0,
+          "band_lo_pct": 13.5,
+          "band_hi_pct": 14.0,
+          "inside_band": true
+        },
+        {
+          "year": 2018,
+          "world_pct": 20.0,
+          "band_lo_pct": 19.5,
+          "band_hi_pct": 20.0,
+          "inside_band": true
+        },
+        {
+          "year": 2019,
+          "world_pct": 21.3,
+          "band_lo_pct": 20.7,
+          "band_hi_pct": 21.3,
+          "inside_band": true
+        },
+        {
+          "year": 2020,
+          "world_pct": 22.97,
+          "band_lo_pct": 22.5,
+          "band_hi_pct": 23.0,
+          "inside_band": true
+        },
+        {
+          "year": 2021,
+          "world_pct": 18.53,
+          "band_lo_pct": 17.9,
+          "band_hi_pct": 18.4,
+          "inside_band": false
+        },
+        {
+          "year": 2022,
+          "world_pct": 2.5,
+          "band_lo_pct": 2.9,
+          "band_hi_pct": 4.3,
+          "inside_band": false
+        },
+        {
+          "year": 2023,
+          "world_pct": 12.4,
+          "band_lo_pct": 8.9,
+          "band_hi_pct": 12.5,
+          "inside_band": true
+        },
+        {
+          "year": 2024,
+          "world_pct": 15.96,
+          "band_lo_pct": 12.5,
+          "band_hi_pct": 16.1,
+          "inside_band": true
+        }
+      ],
+      "years_compared": 8,
+      "years_inside_the_band": 6,
+      "world_mean_pct": 15.96,
+      "against_the_publisher": {
+        "available": true,
+        "years": [
+          {
+            "year": 2017,
+            "world_pct": 14.0,
+            "published_rate_pct": 18.195,
+            "ratio": 0.769,
+            "world_is_above": false
+          },
+          {
+            "year": 2018,
+            "world_pct": 20.0,
+            "published_rate_pct": 19.064,
+            "ratio": 1.049,
+            "world_is_above": true
+          },
+          {
+            "year": 2019,
+            "world_pct": 21.3,
+            "published_rate_pct": 20.822,
+            "ratio": 1.023,
+            "world_is_above": true
+          },
+          {
+            "year": 2020,
+            "world_pct": 22.97,
+            "published_rate_pct": 20.213,
+            "ratio": 1.136,
+            "world_is_above": true
+          },
+          {
+            "year": 2021,
+            "world_pct": 18.53,
+            "published_rate_pct": 15.569,
+            "ratio": 1.19,
+            "world_is_above": true
+          },
+          {
+            "year": 2022,
+            "world_pct": 2.5,
+            "published_rate_pct": 3.056,
+            "ratio": 0.818,
+            "world_is_above": false
+          },
+          {
+            "year": 2023,
+            "world_pct": 12.4,
+            "published_rate_pct": 6.332,
+            "ratio": 1.958,
+            "world_is_above": true
+          },
+          {
+            "year": 2024,
+            "world_pct": 15.96,
+            "published_rate_pct": 9.028,
+            "ratio": 1.768,
+            "world_is_above": true
+          }
+        ],
+        "years_compared": 8,
+        "years_the_world_is_above": 6,
+        "world_mean_pct": 15.96,
+        "published_mean_pct": 14.03,
+        "ratio_of_means": 1.137,
+        "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
+      }
     },
-    "bounding_statement": "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the bands above, the renewal-decision level reads 1.63x the record; against the publisher's own figures for the same years it reads 1.80x. The refuted band is the FLATTERING one here. The comparable whole-book reading could not be taken off this capture (whether this capture is committed could not be established (git ls-files exited 128), so its verdict cannot be shown to be reproducible outside this working tree.), so neither figure above is over the population the record counts."
+    "bounding_statement": "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the bands above, the renewal-decision level reads 1.63x the record; against the publisher's own figures for the same years it reads 1.80x. The refuted band is the FLATTERING one here. AND NEITHER FIGURE IS THE COMPARABLE ONE. Both are means over renewal decisions \u2014 the households who took a fixed deal and so demonstrably shop. Every departure the world expects on either route, over the accounts on the book, averages 15.96% across 8 years against the publisher's 14.03% \u2014 1.14x, not 1.80x. The gap this page has been reporting is mostly the population it was measured over, and how much of the remainder is the world is NOT established here."
   },
   "method_skill": {
     "available": true,
