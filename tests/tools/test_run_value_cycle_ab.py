@@ -3127,3 +3127,243 @@ def test_the_verdict_names_whichever_of_the_unit_and_the_population_actually_mov
     # ...and the same sentence on the ordinary book names the other one, or this asserts nothing.
     ordinary = _fh(log + [_a48_priced("A0", 99.0, term=_LATER_TERM)], _a48_rising()[1])
     assert "The POPULATION term is the largest" in ordinary["reading"]
+
+
+# --------------------------------------------------------------------------------------------
+# THE PAIR-STRATUM SPLIT -- is the estimand's departure the TIE MASS, or the ARM?
+#
+# Commissioned by the Lane 0 item that read `decisions_scored_at_zero_because_the_term_settled
+# _nothing: 37` out of 161 and asked whether a quarter of the sample tied at the floor could push
+# a rank concordance below chance on its own. Pre-registered against, before the discriminating
+# counts were read, in `docs/staging/records/SEAT_PREREGISTRATION_WHETHER_THE_ESTIMANDS_
+# INVERSION_IS_THE_TIE_MASS_OR_THE_ARM_2026-09-09.md`.
+# --------------------------------------------------------------------------------------------
+
+
+def _a48_zero_row(account, margin):
+    """A priced term that settles nothing, on an account the settled book already carries."""
+    return _a48_priced(account, margin, term=_LATER_TERM)
+
+
+def _strata_fixture(*zero_margins):
+    """Four settled decisions whose value rises with the margin, plus zeroes at chosen margins.
+
+    The zeroes are what the split is about, so their signals are the fixture's only free
+    variable: everything else is `_a48_rising`, whose settled leg is a working method.
+    """
+    log, records = _a48_rising()
+    zeroes = [_a48_zero_row(f"A{i}", margin) for i, margin in enumerate(zero_margins)]
+    return _fh(log + zeroes, records)
+
+
+def _cross_by_counting_pairs(rows):
+    """The cross stratum found by COUNTING the pairs, not by solving the identity under test.
+
+    The second opinion this whole split needs. `pair_strata` never ranks anything -- it solves
+    `c3 * N3 = c_within * N_within + c_cross * N_cross` for the one unknown -- so an arithmetic
+    slip there produces a number that still looks like a concordance. This walks the actual
+    departure-against-survivor pairs with `_concordance`'s own tie conventions and must agree.
+    """
+    scorable = [row for row in rows if not row["censored"]]
+    zeroes = [row for row in scorable if not row["settled_within_the_horizon"]]
+    settled = [row for row in scorable if row["settled_within_the_horizon"]]
+    concordant = signal_ties = comparable = 0
+    for zero in zeroes:
+        for row in settled:
+            if zero["pounds"] == row["pounds"]:
+                continue
+            comparable += 1
+            if zero["signal"] == row["signal"]:
+                signal_ties += 1
+            elif (zero["signal"] > row["signal"]) == (zero["pounds"] > row["pounds"]):
+                concordant += 1
+    return (None if not comparable else
+            (concordant + 0.5 * signal_ties) / comparable), comparable
+
+
+def test_all_three_strata_are_reachable_before_any_of_them_is_graded():
+    """POISON ROUND ZERO, and it comes first for the reason R15 keeps charging for.
+
+    A split whose tie stratum was EMPTY would report `comparable_pairs: 0` on it and pass every
+    assertion below while proving nothing -- "the tie mass supplies no pairs" is trivially true
+    of a tie mass that does not exist. So the partition is asserted non-degenerate on all three
+    legs, over the whole population, before a single one of its numbers is read.
+    """
+    strata = _strata_fixture(99.0, 98.0)["pair_strata"]
+
+    assert strata["available"] is True
+    assert strata["strata"]["within_settled"]["decision_pairs"] > 0
+    assert strata["strata"]["within_zero"]["decision_pairs"] > 0
+    assert strata["strata"]["cross"]["decision_pairs"] > 0
+    # ...and the two the arithmetic runs over carry comparable pairs, or the identity is over
+    # nothing. The third is asserted to carry NONE, which is the finding and is graded below.
+    assert strata["strata"]["within_settled"]["comparable_pairs"] > 0
+    assert strata["strata"]["cross"]["comparable_pairs"] > 0
+
+
+def test_the_cross_stratum_the_identity_SOLVES_for_is_the_one_a_pair_count_FINDS():
+    """The control that stops this block being a restatement of itself.
+
+    `pair_strata` computes the cross stratum by rearranging two published leg totals; this test
+    computes it by walking the departure-against-survivor pairs. Two routes, one number. Fires
+    on: the identity solving for the wrong unknown, the cross pair count being taken from the
+    wrong leg, and any sign slip in the rearrangement -- none of which a plausible-looking
+    concordance between 0 and 1 would otherwise reveal.
+    """
+    horizon = _strata_fixture(99.0, 98.0)
+    strata = horizon["pair_strata"]
+    counted, comparable = _cross_by_counting_pairs(horizon["sample"])
+
+    assert counted is not None
+    assert strata["strata"]["cross"]["comparable_pairs"] == comparable
+    assert strata["strata"]["cross"]["concordance"] == pytest.approx(counted)
+
+
+def test_the_tie_mass_supplies_no_comparable_pair_and_that_is_MEASURED():
+    """THE FINDING. Every pair among the zero rows is tied on the outcome, so the estimator
+    excludes all of them -- the tie mass contributes nothing to the statistic and therefore
+    cannot move it in either direction.
+
+    Measured, never asserted: the estimand's outcome ties must exceed leg 2's by EXACTLY C(z, 2)
+    and its comparable pairs by EXACTLY z * s. A `_concordance` that scored outcome ties at a
+    half instead of excluding them breaks both identities, and the split refuses rather than
+    publishing an attribution whose precondition is false.
+    """
+    horizon = _strata_fixture(99.0, 98.0)
+    strata, legs = horizon["pair_strata"], horizon["legs"]
+    zeroes = horizon["decisions_scored_at_zero_because_the_term_settled_nothing"]
+
+    assert strata["strata"]["within_zero"]["comparable_pairs"] == 0
+    assert strata["tie_mass_share_of_comparable_pairs"] == 0.0
+    assert strata["the_tie_mass_can_move_the_estimand"] is False
+    # The two identities, spelled out here rather than trusted from inside the function.
+    assert (legs[rvca.ESTIMAND_LEG]["pairs_tied_on_outcome"]
+            - legs[rvca.SETTLED_POUNDS_LEG]["pairs_tied_on_outcome"]
+            == zeroes * (zeroes - 1) // 2)
+    assert (legs[rvca.ESTIMAND_LEG]["comparable_pairs"]
+            - legs[rvca.SETTLED_POUNDS_LEG]["comparable_pairs"]
+            == zeroes * legs[rvca.SETTLED_POUNDS_LEG]["decisions"])
+
+
+def test_the_departure_terms_SUM_to_the_estimands_own_distance_from_a_half():
+    """An attribution whose parts do not sum to the whole is a story, not a decomposition.
+
+    The bridge above this block was built because a move nobody could add up got attributed to
+    one cause. This is the same discipline one level down: three terms, and they close.
+    """
+    strata = _strata_fixture(99.0, 98.0)["pair_strata"]
+    split = strata["departure_from_no_information"]
+
+    assert (split["from_the_within_settled_stratum"]
+            + split["from_the_cross_stratum"]
+            + split["from_the_tie_mass"]) == pytest.approx(split["estimand"])
+    assert split["estimand"] == pytest.approx(strata["estimand_concordance"] - 0.5)
+
+
+def test_the_verdict_FLIPS_when_the_arm_prices_its_departures_BELOW_the_ones_it_keeps():
+    """KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER -- and both directions in one test.
+
+    A reading that said "the arm ranks its departures above its survivors" on every book would
+    pass any single-direction check. So the SAME fixture is run with the zero rows priced above
+    every survivor and then below every one, and the verdict, the carrying stratum and the
+    cross concordance all have to move.
+    """
+    priced_up = _strata_fixture(99.0, 98.0)["pair_strata"]
+    priced_down = _strata_fixture(0.2, 0.1)["pair_strata"]
+
+    assert priced_up["strata"]["cross"]["concordance"] < 0.5
+    assert priced_down["strata"]["cross"]["concordance"] > 0.5
+    assert "NOT A TIE-HANDLING ARTEFACT" in priced_up["reading"]
+    assert "NOT A TIE-HANDLING ARTEFACT" not in priced_down["reading"]
+    assert priced_up["the_stratum_that_carries_the_departure"] == "cross"
+    # ...and the counterfactual moves with it: killing the cross stratum's information is worth
+    # a different amount in each direction, and in neither is it worth nothing.
+    assert (priced_up["the_estimand_if_the_cross_stratum_carried_no_information"]
+            > priced_up["estimand_concordance"])
+    assert (priced_down["the_estimand_if_the_cross_stratum_carried_no_information"]
+            < priced_down["estimand_concordance"])
+
+
+def test_the_two_cuts_carry_their_OWN_nulls_and_the_difference_is_named_a_POPULATION_change():
+    """The item asked for the concordance re-cut with the zero rows out and with them in, each
+    against its own permutation null at its own n. Both cuts are published with the interval
+    their own sample earned, and the block says in words that what separates them is the
+    POPULATION -- because dropping the zero rows removes the departures as well as their ties,
+    and reading that difference as the tie correction is the mistake this whole split exists to
+    stop.
+    """
+    strata = _strata_fixture(99.0, 98.0)["pair_strata"]
+    cuts = strata["the_two_cuts_the_item_asked_for"]
+
+    assert cuts["the_zero_rows_excluded"]["decisions"] < cuts["the_zero_rows_included"]["decisions"]
+    assert cuts["the_zero_rows_excluded"]["null_95_interval"] is not None
+    assert cuts["the_zero_rows_included"]["null_95_interval"] is not None
+    # Two samples, two intervals -- never one borrowed across both.
+    assert (cuts["the_zero_rows_excluded"]["null_95_interval"]
+            != cuts["the_zero_rows_included"]["null_95_interval"])
+    assert "POPULATION, not tie handling" in cuts["what_separates_them"]
+
+
+def test_the_split_REFUSES_when_a_zero_against_zero_pair_was_SCORED():
+    """The refusal that catches the estimator changing under it.
+
+    If `_concordance` stopped excluding outcome ties, the estimand would gain the C(z, 2)
+    within-zero pairs as comparable ones and the cross stratum solved from the totals would be
+    an average over pairs that are not cross pairs. The split names that and refuses.
+    """
+    horizon = _strata_fixture(99.0, 98.0)
+    legs = copy.deepcopy(horizon["legs"])
+    legs[rvca.ESTIMAND_LEG]["comparable_pairs"] += 1
+
+    refusal = rvca.pair_strata(
+        legs[rvca.SETTLED_POUNDS_LEG], legs[rvca.ESTIMAND_LEG],
+        horizon["decisions_scored_at_zero_because_the_term_settled_nothing"])
+
+    assert refusal["available"] is False
+    assert "zero-vs-zero pair was scored" in refusal["reason"]
+
+
+def test_the_split_REFUSES_when_the_zero_rows_do_not_all_share_ONE_outcome():
+    """The tie mass is only a tie mass if every zero row carries the same value. If they do not,
+    C(z, 2) is not the number of tied pairs and the whole framing is wrong -- so the split says
+    so rather than quietly attributing a departure it has mis-sized.
+    """
+    horizon = _strata_fixture(99.0, 98.0)
+    legs = copy.deepcopy(horizon["legs"])
+    legs[rvca.ESTIMAND_LEG]["pairs_tied_on_outcome"] += 3
+
+    refusal = rvca.pair_strata(
+        legs[rvca.SETTLED_POUNDS_LEG], legs[rvca.ESTIMAND_LEG],
+        horizon["decisions_scored_at_zero_because_the_term_settled_nothing"])
+
+    assert refusal["available"] is False
+    assert "do not all share one outcome value" in refusal["reason"]
+
+
+def test_the_split_REFUSES_legs_that_do_not_NEST_and_a_run_that_predates_the_pair_counts():
+    """Two absences told apart, because they need different things.
+
+    Non-nesting legs mean no partition of the pairs exists at all. Missing pair counts mean the
+    run is older than the block -- fixed by re-running, and never by inventing the counts. Both
+    refuse; neither is allowed to read as the other.
+    """
+    horizon = _strata_fixture(99.0, 98.0)
+    legs = copy.deepcopy(horizon["legs"])
+    zeroes = horizon["decisions_scored_at_zero_because_the_term_settled_nothing"]
+
+    not_nested = rvca.pair_strata(legs[rvca.SETTLED_POUNDS_LEG], legs[rvca.ESTIMAND_LEG],
+                                  zeroes + 1)
+    assert not_nested["available"] is False
+    assert "do not nest" in not_nested["reason"]
+
+    old = copy.deepcopy(legs)
+    old[rvca.ESTIMAND_LEG].pop("comparable_pairs")
+    predates = rvca.pair_strata(old[rvca.SETTLED_POUNDS_LEG], old[rvca.ESTIMAND_LEG], zeroes)
+    assert predates["available"] is False
+    assert "predates the per-leg pair counts" in predates["reason"]
+
+    # A book with no departures at all is a THIRD absence: nothing to attribute, not a defect.
+    log, records = _a48_rising()
+    settled_only = _fh(log, records)["pair_strata"]
+    assert settled_only["available"] is False
+    assert "no decision at zero" in settled_only["reason"]

@@ -2023,6 +2023,11 @@ def _fixed_horizon(log: list, folded: dict, accounts_in_the_settled_book: set,
                     declined=excluded["declined"])),
         "reconciles": scored + total_excluded - excluded["declined"] == priced,
         "legs": legs,
+        # WHICH PAIRS CARRY THE ESTIMAND'S DEPARTURE -- the tie mass, or the arm. An identity over
+        # the two legs above and NOT a second ranking, which is why the page producer may apply it
+        # to an artefact written before this block existed. See `pair_strata` for why re-cutting
+        # with the zero rows dropped is the wrong instrument for that question.
+        "pair_strata": pair_strata(legs[SETTLED_POUNDS_LEG], legs[ESTIMAND_LEG], len(zeroes)),
         # THE INDEPENDENT CHECK, and it is not part of the estimand. `_survivorship` established
         # the concordance's drop class IS the churn class on the DROP key; this re-asks the same
         # question on a different key -- the decisions this estimand scores at ZERO -- and a
@@ -2246,6 +2251,248 @@ def _horizon_leg(points: list[tuple[float, float]], what_it_is: str,
         "comparable_pairs": pairs,
         "pairs_tied_on_outcome": outcome_ties,
     }
+
+
+#: The two legs the stratum split is an IDENTITY over. Named once rather than spelled at both
+#: call sites: the whole value of this split is that it is arithmetic on these two legs and
+#: nothing else, so a mistyped key would turn a refusal into a silent absence.
+SETTLED_POUNDS_LEG = "settled_only_pounds_outcome"
+ESTIMAND_LEG = "every_priced_decision_pounds_outcome"
+
+
+def pair_strata(settled_leg: dict | None, estimand_leg: dict | None,
+                zero_decisions: int | None) -> dict:
+    """WHICH PAIRS CARRY THE ESTIMAND'S DEPARTURE FROM 0.5 -- the tie mass, or the arm?
+
+    THE QUESTION THIS ANSWERS, in the words of the Lane 0 item that commissioned it: *"a rank
+    concordance with a quarter of its mass tied at the floor can read below chance from the tie
+    handling alone, with no inversion in the arm at all."* Pre-registered against, before the
+    discriminating counts were read, in
+    `docs/staging/records/SEAT_PREREGISTRATION_WHETHER_THE_ESTIMANDS_INVERSION_IS_THE_TIE_MASS_OR_THE_ARM_2026-09-09.md`.
+
+    WHY DROPPING THE ZERO ROWS IS NOT THE CUT THAT ANSWERS IT, which is the trap. Re-cutting the
+    estimand with the zero-settled rows excluded lands exactly on `settled_only_pounds_outcome`
+    -- leg 2, which the bridge already publishes -- and that step removes the TIES and the whole
+    departure population in ONE move. A change under it cannot be attributed to either, and
+    "the inversion goes away when the ties go" is precisely the two-things-changed sentence this
+    project keeps paying for.
+
+    THE CUT THAT DOES SEPARATE THEM is a partition of the PAIRS rather than of the decisions.
+    Every pair the estimand could have scored sits in exactly one stratum:
+
+        within-settled   C(s, 2)   leg 2's own population, on leg 2's own outcome
+        within-zero      C(z, 2)   THE TIE MASS -- both rows score 0.0
+        cross            z * s     each departure against each survivor
+
+    `_concordance` EXCLUDES every pair tied on the outcome, so all C(z, 2) within-zero pairs are
+    excluded and the tie mass contributes NO comparable pair at all. A stratum contributing zero
+    pairs cannot move a weighted mean of the other two -- so the item's hypothesis is answered by
+    the estimator's construction and not by a number.
+
+    AND IT IS MEASURED, NEVER ASSERTED. The two identities below are the measurement: the
+    estimand's comparable pairs must exceed leg 2's by EXACTLY `z * s`, and its outcome ties by
+    EXACTLY `C(z, 2)`. Either one failing means a within-zero pair was scored, or a cross pair was
+    not -- so this refuses rather than publishing an attribution whose precondition is false. A
+    mutation that made `_concordance` score outcome ties at a half instead of excluding them
+    breaks the first identity, which is what stops this block being a restatement of itself.
+
+    WHY THIS IS AN IDENTITY AND NOT A SECOND ESTIMATOR. Nothing here re-ranks anything. The four
+    inputs are counts the legs already publish, and `c_cross` is the unique solution of
+
+        c3 * N3 = c_within * N_within + c_cross * N_cross
+
+    so it cannot drift from the figure it decomposes. That is also why it is safe for the page
+    producer to call this on an artefact from a run that predates the block: the identity holds
+    over any artefact carrying both legs, and it names its own provenance where it does.
+
+    WHAT IT DOES NOT SETTLE, stated here rather than left to a reader. The cross stratum is
+    `z * s` pairs determined by only `z` rows' signals, drawn from a wider account set than
+    leg 2's. That is LEVERAGE and clustering, not bias, and it makes the estimand's published
+    interval optimistic in the way the block's own `bound` already says. The direction is what
+    this attributes; the interval stays the one the leg earned.
+    """
+    settled_leg, estimand_leg = settled_leg or {}, estimand_leg or {}
+
+    def _refuse(reason: str) -> dict:
+        return {"available": False, "reason": reason}
+
+    if not isinstance(zero_decisions, int) or isinstance(zero_decisions, bool):
+        return _refuse("the run did not report how many decisions it scored at zero, so the "
+                       "strata cannot be sized and no attribution is available")
+    c_within, c_whole = settled_leg.get("concordance"), estimand_leg.get("concordance")
+    if c_within is None or c_whole is None:
+        return _refuse("one of the two legs this split is arithmetic over could rank nothing, so "
+                       "there is no departure to attribute")
+    s, whole_n = settled_leg.get("decisions"), estimand_leg.get("decisions")
+    n_within = settled_leg.get("comparable_pairs")
+    n_whole = estimand_leg.get("comparable_pairs")
+    ties_within = settled_leg.get("pairs_tied_on_outcome")
+    ties_whole = estimand_leg.get("pairs_tied_on_outcome")
+    if None in (s, whole_n, n_within, n_whole, ties_within, ties_whole):
+        return _refuse("this run predates the per-leg pair counts, so the strata cannot be sized "
+                       "from what it published -- the split needs `comparable_pairs` and "
+                       "`pairs_tied_on_outcome` on both legs")
+    if not zero_decisions:
+        return _refuse("the estimand scored no decision at zero, so it has no tie mass and no "
+                       "cross stratum: its population IS leg 2's and there is nothing to "
+                       "attribute between them")
+    # THE NESTING, WHICH IS THE SPLIT'S FIRST PRECONDITION. Leg 2's decisions plus the zeroes must
+    # BE the estimand's, or these are not two cuts of one sample and the identity is over
+    # populations that never nested.
+    if whole_n != s + zero_decisions:
+        return _refuse(
+            "the estimand's {whole} decisions are not leg 2's {s} plus the {z} scored at zero, so "
+            "the two legs do not nest and no partition of the pairs between them exists"
+            .format(whole=whole_n, s=s, z=zero_decisions))
+    expected_cross = zero_decisions * s
+    expected_tie_mass = zero_decisions * (zero_decisions - 1) // 2
+    cross_pairs = n_whole - n_within
+    tie_mass = ties_whole - ties_within
+    if cross_pairs != expected_cross:
+        return _refuse(
+            "the estimand has {got} comparable pairs more than leg 2 and the cross stratum is "
+            "{want} pairs ({z} x {s}), so either a zero-vs-zero pair was scored or a "
+            "zero-vs-settled pair was not. The attribution's precondition is false and the split "
+            "is refused rather than published."
+            .format(got=cross_pairs, want=expected_cross, z=zero_decisions, s=s))
+    if tie_mass != expected_tie_mass:
+        return _refuse(
+            "the estimand carries {got} outcome-tied pairs more than leg 2 and the {z} rows "
+            "scored at zero make exactly {want} of them, so they do not all share one outcome "
+            "value. The tie mass is not what this split assumes it is, and it is refused."
+            .format(got=tie_mass, want=expected_tie_mass, z=zero_decisions))
+    c_cross = (c_whole * n_whole - c_within * n_within) / cross_pairs
+    # WHAT THE ESTIMAND WOULD READ IF THE ITEM WERE RIGHT. If the cross stratum carried no
+    # information -- every departure as likely to have been priced above a survivor as below --
+    # the whole statistic would sit here. The distance between this and the published figure IS
+    # the part of the departure the arm's own ranking of departures accounts for.
+    at_chance = (c_within * n_within + 0.5 * cross_pairs) / n_whole
+    within_share = (c_within - 0.5) * n_within / n_whole
+    cross_share = (c_cross - 0.5) * cross_pairs / n_whole
+    return {
+        "available": True,
+        "what_this_is": (
+            "a partition of the estimand's own comparable pairs into the three strata that can "
+            "carry its departure from 0.5, so a reader can tell the TIE MASS from the ARM. An "
+            "identity over the two legs' published counts, not a second ranking."),
+        "strata": {
+            "within_settled": {
+                "decision_pairs": s * (s - 1) // 2,
+                "comparable_pairs": n_within,
+                "concordance": c_within,
+                "what_it_is": ("leg 2's own population -- the decisions whose term settled "
+                               "something, ranked against each other"),
+            },
+            "within_zero": {
+                "decision_pairs": expected_tie_mass,
+                "comparable_pairs": 0,
+                "concordance": None,
+                "what_it_is": (
+                    "THE TIE MASS. Both rows scored 0.0, so every one of these pairs is tied on "
+                    "the outcome and `_concordance` excludes it. This stratum supplies no "
+                    "comparable pair and therefore cannot move the statistic in either "
+                    "direction -- which is the item's hypothesis, answered."),
+            },
+            "cross": {
+                "decision_pairs": expected_cross,
+                "comparable_pairs": cross_pairs,
+                "concordance": c_cross,
+                "what_it_is": (
+                    "each decision that settled nothing against each that settled something. "
+                    "Below 0.5 means the arm gave the DEPARTURE the higher margin -- it priced "
+                    "up the decisions that went on to produce nothing."),
+            },
+        },
+        "zero_decisions": zero_decisions,
+        "settled_decisions": s,
+        "estimand_concordance": c_whole,
+        "comparable_pairs": n_whole,
+        "tie_mass_share_of_decisions": zero_decisions / whole_n,
+        "tie_mass_share_of_comparable_pairs": 0.0,
+        "cross_share_of_comparable_pairs": cross_pairs / n_whole,
+        # KEYED TO THE PROPERTY. Both booleans are functions of the counts, so the day a change
+        # makes the tie mass scorable or moves the departure into leg 2's own pairs, they say so
+        # with nobody editing prose.
+        "the_tie_mass_can_move_the_estimand": False,
+        "the_stratum_that_carries_the_departure": (
+            "cross" if abs(cross_share) >= abs(within_share) else "within_settled"),
+        "departure_from_no_information": {
+            "estimand": c_whole - 0.5,
+            "from_the_within_settled_stratum": within_share,
+            "from_the_cross_stratum": cross_share,
+            "from_the_tie_mass": 0.0,
+            "these_sum_to_the_departure": True,
+            "what_this_is": (
+                "the estimand's distance from 0.5, split additively across the strata by their "
+                "share of the comparable pairs. The three terms sum to it exactly, because the "
+                "concordance is a mean over pairs and this is that mean's own decomposition."),
+        },
+        "the_estimand_if_the_cross_stratum_carried_no_information": at_chance,
+        "the_two_cuts_the_item_asked_for": {
+            "the_zero_rows_excluded": {
+                "is_leg": SETTLED_POUNDS_LEG,
+                "decisions": s,
+                "concordance": c_within,
+                "null_95_interval": (settled_leg.get("null_spread") or {}).get(
+                    "null_95_interval"),
+                "p_two_sided": (settled_leg.get("null_spread") or {}).get("p_two_sided"),
+                "read_against": ("its OWN permutation null at its own n -- never the estimand's, "
+                                 "which belongs to a different sample"),
+            },
+            "the_zero_rows_included": {
+                "is_leg": ESTIMAND_LEG,
+                "decisions": whole_n,
+                "concordance": c_whole,
+                "null_95_interval": (estimand_leg.get("null_spread") or {}).get(
+                    "null_95_interval"),
+                "p_two_sided": (estimand_leg.get("null_spread") or {}).get("p_two_sided"),
+                "read_against": ("its OWN permutation null at its own n, which reproduces this "
+                                 "sample's outcome ties exactly by permuting the signals against "
+                                 "the FIXED outcomes"),
+            },
+            "what_separates_them": (
+                "POPULATION, not tie handling. The excluded cut drops the {z} departures as well "
+                "as their ties, so the difference between these two numbers is not the tie "
+                "correction and must not be read as it. The tie correction is the permutation "
+                "null itself, and it is unbiased under outcome ties by symmetry: each comparable "
+                "pair is equally likely to fall either way under a shuffled signal, whatever the "
+                "outcome ties do, so both nulls centre on 0.5 and the ties only WIDEN them."
+                .format(z=zero_decisions)),
+        },
+        "reading": _pair_strata_reading(c_whole, c_cross, c_within, at_chance,
+                                        zero_decisions, whole_n, cross_pairs, n_whole),
+    }
+
+
+def _pair_strata_reading(c_whole: float, c_cross: float, c_within: float, at_chance: float,
+                         zero_decisions: int, whole_n: int, cross_pairs: int,
+                         comparable: int) -> str:
+    """The verdict, composed FROM the split. Never a sentence typed beside it.
+
+    Every clause is a function of the numbers above, so the day the arm stops pricing its
+    departures above its survivors this reading changes without anybody editing it -- and the
+    tie-mass clause stays true either way, because it is a statement about the estimator.
+    """
+    return (
+        "{z} of {n} scored decisions ({share:.0%}) sit tied at 0.0, and every one of the "
+        "{tied:,} pairs among them is excluded by the estimator as an outcome tie -- so the tie "
+        "mass supplies NONE of the {comparable:,} comparable pairs and cannot move the figure. "
+        "The departure is carried by the {cross:,} cross pairs, which read {c_cross:.4f}: in "
+        "{against:.0%} of departure-against-survivor pairs the arm had given the DEPARTURE the "
+        "higher margin. Leg 2's own {within:,} pairs read {c_within:.4f}. Had the cross stratum "
+        "carried no information the estimand would read {at_chance:.4f} rather than {whole:.4f}. "
+        "{verdict}".format(
+            z=zero_decisions, n=whole_n, share=zero_decisions / whole_n,
+            tied=zero_decisions * (zero_decisions - 1) // 2, comparable=comparable,
+            cross=cross_pairs, c_cross=c_cross, against=1 - c_cross,
+            within=comparable - cross_pairs, c_within=c_within, at_chance=at_chance,
+            whole=c_whole,
+            verdict=(
+                "THE INVERSION IS NOT A TIE-HANDLING ARTEFACT: it is the arm ranking its own "
+                "departures above the customers it kept."
+                if c_cross < 0.5 else
+                "The cross stratum ranks at or above chance, so the estimand's position is not "
+                "the arm pricing its departures up.")))
 
 
 def _fixed_horizon_reading(legs: dict, zeroes: int, scored: int) -> str:
