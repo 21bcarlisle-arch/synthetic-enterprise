@@ -18,14 +18,37 @@ Each leg names the mutation that must kill it:
     revert `main()` to `json.dumps(extract_report_data(raw_output))`.
   * `test_the_stamped_digest_tracks_the_anchor_block` -- pin the digest to a literal, or key it to
     anything that does not move when the departure level moves.
+
+THE SECOND DEFECT, 2026-09-09: `_cache_meta` answers a consumer that knows to look for it, and
+answers NOTHING ELSE. `docs/reports/run_output_latest.json` is a promote-by-copy target -- bytes
+copied onto a canonical name, no source file touched -- and it published no run identity a reader
+or a control could find. Graded by `tools/promoted_artefact_claim_census._artefact_dates`, the
+artefact on disk yielded 17 run-identity tokens and not one was the run's: twelve simulation-world
+dates and five belonging to `scenario_analysis`, which is loaded off disk from a different
+producer. The census leg that exists to say "this target cannot be graded" therefore reported
+nothing, and a claim about which run sat there could be checked against a stress test's mark date.
+
+The legs below are about the header that repairs it, and each names its mutation:
+  * `test_a_written_run_output_carries_the_run_identity_header` -- delete the
+    `_run_identity_header` call, or drop any of its three fields.
+  * `test_the_published_run_identity_is_readable_by_the_census_that_grades_it` -- write
+    `generated_at` in `_cache_meta`'s compact `%Y%m%dT%H%M%SZ` shape. That is the shape already in
+    the file and the obvious thing to copy, and the census cannot match it at all.
+  * `test_a_run_that_cannot_name_its_code_publishes_no_sha_at_all` -- pass `_git_commit_hash`'s
+    `"unknown"` sentinel through into `producing_commit.commit`, where it is truthy and satisfies
+    every presence check.
+  * `test_the_header_and_the_cache_meta_cannot_disagree` -- resolve the commit, the clock or the
+    world separately for the two slots instead of binding both to one local.
 """
 from __future__ import annotations
 
 import json
+import re
 
 import pytest
 
 import tools.run_annual_report as rar
+from tools.promoted_artefact_claim_census import _artefact_dates
 
 
 def _adding_up() -> dict:
@@ -128,4 +151,117 @@ def test_the_stamped_digest_tracks_the_anchor_block(stubbed_world, monkeypatch, 
     assert after["_cache_meta"]["world_level"]["digest"] != before_digest, (
         "moving the {} anchor did not move the stamp, so a re-fit is invisible to every "
         "reader of a published run output".format(a_year)
+    )
+
+
+def test_a_written_run_output_carries_the_run_identity_header(
+    stubbed_world, monkeypatch, tmp_path
+):
+    """WHICH RUN IS THIS, answered in the payload and at the top of it.
+
+    `run_output_latest.json` is a promote-by-copy target with eighteen binders. Before this header
+    the answer was establishable only from `git log` -- i.e. not from the artefact at all, which
+    is the one place a copied set of bytes carries its own truth."""
+    stubbed_world(_adding_up())
+    written = json.loads(_run_main(monkeypatch, tmp_path).read_text())
+
+    assert list(written)[:3] == ["generated_at", "producing_commit", "world_identity"], (
+        "the run identity is not the first thing in the artefact, so a reader of a 27MB file has "
+        "to parse the whole of it to find out which run they are holding; got {}".format(
+            list(written)[:3])
+    )
+    assert re.fullmatch(r"20\d{2}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", written["generated_at"]), (
+        "`generated_at` is not the shape the other promote targets publish: "
+        + repr(written["generated_at"])
+    )
+
+    commit = written["producing_commit"]
+    assert commit.get("commit") or commit.get("unavailable_because"), (
+        "the `producing_commit` slot is present and says nothing -- an absent answer must name "
+        "its reason, because a consumer that cannot tell 'no commit' from 'some commit' is the "
+        "fail-open this block exists to close"
+    )
+    world = written["world_identity"]
+    assert world.get("digest") or world.get("unavailable_because"), (
+        "the artefact does not say which world it ran in and does not say why not"
+    )
+
+
+def test_the_published_run_identity_is_readable_by_the_census_that_grades_it(
+    stubbed_world, monkeypatch, tmp_path
+):
+    """THE LEG THAT MAKES THE HEADER REACH ITS CONSUMER, and it is not the same assertion as the
+    one above.
+
+    A header can be present, correct, and invisible. `_cache_meta` was all three: its stamp is
+    `20260901T054223Z`, and `_RUN_IDENTITY` matches a compact date only at a word boundary -- the
+    `T` that follows is a word character, so the pattern cannot fire inside it. Its world digest
+    sits one level deeper than the census walks. The result was a target that published provenance
+    and graded as though it published none.
+
+    So this asserts the property that matters rather than the field that carries it: the run's own
+    stamp is in the set the census grades claims against. Nothing here re-implements the census --
+    it calls the real one, on the real bytes `main()` wrote."""
+    stubbed_world(_adding_up())
+    out = _run_main(monkeypatch, tmp_path)
+    written = json.loads(out.read_text())
+
+    tokens = _artefact_dates(out)
+    assert written["generated_at"] in tokens, (
+        "the run stamped itself {} and the census that grades every claim about which run sits "
+        "at this promote target cannot see it; the tokens it did find were {}".format(
+            written["generated_at"], sorted(tokens))
+    )
+
+
+def test_a_run_that_cannot_name_its_code_publishes_no_sha_at_all(
+    stubbed_world, monkeypatch, tmp_path
+):
+    """A PLACEHOLDER THAT SATISFIES A PRESENCE CHECK IS WORSE THAN AN ADMITTED ABSENCE.
+
+    `_git_commit_hash()` returns the literal `"unknown"` when `git rev-parse` does not answer, and
+    `"unknown"` is truthy. `_cache_meta` publishes it as-is deliberately -- the dashboard wants the
+    honest word -- but every `producing_commit` consumer in this tree keys on `commit` being None,
+    so passing the sentinel through would let a run that cannot name its code read exactly like
+    one that can."""
+    stubbed_world(_adding_up())
+    monkeypatch.setattr(rar, "_git_commit_hash", lambda: "unknown")
+    written = json.loads(_run_main(monkeypatch, tmp_path).read_text())
+
+    commit = written["producing_commit"]
+    assert commit["commit"] is None, (
+        "a run that could not read HEAD published {!r} as its producing commit".format(
+            commit["commit"])
+    )
+    assert commit["unavailable_because"], "the absence is unexplained"
+
+
+def test_the_header_and_the_cache_meta_cannot_disagree(stubbed_world, monkeypatch, tmp_path):
+    """TWO SLOTS, ONE FACT. The same run's identity is published in `_cache_meta` (for the three
+    consumers that already read it and for the versioned filename) and in the header (for readers
+    and for the census). Computed separately they would be two facts that agree today; bound to
+    one local they are one fact with two readers.
+
+    The clock is the leg that would rot first and silently: `datetime.now()` called twice can
+    straddle a second boundary, and a header stamped one second after the filename is a header a
+    reader cannot join back to its own versioned copy."""
+    stubbed_world(_adding_up())
+    written = json.loads(_run_main(monkeypatch, tmp_path).read_text())
+
+    meta = written["_cache_meta"]
+    assert written["world_identity"] == meta["world_level"], (
+        "the artefact names two different worlds in its two provenance slots"
+    )
+    # Keyed to the property and not to today's answer: the two slots must name the SAME commit, or
+    # the header must be fail-closed about the one `_cache_meta` published. The second arm is the
+    # `"unknown"` case above and is the only legitimate way for these to differ.
+    header_commit = written["producing_commit"]["commit"]
+    assert header_commit == meta["git_commit"] or (
+        header_commit is None and written["producing_commit"]["unavailable_because"]
+    ), "the header and `_cache_meta` name different producing commits, and neither says why"
+    header_clock = written["generated_at"].replace("-", "").replace(":", "")
+    assert header_clock == meta["generated_at_utc"], (
+        "the header says {} and the versioned filename will be minted from {}, so the published "
+        "artefact cannot be joined to its own dated sibling".format(
+            written["generated_at"], meta["generated_at_utc"])
     )
