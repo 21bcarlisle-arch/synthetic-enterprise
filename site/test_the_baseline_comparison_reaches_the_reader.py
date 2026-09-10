@@ -282,10 +282,45 @@ def live() -> dict:
 
 
 def _gbp(value: float) -> str:
-    return "£{:,}".format(round(value))
+    """The page's own `gbp()`, mirrored -- including what it does to a NEGATIVE.
+
+    THE DEFECT THIS CARRIED, found 2026-09-10 by the first published run whose selection leg came
+    out below zero. This helper was `"£{:,}".format(round(value))`, which renders -333 as `£-333`.
+    The door renders `−£333`: the sign goes in FRONT of the £, and it is U+2212 MINUS rather than
+    an ASCII hyphen, both on purpose and both documented in the render's own comment ("£-175 reads
+    as a typo where -£175 reads as a result").
+
+    So every assertion of the form `_gbp(x) in rendered` was, for negative x, comparing a string
+    the page cannot emit. It never fired because `selection_gbp` had been positive on every run
+    that reached this page -- a control that agrees with its subject only on the half of the
+    number line the data happened to occupy. The value flipping sign is not what broke it; it is
+    what finally made it observable.
+    """
+    n = round(value)
+    return ("−£" if n < 0 else "£") + "{:,}".format(abs(n))
 
 
 # ── the three arms, and the money ────────────────────────────────────────────────────────────
+
+def test_this_files_own_money_formatter_agrees_with_the_door_on_a_NEGATIVE():
+    """THE HELPER, PINNED TO THE RULE RATHER THAN TO THE SIGN THE DATA HAPPENS TO HAVE.
+
+    The fix above is only OBSERVABLE while a published run has a negative selection leg. The day
+    one comes back positive, a relapse in `_gbp` stops reddening anything and waits for the next
+    negative run to mislead somebody -- which is exactly how it survived until 2026-09-10 in the
+    first place. So the rule is asserted directly, at a value this file chooses, and the control
+    no longer depends on what the world produced this week.
+
+    The three properties are the door's, from its own comment: sign BEFORE the £, U+2212 MINUS and
+    not an ASCII hyphen, and thousands separated.
+    """
+    assert _gbp(-333) == "−£333"
+    assert _gbp(-1234) == "−£1,234", "the negative branch lost its thousands separator"
+    assert _gbp(1234) == "£1,234", "the positive branch moved when only the negative should have"
+    assert "-" not in _gbp(-333), (
+        "the helper emits an ASCII hyphen where the door emits U+2212, so a `_gbp(x) in rendered` "
+        "assertion silently cannot match on any negative figure")
+
 
 def test_the_baseline_and_the_arm_reach_the_rendered_page(live):
     feed = _live_feed()

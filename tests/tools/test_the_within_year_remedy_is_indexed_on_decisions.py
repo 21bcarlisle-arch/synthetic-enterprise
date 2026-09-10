@@ -194,15 +194,25 @@ def test_the_independence_gap_is_not_repaired_by_dropping_the_contaminated_accou
 def test_BOTH_availability_branches_can_be_taken(artefact):
     """THE CONTROL OVER THE WHOLE PARTITION, written once rather than a leg per branch.
 
-    Every artefact on disk today takes the refusal branch, so a suite that only ever meets that
-    branch would pass identically against a block hard-wired to it -- which is what this file's
-    subject WAS until `run_value_cycle_ab.belief_against_control_outcomes` was written. Asserting
-    the rare branch CAN be taken comes before asserting what it does; this project has entered
-    that trap through three different doors in one afternoon.
+    Asserting the rare branch CAN be taken comes before asserting what it does; this project has
+    entered that trap through three different doors in one afternoon.
 
-    The two artefacts differ in ONE field, so a difference in the verdict is attributable to it.
+    BOTH SIDES ARE NOW CONSTRUCTED, and the reason is this control's own history. It was written
+    on 2026-09-10 against a premise it stated as fact -- *"every artefact on disk today takes the
+    refusal branch"* -- and so it read the refusal side straight off the live artefact and only
+    built the available one. That premise was spent the same day, by the A/B pass this control
+    exists to make worth running: the artefact now carries
+    `belief_against_control_outcomes.available: True`, the unmutated side went to the AVAILABLE
+    branch, and the control went red for the single reason that the code had become more honest.
+
+    That is the failure this file's subject was fixed for, reappearing one level up in the thing
+    doing the checking. A control keyed to today's artefact goes red when the answer improves and
+    green when the claim rots. So neither side is read from disk: the field is REMOVED for one and
+    SUPPLIED for the other, over one artefact differing in exactly that field, and the pair stays
+    a real partition whichever branch the live run happens to be on.
     """
-    without = _within_year_concordance(artefact["belief_vs_outcome"], artefact)
+    stripped = {k: v for k, v in artefact.items() if k != "belief_against_control_outcomes"}
+    without = _within_year_concordance(artefact["belief_vs_outcome"], stripped)
 
     graded = {
         "available": True,

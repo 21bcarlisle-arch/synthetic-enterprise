@@ -93,3 +93,38 @@ the page moves on its own when the artefact carries the field. **The population 
 available branch regardless of the number** — the outcome becomes independent, the population does
 not, and a reader who takes the second from the first draws a conclusion no run on this book
 supports.
+
+---
+
+## GRADED, 2026-09-10 — appended after the run, and nothing above is revised
+
+Full result:
+`docs/staging/SEAT_RESULT_THE_INDEPENDENT_GRADING_EXISTS_AND_AGREES_AND_THE_ONLY_CLEAN_COMPARISON_IS_WITHIN_A_RUN_2026-09-10.md`.
+
+| | outcome |
+|---|---|
+| **P0** world digest `39a192ce04c1eda8` | **HOLDS** |
+| **P1** \|Δ\| ≤ 0.10 | **HOLDS** — but see below; the comparison as written is confounded |
+| **P2** AUC > 0.5 | **HOLDS** — 0.6237 |
+| **P3** `scored_share_of_priced` ≥ 0.5 | **HOLDS** — 0.558, the thinnest margin here |
+| **P4** the untouched figures do not move | **REFUTED** |
+
+**P4 is the one that earned its place.** `belief_vs_outcome.discrimination_auc` went 0.6270 → 0.6148
+and its population 83/40 → 85/39. The disagreement set was exactly right — the same four accounts
+and the same one — so the half of P4 that was about the new field held; the half that assumed a
+fresh pass reproduces a figure it does not touch did not.
+
+The tree moved between the runs (`8b846013e` → `9cf9d16ed`) and the arm's behaviour moved with it:
+`priced` 214 → 215, `distinct_margins` 63 → 74. Two things differ, so the move is **not
+attributable** to either alone, and I am not picking the flattering one.
+
+**What P4 bought.** It caught that P1's stated comparison — against the *previous day's* run — was
+never one-variable. The clean comparison is within a single pass: 0.6237 against 0.6148, same tree,
+same book, same 215 priced decisions, differing only in which arm's outcome the belief is scored
+against. That is what the page publishes. Had P4 not been filed, the cross-run figure would have
+been reported as a clean result, and it is not one.
+
+**The reasoning error, kept because it is the transferable part.** I argued P4 from *the new field
+does not touch these figures* — true, and not the question. **Conceptually separate is not
+invariant.** A "will not move" has to be argued from what holds the value fixed, and nothing here
+did.
