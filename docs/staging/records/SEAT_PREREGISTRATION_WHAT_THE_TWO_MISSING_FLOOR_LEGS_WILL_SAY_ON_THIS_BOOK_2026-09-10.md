@@ -99,6 +99,63 @@ was measured rather than what was predicted.
 
 ---
 
-## RESULT
+## RESULT, recorded 2026-09-10 beside the predictions above
 
-*Not yet run. This section is written after the legs land, beside the predictions above.*
+**P1–P5 are all refuted at once, and P6 — the instrument control, the one I registered as a check
+rather than a prediction — is what fired.** There is no split to report, because on this book the
+`except` half of the cut is **empty**.
+
+Measured by one instrumented full-window pass at `c066c114b` with a pass-through recorder on
+`price_elasticity_for_customer` (`/var/tmp/se-floor-legs-20260910/probe_partition.json`):
+
+| | |
+|---|---|
+| elasticity calls in the run | 298 |
+| accounts that drew one | 67 |
+| **accounts drawing OUTSIDE the 100-account priced roster** | **0** |
+| calls outside the roster | **0** |
+| roster accounts that never drew at all | 33 |
+
+| # | Predicted | Measured | Verdict |
+|---|---|---|---|
+| P1 | reconciliation in 0.6–1.6 | **no reconciliation exists** — `V_only ≡ V_all`, `V_except ≡ 0` | **REFUTED — the question is undefined** |
+| P2 | priced share > 0.50 | **1.0 identically**, for every seed and any book size | **VACUOUSLY TRUE, which is worse than refuted** |
+| P3 | `V_rest > 0` strictly, above 2.227% → *no book can* settle the published draw | `V_rest = 0` exactly. **The "no book can" verdict does NOT hold via this route** | **REFUTED** |
+| P4 | `V_rest` under 35.463%, mean stays resolvable above 2.82× | it is zero, so **2.82× is exact, not a floor** | **REFUTED in the direction I did not consider** |
+| P5 | `share_is_decisive` true against the published draw | decisive against nothing; the share is an identity | **REFUTED** |
+| P6 | the `except` seeds are not all identical — *"if they are, that is a finding about the instrument, not the world"* | **the leg cannot return a value at all**; `noise_floor` refuses it | **HELD, and one notch stronger than I wrote it** |
+
+### What I got wrong, and it was the frame and not the arithmetic
+
+Every threshold above is correct arithmetic on the right numbers, and all of it was aimed at a
+quantity that does not exist on this book. I treated `V_rest = 0` as *the optimistic corner of a
+family* — the whole 2026-09-09 monotonicity argument, which is sound — and never asked the prior
+question: **is the complement of the priced roster non-empty in the call stream this instrument
+varies?** It is not. `price_elasticity_for_customer` is reached only on the paths of households the
+arm priced, so the "rest of the book" the decomposition names has no representation in it.
+
+**That is this project's recurring shape arriving again, and I walked into it having quoted it.**
+The prereg opens by naming the requirement as strictly increasing in `V_rest` and closes by
+predicting where `V_rest` would land — with `V_rest` never once defined as *a thing this instrument
+can see*. Before measuring a thing, say what it is.
+
+**P6 is the only reason this cost 30 minutes instead of eight hours.** It was registered because the
+previous book's `except` leg returned three identical values, and I wrote down what that would mean
+*before* it could be explained away. The truncated smoke run then hit the same wall in 76 seconds.
+
+### Consequences for the page, which are the opposite of what the direction expected
+
+`what_would_settle_the_sign` says 44.90× and 2.82× are **lower bounds** and *"the real books are
+larger"*. On this instrument they are **exact**, and the sentence must be corrected — not because
+the numbers moved, but because the reason given for calling them bounds is not true here.
+
+Filed as
+`docs/staging/SEAT_FINDING_THE_FLOOR_DECOMPOSITIONS_REST_OF_BOOK_HALF_IS_EMPTY_ON_THIS_BOOK_SO_ITS_SHARE_IS_AN_IDENTITY_2026-09-10.md`.
+
+### The derivation is still being turned into an observation
+
+The probe is **one pass at the base seed**, and elasticity feeds the churn decision, so a re-drawn
+seed can move which households are offered a renewal. `longjob-floor-legs-20260910` is running the
+nine-seed `except` leg at `c066c114b` to settle it: a refusal on seed 11111 observes the empty half,
+and anything else is the measurement this file was written for. **Whichever it is goes in this
+section, beside these predictions, and not into a fresh document.**
