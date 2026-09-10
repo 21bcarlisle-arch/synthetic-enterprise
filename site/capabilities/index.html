@@ -47,6 +47,17 @@ h4.col-h { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-
 .noproof { color: var(--amber); font-size: 12px; }
 .checks { color: var(--muted); font-size: 12px; }
 .planline { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.pill-testable { color: var(--green); border: 1px solid var(--green); }
+.pill-waits { color: var(--muted); border: 1px solid var(--border); }
+.uc-gate { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--muted); border-top: 1px solid var(--border); padding-top: 10px; margin: 18px 0 10px; }
+.uc { border-left: 2px solid var(--border); padding-left: 12px; margin-bottom: 14px; }
+.uc-testable { border-left-color: var(--green); }
+.uc-test { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.uc-test b { color: var(--text); font-weight: 600; }
+.uc-waits { font-size: 12px; color: var(--muted); margin-top: 5px; }
+.uc-met { font-size: 11px; color: var(--muted); margin-left: 6px; }
+.uc-none { color: var(--amber); }
 .proof-link { font-size: 12px; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
@@ -109,6 +120,19 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       <div id="supplier"></div>
     </section>
   </div>
+
+  <h2 class="sec">What a supplier can do with this world</h2>
+  <p class="sec-lede">The two columns above say how much has been built. This register says what it
+  is <em>for</em> &mdash; the things an energy supplier could actually do here, grouped by the
+  question each one answers about a customer. Every item names the hidden truth it would be scored
+  against, which is what makes this world worth building: for every home it knows what would have
+  happened anyway, so a claim like &ldquo;we saved you this much&rdquo; can be marked against the
+  answer before it is ever said to a real customer. Nothing here is a promise that it has been
+  built. An item reads <em>testable now</em> only when every truth it is scored against already
+  exists in the world; otherwise it says which one is missing, and that sentence is assembled from
+  the record rather than written here.</p>
+  <div class="figs" id="uc-tally"></div>
+  <div id="use-cases"></div>
 
   <h2 class="sec">What the lists above cannot tell you</h2>
   <p class="sec-lede">Not a summary of the columns &mdash; the gaps no single capability can
@@ -200,6 +224,44 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         "</code>, from the project's own work record and the boundary walker.";
       side("world", d.world);
       side("supplier", d.supplier);
+
+      // The use-case register. The status is never read as a stored string: it is
+      // `testable_now`, which the generator computes from whether every truth the item is
+      // scored against has actually been finished. The waiting sentence is assembled the
+      // same way, so an item leaves it the moment its last missing truth lands.
+      var uc = d.use_cases || {gates: [], tally: {}};
+      var ut = uc.tally || {};
+      document.getElementById("uc-tally").innerHTML = [
+        [ut.testable_now, "testable against hidden truth today"],
+        [ut.waiting, "waiting on truth the world does not model yet"],
+        [ut.unmodelled_truths, "truths nothing is working on at all"]
+      ].map(function (f) {
+        return '<div class="fig"><div class="fig-v">' + E(f[0]) + '</div><div class="fig-k">' +
+          E(f[1]) + "</div></div>";
+      }).join("");
+
+      document.getElementById("use-cases").innerHTML = (uc.gates || []).map(function (g) {
+        return '<div class="uc-gate">' + E(g.gate) + "</div>" + g.items.map(function (u) {
+          var waits = "";
+          if (!u.testable_now) {
+            waits = '<div class="uc-waits">Waits on ' + E(u.status.replace(/^Waits on /, "")) +
+              ".</div>";
+            if (u.unmodelled && u.unmodelled.length) {
+              waits += '<div class="uc-waits uc-none">No work is under way on ' +
+                E(u.unmodelled.join("; ")) + ".</div>";
+            }
+          }
+          return '<div class="uc' + (u.testable_now ? " uc-testable" : "") + '">' +
+            '<div class="item-h">' + E(u.name) +
+            '<span class="pill ' + (u.testable_now ? "pill-testable" : "pill-waits") + '">' +
+            E(u.testable_now ? "Testable now" : "Waits") + "</span>" +
+            '<span class="uc-met">' + E(u.needs_met) + " of " + E(u.needs_total) +
+            " in place</span></div>" +
+            '<div class="item-p">' + E(u.what) + "</div>" +
+            '<div class="uc-test"><b>Scored against:</b> ' + E(u.test) + "</div>" +
+            waits + "</div>";
+        }).join("");
+      }).join("");
 
       // Every gap carries what closes it. A gap with no plan beside it is a confession;
       // a gap with one is a roadmap.

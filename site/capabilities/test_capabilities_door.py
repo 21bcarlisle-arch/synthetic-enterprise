@@ -141,9 +141,14 @@ def test_no_internal_vocabulary_in_the_visible_text(html):
 def test_the_rendered_feed_carries_no_internal_vocabulary(feed):
     """The prose is curated, but it is curated in a Python file, and nothing stops the next
     editor pasting a work item's own name into it. This is the control that would catch it."""
+    # Every published string, not a chosen subset: the use-case register arrived with three
+    # new prose fields, and a control that still covered only the two original registers
+    # would have gone on passing while the newest prose on the page was unguarded.
     prose = " ".join(
         [e["name"] + " " + e["what"] for e in feed["world"]["entries"] + feed["supplier"]["entries"]]
         + [s["area"] + " " + s["what"] for s in feed["go_live"]["seams"]]
+        + [u["name"] + " " + u["what"] + " " + u["test"] + " " + u["gate"] + " " + u["status"]
+           for u in feed["use_cases"]["entries"]]
     ).lower()
     hits = [t for t in INTERNAL_TERMS if re.search(rf"\b{re.escape(t.lower())}\b", prose)]
     assert not hits, f"internal vocabulary in the published prose: {hits}"
@@ -401,6 +406,179 @@ def test_MUTATION_FAIL_OPEN_a_missing_interfaces_directory_raises(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# The supplier use-case register (director ruling, 2026-09-06, decision 4)
+#
+# The ruling asks for three things at once, and each is a separate way to be wrong:
+#   * every item carries its SIM-native test -- the hidden truth it is scored against;
+#   * the status is "testable now / waits on [plain-English condition]";
+#   * no internal names on the page (covered by the §6.2 control above, now extended).
+# The tests below are ordered by how badly the failure would hurt: reachability of the
+# whole partition first, then derivation, then the two fail-open shapes.
+# ---------------------------------------------------------------------------
+def _cases_by_ref() -> dict:
+    return {c["ref"]: c for c in gen.USE_CASES}
+
+
+def test_the_register_publishes_both_verdicts_and_not_one_flat_state(feed):
+    """FIRST, because everything after it is vacuous otherwise. A register that said "waits"
+    about all nineteen items would satisfy every derivation test below -- the derivation
+    would be real and the answer would always be the same -- and a reader could not tell it
+    from a page with the verdict hardcoded. One control over the whole partition, per this
+    project's own rule about a guard that refuses everything.
+    """
+    rows = feed["use_cases"]["entries"]
+    assert rows, "the register is empty"
+    verdicts = {r["testable_now"] for r in rows}
+    assert verdicts == {True, False}, (
+        f"every item reads testable_now={verdicts} -- the register has stopped "
+        "distinguishing, so no test below is measuring anything"
+    )
+    # The second leg, and it was earned by a poison round: the first assertion passes even
+    # when the level-derived half is entirely dead, because the two items carrying an
+    # UNMODELLED truth supply the "waiting" side on their own. So require a waiting item
+    # held back ONLY by work that is below target -- the path the derivation actually walks.
+    by_level = [
+        r for r in rows
+        if not r["testable_now"] and r["waits_on"] and not r["unmodelled"]
+    ]
+    assert by_level, (
+        "every waiting item is waiting because of an unmodelled truth. Nothing here "
+        "exercises the level derivation, so it could be dead and this suite would not say so"
+    )
+
+
+def test_every_use_case_carries_the_hidden_truth_it_is_scored_against(feed):
+    """The ruling's §0 is the reason the register is worth publishing: each item must say
+    what it would be graded against. An item with no test is a marketing line."""
+    for row in feed["use_cases"]["entries"]:
+        assert row["test"].strip(), f"{row['ref']} {row['name']!r} names no test"
+        assert row["needs_total"] > 0, f"{row['ref']} is scored against nothing at all"
+
+
+def test_every_use_case_is_scored_against_work_that_exists(feed):
+    levels = gen._levels()
+    for row in feed["use_cases"]["entries"]:
+        for wid in row["rests_on"]:
+            assert wid in levels, f"{row['ref']} cites {wid}, which is not in the record"
+
+
+def test_the_use_case_status_is_recomputed_from_the_record(feed):
+    """The published row must equal what the record says today -- a status frozen into the
+    feed by a generator run weeks ago would pass every other test here."""
+    levels = gen._levels()
+    cases = _cases_by_ref()
+    for row in feed["use_cases"]["entries"]:
+        fresh = gen.use_case_entry(cases[row["ref"]], levels)
+        assert row["status"] == fresh["status"], row["ref"]
+        assert row["testable_now"] == fresh["testable_now"], row["ref"]
+
+
+def test_the_waiting_condition_names_only_truths_that_are_actually_missing(feed):
+    """The condition is assembled, never stored. A truth whose work is finished must not
+    appear in the sentence -- that is the precise way a hand-written condition rots, and it
+    rots in the flattering direction (the page keeps asking for something it already has)."""
+    levels = gen._levels()
+    cases = _cases_by_ref()
+    for row in feed["use_cases"]["entries"]:
+        finished = {
+            truth for truth, wid in cases[row["ref"]]["needs"]
+            if wid and gen._status_for([wid], levels) == "Live"
+        }
+        overlap = finished & set(row["waits_on"])
+        assert not overlap, (
+            f"{row['ref']} still says it waits on {overlap}, which the record says is done"
+        )
+
+
+def test_MUTATION_a_dropped_level_makes_a_testable_use_case_start_waiting(tmp_path):
+    """THE test for this register. Keyed to the property, not to today's answer: it finds
+    whichever item is testable rather than naming one, so it keeps measuring after the
+    record moves."""
+    levels = gen._levels()
+    live = [c for c in gen.USE_CASES if gen.use_case_entry(c, levels)["testable_now"]]
+    assert live, "no use case is testable -- reachability is covered by its own test above"
+    case = live[0]
+    victim_truth, victim_id = next((t, w) for t, w in case["needs"] if w)
+
+    record = json.loads((SITE / "data" / "maturity_map.json").read_text(encoding="utf-8"))
+    for atom in record["atoms"]:
+        if atom["id"] == victim_id:
+            atom["level_current"] = 0
+    doctored = tmp_path / "maturity_map.json"
+    doctored.write_text(json.dumps(record), encoding="utf-8")
+
+    after = gen.use_case_entry(case, gen._levels(doctored))
+    assert not after["testable_now"], (
+        f"{case['ref']} still reads testable after {victim_id} was dropped below target -- "
+        "the verdict is decoration"
+    )
+    assert victim_truth in after["waits_on"], (
+        "the condition did not name the truth that actually went missing"
+    )
+    assert victim_truth in after["status"], "the published sentence did not follow either"
+
+
+def test_MUTATION_FAIL_OPEN_an_unmodelled_truth_can_never_read_testable(tmp_path):
+    """The fail-open shape this register is most exposed to. An item scored against a truth
+    with NO work behind it must stay waiting even when every work item it does cite is
+    finished -- otherwise the page would announce "testable now" for something whose hidden
+    truth does not exist, which is the exact claim the register exists to make checkable.
+
+    Driven by promoting the WHOLE record to target, so the only thing still holding the item
+    back is the unmodelled truth itself.
+    """
+    unmodelled = [c for c in gen.USE_CASES if any(w is None for _, w in c["needs"])]
+    assert unmodelled, "no use case carries an unmodelled truth -- verify before deleting"
+
+    record = json.loads((SITE / "data" / "maturity_map.json").read_text(encoding="utf-8"))
+    for atom in record["atoms"]:
+        atom["level_current"] = max(atom["level_current"], atom["level_target"])
+    doctored = tmp_path / "maturity_map.json"
+    doctored.write_text(json.dumps(record), encoding="utf-8")
+    levels = gen._levels(doctored)
+
+    # The control leg: with the whole record at target, an item with no unmodelled truth
+    # DOES flip to testable. Without this, the assertion below would pass on a register that
+    # simply never says "testable now".
+    modelled = [c for c in gen.USE_CASES if all(w for _, w in c["needs"])]
+    assert modelled, "fixture assumption broke"
+    assert gen.use_case_entry(modelled[0], levels)["testable_now"], (
+        "promoting the whole record did not make a fully-modelled item testable -- the "
+        "mutation is not reaching the derivation"
+    )
+
+    for case in unmodelled:
+        row = gen.use_case_entry(case, levels)
+        assert not row["testable_now"], (
+            f"{case['ref']} reads testable with the whole record at target, but it is "
+            f"scored against {row['unmodelled']}, which nothing models"
+        )
+        assert row["unmodelled"], f"{case['ref']} lost its unmodelled truths"
+
+
+def test_MUTATION_a_phantom_citation_in_a_use_case_raises():
+    ghost = {"gate": "g", "ref": "9.9", "name": "n", "what": "w", "test": "t",
+             "needs": [("a truth", "NO_SUCH_WORK_ITEM")]}
+    with pytest.raises(gen.CapabilitySourceUnavailable, match="absent from the record"):
+        gen.use_case_entry(ghost, gen._levels())
+
+
+def test_the_register_does_not_overstate_how_much_is_ready(feed):
+    """A published count must not exceed what the rows say. Two figures that disagree is how
+    a tally quietly becomes decoration."""
+    rows = feed["use_cases"]["entries"]
+    tally = feed["use_cases"]["tally"]
+    assert tally["testable_now"] == sum(1 for r in rows if r["testable_now"])
+    assert tally["waiting"] == sum(1 for r in rows if not r["testable_now"])
+    assert tally["testable_now"] + tally["waiting"] == len(rows)
+
+
+def test_the_page_renders_the_register_and_its_tally(html):
+    assert 'id="use-cases"' in html, "the register has no element on the page"
+    assert 'id="uc-tally"' in html, "the register's tally has no element on the page"
+
+
+# ---------------------------------------------------------------------------
 # Freshness and provenance (§6.5, §6.6)
 # ---------------------------------------------------------------------------
 def test_the_feed_carries_its_own_stamp_and_sources(feed):
@@ -434,7 +612,7 @@ def test_the_door_boots_against_its_own_feed():
     )
     assert proc.returncode == 0, proc.stderr[:500]
     out = json.loads(proc.stdout)
-    for element in ("world", "supplier", "golive", "wall", "stamp"):
+    for element in ("world", "supplier", "golive", "wall", "stamp", "use-cases", "uc-tally"):
         rendered = out.get(element) or {}
         content = rendered.get("innerHTML") or rendered.get("textContent") or ""
         assert content.strip(), f"#{element} rendered nothing"

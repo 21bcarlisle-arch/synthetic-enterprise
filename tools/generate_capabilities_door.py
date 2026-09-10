@@ -225,6 +225,294 @@ GO_LIVE_SEAMS: list[dict] = [
 
 QUALIFICATION_REGISTER = PROJECT / "docs" / "design" / "EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md"
 
+# ── The supplier use-case register ────────────────────────────────────────────
+# DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_FIDELITY_2026-09-06, decision 4:
+# publish the register "as 'what a supplier can do with this world', each item carrying its
+# SIM-native test and its current status: *testable now / waits on [plain-English condition]*",
+# and explicitly "no atom names, no phase labels".
+#
+# WHAT MAKES THIS DIFFERENT FROM THE TWO REGISTERS ABOVE, and why it needed its own shape.
+# `WORLD` and `SUPPLIER` answer "how mature is this thing we built". This one answers a
+# question the ruling puts at the centre: **what could a supplier be SCORED on here, and
+# against what hidden truth**. So every entry carries `test` — the counterfactual it is
+# graded against — because the ruling's §0 is the reason these are worth listing at all:
+# "any product built on attribution ... can be scored against hidden truth before it meets
+# a real customer".
+#
+# THE STATUS RULE, AND WHY IT IS PER-TRUTH RATHER THAN PER-ENTRY. A use case is testable
+# exactly when every piece of world-truth it is scored against actually exists. So `needs`
+# is a list of (plain-English truth, work item) pairs, and the status is derived from the
+# items' recorded levels by the SAME rule the rest of this page uses. Naming the truths
+# separately is what lets the page say *which* one is missing in the reader's language
+# rather than emitting a bare "not yet" — the ruling asked for a plain-English condition,
+# and a condition assembled from the items that are actually below target cannot go stale
+# the way a hand-written one would. When an item reaches target it drops out of the
+# sentence on its own.
+#
+# A `None` WORK ITEM IS THE HONEST CASE, NOT A PLACEHOLDER. The ruling's §2 found truths
+# with no work behind them at all — the prospect pool, the hedging risk envelope. Those
+# carry `None`, they are reported separately as `unmodelled`, and they can never satisfy
+# the status rule. Writing them as some nearly-related item would be the failure this
+# project files as a placeholder that looks like an answer; leaving them out entirely would
+# let an item read "testable now" while the truth it is scored against does not exist.
+USE_CASES: list[dict] = [
+    # ── Gate 1 — pays ────────────────────────────────────────────────────────
+    {"gate": "Whether they pay", "ref": "1.1",
+     "name": "Debt and cash flow modelled per home",
+     "what": "Provisioning built up home by home, with the rules for how a payment clears "
+             "against old and new charges made explicit, and a debt trajectory per home so "
+             "that beating the forecast is something a manager can actually be measured on.",
+     "test": "Does the predicted arrears trajectory match what truly happened, and how fast "
+             "and how accurately was hardship told apart from choice?",
+     "needs": [
+         ("whether a household genuinely cannot pay or is choosing not to",
+          "W2_9_segment_debt_tnc"),
+         ("how a household's payment behaviour actually arises",
+          "W2_11_payment_behaviour_source"),
+         ("money matched to the right account and agreement",
+          "D5_account_hierarchy_payments"),
+         ("the order in which a payment clears old and new charges",
+          "W2_31_people_phase1_the_physical_layer_stands_alone"),
+     ]},
+    {"gate": "Whether they pay", "ref": "1.2",
+     "name": "Spotting a household going cold",
+     "what": "Consumption falling below what the building's physics says the home needs in "
+             "cold weather is not a thrifty customer; it is someone going without heat.",
+     "test": "How many are found and how many false alarms — and the false alarm that "
+             "matters is an empty house mistaken for a cold occupant.",
+     "needs": [
+         ("households that go without heat rather than spend", "W2_8_self_rationing"),
+         ("the supplier's own attempt to spot it from what it can see",
+          "C10_self_rationing_detection"),
+     ]},
+    {"gate": "Whether they pay", "ref": "1.3",
+     "name": "Prepayment offered well rather than imposed",
+     "what": "Moving a customer who can pay but will not onto prepayment, screened for "
+             "vulnerability first and designed with credit that carries them over a weekend.",
+     "test": "Bad debt by meter type, holding payment method and financial stress constant — "
+             "and the share of cases the vulnerability screen stops.",
+     "needs": [
+         ("whether a household is unwilling or unable", "W2_7_willingness_classification"),
+         ("one consistent reading of who counts as vulnerable",
+          "C32_one_obligation_one_vulnerability_scorer"),
+     ]},
+    # ── Gate 2 — stays ───────────────────────────────────────────────────────
+    {"gate": "Whether they stay", "ref": "2.1",
+     "name": "Budget billing from the home's own physics",
+     "what": "Forecasts from the building rather than from a national average profile, a "
+             "monthly payment that is right from the first month, and a mode where the "
+             "customer names the bill they want and is shown the levers that reach it.",
+     "test": "Forecast accuracy by house type against the truth, and what accurate, "
+             "controllable bills do to bill shock, arrears onset and leaving.",
+     "needs": [
+         ("how a building actually loses and stores heat", "W1_11_fabric_physics_core"),
+         ("cold spells that persist the way real ones do",
+          "W1_22_cold_spell_persistence_and_cross_cell_synchrony"),
+         ("a first monthly payment sized to a seasonal year",
+          "D_opening_dd_seasonal_sizing"),
+         ("the cash-flow shape a seasonal bill produces", "DD_seasonal_cashflow_physics"),
+         ("whether a household acts on a prompt about its own bill",
+          "W2_25_people_phase2_shape_and_attitudes"),
+     ]},
+    {"gate": "Whether they stay", "ref": "2.2",
+     "name": "Not heating an empty house",
+     "what": "Reading occupancy from the meter's own signature — base load only, no evening "
+             "peak, weekday regularity, gaps that look like holidays — and setting back the "
+             "heating automatically, with anything sharper strictly opt-in.",
+     "test": "Detection accuracy and false alarms against the truth, never setting back on "
+             "inference alone for anyone who might be vulnerable.",
+     "needs": [
+         ("how many people live in a home and how that shapes its use",
+          "W2_13_occupancy_consumption_volume_shape"),
+         ("when a home is genuinely occupied, half hour by half hour",
+          "W2_25_people_phase2_shape_and_attitudes"),
+     ]},
+    {"gate": "Whether they stay", "ref": "2.3",
+     "name": "The property as the customer, not the occupant",
+     "what": "A record of a home's energy physics that outlives whoever lives there: quotes "
+             "prepared before anyone applies, sign-up at the meter rather than the person, "
+             "and the final bill actually collected when they leave.",
+     "test": "Cost to onboard, accuracy of the first monthly payment, final bills collected, "
+             "and whether the meter point is retained across a change of occupant.",
+     "needs": [
+         ("how a building actually loses and stores heat", "W1_11_fabric_physics_core"),
+         ("what happens to debt when the occupant changes",
+          "W2_12_change_of_tenancy_debt_physics"),
+         ("people moving home, and the shocks that come with it",
+          "B7_customer_state_layer_moves_and_shocks"),
+     ]},
+    {"gate": "Whether they stay", "ref": "2.4",
+     "name": "Comparison against genuinely similar homes",
+     "what": "Similar homes chosen by building physics rather than by postcode, so the "
+             "comparison is fair rather than merely local.",
+     "test": "The change each nudge produces by segment, measured against what that same "
+             "household would have done untouched.",
+     "needs": [
+         ("how a building actually loses and stores heat", "W1_11_fabric_physics_core"),
+         ("how much of a change was the weather and how much the customer",
+          "C13_weather_normalisation"),
+         ("a cost comparison shaped to the customer rather than averaged",
+          "B5_shaped_cost_benchmark_value_add"),
+     ]},
+    {"gate": "Whether they stay", "ref": "2.5",
+     "name": "Targets and streaks on money, carbon and timing",
+     "what": "Goals and progress on all four of money, carbon, shifting load and efficiency — "
+             "offered to those who want them, and deliberately not regressive, so the free "
+             "steps score as richly as the ones that cost thousands.",
+     "test": "Behaviour that actually changed against behaviour merely reported differently, "
+             "by segment — and whether the saving rebounds later.",
+     "needs": [
+         ("how often a message can be repeated before it stops working",
+          "H23_frame_saturation_draw_marker"),
+         ("whether a household responds to a game, and whether the saving rebounds",
+          "W2_25_people_phase2_shape_and_attitudes"),
+     ]},
+    # ── Gate 3 — the margin bet ──────────────────────────────────────────────
+    {"gate": "The margin bet", "ref": "3.1",
+     "name": "Buying energy against the homes actually supplied",
+     "what": "The shape of what the supplier buys forward derived from how its own homes "
+             "respond to cold, region by region, instead of from an industry average profile.",
+     "test": "Volume risk and shape error measured on a deliberately cold practice book, and "
+             "how the position survives a crisis year.",
+     "needs": [
+         ("regional weather that adds up to the national picture",
+          "W1_21_the_cells_and_the_level_coverage_curve"),
+         ("cold spells that persist the way real ones do",
+          "W1_22_cold_spell_persistence_and_cross_cell_synchrony"),
+         ("forward cover measured against what was sold", "B3_hedge_tariff_alignment"),
+         ("published forward prices to test the buying against",
+          "G15_forward_curve_series_to_backtest_hedging_by_physics"),
+     ]},
+    {"gate": "The margin bet", "ref": "3.2",
+     "name": "Tariffs between fully fixed and fully variable",
+     "what": "A fixed price for part of the expected volume, with caps, floors and a "
+             "weather-linked element, so stability is sold to those who value it at a price "
+             "that reflects what it costs to provide.",
+     "test": "What the promise costs in a cold year, across the weather distribution and the "
+             "home's own sensitivity to it — and whether customers understood what they bought.",
+     "needs": [
+         ("the price ceiling and when it binds", "W3_1_price_cap_binding"),
+         ("how much a household values a stable bill",
+          "W2_25_people_phase2_shape_and_attitudes"),
+         ("weather drawn as a distribution rather than replayed",
+          "W1_24_weather_phase3_the_drivers_that_wait_on_a_population"),
+     ]},
+    {"gate": "The margin bet", "ref": "3.3",
+     "name": "Automated buying inside a set risk limit",
+     "what": "Timing and shaping the energy purchase automatically, and using batteries and "
+             "vehicles with permission — always inside a limit set by the board, never as a "
+             "speculative position on the book.",
+     "test": "Value captured against the limit, with a 2021-style tail survivable by "
+             "construction rather than by luck.",
+     "needs": [
+         ("published forward prices to test the buying against",
+          "G15_forward_curve_series_to_backtest_hedging_by_physics"),
+         ("a risk limit set by the board, which is the board's alone to set", None),
+     ]},
+    {"gate": "The margin bet", "ref": "3.4",
+     "name": "Running cheaply enough that the saving is the product",
+     "what": "Operating at a fraction of the overhead the price ceiling allows for, so that "
+             "most of the contribution per account survives to be shared.",
+     "test": "Cost per account measured honestly against what the market actually clears at.",
+     "needs": [
+         ("what it costs this supplier to serve an account", "B2_opex_cost_to_serve"),
+         ("how often a household makes contact, and through which channel",
+          "W2_25_people_phase2_shape_and_attitudes"),
+     ]},
+    # ── Gate 4 — value-add ───────────────────────────────────────────────────
+    {"gate": "Value beyond the bill", "ref": "4.1",
+     "name": "Advice costed for the actual building",
+     "what": "Solar, batteries, vehicles, insulation, flow temperature and timing, each "
+             "costed from this home's own measured behaviour rather than from a brochure.",
+     "test": "Did the promised saving actually arrive — and how much of it was the advice "
+             "rather than the household drifting there anyway?",
+     "needs": [
+         ("how a building actually loses and stores heat", "W1_11_fabric_physics_core"),
+         ("homes changing on their own, with no prompting",
+          "W2_24_housing_phase3_houses_change_on_their_own_timeline"),
+         ("whether a household acts on advice it is given",
+          "W2_26_people_phase3_the_residual_and_the_change"),
+     ]},
+    {"gate": "Value beyond the bill", "ref": "4.2",
+     "name": "Taking a share of what is actually saved",
+     "what": "Payment as a share of the saving, measured against the home's own physics "
+             "baseline. The mission's create-then-share, sold as a contract — and credible "
+             "only once the baseline method has been proved against hidden truth.",
+     "test": "The error distribution of the baseline itself, and whether value was created "
+             "before it was divided.",
+     "needs": [
+         ("how much of a change was the weather and how much the customer",
+          "C13_weather_normalisation"),
+         ("how a building actually loses and stores heat", "W1_11_fabric_physics_core"),
+         ("whether a household acts on advice it is given",
+          "W2_26_people_phase3_the_residual_and_the_change"),
+     ]},
+    {"gate": "Value beyond the bill", "ref": "4.3",
+     "name": "Diagnosing the building from the meter",
+     "what": "A change in how much energy a home needs per degree of cold is a boiler "
+             "degrading, insulation failing, or a thermostat being fought over.",
+     "test": "Detection against the true timeline of what changed in the house and when.",
+     "needs": [
+         ("the gap between what the supplier believes about a building and its truth",
+          "H_GAP_fabric_belief_truth_gap"),
+         ("homes changing on their own, with no prompting",
+          "W2_24_housing_phase3_houses_change_on_their_own_timeline"),
+     ]},
+    {"gate": "Value beyond the bill", "ref": "4.4",
+     "name": "Flexibility, with permission",
+     "what": "Controlling vehicles, batteries and heat pumps where the customer has agreed, "
+             "and sharing the revenue that flexibility earns.",
+     "test": "Value captured per class of asset, and how many customers consent — noting "
+             "that solar alone stays uneconomic unless paired.",
+     "needs": [
+         ("markets that pay for shifting load", "W1_9_dsr_flex_markets"),
+         ("where vehicles and heat pumps actually are", "W1_10_ev_heatpump_geography"),
+         ("a consented route to a customer's own meter",
+          "EP9_adapter_n3rgy_consented_metering"),
+         ("whether a household will let its heating be controlled",
+          "W2_25_people_phase2_shape_and_attitudes"),
+     ]},
+    {"gate": "Value beyond the bill", "ref": "4.5",
+     "name": "A bill split into what each thing cost",
+     "what": "Heating, hot water, the car and everything else separated out, the way a bank "
+             "app separates spending.",
+     "test": "Accuracy of the split against the true consumption of each asset.",
+     "needs": [
+         ("consumption broken down by what used it, not just the total",
+          "W2_18_the_housing_joint_the_sample_and_the_ceiling"),
+         ("the same breakdown on the people side rather than a total",
+          "W2_31_people_phase1_the_physical_layer_stands_alone"),
+     ]},
+    {"gate": "Value beyond the bill", "ref": "4.6",
+     "name": "Carbon as a product beside the money",
+     "what": "Each home's carbon measured against what the grid was actually emitting half "
+             "hour by half hour, a carbon budget beside the money one, and shifting use into "
+             "the cleaner hours.",
+     "test": "Carbon actually saved against what that household would have emitted anyway, "
+             "and how much use genuinely moved.",
+     "needs": [
+         ("carbon kept on three separate ledgers", "E5_carbon_three_ledger"),
+         ("a live route to what the grid is emitting", "EP13_adapter_carbon_intensity"),
+         ("ten years of what the grid emitted, lined up with the settlement record",
+          "G14_half_hourly_grid_carbon_intensity_aligned_to_settlement"),
+     ]},
+    {"gate": "Value beyond the bill", "ref": "4.7",
+     "name": "Knowing what a customer is worth before bidding for them",
+     "what": "Worth estimated from what is legitimately observable at a quote — the area, the "
+             "building, the payment method, the meter — so that acquisition is bid by expected "
+             "value; and each question ranked by how much the answer sharpens the estimate, "
+             "so 'advice for three answers' is a designed exchange rather than a form.",
+     "test": "The estimate at the quote against what the customer truly turned out to be worth.",
+     "needs": [
+         ("what a customer is worth over three horizons", "EP1_clv_three_horizon"),
+         ("which channel a customer actually arrived through",
+          "C12_channel_attribution_analytics"),
+         ("a pool of prospective homes that are not yet customers", None),
+         ("how a household behaves at the point of quoting",
+          "W2_25_people_phase2_shape_and_attitudes"),
+     ]},
+]
+
 
 def _levels(feed: Path = MAP_FEED) -> dict[str, dict]:
     try:
@@ -269,6 +557,81 @@ def _entries(register, levels, index: dict[str, str] | None = None,
             "checks": _checks_for(ids, evidence),
         })
     return out
+
+
+TESTABLE_NOW = "Testable now"
+
+
+def use_case_entry(case: dict, levels: dict[str, dict]) -> dict:
+    """One register row, with its status DERIVED from the truths it is scored against.
+
+    The rule, and it is the whole point of the row: a use case is testable exactly when
+    every piece of world-truth its SIM-native test needs is AT TARGET. `compute_stage` is
+    called per truth rather than once over the list because the reader is owed the specific
+    condition, not a bare verdict -- and asking it per item means this page keeps using the
+    shared Live/Building/Planned rule rather than growing a second opinion about what
+    "finished" means.
+
+    Fail-closed, twice over:
+      * a truth citing a work item absent from the record RAISES (the phantom citation
+        `_status_for` already refuses -- a register that cannot be checked is worse than no
+        register, because a reader has no way to catch it);
+      * a truth carrying NO work item can never be at target, so it can only ever hold an
+        item back. That is deliberate: the ruling found truths with nothing behind them at
+        all, and the failure mode to design out is an item reading "testable now" while the
+        hidden truth it claims to be scored against does not exist.
+    """
+    missing = [wid for _, wid in case["needs"] if wid and wid not in levels]
+    if missing:
+        raise CapabilitySourceUnavailable(
+            f"use case {case['ref']} is scored against work item(s) absent from the "
+            f"record: {missing}"
+        )
+    waiting, unmodelled = [], []
+    for truth, wid in case["needs"]:
+        if wid is None:
+            unmodelled.append(truth)
+        elif _status_for([wid], levels) != LIVE:
+            waiting.append(truth)
+    blocking = unmodelled + waiting
+    return {
+        "gate": case["gate"], "ref": case["ref"], "name": case["name"],
+        "what": case["what"], "test": case["test"],
+        "testable_now": not blocking,
+        "status": TESTABLE_NOW if not blocking else "Waits on " + _condition(blocking),
+        "waits_on": waiting,
+        "unmodelled": unmodelled,
+        "rests_on": [wid for _, wid in case["needs"] if wid],
+        "needs_total": len(case["needs"]),
+        "needs_met": len(case["needs"]) - len(blocking),
+    }
+
+
+def _condition(blocking: list[str]) -> str:
+    """The plain-English condition the ruling asked for, assembled from the truths that are
+    actually missing. Never a stored sentence: a hand-written condition would still read
+    "waits on the carbon data" the day after the carbon data landed."""
+    if len(blocking) == 1:
+        return blocking[0]
+    return ", ".join(blocking[:-1]) + " and " + blocking[-1]
+
+
+def use_case_register(levels: dict[str, dict]) -> dict:
+    rows = [use_case_entry(c, levels) for c in USE_CASES]
+    gates: list[dict] = []
+    for row in rows:
+        if not gates or gates[-1]["gate"] != row["gate"]:
+            gates.append({"gate": row["gate"], "items": []})
+        gates[-1]["items"].append(row)
+    return {
+        "entries": rows,
+        "gates": gates,
+        "tally": {
+            "testable_now": sum(1 for r in rows if r["testable_now"]),
+            "waiting": sum(1 for r in rows if not r["testable_now"]),
+            "unmodelled_truths": len({t for r in rows for t in r["unmodelled"]}),
+        },
+    }
 
 
 def typed_seams(interfaces: Path = INTERFACES) -> list[dict]:
@@ -629,11 +992,16 @@ def build(feed: Path = MAP_FEED) -> dict:
             "seams": "company/interfaces/*.py docstrings",
             "wall": "tools/wall_crossing_dispositions.py",
             "access_class": "docs/design/EP19_COUNTERPARTY_QUALIFICATION_REGISTER.md",
+            "use_case_register": (
+                "docs/staging/done/DIRECTOR_RULING_SUPPLIER_USE_CASE_REGISTER_AND_SIM_"
+                "FIDELITY_2026-09-06.md"
+            ),
             "evidence_map": "site/data/moap_node_atoms.json",
             "scale": "site/data/customers.json + site/data/dashboard.json",
         },
         "world": {"entries": world, "tally": tally(world)},
         "supplier": {"entries": supplier, "tally": tally(supplier)},
+        "use_cases": use_case_register(levels),
         "go_live": {"seams": seams, "tally": tally(seams),
                     "access_tally": {a: sum(1 for s in seams if s["access"] == a)
                                      for a in ("OPEN", "SANDBOX", "GATED")}},
