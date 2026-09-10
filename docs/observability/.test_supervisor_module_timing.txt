@@ -1,0 +1,11 @@
+........................................................................ [ 35%]
+............................................................
+--- WHAT THIS FILE IS (2026-09-10, operational-layer RUNG 1b) ---
+Command: /usr/bin/python3 -m pytest tests/background/test_supervisor.py -q -p no:cacheprovider --durations=15
+Cap:     timeout 1700
+Result:  KILLED AT THE CAP. 132 of 201 tests completed in 1700s; no summary line, no --durations
+         output, because pytest never reached the end of the run.
+Reading: ONE module does not finish inside the 1800s budget allowed for the WHOLE operational
+         suite. Measured under concurrent load (the publish gate's non-operational suite and a
+         tests/simulation run were both live), which is this signal's realistic condition -- so
+         this is an upper bound on throughput under load, not a clean solo timing.
