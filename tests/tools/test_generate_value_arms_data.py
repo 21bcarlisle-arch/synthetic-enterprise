@@ -408,10 +408,16 @@ def _declared(segments):
 def _floor_declaring(segments, realised=None):
     """The real nine-seed floor, given the `book_identity` block its producer now writes.
 
-    KEYED TO THE PROPERTY AND NOT TO TODAY'S ARTEFACT. No floor on disk carries a book identity
-    yet -- every one of them predates the writer -- so a control that waited for one would be a
-    control that cannot fail. The block is the shape `floor_book_identity` returns, and the day a
-    real floor carries one these read it without changing.
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ARTEFACT. The block is the shape
+    `floor_book_identity` returns, and the day a real floor carries one these read it without
+    changing.
+
+    THAT DAY WAS 2026-09-11, and the sentence this docstring used to open with -- "no floor on
+    disk carries a book identity yet, every one of them predates the writer" -- went false when
+    the 09-10 nine-seed floor was promoted to `NOISE_FLOOR`. It is the FIRST floor on disk to
+    declare its own book. The prediction the sentence was making held exactly: these helpers read
+    it without changing. What did NOT survive was a control that had quietly borrowed the absence
+    as a witness -- see `_floor_without_a_book` below.
     """
     floor = copy.deepcopy(_load(NOISE_FLOOR))
     floor["book_identity"] = {
@@ -422,6 +428,23 @@ def _floor_declaring(segments, realised=None):
         "realised_across_seeds": realised or {},
         "how_a_consumer_should_pair_this": "Pair on `declared` and never on `realised_across_seeds`.",
     }
+    return floor
+
+
+def _floor_without_a_book():
+    """A floor that declares NO book identity -- the input the stamp-proxy branch exists for.
+
+    WHY THIS IS A CONSTRUCTED WITNESS AND NOT THE ARTEFACT ON DISK (2026-09-11). Until the 09-10
+    floor landed, every floor on disk lacked a `book_identity` block, so `_load(NOISE_FLOOR)`
+    reached the proxy branch for free and the partition control below used it as its proxy
+    witness. That was borrowing an ABSENCE as a witness: the moment a floor carried a book -- the
+    artefact becoming MORE honest, not less -- the witness silently stopped standing for the
+    branch it was there to reach, and the control went red for a reason that was not a defect.
+    This helper makes the absence deliberate, so the proxy branch keeps a witness no promotion can
+    take away.
+    """
+    floor = copy.deepcopy(_load(NOISE_FLOOR))
+    floor.pop("book_identity", None)
     return floor
 
 
@@ -529,6 +552,13 @@ def test_EVERY_admission_outcome_IS_REACHABLE_from_this_feeds_own_inputs():
 
     MUTATION: make `_floor_admission` return the proxy branch unconditionally and this is the only
     control here that reds -- the four above go green on a rule that has stopped asking.
+
+    EVERY WITNESS IS CONSTRUCTED FROM THE PROPERTY IT STANDS FOR (2026-09-11). It used to reach the
+    proxy branch through `_load(NOISE_FLOOR)` unedited, which worked only because no floor on disk
+    declared a book. Promoting the 09-10 floor -- which does -- moved that witness onto the
+    declared-book branch and reds this control while the rule underneath it was working perfectly.
+    A control that goes red when its subject gets MORE honest is keyed to today's answer, and the
+    fix is `_floor_without_a_book`, not a wider expected set.
     """
     three_arm = _load(THREE_ARM)
     disagreeing = copy.deepcopy(three_arm)
@@ -538,7 +568,11 @@ def test_EVERY_admission_outcome_IS_REACHABLE_from_this_feeds_own_inputs():
          gva._floor_admission(_floor_declaring(_the_runs_own_segments()), three_arm)["admitted"]),
         (gva._floor_admission(_floor_declaring(["resi"]), three_arm)["rule"],
          gva._floor_admission(_floor_declaring(["resi"]), three_arm)["admitted"]),
-        gva._floor_admission(_load(NOISE_FLOOR), three_arm)["rule"],
+        # THE PROXY BRANCH, reached from BOTH of the two ways a pairing can fail to establish a
+        # book: the FLOOR side declaring none, and the FIGURE side's own arms disagreeing. Two
+        # witnesses and not one, because they are different inputs to the same fail-closed rule
+        # and either could rot alone.
+        gva._floor_admission(_floor_without_a_book(), three_arm)["rule"],
         gva._floor_admission(_floor_declaring(_the_runs_own_segments()), disagreeing)["rule"],
     }
     assert outcomes == {
@@ -3748,12 +3782,43 @@ def test_a_leg_whose_own_redraws_straddle_zero_states_no_direction_however_stabl
     # that substituted one cause for the other reds.
     assert leg["verdict_withheld_because"].replace(leg["no_sign"], "").strip(), (
         "the stability reason was replaced by the sign one rather than joined to it")
-    # THE CENTRE'S SIDE IS COMPOSED, NOT ASSERTED. -GBP 481 against a published +GBP 270, so this
-    # subject must say the centre is on the other side; WITNESS B is what shows the sentence is
-    # capable of saying nothing at all about a family that agrees with its draw.
-    assert "CENTRE of that family is on the other side of zero" in leg["no_sign"], (
-        "the published draw is positive and the centre of its own family is negative, and the "
-        "page did not say so")
+    # THE CENTRE'S SIDE IS COMPOSED, NOT ASSERTED -- AND KEYED TO THE PROPERTY, NOT TO WHICH SIDE
+    # THE LIVE DRAW HAPPENS TO BE ON (repaired 2026-09-11).
+    #
+    # WHAT THIS RUNG USED TO SAY, AND WHY IT WAS WRONG. It asserted the clause is PRESENT, on the
+    # reasoning "-GBP 481 against a published +GBP 270, so this subject must say the centre is on
+    # the other side". True of the artefact it was written against and false as a control: the
+    # clause is CONDITIONAL on the draw and the centre straddling zero between them, and the live
+    # draw's side is a property of which run is promoted to `THREE_ARM_PATH`. Promoting the 09-10
+    # run moved the canonical selection leg from +GBP 319 to -GBP 333, onto the SAME side as its
+    # family's centre -- so the clause correctly fell silent and this rung went red reporting a
+    # defect that did not exist. The page had become more consistent, not less.
+    #
+    # So the rung now asserts the BICONDITIONAL the producer actually implements: the clause is
+    # present exactly when the two sides disagree. That stays green through any promotion and reds
+    # on a producer that composes the clause unconditionally, drops it, or inverts it.
+    centre = leg["verdict_stability"]["redraw_mean_gbp"]
+    draw = leg["figure_gbp"]
+    opposite_sides = (centre > 0) != (draw > 0) and centre != 0
+    assert ("CENTRE of that family is on the other side of zero" in leg["no_sign"]) is opposite_sides, (
+        "the centre clause and the numbers disagree: the published draw is GBP {:.2f}, the centre "
+        "of its own re-draw family is GBP {:.2f}, so the clause is {} and the page says otherwise"
+        .format(draw, centre, "due" if opposite_sides else "not due"))
+
+    # WITNESS A2 -- THE CENTRE CLAUSE FIRING, kept reachable by construction rather than by which
+    # run is canonical today. The same leg with only the published draw reflected across zero, so
+    # the draw and the family's centre must disagree whichever side the live run put them on. This
+    # is the rung the biconditional above would otherwise let go vacuous: a producer that never
+    # composes the clause satisfies the biconditional whenever the live numbers happen to agree.
+    reflected = dict(current, level_vs_selection=dict(
+        current["level_vs_selection"], selection_gbp=-draw))
+    across = gva._current_world_contrast(reflected, superseded, admitted, later_runs=[])["selection_leg"]
+    assert across["verdict_stability"]["sign_determined"] is False, (
+        "reflecting the published draw changed the FAMILY's sign verdict, so this witness moved "
+        "more than the one thing it exists to move")
+    assert "CENTRE of that family is on the other side of zero" in across["no_sign"], (
+        "the draw was placed on the opposite side of zero from the centre of its own family and "
+        "the page still did not say so, so the clause is unreachable and says nothing anywhere")
 
     # WITNESS B -- SOLE WITNESS THAT THE CLAUSE IS A JUDGEMENT. The same rows shifted so every
     # draw is on one side of zero, and nothing else touched. A family with a sign gets no sign
@@ -6758,8 +6823,24 @@ def test_the_objective_difference_is_read_from_the_TREES_and_never_from_the_file
     control working: the baseline tree's copy of the module DOES contain the word `departure`
     (in a docstring), so a substring scan answers True there. What decides it is whether the
     objective can be HANDED the cost.
+
+    THE WITNESS IS A NAMED COMMIT AND NOT `THREE_ARM`'S (repaired 2026-09-11). This rung used to
+    read its no-departure tree off whatever run was promoted to `THREE_ARM_PATH`. That is not a
+    property of the tree it is asking about -- it is a property of which run is canonical this
+    week -- and promoting the 09-10 run, drawn at `9cf9d16ed`, moved the witness onto a tree that
+    DOES price departures. The rung went red while `_objective_pays_for_departures` was answering
+    every question correctly.
+
+    A FIXED COMMIT IS THE RIGHT KEY HERE, and it is the only place in this file where one is. The
+    question "could this tree hand the objective a departure cost" is a fact about an immutable
+    object; a pointer that moves makes the poison round evaporate silently, which is exactly what
+    happened. The poison precondition below is still asserted, so a witness that stops being
+    poisonous fails loudly instead of passing for the wrong reason.
     """
-    baseline_commit = _load(THREE_ARM)["producing_commit"]["commit"]
+    # `8b846013e` -- the 2026-09-09 three-arm run's own tree, canonical until the 09-10 promotion.
+    # Chosen because its copy of the objective module contains the word `departure` and cannot be
+    # handed the cost, which is the whole point of the poison round.
+    baseline_commit = "8b846013ead420257a76bd65bbe7d552b69a72bd"
     rerun_commit = _load(DEPARTURE_RERUN)["producing_commit"]["commit"]
     import subprocess
     shown = subprocess.run(
