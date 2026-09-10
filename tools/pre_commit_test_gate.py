@@ -221,14 +221,37 @@ CONTROL_TESTS = [
     # ~1.6s for the whole file (15 tests), of which the census assertion is 0.79s measured on this
     # machine. Stated against the standing budget the lint entry cites: 0.27% of 600s.
     "tests/background/test_live_ledger_guard.py",
-    # DELIBERATELY NOT ADDED BESIDE IT: `tests/background/test_seat_guard_daemons.py`. The census
-    # that produced the line above found it is the SAME shape (a whole-`background/` AST walk with
-    # a stem-only selector) and that it is RED AT HEAD RIGHT NOW -- nine daemon entrypoints with no
-    # seat guard, `head_red_register.py` among them. Adding a red test to a list that runs on every
-    # code commit would wedge every lane in the tree, which is a strictly worse failure than the
-    # one being fixed. It is filed as its own BLOCKING finding with the nine names; the line goes
-    # in HERE, in the same change, once that red is green -- and this comment is what makes the
-    # omission visible instead of a gap nobody wrote down.
+    # THE SEAT-GUARD RATCHET (2026-09-10). Ninth entry. The comment that stood here said this line
+    # was WITHHELD because `TestStructuralLock::test_every_main_entrypoint_is_guarded` was red at
+    # HEAD -- nine unguarded daemon entrypoints -- and that adding a red test to a list running on
+    # every code commit would wedge every lane, which is worse than the defect. That red is now
+    # green (`refuse_if_foreign` added to all nine), so the withheld line goes in, in the change
+    # that earned it.
+    #
+    # The selector hole is WORSE here than in the entry above, and this was measured, not assumed.
+    # `select_targets` was called on `background/_seat.py`, `supervisor.py`, `commit_narrative.py`,
+    # `origin_reconcile.py`, `head_red_register.py`, `launch_long_job.py` and `long_job.py`: this
+    # test appeared in NONE of their 17-19 targets. Nor is it selected by `.claude/hooks/_seat.py`,
+    # which holds the actual discriminator. Selection is by filename stem and there is no
+    # `background/seat_guard_daemons.py`, so the subject set is every `background/*.py` and the
+    # selector set is EXACTLY ONE PATH -- the test file itself. The ledger-writer ratchet above at
+    # least fired when its own guard module was touched; this one fires only when someone edits the
+    # control, i.e. never on the commit that breaks it. A daemon is added by writing a NEW
+    # `background/*.py`, which is precisely the commit that selects nothing here.
+    #
+    # What that silence covers: the guard is what stops a daemon started in a foreign session's
+    # freshly-cloned tree from committing, pushing and stamping this seat's observability files
+    # while holding the resident seat's authority (issue #11 -- a liveness daemon on a foreign tree
+    # pushed main). The nine that had drifted out include the sanctioned launcher
+    # (`launch_long_job.py`), the thing it launches (`long_job.py`), `origin_reconcile.py` which
+    # moves refs, and `head_red_register.py` -- whose whole job is recording reds at HEAD, so the
+    # register could not see itself. Unregistered in both directions, the signature of this class:
+    # a red that blocks nothing is never triaged into a baseline, because nothing surfaces it.
+    #
+    # ~1.7s for the whole file (23 tests; 1.64/1.67/1.70s measured on this machine). It is not free
+    # -- the file starts real daemon subprocesses to prove inertness -- but stated against the
+    # standing budget the lint entry cites: 0.28% of 600s.
+    "tests/background/test_seat_guard_daemons.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own

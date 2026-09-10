@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — `land-the-ledger-guard-ratchet-repair-and-let-the-bound-fall-to-what-it-reaches`) · **Class:** controls_that_cannot_fail
 
+**Discharged:** `tests/background/test_seat_guard_daemons.py::TestStructuralLock::test_every_main_entrypoint_is_guarded`, `tools/pre_commit_test_gate.py` — all nine entrypoints now call refuse_if_foreign as the first act of their \_\_main\_\_ block, the UNIVERSAL\_MODULES allowlist is still empty, and the falsifier is on the CONTROL\_TESTS list so it runs on every code commit instead of only when someone edits it.
+
 # FINDING — a second whole-`background/` ratchet is silently red at HEAD, and nine daemon entrypoints are unguarded
 
 Found by the census run to discharge item 3 of
@@ -92,3 +94,77 @@ recorded.
    `SEAT_RESULT_THE_STEM_SELECTOR_CANNOT_REACH_TWENTY_SEVEN_WHOLE_TREE_RATCHETS_AND_MY_BAND_SAID_TWENTY_2026-09-10.md`.
    That is a different and larger question than these two instances, and it is NOT answered by
    adding twenty-seven lines to an always-run list.
+
+---
+
+## RESULT 2026-09-10 — items 1 and 2 are done, and the selector hole is narrower than this document said
+
+Premise re-measured before starting: `bea5c02f2` is an ancestor of `origin/main`, this worktree is
+level with origin, and the red reproduced with the identical nine names. Not spent.
+
+**Item 1.** All nine carry `refuse_if_foreign("<stem>")` as the first act of their `__main__`
+block, using the try/except import idiom the other guarded daemons use — chosen because both launch
+forms are live for these modules, and both were exercised. **`UNIVERSAL_MODULES` is unchanged and
+still empty.** No module was argued onto it: the finding's own warning against widening the
+allowlist to clear the count was the right one, and none of the nine had a case. Their being
+resident-seat machinery is exactly why they need the guard, not an exemption from it.
+
+**Item 2.** `tests/background/test_seat_guard_daemons.py` is on `CONTROL_TESTS`; the placeholder
+comment naming this document is gone, replaced by the entry and its argument.
+
+### The green is not the evidence — the AST lock proves the LINE, not the GUARD
+
+The structural lock is a source walk. It goes green on a `refuse_if_foreign` call that is never
+reached, and it would go equally green on nine daemons that now refuse *everything* — the trap
+CLAUDE.md names ("a guard that refuses everything passes all of them"). So both directions were run
+as real subprocesses, per R15:
+
+* **Foreign** (tmp HOME, no marker, no `SE_SEAT`): all nine, in **both** launch forms
+  (`python3 background/x.py` and `python3 -m background.x`) — 18 runs, every one `rc=0`, stdout
+  empty, stderr exactly `seat-guard: foreign, <stem> not starting`. Empty stdout is the load-bearing
+  part: it proves nothing before the guard produced output, i.e. the guard is genuinely first and no
+  import-time work precedes it. `git status --porcelain` byte-identical before and after.
+* **Resident** (tmp HOME *with* the marker, no `SE_SEAT` override, so the production discriminator
+  is what is under test): eight reached their own argparse and printed `usage: <stem>.py`, proving
+  pass-through into their own code without doing any real work. `long_job.py` has no argparse; its
+  `main()` is `print(render())` and is read-only, so it was run for real — it printed its job table
+  and left the tree unchanged.
+
+### Sharper than this document claimed, and measured rather than asserted
+
+This finding said the only commit that runs the test is one touching `background/seat_guard_daemons.py`
+"— or the test itself". There is no such module, so the second half was the whole of it.
+`select_targets` was called directly:
+
+| staged path | targets | selects this test |
+|---|---|---|
+| `background/_seat.py` | 17 | no |
+| `background/supervisor.py` | 19 | no |
+| `background/commit_narrative.py` | 17 | no |
+| `background/origin_reconcile.py` | 17 | no |
+| `background/head_red_register.py` | 17 | no |
+| `background/launch_long_job.py` | 18 | no |
+| `background/long_job.py` | 17 | no |
+| `.claude/hooks/_seat.py` | 17 | no |
+| `tests/background/test_seat_guard_daemons.py` | 18 | **yes** |
+
+Subject set = every `background/*.py`; selector set = **exactly one path, the control itself**.
+That is strictly worse than the ledger-writer ratchet, which at least fired when
+`background/live_ledger_guard.py` was touched. Note the two rows that matter most: neither
+`background/_seat.py` nor `.claude/hooks/_seat.py` — the adapter and the actual discriminator —
+selects it. And a new daemon arrives as a *new* `background/*.py`, which is precisely the commit
+that selects nothing. Nine modules landed unguarded through that hole; the tenth would have too.
+
+Cost of the entry, measured on this machine over three runs: **1.64 / 1.67 / 1.70s** for all 23
+tests. It is not free — the file starts real daemon subprocesses to prove inertness — but it is
+0.28% of the 600s budget the lint entry cites, and it is cheap because the guard works: a foreign
+daemon dies in milliseconds. If that number ever climbs, the guard has broken.
+
+### What is still open
+
+Item 3 is untouched and stays open: the repo-wide census of **27** whole-tree-subject / stem-only-selector
+test files, reported in
+`SEAT_RESULT_THE_STEM_SELECTOR_CANNOT_REACH_TWENTY_SEVEN_WHOLE_TREE_RATCHETS_AND_MY_BAND_SAID_TWENTY_2026-09-10.md`.
+Two instances have now been closed one at a time, which is evidence the class is real and *not* a
+reason to add twenty-five more lines to an always-run list. The general question — what selects a
+control whose subject is a whole package — is the successor, and it is not answered here.
