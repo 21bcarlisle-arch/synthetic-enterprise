@@ -1119,3 +1119,60 @@ def test_legs_from_two_trees_are_RECORDED_and_never_refused():
     assert split["available"] is True, "a tree difference was turned into a refusal"
     assert split["trees_the_legs_ran_on"]["floor_legs_ran_on_one_tree"] is False
     assert split["priced_share_of_variance"] > 0.0, "the split stopped being computed"
+
+
+def test_a_rest_of_book_ZERO_publishes_what_it_was_measured_over():
+    """A spread of zero is a result or the shape of the instrument, and the share cannot tell them
+    apart.
+
+    `priced_share_of_variance == 1.0` says the priced households carry all the noise. It says that
+    identically whether the `except` leg re-drew half the book or five households -- and on the
+    2026-09-08 book it would say it over a complement of NOTHING, because the arm's priced roster
+    covers all 67 accounts that draw an elasticity. So the counts the zero rests on are published
+    beside it, and this control moves when they do.
+    """
+    from tools.run_value_cycle_ab import decompose_floor
+
+    def _except_leg(accounts, redrawn, draws):
+        leg = _leg("except", (0.0, 0.0, 0.0))
+        for row in leg["seeds"]:
+            row.update(accounts_redrawn=accounts, elasticity_redrawn=redrawn,
+                       elasticity_draws=draws)
+        return leg
+
+    thin = decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                           _leg("only", (-1400.0, 0.0, 1400.0)),
+                           _except_leg(5, 15, 350), _three_arm(1000.0))
+    fat = decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                          _leg("only", (-1400.0, 0.0, 1400.0)),
+                          _except_leg(180, 900, 1250), _three_arm(1000.0))
+
+    # The two artefacts agree on every verdict the page reads -- which is exactly the problem, and
+    # exactly why the counts have to be somewhere a reader can reach.
+    assert thin["rest_of_book_sd_gbp"] == fat["rest_of_book_sd_gbp"] == 0.0
+    assert thin["priced_share_of_variance"] == fat["priced_share_of_variance"] == 1.0
+
+    assert thin["rest_of_book_measured_over"]["accounts_redrawn_per_seed"] == [5]
+    assert thin["rest_of_book_measured_over"]["elasticity_calls_redrawn_per_seed"] == [15]
+    assert thin["rest_of_book_measured_over"]["elasticity_calls_in_the_run_per_seed"] == [350]
+    assert fat["rest_of_book_measured_over"]["accounts_redrawn_per_seed"] == [180]
+    # NOT the same field for both -- a control that reported the same counts either side would be
+    # publishing a constant where it means to publish a sample size.
+    assert (thin["rest_of_book_measured_over"]["accounts_redrawn_per_seed"]
+            != fat["rest_of_book_measured_over"]["accounts_redrawn_per_seed"])
+
+
+def test_a_leg_whose_seeds_disagree_about_the_complement_publishes_ALL_the_counts():
+    """`accounts_redrawn` moves between seeds -- the nine-seed `all` leg's own rows run 66 and 67 --
+    because the elasticity feeds the churn decision and a re-draw moves who is offered a renewal.
+    Averaging that would invent a sample size no seed had; withholding it would lose the one number
+    that says how thin the half is. Both are published, sorted, as the set the seeds produced."""
+    from tools.run_value_cycle_ab import decompose_floor
+
+    leg = _leg("except", (0.0, 0.0, 0.0))
+    for row, n in zip(leg["seeds"], (5, 6, 5)):
+        row.update(accounts_redrawn=n, elasticity_redrawn=n * 3, elasticity_draws=350)
+    split = decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                            _leg("only", (-1400.0, 0.0, 1400.0)), leg, _three_arm(1000.0))
+    assert split["rest_of_book_measured_over"]["accounts_redrawn_per_seed"] == [5, 6]
+    assert split["rest_of_book_measured_over"]["elasticity_calls_redrawn_per_seed"] == [15, 18]

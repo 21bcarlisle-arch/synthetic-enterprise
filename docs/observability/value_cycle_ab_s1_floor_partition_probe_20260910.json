@@ -1,0 +1,20 @@
+{
+  "symbol": "price_elasticity_for_customer",
+  "elasticity_calls": 298,
+  "accounts_that_drew": 67,
+  "roster_size": 100,
+  "roster_accounts_that_drew": 67,
+  "roster_accounts_that_never_drew": 33,
+  "accounts_that_drew_outside_the_roster": 0,
+  "calls_inside_the_roster": 298,
+  "calls_outside_the_roster": 0,
+  "only_leg_would_refuse": true,
+  "except_leg_would_refuse": true,
+  "outside_accounts": [],
+  "selection_gbp_this_pass": 319.1009159999958,
+  "world_digest": "39a192ce04c1eda8",
+  "what_this_is": "Which households actually draw an elasticity on the full window, and how the value arm's priced roster cuts them. ONE pass at c066c114b with a PASS-THROUGH recorder on `price_elasticity_for_customer` -- the run is byte-identical to an unpatched one and only the call sites are counted. It exists because `noise_floor` refuses a leg whose side of the cut is empty, and that refusal costs 40 minutes inside a leg; this answers the same question in one pass and names both sides.",
+  "produced_at_commit": "c066c114b4746d9fa6a16da1848ef1f2c610c9e1",
+  "confirmed_by": "the production path, 2026-09-10T05:02:23Z: the nine-seed `except` leg (longjob-floor-legs-20260910, same commit) refused on seed 11111 with \"its 100 roster entries matched none of the 298 elasticity calls this run made\" -- the same three figures. An `except` leg with an empty scope re-draws nothing, so its run IS the base-seed run; the agreement checks that this probe patched the same call stream `noise_floor` does, and is NOT evidence about the seeds.",
+  "reading": "`accounts_that_drew_outside_the_roster: 0` is the whole result. It makes `rest_of_book_sd_gbp` identically zero and `priced_share_of_variance` identically one -- for every seed and at any book size -- so neither is a measurement of where the noise comes from, and the page's `what_would_settle_the_sign` multipliers are exact on this instrument rather than lower bounds. See docs/staging/SEAT_FINDING_THE_FLOOR_DECOMPOSITIONS_REST_OF_BOOK_HALF_IS_EMPTY_ON_THIS_BOOK_SO_ITS_SHARE_IS_AN_IDENTITY_2026-09-10.md"
+}
