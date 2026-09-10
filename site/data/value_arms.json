@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T08:41:03.593668Z",
+  "generated_at": "2026-09-10T17:17:15.865344Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -85,6 +85,18 @@
         "undecomposed"
       ]
     },
+    "trees_the_legs_ran_on": {
+      "commits": {
+        "undecomposed": "1d821e12b73b65eedfee6100f768b7b17105e27b",
+        "only": "416e829c70d9dd03d3c84cf10c41b160b80ebefc",
+        "except": "416e829c70d9dd03d3c84cf10c41b160b80ebefc",
+        "three_arm": "ace28fa444c505db44984cdc8f94a4dff8636bbf"
+      },
+      "floor_legs_ran_on_one_tree": false,
+      "contrast_drawn_by_the_same_tree": null,
+      "unavailable_because": null,
+      "why_this_is_here": "The three floor legs must partition ONE call stream for `reconciliation_ratio` to mean anything, and only the code they ran under decides that stream. This project has measured what a tree difference costs on exactly this quantity: the same seed in the same world returned a `selection_gbp` differing by +38.96 to +61.38 under two trees. `contrast_drawn_by_the_same_tree` is the weaker, caveat-grade question -- a floor and the figure it bounds from two trees is a bound short by one question, not a broken partition."
+    },
     "seeds": 3,
     "contrast_gbp": 2335.867556000012,
     "priced_decisions": 104,
@@ -92,15 +104,43 @@
     "undecomposed_sd_gbp": 991.4551457388417,
     "priced_side_sd_gbp": 991.4551387981461,
     "rest_of_book_sd_gbp": 0.0,
-    "priced_share_of_variance": 1.0,
+    "rest_of_book_measured_over": {
+      "accounts_redrawn_per_seed": [
+        5
+      ],
+      "elasticity_calls_redrawn_per_seed": [
+        15
+      ],
+      "elasticity_calls_in_the_run_per_seed": [
+        350
+      ],
+      "why_this_is_here": "`rest_of_book_sd_gbp` is the `except` leg's own spread, and a spread of zero means two entirely different things depending on these counts: that the rest of the book's churn cascade genuinely does not move the contrast, or that there was almost no rest of the book to re-draw. The first is a result; the second is the shape of the instrument. Neither `priced_share_of_variance` nor `share_is_decisive` can tell them apart, so the sample size is published here and the reader does."
+    },
+    "rest_of_book_half_is_degenerate": true,
+    "keys_withdrawn": [
+      "priced_share_of_variance",
+      "share_at_which_a_bigger_book_could_resolve_it",
+      "share_is_decisive",
+      "share_margin_over_threshold",
+      "irreducible_sd_gbp",
+      "larger_settled_book_would_resolve_it",
+      "times_this_book",
+      "priced_decisions_needed",
+      "independent_draws_needed",
+      "times_this_book_on_the_published_floor",
+      "priced_decisions_needed_on_the_published_floor"
+    ],
+    "why_those_keys_are_withdrawn": "The `except` leg -- the rest of the book's half -- returned the IDENTICAL `value_advantage_gbp` on all 3 seeds, so its variance is exactly zero and every key listed in `keys_withdrawn` is an algebraic identity rather than a measurement: `priced_share_of_variance` would be 1.0 because that is what x/(x+0) is, `irreducible_sd_gbp` 0.0 because that is the leg's own spread, and `larger_settled_book_would_resolve_it` true because any contrast exceeds zero. None of them could have come out any other way, for any seed, at any book size. Whether the zero is a finding about the world -- the rest of the book genuinely does not move this contrast -- or the shape of the instrument turns on how much rest of the book there was to re-draw, which is `rest_of_book_measured_over`: 5 account(s) over 15 of the run's 350 elasticity calls. Nothing downstream can tell those apart, so these keys are withheld rather than published. A `None` naming its reason cannot be read as established and a 1.0 will be. `remedy_price_table` SURVIVES and is the honest remainder -- it prices every candidate share -- but which of its rows this book sits on is exactly what is withheld here, so no row of it is this book's answer.",
+    "what_would_make_the_rest_of_book_half_measurable": "Not more seeds, and not a larger book on its own. This half is keyed to the ELASTICITY draw and re-draws only households the arm did NOT price, so it is measurable exactly when some household outside the priced roster draws an elasticity AND that draw moves `value_advantage_gbp`. Growing the priced roster makes it LESS measurable, not more, because the roster swallows the complement it re-draws -- the instrument gets worse as the arm gets better. A floor over the rest of the book therefore has to be keyed to something the rest of the book HAS, its churn cascade, rather than to a draw it never reaches.",
+    "priced_share_of_variance": null,
     "reconciliation_ratio": 0.9999999859989721,
-    "reconciliation_reading": "The two legs' variances sum to 1.00x the undecomposed one. They partition the same call stream, so the honest expectation is 1.0; at 3 seeds each variance carries 2 degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that sample size alone produces. A ratio outside that is evidence the legs are not two halves of one thing.",
-    "share_at_which_a_bigger_book_could_resolve_it": -4.550732430750148,
-    "share_is_decisive": true,
-    "share_margin_over_threshold": 5.550732430750148,
+    "reconciliation_reading": "The two legs' variances sum to 1.00x the undecomposed one. They partition the same call stream, so the honest expectation is 1.0; at 3 seeds each variance carries 2 degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that sample size alone produces. A ratio outside that is evidence the legs are not two halves of one thing. ON THIS SPLIT IT IS NOT A CONTROL. The `except` half carried no variance, so the sum being reconciled is the `only` leg alone and this ratio compares it with the undecomposed leg. A 1.00 here is not two halves adding up; it is one quantity against itself, and it would read the same however empty the other half was.",
+    "share_at_which_a_bigger_book_could_resolve_it": null,
+    "share_is_decisive": null,
+    "share_margin_over_threshold": null,
     "share_decisive_bar": 0.15,
-    "irreducible_sd_gbp": 0.0,
-    "larger_settled_book_would_resolve_it": true,
+    "irreducible_sd_gbp": null,
+    "larger_settled_book_would_resolve_it": null,
     "independent_draws_this_book": null,
     "priced_decisions_this_book": 104,
     "elasticity_calls_per_seed": [
@@ -109,11 +149,12 @@
       341
     ],
     "what_each_count_counts": "`independent_draws_this_book` is the number of households whose elasticity the priced leg re-rolled, and it is the ONLY sample size here: the draw is a pure function of (customer_id, seed), so it is what 1/n indexes. `priced_decisions_this_book` counts renewal decisions, and the decisions on one account share one draw. `elasticity_calls_per_seed` counts CALL SITES -- re-reads of the same draws -- and is a sample size for nothing at all. `times_this_book` is invariant across all three; the absolute counts are not.",
-    "times_this_book": 0.18015640502867042,
-    "priced_decisions_needed": 19,
+    "times_this_book": null,
+    "priced_decisions_needed": null,
     "independent_draws_needed": null,
-    "times_this_book_on_the_published_floor": 0.1801564075510453,
-    "priced_decisions_needed_on_the_published_floor": 19,
+    "what_the_decision_unit_assumes": "`priced_decisions_needed` is `times_this_book` wearing the DECISION unit. It is a sample-size statement only if decisions grow in proportion to independent draws -- the decisions on one account share one draw, and `what_each_count_counts` above says the draw is the only sample size here. On this book that proportionality cannot be checked: the `only` leg's seeds disagreed about how many households they re-drew, so `independent_draws_this_book` is withheld and there is no ratio to hold fixed. The decision count is the multiplier in a unit and is not this book's sample size.",
+    "times_this_book_on_the_published_floor": null,
+    "priced_decisions_needed_on_the_published_floor": null,
     "which_floor_the_price_is_against": "`times_this_book` prices the remedy against the two legs' summed variance; `times_this_book_on_the_published_floor` prices it against `undecomposed_sd_gbp`, which is the +- figure the page states. They differ by exactly the reconciliation ratio's distance from 1.0, so the second is the larger whenever the legs undershoot the whole -- and it is the one to quote, because the bound a reader is shown is the one the remedy has to bring under the contrast.",
     "remedy_price_table": [
       {
@@ -283,7 +324,7 @@
     },
     "how_to_read_this": "`larger_settled_book_would_resolve_it` is the page's remedy sentence, as arithmetic. False means the rest of the book's churn cascade alone is wider than the contrast, so NO book resolves this comparison and the remedy is not a smaller version of the same thing -- it is a different instrument. That is a finding about the instrument and it belongs on the surface (R12), not in a footnote.",
     "measured_on_this_page_s_book": false,
-    "different_book_caveat": "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`).",
+    "different_book_caveat": "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has.",
     "contrast_it_decomposes": "value_advantage_gbp",
     "measured_on_this_page_s_contrast": true,
     "different_contrast_caveat": null,
@@ -335,7 +376,7 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "3fb477ab23587e46749da874cc2eb3a5def38a7d",
+    "publishing_tree_commit": "083d84bf27a211f7bb4db73e182114fc59d82577",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -347,7 +388,7 @@
       "objective_moved_since_the_run": true,
       "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     },
-    "reading": "Produced at 8b846013e and published from 3fb477ab2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+    "reading": "Produced at 8b846013e and published from 083d84bf2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
   },
   "world_provenance": {
     "available": true,
@@ -637,6 +678,16 @@
           "value_advantage_gbp": 16793.687579999998,
           "level_advantage_gbp": 17129.08821399999,
           "selection_gbp": -335.40063399999053
+        },
+        {
+          "artefact": "value_cycle_ab_s1_three_arm_20260910.json",
+          "generated_at": "2026-09-10T14:04:08Z",
+          "ran_in_world": "39a192ce04c1eda8",
+          "level_share_of_advantage": 1.0198088976479727,
+          "the_bigger_leg": "level",
+          "value_advantage_gbp": 16792.23790800001,
+          "level_advantage_gbp": 17124.873629999987,
+          "selection_gbp": -332.63572199997725
         }
       ],
       "later_runs_disagree": null,
@@ -683,7 +734,7 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "3fb477ab23587e46749da874cc2eb3a5def38a7d",
+      "publishing_tree_commit": "083d84bf27a211f7bb4db73e182114fc59d82577",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -695,7 +746,7 @@
         "objective_moved_since_the_run": true,
         "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
       },
-      "reading": "Produced at 8b846013e and published from 3fb477ab2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+      "reading": "Produced at 8b846013e and published from 083d84bf2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     }
   },
   "realised": {
@@ -748,11 +799,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 147886.78,
       "run_identity": {
-        "dashboard_run_id": "run_output_8c53c35e5_20260910T064026Z.json",
-        "dashboard_commit": "8c53c35e5",
+        "dashboard_run_id": "run_output_258720283_20260910T005624Z.json",
+        "dashboard_commit": "258720283",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_8c53c35e5_20260910T064026Z.json",
-        "last_verified_commit": "8c53c35e5",
+        "last_verified_run_id": "run_output_258720283_20260910T005624Z.json",
+        "last_verified_commit": "258720283",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -1845,6 +1896,7 @@
       "unstratified_auc": 0.6269578313253013,
       "same_year_pairs": 402,
       "all_pairs": 3320,
+      "accounts": 66,
       "same_year_share_of_pairs": 0.1210843373493976,
       "null_point": 0.5,
       "null_95_low": 0.3756218905472637,
@@ -1865,7 +1917,214 @@
       "draws": 8000,
       "seed": 20260910,
       "basis": "concordance counted only between decisions whose terms START IN THE SAME CALENDAR YEAR, pooled across years by pair count. Null: `retained` permuted WITHIN each year, 8,000 draws, seed 20260910, ties counting a half exactly as the producer's own AUC does.",
-      "what_this_does_not_establish": "A within-year figure inside its null does NOT establish that the belief is uninformative -- that is the same overclaim in the opposite direction. On 402 same-year pairs this sample cannot tell either way; about four times as many would halve the interval."
+      "what_this_does_not_establish": "A within-year figure inside its null does NOT establish that the belief is uninformative -- that is the same overclaim in the opposite direction. On 402 same-year pairs this sample cannot tell either way. Halving the interval takes FOUR TIMES THE DECISIONS, which is SIXTEEN times the pairs, because the permuted half-width falls as 1/sqrt(decisions) and same-year pairs grow as their square. Until 2026-09-10 this sentence read \"about four times as many\" with pairs as its subject: that is twice the decisions and a 29% narrower interval, not half. What the run would have to be is priced in `what_would_settle_it` below.",
+      "what_would_settle_it": {
+        "available": true,
+        "what_this_is": "What run would let the within-year concordance fall outside its null EITHER WAY, priced on this run's own permuted interval, this run's own book, and this machine's own measured cost. It is a bound on the instrument and never a book to grow towards (R12): a book enlarged until this figure returns a direction is the failure this arm exists to be able to report.",
+        "what_it_could_have_detected": {
+          "available": true,
+          "decisions_scored": 123,
+          "accounts": 66,
+          "scored_decisions_per_account": 1.8636363636363635,
+          "detectable_excess": 0.12189054726368159,
+          "detectable_concordance": 0.6218905472636815,
+          "observed_excess": 0.05597014925373134,
+          "observed_share_of_what_was_detectable": 0.4591836734693877,
+          "scale_constant": 1.3518315642140832,
+          "curve": [
+            {
+              "decisions_scored": 123,
+              "multiple_of_this_run": 1,
+              "detectable_excess": 0.12189054726368159,
+              "detectable_concordance": 0.6218905472636815,
+              "accounts_needed": 66,
+              "is_this_run": true
+            },
+            {
+              "decisions_scored": 246,
+              "multiple_of_this_run": 2,
+              "detectable_excess": 0.08618963253268863,
+              "detectable_concordance": 0.5861896325326886,
+              "accounts_needed": 132,
+              "is_this_run": false
+            },
+            {
+              "decisions_scored": 492,
+              "multiple_of_this_run": 4,
+              "detectable_excess": 0.060945273631840796,
+              "detectable_concordance": 0.5609452736318408,
+              "accounts_needed": 264,
+              "is_this_run": false
+            },
+            {
+              "decisions_scored": 984,
+              "multiple_of_this_run": 8,
+              "detectable_excess": 0.043094816266344316,
+              "detectable_concordance": 0.5430948162663443,
+              "accounts_needed": 528,
+              "is_this_run": false
+            }
+          ],
+          "floor": [
+            {
+              "excess_over_no_information": 0.15,
+              "concordance": 0.65,
+              "decisions_needed": 82,
+              "accounts_needed": 44,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.1,
+              "concordance": 0.6,
+              "decisions_needed": 183,
+              "accounts_needed": 99,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.05597014925373134,
+              "concordance": 0.5559701492537313,
+              "decisions_needed": 584,
+              "accounts_needed": 314,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": true
+            },
+            {
+              "excess_over_no_information": 0.05,
+              "concordance": 0.55,
+              "decisions_needed": 731,
+              "accounts_needed": 393,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.03,
+              "concordance": 0.53,
+              "decisions_needed": 2031,
+              "accounts_needed": 1090,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.02,
+              "concordance": 0.52,
+              "decisions_needed": 4569,
+              "accounts_needed": 2452,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            }
+          ],
+          "the_book_this_would_need": {
+            "decisions_needed_for_the_observed_effect": 584,
+            "accounts_needed_for_the_observed_effect": 314,
+            "settled_accounts_needed_for_the_observed_effect": null,
+            "scored_accounts_this_run": 66,
+            "settled_book_this_run": null,
+            "settled_accounts_per_scored_account": null,
+            "what_each_account_count_counts": "`accounts_needed_...` is in accounts that carry a SCORED DECISION -- what the instrument consumes. `settled_accounts_needed_...` is the same requirement in the accounts the settlement path must HOLD, which is the population the ceiling bounds. They differ by this run's own ratio between the two and the comparison is only a quantity in the second.",
+            "settled_book_ceiling": {
+              "available": false,
+              "reason": "the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer"
+            },
+            "scored_decisions_at_the_ceiling": null,
+            "detectable_excess_at_the_ceiling": null,
+            "detectable_concordance_at_the_ceiling": null,
+            "the_observed_effect_is_attainable": null,
+            "why_no_attainability_verdict": "the settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer",
+            "the_verdict_is_one_sided": "This page can say a requirement is out of reach and can say it cannot tell. It cannot say a requirement IS in reach, because the only bound it has is an upper one and an upper bound refuses or is silent.",
+            "what_would_make_a_verdict_available": [
+              "the window the run's accounts are counted over, declared by the producer -- the ceiling is per customer-year and is a different number at every window",
+              "the run's own settled book beside its scored-account count, so a requirement in one population can be restated in the other",
+              "a LOWER bound on the affordable book -- an upper bound can never certify reach, so no amount of the two above turns this verdict positive"
+            ],
+            "accounts_short": null,
+            "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
+          },
+          "method": "The half-width of the permutation null falls as 1.352 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(123), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=123 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
+          "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
+          "sentence": "On the 123 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.122 \u2014 a concordance of 0.622 or 0.378. It read 0.444, a departure of 0.056, about 46% of that. Reading a departure that small needs about 584 scored decisions \u2014 roughly 314 accounts carrying one, at this run's rate. Whether this world can supply that book, this page cannot say. The settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer. It is a bound on the instrument either way, and never a book to grow towards."
+        },
+        "the_requirement": {
+          "scored_decisions_needed": 584,
+          "scored_decisions_this_run": 123,
+          "times_this_run": 4.747967479674797,
+          "scored_accounts_needed": 314,
+          "scored_accounts_this_run": 66,
+          "the_index_is_decisions": "the permuted half-width falls as 1/sqrt(DECISIONS) -- accounts and pairs are derived from that and never indexed on directly. `accounts_needed` carries this run's own decisions-per-account rate and nothing else."
+        },
+        "in_same_year_pairs": {
+          "same_year_pairs_this_run": 402,
+          "same_year_pairs_needed": 9062,
+          "times_this_runs_pairs": 22.54319518804944,
+          "why_the_two_multiples_differ": "same-year pairs grow as the SQUARE of same-year decisions, so a book 4.75x this one carries 22.5x the pairs. A requirement quoted in pairs and a requirement quoted in decisions are the same requirement and they are not the same number.",
+          "the_sentence_this_corrects": "This block's own `what_this_does_not_establish` read \"about four times as many would halve the interval\" with same-year PAIRS as its subject. Four times the pairs is twice the decisions and shrinks the interval by 29%, not half; halving it takes four times the decisions, which is SIXTEEN times the pairs. The claim was true of decisions and was printed against pairs."
+        },
+        "the_book": {
+          "priced_renewals_needed": 1017,
+          "renewals_the_world_must_offer": 9668,
+          "scored_share_of_priced": 0.5747663551401869,
+          "priced_share_of_renewals_offered": 0.1052,
+          "what_each_count_counts": "`scored_decisions_needed` is what the INSTRUMENT consumes -- priced renewals the world also billed under the price that was chosen. `priced_renewals_needed` carries it back through this run's own scored share, and `renewals_the_world_must_offer` back through the funnel's own priced share. Each step is a decisions-over-decisions ratio from one run; none of them is a forecast, and the last is mostly a published fact about GB's product mix."
+        },
+        "run_seeds": {
+          "supplies_it": false,
+          "seeds_the_arithmetic_would_imply": 4.747967479674797,
+          "why_not": "a re-seed re-rolls the SAME households' elasticity -- `population_draw.price_elasticity_for_customer` is a pure function of (customer_id, seed) and the floor artefact's every seed row reports the same 66 accounts re-drawn. Pooling s seeds multiplies decision ROWS by s and leaves the belief values, and therefore the ordering a concordance reads, exactly where they were. The permuted null narrows as 1/sqrt(s) anyway, because its exchangeable unit is the row.",
+          "the_demonstration": "replicating this run's 123 rows unchanged leaves the within-year concordance at 0.444030 at every replication factor while the null closes around it, and at FIVE copies the unchanged figure sits OUTSIDE the interval. Five copies of one book is close to the 4.75x this requirement asks for, and it contains no new information at all.",
+          "what_seeds_are_good_for": "the outcome-roll half of the variance, which is real and is what the nine-seed floor legs measure for the money contrasts. They cannot buy the household-draw half, and the concordance is limited by that half.",
+          "what_would_supply_it": "more HOUSEHOLDS carrying a priced renewal the world also billed -- a larger settled book, which is the only lever `what_it_could_have_detected.the_book_this_would_need.why_only_a_larger_book` leaves standing."
+        },
+        "the_cost": {
+          "available": true,
+          "this_book": {
+            "peak_mb_at_least": 6400.0,
+            "wall_seconds_at_least": 4175.554,
+            "seeds_in_that_pass": 3,
+            "machine_hours_at_least": 1.159876111111111,
+            "wall_seconds_per_seed_at_least": 1391.8513333333333,
+            "measured_by": "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three seeds), the run whose kill established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB`. It was OOM-killed before finishing, so both figures are FLOORS on a completed pass",
+            "and_they_run_one_at_a_time": "`tools.run_value_cycle_ab.floor_run_headroom_refusal` refuses a second concurrent leg against this machine's live headroom, so the legs a settling run needs are SERIAL and their wall clocks add rather than overlap"
+          },
+          "a_larger_book": {
+            "available": false,
+            "clean_points": 1,
+            "reason": "1 CLEAN point(s); a slope needs at least two. A contaminated point is still a valid single observation and is reported above -- it is only barred from the slope.",
+            "what_one_clean_point_is": "a cost, never a gradient. The one clean point is 1200.0 customer-years at 4,193 MB peak over 1,019 s wall -- enough to say what a run of that size took and not enough to say what any other size takes."
+          },
+          "why_this_book_is_a_floor_on_a_larger_one": "wall clock and peak memory are non-decreasing in the size of the book being settled, so the pass above is the cheapest a bigger book can be. That direction is safe and the other one is not: this block can say a requirement costs AT LEAST something and can say it cannot price it, and it can never say a requirement is affordable."
+        }
+      },
+      "the_grading_population_is_not_independent": {
+        "available": true,
+        "what_this_is": "How much of the graded outcome the arm's own price rise made, and what a grading population that did not have that property would have to be.",
+        "outcome_moved_by_the_arms_own_price": {
+          "left_under_the_value_arm_only": [
+            "C5_2",
+            "PROS-2019-0024",
+            "PROS-2021-0324",
+            "SYN-2016-034"
+          ],
+          "left_under_the_control_arm_only": [
+            "PROS-2018-0137"
+          ],
+          "churned_under_both": 76,
+          "scored_rows_on_those_accounts": 12,
+          "scored_rows": 123,
+          "departures_on_those_accounts": 4,
+          "departures": 40,
+          "reading": "12 of the 123 scored rows sit on the 5 accounts the two arms disagreed about, and 4 of the 40 departures the concordance is graded on are among them. Both directions are counted: an account the value arm alone lost is an outcome its price manufactured, and an account the CONTROL alone lost is one its price prevented. Neither is a free-standing fact about who leaves."
+        },
+        "dropping_them_is_not_the_repair": "The set is defined BY the outcome. Removing the decisions where the price changed what happened conditions on a post-treatment variable and keeps exactly the decisions where the arm's choice did not bite -- which biases the concordance toward no-information while shrinking the sample that would have to clear a wider null. It would make this figure look cleaner and mean less. The remedy is a different population, never a subset of this one.",
+        "what_an_independent_population_must_look_like": [
+          "THE OUTCOME MUST NOT BE A FUNCTION OF THE BELIEF BEING GRADED. The churn roll has to happen at a price the per-household belief did not set -- the control arm's flat level is exactly such a price, and it is already run on the same households in the same world.",
+          "THE BELIEF MUST STILL BE THE VALUE ARM'S, recorded per (account, term) at the moment it was formed. Grading the control arm's own belief would answer a different question: the control forms none, `renewals_priced_by_the_arm` is 0.",
+          "THE POPULATION MUST BE FIXED BEFORE THE OUTCOME IS READ. Any membership rule that consults `retained` -- including 'the arms agreed' -- reintroduces the defect under a tidier name."
+        ],
+        "is_it_available_today": false,
+        "why_not": "the control arm publishes no per-decision rows to score against: `control_arm.renewals_priced_by_the_arm` is 0, and its roster reaches this artefact only as account-level totals and the churn roster diff above. There is no (account, term, retained) list on the control side to put the value arm's `believed_p_retain` beside.",
+        "what_would_have_to_be_recorded": "the control arm's own (account, term_start, retained) rows, on the same schedule `belief_vs_outcome.scored_decisions` records the value arm's. Both arms already run in one pass on one world, so this is a field the run does not write rather than a run nobody has done -- and it costs no extra pass, which makes it cheaper than every figure in `what_would_settle_it` beside it."
+      }
     },
     "the_sample_size_explanation": {
       "available": true,
@@ -2262,7 +2521,9 @@
       "retained": 83,
       "left": 40,
       "scored_decisions": 123,
-      "accounts": 17
+      "accounts": 66,
+      "sample_accounts": 17,
+      "what_the_two_account_counts_count": "`accounts` is the households the scored decisions sit on, counted off the rows themselves. `sample_accounts` is the households appearing in the artefact's matched/unmatched SAMPLES, which are ten rows each and are not the population."
     },
     "auc_attribution": {
       "available": true,
@@ -2731,6 +2992,7 @@
       "unstratified_auc": 0.6269578313253013,
       "same_year_pairs": 402,
       "all_pairs": 3320,
+      "accounts": 66,
       "same_year_share_of_pairs": 0.1210843373493976,
       "null_point": 0.5,
       "null_95_low": 0.3756218905472637,
@@ -2751,7 +3013,214 @@
       "draws": 8000,
       "seed": 20260910,
       "basis": "concordance counted only between decisions whose terms START IN THE SAME CALENDAR YEAR, pooled across years by pair count. Null: `retained` permuted WITHIN each year, 8,000 draws, seed 20260910, ties counting a half exactly as the producer's own AUC does.",
-      "what_this_does_not_establish": "A within-year figure inside its null does NOT establish that the belief is uninformative -- that is the same overclaim in the opposite direction. On 402 same-year pairs this sample cannot tell either way; about four times as many would halve the interval."
+      "what_this_does_not_establish": "A within-year figure inside its null does NOT establish that the belief is uninformative -- that is the same overclaim in the opposite direction. On 402 same-year pairs this sample cannot tell either way. Halving the interval takes FOUR TIMES THE DECISIONS, which is SIXTEEN times the pairs, because the permuted half-width falls as 1/sqrt(decisions) and same-year pairs grow as their square. Until 2026-09-10 this sentence read \"about four times as many\" with pairs as its subject: that is twice the decisions and a 29% narrower interval, not half. What the run would have to be is priced in `what_would_settle_it` below.",
+      "what_would_settle_it": {
+        "available": true,
+        "what_this_is": "What run would let the within-year concordance fall outside its null EITHER WAY, priced on this run's own permuted interval, this run's own book, and this machine's own measured cost. It is a bound on the instrument and never a book to grow towards (R12): a book enlarged until this figure returns a direction is the failure this arm exists to be able to report.",
+        "what_it_could_have_detected": {
+          "available": true,
+          "decisions_scored": 123,
+          "accounts": 66,
+          "scored_decisions_per_account": 1.8636363636363635,
+          "detectable_excess": 0.12189054726368159,
+          "detectable_concordance": 0.6218905472636815,
+          "observed_excess": 0.05597014925373134,
+          "observed_share_of_what_was_detectable": 0.4591836734693877,
+          "scale_constant": 1.3518315642140832,
+          "curve": [
+            {
+              "decisions_scored": 123,
+              "multiple_of_this_run": 1,
+              "detectable_excess": 0.12189054726368159,
+              "detectable_concordance": 0.6218905472636815,
+              "accounts_needed": 66,
+              "is_this_run": true
+            },
+            {
+              "decisions_scored": 246,
+              "multiple_of_this_run": 2,
+              "detectable_excess": 0.08618963253268863,
+              "detectable_concordance": 0.5861896325326886,
+              "accounts_needed": 132,
+              "is_this_run": false
+            },
+            {
+              "decisions_scored": 492,
+              "multiple_of_this_run": 4,
+              "detectable_excess": 0.060945273631840796,
+              "detectable_concordance": 0.5609452736318408,
+              "accounts_needed": 264,
+              "is_this_run": false
+            },
+            {
+              "decisions_scored": 984,
+              "multiple_of_this_run": 8,
+              "detectable_excess": 0.043094816266344316,
+              "detectable_concordance": 0.5430948162663443,
+              "accounts_needed": 528,
+              "is_this_run": false
+            }
+          ],
+          "floor": [
+            {
+              "excess_over_no_information": 0.15,
+              "concordance": 0.65,
+              "decisions_needed": 82,
+              "accounts_needed": 44,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.1,
+              "concordance": 0.6,
+              "decisions_needed": 183,
+              "accounts_needed": 99,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.05597014925373134,
+              "concordance": 0.5559701492537313,
+              "decisions_needed": 584,
+              "accounts_needed": 314,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": true
+            },
+            {
+              "excess_over_no_information": 0.05,
+              "concordance": 0.55,
+              "decisions_needed": 731,
+              "accounts_needed": 393,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.03,
+              "concordance": 0.53,
+              "decisions_needed": 2031,
+              "accounts_needed": 1090,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            },
+            {
+              "excess_over_no_information": 0.02,
+              "concordance": 0.52,
+              "decisions_needed": 4569,
+              "accounts_needed": 2452,
+              "within_the_settled_book_ceiling": null,
+              "is_the_observed_effect": false
+            }
+          ],
+          "the_book_this_would_need": {
+            "decisions_needed_for_the_observed_effect": 584,
+            "accounts_needed_for_the_observed_effect": 314,
+            "settled_accounts_needed_for_the_observed_effect": null,
+            "scored_accounts_this_run": 66,
+            "settled_book_this_run": null,
+            "settled_accounts_per_scored_account": null,
+            "what_each_account_count_counts": "`accounts_needed_...` is in accounts that carry a SCORED DECISION -- what the instrument consumes. `settled_accounts_needed_...` is the same requirement in the accounts the settlement path must HOLD, which is the population the ceiling bounds. They differ by this run's own ratio between the two and the comparison is only a quantity in the second.",
+            "settled_book_ceiling": {
+              "available": false,
+              "reason": "the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer"
+            },
+            "scored_decisions_at_the_ceiling": null,
+            "detectable_excess_at_the_ceiling": null,
+            "detectable_concordance_at_the_ceiling": null,
+            "the_observed_effect_is_attainable": null,
+            "why_no_attainability_verdict": "the settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer",
+            "the_verdict_is_one_sided": "This page can say a requirement is out of reach and can say it cannot tell. It cannot say a requirement IS in reach, because the only bound it has is an upper one and an upper bound refuses or is silent.",
+            "what_would_make_a_verdict_available": [
+              "the window the run's accounts are counted over, declared by the producer -- the ceiling is per customer-year and is a different number at every window",
+              "the run's own settled book beside its scored-account count, so a requirement in one population can be restated in the other",
+              "a LOWER bound on the affordable book -- an upper bound can never certify reach, so no amount of the two above turns this verdict positive"
+            ],
+            "accounts_short": null,
+            "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
+          },
+          "method": "The half-width of the permutation null falls as 1.352 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(123), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=123 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
+          "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
+          "sentence": "On the 123 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.122 \u2014 a concordance of 0.622 or 0.378. It read 0.444, a departure of 0.056, about 46% of that. Reading a departure that small needs about 584 scored decisions \u2014 roughly 314 accounts carrying one, at this run's rate. Whether this world can supply that book, this page cannot say. The settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer. It is a bound on the instrument either way, and never a book to grow towards."
+        },
+        "the_requirement": {
+          "scored_decisions_needed": 584,
+          "scored_decisions_this_run": 123,
+          "times_this_run": 4.747967479674797,
+          "scored_accounts_needed": 314,
+          "scored_accounts_this_run": 66,
+          "the_index_is_decisions": "the permuted half-width falls as 1/sqrt(DECISIONS) -- accounts and pairs are derived from that and never indexed on directly. `accounts_needed` carries this run's own decisions-per-account rate and nothing else."
+        },
+        "in_same_year_pairs": {
+          "same_year_pairs_this_run": 402,
+          "same_year_pairs_needed": 9062,
+          "times_this_runs_pairs": 22.54319518804944,
+          "why_the_two_multiples_differ": "same-year pairs grow as the SQUARE of same-year decisions, so a book 4.75x this one carries 22.5x the pairs. A requirement quoted in pairs and a requirement quoted in decisions are the same requirement and they are not the same number.",
+          "the_sentence_this_corrects": "This block's own `what_this_does_not_establish` read \"about four times as many would halve the interval\" with same-year PAIRS as its subject. Four times the pairs is twice the decisions and shrinks the interval by 29%, not half; halving it takes four times the decisions, which is SIXTEEN times the pairs. The claim was true of decisions and was printed against pairs."
+        },
+        "the_book": {
+          "priced_renewals_needed": 1017,
+          "renewals_the_world_must_offer": 9668,
+          "scored_share_of_priced": 0.5747663551401869,
+          "priced_share_of_renewals_offered": 0.1052,
+          "what_each_count_counts": "`scored_decisions_needed` is what the INSTRUMENT consumes -- priced renewals the world also billed under the price that was chosen. `priced_renewals_needed` carries it back through this run's own scored share, and `renewals_the_world_must_offer` back through the funnel's own priced share. Each step is a decisions-over-decisions ratio from one run; none of them is a forecast, and the last is mostly a published fact about GB's product mix."
+        },
+        "run_seeds": {
+          "supplies_it": false,
+          "seeds_the_arithmetic_would_imply": 4.747967479674797,
+          "why_not": "a re-seed re-rolls the SAME households' elasticity -- `population_draw.price_elasticity_for_customer` is a pure function of (customer_id, seed) and the floor artefact's every seed row reports the same 66 accounts re-drawn. Pooling s seeds multiplies decision ROWS by s and leaves the belief values, and therefore the ordering a concordance reads, exactly where they were. The permuted null narrows as 1/sqrt(s) anyway, because its exchangeable unit is the row.",
+          "the_demonstration": "replicating this run's 123 rows unchanged leaves the within-year concordance at 0.444030 at every replication factor while the null closes around it, and at FIVE copies the unchanged figure sits OUTSIDE the interval. Five copies of one book is close to the 4.75x this requirement asks for, and it contains no new information at all.",
+          "what_seeds_are_good_for": "the outcome-roll half of the variance, which is real and is what the nine-seed floor legs measure for the money contrasts. They cannot buy the household-draw half, and the concordance is limited by that half.",
+          "what_would_supply_it": "more HOUSEHOLDS carrying a priced renewal the world also billed -- a larger settled book, which is the only lever `what_it_could_have_detected.the_book_this_would_need.why_only_a_larger_book` leaves standing."
+        },
+        "the_cost": {
+          "available": true,
+          "this_book": {
+            "peak_mb_at_least": 6400.0,
+            "wall_seconds_at_least": 4175.554,
+            "seeds_in_that_pass": 3,
+            "machine_hours_at_least": 1.159876111111111,
+            "wall_seconds_per_seed_at_least": 1391.8513333333333,
+            "measured_by": "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three seeds), the run whose kill established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB`. It was OOM-killed before finishing, so both figures are FLOORS on a completed pass",
+            "and_they_run_one_at_a_time": "`tools.run_value_cycle_ab.floor_run_headroom_refusal` refuses a second concurrent leg against this machine's live headroom, so the legs a settling run needs are SERIAL and their wall clocks add rather than overlap"
+          },
+          "a_larger_book": {
+            "available": false,
+            "clean_points": 1,
+            "reason": "1 CLEAN point(s); a slope needs at least two. A contaminated point is still a valid single observation and is reported above -- it is only barred from the slope.",
+            "what_one_clean_point_is": "a cost, never a gradient. The one clean point is 1200.0 customer-years at 4,193 MB peak over 1,019 s wall -- enough to say what a run of that size took and not enough to say what any other size takes."
+          },
+          "why_this_book_is_a_floor_on_a_larger_one": "wall clock and peak memory are non-decreasing in the size of the book being settled, so the pass above is the cheapest a bigger book can be. That direction is safe and the other one is not: this block can say a requirement costs AT LEAST something and can say it cannot price it, and it can never say a requirement is affordable."
+        }
+      },
+      "the_grading_population_is_not_independent": {
+        "available": true,
+        "what_this_is": "How much of the graded outcome the arm's own price rise made, and what a grading population that did not have that property would have to be.",
+        "outcome_moved_by_the_arms_own_price": {
+          "left_under_the_value_arm_only": [
+            "C5_2",
+            "PROS-2019-0024",
+            "PROS-2021-0324",
+            "SYN-2016-034"
+          ],
+          "left_under_the_control_arm_only": [
+            "PROS-2018-0137"
+          ],
+          "churned_under_both": 76,
+          "scored_rows_on_those_accounts": 12,
+          "scored_rows": 123,
+          "departures_on_those_accounts": 4,
+          "departures": 40,
+          "reading": "12 of the 123 scored rows sit on the 5 accounts the two arms disagreed about, and 4 of the 40 departures the concordance is graded on are among them. Both directions are counted: an account the value arm alone lost is an outcome its price manufactured, and an account the CONTROL alone lost is one its price prevented. Neither is a free-standing fact about who leaves."
+        },
+        "dropping_them_is_not_the_repair": "The set is defined BY the outcome. Removing the decisions where the price changed what happened conditions on a post-treatment variable and keeps exactly the decisions where the arm's choice did not bite -- which biases the concordance toward no-information while shrinking the sample that would have to clear a wider null. It would make this figure look cleaner and mean less. The remedy is a different population, never a subset of this one.",
+        "what_an_independent_population_must_look_like": [
+          "THE OUTCOME MUST NOT BE A FUNCTION OF THE BELIEF BEING GRADED. The churn roll has to happen at a price the per-household belief did not set -- the control arm's flat level is exactly such a price, and it is already run on the same households in the same world.",
+          "THE BELIEF MUST STILL BE THE VALUE ARM'S, recorded per (account, term) at the moment it was formed. Grading the control arm's own belief would answer a different question: the control forms none, `renewals_priced_by_the_arm` is 0.",
+          "THE POPULATION MUST BE FIXED BEFORE THE OUTCOME IS READ. Any membership rule that consults `retained` -- including 'the arms agreed' -- reintroduces the defect under a tidier name."
+        ],
+        "is_it_available_today": false,
+        "why_not": "the control arm publishes no per-decision rows to score against: `control_arm.renewals_priced_by_the_arm` is 0, and its roster reaches this artefact only as account-level totals and the churn roster diff above. There is no (account, term, retained) list on the control side to put the value arm's `believed_p_retain` beside.",
+        "what_would_have_to_be_recorded": "the control arm's own (account, term_start, retained) rows, on the same schedule `belief_vs_outcome.scored_decisions` records the value arm's. Both arms already run in one pass on one world, so this is a field the run does not write rather than a run nobody has done -- and it costs no extra pass, which makes it cheaper than every figure in `what_would_settle_it` beside it."
+      }
     },
     "auc_reading": "Measured on 40 departures and 83 retentions -- 123 decisions on 100 accounts. A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief ranked a retained DECISION above a departed one more often than not. BUT THE PAIRS BEHIND IT COMPARE ERAS, NOT HOUSEHOLDS. Only 402 of the 3,320 ordered pairs (12%) put two households in the SAME YEAR; the rest rank a decision in one year against a decision in another. Counted within the year only, the concordance is 0.444 against a null of 0.376-0.619 on those 402 pairs (two-sided p 0.375). That is INSIDE its null, so this run shows no evidence the belief ranks one household against another within a year -- and for this page's own estimand the between-year part IS the level, not the selection. The words \"real information about who stays\" are WITHDRAWN: \"who\" is a household claim and the stratified figure does not carry it. It does not establish the opposite either -- at this many same-year pairs the sample cannot tell in either direction. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 4 of the 100 accounts this arm priced (C5_2, PROS-2019-0024, PROS-2021-0324, SYN-2016-034) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 20.0 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
     "decided_by_a_bound": 143,
@@ -2762,5 +3231,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "Running the same book through the per-customer decision engine earned \u00a317,444 MORE than flat rules, clearing the \u00b1\u00a32,282 this figure moves across 9 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a3319 separates the two -- INSIDE the \u00b1\u00a31,811 that the same figure moves across 9 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 98% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 214 of the 2,035 renewals the world offered, 10.52% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "Running the same book through the per-customer decision engine earned \u00a317,444 MORE than flat rules, clearing the \u00b1\u00a32,282 this figure moves across 9 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, \u00a3319 separates the two -- INSIDE the \u00b1\u00a31,811 that the same figure moves across 9 re-runs which changed nothing about the company but the per-household price-sensitivity draw. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The price level accounts for 98% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running it on the current book would NOT clear this: the rest of the book's half carried no variance even on the smaller book above, and a larger priced roster covers MORE of the complement that leg re-draws, not less. What is owed is a floor keyed to something the rest of the book has. What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds would not resolve it: re-drawing the dice measures this spread again, it does not shrink it. Read all of it against its size: the per-customer arm priced 214 of the 2,035 renewals the world offered, 10.52% of them, so every figure here is those decisions and what they cascade into."
 }

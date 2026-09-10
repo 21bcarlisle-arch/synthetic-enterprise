@@ -39,6 +39,18 @@
       "undecomposed"
     ]
   },
+  "trees_the_legs_ran_on": {
+    "commits": {
+      "undecomposed": "1d821e12b73b65eedfee6100f768b7b17105e27b",
+      "only": "416e829c70d9dd03d3c84cf10c41b160b80ebefc",
+      "except": "416e829c70d9dd03d3c84cf10c41b160b80ebefc",
+      "three_arm": "ace28fa444c505db44984cdc8f94a4dff8636bbf"
+    },
+    "floor_legs_ran_on_one_tree": false,
+    "contrast_drawn_by_the_same_tree": null,
+    "unavailable_because": null,
+    "why_this_is_here": "The three floor legs must partition ONE call stream for `reconciliation_ratio` to mean anything, and only the code they ran under decides that stream. This project has measured what a tree difference costs on exactly this quantity: the same seed in the same world returned a `selection_gbp` differing by +38.96 to +61.38 under two trees. `contrast_drawn_by_the_same_tree` is the weaker, caveat-grade question -- a floor and the figure it bounds from two trees is a bound short by one question, not a broken partition."
+  },
   "seeds": 3,
   "contrast_gbp": 2335.867556000012,
   "priced_decisions": 104,
@@ -46,15 +58,43 @@
   "undecomposed_sd_gbp": 991.4551457388417,
   "priced_side_sd_gbp": 991.4551387981461,
   "rest_of_book_sd_gbp": 0.0,
-  "priced_share_of_variance": 1.0,
+  "rest_of_book_measured_over": {
+    "accounts_redrawn_per_seed": [
+      5
+    ],
+    "elasticity_calls_redrawn_per_seed": [
+      15
+    ],
+    "elasticity_calls_in_the_run_per_seed": [
+      350
+    ],
+    "why_this_is_here": "`rest_of_book_sd_gbp` is the `except` leg's own spread, and a spread of zero means two entirely different things depending on these counts: that the rest of the book's churn cascade genuinely does not move the contrast, or that there was almost no rest of the book to re-draw. The first is a result; the second is the shape of the instrument. Neither `priced_share_of_variance` nor `share_is_decisive` can tell them apart, so the sample size is published here and the reader does."
+  },
+  "rest_of_book_half_is_degenerate": true,
+  "keys_withdrawn": [
+    "priced_share_of_variance",
+    "share_at_which_a_bigger_book_could_resolve_it",
+    "share_is_decisive",
+    "share_margin_over_threshold",
+    "irreducible_sd_gbp",
+    "larger_settled_book_would_resolve_it",
+    "times_this_book",
+    "priced_decisions_needed",
+    "independent_draws_needed",
+    "times_this_book_on_the_published_floor",
+    "priced_decisions_needed_on_the_published_floor"
+  ],
+  "why_those_keys_are_withdrawn": "The `except` leg -- the rest of the book's half -- returned the IDENTICAL `value_advantage_gbp` on all 3 seeds, so its variance is exactly zero and every key listed in `keys_withdrawn` is an algebraic identity rather than a measurement: `priced_share_of_variance` would be 1.0 because that is what x/(x+0) is, `irreducible_sd_gbp` 0.0 because that is the leg's own spread, and `larger_settled_book_would_resolve_it` true because any contrast exceeds zero. None of them could have come out any other way, for any seed, at any book size. Whether the zero is a finding about the world -- the rest of the book genuinely does not move this contrast -- or the shape of the instrument turns on how much rest of the book there was to re-draw, which is `rest_of_book_measured_over`: 5 account(s) over 15 of the run's 350 elasticity calls. Nothing downstream can tell those apart, so these keys are withheld rather than published. A `None` naming its reason cannot be read as established and a 1.0 will be. `remedy_price_table` SURVIVES and is the honest remainder -- it prices every candidate share -- but which of its rows this book sits on is exactly what is withheld here, so no row of it is this book's answer.",
+  "what_would_make_the_rest_of_book_half_measurable": "Not more seeds, and not a larger book on its own. This half is keyed to the ELASTICITY draw and re-draws only households the arm did NOT price, so it is measurable exactly when some household outside the priced roster draws an elasticity AND that draw moves `value_advantage_gbp`. Growing the priced roster makes it LESS measurable, not more, because the roster swallows the complement it re-draws -- the instrument gets worse as the arm gets better. A floor over the rest of the book therefore has to be keyed to something the rest of the book HAS, its churn cascade, rather than to a draw it never reaches.",
+  "priced_share_of_variance": null,
   "reconciliation_ratio": 0.9999999859989721,
-  "reconciliation_reading": "The two legs' variances sum to 1.00x the undecomposed one. They partition the same call stream, so the honest expectation is 1.0; at 3 seeds each variance carries 2 degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that sample size alone produces. A ratio outside that is evidence the legs are not two halves of one thing.",
-  "share_at_which_a_bigger_book_could_resolve_it": -4.550732430750148,
-  "share_is_decisive": true,
-  "share_margin_over_threshold": 5.550732430750148,
+  "reconciliation_reading": "The two legs' variances sum to 1.00x the undecomposed one. They partition the same call stream, so the honest expectation is 1.0; at 3 seeds each variance carries 2 degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that sample size alone produces. A ratio outside that is evidence the legs are not two halves of one thing. ON THIS SPLIT IT IS NOT A CONTROL. The `except` half carried no variance, so the sum being reconciled is the `only` leg alone and this ratio compares it with the undecomposed leg. A 1.00 here is not two halves adding up; it is one quantity against itself, and it would read the same however empty the other half was.",
+  "share_at_which_a_bigger_book_could_resolve_it": null,
+  "share_is_decisive": null,
+  "share_margin_over_threshold": null,
   "share_decisive_bar": 0.15,
-  "irreducible_sd_gbp": 0.0,
-  "larger_settled_book_would_resolve_it": true,
+  "irreducible_sd_gbp": null,
+  "larger_settled_book_would_resolve_it": null,
   "independent_draws_this_book": null,
   "priced_decisions_this_book": 104,
   "elasticity_calls_per_seed": [
@@ -63,11 +103,12 @@
     341
   ],
   "what_each_count_counts": "`independent_draws_this_book` is the number of households whose elasticity the priced leg re-rolled, and it is the ONLY sample size here: the draw is a pure function of (customer_id, seed), so it is what 1/n indexes. `priced_decisions_this_book` counts renewal decisions, and the decisions on one account share one draw. `elasticity_calls_per_seed` counts CALL SITES -- re-reads of the same draws -- and is a sample size for nothing at all. `times_this_book` is invariant across all three; the absolute counts are not.",
-  "times_this_book": 0.18015640502867042,
-  "priced_decisions_needed": 19,
+  "times_this_book": null,
+  "priced_decisions_needed": null,
   "independent_draws_needed": null,
-  "times_this_book_on_the_published_floor": 0.1801564075510453,
-  "priced_decisions_needed_on_the_published_floor": 19,
+  "what_the_decision_unit_assumes": "`priced_decisions_needed` is `times_this_book` wearing the DECISION unit. It is a sample-size statement only if decisions grow in proportion to independent draws -- the decisions on one account share one draw, and `what_each_count_counts` above says the draw is the only sample size here. On this book that proportionality cannot be checked: the `only` leg's seeds disagreed about how many households they re-drew, so `independent_draws_this_book` is withheld and there is no ratio to hold fixed. The decision count is the multiplier in a unit and is not this book's sample size.",
+  "times_this_book_on_the_published_floor": null,
+  "priced_decisions_needed_on_the_published_floor": null,
   "which_floor_the_price_is_against": "`times_this_book` prices the remedy against the two legs' summed variance; `times_this_book_on_the_published_floor` prices it against `undecomposed_sd_gbp`, which is the +- figure the page states. They differ by exactly the reconciliation ratio's distance from 1.0, so the second is the larger whenever the legs undershoot the whole -- and it is the one to quote, because the bound a reader is shown is the one the remedy has to bring under the contrast.",
   "remedy_price_table": [
     {

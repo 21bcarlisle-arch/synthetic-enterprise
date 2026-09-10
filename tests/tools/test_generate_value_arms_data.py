@@ -1540,6 +1540,54 @@ def test_the_remedy_clause_follows_the_decomposition_not_the_wording():
             "the {} branch dropped the half of the remedy that is arithmetic".format(name))
 
 
+def test_a_remedy_whose_OTHER_HALF_IS_EMPTY_is_refused_and_not_rounded_to_zero_percent():
+    """THE DEFECT THIS BRANCH EXISTS FOR, and it is one the producer's repair CREATED.
+
+    `decompose_floor` now withdraws `priced_share_of_variance` and `share_is_decisive` when the
+    rest-of-book leg carried no variance -- the identity case filed on 2026-09-10. Without a branch
+    here the page falls into "too close to call", whose two `or 0.0` fallbacks would then print
+    "0% of it is the priced households' own draw ... too close to the 0% it would have to clear":
+    two fabricated figures standing exactly where a withdrawal belongs, on the sentence the page's
+    remedy is stapled to. A withdrawal upstream that arrives downstream as a zero is worse than the
+    figure it replaced, because the zero looks measured.
+
+    KEYED TO THE ARTEFACT'S OWN FLAG, NOT TO THE WORDING. A decomposition whose other half DID move
+    keeps its price with no edit here, which is the null rung below -- a control that only ever
+    demands the remedy be absent is satisfied by deleting the remedy.
+    """
+    ordinary = _withheld_headline(_decomposition(0.85, resolvable=True))
+    empty = _withheld_headline(dict(
+        _decomposition(0.85, resolvable=True),
+        rest_of_book_half_is_degenerate=True,
+        priced_share_of_variance=None, share_is_decisive=None,
+        share_margin_over_threshold=None, larger_settled_book_would_resolve_it=None,
+        irreducible_sd_gbp=None, priced_decisions_needed=None,
+        why_those_keys_are_withdrawn=(
+            "The `except` leg returned the IDENTICAL `value_advantage_gbp` on all 3 seeds, so its "
+            "variance is exactly zero, measured over 5 accounts."),
+        what_would_make_the_rest_of_book_half_measurable=(
+            "Not more seeds: the roster swallows the complement it re-draws.")))
+
+    # THE NULL RUNG FIRST -- the branch is reachable only if the other side of it still runs.
+    assert "larger SETTLED BOOK" in ordinary and "54 priced renewals" in ordinary
+
+    assert "larger SETTLED BOOK" not in empty, (
+        "the page priced a remedy off a split whose other half carried no variance: {}"
+        .format(empty))
+    assert "0% of it is the priced households" not in empty, (
+        "the producer's withdrawal arrived on the page as a measured-looking 0% -- the `or 0.0` "
+        "fallback in the undecided branch: {}".format(empty))
+    assert "too close" not in empty, (
+        "an EMPTY half was published as a close call, which says the instrument nearly worked")
+    # THE REASON IS THE PRODUCER'S OWN WORDS, so the page cannot drift into its own account of why.
+    assert "IDENTICAL" in empty and "5 accounts" in empty, (
+        "the refusal names no cause a reader can check it against: {}".format(empty))
+    assert "roster swallows the complement" in empty, (
+        "the page refused the remedy and named nothing that would fix it, which reads as 'wait "
+        "for a bigger book' -- the one thing that makes this half less measurable")
+    assert "More seeds would not resolve it" in empty
+
+
 def test_a_remedy_measured_on_another_book_is_refused_rather_than_restated():
     """THE DEFECT, and it shipped on 2026-08-31. The three-arm run was re-taken after the
     standard-variable product landed and the priced count went 20 -> 120, but the floor

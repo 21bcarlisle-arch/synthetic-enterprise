@@ -5022,6 +5022,32 @@ DRAWN_ACCOUNT_PREFIX = "SYN-"
 #: price -- a boolean alone reads as a resolution, and on 2026-08-29 this bar was cleared by 0.005.
 SHARE_DECISIVE_BAR = 0.15
 
+#: EVERY KEY OF THE DECOMPOSITION THAT IS AN ALGEBRAIC FUNCTION OF THE `except` LEG'S VARIANCE, and
+#: therefore an identity rather than a measurement the moment that variance is exactly zero. Named
+#: as a list rather than written into eleven `if` branches because the failure this exists for is
+#: one key surviving the sweep: `share_margin_over_threshold` of 5.55 on a quantity bounded in
+#: [0, 1] sat beside `share_is_decisive: true` in the published artefact for a week, and it is the
+#: one that reads most like a measurement. A consumer that wants to know whether the key it is
+#: about to read was withdrawn checks this list against `rest_of_book_half_is_degenerate`, and
+#: `keys_withdrawn` in the artefact is this tuple when it fired.
+#:
+#: `rest_of_book_sd_gbp` IS DELIBERATELY NOT HERE. It is the leg's own measured spread and it is
+#: honestly zero; `irreducible_sd_gbp` is the same number wearing a claim -- that this is a floor
+#: no book gets under -- and it is that claim, not the number, that the empty half cannot support.
+KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF = (
+    "priced_share_of_variance",
+    "share_at_which_a_bigger_book_could_resolve_it",
+    "share_is_decisive",
+    "share_margin_over_threshold",
+    "irreducible_sd_gbp",
+    "larger_settled_book_would_resolve_it",
+    "times_this_book",
+    "priced_decisions_needed",
+    "independent_draws_needed",
+    "times_this_book_on_the_published_floor",
+    "priced_decisions_needed_on_the_published_floor",
+)
+
 #: The candidate priced-side shares the price table is printed at. A LADDER RATHER THAN A POINT,
 #: because at three seeds the measured share is imprecise enough that a reader needs to see how
 #: sharply the answer turns on it -- and because the table was printed at these inputs BEFORE the
@@ -5524,6 +5550,21 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     irreducible_sd = math.sqrt(v_except)
     resolvable_at_any_book = _resolves(contrast, irreducible_sd)
 
+    # AND WHEN THAT LEG CARRIES NO VARIANCE AT ALL, EVERY FIGURE DERIVED FROM IT IS ALGEBRA. A
+    # `v_except` of exactly zero is not a small measurement: it is what x/(x+0), sqrt(0) and
+    # "any contrast exceeds zero" return, for every seed, in every world, at any book size. The
+    # counts beside it (`rest_of_book_measured_over`) say whether that zero is a finding about the
+    # world or the shape of the instrument, and NOTHING downstream can tell those apart -- so the
+    # downstream keys are withdrawn rather than published, per `KEYS_DERIVED_FROM_THE_REST_OF_
+    # BOOK_HALF`. KEYED TO THE ZERO, NOT TO A SIZE: no bar for "too few accounts" is set here,
+    # because any such bar would be a number picked because a number was needed, and a leg that
+    # re-drew five households and returned a real spread is a real, if imprecise, measurement.
+    # (`SEAT_FINDING_THE_FLOOR_DECOMPOSITIONS_REST_OF_BOOK_HALF_IS_EMPTY_ON_THIS_BOOK_SO_ITS_
+    # SHARE_IS_AN_IDENTITY_2026-09-10`, which found `priced_share_of_variance: 1.0`,
+    # `irreducible_sd_gbp: 0.0` and `larger_settled_book_would_resolve_it: true` published as
+    # findings off three `except` seeds that returned one identical number.)
+    rest_of_book_half_is_degenerate = (v_except == 0.0)
+
     # THE SAMPLE SIZE IS READ OFF THE LEG THAT MEASURED IT, not off the funnel. `accounts_redrawn`
     # is how many independent elasticity draws the `only` leg actually re-rolled; the funnel's
     # `priced` counts DECISIONS, and two decisions on one account share one draw. Seeds that
@@ -5565,7 +5606,19 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
             growth_on_published = priced_share * v_all / headroom_all
             decisions_needed_on_published = math.ceil(priced * growth_on_published)
 
-    return {
+    #: WHAT THE COUNTS BEHIND THE ZERO WERE, composed once so the withdrawal reason and the block
+    #: beside `rest_of_book_sd_gbp` cannot drift into two different accounts of one leg.
+    except_accounts = sorted(
+        c for c in {r.get("accounts_redrawn") for r in (priced_except.get("seeds") or [])}
+        if isinstance(c, int))
+    except_calls = sorted(
+        c for c in {r.get("elasticity_redrawn") for r in (priced_except.get("seeds") or [])}
+        if isinstance(c, int))
+    run_calls = sorted(
+        c for c in {r.get("elasticity_draws") for r in (priced_except.get("seeds") or [])}
+        if isinstance(c, int))
+
+    out = {
         "available": True,
         "what_this_is": (
             "The `{}` noise floor cut into the half that a larger settled book buys down and the "
@@ -5605,15 +5658,9 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         #: (`SEAT_FINDING_THE_FLOOR_DECOMPOSITIONS_REST_OF_BOOK_HALF_IS_EMPTY_ON_THIS_BOOK_SO_ITS_
         #: SHARE_IS_AN_IDENTITY_2026-09-10`.)
         "rest_of_book_measured_over": {
-            "accounts_redrawn_per_seed": sorted(
-                c for c in {r.get("accounts_redrawn") for r in (priced_except.get("seeds") or [])}
-                if isinstance(c, int)),
-            "elasticity_calls_redrawn_per_seed": sorted(
-                c for c in {r.get("elasticity_redrawn") for r in (priced_except.get("seeds") or [])}
-                if isinstance(c, int)),
-            "elasticity_calls_in_the_run_per_seed": sorted(
-                c for c in {r.get("elasticity_draws") for r in (priced_except.get("seeds") or [])}
-                if isinstance(c, int)),
+            "accounts_redrawn_per_seed": except_accounts,
+            "elasticity_calls_redrawn_per_seed": except_calls,
+            "elasticity_calls_in_the_run_per_seed": run_calls,
             "why_this_is_here": (
                 "`rest_of_book_sd_gbp` is the `except` leg's own spread, and a spread of zero means "
                 "two entirely different things depending on these counts: that the rest of the "
@@ -5623,6 +5670,46 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
                 "`share_is_decisive` can tell them apart, so the sample size is published here "
                 "and the reader does."),
         },
+        #: WHETHER THE HALF THIS SPLIT IS OF CARRIED ANY VARIANCE AT ALL, at the top level and as a
+        #: bare boolean, because the keys it invalidates are top-level too and a producer reading
+        #: this file scans keys rather than prose. False is the ordinary case and says nothing more
+        #: than that the leg moved.
+        "rest_of_book_half_is_degenerate": rest_of_book_half_is_degenerate,
+        "keys_withdrawn": (list(KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF)
+                           if rest_of_book_half_is_degenerate else []),
+        "why_those_keys_are_withdrawn": ((
+            "The `except` leg -- the rest of the book's half -- returned the IDENTICAL `{contrast}` "
+            "on all {seeds} seeds, so its variance is exactly zero and every key listed in "
+            "`keys_withdrawn` is an algebraic identity rather than a measurement: "
+            "`priced_share_of_variance` would be 1.0 because that is what x/(x+0) is, "
+            "`irreducible_sd_gbp` 0.0 because that is the leg's own spread, and "
+            "`larger_settled_book_would_resolve_it` true because any contrast exceeds zero. None of "
+            "them could have come out any other way, for any seed, at any book size. Whether the "
+            "zero is a finding about the world -- the rest of the book genuinely does not move this "
+            "contrast -- or the shape of the instrument turns on how much rest of the book there "
+            "was to re-draw, which is `rest_of_book_measured_over`: {accounts} account(s) over "
+            "{calls} of the run's {run} elasticity calls. Nothing downstream can tell those apart, "
+            "so these keys are withheld rather than published. A `None` naming its reason cannot be "
+            "read as established and a 1.0 will be. `remedy_price_table` SURVIVES and is the honest "
+            "remainder -- it prices every candidate share -- but which of its rows this book sits "
+            "on is exactly what is withheld here, so no row of it is this book's answer."
+        ).format(contrast=contrast_field, seeds=n_seeds,
+                 accounts=", ".join(str(c) for c in except_accounts) or "an unrecorded number of",
+                 calls=", ".join(str(c) for c in except_calls) or "an unrecorded number",
+                 run=", ".join(str(c) for c in run_calls) or "unrecorded")
+            if rest_of_book_half_is_degenerate else None),
+        #: AND WHAT WOULD ACTUALLY FIX IT, because "more seeds" and "a bigger book" are both wrong
+        #: here and both are what a reader reaches for. Stated as the MECHANISM rather than as a
+        #: next step, so it stays true of any book this instrument is pointed at.
+        "what_would_make_the_rest_of_book_half_measurable": ((
+            "Not more seeds, and not a larger book on its own. This half is keyed to the ELASTICITY "
+            "draw and re-draws only households the arm did NOT price, so it is measurable exactly "
+            "when some household outside the priced roster draws an elasticity AND that draw moves "
+            "`{}`. Growing the priced roster makes it LESS measurable, not more, because the roster "
+            "swallows the complement it re-draws -- the instrument gets worse as the arm gets "
+            "better. A floor over the rest of the book therefore has to be keyed to something the "
+            "rest of the book HAS, its churn cascade, rather than to a draw it never reaches."
+        ).format(contrast_field) if rest_of_book_half_is_degenerate else None),
         "priced_share_of_variance": priced_share,
         "reconciliation_ratio": reconciliation,
         "reconciliation_reading": (
@@ -5630,7 +5717,17 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
             "call stream, so the honest expectation is 1.0; at {} seeds each variance carries "
             "{} degrees of freedom, and a ratio anywhere between roughly 0.3 and 3 is what that "
             "sample size alone produces. A ratio outside that is evidence the legs are not two "
-            "halves of one thing.".format(reconciliation, n_seeds, n_seeds - 1)),
+            "halves of one thing.".format(reconciliation, n_seeds, n_seeds - 1)
+            # AND IT IS NOT A CONTROL WHEN ONE HALF IS ZERO, which is the reading that would
+            # otherwise be taken from a ratio of 1.00. `total` is then `v_only` exactly, so this
+            # compares the priced leg against the undecomposed one and a 1.0 says only that the
+            # priced leg reproduces the whole floor -- which is the same thing the empty half says,
+            # not an independent check of it.
+            + ("" if not rest_of_book_half_is_degenerate else
+               " ON THIS SPLIT IT IS NOT A CONTROL. The `except` half carried no variance, so the "
+               "sum being reconciled is the `only` leg alone and this ratio compares it with the "
+               "undecomposed leg. A 1.00 here is not two halves adding up; it is one quantity "
+               "against itself, and it would read the same however empty the other half was.")),
         #: THE SHARE ABOVE WHICH THE PAGE'S REMEDY IS TRUE, derived from the page's own rule and
         #: nothing else: the rest-of-book half alone must come in under the contrast.
         "share_at_which_a_bigger_book_could_resolve_it": (
@@ -5671,6 +5768,27 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         "times_this_book": growth,
         "priced_decisions_needed": decisions_needed,
         "independent_draws_needed": accounts_needed,
+        #: THE ASSUMPTION THAT LETS THE MULTIPLIER WEAR THE DECISION UNIT, named because this file
+        #: publishes `priced_decisions_needed` beside a prose paragraph saying decisions are NOT
+        #: the sample size, and has done so with `independent_draws_this_book` sitting at `null`.
+        #: Read together those are a contradiction; they are not one, because `times_this_book` is
+        #: scale-free and the decision count is that multiplier in a unit -- but the step from one
+        #: to the other is an assumption and it was unstated, which is how a reader arrives at the
+        #: contradiction. Stated in BOTH branches: an assumption printed only when it fails reads
+        #: as an exception rather than as the thing the figure always rested on.
+        "what_the_decision_unit_assumes": (
+            "`priced_decisions_needed` is `times_this_book` wearing the DECISION unit. It is a "
+            "sample-size statement only if decisions grow in proportion to independent draws -- "
+            "the decisions on one account share one draw, and `what_each_count_counts` above says "
+            "the draw is the only sample size here. On this book that proportionality {}."
+            .format(
+                "cannot be checked: the `only` leg's seeds disagreed about how many households "
+                "they re-drew, so `independent_draws_this_book` is withheld and there is no ratio "
+                "to hold fixed. The decision count is the multiplier in a unit and is not this "
+                "book's sample size"
+                if priced_accounts is None else
+                "is this book's own ratio of {:,} decisions to {:,} independent draws, held fixed"
+                .format(priced, priced_accounts))),
         #: THE PRICE AGAINST THE PUBLISHED BOUND rather than against the legs' own total. Equal to
         #: the pair above exactly when the reconciliation is 1.0, and further from it the further
         #: that ratio is from 1.0 -- which is the only honest way to carry a 0.66x into a price.
@@ -5697,6 +5815,21 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
             "thing -- it is a different instrument. That is a finding about the instrument and it "
             "belongs on the surface (R12), not in a footnote."),
     }
+
+    # THE WITHDRAWAL ITSELF, AFTER THE DICT AND NOT INSIDE IT. Every key above is computed the one
+    # way and then removed, so the withdrawal cannot disagree with the arithmetic it withdraws and
+    # `keys_withdrawn` cannot fall out of step with what was actually withheld -- the KeyError
+    # below is the check, and it fires at write time on any key that is renamed above and not here.
+    missing = [k for k in KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF if k not in out]
+    if missing:
+        raise KeyError(
+            "`KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF` names {}, which this decomposition does not "
+            "publish -- a renamed key would be withdrawn from nothing and go on being published "
+            "under its new name".format(", ".join(repr(k) for k in missing)))
+    if rest_of_book_half_is_degenerate:
+        for key in KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF:
+            out[key] = None
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -5763,6 +5896,17 @@ def main(argv: list[str] | None = None) -> int:
         print("  rest of the book's half     {:,.2f} GBP".format(split["rest_of_book_sd_gbp"]))
         print("  RECONCILIATION              {:.2f}x (the two halves against the whole; 1.0 is "
               "the honest expectation)".format(split["reconciliation_ratio"]))
+        # THE OPERATOR SEES THE WITHDRAWAL, NOT A CRASH AND NOT A ZERO. Every line below reads a
+        # key `KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF` withholds, and printing them from an empty
+        # half is the same defect this run was changed to stop -- one screen closer to the reader.
+        if split["rest_of_book_half_is_degenerate"]:
+            print("  THE REST OF THE BOOK'S HALF CARRIED NO VARIANCE, so the split, its verdict "
+                  "and its price are WITHHELD:")
+            print("    withheld: {}".format(", ".join(split["keys_withdrawn"])))
+            print("    {}".format(split["why_those_keys_are_withdrawn"]))
+            print("    {}".format(split["what_would_make_the_rest_of_book_half_measurable"]))
+            print("  wrote {}".format(out))
+            return 0
         print("  priced share of variance    {:.1%}  (decisive at this n? {})".format(
             split["priced_share_of_variance"], "yes" if split["share_is_decisive"] else "NO"))
         print("  a bigger book resolves it above a priced share of {:.1%}".format(

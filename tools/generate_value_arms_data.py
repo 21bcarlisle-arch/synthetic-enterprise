@@ -1881,15 +1881,27 @@ def _decomposition_is_the_same_book(decomposition: dict | None,
                 "stated from it.")
     if theirs == ours:
         return None
+    # WHAT IS OWED DEPENDS ON WHETHER THE RE-RUN COULD SUPPLY IT, and until 2026-09-10 this named
+    # a re-run unconditionally. The `except` leg is the complement of the priced roster, and the
+    # arm's roster has grown to cover every household that draws an elasticity -- so on this book
+    # the leg refuses, and the sentence was directing a reader at work that cannot be done. Keyed
+    # to the artefact's OWN degeneracy flag rather than to that observation: a later book whose
+    # complement is non-empty gets the re-run sentence back with no edit here.
+    owed = ("Re-running the decomposition on the current book is owed work "
+            "(`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`).")
+    if (decomposition or {}).get("rest_of_book_half_is_degenerate"):
+        owed = ("Re-running it on the current book would NOT clear this: the rest of the book's "
+                "half carried no variance even on the smaller book above, and a larger priced "
+                "roster covers MORE of the complement that leg re-draws, not less. What is owed "
+                "is a floor keyed to something the rest of the book has.")
     return (
         "THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor "
         "decomposition was measured where the arm priced {tp:,} of {tr:,} renewals; the run "
         "published above priced {op:,} of {or_:,}. A split of the variance measured on one book is "
         "not a price for resolving another, and the priced count is the very quantity the remedy "
         "is denominated in -- so quoting it here would state a remedy in units this page no longer "
-        "has. Re-running the decomposition on the current book is owed work "
-        "(`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`)."
-    ).format(tp=theirs[0], tr=theirs[1], op=ours[0], or_=ours[1])
+        "has. {owed}"
+    ).format(tp=theirs[0], tr=theirs[1], op=ours[0], or_=ours[1], owed=owed)
 
 
 #: The quantity this page states its headline figure and its bound in. `_current_world_contrast`
@@ -2108,6 +2120,20 @@ def _what_would_resolve_it(decomposition: dict | None,
     # WHICH LEG THE PRICE IS FOR, ahead of the price, because every branch below says "this
     # spread" and names no quantity -- and the page now publishes three of them.
     leg = _which_leg_this_remedy_prices(decomposition, withheld_contrasts)
+    # AND A SPLIT WHOSE OTHER HALF IS EMPTY IS NOT A SPLIT AT ALL, which the two branches below
+    # cannot say between them: the producer withdraws `share_is_decisive` when that happens, so
+    # this would otherwise fall into "too close to call" and publish `0%` twice from `or 0.0` --
+    # a fabricated figure standing where a withdrawal should be. AHEAD of the threshold branch for
+    # that reason, and the REASON is read out of the artefact rather than restated here, so the
+    # page cannot drift into its own account of why the producer withheld.
+    if decomposition.get("rest_of_book_half_is_degenerate"):
+        return leg + ("The spread has NOT been split, and the reason is a finding about the "
+                      "instrument rather than a shortage of seeds. " + " ".join(
+                          s for s in (decomposition.get("why_those_keys_are_withdrawn"),
+                                      decomposition.get(
+                                          "what_would_make_the_rest_of_book_half_measurable"))
+                          if isinstance(s, str)) + " " + WHAT_WOULD_RESOLVE_IT_UNKNOWN + " "
+                      + MORE_SEEDS_WOULD_NOT)
     # A SPLIT TOO CLOSE TO ITS OWN THRESHOLD TO CALL IS NOT A CALL. Three seeds give each variance
     # two degrees of freedom, and the producer says whether the split cleared that.
     if not decomposition.get("share_is_decisive"):

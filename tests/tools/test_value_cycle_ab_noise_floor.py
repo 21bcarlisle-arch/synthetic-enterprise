@@ -1149,8 +1149,16 @@ def test_a_rest_of_book_ZERO_publishes_what_it_was_measured_over():
 
     # The two artefacts agree on every verdict the page reads -- which is exactly the problem, and
     # exactly why the counts have to be somewhere a reader can reach.
+    #
+    # THE SHARE USED TO BE `1.0` ON BOTH SIDES HERE, AND THAT LINE IS CORRECTED IN PLACE (2026-09-10)
+    # rather than deleted. It was true and it was the defect: a 1.0 published identically over five
+    # households and over a hundred and eighty is not a measurement, and `decompose_floor` now
+    # withdraws it and every key downstream of it. Both readings are still IDENTICAL, which is the
+    # property this control is about; what changed is that the identical reading is now a `None`
+    # naming its reason instead of a figure a producer would read as established. The counts below
+    # are what still separates the two, and they are why they have to be published.
     assert thin["rest_of_book_sd_gbp"] == fat["rest_of_book_sd_gbp"] == 0.0
-    assert thin["priced_share_of_variance"] == fat["priced_share_of_variance"] == 1.0
+    assert thin["priced_share_of_variance"] is fat["priced_share_of_variance"] is None
 
     assert thin["rest_of_book_measured_over"]["accounts_redrawn_per_seed"] == [5]
     assert thin["rest_of_book_measured_over"]["elasticity_calls_redrawn_per_seed"] == [15]
@@ -1176,3 +1184,127 @@ def test_a_leg_whose_seeds_disagree_about_the_complement_publishes_ALL_the_count
                             _leg("only", (-1400.0, 0.0, 1400.0)), leg, _three_arm(1000.0))
     assert split["rest_of_book_measured_over"]["accounts_redrawn_per_seed"] == [5, 6]
     assert split["rest_of_book_measured_over"]["elasticity_calls_redrawn_per_seed"] == [15, 18]
+
+
+# ---------------------------------------------------------------------------
+# 12. WHEN THE HALF BEING SPLIT OFF CARRIED NO VARIANCE AT ALL
+# ---------------------------------------------------------------------------
+
+def test_a_rest_of_book_half_with_NO_variance_withdraws_every_key_derived_from_it():
+    """A `v_except` of exactly zero makes eleven published keys algebra, and they were published.
+
+    THE DEFECT (filed 2026-09-10, `SEAT_FINDING_THE_FLOOR_DECOMPOSITIONS_REST_OF_BOOK_HALF_IS_
+    EMPTY_ON_THIS_BOOK_SO_ITS_SHARE_IS_AN_IDENTITY`). Three `except` seeds returned one identical
+    `value_advantage_gbp`, and the artefact went out with `priced_share_of_variance: 1.0`,
+    `irreducible_sd_gbp: 0.0`, `larger_settled_book_would_resolve_it: true`,
+    `share_is_decisive: true` and `priced_decisions_needed: 19`. Not one of them could have come
+    out any other way: they are what x/(x+0), sqrt(0) and "any contrast exceeds zero" return. A
+    human reader was protected by the page's book guard; the next PRODUCER reading the file was not,
+    and "a larger settled book resolves this" is exactly the claim that goes load-bearing.
+
+    BOTH SIDES OF THE PARTITION, in one control, because a withdrawal that fires on everything
+    passes every check that only asks whether it refused. The moving half below is the identical
+    fixture with ONE number changed.
+    """
+    from tools.run_value_cycle_ab import (
+        KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF,
+        decompose_floor,
+    )
+
+    def _split(except_values):
+        # `accounts_redrawn` on the `only` leg, because `independent_draws_needed` is among the
+        # withdrawn keys and a fixture that left it `None` for a second reason would report the
+        # withdrawal as working on the half where it is meant NOT to fire.
+        only = _leg("only", (-1300.0, 0.0, 1300.0))
+        for row in only["seeds"]:
+            row.update(accounts_redrawn=66)
+        return decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)), only,
+                               _leg("except", except_values), _three_arm(4000.0))
+
+    empty = _split((2176.657272, 2176.657272, 2176.657272))
+    moved = _split((2176.657272, 2176.657272, 2076.657272))
+
+    # THE RARE BRANCH IS REACHABLE AND THE ORDINARY ONE STILL RUNS -- asserted before either is
+    # asked what it says, because a producer that withdrew unconditionally would satisfy every
+    # assertion below about `empty` and none of the ones about `moved`.
+    assert empty["rest_of_book_half_is_degenerate"] and not moved["rest_of_book_half_is_degenerate"]
+    assert empty["available"] and moved["available"], (
+        "the decomposition was refused whole -- the priced half is a real measurement and stays")
+
+    for key in KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF:
+        assert empty[key] is None, (
+            "{!r} survived an `except` half with no variance; it is an algebraic identity there "
+            "and a `None` is the only reading a consumer cannot mistake for a measurement"
+            .format(key))
+        assert moved[key] is not None, (
+            "{!r} was withdrawn from a leg that DID move -- the withdrawal fires on more than the "
+            "defect and takes real measurements with it".format(key))
+    assert empty["keys_withdrawn"] == list(KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF)
+    assert moved["keys_withdrawn"] == []
+
+    # THE RAW LEG SPREAD IS NOT WITHDRAWN. It is honestly zero; `irreducible_sd_gbp` is the same
+    # number wearing the claim that no book gets under it, and it is the claim that has no support.
+    assert empty["rest_of_book_sd_gbp"] == 0.0
+    assert empty["priced_side_sd_gbp"] == pytest.approx(1300.0, rel=1e-6)
+
+    why = empty["why_those_keys_are_withdrawn"]
+    assert why and "value_advantage_gbp" not in why and "selection_gbp" in why, (
+        "the reason does not name the contrast whose seeds were identical, so a reader cannot "
+        "check the claim against the leg")
+    assert moved["why_those_keys_are_withdrawn"] is None
+    assert moved["what_would_make_the_rest_of_book_half_measurable"] is None
+    assert "roster swallows the complement" in (
+        empty["what_would_make_the_rest_of_book_half_measurable"] or ""), (
+        "the artefact names no mechanism, so 'more seeds' and 'a bigger book' -- both wrong here "
+        "-- are what the next reader reaches for")
+
+
+def test_the_withdrawal_list_cannot_name_a_key_the_decomposition_stopped_publishing():
+    """The withdrawal is a list of key names against a dict built somewhere else, and a rename in
+    one and not the other withdraws nothing while the key goes on being published under its new
+    name -- silently, in the flattering direction. The producer raises instead."""
+    from tools import run_value_cycle_ab as mod
+
+    original = mod.KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF
+    try:
+        mod.KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF = original + ("priced_share_of_varience",)
+        with pytest.raises(KeyError, match="priced_share_of_varience"):
+            mod.decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                                _leg("only", (-1300.0, 0.0, 1300.0)),
+                                _leg("except", (-500.0, 0.0, 500.0)), _three_arm(4000.0))
+    finally:
+        mod.KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF = original
+
+
+def test_the_decision_unit_names_its_assumption_whether_or_not_the_draw_count_is_known():
+    """`what_each_count_counts` says the independent DRAW is the only sample size here, and the
+    artefact publishes `priced_decisions_needed` beside it with `independent_draws_this_book` at
+    `null`. Read together that is a contradiction. It is not one -- `times_this_book` is scale-free
+    and the decision count is that multiplier in a unit -- but the step between them is an
+    assumption, and it was unstated, which is how the reader arrives at the contradiction.
+
+    STATED IN BOTH BRANCHES: an assumption printed only when it fails reads as an exception rather
+    than as what the figure always rested on."""
+    from tools.run_value_cycle_ab import decompose_floor
+
+    def _split(redrawn_per_seed):
+        only = _leg("only", (-1300.0, 0.0, 1300.0))
+        for row, n in zip(only["seeds"], redrawn_per_seed):
+            row.update(accounts_redrawn=n)
+        return decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)), only,
+                               _leg("except", (-500.0, 0.0, 500.0)), _three_arm(4000.0, priced=104))
+
+    known = _split((66, 66, 66))
+    withheld = _split((66, 67, 66))
+
+    assert known["independent_draws_this_book"] == 66
+    assert withheld["independent_draws_this_book"] is None, (
+        "seeds that disagree about the sample size were averaged into one -- a figure no seed had")
+    assert "104 decisions to 66 independent draws" in known["what_the_decision_unit_assumes"], (
+        "the assumption is stated without the ratio it rests on, so a reader cannot weigh it")
+    assert "cannot be checked" in withheld["what_the_decision_unit_assumes"], (
+        "the decision count is published as a sample-size statement while the sample size itself "
+        "is withheld, and nothing on the artefact says the step between them is unchecked")
+    # AND THE MULTIPLIER SURVIVES BOTH WAYS. Withdrawing a real, scale-free measurement because its
+    # unit needs an assumption would be the mirror defect.
+    assert known["priced_decisions_needed"] and withheld["priced_decisions_needed"]
