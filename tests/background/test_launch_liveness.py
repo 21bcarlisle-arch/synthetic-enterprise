@@ -476,3 +476,132 @@ def test_the_deadman_is_silent_when_it_could_not_ask_git(monkeypatch):
     assert cleared == [], (
         "a check that could not run CLEARED the alarm -- 'we did not look' rendered as 'nothing "
         "is wrong', which is the fail-open this whole module refuses")
+
+
+# --------------------------------------------------------------------------------------------
+# Coverage: is every RUNNING job in the register at all? `check()` re-asks the register, so a job
+# that was never recorded is not a claim it can settle -- and its PASS reads as a clean bill.
+# --------------------------------------------------------------------------------------------
+
+def _units(*rows) -> object:
+    """A stub `systemctl --user list-units --no-legend` result, in the real column order."""
+    class _Res:
+        returncode = 0
+        stdout = "".join(f"  {u} loaded {state} running some description here\n"
+                         for u, state in rows)
+    return lambda *a, **k: _Res()
+
+
+def _reg(tmp_path, *entries):
+    path = tmp_path / "records.json"
+    path.write_text(json.dumps(list(entries)), encoding="utf-8")
+    return path
+
+
+def test_a_running_job_the_register_never_heard_of_is_refused(tmp_path):
+    """THE DEFECT: `longjob-noise-floor-20260910` ran for hours while `--check` printed PASS.
+
+    Both branches are asserted in ONE call over the whole partition, because a rule that refused
+    everything would pass a test that only ever showed it one uncovered unit -- and a rule that
+    refused nothing would pass a test that only ever showed it a covered one.
+    """
+    path = _reg(tmp_path, {"job": "covered", "unit": "longjob-covered", "claim": ll.LIVE})
+    refusals, lines = ll.unregistered_live_units(
+        path, runner=_units(("longjob-covered.service", "active"),
+                            ("longjob-orphan.service", "active")))
+
+    assert refusals == 1, (
+        "the check did not separate the covered job from the unregistered one -- it either "
+        "refuses everything or nothing, and both pass a single-subject test")
+    assert any("longjob-orphan.service: UNREGISTERED" in ln for ln in lines)
+    assert any("longjob-covered.service: COVERED" in ln for ln in lines)
+
+
+def test_the_refusal_tells_the_reader_how_to_clear_it(tmp_path):
+    """A refusal that names no remedy gets routed around; this one has to name the record command."""
+    _, lines = ll.unregistered_live_units(
+        _reg(tmp_path), runner=_units(("longjob-orphan.service", "active")))
+    said = " ".join(lines)
+    assert "--record" in said and "--launched-at" in said, (
+        "the refusal does not say how to register the job, so the next reader has to go and read "
+        "this module to clear it")
+
+
+def test_a_broken_probe_refuses_rather_than_reporting_full_coverage(tmp_path):
+    """"We could not look" must never render as "everything is covered"."""
+    def _boom(*a, **k):
+        raise OSError("systemctl is not on this box")
+    refusals, lines = ll.unregistered_live_units(_reg(tmp_path), runner=_boom)
+    assert refusals == ll.UNREGISTERED_UNREADABLE, (
+        "a broken probe was counted as zero uncovered jobs, which is the fail-open that would "
+        "make this check worse than no check")
+    assert "UNREADABLE" in " ".join(lines)
+    assert ll.live_units(runner=_boom) is None, (
+        "a probe that could not run returned an empty list -- 'nothing is running' and 'we could "
+        "not look' are opposite claims and must not share a value")
+
+
+def test_a_unit_named_with_and_without_the_service_suffix_is_the_same_job(tmp_path):
+    """The launcher writes `longjob-x`; systemd reports `longjob-x.service`. Both name one job.
+
+    This is not hypothetical: on 2026-09-10 every record in the live register was written without
+    the suffix, so a check that compared literally would have called EVERY running job orphaned.
+    """
+    refusals, _ = ll.unregistered_live_units(
+        _reg(tmp_path, {"job": "x", "unit": "longjob-x", "claim": ll.LIVE}),
+        runner=_units(("longjob-x.service", "active")))
+    assert refusals == 0, "a suffix spelling difference was read as an unregistered job"
+
+
+def test_a_settled_record_does_not_cover_a_unit_that_is_running(tmp_path):
+    """The rare branch, asserted reachable: a record settled once is never re-asked again.
+
+    A job whose record says `finished` while its unit is active is not covered by that record --
+    settling is one-way, so nothing will ever grade this run.
+    """
+    refusals, lines = ll.unregistered_live_units(
+        _reg(tmp_path, {"job": "x", "unit": "longjob-x", "claim": ll.FINISHED}),
+        runner=_units(("longjob-x.service", "active")))
+    assert refusals == 1, "a settled record was accepted as cover for a job running now"
+    assert any("STALE RECORD" in ln and "finished" in ln for ln in lines), (
+        "the stale-record case is reported as if the job had never been registered, which sends "
+        "the reader to the wrong remedy")
+
+
+def test_a_unit_that_is_not_running_is_not_this_checks_business(tmp_path):
+    """Coverage is asked of RUNNING jobs. A corpse with no record is not this control's finding."""
+    refusals, _ = ll.unregistered_live_units(
+        _reg(tmp_path), runner=_units(("longjob-done.service", "inactive")))
+    assert refusals == 0, (
+        "an inactive unit was refused, so this check fires on every job that ever ran and its "
+        "output is noise")
+
+
+def test_the_bare_pass_no_longer_claims_coverage_it_does_not_have(tmp_path, monkeypatch, capsys):
+    """THE INSTANCE: `--check` printed `PASS (no stale liveness claim)` while the floor ran
+    unregistered beside a near-identically-named sibling that WAS registered. The PASS was true
+    and about the other job. A green that does not prompt the second question is worse here than
+    an empty answer."""
+    monkeypatch.setattr(ll, "check", lambda: (0, [], []))
+    monkeypatch.setattr(ll, "unregistered_live_units",
+                        lambda *a, **k: (1, ["longjob-orphan.service: UNREGISTERED -- ..."]))
+    assert ll.main(["--check"]) == 0, (
+        "the report leg started refusing; `deadmans_switch` calls `check()` on this path and a "
+        "new refusal there pages for a state no lane can clear mid-run")
+    said = capsys.readouterr().out
+    assert "RUNNING job(s) are covered by no record" in said, (
+        "the PASS still claims a clean bill it cannot support")
+    assert "--unregistered" in said, "the reader is not pointed at the leg that refuses"
+
+
+def test_the_refusing_leg_exits_non_zero(tmp_path, monkeypatch, capsys):
+    """`--unregistered` is the leg with teeth; a control that only ever prints is a comment."""
+    monkeypatch.setattr(ll, "unregistered_live_units", lambda *a, **k: (1, ["x: UNREGISTERED"]))
+    assert ll.main(["--unregistered"]) == 1
+    monkeypatch.setattr(ll, "unregistered_live_units",
+                        lambda *a, **k: (ll.UNREGISTERED_UNREADABLE, ["x: UNREADABLE"]))
+    assert ll.main(["--unregistered"]) == 1, (
+        "an unreadable probe passed the refusing leg -- fail-open on the one leg that refuses")
+    monkeypatch.setattr(ll, "unregistered_live_units", lambda *a, **k: (0, ["x: COVERED"]))
+    assert ll.main(["--unregistered"]) == 0
+    assert "PASS" in capsys.readouterr().out

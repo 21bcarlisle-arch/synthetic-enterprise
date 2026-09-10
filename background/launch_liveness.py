@@ -384,12 +384,111 @@ def landed_check(path: Path | None = None, *, repo: Path | None = None,
     return refusals, lines
 
 
+#: The namespace `launch_long_job.unit_name()` puts every job it starts into. A live unit outside
+#: this prefix belongs to something else and is not this register's business.
+_JOB_UNIT_PREFIX = "longjob-"
+
+#: Not a state: what `unregistered_live_units` returns when systemd could not be asked at all.
+UNREGISTERED_UNREADABLE = -1
+
+
+def live_units(runner=subprocess.run, prefix: str = _JOB_UNIT_PREFIX) -> list | None:
+    """Every `longjob-*` unit the user manager reports as ACTIVE right now.
+
+    None means the probe could not be RUN, and is not an empty list. The two are opposite claims --
+    "nothing is running" versus "we could not look" -- and the caller must fail closed on the
+    second, which is why they are not both `[]`.
+    """
+    try:
+        out = runner(
+            ["systemctl", "--user", "list-units", "--type=service", "--all",
+             "--no-legend", "--no-pager", f"{prefix}*"],
+            capture_output=True, text=True, timeout=20)
+    except Exception:  # noqa: BLE001 -- a broken probe is UNREADABLE, never "all clear"
+        return None
+    if getattr(out, "returncode", 1) != 0:
+        return None
+    names = []
+    for line in (out.stdout or "").splitlines():
+        fields = line.replace("●", " ").split()
+        if len(fields) < 4 or not fields[0].startswith(prefix):
+            continue
+        # ACTIVE is the third column after UNIT/LOAD. `_STILL_GOING` is reused rather than
+        # re-spelled so this leg and `reask()` cannot drift apart about what "not finished" means.
+        if fields[2] in _STILL_GOING:
+            names.append(fields[0])
+    return names
+
+
+def unregistered_live_units(path: Path | None = None, *, runner=subprocess.run,
+                            units=None) -> tuple[int, list]:
+    """Is every RUNNING job covered by a register entry that claims it is live?
+
+    THE DEFECT THIS EXISTS FOR. `launch_long_job.launch()` will STOP a healthy long run rather than
+    leave it unrecorded -- its own docstring calls "running and unrecorded" the state the module
+    exists to abolish, and pays a killed job to abolish it. That guards the DOOR. Nothing guarded
+    the wall beside it: a job started with `systemd-run` by hand gets a real transient unit, a real
+    cgroup and a real log, looks in every way like a launch that went through the door, and is
+    invisible to `check()` forever, because `check()` iterates the REGISTER and an absent job is
+    not a `live` claim to re-ask.
+
+    AND THE SILENCE IS WORSE THAN AN EMPTY ANSWER, which is the part that made this worth a
+    control. `--check` does not go quiet on an unregistered job; it prints PASS. On 2026-09-10 that
+    PASS was a true statement about `longjob-arms-rerun-20260910b` -- a different nine-seed floor,
+    launched the same day, with a near-identical name -- while `longjob-noise-floor-20260910` ran
+    unregistered beside it and a Lane 0 item instructed the next reader to take that PASS as
+    evidence the floor was alive. A green about somebody else's job does not prompt the second
+    question an empty answer would.
+
+    Returns `(refusals, lines)`. `UNREGISTERED_UNREADABLE` refusals means systemd could not be
+    asked -- fail closed, because reporting full coverage because we could not look is the failure
+    that would make this worse than nothing.
+    """
+    names = live_units(runner=runner) if units is None else list(units)
+    if names is None:
+        return UNREGISTERED_UNREADABLE, [
+            "unregistered: UNREADABLE -- `systemctl --user list-units` could not be run, so "
+            "nothing here knows what is running. This is NOT a clean bill: it is the absence of a "
+            "probe, and a control that reads one as the other is worse than no control."]
+    by_unit = {}
+    for entry in load(path):
+        if entry.get("unit"):
+            by_unit.setdefault(entry["unit"], []).append(entry)
+    lines, refusals = [], 0
+    for unit in sorted(names):
+        # A unit is named with and without `.service` in different places; the register holds
+        # whichever the launcher wrote, so both spellings are asked before calling a job absent.
+        held = by_unit.get(unit) or by_unit.get(unit.removesuffix(".service")) or []
+        if any(e.get("claim") == LIVE for e in held):
+            lines.append(f"{unit}: COVERED -- a register record claims this job live")
+            continue
+        refusals += 1
+        if held:
+            claims = ", ".join(sorted({str(e.get("claim")) for e in held}))
+            lines.append(
+                f"{unit}: STALE RECORD -- the unit is running, but its only record(s) claim "
+                f"`{claims}`. A settled record is never re-asked, so this job's death would be "
+                "graded against an answer given before it started.")
+        else:
+            lines.append(
+                f"{unit}: UNREGISTERED -- this job is RUNNING and the register has never heard of "
+                "it, so `--check` cannot grade it, the deadman cannot page on its death, and any "
+                "document saying it is in flight will never be contradicted. Record it: "
+                f"`python3 -m background.launch_liveness --record <job> --unit {unit} "
+                "--artefact <path> --launched-at <when it ACTUALLY started>`.")
+    if not names:
+        lines.append("unregistered: no `longjob-*` unit is running, so there is nothing to cover")
+    return refusals, lines
+
+
 def main(argv: list | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true",
                         help="re-ask every live claim and settle the ones that are stale")
     parser.add_argument("--landed", action="store_true",
                         help="ask git whether each record's named artefact ever reached a commit")
+    parser.add_argument("--unregistered", action="store_true",
+                        help="refuse if any RUNNING longjob-* unit has no record claiming it live")
     parser.add_argument("--record", metavar="JOB", help="write a launch record for JOB")
     parser.add_argument("--unit", help="the transient user unit the job runs in")
     parser.add_argument("--artefact", help="the path the job writes on success")
@@ -427,13 +526,44 @@ def main(argv: list | None = None) -> int:
         print("landed: PASS (every in-repo file the register names is in HEAD)")
         return 0
 
+    if args.unregistered:
+        refusals, lines = unregistered_live_units()
+        for line in lines:
+            print(line)
+        if refusals == UNREGISTERED_UNREADABLE:
+            print("unregistered: UNREADABLE (systemd could not be asked -- refusing, not passing)")
+            return 1
+        if refusals:
+            print(f"unregistered: FAIL ({refusals} running job(s) no register record covers)")
+            return 1
+        print("unregistered: PASS (every running longjob-* unit has a live record)")
+        return 0
+
     stale, lines, _ = check()
     for line in lines:
         print(line)
+    # THE PASS BELOW USED TO CLAIM MORE THAN IT KNEW. `check()` re-asks the REGISTER, so a job that
+    # was never recorded contributes nothing to it and a bare PASS reads as "your run is fine" --
+    # which on 2026-09-10 was a true sentence about a DIFFERENT job with a near-identical name.
+    # Reported and not refused here on purpose: `deadmans_switch` calls `check()` directly and a new
+    # refusal on this path would page for a state no lane can clear mid-run. `--unregistered` is
+    # the leg that refuses.
+    uncovered, ulines = unregistered_live_units()
+    if uncovered == UNREGISTERED_UNREADABLE or uncovered:
+        for line in ulines:
+            print(f"  {line}")
     if stale:
         print(f"check: FAIL ({stale} launch record(s) claimed live and are not)")
         return 1
-    print("check: PASS (no stale liveness claim)")
+    if uncovered == UNREGISTERED_UNREADABLE:
+        print("check: PASS on the records held -- but systemd could not be asked what is RUNNING, "
+              "so this says nothing about coverage (`--unregistered`)")
+        return 0
+    if uncovered:
+        print(f"check: PASS on the records held -- but {uncovered} RUNNING job(s) are covered by "
+              "no record at all, so this PASS is not about them (`--unregistered` refuses)")
+        return 0
+    print("check: PASS (no stale liveness claim; every running longjob-* unit is covered)")
     return 0
 
 
