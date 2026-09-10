@@ -547,7 +547,18 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
         action_needed, "REGISTER_PATH",
         tmp_path / "action_needed_register_absent.json", raising=False,
     )
-    _publish_clock = tmp_path / ".last_content_publish_isolated.json"
+    # IN A SUBDIRECTORY, NEVER AT THE ROOT OF `tmp_path`, and this cost a red at HEAD to learn.
+    # The first version wrote `.last_content_publish_isolated.json` straight into `tmp_path` --
+    # and `test_staging_watcher.py` points `watcher.STAGING_DIR` at that SAME `tmp_path`, so a
+    # seeded file landed in eight tests' "the staging directory is empty" world and every one of
+    # them notified about it. The rule was already written three fixtures above, about
+    # directories: *a fixture that materialises things inside another test's `tmp_path` is
+    # changing the world it is supposed to be isolating.* A file is worse than a directory,
+    # because the watcher's own `current_files` skips directories by construction
+    # (test_current_files_ignores_dirs_and_gitkeep) and cannot skip this.
+    _publish_clock_dir = tmp_path / "publish_clock_isolated"
+    _publish_clock_dir.mkdir(parents=True, exist_ok=True)
+    _publish_clock = _publish_clock_dir / ".last_content_publish.json"
     _publish_clock.write_text(json.dumps({"ts": time.time()}))
     monkeypatch.setattr(publish_freshness, "STATE_FILE", _publish_clock, raising=False)
     # RUNG 1d PRODUCER STARVATION (2026-08-17) -- the NINTH instance, and the first that leaks the

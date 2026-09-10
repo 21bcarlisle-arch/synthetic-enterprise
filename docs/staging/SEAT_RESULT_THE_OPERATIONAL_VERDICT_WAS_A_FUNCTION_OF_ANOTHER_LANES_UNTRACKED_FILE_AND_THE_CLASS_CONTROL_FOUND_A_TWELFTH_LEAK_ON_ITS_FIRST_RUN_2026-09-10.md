@@ -117,6 +117,34 @@ Both are pinned at the PATH, not at the read function, and here that is load-bea
 stylistic: `test_publish_freshness.py` and `test_action_needed.py` both live in this same
 directory, so a directory-scoped stub of either module's reader would delete their subject.
 
+## 4c. CORRECTION — the fourteenth pin was RED at HEAD for ten minutes, and it was mine
+
+fb9f610be landed green through the gate, and the very next signal run came back RED with **eight
+new failures**, all in `test_staging_watcher.py`, none of which had failed in the 1,247-pass run
+forty minutes earlier. The cause was the pin I had just written.
+
+The seeded publish clock was written to **`tmp_path` itself**. `test_staging_watcher.py` points
+`watcher.STAGING_DIR` at that same `tmp_path` — so a seeded file landed inside eight *"the staging
+directory is empty"* assertions and every one of them notified about it:
+
+```
+E  AssertionError: assert ['New staged instruction: .last_content_publish_isolated.json
+                           — pending review'] == []
+```
+
+**The rule was already written in the file I was editing**, three fixtures higher, about
+directories: *a fixture that materialises things inside another test's `tmp_path` is changing the
+world it is supposed to be isolating.* A file is the worse case, because the watcher's own
+`current_files` skips directories by construction and cannot skip a file. Fixed by moving the seed
+into a subdirectory, and the property is now asserted directly —
+`test_this_directorys_fixtures_put_no_FILE_at_the_root_of_tmp_path`, which is one `iterdir()` and
+would have caught it before the land.
+
+Kept here rather than revised into section 4b. The gate's clean extract caught pins 13 and 14 that
+the working tree could not see; it could not catch this one, because the contamination is between
+two *tests*, not between a test and the repository — a fourth face of the same class, and the
+control for it is one line.
+
 ## 5. Evidence
 
 | Leg | Before | After |

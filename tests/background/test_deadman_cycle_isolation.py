@@ -327,3 +327,28 @@ def test_the_register_and_the_publish_clock_are_pinned_and_neither_pin_is_absent
     assert publish_freshness.snapshot().get("state") in ("publishing", "unknown"), (
         "the seeded clock must read healthy-or-unmeasurable; anything else pages"
     )
+
+
+def test_this_directorys_fixtures_put_no_FILE_at_the_root_of_tmp_path(tmp_path):
+    """The seeded pin above is the only autouse fixture here that WRITES rather than redirects,
+    and its first version wrote into `tmp_path` itself. That red-ed EIGHT tests at HEAD.
+
+    `test_staging_watcher.py` points `watcher.STAGING_DIR` at its own `tmp_path`, so a file seeded
+    at that root lands inside eight "the staging directory is empty" assertions and every one of
+    them notifies about it. The conftest already states this rule three fixtures higher, about
+    directories -- *a fixture that materialises things inside another test's `tmp_path` is changing
+    the world it is supposed to be isolating* -- and a FILE is the worse case, because the
+    watcher's `current_files` skips directories by construction and cannot skip this.
+
+    So the property, asserted directly and cheaply: after every autouse fixture in this directory
+    has run, the root of a fresh `tmp_path` holds no FILES. Subdirectories are fine and several
+    fixtures legitimately create them. This is not marked `operational` -- it touches no live
+    state, cannot flake, and a violation is a real defect that should block.
+    """
+    files = [p.name for p in tmp_path.iterdir() if p.is_file()]
+    assert files == [], (
+        "an autouse fixture in tests/background/conftest.py seeded {} at the ROOT of tmp_path. "
+        "Any test in this directory that treats its own tmp_path as a scanned directory (the "
+        "staging watcher points STAGING_DIR at exactly that) now sees a file it did not put "
+        "there. Put it in a subdirectory of tmp_path instead.".format(files)
+    )
