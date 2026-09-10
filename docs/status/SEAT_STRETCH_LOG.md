@@ -8,6 +8,289 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-10 — the report mechanism was never silent, its channel was: 75 findings went into a 250,000-line log, and the demand vector measures a population the world does not draw from
+
+<!-- head: 21e807e7f8b1 -->
+
+**Written 2026-09-10 19:45 BST, three days late, on the director's instruction.** The gap this
+entry closes is 253 commits over 68 hours — 3.6× the largest gap this log has ever had and 4× its
+longest silence. The mechanism that was supposed to prevent it is repaired in the same landing, and
+the repair is the first thing below because the reason it failed is not the reason it looked like it
+failed.
+
+---
+
+## The mechanism did not stop. Its channel had no reader.
+
+The director's reading was that the stretch-report check "silently stopped". It did not. It ran on
+**65 publish cycles** between 2026-09-07 and 2026-09-10, returned rc 1 every time, and named the
+commits every time. Every one of those findings went to `log()`, which appends to
+`docs/observability/sim-runner-log.md` — **250,269 lines** of routine progress chatter.
+
+> **Corrected beside the claim, before landing.** My first draft of that sentence — and the commit
+> message under it — said **75, across those three days**. 75 is the count over the log's *whole
+> life*: the mechanism shipped at 2026-09-06 08:52 UTC and ten of the seventy-five predate the
+> window. A lifetime total quoted as a window total, in a paragraph whose entire subject is a figure
+> read from the wrong place. It was caught by re-grepping with a date filter while the landing was
+> already in flight; the landing was killed twenty seconds in and re-run with the right number,
+> which is cheaper than either publishing it or revising it quietly afterwards.
+
+A finding written where the routine output goes *is* routine output. That is a third shape, and it
+is worth separating from the two this project already has names for: it is not *an unwired mechanism
+has no red state* (this one had a red state and reached it 75 times), and it is not *a control keyed
+to a structure that moved* (nothing moved). **The instrument was loud; the channel was silent.** The
+grep that finds the first class — "does anything call it?" — returns yes here, which is why three
+days passed.
+
+**The repair.** The log line stays, because it carries the *listing* and the listing is what says
+what a report is owed **about**. The finding additionally goes to `notify(kind="real_alarm")`, which
+is the one channel here that both suppresses an unchanged condition and, on the third repetition,
+escalates itself into a staged finding document the tick draws as work. Both properties are needed:
+without suppression this pages every publish cycle for three days and earns exactly the reader the
+run log had; without escalation it is one more thing nobody actions.
+
+**Two calls inside that repair, and the reasoning.**
+
+- *Keyed explicitly, not by `notify`'s auto-key.* The auto-key normalises numbers, elapsed times and
+  hashes out of an alarm's identity — but not prose, and the check's message carries twelve rotating
+  commit subjects. An auto-keyed page would have been a **new condition every cycle**: no
+  suppression, no escalation, and 75 escalation documents standing for one condition. That is the
+  shape that once put 28 documents behind 2 conditions, arrived at from the opposite direction. The
+  key is the subject; the **state** is the newest entry's head stamp, so writing a report clears the
+  alarm by construction rather than by anyone remembering to.
+- *A threshold, measured against this log's own history rather than chosen.* Every gap is "owed"
+  almost all the time, correctly, because a report is written when a piece of work **finishes**. The
+  eleven stamped entries give ten gaps — 1, 2, 2, 5, 8, 9, 20, 29, 37, 70 commits — and a longest
+  silence of 16.7h. So the two legs sit above everything the log has ever done (24h, 80 commits),
+  neither would have fired on any historical stretch, and they are an **OR**: a machine that lands
+  nothing for three days owes a report as much as one that lands three hundred commits in an
+  afternoon.
+
+## The second silence, found while diagnosing the first
+
+`_git()` returned `""` for a **failed** git command and `""` for one that legitimately produced no
+output, and nothing downstream could tell them apart. The head stamp names a commit. If that commit
+is not reachable — written in a worktree whose landing never promoted, on a branch since rewritten,
+in a fresh clone — `git log <stamp>..HEAD` exits 128, the old code read that as **zero commits**, and
+`check()` printed **"up to date"**. Forever. With no report ever written.
+
+Not hypothetical in this project: stretch entries are written in linked worktrees and reach the
+shared tree only if `promote_worktree_landing` succeeds. One refusal and the control goes green for
+good. Both this and the escalation seam now fail closed — a missing log, a missing stamp and an
+unreachable stamp all escalate, because "I could not look" must never render as "nothing is owed".
+
+R15 both ways, three source mutations run against copies: restoring the `""`-on-failure swallow puts
+`check()` back to rc 0 / "up to date" (the shipped defect, reproduced); making `escalate` equal
+`owed` pages on five commits and one hour; excising the `notify_fn(...)` call leaves the log line
+firing and zero pages, which is precisely the state the director found. 26 tests pass on the pair.
+
+---
+
+## What actually landed, 7–10 September
+
+**336 commits. Where they went, by area** (commits touching each, so a commit spanning two areas is
+counted in both — these do not sum to 336):
+
+| area | commits |
+|---|---|
+| `docs/` | 279 |
+| `tests/` | 130 |
+| `tools/` | 113 |
+| `site/` | 91 |
+| `background/` | 23 |
+| `simulation/` | 7 |
+| `company/` | **3** |
+| `saas/` | **0** |
+
+That table is the honest headline and it is not a flattering one. Three days of work put three
+commits into the company and none into the SaaS layer.
+
+**The three `company/` commits, which are the answer to "what can it do today that it could not on
+Monday":**
+
+1. **The renewal objective now pays for the departures it causes** (`e1895d6c8`,
+   `company/pricing/value_based_renewal.py`). The arm was pricing renewals without any term for the
+   churn its own price bought. It now carries one. The crisis year is the one it still cannot reach.
+2. **The offer book has a measure that costs the customer nothing** (`097f9a6c9`). Before this the
+   book could only ever spend the customer's money. The free-advice measure is refused below a health
+   floor rather than offered to everyone — and it is refused hardest for exactly the households a
+   priced model would target hardest, which is the finding worth keeping from that landing.
+3. **The electricity SVT table stopped being a second home for the published cap** (`03c09fd61`) —
+   one home for one number, and my own prediction about which way it would move was wrong.
+
+**Seven `simulation/` commits**, all fidelity: hot water corrected and re-baselined (which exposed
+that **cooking gas was zero for every household**); gas got an inside temperature, setpoint anchored
+to EFUS and schedule driven by presence, breaking a collinearity; the world can now say **who paid
+the bill** (the HMT receipt leg and the household-charged rate); both SVT legs read the commons; and
+the people physical layer now stands alone — which surfaced that the world had **a third of the
+one-person households GB has**.
+
+Everything else — 279 docs commits, 113 tools commits, 130 test commits — is instrument. Much of it
+is instrument that found real defects, and this stretch's own repair is another one. But three days
+that move the company three commits is the shape the 2026-07-23 PRODUCT FIRST ruling was written
+about, and it is stated here rather than left to be inferred from a commit graph.
+
+---
+
+## The three questions, answered with numbers
+
+### Is the demand vector complete? No — and the split is not where it looks.
+
+The canon's five deliverables (`W2_29`…`W2_33`) are all **minted and built**. Two are at their
+target level (`W2_32`, `W2_33`, both level 2 → 2). Three are not: `W2_29` and `W2_28` sit at level 1
+against a target of 3, and `W2_31` at 0 against 3. So on the map it reads two-fifths done.
+
+**The measurement that matters more is which of it the running world consumes.** Grepped
+module-by-module across `simulation/`, `company/`, `saas/` and `background/`:
+
+| module | reached by the running world? |
+|---|---|
+| `tools/need_stock_joint` | **yes** — `simulation/fabric_physics`, `simulation/premise_population` |
+| `tools/people_physical_layer` | **yes** — `simulation/dwelling_records` |
+| `tools/demand_vector_coverage` | **no importer anywhere** |
+| `tools/stock_joint_generator` | **no importer anywhere** |
+| `tools/space_filling_sample` | **no importer anywhere** |
+| `tools/demand_case_coverage` | **no importer anywhere** |
+| `tools/billing_axis_coverage` | `background/daily_self_note` only — a reporting surface |
+
+So the honest statement is neither "it is done" nor "it is fake". **The NEED-sourced fidelity inputs
+are wired and drawing. The sample-and-coverage apparatus — the fitted joint, the space-filling
+sample, the weighted cases — is a measurement instrument that no generator consumes.** It measures
+a cloud of points it draws itself, and the world's households are drawn somewhere else entirely.
+
+That distinction is exactly the class this project keeps paying for, and I had to grep for it rather
+than read it, because nothing on the map or the page states it.
+
+### How big is the book?
+
+Two numbers, and they count different things, so their ratio is not a quantity:
+
+- **582 accounts** — the commercial book at end-2025: founders plus every account the funnel won,
+  settled or not. This is the supplier an Ofgem return would describe.
+- **173 accounts** — the settled book: the subset our settlement engine could actually process.
+  Every figure derived from the run's own settled records — treasury, margin, the collateral desk's
+  MCR — describes **this** supplier.
+
+The company won **500** accounts and the engine settled **91** of them: a uniform **18.3%** sample,
+**409 wins refused by the settlement budget**. The shape of the growth curve is commercial; its
+height is our machine.
+
+There is a second ceiling underneath and it is also ours: `PROSPECTS_PER_YEAR = 400`. In four of ten
+years (2020, 2021, 2024, 2025) the company could afford more quotes than there were prospects to
+quote — 863 affordable against 400 available in 2024. Those years understate what this supplier
+would have done, and the page says so.
+
+### Do 3,000 generated households exist, or is it still 264?
+
+**Neither number describes the world's population, and 264 never did.**
+
+- The world draws **4,400 households** — `PROSPECTS_PER_YEAR = 400` × eleven years. That is the whole
+  synthetic GB stock the company can address, and the book is a subset of it (`n_stock: 4400`,
+  `n_book_domestic: 93` in the current subset verdict).
+- **264** was a *book* figure from an older `run_phase2b`, still quoted in that module's prose. The
+  book today is 582 / 173 as above.
+- **3,000** is not a population at all. It is a `--points` value passed to
+  `demand_vector_coverage.measurement()` in one measurement run — the module's own default is
+  `POPULATION_POINTS = 120_000`. At `points=3,000, k=40` it chose **48 cases**, 44 carrying weight,
+  and the biggest single case stands for **1,575,773 GB households** (5.8% of the counted
+  27,291,846). Those weights reach `weighted_ks` and a JSON report. They reach no generator.
+
+So the answer to "do 3,000 generated households exist" is: **no, and they were never going to** —
+that number was a sample size on an instrument, not a target for the world.
+
+---
+
+## What the two disconnected sessions left, and what was done with it
+
+`skynet-swirling-owl` and the worker-seat bring-up both went idle with about nine hours behind them.
+Three things were checked and here is each:
+
+**Worktrees.** Seven locked worktrees; two are genuinely live (`se-seat-executor`, running a claude
+turn since 19:06, and `se-floorrun-20260910`, running `run_value_cycle_ab` on the nine seeds since
+earlier today) and were not touched. The other five were dead — one lock said "~2h15m run, do not
+remove until inactive" and was **seven days** old. **None of the five carried a single commit that
+was not already on `main`**, so nothing was orphaned; their uncommitted content was verified,
+parked, and the worktrees unlocked and removed.
+
+The mechanism behind "worktrees not reaped" is worth naming: six of the seven locks say *"LIVE RUN
+… do not remove until inactive"*, and **nothing anywhere checks whether it went inactive**. The lock
+correctly protects a running job — I once deleted a landing worktree nine minutes into its gate — and
+there is no door for the state after the job ends. `disk_headroom.reapable()` returns one row, and
+none of these were in it. That is a wall with no door for a state it forbids, and it is filed rather
+than fixed on sight.
+
+**Uncommitted work.** `se-direction-battery` looked like the prize: 171 modified files. It is not.
+160MB of those 178 dirty lines are machine state every worktree rewrites (`run_output_latest.json`,
+`sim-runner-log.md`, the ledgers). The code slice is 39 files; of those, **19 are superseded rivals**
+— `main` moved past `commit_refusal_attribution.py`, `promote_worktree_landing.py` and
+`settlement_ceiling_probe.py` on 8–9 September, after that worktree's 5 September head — and
+`background/standing_red.py`, its most substantial-looking untracked module, was **adjudicated and
+deleted from the shared tree at 18:29 today** as a draft its own successor dissolved. The remaining
+18 are docstring prose in a tree whose declared purpose was a mutation battery, i.e. a tree
+deliberately in a modified state. **Nothing there was finished work.** It is parked at
+`/var/tmp/se-parked-20260910/` (341K code diff plus the seven untracked files) and the worktree is
+gone.
+
+**Claims.** None held. `seat_work_in_hand.held()` and `stale_claims()` are both empty; the only live
+claim is the delivery lane's, taken by the running seat executor at 19:06. The 100-minute sweep had
+already reclaimed whatever those sessions took, so there was nothing to release.
+
+**The fast-forward refusal has a different cause than the sessions.** `origin/main` is 17 ahead and
+`main` is 10 ahead — an ordinary two-lane fork, and the 17 are the seat executor's own promoted work.
+What holds it open is that the **shared tree's working directory is never clean**: the repaired
+reconciler now names seven real blockers, and four of them (`.launch_records.json`,
+`capabilities_door.json`, `value_arms.json`, `orphan_baseline.json`) are tracked paths that daemons
+rewrite every cycle. A merge that requires a clean tree can never run in a tree that is written
+continuously.
+
+**And underneath that, the thing I did not expect to find.** The shared tree carries **~4,100
+uncommitted insertions across 57 source files**, plus **11 untracked new modules with their tests**
+(`tools/inside_the_renewal_rule.py`, `tools/renewal_rule_price_response.py`,
+`tools/book_shape_spread.py`, `tools/build_weather_world.py`, `tools/pull_book_weather.py`,
+`tools/explain_premise_year.py`, `sim/weather_world.py` and four test modules). The oldest is dated
+**30 August**; the newest is 20 hours old. That is an eleven-day backlog of work that was written in
+the shared tree and never landed — far larger than the 915 orphaned lines this class was named for,
+and it is upstream of both the fast-forward refusal and the commit latency, because the gates read
+the whole tree.
+
+I did **not** sweep it. Landing 4,100 lines across 57 files in one commit would violate the pathspec
+discipline that exists precisely to stop that, eleven of those modules need REUSE blocks nobody has
+written, and some of that residue is deliberately held — `e4aa02359` took the head-red pair out of
+the index and left it on disk on purpose, and a tidy-up would have destroyed what that commit meant
+to keep. It is filed as a finding with its per-file census and dates, so it is drawable work with a
+subject rather than a mess.
+
+---
+
+## Calls made, and where I stopped
+
+- **The repair is a finding, not a gate** — unchanged from the original framing and re-affirmed by
+  the director in the same breath ("a finding that fires rather than a silence"). Refusing commits
+  until a report is written would stop the work the report describes.
+- **The threshold was measured before it was set**, against this log's own ten historical gaps,
+  rather than picked to fit today's number. Had I picked one, 100 commits would have been the
+  obvious choice and it would have sat *below* nothing and *above* one real gap of 70 — a constant
+  chosen because a constant was needed.
+- **I did not adopt the 57 files.** Scaling that down is not mine to do quietly; filing it with the
+  census is.
+- **I did not touch the two live worktrees**, and the liveness check earned its place: the first pass
+  reported five processes with their cwd inside `se-direction-battery`, and all five were **my own
+  shell**, which had drifted into the worktree three commands earlier. A pid check that counts your
+  own hand is how a landing worktree gets deleted nine minutes into its gate.
+- **I did not fix the worktree-lock-with-no-door**, or the two untracked observability artefacts
+  (`book_growth_campaign.json`, `book_subset_verdict.json`) that every world run writes into every
+  worktree — neither tracked nor ignored, so they read as uncommitted work in perpetuity. Both are
+  filed. Both are one line to fix and neither is this stretch's subject.
+
+## Where it stands
+
+The stretch-log repair is landed and armed. The next page it sends will be the first one that
+reaches a person. The company question is open and unflattering: three commits in three days, an
+instrument layer that is measuring a population the world does not draw from, and a book whose
+height is set by our own settlement engine rather than by anything commercial.
+
+---
+
 ## 2026-09-07 — the number lands near 3,000, and three of the criteria that produced earlier ones were broken
 
 <!-- head: 39a410f0d46c -->

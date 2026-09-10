@@ -139,6 +139,112 @@ def test_an_entry_without_a_head_stamp_is_unmeasurable_and_says_so(log):
     assert "unmeasurable" in msg
 
 
+def test_a_head_stamp_this_tree_cannot_RESOLVE_is_red_and_not_up_to_date(log, monkeypatch):
+    """THE SILENT GREEN, found 2026-09-10 while diagnosing the three-day silence.
+
+    `_git` returned `""` for a FAILED git command and `""` for one that legitimately produced no
+    output, and nothing downstream could tell them apart. The head stamp names a commit; if that
+    commit is not reachable -- written in a worktree whose landing never promoted, on a branch since
+    rewritten, in a fresh clone -- `git log <stamp>..HEAD` exits 128. The old code read that as zero
+    commits and printed **"up to date"**, forever, with no report ever written.
+
+    Not hypothetical in this project: stretch entries are written in linked worktrees and reach the
+    shared tree only if `promote_worktree_landing` succeeds. One refusal and the control goes green
+    for good.
+
+    MUTATION: restore `return done.stdout.strip() if rc == 0 else ""` and this returns rc 0.
+    """
+    sl.append("A stretch about the fitted joint and the correlations it has to carry", "body")
+    monkeypatch.setattr(sl, "_git", lambda *a: None)   # git refused, whatever was asked
+
+    rc, msg = sl.check()
+
+    assert rc == 1, "an unresolvable head stamp reported the log as up to date"
+    assert "not reachable" in msg and "UNMEASURABLE" in msg
+    assert "[stretch-log] up to date." not in msg, "the green verdict survived an unreadable input"
+
+
+def test_an_unreachable_stamp_ESCALATES_rather_than_reading_as_a_small_gap(log, monkeypatch):
+    """The same defect at the escalation seam. `owed()` derives its thresholds from a commit count
+    and an age, and BOTH are unavailable when the stamp will not resolve. Defaulting either to zero
+    would turn "I could not look" into "nothing much is owed"."""
+    sl.append("A stretch about the space-filling sample and what it rejects on", "body")
+    monkeypatch.setattr(sl, "_git", lambda *a: None)
+
+    v = sl.owed()
+
+    assert v["owed"] and v["escalate"]
+    assert v["commits"] is None and v["hours"] is None
+    assert "unreachable" in v["reason"]
+
+
+def test_an_ordinary_gap_is_owed_but_does_not_escalate(log, monkeypatch):
+    """REACHABILITY OF THE NON-ESCALATING BRANCH, and the whole reason there is a threshold.
+
+    Every gap is "owed" almost all of the time -- that is the machine working, because a report is
+    written when a piece of work FINISHES. If `escalate` were simply `owed`, the repair would page
+    on every publish cycle and earn itself exactly the reader the run log had.
+    """
+    sl.append("A stretch about the billing axes and which of them the sample spans", "body")
+    monkeypatch.setattr(sl, "_git", lambda *a: (
+        "" if "--" in a else "\n".join(f"c{i:06x} a landing" for i in range(5))))
+    monkeypatch.setattr(sl, "_entry_epoch", lambda h: 1_000_000.0)
+
+    v = sl.owed(now=1_000_000.0 + 3600)   # five commits, one hour
+
+    assert v["owed"] is True
+    assert v["escalate"] is False, "an ordinary between-pieces gap must not page"
+
+
+def test_each_escalation_leg_can_carry_the_verdict_ALONE(log, monkeypatch):
+    """THE TWO LEGS ARE AN OR, AND EACH IS LOAD-BEARING.
+
+    Thresholds measured against this log's own history rather than chosen: eleven stamped entries
+    give ten gaps of 1, 2, 2, 5, 8, 9, 20, 29, 37, 70 commits, and a longest silence of 16.7h. So
+    80 commits and 24h both sit above everything the log has ever done, and neither would have
+    fired on any historical stretch.
+
+    A machine that lands nothing for three days owes a report as much as one that lands three
+    hundred commits in an afternoon, so a single AND leg would miss one of them entirely.
+    """
+    sl.append("A stretch about the weather cells and how much granularity Britain needs", "body")
+    monkeypatch.setattr(sl, "_entry_epoch", lambda h: 0.0)
+
+    # TIME ONLY: three days quiet, four commits.
+    monkeypatch.setattr(sl, "_git", lambda *a: (
+        "" if "--" in a else "\n".join(f"c{i:06x} x" for i in range(4))))
+    v_time = sl.owed(now=3 * 24 * 3600)
+    assert v_time["escalate"] and "since the last report" in v_time["reason"]
+    assert "commits since" not in v_time["reason"], "the count leg fired on four commits"
+
+    # COUNT ONLY: two hundred commits inside an hour.
+    monkeypatch.setattr(sl, "_git", lambda *a: (
+        "" if "--" in a else "\n".join(f"c{i:06x} x" for i in range(200))))
+    v_count = sl.owed(now=3600)
+    assert v_count["escalate"] and "200 commits since" in v_count["reason"]
+    assert "h since the last report" not in v_count["reason"], "the age leg fired at one hour"
+
+
+def test_the_page_text_does_not_carry_the_rotating_commit_list(log, monkeypatch):
+    """ALARM IDENTITY IS THE DECLARED KEY, and prose is not normalised out of it.
+
+    `alarm_repetition.normalise()` strips numbers, elapsed times and hashes; it does not strip
+    sentences. A page carrying twelve commit subjects would be a different condition every cycle --
+    the shape that once put 28 documents behind 2 conditions. The listing belongs in `--check`,
+    which the run log keeps; the page carries the condition.
+    """
+    sl.append("A stretch about the demand vector and what a claim declares it reduces over", "body")
+    monkeypatch.setattr(sl, "_git", lambda *a: (
+        "" if "--" in a else "abc1234 land the fitted joint\ndef5678 fix its test"))
+    monkeypatch.setattr(sl, "_entry_epoch", lambda h: 0.0)
+
+    page = sl.alarm_message(sl.owed(now=10 * 24 * 3600))
+
+    assert "land the fitted joint" not in page
+    assert "abc1234" not in page
+    assert "stretch report" in page.lower()
+
+
 def test_the_live_log_is_published_where_the_advisor_reads():
     """The director asked for "somewhere my advisor reads without being told". `docs/` is the tree
     the GitHub Pages mirror publishes and the channel the advisor fetches; `site/` is Cloudflare and

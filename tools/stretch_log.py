@@ -48,6 +48,7 @@ import datetime as dt
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -75,10 +76,23 @@ _ENTRY_HEAD = re.compile(r"^## (\d{4}-\d{2}-\d{2}) — (.+?)\s*$", re.M)
 _HEAD_STAMP = re.compile(r"^<!-- head: ([0-9a-f]{7,40}) -->\s*$", re.M)
 
 
-def _git(*args: str) -> str:
+def _git(*args: str) -> str | None:
+    """Stdout on success; **None when git refused**, which is not the same as empty output.
+
+    IT USED TO RETURN `""` FOR BOTH, and that is how this control acquired a silent green. The
+    head stamp names a commit; if that commit is not reachable from this tree -- written in a
+    worktree whose landing never promoted, or on a branch since rewritten -- `git log <stamp>..HEAD`
+    exits 128 with "unknown revision". The old `_git` turned that into `""`, `commits_since_last_
+    entry` read `""` as zero commits, and `check()` reported "up to date" forever. A control
+    refusing on input it could not READ is one thing; this one did not refuse, it AGREED.
+    """
     done = subprocess.run(("git", *args), cwd=str(PROJECT),
                           capture_output=True, text=True, timeout=60)
-    return done.stdout.strip() if done.returncode == 0 else ""
+    return done.stdout.strip() if done.returncode == 0 else None
+
+
+class StampUnreachable(RuntimeError):
+    """The newest entry's head stamp names a commit this tree cannot resolve."""
 
 
 def newest_entry_head() -> str | None:
@@ -101,6 +115,11 @@ def commits_since_last_entry() -> tuple[int, list[str]]:
         return 0, []
     rng = f"{head}..HEAD"
     out = _git("log", rng, "--no-merges", "--format=%h %s")
+    if out is None:
+        raise StampUnreachable(
+            f"the newest entry's head stamp {head} is not reachable from this tree, so the "
+            "number of commits since the last report is UNMEASURABLE. Nothing is up to date; "
+            "the measurement is missing.")
     lines = [ln for ln in out.splitlines() if ln.strip()]
 
     # EXCLUDE COMMITS THAT TOUCH THE LOG ITSELF, by PATH and not by title. The first version
@@ -109,7 +128,12 @@ def commits_since_last_entry() -> tuple[int, list[str]]:
     # so the log reported itself as unreported the moment it shipped. A grep for a concept's NAME
     # is blind to the thing itself; the path cannot be dodged by phrasing.
     rel = str(LOG.relative_to(PROJECT)) if LOG.is_absolute() else str(LOG)
-    own = {ln.split()[0] for ln in _git("log", rng, "--format=%h", "--", rel).splitlines() if ln.strip()}
+    own_out = _git("log", rng, "--format=%h", "--", rel)
+    if own_out is None:
+        raise StampUnreachable(
+            f"the head stamp {head} resolved for the range query and not for the path-restricted "
+            "one, so which commits are the log's OWN cannot be determined.")
+    own = {ln.split()[0] for ln in own_out.splitlines() if ln.strip()}
     lines = [ln for ln in lines if ln.split()[0] not in own]
     return len(lines), lines
 
@@ -146,14 +170,111 @@ def append(subject: str, body: str, at_head: str | None = None) -> Path:
     return LOG
 
 
+#: WHEN AN OWED REPORT STOPS BEING ORDINARY AND BECOMES A FINDING THAT PAGES.
+#:
+#: The check has fired on EVERY publish cycle since the last entry -- 75 times between 2026-09-07
+#: and 2026-09-10 -- into `docs/observability/sim-runner-log.md`, which is 250,000 lines long. It
+#: never stopped. It was never read. So the threshold is not "is a report owed" (that is true most
+#: of the time, correctly, because a report is written when a piece of work FINISHES) but "is this
+#: gap unlike any gap this log has ever had".
+#:
+#: MEASURED AGAINST THE LOG'S OWN HISTORY, not chosen. The eleven stamped entries give ten gaps:
+#: 1, 2, 2, 5, 8, 9, 20, 29, 37, 70 commits; median 8.5, max 70. In time, the largest gap between
+#: consecutive entries was 16.7h (2026-09-06 18:02 -> 2026-09-07 10:42).
+#:
+#: So both legs sit ABOVE everything the log has ever done and neither would have fired on any
+#: historical stretch: 24h (max observed 16.7h) and 80 commits (max observed 70). The gap that
+#: prompted this was 253 commits over 68h -- 3.6x the largest count and 4x the longest silence.
+#: OR, not AND: a machine that lands nothing for three days owes a report as much as one that
+#: lands three hundred commits in an afternoon.
+ESCALATE_AFTER_HOURS = 24.0
+ESCALATE_AFTER_COMMITS = 80
+
+
+def _entry_epoch(head: str) -> float | None:
+    """Committer epoch of the commit the newest entry was written at, or None if unreadable."""
+    out = _git("log", "-1", "--format=%ct", head)
+    if not out:
+        return None
+    try:
+        return float(out.split()[0])
+    except (ValueError, IndexError):
+        return None
+
+
+def owed(now: float | None = None) -> dict:
+    """The structured verdict: is a report owed, and is the gap bad enough to PAGE about it?
+
+    `escalate` is what the caller raises an alarm on. `reason` names which leg carried it, because
+    a page that does not say whether it is about a THREE-DAY SILENCE or a THREE-HUNDRED-COMMIT
+    stretch tells the reader nothing they can act on.
+
+    UNMEASURABLE IS ESCALATED, never quiet. A missing log, a missing stamp and an unreachable stamp
+    all mean the same thing -- nobody can say whether a report is owed -- and the whole class of
+    defect this file has been carrying is a control that answers "fine" when it means "I could not
+    look".
+    """
+    now = time.time() if now is None else now
+    if not LOG.is_file():
+        return {"owed": True, "escalate": True, "commits": None, "hours": None,
+                "reason": "the log file does not exist"}
+    head = newest_entry_head()
+    if head is None:
+        return {"owed": True, "escalate": True, "commits": None, "hours": None,
+                "reason": "the newest entry carries no head stamp"}
+    try:
+        n, _ = commits_since_last_entry()
+    except StampUnreachable as exc:
+        return {"owed": True, "escalate": True, "commits": None, "hours": None,
+                "reason": f"the head stamp is unreachable: {exc}"}
+
+    epoch = _entry_epoch(head)
+    hours = None if epoch is None else max(0.0, (now - epoch) / 3600.0)
+    if n == 0:
+        return {"owed": False, "escalate": False, "commits": 0, "hours": hours,
+                "reason": "up to date"}
+
+    legs = []
+    if hours is None:
+        legs.append("the age of the last report is unreadable")
+    elif hours > ESCALATE_AFTER_HOURS:
+        legs.append(f"{hours:.0f}h since the last report (escalates above "
+                    f"{ESCALATE_AFTER_HOURS:.0f}h; longest gap this log has ever had is 16.7h)")
+    if n > ESCALATE_AFTER_COMMITS:
+        legs.append(f"{n} commits since the last report (escalates above {ESCALATE_AFTER_COMMITS}; "
+                    "largest gap this log has ever had is 70)")
+    return {"owed": True, "escalate": bool(legs), "commits": n, "hours": hours,
+            "reason": "; and ".join(legs) if legs
+                      else f"{n} commit(s) owed, inside the ordinary range for this log"}
+
+
+def alarm_message(verdict: dict | None = None) -> str:
+    """The page text. STABLE PROSE ON PURPOSE -- the commit LISTING is deliberately absent.
+
+    `alarm_repetition.normalise()` strips numbers and timestamps out of an alarm's identity but not
+    prose, so a message carrying twelve rotating commit subjects would be a NEW condition every
+    publish cycle: a fresh escalation document each time, and 28 documents standing for one
+    condition. The listing belongs in `check()`, which the run log keeps; the page carries the
+    condition and where to read the rest.
+    """
+    v = verdict or owed()
+    return ("[stretch-log] NO STRETCH REPORT for work that has landed -- " + v["reason"] + ". "
+            "The commits keep WHAT changed; nothing is keeping WHY. "
+            "Read the owed list with `python3 tools/stretch_log.py --check`, then write one with "
+            "`--append '<subject>' --body-file <path>`.")
+
+
 def check() -> tuple[int, str]:
     """(rc, message). rc 1 when work has landed with no entry describing it."""
     if not LOG.is_file():
         return 1, ("[stretch-log] no log exists yet: docs/status/SEAT_STRETCH_LOG.md.\n"
                    "The reasoning behind every landing so far is in console scrollback only.")
-    n, subjects = commits_since_last_entry()
     if newest_entry_head() is None:
         return 1, "[stretch-log] the newest entry carries no head stamp, so staleness is unmeasurable."
+    try:
+        n, subjects = commits_since_last_entry()
+    except StampUnreachable as exc:
+        return 1, f"[stretch-log] {exc}"
     if n == 0:
         return 0, "[stretch-log] up to date."
     listing = "\n".join(f"    {s}" for s in subjects[:12])
@@ -187,6 +308,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     rc, msg = check()
+    v = owed()
+    if v["escalate"]:
+        # Printed with the listing, not instead of it: the listing says what the report is owed
+        # ABOUT, this line says why it has stopped being an ordinary between-pieces gap.
+        msg += f"\n[stretch-log] ESCALATED -- {v['reason']}"
     print(msg, file=sys.stderr if rc else sys.stdout)
     return rc
 
