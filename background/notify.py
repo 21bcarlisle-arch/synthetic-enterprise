@@ -27,6 +27,7 @@ import time
 from pathlib import Path
 
 from background import ntfy_utils
+from background.live_ledger_guard import guard_live_ledger_write
 
 _HERE = Path(__file__).resolve().parent
 TRANSITIONS_FILE = _HERE.parent / "docs" / "observability" / ".notify_transitions.json"
@@ -88,7 +89,7 @@ def _read_transitions() -> dict:
 def _write_transitions(d: dict) -> None:
     try:
         TRANSITIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        TRANSITIONS_FILE.write_text(json.dumps(d))
+        guard_live_ledger_write(TRANSITIONS_FILE, writer="notify._write_transitions").write_text(json.dumps(d))
     except Exception:
         pass
 

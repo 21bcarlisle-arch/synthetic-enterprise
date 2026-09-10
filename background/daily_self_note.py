@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from background.harden_commit import is_harden_commit
+from background.live_ledger_guard import guard_live_ledger_write
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 NOTE_LOG = PROJECT_DIR / "docs" / "observability" / "daily-self-note.md"
@@ -483,7 +484,7 @@ def publish(note: str, now: datetime, *, send=None) -> None:
     NOTE_LOG.parent.mkdir(parents=True, exist_ok=True)
     with NOTE_LOG.open("a", encoding="utf-8") as f:
         f.write(note + "\n")
-    LAST_DATE_STAMP.write_text(_today(now), encoding="utf-8")
+    guard_live_ledger_write(LAST_DATE_STAMP, writer="daily_self_note.publish").write_text(_today(now), encoding="utf-8")
     if send is None:
         try:
             from background.notify import notify

@@ -37,6 +37,8 @@ import os
 import time
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT = Path(__file__).resolve().parent.parent
 STATUS_PATH = PROJECT / "docs" / "observability" / "long_jobs.json"
 
@@ -77,7 +79,7 @@ def heartbeat(name: str, *, done: int, total: int | None = None, state: str = "r
         "heartbeat_seconds": float(heartbeat_seconds),
     }
     STATUS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    STATUS_PATH.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    guard_live_ledger_write(STATUS_PATH, writer="long_job.heartbeat").write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     return payload["jobs"][name]
 
 

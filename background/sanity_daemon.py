@@ -45,6 +45,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
 from background.agent_status import update_agent_status  # noqa: E402
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.notify import notify  # noqa: E402
 
 
@@ -432,7 +433,7 @@ def _maybe_send_daily_digest(any_new_this_cycle: bool) -> None:
     # minutes with no way for this function to stop it.
     try:
         LAST_DIGEST_DATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        LAST_DIGEST_DATE_FILE.write_text(today, encoding="utf-8")
+        guard_live_ledger_write(LAST_DIGEST_DATE_FILE, writer="sanity_daemon._maybe_send_daily_digest").write_text(today, encoding="utf-8")
     except OSError as e:
         log(f"Daily digest SKIPPED -- the once-per-day stamp {LAST_DIGEST_DATE_FILE.name} could "
             f"not be written ({e.__class__.__name__}: {e}), so nothing can record that today's "

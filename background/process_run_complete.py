@@ -45,7 +45,7 @@ if _PROJECT_ROOT not in sys.path:
 
 from background.live_ledger_guard import (  # noqa: E402 -- ditto
     guard_live_ledger_write,
-    in_test_process,
+    guard_site_publish_pipeline,
 )
 from background.publish_step_ledger import PublishStepLedger  # noqa: E402 -- needs the path above
 
@@ -841,7 +841,7 @@ def _write_operational_layer_state(state, *, episode_closed=False):
                         streak_fields=OPERATIONAL_LAYER_STREAK_FIELDS,
                         episode_closed=episode_closed)
     OPERATIONAL_LAYER_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    OPERATIONAL_LAYER_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
+    guard_live_ledger_write(OPERATIONAL_LAYER_STATE_FILE, writer="process_run_complete._write_operational_layer_state").write_text(json.dumps(out, sort_keys=True))
 
 
 def _operational_layer_check_due(now, state):
@@ -1195,7 +1195,7 @@ def _read_last_fingerprint():
 
 def _write_last_fingerprint(fp):
     LAST_FINGERPRINT_FILE.parent.mkdir(parents=True, exist_ok=True)
-    LAST_FINGERPRINT_FILE.write_text(json.dumps(fp, sort_keys=True))
+    guard_live_ledger_write(LAST_FINGERPRINT_FILE, writer="process_run_complete._write_last_fingerprint").write_text(json.dumps(fp, sort_keys=True))
 
 
 # THE PUBLISH COMMIT MUST NOT ARCHIVE WHAT IT DID NOT AUTHOR (2026-08-18, BLOCKING finding
@@ -2526,7 +2526,7 @@ def _run_gate_in(cwd: Path, full_env: dict, git_hash: str):
     _record_gate_duration(time.monotonic() - started, git_hash,
                           "pass" if result.returncode == 0 else "fail")
     if result.returncode == 0:
-        LAST_TESTED_HASH_FILE.write_text(git_hash)
+        guard_live_ledger_write(LAST_TESTED_HASH_FILE, writer="process_run_complete._run_gate_in").write_text(git_hash)
         _record_gate_green_clock(git_hash)
         _clear_blocking_tests()
     else:
@@ -3484,7 +3484,7 @@ def _write_blocking_tests(node_ids, git_hash, census=CENSUS_FAIL_FAST_ONLY):
     bound from one that did not -- the cap must never be able to look like the answer."""
     try:
         GATE_BLOCKING_TESTS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        GATE_BLOCKING_TESTS_FILE.write_text(json.dumps(
+        guard_live_ledger_write(GATE_BLOCKING_TESTS_FILE, writer="process_run_complete._write_blocking_tests").write_text(json.dumps(
             {"ts": time.time(), "git_hash": str(git_hash),
              "census": str(census), "total_red": len(node_ids),
              "node_ids": [str(n) for n in node_ids[:GATE_MAX_CITED_BLOCKING_TESTS]]},
@@ -3772,89 +3772,6 @@ def _trigger_frozen_baseline_refresh_out_of_band(git_hash="unknown"):
     log("Frozen-policy baseline stale -> refresh launched OUT OF BAND as unit {} (log {}); "
         "publishing continues with the existing baseline (never blocks).".format(
             entry["unit"], entry["log"]))
-
-
-# The published feed directories. Everything the public site reads at runtime is under
-# one of these, so the containment IS the definition -- a feed added tomorrow is covered
-# on the day it is created.
-PUBLISHED_FEED_DIRS = (
-    PROJECT_DIR / "site" / "data",
-    PROJECT_DIR / "site" / "state",
-    PROJECT_DIR / "docs" / "state",
-)
-
-
-class SitePublishUnderTest(RuntimeError):
-    """A test process tried to run the live site publish pipeline."""
-
-
-def guard_site_publish_pipeline(*, entry_point: str) -> None:
-    """Refuse a test process's invocation of the site publish pipeline.
-
-    WHY THE ENTRY POINT AND NOT THE WRITE (2026-09-09, LATENT finding `SEAT_FINDING_A_TEST_
-    REWROTE_TWENTY_SIX_LIVE_FEEDS_INTO_A_DEGRADED_PUBLISH_STATE_AND_THE_ONLY_THING_THAT_
-    NOTICED_BLAMED_THE_WRITER`).
-
-    `live_ledger_guard.guard_live_ledger_write` guards at the WRITE because every ledger
-    writer takes a `path` it can be handed a `tmp_path` for. **The site pipeline has no
-    such seam.** `generate_dashboard_json` below runs ~40 generators; 92 modules under
-    `tools/` and `background/` reference `site/data`, and each resolves its own root as
-    `Path(__file__).resolve().parents[1]` at IMPORT time. There is nothing a caller can
-    pass to redirect them, so the only place the refusal can be both real and honest is
-    before the pipeline starts.
-
-    WHAT WAS MEASURED. One test -- `test_website_integrity_fix.py::test_generate_dashboard_
-    json_returns_gate_status` -- called this pipeline for real. It left 27 paths dirty (26
-    tracked feeds plus one NEW untracked feed) and rewrote `site/data/publish_steps.json`
-    from (degraded false, run_stamp `c440337ad`, 0 failing) to (**degraded true, run_stamp
-    `"unknown"`, 6 failing**), every failure naming a pytest tmpdir. The test passed; the
-    site suite passed afterwards; `degraded: true` is a state the ledger is designed to
-    hold. The only thing that noticed was `promote_worktree_landing`, and it told the
-    writer they had left work uncommitted -- sending them to add `site/data/` to a pathspec
-    and publish a unit test's exhaust as a run.
-
-    WHY THERE IS NO `dest_root` PARAMETER, WHICH WAS THE OBVIOUS FIX. A parameter accepted
-    and not honoured is worse than none: it reads as containment at every call site while
-    92 import-time roots ignore it -- a fake more permissive than its subject, which turns
-    a fail-open into a green suite (R15). Threading a real destination root through those
-    92 modules is the correct fix and is NOT done; it is recorded as a named gap, not
-    filled with a placeholder that looks like an answer.
-
-    WHY IT DOES NOT COST THE SUITE ANYTHING. Censused before landing: of the four tests
-    that reach this entry point, **three already monkeypatch it away**, one saying why in
-    its own comment -- *"generate_dashboard_json writes to the REAL site/data/dashboard.json
-    (hardcoded path inside generate_dashboard_data.py) -- mock it to avoid corrupting the
-    live dashboard"*. The class was known and solved three times as an instance (R10).
-
-    WHY THIS LIVES HERE AND NOT IN `live_ledger_guard.py`, WHICH IS ITS PROPER HOME. Same
-    doctrine, same `in_test_process()` (imported, not copied), second subject -- it belongs
-    beside the ledger guard and was written there first. It was moved because
-    `tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_
-    is_measured_not_assumed` is RED AT HEAD (86 unguarded observability writers against a
-    bound of 74) for reasons unrelated to this work -- proved by running its census over
-    `background/` extracted clean at HEAD: 86 both sides. The commit gate selects any test
-    that NAMES a staged path, so editing `live_ledger_guard.py` pulls that red into this
-    landing. **Raising the bound to 86 banks two weeks of drift and that test's own failure
-    message says so in advance, so it was not raised.** The red is filed as its own BLOCKING
-    finding, `SEAT_FINDING_THE_UNGUARDED_LEDGER_WRITER_RATCHET_HAS_BEEN_RED_AT_HEAD_FOR_TWO_
-    WEEKS_AND_ITS_OWN_MESSAGE_SAYS_DO_NOT_DO_THE_EASY_THING_2026-09-09.md`. **Move this
-    function to `live_ledger_guard.py` when that red is cleared** -- this note is the whole
-    reason a later reader will know it is misplaced on purpose rather than by accident.
-
-    NO ESCAPE HATCH: the process that must not have the override is exactly the one able to
-    set it (`live_ledger_guard`'s own argument, and it applies unchanged here).
-    """
-    if not in_test_process():
-        return
-    raise SitePublishUnderTest(
-        f"{entry_point} refused: this is a test process, and this pipeline publishes into "
-        f"{', '.join(str(d) for d in PUBLISHED_FEED_DIRS)} through ~40 generators that "
-        "resolve their own output root at import and cannot be redirected by any argument "
-        "you can pass. On 2026-09-09 one test that called it rewrote 26 tracked feeds and "
-        "flipped publish_steps.json to degraded with run_stamp 'unknown' and 6 pytest-tmpdir "
-        "errors. Mock this entry point, as the three other tests that reach it already do. "
-        "There is no env-var override by design."
-    )
 
 
 def generate_dashboard_json(json_path, git_hash="unknown"):
@@ -5791,7 +5708,7 @@ def _push_due() -> bool:
 
 def _record_push_time() -> None:
     LAST_PUSH_FILE.parent.mkdir(parents=True, exist_ok=True)
-    LAST_PUSH_FILE.write_text(json.dumps({"ts": datetime.now(timezone.utc).timestamp()}))
+    guard_live_ledger_write(LAST_PUSH_FILE, writer="process_run_complete._record_push_time").write_text(json.dumps({"ts": datetime.now(timezone.utc).timestamp()}))
 
 
 # ── Fault #1 (2026-07-25 overnight publish-freeze): liveness publication must NOT
@@ -6015,7 +5932,7 @@ def _stamp_remainder_attempt(git_hash, reason: str) -> None:
     into publishing an all-clear for a suite that never ran."""
     try:
         REMAINDER_ANNOTATION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
+        guard_live_ledger_write(REMAINDER_ANNOTATION_STATE_FILE, writer="process_run_complete._stamp_remainder_attempt").write_text(json.dumps(
             {"last_run_ts": time.time(), "rc": None, "git_hash": git_hash,
              "outcome": "unavailable", "reason": str(reason)[:400]}, indent=2) + "\n")
     except Exception:  # noqa: BLE001 -- the observer still may not red its subject
@@ -6089,7 +6006,7 @@ def run_remainder_annotation_step(git_hash, *, force=False, runner=None):
         if result.returncode != 0 and not reds:
             reds = [REMAINDER_UNREADABLE_MARKER.format(rc=result.returncode)]
         REMAINDER_ANNOTATION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        REMAINDER_ANNOTATION_STATE_FILE.write_text(json.dumps(
+        guard_live_ledger_write(REMAINDER_ANNOTATION_STATE_FILE, writer="process_run_complete.run_remainder_annotation_step").write_text(json.dumps(
             {"last_run_ts": time.time(), "rc": result.returncode, "reds": reds[:32],
              "git_hash": git_hash}, indent=2) + "\n")
         state = _prov.record_annotation(open_findings=findings, nonblocking_reds=reds,
@@ -6627,7 +6544,7 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
                         streak_fields=PUBLISH_GATE_STREAK_FIELDS,
                         episode_closed=episode_closed)
     PUBLISH_GATE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PUBLISH_GATE_STATE_FILE.write_text(json.dumps(out, sort_keys=True))
+    guard_live_ledger_write(PUBLISH_GATE_STATE_FILE, writer="process_run_complete._write_publish_gate_state").write_text(json.dumps(out, sort_keys=True))
 
 
 #: How much of a refusal's evidence the record keeps, and it keeps the END of it -- see

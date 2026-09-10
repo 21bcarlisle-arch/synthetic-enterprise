@@ -32,6 +32,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 NTFY_TOPIC: str | None = os.environ.get("SE_NTFY_TOPIC")
 if not NTFY_TOPIC:
     raise RuntimeError(
@@ -361,7 +363,7 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
     )
     try:
         DELIVERY_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        DELIVERY_STATE_FILE.write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
+        guard_live_ledger_write(DELIVERY_STATE_FILE, writer="ntfy_utils.record_delivery_outcome").write_text(json.dumps(state, indent=2) + "\n", encoding="utf-8")
     except OSError:
         pass
 
@@ -384,7 +386,7 @@ def record_delivery_outcome(delivered: bool, detail: str) -> None:
         entries = [ln for ln in existing if ln.startswith("- [")]
         entries.append(line)
         entries = entries[-MAX_DELIVERY_LOG_ENTRIES:]
-        DELIVERY_LOG_FILE.write_text(
+        guard_live_ledger_write(DELIVERY_LOG_FILE, writer="ntfy_utils.record_delivery_outcome").write_text(
             header + "\n\nEvery POST to the director topic that did not land, verbatim.\n"
             "Written by background/ntfy_utils.send_ntfy.\n\n" + "\n".join(entries) + "\n",
             encoding="utf-8",

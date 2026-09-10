@@ -1,5 +1,7 @@
 **Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — `contain-the-site-pipeline-so-a-test-cannot-publish-a-degraded-feed-set`) · **Class:** controls_that_cannot_fail
 
+**Discharged:** 2026-09-10. `tests/background/test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed` is green at HEAD again, and its bound went DOWN — 74 → 56, not up to 86. Thirty writers across seventeen modules now route through the guard in `background/live_ledger_guard.py`; the census reads 86 → 56 in a clean HEAD extract, delta 30, the newly-guarded set a strict subset of the HEAD set. `background/process_run_complete.py` alone contributed eight of them, and the site-publish twin came home from its one-commit exile — `tests/background/test_the_site_publish_pipeline_is_contained.py::test_the_publish_pipeline_actually_calls_the_guard_first` grades it beside the ledger guard. **Item 3 — why nothing selected this test for two weeks — is NOT discharged by this** and remains open as its own defect.
+
 # FINDING — the unguarded-ledger-writer ratchet has been red at HEAD for two weeks, and its own message says not to do the easy thing
 
 Found on the way to the site-pipeline containment work: `tests/background/test_live_ledger_guard.py
@@ -71,3 +73,39 @@ commit about something else.
 3. **Separately, and cheaper: find out why nothing selected this test for two weeks.** A ratchet
    that goes red at HEAD and blocks nothing is the more general defect here, and it is not specific
    to this file — the same silence would cover any other ratchet in `tests/background/`.
+
+---
+
+## DISCHARGED 2026-09-10 — items 1 and 2. Item 3 is NOT discharged.
+
+**The bound was not raised.** 30 write sites across 17 modules now route through
+`guard_live_ledger_write`, taking the census **86 → 56**, and the floor moves DOWN to 56 — eighteen
+below where it was frozen on 2026-08-26. Selection was by DESTINATION, not by the census's own
+module-mentions-the-word proxy: five of the fourteen sites this finding named in
+`process_run_complete.py` write to `docs/status/LATEST.md` or a scratch checkout's `.git/`, and
+guarding those would have lowered the number while protecting nothing. They are still counted.
+Reachability proved with a poison round before the green was believed: one extra un-guarded
+observability writer reds the bound at 57, naming it, and green returns when it is reverted.
+
+`guard_site_publish_pipeline` is back in `live_ledger_guard.py` beside its twin.
+
+### The first attempt at this discharge published 87 → 57, and both figures were a dirty tree
+
+An earlier draft of this block, and of the result page, censused the SHARED WORKING TREE — which
+carries four other lanes' uncommitted modules and an untracked `standing_red.py`. It counted
+writers that are not at HEAD and will not be at HEAD when this lands, then read the difference as
+"one more had landed overnight, the drift continuing". Nothing had landed overnight. It was another
+lane's in-flight work being called drift by a census that could not tell the two apart.
+
+**A ratchet frozen against a number only the author's dirty tree can reproduce is a bound no other
+lane can meet.** Every figure in this block is now from a clean HEAD extract at `8c53c35e5`
+carrying this lane's hunks and nothing else: HEAD 86, guarded 56, delta 30 across 17 modules, the
+newly-guarded set a strict subset of the HEAD set.
+
+**Item 3 — why nothing selected this test for two weeks — is untouched.** It is the more general
+defect and clearing this instance does nothing about it.
+
+Written up: `SEAT_RESULT_THE_UNGUARDED_WRITER_RATCHET_IS_ARMED_AGAIN_AT_56_AND_THE_NUMBER_I_FIRST_
+PUBLISHED_WAS_MY_OWN_DIRTY_TREE_2026-09-09.md`. A second population the census cannot see at all —
+35 `open(..., "a")` writers — is filed as `SEAT_FINDING_THE_LIVE_RECORD_CENSUS_ONLY_SEES_WRITE_TEXT_
+AND_THIRTY_FIVE_WRITERS_APPEND_THROUGH_OPEN_2026-09-09.md`.

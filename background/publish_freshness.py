@@ -75,6 +75,8 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 STATE_FILE = PROJECT_DIR / "docs" / "observability" / ".last_content_publish.json"
 
@@ -135,7 +137,7 @@ def record_published(now: float | None = None) -> None:
     ts = time.time() if now is None else float(now)
     try:
         STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        STATE_FILE.write_text(json.dumps({"ts": ts}))
+        guard_live_ledger_write(STATE_FILE, writer="publish_freshness.record_published").write_text(json.dumps({"ts": ts}))
     except OSError:
         pass  # never take a successful publish down over its own bookkeeping
 

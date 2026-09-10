@@ -41,6 +41,7 @@ from background.episode_prior import (  # noqa: E402
     prior_unreadable,
     screen_list_value,
 )
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 
 # How many gap-drift lines the human summary spells out before counting the rest. The SIGNATURE
 # always carries every item (so no transition can hide behind the cap) and the overflow is stated,
@@ -147,7 +148,7 @@ def _load_last() -> list[str] | None:
 def _save(sig: list[str]) -> None:
     try:
         STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        STATE_FILE.write_text(json.dumps({"drift": sig,
+        guard_live_ledger_write(STATE_FILE, writer="reconcile_watch._save").write_text(json.dumps({"drift": sig,
                                           "at": datetime.now(timezone.utc).isoformat()}))
     except OSError:
         pass

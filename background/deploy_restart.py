@@ -47,6 +47,8 @@ import subprocess
 import time
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 _HERE = Path(__file__).resolve().parent
 _REPO = _HERE.parent
 
@@ -645,7 +647,7 @@ def _self_unit() -> str | None:
 def main(argv: list[str]) -> int:
     report = daemon_deployment_report()
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REPORT_PATH.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
+    guard_live_ledger_write(REPORT_PATH, writer="deploy_restart.main").write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")
     plan = restart_plan(report, self_unit=_self_unit())
 
     s = report["summary"]
@@ -683,7 +685,7 @@ def main(argv: list[str]) -> int:
         outcome["restarted"].extend(out["restarted"])
         outcome["failed"].update(out["failed"])
         print("deferred units restarted at a turn boundary: {}".format(", ".join(out["restarted"])))
-    DEFERRED_PATH.write_text(json.dumps(
+    guard_live_ledger_write(DEFERRED_PATH, writer="deploy_restart.main").write_text(json.dumps(
         {"generated_at_s": report["generated_at_s"], "still_deferred": still}, indent=2,
         sort_keys=True) + "\n")
     for unit, why in sorted(still.items()):

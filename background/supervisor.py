@@ -147,6 +147,7 @@ from background.episode_prior import (  # noqa: E402
     preserve_unreadable,
     prior_unreadable,
 )
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.notify import notify  # noqa: E402
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 from tools import maturity_map_store as map_store  # noqa: E402 (the map's canonical reader)
@@ -5093,7 +5094,7 @@ def _save_interleave_state(owed: list[str], record: dict) -> None:
     }
     try:
         PRODUCT_INTERLEAVE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        PRODUCT_INTERLEAVE_STATE_FILE.write_text(json.dumps(payload, sort_keys=True))
+        guard_live_ledger_write(PRODUCT_INTERLEAVE_STATE_FILE, writer="supervisor._save_interleave_state").write_text(json.dumps(payload, sort_keys=True))
     except OSError as exc:
         log(f"{_INTERLEAVE_PREFIX}: could not persist the owed ledger ({exc}) -- the pairing "
             "debt will not survive this cycle; the digest line still names this grant's pair.")
@@ -5999,7 +6000,7 @@ def _sync_origin_staging(_runner=None) -> list[str]:
             log(f"RC3 origin-staging sync: pulled {len(pulled)} origin-staged doc(s) into the local "
                 f"tree so the draw sees them: {', '.join(pulled)}")
         try:
-            ORIGIN_STAGING_SYNC_STAMP.write_text(_json.dumps({"ts": now}))
+            guard_live_ledger_write(ORIGIN_STAGING_SYNC_STAMP, writer="supervisor._sync_origin_staging").write_text(_json.dumps({"ts": now}))
         except Exception:
             pass
         return pulled
@@ -6153,7 +6154,7 @@ def _load_stuck_state_classified() -> tuple[dict, str]:
 
 def _save_stuck_state(state: dict) -> None:
     STUCK_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    STUCK_STATE_FILE.write_text(json.dumps(state, sort_keys=True))
+    guard_live_ledger_write(STUCK_STATE_FILE, writer="supervisor._save_stuck_state").write_text(json.dumps(state, sort_keys=True))
 
 
 _STUCK_VOLATILE_NUMBER_RE = re.compile(r"\d+")
@@ -6360,7 +6361,7 @@ def _load_atom_stall_state_classified() -> tuple[dict, str]:
 
 def _save_atom_stall_state(state: dict) -> None:
     ATOM_STALL_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    ATOM_STALL_STATE_FILE.write_text(json.dumps(state, sort_keys=True))
+    guard_live_ledger_write(ATOM_STALL_STATE_FILE, writer="supervisor._save_atom_stall_state").write_text(json.dumps(state, sort_keys=True))
 
 
 def _is_atom_stalled(atom_id: str, state: dict | None = None) -> bool:
@@ -6455,7 +6456,7 @@ def _record_idle_turn() -> int:
     inferred from its absence."""
     count = _load_idle_turn_count() + 1
     IDLE_TURN_COUNTER_FILE.parent.mkdir(parents=True, exist_ok=True)
-    IDLE_TURN_COUNTER_FILE.write_text(json.dumps({"count": count}, sort_keys=True))
+    guard_live_ledger_write(IDLE_TURN_COUNTER_FILE, writer="supervisor._record_idle_turn").write_text(json.dumps({"count": count}, sort_keys=True))
     return count
 
 
@@ -6481,7 +6482,7 @@ def _load_map_exhausted_state() -> dict:
 
 def _save_map_exhausted_state(state: dict) -> None:
     MAP_EXHAUSTED_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    MAP_EXHAUSTED_STATE_FILE.write_text(json.dumps(state, sort_keys=True))
+    guard_live_ledger_write(MAP_EXHAUSTED_STATE_FILE, writer="supervisor._save_map_exhausted_state").write_text(json.dumps(state, sort_keys=True))
 
 
 def check_map_exhausted_escalation(map_exhausted: bool) -> None:

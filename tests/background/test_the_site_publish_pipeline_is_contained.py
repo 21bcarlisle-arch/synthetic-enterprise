@@ -1,24 +1,23 @@
 """A test process may not run the live site publish pipeline.
 
-The control under test is `background/live_ledger_prc.guard_site_publish_pipeline`,
+The control under test is `background/live_ledger_guard.py::guard_site_publish_pipeline`,
 built for the 2026-09-09 LATENT finding `SEAT_FINDING_A_TEST_REWROTE_TWENTY_SIX_LIVE_
 FEEDS_INTO_A_DEGRADED_PUBLISH_STATE_AND_THE_ONLY_THING_THAT_NOTICED_BLAMED_THE_WRITER`.
 
-WHY THE GUARD LIVES IN `process_run_complete.py` AND NOT BESIDE ITS TWIN IN
-`live_ledger_guard.py`, WHICH IS ITS PROPER HOME (same doctrine, same `in_test_process()`,
-which it imports rather than copies). It was written there and moved, because `test_live_ledger_guard.py::test_the_narrowing_to_measurement_ledgers_is_measured_
-not_assumed` is **RED AT HEAD** (86 unguarded observability writers against a bound of
-74), for reasons that have nothing to do with this work: the census returns 86 over
-`background/` extracted clean at HEAD and 86 over this working tree, so this turn's
-changes are neutral to it. Editing that file pulls it into the path-scoped test
-selection and refuses this landing on someone else's two-week-old drift. The guard's own
-docstring carries the same note and says to move it back when that red is cleared.
-
-THAT RED IS NOT CLEARED AND IS NOT SWEPT UNDER ANYTHING. It is written up as its own
-BLOCKING finding, `SEAT_FINDING_THE_UNGUARDED_LEDGER_WRITER_RATCHET_HAS_BEEN_RED_AT_
-HEAD_FOR_TWO_WEEKS_AND_ITS_OWN_MESSAGE_SAYS_DO_NOT_DO_THE_EASY_THING_2026-09-09.md`,
-which says why raising the bound to 86 is the wrong move -- the test's own failure
-message says so in advance.
+IT IS BACK BESIDE ITS TWIN, AND THE ROUND TRIP IS THE POINT. For one commit this guard
+lived in `process_run_complete.py` instead, because `test_live_ledger_guard.py::test_the_
+narrowing_to_measurement_ledgers_is_measured_not_assumed` was **RED AT HEAD** (86
+unguarded observability writers against a bound of 74) for reasons that had nothing to do
+with it, and the commit gate selects any test that NAMES a staged path -- so touching
+`live_ledger_guard.py` would have refused that landing on two-week-old drift belonging to
+nobody. **The bound was not raised to 86.** The writers were guarded instead: 30 of them
+across 17 modules, taking the census 86 -> 56, below the 74 it was frozen at on
+2026-08-26 -- both figures measured in a clean HEAD extract at 8c53c35e5 carrying this
+lane's hunks and nothing else, NOT in the shared working tree, which reads 87 -> 57
+because it holds four other lanes' uncommitted modules. Then the guard came home. A
+ratchet that has silently stopped ratcheting does
+not merely fail to catch things -- it pushes unrelated code out of its proper module, and
+that is the cost this note exists to record.
 
 THE POISON ROUND RAN FIRST, AND IT IS WHY THESE TESTS MEAN ANYTHING (R15 -- "survived"
 means two opposite things, so reachability is proved before any mutation is scored). On
@@ -43,8 +42,9 @@ from pathlib import Path
 
 import pytest
 
+from background import live_ledger_guard as guard
 from background import process_run_complete as prc
-from background.process_run_complete import (
+from background.live_ledger_guard import (
     PUBLISHED_FEED_DIRS,
     SitePublishUnderTest,
     guard_site_publish_pipeline,
@@ -69,10 +69,16 @@ def test_outside_a_test_process_the_site_publish_is_permitted(monkeypatch):
     every refusal test AND silently stops the real publish daemon -- the site would
     freeze and the suite would stay green.
 
+    PATCHED ON `live_ledger_guard`, NOT ON `process_run_complete`, and that is not
+    cosmetic: the guard resolves `in_test_process` from the module it is DEFINED in.
+    While it was exiled this line read `prc` and worked; after the move the same line
+    patches a name nothing reads, the refusal fires anyway and the test goes RED -- loudly
+    wrong rather than vacuously green, which is the only reason the move was safe to make.
+
     MUTATION: drop the `if not in_test_process(): return` early exit -- this reds, and
     so does every real publish cycle."""
-    monkeypatch.setattr(prc, "in_test_process", lambda: False)
-    assert prc.guard_site_publish_pipeline(entry_point="probe") is None
+    monkeypatch.setattr(guard, "in_test_process", lambda: False)
+    assert guard.guard_site_publish_pipeline(entry_point="probe") is None
 
 
 def test_the_site_publish_refusal_names_what_to_do_instead():
@@ -95,7 +101,7 @@ def test_there_is_no_env_var_override_on_the_site_publish_guard():
 
     MUTATION: add `if os.environ.get("ALLOW_SITE_PUBLISH"): return` -- this reds by
     reading the guard's own source for an environment read."""
-    src = (BACKGROUND_DIR / "process_run_complete.py").read_text(encoding="utf-8")
+    src = (BACKGROUND_DIR / "live_ledger_guard.py").read_text(encoding="utf-8")
     tree = ast.parse(src)
     fn = next(n for n in ast.walk(tree)
               if isinstance(n, ast.FunctionDef) and n.name == "guard_site_publish_pipeline")

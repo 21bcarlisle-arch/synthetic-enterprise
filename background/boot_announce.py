@@ -33,6 +33,7 @@ sys.path.insert(0, str(PROJECT_DIR))
 
 from background import process_reconciler as _proc  # noqa: E402
 from background import schedule_reconciler as _sched  # noqa: E402
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 
 MARKER = PROJECT_DIR / "docs" / "observability" / ".boot_announced"
 LOG_FILE = PROJECT_DIR / "docs" / "observability" / "boot-announce-log.md"
@@ -61,7 +62,7 @@ def already_announced_this_boot() -> bool:
 def _mark_announced() -> None:
     try:
         MARKER.parent.mkdir(parents=True, exist_ok=True)
-        MARKER.write_text(_boot_id())
+        guard_live_ledger_write(MARKER, writer="boot_announce._mark_announced").write_text(_boot_id())
     except OSError:
         pass
 

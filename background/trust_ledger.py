@@ -54,6 +54,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Optional
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 LEDGER_PATH = PROJECT_DIR / "docs" / "observability" / "trust_ledger.json"
 
@@ -113,7 +115,7 @@ def _load_ledger() -> list[dict]:
 
 def _save_ledger(entries: list[dict]) -> None:
     LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
-    LEDGER_PATH.write_text(json.dumps(entries, indent=2, sort_keys=True))
+    guard_live_ledger_write(LEDGER_PATH, writer="trust_ledger._save_ledger").write_text(json.dumps(entries, indent=2, sort_keys=True))
 
 
 def record_verdict(
