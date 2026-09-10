@@ -1246,6 +1246,41 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     return lead + blocks + sum;
   }
 
+  /* THE SECOND DRAW OF THE FIGURE THIS PANEL BOUNDS, rendered INSIDE the panel and not under it.
+     The choosing leg went through zero when the objective was changed, and a reader who meets that
+     anywhere other than beside the ±£1,811 bar has been told the arm's choosing became worthless.
+     So it renders in the same paragraph as the bar, on every branch: an absent block states its
+     own absence rather than rendering nothing, because "no re-run" and "a re-run that agreed"
+     must not look the same on the page. */
+  function departureRerun(r) {
+    if (!r) {
+      return '<span style="display:block;margin-top:8px;color:var(--amber);">'
+        + "<strong>THIS PAGE SAYS NOTHING ABOUT A SECOND DRAW.</strong> The feed carries no "
+        + "re-run block at all, so whether this figure has been drawn again is unread here rather "
+        + "than answered.</span>";
+    }
+    if (!r.available) {
+      return '<span style="display:block;margin-top:8px;color:var(--muted);">'
+        + "<strong>One draw.</strong> " + prose(r.reason || "") + "</span>";
+    }
+    return '<span style="display:block;margin-top:8px;">' + prose(r.sentence || "")
+      /* THE OPERATIVE READING, and it is not a caveat. A changed objective that cannot reach two
+         thirds of the prices explains the size of the move better than the move does. */
+      + ((r.bound_attribution && r.bound_attribution.reading)
+          ? '<span style="display:block;margin-top:6px;color:var(--muted);">'
+            + prose(r.bound_attribution.reading) + "</span>" : "")
+      + ((r.method_skill && r.method_skill.reading)
+          ? '<span style="display:block;margin-top:6px;color:var(--muted);">'
+            + prose(r.method_skill.reading) + "</span>" : "")
+      /* WHAT THE TWO RUNS ARE NOT ESTABLISHED TO DIFFER BY. Rendered in amber when the objective
+         difference could not be read out of the two trees, because the sentence above then names
+         a second draw and NOT an experiment, and a reader must be able to tell which they got. */
+      + ((r.objective_difference && r.objective_difference.unavailable_because)
+          ? '<span style="display:block;margin-top:6px;color:var(--amber);">'
+            + prose(r.objective_difference.unavailable_because) + "</span>" : "")
+      + "</span>";
+  }
+
   function redrawBand(cw) {
     if (!cw || !cw.available) {
       return '<p style="margin:0;font-size:13px;color:var(--muted);">'
@@ -1665,6 +1700,9 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + " value of the choosing, " + esc(gbp(eb.bounds_figure_gbp))
                 + " &mdash; the same figure the headline states. "
               : "")
+          /* AND THE SECOND DRAW OF IT, immediately after the sentence that names the figure and
+             before the ones that qualify the bar. See `departureRerun`. */
+          + departureRerun(d.departure_term_rerun)
           + prose(eb.what_was_re_drawn) + " " + prose(eb.reading)
           + (eb.staleness_caveat
               ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
@@ -1711,7 +1749,10 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + "</span>"
               : "")
         : "No spread has been measured for this reading yet, so the figure above is a point "
-          + "estimate with no error bar. " + prose(eb.reason || "");
+          + "estimate with no error bar. " + prose(eb.reason || "")
+          /* ON THIS BRANCH TOO. A page with no bar is the one where a second draw of the same
+             figure matters MOST, and rendering it only beside a bar would drop it exactly then. */
+          + departureRerun(d.departure_term_rerun);
 
       var dec = d.decisions || {};
       if (dec.available) {

@@ -771,6 +771,89 @@ def test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on(live):
         "the bounded figure is rendered without its clock, on a page that carries two")
 
 
+def _sterling(value: float) -> str:
+    """The page's own convention: the sign OUTSIDE the symbol, `-£335` and never `£-335`.
+
+    `_gbp` above predates the selection leg reaching the headline and puts the minus inside, which
+    is not a string this page ever renders. A control that asserted it would red on a correct page
+    for the shape of a hyphen.
+    """
+    return "{}£{:,}".format("-" if value < 0 else "", abs(round(value)))
+
+
+def test_the_second_draw_of_the_choosing_leg_reaches_the_reader_BESIDE_its_bar(live):
+    """The re-run that took the choosing leg through zero must be met with the bar, not after it.
+
+    THE DEFECT THIS EXISTS FOR. On 2026-09-09 the renewal objective was given a price for the
+    departures it causes and the arms were re-run on the same book, the same world and the same
+    seed. The choosing leg -- the only figure on this page that could be value CREATED rather than
+    MOVED -- went from +£319 to -£335. A reader who meets that on its own has been told the arm's
+    choosing turned worthless. The same figure re-drawn across nine seeds runs -£3,036..+£1,261,
+    so the move is a third of one standard deviation and settles nothing.
+
+    WHAT IS ASSERTED IS PLACEMENT, not wording. Both draws and the bar must render in the SAME
+    element, because "in a footnote" and "beside the figure" are the same feed and different
+    pages. Keyed to the feed's own figures, so it holds at whatever the next re-run reads.
+    """
+    feed = _live_feed()
+    block = feed.get("departure_term_rerun") or {}
+    if not block.get("available"):
+        pytest.fail("the feed carries no second draw of the choosing leg ({}), so this page "
+                    "publishes one draw of the quantity the thesis turns on and the reader "
+                    "cannot tell that it has been drawn again".format(block.get("reason")))
+    if not block.get("comparable"):
+        pytest.skip("the two runs are not established to be comparable -- "
+                    "`test_a_rerun_from_ANOTHER_WORLD_states_no_move_at_all` owns that branch")
+    rendered = live["arms-errorbar"]
+
+    assert _sterling(block["selection_gbp_after"]) in rendered, (
+        "the re-run's own choosing leg does not reach the reader at all")
+    assert _sterling(block["selection_gbp_before"]) in rendered, (
+        "the page states the moved figure without the one it moved FROM")
+    assert _sterling(block["spread"]["stdev_gbp"]) in rendered, (
+        "the move renders without the spread it is smaller than, in the one element that "
+        "carries both -- which is the footnote the feed exists to prevent")
+    assert "ONE DRAW" in rendered, (
+        "the reader is not told this is one draw of the same quantity")
+    assert _door_prose(block["bound_attribution"]["reading"]) in rendered, (
+        "the reason the changed objective could not reach two thirds of the book renders "
+        "nowhere, so the move reads as the whole story")
+
+
+def test_MUTATION_a_page_with_no_second_draw_SAYS_SO_rather_than_going_quiet():
+    """An absent block must render as an absence. Silence and agreement look identical.
+
+    R15: this is the fail-silent leg. Dropping `departure_term_rerun` from the feed leaves every
+    other assertion on this page green, and the panel simply says less -- which reads to a
+    reader exactly like a figure nobody has drawn twice.
+    """
+    feed = _live_feed()
+    feed.pop("departure_term_rerun", None)
+    rendered = _render(feed)["arms-errorbar"]
+    assert "SAYS NOTHING ABOUT A SECOND DRAW" in rendered, (
+        "a feed carrying no re-run block rendered silently: {}".format(rendered[-400:]))
+    raw = _render(feed, raw=True)["arms-errorbar"]
+    assert "var(--amber)" in raw.split("SAYS NOTHING")[0][-200:], (
+        "the stated absence renders in the same colour as the page's ordinary prose, so a "
+        "reader skims past the one sentence that says this figure is unread")
+
+
+def test_MUTATION_the_door_renders_the_FEEDS_reading_and_not_a_sentence_of_its_own():
+    """The reading is authored by the producer. A door with its own copy would keep publishing
+    the old one after the generator corrected it -- the shape that put a superseded clock's
+    figure under a realised heading on this same page."""
+    feed = _live_feed()
+    feed["departure_term_rerun"] = dict(
+        feed["departure_term_rerun"],
+        sentence="A SECOND DRAW OF SOMETHING ELSE ENTIRELY, and it moved £999,999.")
+    rendered = _render(feed)["arms-errorbar"]
+    assert "£999,999" in rendered, (
+        "the door ignored the feed's own sentence, so what a reader meets is written in the "
+        "page and cannot be corrected by the producer")
+    assert "ONE DRAW" not in rendered.split("A SECOND DRAW OF SOMETHING ELSE")[-1], (
+        "the door printed its own one-draw claim beside a feed that never made it")
+
+
 def test_an_error_bar_older_than_its_figure_says_so_on_the_page(live):
     """R11 on a caveat rather than a number, and the caveat is DERIVED.
 

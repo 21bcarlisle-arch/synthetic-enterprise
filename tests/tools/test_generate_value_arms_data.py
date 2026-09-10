@@ -5990,7 +5990,11 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
     """
     cited = gva.build({}, {})["sources"]
     opened = [gva.THREE_ARM_PATH, gva.NOISE_FLOOR_PATH, gva.CURRENT_WORLD_THREE_ARM_PATH,
-              gva.CURRENT_WORLD_NOISE_FLOOR_PATH, gva.DECOMPOSITION_PATH]
+              gva.CURRENT_WORLD_NOISE_FLOOR_PATH, gva.DECOMPOSITION_PATH,
+              # THE SIXTH, added 2026-09-10 with the second draw of the choosing leg. `generate`
+              # opens it every publish, so a reader checking the move against the artefacts named
+              # has to be sent to it -- and this list is the assertion, not a copy of the code.
+              gva.DEPARTURE_TERM_RERUN_PATH]
     assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
         "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
         "named would open the wrong files".format(cited, [p.name for p in opened]))
@@ -6392,3 +6396,171 @@ def test_a_panel_that_can_state_no_direction_says_what_would_give_it_one(real_cu
     assert live and "what_would_settle_the_sign" in live, (
         "the real page's panel cannot state a direction for the selection leg and still names "
         "nothing that would give it one: {}".format(str(live)[:300]))
+
+
+# ── the second draw of the choosing leg ──────────────────────────────────────────────────────
+#
+# THE DEFECT THESE EXIST FOR. On 2026-09-09 the renewal objective was made to pay for the
+# departures it causes and the arms were re-run: the choosing leg went from +£319.10 to -£335.40,
+# THROUGH ZERO. Published bare, that reads as the arm's choosing turning worthless. The same
+# figure re-drawn across nine seeds in the same world runs -£3,036..+£1,261, so a £655 move is a
+# third of one standard deviation and settles nothing. Every rung below is about keeping those two
+# facts in the same paragraph, and about the four things that must be established before the two
+# runs may be differenced at all.
+
+DEPARTURE_RERUN = (
+    PROJECT / "docs" / "observability"
+    / "value_cycle_ab_s1_three_arm_departure_20260909.json")
+
+
+def _rerun_block(rerun=None, floor=None, three_arm=None) -> dict:
+    return gva._departure_term_rerun(
+        _load(THREE_ARM) if three_arm is None else three_arm,
+        _load(NOISE_FLOOR) if floor is None else floor,
+        _load(DEPARTURE_RERUN) if rerun is None else rerun)
+
+
+def test_the_second_draw_is_placed_against_THE_SAME_spread_the_page_publishes():
+    """The null rung: the real pair, differenced only after four identities are established."""
+    block = _rerun_block()
+    assert block["available"] and block["comparable"], (
+        "the real pair cannot be compared, so every mutation below is vacuous: {}".format(
+            block.get("not_comparable_because")))
+    floor_spread = _load(NOISE_FLOOR)["selection_gbp_spread"]
+    assert block["spread"]["stdev_gbp"] == floor_spread["stdev"], (
+        "the move is placed against a spread this page does not publish -- a move judged small "
+        "against a bar the reader never sees is the two-figures-from-two-worlds shape")
+    assert block["moved_gbp"] == pytest.approx(
+        block["selection_gbp_after"] - block["selection_gbp_before"]), (
+        "the stated move is not the difference between the two figures beside it")
+    assert block["move_is_inside_one_spread"] is True
+    assert block["changes_no_sign"] is True and block["family_straddles_zero"] is True
+    assert "ONE DRAW" in block["sentence"], (
+        "the sentence a reader meets does not say this is one draw: {}".format(
+            block["sentence"][:300]))
+
+
+def test_a_move_LARGER_than_the_spread_is_not_called_one_draw():
+    """R15 reachability: the block must be ABLE to say a move is bigger than the bar.
+
+    A control that only ever prints "one draw inside the bar" would be green on a re-run that
+    genuinely moved the answer, which is the only case where this block matters.
+    """
+    rerun = copy.deepcopy(_load(DEPARTURE_RERUN))
+    rerun["level_vs_selection"]["selection_gbp"] = 99_000.0
+    block = _rerun_block(rerun=rerun)
+    assert block["move_is_inside_one_spread"] is False, (
+        "a £98,681 move was called one draw of a £1,811 spread")
+    assert "ONE DRAW" not in block["sentence"] and "LARGER" in block["sentence"], (
+        "the sentence still reads as a move inside the bar: {}".format(block["sentence"][:300]))
+
+
+def test_a_seed_family_wholly_on_ONE_side_of_zero_stops_the_no_sign_claim():
+    """Keyed to the family, not to today's answer. The day the floor earns a sign, this stops.
+
+    `changes_no_sign` is true because the nine-seed family straddles zero and for no other reason.
+    A family that does not straddle zero must not get the same sentence -- that would be a control
+    printing "we cannot tell" through the moment the instrument got good enough to tell.
+    """
+    floor = copy.deepcopy(_load(NOISE_FLOOR))
+    spread = floor["selection_gbp_spread"]
+    spread["min"], spread["max"] = 200.0, 4_000.0
+    block = _rerun_block(floor=floor)
+    assert block["family_straddles_zero"] is False and block["changes_no_sign"] is False, (
+        "a re-draw family that never crosses zero still had its move called signless")
+    assert "does NOT straddle zero" in block["sentence"], (
+        "the sentence kept the no-sign reading on a family that has a sign: {}".format(
+            block["sentence"][:300]))
+
+
+def test_a_rerun_from_ANOTHER_WORLD_states_no_move_at_all():
+    """Two figures from two worlds are not a quantity, so no difference is published."""
+    rerun = copy.deepcopy(_load(DEPARTURE_RERUN))
+    rerun["world_identity"]["digest"] = "0000deadbeef0000"
+    block = _rerun_block(rerun=rerun)
+    assert block["comparable"] is False and block["moved_gbp"] is None, (
+        "a run from another world was differenced against this page's figure")
+    assert "SAME world" in (block["not_comparable_because"] or ""), (
+        "the refusal does not name the world as its reason: {}".format(
+            str(block.get("not_comparable_because"))[:300]))
+    assert "NO MOVE IS STATED" in block["sentence"]
+
+
+def test_a_rerun_over_a_DIFFERENT_BOOK_states_no_move_at_all():
+    """The other identity that makes the difference a quantity, and it is not the world."""
+    rerun = copy.deepcopy(_load(DEPARTURE_RERUN))
+    rerun["book_identity"]["control_arm"]["billing_accounts_settled_in_window"] = 3
+    block = _rerun_block(rerun=rerun)
+    assert block["same_book"] is False and block["comparable"] is False, (
+        "a run scored over a different book was differenced against this one")
+    assert block["moved_gbp"] is None
+
+
+def test_the_objective_difference_is_read_from_the_TREES_and_never_from_the_filename():
+    """The subject of this block is a claim, and the artefact's NAME is not evidence for it.
+
+    POISON ROUND FIRST, because "returns False" has two causes and only one of them is the
+    control working: the baseline tree's copy of the module DOES contain the word `departure`
+    (in a docstring), so a substring scan answers True there. What decides it is whether the
+    objective can be HANDED the cost.
+    """
+    baseline_commit = _load(THREE_ARM)["producing_commit"]["commit"]
+    rerun_commit = _load(DEPARTURE_RERUN)["producing_commit"]["commit"]
+    import subprocess
+    shown = subprocess.run(
+        ["git", "show", "{}:{}".format(baseline_commit, gva._OBJECTIVE_MODULE)],
+        capture_output=True, text=True, timeout=30, cwd=str(PROJECT))
+    if shown.returncode != 0:
+        pytest.fail("the baseline run's own tree could not be read, so this control's poison "
+                    "round is UNAVAILABLE and an unavailable check is a failed one (R15)")
+    assert "departure" in shown.stdout, (
+        "the poison round is spent: the baseline tree no longer contains the word this control "
+        "exists to prove it does not match on")
+    assert gva._objective_pays_for_departures(baseline_commit) is False, (
+        "the tree that could NOT price a departure was read as one that could -- the word is "
+        "there and the argument is not")
+    assert gva._objective_pays_for_departures(rerun_commit) is True
+    assert gva._objective_pays_for_departures("not-a-commit") is None, (
+        "an unreadable tree reported an answer instead of an absence")
+
+
+def test_an_unestablished_objective_difference_is_a_second_draw_and_NOT_an_experiment(monkeypatch):
+    """"We could not read the two trees" must never render as "the departure term did this"."""
+    monkeypatch.setattr(gva, "_objective_pays_for_departures", lambda commit: None)
+    block = _rerun_block()
+    assert block["objective_difference"]["established"] is False
+    assert block["objective_difference"]["unavailable_because"], (
+        "the block reports an unestablished difference with no reason beside it")
+    assert "departures it causes" not in block["what_this_is"], (
+        "the page claims the objective was changed on trees it could not read")
+    assert "LATER TREE" in block["sentence"]
+
+
+def test_a_missing_rerun_artefact_is_an_absence_and_not_a_silence():
+    block = _rerun_block(rerun={})
+    assert block["available"] is False and block["reason"], (
+        "an unreadable re-run left the page saying nothing rather than saying it read nothing")
+
+
+def test_the_bound_reading_says_what_the_objective_could_not_reach():
+    """The operative reading: a price pinned to the cap cannot hear a changed objective."""
+    block = _rerun_block()
+    ba = block["bound_attribution"]
+    assert ba["decided_by_a_bound_after"] == (
+        _load(DEPARTURE_RERUN)["bound_attribution"]["decided_by_the_lawful_ceiling"]
+        + _load(DEPARTURE_RERUN)["bound_attribution"]["decided_by_the_model_support_bound"]), (
+        "the count of bound-decided prices is not the run's own two bounds summed")
+    assert str(ba["decided_by_a_bound_after"]) in ba["reading"]
+    assert "at most {}".format(ba["priced_after"] - ba["decided_by_a_bound_after"]) in ba[
+        "reading"], "the reading does not say how many decisions a changed objective can reach"
+
+
+def test_a_rerun_whose_ranking_LEAVES_the_null_is_read_differently():
+    """R15 reachability on the skill leg: both verdicts must be reachable."""
+    rerun = copy.deepcopy(_load(DEPARTURE_RERUN))
+    rerun["method_skill"]["null_spread"]["observed_inside_the_null_interval"] = False
+    block = _rerun_block(rerun=rerun)
+    assert "OUTSIDE" in block["method_skill"]["reading"], (
+        "a ranking that cleared the no-information interval still read as 'we cannot tell'")
+    assert "cannot tell" in _rerun_block()["method_skill"]["reading"], (
+        "the real pair's reading no longer withholds the verdict it must withhold")

@@ -112,10 +112,12 @@ would go red exactly when the instrument got good enough to earn a sign, which i
 """
 from __future__ import annotations
 
+import ast
 import json
 import math
 import re
 import statistics
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -275,6 +277,24 @@ CURRENT_WORLD_NOISE_FLOOR_PATH = (
 #: Recorded rather than deleted: a prediction kept beside its result is the only evidence it was
 #: made before the answer. See `docs/staging/records/SEAT_PREREGISTRATION_WHAT_THE_LIVE_WORLD_BOUND_MAKES_THE_PAGE_SAY_2026-09-03.md` (P8/P9).
 BOUNDING_REDRAW_MODE = "all"
+#: THE SAME ARMS RE-RUN WITH ONE THING CHANGED ABOUT THE COMPANY: the renewal objective was made to
+#: pay for the departures it causes (landed `e1895d6c8`, run 2026-09-09T21:35:40Z). Published BESIDE
+#: `THREE_ARM_PATH`'s figure and never in place of it -- it is a second draw of the same quantity in
+#: the same world on the same seed, and the whole point of putting it on the page is that a reader
+#: who meets the choosing leg going through zero must meet the bar it moved inside of in the same
+#: breath.
+#:
+#: NAMED BY ITS DATED PATH ON PURPOSE, and it is not promoted to a canonical one. A canonical path
+#: is for the run this page's figures come FROM; this artefact supplies no headline figure and
+#: promoting it would make the two runs indistinguishable to every control keyed to a constant --
+#: the class `tools/promoted_artefact_claim_census.py` exists for.
+#:
+#: THE FILENAME IS NOT EVIDENCE OF WHAT CHANGED. `_departure_term_rerun` establishes the objective
+#: difference by parsing each run's own producing commit, and says "not established" when it
+#: cannot -- a `_departure_` in a path is a name someone typed.
+DEPARTURE_TERM_RERUN_PATH = (
+    PROJECT / "docs" / "observability"
+    / "value_cycle_ab_s1_three_arm_departure_20260909.json")
 #: The floor cut into the half a larger settled book buys down and the half it cannot. Read to
 #: decide whether the REMEDY this page names beside its refusal is true; absent, the page says so
 #: rather than defaulting to the encouraging branch.
@@ -1282,6 +1302,342 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
             "the clock mix this feed refuses everywhere else."),
     }
 
+
+#: The name the objective's departure term arrives under, and the ONLY thing this feed will accept
+#: as evidence that a re-run's tree priced departures at all. A filename that says `_departure_` is
+#: not evidence, and this project has published a subject inferred from two figures agreeing
+#: (`SEAT_FINDING_THE_PUBLISHED_SUPPLIER_CHECK_INFERRED_ITS_SUBJECT_FROM_TWO_FIGURES_AGREEING_2026-09-10.md`).
+#: Read from each run's OWN producing commit, by parsing that tree's copy of the module -- so the
+#: claim is about the code that drew the figures and not about the code rendering the page.
+_OBJECTIVE_MODULE = "company/pricing/value_based_renewal.py"
+_OBJECTIVE_FUNCTION = "expected_value_gbp"
+_DEPARTURE_COST_ARG = "departure_cost_gbp"
+
+
+def _objective_pays_for_departures(commit: str | None) -> bool | None:
+    """Did the pricing objective at `commit` take a departure cost at all?
+
+    AST OVER THE ARGUMENT LIST, NOT A GREP FOR THE WORD. `departure` appears once in the module at
+    the baseline commit -- in a docstring about a null interval -- and 27 times at the re-run's, so
+    a substring scan answers this question by counting prose. What decides it is whether
+    `expected_value_gbp` ACCEPTS the cost: a term the objective cannot be handed cannot reach a
+    price. Returns `None` when the tree cannot be read, and every caller must publish that as
+    "not established" rather than as "no departure term" -- the two are opposite claims.
+    """
+    if not isinstance(commit, str) or not commit:
+        return None
+    try:
+        shown = subprocess.run(
+            ["git", "show", "{}:{}".format(commit, _OBJECTIVE_MODULE)],
+            capture_output=True, text=True, timeout=30, cwd=str(PROJECT))
+        if shown.returncode != 0:
+            return None
+        tree = ast.parse(shown.stdout)
+    except (OSError, ValueError, SyntaxError, subprocess.SubprocessError):
+        return None
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef) and node.name == _OBJECTIVE_FUNCTION:
+            taken = {a.arg for a in node.args.args} | {a.arg for a in node.args.kwonlyargs}
+            return _DEPARTURE_COST_ARG in taken
+    return None
+
+
+def _same_book(left: dict, right: dict) -> tuple[bool | None, list]:
+    """Whether two runs were scored over the same book, by the counts both artefacts publish.
+
+    The book identity is compared on the CONTROL arm's settled counts, because those are the ones
+    no arm's own pricing can move: `renewals_priced_by_the_arm` differs between any two objectives
+    by construction, so requiring it to match would refuse every comparison this block exists for.
+    """
+    fields = ("billing_accounts_settled_in_window", "with_an_electricity_leg",
+              "with_a_gas_leg", "dual_fuel", "accounts_at_end_of_window")
+    lb = ((left or {}).get("book_identity") or {}).get("control_arm") or {}
+    rb = ((right or {}).get("book_identity") or {}).get("control_arm") or {}
+    rows = []
+    for field in fields:
+        rows.append({"field": field, "baseline": lb.get(field), "rerun": rb.get(field)})
+    if any(r["baseline"] is None or r["rerun"] is None for r in rows):
+        return None, rows
+    return all(r["baseline"] == r["rerun"] for r in rows), rows
+
+
+def _departure_term_rerun(three_arm: dict | None, floor: dict | None,
+                          rerun: dict | None) -> dict:
+    """The same book re-run once with the pricing objective changed -- ONE DRAW, beside its spread.
+
+    WHY THIS IS ON THE PAGE AT ALL. The selection leg is the only quantity here that could be value
+    CREATED rather than MOVED, and on 2026-09-09 the objective was given the one thing it had never
+    had: a price for the departures it causes. The leg moved from +GBP 319.10 to -GBP 335.40 --
+    through zero. A reader who meets that as news has been told the arm's choosing became
+    worthless, and the truth is that a single re-draw of the dice moves the same figure across
+    -3,036..+1,261. So the move is published INSIDE the bar the page already carries, in the same
+    paragraph as the figure and the bar, and never as a footnote under them.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER (R15). Nothing here asserts "no sign": the sign is
+    withheld because the nine-seed family STRADDLES ZERO, which is a property of the family and goes
+    on being checked every publish. If a future floor's family sits wholly on one side, this block
+    stops saying the move changes no sign -- which is exactly when it should stop.
+
+    FAIL-CLOSED IN FOUR PLACES, because a comparison of two runs is four claims before it is one
+    number: same world, same book, same clock, and a tree difference that is actually the objective.
+    Any one unestablished and the figures are still published but the MOVE is not stated -- an
+    unknown must never render as a comparison a reader can take.
+    """
+    if not isinstance(rerun, dict) or not rerun:
+        return {"available": False,
+                "reason": ("no re-run of these arms under a changed objective was readable, so "
+                           "this page states one draw of the choosing leg and says so")}
+    base_split = (three_arm or {}).get("level_vs_selection") or {}
+    rerun_split = rerun.get("level_vs_selection") or {}
+    before, after = _f(base_split.get("selection_gbp")), _f(rerun_split.get("selection_gbp"))
+    base_world = ((three_arm or {}).get("world_identity") or {}).get("digest")
+    rerun_world = (rerun.get("world_identity") or {}).get("digest")
+    base_clock, rerun_clock = base_split.get("clock"), rerun_split.get("clock")
+    same_book, book_rows = _same_book(three_arm or {}, rerun)
+    base_commit = ((three_arm or {}).get("producing_commit") or {}).get("commit")
+    rerun_commit = (rerun.get("producing_commit") or {}).get("commit")
+    base_pays = _objective_pays_for_departures(base_commit)
+    rerun_pays = _objective_pays_for_departures(rerun_commit)
+    # THE ONE STATE IN WHICH THE TREES' DIFFERENCE IS ESTABLISHED, and it is a conjunction on
+    # purpose: `rerun_pays` alone would call a pair of runs a departure experiment whenever the
+    # LATER tree happens to have the term, including when the earlier one had it too and nothing
+    # about the objective changed between them.
+    objective_established = (base_pays is False and rerun_pays is True)
+    spread = (floor or {}).get("selection_gbp_spread") or {}
+    stdev, lo, hi = _f(spread.get("stdev")), _f(spread.get("min")), _f(spread.get("max"))
+    n = spread.get("n") if isinstance(spread.get("n"), int) else None
+    comparable = bool(
+        before is not None and after is not None
+        and base_world and rerun_world and base_world == rerun_world
+        and base_clock and base_clock == rerun_clock
+        and same_book is True)
+    not_comparable_because = None
+    if not comparable:
+        reasons = []
+        if before is None or after is None:
+            reasons.append("one of the two runs states no selection leg")
+        if not (base_world and rerun_world and base_world == rerun_world):
+            reasons.append("the two runs do not both name the SAME world")
+        if not (base_clock and base_clock == rerun_clock):
+            reasons.append("the two splits do not declare the same clock")
+        if same_book is not True:
+            reasons.append("the two runs' settled book counts are not established to be the same")
+        not_comparable_because = (
+            "NO MOVE IS STATED BETWEEN THESE TWO RUNS: " + "; ".join(reasons)
+            + ". Two figures differenced across that is not a quantity, so the runs are published "
+              "side by side and the difference is not.")
+    moved = (after - before) if comparable else None
+    inside_one_spread = (None if moved is None or stdev is None else bool(abs(moved) <= stdev))
+    both_inside = (None if lo is None or hi is None or before is None or after is None
+                   else bool(lo <= before <= hi and lo <= after <= hi))
+    straddles_zero = (None if lo is None or hi is None else bool(lo < 0 < hi))
+    # WHETHER THE MOVE CAN CHANGE A SIGN THE PAGE STATES. It cannot when the page states none, and
+    # the page states none exactly while this family falls on both sides of zero. Derived from the
+    # family rather than from the two draws: two draws of opposite sign are what a straddling
+    # family produces, so reading the sign question off the draws would answer it with itself.
+    changes_no_sign = (None if straddles_zero is None or moved is None else bool(straddles_zero))
+    ba_before = ((three_arm or {}).get("bound_attribution") or {})
+    ba_after = (rerun.get("bound_attribution") or {})
+
+    def _bound_decided(ba: dict):
+        ceiling = ba.get("decided_by_the_lawful_ceiling")
+        support = ba.get("decided_by_the_model_support_bound")
+        if not isinstance(ceiling, int) or not isinstance(support, int):
+            return None
+        return ceiling + support
+
+    ms_before = ((three_arm or {}).get("method_skill") or {})
+    ms_after = (rerun.get("method_skill") or {})
+    return {
+        "available": True,
+        "what_this_is": (
+            "The same book, the same world and the same seed, run a second time with ONE thing "
+            "changed about the company: the renewal objective was made to pay for the departures "
+            "it causes. It is published here, beside the bar, because the figure it moves is the "
+            "only one on this page that could be value CREATED."
+            if objective_established else
+            "The same book and the same world, run a second time under a LATER TREE. What differs "
+            "between the two trees is NOT established here, so this is a second draw and not an "
+            "experiment: read the two figures as two draws of one quantity."),
+        "rerun_artefact": _cited_path(DEPARTURE_TERM_RERUN_PATH),
+        "rerun_generated_at": rerun.get("generated_at"),
+        "baseline_generated_at": (three_arm or {}).get("generated_at"),
+        "objective_difference": {
+            "established": objective_established,
+            "how": (
+                "`{}` at each run's OWN producing commit, parsed: whether `{}` takes a `{}` "
+                "argument at all. A term the objective cannot be handed cannot reach a price, and "
+                "the word appears in the baseline tree's prose without reaching its "
+                "arithmetic.".format(_OBJECTIVE_MODULE, _OBJECTIVE_FUNCTION, _DEPARTURE_COST_ARG)),
+            "baseline_commit": base_commit,
+            "rerun_commit": rerun_commit,
+            "baseline_objective_pays_for_departures": base_pays,
+            "rerun_objective_pays_for_departures": rerun_pays,
+            "unavailable_because": (
+                None if objective_established else
+                "The two trees could not be shown to differ in the objective: the baseline tree "
+                "reads {} and the re-run's reads {} (`null` means that tree could not be read at "
+                "all). Nothing below is stated as an effect OF the departure term.".format(
+                    base_pays, rerun_pays)),
+        },
+        "world_digest": base_world,
+        "same_world": bool(base_world and base_world == rerun_world),
+        "clock": base_clock,
+        "same_clock": bool(base_clock and base_clock == rerun_clock),
+        "same_book": same_book,
+        "book_identity_compared": book_rows,
+        "comparable": comparable,
+        "not_comparable_because": not_comparable_because,
+        "selection_gbp_before": before,
+        "selection_gbp_after": after,
+        "moved_gbp": moved,
+        "level_share_of_advantage_before": _f(base_split.get("level_share_of_advantage")),
+        "level_share_of_advantage_after": _f(rerun_split.get("level_share_of_advantage")),
+        "spread": {"seeds": n, "stdev_gbp": stdev, "min_gbp": lo, "max_gbp": hi,
+                   "mean_gbp": _f(spread.get("mean"))},
+        "move_is_inside_one_spread": inside_one_spread,
+        "both_draws_inside_the_redraw_family": both_inside,
+        "family_straddles_zero": straddles_zero,
+        "changes_no_sign": changes_no_sign,
+        "sentence": _departure_rerun_sentence(
+            before, after, moved, stdev, n, inside_one_spread, both_inside, changes_no_sign,
+            comparable, not_comparable_because, objective_established,
+            _f(base_split.get("level_share_of_advantage")),
+            _f(rerun_split.get("level_share_of_advantage"))),
+        # WHY THE OBJECTIVE COULD NOT REACH THE QUESTION, from both runs' own attribution blocks.
+        # This is the operative reading and it is not a caveat: while two thirds of the arm's
+        # answers are set by the lawful cap, no change to what the arm is MAXIMISING can move them.
+        "bound_attribution": {
+            "priced_before": ba_before.get("priced"),
+            "priced_after": ba_after.get("priced"),
+            "decided_by_a_bound_before": _bound_decided(ba_before),
+            "decided_by_a_bound_after": _bound_decided(ba_after),
+            "share_decided_by_a_bound_before": _f(ba_before.get(
+                "share_of_priced_decided_by_a_bound")),
+            "share_decided_by_a_bound_after": _f(ba_after.get(
+                "share_of_priced_decided_by_a_bound")),
+            "chosen_freely_before": ba_before.get("chosen_freely"),
+            "chosen_freely_after": ba_after.get("chosen_freely"),
+            "median_freely_chosen_before": _f((ba_before.get(
+                "median_margin_gbp_per_mwh") or {}).get("chosen_freely")),
+            "median_freely_chosen_after": _f((ba_after.get(
+                "median_margin_gbp_per_mwh") or {}).get("chosen_freely")),
+            "reading": _departure_rerun_bound_reading(
+                _bound_decided(ba_after), ba_after.get("priced"),
+                _f((ba_before.get("median_margin_gbp_per_mwh") or {}).get("chosen_freely")),
+                _f((ba_after.get("median_margin_gbp_per_mwh") or {}).get("chosen_freely"))),
+        },
+        # AND WHETHER THE METHOD GOT ANY BETTER AT RANKING, which is the other question a reader
+        # would ask of a changed objective. Both runs' own null intervals are carried, because an
+        # observed concordance is meaningless without the interval a no-information signal reaches
+        # on THAT run's decision count -- and the two runs scored different numbers of decisions.
+        "method_skill": {
+            "concordance_before": _f(ms_before.get("concordance")),
+            "concordance_after": _f(ms_after.get("concordance")),
+            "decisions_scored_before": ms_before.get("decisions_scored"),
+            "decisions_scored_after": ms_after.get("decisions_scored"),
+            "null_95_before": ((ms_before.get("null_spread") or {}).get("null_95_interval")),
+            "null_95_after": ((ms_after.get("null_spread") or {}).get("null_95_interval")),
+            "inside_the_null_before": (ms_before.get("null_spread") or {}).get(
+                "observed_inside_the_null_interval"),
+            "inside_the_null_after": (ms_after.get("null_spread") or {}).get(
+                "observed_inside_the_null_interval"),
+            "p_two_sided_before": _f((ms_before.get("null_spread") or {}).get("p_two_sided")),
+            "p_two_sided_after": _f((ms_after.get("null_spread") or {}).get("p_two_sided")),
+            "reading": _departure_rerun_skill_reading(
+                (ms_before.get("null_spread") or {}).get("observed_inside_the_null_interval"),
+                (ms_after.get("null_spread") or {}).get("observed_inside_the_null_interval"),
+                _f(ms_before.get("concordance")), _f(ms_after.get("concordance"))),
+        },
+    }
+
+
+def _departure_rerun_sentence(before, after, moved, stdev, seeds, inside_one_spread, both_inside,
+                              changes_no_sign, comparable: bool, not_comparable_because,
+                              objective_established: bool, share_before, share_after) -> str:
+    """The one-draw reading, composed where a reader meets the figure rather than under it."""
+    if not comparable:
+        return (not_comparable_because or "") + " " + (
+            "The choosing leg on the run this page publishes is {}.".format(_gbp(before))
+            if before is not None else "")
+    lead = ("A SECOND DRAW, WITH THE OBJECTIVE CHANGED. " if objective_established
+            else "A SECOND DRAW, UNDER A LATER TREE. ")
+    body = ("The same book, the same world and the same seed, re-run once "
+            + ("after the renewal objective was made to pay for the departures it causes"
+               if objective_established else
+               "under a later tree whose difference from this one is not established here")
+            + ", puts the choosing leg at {} instead of {}".format(_gbp(after), _gbp(before)))
+    if share_before is not None and share_after is not None:
+        body += " -- the price level explaining {:.0f}% of the arm's advantage instead of " \
+                "{:.0f}%".format(share_after * 100, share_before * 100)
+    body += ". "
+    if inside_one_spread and seeds:
+        body += ("That move is {} on a quantity whose own {}-seed spread in this same world is "
+                 "{}, so it is ONE DRAW inside the bar above and not a change in the "
+                 "answer. ".format(_gbp(abs(moved)), seeds, _gbp(stdev)))
+    elif moved is not None and stdev is not None:
+        body += ("That move is {}, which is LARGER than the {} this same figure moves across the "
+                 "seed re-draws above -- so it is not inside the bar and this page cannot call it "
+                 "one draw. ".format(_gbp(abs(moved)), _gbp(stdev)))
+    else:
+        body += ("How that move compares with the seed spread CANNOT BE STATED here: no spread on "
+                 "this figure was readable, and an unplaced move must not read as a small one. ")
+    if changes_no_sign:
+        tail = ("It changes no sign, because there is no sign to change: the same figure re-drawn "
+                "across those seeds falls on BOTH sides of zero, and both of these draws sit "
+                "inside that family. This page stated no direction for the choosing leg before "
+                "the re-run and states none after it."
+                if both_inside is not False else
+                "It changes no sign, because there is no sign to change: the seed family falls on "
+                "BOTH sides of zero. At least one of these two draws sits OUTSIDE that family, "
+                "which is a reason to re-measure the family and not a reason to read a direction.")
+    elif changes_no_sign is False:
+        tail = ("The seed family does NOT straddle zero, so this move is not automatically "
+                "signless -- read it against that family's own lowest, mean and highest rather "
+                "than against this sentence.")
+    else:
+        tail = ("Whether it changes a sign cannot be stated: no seed family for this figure was "
+                "readable, so there is nothing here to place either draw in.")
+    return lead + body + tail
+
+
+def _departure_rerun_bound_reading(decided_by_a_bound, priced, median_free_before,
+                                   median_free_after) -> str:
+    """Why a changed objective could not reach the question, in the run's own counts."""
+    if not isinstance(decided_by_a_bound, int) or not isinstance(priced, int) or priced <= 0:
+        return ("How many of the re-run's prices were set by a bound rather than chosen is not "
+                "established here, so nothing is said about what the objective could reach.")
+    moved_clause = ""
+    if median_free_before is not None and median_free_after is not None:
+        direction = ("down" if median_free_after < median_free_before
+                     else ("up" if median_free_after > median_free_before else "not at all"))
+        moved_clause = (" On the ones it could reach it moved the median freely-chosen margin {} "
+                        "-- {:.2f} to {:.2f} GBP/MWh.".format(
+                            direction, median_free_before, median_free_after))
+    return ("{} of {} priced renewals in the re-run still had their margin set by a BOUND -- the "
+            "lawful ceiling or the frontier of what the churn model has evidence for -- and a "
+            "price pinned to a bound does not care what the objective is maximising. So a change "
+            "to the objective can move at most {} of these decisions, whatever it is worth.{}"
+            .format(decided_by_a_bound, priced, priced - decided_by_a_bound, moved_clause))
+
+
+def _departure_rerun_skill_reading(inside_before, inside_after, before, after) -> str:
+    """Whether the changed objective made the method's ranking readable. It did not."""
+    if inside_before is None or inside_after is None or before is None or after is None:
+        return ("Whether the re-run's ranking clears the interval a no-information signal reaches "
+                "is not established, so no reading of the method is taken from it.")
+    if inside_before and inside_after:
+        return ("The method's own ranking sits INSIDE the interval a signal carrying no "
+                "information reaches, on both runs ({:.4f} before, {:.4f} after). On whether the "
+                "method works we cannot tell, and the re-run does not change that in either "
+                "direction.".format(before, after))
+    if inside_after:
+        return ("The re-run's ranking sits INSIDE the interval a no-information signal reaches "
+                "({:.4f}), so on this run we cannot tell whether the method works -- whatever the "
+                "run before it read.".format(after))
+    return ("The re-run's ranking sits OUTSIDE the interval a no-information signal reaches "
+            "({:.4f} against {:.4f} before). That is a change worth reading, and it is read where "
+            "the method is published rather than here.".format(after, before))
 
 
 #: The contrasts the noise floor re-measures once per seed, and therefore the only ones this feed
@@ -6848,7 +7204,8 @@ def _world_departure_level() -> dict:
 
 def build(three_arm: dict | None, floor: dict | None,
           published_run: dict | None = None, decomposition: dict | None = None,
-          current_three_arm: dict | None = None, current_floor: dict | None = None) -> dict:
+          current_three_arm: dict | None = None, current_floor: dict | None = None,
+          departure_rerun: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     base = {
         "generated_at": now,
@@ -6869,7 +7226,7 @@ def build(three_arm: dict | None, floor: dict | None,
         # citation field is not worth an exception on any input it can be handed.
         "sources": [_cited_path(p) for p in (
             THREE_ARM_PATH, NOISE_FLOOR_PATH, CURRENT_WORLD_THREE_ARM_PATH,
-            CURRENT_WORLD_NOISE_FLOOR_PATH, DECOMPOSITION_PATH)],
+            CURRENT_WORLD_NOISE_FLOOR_PATH, DECOMPOSITION_PATH, DEPARTURE_TERM_RERUN_PATH)],
     }
     if not isinstance(three_arm, dict) or not three_arm:
         return dict(base, available=False, reason=(
@@ -6992,6 +7349,13 @@ def build(three_arm: dict | None, floor: dict | None,
         realised=realised,
         provisioned=provisioned,
         error_bar=_error_bar(floor, point, three_arm, point_clock),
+        # THE SECOND DRAW OF THE FIGURE THE BAR ABOVE IS A BAR ON, in the same payload as both, so
+        # the surface cannot render the move without the bar it moved inside of. Passed the SAME
+        # floor `_error_bar` gets -- not re-read -- because a move placed against a different
+        # spread from the one the page publishes is the two-figures-from-two-worlds shape, and this
+        # block's whole claim is that the move is smaller than THAT bar. See
+        # `_departure_term_rerun`.
+        departure_term_rerun=_departure_term_rerun(three_arm, floor, departure_rerun),
         # THE BOUND ON THE WHOLE COMPARISON, and it is published in the same payload as the
         # figures it bounds so the two can never be deployed apart. Probed from the world's own
         # reference function rather than written down -- see `_market_reaction`.
@@ -7338,7 +7702,8 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              published_run_path: Path | None = None,
              decomposition_path: Path | None = None,
              current_three_arm_path: Path | None = None,
-             current_noise_floor_path: Path | None = None) -> dict:
+             current_noise_floor_path: Path | None = None,
+             departure_rerun_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
                  _read(RUN_OUTPUT_PATH if published_run_path is None else published_run_path),
@@ -7351,7 +7716,9 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
                  # it -- which is exactly the state this module was in: a contrast path moved to
                  # the re-run, the floor path beside it left behind.
                  _read(CURRENT_WORLD_NOISE_FLOOR_PATH if current_noise_floor_path is None
-                       else current_noise_floor_path))
+                       else current_noise_floor_path),
+                 _read(DEPARTURE_TERM_RERUN_PATH if departure_rerun_path is None
+                       else departure_rerun_path))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T23:30:32.765322Z",
+  "generated_at": "2026-09-10T02:57:18.242496Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -9,7 +9,8 @@
     "docs/observability/value_cycle_ab_s1_noise_floor.json",
     "docs/observability/value_cycle_ab_s1_three_arm_20260908.json",
     "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
-    "docs/observability/value_cycle_ab_floor_decomposition.json"
+    "docs/observability/value_cycle_ab_floor_decomposition.json",
+    "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json"
   ],
   "available": true,
   "contrast_bounds": {
@@ -328,10 +329,10 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "8627b1b35a0890c6d97be18811745e4c9c517a24",
+    "publishing_tree_commit": "dceedff0f10f0531d8c0382424fbe276dbabaaf2",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 8b846013e and published from 8627b1b35 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 8b846013e and published from dceedff0f -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -598,6 +599,16 @@
           "also_on_disk_as": [
             "value_cycle_ab_s1_three_arm.json"
           ]
+        },
+        {
+          "artefact": "value_cycle_ab_s1_three_arm_departure_20260909.json",
+          "generated_at": "2026-09-09T21:35:40Z",
+          "ran_in_world": "39a192ce04c1eda8",
+          "level_share_of_advantage": 1.019971827652637,
+          "the_bigger_leg": "level",
+          "value_advantage_gbp": 16793.687579999998,
+          "level_advantage_gbp": 17129.08821399999,
+          "selection_gbp": -335.40063399999053
         }
       ],
       "later_runs_disagree": null,
@@ -644,10 +655,10 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "8627b1b35a0890c6d97be18811745e4c9c517a24",
+      "publishing_tree_commit": "dceedff0f10f0531d8c0382424fbe276dbabaaf2",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 8b846013e and published from 8627b1b35 -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 8b846013e and published from dceedff0f -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -702,13 +713,13 @@
       "dashboard_net_gbp": 147886.78,
       "run_identity": {
         "artefact_commit": null,
-        "showing_run_commit": "36e3ee8c4",
-        "showing_run_id": "run_output_36e3ee8c4_20260909T210648Z.json",
+        "showing_run_commit": "258720283",
+        "showing_run_id": "run_output_258720283_20260910T005624Z.json",
         "artefact_says_it_cannot_tell": true,
         "state": "unestablished",
         "why": "the run artefact does not say which run produced it"
       },
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads does not say which run produced it (and says so in its own payload), and the site says it is showing run_output_36e3ee8c4_20260909T210648Z.json. `docs/reports/run_output_latest.json` is refreshed on disk after every run but is not in the publish surface, so its committed copy can be many runs behind the figures published beside it -- and this feed cannot tell that apart from a genuinely different run. The claim is withheld rather than answered from whichever figure is nearer. The run artefact reports \u00a3131,289.34 and the figure the site publishes reports \u00a3147,886.78, a gap of \u00a316,597.44."
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads does not say which run produced it (and says so in its own payload), and the site says it is showing run_output_258720283_20260910T005624Z.json. `docs/reports/run_output_latest.json` is refreshed on disk after every run but is not in the publish surface, so its committed copy can be many runs behind the figures published beside it -- and this feed cannot tell that apart from a genuinely different run. The claim is withheld rather than answered from whichever figure is nearer. The run artefact reports \u00a3131,289.34 and the figure the site publishes reports \u00a3147,886.78, a gap of \u00a316,597.44."
     }
   },
   "provisioned": {
@@ -790,6 +801,105 @@
     "elasticity_draws_min": 288,
     "point_estimate_inside_the_measured_band": true,
     "reading": "The point estimate sits inside that band and so does zero, so this instrument cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees."
+  },
+  "departure_term_rerun": {
+    "available": true,
+    "what_this_is": "The same book, the same world and the same seed, run a second time with ONE thing changed about the company: the renewal objective was made to pay for the departures it causes. It is published here, beside the bar, because the figure it moves is the only one on this page that could be value CREATED.",
+    "rerun_artefact": "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
+    "rerun_generated_at": "2026-09-09T21:35:40Z",
+    "baseline_generated_at": "2026-09-09T13:58:12Z",
+    "objective_difference": {
+      "established": true,
+      "how": "`company/pricing/value_based_renewal.py` at each run's OWN producing commit, parsed: whether `expected_value_gbp` takes a `departure_cost_gbp` argument at all. A term the objective cannot be handed cannot reach a price, and the word appears in the baseline tree's prose without reaching its arithmetic.",
+      "baseline_commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
+      "rerun_commit": "e1895d6c870e2435fa6698d78e1ef31892aa9ea0",
+      "baseline_objective_pays_for_departures": false,
+      "rerun_objective_pays_for_departures": true,
+      "unavailable_because": null
+    },
+    "world_digest": "39a192ce04c1eda8",
+    "same_world": true,
+    "clock": "settled-realised",
+    "same_clock": true,
+    "same_book": true,
+    "book_identity_compared": [
+      {
+        "field": "billing_accounts_settled_in_window",
+        "baseline": 164,
+        "rerun": 164
+      },
+      {
+        "field": "with_an_electricity_leg",
+        "baseline": 146,
+        "rerun": 146
+      },
+      {
+        "field": "with_a_gas_leg",
+        "baseline": 105,
+        "rerun": 105
+      },
+      {
+        "field": "dual_fuel",
+        "baseline": 87,
+        "rerun": 87
+      },
+      {
+        "field": "accounts_at_end_of_window",
+        "baseline": 73,
+        "rerun": 73
+      }
+    ],
+    "comparable": true,
+    "not_comparable_because": null,
+    "selection_gbp_before": 319.1009159999958,
+    "selection_gbp_after": -335.40063399999053,
+    "moved_gbp": -654.5015499999863,
+    "level_share_of_advantage_before": 0.981707098049328,
+    "level_share_of_advantage_after": 1.019971827652637,
+    "spread": {
+      "seeds": 9,
+      "stdev_gbp": 1810.5007782810442,
+      "min_gbp": -3036.2544110000017,
+      "max_gbp": 1260.9261999999871,
+      "mean_gbp": -1078.1657011111156
+    },
+    "move_is_inside_one_spread": true,
+    "both_draws_inside_the_redraw_family": true,
+    "family_straddles_zero": true,
+    "changes_no_sign": true,
+    "sentence": "A SECOND DRAW, WITH THE OBJECTIVE CHANGED. The same book, the same world and the same seed, re-run once after the renewal objective was made to pay for the departures it causes, puts the choosing leg at -\u00a3335 instead of \u00a3319 -- the price level explaining 102% of the arm's advantage instead of 98%. That move is \u00a3655 on a quantity whose own 9-seed spread in this same world is \u00a31,811, so it is ONE DRAW inside the bar above and not a change in the answer. It changes no sign, because there is no sign to change: the same figure re-drawn across those seeds falls on BOTH sides of zero, and both of these draws sit inside that family. This page stated no direction for the choosing leg before the re-run and states none after it.",
+    "bound_attribution": {
+      "priced_before": 214,
+      "priced_after": 215,
+      "decided_by_a_bound_before": 144,
+      "decided_by_a_bound_after": 139,
+      "share_decided_by_a_bound_before": 0.6729,
+      "share_decided_by_a_bound_after": 0.6465,
+      "chosen_freely_before": 70,
+      "chosen_freely_after": 76,
+      "median_freely_chosen_before": 45.0,
+      "median_freely_chosen_after": 35.0,
+      "reading": "139 of 215 priced renewals in the re-run still had their margin set by a BOUND -- the lawful ceiling or the frontier of what the churn model has evidence for -- and a price pinned to a bound does not care what the objective is maximising. So a change to the objective can move at most 76 of these decisions, whatever it is worth. On the ones it could reach it moved the median freely-chosen margin down -- 45.00 to 35.00 GBP/MWh."
+    },
+    "method_skill": {
+      "concordance_before": 0.5337857142857143,
+      "concordance_after": 0.5442243303571429,
+      "decisions_scored_before": 168,
+      "decisions_scored_after": 170,
+      "null_95_before": [
+        0.44939285714285715,
+        0.5503571428571429
+      ],
+      "null_95_after": [
+        0.44956752232142855,
+        0.5506417410714286
+      ],
+      "inside_the_null_before": true,
+      "inside_the_null_after": true,
+      "p_two_sided_before": 0.1907,
+      "p_two_sided_after": 0.08535,
+      "reading": "The method's own ranking sits INSIDE the interval a signal carrying no information reaches, on both runs (0.5338 before, 0.5442 after). On whether the method works we cannot tell, and the re-run does not change that in either direction."
+    }
   },
   "market_reaction": {
     "available": true,
