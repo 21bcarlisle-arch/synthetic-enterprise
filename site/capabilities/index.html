@@ -2020,14 +2020,70 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                         .the_grading_population_is_not_independent;
               if (!g || !g.available) { return ""; }
               var m = g.outcome_moved_by_the_arms_own_price || {};
+              var wyg = dec.discrimination_auc_within_year || {};
+              var got = g.graded_against_the_control_arms_outcomes || {};
+              var pop = got.auc_population || {};
+              // THE DIAGNOSIS IS THE SAME WHETHER OR NOT THE REMEDY HAS RUN. What the arm's own
+              // price moved, and why dropping those rows is not the repair, are properties of
+              // this book — they do not become untrue on the day an independent grading arrives.
+              // Only the sentence that FOLLOWS them depends on whether it has.
               return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
                 + "<strong>And a bigger book would not make the grading population "
                 + "independent.</strong> " + prose(m.reading) + " "
                 + prose(g.dropping_them_is_not_the_repair)
-                + " What a clean population would have to be: "
+                + (g.is_it_available_today
+                    ? " What a clean population had to be, and what this run supplies: "
+                    : " What a clean population would have to be: ")
                 + (g.what_an_independent_population_must_look_like || [])
                     .map(function (x) { return prose(x); }).join(" ")
-                + " " + prose(g.why_not) + " " + prose(g.what_would_have_to_be_recorded) + "</p>";
+                + (g.is_it_available_today
+                    ? ""
+                    : " " + prose(g.why_not) + " " + prose(g.what_would_have_to_be_recorded))
+                + "</p>"
+                // THE GRADING ITSELF, ON THE DAY IT EXISTS. Until 2026-09-10 this function had
+                // one branch: it printed why the independent figure was UNAVAILABLE. The
+                // generator had already been re-keyed to read `available` off the artefact
+                // rather than pinning it — but the page that consumes it had not, so the run
+                // that first wrote the field would have silently dropped the explanation
+                // sentence, gone on listing the remedy as still needed, and rendered the figure
+                // nowhere. `esc(undefined)` is "", so nothing would have looked broken. That is
+                // the same defect one page over in the cost render, at the other end of the
+                // same pointer: keyed to today's answer, so it goes quiet exactly when the code
+                // becomes more honest.
+                + (g.is_it_available_today
+                    ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                      + "<strong>Graded against an outcome its own price did not cause.</strong> "
+                      + "The same belief, scored against whether each household stayed under the "
+                      + "CONTROL arm — a churn roll at a flat level no per-household belief set: "
+                      + "<strong>"
+                      + (typeof got.discrimination_auc === "number"
+                          ? got.discrimination_auc.toFixed(3) : "no figure")
+                      + "</strong>"
+                      + (typeof wyg.unstratified_auc === "number"
+                          ? ", against " + wyg.unstratified_auc.toFixed(3)
+                            + " when the outcome is the one the arm's own price helped make"
+                          : "")
+                      + (typeof got.scored_decisions === "number"
+                          ? ", on " + esc(got.scored_decisions) + " scored decisions ("
+                            + esc(pop.retained) + " stayed, " + esc(pop.left) + " left)"
+                          : "")
+                      + (typeof got.scored_share_of_priced === "number"
+                          ? ", " + Math.round(got.scored_share_of_priced * 100)
+                            + "% of the renewals the arm priced"
+                          : "")
+                      + ". "
+                      // THE CAVEAT DOES NOT LEAVE WITH THE ABSENCE, and it is on the figure
+                      // rather than under it. The OUTCOME is independent of the belief; the
+                      // POPULATION is still the value arm's priced set. A reader who takes the
+                      // second from the first draws the stronger conclusion no run supports.
+                      + prose(g.what_is_still_not_independent)
+                      + (typeof got.population_terms_absent_from_the_control_world === "number"
+                          ? " " + esc(got.population_terms_absent_from_the_control_world)
+                            + " priced term(s) reached no outcome in the control world at all, "
+                            + "and are excluded rather than counted as retentions."
+                          : "")
+                      + "</p>"
+                    : "");
             }())
           // WHICH DEPARTURES, named where the reader meets the figure — or why they are not
           // named. A rank statistic on ten departures that does not say which ten is a number
