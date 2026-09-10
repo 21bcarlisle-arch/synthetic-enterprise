@@ -5453,6 +5453,36 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         "undecomposed_sd_gbp": math.sqrt(v_all),
         "priced_side_sd_gbp": math.sqrt(v_only),
         "rest_of_book_sd_gbp": math.sqrt(v_except),
+        #: WHAT THAT ZERO WAS MEASURED OVER, beside the zero. `rest_of_book_sd_gbp` of 0.0 and a
+        #: `priced_share_of_variance` of 1.0 read as a finding about where the noise comes from,
+        #: and on a book whose priced roster covers every household that draws an elasticity they
+        #: could not have come out any other way -- the complement is empty and the share is an
+        #: identity. `noise_floor` refuses a leg that re-drew nobody, so a leg reaching here has a
+        #: non-empty complement; how non-empty is the whole question, and it was published nowhere.
+        #: On the 2026-09-03 book this reads 5 accounts over 15 calls, against 350 in the run.
+        #: NO THRESHOLD AND NO VERDICT -- the counts are stated and the reader weighs them, because
+        #: any bar for "too small" here would be a number picked because a number was needed.
+        #: (`SEAT_FINDING_THE_FLOOR_DECOMPOSITIONS_REST_OF_BOOK_HALF_IS_EMPTY_ON_THIS_BOOK_SO_ITS_
+        #: SHARE_IS_AN_IDENTITY_2026-09-10`.)
+        "rest_of_book_measured_over": {
+            "accounts_redrawn_per_seed": sorted(
+                c for c in {r.get("accounts_redrawn") for r in (priced_except.get("seeds") or [])}
+                if isinstance(c, int)),
+            "elasticity_calls_redrawn_per_seed": sorted(
+                c for c in {r.get("elasticity_redrawn") for r in (priced_except.get("seeds") or [])}
+                if isinstance(c, int)),
+            "elasticity_calls_in_the_run_per_seed": sorted(
+                c for c in {r.get("elasticity_draws") for r in (priced_except.get("seeds") or [])}
+                if isinstance(c, int)),
+            "why_this_is_here": (
+                "`rest_of_book_sd_gbp` is the `except` leg's own spread, and a spread of zero means "
+                "two entirely different things depending on these counts: that the rest of the "
+                "book's churn cascade genuinely does not move the contrast, or that there was "
+                "almost no rest of the book to re-draw. The first is a result; the second is the "
+                "shape of the instrument. Neither `priced_share_of_variance` nor "
+                "`share_is_decisive` can tell them apart, so the sample size is published here "
+                "and the reader does."),
+        },
         "priced_share_of_variance": priced_share,
         "reconciliation_ratio": reconciliation,
         "reconciliation_reading": (
