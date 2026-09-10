@@ -306,6 +306,15 @@ DEPARTURE_TERM_RERUN_PATH = (
 #: rather than defaulting to the encouraging branch.
 DECOMPOSITION_PATH = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_floor_decomposition.json")
+#: WHETHER THE `except` HALF THE BOUND ABOVE ASSUMES AWAY HAS ANYBODY IN IT. One instrumented
+#: pass with a PASS-THROUGH recorder on `price_elasticity_for_customer`, counting which households
+#: draw one and how the value arm's priced roster cuts them. Read by
+#: `_the_complement_this_bound_rests_on` and by nothing else: the sign-settling block's whole
+#: licence to publish a corner of a family it never measured is that the corner is the family's
+#: MINIMUM, and this says whether it is also the family's TRUTH.
+FLOOR_PARTITION_PROBE_PATH = (
+    PROJECT / "docs" / "observability"
+    / "value_cycle_ab_s1_floor_partition_probe_20260910.json")
 OUT_PATH = PROJECT / "site" / "data" / "value_arms.json"
 
 #: What each arm IS, in the words a reader who does not work in energy can use. The third is the
@@ -7259,6 +7268,76 @@ _SIGN_REMEDY_FIGURES = (
 )
 
 
+def _the_complement_this_bound_rests_on(current: dict | None, probe: dict | None = None) -> dict:
+    """Whether the `except` half `_what_would_settle_the_sign` assumes away is EMPTY on this book.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-10). The block below prices the corner where `V_rest = 0`
+    and says underneath it "the real book is LARGER than this, never smaller" and that pinning it
+    down needs "the `only` and `except` floor legs re-run on this book ... not yet run". The maths
+    is right and both inferences are wrong on this instrument. `except` re-draws the complement of
+    the priced roster, and the probe measured 298 elasticity calls in a full pass with ZERO of them
+    outside the 100-account roster. So `V_rest` is identically zero, the corner IS the truth, the
+    bound is ATTAINED rather than merely valid -- and the run the page directs a reader at refused
+    on its first seed for exactly this reason, 39 minutes in. A remedy sentence naming work that
+    cannot be done is worse than none: it reads as a plan.
+
+    THE BOUND IS NOT WITHDRAWN AND `is_a_lower_bound` DOES NOT FLIP. `m` is still the minimum over
+    the family and the published figure still bounds it -- what changes is that nothing is coming
+    to push it up. Flipping the boolean would say the arithmetic was wrong, and it was not.
+
+    MATCHED ON THE WORLD AND THE ROSTER, WHICH IS ALL EITHER ARTEFACT CARRIES, and stated so the
+    reader can weigh the match rather than take it. FAIL CLOSED on any mismatch or absence: a probe
+    that cannot be shown to describe this book leaves the ordinary lower-bound reading standing,
+    which is the conservative direction -- it asks for a bigger book than it needs.
+    """
+    probe = probe if probe is not None else _read(FLOOR_PARTITION_PROBE_PATH)
+    if not isinstance(probe, dict):
+        return {"empty": None, "why": (
+            "No partition probe is on disk for this world, so whether any household outside the "
+            "priced roster draws an elasticity at all is unmeasured here.")}
+    outside = probe.get("accounts_that_drew_outside_the_roster")
+    ours_digest = ((current or {}).get("world_identity") or {}).get("digest")
+    funnel = (((current or {}).get("renewal_funnel") or {}).get("value_arm") or {})
+    ours_roster = funnel.get("accounts_the_arm_priced")
+    ours_roster = len(ours_roster) if isinstance(ours_roster, list) else None
+    if not isinstance(outside, int):
+        return {"empty": None, "why": (
+            "The partition probe on disk does not count how many households drew an elasticity "
+            "outside the priced roster, so it cannot say whether that half is empty.")}
+    if not ours_digest or ours_digest != probe.get("world_digest"):
+        return {"empty": None, "why": (
+            "The partition probe ran in world {!r} and this page publishes {!r}. A cut measured "
+            "over one departure level says nothing about another, so the bound below is read as "
+            "the ordinary lower bound.".format(probe.get("world_digest"), ours_digest))}
+    if not ours_roster or ours_roster != probe.get("roster_size"):
+        return {"empty": None, "why": (
+            "The partition probe cut a roster of {} accounts and this page's arm priced {}. The "
+            "cut is the roster, so a probe of a different one does not describe this book, and "
+            "the bound below is read as the ordinary lower bound.".format(
+                probe.get("roster_size"), ours_roster))}
+    return {
+        "empty": outside == 0,
+        "probe_elasticity_calls": probe.get("elasticity_calls"),
+        "probe_accounts_that_drew": probe.get("accounts_that_drew"),
+        "probe_roster_size": probe.get("roster_size"),
+        "probe_accounts_outside_the_roster": outside,
+        "matched_on": ("the world digest and the roster size, which is what both artefacts carry "
+                       "-- not an account-by-account identity, which neither publishes"),
+        "why": (
+            "One instrumented full-window pass counted {calls} elasticity draws in this world, "
+            "from {drew} households, and {outside} of them fell outside the {roster}-account "
+            "roster the `except` leg cuts along. {reading}".format(
+                calls=probe.get("elasticity_calls"), drew=probe.get("accounts_that_drew"),
+                outside=outside or "NONE", roster=probe.get("roster_size"),
+                reading=(
+                    "So there is no rest of the book for that leg to re-draw: `V_rest` is "
+                    "identically zero on this instrument, for every seed and at any book size."
+                    if outside == 0 else
+                    "So the leg has a non-empty complement and its variance is a real, if "
+                    "imprecise, quantity this page has not measured."))),
+    }
+
+
 def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
                                 contrast: str = SELECTION_CONTRAST) -> dict:
     """How much larger a book would have to be before this leg could carry a direction.
@@ -7353,6 +7432,8 @@ def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
 
     priced_rows = [row for row in rows if row.get("times_this_book")]
     verdicts = {row["times_this_book"] <= 1.0 for row in priced_rows}
+    complement = _the_complement_this_bound_rests_on(current)
+    attained = complement.get("empty") is True
     return {
         "available": True,
         "what_this_is": (
@@ -7368,17 +7449,39 @@ def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
         "independence_unit": "priced_decisions",
         "why_no_account_column": (
             "The 1/n law indexes on INDEPENDENT DRAWS -- the households whose elasticity was "
-            "re-rolled -- and that count comes off the `only` floor leg, which has not been run "
-            "on this book. The multiple below is invariant to which index is used; the absolute "
-            "counts are not, so only the decision index is published and it is named."),
+            "re-rolled -- and that count comes off the `only` floor leg, which {}. The multiple "
+            "below is invariant to which index is used; the absolute counts are not, so only the "
+            "decision index is published and it is named.".format(
+                "cannot be run as a distinct leg on this book: with every drawing household "
+                "inside the priced roster it holds nobody fixed, which is the undecomposed floor "
+                "wearing a decomposed label, and the producer refuses it"
+                if attained else "has not been run on this book")),
         "rows": rows,
+        # THE BOOLEAN DOES NOT FLIP WHEN THE BOUND IS ATTAINED. `m` is still the minimum over the
+        # family and the figure still bounds it; what an attained bound removes is the expectation
+        # that anything is coming to push it up. Saying "not a lower bound" would report the
+        # arithmetic as wrong, and it is not -- see `_the_complement_this_bound_rests_on`.
         "is_a_lower_bound": True,
         "why_it_is_a_lower_bound": (
             "Every figure here is the corner where the WHOLE spread is the priced households' own "
             "draw and none of it is the rest of the book's churn cascade. The requirement is "
-            "strictly increasing in the churn-cascade share, so the real book is LARGER than "
-            "this, never smaller. Pinning it down needs the `only` and `except` floor legs re-run "
-            "on this book at these nine seeds -- nine full three-arm passes each, not yet run."),
+            "strictly increasing in the churn-cascade share, so no split prices smaller than "
+            "this. " + (
+                "AND ON THIS INSTRUMENT THE BOUND IS ATTAINED, so read these as exact and not as "
+                "a floor that will rise. " + complement["why"] + " The corner is therefore where "
+                "this book actually sits, and the two floor legs that would 'pin it down' cannot "
+                "be run here to do it: the `except` leg re-draws an empty set and the `only` leg "
+                "holds nobody fixed. Both refuse, and the nine-seed `except` run launched on "
+                "2026-09-10 refused on its first seed after 39 minutes for exactly this reason. "
+                "What is missing is not compute -- it is a floor keyed to something the rest of "
+                "the book HAS, its churn cascade, rather than to an elasticity draw it never "
+                "reaches."
+                if attained else
+                "So the real book is LARGER than this, never smaller. Pinning it down needs the "
+                "`only` and `except` floor legs re-run on this book at these nine seeds -- nine "
+                "full three-arm passes each, not yet run. " + str(complement.get("why") or ""))),
+        "the_bound_is_attained": attained,
+        "the_complement_this_bound_rests_on": complement,
         "and_it_must_be_exceeded": (
             "The page resolves a contrast when it EXCEEDS its spread, strictly, so a book of "
             "exactly the size below leaves the leg still unresolved. Read every count as the "
@@ -7396,11 +7499,11 @@ def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
             "block prices the requirement and states no verdict on reachability. Also "
             "unestablished: whether acquiring customers reaches this arm at all -- "
             "`where_the_priced_decisions_come_from` measured that on the OTHER book."),
-        "sentence": _sign_remedy_sentence(rows, priced),
+        "sentence": _sign_remedy_sentence(rows, priced, attained=attained),
     }
 
 
-def _sign_remedy_sentence(rows: list, priced: int) -> str:
+def _sign_remedy_sentence(rows: list, priced: int, attained: bool = False) -> str:
     """The one line a reader takes away, composed from the rows and never from a remembered answer.
 
     STATES BOTH FIGURES OR NEITHER'S VERDICT. Where the two rows fall on opposite sides of what
@@ -7411,11 +7514,20 @@ def _sign_remedy_sentence(rows: list, priced: int) -> str:
     if not usable:
         return ("Nothing here says what it would take: no figure on this leg could be priced "
                 "against its own spread, so 'we cannot tell' stands with no remedy beside it.")
-    return ("What it would take, against this book's {priced:,} priced renewals: {legs}. Both are "
-            "the most optimistic book in the family -- the real one is larger. Which of the two a "
+    # THE ONE-LINE VERSION OF `why_it_is_a_lower_bound`, AND IT SAID THE WRONG THING (2026-09-10).
+    # "the real one is larger" is the inference an ATTAINED bound does not license, and it is the
+    # half of this block a reader actually carries away.
+    bound_clause = ("Both are the most optimistic book in the family, and on this instrument that "
+                    "corner is where this book sits -- read them as exact, not as a floor that "
+                    "will rise when the missing floor legs are run, which on this book they "
+                    "cannot be."
+                    if attained else
+                    "Both are the most optimistic book in the family -- the real one is larger.")
+    return ("What it would take, against this book's {priced:,} priced renewals: {legs}. "
+            "{bound_clause} Which of the two a "
             "reader should mean is not a detail this page can settle for them: they are different "
             "quantities and they are answered by different books.").format(
-        priced=priced,
+        priced=priced, bound_clause=bound_clause,
         legs="; ".join(
             "to give {which} ({figure}) a direction, more than {times:,.1f}x this book -- about "
             "{decisions:,} priced renewals out of {offered} the world must offer".format(

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T17:17:15.865344Z",
+  "generated_at": "2026-09-10T17:29:26.447259Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -376,7 +376,7 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "083d84bf27a211f7bb4db73e182114fc59d82577",
+    "publishing_tree_commit": "094d1d6c1327683945099850338e74ecc5c5402a",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -388,7 +388,7 @@
       "objective_moved_since_the_run": true,
       "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     },
-    "reading": "Produced at 8b846013e and published from 083d84bf2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+    "reading": "Produced at 8b846013e and published from 094d1d6c1 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
   },
   "world_provenance": {
     "available": true,
@@ -528,7 +528,7 @@
           "priced_share_of_renewals_offered": 0.1052
         },
         "independence_unit": "priced_decisions",
-        "why_no_account_column": "The 1/n law indexes on INDEPENDENT DRAWS -- the households whose elasticity was re-rolled -- and that count comes off the `only` floor leg, which has not been run on this book. The multiple below is invariant to which index is used; the absolute counts are not, so only the decision index is published and it is named.",
+        "why_no_account_column": "The 1/n law indexes on INDEPENDENT DRAWS -- the households whose elasticity was re-rolled -- and that count comes off the `only` floor leg, which cannot be run as a distinct leg on this book: with every drawing household inside the priced roster it holds nobody fixed, which is the undecomposed floor wearing a decomposed label, and the producer refuses it. The multiple below is invariant to which index is used; the absolute counts are not, so only the decision index is published and it is named.",
         "rows": [
           {
             "which_figure": "the published draw",
@@ -550,11 +550,21 @@
           }
         ],
         "is_a_lower_bound": true,
-        "why_it_is_a_lower_bound": "Every figure here is the corner where the WHOLE spread is the priced households' own draw and none of it is the rest of the book's churn cascade. The requirement is strictly increasing in the churn-cascade share, so the real book is LARGER than this, never smaller. Pinning it down needs the `only` and `except` floor legs re-run on this book at these nine seeds -- nine full three-arm passes each, not yet run.",
+        "why_it_is_a_lower_bound": "Every figure here is the corner where the WHOLE spread is the priced households' own draw and none of it is the rest of the book's churn cascade. The requirement is strictly increasing in the churn-cascade share, so no split prices smaller than this. AND ON THIS INSTRUMENT THE BOUND IS ATTAINED, so read these as exact and not as a floor that will rise. One instrumented full-window pass counted 298 elasticity draws in this world, from 67 households, and NONE of them fell outside the 100-account roster the `except` leg cuts along. So there is no rest of the book for that leg to re-draw: `V_rest` is identically zero on this instrument, for every seed and at any book size. The corner is therefore where this book actually sits, and the two floor legs that would 'pin it down' cannot be run here to do it: the `except` leg re-draws an empty set and the `only` leg holds nobody fixed. Both refuse, and the nine-seed `except` run launched on 2026-09-10 refused on its first seed after 39 minutes for exactly this reason. What is missing is not compute -- it is a floor keyed to something the rest of the book HAS, its churn cascade, rather than to an elasticity draw it never reaches.",
+        "the_bound_is_attained": true,
+        "the_complement_this_bound_rests_on": {
+          "empty": true,
+          "probe_elasticity_calls": 298,
+          "probe_accounts_that_drew": 67,
+          "probe_roster_size": 100,
+          "probe_accounts_outside_the_roster": 0,
+          "matched_on": "the world digest and the roster size, which is what both artefacts carry -- not an account-by-account identity, which neither publishes",
+          "why": "One instrumented full-window pass counted 298 elasticity draws in this world, from 67 households, and NONE of them fell outside the 100-account roster the `except` leg cuts along. So there is no rest of the book for that leg to re-draw: `V_rest` is identically zero on this instrument, for every seed and at any book size."
+        },
         "and_it_must_be_exceeded": "The page resolves a contrast when it EXCEEDS its spread, strictly, so a book of exactly the size below leaves the leg still unresolved. Read every count as the smallest book that does not work.",
         "the_two_figures_disagree": true,
         "what_is_not_established": "Whether a book that size can be built. The obvious ceiling to check it against -- `simulation.premise_population.settled_book_ceiling` -- is stated per customer-YEAR (632 accounts at years=1, 63 at years=10) against a book whose 164 accounts are counted over a ten-year window, and 63 is fewer than the book that demonstrably runs. Those are not the same quantity and their ratio would not be one, so this block prices the requirement and states no verdict on reachability. Also unestablished: whether acquiring customers reaches this arm at all -- `where_the_priced_decisions_come_from` measured that on the OTHER book.",
-        "sentence": "What it would take, against this book's 214 priced renewals: to give the published draw (\u00a3270) a direction, more than 44.9x this book -- about 9,608 priced renewals out of 91,331 the world must offer; to give the centre of its own re-draw family (-\u00a31,078) a direction, more than 2.8x this book -- about 604 priced renewals out of 5,742 the world must offer. Both are the most optimistic book in the family -- the real one is larger. Which of the two a reader should mean is not a detail this page can settle for them: they are different quantities and they are answered by different books."
+        "sentence": "What it would take, against this book's 214 priced renewals: to give the published draw (\u00a3270) a direction, more than 44.9x this book -- about 9,608 priced renewals out of 91,331 the world must offer; to give the centre of its own re-draw family (-\u00a31,078) a direction, more than 2.8x this book -- about 604 priced renewals out of 5,742 the world must offer. Both are the most optimistic book in the family, and on this instrument that corner is where this book sits -- read them as exact, not as a floor that will rise when the missing floor legs are run, which on this book they cannot be. Which of the two a reader should mean is not a detail this page can settle for them: they are different quantities and they are answered by different books."
       },
       "figure_gbp": 270.20708699998795,
       "bind_asymmetry": {
@@ -734,7 +744,7 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "083d84bf27a211f7bb4db73e182114fc59d82577",
+      "publishing_tree_commit": "094d1d6c1327683945099850338e74ecc5c5402a",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -746,7 +756,7 @@
         "objective_moved_since_the_run": true,
         "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
       },
-      "reading": "Produced at 8b846013e and published from 083d84bf2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+      "reading": "Produced at 8b846013e and published from 094d1d6c1 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     }
   },
   "realised": {

@@ -6460,6 +6460,90 @@ def test_the_book_a_sign_would_need_is_a_lower_bound_over_every_split(real_curre
         assert block["is_a_lower_bound"] is True
 
 
+def test_an_ATTAINED_bound_stops_promising_a_bigger_number_and_a_run_that_cannot_happen():
+    """THE DEFECT, live on `capabilities/index.html` until 2026-09-10.
+
+    The block prices the `V_rest = 0` corner and printed underneath it "the real book is LARGER
+    than this, never smaller", plus the work that would pin it down: "the `only` and `except` floor
+    legs re-run on this book at these nine seeds -- nine full three-arm passes each, not yet run."
+    The MATHS is right -- the corner is the family's minimum. Both INFERENCES are wrong here. A
+    full instrumented pass counted 298 elasticity draws in this world with ZERO outside the
+    100-account priced roster, so `V_rest` is identically zero: the corner is where this book
+    actually sits, nothing is coming to raise it, and the nine-seed `except` run launched that
+    morning refused on its first seed after 39 minutes because the set it re-draws is empty. A
+    remedy naming work that cannot be done is worse than none -- it reads as a plan.
+
+    KEYED TO THE PROBE, NOT TO THE WORDING OR TO 44.9x. Feed it a probe that finds households
+    outside the roster and the ordinary lower-bound reading must come back, with no edit here.
+
+    THE BOOLEAN DOES NOT FLIP EITHER WAY: `is_a_lower_bound` stays True in both, because `m` is
+    still the minimum over the family. A repair that reported an attained bound as "not a bound"
+    would say the arithmetic was wrong, and it is not.
+    """
+    leg = {"verdict_stability": {"sign_determined": False},
+           "bound": {"stdev_gbp": 1000.0, "mean_gbp": -400.0, "n": 9}}
+    current = {"world_identity": {"digest": "w1"},
+               "renewal_funnel": {"value_arm": {
+                   "priced": 200, "renewals_the_world_offered": 2000,
+                   "priced_share_of_renewals_offered": 0.1,
+                   "accounts_the_arm_priced": ["A{}".format(i) for i in range(100)]}}}
+
+    def _probe(outside, **over):
+        return dict({"world_digest": "w1", "roster_size": 100, "elasticity_calls": 298,
+                     "accounts_that_drew": 67,
+                     "accounts_that_drew_outside_the_roster": outside}, **over)
+
+    empty = gva._the_complement_this_bound_rests_on(current, _probe(0))
+    peopled = gva._the_complement_this_bound_rests_on(current, _probe(5))
+    assert empty["empty"] is True and peopled["empty"] is False, (
+        "the probe reader does not separate an empty complement from a peopled one, so every "
+        "sentence keyed to it says the same thing whatever was measured")
+
+    # FAIL CLOSED, THREE WAYS. A probe that cannot be shown to describe THIS book must leave the
+    # ordinary reading standing -- which asks for a bigger book than needed, the safe direction.
+    for name, probe in (("another world", _probe(0, world_digest="w2")),
+                        ("another roster", _probe(0, roster_size=67)),
+                        ("no count at all", _probe(None))):
+        assert gva._the_complement_this_bound_rests_on(current, probe)["empty"] is None, (
+            "a probe from {} was read as describing this book -- the page would then call its "
+            "bound exact on evidence measured somewhere else".format(name))
+    assert gva._the_complement_this_bound_rests_on(current, None)["empty"] is None
+
+    # AND THE BLOCK'S PROSE FOLLOWS IT. Both readings are driven through the module's own file
+    # read, so the two differ in the PROBE and in nothing else -- a fixture that changed the world
+    # or the book alongside it could not attribute which one moved the sentence.
+    import unittest.mock as _mock
+    with _mock.patch.object(gva, "_read", lambda p: _probe(0)):
+        block = gva._what_would_settle_the_sign(leg, current, 250.0)
+    assert block["the_bound_is_attained"] is True, (
+        "the page did not read the probe at all, so the branch below is unreachable")
+    assert block["is_a_lower_bound"] is True, (
+        "an attained bound was reported as not a bound, which says the arithmetic was wrong")
+    assert "the real book is LARGER" not in block["why_it_is_a_lower_bound"], (
+        "the page promised a bigger number that no measurement on this instrument can produce")
+    assert "not yet run" not in block["why_it_is_a_lower_bound"], (
+        "the page still directs a reader at floor legs that refuse on this book")
+    assert "attained" in block["why_it_is_a_lower_bound"].lower()
+    assert "298" in block["why_it_is_a_lower_bound"], (
+        "the claim is stated with none of the counts it rests on, so a reader cannot check it")
+    assert "cannot be run as a distinct leg" in block["why_no_account_column"], (
+        "the account column is still withheld pending a leg that cannot exist here")
+    assert "the real one is larger" not in block["sentence"], (
+        "the takeaway line kept the inference the block above withdrew -- and the line is the "
+        "half a reader carries away: {}".format(block["sentence"]))
+    assert "read them as exact" in block["sentence"]
+
+    # THE NULL RUNG: a peopled complement restores every original sentence, with no edit here.
+    with _mock.patch.object(gva, "_read", lambda p: _probe(5)):
+        ordinary = gva._what_would_settle_the_sign(leg, current, 250.0)
+    assert ordinary["the_bound_is_attained"] is False
+    assert "the real book is LARGER" in ordinary["why_it_is_a_lower_bound"], (
+        "the lower-bound reading was deleted rather than made conditional, so a book whose "
+        "complement is peopled would be told its bound is exact")
+    assert "the real one is larger" in ordinary["sentence"]
+    assert "not yet run" in ordinary["why_it_is_a_lower_bound"]
+
+
 def test_the_price_is_on_the_book_this_page_publishes():
     """THE RECONCILIATION THE EXISTING DECOMPOSITION FAILS, which is why this block exists at all.
 
