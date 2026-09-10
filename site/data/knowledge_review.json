@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T22:56:25Z",
+  "generated_at": "2026-09-10T03:58:07Z",
   "source": "site/data/knowledge_wholesale.json",
   "rule": "site/knowledge/review_state.py",
   "policy": {
@@ -17,40 +17,14 @@
   },
   "tally": {
     "due": 0,
-    "unchecked": 7,
+    "unchecked": 3,
     "stub": 0,
-    "fresh": 9
+    "fresh": 13
   },
   "topics": [
     {
       "id": "carbon-price",
       "title": "The UK carbon price (UK ETS + CPS)",
-      "rate_of_change": "medium",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-24",
-      "days_allowed": 183,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-24. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "electricity-wholesale",
-      "title": "GB electricity wholesale",
-      "rate_of_change": "medium",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-24",
-      "days_allowed": 183,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-24. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "gas-wholesale",
-      "title": "GB gas wholesale",
       "rate_of_change": "medium",
       "state": "unchecked",
       "last_verified": null,
@@ -69,32 +43,6 @@
       "last_verified": null,
       "written": "2026-08-24",
       "days_allowed": 365,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-24. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "hedging-forward-market",
-      "title": "Hedging & the forward market",
-      "rate_of_change": "slow",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-24",
-      "days_allowed": 365,
-      "age_days": null,
-      "overdue_by": null,
-      "label": "Written, awaiting check",
-      "detail": "Written 2026-08-24. The explanation below has not been checked against the published source."
-    },
-    {
-      "id": "imbalance-cashout-settlement",
-      "title": "Imbalance & cash-out",
-      "rate_of_change": "medium",
-      "state": "unchecked",
-      "last_verified": null,
-      "written": "2026-08-24",
-      "days_allowed": 183,
       "age_days": null,
       "overdue_by": null,
       "label": "Written, awaiting check",
@@ -120,10 +68,46 @@
       "state": "fresh",
       "last_verified": "2026-08-28",
       "days_allowed": 183,
-      "age_days": 12,
+      "age_days": 13,
       "overdue_by": null,
       "label": "Reviewed 2026-08-28",
-      "detail": "Checked 12 days ago against a 183-day threshold. Source: Ofgem SLC 22B and its Market-wide Derogation (consultation 27 Aug 2025); CMA Energy Market Investigation 2016 Appendix 9.10 §§64, 74."
+      "detail": "Checked 13 days ago against a 183-day threshold. Source: Ofgem SLC 22B and its Market-wide Derogation (consultation 27 Aug 2025); CMA Energy Market Investigation 2016 Appendix 9.10 §§64, 74."
+    },
+    {
+      "id": "electricity-wholesale",
+      "title": "GB electricity wholesale",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-09-10",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-09-10",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: Ember, British power prices are increasingly independent from gas; ECIU, Marginal Gains: how wind is pushing gas out of the power market (2025) -- gas marginal in ~85% of hours in 2024, down from close to 90% in 2018, and 2025 hours with gas below 20% of the mix averaging ~£60/MWh against ~£130/MWh where gas exceeded 50%; DESNZ Review of Electricity Market Arrangements Summer Update, 10 July 2025, rejecting zonal pricing and confirming reformed national pricing."
+    },
+    {
+      "id": "gas-wholesale",
+      "title": "GB gas wholesale",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-09-10",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-09-10",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: National Gas / UNC published NBP and daily balancing arrangements (virtual hub, gas-day balancing, cash-out at system marginal buy and sell prices); DESNZ on GB gas storage capacity -- around 1.7 bcm, roughly seven days of average winter demand; OIES NG201, UK Gas: Volatility of Demand and Flexibility of Supply (October 2025)."
+    },
+    {
+      "id": "hedging-forward-market",
+      "title": "Hedging & the forward market",
+      "rate_of_change": "slow",
+      "state": "fresh",
+      "last_verified": "2026-09-10",
+      "days_allowed": 365,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-09-10",
+      "detail": "Checked 0 days ago against a 365-day threshold. Source: Ofgem, Strengthening Financial Resilience decision (April 2023) and the enhanced Financial Responsibility Principle decision (July 2023) -- positive obligation to evidence sufficient capital and to manage mutualisable price risk, failure to hedge named as a concern, plus a minimum capital requirement for domestic suppliers; NAO, The energy supplier market, and Ofgem's record of supplier failures -- 28 failures in 2021 of roughly 57 since 2016, more than 4 million customers moved."
     },
     {
       "id": "how-households-choose",
@@ -132,10 +116,10 @@
       "state": "fresh",
       "last_verified": "2026-08-30",
       "days_allowed": 183,
-      "age_days": 10,
+      "age_days": 11,
       "overdue_by": null,
       "label": "Reviewed 2026-08-30",
-      "detail": "Checked 10 days ago against a 183-day threshold. Source: Ofgem State of the Market (April 2025); Ofgem Consumer Impacts of Market Conditions survey waves 5 and 6; Ofgem non-domestic 2024 research."
+      "detail": "Checked 11 days ago against a 183-day threshold. Source: Ofgem State of the Market (April 2025); Ofgem Consumer Impacts of Market Conditions survey waves 5 and 6; Ofgem non-domestic 2024 research."
     },
     {
       "id": "how-many-synthetic-households",
@@ -144,10 +128,22 @@
       "state": "fresh",
       "last_verified": "2026-09-07",
       "days_allowed": 365,
-      "age_days": 2,
+      "age_days": 3,
       "overdue_by": null,
       "label": "Reviewed 2026-09-07",
-      "detail": "Checked 2 days ago against a 365-day threshold. Source: demand vector coverage measurement, NEED + Census + HadUK."
+      "detail": "Checked 3 days ago against a 365-day threshold. Source: demand vector coverage measurement, NEED + Census + HadUK."
+    },
+    {
+      "id": "imbalance-cashout-settlement",
+      "title": "Imbalance & cash-out",
+      "rate_of_change": "medium",
+      "state": "fresh",
+      "last_verified": "2026-09-10",
+      "days_allowed": 183,
+      "age_days": 0,
+      "overdue_by": null,
+      "label": "Reviewed 2026-09-10",
+      "detail": "Checked 0 days ago against a 183-day threshold. Source: Elexon BSC modification P305 (Electricity Balancing Significant Code Review) -- approved 2 April 2015, implemented 5 November 2015, single imbalance price, PAR falling to 50 in winter 2015/16 and to PAR1 in winter 2018/19; Elexon Imbalance Pricing Guidance; MHHS Programme settlement-timetable transition milestones -- RF 14 to seven months for settlement days from 1 October 2026 and seven to four from 1 April 2027, SF 15 to seven working days from 1 July 2027, migration completing 7 May 2027 and a migrated meter carrying no profile class."
     },
     {
       "id": "metering-and-reads",
@@ -156,10 +152,10 @@
       "state": "fresh",
       "last_verified": "2026-08-24",
       "days_allowed": 183,
-      "age_days": 16,
+      "age_days": 17,
       "overdue_by": null,
       "label": "Reviewed 2026-08-24",
-      "detail": "Checked 16 days ago against a 183-day threshold. Source: Elexon BSC settlement arrangements and load-profile guidance; Ofgem licence conditions on billing and back-billing; the MHHS programme's milestones."
+      "detail": "Checked 17 days ago against a 183-day threshold. Source: Elexon BSC settlement arrangements and load-profile guidance; Ofgem licence conditions on billing and back-billing; the MHHS programme's milestones."
     },
     {
       "id": "non-commodity-costs",
@@ -168,10 +164,10 @@
       "state": "fresh",
       "last_verified": "2026-08-24",
       "days_allowed": 183,
-      "age_days": 16,
+      "age_days": 17,
       "overdue_by": null,
       "label": "Reviewed 2026-08-24",
-      "detail": "Checked 16 days ago against a 183-day threshold. Source: HMRC CCL rate tables; Ofgem RO buy-out and mutualisation publications; LCCC CfD determinations; DESNZ Green Gas Levy rates; Ofgem cap methodology annexes."
+      "detail": "Checked 17 days ago against a 183-day threshold. Source: HMRC CCL rate tables; Ofgem RO buy-out and mutualisation publications; LCCC CfD determinations; DESNZ Green Gas Levy rates; Ofgem cap methodology annexes."
     },
     {
       "id": "price-cap",
@@ -180,10 +176,10 @@
       "state": "fresh",
       "last_verified": "2026-08-18",
       "days_allowed": 92,
-      "age_days": 22,
+      "age_days": 23,
       "overdue_by": null,
       "label": "Reviewed 2026-08-18",
-      "detail": "Checked 22 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
+      "detail": "Checked 23 days ago against a 92-day threshold. Source: Ofgem's published cap guidance and its 2022 quarterly-update decision."
     },
     {
       "id": "the-price-a-household-is-shown",
@@ -192,10 +188,10 @@
       "state": "fresh",
       "last_verified": "2026-08-30",
       "days_allowed": 183,
-      "age_days": 10,
+      "age_days": 11,
       "overdue_by": null,
       "label": "Reviewed 2026-08-30",
-      "detail": "Checked 10 days ago against a 183-day threshold. Source: Ofgem State of the Market (April 2025); Ofgem Confidence Code for domestic price comparison websites; CMA Energy Market Investigation 2016 Appendix 9.10."
+      "detail": "Checked 11 days ago against a 183-day threshold. Source: Ofgem State of the Market (April 2025); Ofgem Confidence Code for domestic price comparison websites; CMA Energy Market Investigation 2016 Appendix 9.10."
     },
     {
       "id": "weather-cells",
@@ -204,10 +200,10 @@
       "state": "fresh",
       "last_verified": "2026-09-06",
       "days_allowed": 365,
-      "age_days": 3,
+      "age_days": 4,
       "overdue_by": null,
       "label": "Reviewed 2026-09-06",
-      "detail": "Checked 3 days ago against a 365-day threshold. Source: Met Office HadUK-Grid 1 km 1991-2020 normals; 2021 E&W and 2022 Scotland censuses joined by postcode through the ONS Postcode Directory."
+      "detail": "Checked 4 days ago against a 365-day threshold. Source: Met Office HadUK-Grid 1 km 1991-2020 normals; 2021 E&W and 2022 Scotland censuses joined by postcode through the ONS Postcode Directory."
     },
     {
       "id": "what-a-customer-is-worth",
@@ -216,10 +212,10 @@
       "state": "fresh",
       "last_verified": "2026-09-05",
       "days_allowed": 183,
-      "age_days": 4,
+      "age_days": 5,
       "overdue_by": null,
       "label": "Reviewed 2026-09-05",
-      "detail": "Checked 4 days ago against a 183-day threshold. Source: OVO/SSE 2020 and E.ON/OVO 2026 transaction prices as reported; Ofgem price cap cost allowances and EBIT allowance; Ofgem CIM survey wave 6 switching by payment method; DESNZ TDCV bands; DCC published charges. Practitioner estimates marked in place; ten hypotheses stated falsifiably and none yet measured.."
+      "detail": "Checked 5 days ago against a 183-day threshold. Source: OVO/SSE 2020 and E.ON/OVO 2026 transaction prices as reported; Ofgem price cap cost allowances and EBIT allowance; Ofgem CIM survey wave 6 switching by payment method; DESNZ TDCV bands; DCC published charges. Practitioner estimates marked in place; ten hypotheses stated falsifiably and none yet measured.."
     }
   ]
 }

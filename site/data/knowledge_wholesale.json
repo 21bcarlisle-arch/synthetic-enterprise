@@ -12,11 +12,11 @@
    "note": "Every chart on this page is the real Elexon SSP extract captured 2025-06-07, covering 2015-11 to 2025-05; the header stamp is that vintage and not the date of the last review. Corrected 2026-08-12: this said 2026-07 with a cadence of 'monthly' while the series beneath it ended 2025-05, so the header claimed data thirteen months newer than any datum on the page. The claims are reviewed separately -- see claim_freshness."
   },
   "claim_freshness": {
-   "last_verified": null,
+   "last_verified": "2026-09-10",
    "written": "2026-08-24",
    "superseded_check": {"last_verified": "2026-07-25", "source": "GB multi-plant SRMC dispatch stack DISCOVER", "why_void": "It covered the two rungs that existed then. Five of the seven this page now serves were written on 2026-08-24 and have never been checked, so the date described two-sevenths of the body a reader meets."},
    "source_pass": "GB multi-plant SRMC dispatch stack DISCOVER",
-   "note": "REVIEW DATE DELIBERATELY NOT MOVED. Five of this page's seven sections were EMPTY STRINGS until 2026-08-24 — it rendered its headings over nothing, and its 21kB HTML file did not look like a stub next to its siblings. Those five were WRITTEN on 2026-08-24 from established market mechanism. That is authorship, not verification: the two original claims were checked against sources on 2026-07-25 and nobody has re-checked them since, so `last_verified` stays where it was. site/knowledge/test_review_state.py::test_no_review_date_exists_without_evidence_of_the_check caught the first attempt to move it, which is exactly what it is for — a date must not be typed in without saying what it was checked against, and 'I wrote some prose' is not a check.",
+   "note": "MOVED 2026-09-10, and the reasoning below is kept because it was right until the check it asked for was actually done. All seven rungs have now been read and checked against published sources -- see topics[electricity-wholesale].reviewed for what that check found -- so the condition this note held the date against is discharged. It was never 'do not move this date'; it was 'do not move it until somebody checks the body', which is a different instruction and is why the date sat still for seventeen days. WHAT IT SAID WHILE IT WAS HOLDING: Five of this page's seven sections were EMPTY STRINGS until 2026-08-24 — it rendered its headings over nothing, and its 21kB HTML file did not look like a stub next to its siblings. Those five were WRITTEN on 2026-08-24 from established market mechanism. That is authorship, not verification: the two original claims were checked against sources on 2026-07-25 and nobody has re-checked them since, so `last_verified` stays where it was. site/knowledge/test_review_state.py::test_no_review_date_exists_without_evidence_of_the_check caught the first attempt to move it, which is exactly what it is for — a date must not be typed in without saying what it was checked against, and 'I wrote some prose' is not a check.",
    "written_sections_2026_08_24": [
     "theory",
     "expected_shape",
@@ -33,7 +33,7 @@
  "rungs": {
   "headline": {
    "heading": "The claim, in one sentence",
-   "body": "The wholesale price is a marginal price. It is not the average cost of generating electricity in Britain; it is the running cost of the single most expensive plant that has to run to keep the lights on in that half-hour. Cheap wind and nuclear set the price only when nothing dearer is needed -- which is still the exception. For most half-hours a gas plant is the last one dispatched, so the price tracks the gas price and the cost of the carbon that burning it emits."
+   "body": "The wholesale price is a marginal price. It is not the average cost of generating electricity in Britain; it is the running cost of the single most expensive plant that has to run to keep the lights on in that half-hour. Cheap wind and nuclear set the price only when nothing dearer is needed -- which is still the exception. For most half-hours a gas plant is the last one dispatched, so the price tracks the gas price and the cost of the carbon that burning it emits. Gas was marginal in roughly 85% of hours in 2024, down from close to 90% in 2018 -- still the rule, but a falling one."
   },
   "plain": {
    "heading": "In plain terms",
@@ -842,7 +842,7 @@
      "text": "The hockey-stick magnitude bands are present, but the mechanism behind them -- climbing the stack through peakers, imports and demand response; the convex price-versus-residual-demand surface -- is not shown."
     }
    ],
-   "body": "GB is treated as a single price zone, which matches current arrangements but means constraint costs arrive as a charge rather than as a price difference between places.\n\nNo unit commitment, no strategic bidding, no interconnector trading strategy, and no participation in the Balancing Mechanism — balancing reaches the company as a cost it pays, never as a market it acts in. For a domestic supplier that last one is close to reality; the others are simplifications."
+   "body": "GB is treated as a single price zone, which matches current arrangements but means constraint costs arrive as a charge rather than as a price difference between places. That is now a settled question rather than an open one: DESNZ's REMA Summer Update of 10 July 2025 rejected zonal pricing and confirmed reformed national pricing, so this simplification is not waiting on a reform that might overturn it.\n\nNo unit commitment, no strategic bidding, no interconnector trading strategy, and no participation in the Balancing Mechanism — balancing reaches the company as a cost it pays, never as a market it acts in. For a domestic supplier that last one is close to reality; the others are simplifications."
   }
  },
  "revision": {
@@ -863,7 +863,11 @@
    "blurb": "How the GB wholesale electricity price is set at the margin.",
    "rate_of_change": "medium",
    "reviewed": {
-     "last_verified": null,
+     "last_verified": "2026-09-10",
+     "checked_by": "delivery seat",
+     "source": "Ember, British power prices are increasingly independent from gas; ECIU, Marginal Gains: how wind is pushing gas out of the power market (2025) -- gas marginal in ~85% of hours in 2024, down from close to 90% in 2018, and 2025 hours with gas below 20% of the mix averaging ~£60/MWh against ~£130/MWh where gas exceeded 50%; DESNZ Review of Electricity Market Arrangements Summer Update, 10 July 2025, rejecting zonal pricing and confirming reformed national pricing",
+     "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
+     "found": "CHECKED, no error established. Every claim of mechanism holds: marginal pricing, residual demand as the selecting quantity, the four trading horizons, and the ~2:1 gas-to-power slope (consistent with the 320-353 kgCO2/MWh CCGT intensity sourced in this record's carbon-price check). Two sharpenings, both about a true claim stated as though it were timeless. The headline's 'most half-hours' was right and undated -- it is ~85% of hours in 2024 and falling, and the direction of travel is the interesting part. And scope_delta's single-price-zone note read as a simplification awaiting a reform that might overturn it; REMA decided against zonal pricing on 10 July 2025, so it is settled. Noted and not changed: expected_shape's bimodality prediction is now supported by published 2025 evidence the page does not cite, but it is the page's own prediction and citing its confirmation as a finding would be scoring itself.",
      "written": "2026-08-24",
      "superseded_check": {
       "last_verified": "2026-07-25",
@@ -881,7 +885,11 @@
    "scope": "A complete treatment covers the GB gas market as a market in its own right: how the National Balancing Point price is set by the balance of supply (Norwegian pipeline imports, LNG send-out, UKCS production, storage withdrawal, interconnector flows) against demand (heat, power-station burn, industry); the contract curve from within-day through month and season to annual; the role of seasonal storage arbitrage and LNG-cargo optionality; and why GB, as a price-taker on a globally traded fuel, tracks TTF and Asian LNG rather than any domestic cost stack. It drives the electricity price because a gas plant is marginal for most GB hours -- that coupling is one typed edge, never a shared page.",
    "rate_of_change": "medium",
    "reviewed": {
-     "last_verified": null,
+     "last_verified": "2026-09-10",
+     "checked_by": "delivery seat",
+     "source": "National Gas / UNC published NBP and daily balancing arrangements (virtual hub, gas-day balancing, cash-out at system marginal buy and sell prices); DESNZ on GB gas storage capacity -- around 1.7 bcm, roughly seven days of average winter demand; OIES NG201, UK Gas: Volatility of Demand and Flexibility of Supply (October 2025)",
+     "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
+     "found": "SHARPENED. The market-mechanism claims all hold -- the NBP as a virtual point, daily rather than half-hourly balancing with linepack absorbing the intraday mismatch, cash-out against system marginal buy and sell prices, and the ~50% CCGT efficiency giving a ~2:1 gas-to-power slope. The correction is an omission that cut against the page's own conclusion: it rested the whole shape-of-the-market argument on gas being storable without saying that GB stores very little of it. Around 1.7 bcm, about seven days of average winter demand, among the thinnest in Europe, and thinner since Rough closed in 2017. Storage here smooths days, not seasons -- which is exactly why GB competes for LNG cargoes rather than drawing down a buffer, the thing the page asserted but did not ground.",
      "written": "2026-08-24",
      "superseded_check": {
       "last_verified": "2026-08-19",
@@ -953,7 +961,11 @@
    "scope": "A complete treatment covers how being short or long against your contracted position is priced: the single imbalance price, the balancing actions that set it, and the cash-out ceiling (£6,000/MWh) that caps a shortfall; and why this is the price that ultimately disciplines a supplier's hedging. It is a settlement mechanism of electricity wholesale.",
    "rate_of_change": "medium",
    "reviewed": {
-     "last_verified": null,
+     "last_verified": "2026-09-10",
+     "checked_by": "delivery seat",
+     "source": "Elexon BSC modification P305 (Electricity Balancing Significant Code Review) -- approved 2 April 2015, implemented 5 November 2015, single imbalance price, PAR falling to 50 in winter 2015/16 and to PAR1 in winter 2018/19; Elexon Imbalance Pricing Guidance; MHHS Programme settlement-timetable transition milestones -- RF 14 to seven months for settlement days from 1 October 2026 and seven to four from 1 April 2027, SF 15 to seven working days from 1 July 2027, migration completing 7 May 2027 and a migrated meter carrying no profile class",
+     "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
+     "found": "CORRECTED. The economics are right and the dating was not -- the same class of error this record corrected on gb-electricity-market on the same day, in the page whose subject IS the settlement timetable. 'Reconciliation runs out beyond a year' and 'non-half-hourly customers are allocated by profile class' were stated in the present tense as standing features of the market. Both are facts about 2016-2025 that MHHS retires on a published schedule whose first step lands three weeks after this check. Now dated, with the schedule stated and the reason the page describes the old regime made explicit. Also sharpened: single-price cash-out is real and datable to P305 on 5 November 2015, and since winter 2018/19 the price comes from the single most expensive balancing action (PAR1) rather than an average -- which is stronger than 'derived from the actions the operator took', and is the actual reason the tail is as fat as the expected_shape rung predicts. Third, this page carried its rate-of-change class in two homes: 'slow' in its own body, 'medium' in the copy that drives the badge, with nothing comparing them. The check settles it against the page rather than by preference -- a subject whose central timetable changes in three weeks is not slow -- and the body is corrected to medium. The two-homes defect itself is filed as a finding; it affects three topics.",
      "written": "2026-08-24",
      "superseded_check": {
       "last_verified": "2026-08-19",
@@ -971,7 +983,11 @@
    "scope": "A complete treatment covers how a supplier buys ahead: the forward curve, the blocks and shapes it trades, and how a hedge programme blunts the delivered price it would otherwise face at spot. It is a product layer over both electricity and gas procurement, so it is a downstream cross-cutting node reached from each fuel's spot topic rather than buried inside either.",
    "rate_of_change": "slow",
    "reviewed": {
-     "last_verified": null,
+     "last_verified": "2026-09-10",
+     "checked_by": "delivery seat",
+     "source": "Ofgem, Strengthening Financial Resilience decision (April 2023) and the enhanced Financial Responsibility Principle decision (July 2023) -- positive obligation to evidence sufficient capital and to manage mutualisable price risk, failure to hedge named as a concern, plus a minimum capital requirement for domestic suppliers; NAO, The energy supplier market, and Ofgem's record of supplier failures -- 28 failures in 2021 of roughly 57 since 2016, more than 4 million customers moved",
+     "route": "Body feed read directly and each assertion checked against the published source. The pages are JS-rendered and the static HTML holds no claims, so no page was rendered.",
+     "found": "CORRECTED, twice, and both corrections make the page's own argument stronger rather than weaker. First, the central motivating example was understated by an order of magnitude: 'several GB suppliers failed in exactly this way in 2021' describes 28 failures in that one year -- about half of all GB supplier failures since 2016, moving more than four million households. A page whose thesis is that unhedged promises end companies should not describe the event that proves it as 'several'. Second, the residuals rung said how much to hedge depends on risk appetite and capital, which stopped being the whole truth in 2023: Ofgem now imposes a positive obligation to evidence sufficient capital and to manage price risk, with failure to hedge named as a concern, alongside a minimum capital requirement. There is a regulatory floor under the question now. The rung's actual claim -- that no optimum exists and a simulation producing one would have fitted its own history -- still stands, and the trading-mechanism claims (layering, volume risk correlated in the direction that hurts, churn, collateral) all hold.",
      "written": "2026-08-24",
      "superseded_check": {
       "last_verified": "2026-08-19",
