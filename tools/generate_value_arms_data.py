@@ -2144,6 +2144,45 @@ def _what_would_resolve_it(decomposition: dict | None,
                                           "what_would_make_the_rest_of_book_half_measurable"))
                           if isinstance(s, str)) + " " + WHAT_WOULD_RESOLVE_IT_UNKNOWN + " "
                       + MORE_SEEDS_WOULD_NOT)
+    # AND A SPLIT WHOSE TWO HALVES RE-DREW DIFFERENT QUANTITIES IS NOT A SHARE OF ANYTHING -- the
+    # SAME defect as the branch above, through a door that did not exist when it was written.
+    #
+    # WHAT GOES WRONG WITHOUT THIS, MEASURED RATHER THAN FEARED. A mixed-key split leaves
+    # `rest_of_book_half_is_degenerate` FALSE (the `except` leg carried real variance) and
+    # `share_is_decisive` None (the producer withdrew it), so it falls straight into the threshold
+    # branch below and the page publishes: "The spread HAS now been split -- 0% of it is the priced
+    # households' own draw ... too close to the 0% it would have to clear". Two fabricated figures
+    # from `or 0.0`, under a sentence asserting a split that was not made. Reproduced on the
+    # fixtures in `test_a_mixed_key_split_states_the_verdict_and_never_a_share`.
+    #
+    # AND UNLIKE THE EMPTY HALF, THE VERDICT SURVIVES -- which is why this is a separate branch and
+    # not a second `return` of the one above. `irreducible_sd_gbp` is the `except` leg's own spread
+    # and `larger_settled_book_would_resolve_it` is that spread against the contrast; neither needs
+    # the sum, so the page CAN still say whether a bigger book resolves this. What it cannot say is
+    # what share, and saying nothing at all here would withhold the one answer the re-keying was
+    # done to get.
+    #
+    # `is False`, NOT falsy. Every leg written before 2026-09-10 predates the field and reads None;
+    # those are single-key by construction and must take the ordinary path. Only an artefact that
+    # looked and found two keys sets this False.
+    if decomposition.get("legs_share_one_call_stream") is False:
+        verdict = decomposition.get("larger_settled_book_would_resolve_it")
+        irreducible = decomposition.get("irreducible_sd_gbp")
+        contrast_gbp = abs(decomposition.get("contrast_gbp") or 0.0)
+        said = (
+            "A larger settled book WOULD bring the bar under the gap on this evidence -- the rest "
+            "of the book's half alone is £{:,.0f} against a £{:,.0f} gap -- but how much larger "
+            "cannot be priced from these legs, because pricing it needs the share."
+            if verdict else
+            "A larger settled book would NOT resolve it, and that verdict does survive: the rest "
+            "of the book's half ALONE is £{:,.0f} against a £{:,.0f} gap, and no book size touches "
+            "it. What cannot be said is how the two halves divide the whole."
+        ).format(irreducible or 0.0, contrast_gbp)
+        return leg + (
+            "The rest of the book's half HAS been measured and the spread has NOT been split into "
+            "shares, and those are different statements. " + (
+                decomposition.get("why_the_partition_keys_are_withdrawn") or "") + " " + said
+            + " " + MORE_SEEDS_WOULD_NOT)
     # A SPLIT TOO CLOSE TO ITS OWN THRESHOLD TO CALL IS NOT A CALL. Three seeds give each variance
     # two degrees of freedom, and the producer says whether the split cleared that.
     if not decomposition.get("share_is_decisive"):

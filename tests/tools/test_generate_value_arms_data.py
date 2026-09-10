@@ -6819,3 +6819,85 @@ def test_a_rerun_whose_ranking_LEAVES_the_null_is_read_differently():
         "a ranking that cleared the no-information interval still read as 'we cannot tell'")
     assert "cannot tell" in _rerun_block()["method_skill"]["reading"], (
         "the real pair's reading no longer withholds the verdict it must withhold")
+
+
+# ---------------------------------------------------------------------------
+# A SPLIT WHOSE TWO HALVES RE-DREW DIFFERENT QUANTITIES
+# ---------------------------------------------------------------------------
+
+def test_a_mixed_key_split_states_the_verdict_and_never_a_share():
+    """The empty-half defect, re-entered through a door that did not exist when it was closed.
+
+    THE DEFECT, REPRODUCED BEFORE IT WAS FIXED. From 2026-09-10 a floor leg names the quantity it
+    re-drew (`redraw_key`), because the `except` half had to be re-keyed to the churn roll -- the
+    rest of the book never takes the elasticity draw. Two legs on two keys do not partition each
+    other, so `decompose_floor` withdraws every key running through `v_only + v_except`. That
+    leaves `rest_of_book_half_is_degenerate` FALSE (the `except` leg carried real variance) and
+    `share_is_decisive` None, and the page fell straight through to the threshold branch and
+    published:
+
+        "The spread HAS now been split -- 0% of it is the priced households' own draw ...
+         too close to the 0% it would have to clear"
+
+    Two fabricated figures out of `or 0.0`, under a sentence asserting a split that was not made.
+
+    AND THE HALF THAT MUST SURVIVE. `irreducible_sd_gbp` is the `except` leg's own spread and needs
+    no sum, so the verdict on whether a bigger book resolves this IS available -- withholding it
+    would suppress the one answer the re-keying was done to get. Both verdict branches are
+    asserted, so a fix that simply says nothing on a mixed key cannot pass.
+    """
+    resolvable = dict(_decomposition(0.85, resolvable=True),
+                      legs_share_one_call_stream=False,
+                      priced_share_of_variance=None, share_is_decisive=None,
+                      share_at_which_a_bigger_book_could_resolve_it=None,
+                      priced_decisions_needed=None,
+                      why_the_partition_keys_are_withdrawn=(
+                          "The legs re-drew DIFFERENT quantities (except=churn_roll, "
+                          "only=elasticity, undecomposed=elasticity)."))
+    hopeless = dict(resolvable, larger_settled_book_would_resolve_it=False,
+                    irreducible_sd_gbp=2306.0)
+
+    for name, split in (("resolvable", resolvable), ("hopeless", hopeless)):
+        said = gva._what_would_resolve_it(
+            split, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+        assert "0%" not in said, (
+            "the {} mixed-key split published a fabricated 0% where a withdrawal belongs: {}"
+            .format(name, said))
+        assert "HAS now been split" not in said, (
+            "the page asserted a split that was not made on the {} fixture: {}".format(name, said))
+        # THE REASON IS READ OUT OF THE ARTEFACT, never restated here, so the page cannot drift
+        # into its own account of why the producer withheld.
+        assert "churn_roll" in said and "elasticity" in said, (
+            "the page withheld the share and never named the two keys, so a reader cannot tell "
+            "this from a shortage of seeds: {}".format(said))
+
+    # AND THE VERDICT SURVIVES, IN BOTH DIRECTIONS -- a fix that withheld everything fails here.
+    yes = gva._what_would_resolve_it(
+        resolvable, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+    no = gva._what_would_resolve_it(
+        hopeless, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+    assert "WOULD bring the bar under the gap" in yes, (
+        "the rest-of-book half is under the contrast and the page did not say a bigger book "
+        "helps -- that verdict needs only the `except` leg: {}".format(yes))
+    assert "would NOT resolve it" in no, (
+        "the rest-of-book half exceeds the contrast and the page did not say so: {}".format(no))
+    assert "1,153" in yes and "2,306" in no, (
+        "the measured rest-of-book spread -- the figure that DOES survive a mixed key -- reached "
+        "neither sentence")
+
+
+def test_a_split_that_predates_the_key_field_takes_the_ORDINARY_path():
+    """`legs_share_one_call_stream` is checked with `is False`, not for falsiness.
+
+    Every floor leg written before 2026-09-10 predates the field and reads None. Those are
+    single-key by construction -- there was one key -- so they must take the ordinary priced-share
+    path. A falsy check would divert every artefact on disk into the withholding branch and silence
+    a remedy the page has been correctly stating for weeks.
+    """
+    legacy = _decomposition(0.85, resolvable=True)
+    assert "legs_share_one_call_stream" not in legacy
+    said = gva._what_would_resolve_it(
+        legacy, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+    assert "larger SETTLED BOOK" in said and "85%" in said, (
+        "an artefact predating the key field was diverted into the mixed-key withholding: {}"
+        .format(said))
