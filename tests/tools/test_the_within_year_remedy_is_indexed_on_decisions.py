@@ -52,9 +52,17 @@ def rows():
 
 
 @pytest.fixture(scope="module")
-def block(rows):
-    return _within_year_concordance(json.loads(ARTEFACT.read_text())["belief_vs_outcome"],
-                                    json.loads(ARTEFACT.read_text()))
+def artefact(rows):
+    """The whole three-arm artefact, read once. The fixture exists so a test that needs the
+    artefact does not open it itself -- `tools/substring_source_scan_census` reads a `read_text`
+    inside a `test_*` body as a control reading source as text, and it is right to: the way to
+    settle that here is to stop doing it, not to freeze a row saying this one is fine."""
+    return json.loads(ARTEFACT.read_text())
+
+
+@pytest.fixture(scope="module")
+def block(artefact):
+    return _within_year_concordance(artefact["belief_vs_outcome"], artefact)
 
 
 def _by_year(rows, copies=1):
@@ -163,7 +171,17 @@ def test_the_independence_gap_is_not_repaired_by_dropping_the_contaminated_accou
     accounts without refusing that repair invites it."""
     gap = block["the_grading_population_is_not_independent"]
     assert gap["available"], gap
-    assert gap["is_it_available_today"] is False and gap["why_not"]
+    # KEYED TO THE PROPERTY, NEVER TO TODAY'S ANSWER. This line read `is False` until
+    # `run_value_cycle_ab.belief_against_control_outcomes` was written, and it would have gone red
+    # on the day the run first supplied the grading -- the code becoming MORE honest. What must
+    # hold on either branch is that the block never leaves the reader with a bare flag: a refusal
+    # carries its reason, and an availability carries the figure and the residual caveat.
+    if gap["is_it_available_today"]:
+        graded = gap["graded_against_the_control_arms_outcomes"]
+        assert graded["auc_population"] and graded["scored_decisions"]
+        assert "THE POPULATION" in gap["what_is_still_not_independent"]
+    else:
+        assert gap["why_not"] and gap["what_would_have_to_be_recorded"]
     moved = gap["outcome_moved_by_the_arms_own_price"]
     assert moved["scored_rows_on_those_accounts"] > 0
     assert moved["departures_on_those_accounts"] <= moved["departures"]
@@ -171,3 +189,39 @@ def test_the_independence_gap_is_not_repaired_by_dropping_the_contaminated_accou
     # ...AND THE ROUTE IT LEAVES OPEN IS A DIFFERENT POPULATION, not a smaller one.
     assert any("MUST NOT BE A FUNCTION OF THE BELIEF" in clause
                for clause in gap["what_an_independent_population_must_look_like"])
+
+
+def test_BOTH_availability_branches_can_be_taken(artefact):
+    """THE CONTROL OVER THE WHOLE PARTITION, written once rather than a leg per branch.
+
+    Every artefact on disk today takes the refusal branch, so a suite that only ever meets that
+    branch would pass identically against a block hard-wired to it -- which is what this file's
+    subject WAS until `run_value_cycle_ab.belief_against_control_outcomes` was written. Asserting
+    the rare branch CAN be taken comes before asserting what it does; this project has entered
+    that trap through three different doors in one afternoon.
+
+    The two artefacts differ in ONE field, so a difference in the verdict is attributable to it.
+    """
+    without = _within_year_concordance(artefact["belief_vs_outcome"], artefact)
+
+    graded = {
+        "available": True,
+        "discrimination_auc": 0.61,
+        "auc_population": {"retained": 80, "left": 40},
+        "priced_and_scored": 120,
+        "population_terms_absent_from_the_control_world": 3,
+        "scored_share_of_priced": 120 / 123,
+    }
+    with_it = _within_year_concordance(
+        artefact["belief_vs_outcome"],
+        {**artefact, "belief_against_control_outcomes": graded})
+
+    a = without["the_grading_population_is_not_independent"]
+    b = with_it["the_grading_population_is_not_independent"]
+    assert a["is_it_available_today"] is False and b["is_it_available_today"] is True
+    assert b["graded_against_the_control_arms_outcomes"]["discrimination_auc"] == 0.61
+    # THE CAVEAT SURVIVES THE FIGURE ARRIVING. The outcome becomes independent of the belief;
+    # the population does not, and a block that dropped the caveat when the number landed would
+    # hand the reader the stronger conclusion no run on this book supports.
+    assert "conditioned on value-arm survival" in b["what_is_still_not_independent"]
+    assert "why_not" not in b

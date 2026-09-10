@@ -66,6 +66,7 @@ from tools.run_value_cycle_ab import (
     REPORTED_BASIS,
     SETTLED_BASIS,
     _concordance,
+    belief_against_control_outcomes,
     belief_vs_outcome,
     book_at_run,
     book_identity,
@@ -830,6 +831,121 @@ def test_an_unmatched_decision_is_excluded_rather_than_counted_as_retained():
     result = belief_vs_outcome(_arm_with(log, [_event("A", "churned")]))
     assert result["priced_and_scored"] == 1
     assert result["realised_retention_rate"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# belief_against_control_outcomes — the belief against an outcome it did not cause
+# ---------------------------------------------------------------------------
+#
+# WHY THIS BLOCK EXISTS. `belief_vs_outcome` above grades `believed_p_retain` against whether
+# the household left UNDER THE VALUE ARM. On the 2026-09-09 run four of its forty departures
+# left under the value arm and NOT under the control, so part of the outcome being graded is
+# manufactured by the arm's own price rise. `site/capabilities/` published that as a caveat and
+# named the remedy — a grading population whose outcome the belief did not cause — and named
+# why it was unavailable: there was no (account, term, retained) list on the control side.
+#
+# THE KILLER PATTERNS THIS SECTION IS AIMED AT:
+#
+#   FAIL-OPEN   — an absent control event log reported as "everybody stayed" is the most
+#                 reassuring wrong answer this block could carry: it would publish a clean AUC
+#                 over a population nothing was measured on. It must refuse by name.
+#   FAIL-OPEN   — a value-arm term the control world never reached, counted as retained,
+#                 silently moves the denominator toward the belief's own lean.
+#   TAUTOLOGY   — grading against the VALUE arm's events would reproduce `belief_vs_outcome`
+#                 exactly while claiming independence. The two must be able to DISAGREE, and
+#                 the test below makes them disagree on the same belief.
+
+def _control_with(events):
+    return {"phase2b": {"customer_events": events}}
+
+
+def test_the_two_gradings_disagree_when_the_arms_outcomes_disagree():
+    """THE LOAD-BEARING ONE, and the reachability proof for the whole block.
+
+    One belief, two worlds. Under the value arm the two high-belief accounts leave and the two
+    low-belief ones stay — a belief ranking backwards, AUC 0.0. Under the control they do the
+    opposite, and the SAME belief ranks perfectly, AUC 1.0. If this block could not produce a
+    number different from `belief_vs_outcome`'s it would be an expensive restatement, and a
+    reader who met the two side by side would be told independence by a copy."""
+    log = [_decision("A", 0.9), _decision("B", 0.85),
+           _decision("C", 0.2), _decision("D", 0.15)]
+    value_events = [_event("A", "churned"), _event("B", "churned"),
+                    _event("C", "renewed"), _event("D", "renewed")]
+    control_events = [_event("A", "renewed"), _event("B", "renewed"),
+                      _event("C", "churned"), _event("D", "churned")]
+
+    under_value = belief_vs_outcome(_arm_with(log, value_events))
+    under_control = belief_against_control_outcomes(
+        _arm_with(log, value_events), _control_with(control_events))
+
+    assert under_value["discrimination_auc"] == pytest.approx(0.0)
+    assert under_control["available"] is True
+    assert under_control["discrimination_auc"] == pytest.approx(1.0)
+    assert under_control["auc_population"] == {"retained": 2, "left": 2}
+
+
+def test_the_outcome_read_is_the_CONTROL_arms_and_not_the_value_arms():
+    """The independence claim in one assertion. The value arm's own events say everybody
+    stayed; the control's say two left. A block that read the value arm's events — the
+    obvious copy-paste from `belief_vs_outcome` — would report a retention rate of 1.0."""
+    log = [_decision(a, 0.5) for a in "ABCD"]
+    result = belief_against_control_outcomes(
+        _arm_with(log, [_event(a, "renewed") for a in "ABCD"]),
+        _control_with([_event("A", "churned"), _event("B", "churned"),
+                       _event("C", "renewed"), _event("D", "renewed")]))
+    assert result["realised_retention_rate"] == pytest.approx(0.5)
+
+
+def test_an_absent_control_event_log_refuses_by_name_rather_than_reporting_retention():
+    """FAIL-OPEN, the killer. `.get(key, True)` over an empty log would score every priced
+    renewal as retained and publish an AUC of None beside a retention rate of 1.0 — a clean
+    page over a measurement that never happened."""
+    log = [_decision("A", 0.9)]
+    for control in (_control_with([]), _control_with(None), {"phase2b": {}}, {}):
+        result = belief_against_control_outcomes(_arm_with(log, [_event("A", "renewed")]),
+                                                 control)
+        assert result["available"] is False
+        assert "CONTROL" in result["why_not"]
+        assert "discrimination_auc" not in result
+
+
+def test_a_term_the_control_world_never_reached_is_counted_not_absorbed():
+    """The population caveat, made countable. A household the value arm drove out early
+    reaches fewer later terms, so the tail of the priced set is still conditioned on
+    value-arm survival. Counting those rows as retained would hide exactly that."""
+    log = [_decision("A", 0.9), _decision("B", 0.9), _decision("C", 0.1)]
+    result = belief_against_control_outcomes(
+        _arm_with(log, [_event(a, "renewed") for a in "ABC"]),
+        _control_with([_event("A", "churned")]))
+    assert result["priced_and_scored"] == 1
+    assert result["population_terms_absent_from_the_control_world"] == 2
+    assert {r["account"] for r in result["absent_sample"]} == {"B", "C"}
+    assert result["realised_retention_rate"] == 0.0
+    assert result["scored_share_of_priced"] == pytest.approx(1 / 3)
+
+
+def test_the_block_says_out_loud_that_its_population_is_not_independent():
+    """R15 — key the control to the property, not to today's answer. The independence this
+    block earns is the OUTCOME's, never the population's, and a reader who takes the second
+    from the first draws the stronger conclusion the run cannot support."""
+    log = [_decision("A", 0.9), _decision("B", 0.1)]
+    result = belief_against_control_outcomes(
+        _arm_with(log, [_event(a, "renewed") for a in "AB"]),
+        _control_with([_event("A", "renewed"), _event("B", "churned")]))
+    assert "survival" in result["population_basis"]
+    assert "population_terms_absent_from_the_control_world" in result
+
+
+def test_a_declined_renewal_carries_no_belief_and_is_not_graded():
+    """The control arm rolls churn for every household; the value arm formed a belief only
+    where it priced. Grading a decision the arm declined would put an outcome beside a belief
+    that was never made."""
+    log = [_decision("A", 0.9), _decision("B", 0.9, declined=True)]
+    result = belief_against_control_outcomes(
+        _arm_with(log, [_event(a, "renewed") for a in "AB"]),
+        _control_with([_event("A", "renewed"), _event("B", "churned")]))
+    assert result["priced_and_scored"] == 1
+    assert {r["account"] for r in result["scored_decisions"]} == {"A"}
 
 
 # ---------------------------------------------------------------------------

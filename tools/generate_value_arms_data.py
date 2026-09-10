@@ -5106,19 +5106,65 @@ def _grading_population_independence(three_arm: dict | None, scored: list) -> di
             "consults `retained` -- including 'the arms agreed' -- reintroduces the defect under "
             "a tidier name.",
         ],
-        "is_it_available_today": False,
-        "why_not": (
-            "the control arm publishes no per-decision rows to score against: "
-            "`control_arm.renewals_priced_by_the_arm` is {}, and its roster reaches this artefact "
-            "only as account-level totals and the churn roster diff above. There is no "
-            "(account, term, retained) list on the control side to put the value arm's "
-            "`believed_p_retain` beside.".format(control_priced)),
-        "what_would_have_to_be_recorded": (
-            "the control arm's own (account, term_start, retained) rows, on the same schedule "
-            "`belief_vs_outcome.scored_decisions` records the value arm's. Both arms already run "
-            "in one pass on one world, so this is a field the run does not write rather than a "
-            "run nobody has done -- and it costs no extra pass, which makes it cheaper than every "
-            "figure in `what_would_settle_it` beside it."),
+        **_independent_grading_today(three_arm, control_priced),
+    }
+
+
+def _independent_grading_today(three_arm: dict | None, control_priced) -> dict:
+    """Has the run supplied the independent grading yet -- read from the artefact, never pinned.
+
+    R15, AND THIS FILE HAS PAID FOR IT ONCE ALREADY. The three keys below were a hard-coded
+    `False` and two sentences of prose explaining an absence. They were correct on the day they
+    were written and they would have gone on saying "unavailable" on the day
+    `run_value_cycle_ab.belief_against_control_outcomes` first wrote the field -- which is the
+    outcome the block exists to make worth having. Exactly the shape caught in the cost render on
+    2026-09-10, one page over: keyed to today's answer, so it goes red when the code becomes more
+    honest and stays green when the claim rots.
+
+    So the question is asked of the artefact. `available` on the producer's own block is the
+    subject; nothing here re-derives it, and a run that refuses with a reason has that reason
+    carried through rather than replaced by this file's guess at it.
+
+    THE CAVEAT DOES NOT GO AWAY WHEN THE FIGURE ARRIVES, and that is why the available branch
+    still publishes one. The OUTCOME is independent of the belief; the POPULATION is the value
+    arm's priced set, whose tail is still conditioned on value-arm survival. A reader who takes
+    the second from the first draws the stronger conclusion no run on this book supports.
+    """
+    graded = (three_arm or {}).get("belief_against_control_outcomes") or {}
+    if not graded.get("available"):
+        return {
+            "is_it_available_today": False,
+            "why_not": (graded.get("why_not") or
+                        "the control arm publishes no per-decision rows to score against: "
+                        "`control_arm.renewals_priced_by_the_arm` is {}, and its roster reaches "
+                        "this artefact only as account-level totals and the churn roster diff "
+                        "above. There is no (account, term, retained) list on the control side "
+                        "to put the value arm's `believed_p_retain` beside.".format(
+                            control_priced)),
+            "what_would_have_to_be_recorded": (
+                "the control arm's own (account, term_start, retained) rows, on the same schedule "
+                "`belief_vs_outcome.scored_decisions` records the value arm's. Both arms already "
+                "run in one pass on one world, so this is a field the run does not write rather "
+                "than a run nobody has done -- and it costs no extra pass, which makes it cheaper "
+                "than every figure in `what_would_settle_it` beside it."),
+        }
+    return {
+        "is_it_available_today": True,
+        "graded_against_the_control_arms_outcomes": {
+            "discrimination_auc": graded.get("discrimination_auc"),
+            "auc_population": graded.get("auc_population"),
+            "scored_decisions": graded.get("priced_and_scored"),
+            "population_terms_absent_from_the_control_world": graded.get(
+                "population_terms_absent_from_the_control_world"),
+            "scored_share_of_priced": graded.get("scored_share_of_priced"),
+        },
+        "what_is_still_not_independent": (
+            "THE POPULATION. Membership is the renewals the VALUE arm priced -- fixed before any "
+            "outcome is read, so it is not the post-treatment subset refused above, but a "
+            "household the value arm drove out early reaches fewer later terms, so the tail of "
+            "that set is still conditioned on value-arm survival. "
+            "`population_terms_absent_from_the_control_world` counts that residue; it is not an "
+            "estimate of the bias it leaves."),
     }
 
 

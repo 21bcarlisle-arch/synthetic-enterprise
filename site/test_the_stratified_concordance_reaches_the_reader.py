@@ -397,7 +397,11 @@ def test_the_page_says_a_bigger_book_would_not_make_the_grading_population_indep
     assert gap.get("available") is True, gap
     moved = gap["outcome_moved_by_the_arms_own_price"]
     assert str(moved["departures_on_those_accounts"]) in live_decisions
-    assert gap["is_it_available_today"] is False
+    # NOT PINNED TO FALSE. The published feed says whether the independent grading exists yet;
+    # this door's subject is that the reader meets the population caveat EITHER WAY, because a
+    # bigger book fixes neither branch. A `is False` here would go red the day the run supplies
+    # the grading, which is the outcome the block exists to make worth having.
+    assert isinstance(gap["is_it_available_today"], bool)
     # The REFUSAL of the obvious repair, not merely the statement of the problem. Naming the
     # contaminated accounts without refusing "drop them" invites exactly that edit.
     assert "post-treatment" in live_decisions, (

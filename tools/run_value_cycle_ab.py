@@ -1309,6 +1309,141 @@ def belief_vs_outcome(value: dict) -> dict:
     }
 
 
+def belief_against_control_outcomes(value: dict, control: dict) -> dict:
+    """The value arm's belief, graded against an outcome its own price did not cause.
+
+    THE ONE FIELD THE INDEPENDENCE GAP NEEDED, and it costs no extra pass. `belief_vs_outcome`
+    scores `believed_p_retain` against whether the household left UNDER THE VALUE ARM -- and on
+    the 2026-09-09 run four of the forty departures (C5_2, PROS-2019-0024, PROS-2021-0324,
+    SYN-2016-034) left under the value arm and not under the control, so part of the graded
+    outcome is manufactured by the arm's own price rise. The page had to publish that as a
+    caveat because there was no (account, term, retained) list on the control side to put the
+    belief beside. There is one now: the control arm rolls churn for the same households in the
+    same world at a flat level the per-household belief did not set, and both arms already run
+    in one pass -- so this is a field the run did not write, never a run nobody had done.
+
+    WHAT IS INDEPENDENT HERE AND WHAT IS NOT, on the face of the block rather than in a note:
+
+      * THE OUTCOME IS. It is read from the CONTROL run's own `customer_events`. No value-arm
+        price entered the roll that produced it.
+      * THE BELIEF IS STILL THE VALUE ARM'S, per (account, term_start), recorded at the moment
+        it was formed. Grading the control's own belief would answer a different question --
+        the control forms none.
+      * THE POPULATION IS NOT FULLY INDEPENDENT, and saying so is the point. Membership is the
+        set of renewals the VALUE arm priced, which is fixed before any outcome is read (so it
+        is not the post-treatment subset the page already refused) -- but a household the value
+        arm drove out early reaches fewer later terms, so the tail of that set is still
+        conditioned on value-arm survival. `population_terms_absent_from_the_control_world`
+        counts exactly that residue instead of letting it pass as clean.
+
+    A row is scored only where the control world logged a lifecycle event at that
+    (account, term_start). Where it did not, the row is COUNTED and SAMPLED, never dropped
+    silently and never counted as retained -- the same treatment, for the same reason, as
+    `belief_vs_outcome.unmatched_decisions`.
+    """
+    value_log = (value.get("phase2b") or {}).get("value_arm_log")
+    control_events = (control.get("phase2b") or {}).get("customer_events")
+    if not isinstance(value_log, list) or not value_log:
+        return {"available": False,
+                "why_not": "the value arm priced nothing in this run, so there is no belief to "
+                           "grade against any outcome"}
+    if not isinstance(control_events, list) or not control_events:
+        return {"available": False,
+                "why_not": "the CONTROL arm published no `customer_events`, so this run cannot "
+                           "read an outcome the value arm's price did not cause. The gap this "
+                           "block exists to close is still open and this is not a zero"}
+
+    # Keyed exactly as `belief_vs_outcome` keys its outcome and `_churned_renewals` keys a
+    # departure -- raw `customer_id` against `event_date`. A second idea of the key here would
+    # make the two gradings incomparable with nothing saying so, which is the whole point of
+    # publishing them side by side.
+    control_outcome: dict = {}
+    for event in control_events:
+        if not isinstance(event, dict):
+            continue
+        key = (event.get("customer_id"), event.get("event_date"))
+        if event.get("event_type") == "churned":
+            control_outcome[key] = False
+        else:
+            control_outcome[key] = control_outcome.get(key, True)
+
+    scored, absent_rows = [], []
+    for entry in value_log:
+        if not isinstance(entry, dict) or entry.get("declined"):
+            continue
+        believed = entry.get("believed_p_retain")
+        if not isinstance(believed, (int, float)) or isinstance(believed, bool):
+            continue
+        key = (entry.get("customer_id"), entry.get("term_start"))
+        if key not in control_outcome:
+            absent_rows.append({"account": key[0], "term_start": key[1]})
+            continue
+        scored.append({
+            "account": key[0],
+            "term_start": key[1],
+            "believed_p_retain": float(believed),
+            "retained_under_the_control_arm": bool(control_outcome[key]),
+        })
+
+    if not scored:
+        return {"available": False,
+                "why_not": "no renewal the value arm priced could be matched to a control-arm "
+                           "outcome",
+                "population_terms_absent_from_the_control_world": len(absent_rows),
+                "absent_sample": absent_rows[:10]}
+
+    stayed = [r["believed_p_retain"] for r in scored if r["retained_under_the_control_arm"]]
+    left = [r["believed_p_retain"] for r in scored if not r["retained_under_the_control_arm"]]
+    if stayed and left:
+        wins = sum((s > lo) + 0.5 * (s == lo) for s in stayed for lo in left)
+        auc = wins / (len(stayed) * len(left))
+    else:
+        auc = None
+
+    believed_mean = sum(r["believed_p_retain"] for r in scored) / len(scored)
+    realised = len(stayed) / len(scored)
+
+    return {
+        "available": True,
+        "what_this_is": (
+            "the value arm's `believed_p_retain` per (account, term_start), scored against "
+            "whether that household stayed UNDER THE CONTROL ARM -- an outcome rolled at a flat "
+            "level the belief did not set."),
+        "population_basis": (
+            "the renewals the VALUE arm priced. Fixed before any outcome is read, so it is not "
+            "the post-treatment 'the arms agreed' subset; still conditioned on value-arm "
+            "survival in its tail, which `population_terms_absent_from_the_control_world` "
+            "counts."),
+        "scored_decisions": scored,
+        "priced_and_scored": len(scored),
+        "population_terms_absent_from_the_control_world": len(absent_rows),
+        "absent_sample": absent_rows[:10],
+        "absent_meaning": (
+            "the value arm priced this renewal and the CONTROL world logged no lifecycle event "
+            "at that (account, term_start). Excluded rather than counted as retained: a "
+            "household whose control-arm timeline never reached this term has no outcome here, "
+            "and scoring one would flatter whichever way the belief happened to lean."),
+        "scored_share_of_priced": (
+            len(scored) / (len(scored) + len(absent_rows))
+            if (len(scored) + len(absent_rows)) else None),
+        "discrimination_auc": auc,
+        "auc_population": {"retained": len(stayed), "left": len(left)},
+        "mean_believed_p_retain": believed_mean,
+        "realised_retention_rate": realised,
+        "calibration_error": believed_mean - realised,
+        "reading": (
+            "READ THIS BESIDE `belief_vs_outcome.discrimination_auc`, never instead of it. That "
+            "one grades the belief against an outcome the belief's own price helped cause; this "
+            "one grades the same belief against an outcome it did not. A figure here at 0.5 says "
+            "the belief carries no information about who leaves once the arm's own price rise is "
+            "taken out of the outcome -- which is the thesis failing however the P&L reads. A "
+            "figure here ABOVE the value-arm one says the value-arm grading was being dragged "
+            "down by departures the arm itself manufactured. `auc_population` is published "
+            "because this statistic is noise when one side is small. R12: diagnostic, never a "
+            "target."),
+    }
+
+
 # ---------------------------------------------------------------------------
 # A48 -- DOES THE METHOD HAVE SKILL? (the mission's own noun, instrumented)
 # ---------------------------------------------------------------------------
@@ -4447,6 +4582,11 @@ def run_value_cycle_ab(report_end: str | None = None, level_arm: bool = False) -
         # Was the advantage INFERENCE, or a profitable miscalibration? The two produce the
         # same P&L and completely different conclusions -- see `belief_vs_outcome`.
         "belief_vs_outcome": belief_vs_outcome(value),
+        # THE SAME BELIEF, graded against an outcome it did not cause. Published directly beside
+        # `belief_vs_outcome` because the pair is the reading: that block's population contains
+        # departures the arm's own price rise manufactured, and this one's does not. See
+        # `belief_against_control_outcomes` for what is independent here and what still is not.
+        "belief_against_control_outcomes": belief_against_control_outcomes(value, control),
         # Does the METHOD have skill -- does the arm's own price rank JOINT value created?
         # The mission's noun, instrumented (atom `A48`). Published directly after
         # `belief_vs_outcome` because the pair is the reading: a high churn AUC beside a flat
