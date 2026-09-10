@@ -8,6 +8,76 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-10 — the console capture read one folder while both were live, so the instruction naming the weekend's priority reached no record and the writer said it was current
+
+<!-- head: ec46351f8aa2 -->
+
+**Written 2026-09-10 22:1x BST**, immediately after the sample wiring landed, because I went to
+check that your instruction had reached the record the autonomous ticks read before the weekend —
+and it had not.
+
+## Your words were not in the record, and the capture said it was current
+
+`--write` printed **"no change -- records already current"** with both of tonight's turns sitting
+unread on disk, including the one naming the weekend's priority.
+
+**The cause.** A seat launched from `/` writes transcripts to `~/.claude/projects/-`; one launched
+from the project writes to a derived folder. **This project runs both at once**, so both are live —
+and the reader took `TRANSCRIPT_DIR` alone. First folder with files wins; the other session is
+invisible.
+
+`transcript_dirs()` was already there, already returned the union, and already said so in its own
+docstring: *"The union, not a choice… **Reading only one is what broke.**"* Nothing called it except
+an error message. The correct function was written for exactly this failure and left unwired, and
+the reader kept the shape its docstring was written to condemn.
+
+**Worse than the gap.** The refusal at the bottom of that module printed *"Reading: &lt;both
+folders&gt;"* while the code read one. Anyone diagnosing a missing turn was told the union had been
+searched. A false sentence about a control's own scope costs more than the turn it hides, because
+it ends the investigation.
+
+**Measured.** Across the union the reader finds **77 turns where it found 10**. Writing repaired
+**eight day-records**, 2026-09-03 through today — every one short by turns that were on disk the
+whole time. Landed with the fix, because a repair whose evidence is not committed leaves the next
+reader unable to tell a fixed capture from a quiet one.
+
+## Two controls were red for three days for no reason, and they gated the fix
+
+Both already sat in `head_red_observed.json`, and neither was my regression.
+`test_THE_CHECK_READS_THE_SAME_ROOM_THE_WRITER_WRITES_TO` wrote a record dated with the literal
+string `2026-09-07` and stamped presence as `now` — so it asserted *"a record written today is not a
+lapse"* while only ever writing one dated the day it was authored. Green on 2026-09-07, red every
+day since. Its sibling had the same fixture, so the lapse verdict answered before the subject under
+test could fire.
+
+A control keyed to today's answer rather than to its property goes red when nothing is wrong, and a
+control red for three days for no reason is a control someone switches off. Both now take the day
+from the same clock as the presence stamp.
+
+## The class, three times in one evening
+
+This is the same shape as the stretch-log silence: **a mechanism that runs, reports success, and
+carries nothing.** The stretch check fired 65 times into a log with no reader. The console capture
+read the wrong folder and said "current". Both answer *"does anything call it?"* with **yes**, which
+is why neither was found by the grep that finds the usual version of this.
+
+The question that does find them is *"what does it carry, measured against something independent?"*
+— which is precisely the check the console module already performs against `.human_last_input` for
+its own lapse. It had the right instrument one level up from where it failed.
+
+## Still open, and you should know about it
+
+`check()` is still red, on a **different** finding: **the seat's side of today's conversation is
+missing.** The `DIRECTOR_CONSOLE` record for 2026-09-10 now holds your turns and the `SEAT_REPLY`
+record holds none, so that channel shows a reader the instruction and not the answer. The Stop hook
+either is not firing for this session or writes somewhere the check does not read.
+
+It does not cost you anything tonight — the answer is in this log, which is where you asked for it —
+but the advisor channel is half a conversation until it is fixed. It is a separate subject from the
+sample and I have not chased it, because you asked for the sample to be the only thing.
+
+---
+
 ## 2026-09-10 — the generator is wired into the world's stock and the chooser is refused with a number, and the insulation ceiling the company sells against was understated by a third
 
 <!-- head: 59a91d4a2be3 -->
