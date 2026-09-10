@@ -649,6 +649,69 @@ def _customer_years(win_date: dt.date, horizon_end: dt.date) -> float:
     return max(0.0, (horizon_end - win_date).days / 365.25)
 
 
+def settle_within_budget(
+    candidates,
+    *,
+    committed_cy: float,
+    customer_year_budget: float,
+):
+    """Which of the campaign's wins THIS MACHINE can afford to settle.
+
+    LIFTED OUT OF `plan_growth_campaign` UNCHANGED (2026-09-11) so that a selection rule can be
+    measured against another one on ONE candidate list. It was inline, and inline it could only be
+    compared by running the whole campaign twice -- which puts the seed stream in the comparison
+    and makes the result unattributable. Nothing about the rule moved in the lift; the arithmetic
+    below is the same arithmetic, and `test_the_lifted_selection_is_the_inline_one` is the control.
+
+    Returns the selection and everything the caller's rows are filled from. `committed_cy` is
+    passed IN rather than read, because the opening book has already charged the same budget.
+    """
+    campaign_cy = sum(cy for _y, _p, _d, cy in candidates)
+    headroom_cy = max(0.0, customer_year_budget - committed_cy)
+    # f >= 1 IS THE NULL CASE and it must stay byte-identical to a run with no ceiling at
+    # all: nothing refused, no sample, no note. That is the result which shows this change is
+    # aimed at the artefact rather than at the answer -- at 13 founders the campaign fits
+    # inside the budget and this whole pass is a no-op.
+    sample_rate = 1.0 if campaign_cy <= headroom_cy else headroom_cy / campaign_cy
+
+    winners: list = []
+    booked_by_year: dict = {}
+    refused_by_year: dict = {}
+    booked_cy_by_year: dict = {}
+    for i, (year, prospect, in_market, cost_cy) in enumerate(candidates):
+        # SYSTEMATIC, not random and not first-come. `int((i+1)*r) > int(i*r)` takes every
+        # 1-in-1/r of the sequence, spread evenly through it, so each year's booked wins are
+        # proportional to that year's funnel wins and `booked / sample_rate` estimates what
+        # the company won without bias in ANY year. Deterministic, so a re-run books the same
+        # accounts; no RNG stream to seed and none to drift.
+        wanted = int((i + 1) * sample_rate) > int(i * sample_rate)
+        # THE HARD GUARD, kept even though `sample_rate` was derived from the budget. The
+        # selection is by count and the budget is in customer-years, so a sample whose members
+        # happen to be dearer than the population's mean could cross the ceiling by one
+        # account. Never exceeding it is what the ceiling IS, so the guard is the invariant
+        # and the rate is the estimate.
+        if wanted and committed_cy + cost_cy <= customer_year_budget:
+            committed_cy += cost_cy
+            winners.append((prospect, in_market))
+            booked_by_year[year] = booked_by_year.get(year, 0) + 1
+            booked_cy_by_year[year] = booked_cy_by_year.get(year, 0.0) + cost_cy
+        else:
+            refused_by_year[year] = refused_by_year.get(year, 0) + 1
+
+    return {
+        "winners": winners,
+        "booked_by_year": booked_by_year,
+        "refused_by_year": refused_by_year,
+        "booked_cy_by_year": booked_cy_by_year,
+        "committed_cy": committed_cy,
+        "sample_rate": sample_rate,
+        # WHAT THE WHOLE CAMPAIGN WOULD HAVE COST TO SETTLE, returned rather than recomputed by
+        # the caller: it is the denominator `sample_rate` came from, and two copies of a
+        # denominator is how a rate and the figure it is published beside come to disagree.
+        "campaign_cy": campaign_cy,
+    }
+
+
 def plan_growth_campaign(
     years,
     *,
@@ -960,36 +1023,18 @@ def plan_growth_campaign(
     # no information travels backwards. A sampling frame that needs its own population is
     # ordinary; what would be a crossing is the company's PLAN depending on the sample, and
     # `accounts` and `wins_to_date` were both moved off the book precisely so it cannot.
-    campaign_cy = sum(cy for _y, _p, _d, cy in candidates)
-    headroom_cy = max(0.0, customer_year_budget - committed_cy)
-    # f >= 1 IS THE NULL CASE and it must stay byte-identical to a run with no ceiling at
-    # all: nothing refused, no sample, no note. That is the result which shows this change is
-    # aimed at the artefact rather than at the answer -- at 13 founders the campaign fits
-    # inside the budget and this whole pass is a no-op.
-    sample_rate = 1.0 if campaign_cy <= headroom_cy else headroom_cy / campaign_cy
-
-    booked_by_year: dict = {}
-    refused_by_year: dict = {}
-    booked_cy_by_year: dict = {}
-    for i, (year, prospect, in_market, cost_cy) in enumerate(candidates):
-        # SYSTEMATIC, not random and not first-come. `int((i+1)*r) > int(i*r)` takes every
-        # 1-in-1/r of the sequence, spread evenly through it, so each year's booked wins are
-        # proportional to that year's funnel wins and `booked / sample_rate` estimates what
-        # the company won without bias in ANY year. Deterministic, so a re-run books the same
-        # accounts; no RNG stream to seed and none to drift.
-        wanted = int((i + 1) * sample_rate) > int(i * sample_rate)
-        # THE HARD GUARD, kept even though `sample_rate` was derived from the budget. The
-        # selection is by count and the budget is in customer-years, so a sample whose members
-        # happen to be dearer than the population's mean could cross the ceiling by one
-        # account. Never exceeding it is what the ceiling IS, so the guard is the invariant
-        # and the rate is the estimate.
-        if wanted and committed_cy + cost_cy <= customer_year_budget:
-            committed_cy += cost_cy
-            winners.append((prospect, in_market))
-            booked_by_year[year] = booked_by_year.get(year, 0) + 1
-            booked_cy_by_year[year] = booked_cy_by_year.get(year, 0.0) + cost_cy
-        else:
-            refused_by_year[year] = refused_by_year.get(year, 0) + 1
+    settled = settle_within_budget(
+        candidates,
+        committed_cy=committed_cy,
+        customer_year_budget=customer_year_budget,
+    )
+    booked_by_year = settled["booked_by_year"]
+    refused_by_year = settled["refused_by_year"]
+    booked_cy_by_year = settled["booked_cy_by_year"]
+    committed_cy = settled["committed_cy"]
+    sample_rate = settled["sample_rate"]
+    campaign_cy = settled["campaign_cy"]
+    winners.extend(settled["winners"])
 
     # THE ROWS ARE FILLED IN YEAR ORDER, so `book_after` and `customer_years_committed` still
     # read as running totals at the end of that year -- the same thing they meant when the
