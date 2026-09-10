@@ -763,9 +763,9 @@ def test_the_error_bar_reaches_the_reader_before_the_number(live):
     rendered = live["arms-errorbar"]
 
     assert rendered.strip(), (
-        "the door rendered NOTHING where the error bar goes. The point estimate is {}x smaller "
-        "than its own spread, so publishing it bare is the misleading version of an honest "
-        "result".format(round(eb["spread_to_point_estimate_ratio"])))
+        "the door rendered NOTHING where the error bar goes. The estimate's own bound is {:.1f}x "
+        "the estimate, so publishing it bare is the misleading version of an honest "
+        "result".format(eb["selection_leg"]["bound_to_estimate_ratio"]))
     assert "−£{:,}".format(abs(round(eb["min_gbp"]))) in rendered
     assert _gbp(eb["max_gbp"]) in rendered
     assert _gbp(eb["stdev_gbp"]) in rendered, "the spread is described without its width"
@@ -804,34 +804,45 @@ def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
         checks, completely unchanged. A site red wedges every lane, so the delivery item's own
         deliverable would have been the thing that stopped it landing.
 
-    SO THE PRECONDITION IS DERIVED FROM THE PAGE'S GATE. `spread_to_point_estimate_ratio` is
-    `|stdev / point estimate|`, so `>= 1` is exactly `_resolvable(...) is not True` -- the
-    condition under which the refusal below is owed. It goes red the day the spread narrows past
-    the estimate and the page goes on saying it cannot resolve, which is the claim rotting, and it
-    stays green while the page becomes more honest. `distinguishable_from_zero` is still checked,
-    as the PROPERTY that the producer declares it at all rather than as the answer it declares.
+    AND THE GATE ITSELF MOVED ON 2026-09-10, so the precondition moved with it. It used to be
+    `spread_to_point_estimate_ratio >= 1` -- a nine-seed standard deviation over a ONE-RUN figure,
+    which is the population mix the page was repaired to stop making. The page's gate is now
+    `selection_leg.sign_is_stateable`: the seed family's own mean against the seed family's own
+    standard error, `SIGN_NEEDS_SEMS_FROM_ZERO` of them. So this reads the gate rather than
+    re-deriving a proxy for it, and BOTH of its answers are checked -- a control that only knows
+    what the withheld case must say goes green the day the page starts stating a sign wrongly.
+    `distinguishable_from_zero` is still checked as the PROPERTY that the producer declares it at
+    all, never as the answer it declares.
     """
     feed = _live_feed()
     eb = feed["error_bar"]
     assert isinstance(eb["distinguishable_from_zero"], bool), (
         "the floor's own verdict key is missing or unparsed, so the artefact behind this band is "
         "a stub rather than a completed run")
-    ratio = eb["spread_to_point_estimate_ratio"]
-    assert isinstance(ratio, (int, float)) and ratio >= 1.0, (
-        "the spread is NARROWER than the figure it bounds ({}), so the page's own gate no longer "
-        "withholds the direction and the refusal this test asserts below is not the sentence a "
-        "reader is owed -- extend this control to check the STATED direction, do not re-pin "
-        "it".format(ratio))
+    leg = eb["selection_leg"]
+    assert leg["available"], (
+        "the error bar publishes no selection-leg estimate at all, so the page has a band and "
+        "nothing it is a band on: " + str(leg.get("reason")))
     rendered = live["arms-errorbar"]
-    inside = eb["point_estimate_inside_the_measured_band"]
-    if inside:
-        assert "cannot yet resolve" in rendered, (
-            "the page reports a spread wider than the effect without telling the reader what "
-            "that means for the number above it")
+    if leg["sign_is_stateable"] is True:
+        assert leg["sign"] in rendered, (
+            "the family now pins its mean {:.2f} standard errors from zero, past the {} the page "
+            "requires, and the page does not tell the reader which side it came out on".format(
+                leg["sems_from_zero"], leg["sems_needed_to_state_a_sign"]))
+        assert "cannot yet resolve a selection effect" not in rendered, (
+            "the page states a side AND says it cannot resolve one, in the same paragraph")
+    elif leg["sems_from_zero"] is None:
+        assert "states no side" in rendered, (
+            "the seed family pins its mean with no measurable error, so its distance from zero "
+            "cannot be stated in units of its own precision -- and the page does not say so")
     else:
-        assert "nothing here resolves the selection effect" in rendered, (
-            "the estimate has left the range its spread was measured over and the page does not "
-            "tell the reader that this resolves nothing")
+        assert "cannot yet resolve a selection effect" in rendered, (
+            "the estimate sits {:.2f} standard errors from zero, short of the {} this page "
+            "requires, and the page does not tell the reader that nothing here resolves the "
+            "selection effect".format(leg["sems_from_zero"],
+                                      leg["sems_needed_to_state_a_sign"]))
+        assert leg["sign"] is None, (
+            "the feed withheld the sign and then published one anyway")
 
 
 def test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on(live):
@@ -844,9 +855,16 @@ def test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on(live):
     the fix visible to the person the page is for, because a correct feed rendered without its
     subject is the same page to them.
 
-    KEYED TO THE PROPERTY. It reconciles what the page says the bar bounds against the split the
-    headline states, at whatever values the run produces. Fires on: dropping the
+    KEYED TO THE PROPERTY. It reconciles what the page says the bar bounds against the estimate
+    the headline states, at whatever values the run produces. Fires on: dropping the
     `bounds_figure_clock` render, or the two drifting back onto different clocks.
+
+    WHAT IT RECONCILES AGAINST CHANGED ON 2026-09-10, and the old subject is now the wrong one.
+    This asserted `bounds_figure_gbp == realised.split.selection_gbp` -- the bar bounding the ONE
+    published run. That equality was the defect once the bound became a nine-seed width: it
+    required the page to pair a one-run figure with a nine-seed bar, which is exactly what the
+    feed was repaired to stop doing. The subject is now the seed family's own mean, and the
+    single run is reconciled separately, as one member of that family.
     """
     feed = _live_feed()
     eb, split = feed["error_bar"], feed["realised"]["split"]
@@ -855,14 +873,147 @@ def test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on(live):
                     "`test_a_split_on_another_clock_leaves_the_bar_with_NOTHING_TO_PLACE` owns it")
     rendered = live["arms-errorbar"]
 
-    assert eb["bounds_figure_gbp"] == split["selection_gbp"], (
-        "the feed's error bar bounds £{!r} and the headline states £{!r}".format(
-            eb["bounds_figure_gbp"], split["selection_gbp"]))
-    assert _gbp(eb["bounds_figure_gbp"]) in rendered, (
+    assert eb["bounds_figure_gbp"] == eb["selection_leg"]["estimate_gbp"], (
+        "the feed's error bar bounds £{!r} and the estimate the page states is £{!r}".format(
+            eb["bounds_figure_gbp"], eb["selection_leg"]["estimate_gbp"]))
+    assert eb["single_run_gbp"] == split["selection_gbp"], (
+        "the run the page labels as one member of the seed family is £{!r}, and the split every "
+        "other figure on the page comes from is £{!r} -- so the labelled member is not the "
+        "published run".format(eb["single_run_gbp"], split["selection_gbp"]))
+    assert _door_gbp(eb["bounds_figure_gbp"]) in rendered, (
         "the page publishes a band without the figure it is a band ON, so a reader cannot tell "
         "which of the two selection legs on this page it belongs to")
     assert eb["bounds_figure_clock"] in rendered, (
         "the bounded figure is rendered without its clock, on a page that carries two")
+
+
+def test_the_rendered_selection_ESTIMATE_and_its_BOUND_are_over_the_SAME_seed_count(live):
+    """The thesis leg, and the one defect on this page that a correct-looking number hides.
+
+    THE DEFECT IT SERVES, live until 2026-09-10 and found by the delivery seat. The page told a
+    reader the per-customer choosing was worth **+£319.10** -- the value arm's net minus the level
+    arm's net, out of the ONE published run -- and printed **±£1,810.50** beside it, which is the
+    standard deviation of that identical contrast across NINE seed re-draws. The nine-seed
+    family's own mean is **-£1,078.17**. So the estimate and the bound were two correct figures
+    over two different populations, their ratio was not a quantity, and the sign a reader took
+    away was the opposite of the one the evidence supports. The independent ranking cut already
+    read `worse_than_chance` at p=0.0045 and agreed in sign; the page was the last place still
+    showing a positive.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S NUMBERS. It asserts nothing about -£1,078, about nine,
+    or about which side of zero anything is on. It asserts that the seed count behind the figure
+    a reader MEETS equals the seed count behind the bound printed beside it, and that both counts
+    are stated at all. Re-run the floor at 40 seeds and this stays green; publish a one-run figure
+    under a forty-seed band and it reds.
+
+    BOTH ENDS OF THE POINTER (R15). The feed carrying matching counts proves nothing about what a
+    browser put on screen -- this project has spent a day in exactly that state before. So the
+    counts are checked in the feed AND the estimate and its bound are both required in the
+    rendered DOM, with the single run distinguishable from the estimate.
+
+    R15 -- the mutations, each generated from the real producer, STAGED (this file reads the index
+    copy, so a working-tree poison proves nothing here) and reverted, on 2026-09-10. The clean
+    tree is 137 passed, 1 skipped:
+      * `_error_bar` publishes `bounds_figure_gbp: point_estimate` -- the one run -- again,
+        leaving every other key alone -> 3 failed. This rung reds on "the counts agree about two
+        different numbers". It is the relapse, and it is one word long.
+      * `_error_bar` publishes `bounds_figure_seeds: 1` while the figure stays the mean ->
+        2 failed, this rung on the seed-count leg itself. A feed that mislabels the count must
+        not pass, or the count is decoration.
+      * the DOOR drops the whole `eb.selection_leg` block -> 3 failed, this rung on the rendered
+        estimate. A correct feed rendered without its subject is the same page to a reader.
+      * the DOOR renders `single_run_gbp` where the estimate goes -> 3 failed, because the
+        rendered estimate is RECONCILED against `bounds_figure_gbp` rather than merely present.
+    `test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on` reds beside this rung on three of
+    the four, which is the pair working and not a duplicate: it owns the clock and the member,
+    this owns the population.
+
+    The reachability leg is `test_MUTATION_an_estimate_and_a_bound_over_DIFFERENT_seed_counts_is_
+    caught`: it drives a feed whose counts differ through the real door and requires this control
+    to FAIL, so it cannot pass by refusing everything or by reading nothing.
+    """
+    feed = _live_feed()
+    eb = feed["error_bar"]
+    _assert_estimate_and_bound_share_a_population(eb, live["arms-errorbar"])
+
+
+def _assert_estimate_and_bound_share_a_population(eb: dict, rendered: str) -> None:
+    """The leg itself, factored out so the reachability mutation below can drive the SAME code.
+
+    A helper, not a copy: a mutation rung that re-implements what it is proving reachable proves
+    the copy reachable. This is the one function both the live rung and the poisoned rung call.
+    """
+    leg = eb["selection_leg"]
+    assert leg["available"], (
+        "the page publishes a bound with no estimate for it to bound: " + str(leg.get("reason")))
+
+    estimate_seeds, bound_seeds = eb["bounds_figure_seeds"], eb["bound_seeds"]
+    assert isinstance(estimate_seeds, int) and isinstance(bound_seeds, int), (
+        "the estimate and its bound are published without saying how many seeds each is over "
+        "({!r} and {!r}), so nothing -- reader or control -- can tell whether they are one "
+        "population".format(estimate_seeds, bound_seeds))
+    assert estimate_seeds == bound_seeds, (
+        "the selection figure a reader meets is drawn over {} seed(s) and the bound printed "
+        "beside it over {}. Two correct figures whose ratio is not a quantity, on the one "
+        "contrast this page exists to settle -- this is the +£319-under-±£1,810 defect "
+        "returning".format(estimate_seeds, bound_seeds))
+    assert leg["estimate_seeds"] == estimate_seeds and leg["bound_seeds"] == bound_seeds, (
+        "the error bar's own seed counts and the selection leg's disagree, so the page carries "
+        "the same claim in two homes and a reader gets whichever one renders")
+    # AND THE FIGURE THE COUNT IS ABOUT. Matching counts over two different FIGURES is the same
+    # defect wearing a label: `bounds_figure_seeds` could read 9 beside a one-run
+    # `bounds_figure_gbp` and every count above would agree. The count and the figure have to be
+    # the same object or neither is evidence about the other.
+    assert eb["bounds_figure_gbp"] == leg["estimate_gbp"], (
+        "the figure the bar says it bounds (£{!r}) is not the estimate the seed count above "
+        "belongs to (£{!r}), so the counts agree about two different numbers".format(
+            eb["bounds_figure_gbp"], leg["estimate_gbp"]))
+
+    assert _door_gbp(leg["estimate_gbp"]) in rendered, (
+        "the estimate over {} seeds does not reach the rendered page at all, so the correction "
+        "lives in the feed and the reader still meets whatever else is on screen".format(
+            estimate_seeds))
+    assert _door_gbp(leg["bound_gbp"]) in rendered, (
+        "the bound the estimate is qualified by does not reach the rendered page, so a reader "
+        "meets a number over {} seeds with nothing saying how well those {} pin it".format(
+            estimate_seeds, estimate_seeds))
+    if eb.get("single_run_gbp") is not None:
+        assert eb["single_run_seeds"] == 1, (
+            "the single published run is labelled as being over {!r} seeds".format(
+                eb["single_run_seeds"]))
+        assert _door_gbp(eb["single_run_gbp"]) in rendered, (
+            "the one run every other figure on this page is drawn from was dropped from the "
+            "page, so a reader cannot reconcile the estimate above with the nets in the table "
+            "below")
+
+
+def test_MUTATION_an_estimate_and_a_bound_over_DIFFERENT_seed_counts_is_caught():
+    """The reachability half. A guard that refuses everything passes every "does it refuse"
+    check, so this drives the defect through the real door and requires the leg above to FAIL.
+
+    THE POISON IS THE HISTORICAL DEFECT ITSELF, not an invented one: the feed republishes the
+    single run as the figure the bar bounds, exactly as it did until 2026-09-10, and nothing else
+    moves. That is the shape one careless edit restores.
+    """
+    feed = copy.deepcopy(_live_feed())
+    eb = feed["error_bar"]
+    if eb["single_run_gbp"] is None:
+        pytest.skip("this run publishes no single-run member to poison with")
+    eb["bounds_figure_gbp"] = eb["single_run_gbp"]
+    eb["bounds_figure_seeds"] = 1
+    eb["selection_leg"]["estimate_gbp"] = eb["single_run_gbp"]
+    eb["selection_leg"]["estimate_seeds"] = 1
+    rendered = _render(feed)["arms-errorbar"]
+
+    with pytest.raises(AssertionError, match="ratio is not a quantity"):
+        _assert_estimate_and_bound_share_a_population(eb, rendered)
+
+    # AND THE UNPOISONED FEED THROUGH THE SAME DOOR MUST PASS. Without this the rung above is
+    # satisfied by a helper that raises on everything, which is the trap this file records
+    # entering three times in one afternoon.
+    clean = _live_feed()
+    _assert_estimate_and_bound_share_a_population(
+        clean["error_bar"], _render(clean)["arms-errorbar"])
 
 
 def _sterling(value: float) -> str:
@@ -2074,6 +2225,22 @@ _DIRECTIONAL_CLAIMS_BY_CONTRAST = {
 }
 
 
+def _selection_sign_is_stated(feed: dict) -> bool:
+    """Does the PAGE'S OWN GATE let the selection leg carry a direction on this run?
+
+    READ, NEVER RECOMPUTED. `error_bar.selection_leg.sign_is_stateable` is the flag the composer
+    branches its own sentence on; a control that re-derived the same arithmetic here would be a
+    second gate, and the day the two disagree it reds on a correct page or greens on a wrong one.
+    That is not hypothetical on this file -- it is what happened when the gate moved from
+    `|one run| > stdev` to `|family mean| > 1.96 * sem` on 2026-09-10.
+
+    ABSENT READS AS "NO DIRECTION", never as a free one: a feed that publishes no verdict has not
+    earned a sign, which is the fail-closed direction for every gate on this page.
+    """
+    leg = ((feed.get("error_bar") or {}).get("selection_leg") or {})
+    return leg.get("sign_is_stateable") is True
+
+
 def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live):
     feed = _live_feed()
     split = (feed.get("realised") or {}).get("split") or {}
@@ -2097,7 +2264,15 @@ def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live)
                 "the page named a winner on `{}` with no measured spread behind it: {}".format(
                     contrast, headline))
             continue
-        if abs(value) > stdev:
+        # THE SELECTION LEG'S GATE MOVED ON 2026-09-10 AND THIS FOLLOWED IT. That leg's estimate
+        # is now the seed family's MEAN and its gate is that mean's distance from zero in its own
+        # standard errors -- so `abs(one run) > stdev` is no longer the condition under which the
+        # page names a winner there. Read off the feed's own verdict rather than re-derived here:
+        # a control that recomputes a gate the producer owns is two gates, and the day they
+        # diverge this reds on a correct page or greens on a wrong one.
+        cleared = (_selection_sign_is_stated(feed) if contrast == "selection_gbp"
+                   else abs(value) > stdev)
+        if cleared:
             assert said, (
                 "`{}` cleared its own seed spread and the page still refused to say which way it "
                 "went -- a refusal that cannot be withdrawn is not a reading: {}".format(
@@ -2112,7 +2287,7 @@ def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live)
     selection_spread = ((bounds.get("contrasts") or {}).get("selection_gbp") or {}) \
         if bounds.get("available") else {}
     stdev = selection_spread.get("stdev_gbp")
-    if stdev is not None and abs(selection) <= stdev:
+    if stdev is not None and not _selection_sign_is_stated(feed):
         assert "CANNOT RESOLVE" in headline, headline
         # THE REMEDY MUST REACH THE READER, AND IT MUST BE THE MEASURED ONE. This pinned the words
         # "larger SETTLED BOOK" until 2026-08-29 -- a control keyed to today's answer, which would
@@ -2142,7 +2317,17 @@ def test_the_page_names_a_winner_only_where_the_contrast_cleared_its_floor(live)
         assert expected in headline, (
             "the page's remedy does not match the split it published: `floor_decomposition` says "
             "{!r} and the headline does not carry it: {}".format(expected, headline))
-        assert "More seeds would not resolve it" in headline, (
+        # IMPORTED, NOT RETYPED, and that is the whole repair here (2026-09-10). This pinned the
+        # literal words "More seeds would not resolve it" -- which had been TRUE of a page whose
+        # gate compared one run against a standard deviation, and became FALSE the moment the
+        # selection leg's estimate became the seed family's mean: a mean's standard error falls
+        # as 1/sqrt(seeds), so seeds are exactly what buys that direction. The producer's sentence
+        # was corrected and this control reddened on a page that had become MORE honest, which is
+        # the shape this file's own docstrings name three times over. Reading the constant means
+        # the control asks whether the arithmetic half of the remedy REACHES THE READER, which is
+        # the property, and cannot be broken again by rewording it.
+        from tools.generate_value_arms_data import MORE_SEEDS_WOULD_NOT
+        assert MORE_SEEDS_WOULD_NOT.split(":")[0] in headline, (
             "the page dropped the half of the remedy that is arithmetic and always true")
 
 

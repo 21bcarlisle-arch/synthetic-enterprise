@@ -255,21 +255,48 @@ def test_the_selection_leg_and_its_error_bar_are_published_together(real):
     THE SUBJECT WAS RESTATED ON 2026-08-29, NOT THE ASSERTION. It read `real["provisioned"]`,
     which is how the cross-clock pairing survived review twice: the test asked about the same
     wrong figure the generator did, so both agreed and neither was right.
+
+    AND RESTATED AGAIN ON 2026-09-10, FOR THE SECOND HALF OF THE SAME DEFECT. Getting the two
+    figures onto one CLOCK had left them on two POPULATIONS: the estimate was the ONE published
+    run and the width beside it came from the nine-seed family, so `+£319` printed under
+    `±£1,810` while those nine seeds average `-£1,078`. The estimate is now the family's mean and
+    the bound its standard error over the same seeds, so what "published together" MEANS here is
+    over one population -- and the tri-state that used to be about the estimate is now about the
+    single run, which is the only figure left that can sit outside the family's range.
     """
     sp, eb = real["realised"]["split"], real["error_bar"]
     assert sp["selection_gbp"] is not None
     assert eb["available"], "the point estimate is published with no measured spread"
-    inside = eb["point_estimate_inside_the_measured_band"]
+    leg = eb["selection_leg"]
+    assert leg["available"], (
+        "a spread is published with no estimate for it to be a spread ON: {}".format(
+            leg.get("reason")))
+    assert leg["estimate_seeds"] == leg["bound_seeds"], (
+        "the estimate is over {} seeds and its bound over {} -- published together and still not "
+        "one population".format(leg["estimate_seeds"], leg["bound_seeds"]))
+    inside = eb["single_run_inside_the_measured_band"]
     assert inside is not None, (
-        "the feed cannot say whether the estimate is inside the band its own spread was measured "
-        "over -- an unknown relationship must not be published as a comfortable one")
-    if inside:
-        assert "sits inside that band" in eb["reading"]
+        "the feed cannot say whether the published run is inside the range its own family was "
+        "drawn over -- an unknown relationship must not be published as a comfortable one")
+    # THE READING MUST ANSWER ABOUT THE FIGURE THE PAGE STATES, and there are three states of the
+    # gate rather than two of a band. `sign_is_stateable` is the producer's own verdict; the
+    # branches below check the sentence matches it, never that any particular verdict is right.
+    if leg["sign_is_stateable"] is True:
+        assert leg["sign"] in eb["reading"], (
+            "the family pins its mean past the bar and the reading does not say which side: "
+            "{}".format(eb["reading"]))
+    elif leg["sems_from_zero"] is None:
+        assert "no measurable error" in eb["reading"], eb["reading"]
     else:
-        assert "OUTSIDE the band" in eb["reading"], (
-            "the estimate has left the range its spread was measured over and the reading does "
-            "not say so: {}".format(eb["reading"]))
-        assert "not a bound on it" in eb["reading"]
+        assert "cannot yet resolve" in eb["reading"], (
+            "the mean is inside its own precision and the reading does not say so: {}".format(
+                eb["reading"]))
+        assert leg["sign"] is None, "the verdict withheld a sign and the block published one"
+    # AND THE ONE RUN IS NAMED AS ONE MEMBER, wherever it sits. Dropping it would hide how far
+    # the corrected estimate moved from the figure the rest of the page is drawn from.
+    assert "single member" in eb["reading"] and gva._gbp(eb["single_run_gbp"]) in eb["reading"], (
+        "the published run is not named in the reading, so a reader cannot reconcile the estimate "
+        "with the nets in the table below: {}".format(eb["reading"]))
 
 
 def test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES(real):
@@ -290,55 +317,109 @@ def test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES(real):
 
     Fires on: restoring the provisioned point, dropping either provenance field, or pairing the
     bar with a figure from any block whose clock is not the spread's.
+
+    THE SUBJECT MOVED ON 2026-09-10 AND THE OLD EQUALITY BECAME THE DEFECT. This asserted
+    `bounds_figure_gbp == split["selection_gbp"]` -- the bar bounding the ONE published run --
+    which was right while the bar was that run's. Once the width beside it was a NINE-seed one,
+    that equality *required* the page to pair a one-run figure with a nine-seed bar: the estimate
+    and the bound were on one clock and two populations, `+£319` under `±£1,810` against a
+    family averaging `-£1,078`. The bar's subject is now the family's own mean, so the
+    reconciliation is against the family, and the single run is reconciled separately as one
+    member of it. Same property, correct subject.
     """
     eb, split = real["error_bar"], real["realised"]["split"]
     assert eb["available"] and split["available"]
+    leg, bounded = eb["selection_leg"], gva._spread_for(
+        real["contrast_bounds"], gva.SELECTION_CONTRAST)
 
-    assert eb["bounds_figure_gbp"] == split["selection_gbp"], (
-        "the error bar is a bar on £{!r} while the headline states £{!r} -- a spread over a "
-        "figure it was not measured on".format(eb["bounds_figure_gbp"], split["selection_gbp"]))
-    assert eb["bounds_figure_clock"] == split["clock"] == "settled-realised", (
-        "the bar declares clock {!r} against a split on {!r}".format(
-            eb["bounds_figure_clock"], split["clock"]))
+    assert eb["bounds_figure_gbp"] == leg["estimate_gbp"] == bounded["mean_gbp"], (
+        "the error bar is a bar on £{!r}, the leg states £{!r} and the seed family's own mean is "
+        "£{!r} -- the bar is not on the figure the page states".format(
+            eb["bounds_figure_gbp"], leg["estimate_gbp"], bounded["mean_gbp"]))
+    assert eb["bounds_figure_seeds"] == eb["bound_seeds"] == bounded["n"], (
+        "the figure is over {!r} seeds, the bound over {!r}, and the family has {!r} members"
+        .format(eb["bounds_figure_seeds"], eb["bound_seeds"], bounded["n"]))
+    # THE CLOCK OF THE FIGURE THE BAR NAMES, which is the FAMILY'S and no longer the run's: the
+    # seed rows are the floor's, so the floor's label is the one that belongs to the mean. The
+    # run's own clock is published beside the single run, which is the figure it belongs to.
+    assert eb["bounds_figure_clock"] == eb["clock"] == "settled-realised", (
+        "the bar declares clock {!r} against a family measured on {!r}".format(
+            eb["bounds_figure_clock"], eb["clock"]))
+    assert eb["single_run_gbp"] == split["selection_gbp"], (
+        "the figure labelled as one member of the family is £{!r} and the split every other "
+        "figure on the page comes from is £{!r}".format(
+            eb["single_run_gbp"], split["selection_gbp"]))
+    assert eb["single_run_clock"] == split["clock"] == "settled-realised", (
+        "the labelled member declares clock {!r} against a split on {!r}".format(
+            eb["single_run_clock"], split["clock"]))
     # THE ONE FIGURE IT MUST NOT BE. Named explicitly because it is the figure the defect used,
     # it sits in the same payload under a near-identical key, and on this run the two differ by
     # £1,362 -- so an assertion that only checked "is a float" would have passed throughout.
     prov = real["provisioned"]["selection_gbp"]
     if abs(prov - split["selection_gbp"]) > gva.SAME_SUPPLIER_TOLERANCE_GBP:
-        assert eb["bounds_figure_gbp"] != prov, (
+        assert eb["single_run_gbp"] != prov, (
             "the error bar is bounding the SUPERSEDED clock's selection leg (£{:,.2f}) -- the "
             "exact cross-clock pairing this control exists for".format(prov))
     # ...and the derived readings are the ones that pairing corrupts, so they are checked against
-    # the subject rather than taken on trust.
-    assert eb["point_estimate_inside_the_measured_band"] is (
-        eb["min_gbp"] <= eb["bounds_figure_gbp"] <= eb["max_gbp"])
-    assert eb["spread_to_point_estimate_ratio"] == pytest.approx(
-        abs(eb["stdev_gbp"] / eb["bounds_figure_gbp"]))
+    # the subject rather than taken on trust. THE RATIO IS LIKE WITH LIKE: the bound over the
+    # estimate, both over the same seeds. It was `stdev / one run` and that quotient was not a
+    # quantity -- the assertion below is the arithmetic form of the whole repair.
+    assert eb["single_run_inside_the_measured_band"] is (
+        eb["min_gbp"] <= eb["single_run_gbp"] <= eb["max_gbp"])
+    assert leg["bound_to_estimate_ratio"] == pytest.approx(
+        abs(leg["bound_gbp"] / leg["estimate_gbp"]))
+    assert leg["one_draw_moves_gbp"] == pytest.approx(eb["stdev_gbp"]), (
+        "the family's per-draw width is published as something other than the spread it is, so "
+        "the page has two widths and a reader cannot tell which qualifies the mean")
 
 
 def test_a_split_on_another_clock_leaves_the_bar_with_NOTHING_TO_PLACE(real):
     """The tri-state's third branch, which used to fall through the falsy edge.
 
-    `point_estimate_inside_the_measured_band` is True/False/None, and None means "no figure on
-    this spread's clock exists to place". The reading was a two-branch ternary, so None rendered
-    as "the point estimate now sits OUTSIDE the band" -- an unknown published as a measurement,
-    and in the fail-open direction. It must not reach for the provisioned figure either: a spread
-    on one clock is not a bound on a figure from another, which is the whole subject here.
+    `single_run_inside_the_measured_band` is True/False/None, and None means "no figure on this
+    spread's clock exists to place". The reading was a two-branch ternary, so None rendered as
+    "the point estimate now sits OUTSIDE the band" -- an unknown published as a measurement, and
+    in the fail-open direction. It must not reach for the provisioned figure either: a spread on
+    one clock is not a bound on a figure from another, which is the whole subject here.
 
-    Fires on: collapsing the three branches back to two, or filling the point from any other block.
+    WHICH FIGURE HAS NOTHING TO PLACE CHANGED ON 2026-09-10, and it is the narrower of the two.
+    The estimate the page states no longer comes from the run at all -- it is the seed family's
+    mean, drawn from the floor's own rows on the floor's own clock -- so a run whose split
+    declares another basis does not empty it. What it empties is the MEMBER: there is no
+    published run this page can place inside that family, so `single_run_gbp` is `None`, its seed
+    count is `None` rather than a `1` about a run that cannot be placed, and the reading names no
+    member. The estimate and its bound still publish, because withholding a figure the floor
+    measured on its own clock would be refusing to state something we know.
+
+    Fires on: collapsing the three branches back to two, filling the member from any other block,
+    labelling an absent run as one seed, or withholding the family because the RUN moved clock.
     """
     art = _load(THREE_ARM)
     art["level_vs_selection"] = dict(art["level_vs_selection"], clock="settled-provisioned")
     eb = gva.build(art, _load(NOISE_FLOOR))["error_bar"]
 
     assert eb["available"], "the spread itself is still measured and must still be published"
-    assert eb["bounds_figure_gbp"] is None and eb["bounds_figure_clock"] is None
-    assert eb["point_estimate_inside_the_measured_band"] is None
-    assert eb["spread_to_point_estimate_ratio"] is None, (
-        "a ratio was published against a point estimate that does not exist on this clock")
-    assert "no figure on this spread's own clock" in eb["reading"], eb["reading"]
+    assert eb["single_run_gbp"] is None and eb["single_run_clock"] is None
+    assert eb["single_run_seeds"] is None, (
+        "a run this page cannot place was still labelled as being over one seed")
+    assert eb["single_run_inside_the_measured_band"] is None
+    assert "single member" not in eb["reading"], (
+        "the reading names a member of the family that does not exist on this clock: {}".format(
+            eb["reading"]))
     assert "OUTSIDE the band" not in eb["reading"], (
         "an UNKNOWN was published as the measured statement that the estimate left its band")
+    # AND THE FAMILY IS UNTOUCHED, which is the half that is not an absence. The estimate, its
+    # bound and their shared seed count are the floor's own and the run's clock says nothing
+    # about them -- so this is asserted rather than left to the reader, or a repair that
+    # withheld the whole block on a moved clock would pass every assertion above.
+    leg = eb["selection_leg"]
+    assert leg["available"] and leg["estimate_seeds"] == leg["bound_seeds"], (
+        "the family's own mean and bound were withheld because the RUN changed clock: {}".format(
+            leg.get("reason")))
+    assert eb["bounds_figure_gbp"] == leg["estimate_gbp"] is not None
+    assert eb["bounds_figure_clock"] == eb["clock"], (
+        "the estimate the page states is published without the clock of the family it is the "
+        "mean of ({!r} against {!r})".format(eb["bounds_figure_clock"], eb["clock"]))
     assert eb["stdev_gbp"] is not None, (
         "the null rung: the spread must still be published as a size, or the assertions above "
         "would pass against a block that had simply gone unavailable")
@@ -1238,14 +1319,38 @@ _DIRECTIONAL_CLAIMS = (
     "the choosing itself carried part of it",
 )
 
+#: The half of the remedy that is arithmetic, READ FROM THE PRODUCER RATHER THAN RETYPED. Two
+#: controls here demand it reaches the reader, and both pinned its literal words until 2026-09-10
+#: -- when the words changed because the sentence had become FALSE (a mean's standard error falls
+#: as 1/sqrt(seeds), so seeds ARE the remedy for the gate the page now runs) and the controls
+#: reddened on a page that had become more honest. The leading clause is taken because the rest of
+#: the sentence is prose that may be rewritten again; what these controls are about is that the
+#: clause is on the surface at all.
+_ARITHMETIC_REMEDY = gva.MORE_SEEDS_WOULD_NOT.split(":")[0]
 
-def _floor_with_spread(stdev: float) -> dict:
+
+def _floor_with_spread(stdev: float, selection_mean: float = 0.0) -> dict:
     """A noise floor whose three seeds give EXACTLY `stdev` on all three contrasts.
 
     The values -s, 0, +s have a sample standard deviation of exactly s, so the bound under test is
     the number written at the call site and not one arrived at by arithmetic the reader of this
     test cannot see. The published spread block agrees with the rows by construction -- disagreeing
     with them is its own test below.
+
+    THE SELECTION FAMILY CAN BE CENTRED SOMEWHERE OTHER THAN ZERO (2026-09-10), AND IT HAS TO BE.
+    That leg's gate stopped being "|the one published run| against this stdev" and became "this
+    FAMILY's mean against this family's own standard error" -- so a fixture whose selection rows
+    are always -s, 0, +s pins the mean at exactly zero, which is 0.0 standard errors from zero
+    whatever `stdev` is. Every direction test on that leg would then be green because the fixture
+    cannot express a direction, not because the gate withholds one:
+    `test_a_contrast_outside_its_seed_spread_gets_its_direction_back` would have become
+    unpassable and its three siblings unfalsifiable. `selection_mean` is the parameter that keeps
+    the family's centre and its width independently controllable, and it shifts the selection rows
+    ONLY -- the other two contrasts are still gated on the run against the deviation, so moving
+    their centre would change what those tests measure.
+
+    The default is 0.0 so that every caller written before that date keeps the fixture it was
+    written against, and the two helpers that need a centre pass one explicitly.
 
     IT CARRIES A WORLD STAMP FOR THE SAME REASON IT CARRIES A LATE TIMESTAMP (2026-09-04). Since
     `_seed_spreads` refuses every bound whose floor names no world, an unstamped fixture here
@@ -1275,17 +1380,25 @@ def _floor_with_spread(stdev: float) -> dict:
         "generated_at": "2999-01-01T00:00:00Z",
         "world_identity": {"digest": world, "unavailable_because": None},
         "seeds": [{"seed": 11111 + i, "value_advantage_gbp": v, "level_advantage_gbp": v,
-                   "selection_gbp": v} for i, v in enumerate(values)],
-        "selection_gbp_spread": {"n": 3, "stdev": stdev, "mean": 0.0,
-                                 "min": -stdev, "max": stdev},
+                   "selection_gbp": v + selection_mean} for i, v in enumerate(values)],
+        "selection_gbp_spread": {"n": 3, "stdev": stdev, "mean": selection_mean,
+                                 "min": selection_mean - stdev, "max": selection_mean + stdev},
     }
 
 
-def _headline_with(advantage, selection, stdev):
+def _headline_with(advantage, selection, stdev, selection_mean=None):
+    """The headline for one pair of contrasts against one fixture spread.
+
+    `selection_mean` DEFAULTS TO THE RUN'S OWN FIGURE, which is the null case: a seed family
+    centred on the single published run is the state in which the old gate and the new one ask the
+    same question, so a test that only passes because the two populations disagree fails here
+    instead of on the real page. Pass it explicitly to separate them.
+    """
     art = _load(THREE_ARM)
     art["level_vs_selection"] = dict(art["level_vs_selection"],
                                      value_advantage_gbp=advantage, selection_gbp=selection)
-    return gva.build(art, _floor_with_spread(stdev))["headline"]
+    return gva.build(art, _floor_with_spread(
+        stdev, selection if selection_mean is None else selection_mean))["headline"]
 
 
 def test_a_contrast_inside_its_seed_spread_carries_no_direction():
@@ -1311,7 +1424,12 @@ def test_a_contrast_inside_its_seed_spread_carries_no_direction():
     # measured the remedy to be FALSE unable to say so without going red: a control keyed to
     # today's answer, red exactly when the page became more honest. `_headline_with` reads no
     # decomposition, so what it must carry is the unmeasured branch.
-    assert "has not been established" in headline and "More seeds would not" in headline, (
+    # READ FROM THE PRODUCER, NEVER RETYPED (2026-09-10). This pinned the words "More seeds would
+    # not", which had been TRUE of a gate comparing one run against a standard deviation and
+    # became FALSE once the leg's estimate was the family's MEAN -- a mean's standard error falls
+    # as 1/sqrt(seeds), so seeds are exactly what buys the direction. The sentence was corrected
+    # and this assertion would have reddened on a page that had become more honest.
+    assert "has not been established" in headline and _ARITHMETIC_REMEDY in headline, (
         "the page says it cannot resolve the sign and says nothing at all about what would -- "
         "'we cannot tell' with no remedy reads as a dead end: {}".format(headline))
 
@@ -1479,7 +1597,13 @@ def _withheld_headline(decomposition):
     art = _load(THREE_ARM)
     art["level_vs_selection"] = dict(art["level_vs_selection"],
                                      value_advantage_gbp=1815.79, selection_gbp=1815.79)
-    return gva.build(art, _floor_with_spread(2577.80), decomposition)["headline"]
+    # AND THE SELECTION FAMILY IS CENTRED ON THE SAME £1,815.79 (2026-09-10), for the reason the
+    # advantage was set to it above: the leg's gate is now the family's mean against the family's
+    # own standard error, so a family centred on zero would withhold this leg because the fixture
+    # cannot express a direction rather than because the bound covers it. At £1,815.79 against a
+    # ±£2,577.80 spread over three seeds the standard error is £1,488 and the mean is 1.22 of them
+    # from zero -- inside, which is the state every remedy test here needs.
+    return gva.build(art, _floor_with_spread(2577.80, 1815.79), decomposition)["headline"]
 
 
 def test_the_remedy_clause_follows_the_decomposition_not_the_wording():
@@ -1536,7 +1660,7 @@ def test_the_remedy_clause_follows_the_decomposition_not_the_wording():
     # would drop the one clause that was always true.
     for name, headline in (("dominates", dominates), ("cannot", cannot),
                            ("unmeasured", unmeasured), ("undecided", undecided)):
-        assert "More seeds would not resolve it" in headline, (
+        assert _ARITHMETIC_REMEDY in headline, (
             "the {} branch dropped the half of the remedy that is arithmetic".format(name))
 
 

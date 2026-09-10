@@ -1240,10 +1240,20 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
     the reassuring side, under the sentence a reader trusts most.
 
     So the caller passes the figure the HEADLINE states together with the clock it declares, and
-    both are republished here as `bounds_figure_gbp`/`bounds_figure_clock`. That pair is what makes
-    the pairing checkable from the artefact instead of from this docstring: a reader, and
-    `test_the_error_bar_bounds_the_FIGURE_THE_HEADLINE_STATES`, can reconcile it against
-    `realised.split.selection_gbp` without knowing anything about which function passed what.
+    the clock is republished here as `bounds_figure_clock`. That is what makes the pairing
+    checkable from the artefact instead of from this docstring.
+
+    AND THE SECOND HALF OF THE SAME DEFECT SURVIVED ANOTHER TWELVE DAYS (2026-09-10). Getting the
+    two figures onto one CLOCK left them on two POPULATIONS: `bounds_figure_gbp` was the caller's
+    single published run and every width beside it came from the nine-seed family. On the live
+    feed that meant `+£319.10` printed under `±£1,810.50`, while those same nine seeds average
+    `-£1,078.17` -- the page showed a reader a positive on the one contrast the mission turns on,
+    and the only thing making it look bounded was a width earned by a population it was not drawn
+    from. `bounds_figure_gbp` is now the family's MEAN, its bound is that family's STANDARD ERROR
+    over the same seeds, and the single run stays on the page as `single_run_gbp` labelled with
+    `single_run_seeds: 1`. `bounds_figure_seeds` and `bound_seeds` are published beside them so
+    the question "are these two numbers over one population" is answerable from the artefact --
+    which is the property the door test's own leg is keyed to. See `_leg_over_its_own_family`.
     """
     spread = (floor or {}).get("selection_gbp_spread") or {}
     stdev = _f(spread.get("stdev"))
@@ -1255,13 +1265,17 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
                           "is published without a measured spread"}
     seeds = [s for s in (floor.get("seeds") or []) if isinstance(s, dict)]
     draws = [s.get("elasticity_draws") for s in seeds]
-    ratio = (abs(stdev / point_estimate)
-             if point_estimate not in (None, 0) else None)
-    # Whether the figure this spread is published beside is even inside the range the spread was
-    # measured over. `None` when either end is missing -- an unknown relationship must not read
-    # as a comfortable one.
-    inside = (None if lo is None or hi is None or point_estimate is None
-              else bool(lo <= point_estimate <= hi))
+    # THE ESTIMATE AND THE BOUND, BUILT AS ONE THING FROM ONE POPULATION (2026-09-10). Everything
+    # below that a reader meets as "the value of the choosing" comes out of this block, so the
+    # two can no longer be picked up from different places -- which is exactly how a one-run
+    # `+£319` came to be printed under a nine-seed `±£1,810`. See `_leg_over_its_own_family`.
+    leg = _leg_over_its_own_family(
+        {"n": n, "mean_gbp": _f(spread.get("mean")), "stdev_gbp": stdev,
+         "min_gbp": lo, "max_gbp": hi, "sem_gbp": _f(floor.get("selection_sem_gbp"))},
+        point_estimate, point_clock)
+    # Whether the ONE published run is even inside the range the family was drawn over. `None`
+    # when either end is missing -- an unknown relationship must not read as a comfortable one.
+    inside = leg.get("single_run_inside_the_family")
     return {
         "available": True,
         "seeds": n,
@@ -1275,13 +1289,42 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         "max_gbp": hi,
         "sem_gbp": _f(floor.get("selection_sem_gbp")),
         "distinguishable_from_zero": bool(floor.get("selection_distinguishable_from_zero")),
-        "spread_to_point_estimate_ratio": ratio,
+        # THE WHOLE PAIRING, and the only place on this page a selection estimate now comes from.
+        "selection_leg": leg,
         # WHICH FIGURE THIS IS A BAR ON, published rather than left to the reader to infer from
         # position. Republished as a pair so the pairing is RECONCILABLE against
-        # `realised.split.selection_gbp` on the surface -- the check that would have caught this
-        # block bounding the provisioned leg while the headline stated the realised one.
-        "bounds_figure_gbp": point_estimate,
-        "bounds_figure_clock": point_clock,
+        # `error_bar.mean_gbp` on the surface -- the check that would have caught this block
+        # bounding the provisioned leg while the headline stated the realised one.
+        #
+        # IT IS THE FAMILY'S MEAN AND IT USED TO BE THE ONE RUN (2026-09-10). The seed count is
+        # published beside it, and beside the bound, because "are these two numbers over the same
+        # population" is the question this whole block exists to let a reader answer without
+        # taking anyone's word for it.
+        "bounds_figure_gbp": leg.get("estimate_gbp"),
+        "bounds_figure_seeds": leg.get("estimate_seeds"),
+        "bound_seeds": leg.get("bound_seeds"),
+        # THE CLOCK OF THE FIGURE THE BAR NAMES, WHICH IS NOW THE FAMILY'S AND NOT THE RUN'S. This
+        # was `point_clock` -- the clock the published run's own split declares -- and that was
+        # right for exactly as long as the bar's subject WAS that run. Once the subject became the
+        # seed family's mean, `point_clock` was the clock of a different figure: on a run whose
+        # split declares another basis it is `None`, so the page would have published a real
+        # estimate with NO clock beside it, which is the one thing every financial figure here is
+        # forbidden to do. The family is drawn from the floor's seed rows, so the floor's clock is
+        # the one that belongs to it -- the same label `clock` below carries, and `clock_caveat`
+        # is what speaks when the floor declares none.
+        "bounds_figure_clock": floor.get("clock"),
+        # AND THE ONE RUN, STILL VISIBLE AND LABELLED AS ONE MEMBER OF THE NINE. Not dropped:
+        # that it lands on the OTHER SIDE OF ZERO from its own family's mean is the most
+        # informative thing about it, and a page that quietly replaced it would have hidden the
+        # size of the correction it was making.
+        #
+        # IT CARRIES ITS OWN CLOCK, because it is the one figure here that can be on a different
+        # one. When the run's split declares a basis the floor's seeds were not measured on there
+        # is no member to show, and `single_run_gbp` is `None` with the seed count `None` beside
+        # it rather than a `1` about a run this page cannot place.
+        "single_run_gbp": point_estimate,
+        "single_run_seeds": None if _f(point_estimate) is None else 1,
+        "single_run_clock": point_clock,
         # WHICH READING THIS BOUNDS. The noise floor is its own set of runs, and if it does not
         # declare a clock this feed will not choose one for it: it is paired with the panel whose
         # figure it was computed alongside, and said to be a scale statement about the instrument
@@ -1341,32 +1384,69 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # +5,076 -- and the surface would have gone on saying it. The generator's own live-state
         # test caught it (`test_the_selection_leg_and_its_error_bar_are_published_together`),
         # which is the control working; keeping the sentence would have been the defect.
-        "point_estimate_inside_the_measured_band": inside,
-        # THREE BRANCHES, BECAUSE THERE ARE THREE STATES. `inside` is a tri-state -- True, False,
-        # and None for "no figure on this spread's clock to place" -- and until 2026-08-29 this
-        # was a two-branch ternary, so None fell through the falsy edge and published "the point
-        # estimate now sits OUTSIDE the band" about a point estimate that did not exist. An
-        # unknown rendered as a measured fact, in the fail-open direction, on the one sentence
-        # this block exists to get right (R15: unknown must never read as an answer).
-        "reading": (
-            "The point estimate sits inside that band and so does zero, so this instrument cannot "
-            "yet resolve a selection effect of the size it is measuring -- in either direction. "
-            "That is a finding about the INSTRUMENT and not about the pricing arm, and it is not "
-            "a cue to re-run until a seed agrees."
-            if inside is True else
-            "The point estimate now sits OUTSIDE the band this spread was measured over, so the "
-            "spread is not a bound on it and nothing here resolves the selection effect either "
-            "way. An estimate that has left its own error bar's range needs the error bar "
-            "re-measured, not read as having escaped it -- which is the direction the reading "
-            "would drift if this sentence were fixed rather than derived."
-            if inside is False else
-            "There is no figure on this spread's own clock to place inside or outside it, so "
-            "nothing here resolves the selection effect either way. What is published below is "
-            "the size of this instrument's seed sensitivity and NOT a bound on any number on this "
-            "page -- the spread is measured on the settled-realised clock, and this run's "
-            "level-vs-selection split does not declare that clock, so pairing the two would be "
-            "the clock mix this feed refuses everywhere else."),
+        # RENAMED 2026-09-10, BECAUSE THE SUBJECT CHANGED AND THE OLD NAME WOULD HAVE LIED ABOUT
+        # WHICH. This asks about the ONE RUN, not about the estimate the page now states: the
+        # estimate IS the family's mean, so "is the estimate inside the family's range" would be
+        # an identity dressed as a check -- green forever and saying nothing. What is worth
+        # asking is whether the run this page's other figures come from is a typical member of
+        # the family, and it is a tri-state: True, False, and None for no run to place.
+        "single_run_inside_the_measured_band": inside,
+        "reading": _selection_leg_reading(leg, inside),
     }
+
+
+def _selection_leg_reading(leg: dict, inside) -> str:
+    """What a reader should take from the estimate and the bound -- DERIVED from both.
+
+    THE SENTENCE THIS REPLACES ANSWERED ABOUT THE WRONG NUMBER. It read "the point estimate sits
+    inside that band and so does zero", where the point estimate was one run and the band was
+    nine seeds, so it was reporting a relationship between two populations as a finding about an
+    instrument. Now the verdict is the family's own: how many standard errors its mean sits from
+    zero, against `SIGN_NEEDS_SEMS_FROM_ZERO`.
+
+    THREE BRANCHES ON THE VERDICT, BECAUSE THERE ARE THREE STATES -- stateable, not stateable,
+    and no family to ask. The last one was a real defect once (2026-08-29): a two-branch ternary
+    let `None` fall through the falsy edge and publish a measured-sounding claim about a figure
+    that did not exist, which is the fail-open direction on the one sentence this block exists to
+    get right.
+
+    THE ONE RUN IS NAMED IN EVERY BRANCH IT CAN BE. Its distance from the family's mean is the
+    correction this page made on 2026-09-10, and a reader who is shown the new estimate without
+    being shown what it replaced cannot see the size of it.
+    """
+    if not leg.get("available"):
+        return ("No seed family is readable for the selection leg, so nothing here resolves it "
+                "either way. What is published beside it is the size of this instrument's seed "
+                "sensitivity and NOT a bound on any number on this page -- pairing a spread with "
+                "a figure it was not drawn over is the mix this feed refuses everywhere else.")
+    n, sems = leg.get("estimate_seeds"), leg.get("sems_from_zero")
+    single_run = (leg.get("single_run") or {}).get("gbp")
+    member = ""
+    if single_run is not None:
+        member = (" The one published run is a single member of those {n}: {run}, {where} "
+                  "the family's own range{flip}, and every other figure on this page is drawn "
+                  "from it.").format(
+            n=n, run=_gbp(single_run),
+            where=("inside" if inside is True else
+                   "OUTSIDE" if inside is False else "of unknown position within"),
+            flip=(" and on the OTHER SIDE OF ZERO from the estimate above"
+                  if leg.get("single_run_on_the_other_side_of_zero") else ""))
+    if leg.get("sign_is_stateable") is True:
+        return ("The estimate sits {sems:.1f} standard errors from zero -- past the {bar} this "
+                "page requires before stating a side -- so on {n} re-draws the selection leg is "
+                "{sign}. That is a statement about this instrument's best estimate and not a "
+                "target: an arm that loses to its own baseline is a complete answer.{member}"
+                ).format(sems=sems, bar=SIGN_NEEDS_SEMS_FROM_ZERO, n=n,
+                         sign=leg.get("sign"), member=member)
+    if sems is None:
+        return ("The family pins its mean with no measurable error, so how far that mean is from "
+                "zero cannot be stated in units of its own precision and this page states no "
+                "side.{}".format(member))
+    return ("The estimate sits {sems:.1f} standard errors from zero, short of the {bar} this page "
+            "requires before stating a side, so this book cannot yet resolve a selection effect "
+            "of the size it is measuring -- in either direction. That is a finding about the "
+            "INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed "
+            "agrees.{member}").format(sems=sems, bar=SIGN_NEEDS_SEMS_FROM_ZERO, member=member)
 
 
 #: The name the objective's departure term arrives under, and the ONLY thing this feed will accept
@@ -1713,11 +1793,26 @@ def _departure_rerun_skill_reading(inside_before, inside_after, before, after) -
 #: seeds), so borrowing would have licensed a direction the borrowed-from figure never earned.
 _BOUNDED_CONTRASTS = ("value_advantage_gbp", "level_advantage_gbp", "selection_gbp")
 
-#: The half of the remedy that is ARITHMETIC and needs no evidence: more seeds estimate this
-#: spread again, they do not shrink it. True of any error bar, so it is stated unconditionally.
+#: The half of the remedy that is ARITHMETIC and needs no evidence. True of any error bar, so it
+#: is stated unconditionally.
+#:
+#: IT SAID THE OPPOSITE UNTIL 2026-09-10, AND THE PAGE MADE IT WRONG. The sentence was "More seeds
+#: would not resolve it: re-drawing the dice measures this spread again, it does not shrink it."
+#: That is true of the standard DEVIATION, and it was true of the gate the page ran at the time --
+#: one published run against that deviation. It stopped being true the moment the selection leg's
+#: estimate became the seed family's MEAN, because a mean's standard error falls as 1/sqrt(seeds)
+#: and seeds are then precisely what buys the direction. Correcting which population an estimate
+#: came from turned a sentence three paragraphs away into a falsehood, with nothing in the file
+#: able to notice: the constant and the gate never met.
+#:
+#: SO IT NOW SEPARATES THE TWO QUANTITIES rather than choosing between them, and points at the
+#: block that prices the seeds -- `error_bar.selection_leg.seeds_needed_to_state_a_sign`, which
+#: is derived from the family on disk and cannot go stale the way this sentence did.
 MORE_SEEDS_WOULD_NOT = (
-    "More seeds would not resolve it: re-drawing the dice measures this spread again, it does not "
-    "shrink it.")
+    "More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. "
+    "What they do buy is how well those draws pin their own MEAN, which is the quantity this "
+    "page states a side from -- the error bar below prices how many the family on disk would "
+    "need.")
 
 #: The half that is a CLAIM ABOUT WHERE THE SPREAD COMES FROM, and was published as fact for a day
 #: before anyone measured it. The floor re-draws elasticity for ~2,050 households and the arm
@@ -2398,7 +2493,13 @@ def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
         mean = sum(values) / len(values)
         variance = sum((value - mean) ** 2 for value in values) / (len(values) - 1)
         contrasts[key] = {"n": len(values), "stdev_gbp": variance ** 0.5, "mean_gbp": mean,
-                          "min_gbp": min(values), "max_gbp": max(values)}
+                          "min_gbp": min(values), "max_gbp": max(values),
+                          # THE BOUND THAT PAIRS WITH THE MEAN, derived here beside it so the two
+                          # can never be picked up from different places. `stdev_gbp` is how far
+                          # ONE re-draw moves; `sem_gbp` is how well the FAMILY pins its own mean.
+                          # Publishing only the first is what let this page divide a nine-seed
+                          # spread by a one-run figure -- see `_leg_over_its_own_family`.
+                          "sem_gbp": (variance ** 0.5) / (len(values) ** 0.5)}
 
     published = _f(((floor or {}).get("selection_gbp_spread") or {}).get("stdev"))
     derived = (contrasts.get("selection_gbp") or {}).get("stdev_gbp")
@@ -2440,6 +2541,131 @@ def _spread_for(spreads: dict | None, key: str):
     if not (spreads or {}).get("available"):
         return None
     return ((spreads or {}).get("contrasts") or {}).get(key)
+
+
+#: How many standard errors from zero the family's own mean has to sit before this page states
+#: which side of zero it is on. The normal two-sided 95% point, which is the same bound
+#: `_auc_null` states its rank statistics against and the same one the noise floor's producer
+#: uses for `selection_distinguishable_from_zero` -- so the page's gate and the artefact's own
+#: verdict cannot disagree about a figure they both describe. It is a statistical convention and
+#: not a domain quantity: nothing about GB energy sets it.
+SIGN_NEEDS_SEMS_FROM_ZERO = 1.96
+
+
+def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=None) -> dict:
+    """ONE contrast's estimate and ONE contrast's bound, both over the SAME population.
+
+    THE DEFECT IT SERVES, and it is the thesis of the page rather than a detail of it. Until
+    2026-09-10 the reader met `+£319` for the value of the per-customer choosing -- the value
+    arm's net minus the level arm's net out of the ONE published run -- with `±£1,810` printed
+    beside it, which is the standard deviation of that same contrast across NINE seed re-draws.
+    Two correct figures whose ratio is not a quantity: this project's most expensive recurring
+    shape, committed on the one number the mission turns on. The nine-seed family's own mean of
+    that identical contrast is `-£1,078`. So the page showed a reader a POSITIVE where the best
+    estimate we hold is NEGATIVE, and the only thing making the positive look bounded was a
+    width earned by a population it was not drawn from.
+
+    WHAT THIS RETURNS INSTEAD. The estimate is the family's MEAN, over `n` seeds. The bound is
+    that family's STANDARD ERROR, over the same `n` seeds. `estimate_seeds == bound_seeds` is
+    therefore an invariant of this block and not a coincidence of today's artefacts, and it is
+    the property `site/test_the_baseline_comparison_reaches_the_reader.py` keys its own leg to.
+
+    THE ONE RUN STAYS VISIBLE AND IS LABELLED. It is one member of that family, not a rival
+    estimate and not a headline: dropping it would hide that the published run is an outlier on
+    the far side of zero from its own family's mean, which is the most informative thing about
+    it. It carries `seeds: 1` so no reader and no control can mistake which population it is
+    over.
+
+    WHY THE RATIO IS SEM-OVER-MEAN AND NOT STDEV-OVER-ANYTHING. The question the page asks is
+    "can we tell which side of zero this is on", and the statistic that answers it is the mean's
+    distance from zero in units of the mean's OWN error. `stdev_gbp` answers a different
+    question -- how far one re-draw moves -- and is published as such, never divided into the
+    mean. Said out loud before dividing, per this repository's rule.
+
+    KEYED TO THE PROPERTY. Nothing here asserts the answer is "cannot tell". The day the family
+    pins its mean more than `SIGN_NEEDS_SEMS_FROM_ZERO` errors from zero, `sign_is_stateable`
+    goes true and the prose states the sign, with nobody editing a string.
+    """
+    single_run = _f(single_run)
+    single_run_block = {
+        "gbp": single_run,
+        "seeds": None if single_run is None else 1,
+        "clock": single_run_clock,
+        "what_it_is_over": (
+            "ONE run of the three arms -- one member of the seed family above, published because "
+            "it is the run every other figure on this page is drawn from, and NOT because it is "
+            "the best estimate of this contrast. The family's mean is."),
+    }
+    mean, sem = _f((spread or {}).get("mean_gbp")), _f((spread or {}).get("sem_gbp"))
+    n = (spread or {}).get("n")
+    if mean is None or sem is None or not isinstance(n, int) or n < 2:
+        return {
+            "available": False,
+            # THE REFUSAL NAMES ITS REASON, and this one is not "no floor was run" -- it is that
+            # whatever was run cannot supply a mean and an error over one population. A reader
+            # sent to run seeds when the seeds exist is a refusal that cost a cycle.
+            "reason": ("no seed family with two or more members is readable for this contrast, so "
+                       "the only figure available is one run and this page publishes no estimate "
+                       "for it"),
+            "single_run": single_run_block,
+        }
+    sems_from_zero = None if sem == 0 else abs(mean) / sem
+    stateable = None if sems_from_zero is None else bool(
+        sems_from_zero > SIGN_NEEDS_SEMS_FROM_ZERO)
+    lo, hi = _f((spread or {}).get("min_gbp")), _f((spread or {}).get("max_gbp"))
+    stdev = _f((spread or {}).get("stdev_gbp"))
+    # WHAT IT WOULD TAKE, PRICED IN THE ONE UNIT THAT ACTUALLY BUYS IT DOWN. The page's remedy
+    # sentence said for weeks that "more seeds would not resolve it: re-drawing the dice measures
+    # this spread again, it does not shrink it" -- true of the STANDARD DEVIATION, and true of
+    # the gate the page used to run, which compared one run against that deviation. It is false
+    # of the gate above: the standard error falls as 1/sqrt(n), so seeds are exactly what buys
+    # this one. Correcting the estimate's population made a sentence elsewhere on the page wrong,
+    # which is the interconnection this seat is the only place able to notice.
+    #
+    # IT IS ARITHMETIC AND NOT A PREDICTION, and the field says so in its own name. It holds this
+    # family's observed mean and deviation fixed; a wider family or a mean nearer zero moves it,
+    # and nothing here claims the next seeds will look like these nine.
+    needed = None
+    if stateable is False and stdev not in (None, 0) and mean != 0:
+        needed = math.ceil((SIGN_NEEDS_SEMS_FROM_ZERO * stdev / abs(mean)) ** 2)
+        needed = max(needed, n + 1)
+    return {
+        "available": True,
+        "estimate_gbp": mean,
+        "estimate_seeds": n,
+        "bound_gbp": sem,
+        "bound_seeds": n,
+        "bound_statistic": "sem_gbp",
+        "one_draw_moves_gbp": _f((spread or {}).get("stdev_gbp")),
+        "sems_from_zero": sems_from_zero,
+        "sign_is_stateable": stateable,
+        "sign": None if not stateable else ("negative" if mean < 0 else "positive"),
+        "sems_needed_to_state_a_sign": SIGN_NEEDS_SEMS_FROM_ZERO,
+        "bound_to_estimate_ratio": (None if mean == 0 or sem is None else abs(sem / mean)),
+        "seeds_needed_to_state_a_sign": needed,
+        "seeds_needed_holds_this_family_fixed": (
+            None if needed is None else
+            ("arithmetic on THIS family's mean and deviation, not a forecast: at {n} seeds the "
+             "standard error is £{sem:,.0f} and the mean is {sems:.2f} errors from zero, and the "
+             "error falls as 1/sqrt(seeds), so {needed} draws of the same width around the same "
+             "mean would clear {bar}. A wider family or a mean nearer zero needs more, and "
+             "nothing here claims the next seeds will look like these.").format(
+                 n=n, sem=sem, sems=sems_from_zero, needed=needed,
+                 bar=SIGN_NEEDS_SEMS_FROM_ZERO)),
+        "single_run": single_run_block,
+        "single_run_inside_the_family": (
+            None if single_run is None or lo is None or hi is None
+            else bool(lo <= single_run <= hi)),
+        "single_run_on_the_other_side_of_zero": (
+            None if single_run is None or single_run == 0 or mean == 0
+            else bool((single_run > 0) != (mean > 0))),
+        "what_each_number_is_over": (
+            "`estimate_gbp` is the MEAN of this contrast across {n} seed re-draws. `bound_gbp` is "
+            "that same family's standard error over the same {n}. They are one population, which "
+            "is the only footing on which a bound qualifies an estimate. `one_draw_moves_gbp` is "
+            "the family's standard deviation -- how far a SINGLE re-draw moves -- and it is never "
+            "divided into the mean. `single_run.gbp` is one member of the {n}.").format(n=n),
+    }
 
 
 def _resolvable(value, spread) -> bool | None:
@@ -8506,25 +8732,40 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     # behind, which is a half-finished repair rather than an oversight of a different kind.
     opening = _arm_vs_control_clause(advantage, advantage_spread, spreads)
 
-    # NO DIRECTION WITHOUT A CONTRAST THAT EARNED ONE. Unknown is treated exactly as inside: a
-    # missing spread is not evidence that the sign is safe to state.
-    if _resolvable(selection, selection_spread) is not True:
+    # THE ESTIMATE THE READER MEETS, OVER THE SAME POPULATION AS ITS BOUND (2026-09-10). Until
+    # this date the sentence below led with `selection` -- the ONE published run -- and qualified
+    # it with a nine-seed spread, so a reader was told the choosing was worth +£319 while the
+    # best estimate this project holds for that identical contrast was -£1,078. The estimate is
+    # now the family's mean, the bound is that family's own standard error, and the one run is
+    # named as one member of it. See `_leg_over_its_own_family`.
+    leg = _leg_over_its_own_family(selection_spread, selection)
+
+    # NO DIRECTION WITHOUT A CONTRAST THAT EARNED ONE. Unknown is treated exactly as "cannot
+    # tell": a missing family is not evidence that the sign is safe to state.
+    if not leg.get("available"):
         body = _cannot_resolve(
             selection, selection_spread,
             ("Once one flat margin at the same price LEVEL is given credit for what a level "
-             "alone would have earned, £{:,.0f} separates the two").format(abs(selection)),
+             "alone would have earned, £{:,.0f} separates the two on the one run published "
+             "below").format(abs(selection)),
             "whether the per-customer choosing is worth anything at all, in either direction",
             spreads)
-    elif selection < 0:
+    elif leg.get("sign_is_stateable") is not True:
+        body = _cannot_tell_from_the_family(leg)
+    elif leg["estimate_gbp"] < 0:
         body = ("Running it through ONE flat margin at the same price LEVEL earned "
-                "£{:,.0f} more than the per-customer engine did{}. On this evidence the advantage "
-                "is the price level, and the per-customer choosing is worth less than "
-                "nothing.".format(abs(selection), _clears_its_floor(selection_spread)))
+                "£{:,.0f} more than the per-customer engine did, on average across the {n} seed "
+                "re-draws{bound}. On this evidence the advantage is the price level, and the "
+                "per-customer choosing is worth less than nothing.{member}".format(
+                    abs(leg["estimate_gbp"]), n=leg["estimate_seeds"],
+                    bound=_clears_its_bound(leg), member=_one_member_clause(leg)))
     else:
         body = ("Once one flat margin at the same price LEVEL is given credit for what a level "
-                "alone would have earned, £{:,.0f} is left{}. On this evidence the choosing "
-                "itself carried part of it.".format(selection,
-                                                    _clears_its_floor(selection_spread)))
+                "alone would have earned, £{:,.0f} is left, on average across the {n} seed "
+                "re-draws{bound}. On this evidence the choosing itself carried part of it."
+                "{member}".format(leg["estimate_gbp"], n=leg["estimate_seeds"],
+                                  bound=_clears_its_bound(leg),
+                                  member=_one_member_clause(leg)))
 
     # ONCE, AND ONLY WHEN SOMETHING WAS WITHHELD. A remedy printed beside a claim that WAS
     # resolved would read as an apology for a figure that earned its sign.
@@ -8537,15 +8778,93 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     # ±£2,578 floor and clears it while the selection leg is £1,816 against the same floor and
     # does not, so the OR was true for the leg the price was NOT for. The tuple is passed down so
     # `_decomposition_prices_a_withheld_leg` can ask the question this flag was destroying.
+    #
+    # AND THE SELECTION LEG IS GRADED ON THE GATE THAT WROTE ITS SENTENCE (2026-09-10). Its body
+    # above now comes from `leg.sign_is_stateable` -- mean against its own standard error -- while
+    # this tuple went on asking `_resolvable`, which is a one-run figure against a nine-seed
+    # standard deviation. Two gates, one leg: the page could state a sign in the body and summon
+    # the remedy for a withheld leg in the next breath, or withhold and print no remedy at all.
     withheld_contrasts = tuple(
-        contrast for contrast, value, spread in (
-            (PAGE_FIGURE_CONTRAST, advantage, advantage_spread),
-            (SELECTION_CONTRAST, selection, selection_spread))
-        if _f(value) is not None and _resolvable(value, spread) is not True)
+        contrast for contrast, value, withheld in (
+            (PAGE_FIGURE_CONTRAST, advantage,
+             _resolvable(advantage, advantage_spread) is not True),
+            (SELECTION_CONTRAST, selection,
+             (leg.get("sign_is_stateable") is not True) if leg.get("available")
+             else _resolvable(selection, selection_spread) is not True))
+        if _f(value) is not None and withheld)
     return "{} {}{}{}".format(
         opening, body, share_clause,
         " " + _what_would_resolve_it(decomposition, three_arm, withheld_contrasts).strip()
         if withheld_contrasts else "")
+
+
+def _one_member_clause(leg: dict) -> str:
+    """The ONE published run, named as one member of the family the estimate is over.
+
+    THE SENTENCE THE READER ACTUALLY READS HAS TO SAY WHICH POPULATION EACH NUMBER IS OVER. The
+    estimate above it is a mean over n seeds; this figure is one draw, and every other number on
+    the page comes from it. Without this clause a reader meeting the corrected estimate cannot
+    reconcile it with the nets in the table below, which are that single run's.
+
+    SILENT WHEN THERE IS NOTHING TO SAY, and never silent about a sign flip: whether the one run
+    landed on the other side of zero from its own family's mean is the whole size of the
+    correction made on 2026-09-10, and it is the fact a reader is most likely to be surprised by.
+    """
+    run = (leg.get("single_run") or {}).get("gbp")
+    if run is None:
+        return ""
+    return (" The single run every other figure on this page is drawn from is one member of "
+            "those {n} and came out at {run}{flip}.").format(
+        n=leg.get("estimate_seeds"), run=_gbp(run),
+        flip=(" -- on the other side of zero from the estimate above"
+              if leg.get("single_run_on_the_other_side_of_zero") else ""))
+
+
+def _clears_its_bound(leg: dict) -> str:
+    """The bound, stated on the branch that DID earn its direction -- and stated LIKE WITH LIKE.
+
+    `_clears_its_floor` below does this against `stdev_gbp`, which is how far one re-draw moves.
+    That is the wrong denominator for a mean: a family of n draws pins its mean sqrt(n) times
+    better than any one of them, and quoting the per-draw width beside a mean is the same
+    population mix this page was publishing on the selection leg until 2026-09-10, just in the
+    conservative direction rather than the flattering one. A mean is bounded by its standard
+    error or it is not bounded.
+    """
+    sem, sems = _f(leg.get("bound_gbp")), leg.get("sems_from_zero")
+    if sem is None or sems is None:
+        return ""
+    return (", clearing the ±£{sem:,.0f} standard error those same {n} re-draws pin that mean to "
+            "by {sems:.1f} of them").format(sem=sem, n=leg.get("bound_seeds"), sems=sems)
+
+
+def _cannot_tell_from_the_family(leg: dict) -> str:
+    """The selection leg's refusal, with the estimate and the bound both named by population.
+
+    R12 ON THE SURFACE. "We cannot tell" is a result and it belongs in the sentence a reader
+    reads, with the figure it is about in front of them -- not withheld, and not softened into a
+    positive number that happens to be one draw.
+
+    THE UNMEASURABLE-ERROR CASE IS ITS OWN SENTENCE, not the "short of 1.96" one. A family whose
+    members are identical pins its mean with zero error, and dividing by that is not a bigger
+    number of standard errors -- it is no answer at all. Reporting it as "short of the bar" would
+    be an unknown rendered as a measurement, which is the fail-open direction.
+    """
+    if leg.get("sems_from_zero") is None:
+        return ("Once one flat margin at the same price LEVEL is given credit for what a level "
+                "alone would have earned, the choosing is worth {est} on average across the "
+                "{n} seed re-draws -- but those {n} re-draws returned the same figure every time, "
+                "so they pin that mean with no measurable error and its distance from zero cannot "
+                "be stated in units of its own precision. So this page states no side.{member}"
+                ).format(est=_gbp(leg["estimate_gbp"]), n=leg["estimate_seeds"],
+                         member=_one_member_clause(leg))
+    return ("Once one flat margin at the same price LEVEL is given credit for what a level alone "
+            "would have earned, the choosing is worth {est} on average across the {n} seed "
+            "re-draws -- and that mean sits {sems:.1f} standard errors from zero against the "
+            "±£{sem:,.0f} standard error those same {n} pin it to, short of the {bar} this page "
+            "requires before stating a side. So this book CANNOT RESOLVE whether the per-customer "
+            "choosing is worth anything at all, in either direction.{member}").format(
+        est=_gbp(leg["estimate_gbp"]), n=leg["estimate_seeds"], sems=leg["sems_from_zero"],
+        sem=leg["bound_gbp"], bar=SIGN_NEEDS_SEMS_FROM_ZERO, member=_one_member_clause(leg))
 
 
 def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) -> str:
