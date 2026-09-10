@@ -5207,6 +5207,69 @@ def floor_refusal_would_clobber(out: Path) -> bool:
 DECOMPOSABLE_CONTRASTS = ("value_advantage_gbp", "level_advantage_gbp", "selection_gbp")
 
 
+def trees_the_legs_ran_on(undecomposed: dict, priced_only: dict, priced_except: dict,
+                          three_arm: dict) -> dict:
+    """Which code drew each of the four legs a decomposition reads. RECORDED, never a refusal.
+
+    THE GAP THIS FILLS. `decompose_floor` refuses legs from two WORLDS and says why: a variance
+    measured over one departure level is not a component of a variance measured over another. The
+    same argument applies to the CODE, more forcefully -- the three floor legs are supposed to
+    partition one call stream, and if different trees drew them they are not two halves of one
+    thing and the reconciliation ratio is measuring something else. `world_identity.digest` cannot
+    see it: it is the per-year departure anchors and nothing else. `producing_commit.commit` is
+    stamped on every leg already and was read by nothing.
+    (`SEAT_FINDING_THE_FLOOR_DECOMPOSITION_CHECKS_THE_WORLD_AND_NOT_THE_TREE_2026-09-10`.)
+
+    WHY IT RECORDS AND DOES NOT REFUSE, WHICH IS THE WHOLE DESIGN. A refusal would have to be keyed
+    to hash equality, and hash equality is not the property. The decomposition on disk today is
+    built from legs at `1d821e12b` (`all`) and `416e829c7` (`only`, `except`) -- two commits whose
+    diff over `simulation/`, `company/` and `saas/` is EMPTY. A control keyed to today's answer
+    would refuse that correct artefact, and would go on passing the day two trees with the same
+    hash-distance did differ. So this names the commits and lets the consumer weigh them.
+
+    UNSTAMPED IS `None` AND NEVER `True`. A missing stamp is not evidence the trees agree, and
+    defaulting it the flattering way would make the oldest artefacts -- the ones that predate the
+    stamp entirely -- render as the cleanest provenance in the file. Same rule as
+    `generate_value_arms_data._floor_tree_pairing`, which asks this of the floor-and-figure pair
+    page-side; this asks it of the four legs, where the numbers are.
+    """
+    def _commit(leg: dict):
+        commit = ((leg or {}).get("producing_commit") or {}).get("commit")
+        return commit if isinstance(commit, str) and commit.strip() else None
+
+    commits = {"undecomposed": _commit(undecomposed), "only": _commit(priced_only),
+               "except": _commit(priced_except), "three_arm": _commit(three_arm)}
+    floor_slots = ("undecomposed", "only", "except")
+    unstamped = sorted(name for name, c in commits.items() if not c)
+
+    floor_one_tree = (None if any(not commits[s] for s in floor_slots)
+                      else len({commits[s] for s in floor_slots}) == 1)
+    # THE CONTRAST IS COMPARED AGAINST THE FLOOR LEGS ONLY WHEN THEY AGREE AMONG THEMSELVES.
+    # Against three trees there is no single tree for it to match, and picking one to compare it
+    # with would answer a different question from the one the key names.
+    contrast_same = (None if (floor_one_tree is not True or not commits["three_arm"])
+                     else commits["three_arm"] == commits["undecomposed"])
+
+    return {
+        "commits": commits,
+        "floor_legs_ran_on_one_tree": floor_one_tree,
+        "contrast_drawn_by_the_same_tree": contrast_same,
+        "unavailable_because": (
+            None if not unstamped else
+            "these legs carry no `producing_commit.commit` ({}), so the trees that drew them "
+            "cannot be shown to agree -- read as unknown, never as a match".format(
+                ", ".join(unstamped))),
+        "why_this_is_here": (
+            "The three floor legs must partition ONE call stream for `reconciliation_ratio` to "
+            "mean anything, and only the code they ran under decides that stream. This project "
+            "has measured what a tree difference costs on exactly this quantity: the same seed in "
+            "the same world returned a `selection_gbp` differing by +38.96 to +61.38 under two "
+            "trees. `contrast_drawn_by_the_same_tree` is the weaker, caveat-grade question -- a "
+            "floor and the figure it bounds from two trees is a bound short by one question, not "
+            "a broken partition."),
+    }
+
+
 def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
                     three_arm: dict, contrast_field: str = "selection_gbp") -> dict:
     """Split `contrast_field`'s floor into the priced households' half and the rest of the book's.
@@ -5379,6 +5442,10 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         # here rather than a choice among four.
         "world_identity": dict((three_arm.get("world_identity") or {}),
                                agreed_across_legs=sorted(worlds)),
+        #: THE AXIS THE FOUR REFUSALS ABOVE DO NOT EXAMINE. Recorded, never gating -- see
+        #: `trees_the_legs_ran_on` for why hash equality is the wrong key for a refusal.
+        "trees_the_legs_ran_on": trees_the_legs_ran_on(
+            undecomposed, priced_only, priced_except, three_arm),
         "seeds": n_seeds,
         "contrast_gbp": contrast,
         "priced_decisions": priced,

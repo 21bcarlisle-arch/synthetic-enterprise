@@ -1009,3 +1009,113 @@ def test_each_seed_row_carries_the_book_size_the_range_is_taken_over():
 
     floor = noise_floor([11111, 22222], runner=_same_book_different_outcomes)
     assert [r["billing_accounts_settled_in_window"] for r in floor["seeds"]] == [164, 151]
+
+
+# --- WHICH TREE DREW EACH LEG -----------------------------------------------------------------
+# The defect: `decompose_floor` refuses legs from two WORLDS on the ground that a variance measured
+# over one departure level is not a component of a variance measured over another -- and never asks
+# the same question of the CODE, which is what actually decides the call stream the three floor
+# legs are supposed to partition. Filed as
+# `SEAT_FINDING_THE_FLOOR_DECOMPOSITION_CHECKS_THE_WORLD_AND_NOT_THE_TREE_2026-09-10`.
+
+def _stamped(leg, commit):
+    """The same fixture leg, carrying the `producing_commit` every real leg has always carried."""
+    return dict(leg, producing_commit={"commit": commit, "unavailable_because": None})
+
+
+def test_the_four_legs_TREES_are_recorded_and_every_verdict_is_reachable():
+    """One control over the whole partition, not a leg per branch.
+
+    `floor_legs_ran_on_one_tree` is a guard on a rare condition, and a guard that answers the same
+    way to everything passes every per-branch test written for it. So all three of its states are
+    asserted reachable HERE, in one place, from fixtures that differ only in the stamps.
+    """
+    from tools.run_value_cycle_ab import trees_the_legs_ran_on
+    one, other = "c066c114b", "04361d6c7"
+    agreeing = trees_the_legs_ran_on(
+        _stamped(_leg("all", (-1400.0, 0.0, 1400.0)), one),
+        _stamped(_leg("only", (-1300.0, 0.0, 1300.0)), one),
+        _stamped(_leg("except", (-500.0, 0.0, 500.0)), one),
+        _stamped(_three_arm(1000.0), other))
+    split = trees_the_legs_ran_on(
+        _stamped(_leg("all", (-1400.0, 0.0, 1400.0)), one),
+        _stamped(_leg("only", (-1300.0, 0.0, 1300.0)), other),
+        _stamped(_leg("except", (-500.0, 0.0, 500.0)), one),
+        _stamped(_three_arm(1000.0), one))
+    unstamped = trees_the_legs_ran_on(
+        _leg("all", (-1400.0, 0.0, 1400.0)),
+        _stamped(_leg("only", (-1300.0, 0.0, 1300.0)), one),
+        _stamped(_leg("except", (-500.0, 0.0, 500.0)), one),
+        _stamped(_three_arm(1000.0), one))
+
+    # THE PARTITION IS REACHABLE: true, false and unknown all occur, so neither the agreeing nor
+    # the disagreeing verdict is this function's constant answer.
+    assert (agreeing["floor_legs_ran_on_one_tree"] is True
+            and split["floor_legs_ran_on_one_tree"] is False
+            and unstamped["floor_legs_ran_on_one_tree"] is None)
+
+    # The commits are NAMED, not just counted -- a reader who disagrees with the verdict has to be
+    # able to go and diff the two trees, which is exactly what settled today's benign instance.
+    assert agreeing["commits"] == {"undecomposed": one, "only": one, "except": one,
+                                   "three_arm": other}
+    assert unstamped["commits"]["undecomposed"] is None
+    assert "undecomposed" in unstamped["unavailable_because"]
+    assert agreeing["unavailable_because"] is None
+
+
+def test_an_unstamped_leg_reads_UNKNOWN_and_never_as_a_match():
+    """The flattering default is the defect. Every artefact predating the `producing_commit` stamp
+    would otherwise render as the cleanest provenance in the file -- an absence reading as a pass,
+    which is the fail-silent shape this whole suite exists for."""
+    from tools.run_value_cycle_ab import trees_the_legs_ran_on
+    nothing_stamped = trees_the_legs_ran_on(
+        _leg("all", (-1400.0, 0.0, 1400.0)), _leg("only", (-1300.0, 0.0, 1300.0)),
+        _leg("except", (-500.0, 0.0, 500.0)), _three_arm(1000.0))
+    assert nothing_stamped["floor_legs_ran_on_one_tree"] is None
+    assert nothing_stamped["contrast_drawn_by_the_same_tree"] is None
+    assert nothing_stamped["unavailable_because"]
+
+
+def test_the_contrasts_tree_is_the_WEAKER_question_and_is_asked_separately():
+    """A floor and the figure it bounds from two trees is a bound short by one question. Two halves
+    of a partition from two trees is a broken partition. Collapsing them into one boolean would
+    make the second invisible behind the first, which is already amber on the page."""
+    from tools.run_value_cycle_ab import trees_the_legs_ran_on
+    one, other = "c066c114b", "04361d6c7"
+    # The shape this turn's own decomposition will have: floor legs agree, contrast does not.
+    live = trees_the_legs_ran_on(
+        _stamped(_leg("all", (-1400.0, 0.0, 1400.0)), one),
+        _stamped(_leg("only", (-1300.0, 0.0, 1300.0)), one),
+        _stamped(_leg("except", (-500.0, 0.0, 500.0)), one),
+        _stamped(_three_arm(1000.0), other))
+    assert live["floor_legs_ran_on_one_tree"] is True
+    assert live["contrast_drawn_by_the_same_tree"] is False
+
+    # And when the floor legs DISAGREE the contrast question is withheld rather than answered
+    # against an arbitrarily chosen one of three trees -- that would be a different question
+    # wearing this key's name.
+    broken = trees_the_legs_ran_on(
+        _stamped(_leg("all", (-1400.0, 0.0, 1400.0)), one),
+        _stamped(_leg("only", (-1300.0, 0.0, 1300.0)), other),
+        _stamped(_leg("except", (-500.0, 0.0, 500.0)), one),
+        _stamped(_three_arm(1000.0), one))
+    assert broken["contrast_drawn_by_the_same_tree"] is None
+
+
+def test_legs_from_two_trees_are_RECORDED_and_never_refused():
+    """Keyed to the property, not to today's answer.
+
+    The decomposition on disk is built from legs at `1d821e12b` and `416e829c7` -- two commits
+    whose diff over `simulation/`, `company/` and `saas/` is empty. A refusal keyed to hash
+    equality would refuse that correct artefact. So the split still computes, and the trees are
+    published beside it for the consumer to weigh.
+    """
+    from tools.run_value_cycle_ab import decompose_floor, trees_the_legs_ran_on  # noqa: F401
+    split = decompose_floor(
+        _stamped(_leg("all", (-1400.0, 0.0, 1400.0)), "1d821e12b"),
+        _stamped(_leg("only", (-1300.0, 0.0, 1300.0)), "416e829c7"),
+        _stamped(_leg("except", (-500.0, 0.0, 500.0)), "416e829c7"),
+        _stamped(_three_arm(1000.0), "416e829c7"))
+    assert split["available"] is True, "a tree difference was turned into a refusal"
+    assert split["trees_the_legs_ran_on"]["floor_legs_ran_on_one_tree"] is False
+    assert split["priced_share_of_variance"] > 0.0, "the split stopped being computed"
