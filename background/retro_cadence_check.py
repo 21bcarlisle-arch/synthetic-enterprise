@@ -54,6 +54,8 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+from background.live_ledger_guard import guard_live_ledger_write
+
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 RETRO_DIR = PROJECT_DIR / "docs" / "retrospectives"
 MATURITY_MAP = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
@@ -210,7 +212,7 @@ def _write_last_ntfy(warning: str | None) -> None:
     try:
         import json
         NTFY_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        NTFY_STATE_FILE.write_text(json.dumps({"last_warning": warning}))
+        guard_live_ledger_write(NTFY_STATE_FILE, writer="retro_cadence_check._write_last_ntfy").write_text(json.dumps({"last_warning": warning}))
     except Exception:
         pass
 

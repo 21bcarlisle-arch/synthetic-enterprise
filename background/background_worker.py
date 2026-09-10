@@ -21,6 +21,7 @@ from background import publisher_budget  # noqa: E402
 from background.child_diagnostics import child_output_excerpt  # noqa: E402
 from background.episode_monotonic import guard_episode  # noqa: E402  (PW4)
 from background.episode_prior import load_episode_prior, prior_unreadable  # noqa: E402
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 
 PEAK_START = 16  # 4pm GMT
 PEAK_END = 19    # 7pm GMT
@@ -182,7 +183,7 @@ def _load_sweep_state_classified() -> tuple[dict, str]:
 def _save_sweep_state(state: dict):
     try:
         SWEEP_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-        SWEEP_STATE_FILE.write_text(json.dumps(state, indent=2))
+        guard_live_ledger_write(SWEEP_STATE_FILE, writer="background_worker._save_sweep_state").write_text(json.dumps(state, indent=2))
     except Exception as exc:
         log(f"Could not persist run-marker sweep state: {exc}")
 

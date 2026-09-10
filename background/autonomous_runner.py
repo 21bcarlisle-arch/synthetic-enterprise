@@ -98,6 +98,7 @@ AUTONOMOUS_PROMPT = (
 
 sys.path.insert(0, str(PROJECT_DIR))
 from background.agent_status import update_agent_status  # noqa: E402
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.secrets_location import scrub_model_facing_env  # noqa: E402
 
 _turn_times: deque = deque()
@@ -146,7 +147,7 @@ def idle_seconds() -> float:
         pass
 
     PANE_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PANE_STATE_FILE.write_text(json.dumps({"content": current, "since": now}))
+    guard_live_ledger_write(PANE_STATE_FILE, writer="autonomous_runner.idle_seconds").write_text(json.dumps({"content": current, "since": now}))
     return 0.0
 
 

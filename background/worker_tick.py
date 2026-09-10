@@ -44,6 +44,7 @@ from pathlib import Path
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
 
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.secrets_location import scrub_model_facing_env  # noqa: E402
 
 # THE single kill switch for ALL autonomous execution (same flag the Stop hook reads — no second
@@ -105,7 +106,7 @@ def _write_health(outcome: str, detail: str = "") -> None:
     NOT_SCHEDULED | LOCK_HELD | DRAW_ERROR. Never raises."""
     try:
         HEALTH_FILE.parent.mkdir(parents=True, exist_ok=True)
-        HEALTH_FILE.write_text(json.dumps(
+        guard_live_ledger_write(HEALTH_FILE, writer="worker_tick._write_health").write_text(json.dumps(
             {"ts": time.time(), "outcome": outcome, "detail": detail[:500]}))
     except Exception:
         pass
@@ -238,7 +239,7 @@ def _write_lock(pid: int, reason: str) -> None:
     it hands the slot from the tick process to the invocation it just spawned. Claiming is
     _claim_lock's job; this call cannot be the claim, which is exactly the H44 defect."""
     try:
-        LOCK_FILE.write_text(_lock_payload(pid, reason))
+        guard_live_ledger_write(LOCK_FILE, writer="worker_tick._write_lock").write_text(_lock_payload(pid, reason))
     except Exception:
         pass
 

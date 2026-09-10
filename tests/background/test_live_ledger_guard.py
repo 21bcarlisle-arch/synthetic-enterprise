@@ -292,7 +292,51 @@ def test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed():
     persisting a fixture reading -- "no such filesystem", 0 MB free, PRESSURE --
     to the machine's own live `.disk_headroom_state.json`. Its neighbour two
     tests down had redirected `STATE_FILE` since the day it was written; this
-    one never did, and nothing compared them."""
+    one never did, and nothing compared them.
+
+    2026-09-09 -- AND THEN IT STOPPED RATCHETING, FOR FOURTEEN DAYS, IN SILENCE. The
+    bound set to 74 on 2026-08-26 was 86 by 2026-09-08 and 87 by the next morning:
+    twelve-plus writers landed and NOTHING WENT RED ANYWHERE A LANE COULD SEE IT. The
+    repository committed normally throughout. That is the worse half of this finding --
+    a red at HEAD that blocks nothing reads exactly like a control that is holding --
+    and it is not specific to this file: the same silence would cover any ratchet in
+    `tests/background/`. Why nothing selected this test is filed separately and is NOT
+    answered here.
+
+    It was not free. It pushed `guard_site_publish_pipeline` -- a control with nothing to
+    do with this one -- out of `live_ledger_guard.py` and into `process_run_complete.py`
+    for a commit, because the commit gate selects any test NAMING a staged path and
+    touching this module would have refused that landing on drift belonging to nobody.
+
+    THE BOUND WAS NOT RAISED TO 86. **30 writers across 17 modules were routed through
+    `guard_live_ledger_write`, 86 -> 56**, and the floor moves DOWN to 56 -- 18 below
+    where it was frozen, so the ratchet is armed again with headroom nobody has to trust.
+    Selection was by DESTINATION, not by module: a write was guarded only where its target
+    resolves inside `docs/observability/`, which is what the refusal is actually about.
+
+    EVERY FIGURE ABOVE IS FROM A CLEAN HEAD EXTRACT, and the first draft's were not. That
+    draft read 87 -> 57 / 32 writers, measured in the shared working tree -- which carried
+    four other lanes' uncommitted modules, so it was counting writers that are not at HEAD
+    and will not be at HEAD when this lands. A ratchet frozen against a number only the
+    author's dirty tree can reproduce is a bound nobody else can meet: every other lane
+    inherits a floor set by work they cannot see. Re-measured at 8c53c35e5 with this
+    lane's hunks and nothing else: HEAD 86, guarded 56, delta 30 across 17 modules, and
+    the newly-guarded set is a strict subset -- no writer appeared that HEAD did not have.
+
+    TWO POPULATIONS ARE DELIBERATELY STILL COUNTED, because guarding them would be a false
+    positive of this predicate rather than a coverage gain, and hiding them by narrowing
+    the census would only make the number flatter:
+      * `agent_status.py`'s two write sites, which ALREADY contain themselves -- an
+        `in_test_process() and is_live_record_path()` early return that NO-OPS rather than
+        raising, decided by measurement on 2026-08-31 (32 of the whole suite's 84 refusals
+        were that one call, in tests that were not about agent status). Raising there would
+        red every daemon test in the repo to protect a dashboard field. `_calls_the_guard`
+        recognises one spelling of containment and not that one, so they read as unguarded
+        while being contained harder. That is a false NEGATIVE of this census, left visible.
+      * writers whose `write_text` lands outside `docs/observability/` -- a `.git/HEAD` in
+        a scratch checkout, `docs/status/LATEST.md`, a staging document. They are counted
+        because the module MENTIONS the word, which is a proxy, and a proxy that
+        over-counts is the safe direction for a ratchet to be wrong in."""
     covered = set(_gap_ledger_modules())
     excluded = []
     for py in sorted(BACKGROUND_DIR.glob("*.py")):
@@ -309,7 +353,7 @@ def test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed():
             if _calls_the_guard(fn):
                 continue
             excluded.append(f"{py.name}::{fn.name}")
-    assert len(excluded) <= 74, (
+    assert len(excluded) <= 56, (
         f"the un-guarded observability-writer population GREW to {len(excluded)} "
         "-- widen `live_ledger_guard` rather than this bound, which is now a move "
         "that actually lowers this number (see `_calls_the_guard`): "

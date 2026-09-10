@@ -31,6 +31,7 @@ from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_DIR))
+from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.secrets_location import MODEL_FACING_FORBIDDEN_SECRETS  # noqa: E402
 
 SESSION_NAME = "claude"
@@ -225,7 +226,7 @@ def drift_report(alive: bool, live_id: str | None) -> str:
 def _report(status: str) -> None:
     """Write one status line. No NTFY -- alarming is the reconciler's job, not ours."""
     try:
-        STATUS_FILE.write_text(status + "\n")
+        guard_live_ledger_write(STATUS_FILE, writer="worker_seat._report").write_text(status + "\n")
     except OSError:
         pass
 

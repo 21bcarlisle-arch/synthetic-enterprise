@@ -155,6 +155,16 @@ def record(failures, *, head_sha: str | None, passed: int | None, causes: dict |
 
 
 def save_observed(store: dict, path: Path | None = None) -> None:
+    """Write the observation store.
+
+    DELIBERATELY UNGUARDED HERE, and this note exists so the next reader does not re-add it. A
+    `live_ledger_guard.guard_live_ledger_write` call was written into this function on 2026-09-02
+    and backed out the same hour: `tests/conftest.py` installs `production_surface_guard`, which
+    patches `pathlib.Path.write_text` for EVERY test and already lists `docs/observability` as a
+    protected surface. Mutation-checked rather than read — removing the new guard produced
+    `ProductionWriteRefused` from the existing one, at the same call, in the same test. It was a
+    second implementation of a live rule, which is this repo's most expensive recurring shape.
+    """
     p = path or OBSERVED_PATH
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(store, indent=2, sort_keys=True) + "\n")

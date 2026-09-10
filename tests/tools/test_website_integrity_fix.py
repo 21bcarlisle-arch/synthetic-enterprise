@@ -367,7 +367,7 @@ def test_generate_dashboard_json_refuses_to_publish_from_a_test_process(tmp_path
     import pytest
 
     import background.process_run_complete as prc
-    from background.process_run_complete import SitePublishUnderTest
+    from background.live_ledger_guard import SitePublishUnderTest
 
     with pytest.raises(SitePublishUnderTest) as exc:
         prc.generate_dashboard_json(tmp_path / "run.json")
