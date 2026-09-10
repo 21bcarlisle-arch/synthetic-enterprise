@@ -1,0 +1,323 @@
+"""Fold several noise-floor runs of ONE world into one family, or refuse and say which question failed.
+
+WHY THIS EXISTS. A noise floor's whole value is its `n`: the selection leg's sign is stated from
+`mean / (stdev / sqrt(n))`, and on 2026-09-10 the family on disk was nine draws wide with the mean
+1.79 standard errors from zero against the 1.96 a sign needs. The only way to move that is more
+seeds, and a floor run costs three full passes per seed -- so the seeds arrive in BATCHES, hours
+apart, from different sessions and therefore from different code trees. Nothing here could join two
+batches, so the choice was between re-drawing the whole family from scratch every time (13 hours to
+add nine seeds to nine) and joining them by hand.
+
+BY HAND IS THE ONE OPTION THAT MUST NOT HAPPEN, and not because it is laborious. Every failure mode
+of this join produces a WELL-FORMED ARTEFACT that no consumer downstream can tell from a good one:
+
+  * TWO WORLDS JOINED. A spread measured over one departure level is not an error bar on a figure
+    measured over another. The rows look identical -- same fields, same magnitudes -- and the
+    folded artefact would publish a bound on a world it never measured.
+  * A SEED COUNTED TWICE. The same row twice raises `n` and shrinks the standard error by a factor
+    that measures nothing. `run_arms_rerun.check_seeds` refuses this WITHIN one run and had no way
+    to see ACROSS two, which is exactly where a second batch reusing a seed would land.
+  * TWO CLOCKS JOINED. `run_value_cycle_ab.noise_floor` refuses a mixed-clock spread outright,
+    because the bad-debt gap between this run's two clocks is larger than every contrast the
+    spread bounds -- a mixed floor publishes that gap as seed noise.
+
+Each of those is a fail-open: the artefact is consistent, its arithmetic checks out, and it is
+wrong. So the join is a tool with refusals rather than a habit with a checklist.
+
+THE ARITHMETIC IS THE PRODUCER'S, NOT A SECOND COPY OF IT. `_spread` is imported from
+`run_value_cycle_ab` rather than reimplemented here. This project's most expensive recurring shape
+is one rule with several implementations -- the VAT rule had five, and a defect fixed in one of
+them in July was still live in another in August. A folded family whose mean is computed by
+slightly different code from the family it extends is that shape with the two copies one import
+apart. `test_fold_noise_floor_family.py` pins it against the real nine-seed artefact on disk: the
+fold's recomputation of a single source must reproduce that source's own published summary exactly.
+
+WHAT THIS DELIBERATELY REFUSES TO CLAIM. A folded family has NO single producing commit, and the
+temptation is to write the newest batch's commit into the field because the field wants a value.
+`generate_value_arms_data._floor_tree_pairing` reads exactly that field to tell a reader whether the
+bound and the figure it bounds were drawn by the same code, and it is explicit that a missing stamp
+"is not evidence the trees agree". So the fold writes `commit: None` with a reason naming the fold,
+which routes that control to its `unstamped` branch and publishes an honest unknown -- and it writes
+every member's commit into `folded_from`, so what was lost from the summary field is still on disk
+for a reader who wants it. An honest `None` with a named reason is worth more than a plausible
+value, because the value would be read as established and the `None` cannot be.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import math
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+#: The producer's OWN estimator, imported and never copied. See the module docstring: a second
+#: implementation of one rule is this project's most expensive recurring defect, and a folded
+#: family whose mean is computed differently from the family it extends is that defect with the
+#: two copies one import apart.
+from tools.run_value_cycle_ab import _spread
+
+_REPO = Path(__file__).resolve().parent.parent
+
+#: `noise_floor` computes this inline as `abs(mean) > 2 * sem`. It is restated here rather than
+#: imported because it is one line inside a three-hundred-line run function with no seam to import
+#: -- and it is pinned to the producer's answer on the real artefact by
+#: `test_the_fold_reproduces_the_producers_own_summary_on_the_family_already_on_disk`, so the two
+#: cannot drift silently. If that test ever goes red, the producer moved and this must follow it.
+_DISTINGUISHABLE_SEMS = 2
+
+
+class FoldRefused(RuntimeError):
+    """A fold that did not happen, carrying WHICH question failed. Never raised after a write."""
+
+
+def _read(path: Path) -> dict:
+    try:
+        return json.loads(Path(path).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        raise FoldRefused("no floor artefact at `{}`".format(path)) from None
+    except json.JSONDecodeError as exc:
+        raise FoldRefused("`{}` is not readable JSON: {}".format(path, exc)) from None
+
+
+def _agree_on(sources: list, label: str, get) -> object:
+    """The one value every source carries for `label`, or a refusal naming the disagreement.
+
+    ABSENCE IS A REFUSAL AND NOT A PASS. A source that carries no value for a question the fold
+    must answer cannot be shown to agree with the others, and treating `None` as "agrees with
+    anything" is how the oldest artefact in a family becomes the one that joins to everything.
+    """
+    seen = {}
+    for path, data in sources:
+        value = get(data)
+        if value is None or (isinstance(value, str) and not value.strip()):
+            raise FoldRefused(
+                "`{}` carries no {}, so it cannot be shown to describe the same measurement as "
+                "the others. A fold joins families that are demonstrably one population; an "
+                "absent field is an unknown, never an agreement.".format(path, label))
+        seen.setdefault(value, []).append(str(path))
+    if len(seen) > 1:
+        detail = "; ".join(
+            "{} -> {}".format(value, ", ".join(paths)) for value, paths in sorted(
+                seen.items(), key=lambda kv: str(kv[0])))
+        raise FoldRefused(
+            "the sources report {} different values for {} ({}). Their rows are not draws of one "
+            "quantity, so no spread over the union bounds anything.".format(
+                len(seen), label, detail))
+    return next(iter(seen))
+
+
+def _seed_rows(sources: list) -> list:
+    """Every source's rows in source order, refusing a seed that appears twice.
+
+    THE ONE THAT WOULD HAVE BEEN BELIEVED. A duplicated seed is the same row twice: `n` rises, the
+    standard error falls by sqrt of a lie, and every field downstream reads as a better-resolved
+    measurement. The artefact is well-formed and internally consistent, so nothing further down can
+    tell -- which is precisely why the refusal has to be here.
+    """
+    rows, where = [], {}
+    for path, data in sources:
+        got = data.get("seeds") or []
+        if not got:
+            raise FoldRefused(
+                "`{}` carries no seed rows, so there is nothing in it to fold.".format(path))
+        for row in got:
+            seed = row.get("seed")
+            if seed in where:
+                raise FoldRefused(
+                    "seed {} appears in both `{}` and `{}`. Folding it would count one draw "
+                    "twice: `n` rises and the standard error shrinks by a factor that measures "
+                    "nothing, and the artefact that comes out is well-formed, so no consumer "
+                    "could tell.".format(seed, where[seed], path))
+            where[seed] = str(path)
+            rows.append(row)
+    return rows
+
+
+def summarise(rows: list) -> dict:
+    """The producer's own summary block, recomputed over the folded rows.
+
+    Split out from `fold` so a control can run it against an artefact already on disk and check it
+    reproduces that artefact's published figures -- which is the only evidence that this fold and
+    the producer agree about what a mean is.
+    """
+    selection = _spread([r.get("selection_gbp") for r in rows])
+    share = _spread([r.get("level_share_of_advantage") for r in rows])
+    sem = None
+    distinguishable = None
+    if selection["stdev"] is not None and selection["n"] > 1:
+        sem = selection["stdev"] / math.sqrt(selection["n"])
+        distinguishable = abs(selection["mean"]) > _DISTINGUISHABLE_SEMS * sem
+    return {
+        "selection_gbp_spread": selection,
+        "level_share_spread": share,
+        "selection_sem_gbp": sem,
+        "selection_distinguishable_from_zero": distinguishable,
+    }
+
+
+def _book_identity(sources: list) -> dict:
+    """The book the folded family was drawn over, or a stated unknown.
+
+    NOT `_agree_on`, ON PURPOSE. `book_identity` arrived on floor artefacts on 2026-09-09, so every
+    family that spans that date has members that predate the field. Refusing the fold for it would
+    make the tool useless exactly when it is needed; claiming the newest member's book for all of
+    them would be worse. So a member without one turns the whole block into an unknown that names
+    which member could not answer, and a consumer meets a `None` it must fail closed on rather than
+    a book identity that covers half the rows.
+    """
+    missing = [str(path) for path, data in sources if not (data.get("book_identity") or {})]
+    if missing:
+        return {
+            "digest": None,
+            "unavailable_because": (
+                "this family is folded from runs that do not all name their book: {} carr{} none. "
+                "The book identity of the members that do have one does not cover the rows of the "
+                "members that do not, so this family states no book rather than one it cannot "
+                "show it was drawn over.".format(
+                    ", ".join("`{}`".format(m) for m in missing),
+                    "ies" if len(missing) == 1 else "y")),
+        }
+    digests = {(data.get("book_identity") or {}).get("digest") for _, data in sources}
+    if len(digests) > 1 or None in digests:
+        return {
+            "digest": None,
+            "unavailable_because": (
+                "the folded runs name {} different books ({}), so no single book identity "
+                "describes these rows.".format(
+                    len(digests), ", ".join(sorted(str(d) for d in digests)))),
+        }
+    first = dict(sources[0][1].get("book_identity") or {})
+    first["folded_over_members"] = len(sources)
+    return first
+
+
+def fold(paths: list) -> dict:
+    """One floor artefact over the union of several, or a refusal naming the failed question."""
+    if len(paths) < 2:
+        raise FoldRefused(
+            "a fold joins at least two runs; got {}. Folding one run is a file copy wearing a "
+            "measurement's name, and this repo already has a census for those.".format(len(paths)))
+    resolved = [Path(p) for p in paths]
+    duplicated = sorted({str(p) for p in resolved if [str(q) for q in resolved].count(str(p)) > 1})
+    if duplicated:
+        raise FoldRefused(
+            "path(s) {} given more than once. Every seed in them would be counted twice.".format(
+                ", ".join("`{}`".format(d) for d in duplicated)))
+    sources = [(p, _read(p)) for p in resolved]
+
+    world = _agree_on(sources, "world identity digest (`world_identity.digest`)",
+                      lambda d: (d.get("world_identity") or {}).get("digest"))
+    mode = _agree_on(sources, "redraw mode (`redraw_scope.mode`)",
+                     lambda d: (d.get("redraw_scope") or {}).get("mode"))
+    clock = _agree_on(sources, "clock (`clock`)", lambda d: d.get("clock"))
+    rows = _seed_rows(sources)
+
+    folded = {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "folded": True,
+        #: FAIL-CLOSED ON PURPOSE -- see the module docstring. A folded family has no one tree,
+        #: and `_floor_tree_pairing` is explicit that a missing stamp is not evidence the trees
+        #: agree. The members' commits are in `folded_from` and nothing is lost from disk.
+        "producing_commit": {
+            "commit": None,
+            "resolved_at": None,
+            "unavailable_because": (
+                "this family is FOLDED from {} runs drawn by {} distinct code tree(s); no single "
+                "commit produced these rows. Each member's own producing commit is in "
+                "`folded_from`. A bound reading this field gets an unknown rather than the "
+                "newest member's commit, because that value would be read as the tree that drew "
+                "the whole family and it drew part of it.".format(
+                    len(sources),
+                    len({(d.get("producing_commit") or {}).get("commit") for _, d in sources}))),
+            "resolved_when": (
+                "not applicable to a folded family -- the members resolved their own commits at "
+                "their own process starts, hours and sometimes days apart"),
+            "why_this_is_here": (
+                "A consumer that publishes counts from this family needs to know which code drew "
+                "them. For a fold the honest answer is `several, listed in folded_from`, and the "
+                "field that can only hold one says so rather than picking."),
+        },
+        "world_identity": dict(sources[0][1].get("world_identity") or {}),
+        "book_identity": _book_identity(sources),
+        "report_end": sources[0][1].get("report_end"),
+        "what_this_is": (
+            "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
+            "assignment re-drawn, FOLDED across {} runs of the same world into one family of {} "
+            "seeds. The spread below is the error bar on `selection_gbp` -- the figure the "
+            "level-vs-selection split publishes.".format(len(sources), len(rows))),
+        "clock": clock,
+        "redraw_scope": dict(sources[0][1].get("redraw_scope") or {}),
+        "symbol_patched": sources[0][1].get("symbol_patched"),
+        "symbol_resolution": sources[0][1].get("symbol_resolution"),
+        "seeds": rows,
+        #: WHAT WAS JOINED, so the fold is reversible by reading and never only by re-running. A
+        #: reader who distrusts the join can take any member out and recompute.
+        "folded_from": [
+            {
+                "path": str(Path(path).relative_to(_REPO)
+                            if Path(path).is_absolute() and str(path).startswith(str(_REPO))
+                            else path),
+                "generated_at": data.get("generated_at"),
+                "producing_commit": (data.get("producing_commit") or {}).get("commit"),
+                "book_identity": (data.get("book_identity") or {}).get("digest"),
+                "n": len(data.get("seeds") or []),
+                "seeds": [r.get("seed") for r in (data.get("seeds") or [])],
+            }
+            for path, data in sources
+        ],
+        "how_to_read_this": (
+            "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection "
+            "instrument cannot yet resolve the question being asked of it, and every reading "
+            "built on it carries that caveat. That is a finding about the INSTRUMENT and not "
+            "about the pricing arm -- it is not a cue to re-run until a seed agrees (R12). THIS "
+            "FAMILY IS FOLDED: the rows come from {} runs of world `{}` in redraw mode `{}`, and "
+            "the members are named in `folded_from`. What a fold does NOT remove is that runs "
+            "made by different trees can return different values for the same seed; the spread "
+            "below carries that difference and `producing_commit` states it as an unknown rather "
+            "than naming one tree for rows several trees drew.".format(
+                len(sources), world, mode)),
+    }
+    folded.update(summarise(rows))
+    return folded
+
+
+def main(argv: list | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Fold several noise-floor runs of one world into one seed family.")
+    parser.add_argument("sources", nargs="+",
+                        help="two or more floor artefacts to join; every one of them must name "
+                             "the same world, redraw mode and clock, and no seed may repeat")
+    parser.add_argument("--out", required=True,
+                        help="where the folded family is written. REQUIRED and never defaulted: "
+                             "a fold that overwrites a source by default would destroy the "
+                             "evidence it was folded from")
+    args = parser.parse_args(argv)
+
+    out = Path(args.out)
+    try:
+        if str(out.resolve()) in {str(Path(s).resolve()) for s in args.sources}:
+            raise FoldRefused(
+                "`--out {}` is one of the sources. A fold that overwrites a member destroys the "
+                "family it was folded from, and `folded_from` would then point at a file that no "
+                "longer holds those rows.".format(args.out))
+        folded = fold(args.sources)
+    except FoldRefused as exc:
+        print("REFUSED: {}".format(exc))
+        return 2
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(folded, indent=1) + "\n", encoding="utf-8")
+    sel = folded["selection_gbp_spread"]
+    sem = folded["selection_sem_gbp"]
+    print("folded {} run(s) -> {} seeds -> {}".format(
+        len(folded["folded_from"]), sel["n"], out))
+    print("  selection_gbp: mean {:.2f}  stdev {:.2f}  sem {:.2f}  sems from zero {:.3f}".format(
+        sel["mean"], sel["stdev"], sem, abs(sel["mean"]) / sem))
+    print("  distinguishable from zero at {} sems: {}".format(
+        _DISTINGUISHABLE_SEMS, folded["selection_distinguishable_from_zero"]))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
