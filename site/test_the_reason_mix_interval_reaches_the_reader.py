@@ -47,24 +47,42 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from test_the_published_bytes_reader import (
+    published_file,
+    published_json,
+    refuse_working_tree_reads,
+)
 
 SITE = Path(__file__).resolve().parent
 PROJECT = SITE.parent
 HARNESS = SITE / "_live_harness.mjs"
-DOOR = SITE / "harness" / "index.html"
-PROOF = SITE / "data" / "proof.json"   # for the shape of the feed, never for its `not_proven`
-DELIVERY = SITE / "data" / "delivery.json"
-DIRECTOR_DELTA = SITE / "data" / "director_delta.json"
-DIRECTOR_RESERVED = SITE / "data" / "director_reserved.json"
-MIX = PROJECT / "docs" / "reports" / "c2_reason_mix_interval.json"
+# THE SUBJECTS, AS PATHS IN GIT RATHER THAN FILES ON DISK (2026-09-10). Every constant below is a
+# repo-relative STRING and not a `Path`, because a door test whose subject is `SITE / "data" /
+# x.json` cannot tell "the reader can see this" from "someone in this tree has fixed it and not
+# landed it" -- and those are the only two states it exists to separate. Both of the most serious
+# defects found in the published value-arms comparison this month were REPAIRED IN THE WORKING
+# TREE and stayed invisible to every control over them for exactly that reason.
+# `site/test_the_published_bytes_reader.py` holds the reader and argues why the published copy is the INDEX copy
+# and not `HEAD` -- a question about `tools/surgical_land.py`'s gate extract, not a matter of taste.
+#
+# `MIX_REL` is a subject too, and that is the least obvious of these. What this file grades is a
+# PAIRING -- the interval the page renders against the interval the run measured -- and a pairing
+# read half from the index and half from the working tree is not a pairing at all: an artefact
+# regenerated here and never landed would agree with a page no reader has met.
+DOOR_REL = "site/harness/index.html"
+PROOF_REL = "site/data/proof.json"   # for the shape of the feed, never for its `not_proven`
+DELIVERY_REL = "site/data/delivery.json"
+DIRECTOR_DELTA_REL = "site/data/director_delta.json"
+DIRECTOR_RESERVED_REL = "site/data/director_reserved.json"
+MIX_REL = "docs/reports/c2_reason_mix_interval.json"
 
 #: The claim text the generator writes. Matched on a distinctive fragment rather than in full, so
 #: an editorial rewording does not red this, but the row disappearing does.
 CLAIM_FRAGMENT = "Why households leave"
 
 
-def _feed(path: Path) -> dict:
-    return json.loads(path.read_text(encoding="utf-8"))
+def _feed(rel: str) -> dict:
+    return published_json(rel)
 
 
 def _live_proof_feed() -> dict:
@@ -75,7 +93,7 @@ def _live_proof_feed() -> dict:
     """
     import tools.generate_proof_data as gen
 
-    return {**_feed(PROOF), "not_proven": gen._not_proven()}
+    return {**_feed(PROOF_REL), "not_proven": gen._not_proven()}
 
 
 def _render(proof: dict) -> dict:
@@ -89,12 +107,12 @@ def _render(proof: dict) -> dict:
                     "unavailable check is a FAILED check (R15)")
     payload = {
         "../data/proof.json": proof,
-        "../data/delivery.json": _feed(DELIVERY),
-        "../data/director_delta.json": _feed(DIRECTOR_DELTA),
-        "../data/director_reserved.json": _feed(DIRECTOR_RESERVED),
+        "../data/delivery.json": _feed(DELIVERY_REL),
+        "../data/director_delta.json": _feed(DIRECTOR_DELTA_REL),
+        "../data/director_reserved.json": _feed(DIRECTOR_RESERVED_REL),
     }
     proc = subprocess.run(
-        ["node", str(HARNESS), str(DOOR)],
+        ["node", str(HARNESS), str(published_file(DOOR_REL))],
         input=json.dumps(payload), capture_output=True, text=True, timeout=120,
     )
     assert proc.returncode == 0, "the render harness failed: {}".format(proc.stderr[-2000:])
@@ -170,7 +188,7 @@ def test_the_rendered_range_is_the_measured_one():
     transcribed interval is a number that goes stale the next time the family is re-swept, and
     nothing says so.
     """
-    measured = json.loads(MIX.read_text())["interval"]
+    measured = published_json(MIX_REL)["interval"]
     fragment = _rendered_row(_live_proof_feed())
     shown = _percentages(fragment)
     for cause, (lo, hi) in measured.items():
@@ -189,7 +207,7 @@ def test_the_range_is_narrower_than_the_thing_it_is_meant_to_bound():
     reader nothing -- the fail-open a range check degrades into. At least one cause must be bounded
     to a range narrower than half the scale, or the "interval" is a decoration.
     """
-    measured = json.loads(MIX.read_text())["interval"]
+    measured = published_json(MIX_REL)["interval"]
     widths = {c: hi - lo for c, (lo, hi) in measured.items()}
     assert min(widths.values()) < 0.5, (
         "every cause's published range spans more than half the scale ({}), which cannot "
@@ -217,7 +235,7 @@ def test_a_cause_the_mix_cannot_see_is_named_on_the_rendered_page():
     would legitimately have none, and a control that demands a caveat which is no longer true would
     go red exactly when the code became more honest.
     """
-    blind = list(json.loads(MIX.read_text()).get("causes_not_in_the_interval") or {})
+    blind = list(published_json(MIX_REL).get("causes_not_in_the_interval") or {})
     if not blind:
         pytest.skip("the published mix declares no unobservable cause -- nothing to state")
     fragment = _rendered_row(_live_proof_feed(), width=2200)
@@ -253,7 +271,7 @@ def test_the_size_of_the_unseen_route_on_the_page_is_the_one_the_artefact_declar
     with no SVT sibling beside it -- and the page says so in words instead of a number; demanding
     a count there would be demanding the invented figure this control exists to forbid.
     """
-    pop = json.loads(MIX.read_text()).get("population") or {}
+    pop = published_json(MIX_REL).get("population") or {}
     svt_seen = (pop.get("departures") or {}).get("svt_segment")
     total_seen = pop.get("total_departures_visible")
     if svt_seen is None or not total_seen:
@@ -292,5 +310,17 @@ def test_an_unreadable_measurement_still_reaches_the_reader_as_a_row():
         "a live one: {!r}".format(row["note"])
     )
 
-    rendered = _rendered_row({**_feed(PROOF), "not_proven": [row]})
+    rendered = _rendered_row({**_feed(PROOF_REL), "not_proven": [row]})
     assert "could not be read" in rendered
+
+
+def test_no_subject_of_this_file_is_read_from_the_working_tree():
+    """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
+
+    The defect is one line long and looks completely ordinary -- a `SITE / "data" / x.json`
+    constant plus `.read_text()` -- which is why it survived here for weeks after the first door
+    was fixed. The subjects come from the `*_REL` constants, so a feed added to the render payload
+    is covered the day it is added. The scanner's own teeth are proved in
+    `site/test_the_published_bytes_reader.py`.
+    """
+    refuse_working_tree_reads(__file__, (DOOR_REL, PROOF_REL, DELIVERY_REL, DIRECTOR_DELTA_REL, DIRECTOR_RESERVED_REL, MIX_REL))

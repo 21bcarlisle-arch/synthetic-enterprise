@@ -38,14 +38,27 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from test_the_published_bytes_reader import (
+    published_file,
+    published_json,
+    refuse_working_tree_reads,
+)
 
 SITE = Path(__file__).resolve().parent
 HARNESS = SITE / "_live_harness.mjs"
-DOOR = SITE / "capabilities" / "index.html"
-FEED = SITE / "data" / "dd_opening_arms.json"
-ARMS = SITE / "data" / "value_arms.json"
-GROWTH = SITE / "data" / "book_growth.json"
-CAPS = SITE / "data" / "capabilities_door.json"
+# THE SUBJECTS, AS PATHS IN GIT RATHER THAN FILES ON DISK (2026-09-10). Every constant below is a
+# repo-relative STRING and not a `Path`, because a door test whose subject is `SITE / "data" /
+# x.json` cannot tell "the reader can see this" from "someone in this tree has fixed it and not
+# landed it" -- and those are the only two states it exists to separate. Both of the most serious
+# defects found in the published value-arms comparison this month were REPAIRED IN THE WORKING
+# TREE and stayed invisible to every control over them for exactly that reason.
+# `site/test_the_published_bytes_reader.py` holds the reader and argues why the published copy is the INDEX copy
+# and not `HEAD` -- a question about `tools/surgical_land.py`'s gate extract, not a matter of taste.
+DOOR_REL = "site/capabilities/index.html"
+FEED_REL = "site/data/dd_opening_arms.json"
+ARMS_REL = "site/data/value_arms.json"
+GROWTH_REL = "site/data/book_growth.json"
+CAPS_REL = "site/data/capabilities_door.json"
 
 #: Every element this section renders into, so a section that renders half of itself is a red
 #: rather than a silently thinner page.
@@ -65,12 +78,12 @@ def _render(feed: dict) -> dict:
                     "unavailable check is a FAILED check (R15)")
     payload = {
         "../data/dd_opening_arms.json": feed,
-        "../data/value_arms.json": json.loads(ARMS.read_text(encoding="utf-8")),
-        "../data/book_growth.json": json.loads(GROWTH.read_text(encoding="utf-8")),
-        "../data/capabilities_door.json": json.loads(CAPS.read_text(encoding="utf-8")),
+        "../data/value_arms.json": published_json(ARMS_REL),
+        "../data/book_growth.json": published_json(GROWTH_REL),
+        "../data/capabilities_door.json": published_json(CAPS_REL),
     }
     proc = subprocess.run(
-        ["node", str(HARNESS), str(DOOR)],
+        ["node", str(HARNESS), str(published_file(DOOR_REL))],
         input=json.dumps(payload), capture_output=True, text=True, timeout=180,
     )
     assert proc.returncode == 0, "the render harness failed: {}".format(proc.stderr[-2000:])
@@ -94,10 +107,10 @@ def _render(feed: dict) -> dict:
 
 
 def _live_feed() -> dict:
-    if not FEED.is_file():
-        pytest.fail("site/data/dd_opening_arms.json is missing -- the published comparison has no "
-                    "feed, reported as a failure and never skipped")
-    return json.loads(FEED.read_text(encoding="utf-8"))
+    # `published_json` is fail-closed on a subject that is not in the index -- the same finding
+    # the hand-rolled `is_file()` guard reported, and a stricter one: a feed sitting on disk and
+    # never landed is a comparison no reader has met.
+    return published_json(FEED_REL)
 
 
 @pytest.fixture(scope="module")
@@ -276,7 +289,7 @@ def test_a_rung_the_estimate_used_never_reaches_the_reader_as_a_zero():
     because `"0"` satisfies its substring check — which is why that control could not
     catch this and this one exists.
     """
-    feed = json.loads(FEED.read_text(encoding="utf-8"))
+    feed = published_json(FEED_REL)
     precedence = feed["basis_precedence"]
     walked = [dict(r) for r in precedence["walked"]]
     assert len(walked) >= 2, "the fixture needs two walked rungs to tell them apart"
@@ -329,3 +342,15 @@ def test_an_unavailable_feed_renders_an_absence_and_never_a_zero():
         assert not rendered[panel], (
             "{} rendered content off an unavailable feed -- a figure with no measurement behind "
             "it is worse than no figure".format(panel))
+
+
+def test_no_subject_of_this_file_is_read_from_the_working_tree():
+    """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
+
+    The defect is one line long and looks completely ordinary -- a `SITE / "data" / x.json`
+    constant plus `.read_text()` -- which is why it survived here for weeks after the first door
+    was fixed. The subjects come from the `*_REL` constants, so a feed added to the render payload
+    is covered the day it is added. The scanner's own teeth are proved in
+    `site/test_the_published_bytes_reader.py`.
+    """
+    refuse_working_tree_reads(__file__, (DOOR_REL, FEED_REL, ARMS_REL, GROWTH_REL, CAPS_REL))

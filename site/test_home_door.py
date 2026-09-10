@@ -18,13 +18,26 @@ rendered pixel (independence -- the render is not a hard-coded constant).
 R3 (the page is a rendering, never an author) and R1 (every claim links to its
 evidence) are asserted structurally on the nav + evidence links.
 """
-import json
 import re
 from pathlib import Path
 
+from test_the_published_bytes_reader import (
+    published_blob,
+    published_json,
+    refuse_working_tree_reads,
+)
+
 HERE = Path(__file__).resolve().parent
-INDEX = HERE / "index.html"
-DATA = HERE / "data"
+
+# THE SUBJECTS, AS PATHS IN GIT RATHER THAN FILES ON DISK (2026-09-10). These are strings and not
+# `Path`s because a door test whose subject is `HERE / "index.html"` cannot tell "the reader can
+# see this" from "someone in this tree has edited it and not landed it" -- and those are the only
+# two states it exists to separate. The front door is the one every other door's nav points at, so
+# a ruling re-broken in the tree reading here as a ruling still held is the worst version of that.
+# `site/test_the_published_bytes_reader.py` holds the reader and argues why the published copy is the INDEX copy
+# and not `HEAD`.
+INDEX_REL = "site/index.html"
+DASHBOARD_REL = "site/data/dashboard.json"
 
 # DIRECTOR_RULING_FRONT_MISSION_BLOCK (2026-07-24): the front door no longer renders
 # any live figure -- it leads with the idea (the personalisation-abatement mission),
@@ -46,14 +59,14 @@ def test_no_cohort_financials_lead_the_front_door():
     is re-rendered on the front door (re-adding renderPulseStrip -> fail), not just
     the one instance the ruling caught.
     """
-    text = INDEX.read_text()
+    text = published_blob(INDEX_REL)
     assert 'id="pulse-strip"' not in text, "cohort-financial pulse strip is back on the front door (RC7)"
     assert "renderPulseStrip" not in text, "renderPulseStrip re-added to the front door (RC7)"
     for cohort_fin in ("net_margin_gbp", "treasury_end_gbp", "enterprise_value_gbp", "bills_total"):
         assert cohort_fin not in text, f"cohort financial {cohort_fin!r} leads the front door (RC7)"
     # Teeth: the source data DOES carry these fields (so the guard is meaningful,
     # not vacuously passing on an empty schema) -- they are simply not on this door.
-    p = json.loads((DATA / "dashboard.json").read_text())["portfolio"]
+    p = published_json(DASHBOARD_REL)["portfolio"]
     assert "net_margin_gbp" in p and "treasury_end_gbp" in p
 
 
@@ -66,7 +79,7 @@ def test_no_cohort_financials_lead_the_front_door():
 # guards on the rendered markup (the block carries no live figure to render).
 # ---------------------------------------------------------------------------
 def test_mission_block_leads_with_score_and_yardstick():
-    text = INDEX.read_text()
+    text = published_blob(INDEX_REL)
     _flat = text.replace("\n    ", " ")
     # SCAN WHAT A READER SEES, NOT THE SOURCE. An HTML comment recording WHICH sentence was
     # superseded necessarily quotes that sentence, so a raw-source scan for it fires on the
@@ -144,7 +157,7 @@ def test_cost_arbitrage_leg_no_longer_leads_the_front_door():
     """The cost-to-serve arbitrage hypothesis recast the company as
     cheap-therefore-green (the wrong thesis, director 2026-07-24). It must be OFF
     the front door -- no numerator framing, no live opex_ledger render, no chart."""
-    text = INDEX.read_text()
+    text = published_blob(INDEX_REL)
     assert "numerator of &pound;/tCO" not in text, "the cost-to-serve numerator leg still leads the front door"
     assert 'id="thesis-chart"' not in text, "the cost-to-serve chart is still on the front door"
     assert "renderThesisChart" not in text, "the cost-to-serve render is still on the front door"
@@ -171,7 +184,7 @@ def _site_nav(text: str) -> str:
 
 
 def test_canonical_nav_present_and_director_absent():
-    nav = _site_nav(INDEX.read_text())
+    nav = _site_nav(published_blob(INDEX_REL))
     # SITE_V5 surface 1: the five-surface IA -- Home / The World / The Company /
     # Proof (Director window is off-nav, auth-gated). Method/Journey/Simplified
     # folded into Proof/World at their own surfaces; updated in lockstep with the
@@ -195,7 +208,7 @@ def test_canonical_nav_present_and_director_absent():
 
 
 def test_at_least_one_claim_evidence_link():
-    text = INDEX.read_text()
+    text = published_blob(INDEX_REL)
     # R1: the front door leads with the idea + diagram (no live figure of its own),
     # so its claims link OUT to the evidence surfaces -- the mission's economics leg
     # to /proof, and the door/node cards to the World/Company/Proof surfaces.
@@ -213,7 +226,7 @@ def test_at_least_one_claim_evidence_link():
 # the file -> red) or the alt text is stripped (accessibility regression -> red).
 # ---------------------------------------------------------------------------
 def test_model_on_a_page_diagram_hosted_and_resolves():
-    text = INDEX.read_text()
+    text = published_blob(INDEX_REL)
     m = re.search(r'<img\s+src="(\./assets/model-on-a-page\.svg)"\s+alt="([^"]+)"', text)
     assert m, "model-on-a-page diagram <img> (with src+alt) not found on the front door"
     src, alt = m.group(1), m.group(2)
@@ -226,3 +239,14 @@ def test_model_on_a_page_diagram_hosted_and_resolves():
     assert len(alt) > 200, "alt text too thin for a complex diagram (accessibility)"
     for movement in ("wall", "company", "score", "governance"):
         assert movement.lower() in alt.lower(), f"alt text omits the {movement!r} movement"
+
+
+def test_no_subject_of_this_file_is_read_from_the_working_tree():
+    """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
+
+    Every assertion above is a class guard over a director ruling -- no cohort figure leads the
+    front door, the nav is complete, each claim links to its evidence. All of them would go on
+    passing on a front door that had been repaired in this tree and never published. The scanner's
+    own teeth are proved in `site/test_the_published_bytes_reader.py`.
+    """
+    refuse_working_tree_reads(__file__, (INDEX_REL, DASHBOARD_REL))

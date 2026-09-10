@@ -102,7 +102,6 @@ refusing everything. Neutering that helper reds it (DID NOT RAISE), which is how
 """
 from __future__ import annotations
 
-import ast
 import copy
 import decimal
 import html as html_lib
@@ -110,10 +109,15 @@ import json
 import math
 import re
 import subprocess
-import tempfile
 from pathlib import Path
 
 import pytest
+from test_the_published_bytes_reader import (
+    published_blob,
+    published_file,
+    published_json,
+    refuse_working_tree_reads,
+)
 
 SITE = Path(__file__).resolve().parent
 PROJECT = SITE.parent
@@ -129,19 +133,9 @@ HARNESS = SITE / "_live_harness.mjs"
 # cannot tell "the reader can see this" from "someone in this tree has fixed it and not landed
 # it", and those are the only two states it exists to separate.
 #
-# WHICH REF IS "PUBLISHED", AND WHY IT IS THE INDEX AND NOT `HEAD`. `tools/surgical_land.py` is
-# the only door work comes through, and its gate runs this suite in a clean extract whose
-# `.git/HEAD` is the PARENT commit (`_make_standalone_repo`) and whose index is the parent plus
-# exactly the paths being committed (`git add -A -- <paths>`, `_build_extract`). So inside the
-# gate, `HEAD:<path>` is the copy from BEFORE the commit: a control keyed to `HEAD` would go red
-# on the very commit that repairs the feed, and could only ever go green again by being landed
-# past a gate that refuses it. It would also pass every "does it refuse correctly" test in this
-# file, because a guard that refuses EVERYTHING refuses correctly.
-#
-# The index answers the same question in both places: in a working tree it is HEAD unless
-# something has been staged, and inside the gate it is precisely the bytes this commit publishes.
-# The residual hole is stated rather than hidden -- a repair `git add`-ed and never committed
-# reads as published -- and it is one transient step wide, where the `HEAD` reading is unlandable.
+# `site/test_the_published_bytes_reader.py` holds the reader and argues why the subject is the INDEX copy and
+# not `HEAD` -- a question about `tools/surgical_land.py`'s gate extract and not a matter of
+# taste. Read it there rather than a paraphrase here.
 DOOR_REL = "site/capabilities/index.html"
 FEED_REL = "site/data/value_arms.json"
 GROWTH_REL = "site/data/book_growth.json"
@@ -149,213 +143,38 @@ CAPS_REL = "site/data/capabilities_door.json"
 DD_ARMS_REL = "site/data/dd_opening_arms.json"
 
 
-def _published_blob(rel: str, root: Path | None = None) -> str:
-    """The PUBLISHED bytes of `rel` -- the index copy -- never the file on disk.
-
-    FAIL-CLOSED, AND IN THOSE WORDS. git being unable to answer is not "assume the file is fine":
-    a path that has never been committed, a repo git cannot read, a timeout, all land here, and
-    every one of them means this control has no subject. An unavailable check is a FAILED check,
-    so this fails the test with the path and the git error in the message rather than falling
-    back to the working tree, which is the one fallback that would restore the whole defect.
-
-    `root` exists so the mechanism itself can be proved against a scratch repo whose index and
-    working tree deliberately disagree -- see `test_the_reader_returns_the_INDEX_copy_when_the_
-    working_tree_disagrees`. Production callers never pass it.
-    """
-    base = PROJECT if root is None else root
-    try:
-        shown = subprocess.run(
-            ["git", "-C", str(base), "show", ":{}".format(rel)],
-            capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.SubprocessError) as exc:
-        pytest.fail(
-            "git could not be run to read the published copy of {} ({}), so this control has no "
-            "subject -- reported as a FAILURE and never skipped, and never read from the working "
-            "tree instead".format(rel, exc))
-    if shown.returncode != 0:
-        pytest.fail(
-            "{} is not in the index, so there is no published copy of it to check ({}). A repair "
-            "that exists only in the working tree is exactly the state this control exists to "
-            "call RED.".format(rel, (shown.stderr or "").strip()[-300:]))
-    return shown.stdout
-
-
-def _published_json(rel: str) -> dict:
-    text = _published_blob(rel)
-    try:
-        return json.loads(text)
-    except json.JSONDecodeError as exc:
-        pytest.fail("the published copy of {} is not readable JSON ({}), so the door a reader "
-                    "boots cannot render from it".format(rel, exc))
-
-
-#: Holds the materialised published door for the life of the process. A module global rather than
-#: a fixture because `_render` is called from ~130 tests and re-shelling `git show` for each is
-#: pure cost; the `TemporaryDirectory` object is kept alive here so the directory is removed when
-#: the interpreter exits rather than left behind in /tmp.
-_DOOR_SCRATCH: list = []
+#: The published-bytes reader, under this file's long-standing private names. The mechanism moved
+#: to `site/test_the_published_bytes_reader.py` on 2026-09-10 so the other eight door tests could take the same
+#: subject; the aliases stay because ~140 call sites below read better with them.
+_published_blob = published_blob
+_published_json = published_json
 
 
 def _published_door() -> Path:
-    """The published door, on disk, because the harness boots a FILE.
-
-    Materialising is not a weakening of the subject: the bytes are the index's, read once, and
-    nothing writes to this path. What it does mean is that the door reaches the harness by a
-    second mechanism, so `test_the_door_the_harness_boots_is_the_published_one` asserts the
-    materialised bytes are byte-identical to what git returned.
-    """
-    if not _DOOR_SCRATCH:
-        holder = tempfile.TemporaryDirectory(prefix="published-door-")
-        # NOT named index.html, and that is not cosmetic: `test_no_subject_of_this_file_is_read_
-        # from_the_working_tree` below refuses any `/`-built path in this module ending in a
-        # subject's own basename, which is the exact shape of the relapse it exists to prevent.
-        scratch = Path(holder.name) / "published_door.html"
-        scratch.write_text(_published_blob(DOOR_REL), encoding="utf-8")
-        _DOOR_SCRATCH.append((holder, scratch))
-    return _DOOR_SCRATCH[0][1]
+    """The published door, on disk, because the render harness boots a FILE."""
+    return published_file(DOOR_REL)
 
 
-# ── the controls over the READER, which is now the thing every other control rests on ─────────
+# ── the control over the READER, which is the thing every other control rests on ──────
 #
 # Everything below this file's first section asks "does the page say the right thing". None of
 # them can tell WHICH page, and until 2026-09-10 the answer was "whichever one this tree happens
-# to be holding". These four are the ones that grade the subject rather than the sentence.
-
-
-def _scratch_repo(root: Path, rel: str, published: str, on_disk: str) -> None:
-    """A repo whose index and working tree DELIBERATELY DISAGREE about `rel`.
-
-    `git init` and `git add` only -- no commit, so no repo's hooks are involved and nothing here
-    can touch this project's history. The index is the whole subject, so staging is all that is
-    needed to construct the state.
-    """
-    subprocess.run(["git", "init", "-q", str(root)], check=True, capture_output=True, timeout=60)
-    target = root / rel
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(published, encoding="utf-8")
-    subprocess.run(["git", "-C", str(root), "add", "--", rel],
-                   check=True, capture_output=True, timeout=60)
-    target.write_text(on_disk, encoding="utf-8")
-
-
-def test_the_reader_returns_the_INDEX_copy_when_the_working_tree_disagrees(tmp_path):
-    """THE WHOLE POINT, proved where the two copies actually differ.
-
-    On this project's own tree the index and the working tree agree almost always, so a control
-    that only ran here would pass whatever `_published_blob` read -- including the working-tree
-    file it exists to stop reading. The disagreement is therefore CONSTRUCTED: a scratch repo
-    holding one string in its index and a different one on disk.
-
-    Fires on: `_published_blob` falling back to `rel.read_text()` on any path; on it reading
-    `HEAD:` instead of `:` (there is no commit here, so a HEAD read cannot answer at all).
-    """
-    repo = tmp_path / "scratch"
-    _scratch_repo(repo, FEED_REL, '{"available": true, "who": "published"}',
-                  '{"available": true, "who": "repaired in the tree and never landed"}')
-
-    # NON-VACUITY: the fixture must actually disagree, or the assertion below is satisfied by
-    # two identical strings and says nothing.
-    assert "never landed" in (repo / FEED_REL).read_text(encoding="utf-8")
-
-    got = _published_blob(FEED_REL, root=repo)
-    assert '"who": "published"' in got, (
-        "the reader returned something other than the index copy, so an unlanded repair is still "
-        "what this file grades: {!r}".format(got[:200]))
-    assert "never landed" not in got, (
-        "the reader returned the WORKING-TREE copy. That is the entire defect this change exists "
-        "to close: a repair sitting in the tree reads as the published page.")
-
-
-def test_the_reader_FAILS_when_there_is_no_published_copy_rather_than_reading_the_file(tmp_path):
-    """FAIL-CLOSED, and the file being right there on disk is what makes it a real question.
-
-    A `value_arms.json` that exists and has never been committed is not "fine" -- it is the
-    defect at its most complete, because no reader has ever met it. The reader must say so, name
-    the path, and never hand back the bytes lying next to it.
-
-    Fires on: any `except` that returns the working-tree text; on returning `""` (an empty feed
-    would skip or pass vacuously through most of this file rather than failing).
-    """
-    repo = tmp_path / "scratch"
-    subprocess.run(["git", "init", "-q", str(repo)], check=True, capture_output=True, timeout=60)
-    target = repo / FEED_REL
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text('{"available": true, "who": "never committed"}', encoding="utf-8")
-
-    with pytest.raises(pytest.fail.Exception) as refused:
-        _published_blob(FEED_REL, root=repo)
-    said = str(refused.value)
-    assert FEED_REL in said, "the refusal does not name the path it could not read: {}".format(said)
-    assert "never committed" not in said, (
-        "the refusal quotes the working-tree bytes, which means it read them")
-    assert "index" in said.lower(), (
-        "the refusal does not say WHY it refused, so the next reader cannot tell a missing "
-        "publish from a broken checkout: {}".format(said))
+# to be holding". The reader that fixed that, and the scratch-repo proofs that it returns the
+# INDEX copy and FAILS CLOSED rather than falling back to disk, live in `site/test_the_published_bytes_reader.py`
+# and are proved in `site/test_the_published_bytes_reader.py` -- one copy, because this defect is
+# now guarded in nine files and a control copied nine times is repaired in one and rots in eight.
 
 
 def test_no_subject_of_this_file_is_read_from_the_working_tree():
     """THE RELAPSE GUARD, and it reads this file's own AST rather than my having been careful.
 
-    The defect is one line long and looks completely ordinary -- `FEED = SITE / "data" /
-    "value_arms.json"`, then `FEED.read_text()` -- which is why it survived in this file for
-    weeks and why the fix cannot be "remember not to". Two shapes are refused, and between them
-    they cover both ways back in:
-
-      (a) building a path to a subject with `/` at all, which is the constant this file used to
-          carry;
-      (b) calling `read_text` / `read_bytes` / `open` on an expression that names a subject.
-
-    The subjects are derived from the `*_REL` constants, so a sixth feed added to `_render` is
-    covered the day it is added and not the day someone remembers this test exists.
+    The subjects come from the `*_REL` constants, so a sixth feed added to `_render` is covered
+    the day it is added and not the day someone remembers this test exists.
 
     Fires on: restoring any of the five deleted `SITE / ...` constants. Proved by doing exactly
     that -- see the mutation log at the head of this file.
     """
-    basenames = {rel.rsplit("/", 1)[-1]
-                 for rel in (DOOR_REL, FEED_REL, GROWTH_REL, CAPS_REL, DD_ARMS_REL)}
-
-    def scan(text: str) -> tuple[list, list]:
-        """(paths BUILT to a subject, subjects READ off disk), as (line, basename) pairs."""
-        def names_a_subject(node) -> str | None:
-            segment = ast.get_source_segment(text, node) or ""
-            return next((b for b in basenames
-                         if '"{}"'.format(b) in segment or "'{}'".format(b) in segment), None)
-
-        built, read = [], []
-        for node in ast.walk(ast.parse(text)):
-            if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
-                hit = names_a_subject(node)
-                if hit:
-                    built.append((node.lineno, hit))
-            elif isinstance(node, ast.Call):
-                func = node.func
-                if isinstance(func, ast.Attribute) and func.attr in ("read_text", "read_bytes"):
-                    hit = names_a_subject(func.value)
-                elif isinstance(func, ast.Name) and func.id == "open":
-                    hit = names_a_subject(node)
-                else:
-                    hit = None
-                if hit:
-                    read.append((node.lineno, hit))
-        return built, read
-
-    # NON-VACUITY FIRST, because "found nothing" and "cannot find anything" are the two readings
-    # of the silence below and only one of them is a pass. The scanner is run over the exact line
-    # this file used to carry.
-    relapse = 'DOOR = SITE / "capabilities" / "index.html"\nsource = DOOR.read_text()\n'
-    caught, _ = scan(relapse)
-    assert caught, ("the scanner does not catch the line this test exists to refuse, so its "
-                    "silence about this file means nothing")
-
-    built, read = scan(Path(__file__).read_text(encoding="utf-8"))
-    assert not built, (
-        "this file builds a filesystem path to a published subject at line(s) {}. Every one of "
-        "these controls would then grade whatever this tree is holding, which is how two live "
-        "defects stayed invisible while being repaired. Read it with `_published_blob`.".format(
-            ", ".join("{} ({})".format(line, name) for line, name in built)))
-    assert not read, (
-        "this file reads a published subject off disk at line(s) {}; the published copy is the "
-        "index copy.".format(", ".join("{} ({})".format(line, n) for line, n in read)))
+    refuse_working_tree_reads(__file__, (DOOR_REL, FEED_REL, GROWTH_REL, CAPS_REL, DD_ARMS_REL))
 
 
 def test_the_door_the_harness_boots_is_the_published_one():

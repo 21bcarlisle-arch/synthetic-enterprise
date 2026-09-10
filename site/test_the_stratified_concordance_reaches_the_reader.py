@@ -73,14 +73,31 @@ import sys
 from pathlib import Path
 
 import pytest
+from test_the_published_bytes_reader import (
+    published_file,
+    published_json,
+    refuse_working_tree_reads,
+)
 
 SITE = Path(__file__).resolve().parent
 PROJECT = SITE.parent
 HARNESS = SITE / "_live_harness.mjs"
-DOOR = SITE / "capabilities" / "index.html"
-CAPS = SITE / "data" / "capabilities_door.json"
-GROWTH = SITE / "data" / "book_growth.json"
-DD_ARMS = SITE / "data" / "dd_opening_arms.json"
+# THE SUBJECTS, AS PATHS IN GIT RATHER THAN FILES ON DISK (2026-09-10). Every constant below is a
+# repo-relative STRING and not a `Path`, because a door test whose subject is `SITE / "data" /
+# x.json` cannot tell "the reader can see this" from "someone in this tree has fixed it and not
+# landed it" -- and those are the only two states it exists to separate. Both of the most serious
+# defects found in the published value-arms comparison this month were REPAIRED IN THE WORKING
+# TREE and stayed invisible to every control over them for exactly that reason.
+# `site/test_the_published_bytes_reader.py` holds the reader and argues why the published copy is the INDEX copy
+# and not `HEAD` -- a question about `tools/surgical_land.py`'s gate extract, not a matter of taste.
+#
+# The producer artefacts this file drives (`gv.THREE_ARM_PATH` and its current-world twin) are
+# deliberately NOT subjects here: they are the generator's INPUT, and what this file grades is
+# the page a reader loads. The guard at the foot is scoped to the constants below for that reason.
+DOOR_REL = "site/capabilities/index.html"
+CAPS_REL = "site/data/capabilities_door.json"
+GROWTH_REL = "site/data/book_growth.json"
+DD_ARMS_REL = "site/data/dd_opening_arms.json"
 
 sys.path.insert(0, str(PROJECT))
 
@@ -149,12 +166,12 @@ def _render(arms: dict) -> dict:
                     "an unavailable check is a FAILED check (R15)")
     payload = {
         "../data/value_arms.json": arms,
-        "../data/capabilities_door.json": json.loads(CAPS.read_text(encoding="utf-8")),
-        "../data/book_growth.json": json.loads(GROWTH.read_text(encoding="utf-8")),
-        "../data/dd_opening_arms.json": json.loads(DD_ARMS.read_text(encoding="utf-8")),
+        "../data/capabilities_door.json": published_json(CAPS_REL),
+        "../data/book_growth.json": published_json(GROWTH_REL),
+        "../data/dd_opening_arms.json": published_json(DD_ARMS_REL),
     }
     proc = subprocess.run(
-        ["node", str(HARNESS), str(DOOR)],
+        ["node", str(HARNESS), str(published_file(DOOR_REL))],
         input=json.dumps(payload), capture_output=True, text=True, timeout=180,
     )
     assert proc.returncode == 0, "the render harness failed: {}".format(proc.stderr[-2000:])
@@ -694,3 +711,15 @@ def test_an_unreadable_blob_refuses_rather_than_reporting_no_departure_cost():
     assert "unestablished" in (moved.get("clause") or "").lower(), (
         "a comparison that could not be made must say so on the surface -- 'we cannot tell' is a "
         "result and it belongs on the page")
+
+
+def test_no_subject_of_this_file_is_read_from_the_working_tree():
+    """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
+
+    The defect is one line long and looks completely ordinary -- a `SITE / "data" / x.json`
+    constant plus `.read_text()` -- which is why it survived here for weeks after the first door
+    was fixed. The subjects come from the `*_REL` constants, so a feed added to the render payload
+    is covered the day it is added. The scanner's own teeth are proved in
+    `site/test_the_published_bytes_reader.py`.
+    """
+    refuse_working_tree_reads(__file__, (DOOR_REL, CAPS_REL, GROWTH_REL, DD_ARMS_REL))

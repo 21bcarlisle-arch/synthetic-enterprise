@@ -41,12 +41,26 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from test_the_published_bytes_reader import (
+    published_blob,
+    published_file,
+    published_json,
+    refuse_working_tree_reads,
+)
 
 SITE = Path(__file__).resolve().parent
 HARNESS = SITE / "_live_harness.mjs"
-DOOR = SITE / "knowledge" / "how-many-synthetic-households" / "index.html"
-TOPICS = SITE / "data" / "knowledge_topics.json"
-GRAPH = SITE / "data" / "knowledge_wholesale.json"
+# THE SUBJECTS, AS PATHS IN GIT RATHER THAN FILES ON DISK (2026-09-10). Every constant below is a
+# repo-relative STRING and not a `Path`, because a door test whose subject is `SITE / "data" /
+# x.json` cannot tell "the reader can see this" from "someone in this tree has fixed it and not
+# landed it" -- and those are the only two states it exists to separate. Both of the most serious
+# defects found in the published value-arms comparison this month were REPAIRED IN THE WORKING
+# TREE and stayed invisible to every control over them for exactly that reason.
+# `site/test_the_published_bytes_reader.py` holds the reader and argues why the published copy is the INDEX copy
+# and not `HEAD` -- a question about `tools/surgical_land.py`'s gate extract, not a matter of taste.
+DOOR_REL = "site/knowledge/how-many-synthetic-households/index.html"
+TOPICS_REL = "site/data/knowledge_topics.json"
+GRAPH_REL = "site/data/knowledge_wholesale.json"
 
 SLUG = "how-many-synthetic-households"
 
@@ -60,19 +74,21 @@ def _render(topics: dict | None = None) -> dict:
     if not HARNESS.is_file():
         pytest.fail("site/_live_harness.mjs is missing -- the render check is UNAVAILABLE, and an "
                     "unavailable check is a FAILED check (R15)")
-    if not DOOR.is_file():
-        pytest.fail(f"{DOOR} does not exist, so there is no page to render")
+    # The door is materialised from its INDEX copy; `published_file` is fail-closed on a page
+    # that is not in the index, which is the same finding the `is_file()` guard here reported and
+    # a stricter one -- a page written and never landed is a page no reader has met.
+    door = published_file(DOOR_REL)
 
     payload = {
         # THE REAL FILE ON DISK unless a mutation supplies otherwise. This is the whole point:
         # a test-built feed proves the template works and says nothing about whether the page is
         # connected to what the site serves.
         "../../data/knowledge_topics.json": (
-            topics if topics is not None else json.loads(TOPICS.read_text(encoding="utf-8"))),
-        "../../data/knowledge_wholesale.json": json.loads(GRAPH.read_text(encoding="utf-8")),
+            topics if topics is not None else published_json(TOPICS_REL)),
+        "../../data/knowledge_wholesale.json": published_json(GRAPH_REL),
     }
     proc = subprocess.run(
-        ["node", str(HARNESS), str(DOOR)],
+        ["node", str(HARNESS), str(door)],
         input=json.dumps(payload), capture_output=True, text=True, timeout=120,
     )
     assert proc.returncode == 0, f"the render harness failed: {proc.stderr[-2000:]}"
@@ -115,7 +131,7 @@ def test_A_MISSING_SLUG_FAILS_CLOSED_rather_than_rendering_a_blank_page_that_loo
 
     A page whose data has gone should SAY so. The failure that would matter is a page that renders
     empty and reads as written -- an absence indistinguishable from a short answer."""
-    topics = json.loads(TOPICS.read_text(encoding="utf-8"))
+    topics = published_json(TOPICS_REL)
     topics["pages"].pop(SLUG, None)
     body = _text("r-headline", topics=topics)
     assert "not in the consolidated Knowledge file" in body, (
@@ -128,7 +144,7 @@ def test_the_slug_fails_closed_in_the_doors_own_source():
 
     `_live_harness.mjs` auto-creates any element the page asks for, so an element deleted from the
     door renders fine here and blank in a browser. Two subjects, because one is compromised."""
-    source = DOOR.read_text(encoding="utf-8")
+    source = published_blob(DOOR_REL)
     assert "knowledge_topics.json" in source, (
         "the door does not read the consolidated file at all, so nothing it renders is what the "
         "site serves")
@@ -144,7 +160,7 @@ def test_no_sample_size_is_published_without_the_reference_it_was_scored_against
     120,000-household references, at two different tolerances, were quoted in one column as though
     they were a series. The count is meaningless without the population it reproduces -- at a
     20,000 reference the sample was 34% of it, which is not a compression at all."""
-    page = json.loads(TOPICS.read_text(encoding="utf-8"))["pages"][SLUG]
+    page = published_json(TOPICS_REL)["pages"][SLUG]
     prose = " ".join(r["body"] for r in page["rungs"].values()) + page["meta"]["one_line"]
 
     headline = _text("r-headline")
@@ -221,7 +237,7 @@ def test_THE_PAGE_CARRIES_NO_UNRENDERED_MARKUP(topics=None):
 
     All ten pages that were already registered carry zero markdown, which is the convention this
     makes enforceable rather than tribal."""
-    pages = json.loads(TOPICS.read_text(encoding="utf-8"))["pages"]
+    pages = published_json(TOPICS_REL)["pages"]
     offenders = {}
     for slug, page in pages.items():
         body = " ".join(r.get("body", "") for r in (page.get("rungs") or {}).values())
@@ -234,3 +250,15 @@ def test_THE_PAGE_CARRIES_NO_UNRENDERED_MARKUP(topics=None):
         f"unrendered markup in the consolidated Knowledge file: {offenders}. The shared template "
         "renders neither markdown nor HTML, so each of these reaches a reader as the literal "
         "character.")
+
+
+def test_no_subject_of_this_file_is_read_from_the_working_tree():
+    """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
+
+    The defect is one line long and looks completely ordinary -- a `SITE / "data" / x.json`
+    constant plus `.read_text()` -- which is why it survived here for weeks after the first door
+    was fixed. The subjects come from the `*_REL` constants, so a feed added to the render payload
+    is covered the day it is added. The scanner's own teeth are proved in
+    `site/test_the_published_bytes_reader.py`.
+    """
+    refuse_working_tree_reads(__file__, (DOOR_REL, TOPICS_REL, GRAPH_REL))

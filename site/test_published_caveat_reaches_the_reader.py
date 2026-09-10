@@ -63,13 +63,20 @@ broad site-lane trigger (site/data/**) is precisely the change set that strands 
 correction. Nothing about the checks below changed -- only where they live and the depth of
 PROJECT.
 """
-import json
 import sys
 from pathlib import Path
 
+from test_the_published_bytes_reader import published_json, refuse_working_tree_reads
+
 HERE = Path(__file__).resolve().parent
 PROJECT = HERE.parent  # site/ -> repo root
-PUBLISHED_PROOF = PROJECT / "site" / "data" / "proof.json"
+
+# THE SUBJECT IS THE INDEX COPY, NOT THE FILE ON DISK (2026-09-10). This file called its constant
+# `PUBLISHED_PROOF` and then read `site/data/proof.json` off the working tree, which is the one
+# state it exists to separate from publication: a caveat corrected in the tree and never landed
+# read here as a caveat the reader had met. `site/test_the_published_bytes_reader.py` argues why the published
+# copy is the INDEX copy and not `HEAD`.
+PROOF_REL = "site/data/proof.json"
 
 SUPERSEDED_OPENER = "RESOLUTION IS WHERE THIS BOOK SITS BESIDE THE GRACE LINE"
 CORRECTED_OPENER = "RESOLUTION IS WHICH CASES"
@@ -81,7 +88,7 @@ def _published_caveats() -> dict:
     R15 FAIL-SILENT: an absent, unreadable or pair-less artefact is a FAILED check, never an
     empty (and therefore agreeing) mapping -- so this raises rather than returning {}.
     """
-    payload = json.loads(PUBLISHED_PROOF.read_text(encoding="utf-8"))
+    payload = published_json(PROOF_REL)
     pairs = payload["coupled_gaps"]["pairs"]
     assert pairs, "the published door carries no coupled pairs at all"
     out = {}
@@ -154,3 +161,14 @@ def test_the_published_detection_caveat_carries_the_hour31_correction():
     assert SUPERSEDED_OPENER not in served, (
         "the superseded headline is still on the published surface"
     )
+
+
+def test_no_subject_of_this_file_is_read_from_the_working_tree():
+    """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
+
+    The defect is one line long -- `PUBLISHED_PROOF = PROJECT / "site" / "data" / "proof.json"`
+    plus `.read_text()` -- and it is the line this file carried until 2026-09-10 while calling the
+    result published. Fires on restoring it in any spelling; the scanner's own teeth are proved in
+    `site/test_the_published_bytes_reader.py`.
+    """
+    refuse_working_tree_reads(__file__, (PROOF_REL,))
