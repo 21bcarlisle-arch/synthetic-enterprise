@@ -418,9 +418,20 @@ def churn_roll_for_renewal(billing_account: str, term_start_str: str) -> float:
     exactly that reason.
 
     THIS ROLL IS ABOVE THAT GUARD AND OUTSIDE IT. Every billing account that reaches a renewal
-    point with churn-model data takes one, priced or not. It is the quantity the rest of the book
-    HAS, and it is the churn cascade itself rather than an input to it — which is what the floor's
-    `except` half was always trying to vary.
+    point with churn-model data takes one, priced or not. It is the churn cascade itself rather
+    than an input to it, which is what the floor's `except` half was always trying to vary.
+
+    AND THE SENTENCE THAT STOOD HERE -- "it is the quantity the rest of the book HAS" -- IS
+    CORRECTED RATHER THAN DELETED. It is right about the mechanism and wrong about the magnitude,
+    measured the same day it was written
+    (`docs/observability/value_cycle_ab_floor_partition_probe_both_keys.json`, world
+    39a192ce04c1eda8): 315 rolls from **70** accounts against 298 elasticity draws from 67, and
+    only **2** of those 70 outside the arm's 100-account roster. So re-keying moves the `except`
+    leg from REFUSING to running; it does not move the sample size from useless to useful. The
+    complement is small because the book settled in this window is 164 accounts of which only 70
+    reach a renewal point at all -- a roster of 100 inside a rolling population of 70 has almost no
+    complement, along ANY draw. The rest of the book does not renew here. That is a fact about the
+    funnel and no choice of key touches it.
 
     NOT SEEDED BY THE RUN, AND THAT IS THE POINT OF THE SIGNATURE. There is no `base_seed`
     parameter here and one must not be added to make re-drawing easier: threading the run seed into

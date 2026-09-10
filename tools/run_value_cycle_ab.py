@@ -4738,10 +4738,24 @@ REDRAW_MODES = ("all", "only", "except")
 # same set by construction, and the instrument degrades in exactly the direction the company is
 # trying to move. That is the defect this axis exists to route around.
 #
-# THE QUANTITY THE REST OF THE BOOK HAS IS ITS CHURN ROLL. `churn_roll_for_renewal` is taken by
-# every billing account reaching a renewal point with churn-model data, priced or not, ABOVE and
-# OUTSIDE the elasticity guard. It is the churn cascade itself rather than an input to it, which is
-# what the `except` half was always trying to vary.
+# THE CHURN ROLL IS REACHED BY MORE OF THE BOOK. `churn_roll_for_renewal` is taken by every billing
+# account reaching a renewal point with churn-model data, priced or not, ABOVE and OUTSIDE the
+# elasticity guard. It is the churn cascade itself rather than an input to it, which is what the
+# `except` half was always trying to vary.
+#
+# AND "MORE" IS NOT "ENOUGH" -- THE FIRST DRAFT OF THIS BLOCK SAID "the quantity the rest of the
+# book HAS", AND THE PROBE REFUTED IT THE SAME DAY. `value_cycle_ab_floor_partition_probe_both_
+# keys.json` (world 39a192ce04c1eda8, commit a9ae86351): 315 rolls from **70** accounts against 298
+# elasticity draws from 67, with only **2** of the 70 outside the arm's 100-account roster. So the
+# re-key turns `except_leg_would_refuse` from true to false and buys a two-household `V_rest`,
+# which is the same category the five-account one on disk was already ruled inadequate.
+#
+# THE REAL CONSTRAINT IS THE FUNNEL, NOT THE KEY, and that is the more useful finding. The book
+# settled in this window is 164 accounts and only 70 reach a renewal point at all; the arm's roster
+# is 100. A roster of 100 inside a rolling population of 70 has almost no complement along ANY
+# draw. No re-keying reaches the rest of the book, because the rest of the book does not renew
+# here. What would is a longer window or a funnel that offers renewals more widely -- neither of
+# which is a change to this tool.
 #
 # THE TWO KEYS DO NOT PARTITION EACH OTHER, and that is stated here rather than discovered
 # downstream. An `only` leg keyed to elasticity and an `except` leg keyed to the churn roll re-draw

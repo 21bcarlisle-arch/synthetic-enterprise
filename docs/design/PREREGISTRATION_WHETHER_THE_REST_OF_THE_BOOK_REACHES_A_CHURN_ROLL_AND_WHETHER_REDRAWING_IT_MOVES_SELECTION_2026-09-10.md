@@ -116,3 +116,48 @@ be a turn. Done is:
    plainly rather than implied.
 
 Item 4 explicitly may not land this turn. Items 1–3 are the increment.
+
+---
+
+# GRADED, 2026-09-10 — kept beside the predictions, not revised into agreement
+
+Measured by `tools/run_value_cycle_ab.py --partition-probe` at commit `a9ae86351`, world
+`39a192ce04c1eda8`, full window, against the 100-account roster in
+`value_cycle_ab_s1_three_arm.json`. Artefact:
+`docs/observability/value_cycle_ab_floor_partition_probe_both_keys.json`.
+
+| Prediction | Called | Measured | Verdict |
+|---|---|---|---|
+| P1 — more churn rolls than elasticity draws | yes | 315 vs 298 | **holds** |
+| P1 — more than 100 distinct accounts roll | >100 | **70** | **FAILS** |
+| P1 — `accounts_that_drew_outside_the_roster > 0` for the roll | >0 | **2** | holds, barely |
+| P1b — more than 300 outside-roster accounts | >300 | **2** | **FAILS BADLY** |
+| P2 — a churn-roll `except` leg returns a non-zero spread | yes | not run — see below | **unresolved** |
+| P3 — the two keys do not partition, so the share must be withheld | acted on | acted on | stands, untested |
+
+## P1b was wrong by more than two orders of magnitude, and the reason is the finding
+
+I predicted >300 outside-roster accounts on the strength of the prior finding's "~2,000 households"
+and got **2**. I said at the time I had no basis for the number. I did not have the one fact that
+governs it: **the book settled in this window is 164 billing accounts, and only 70 of them reach a
+renewal point at all.** The arm's priced roster is 100. A roster of 100 inside a rolling population
+of 70 has almost no complement — by arithmetic, not by choice of key.
+
+**So the diagnosis behind this whole item was half wrong.** The elasticity complement is empty
+because the draw sits behind a price gate — that part is true and measured. But the complement was
+never going to be *large* under any key, because the rest of the book **does not renew in this
+window**. Re-keying moved `except_leg_would_refuse` from `true` to `false`; it did not move the
+sample size from useless to useful.
+
+The sentence I wrote in the code — "the quantity the rest of the book HAS" — is right about the
+mechanism and wrong about the magnitude, and it now says so beside itself.
+
+## What this does to P2, which is why it was not run
+
+A nine-seed churn-roll `except` leg is about six hours of compute and would measure `V_rest` over
+**two households** (`PROS-2020-0287`, `PROS-2020-0303`). The finding this work descends from already
+ruled that a `V_rest` over one household is worth no more than the five-account one on disk. Two is
+that same category. **Spending the six hours would buy a number that cannot support the claim it
+would be published under**, so I did not start it, and that is a decision rather than a deferral.
+
+P2 therefore stays unresolved, and it is unresolved for a better reason than when it was written.
