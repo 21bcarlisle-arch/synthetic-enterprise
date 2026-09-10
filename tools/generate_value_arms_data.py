@@ -143,6 +143,7 @@ from tools.product_gate_refusal import refusal_breakdown
 from tools.run_value_cycle_ab import (
     FLOOR_RUN_PEAK_MB,
     _concordance,
+    distance_to_a_sign,
     pair_strata,
     remedy_price_table,
 )
@@ -6390,6 +6391,40 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
             if contrast == SELECTION_CONTRAST else
             "The spread below is this contrast's own across the seed re-draws -- not the floor's "
             "published `selection_gbp_spread`, which measures a different quantity."),
+        # HOW FAR THE FAMILY'S MEAN IS FROM ZERO, AND WHAT WOULD CLOSE THE GAP. See below for why
+        # this is a DIFFERENT question from the one `no_sign` answers.
+        "distance_to_a_sign": distance_to_a_sign(
+            spread.get("mean_gbp"), spread.get("stdev_gbp"), spread.get("n")),
+        # TWO SIGN QUESTIONS, SAID APART, because this page has been publishing one sentence over
+        # both and they have opposite remedies. THE DEFECT is the project's most expensive
+        # recurring shape -- a concept nobody defined, then differenced and published as a driver
+        # -- and it is live right here: `no_sign` says "the same contrast re-drawn 9 times falls on
+        # BOTH sides of zero, so there is no direction here for a bound to clear", which reads as
+        # though nothing could ever give this leg a direction.
+        #
+        #   (a) DOES A SINGLE DRAW'S SIGN GENERALISE? No, and more seeds will never make it so.
+        #       The members straddle zero and the spread is the world's own dispersion; drawing
+        #       more of them estimates that spread again rather than shrinking it. This is what
+        #       `no_sign` and `verdict_stability.sign_determined` answer.
+        #   (b) IS THE FAMILY'S MEAN DISTINGUISHABLE FROM ZERO? A different quantity with a
+        #       different denominator -- the standard error, which falls as 1/sqrt(n) -- and this
+        #       one seeds DO settle. It is the question the thesis actually asks: is the
+        #       per-customer selection arm, on average, worse than its own flat-at-level baseline?
+        #
+        # (a) can be false while (b) is true, and that combination is not a contradiction: it is
+        # "any one customer's draw could go either way, and the book-level average is negative
+        # anyway". Publishing only (a) told a reader the leg was unanswerable when the answerable
+        # half had merely not been drawn enough times.
+        "which_sign_question_this_answers": (
+            "THE MEAN'S, NOT A SINGLE DRAW'S. `no_sign` and `verdict_stability.sign_determined` "
+            "above answer whether one draw's sign generalises -- it does not, the re-draws fall on "
+            "both sides of zero, and no number of further seeds changes that because the spread is "
+            "the world's own dispersion rather than an estimation error. `distance_to_a_sign` "
+            "answers whether the FAMILY'S MEAN is distinguishable from zero, whose denominator is "
+            "the standard error and DOES fall as 1/sqrt(n). That is the question the thesis asks: "
+            "is the per-customer arm, on average, worse than its own flat-at-level baseline? The "
+            "two can disagree without contradiction, and until 2026-09-10 this page answered only "
+            "the first and read as though the second were unanswerable too."),
     }
 
 

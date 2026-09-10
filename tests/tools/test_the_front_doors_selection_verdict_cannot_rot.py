@@ -188,3 +188,109 @@ def test_the_gate_is_declared_as_a_publish_blocker():
     )
     page, what = entry
     assert page == "/" and what
+
+
+# ---------------------------------------------------------------------------
+# THE SAME SENTENCE'S OTHER HALF: HOW MANY RE-DRAWS IT RESTS ON
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT (2026-09-10). Everything above controls the VERDICT. The same paragraph also states
+# a SAMPLE SIZE -- "Re-drawn nine times", and a pointer to "the nine-draw band" -- and nothing
+# checked either word. The split is exactly backwards: the verdict is the half that more seeds are
+# meant to leave alone, and the draw count is the half that moves every time a floor run lands.
+#
+# It was about to bite. Two floor legs were running as this was written, one re-drawing the
+# existing nine seeds and one drawing nine new ones; folding them makes the family eighteen, and
+# on that publish the front door would have rested the strongest claim on the page on nine draws
+# while its own evidence page showed eighteen.
+
+DRAWS_9 = 'data-selection-draws="9"'
+
+
+def _draws_feed(n):
+    """The smallest feed shape the draw-count gate reads."""
+    return {"current_world": {"selection_leg": {"verdict_stability": {"n": n}}}}
+
+
+def test_the_draw_count_gate_is_reachable_at_all(tmp_path):
+    """POISON ROUND, and nothing below is worth reading until it passes. On the REAL front door
+    and the REAL feed the gate passes; moving ONLY the feed's family size turns it red. A gate
+    that returned True unconditionally, or that never found the attribute, fails the second."""
+    assert gdd._check_front_door_selection_draw_count() is True, (
+        "the draw-count gate does not pass on the tree as it stands, so every red below is "
+        "ambiguous between a caught defect and a broken gate"
+    )
+    feed = json.loads(gdd.VALUE_ARMS_FEED_PATH.read_text())
+    feed["current_world"]["selection_leg"]["verdict_stability"]["n"] = 18
+    poisoned = _feed_file(tmp_path, feed)
+    assert gdd._check_front_door_selection_draw_count(feed_path=poisoned) is False, (
+        "the family grew to eighteen and the front door still said nine, and the gate passed -- "
+        "it is blind to the number it exists to check"
+    )
+
+
+def test_a_door_and_a_feed_that_agree_pass(tmp_path):
+    door = _write(tmp_path, "index.html", f"<p {DRAWS_9}>Re-drawn nine times.</p>")
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=door, feed_path=_feed_file(tmp_path, _draws_feed(9))) is True
+
+
+def test_an_attribute_corrected_while_the_PROSE_still_spells_the_old_number_fails(tmp_path):
+    """The one-fact-two-homes shape in miniature. A reader meets the word, not the attribute, so
+    a correct machine-readable value over rotten prose is the failure that looks most like a
+    pass."""
+    door = _write(tmp_path, "index.html",
+                  '<p data-selection-draws="18">Re-drawn nine times.</p>')
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=door, feed_path=_feed_file(tmp_path, _draws_feed(18))) is False
+
+
+def test_a_door_whose_prose_and_attribute_BOTH_move_passes(tmp_path):
+    """Reachable in the direction the next fold will actually take. Without this the test above
+    is satisfied by a gate that refuses every eighteen."""
+    door = _write(tmp_path, "index.html",
+                  '<p data-selection-draws="18">Re-drawn eighteen times.</p>')
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=door, feed_path=_feed_file(tmp_path, _draws_feed(18))) is True
+
+
+@pytest.mark.parametrize("html,why", [
+    ("<p>Re-drawn nine times.</p>", "no attribute at all"),
+    ('<p data-selection-draws="nine">Re-drawn nine times.</p>', "spelled where a gate must read"),
+])
+def test_a_count_stated_in_an_uncheckable_form_fails(tmp_path, html, why):
+    door = _write(tmp_path, "index.html", html)
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=door, feed_path=_feed_file(tmp_path, _draws_feed(9))) is False, why
+
+
+@pytest.mark.parametrize("n,why", [
+    (None, "the feed states no family size"),
+    (1, "one draw is a run, not a family, and cannot bound anything"),
+    ("9", "a string is not a count this gate may compare"),
+])
+def test_a_feed_with_no_usable_family_size_fails_closed(tmp_path, n, why):
+    door = _write(tmp_path, "index.html", f"<p {DRAWS_9}>Re-drawn nine times.</p>")
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=door, feed_path=_feed_file(tmp_path, _draws_feed(n))) is False, why
+
+
+def test_an_unreadable_door_or_feed_is_a_FAILED_check_not_a_passed_one(tmp_path):
+    good_feed = _feed_file(tmp_path, _draws_feed(9))
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=tmp_path / "absent.html", feed_path=good_feed) is False
+    door = _write(tmp_path, "index.html", f"<p {DRAWS_9}>Re-drawn nine times.</p>")
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=door, feed_path=tmp_path / "absent.json") is False
+    assert gdd._check_front_door_selection_draw_count(
+        front_door_path=door, feed_path=_write(tmp_path, "bad.json", "{not json")) is False
+
+
+def test_the_draw_count_gate_is_declared_as_a_publish_blocker():
+    entry = gdd.PUBLISH_VERDICT_CHECKS.get("_check_front_door_selection_draw_count")
+    assert entry is not None, (
+        "the draw-count gate is in generate()'s verdict but declares no reader-facing page, so "
+        "nothing can tell whether it guards anybody"
+    )
+    page, what = entry
+    assert page == "/" and what

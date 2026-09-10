@@ -30,6 +30,7 @@ import math
 
 import pytest
 
+from tools import run_value_cycle_ab as rvca
 from tools.run_value_cycle_ab import (
     ELASTICITY_DECISION_MODULE,
     ELASTICITY_DRAW_MODULE,
@@ -1308,3 +1309,208 @@ def test_the_decision_unit_names_its_assumption_whether_or_not_the_draw_count_is
     # AND THE MULTIPLIER SURVIVES BOTH WAYS. Withdrawing a real, scale-free measurement because its
     # unit needs an assumption would be the mirror defect.
     assert known["priced_decisions_needed"] and withheld["priced_decisions_needed"]
+
+
+# ---------------------------------------------------------------------------
+# HOW FAR FROM A SIGN, AND FOLDING SEVERAL RUNS INTO ONE FAMILY
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT (2026-09-10). The floor published `selection_distinguishable_from_zero: false` and
+# stopped, so a reader could not tell "unstateable by a hair" from "unstateable by a mile" -- and
+# those license opposite decisions about whether to spend six machine-hours on more draws. At the
+# nine-seed family the true answer was three more seeds. The Lane 0 direction that commissioned
+# the extension quoted `sems_from_zero`, `sems_needed_to_state_a_sign` and
+# `seeds_needed_to_state_a_sign` as figures the artefact and the page already carried;
+# `grep -rn sems_from_zero` over the whole tree returned nothing.
+#
+# AND THE SECOND HALF: a draw costs three full decade passes at a 6.4 GB peak, so seeds arrive a
+# few at a time, from different lanes, at different commits. Without a fold the only way to grow
+# the family was to re-run it, discarding every seed already paid for.
+
+def _floor(seeds_and_values, *, commit="aaaaaaaa1", world="W", mode="all",
+           clock="settled-realised", symbol="simulation.population_draw.price_elasticity"):
+    """A floor artefact carrying just the fields a fold reads. Shaped like `noise_floor`'s."""
+    return {
+        "generated_at": "2026-09-10T00:00:00Z",
+        "producing_commit": {"commit": commit},
+        "world_identity": {"digest": world},
+        "clock": clock,
+        "redraw_scope": {"mode": mode},
+        "symbol_patched": symbol,
+        "seeds": [{"seed": s, "selection_gbp": v, "level_share_of_advantage": 1.0}
+                  for s, v in seeds_and_values],
+    }
+
+
+def test_the_seed_count_and_the_published_verdict_are_the_same_inequality():
+    """`n >= seeds_needed` and `|mean| > k*sd/sqrt(n)` must never disagree.
+
+    THE DEFECT THIS NAMES. Publishing a distance beside a verdict makes one question with two
+    implementations -- this project's most expensive recurring shape (the VAT rule: one legal
+    requirement, five implementations, fixed in one of them in July and still live in another in
+    August). A page saying "1.79 sems, and it takes 1.96" beside a verdict computed at 2.0 is
+    wrong in the gap between them, and the gap is exactly where a marginal family lands.
+
+    The two sides are DIFFERENT EXPRESSIONS on purpose -- one inverts the inequality for `n`, the
+    other evaluates it -- so their agreement is evidence rather than a tautology. Swept across a
+    range that straddles the threshold, so this cannot pass by never meeting a disagreement.
+    """
+    stateable, unstateable = 0, 0
+    for n in range(2, 40):
+        for mean in (-3000.0, -1078.1657011111156, -50.0, 50.0, 1078.0, 3000.0):
+            for sd in (1810.5007782810442, 250.0, 9000.0):
+                block = rvca.distance_to_a_sign(mean, sd, n)
+                verdict = abs(mean) > rvca.SEMS_TO_STATE_A_SIGN * (sd / math.sqrt(n))
+                assert (n >= block["seeds_needed_to_state_a_sign"]) is verdict, (
+                    f"n={n} mean={mean} sd={sd}: the seed count says "
+                    f"{n >= block['seeds_needed_to_state_a_sign']} and the verdict the artefact "
+                    f"publishes says {verdict} -- two implementations of one question")
+                stateable += verdict
+                unstateable += not verdict
+    # BOTH BRANCHES REACHED. A sweep that only ever met one verdict would pass while agreeing
+    # with a constant.
+    assert stateable and unstateable, (
+        f"the sweep never straddled the threshold ({stateable} stateable, {unstateable} not), so "
+        "the agreement above is between one answer and itself")
+
+
+def test_the_seed_count_carries_the_verdicts_STRICTNESS_at_an_exact_integer():
+    """At an exactly-integral threshold the strict `>` and a `ceil` differ by the one seed that
+    flips the verdict.
+
+    Constructed so `(k*sd/|mean|)^2` is exactly 9.0: k=2, sd=3, mean=2 gives (2*3/2)^2 = 9. A
+    family of 9 must NOT be stateable (9 > 9 is false), so the count must be 10 and not 9.
+    """
+    block = rvca.distance_to_a_sign(2.0, 3.0, 9, sems_needed=2.0)
+    assert block["seeds_needed_to_state_a_sign"] == 10, (
+        "the count was rounded with ceil, so a family sitting exactly ON the threshold is "
+        "reported as able to state a sign the verdict refuses it")
+    assert abs(2.0) > 2.0 * (3.0 / math.sqrt(10)), "the count it names does not itself clear"
+
+
+def test_a_mean_of_exactly_zero_yields_no_count_rather_than_a_large_one():
+    """FAIL CLOSED. No number of seeds separates zero from zero; an integer here would read as a
+    plan a reader could act on."""
+    block = rvca.distance_to_a_sign(0.0, 100.0, 9)
+    assert block["seeds_needed_to_state_a_sign"] is None
+    assert "exactly zero" in block["seeds_needed_unavailable_because"]
+    assert block["sign_if_it_were_stateable"] is None, "a zero mean was given a direction"
+
+
+@pytest.mark.parametrize("mean,stdev,n", [(1.0, None, 9), (None, 1.0, 9), (1.0, 1.0, 1)])
+def test_a_family_too_small_or_too_blank_to_measure_says_so(mean, stdev, n):
+    block = rvca.distance_to_a_sign(mean, stdev, n)
+    assert block["available"] is False and block["why_not"]
+
+
+def test_a_fold_refuses_when_a_SHARED_seed_disagrees_across_two_trees():
+    """The reproduction check, and it is the whole reason a fold is not a concatenation.
+
+    THE DEFECT. Members drawn at different commits are one family only if the code motion between
+    them did not move this quantity. Concatenating them assumes that; keeping the newer value for
+    a shared seed hides the evidence that would have refuted it. The differences are SMALL -- the
+    real pair on disk differs by £38.96 to £61.38 on a ~£1,200 figure -- which is exactly why a
+    reader would never notice them in a pooled spread.
+    """
+    old = _floor([(11111, 1199.5501), (22222, -3075.2156)], commit="04361d6c7")
+    new = _floor([(11111, 1260.9262), (22222, -3036.2544), (33333, 494.4478)], commit="c066c114b")
+    refused = rvca.fold_floors([old, new], sources=["old.json", "new.json"])
+    assert refused["folded"] is False
+    assert any("11111" in reason and "reproduction" in reason for reason in refused["why_not"]), (
+        f"the refusal does not name the seed that broke it: {refused['why_not']}")
+    assert any("61.3" in reason for reason in refused["why_not"]), (
+        "the refusal states that the trees disagree without saying by how much, so a reader "
+        "cannot tell a rounding difference from a different instrument")
+
+
+def test_a_fold_of_AGREEING_runs_pools_their_distinct_seeds_and_keeps_the_shared_one_once():
+    """The pass branch, and the arithmetic it produces.
+
+    Reachability first: without this, every assertion above is satisfied by a fold that refuses
+    everything, which is the guard-that-refuses-everything shape this project has entered three
+    times in one afternoon.
+    """
+    a = _floor([(11111, 1000.0), (22222, -3000.0)])
+    b = _floor([(11111, 1000.0), (33333, 500.0), (44444, -1500.0)])
+    folded = rvca.fold_floors([a, b], sources=["a.json", "b.json"])
+    assert folded["folded"] is True, f"an agreeing pair was refused: {folded.get('why_not')}"
+    assert [row["seed"] for row in folded["seeds"]] == [11111, 22222, 33333, 44444], (
+        "the shared seed was counted twice, which weights one draw double in the mean")
+    assert folded["selection_gbp_spread"]["n"] == 4
+    rep = folded["folded_from"]["reproduction"]
+    assert rep["shared_seeds"] == [11111] and rep["shared_seeds_agreeing"] == [11111]
+    assert rep["worst_disagreement_gbp"] == 0.0
+
+
+def test_a_fold_at_ONE_commit_carries_it_and_a_fold_at_SEVERAL_claims_no_tree():
+    """FAILS CLOSED, and reachable both ways.
+
+    A folded family drawn at three commits has no single producing tree, and naming the newest
+    would let `_floor_tree_pairing` report `same_tree: true` against a member that drew a third of
+    the seeds. `None` routes to that function's "UNSTAMPED IS ITS OWN ANSWER AND NEVER THE
+    FLATTERING ONE" branch. Keyed to the property: when the members DO share a commit this goes
+    quiet with nobody editing a string.
+    """
+    same = rvca.fold_floors([_floor([(1, 1.0), (2, 2.0)], commit="deadbeef1"),
+                             _floor([(1, 1.0), (3, 3.0)], commit="deadbeef1")])
+    assert same["producing_commit"]["commit"] == "deadbeef1", (
+        "a family every member of which names ONE tree was published as having none")
+
+    mixed = rvca.fold_floors([_floor([(1, 1.0), (2, 2.0)], commit="deadbeef1"),
+                              _floor([(1, 1.0), (3, 3.0)], commit="cafebabe2")])
+    assert mixed["producing_commit"]["commit"] is None
+    assert "no single one" in mixed["producing_commit"]["unavailable_because"]
+
+    # ALL-UNSTAMPED IS A SHARED ABSENCE, NOT AGREEMENT.
+    blank = rvca.fold_floors([_floor([(1, 1.0)], commit=None), _floor([(2, 2.0)], commit=None)])
+    assert blank["producing_commit"]["commit"] is None, (
+        "two artefacts that both carry no stamp were read as two readings of one tree")
+
+
+@pytest.mark.parametrize("field,kwargs", [
+    ("world_identity.digest", {"world": "OTHER"}),
+    ("redraw_scope.mode", {"mode": "only"}),
+    ("clock", {"clock": "settled-provisioned"}),
+    ("symbol_patched", {"symbol": "simulation.population_draw.price_sensitivity"}),
+])
+def test_a_fold_refuses_each_property_that_makes_two_runs_different_quantities(field, kwargs):
+    """One leg per member of `FOLD_MUST_AGREE`, and the refusal must NAME the field.
+
+    A fold that refused without saying which property broke it would send a reader to diff two
+    artefacts by hand -- and the whole class of defect here is that the difference is invisible in
+    the pooled number.
+    """
+    refused = rvca.fold_floors([_floor([(1, 1.0)]), _floor([(2, 2.0)], **kwargs)])
+    assert refused["folded"] is False
+    assert any(field in reason for reason in refused["why_not"]), (
+        f"{field} differed and the refusal never named it: {refused['why_not']}")
+
+
+def test_a_fold_with_NO_shared_seed_is_allowed_and_says_the_check_did_not_run():
+    """Refusing it would be the wrong trade -- the members may share a commit, leaving nothing to
+    check. What is never allowed is SILENCE: an unmeasured reproduction must not read as a passed
+    one."""
+    folded = rvca.fold_floors([_floor([(1, 1.0)], commit="aaa"), _floor([(2, 2.0)], commit="bbb")])
+    assert folded["folded"] is True
+    rep = folded["folded_from"]["reproduction"]
+    assert rep["shared_seeds"] == []
+    assert rep["what_it_proves"] is None, "an untested claim was published as proven"
+    assert "UNMEASURED" in rep["why_not_checked"] or "untested" in rep["why_not_checked"]
+
+
+def test_folding_a_single_run_is_refused_because_it_would_be_a_copy_wearing_a_fold_label():
+    with pytest.raises(AssertionError, match="at least two"):
+        rvca.fold_floors([_floor([(1, 1.0), (2, 2.0)])])
+
+
+def test_the_folded_family_reports_the_same_distance_arithmetic_as_a_run():
+    """The fold is not a second implementation of the verdict. Both spellings must land on one
+    answer, or the page's figure depends on which door the family came through."""
+    a = _floor([(1, -3000.0), (2, 1200.0), (3, -2400.0)])
+    b = _floor([(4, -1900.0), (5, 300.0), (6, -2700.0)])
+    folded = rvca.fold_floors([a, b])
+    spread = folded["selection_gbp_spread"]
+    assert folded["distance_to_a_sign"] == rvca.distance_to_a_sign(
+        spread["mean"], spread["stdev"], spread["n"])
+    assert folded["selection_distinguishable_from_zero"] is (
+        abs(spread["mean"]) > rvca.SEMS_TO_STATE_A_SIGN * folded["selection_sem_gbp"])

@@ -4741,6 +4741,333 @@ def priced_accounts_from(artefact: Path) -> list[str]:
     return sorted(set(accounts))
 
 
+#: HOW MANY STANDARD ERRORS FROM ZERO BEFORE THIS PROJECT WILL STATE A SIGN.
+#:
+#: 2.0, and it is 2.0 because that is the rule `noise_floor` has always applied
+#: (`abs(mean) > 2 * sem`, written as a bare literal until 2026-09-10). It is named here rather
+#: than repeated because the moment the DISTANCE to a sign is published beside the VERDICT, the
+#: two are one legal question with two implementations -- this project's most expensive recurring
+#: shape, and the VAT rule is the standing evidence for it. A page saying "1.79 sems, and 1.96 is
+#: what it takes" beside a verdict computed at 2.0 is wrong in the gap between them, and the gap
+#: is exactly where a marginal family lands.
+#:
+#: NOT 1.96. The normal two-sided 95% critical value is 1.96 and this is deliberately not that:
+#: the sem here is estimated from the same handful of seeds as the mean, so the normal quantile
+#: understates the tail, and 2.0 is the coarser number this instrument has always been read at.
+#: Moving it is a decision about how much evidence a published sign needs, and it belongs in one
+#: place where that decision is visible.
+SEMS_TO_STATE_A_SIGN = 2.0
+
+
+def distance_to_a_sign(mean, stdev, n, sems_needed: float = SEMS_TO_STATE_A_SIGN) -> dict:
+    """HOW FAR THIS FAMILY IS FROM STATING A SIGN, and how many seeds would close the gap.
+
+    THE DEFECT THIS SERVES (2026-09-10). The floor published `selection_distinguishable_from_zero:
+    false` and stopped. A reader learned that the sign is unstateable and could not learn whether
+    it is unstateable by a hair or by a mile, nor what it would take -- and those license opposite
+    decisions. At the nine-seed family the answer is 1.79 sems against 2.0 and twelve seeds, i.e.
+    three more draws; a reader given only `false` would reasonably have concluded the instrument
+    was hopeless and stopped drawing. The Lane 0 direction that commissioned the extension quoted
+    `sems_from_zero`, `sems_needed_to_state_a_sign` and `seeds_needed_to_state_a_sign` as things
+    this artefact and the page already said. `grep -rn sems_from_zero` over the whole tree
+    returned nothing: the numbers had been worked out by hand, in a sentence, and never landed.
+
+    THE PROJECTION IS ARITHMETIC AT TODAY'S MEAN AND SD AND IT IS NOT A FORECAST. `seeds_needed`
+    inverts the same inequality the verdict applies -- `|mean| > k * sd / sqrt(n)` -- for `n`,
+    holding the mean and the sd where they are. New draws move BOTH: that is the entire reason
+    they are worth taking, and it is why this must never be read as "draw three more and the sign
+    appears". It answers the narrow question "how many draws would this family need if it turned
+    out to be exactly what it currently looks like", which is the question a reader deciding
+    whether to spend six machine-hours actually has.
+
+    STRICTNESS IS CARRIED, NOT ROUNDED PAST. The verdict is a STRICT `>`, so the seed count is the
+    smallest integer strictly greater than `(k * sd / |mean|)^2`, never `ceil` of it -- at an exact
+    integer those two differ by one, and the one they differ by is the one that flips the verdict.
+
+    THE TIE TO THE VERDICT IS THE CONTROL. `n >= seeds_needed` is algebraically identical to
+    `|mean| > k * sd / sqrt(n)`, so a family's `distinguishable` flag and its `seeds_needed` can be
+    checked against each other by anyone holding the artefact, and
+    `test_the_seed_count_and_the_verdict_are_the_same_inequality` does. They are computed by
+    different expressions here on purpose: an agreement between two spellings of one inequality is
+    evidence, an agreement between one spelling and itself is not.
+
+    FAILS CLOSED. A mean of exactly zero needs infinitely many seeds and yields `None` with a
+    named reason, never a large integer that reads like a plan.
+    """
+    mean_f, stdev_f, sems = _num(mean), _num(stdev), _num(sems_needed)
+    if mean_f is None or stdev_f is None or not isinstance(n, int) or n < 2 or sems is None:
+        return {
+            "available": False,
+            "why_not": ("a distance to a sign needs a mean, a standard deviation and at least two "
+                        "seeds; this family reports mean={!r}, stdev={!r}, n={!r}".format(
+                            mean, stdev, n)),
+        }
+    sem = stdev_f / math.sqrt(n)
+    sems_from_zero = abs(mean_f) / sem if sem > 0 else None
+    if mean_f == 0.0:
+        seeds_needed = None
+        why = ("this family's mean is exactly zero, so no number of seeds separates it from zero "
+               "and the count is undefined rather than large")
+    else:
+        # The smallest integer STRICTLY greater than the threshold -- see the docstring.
+        threshold = (sems * stdev_f / abs(mean_f)) ** 2
+        seeds_needed = int(math.floor(threshold)) + 1
+        why = None
+    return {
+        "available": True,
+        "sems_from_zero": sems_from_zero,
+        "sems_needed_to_state_a_sign": sems,
+        "seeds_needed_to_state_a_sign": seeds_needed,
+        "seeds_in_hand": n,
+        "sign_if_it_were_stateable": (
+            None if mean_f == 0.0 else ("negative" if mean_f < 0 else "positive")),
+        "seeds_needed_unavailable_because": why,
+        "what_this_count_is": (
+            "the seeds this family would need IF its mean and standard deviation stayed exactly "
+            "where they are. New draws move both -- that is why they are worth taking -- so this "
+            "is the price of the question at today's estimate and never a forecast that the sign "
+            "will appear."),
+        "how_to_read_the_distance": (
+            "`sems_from_zero` below `sems_needed_to_state_a_sign` means the sign is NOT stateable "
+            "and says by how much. It is not a cue to re-run until a seed agrees (R12): the seed "
+            "set is fixed before the draw and the answer is whatever it returns."),
+    }
+
+
+#: What every member of a fold must agree on before their seeds are one family. Each is a property
+#: that makes two runs measurements of DIFFERENT quantities when it differs, so pooling across it
+#: would produce a spread of the difference rather than a spread of the figure.
+FOLD_MUST_AGREE = (
+    ("world_identity.digest", "the departure surface the world was running at -- a spread measured "
+                              "where customers leave at one rate is not an error bar on a figure "
+                              "measured where they leave at another"),
+    ("redraw_scope.mode", "which half of the book was re-drawn -- the `only` and `except` legs "
+                          "partition the undecomposed variance and neither bounds the whole"),
+    ("clock", "which clock the figures are on -- the gap between this run's two clocks is larger "
+              "than every contrast the spread bounds, so a mixed family would publish that gap as "
+              "seed noise"),
+    ("symbol_patched", "which symbol was re-drawn -- a rename makes two runs vary different things "
+                       "under one label"),
+)
+
+
+def _dotted(artefact: dict, path: str):
+    """`a.b` out of nested dicts, or None. Missing and null are the same answer here: unknown."""
+    node = artefact
+    for part in path.split("."):
+        if not isinstance(node, dict):
+            return None
+        node = node.get(part)
+    return node
+
+
+def fold_floors(members: list[dict], sources: list[str] | None = None,
+                tolerance_gbp: float = 0.005) -> dict:
+    """Pool several noise-floor runs into ONE family, or refuse and name which one broke it.
+
+    WHY THIS EXISTS. `selection_gbp`'s sign is unstateable at nine seeds for want of draws alone,
+    and a draw costs three full decade passes at a measured 6.4 GB peak -- so the seeds arrive a
+    few at a time, from different lanes, hours apart, at different commits. Until 2026-09-10 the
+    only way to grow the family was to re-run the whole thing, which throws away every seed already
+    paid for. Folding is what makes an nine-seed family and a nine-seed run into an eighteen-seed
+    family without re-drawing anything.
+
+    THE REPRODUCTION CHECK IS THE WHOLE CONTROL, AND IT IS WHY THIS IS NOT A CONCATENATION.
+    Members drawn at different commits are only one family if the code motion between them did not
+    move this quantity. That is not assumable and it is not arguable -- but it IS measurable,
+    whenever two members share a seed: the same seed in the same world under two trees must return
+    the same `selection_gbp`. So a shared seed is not a duplicate to be quietly de-duplicated, it
+    is EVIDENCE, and this refuses the fold when it disagrees rather than keeping the newer value.
+
+    The page already states this exact gap and states that it cannot close it --
+    `_floor_tree_pairing.caveat`: *"sizing it needs the same seed drawn under both trees"*. A fold
+    whose members overlap has that measurement in hand.
+
+    A FOLD WITH NO OVERLAP IS ALLOWED AND SAYS SO. Refusing it would be the wrong trade: the
+    members may genuinely share a producing commit, in which case there is nothing to check. What
+    is never allowed is silence -- `reproduction.checked` is False with a reason, the artefact's
+    `producing_commit` fails closed to None, and the page's own unstamped branch then tells the
+    reader the width and the figure are not two readings of one tree.
+
+    WHY `producing_commit` FAILS CLOSED. A folded family drawn at three commits has no single
+    producing commit, and picking the newest would let `_floor_tree_pairing` report `same_tree`
+    against a member that contributed a third of the seeds. `None` routes to that function's
+    "UNSTAMPED IS ITS OWN ANSWER AND NEVER THE FLATTERING ONE" branch, which is the honest one.
+    When every member DOES share a commit the fold carries it, so this goes quiet on its own.
+
+    `tolerance_gbp` is half a penny because that is the unit the reproduction has historically been
+    checked in -- seed 11111 has returned +1,260.9261999999871 at three consecutive commits and the
+    differences that matter have been £38.96 to £61.38, four orders of magnitude larger. It is not
+    a knob for making a disagreement go away.
+    """
+    if len(members) < 2:
+        raise AssertionError(
+            "a fold needs at least two floor runs; got {}. Folding one run is a copy, and calling "
+            "it a fold would put a `folded_from` block on an artefact nothing was pooled "
+            "into.".format(len(members)))
+    names = list(sources or []) or ["member {}".format(i) for i in range(len(members))]
+    if len(names) != len(members):
+        raise AssertionError(
+            "{} member(s) and {} source name(s) -- a refusal that cannot name which artefact broke "
+            "the fold is not worth having".format(len(members), len(names)))
+
+    refusals = []
+    for path, why in FOLD_MUST_AGREE:
+        seen = {}
+        for name, member in zip(names, members):
+            seen.setdefault(repr(_dotted(member, path)), []).append(name)
+        if len(seen) > 1:
+            refusals.append(
+                "`{}` differs across the members ({}), and it must not: {}.".format(
+                    path, "; ".join("{} in {}".format(v, ", ".join(w)) for v, w in seen.items()),
+                    why))
+
+    # THE REPRODUCTION CHECK. Every seed present in more than one member, compared value for value.
+    by_seed: dict[int, list[tuple[str, dict]]] = {}
+    for name, member in zip(names, members):
+        for row in member.get("seeds") or []:
+            if isinstance(row, dict) and isinstance(row.get("seed"), int):
+                by_seed.setdefault(row["seed"], []).append((name, row))
+    shared = {seed: rows for seed, rows in by_seed.items() if len(rows) > 1}
+    disagreed, agreed, worst = [], [], 0.0
+    for seed in sorted(shared):
+        rows = shared[seed]
+        values = [(name, _num(row.get("selection_gbp"))) for name, row in rows]
+        finite = [(name, v) for name, v in values if v is not None]
+        if len(finite) < 2:
+            disagreed.append(
+                "seed {} appears in {} members but carries no comparable `selection_gbp` in at "
+                "least one of them, so the trees cannot be reconciled on it".format(
+                    seed, len(rows)))
+            continue
+        gap = max(v for _, v in finite) - min(v for _, v in finite)
+        worst = max(worst, gap)
+        if gap > tolerance_gbp:
+            disagreed.append(
+                "seed {} returns {} -- a spread of £{:,.2f} for ONE seed in ONE world, so the "
+                "members were not drawn by code that agrees on this quantity".format(
+                    seed, ", ".join("£{:,.4f} in {}".format(v, n) for n, v in finite), gap))
+        else:
+            agreed.append(seed)
+    if disagreed:
+        refusals.append(
+            "the reproduction check failed on {} shared seed(s): {}".format(
+                len(disagreed), " | ".join(disagreed)))
+
+    member_commits = [_dotted(m, "producing_commit.commit") or None for m in members]
+    distinct_commits = set(member_commits)
+    # A single stamp only when every member names the SAME non-null one. All-unstamped is not
+    # agreement, it is a shared absence, and it must not read as one tree.
+    one_commit = (member_commits[0]
+                  if len(distinct_commits) == 1 and member_commits[0] else None)
+
+    if refusals:
+        return {
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "folded": False,
+            "why_not": refusals,
+            "sources": names,
+            "what_this_is": (
+                "A REFUSED fold. These runs are not one family and pooling their seeds would "
+                "produce a spread of the difference between them rather than an error bar on the "
+                "figure. Every reason is named above; none of them is a tolerance to widen."),
+        }
+
+    # The pooled rows: one per distinct seed, taken from the FIRST member that carries it. Which
+    # member is arbitrary only because the reproduction check above has already proven the shared
+    # ones agree to within half a penny -- without that check this choice would be a silent
+    # preference for one tree's answer.
+    rows, taken_from = [], {}
+    for name, member in zip(names, members):
+        for row in member.get("seeds") or []:
+            if isinstance(row, dict) and isinstance(row.get("seed"), int):
+                if row["seed"] not in taken_from:
+                    taken_from[row["seed"]] = name
+                    rows.append(row)
+    rows.sort(key=lambda r: r["seed"])
+
+    selection = _spread([r.get("selection_gbp") for r in rows])
+    share = _spread([r.get("level_share_of_advantage") for r in rows])
+    sem = None
+    distinguishable = None
+    if selection["stdev"] is not None and selection["n"] > 1:
+        sem = selection["stdev"] / math.sqrt(selection["n"])
+        distinguishable = abs(selection["mean"]) > SEMS_TO_STATE_A_SIGN * sem
+
+    first = members[0]
+    return {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "folded": True,
+        "producing_commit": (
+            {"commit": one_commit,
+             "resolved_when": "carried from the members, which all name this commit",
+             "unavailable_because": None}
+            if one_commit else
+            {"commit": None,
+             "resolved_when": None,
+             "unavailable_because": (
+                 "this family was folded from {} runs at {} distinct producing tree(s) ({}), so it "
+                 "has no single one. {} -- but a single commit stamp would name a tree that drew "
+                 "only some of these seeds, so none is claimed.".format(
+                     len(members), len(distinct_commits),
+                     ", ".join(sorted((c or "unstamped")[:9] for c in member_commits)),
+                     ("the seeds they share reproduce to within £{:,.4f}, which is the evidence "
+                      "that the code motion did not move this quantity".format(worst) if shared
+                      else "they share no seed, so whether the code motion moved this quantity is "
+                           "UNMEASURED")))}),
+        # Carried from the members, which the refusals above have proven agree on every one.
+        "world_identity": first.get("world_identity"),
+        "clock": first.get("clock"),
+        "redraw_scope": first.get("redraw_scope"),
+        "symbol_patched": first.get("symbol_patched"),
+        "report_end": first.get("report_end"),
+        "what_this_is": (
+            "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
+            "assignment re-drawn -- POOLED across {} runs into one family of {} seeds. The spread "
+            "below is the error bar on `selection_gbp`.".format(len(members), selection["n"])),
+        "folded_from": {
+            "sources": names,
+            "members": [
+                {"source": name,
+                 "generated_at": member.get("generated_at"),
+                 "producing_commit": _dotted(member, "producing_commit.commit"),
+                 "seeds": sorted(r["seed"] for r in (member.get("seeds") or [])
+                                 if isinstance(r, dict) and isinstance(r.get("seed"), int))}
+                for name, member in zip(names, members)],
+            "seeds_contributed": {str(seed): name for seed, name in sorted(taken_from.items())},
+            "reproduction": {
+                "checked": bool(agreed) or bool(shared),
+                "shared_seeds": sorted(shared),
+                "shared_seeds_agreeing": sorted(agreed),
+                "worst_disagreement_gbp": worst if shared else None,
+                "tolerance_gbp": tolerance_gbp,
+                "why_not_checked": (
+                    None if shared else
+                    "these runs share NO seed, so the claim that the code between them did not "
+                    "move this quantity is untested. It is not thereby false -- it is unmeasured, "
+                    "and the fold's `producing_commit` fails closed to None so the page says so."),
+                "what_it_proves": (
+                    "the same seed in the same world returned the same `selection_gbp` under every "
+                    "tree that drew it, to within £{:,.4f} -- so pooling these members measures "
+                    "one quantity and not the difference between two implementations of "
+                    "it".format(tolerance_gbp) if agreed else None),
+            },
+        },
+        "seeds": rows,
+        "selection_gbp_spread": selection,
+        "level_share_spread": share,
+        "selection_sem_gbp": sem,
+        "selection_distinguishable_from_zero": distinguishable,
+        "distance_to_a_sign": distance_to_a_sign(
+            selection["mean"], selection["stdev"], selection["n"]),
+        "how_to_read_this": (
+            "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection "
+            "instrument cannot yet resolve the question being asked of it, and every reading "
+            "built on it carries that caveat. That is a finding about the INSTRUMENT and not "
+            "about the pricing arm -- it is not a cue to re-run until a seed agrees (R12)."),
+    }
+
+
 def noise_floor(seeds: list[int], report_end: str | None = None,
                 runner=None, symbol: str | None = None,
                 redraw_accounts: list[str] | None = None,
@@ -4892,14 +5219,15 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
 
     selection = _spread([r["selection_gbp"] for r in rows])
     share = _spread([r["level_share_of_advantage"] for r in rows])
-    # DISTINGUISHABLE FROM ZERO? The standard error of the mean over `n` seeds, doubled. Stated as
-    # a question the reader can re-answer, not as a pass/fail: nothing here gates anything (R12),
-    # and a selection leg that is NOT distinguishable is a complete result rather than a defect.
+    # DISTINGUISHABLE FROM ZERO? The standard error of the mean over `n` seeds, against
+    # `SEMS_TO_STATE_A_SIGN`. Stated as a question the reader can re-answer, not as a pass/fail:
+    # nothing here gates anything (R12), and a selection leg that is NOT distinguishable is a
+    # complete result rather than a defect.
     sem = None
     distinguishable = None
     if selection["stdev"] is not None and selection["n"] > 1:
         sem = selection["stdev"] / math.sqrt(selection["n"])
-        distinguishable = abs(selection["mean"]) > 2 * sem
+        distinguishable = abs(selection["mean"]) > SEMS_TO_STATE_A_SIGN * sem
     # ONE CLOCK, OR NO CLOCK -- never the first seed's. A spread taken across rows on different
     # clocks is not a spread of one quantity, and the GBP 39,962.17 bad-debt gap between this
     # run's two clocks is larger than every contrast the spread bounds, so a mixed floor would
@@ -4968,6 +5296,11 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         "level_share_spread": share,
         "selection_sem_gbp": sem,
         "selection_distinguishable_from_zero": distinguishable,
+        #: HOW FAR FROM A SIGN, AND WHAT IT WOULD TAKE. Published beside the verdict because
+        #: `false` on its own cannot tell "by a hair" from "hopeless", and those buy opposite
+        #: decisions about whether to spend the machine-hours. See `distance_to_a_sign`.
+        "distance_to_a_sign": distance_to_a_sign(
+            selection["mean"], selection["stdev"], selection["n"]),
         "how_to_read_this": (
             "If the spread is WIDER than the published `selection_gbp`, the level-vs-selection "
             "instrument cannot yet resolve the question being asked of it, and every reading "
@@ -5858,6 +6191,14 @@ def main(argv: list[str] | None = None) -> int:
               "peak. The refusal exists because an OOM-killed leg writes no artefact and reads "
               "like one still running; override only when the guest has actually grown."))
     ap.add_argument(
+        "--fold", nargs="+", metavar="FLOOR", type=Path,
+        help=("FOLD mode: pool two or more noise-floor runs into ONE family and write it to "
+              "`--out`. Runs nothing. Refuses, naming the member, unless every run agrees on the "
+              "world, the redraw mode, the clock and the patched symbol, and unless every seed "
+              "the runs SHARE returns the same `selection_gbp` under both trees -- that shared "
+              "seed is the only available measurement of whether the code between them moved this "
+              "quantity, and it is evidence rather than a duplicate to drop."))
+    ap.add_argument(
         "--decompose", nargs=4, metavar=("ALL_FLOOR", "ONLY_FLOOR", "EXCEPT_FLOOR", "THREE_ARM"),
         type=Path,
         help=("DECOMPOSE mode: read three floors already run (`all`, `only`, `except`) and the "
@@ -5876,6 +6217,53 @@ def main(argv: list[str] | None = None) -> int:
               "names the priced roster the cut is made along. Read, never hand-written."))
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
+
+    if args.fold:
+        members = [json.loads(p.read_text(encoding="utf-8")) for p in args.fold]
+        folded = fold_floors(members, sources=[str(p) for p in args.fold])
+        out = args.out if args.out != OUTPUT_PATH else NOISE_FLOOR_OUTPUT_PATH
+        if not folded["folded"]:
+            # THE REFUSAL IS NOT WRITTEN OVER THE FAMILY. A fold that refuses must leave whatever
+            # is on `--out` alone: unlike a floor RUN, whose absent artefact reads as still in
+            # progress, a refused fold has a perfectly good family already at that path and
+            # replacing it with a refusal would destroy seeds nothing can cheaply redraw.
+            print("fold REFUSED -- these {} runs are not one family:".format(len(members)))
+            for reason in folded["why_not"]:
+                print("  - {}".format(reason))
+            print("  {} was NOT written.".format(out))
+            return 2
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(folded, indent=2), encoding="utf-8")
+        sel = folded["selection_gbp_spread"]
+        rep = folded["folded_from"]["reproduction"]
+        dist = folded["distance_to_a_sign"]
+        print("value cycle A/B -- FOLDED FLOOR: {} run(s) -> {} seeds".format(
+            len(members), sel["n"]))
+        for member in folded["folded_from"]["members"]:
+            print("    {:<58} {} seed(s) at {}".format(
+                member["source"][-58:], len(member["seeds"]),
+                (member["producing_commit"] or "unstamped")[:9]))
+        print("  reproduction    {}".format(
+            "{} shared seed(s) {}, worst £{:,.4f} against a £{:,.4f} tolerance".format(
+                len(rep["shared_seeds"]), sorted(rep["shared_seeds"]),
+                rep["worst_disagreement_gbp"], rep["tolerance_gbp"])
+            if rep["shared_seeds"] else "NOT CHECKED -- {}".format(rep["why_not_checked"])))
+        print("  selection_gbp   mean {:+,.2f}  sd {}  sem {}".format(
+            sel["mean"],
+            "{:,.2f}".format(sel["stdev"]) if sel["stdev"] is not None else "n/a",
+            "{:,.2f}".format(folded["selection_sem_gbp"])
+            if folded["selection_sem_gbp"] is not None else "n/a"))
+        if dist.get("available"):
+            print("  distance        {:.3f} sems from zero, and it takes {}".format(
+                dist["sems_from_zero"],
+                "{} seed(s) at this mean and sd".format(dist["seeds_needed_to_state_a_sign"])
+                if dist["seeds_needed_to_state_a_sign"] is not None else "infinitely many"))
+        print("  SIGN STATEABLE?  {}".format(
+            {True: "YES -- {}".format(dist.get("sign_if_it_were_stateable")),
+             False: "NO -- the mean is inside its own standard error",
+             None: "unknown"}[folded["selection_distinguishable_from_zero"]]))
+        print("  wrote {}".format(out))
+        return 0
 
     if args.decompose:
         legs = [json.loads(p.read_text(encoding="utf-8")) for p in args.decompose]
