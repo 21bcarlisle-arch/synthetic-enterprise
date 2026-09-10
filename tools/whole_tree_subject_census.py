@@ -41,6 +41,46 @@ separately). The predicate has DELIBERATELY NOT been narrowed after seeing the a
 added to fix a false positive is asymmetric, and only the false positives ever get a comment.
 `--strict-dataflow` prints the subset where the globbed root and the asserted count are provably the
 same expression, so the over-count is BOUNDED by measurement rather than by apology.
+
+## THE LOOSE POOL IS DELIBERATELY UNGUARDED BY A REFUSAL. Decision, 2026-09-10, with its price.
+
+`test_the_strict_census_stays_discharged` refuses a new STRICT member at the commit that writes it.
+The ~91 LOOSE members have no such refusal, and this is the decision rather than the omission it
+would otherwise read as. Read this before proposing a control over them; the argument is measured,
+not assumed, and `PREREG_HOW_MANY_LOOSE_CENSUS_MEMBERS_ARE_STRICT_IN_SUBSTANCE_AND_MISSED_BY_THE_
+ONE_HOP_RULE_2026-09-10.md` fixed the numbers below before they were visible.
+
+**Promotion-on-change needs no new predicate, and that half of the question is closed.** The strict
+control re-runs `census()` over every tracked test file, not over a frozen list. A member that is
+loose today and is EDITED into strict form is in the strict pool at that commit, and the control --
+itself on `CONTROL_TESTS`, so it runs whenever any code file is staged -- refuses it there. Driven
+through `unreachable()` by `test_editing_a_loose_member_into_strict_form_puts_it_back_in_the_
+refused_pool`, not argued.
+
+**What was NOT measured until now is the other error direction, and it turned out to be empty.**
+Every previous discussion of this boundary reasons about the over-count alone. But `_strict_dataflow`
+is a ONE-HOP rule, and a two-hop `rows = DIR.glob(...)` / `names = {p.name for p in rows}` /
+`len(names) <= N` is strict in substance while scoring loose -- an UNDER-count, and the dangerous
+direction, because "deliberately unguarded" would be covering it. `_transitive_dataflow` is the
+fixpoint version and it promotes **ZERO** loose members on this tree. Predicted 14, band 6-30;
+measured 0. The shape is nearly absent here, so the over-count really is the only error direction
+of any size, and the decision stands on a number instead of an assertion.
+
+**STRICT IS NOT A SUBSET OF TRANSITIVE, and the reason is a defect in the instrument.**
+`_strict_dataflow` is scope-BLIND: it merges every binding of a name across the whole module, so a
+`rows` walked in one test function taints a `rows` counted in another. Two of the eighteen members
+of the always-run batch were earned that way -- `test_the_responder_refuses_to_guess_whose_a_message
+_is.py` (walk in `_run`, bound in five test functions) and `test_policy_field_consumption.py` (walk
+at line 467, bound at line 339, different functions, the bound textually FIRST).
+
+**And it is recorded here rather than repaired, deliberately.** Narrowing `strict_dataflow` to be
+scope-aware would make `test_every_member_still_earns_its_place_by_scanning_a_whole_directory` red
+and demand those two lines be DELETED from the always-run list -- on a rule with a known blind spot
+in the opposite direction. `_run` returns its walked population and the test functions count what it
+returned, so the first of the two is a true member of the class reached through a helper's return
+value, which neither rule can see. Deleting it would be a narrowing that only ever heard the
+false-positive side. The residual is named in the docstring of `_walk_tainted_names` and stays
+named.
 """
 from __future__ import annotations
 
@@ -184,6 +224,144 @@ def _strict_dataflow(tree: ast.AST) -> bool:
     return False
 
 
+def _derives_from_walk(value: ast.AST, tainted: set[str]) -> bool:
+    """Does this expression contain a walk call, or a name already known to derive from one?"""
+    for c in ast.walk(value):
+        if (isinstance(c, ast.Call) and isinstance(c.func, ast.Attribute)
+                and c.func.attr in (_WALK_ATTRS | {"walk"})):
+            return True
+        if isinstance(c, ast.Name) and c.id in tainted:
+            return True
+    return False
+
+
+_SCOPE_NODES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)
+
+
+def _scope_index(tree: ast.AST) -> tuple[dict[int, ast.AST | None], dict[int, ast.AST | None]]:
+    """`id(node) -> its enclosing scope` and `id(scope) -> its parent scope`. `None` is the module.
+
+    SCOPE IS NOT A REFINEMENT HERE, IT IS CORRECTNESS. Two test functions in one file routinely
+    both bind `rows`, `before`, `after`; merging them makes one function's walk taint another
+    function's unrelated bound. That is not a conservative over-approximation of Python, it is a
+    misreading of it, and it produced this predicate's only live hit on the first run.
+    """
+    owner: dict[int, ast.AST | None] = {id(tree): None}
+    parent: dict[int, ast.AST | None] = {}
+
+    def visit(node: ast.AST, scope: ast.AST | None) -> None:
+        for child in ast.iter_child_nodes(node):
+            owner[id(child)] = scope
+            if isinstance(child, _SCOPE_NODES):
+                parent[id(child)] = scope
+                visit(child, child)
+            else:
+                visit(child, scope)
+
+    visit(tree, None)
+    return owner, parent
+
+
+def _walk_tainted_names(tree: ast.AST) -> dict[int, set[str]]:
+    """Per-scope fixpoint: for each scope, every name there whose value derives from a walk.
+
+    Flow-INsensitive within a scope and deliberately so -- the question is "could this population
+    have come from the directory", not "does it on this path". A scope inherits its ancestors'
+    bindings, because a module-level `DIR = ROOT / "background"` really is visible inside every
+    function below it.
+
+    `for` targets are excluded: they bind one item, not a population, and admitting them would only
+    pretend to cover the accumulate-through-`append` shape this genuinely cannot see.
+    """
+    owner, parent = _scope_index(tree)
+    per_scope: dict[int, list[tuple[list[str], ast.AST]]] = {}
+    scopes: dict[int, ast.AST | None] = {0: None}  # key 0 is the module; else id(scope node)
+
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Assign):
+            targets, value = n.targets, n.value
+        elif isinstance(n, ast.AnnAssign) and n.value is not None:
+            targets, value = [n.target], n.value
+        else:
+            continue
+        names = [t.id for t in targets if isinstance(t, ast.Name)]
+        if not names:
+            continue
+        s = owner.get(id(n))
+        key = 0 if s is None else id(s)
+        scopes.setdefault(key, s)
+        per_scope.setdefault(key, []).append((names, value))
+
+    # Every scope that owns a comparison also needs an answer, even with no assignments of its own.
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Compare):
+            s = owner.get(id(n))
+            scopes.setdefault(0 if s is None else id(s), s)
+
+    def visible(key: int) -> list[tuple[list[str], ast.AST]]:
+        out: list[tuple[list[str], ast.AST]] = []
+        s = scopes.get(key)
+        while True:
+            out.extend(per_scope.get(0 if s is None else id(s), ()))
+            if s is None:
+                return out
+            s = parent.get(id(s))
+
+    result: dict[int, set[str]] = {}
+    for key in scopes:
+        assigns = visible(key)
+        tainted: set[str] = set()
+        changed = True
+        while changed:
+            changed = False
+            for names, value in assigns:
+                if all(nm in tainted for nm in names):
+                    continue
+                if _derives_from_walk(value, tainted):
+                    tainted.update(names)
+                    changed = True
+        result[key] = tainted
+    return result
+
+
+def _transitive_dataflow(tree: ast.AST) -> bool:
+    """`_strict_dataflow` with the hop limit removed. STRICT IS ITS DEPTH-1 CASE.
+
+    WHY THIS EXISTS, and it is not the reason the strict subset exists. `strict_dataflow` bounds the
+    predicate's OVER-count: it is the subset where legs 1 and 2 are provably one expression, so the
+    loose pool's false positives have a measured size. Every discussion of the boundary so far --
+    the census docstring, the drawn item, `test_the_strict_census_stays_discharged` -- reasons about
+    that direction alone.
+
+    The other direction was never measured. One hop is `rows = DIR.glob(...)` then `len(rows) <= N`.
+    Two hops is what this repo actually writes:
+
+        rows  = [p for p in DIR.glob("*.py") if _is_writer(p)]
+        names = {p.name for p in rows}
+        assert len(names) <= 56
+
+    That file is strict in substance -- the walked population IS the counted one and the bound IS a
+    claim about a directory that grows behind it -- and the one-hop rule scores it loose. So the
+    strict pool UNDER-counts, and "the loose pool is deliberately unguarded" was covering members
+    that belong on the guarded side.
+
+    It is reported, never enforced, and `strict_dataflow` is untouched: a predicate that decides an
+    always-run cost has to be argued and priced, not swapped in under the same name.
+    """
+    by_scope = _walk_tainted_names(tree)
+    owner, _ = _scope_index(tree)
+    for cmp_node in _count_bound_nodes(tree):
+        left = cmp_node.left
+        if not (isinstance(left, ast.Call) and isinstance(left.func, ast.Name)
+                and left.func.id == "len" and left.args):
+            continue
+        s = owner.get(id(cmp_node))
+        tainted = by_scope.get(0 if s is None else id(s), set())
+        if _derives_from_walk(left.args[0], tainted):
+            return True
+    return False
+
+
 def tracked_test_files() -> list[str]:
     """Committed test files, from the INDEX rather than a working-tree walk.
 
@@ -219,7 +397,11 @@ def classify_source(text: str) -> dict | None:
         return None
     if not _count_bound_nodes(tree):
         return None
-    return {"subject_roots": sorted(roots), "strict_dataflow": _strict_dataflow(tree)}
+    return {
+        "subject_roots": sorted(roots),
+        "strict_dataflow": _strict_dataflow(tree),
+        "transitive_dataflow": _transitive_dataflow(tree),
+    }
 
 
 def census() -> list[dict]:
@@ -313,6 +495,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--json", action="store_true", help="machine-readable rows")
     ap.add_argument("--strict-dataflow", action="store_true",
                     help="only rows where the walked population IS the counted one")
+    ap.add_argument("--transitive-dataflow", action="store_true",
+                    help="only rows where the counted population derives from the walk at ANY depth")
     ap.add_argument("--cost", type=int, metavar="N", default=0,
                     help="model the widening over the last N non-merge commits")
     args = ap.parse_args(argv)
@@ -331,6 +515,8 @@ def main(argv: list[str] | None = None) -> int:
     out = unreachable(rows)
     if args.strict_dataflow:
         out = [r for r in out if r["strict_dataflow"]]
+    if args.transitive_dataflow:
+        out = [r for r in out if r["transitive_dataflow"]]
 
     if args.json:
         print(json.dumps({"unreachable": out, "all_matching": rows}, indent=2))
@@ -342,13 +528,15 @@ def main(argv: list[str] | None = None) -> int:
             by_root[root] = by_root.get(root, 0) + 1
 
     print(f"whole-directory subject + stem-only selector: {len(out)} test file(s)")
-    print(f"  of which the walk IS provably the counted population: "
+    print(f"  of which the walk IS provably the counted population, in ONE hop: "
           f"{sum(1 for r in out if r['strict_dataflow'])}")
+    print(f"  ... and at ANY depth (strict-in-substance, a LOWER bound): "
+          f"{sum(1 for r in out if r['transitive_dataflow'])}")
     print(f"  already on CONTROL_TESTS (reachable, not counted above): "
           f"{sum(1 for r in rows if r['on_control_tests'])}")
     print()
     for r in out:
-        mark = "!" if r["strict_dataflow"] else " "
+        mark = "!" if r["strict_dataflow"] else ("+" if r["transitive_dataflow"] else " ")
         print(f"  {mark} {r['test']}  [{', '.join(r['subject_roots'])}]")
     print()
     print("by subject root: " + ", ".join(f"{k} {v}" for k, v in sorted(by_root.items())))

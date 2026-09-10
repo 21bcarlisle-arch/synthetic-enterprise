@@ -40,6 +40,40 @@ def test_something():
     assert total == 3
 '''
 
+# The two-hop shape the one-hop `strict_dataflow` rule cannot see: the counted population derives
+# from the walked one through an intermediate binding. Strict in SUBSTANCE, loose by the one-hop
+# rule. This is the fixture the transitive predicate exists for.
+TWO_HOP = '''
+from pathlib import Path
+DIR = Path(__file__).parent.parent / "background"
+def test_bound():
+    rows = [p for p in DIR.glob("*.py") if p.name != "x"]
+    names = {p.name for p in rows}
+    assert len(names) <= 56
+'''
+
+# The same name bound in TWO different functions, one from a walk and one not. Python scopes these
+# apart and so must the taint; a module-wide merge reports a whole-directory subject that is not
+# there. This is the shape that produced the transitive rule's only live hit on its first run.
+COLLIDING_SCOPES = '''
+from pathlib import Path
+def test_a():
+    after = list(Path("background").glob("*.py"))
+    assert after
+def test_b():
+    after = compute_something_else()
+    assert len(after) >= 5
+'''
+
+# A module-level constant walked once and counted inside a function. Scoping the taint must NOT
+# lose this -- a global really is visible below, and this is the commonest real shape of all.
+MODULE_LEVEL = '''
+from pathlib import Path
+ROWS = list(Path("company").glob("*.py"))
+def test_bound():
+    assert len(ROWS) == 12
+'''
+
 NO_WALK = '''
 def test_bound():
     total = 3
@@ -116,6 +150,90 @@ def test_leg_three_excludes_a_listed_test():
     assert out == ["tests/x.py"], "CONTROL_TESTS membership is not discharging a row"
 
 
+def test_the_transitive_rule_can_say_yes():
+    """REACHABILITY for everything below, and it comes first for the same reason as the one above.
+
+    `_transitive_dataflow` reports ZERO promotions on the live tree. That number means "the two-hop
+    shape is absent here" only if the rule can recognise the shape at all; a rule that returned
+    False unconditionally would report the identical zero and pass every negative test in this file.
+    The defect this names is that zero being the predicate's own silence.
+    """
+    hit = wtsc.classify_source(TWO_HOP)
+    assert hit is not None, "the two-hop module is not even a census member"
+    assert hit["strict_dataflow"] is False, "the one-hop rule has stopped being one hop"
+    assert hit["transitive_dataflow"] is True, (
+        "the transitive rule cannot see a two-hop derivation, so its count of 0 on the live tree "
+        "says nothing about the tree")
+
+
+def test_taint_does_not_cross_between_two_functions_binding_the_same_name():
+    """The defect this names: a whole-directory subject reported where there is none.
+
+    `after = <a walk>` in one test function and `len(after) >= 5` in another are two different
+    variables that Python never confuses. A module-wide taint merge does confuse them, and it is
+    not a conservative over-approximation -- it is a misreading, and it was this predicate's only
+    hit on the live tree before the scope index went in.
+
+    `strict_dataflow` is deliberately NOT asserted here in either direction. It IS scope-blind and
+    fires on this fixture; that is recorded in the census docstring rather than repaired, because
+    repairing it would delete two earned lines from the always-run list on a rule that is blind to
+    helper return values in the opposite direction. If someone later fixes it, this test must not
+    be what stands in the way.
+    """
+    hit = wtsc.classify_source(COLLIDING_SCOPES)
+    assert hit is not None
+    assert hit["transitive_dataflow"] is False, (
+        "a walk in one function is tainting a count in another; the taint has stopped being scoped")
+
+
+def test_scoping_the_taint_did_not_lose_module_level_bindings():
+    """The OTHER direction of the scope fix, and the reason it is not an asymmetric narrowing.
+
+    A narrowing added to fix a false positive only ever hears the false-positive side. The cheapest
+    wrong way to scope taint is to confine it to the function that assigns it -- which would drop
+    `ROWS = list(DIR.glob(...))` at module level, the single commonest shape in this repo, and turn
+    a real class of members invisible while the count went reassuringly down.
+    """
+    hit = wtsc.classify_source(MODULE_LEVEL)
+    assert hit is not None
+    assert hit["transitive_dataflow"] is True, (
+        "a module-level walked constant is no longer visible to a bound inside a function")
+    assert hit["strict_dataflow"] is True, "the one-hop rule lost the module-level shape too"
+
+
+def test_editing_a_loose_member_into_strict_form_puts_it_back_in_the_refused_pool():
+    """PROMOTION-ON-CHANGE, driven through `unreachable()` rather than argued in a docstring.
+
+    The drawn question offered "a cheaper predicate that promotes a loose member to strict when its
+    walk becomes provably the counted population" as work to do. It is already done, by
+    construction: the strict control re-runs this census over every tracked test file, so the
+    member's own edit is what re-classifies it. The defect this names is that claim being false --
+    a census that classified from anything cached, listed or frozen would leave the edited member
+    loose and the refusal would never fire.
+
+    Composed on purpose: the classification AND the leg-3 filter, because either alone would pass
+    while the pair did nothing.
+    """
+    before = wtsc.classify_source(LOOSE)
+    assert before is not None and before["strict_dataflow"] is False
+
+    promoted = LOOSE.replace(
+        '    rows = list(Path("company").glob("*.py"))\n    assert rows\n'
+        '    total = 3\n    assert total == 3\n',
+        '    rows = list(Path("company").glob("*.py"))\n    assert len(rows) == 3\n',
+    )
+    assert promoted != LOOSE, "the fixture moved and this test is no longer editing anything"
+
+    after = wtsc.classify_source(promoted)
+    assert after is not None and after["strict_dataflow"] is True, (
+        "editing a loose member into one-expression form did not make it strict, so nothing would "
+        "refuse it at the commit that wrote it")
+
+    row = {"test": "tests/edited.py", "on_control_tests": False, **after}
+    assert [r["test"] for r in wtsc.unreachable([row])] == ["tests/edited.py"], (
+        "the promoted member does not reach the refused pool")
+
+
 def test_the_live_tree_still_has_members_and_the_strict_set_is_a_subset():
     """The one live-tree control, keyed to a PROPERTY rather than to a number.
 
@@ -130,3 +248,9 @@ def test_the_live_tree_still_has_members_and_the_strict_set_is_a_subset():
     strict = {r["test"] for r in rows if r["strict_dataflow"]}
     assert strict <= {r["test"] for r in rows}
     assert all(r["subject_roots"] for r in rows), "a row was admitted naming no subject root"
+    # Every row carries BOTH readings. There is deliberately no `strict <= transitive` assertion:
+    # that was pre-registered as holding by construction and is FALSE, because `strict_dataflow` is
+    # scope-blind and `_transitive_dataflow` is not. Two live members are strict and not transitive
+    # for exactly that reason -- see the census docstring. Asserting the subset here would pin the
+    # instrument's own defect as a property.
+    assert all("transitive_dataflow" in r for r in rows), "a row was admitted with one reading only"
