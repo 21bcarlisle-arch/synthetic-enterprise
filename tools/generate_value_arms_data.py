@@ -4942,7 +4942,17 @@ def _within_year_clause(within: dict) -> str:
 #: `_UNEARNED` is the population-level fallback. Both are the claim-bearing clause ONLY; their
 #: shared preamble stays inline, because pinning the p-value formatting would make this a control
 #: over prose punctuation rather than over the claim.
-_UNEARNED_CLAIM_SENTENCE = "the belief separated those who stayed from those who left."
+#:
+#: `_UNEARNED` REWORDED 2026-09-10, and the correction is against my own first draft of it. The
+#: fallback written the same day read "the belief separated those who stayed from those who left"
+#: -- which is the SAME who-construction the withdrawal exists to refuse, one synonym away from
+#: the sentence being withdrawn. "Those who stayed" are people; the statistic has never seen a
+#: person. It is a concordance over the 3,320 ordered pairs a run's 83 retained DECISIONS make
+#: with its 40 departed ones, and a household contributes as many decisions as it had renewals.
+#: So the fallback names the unit the statistic actually counts, and the household reading is now
+#: absent from the words rather than argued away by the clause after them.
+_UNEARNED_CLAIM_SENTENCE = (
+    "the belief ranked a retained DECISION above a departed one more often than not.")
 _EARNED_CLAIM_SENTENCE = "the belief carried real information about who stays."
 
 

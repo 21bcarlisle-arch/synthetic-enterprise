@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T05:27:32.512581Z",
+  "generated_at": "2026-09-10T08:41:03.593668Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -335,7 +335,7 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "d15b7b5432d574d40765cc9de3ef739d78e2d736",
+    "publishing_tree_commit": "3fb477ab23587e46749da874cc2eb3a5def38a7d",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -347,7 +347,7 @@
       "objective_moved_since_the_run": true,
       "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     },
-    "reading": "Produced at 8b846013e and published from d15b7b543 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+    "reading": "Produced at 8b846013e and published from 3fb477ab2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
   },
   "world_provenance": {
     "available": true,
@@ -683,7 +683,7 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "d15b7b5432d574d40765cc9de3ef739d78e2d736",
+      "publishing_tree_commit": "3fb477ab23587e46749da874cc2eb3a5def38a7d",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -695,7 +695,7 @@
         "objective_moved_since_the_run": true,
         "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
       },
-      "reading": "Produced at 8b846013e and published from d15b7b543 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+      "reading": "Produced at 8b846013e and published from 3fb477ab2 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     }
   },
   "realised": {
@@ -748,11 +748,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 147886.78,
       "run_identity": {
-        "dashboard_run_id": "run_output_38051c0c0_20260910T044844Z.json",
-        "dashboard_commit": "38051c0c0",
+        "dashboard_run_id": "run_output_8c53c35e5_20260910T064026Z.json",
+        "dashboard_commit": "8c53c35e5",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_38051c0c0_20260910T044844Z.json",
-        "last_verified_commit": "38051c0c0",
+        "last_verified_run_id": "run_output_8c53c35e5_20260910T064026Z.json",
+        "last_verified_commit": "8c53c35e5",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -2753,7 +2753,7 @@
       "basis": "concordance counted only between decisions whose terms START IN THE SAME CALENDAR YEAR, pooled across years by pair count. Null: `retained` permuted WITHIN each year, 8,000 draws, seed 20260910, ties counting a half exactly as the producer's own AUC does.",
       "what_this_does_not_establish": "A within-year figure inside its null does NOT establish that the belief is uninformative -- that is the same overclaim in the opposite direction. On 402 same-year pairs this sample cannot tell either way; about four times as many would halve the interval."
     },
-    "auc_reading": "Measured on 40 departures and 83 retentions -- 123 decisions on 100 accounts. A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief separated those who stayed from those who left. BUT THE PAIRS BEHIND IT COMPARE ERAS, NOT HOUSEHOLDS. Only 402 of the 3,320 ordered pairs (12%) put two households in the SAME YEAR; the rest rank a decision in one year against a decision in another. Counted within the year only, the concordance is 0.444 against a null of 0.376-0.619 on those 402 pairs (two-sided p 0.375). That is INSIDE its null, so this run shows no evidence the belief ranks one household against another within a year -- and for this page's own estimand the between-year part IS the level, not the selection. The words \"real information about who stays\" are WITHDRAWN: \"who\" is a household claim and the stratified figure does not carry it. It does not establish the opposite either -- at this many same-year pairs the sample cannot tell in either direction. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 4 of the 100 accounts this arm priced (C5_2, PROS-2019-0024, PROS-2021-0324, SYN-2016-034) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 20.0 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
+    "auc_reading": "Measured on 40 departures and 83 retentions -- 123 decisions on 100 accounts. A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief ranked a retained DECISION above a departed one more often than not. BUT THE PAIRS BEHIND IT COMPARE ERAS, NOT HOUSEHOLDS. Only 402 of the 3,320 ordered pairs (12%) put two households in the SAME YEAR; the rest rank a decision in one year against a decision in another. Counted within the year only, the concordance is 0.444 against a null of 0.376-0.619 on those 402 pairs (two-sided p 0.375). That is INSIDE its null, so this run shows no evidence the belief ranks one household against another within a year -- and for this page's own estimand the between-year part IS the level, not the selection. The words \"real information about who stays\" are WITHDRAWN: \"who\" is a household claim and the stratified figure does not carry it. It does not establish the opposite either -- at this many same-year pairs the sample cannot tell in either direction. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 4 of the 100 accounts this arm priced (C5_2, PROS-2019-0024, PROS-2021-0324, SYN-2016-034) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 20.0 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
     "decided_by_a_bound": 143,
     "bound_note": "Some of the arm's prices were set by the lawful price cap rather than by anything about the customer. A win that came from a bound is not a win that came from inference.",
     "control_as_share_of_regulated_allowance": [
