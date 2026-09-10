@@ -1101,11 +1101,84 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      NOTHING IS AUTHORED. `figure_gbp`, `what_this_leg_is`, `resolved`,
      `verdict_withheld_because` and `redraw_band` are all the feed's. The only sentence composed
      here is the sum line, and it states the two legs' own arithmetic in the published draw. */
+  /* WHAT WOULD SETTLE IT, IMMEDIATELY UNDER THE REFUSAL THAT NEEDS IT. "We cannot tell" is a
+     result and belongs on the surface; "we cannot tell and here is what it would take" is the
+     same result with somewhere for the reader to go, and until this block the page had the first
+     and not the second. The remedy arithmetic further down the page is measured on another book
+     and splits another contrast and refuses itself, so a reader who reached this sentence had a
+     dead end where the thesis's own quantity is.
+
+     NOTHING IS AUTHORED. Every figure and every caveat is the feed's `what_would_settle_the_sign`
+     block; the only thing composed here is the table's furniture. A leg the feed prices no remedy
+     for renders NOTHING rather than an empty table -- and says why when the feed gives a reason,
+     because a silently absent remedy reads as a remedy nobody needed. */
+  function whatWouldSettleIt(leg) {
+    var block = leg.what_would_settle_the_sign;
+    if (!block) return "";
+    if (!block.available) {
+      return !block.why_not ? "" : '<p style="margin:4px 0 0;font-size:11.5px;'
+        + 'color:var(--muted);"><strong>NO PRICE IS STATED FOR SETTLING IT.</strong> '
+        + prose(block.why_not) + "</p>";
+    }
+    var rows = (block.rows || []).map(function (row) {
+      if (row.times_this_book === null || row.times_this_book === undefined) {
+        return "<tr><td style=\"padding:3px 10px 3px 0;\">" + esc(row.which_figure)
+          + '</td><td colspan="4" style="padding:3px 0;color:var(--amber);">'
+          + "<strong>NOT PRICED.</strong> "
+          + prose(row.why_not || "This page carries no such figure for this leg.")
+          + "</td></tr>";
+      }
+      return "<tr><td style=\"padding:3px 10px 3px 0;\">" + esc(row.which_figure)
+        + "</td><td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;"
+        + "font-weight:600;\">" + esc(gbp(row.contrast_gbp)) + "</td>"
+        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;"
+        + "color:var(--amber);font-weight:600;\">more than "
+        + esc(Number(row.times_this_book).toFixed(1)) + "&times;</td>"
+        + "<td style=\"text-align:right;padding:3px 10px 3px 0;white-space:nowrap;\">"
+        + esc(Number(row.priced_decisions_needed).toLocaleString("en-GB")) + "</td>"
+        + "<td style=\"text-align:right;padding:3px 0;white-space:nowrap;\">"
+        + esc(row.renewals_the_world_must_offer === null
+                ? "—"
+                : Number(row.renewals_the_world_must_offer).toLocaleString("en-GB"))
+        + "</td></tr>";
+    }).join("");
+    var book = block.book || {};
+    return '<div style="margin:6px 0 0;padding:6px 0 0;border-top:1px solid var(--border);">'
+      + '<p style="margin:0 0 4px;font-size:12.5px;">'
+      + '<span style="color:var(--amber);font-weight:600;">But what it would take IS stated.'
+      + "</span> " + prose(block.what_this_is) + "</p>"
+      + '<div class="table-scroll"><table style="font-size:11.5px;color:var(--muted);margin:0;'
+      + 'border-collapse:collapse;"><tr>'
+      + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">To give a "
+      + "direction to</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Which is</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Book must "
+      + "be</th>"
+      + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Priced "
+      + "renewals</th>"
+      + "<th style=\"text-align:right;padding:1px 0;font-weight:600;\">Renewals the world must "
+      + "offer</th></tr>"
+      + rows + "</table></div>"
+      + '<p style="margin:5px 0 0;font-size:11.5px;color:var(--muted);">'
+      + "<strong>This book priced " + esc(Number(book.priced_decisions || 0).toLocaleString(
+          "en-GB")) + " renewals of "
+      + esc(Number(book.renewals_offered || 0).toLocaleString("en-GB")) + " offered.</strong> "
+      + prose(block.and_it_must_be_exceeded) + "</p>"
+      + '<p style="margin:4px 0 0;font-size:11.5px;color:var(--amber);">'
+      + "<strong>EVERY COUNT ABOVE IS A LOWER BOUND.</strong> "
+      + prose(block.why_it_is_a_lower_bound) + "</p>"
+      + '<p style="margin:4px 0 0;font-size:11.5px;color:var(--muted);">'
+      + "<strong>What this does NOT establish.</strong> "
+      + prose(block.what_is_not_established) + " " + prose(block.why_no_account_column)
+      + "</p></div>";
+  }
+
   function legVerdict(leg) {
     if (leg.verdict_withheld_because) {
       return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
         + "<strong>NO DIRECTION IS STATED FOR THIS LEG.</strong> "
-        + prose(leg.verdict_withheld_because) + "</p>";
+        + prose(leg.verdict_withheld_because) + "</p>"
+        + whatWouldSettleIt(leg);
     }
     if (leg.resolved === true) {
       return '<p style="margin:4px 0 0;font-size:12.5px;">'
@@ -1115,7 +1188,8 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     return '<p style="margin:4px 0 0;font-size:12.5px;color:var(--amber);">'
       + "<strong>NO DIRECTION IS STATED FOR THIS LEG, AND NO REASON IS GIVEN.</strong> The feed "
       + "carries neither a resolved verdict nor a withheld one for it, so this leg is unread "
-      + "rather than unremarkable." + "</p>";
+      + "rather than unremarkable." + "</p>"
+      + whatWouldSettleIt(leg);
   }
 
   function legsFirst(cw) {

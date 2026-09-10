@@ -78,9 +78,51 @@ def test_claim_classes_present_everywhere():
 
 
 def test_both_staleness_dimensions_present():
+    """Both dimensions must be ANSWERED. Answered is not the same as answered with a date.
+
+    This asserted `claim_freshness["last_verified"]` was truthy until 2026-09-09, which made it
+    a control pinned to today's answer rather than to the property: it demanded the page claim a
+    check, and would have gone RED the moment the page became more honest and admitted it had
+    none. That is exactly backwards, and it fired the day the admission was made -- five of this
+    page's seven rungs were written on 2026-08-24, a month after the 2026-07-25 check, so the
+    only true value for that field is null.
+
+    The property is that a reader can always find out where a claim stands. A date says checked
+    then; a null WITH what it supersedes says written, not yet checked. A missing key, or a bare
+    null that explains nothing, says nothing at all -- and those two are still red.
+    """
     d = _live()
     assert d["meta"]["data_freshness"]["as_of"]
-    assert d["meta"]["claim_freshness"]["last_verified"]
+
+    freshness = d["meta"]["claim_freshness"]
+    assert "last_verified" in freshness, "the claim-freshness dimension is absent entirely"
+    assert freshness["last_verified"] or freshness.get("superseded_check"), (
+        "claim_freshness carries no date and nothing saying why -- a reader cannot tell whether "
+        "this page was checked, and 'we cannot tell' has to be said, not left blank"
+    )
+
+
+def test_the_unchecked_state_reaches_the_reader_as_words_and_never_as_null():
+    """THE DEFECT, LIVE FOR THE LENGTH OF ONE EDIT: the stamp did
+    `'Claims verified: '+esc(cf.last_verified)` with no branch, so the first time this page
+    honestly said it had not been checked, the reader was shown "Claims verified: null".
+
+    A page saying "we cannot tell" must SAY it. This drives the real markup with the real feed
+    and grades the sentence a reader actually gets -- both that the honest branch produces
+    words, and that the word `null` reaches nobody.
+    """
+    d = _live()
+    stamp = _render(d)["stale"]["innerHTML"]
+    assert "null" not in stamp.lower(), f"a reader is being shown a null: {stamp}"
+    if d["meta"]["claim_freshness"]["last_verified"]:
+        assert "Claims verified:" in stamp
+    else:
+        assert "awaiting check" in stamp, (
+            f"the page has no check date and does not say so on its face: {stamp}"
+        )
+        assert d["meta"]["claim_freshness"]["written"] in stamp, (
+            "the reader is told it is unchecked but not when it was written"
+        )
 
 
 # ---------------------------------------------------------------- R11 render

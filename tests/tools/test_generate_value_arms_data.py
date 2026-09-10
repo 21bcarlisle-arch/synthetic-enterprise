@@ -105,6 +105,41 @@ def dashboard_agreeing_with(monkeypatch, tmp_path):
     return _set
 
 
+#: The commit the tests below have the site showing. Any hex string; what matters is that the run
+#: artefact and the provenance either agree on it or do not.
+_SHOWN = "abc1234"
+
+
+@pytest.fixture
+def the_run_the_site_is_showing(monkeypatch, tmp_path):
+    """Point the generator's publish provenance at a run of the test's choosing, and mint run
+    artefacts that either ARE that run or are not.
+
+    WHY THIS EXISTS (2026-09-10). `_is_the_published_supplier` establishes its subject from RUN
+    IDENTITY now, not from two net-margin figures agreeing (see `_same_run_verdict`). So a test
+    that hands `build()` a bare `{"total_net_gbp": ...}` no longer exercises the branch it names
+    -- it exercises the identity refusal, because a dict with no `producing_commit` is an artefact
+    that cannot say which run it is. Every test driving the match/divergence branches has to say
+    which run each side is, exactly as `dashboard_agreeing_with` made it say which figure the site
+    published when the money gate went in.
+    """
+    def _showing(commit=_SHOWN, run_id="run_output_{}_20260909T210648Z.json"):
+        path = tmp_path / "publish_provenance.json"
+        path.write_text(json.dumps({"showing_run": {
+            "git_commit": commit,
+            "run_id": run_id.format(commit) if "{}" in run_id else run_id,
+        }}), encoding="utf-8")
+        monkeypatch.setattr(gva, "PUBLISH_PROVENANCE_PATH", path)
+        return path
+    return _showing
+
+
+def _run_at(net, commit=_SHOWN):
+    """A run artefact reporting `net` and stating the commit it was produced at -- the shape
+    `tools/run_annual_report.reconcile_and_stamp` has written since `fe895db3a`."""
+    return {"total_net_gbp": net, "producing_commit": {"commit": commit}}
+
+
 def _load(path: Path) -> dict:
     if not path.is_file():
         pytest.fail("{} is missing -- this control's subject is UNAVAILABLE, and an unavailable "
@@ -689,13 +724,14 @@ def test_the_published_supplier_claim_is_HONEST_whichever_state_the_tree_is_in(r
         assert pub["statement"].strip(), "the check withheld the claim and said nothing about why"
 
 
-def test_a_divergent_published_run_is_reported_as_a_divergence(real, dashboard_agreeing_with):
+def test_a_divergent_published_run_is_reported_as_a_divergence(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
     """THE LOAD-BEARING NULL. The day the site publishes a different run, the claim must invert
     itself and name both figures -- not quietly go on asserting an identity that has lapsed."""
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     dashboard_agreeing_with(control + 40_000.0)
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
-                    {"total_net_gbp": control + 40_000.0})
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control + 40_000.0))
     pub = out["realised"]["is_the_published_supplier"]
 
     assert pub["same_supplier"] is False
@@ -719,7 +755,7 @@ def test_a_divergent_published_run_is_reported_as_a_divergence(real, dashboard_a
         "the headline went on claiming the published supplier is the baseline after they diverged")
     dashboard_agreeing_with(control)
     assert "The comparison below is against" in gva.build(
-        _load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})["headline"], (
+        _load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control))["headline"], (
         "the null rung: while the two DO match, the headline must make the claim -- otherwise the "
         "assertion above passes on a headline that never carries it")
 
@@ -732,28 +768,43 @@ def test_an_unreadable_published_run_claims_nothing_either_way(real):
         "an unread run was treated as agreement -- fail-open on the check itself")
 
 
-def test_a_penny_of_divergence_is_still_the_same_supplier(real, dashboard_agreeing_with):
+def test_a_penny_of_divergence_is_still_the_same_supplier(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
     """The null on the OTHER side: both figures are pounds summed from settlement records, so
-    sub-penny float noise must not be reported as two different suppliers."""
+    sub-penny float noise must not be reported as two different suppliers.
+
+    THIS IS ALSO THE GATE'S OWN NULL RUNG. A guard that refuses everything passes every test that
+    asks whether it refuses correctly, and the identity gate added on 2026-09-10 sits ahead of
+    every other branch here. This is the one control that proves it can be PASSED -- delete the
+    `state == "same"` route and it is what reddens.
+    """
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     dashboard_agreeing_with(control + 0.004)
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control + 0.004})
-    assert out["realised"]["is_the_published_supplier"]["same_supplier"] is True
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control + 0.004))
+    pub = out["realised"]["is_the_published_supplier"]
+    assert pub["same_supplier"] is True
+    assert pub["run_identity"]["state"] == "same", (
+        "the claim was made without establishing that the run artefact IS the published run")
 
 
-def test_a_run_artefact_that_is_not_the_published_figure_WITHHOLDS_the_claim(
-        real, dashboard_agreeing_with):
-    """THE INDEPENDENCE REPAIR (2026-08-28). `run_output_latest.json` is written by the same entry
-    point the A/B calls once per arm, so an A/B pass can make this check compare its own output
-    against itself. And on that day the figure the SITE published was 153,244.79 while the run
-    artefact read 159,423.50 -- different runs, so the check's subject was not the published
-    figure at all.
+def test_one_run_reported_with_two_net_margins_WITHHOLDS_the_claim(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """THE INDEPENDENCE REPAIR (2026-08-28), kept as its own branch after the 2026-09-10 identity
+    gate went in ahead of it. `run_output_latest.json` is written by the same entry point the A/B
+    calls once per arm, so an A/B pass can make this check compare its own output against itself.
+
+    WHAT THIS BRANCH MEANS NOW, AND WHY IT IS NOT THE SAME DEFECT AS A DIFFERENT RUN. Both sides
+    agree on the run's identity and disagree on its net margin. One run cannot have two net
+    margins, so one of the two producers is publishing the other's subject -- and the remedy is
+    not "re-publish the run output", which is what the identity refusal would send a reader to do.
 
     Fires on: answering the claim from whichever file is nearer, in either direction.
     """
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     dashboard_agreeing_with(control - 6_178.71)      # what the site publishes
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control))
     pub = out["realised"]["is_the_published_supplier"]
     assert pub["checked"] is False and pub["same_supplier"] is None
     assert "cannot say whether the baseline arm is the supplier the site publishes" in pub["statement"]
@@ -764,15 +815,117 @@ def test_a_run_artefact_that_is_not_the_published_figure_WITHHOLDS_the_claim(
 
 
 def test_an_unreadable_dashboard_leaves_the_original_comparison_alone(
-        real, monkeypatch, tmp_path):
+        real, monkeypatch, tmp_path, the_run_the_site_is_showing):
     """The refusal must only fire on a mismatch it can PROVE. A missing dashboard is not evidence
     of one, and inventing a mismatch from an unreadable file would be the opposite failure —
     withholding a true claim.
     """
     control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing()
     monkeypatch.setattr(gva, "DASHBOARD_PATH", tmp_path / "nope.json")
-    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), {"total_net_gbp": control})
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control))
     assert out["realised"]["is_the_published_supplier"]["same_supplier"] is True
+
+
+# ── the identity gate: the subject is ESTABLISHED, never inferred from two figures agreeing ──
+
+
+def test_a_DIFFERENT_run_is_caught_by_IDENTITY_even_when_every_figure_agrees(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """THE MUTATION THE OLD CHECK COULD NOT SURVIVE, and the whole reason the gate moved off
+    arithmetic (2026-09-10).
+
+    Here the run artefact is a DIFFERENT run from the one the site says it is showing, and its net
+    margin agrees to the penny with both the dashboard and the baseline arm. Under the money-only
+    check every comparison passed and the feed asserted "the supplier on the front of this site IS
+    the baseline" about an artefact that is not the published run at all. Two runs on one world
+    landing within a penny is not far-fetched -- the A/B's own arms sit £67 apart on ~£148k.
+
+    Fires on: inferring identity from equal money. Delete the `state != "same"` branch and this is
+    the only control in the file that reddens.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing(commit="abc1234")
+    dashboard_agreeing_with(control)
+    out = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _run_at(control, commit="9999999"))
+    pub = out["realised"]["is_the_published_supplier"]
+
+    assert pub["checked"] is False and pub["same_supplier"] is None, (
+        "identity was inferred from two figures agreeing -- the claim was made about a run the "
+        "site is not showing")
+    assert pub["run_identity"]["state"] == "different"
+    assert "9999999" in pub["statement"] and "abc1234" in pub["statement"], (
+        "the refusal names neither run, so a reader cannot tell which artefact to go and look at")
+    assert "IS the baseline" not in pub["statement"]
+    assert "The comparison below is against" not in out["headline"]
+
+
+def test_a_run_artefact_that_cannot_NAME_its_run_names_the_publish_surface_as_the_cause(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """THE LIVE DEFECT THIS REPAIR WAS WRITTEN FOR. `docs/reports/run_output_latest.json` is
+    refreshed on disk after every run by `background/sim_runner` and committed by no publish, so a
+    clean checkout reads a run that has not been current for weeks. The committed copy predates run
+    stamping entirely and says so in its own payload.
+
+    The old refusal called this "the two are not the same run", which is a claim about the RUN and
+    is false -- nothing is wrong with any run. Fires on: a refusal that names a subject mismatch
+    when the cause is an unpublished path, sending the reader to fix the wrong thing.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing(commit="abc1234")
+    dashboard_agreeing_with(control)
+    stale = {"total_net_gbp": control - 16_597.44,
+             "run_identity_unavailable_because": "written before run identities were stamped"}
+    pub = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
+                    stale)["realised"]["is_the_published_supplier"]
+
+    assert pub["checked"] is False and pub["same_supplier"] is None
+    assert "not in the publish surface" in pub["statement"], (
+        "the refusal does not name the cause, so it reads as a subject mismatch that is not there")
+    assert "run_output_latest.json" in pub["statement"], (
+        "the refusal names no path, so nothing tells a reader which file to publish")
+    assert "16,597.44" in pub["statement"], "the gap is withheld without its size"
+    assert "IS the baseline" not in pub["statement"]
+
+
+def test_a_short_sha_and_a_full_sha_for_ONE_run_are_the_same_run(
+        real, dashboard_agreeing_with, the_run_the_site_is_showing):
+    """The two sides are stamped by different producers and neither promises a length.
+    `publish_provenance` carries `git rev-parse --short` output; the run artefacts under
+    `docs/observability/` carry the full 40. Comparing those by equality would refuse every real
+    pair while looking exactly like a working identity gate -- a guard that refuses everything,
+    which is the failure this project has walked into by three separate doors.
+
+    Fires on: `_same_commit` comparing by equality rather than by prefix.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    the_run_the_site_is_showing(commit="36e3ee8c4")
+    dashboard_agreeing_with(control)
+    long_sha = ("36e3ee8c4" + "b1f7948fabbe2b325a6535b38561020ff11")[:40]
+    assert len(long_sha) == 40 and long_sha.startswith("36e3ee8c4")
+    pub = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
+                    _run_at(control, commit=long_sha))["realised"]["is_the_published_supplier"]
+    assert pub["run_identity"]["state"] == "same", (
+        "one run stamped short on one side and long on the other read as two runs")
+    assert pub["same_supplier"] is True
+
+
+def test_a_site_that_does_not_say_which_run_it_shows_WITHHOLDS_rather_than_confirming(
+        real, dashboard_agreeing_with, monkeypatch, tmp_path):
+    """FAIL CLOSED ON THE OTHER HALF. Unreadable provenance is the case where the check has one
+    identity and not two, and the tempting branch is to fall back on the money -- which is exactly
+    the inference this repair removed. Fires on: a missing provenance file reading as agreement.
+    """
+    control = [a for a in real["realised"]["arms"] if a["key"] == "control"][0]["net_gbp"]
+    monkeypatch.setattr(gva, "PUBLISH_PROVENANCE_PATH", tmp_path / "gone.json")
+    dashboard_agreeing_with(control)
+    pub = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR),
+                    _run_at(control))["realised"]["is_the_published_supplier"]
+
+    assert pub["checked"] is False and pub["same_supplier"] is None
+    assert "does not state which run it is currently showing" in pub["statement"], (
+        "the refusal blames the run artefact when it was the site that was silent")
+    assert "IS the baseline" not in pub["statement"]
 
 
 # ── the R12 wall, carried in the feed rather than only in a design note ──────────────────────
@@ -6031,3 +6184,211 @@ def test_a_spread_from_another_world_bounds_nothing_however_it_is_stamped():
         "a floor and a run measured in the SAME world lost their bound because that world is not "
         "today's -- which is the live-world claim this block declines to make: {}".format(
             str(both_elsewhere.get("reason"))[:300]))
+
+
+# ── what would settle the sign of the leg the thesis turns on ────────────────────────────────
+#
+# THE DEFECT THESE GUARD (2026-09-09). The page bounded the selection leg, found its nine re-draws
+# straddle zero, said so -- and stopped. The only remedy arithmetic it carried, `floor_decomposition`,
+# refuses itself twice for good reasons: it was measured where the arm priced 104 of 2,009 renewals
+# against this page's 214 of 2,035, and it splits `value_advantage_gbp` and not this leg. So the
+# page's central refusal was a dead end, and `current_world.what_would_answer_it` was `None` --
+# which reads as "nothing left to answer" beside a leg with no direction.
+#
+# R15 -- the mutations, each run and reverted:
+#   * price the remedy off `remedy_price_table(..., shares=(0.5,))` instead of `(1.0,)`
+#     -> `test_the_book_a_sign_would_need_is_a_lower_bound_over_every_split` reds: the number stops
+#        being a bound over the family and becomes one guess inside it.
+#   * read the funnel off the module's own `THREE_ARM_PATH` instead of the run passed in
+#     -> `test_the_price_is_on_the_book_this_page_publishes` reds.
+#   * publish only the published draw's row and drop the family centre
+#     -> `test_both_figures_a_reader_could_mean_are_priced_and_they_disagree` reds.
+#   * return the block unconditionally instead of gating on `sign_determined is False`
+#     -> `test_a_leg_that_carries_a_direction_is_priced_no_remedy` reds.
+#   * leave `what_would_answer_it` as the two-branch original
+#     -> `test_a_panel_that_can_state_no_direction_says_what_would_give_it_one` reds.
+# The null rung is `test_the_real_page_prices_the_selection_legs_sign`: on the artefacts actually
+# on disk the block must be available with both rows priced, and it stays green under all five.
+
+
+@pytest.fixture(scope="module")
+def real_current_world() -> dict:
+    """The page as `generate` actually builds it -- current-world run AND current-world floor.
+
+    THE `real` FIXTURE ABOVE CANNOT SERVE THIS. It passes neither, so `_current_world_contrast`
+    gets no floor, every leg refuses its bound, and a control reading the selection leg's remedy
+    through it would be reading the no-bound refusal while asserting on the priced branch.
+    """
+    return gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), _load(RUN_OUTPUT),
+                     current_three_arm=_load(gva.CURRENT_WORLD_THREE_ARM_PATH),
+                     current_floor=_load(gva.CURRENT_WORLD_NOISE_FLOOR_PATH))
+
+
+def _settle(page: dict) -> dict:
+    return ((page.get("current_world") or {}).get("selection_leg") or {}).get(
+        "what_would_settle_the_sign") or {}
+
+
+def test_the_real_page_prices_the_selection_legs_sign(real_current_world):
+    """THE NULL RUNG. On the artefacts on disk the page must say what would settle the sign."""
+    leg = (real_current_world["current_world"] or {})["selection_leg"]
+    assert (leg.get("verdict_stability") or {}).get("sign_determined") is False, (
+        "this control's subject is a leg whose SIGN IS UNDETERMINED, and this leg now carries one "
+        "-- so the remedy branch below is unreachable and the assertion under it would pass "
+        "vacuously. Re-point it at whichever leg is signless, or retire it.")
+    block = _settle(real_current_world)
+    assert block.get("available") is True, (
+        "the page states no price for settling the sign of the only leg that could be value "
+        "CREATED: {}".format(str(block.get("why_not"))[:300]))
+    priced = [row for row in block["rows"] if row.get("times_this_book")]
+    assert len(priced) == len(gva._SIGN_REMEDY_FIGURES), (
+        "only {} of {} figures a reader could mean was priced, so the page answers one reading of "
+        "its own refusal and leaves the other".format(len(priced), len(gva._SIGN_REMEDY_FIGURES)))
+    for row in priced:
+        assert row["priced_decisions_needed"] > 0 and row["renewals_the_world_must_offer"] > 0, (
+            "the {} row carries a multiplier and no counts, so a reader is handed a ratio with no "
+            "unit".format(row["which_figure"]))
+
+
+def test_the_book_a_sign_would_need_is_a_lower_bound_over_every_split(real_current_world):
+    """THE MATHEMATICAL CLAIM, RE-ASKED OF THE PRODUCER THE PAGE SHARES WITH THE ARTEFACT.
+
+    The block publishes the corner where the whole spread is the priced households' own draw. Its
+    whole licence to be published without the two missing floor legs is that this corner is the
+    SMALLEST member of the family: `m = (V - V_rest)/(c^2 - V_rest)` rises with `V_rest`. If that
+    is false the number is not a bound, it is a guess wearing a bound's words -- and the page says
+    "the real book is LARGER than this, never smaller" underneath it.
+
+    KEYED TO THE PROPERTY AND NOT TO 44.9x. Asserting today's multiplier would go red the day the
+    floor is re-measured and stay green if the direction inverted, which is exactly backwards.
+    """
+    block = _settle(real_current_world)
+    variance, book = block["floor_variance_gbp2"], block["book"]
+    checked = [r for r in block["rows"] if r.get("times_this_book")]
+    # THE LOOP MUST RUN, AND THIS LINE IS NOT DECORATION. Caught in this control's own poison
+    # round: pricing at share 0.5 instead of 1.0 drives BOTH rows' headroom negative, every
+    # multiplier becomes `None`, and the comparison below iterates over nothing and passes. A
+    # mutation that empties a control's subject is indistinguishable from one it survives.
+    assert len(checked) == len(gva._SIGN_REMEDY_FIGURES), (
+        "{} of {} rows carry a multiplier, so the comparison below would run over a subset of the "
+        "family it claims to bound -- and over none of it if the count is zero".format(
+            len(checked), len(gva._SIGN_REMEDY_FIGURES)))
+    for row in checked:
+        ladder = gva.remedy_price_table(
+            variance, row["contrast_gbp"], book["priced_decisions"],
+            book["priced_share_of_renewals_offered"], shares=(1.0, 0.9, 0.7, 0.5))
+        priced_at = [r["times_this_book"] for r in ladder if r["times_this_book"]]
+        assert row["times_this_book"] == min(priced_at), (
+            "the {} row publishes {:.2f}x as a lower bound and a split with MORE of the spread in "
+            "the rest of the book prices at {:.2f}x, which is smaller -- so the published figure "
+            "bounds nothing".format(row["which_figure"], row["times_this_book"], min(priced_at)))
+        assert block["is_a_lower_bound"] is True
+
+
+def test_the_price_is_on_the_book_this_page_publishes():
+    """THE RECONCILIATION THE EXISTING DECOMPOSITION FAILS, which is why this block exists at all.
+
+    A remedy priced on another book is not a weaker remedy, it is a price for another question --
+    the page already refuses `floor_decomposition` on exactly that ground. So the counts here must
+    MOVE when the book under them moves. A block that reads its funnel from a module constant
+    rather than from the run it was handed would pass every other control in this section.
+    """
+    leg = {"verdict_stability": {"sign_determined": False},
+           "bound": {"stdev_gbp": 1000.0, "mean_gbp": -400.0, "n": 9}}
+    small = gva._what_would_settle_the_sign(
+        leg, {"renewal_funnel": {"value_arm": {
+            "priced": 200, "renewals_the_world_offered": 2000,
+            "priced_share_of_renewals_offered": 0.1}}}, 250.0)
+    large = gva._what_would_settle_the_sign(
+        leg, {"renewal_funnel": {"value_arm": {
+            "priced": 400, "renewals_the_world_offered": 4000,
+            "priced_share_of_renewals_offered": 0.1}}}, 250.0)
+    assert small["available"] and large["available"]
+    assert small["rows"][0]["times_this_book"] == large["rows"][0]["times_this_book"], (
+        "the MULTIPLE moved when only the book's size did. It is scale-free by construction -- "
+        "n0 cancels -- so a multiplier that moves means the two sides are indexed differently.")
+    assert large["rows"][0]["priced_decisions_needed"] == \
+        2 * small["rows"][0]["priced_decisions_needed"], (
+        "the same multiple over a book twice the size gave the same COUNT, so the count is not "
+        "this page's book wearing the multiple -- it is a number from somewhere else")
+
+
+def test_both_figures_a_reader_could_mean_are_priced_and_they_disagree(real_current_world):
+    """ONE CONTROL OVER THE WHOLE PARTITION, because the finding IS the disagreement.
+
+    The published draw and the centre of its own re-draw family are on opposite sides of zero on
+    this page, and they are answered by books an order of magnitude apart. A page that priced only
+    one would be picking which reading of its own refusal to answer -- this project's most
+    expensive recurring shape, arriving on the sentence written to end it.
+    """
+    block = _settle(real_current_world)
+    figures = {row["which_figure"]: row for row in block["rows"]}
+    assert set(figures) == {label for label, _, _, _ in gva._SIGN_REMEDY_FIGURES}
+    multiples = sorted(row["times_this_book"] for row in figures.values()
+                       if row.get("times_this_book"))
+    assert len(multiples) > 1 and multiples[0] != multiples[-1], (
+        "the two figures priced to the same book, so nothing here tells a reader the choice "
+        "between them matters: {}".format(multiples))
+    assert block["the_two_figures_disagree"] is True, (
+        "the rows price to {} and the block reports no disagreement, so the caveat a reader needs "
+        "is missing from the one payload that carries it".format(multiples))
+    for row in figures.values():
+        assert row["what_this_figure_counts"], (
+            "the {} row is a number with no statement of what it counts, which is the division "
+            "this page refuses everywhere else".format(row["which_figure"]))
+
+
+def test_a_leg_that_carries_a_direction_is_priced_no_remedy():
+    """THE REFUSAL BRANCH, AND IT MUST BE REACHABLE. A remedy for a question already answered is
+    noise at best; a control that never drove this branch would not notice the gate was gone."""
+    current = {"renewal_funnel": {"value_arm": {
+        "priced": 200, "renewals_the_world_offered": 2000,
+        "priced_share_of_renewals_offered": 0.1}}}
+    bound = {"stdev_gbp": 1000.0, "mean_gbp": -400.0, "n": 9}
+    signless = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"sign_determined": False}, "bound": bound}, current, 250.0)
+    signed = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"sign_determined": True}, "bound": bound}, current, 250.0)
+    unmeasured = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"checked": False}, "bound": bound}, current, 250.0)
+    unbounded = gva._what_would_settle_the_sign(
+        {"verdict_stability": {"sign_determined": False}, "bound": {}}, current, 250.0)
+    assert signless["available"] is True, "the branch this block exists for is unreachable"
+    assert signed["available"] is False and signed["why_not"], (
+        "a leg that already carries a direction was handed a price for earning one")
+    assert unmeasured["available"] is False, (
+        "a leg whose sign was never CHECKED was priced as though it had been measured and found "
+        "signless -- 'we did not ask' and 'we asked and could not tell' are different states")
+    assert unbounded["available"] is False and "spread" in unbounded["why_not"], (
+        "a leg with no measured spread was priced anyway, so the floor under the arithmetic was "
+        "an absence read as a number")
+
+
+def test_a_panel_that_can_state_no_direction_says_what_would_give_it_one(real_current_world):
+    """`what_would_answer_it` must distinguish its two causes, and know it still has one.
+
+    THE DEFECT. That key was `None` exactly when all three bounds existed -- so the floor legs
+    landing emptied it while the panel still could not state a direction for the leg the thesis
+    turns on. Reading `None` as "nothing left to answer" was the page's own dead end.
+    """
+    bounded = {"bound_available": True, "verdict_stability": {"sign_determined": True}}
+    signless = {"bound_available": True, "verdict_stability": {"sign_determined": False}}
+    unbounded = {"bound_available": False}
+    assert gva._what_would_answer_it(bounded, bounded, bounded) is None, (
+        "a panel where every leg carries a direction still asks for work, so the key can never "
+        "empty and a reader learns to skip it")
+    no_bound = gva._what_would_answer_it(unbounded, bounded, bounded)
+    assert no_bound and "noise-floor leg" in no_bound, (
+        "the missing-bound cause stopped naming the floor leg that would fix it: {}".format(
+            str(no_bound)[:200]))
+    no_sign = gva._what_would_answer_it(bounded, signless, bounded)
+    assert no_sign and "what_would_settle_the_sign" in no_sign, (
+        "a panel with every bound measured and a leg with no sign points at nothing: {}".format(
+            str(no_sign)[:200]))
+    assert no_sign != no_bound, (
+        "the two causes read identically, so a reader cannot tell 'run the floor leg' from "
+        "'grow the book' -- different work, one sentence")
+    live = (real_current_world["current_world"] or {}).get("what_would_answer_it")
+    assert live and "what_would_settle_the_sign" in live, (
+        "the real page's panel cannot state a direction for the selection leg and still names "
+        "nothing that would give it one: {}".format(str(live)[:300]))

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T21:26:48.694860Z",
+  "generated_at": "2026-09-09T23:30:32.765322Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -328,10 +328,10 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "bee46622df3a2abdf4a2031ef528bd6e992dad63",
+    "publishing_tree_commit": "8627b1b35a0890c6d97be18811745e4c9c517a24",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 8b846013e and published from bee46622d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "reading": "Produced at 8b846013e and published from 8627b1b35 -- the code was replaced between the run and this page, so read every count here as the older tree's."
   },
   "world_provenance": {
     "available": true,
@@ -458,6 +458,47 @@
       },
       "bound_contrast": "selection_gbp",
       "bound_is_of_the_same_contrast": "The spread below is this contrast's own across the seed re-draws, and it is the quantity the floor publishes as `selection_gbp_spread`: this feed's reading of the seed rows had to reproduce that scalar to the penny before any bound on this page was admitted.",
+      "what_would_settle_the_sign": {
+        "available": true,
+        "what_this_is": "How much larger the priced book would have to be before this leg could carry a direction at all -- priced on THIS book, from THIS leg's own nine-seed spread, on THIS contrast.",
+        "contrast": "selection_gbp",
+        "floor_variance_gbp2": 3277913.0681562666,
+        "floor_stdev_gbp": 1810.5007782810442,
+        "floor_seeds": 9,
+        "book": {
+          "priced_decisions": 214,
+          "renewals_offered": 2035,
+          "priced_share_of_renewals_offered": 0.1052
+        },
+        "independence_unit": "priced_decisions",
+        "why_no_account_column": "The 1/n law indexes on INDEPENDENT DRAWS -- the households whose elasticity was re-rolled -- and that count comes off the `only` floor leg, which has not been run on this book. The multiple below is invariant to which index is used; the absolute counts are not, so only the decision index is published and it is named.",
+        "rows": [
+          {
+            "which_figure": "the published draw",
+            "contrast_gbp": 270.20708699998795,
+            "what_this_figure_counts": "the single realisation this page prints. Pricing against it asks what book would make THIS draw clear its own spread -- a question about one draw, and this draw sat above the centre of its own family.",
+            "times_this_book": 44.89561867428295,
+            "priced_decisions_needed": 9608,
+            "renewals_the_world_must_offer": 91331,
+            "this_book_already_resolves_it": false
+          },
+          {
+            "which_figure": "the centre of its own re-draw family",
+            "contrast_gbp": -1078.1657011111156,
+            "what_this_figure_counts": "the mean of the nine re-draws, which is this page's best estimate of the quantity itself rather than of one draw of it. Pricing against it asks what book would make an effect the size of that centre carry a direction. It is itself an estimate and is not established to be non-zero.",
+            "times_this_book": 2.819852604364061,
+            "priced_decisions_needed": 604,
+            "renewals_the_world_must_offer": 5742,
+            "this_book_already_resolves_it": false
+          }
+        ],
+        "is_a_lower_bound": true,
+        "why_it_is_a_lower_bound": "Every figure here is the corner where the WHOLE spread is the priced households' own draw and none of it is the rest of the book's churn cascade. The requirement is strictly increasing in the churn-cascade share, so the real book is LARGER than this, never smaller. Pinning it down needs the `only` and `except` floor legs re-run on this book at these nine seeds -- nine full three-arm passes each, not yet run.",
+        "and_it_must_be_exceeded": "The page resolves a contrast when it EXCEEDS its spread, strictly, so a book of exactly the size below leaves the leg still unresolved. Read every count as the smallest book that does not work.",
+        "the_two_figures_disagree": true,
+        "what_is_not_established": "Whether a book that size can be built. The obvious ceiling to check it against -- `simulation.premise_population.settled_book_ceiling` -- is stated per customer-YEAR (632 accounts at years=1, 63 at years=10) against a book whose 164 accounts are counted over a ten-year window, and 63 is fewer than the book that demonstrably runs. Those are not the same quantity and their ratio would not be one, so this block prices the requirement and states no verdict on reachability. Also unestablished: whether acquiring customers reaches this arm at all -- `where_the_priced_decisions_come_from` measured that on the OTHER book.",
+        "sentence": "What it would take, against this book's 214 priced renewals: to give the published draw (\u00a3270) a direction, more than 44.9x this book -- about 9,608 priced renewals out of 91,331 the world must offer; to give the centre of its own re-draw family (-\u00a31,078) a direction, more than 2.8x this book -- about 604 priced renewals out of 5,742 the world must offer. Both are the most optimistic book in the family -- the real one is larger. Which of the two a reader should mean is not a detail this page can settle for them: they are different quantities and they are answered by different books."
+      },
       "figure_gbp": 270.20708699998795,
       "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved."
     },
@@ -575,7 +616,7 @@
       },
       "against_the_superseded_panel": "The panel above states 98.2% for the same quantity. 2 things differ between the two runs -- the date it ran on and the commit that produced it -- so more than one thing changed, and the difference between them cannot be attributed to any one of them. It may not be read as the company having got better or worse at choosing: what a share of the advantage is mostly reads is how much book there is to win or lose, which is the world's departure level and its price response, not the company's skill. The one-variable version of this comparison has not been run."
     },
-    "what_would_answer_it": null,
+    "what_would_answer_it": "a LARGER PRICED BOOK, not another floor leg: the choosing carries a measured bound already and still no direction, because the same contrast re-drawn nine times in this world falls on both sides of zero. What size of book that would take is priced beside the leg itself, under `what_would_settle_the_sign` -- and it is a lower bound, so read it as the smallest book that would not be enough.",
     "how_to_read_this": "The same book, the same three arms and the same code as the figures above, run at a different hour of the same world and from a different commit. It is NOT the more recent of the two -- the run above it was taken at 2026-09-09T13:58:12Z and this one at 2026-09-08T00:19:54Z -- so nothing here is a statement about how things stand relative to that panel. Compare the two as two draws of one world, not as a revision and not as a trend."
   },
   "book": {
@@ -603,10 +644,10 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "bee46622df3a2abdf4a2031ef528bd6e992dad63",
+      "publishing_tree_commit": "8627b1b35a0890c6d97be18811745e4c9c517a24",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 8b846013e and published from bee46622d -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "reading": "Produced at 8b846013e and published from 8627b1b35 -- the code was replaced between the run and this page, so read every count here as the older tree's."
     }
   },
   "realised": {
@@ -655,11 +696,19 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": true,
-      "same_supplier": false,
-      "published_run_net_gbp": 147886.781507,
-      "gap_gbp": -67.4741540007235,
-      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.47. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "checked": false,
+      "same_supplier": null,
+      "published_run_net_gbp": 131289.339938,
+      "dashboard_net_gbp": 147886.78,
+      "run_identity": {
+        "artefact_commit": null,
+        "showing_run_commit": "36e3ee8c4",
+        "showing_run_id": "run_output_36e3ee8c4_20260909T210648Z.json",
+        "artefact_says_it_cannot_tell": true,
+        "state": "unestablished",
+        "why": "the run artefact does not say which run produced it"
+      },
+      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads does not say which run produced it (and says so in its own payload), and the site says it is showing run_output_36e3ee8c4_20260909T210648Z.json. `docs/reports/run_output_latest.json` is refreshed on disk after every run but is not in the publish surface, so its committed copy can be many runs behind the figures published beside it -- and this feed cannot tell that apart from a genuinely different run. The claim is withheld rather than answered from whichever figure is nearer. The run artefact reports \u00a3131,289.34 and the figure the site publishes reports \u00a3147,886.78, a gap of \u00a316,597.44."
     }
   },
   "provisioned": {
@@ -1105,15 +1154,6 @@
           "detectable_concordance": 0.5178481327715568,
           "accounts_needed": 576,
           "is_this_run": false
-        },
-        {
-          "decisions_scored": 1474,
-          "multiple_of_this_run": 8.773809523809524,
-          "detectable_excess": 0.017042907252967796,
-          "detectable_concordance": 0.5170429072529678,
-          "accounts_needed": 632,
-          "is_this_run": false,
-          "is_the_ceiling": true
         }
       ],
       "floor": [
@@ -1122,7 +1162,7 @@
           "concordance": 0.65,
           "decisions_needed": 20,
           "accounts_needed": 9,
-          "within_the_settled_book_ceiling": true,
+          "within_the_settled_book_ceiling": null,
           "is_the_observed_effect": false
         },
         {
@@ -1130,7 +1170,7 @@
           "concordance": 0.6,
           "decisions_needed": 43,
           "accounts_needed": 19,
-          "within_the_settled_book_ceiling": true,
+          "within_the_settled_book_ceiling": null,
           "is_the_observed_effect": false
         },
         {
@@ -1138,7 +1178,7 @@
           "concordance": 0.55,
           "decisions_needed": 172,
           "accounts_needed": 74,
-          "within_the_settled_book_ceiling": true,
+          "within_the_settled_book_ceiling": null,
           "is_the_observed_effect": false
         },
         {
@@ -1146,7 +1186,7 @@
           "concordance": 0.5337857142857143,
           "decisions_needed": 376,
           "accounts_needed": 162,
-          "within_the_settled_book_ceiling": true,
+          "within_the_settled_book_ceiling": null,
           "is_the_observed_effect": true
         },
         {
@@ -1154,7 +1194,7 @@
           "concordance": 0.53,
           "decisions_needed": 476,
           "accounts_needed": 204,
-          "within_the_settled_book_ceiling": true,
+          "within_the_settled_book_ceiling": null,
           "is_the_observed_effect": false
         },
         {
@@ -1162,31 +1202,39 @@
           "concordance": 0.52,
           "decisions_needed": 1071,
           "accounts_needed": 459,
-          "within_the_settled_book_ceiling": true,
+          "within_the_settled_book_ceiling": null,
           "is_the_observed_effect": false
         }
       ],
       "the_book_this_would_need": {
         "decisions_needed_for_the_observed_effect": 376,
         "accounts_needed_for_the_observed_effect": 162,
+        "settled_accounts_needed_for_the_observed_effect": null,
+        "scored_accounts_this_run": 72,
+        "settled_book_this_run": null,
+        "settled_accounts_per_scored_account": null,
+        "what_each_account_count_counts": "`accounts_needed_...` is in accounts that carry a SCORED DECISION -- what the instrument consumes. `settled_accounts_needed_...` is the same requirement in the accounts the settlement path must HOLD, which is the population the ceiling bounds. They differ by this run's own ratio between the two and the comparison is only a quantity in the second.",
         "settled_book_ceiling": {
-          "available": true,
-          "accounts": 632,
-          "source": "simulation.premise_population.settled_book_ceiling(years=1)",
-          "bound_kind": "upper_bound",
-          "what_binds": "the settlement path's memory budget on this machine, not the world's housing stock -- the world has homes to spare and the settled book is what cannot be grown",
-          "why_it_is_safe_to_cite": "both per-unit costs behind it are measured floors, so the affordable book is SMALLER than this number and never larger"
+          "available": false,
+          "reason": "the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer"
         },
-        "scored_decisions_at_the_ceiling": 1474,
-        "detectable_excess_at_the_ceiling": 0.017042907252967796,
-        "detectable_concordance_at_the_ceiling": 0.5170429072529678,
-        "the_observed_effect_is_attainable": true,
+        "scored_decisions_at_the_ceiling": null,
+        "detectable_excess_at_the_ceiling": null,
+        "detectable_concordance_at_the_ceiling": null,
+        "the_observed_effect_is_attainable": null,
+        "why_no_attainability_verdict": "the settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer",
+        "the_verdict_is_one_sided": "This page can say a requirement is out of reach and can say it cannot tell. It cannot say a requirement IS in reach, because the only bound it has is an upper one and an upper bound refuses or is silent.",
+        "what_would_make_a_verdict_available": [
+          "the window the run's accounts are counted over, declared by the producer -- the ceiling is per customer-year and is a different number at every window",
+          "the run's own settled book beside its scored-account count, so a requirement in one population can be restated in the other",
+          "a LOWER bound on the affordable book -- an upper bound can never certify reach, so no amount of the two above turns this verdict positive"
+        ],
         "accounts_short": null,
         "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
       },
       "method": "The half-width of the permutation null falls as 0.654 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(168), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=168 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
       "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
-      "sentence": "On the 168 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.050 \u2014 a concordance of 0.550 or 0.450. It read 0.534, a departure of 0.034, about 67% of that. Reading a departure that small needs about 376 scored decisions \u2014 roughly 162 settled accounts at this run's rate. The settled book can hold 632 accounts, so a book this world can supply does reach it \u2014 and that is a statement about the instrument, never a plan."
+      "sentence": "On the 168 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.050 \u2014 a concordance of 0.550 or 0.450. It read 0.534, a departure of 0.034, about 67% of that. Reading a departure that small needs about 376 scored decisions \u2014 roughly 162 accounts carrying one, at this run's rate. Whether this world can supply that book, this page cannot say. The settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer. It is a bound on the instrument either way, and never a book to grow towards."
     },
     "decisions_scored": 168,
     "accounts": 72,
@@ -1301,15 +1349,6 @@
             "is_this_run": false
           },
           {
-            "decisions_scored": 1156,
-            "multiple_of_this_run": 7.180124223602484,
-            "detectable_excess": 0.020191437043077045,
-            "detectable_concordance": 0.520191437043077,
-            "accounts_needed": 632,
-            "is_this_run": false,
-            "is_the_ceiling": true
-          },
-          {
             "decisions_scored": 1288,
             "multiple_of_this_run": 8,
             "detectable_excess": 0.01912882150597936,
@@ -1324,7 +1363,7 @@
             "concordance": 0.65,
             "decisions_needed": 21,
             "accounts_needed": 12,
-            "within_the_settled_book_ceiling": true,
+            "within_the_settled_book_ceiling": null,
             "is_the_observed_effect": false
           },
           {
@@ -1332,7 +1371,7 @@
             "concordance": 0.6,
             "decisions_needed": 48,
             "accounts_needed": 27,
-            "within_the_settled_book_ceiling": true,
+            "within_the_settled_book_ceiling": null,
             "is_the_observed_effect": false
           },
           {
@@ -1340,7 +1379,7 @@
             "concordance": 0.5789732655404297,
             "decisions_needed": 76,
             "accounts_needed": 42,
-            "within_the_settled_book_ceiling": true,
+            "within_the_settled_book_ceiling": null,
             "is_the_observed_effect": true
           },
           {
@@ -1348,7 +1387,7 @@
             "concordance": 0.55,
             "decisions_needed": 189,
             "accounts_needed": 104,
-            "within_the_settled_book_ceiling": true,
+            "within_the_settled_book_ceiling": null,
             "is_the_observed_effect": false
           },
           {
@@ -1356,7 +1395,7 @@
             "concordance": 0.53,
             "decisions_needed": 524,
             "accounts_needed": 287,
-            "within_the_settled_book_ceiling": true,
+            "within_the_settled_book_ceiling": null,
             "is_the_observed_effect": false
           },
           {
@@ -1364,31 +1403,39 @@
             "concordance": 0.52,
             "decisions_needed": 1179,
             "accounts_needed": 645,
-            "within_the_settled_book_ceiling": false,
+            "within_the_settled_book_ceiling": null,
             "is_the_observed_effect": false
           }
         ],
         "the_book_this_would_need": {
           "decisions_needed_for_the_observed_effect": 76,
           "accounts_needed_for_the_observed_effect": 42,
+          "settled_accounts_needed_for_the_observed_effect": null,
+          "scored_accounts_this_run": 88,
+          "settled_book_this_run": null,
+          "settled_accounts_per_scored_account": null,
+          "what_each_account_count_counts": "`accounts_needed_...` is in accounts that carry a SCORED DECISION -- what the instrument consumes. `settled_accounts_needed_...` is the same requirement in the accounts the settlement path must HOLD, which is the population the ceiling bounds. They differ by this run's own ratio between the two and the comparison is only a quantity in the second.",
           "settled_book_ceiling": {
-            "available": true,
-            "accounts": 632,
-            "source": "simulation.premise_population.settled_book_ceiling(years=1)",
-            "bound_kind": "upper_bound",
-            "what_binds": "the settlement path's memory budget on this machine, not the world's housing stock -- the world has homes to spare and the settled book is what cannot be grown",
-            "why_it_is_safe_to_cite": "both per-unit costs behind it are measured floors, so the affordable book is SMALLER than this number and never larger"
+            "available": false,
+            "reason": "the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer"
           },
-          "scored_decisions_at_the_ceiling": 1156,
-          "detectable_excess_at_the_ceiling": 0.020191437043077045,
-          "detectable_concordance_at_the_ceiling": 0.520191437043077,
-          "the_observed_effect_is_attainable": true,
+          "scored_decisions_at_the_ceiling": null,
+          "detectable_excess_at_the_ceiling": null,
+          "detectable_concordance_at_the_ceiling": null,
+          "the_observed_effect_is_attainable": null,
+          "why_no_attainability_verdict": "the settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer",
+          "the_verdict_is_one_sided": "This page can say a requirement is out of reach and can say it cannot tell. It cannot say a requirement IS in reach, because the only bound it has is an upper one and an upper bound refuses or is silent.",
+          "what_would_make_a_verdict_available": [
+            "the window the run's accounts are counted over, declared by the producer -- the ceiling is per customer-year and is a different number at every window",
+            "the run's own settled book beside its scored-account count, so a requirement in one population can be restated in the other",
+            "a LOWER bound on the affordable book -- an upper bound can never certify reach, so no amount of the two above turns this verdict positive"
+          ],
           "accounts_short": null,
           "why_only_a_larger_book": "the drop-out funnel classes the unscored decisions as eligibility -- the world billed nothing under the price that was chosen -- so no widening of the join and no sourcing work adds a decision here. Only a larger settled book does."
         },
         "method": "The half-width of the permutation null falls as 0.687 / sqrt(n). The constant is MEASURED, not assumed: it is half this run's own permuted interval times sqrt(161), so the curve passes through the run's own reading by construction and the permutation is the only source. The 1/sqrt(n) law itself is checked by permutation at four sample sizes under the run's own seed in `tests/tools/test_the_concordance_curve_says_what_it_could_have_seen.py`. Because the constant is taken at n=161 it carries that sample's own small-n inflation, so every decision count below is an UPPER bound on what would be needed.",
         "it_is_a_diagnostic": "R12. This floor is a bound on what the instrument can see and NEVER a book size to grow towards. A book enlarged until this arm returns a direction is the failure this arm was built to be able to report.",
-        "sentence": "On the 161 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.054 \u2014 a concordance of 0.554 or 0.446. It read 0.421, a departure of 0.079, about 146% of that. Reading a departure that small needs about 76 scored decisions \u2014 roughly 42 settled accounts at this run's rate. The settled book can hold 632 accounts, so a book this world can supply does reach it \u2014 and that is a statement about the instrument, never a plan."
+        "sentence": "On the 161 decisions it had, the smallest departure from 0.5 this instrument could have called is 0.054 \u2014 a concordance of 0.554 or 0.446. It read 0.421, a departure of 0.079, about 146% of that. Reading a departure that small needs about 76 scored decisions \u2014 roughly 42 accounts carrying one, at this run's rate. Whether this world can supply that book, this page cannot say. The settled book's own ceiling could not be read: the settled-book ceiling is stated per customer-YEAR and the window these accounts are counted over was not supplied, so there is no window to read it at -- 632 accounts for a one-year book and 63 for a ten-year one are the same function, and picking one would be picking an answer. It is a bound on the instrument either way, and never a book to grow towards."
       },
       "legs": {
         "the_published_population_ratio_outcome": {

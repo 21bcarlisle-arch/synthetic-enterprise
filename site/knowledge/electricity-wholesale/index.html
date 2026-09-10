@@ -142,7 +142,12 @@ function renderHead(d){
   var df=m.data_freshness, cf=m.claim_freshness;
   set("stale",
     '<span class="badge stamp">Data: '+esc(df.as_of)+' ('+esc(df.cadence)+')</span>'+
-    '<span class="badge stamp">Claims verified: '+esc(cf.last_verified)+'</span>'+
+    // A null last_verified is this page SAYING it has not been checked -- it is an answer, not a
+    // missing value, and it must read as one. Rendering esc(null) unconditionally put the literal
+    // word "null" in front of a reader the moment the page first told the truth (2026-09-09).
+    '<span class="badge stamp">'+(cf.last_verified
+      ? 'Claims verified: '+esc(cf.last_verified)
+      : 'Claims: written '+esc(cf.written)+', awaiting check')+'</span>'+
     '<span class="badge stamp">Change class: '+esc(m.rate_of_change_class)+'</span>');
   set("wall-note", esc(m.wall_placement)+' &nbsp;&middot;&nbsp; A simulated GB energy supplier, shown working against real market history.');
   set("derivation", '<b>'+esc(String(m.derivation.assembled_pct))+'%</b> assembled or derived from existing material. '+esc(m.derivation.note));

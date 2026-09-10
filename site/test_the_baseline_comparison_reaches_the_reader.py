@@ -3169,13 +3169,39 @@ def test_the_page_says_what_the_concordance_COULD_have_detected_beside_what_it_d
     assert "{:.3f}".format(block["detectable_excess"]) in rendered
     # The book side of it: the floor is priced against a book this world can actually supply, and
     # the verdict -- either way -- is on the surface rather than in the artefact.
-    attainable = block["the_book_this_would_need"]["the_observed_effect_is_attainable"]
+    book = block["the_book_this_would_need"]
+    attainable = book["the_observed_effect_is_attainable"]
     if attainable is False:
         assert "No attainable book" in rendered, (
             "the arithmetic says no book this world can supply reads an effect this size and the "
             "page does not say so in those words")
-    elif attainable is True:
-        assert "does reach it" in rendered
+    else:
+        # THE REFUSAL IS A RESULT AND IT HAS TO REACH THE READER (2026-09-10). There is no `True`
+        # branch here any more -- `_attainability` cannot return one, because the only bound this
+        # page has on the book is an UPPER one and an upper bound refuses or is silent. What used
+        # to be the affirmative branch is now this, and it is the branch the LIVE feed takes, so
+        # a silent `else` would leave the page's actual state ungraded. The reason travels with
+        # the refusal: "we cannot tell" with no cause is what a reader cannot act on.
+        assert attainable is None, (
+            "the attainability verdict is affirmative, and no arithmetic on this page can support "
+            "that: the settled-book ceiling is an upper bound, so a requirement fitting under it "
+            "is not a requirement the world can meet")
+        why = book["why_no_attainability_verdict"]
+        assert why, "the page declines a verdict without naming what stopped it"
+        # SCOPED TO THE SURVIVOR CUT'S OWN REGION, on the same partition and for the same reason
+        # as `test_the_detectability_block_going_unavailable_says_so_rather_than_going_quiet`
+        # below -- and here it is load-bearing rather than cautious. The estimand's cut renders
+        # the IDENTICAL refusal about a different population, so a whole-panel check passes with
+        # this cut's copy deleted. Measured: blanking only this block leaves every assertion below
+        # green against the panel, and red against the region.
+        below = "And the same question over every decision the arm priced?"
+        region = rendered.split(below)[0]
+        assert "cannot say" in region, (
+            "the page prices a book the instrument would need and says nothing about whether this "
+            "world can supply it, so the reader is left to assume it can")
+        # A distinctive clause of the reason itself, so a generic refusal cannot pass for this one.
+        assert why.rstrip(". ")[-40:] in region, (
+            "the page refuses without the cause the arithmetic gave it: " + why)
 
 
 def test_the_detectability_block_going_unavailable_says_so_rather_than_going_quiet():
@@ -5532,3 +5558,111 @@ def test_a_feed_with_no_attribution_says_so_rather_than_rendering_a_blank():
     assert "must not be quoted as a fact about the method" in text
     # ...and the removal did not blank the block, or the assertion above is furniture.
     assert "priced decisions are scored here" in text
+
+
+# ── what would settle the sign, where the reader meets the refusal ───────────────────────────
+
+def test_what_would_settle_the_selection_legs_sign_reaches_the_reader(live):
+    """THE DEAD END THIS CLOSES. The page told a reader that the leg the whole thesis turns on
+    carries no direction, and stopped. Its only remedy arithmetic is measured on another book and
+    splits another contrast and refuses itself for both reasons, so "we cannot tell" arrived with
+    nowhere to go. "We cannot tell, and here is what it would take" is the result, and it belongs
+    beside the refusal rather than in the payload.
+
+    Fires on: rendering `legVerdict` without `whatWouldSettleIt`; dropping either priced row;
+    dropping the lower-bound caveat that is the block's whole licence to be published.
+    """
+    feed = _live_feed()
+    block = ((feed["current_world"]["selection_leg"]).get("what_would_settle_the_sign") or {})
+    if not block.get("available"):
+        pytest.fail("the live feed prices no remedy for the selection leg's sign ({}), so this "
+                    "control cannot run -- reported as a failure and never skipped".format(
+                        str(block.get("why_not"))[:200]))
+
+    rendered = live["arms-legs-first"]
+    # THE REFUSAL AND THE REMEDY ON ONE SCREEN. Either alone is a different page: the refusal
+    # alone is the dead end, the remedy alone is a price for a question nobody was told about.
+    assert "NO DIRECTION IS STATED FOR THIS LEG" in rendered
+    assert "But what it would take IS stated" in rendered, (
+        "the leg's refusal renders and what would settle it does not, which is the state this "
+        "block was written to end")
+
+    for row in block["rows"]:
+        assert row["which_figure"] in rendered, (
+            "the {} row never reaches the reader, so the page answers one reading of its own "
+            "refusal and silently drops the other".format(row["which_figure"]))
+        if not row.get("times_this_book"):
+            continue
+        # THE COUNTS, IN THE READER'S UNITS. A multiple with no decisions and no renewals under it
+        # is a ratio a reader cannot check against the funnel three panels up.
+        for count in ("priced_decisions_needed", "renewals_the_world_must_offer"):
+            assert "{:,}".format(row[count]) in rendered, (
+                "the {} row's {} ({:,}) is in the feed and not on the page".format(
+                    row["which_figure"], count, row[count]))
+
+    # THE CAVEAT WITHOUT WHICH THE NUMBERS ARE WRONG IN THE FLATTERING DIRECTION. Every count is
+    # the corner where none of the spread is the rest of the book's churn cascade, so the real
+    # book is larger. A page printing the counts and not this has published an underestimate as
+    # an answer.
+    assert "EVERY COUNT ABOVE IS A LOWER BOUND" in rendered
+    assert _door_prose(block["why_it_is_a_lower_bound"])[:100] in rendered
+    # AND THE REACHABILITY QUESTION IT DECLINES TO ANSWER, on the surface rather than omitted --
+    # an absent caveat and a cleared one read identically, which is the shape this file refuses
+    # everywhere else.
+    assert _door_prose(block["what_is_not_established"])[:100] in rendered
+
+
+def test_MUTATION_the_book_a_sign_needs_is_read_from_the_feed_and_never_from_the_page():
+    """POISON ROUND FIRST, then the substitution -- a rendered number that happens to match the
+    feed proves nothing about where the page got it.
+
+    Fires on: hard-coding either count in the door; rendering the multiple and computing the
+    decisions from it in JavaScript rather than taking the feed's own.
+    """
+    # THE PRESENT STATE. Both counts on screen, so the half below is a change and not an absence.
+    real = copy.deepcopy(_live_feed())
+    row = real["current_world"]["selection_leg"]["what_would_settle_the_sign"]["rows"][0]
+    present = _render(real)["arms-legs-first"]
+    assert "{:,}".format(row["priced_decisions_needed"]) in present, (
+        "the live feed's own count is not on the page, so the substitution below would be "
+        "measuring an absence rather than a source")
+
+    moved = copy.deepcopy(_live_feed())
+    block = moved["current_world"]["selection_leg"]["what_would_settle_the_sign"]
+    block["rows"][0]["priced_decisions_needed"] = 424242
+    block["rows"][0]["renewals_the_world_must_offer"] = 515151
+    rendered = _render(moved)["arms-legs-first"]
+    assert "424,242" in rendered and "515,151" in rendered, (
+        "the page rendered its own number instead of the feed's, so what a reader is shown is "
+        "not what the producer measured")
+    assert "{:,}".format(row["priced_decisions_needed"]) not in rendered, (
+        "the original count is still on screen beside the substituted one, so the page carries "
+        "the figure in two places and one of them is not the feed")
+
+
+def test_MUTATION_a_leg_the_feed_prices_no_remedy_for_renders_the_reason_not_a_silence():
+    """A remedy that quietly disappears reads as a remedy nobody needed.
+
+    THE PARTITION IN ONE CONTROL. `available: false` with a reason must render the reason; the
+    block absent entirely must render nothing at all -- a leg the producer never asked about is
+    not a leg it asked about and refused. A renderer that showed the same thing for both, or
+    nothing for both, passes a control that only drove one.
+    """
+    refused = copy.deepcopy(_live_feed())
+    refused["current_world"]["selection_leg"]["what_would_settle_the_sign"] = {
+        "available": False, "why_not": "THIS LEG WAS NEVER PRICED for a reason of its own."}
+    refused_text = _render(refused)["arms-legs-first"]
+    assert "NO PRICE IS STATED FOR SETTLING IT" in refused_text
+    assert "THIS LEG WAS NEVER PRICED" in refused_text, (
+        "the feed refused with a named reason and the page rendered a silence, which is the "
+        "fail-open reading: no remedy shown looks like no remedy needed")
+    assert "But what it would take IS stated" not in refused_text
+
+    absent = copy.deepcopy(_live_feed())
+    absent["current_world"]["selection_leg"].pop("what_would_settle_the_sign", None)
+    absent_text = _render(absent)["arms-legs-first"]
+    assert "NO PRICE IS STATED FOR SETTLING IT" not in absent_text, (
+        "a leg the producer never priced was given a refusal it never made")
+    assert "NO DIRECTION IS STATED FOR THIS LEG" in absent_text, (
+        "dropping the remedy took the refusal with it, so the two are one block and the page "
+        "loses its own verdict when the remedy is unavailable")

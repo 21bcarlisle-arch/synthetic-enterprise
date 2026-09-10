@@ -12,7 +12,9 @@
    "note": "Every chart on this page is the real Elexon SSP extract captured 2025-06-07, covering 2015-11 to 2025-05; the header stamp is that vintage and not the date of the last review. Corrected 2026-08-12: this said 2026-07 with a cadence of 'monthly' while the series beneath it ended 2025-05, so the header claimed data thirteen months newer than any datum on the page. The claims are reviewed separately -- see claim_freshness."
   },
   "claim_freshness": {
-   "last_verified": "2026-07-25",
+   "last_verified": null,
+   "written": "2026-08-24",
+   "superseded_check": {"last_verified": "2026-07-25", "source": "GB multi-plant SRMC dispatch stack DISCOVER", "why_void": "It covered the two rungs that existed then. Five of the seven this page now serves were written on 2026-08-24 and have never been checked, so the date described two-sevenths of the body a reader meets."},
    "source_pass": "GB multi-plant SRMC dispatch stack DISCOVER",
    "note": "REVIEW DATE DELIBERATELY NOT MOVED. Five of this page's seven sections were EMPTY STRINGS until 2026-08-24 — it rendered its headings over nothing, and its 21kB HTML file did not look like a stub next to its siblings. Those five were WRITTEN on 2026-08-24 from established market mechanism. That is authorship, not verification: the two original claims were checked against sources on 2026-07-25 and nobody has re-checked them since, so `last_verified` stays where it was. site/knowledge/test_review_state.py::test_no_review_date_exists_without_evidence_of_the_check caught the first attempt to move it, which is exactly what it is for — a date must not be typed in without saying what it was checked against, and 'I wrote some prose' is not a check.",
    "written_sections_2026_08_24": [
@@ -861,9 +863,14 @@
    "blurb": "How the GB wholesale electricity price is set at the margin.",
    "rate_of_change": "medium",
    "reviewed": {
-    "last_verified": "2026-07-25",
-    "source": "GB multi-plant SRMC dispatch stack DISCOVER"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-07-25",
+      "source": "GB multi-plant SRMC dispatch stack DISCOVER",
+      "why_void": "Held deliberately at 2026-07-25 by the note in meta.claim_freshness, which was right that authorship is not verification -- and the badge went on reading Reviewed 2026-07-25 over a body five-sevenths written a month later. The note was honest; what it rendered was not."
+     }
+    }
   },
   {
    "id": "gas-wholesale",
@@ -874,9 +881,14 @@
    "scope": "A complete treatment covers the GB gas market as a market in its own right: how the National Balancing Point price is set by the balance of supply (Norwegian pipeline imports, LNG send-out, UKCS production, storage withdrawal, interconnector flows) against demand (heat, power-station burn, industry); the contract curve from within-day through month and season to annual; the role of seasonal storage arbitrage and LNG-cargo optionality; and why GB, as a price-taker on a globally traded fuel, tracks TTF and Asian LNG rather than any domestic cost stack. It drives the electricity price because a gas plant is marginal for most GB hours -- that coupling is one typed edge, never a shared page.",
    "rate_of_change": "medium",
    "reviewed": {
-    "last_verified": "2026-08-19",
-    "source": "National Gas Transmission; DESNZ gas storage & flexibility (2023); HoC Library"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-08-19",
+      "source": "National Gas Transmission; DESNZ gas storage & flexibility (2023); HoC Library",
+      "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
+     }
+    }
   },
   {
    "id": "gb-electricity-market",
@@ -887,9 +899,14 @@
    "scope": "A complete treatment covers the market these prices live in: half-hourly settlement periods; the roles of generators, suppliers, the ESO and Elexon; the trading timeline from forward contracting to gate closure to imbalance; and how BSC settlement reconciles metered volumes against contracted positions. It is the parent context node for the electricity price at the margin.",
    "rate_of_change": "slow",
    "reviewed": {
-    "last_verified": "2026-08-19",
-    "source": "Ofgem regulatory framework; CMA Energy Market Investigation appendix 2.1"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-08-19",
+      "source": "Ofgem regulatory framework; CMA Energy Market Investigation appendix 2.1",
+      "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
+     }
+    }
   },
   {
    "id": "merit-order-residual-demand",
@@ -900,9 +917,14 @@
    "scope": "A complete treatment covers the cheapest-first dispatch queue and residual demand (demand less wind, solar and must-run generation): how the intersection of residual demand with the stack picks the marginal unit whose short-run marginal cost becomes the price, and how a growing renewable fleet shifts the stack -- more hours on cheap or zero-marginal-cost plant, more negative-price hours, and sharper peaks when the wind drops. It is the central price-setting mechanism of electricity wholesale.",
    "rate_of_change": "slow",
    "reviewed": {
-    "last_verified": "2026-08-19",
-    "source": "Ofgem/Elexon NETA+BETTA self-dispatch; DESNZ REMA"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-08-19",
+      "source": "Ofgem/Elexon NETA+BETTA self-dispatch; DESNZ REMA",
+      "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
+     }
+    }
   },
   {
    "id": "carbon-price",
@@ -913,9 +935,14 @@
    "scope": "A complete treatment covers the price of emitting a tonne of CO2 in GB power: the traded UK ETS allowance price set by a capped auction market, plus the fixed Carbon Price Support top-up; how the cap trajectory, industrial demand and policy set the allowance price; and how that per-tonne cost enters every fossil plant's marginal bid and therefore the electricity price. Its market and drivers are distinct from both gas and electricity, so it is a separate topic joined by a drives edge.",
    "rate_of_change": "medium",
    "reviewed": {
-    "last_verified": "2026-08-19",
-    "source": "GOV.UK UK ETS policy overview; HoC Library SN05927; HMRC CCL1/6"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-08-19",
+      "source": "GOV.UK UK ETS policy overview; HoC Library SN05927; HMRC CCL1/6",
+      "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
+     }
+    }
   },
   {
    "id": "imbalance-cashout-settlement",
@@ -926,9 +953,14 @@
    "scope": "A complete treatment covers how being short or long against your contracted position is priced: the single imbalance price, the balancing actions that set it, and the cash-out ceiling (£6,000/MWh) that caps a shortfall; and why this is the price that ultimately disciplines a supplier's hedging. It is a settlement mechanism of electricity wholesale.",
    "rate_of_change": "medium",
    "reviewed": {
-    "last_verified": "2026-08-19",
-    "source": "Elexon BSC Imbalance Pricing Guidance + glossary; Ofgem Balancing SCR"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-08-19",
+      "source": "Elexon BSC Imbalance Pricing Guidance + glossary; Ofgem Balancing SCR",
+      "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
+     }
+    }
   },
   {
    "id": "hedging-forward-market",
@@ -939,9 +971,14 @@
    "scope": "A complete treatment covers how a supplier buys ahead: the forward curve, the blocks and shapes it trades, and how a hedge programme blunts the delivered price it would otherwise face at spot. It is a product layer over both electricity and gas procurement, so it is a downstream cross-cutting node reached from each fuel's spot topic rather than buried inside either.",
    "rate_of_change": "slow",
    "reviewed": {
-    "last_verified": "2026-08-19",
-    "source": "Ofgem cap wholesale methodology decisions 2022/2025; Ofgem resilience CfI 2021"
-   }
+     "last_verified": null,
+     "written": "2026-08-24",
+     "superseded_check": {
+      "last_verified": "2026-08-19",
+      "source": "Ofgem cap wholesale methodology decisions 2022/2025; Ofgem resilience CfI 2021",
+      "why_void": "Recorded against the body this page served from knowledge_topics.json, which it stopped serving on 2026-08-24 and which was deleted at 2a33bfa4f. The body served today was written 2026-08-24 to replace a stub and has never been checked against a published source, so the date it inherited described text no reader can reach."
+     }
+    }
   },
   {
    "id": "price-cap",
