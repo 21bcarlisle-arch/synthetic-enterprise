@@ -315,6 +315,120 @@ def test_the_stratified_FIGURE_and_its_null_render_beside_the_unstratified_one(l
         "stratified evidence is")
 
 
+def test_the_route_out_of_the_withdrawal_reaches_the_reader_in_the_same_element(
+        live, live_decisions):
+    """A withdrawal with no route out is where an inferential claim goes quietly to die.
+
+    THE DEFECT. From 2026-09-10 this page withdrew its only measured evidence that the arm can tell
+    households apart -- the thesis's own central claim -- and said, of what it would take to earn it
+    back, only that "about four times as many would halve the interval". No book size, no cost, and
+    that sentence was itself indexed on the wrong unit. The selection leg on the same page got its
+    route (2.8x or 44.9x, priced, with the cost named); the more important leg got a shrug.
+
+    THE SUBJECT IS THE SAME ELEMENT AS THE WITHDRAWAL, not the page. A remedy rendered three
+    panels down is a remedy the reader who met the withdrawal never sees, and `_element` is the
+    only assertion shape that can tell those apart.
+    """
+    within = live["decisions"]["discrimination_auc_within_year"]
+    remedy = within.get("what_would_settle_it") or {}
+    assert remedy.get("available") is True, (
+        "the run carries a permuted interval and a sample size, so what would settle it is "
+        "arithmetic and not a judgement: " + str(remedy.get("reason")))
+    required = remedy["the_requirement"]["scored_decisions_needed"]
+    assert str(required) in live_decisions, (
+        "the number of scored decisions that would settle this figure ({}) does not render beside "
+        "the withdrawal".format(required))
+    assert str(remedy["in_same_year_pairs"]["same_year_pairs_needed"]) in live_decisions, (
+        "the requirement renders in decisions and not in the PAIRS the reader met the figure in, "
+        "so the two counts a reader would confuse are not both on the page")
+    assert str(remedy["the_book"]["renewals_the_world_must_offer"]) in live_decisions, (
+        "the page prices the instrument and never the book, so 'can this world supply it' is left "
+        "to the reader")
+
+
+def test_the_page_says_re_running_seeds_does_not_buy_the_missing_evidence(live, live_decisions):
+    """DEFECT: the cheap route agrees with the arithmetic right up to the point it stops.
+
+    4.75 pooled seeds supply 584 rows, and five copies of this run's own 123 rows -- containing not
+    one new observation -- put the unchanged figure OUTSIDE its null. A reader with a machine and
+    the requirement above will reach for seeds first, so the refusal has to be where the
+    requirement is, not in a note.
+    """
+    seeds = (live["decisions"]["discrimination_auc_within_year"]
+             .get("what_would_settle_it") or {}).get("run_seeds") or {}
+    assert seeds.get("supplies_it") is False, seeds
+    lowered = live_decisions.lower()
+    assert "seed" in lowered, (
+        "nothing on the page tells a reader whether re-running seeds supplies this book, and the "
+        "arithmetic beside it says it does")
+    assert "0.444030" in live_decisions or "no new information" in lowered, (
+        "the refusal renders as an assertion with its demonstration stripped -- the unchanged "
+        "figure under replication IS the argument")
+
+
+def test_the_page_says_a_bigger_book_would_not_make_the_grading_population_independent(
+        live, live_decisions):
+    """DEFECT: a reader who meets a priced requirement takes away that a bigger book fixes it.
+
+    It does not. Four of the accounts the concordance is graded on left under the value arm and not
+    under the control, so the arm's own price rise manufactured part of the outcome it is scored
+    against -- and no sample size touches that. Both halves have to be in the same block or the
+    first reads as the whole answer.
+    """
+    gap = (live["decisions"]["discrimination_auc_within_year"]
+           .get("the_grading_population_is_not_independent") or {})
+    assert gap.get("available") is True, gap
+    moved = gap["outcome_moved_by_the_arms_own_price"]
+    assert str(moved["departures_on_those_accounts"]) in live_decisions
+    assert gap["is_it_available_today"] is False
+    # The REFUSAL of the obvious repair, not merely the statement of the problem. Naming the
+    # contaminated accounts without refusing "drop them" invites exactly that edit.
+    assert "post-treatment" in live_decisions, (
+        "the page names the contaminated accounts and does not tell the reader why removing them "
+        "is not the repair, which is the edit a careful reader would make next")
+
+
+def test_the_page_never_prices_a_larger_book_it_cannot_price(live, live_decisions):
+    """FAIL-OPEN, and in the flattering direction. One clean probe point multiplied by the book
+    multiple reads exactly like a measured cost, and it would let this page tell a reader what
+    settling the thesis costs on the strength of a gradient nobody has measured."""
+    cost = ((live["decisions"]["discrimination_auc_within_year"].get("what_would_settle_it") or {})
+            .get("the_cost") or {})
+    assert cost.get("available") is True, cost
+    here = cost["this_book"]
+    assert "{:.1f}".format(here["machine_hours_at_least"]) in live_decisions, (
+        "the cost of the run we HAVE does not reach the page, so 'at least this much' has no "
+        "anchor")
+    if not cost["a_larger_book"].get("available"):
+        assert "not established" in live_decisions.lower(), (
+            "the page prices a larger book from a probe that declares no slope")
+
+
+def test_a_probe_that_HAS_a_slope_takes_the_refusal_off_the_page(live):
+    """THE NULL CONTROL, and the branch above is worthless without it.
+
+    A page that says "not established" whatever the probe reports is not reporting, it is decorating
+    -- and it would go on saying it on the day `settlement_ceiling_probe` lands its second clean
+    point, which is the outcome this block exists to make worth having. The refusal must be keyed
+    to the probe's own `recommendation.decidable` and not to today's answer, so this asserts the
+    OTHER branch is reachable before anything is asserted about the one that is live.
+    """
+    feed = copy.deepcopy(live)
+    cost = (feed["decisions"]["discrimination_auc_within_year"]["what_would_settle_it"]
+            ["the_cost"])
+    assert cost["a_larger_book"].get("available") is False, (
+        "this machine's probe now declares a slope, so the fixture below is bending a branch that "
+        "is already live and the test has stopped measuring anything")
+    cost["a_larger_book"] = {"available": True, "clean_points": 2, "marginal": []}
+    page = _element(_render(feed), DECISIONS)
+    assert "not established" not in page.lower(), (
+        "the page still refuses to price a larger book after the probe supplied a slope -- the "
+        "refusal is pinned to a string and not to the probe's own verdict")
+    assert "2 clean points" in page, (
+        "the refusal came off and nothing replaced it, so a reader who could have been told what "
+        "the larger book costs is told nothing at all")
+
+
 def test_the_withdrawal_reaches_the_rendered_page(live, live_decisions):
     """A reader must not meet the household claim as a CLAIM while the stratified figure is inside
     its null.

@@ -1,0 +1,173 @@
+"""The withdrawal has a route out; these ask whether the route is priced in the right unit.
+
+THE DEFECT EACH TEST NAMES is written on the test. The class is this project's most expensive
+recurring shape: two correct figures whose ratio is not a quantity. `discrimination_auc_within_year`
+shipped "about four times as many would halve the interval" with `same_year_pairs` as the subject
+of "as many". The permuted half-width falls as `1/sqrt(decisions)`; same-year pairs grow as the
+SQUARE of decisions. Four times the pairs is twice the decisions and a 29% narrower interval, so the
+published remedy was wrong by a factor of four in the unit a reader would have bought a book in.
+
+TWO OF THESE ARE MEASUREMENTS AND NOT ASSERTIONS, and they are the ones that can refuse the block.
+`test_the_within_year_null_falls_as_one_over_root_decisions` permutes the stratified null -- a
+different construction from the unstratified one the sibling file checks, because `retained` is
+shuffled WITHIN each year -- at four sizes and demands the measured constants agree. And
+`test_replicating_the_rows_moves_the_null_and_not_the_answer` is the whole seeds refusal: it
+replicates one book's rows and watches an unchanged figure walk outside its own null.
+"""
+from __future__ import annotations
+
+import json
+import random
+from pathlib import Path
+
+import pytest
+
+from tools.generate_value_arms_data import (
+    _pooled_within_year_auc,
+    _within_year_concordance,
+)
+
+PROJECT = Path(__file__).resolve().parents[2]
+ARTEFACT = (PROJECT / "docs" / "observability" / "value_cycle_ab_s1_three_arm.json")
+
+#: FEWER DRAWS THAN THE PUBLISHER'S 8,000, deliberately. These tests read the SHAPE of the law --
+#: whether a constant holds across four sample sizes -- not an endpoint anyone publishes, and the
+#: Monte-Carlo error at 2,000 is an order of magnitude below the effect they are looking for. The
+#: seed is the publisher's so a green here and a red on the page cannot be a seed difference.
+DRAWS = 2000
+SEED = 20260910
+
+
+@pytest.fixture(scope="module")
+def rows():
+    if not ARTEFACT.exists():
+        pytest.skip("the three-arm artefact is not on disk")
+    belief = json.loads(ARTEFACT.read_text()).get("belief_vs_outcome") or {}
+    scored = [r for r in belief.get("scored_decisions") or []
+              if isinstance(r, dict) and isinstance(r.get("believed_p_retain"), (int, float))
+              and isinstance(r.get("retained"), bool) and isinstance(r.get("term_start"), str)]
+    if not scored:
+        pytest.skip("this artefact publishes no per-decision scored rows")
+    return scored
+
+
+@pytest.fixture(scope="module")
+def block(rows):
+    return _within_year_concordance(json.loads(ARTEFACT.read_text())["belief_vs_outcome"],
+                                    json.loads(ARTEFACT.read_text()))
+
+
+def _by_year(rows, copies=1):
+    out = {}
+    for row in rows:
+        out.setdefault(row["term_start"][:4], []).extend(dict(row) for _ in range(copies))
+    return out
+
+
+def _null(by_year, draws=DRAWS):
+    """The publisher's own null construction, at this file's draw count."""
+    rng = random.Random(SEED)
+    values = []
+    for _ in range(draws):
+        permuted = {}
+        for year, records in by_year.items():
+            flags = [r["retained"] for r in records]
+            rng.shuffle(flags)
+            permuted[year] = [dict(r, retained=f) for r, f in zip(records, flags)]
+        drawn, _pairs = _pooled_within_year_auc(permuted)
+        if drawn is not None:
+            values.append(drawn)
+    values.sort()
+    return values[int(0.025 * len(values))], values[int(0.975 * len(values))]
+
+
+def test_the_within_year_null_falls_as_one_over_root_decisions(rows):
+    """DEFECT: the remedy inverts `half_width = k / sqrt(n)` with `n` in DECISIONS. If the
+    stratified null -- permuted within year, which is not the construction the unstratified curve
+    was checked on -- does not obey that law, every count the block publishes is wrong and nothing
+    else here would notice."""
+    constants = []
+    for copies in (1, 2, 4, 8):
+        low, high = _null(_by_year(rows, copies))
+        n = len(rows) * copies
+        constants.append(((high - low) / 2.0) * (n ** 0.5))
+    # THE TOLERANCE IS ON THE SPREAD OF THE FOUR, not on any one of them against a pinned value:
+    # a control keyed to today's constant reds when the run changes and stays green when the law
+    # breaks. An eightfold change in n moving the constant by under a tenth IS the law holding.
+    assert max(constants) / min(constants) < 1.12, constants
+
+
+def test_replicating_the_rows_moves_the_null_and_not_the_answer(rows):
+    """DEFECT: `run_seeds.supplies_it` is False on the ground that duplicating rows adds no
+    ordering information. If replication moved the point estimate, that reasoning would be wrong
+    and pooling seeds would be a real route -- so this is the refusal's own falsifier.
+
+    It is also the demonstration the page publishes: an unchanged figure walking outside its own
+    null as the rows are copied is what "more rows is not more evidence" looks like."""
+    observed, _pairs = _pooled_within_year_auc(_by_year(rows, 1))
+    widths = []
+    escaped_at = None
+    for copies in (1, 2, 4, 5, 6):
+        replicated, _p = _pooled_within_year_auc(_by_year(rows, copies))
+        assert replicated == pytest.approx(observed, abs=1e-12), (copies, replicated, observed)
+        low, high = _null(_by_year(rows, copies))
+        widths.append(high - low)
+        if escaped_at is None and not low <= observed <= high:
+            escaped_at = copies
+    assert widths == sorted(widths, reverse=True), widths
+    # ...AND THE ESCAPE ACTUALLY HAPPENS. Without this the test passes on a null that never closes
+    # far enough to matter, which is the flattering half of the same finding.
+    assert escaped_at is not None and escaped_at <= 8, escaped_at
+
+
+def test_the_requirement_is_stated_in_both_units_and_they_are_not_the_same_number(block):
+    """DEFECT: the published sentence quoted a decisions-indexed law against a pair count. A block
+    that carries only one of the two units lets the next reader make the same substitution."""
+    remedy = block["what_would_settle_it"]
+    assert remedy["available"], remedy
+    decisions_multiple = remedy["the_requirement"]["times_this_run"]
+    pairs_multiple = remedy["in_same_year_pairs"]["times_this_runs_pairs"]
+    assert pairs_multiple == pytest.approx(decisions_multiple ** 2)
+    assert pairs_multiple > decisions_multiple
+    assert remedy["in_same_year_pairs"]["same_year_pairs_needed"] > block["same_year_pairs"]
+
+
+def test_the_account_count_is_the_population_and_not_the_artefacts_sample(block, rows):
+    """DEFECT: `accounts_needed` divides by a decisions-per-account rate. `auc_population.accounts`
+    published 17 -- the accounts in the artefact's ten-row samples -- for a population of 66, and
+    reading that would have overstated the required book by nearly four times."""
+    households = {str(r["account"]).split("_")[0] for r in rows}
+    assert block["accounts"] == len(households)
+    assert block["what_would_settle_it"]["the_requirement"]["scored_accounts_this_run"] == (
+        len(households))
+
+
+def test_the_cost_refuses_to_price_a_larger_book_rather_than_extrapolating(block):
+    """DEFECT: one clean probe point multiplied by the book multiple reads exactly like a measured
+    cost. The block may state this book's cost as a FLOOR and must not state the larger book's at
+    all until the probe declares a slope."""
+    cost = block["what_would_settle_it"]["the_cost"]
+    here = cost["this_book"]
+    assert here["peak_mb_at_least"] > 0 and here["machine_hours_at_least"] > 0
+    larger = cost["a_larger_book"]
+    if not larger.get("available"):
+        assert larger.get("reason")
+        # NO NUMBER FOR THE THING IT CANNOT PRICE. A refusal that still publishes a figure for the
+        # larger book is the fail-open shape: a reader takes the number and drops the caveat.
+        assert "peak_mb" not in larger and "machine_hours" not in larger
+
+
+def test_the_independence_gap_is_not_repaired_by_dropping_the_contaminated_accounts(block):
+    """DEFECT: the obvious repair -- score only the decisions both arms agreed about -- conditions
+    on a post-treatment variable and biases toward the null. A block that named the contaminated
+    accounts without refusing that repair invites it."""
+    gap = block["the_grading_population_is_not_independent"]
+    assert gap["available"], gap
+    assert gap["is_it_available_today"] is False and gap["why_not"]
+    moved = gap["outcome_moved_by_the_arms_own_price"]
+    assert moved["scored_rows_on_those_accounts"] > 0
+    assert moved["departures_on_those_accounts"] <= moved["departures"]
+    assert "post-treatment" in gap["dropping_them_is_not_the_repair"]
+    # ...AND THE ROUTE IT LEAVES OPEN IS A DIFFERENT POPULATION, not a smaller one.
+    assert any("MUST NOT BE A FUNCTION OF THE BELIEF" in clause
+               for clause in gap["what_an_independent_population_must_look_like"])

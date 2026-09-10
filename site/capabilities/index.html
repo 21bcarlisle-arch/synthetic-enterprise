@@ -1955,6 +1955,80 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                        + esc(dec.discrimination_auc_within_year.all_pairs) + ")"
                      : "")
                 + ". " + prose(dec.auc_reading) + "</p>")
+          // THE ROUTE OUT OF THE WITHDRAWAL, IN THE SAME BLOCK AS THE WITHDRAWAL. The paragraph
+          // directly above takes the household claim away. A reader who meets that and nothing
+          // else has been told the question is closed; it is the thesis's own central open
+          // question. What earning it back would take is priced from the run's own permuted
+          // interval and this machine's own measured cost, and the cost is stated because a
+          // requirement with no price is a wish.
+          + (function () {
+              var wy = dec.discrimination_auc_within_year || {};
+              var s = wy.what_would_settle_it;
+              if (!s || !s.available) { return ""; }
+              var req = s.the_requirement || {}, pairs = s.in_same_year_pairs || {},
+                  book = s.the_book || {}, seeds = s.run_seeds || {}, cost = s.the_cost || {},
+                  here = cost.this_book || {}, bigger = cost.a_larger_book || {};
+              return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>What would lift the withdrawal.</strong> "
+                + "This run could never have called a departure from 0.5 smaller than "
+                + "<strong>" + (s.what_it_could_have_detected || {}).detectable_excess.toFixed(3)
+                + "</strong>; it read " + wy.auc.toFixed(3) + ", a departure of "
+                + (s.what_it_could_have_detected || {}).observed_excess.toFixed(3) + ". Calling "
+                + "one that small needs about <strong>" + esc(req.scored_decisions_needed)
+                + "</strong> scored decisions — " + req.times_this_run.toFixed(1) + "× this run’s "
+                + esc(req.scored_decisions_this_run) + ", on about "
+                + esc(req.scored_accounts_needed) + " accounts, which is "
+                + esc(pairs.same_year_pairs_needed) + " same-year pairs against today’s "
+                + esc(pairs.same_year_pairs_this_run)
+                + (book.priced_renewals_needed
+                    ? " — a book of about " + esc(book.priced_renewals_needed)
+                      + " priced renewals out of " + esc(book.renewals_the_world_must_offer)
+                      + " the world must offer"
+                    : "")
+                + ". " + prose(pairs.the_sentence_this_corrects) + "</p>"
+                // THE CHEAP ROUTE, AND WHY IT IS NOT ONE. Published where the requirement is,
+                // because "just run more seeds" is the first thing a reader with a machine asks
+                // and the arithmetic agrees with them right up to the point it stops.
+                + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>Re-running seeds does not buy it.</strong> " + prose(seeds.why_not)
+                + " " + prose(seeds.the_demonstration) + " " + prose(seeds.what_would_supply_it)
+                + "</p>"
+                + '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>What it would cost.</strong> One pass on the book we have took at "
+                + "least " + here.machine_hours_at_least.toFixed(1) + " machine-hours at a peak of "
+                + "at least " + (here.peak_mb_at_least / 1024).toFixed(1) + " GB, and "
+                + prose(here.and_they_run_one_at_a_time) + ". "
+                // KEYED TO THE PROBE'S OWN VERDICT, NOT TO TODAY'S ANSWER. Hard-coding the
+                // refusal would leave this page saying "not established" on the day the probe
+                // lands its second clean point — a sentence that goes stale in the direction of
+                // pessimism reads as caution and is just as wrong as one that goes stale the
+                // other way. The `available` branch is the one nothing on this machine can reach
+                // yet; it is here so that landing the second point is all it takes.
+                + (bigger.available
+                    ? "The larger book is priced from the probe's own slope over "
+                      + esc(bigger.clean_points) + " clean points. "
+                    : "What the larger book costs is not established: " + prose(bigger.reason)
+                      + (bigger.what_one_clean_point_is
+                          ? " " + prose(bigger.what_one_clean_point_is) : "") + " ")
+                + prose(cost.why_this_book_is_a_floor_on_a_larger_one) + "</p>";
+            }())
+          // ...AND THE HALF NO BOOK SIZE REPAIRS. The requirement above is about POWER. This is
+          // about whether the outcome being graded is independent of the grader, and a reader who
+          // meets only the first will take away that a bigger book fixes everything.
+          + (function () {
+              var g = (dec.discrimination_auc_within_year || {})
+                        .the_grading_population_is_not_independent;
+              if (!g || !g.available) { return ""; }
+              var m = g.outcome_moved_by_the_arms_own_price || {};
+              return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                + "<strong>And a bigger book would not make the grading population "
+                + "independent.</strong> " + prose(m.reading) + " "
+                + prose(g.dropping_them_is_not_the_repair)
+                + " What a clean population would have to be: "
+                + (g.what_an_independent_population_must_look_like || [])
+                    .map(function (x) { return prose(x); }).join(" ")
+                + " " + prose(g.why_not) + " " + prose(g.what_would_have_to_be_recorded) + "</p>";
+            }())
           // WHICH DEPARTURES, named where the reader meets the figure — or why they are not
           // named. A rank statistic on ten departures that does not say which ten is a number
           // nobody can check, and the artefact this run was built from predates the field that

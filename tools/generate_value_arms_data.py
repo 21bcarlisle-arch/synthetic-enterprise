@@ -140,7 +140,12 @@ from tools.product_gate_refusal import refusal_breakdown
 # one place this file derives instead of reading, and it derives by calling the same function the
 # run stores -- so the page and the artefact cannot carry two answers to one question. See that
 # function for why the "never recomputed here" rule does not reach a pair-count identity.
-from tools.run_value_cycle_ab import _concordance, pair_strata, remedy_price_table
+from tools.run_value_cycle_ab import (
+    FLOOR_RUN_PEAK_MB,
+    _concordance,
+    pair_strata,
+    remedy_price_table,
+)
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -3793,7 +3798,7 @@ def _method_skill(three_arm: dict) -> dict:
         # while leaving this one bare would put the withdrawn claim back on the page through the
         # other door -- the shape `_book` records against itself for the settled-book counts.
         "churn_auc_within_year": _within_year_concordance(
-            (three_arm or {}).get("belief_vs_outcome") or {}),
+            (three_arm or {}).get("belief_vs_outcome") or {}, three_arm),
         # ...AND WHETHER THE RUN'S OWN REASON FOR SAYING NOTHING STANDS UP. `reading` below is the
         # producer's sentence, unedited, and it ends "that is a statement about how few decisions
         # there are". This run's unconditioned cut refutes that from the same book with fewer
@@ -4755,6 +4760,25 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
 _WITHIN_YEAR_NULL_DRAWS = 8000
 _WITHIN_YEAR_NULL_SEED = 20260910
 
+#: WHAT ONE PASS ON THIS BOOK ACTUALLY COST, from the systemd accounting of the kill that
+#: established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB` -- the same record, read for its other
+#: half. `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, seeds 11111/22222/33333):
+#: "Consumed 1h 9min 7.465s CPU time over 1h 9min 35.554s wall clock time, 6.4G memory peak,
+#: 895.8M memory swap peak", and it was OOM-KILLED before finishing. Both numbers are therefore
+#: FLOORS on what a completed pass costs and never estimates of it, which is the only direction
+#: that lets a cost block refuse a book rather than certify one.
+_MEASURED_PASS_WALL_S = 4175.554
+_MEASURED_PASS_SEEDS = 3
+_MEASURED_PASS_UNIT = (
+    "systemd accounting for `se-noise-floor-20260903` (2026-09-03, `--redraw-mode all`, three "
+    "seeds), the run whose kill established `tools.run_value_cycle_ab.FLOOR_RUN_PEAK_MB`. It was "
+    "OOM-killed before finishing, so both figures are FLOORS on a completed pass")
+
+#: THE PROBE THAT WOULD PRICE A BIGGER BOOK, and the field that says it cannot yet. Read rather
+#: than restated: the probe publishes its own `recommendation.decidable`, and a cost block that
+#: hard-coded "no slope" would go on saying it after the second point landed.
+_CEILING_PROBE = "settlement_ceiling_probe.json"
+
 
 def _pooled_within_year_auc(by_year: dict) -> tuple:
     """The concordance computed ONLY between decisions taken in the same calendar year.
@@ -4780,7 +4804,325 @@ def _pooled_within_year_auc(by_year: dict) -> tuple:
     return (weighted / pairs if pairs else None), pairs
 
 
-def _within_year_concordance(belief: dict) -> dict:
+def _pass_cost(observability: Path | None = None) -> dict:
+    """WHAT A RUN COSTS AND WHAT A BIGGER BOOK WOULD, or the reason the second cannot be priced.
+
+    TWO DIFFERENT QUESTIONS AND ONLY ONE OF THEM IS ANSWERED. What a pass on THIS book costs is
+    measured -- the systemd record above is a real kill on this machine. What a pass on a book
+    several times the size costs is a SLOPE, and `settlement_ceiling_probe` has one clean point
+    and says so in its own `recommendation.decidable`. One point is a cost, never a gradient, and
+    multiplying it by the book multiple would be the same shape as pricing a 4.75x book at 4.75x
+    the memory because that is the arithmetic a reader expects.
+
+    THE ONE-SIDEDNESS IS THE POINT, and it is the same asymmetry `inference_claim._attainability`
+    enforces one file over. Wall clock and peak memory are non-decreasing in book size, so this
+    book's cost is a FLOOR on the larger book's and the block can say "at least this much". It
+    cannot say "about this much", and it never says "this fits".
+    """
+    directory = observability or OBSERVABILITY_DIR
+    slope = {"available": False,
+             "reason": "the probe artefact `{}` is not on disk".format(_CEILING_PROBE)}
+    try:
+        probe = json.loads((directory / _CEILING_PROBE).read_text())
+    except Exception as exc:  # noqa: BLE001 -- any failure here is "cannot tell", not "fine"
+        slope["reason"] = "`{}` could not be read ({}: {})".format(
+            _CEILING_PROBE, type(exc).__name__, exc)
+    else:
+        recommendation = probe.get("recommendation") or {}
+        clean = [row for row in (probe.get("points") or []) if row.get("clean")]
+        if recommendation.get("decidable"):
+            slope = {"available": True, "clean_points": len(clean),
+                     "marginal": probe.get("marginal")}
+        else:
+            slope = {
+                "available": False,
+                "clean_points": len(clean),
+                "reason": recommendation.get("reason") or "the probe declares no usable slope",
+                "what_one_clean_point_is": (
+                    "a cost, never a gradient. The one clean point is {} customer-years at "
+                    "{:,.0f} MB peak over {:,.0f} s wall -- enough to say what a run of that size "
+                    "took and not enough to say what any other size takes.".format(
+                        clean[0].get("budget"), clean[0].get("peak_rss_mb"), clean[0].get("wall_s"))
+                    if clean else
+                    "not even that: the probe carries no clean point at all"),
+            }
+    return {
+        "available": True,
+        "this_book": {
+            "peak_mb_at_least": FLOOR_RUN_PEAK_MB,
+            "wall_seconds_at_least": _MEASURED_PASS_WALL_S,
+            "seeds_in_that_pass": _MEASURED_PASS_SEEDS,
+            "machine_hours_at_least": _MEASURED_PASS_WALL_S / 3600.0,
+            "wall_seconds_per_seed_at_least": _MEASURED_PASS_WALL_S / _MEASURED_PASS_SEEDS,
+            "measured_by": _MEASURED_PASS_UNIT,
+            "and_they_run_one_at_a_time": (
+                "`tools.run_value_cycle_ab.floor_run_headroom_refusal` refuses a second concurrent "
+                "leg against this machine's live headroom, so the legs a settling run needs are "
+                "SERIAL and their wall clocks add rather than overlap"),
+        },
+        "a_larger_book": slope,
+        "why_this_book_is_a_floor_on_a_larger_one": (
+            "wall clock and peak memory are non-decreasing in the size of the book being settled, "
+            "so the pass above is the cheapest a bigger book can be. That direction is safe and "
+            "the other one is not: this block can say a requirement costs AT LEAST something and "
+            "can say it cannot price it, and it can never say a requirement is affordable."),
+    }
+
+
+def _within_year_remedy(*, observed, null_low, null_high, decisions, accounts, pairs,
+                        funnel: dict | None) -> dict:
+    """WHAT RUN WOULD SETTLE THE WITHIN-YEAR CONCORDANCE, beside the withdrawal it lifts.
+
+    WHY THIS EXISTS. `_within_year_clause` withdraws the page's household claim and says the
+    sample cannot tell either way. A withdrawal with no route out is where an inferential claim
+    goes quietly to die -- the reader meets "we were wrong" and nothing about what being right
+    would take. The selection leg got its route (`what_would_settle_the_sign`, 2.8x or 44.9x) and
+    the thesis's own central question deserves the same. This is that block.
+
+    THE ARITHMETIC IS `inference_claim.detectability`, CALLED AND NOT COPIED. That function already
+    reads a permuted interval, takes its half-width as the smallest departure the instrument could
+    call, fits the scale constant `k = half_width * sqrt(n)` from the run's own permutation, and
+    inverts it. Two call sites in this file already use it for the method-skill cuts. Writing a
+    second implementation for the stratified twin is how one statistic acquires two answers.
+
+    THE INDEX IS DECISIONS AND THE PAGE'S OWN SENTENCE INDEXED ON PAIRS. `what_this_does_not_
+    establish` shipped "about four times as many would halve the interval" with `same_year_pairs`
+    as its subject. The permuted half-width falls as 1/sqrt(DECISIONS), and same-year pairs grow
+    as the SQUARE of decisions -- so four times the pairs is twice the decisions and shrinks the
+    interval by 29%, not half. Halving it takes SIXTEEN times the pairs. Both statements are
+    published here, the wrong one named, because a reader who took the old sentence away needs to
+    meet the correction and not merely its replacement.
+
+    Measured, not asserted: the 1/sqrt(decisions) law is checked for THIS null -- permuted within
+    year, which is a different construction from the unstratified one -- at four sample sizes in
+    `tests/tools/test_the_within_year_remedy_is_indexed_on_decisions.py`.
+    """
+    reading = detectability(observed=observed, null_low=null_low, null_high=null_high,
+                            n=decisions, accounts=accounts)
+    # NEITHER `window_years` NOR `settled_book_accounts` IS PASSED, for exactly the two reasons the
+    # method-skill call sites give: the artefact declares no window for the settled-book ceiling to
+    # be read at, and the settled count that would carry a scored-account requirement into the
+    # ceiling's population is one `_book` withholds. So the attainability verdict is `None` with
+    # its cause named, and the cost block below is what answers "can this world supply it".
+    if not reading.get("available"):
+        return {"available": False, "reason": reading.get("reason")}
+
+    needed = (reading.get("the_book_this_would_need") or {}).get(
+        "decisions_needed_for_the_observed_effect")
+    needed_accounts = (reading.get("the_book_this_would_need") or {}).get(
+        "accounts_needed_for_the_observed_effect")
+    multiple = (needed / decisions) if needed and decisions else None
+    # PAIRS GO AS THE SQUARE OF DECISIONS. Both counts are published because the reader met the
+    # figure in pairs -- "402 of 3,320" is what the page prints -- and the requirement is in
+    # decisions. A translation stated in only one of the two units is the sentence being corrected.
+    pairs_needed = int(round(pairs * multiple * multiple)) if multiple and pairs else None
+
+    priced_share = _f((funnel or {}).get("scored_share_of_priced"))
+    offered_share = _f((funnel or {}).get("priced_share_of_renewals_offered"))
+    priced_needed = int(math.ceil(needed / priced_share)) if needed and priced_share else None
+    offered_needed = (int(math.ceil(priced_needed / offered_share))
+                      if priced_needed and offered_share else None)
+
+    return {
+        "available": True,
+        "what_this_is": (
+            "What run would let the within-year concordance fall outside its null EITHER WAY, "
+            "priced on this run's own permuted interval, this run's own book, and this machine's "
+            "own measured cost. It is a bound on the instrument and never a book to grow towards "
+            "(R12): a book enlarged until this figure returns a direction is the failure this arm "
+            "exists to be able to report."),
+        "what_it_could_have_detected": reading,
+        "the_requirement": {
+            "scored_decisions_needed": needed,
+            "scored_decisions_this_run": decisions,
+            "times_this_run": multiple,
+            "scored_accounts_needed": needed_accounts,
+            "scored_accounts_this_run": accounts,
+            "the_index_is_decisions": (
+                "the permuted half-width falls as 1/sqrt(DECISIONS) -- accounts and pairs are "
+                "derived from that and never indexed on directly. `accounts_needed` carries this "
+                "run's own decisions-per-account rate and nothing else."),
+        },
+        "in_same_year_pairs": {
+            "same_year_pairs_this_run": pairs,
+            "same_year_pairs_needed": pairs_needed,
+            "times_this_runs_pairs": (multiple * multiple) if multiple else None,
+            "why_the_two_multiples_differ": (
+                "same-year pairs grow as the SQUARE of same-year decisions, so a book {m:.2f}x "
+                "this one carries {sq:.1f}x the pairs. A requirement quoted in pairs and a "
+                "requirement quoted in decisions are the same requirement and they are not the "
+                "same number.".format(m=multiple, sq=multiple * multiple)
+                if multiple else "no multiple is available to translate"),
+            "the_sentence_this_corrects": (
+                "This block's own `what_this_does_not_establish` read \"about four times as many "
+                "would halve the interval\" with same-year PAIRS as its subject. Four times the "
+                "pairs is twice the decisions and shrinks the interval by 29%, not half; halving "
+                "it takes four times the decisions, which is SIXTEEN times the pairs. The claim "
+                "was true of decisions and was printed against pairs."),
+        },
+        "the_book": {
+            "priced_renewals_needed": priced_needed,
+            "renewals_the_world_must_offer": offered_needed,
+            "scored_share_of_priced": priced_share,
+            "priced_share_of_renewals_offered": offered_share,
+            "what_each_count_counts": (
+                "`scored_decisions_needed` is what the INSTRUMENT consumes -- priced renewals the "
+                "world also billed under the price that was chosen. `priced_renewals_needed` "
+                "carries it back through this run's own scored share, and "
+                "`renewals_the_world_must_offer` back through the funnel's own priced share. Each "
+                "step is a decisions-over-decisions ratio from one run; none of them is a "
+                "forecast, and the last is mostly a published fact about GB's product mix."),
+        },
+        "run_seeds": _within_year_seeds_refusal(multiple),
+        "the_cost": _pass_cost(),
+    }
+
+
+def _within_year_seeds_refusal(multiple) -> dict:
+    """HOW MANY RUN-SEEDS THIS IMPLIES, and the answer is none -- with the demonstration.
+
+    THE QUESTION IS FAIR AND THE OBVIOUS ANSWER IS A TRAP. A seed re-draw is cheap next to a
+    bigger book, and 4.75 passes pooled would supply 584 rows. But `price_elasticity_for_customer`
+    is a pure function of `(customer_id, seed)`, so a new seed re-rolls the SAME roster's
+    elasticity -- `redraw_scope.mode` is `all` and every seed row in the floor artefact reports
+    `accounts_redrawn` 66. The households do not change and neither do their belief values; only
+    the outcome rolls. A concordance is a statement about the ORDERING of belief values, and s
+    copies of one household's belief add no ordering the first copy did not already carry.
+
+    MEASURED, AND THE MEASUREMENT IS THE WHOLE ARGUMENT. Replicate this run's own 123 rows s times
+    unchanged and the point estimate does not move by a single digit -- 0.444030 at every s -- while
+    the row-level permuted null narrows as 1/sqrt(s). At FIVE copies the figure falls OUTSIDE its
+    null. Five copies of one book, containing not one new observation, manufactures exactly the
+    result this page is being asked to earn, and at almost exactly the multiple the honest
+    arithmetic demands. That coincidence is why this refusal is published beside the requirement
+    rather than left for a reader to work out.
+
+    The demonstration is a control, not a claim: `tests/tools/
+    test_the_within_year_remedy_is_indexed_on_decisions.py::test_replicating_the_rows_moves_the_null_and_not_the_answer`.
+    """
+    return {
+        "supplies_it": False,
+        "seeds_the_arithmetic_would_imply": multiple,
+        "why_not": (
+            "a re-seed re-rolls the SAME households' elasticity -- "
+            "`population_draw.price_elasticity_for_customer` is a pure function of "
+            "(customer_id, seed) and the floor artefact's every seed row reports the same 66 "
+            "accounts re-drawn. Pooling s seeds multiplies decision ROWS by s and leaves the "
+            "belief values, and therefore the ordering a concordance reads, exactly where they "
+            "were. The permuted null narrows as 1/sqrt(s) anyway, because its exchangeable unit "
+            "is the row."),
+        "the_demonstration": (
+            "replicating this run's 123 rows unchanged leaves the within-year concordance at "
+            "0.444030 at every replication factor while the null closes around it, and at FIVE "
+            "copies the unchanged figure sits OUTSIDE the interval. Five copies of one book is "
+            "close to the {m} this requirement asks for, and it contains no new information at "
+            "all.".format(m="4.75x" if multiple is None else "{:.2f}x".format(multiple))),
+        "what_seeds_are_good_for": (
+            "the outcome-roll half of the variance, which is real and is what the nine-seed floor "
+            "legs measure for the money contrasts. They cannot buy the household-draw half, and "
+            "the concordance is limited by that half."),
+        "what_would_supply_it": (
+            "more HOUSEHOLDS carrying a priced renewal the world also billed -- a larger settled "
+            "book, which is the only lever `what_it_could_have_detected.the_book_this_would_need."
+            "why_only_a_larger_book` leaves standing."),
+    }
+
+
+def _grading_population_independence(three_arm: dict | None, scored: list) -> dict:
+    """WHOSE DEPARTURE THE ARM'S OWN PRICE CAUSED, and what a clean grading population would be.
+
+    THE SECOND QUESTION THE SAME FEED RAISES. `auc_attribution` already names four accounts that
+    left under the value arm and not under the control, and the reading already says the graded
+    population is partly manufactured by the arm's own price rise. What nothing has said is what
+    the alternative would have to LOOK like, and the obvious repair is wrong in a way worth
+    printing.
+
+    DROPPING THEM IS NOT THE FIX, and this is the trap. "Score only the accounts both arms agreed
+    about" conditions on a POST-TREATMENT variable: the subset is defined by the outcome, and the
+    cases it removes are exactly the ones where the price mattered. It biases toward the null -- it
+    would make an already-inside-its-null figure look cleaner while measuring less. The remedy is
+    not a subset of this population; it is a different one.
+
+    WHAT A CLEAN POPULATION IS. Score the value arm's belief against outcomes generated under a
+    price that belief did not set -- the control arm's. The control prices one flat level and
+    reads nothing per household, so its churn roll is not a function of `believed_p_retain`. This
+    artefact cannot supply that today and the block says which field is missing rather than
+    leaving the reader with a principle.
+    """
+    diff = ((three_arm or {}).get("churn_roster_diff") or {})
+    if not diff.get("available"):
+        return {"available": False,
+                "reason": ("this run publishes no `churn_roster_diff`, so which departures the "
+                           "arm's own price caused is unestablished here rather than absent")}
+    value_only = [str(row.get("account")) for row in (diff.get("only_in_value_arm") or [])
+                  if isinstance(row, dict) and row.get("account")]
+    control_only = [str(row.get("account")) for row in (diff.get("only_in_control_arm") or [])
+                    if isinstance(row, dict) and row.get("account")]
+    moved = set(value_only) | set(control_only)
+    touched = [row for row in scored if str(row.get("account")) in moved]
+    departures = sum(1 for row in scored if row.get("retained") is False)
+    control = (three_arm or {}).get("control_arm") or {}
+    control_priced = control.get("renewals_priced_by_the_arm")
+    return {
+        "available": True,
+        "what_this_is": (
+            "How much of the graded outcome the arm's own price rise made, and what a grading "
+            "population that did not have that property would have to be."),
+        "outcome_moved_by_the_arms_own_price": {
+            "left_under_the_value_arm_only": sorted(value_only),
+            "left_under_the_control_arm_only": sorted(control_only),
+            "churned_under_both": diff.get("churned_under_both"),
+            "scored_rows_on_those_accounts": len(touched),
+            "scored_rows": len(scored),
+            "departures_on_those_accounts": sum(1 for row in touched
+                                                if row.get("retained") is False),
+            "departures": departures,
+            "reading": (
+                "{r} of the {n} scored rows sit on the {a} accounts the two arms disagreed about, "
+                "and {d} of the {t} departures the concordance is graded on are among them. Both "
+                "directions are counted: an account the value arm alone lost is an outcome its "
+                "price manufactured, and an account the CONTROL alone lost is one its price "
+                "prevented. Neither is a free-standing fact about who leaves.".format(
+                    r=len(touched), n=len(scored), a=len(moved),
+                    d=sum(1 for row in touched if row.get("retained") is False), t=departures)),
+        },
+        "dropping_them_is_not_the_repair": (
+            "The set is defined BY the outcome. Removing the decisions where the price changed "
+            "what happened conditions on a post-treatment variable and keeps exactly the "
+            "decisions where the arm's choice did not bite -- which biases the concordance toward "
+            "no-information while shrinking the sample that would have to clear a wider null. It "
+            "would make this figure look cleaner and mean less. The remedy is a different "
+            "population, never a subset of this one."),
+        "what_an_independent_population_must_look_like": [
+            "THE OUTCOME MUST NOT BE A FUNCTION OF THE BELIEF BEING GRADED. The churn roll has to "
+            "happen at a price the per-household belief did not set -- the control arm's flat "
+            "level is exactly such a price, and it is already run on the same households in the "
+            "same world.",
+            "THE BELIEF MUST STILL BE THE VALUE ARM'S, recorded per (account, term) at the moment "
+            "it was formed. Grading the control arm's own belief would answer a different "
+            "question: the control forms none, `renewals_priced_by_the_arm` is {}.".format(
+                control_priced),
+            "THE POPULATION MUST BE FIXED BEFORE THE OUTCOME IS READ. Any membership rule that "
+            "consults `retained` -- including 'the arms agreed' -- reintroduces the defect under "
+            "a tidier name.",
+        ],
+        "is_it_available_today": False,
+        "why_not": (
+            "the control arm publishes no per-decision rows to score against: "
+            "`control_arm.renewals_priced_by_the_arm` is {}, and its roster reaches this artefact "
+            "only as account-level totals and the churn roster diff above. There is no "
+            "(account, term, retained) list on the control side to put the value arm's "
+            "`believed_p_retain` beside.".format(control_priced)),
+        "what_would_have_to_be_recorded": (
+            "the control arm's own (account, term_start, retained) rows, on the same schedule "
+            "`belief_vs_outcome.scored_decisions` records the value arm's. Both arms already run "
+            "in one pass on one world, so this is a field the run does not write rather than a "
+            "run nobody has done -- and it costs no extra pass, which makes it cheaper than every "
+            "figure in `what_would_settle_it` beside it."),
+    }
+
+
+def _within_year_concordance(belief: dict, three_arm: dict | None = None) -> dict:
     """Does the belief rank households WITHIN a year, or is it tracking the era?
 
     WHY THIS IS NOT A STYLISTIC CHOICE, and the reason it belongs beside the published figure
@@ -4858,12 +5200,21 @@ def _within_year_concordance(belief: dict) -> dict:
     at_least_as_far = sum(1 for value in draws if abs(value - 0.5) >= abs(observed - 0.5))
     p_two_sided = (at_least_as_far + 1) / (len(draws) + 1)
 
+    # THE ACCOUNT COUNT IS DERIVED FROM THESE ROWS AND FROM NOTHING ELSE. `decisions.auc_population.
+    # accounts` beside this block counts the artefact's 10+10 SAMPLE rows and reports 17 for a
+    # population of 66 -- a sample count wearing a population label, which the remedy below would
+    # divide by. The rows this function already holds are the population, so it counts them.
+    # Split on "_" because a term suffix (`C5_2`) is a second decision on one household, and the
+    # unit the 1/n law indexes on is the household: the floor artefact's own `accounts_redrawn` is
+    # 66 on every seed, which is this count and not the 67 raw fields.
+    accounts = len({str(row["account"]).split("_")[0] for row in scored if row.get("account")})
     return {
         "available": True,
         "auc": observed,
         "unstratified_auc": unstratified,
         "same_year_pairs": pairs,
         "all_pairs": total_pairs,
+        "accounts": accounts,
         "same_year_share_of_pairs": (pairs / total_pairs) if total_pairs else None,
         "null_point": 0.5,
         "null_95_low": low,
@@ -4881,8 +5232,32 @@ def _within_year_concordance(belief: dict) -> dict:
         "what_this_does_not_establish": (
             "A within-year figure inside its null does NOT establish that the belief is "
             "uninformative -- that is the same overclaim in the opposite direction. On "
-            "{p:,} same-year pairs this sample cannot tell either way; about four times as many "
-            "would halve the interval.".format(p=pairs)),
+            "{p:,} same-year pairs this sample cannot tell either way. Halving the interval takes "
+            "FOUR TIMES THE DECISIONS, which is SIXTEEN times the pairs, because the permuted "
+            "half-width falls as 1/sqrt(decisions) and same-year pairs grow as their square. "
+            "Until 2026-09-10 this sentence read \"about four times as many\" with pairs as its "
+            "subject: that is twice the decisions and a 29% narrower interval, not half. What the "
+            "run would have to be is priced in `what_would_settle_it` below.".format(p=pairs)),
+        # THE ROUTE OUT OF THE WITHDRAWAL, beside the withdrawal. A page that takes a claim away
+        # and says nothing about what earning it would cost has retired the question rather than
+        # opened it -- and this is the thesis's own central question, not a diagnostic.
+        "what_would_settle_it": _within_year_remedy(
+            observed=observed, null_low=low, null_high=high, decisions=len(scored),
+            accounts=accounts, pairs=pairs,
+            funnel={
+                "scored_share_of_priced": (belief or {}).get("scored_share_of_priced"),
+                "priced_share_of_renewals_offered": (
+                    (((three_arm or {}).get("renewal_funnel") or {}).get("value_arm") or {})
+                    .get("priced_share_of_renewals_offered")),
+            }),
+        # ...AND THE HALF OF THE PROBLEM NO BOOK SIZE TOUCHES. The requirement above is about
+        # POWER; this is about whether the thing being graded is independent of the grader. A run
+        # that met every count above and still scored the arm's belief against departures the
+        # arm's own price caused would have bought precision in a quantity that is not the one the
+        # page claims. Published together because a reader who meets only the first will read the
+        # second as solved.
+        "the_grading_population_is_not_independent": _grading_population_independence(
+            three_arm, scored),
     }
 
 
@@ -5264,7 +5639,7 @@ def _decisions(three_arm: dict, provenance: dict | None = None) -> dict:
     exclusions = _exclusions(funnel)
     who = _who_the_method_has_priced(funnel)
     attribution = _auc_attribution(three_arm, belief, who.get("priced_accounts"))
-    within_year = _within_year_concordance(belief)
+    within_year = _within_year_concordance(belief, three_arm)
     return {
         "available": isinstance(priced, int),
         "value_arm_priced": priced,
@@ -5313,7 +5688,21 @@ def _decisions(three_arm: dict, provenance: dict | None = None) -> dict:
             "retained": (belief.get("auc_population") or {}).get("retained"),
             "left": (belief.get("auc_population") or {}).get("left"),
             "scored_decisions": belief.get("priced_and_scored"),
-            "accounts": len(accounts),
+            # THE ACCOUNTS THE SCORED DECISIONS ARE ON, not the accounts in the artefact's SAMPLE.
+            # This read `len(accounts)` -- the distinct accounts across `matched_sample` and
+            # `unmatched_sample`, ten rows each -- and published 17 as the account count of a
+            # 123-decision population whose real count is 66. A sample count under a population
+            # label, in the same block as the population's own decision count, and three hundred
+            # pixels from a reading that says "100 accounts". The stratified twin below counts its
+            # own rows and the two now agree; `sample_accounts` keeps the old figure under a name
+            # that says what it is, because how concentrated the SAMPLE is remains a real fact.
+            "accounts": (within_year.get("accounts")
+                         if within_year.get("available") else None),
+            "sample_accounts": len(accounts),
+            "what_the_two_account_counts_count": (
+                "`accounts` is the households the scored decisions sit on, counted off the rows "
+                "themselves. `sample_accounts` is the households appearing in the artefact's "
+                "matched/unmatched SAMPLES, which are ten rows each and are not the population."),
         },
         "auc_attribution": attribution,
         # THE SAME FIGURE STRATIFIED BY THE TERM'S OWN YEAR, published BESIDE the unstratified one
