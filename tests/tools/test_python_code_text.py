@@ -177,3 +177,71 @@ def test_unparseable_source_reports_that_it_could_not_look():
     """MUTATION: return an empty set on SyntaxError and an unreadable file reads as a clean one --
     the caller can no longer tell "imports nothing" from "was not parsed"."""
     assert imported_modules("def f(:\n") is None
+
+
+# ── the cache: it must not be able to answer about the wrong bytes, and it must not vanish ────
+#
+# Added 2026-09-10 after the operational-layer signal timed out for seven consecutive hourly
+# checks. `supervisor.run_cycle()` re-parsed all 439 `.py` files in `tools/`+`background/` every
+# cycle (2.46s a walk) through `gap_ledger_reconciler.discover_writers()`; the escalation tests
+# drive 31 cycles each, and the module stopped fitting inside the whole suite's 1800s budget.
+
+def test_the_cache_is_keyed_to_the_BYTES_and_not_to_anything_that_merely_correlates():
+    """THE KILLER MUTATION, and the reason this leg uses two sources of IDENTICAL LENGTH.
+
+    A hit that is not content-keyed is a WRONG ANSWER INSIDE A WALL -- `searchable()` is what
+    `epistemic_wall`, `company_network_isolation` and the ratchets read source through, so a
+    cache that returns the previous file's reading makes a control assert about bytes that are
+    not there. Key this on a path, an mtime, a length, or a hash prefix and this goes red;
+    key it on the source and it cannot.
+
+    Same length, different code, and the DIFFERENCE IS OUTSIDE PROSE so the readings must differ.
+    """
+    a = 'x = "aaa"\n'
+    b = 'x = "bbb"\n'
+    assert len(a) == len(b), "the samples no longer discriminate a length-keyed cache"
+
+    first, second = code_text(a), code_text(b)
+    assert first != second, (
+        "code_text returned the same reading for two different sources of equal length -- the "
+        "cache is keyed to something that only correlates with the bytes, not to the bytes"
+    )
+    assert "aaa" in first and "bbb" not in first
+    assert "bbb" in second and "aaa" not in second
+    # ...and re-asking in the other order must not swap them either.
+    assert code_text(b) == second and code_text(a) == first
+
+
+def test_a_repeated_scan_of_the_same_source_does_not_re_parse_it():
+    """MUTATION: delete the `lru_cache` decorator and this goes red -- which is the point. The
+    cost it removes is not a micro-optimisation, it is 2.46s per supervisor cycle, and losing it
+    silently is exactly how the operational layer went unmonitored for seven hourly checks. A
+    control keyed to "the answer is right" cannot see that regression at all; this one can.
+
+    Keyed to the PROPERTY (a second ask of identical bytes is served without re-parsing), not to
+    a timing threshold, which would be flaky on a loaded box.
+    """
+    assert hasattr(code_text, "cache_info"), "code_text is no longer cached at all"
+
+    source = '"""prose."""\nrun(["python3", "-m", "background.seat_executor"])\n# note\n'
+    code_text(source)  # warm, whatever the cache held before
+    before = code_text.cache_info()
+    again = code_text(source)
+    after = code_text.cache_info()
+
+    assert after.hits == before.hits + 1, (
+        "a second ask of identical source re-parsed it: {} -> {}".format(before, after)
+    )
+    assert after.misses == before.misses, "identical source counted as a new parse"
+    assert again == code_text(source)
+
+
+def test_the_unparseable_fallback_is_still_fail_closed_through_the_cache():
+    """A cached None must still reach `searchable()` as the ORIGINAL text. MUTATION: cache
+    `searchable` instead of `code_text` while getting the fallback wrong, and an unparseable
+    file reads as empty -- which is a control that looked and saw nothing, reported as a clean
+    file. The fail-closed direction is the whole reason `searchable` exists."""
+    broken = "def f(:\n"
+    assert code_text(broken) is None
+    assert code_text(broken) is None  # served from the cache, same answer
+    assert searchable(broken) == broken

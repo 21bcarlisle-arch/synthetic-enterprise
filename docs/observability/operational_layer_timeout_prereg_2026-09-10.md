@@ -39,3 +39,43 @@ BEFORE the answer exists, so the answer can refute it.
 
 Whether the loop is unbounded (a defect in the test) or merely expensive-per-iteration (a cost
 that grew under it). The capture cannot tell those apart and I am not guessing.
+
+---
+
+# Round 2 — the per-cycle attribution (written 2026-09-10, BEFORE the profile was read)
+
+Round 1's §5 left an honest gap: a by-hand replication of the test's isolation, *including* its
+`_FakeClock`, ran one `run_cycle()` in 0.081s, while the cycle inside the real test costs ~4.3s.
+Fifty times. The cost lives on a path the replication never reached. This round attributes it.
+
+`python3 -m cProfile -o /tmp/supervisor_cycle.prof -m pytest
+tests/background/test_supervisor.py::test_stuck_escalation_survives_daemon_restart` — 31 real
+cycles, the exact test the 2026-09-10 20:02 timeout named.
+
+## The prediction
+
+4. **The cost is in `find_work()`, not in `_check_stuck_escalation()`.** `run_cycle()` stubs
+   `is_session_idle` and `grant_turn` in this test, and `_check_stuck_escalation` is disk-state
+   bookkeeping over one small JSON file. `find_work()` is the only unstubbed step that reads the
+   real repository, and it runs *once per cycle* — 31 times here.
+5. **The leaf is a pure-Python parse repeated per cycle, most likely the maturity map's YAML**,
+   not a subprocess. Round 1 measured the timed-out process at `State: R`, 100% CPU, `wchan` 0 —
+   a run paying for `git` subprocesses would sit in `S`/`D` at low CPU for much of its life.
+6. **The by-hand replication returned early.** It set no stuck agenda that survived `find_work`,
+   so it returned at the `reason is None` branch and never paid for the expensive step — which is
+   exactly why it was 50x fast and why the gap existed.
+
+## What would refute me
+
+- `_check_stuck_escalation` or `surface_missing_work_block_defects` dominating cumulative time
+  -> prediction 4 is wrong.
+- `subprocess` / `fork_exec` dominating -> prediction 5 is wrong and the 100%-CPU reading was
+  mis-read.
+- No single step dominating (cost spread evenly across the cycle) -> there is no narrowing target
+  and §7 of the round-1 finding needs rewriting, not implementing.
+
+## What is NOT predicted
+
+Whether the expensive step is *cacheable within a process*. A parse that legitimately re-reads
+because the tree can change between real 2-minute polls is not a defect in the producer, and the
+repair would then belong in the test, not in `supervisor.py`.

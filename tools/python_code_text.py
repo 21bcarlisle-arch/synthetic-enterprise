@@ -36,10 +36,36 @@ import graph is a property of the AST rather than of how someone typed it.
 from __future__ import annotations
 
 import ast
+import functools
 import io
 import tokenize
 
 __all__ = ["searchable", "code_text", "code_strings", "imported_modules", "prose_string_ids"]
+
+# WHY `code_text` IS CACHED, and why the key is the SOURCE ITSELF (2026-09-10).
+#
+# This is the cost that took the operational-layer signal off the air. `supervisor.run_cycle()`
+# reaches `gap_ledger_reconciler.discover_writers()` on EVERY cycle, which AST-parses all 439
+# `.py` files in `tools/` and `background/` (13.1 MB) to ask each one whether it WRITES the gap
+# ledger. Measured on this box: 2.46s per walk, unchanged on the second walk. The escalation
+# tests drive 31 real cycles to assert one transition, so they paid that 31 times -- profiled
+# at 320s of one 406s test, and `tests/background/test_supervisor.py` as a whole could not
+# finish inside the 1800s budget allowed for the ENTIRE operational suite. Seven consecutive
+# hourly checks timed out; the operational layer was unmonitored throughout.
+#
+# `code_text` is a pure function of its argument -- `ast.parse`, `tokenize` and three pure
+# walks over the resulting tree, no clock, no filesystem, no globals. So the SOURCE TEXT is not
+# a proxy for the cache key, it IS the cache key, and a hit cannot be stale by construction: a
+# file that changed produces different bytes and therefore misses. This is the one caching
+# shape that needs no invalidation, and the reason to prefer it to any mtime/path scheme --
+# both of which CAN go stale, and would be a silent wrong answer inside a wall.
+#
+# maxsize is 1024 because the live daemon's repeated working set is the 439 files above; that
+# is the set where hits are the whole point, and 1024 holds it with headroom. One-shot
+# whole-repo tools (2,895 tracked `.py`, 44.7 MB) get no hits at any size -- a single pass has
+# no repeats -- so sizing for them would buy nothing and only raise the resident cost of a
+# process that polls forever.
+_CODE_TEXT_CACHE_MAXSIZE = 1024
 
 
 def prose_string_ids(tree: ast.AST) -> set[int]:
@@ -128,8 +154,13 @@ def _argv_joins(tree: ast.AST) -> list[str]:
     return out
 
 
+@functools.lru_cache(maxsize=_CODE_TEXT_CACHE_MAXSIZE)
 def code_text(source: str) -> str | None:
-    """The file as code: prose blanked, argv literals rejoined. None when it will not parse."""
+    """The file as code: prose blanked, argv literals rejoined. None when it will not parse.
+
+    Cached on the source text -- see `_CODE_TEXT_CACHE_MAXSIZE` for why that key cannot go
+    stale, and what it cost to recompute it. `code_text.cache_info()` is the live evidence.
+    """
     try:
         tree = ast.parse(source)
     except (SyntaxError, ValueError):
