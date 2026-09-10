@@ -174,3 +174,79 @@ through `surgical_land` rather than a pathspec commit.
 `tools/python_code_text.py`, and the three appended legs in `tests/tools/test_python_code_text.py`.
 Evidence: `docs/observability/operational_layer_timeout_prereg_2026-09-10.md` (rounds 1 and 2,
 predictions before answers).
+
+---
+
+# AMENDMENT, same turn, ~40 minutes later — the check now finishes, and my §7 prediction was WRONG
+
+Kept beside the claim rather than revised into it, because a prediction corrected after its answer
+is not a prediction.
+
+## The prediction, and the half of it that failed
+
+§7 filed: *"the next hourly check completes inside 1800s and the signal goes GREEN, paging
+`[OPERATIONAL LAYER RECOVERED]`."*
+
+The daemon's 21:52 run — the first hourly check against the repaired tree — returned:
+
+```
+consecutive_red: 8, last_result: "red", timed_out_at: ""
+```
+
+- **CORRECT, and it is the half the draw was about: the suite COMPLETED.** `last_result` is
+  `red`, not `red_timeout`, and `timed_out_at` is empty for the first time in eight checks. The
+  operational layer is **monitored again** — it produces a verdict instead of holding the box for
+  1800s and producing nothing. That was the whole of RUNG 1b: *"it ran and did not finish, so it
+  has produced NO verdict and the operational layer is UNMONITORED."*
+- **WRONG: I said GREEN.** It is RED, with 28 real failures. I had no evidence for the colour and
+  should not have named one — the only thing my measurement licensed was a claim about the
+  *clock*. I predicted the outcome I wanted from the fact I had established.
+
+## What the red actually is — and it is NOT the repair
+
+All 28 failures are in `tests/background/test_deadmans_switch.py`. **My change cannot reach them:**
+`background.deadmans_switch` does not import `tools.python_code_text`, directly or transitively —
+checked by importing the module and asking `sys.modules`. It is False.
+
+The cause is live-state contamination, and one traceback shows the whole shape:
+
+```
+dms.run_cycle(); assert calls == []
+E  AssertionError: assert ['[DIGEST] 1 batched item(s)... [LAUNCH UNLANDED] 1 file(s)...'] == []
+```
+
+`docs/observability/value_cycle_ab_s1_noise_floor_20260910b.json` — another lane's finished
+`arms-rerun-20260910b` job — is **untracked**. The deadman's drift check correctly reports it
+(`the job finished and wrote its artefact, and that file is in no commit`), that item batches into
+a real `[DIGEST]` NTFY, and the digest lands in the `calls` list of every test asserting no page.
+28 of them. The alarm is working exactly as designed; the tests are not isolated from it.
+
+## The finding this exposes, which is worth more than the green would have been
+
+**The operational signal's verdict is contaminated by live repository state that has nothing to do
+with the operational layer.** Any lane leaving an unlanded artefact turns this signal red, and the
+page says `[OPERATIONAL LAYER] RED` — which a reader will take as a daemon-lifecycle regression.
+It is not one. That is the same fail-direction the signal's own `[OPERATIONAL LAYER BLOCKED]`
+branch was written to avoid ("this is NOT a daemon-lifecycle regression"), reappearing one seam
+over: the BLOCKED branch guards against *collection* failing for unrelated reasons, and nothing
+guards against *assertions* failing for unrelated reasons.
+
+**And the timeout was hiding it.** These 28 tests run before `test_supervisor.py` in file order, so
+they were failing on every one of the eight checks. Each run died in `test_supervisor.py` before
+pytest could report, so `red_timeout` was recorded and the real red never surfaced. *A check that
+cannot finish does not merely go unmonitored — it can conceal a red it already found.* That is the
+strongest argument yet for round 1 §7.1, that the budget must not be raised.
+
+**Two separable items, neither of them this one:**
+
+1. **Immediate, and the alarm prints its own remedy:** land
+   `docs/observability/value_cycle_ab_s1_noise_floor_20260910b.json`, or record why it is not
+   landable. That belongs to the `arms-rerun-20260910b` lane, not to this one — landing another
+   lane's run output on its behalf is how a rival copy gets minted.
+2. **Structural:** `tests/background/test_deadmans_switch.py` asserts on a global NTFY channel that
+   real repository state can write to. `test_a_due_digest_does_not_leak_into_this_files_ntfy_assertions`
+   exists to catch exactly this leak and is **itself one of the 28 failures** — a leak-guard that
+   fails alongside the leak it guards is not a guard. That is an R15 item in its own right.
+
+**Not filed as fixed.** I have not repaired either, and I am not claiming the operational layer is
+green. What changed today is that it can now tell us it is red.
