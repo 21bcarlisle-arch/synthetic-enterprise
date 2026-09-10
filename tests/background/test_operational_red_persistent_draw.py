@@ -357,6 +357,57 @@ def test_the_timeout_draw_names_a_duration_not_a_daemon_defect(tmp_path, monkeyp
     assert "TIMED-OUT" not in red_draw
 
 
+def test_the_timeout_draw_hands_over_the_subject_it_was_given(tmp_path, monkeypatch):
+    """THE MUTATION: delete the `timed_out_at` branch in `_operational_red_persistent_draw` and
+    this fails -- the draw goes back to describing a timeout without saying where it stopped,
+    which is how sixteen of them were spent.
+
+    The payload has to REACH the reader, not merely exist in the state file. R5 applied to the
+    draw, the same requirement `red_blocked` already meets by naming its uncollectable files."""
+    _write_signal(tmp_path, monkeypatch,
+                  {"last_result": "red_timeout", "consecutive_red": 6, "consecutive_green": 0,
+                   "timed_out_at": "tests/background/test_tree_lock.py::test_a_second_holder_waits"})
+    draw = supervisor._operational_red_persistent_draw(state_path=None)
+    assert "tests/background/test_tree_lock.py::test_a_second_holder_waits" in draw
+    assert "BLOCKS" in draw, "the reader is being asked to settle blocking-vs-slow, so say so"
+
+
+def test_the_timeout_draw_stops_asserting_a_duration_it_never_measured(tmp_path, monkeypatch):
+    """THE NULL CONTROL against the defect this draw itself carried.
+
+    The old text said "It is a DURATION question" and told the reader to narrow the suite. That
+    was an inference: the signal's own log records 704 greens against 16 timeouts, all inside one
+    36-hour window and interleaved with runs of eight consecutive greens -- which a suite that
+    had outgrown its budget cannot produce. A drawn worker acting on that prose would have cut
+    real scope to chase the wrong cause. The draw may ask the question; it may not answer it.
+
+    Keyed to the PROPERTY (the cause is presented as open) rather than to the current wording:
+    the cadence route must survive, CONDITIONAL on the measurement."""
+    _write_signal(tmp_path, monkeypatch,
+                  {"last_result": "red_timeout", "consecutive_red": 6, "consecutive_green": 0,
+                   "timed_out_at": "tests/background/test_tree_lock.py::test_hangs"})
+    draw = supervisor._operational_red_persistent_draw(state_path=None)
+
+    assert "It is a DURATION question" not in draw
+    assert "DO NOT assume a duration" in draw
+    assert "cadence" in draw.lower(), (
+        "the cadence route is still the right answer IF the suite is genuinely slow -- refusing "
+        "the premature diagnosis must not delete the remedy")
+
+
+def test_a_timeout_carrying_no_subject_says_so_rather_than_going_quiet(tmp_path, monkeypatch):
+    """FAIL-LOUD on the older shape. Every `red_timeout` written before this payload existed has
+    no `timed_out_at` at all, and a draw that silently dropped the section would read as "there
+    was nothing to say" instead of "this one could not tell you"."""
+    _write_signal(tmp_path, monkeypatch,
+                  {"last_result": "red_timeout", "consecutive_red": 6, "consecutive_green": 0})
+    draw = supervisor._operational_red_persistent_draw(state_path=None)
+    assert "TIMED-OUT" in draw
+    assert "named no test" in draw
+    assert "predates the payload" in draw
+    assert "test_tree_lock" not in draw, "a draw with no subject must not imply one"
+
+
 def test_a_below_threshold_timeout_stays_silent(tmp_path, monkeypatch):
     """MUST STAY SILENT. The drawable bar is deliberately higher than the paging bar: a single
     slow check is not priority-zero work, and a rung that fires on one would outrank every other

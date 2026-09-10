@@ -751,6 +751,78 @@ def operational_layer_collection_blocked(result, rc):
     return tuple(dict.fromkeys(_PYTEST_COLLECT_ERROR_FILE_RE.findall(text)))
 
 
+# THE TIMEOUT THAT NAMED NOTHING (2026-09-10, worker tick on the RUNG 1b draw).
+#
+# `red_timeout` was given its own name in 2026-08-21 precisely so a reader could tell "the
+# suite ran and did not finish" from "the daemons regressed" -- and then it was the ONE
+# outcome of the three that carried no payload at all. `red` carries a failure digest and
+# `red_blocked` carries the uncollectable files; a timeout carried a returncode-shaped
+# nothing, because the handler discarded `TimeoutExpired.stdout` and `-q` had made that
+# output useless anyway.
+#
+# WHAT IT COST, MEASURED, NOT INFERRED. `docs/observability/supervisor-log.md` records 704
+# greens and 16 timeouts for this signal; every timeout is inside a 36-hour window, and they
+# INTERLEAVE with greens -- eight consecutive greens sit between two of them. A suite whose
+# duration had outgrown a 1800s budget does not finish comfortably eight times in a row. The
+# distribution is bimodal, which is the signature of something BLOCKING, not of something
+# slow. Nobody could say which, because no timed-out run ever named where it stopped, so the
+# RUNG 1b draw asserted a DURATION diagnosis and sent the reader to narrow the suite's scope
+# -- a scope cut resting on a guess, against evidence already in the log.
+#
+# FAIL DIRECTION: toward "cannot tell", SAID OUT LOUD. Every branch that cannot name a test
+# returns a parenthesised phrase describing what it could see instead, and none of them
+# fabricates a nodeid. A control that probes an invented identifier cannot be refuted, and
+# the wrong name here sends the next reader to a test that was never running.
+_PYTEST_VERBOSE_NODEID_RE = re.compile(r"^(\S+::\S+)(.*)$")
+#: pytest writes one of these after a test it has FINISHED. Their absence on the last nodeid
+#: line is the whole signal: the id was written, the outcome never was.
+_PYTEST_OUTCOME_WORDS = ("PASSED", "FAILED", "ERROR", "SKIPPED", "XFAIL", "XPASS")
+
+_OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT = (
+    "(the killed run captured no output at all -- it named nothing)")
+_OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION = (
+    "(no test had started -- the budget ran out during COLLECTION)")
+_OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS = (
+    "(between tests -- the last one to start, `{}`, had already reported; the budget ran out "
+    "in teardown, a fixture, or session shutdown)")
+
+
+def operational_layer_timeout_subject(exc):
+    """The test that was still running when the budget ran out, or a NAMED "cannot tell".
+
+    Reads the partial output the killed run left on `subprocess.TimeoutExpired` -- which
+    `subprocess.run` populates as raw BYTES even under `text=True`, hence the shared
+    `_operational_layer_result_text` decode rather than a bare `exc.stdout`.
+
+    INDEPENDENCE (R15 anti-tautology): read off the dead subprocess's own output, never off
+    `.operational_layer_signal.json` -- the same construction, and the same reason, as the
+    pass count and the collection-block census above."""
+    text = _operational_layer_result_text(exc)
+    if not text:
+        return _OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT
+
+    last = None
+    for line in text.splitlines():
+        match = _PYTEST_VERBOSE_NODEID_RE.match(line.rstrip())
+        if match:
+            last = match
+    if last is None:
+        return _OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION
+
+    nodeid, remainder = last.group(1), last.group(2)
+    if any(word in remainder for word in _PYTEST_OUTCOME_WORDS):
+        return _OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS.format(nodeid)
+    return nodeid
+
+
+def operational_layer_timeout_named_a_test(subject):
+    """True when `subject` is a real nodeid rather than one of the "cannot tell" phrases.
+
+    One place, so the log line, the state file and the supervisor's draw all agree about when
+    there is something to go and look at -- and so the distinction is testable on its own."""
+    return bool(subject) and not subject.startswith("(")
+
+
 def operational_layer_failure_digest(result, max_lines=OPERATIONAL_LAYER_DIGEST_MAX_LINES):
     """The failing-run payload carried into the log and the RED page.
 
@@ -785,8 +857,19 @@ def operational_layer_failure_digest(result, max_lines=OPERATIONAL_LAYER_DIGEST_
 def operational_layer_pytest_argv(test_root="tests/"):
     """The exact pytest argv the independent operational-layer signal runs --
     the COMPLEMENT of publish_gate_pytest_argv's deselection above. Factored
-    out for the same reason (R15: a control's scope must be inspectable)."""
-    return [sys.executable, "-m", "pytest", test_root, "-q", "--tb=short",
+    out for the same reason (R15: a control's scope must be inspectable).
+
+    `-v` RATHER THAN `-q`, AND IT IS THE TIMEOUT THAT PAYS FOR IT (2026-09-10).
+    Verbosity here is not a preference: under `-q` pytest emits one character per
+    test, so a run KILLED at the budget leaves partial output that names nothing
+    -- measured, the whole artefact of a hung run was the single byte `.`. Under
+    `-v` pytest writes each nodeid BEFORE running it and the outcome word after,
+    so the final unterminated nodeid IS the test that was still running when the
+    clock ran out. Sixteen timeouts produced no evidence of where they stopped;
+    that is what `operational_layer_timeout_subject` below now reads. The two
+    parsers that consume this output are unaffected: `-v` keeps both the
+    `short test summary info` FAILED/ERROR lines and the `N passed` count."""
+    return [sys.executable, "-m", "pytest", test_root, "-v", "--tb=short",
             "-m", OPERATIONAL_LAYER_MARKER_EXPR]
 
 
@@ -834,6 +917,11 @@ def _write_operational_layer_state(state, *, episode_closed=False):
         # reached the suite) so the RUNG 1b draw can NAME them instead of sending the worker
         # to the daemons -- R5's payload requirement applied to the DRAW, not just the page.
         "blocked_by": list(state.get("blocked_by") or ()),
+        # The test that was running when a `red_timeout` ran out of budget, for the same
+        # reader and the same reason. Written unconditionally so a COMPLETED run CLEARS a
+        # previous timeout's subject: a stale nodeid sitting beside a green would read as a
+        # live hang, and this field exists to make a hang legible, not to invent one.
+        "timed_out_at": str(state.get("timed_out_at") or ""),
     }
     out = guard_episode(_read_operational_layer_state() if OPERATIONAL_LAYER_STATE_FILE.exists()
                         else None,
@@ -1047,17 +1135,30 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
         except Exception:
             prior = {}
         consecutive_red = int(prior.get("consecutive_red") or 0) + 1
+        # R5's payload requirement, applied to the one outcome of the three that never had one
+        # -- see the block above `operational_layer_timeout_subject`. Defensive: a monitoring
+        # check must never raise into the deadman, least of all from the handler whose whole
+        # job is to keep the stamp.
+        try:
+            subject = operational_layer_timeout_subject(exc)
+        except Exception:
+            subject = _OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT
         log_fn(
-            "Operational-layer signal: suite TIMED OUT after {}s -- recorded as 'red_timeout' "
-            "(consecutive_red={}) and STAMPED, so the throttle engages and the next attempt is "
-            "one interval away, not one deadman cycle. R15: an unavailable check is a failed "
-            "check, never a skipped one.".format(getattr(exc, "timeout", "?"), consecutive_red))
+            "Operational-layer signal: suite TIMED OUT after {}s at {} -- recorded as "
+            "'red_timeout' (consecutive_red={}) and STAMPED, so the throttle engages and the "
+            "next attempt is one interval away, not one deadman cycle. R15: an unavailable "
+            "check is a failed check, never a skipped one.".format(
+                getattr(exc, "timeout", "?"),
+                subject if operational_layer_timeout_named_a_test(subject)
+                else "an unnamed point " + subject,
+                consecutive_red))
         try:
             _write_operational_layer_state({
                 "last_run_ts": now,
                 "last_result": "red_timeout",
                 "consecutive_red": consecutive_red,
                 "consecutive_green": 0,
+                "timed_out_at": subject,
             }, episode_closed=False)
         except Exception as write_exc:
             # The stamp is the whole point, so a failure to write it is loud rather than swallowed
@@ -1065,7 +1166,7 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
             log_fn("Operational-layer signal: FAILED to record the timeout stamp ({}) -- the "
                    "retry throttle is NOT engaged for this cycle.".format(write_exc))
         return {"ran": False, "reason": "timeout", "last_result": "red_timeout",
-                "consecutive_red": consecutive_red}
+                "consecutive_red": consecutive_red, "timed_out_at": subject}
     except Exception as exc:
         log_fn("Operational-layer signal check error (swallowed): {}".format(exc))
         return {"ran": False, "reason": "error", "error": str(exc)}

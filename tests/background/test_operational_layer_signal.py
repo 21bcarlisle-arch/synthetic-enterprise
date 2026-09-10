@@ -595,3 +595,134 @@ def test_the_timeout_stays_decoupled_from_the_publish_gate_state(sent):
     that mattered here; that must not be repaired by introducing a STATE one."""
     prc.run_operational_layer_signal(now=1000.0, runner=_timeout_runner, log_fn=lambda m: None)
     assert not prc.PUBLISH_GATE_STATE_FILE.exists()
+
+
+# ── THE TIMEOUT THAT NAMED NOTHING (2026-09-10) ──────────────────────────────────────────────
+#
+# `red_timeout` was separated from `red` and `red_blocked` so a reader could tell "the suite ran
+# and did not finish" from the other two -- and then it was the only one of the three carrying no
+# payload. Sixteen timeouts in the supervisor log produced no evidence of WHERE they stopped, so
+# the RUNG 1b draw asserted a DURATION cause the same log refutes (704 greens, all 16 timeouts in
+# one 36-hour window, interleaved with runs of eight consecutive greens -- bimodal, which is a
+# BLOCK, not a suite that outgrew its budget).
+#
+# Two things had to be true for a timeout to name its subject, and neither was: the argv had to
+# make pytest print nodeids at all, and the handler had to read the partial output back off the
+# exception. Each has its own test below.
+
+def _timeout_runner_with_output(stdout, stderr=b""):
+    """A killed run that left partial output, as the real one does.
+
+    BYTES, not str, on purpose: `subprocess.run` re-raises `TimeoutExpired` carrying the RAW
+    buffers even when it was called with `text=True` (verified against CPython's own behaviour
+    before this test was written). A fake that handed back `str` would be more permissive than
+    its subject and would green a handler that crashes on the real thing."""
+    def _runner(argv):
+        raise subprocess.TimeoutExpired(cmd=argv, timeout=1800, output=stdout, stderr=stderr)
+    return _runner
+
+
+_HUNG_RUN_OUTPUT = (
+    b"============================= test session starts ====================\n"
+    b"collected 412 items\n\n"
+    b"tests/background/test_agenda.py::test_one PASSED                 [  1%]\n"
+    b"tests/background/test_tree_lock.py::test_a_second_holder_waits\n"
+)
+
+
+def test_the_argv_makes_a_killed_run_able_to_name_the_test_it_was_in():
+    """THE MUTATION: put `-q` back in `operational_layer_pytest_argv` and this fails.
+
+    This is the leg that is easy to mistake for cosmetics. Under `-q` pytest emits one character
+    per test, so the entire artefact of a run killed mid-test is a string of dots -- measured, a
+    single byte. The subject cannot be recovered downstream by any amount of parsing, because it
+    was never written. Verbosity is what makes the timeout diagnosable at all."""
+    argv = prc.operational_layer_pytest_argv()
+    assert "-v" in argv, (
+        "a killed run under -q leaves output that names nothing, which is what left 16 timeouts "
+        "undiagnosed and let the draw guess at a duration")
+    assert "-q" not in argv, (
+        "-q and -v together cancel to default verbosity and pytest stops printing nodeids -- "
+        "the flag has to be replaced, not accompanied")
+
+    # ...and the argv still selects exactly what it did before. A diagnosability change must not
+    # quietly become a SCOPE change: that is the cut this finding exists to argue against.
+    assert _marker_expr(argv) == prc.OPERATIONAL_LAYER_MARKER_EXPR
+
+
+def test_a_timeout_names_the_test_that_was_still_running(sent):
+    """THE MUTATION: drop `"timed_out_at": subject` from the TimeoutExpired handler's state
+    write and this fails -- the state file goes back to recording that a timeout happened and
+    nothing whatever about where."""
+    result = prc.run_operational_layer_signal(
+        now=1000.0, runner=_timeout_runner_with_output(_HUNG_RUN_OUTPUT),
+        log_fn=lambda m: None)
+
+    assert result["timed_out_at"] == "tests/background/test_tree_lock.py::test_a_second_holder_waits"
+    state = json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())
+    assert state["timed_out_at"] == "tests/background/test_tree_lock.py::test_a_second_holder_waits"
+    assert state["last_result"] == "red_timeout"
+
+
+def test_the_subject_is_the_UNFINISHED_test_not_merely_the_last_one_mentioned(sent):
+    """THE NULL CONTROL, and the one that decides whether this control is real.
+
+    "Last nodeid in the output" and "the test that was still running" agree on the hung run
+    above, so a subject-picker that just takes the last id passes that test while being wrong.
+    They DISAGREE here: every test reported an outcome and the budget ran out afterwards, in
+    teardown or session shutdown. Naming `test_two` then would send the next reader to a test
+    that had already finished -- the fabricated-subject failure, which is unfalsifiable once it
+    is in the log."""
+    finished = (
+        b"tests/background/test_agenda.py::test_one PASSED                 [ 50%]\n"
+        b"tests/background/test_agenda.py::test_two PASSED                 [100%]\n"
+    )
+    result = prc.run_operational_layer_signal(
+        now=1000.0, runner=_timeout_runner_with_output(finished), log_fn=lambda m: None)
+
+    subject = result["timed_out_at"]
+    assert not prc.operational_layer_timeout_named_a_test(subject), (
+        "a test that reported PASSED was not the one blocking; naming it invents a subject")
+    assert "test_two" in subject, "the phrase must still say which test was the last to report"
+    assert "teardown" in subject
+
+
+def test_a_run_that_captured_nothing_says_so_rather_than_guessing(sent):
+    """FAIL-LOUD toward "cannot tell" (R15). The pre-existing `_timeout_runner` carries no
+    output at all -- the shape every timeout had before this payload existed. It must produce a
+    named absence, never an empty string that reads in the draw as "nothing to report", and
+    never a fabricated nodeid."""
+    result = prc.run_operational_layer_signal(
+        now=1000.0, runner=_timeout_runner, log_fn=lambda m: None)
+
+    subject = result["timed_out_at"]
+    assert subject, "an empty subject reads as 'nothing to report' on a check that could not answer"
+    assert not prc.operational_layer_timeout_named_a_test(subject)
+    assert "named nothing" in subject
+
+    # A budget that ran out during COLLECTION is a THIRD fact, kept apart from both: no test had
+    # started, so there is no test to go and look at.
+    in_collection = prc.run_operational_layer_signal(
+        now=1000.0 + prc.OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS + 1,
+        runner=_timeout_runner_with_output(b"collecting ... \n"), log_fn=lambda m: None)
+    assert not prc.operational_layer_timeout_named_a_test(in_collection["timed_out_at"])
+    assert "COLLECTION" in in_collection["timed_out_at"]
+    assert in_collection["timed_out_at"] != subject, (
+        "'captured no output' and 'died during collection' are different facts and send the "
+        "reader to different places")
+
+
+def test_a_completed_run_CLEARS_a_previous_timeouts_subject(sent):
+    """THE MUTATION: make the `timed_out_at` line in `_write_operational_layer_state` conditional
+    (`if state.get("timed_out_at")`) and this fails.
+
+    A stale nodeid surviving beside a green would read as a live hang -- the field would start
+    manufacturing exactly the finding it was built to report honestly. Keyed to the PROPERTY (a
+    run that finished carries no hang) rather than to today's value."""
+    prc.run_operational_layer_signal(
+        now=1000.0, runner=_timeout_runner_with_output(_HUNG_RUN_OUTPUT), log_fn=lambda m: None)
+    assert json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())["timed_out_at"]
+
+    _run(rc=0, now=1000.0 + prc.OPERATIONAL_LAYER_CHECK_INTERVAL_SECONDS + 1)
+    assert not json.loads(prc.OPERATIONAL_LAYER_STATE_FILE.read_text())["timed_out_at"], (
+        "a run that finished has no hang to report, and a leftover subject claims one")

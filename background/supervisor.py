@@ -149,6 +149,12 @@ from background.episode_prior import (  # noqa: E402
 )
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.notify import notify  # noqa: E402
+
+# The draw and the writer must agree about when `timed_out_at` holds a real nodeid rather
+# than one of its named "cannot tell" phrases -- imported, never re-implemented here.
+from background.process_run_complete import (  # noqa: E402
+    operational_layer_timeout_named_a_test,
+)
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)
 from tools import maturity_map_store as map_store  # noqa: E402 (the map's canonical reader)
 from tools import simplifications_store as _atom_store  # noqa: E402 (H41 record tenant)
@@ -4360,23 +4366,51 @@ def _operational_red_persistent_draw(
     # the stated fail-safe direction here is toward drawing.
     # A TIMED-OUT signal draws its own diagnosis for the same reason a BLOCKED one does: the
     # suite ran and did not finish, so nothing about the daemons has been shown to be wrong and
-    # the daemon message would send the reader to the wrong place. The question here is a
-    # DURATION, and on 2026-08-21 the answer was that this check was the box contention that
-    # starved the publish gate for 34 hours -- so the draw names the cadence decision, not a bug.
+    # the daemon message would send the reader to the wrong place.
+    #
+    # WHAT THIS DRAW USED TO ASSERT, AND WHY IT NO LONGER DOES (2026-09-10). It said "It is a
+    # DURATION question" and sent the reader to narrow the suite's scope. That was an inference,
+    # never a measurement, and the signal's own log refutes it: 704 greens against 16 timeouts,
+    # every timeout inside one 36-hour window, INTERLEAVED with greens -- eight consecutive
+    # greens sit between two of them. A suite that had outgrown an 1800s budget does not finish
+    # comfortably eight times running. Bimodal like that is the signature of something
+    # BLOCKING. Narrowing on the duration story would have cut real scope to chase the wrong
+    # cause. So the draw now hands over the EVIDENCE -- `timed_out_at`, the test that was still
+    # running when the clock stopped -- and asks for the distinction to be settled, rather than
+    # settling it in the prose of an alert.
     if state.get("last_result") == "red_timeout":
+        subject = str(state.get("timed_out_at") or "")
+        if operational_layer_timeout_named_a_test(subject):
+            where = (
+                "The killed run named where it stopped: it was still inside\n"
+                f"  {subject}\n"
+                "when the budget ran out. START THERE -- ask whether that test BLOCKS (a real "
+                "lock, a real subprocess, a real daemon, a wait with no deadline) or is merely "
+                "slow. Those have opposite repairs and only one of them is a cadence question."
+            )
+        else:
+            where = (
+                "This run named no test "
+                f"{subject or '(the state file carries no subject -- it predates the payload)'}, "
+                "so re-run the signal and let the next timeout name its own subject before "
+                "deciding anything."
+            )
         return _operational_red_stale_record_prefix(state, head_time_fn, head_hash_fn) + (
             "OPERATIONAL-LAYER TIMED-OUT self-refill (RUNG 1b, PRIORITY ZERO): the "
             f"operational-layer signal has TIMED OUT for {consecutive_red} consecutive checks -- "
             "it ran and did not finish, so it has produced NO verdict and the operational layer "
             "is UNMONITORED. This is NOT a daemon-lifecycle defect: do NOT hunt a capability "
-            "regression, nothing about the daemons has been shown to be broken. It is a DURATION "
-            "question, and it is expensive -- this check holds the box for its full timeout every "
-            "time it fails this way, which is what starved the publish gate on 2026-08-21. "
-            "DECIDE THE CADENCE (director console 2026-08-21: 'what genuinely must run before a "
-            "publish and what belongs somewhere else entirely, on its own cadence'): measure how "
-            "long `operational_layer_pytest_argv()` actually needs, then either give it a budget "
-            "it can meet or narrow what it runs. Raising the timeout to fit is the move that "
-            "produced this state -- prefer narrowing. Record the decision and NTFY the director."
+            "regression, nothing about the daemons has been shown to be broken. It is expensive "
+            "-- this check holds the box for its full timeout every time it fails this way, "
+            f"which is what starved the publish gate on 2026-08-21.\n{where}\n"
+            "DO NOT assume a duration: this signal's own log shows timeouts INTERLEAVED with "
+            "long green runs, which a suite that had simply outgrown its budget cannot produce. "
+            "Settle blocking-vs-slow FIRST, on evidence. If and only if it is genuinely slow is "
+            "this a cadence question (director console 2026-08-21: 'what genuinely must run "
+            "before a publish and what belongs somewhere else entirely, on its own cadence') -- "
+            "and then prefer narrowing what it runs to raising the budget, because raising the "
+            "budget is the move that produced this state. Record the decision and NTFY the "
+            "director."
         )
     if state.get("last_result") == "red_blocked":
         blocked = [str(p) for p in (state.get("blocked_by") or [])]
