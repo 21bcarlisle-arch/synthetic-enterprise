@@ -4926,6 +4926,26 @@ def _within_year_clause(within: dict) -> str:
         "reading is earned rather than borrowed from the calendar.")
 
 
+#: THE TWO READINGS OF A FIGURE THAT CLEARS ITS NULL UPWARDS, named here so a control can pin the
+#: sentence a reader actually meets to the one the run EARNED.
+#:
+#: Extracted 2026-09-10, and the reason is the whole point. The guard over the withdrawal
+#: (`site/test_the_stratified_concordance_reaches_the_reader.py`) was a literal substring of the
+#: EARNED sentence, so it forbade one sentence rather than the claim that sentence makes: a poison
+#: reading "the belief told us which individual households would leave and which would not" -- a
+#: STRONGER household claim than the withdrawn one -- left the file at 14 passed. No control can
+#: grep for paraphrase. It CAN require that what renders is what the producer declares here, which
+#: turns a silent reword into a deliberate edit to a named constant.
+#:
+#: `_EARNED` asserts about HOUSEHOLDS and is legitimate only when the STRATIFIED figure clears its
+#: null -- 88% of the unstratified figure's pairs compare two eras, so it cannot carry a "who".
+#: `_UNEARNED` is the population-level fallback. Both are the claim-bearing clause ONLY; their
+#: shared preamble stays inline, because pinning the p-value formatting would make this a control
+#: over prose punctuation rather than over the claim.
+_UNEARNED_CLAIM_SENTENCE = "the belief separated those who stayed from those who left."
+_EARNED_CLAIM_SENTENCE = "the belief carried real information about who stays."
+
+
 def _auc_reading(belief: dict, attribution: dict, within: dict | None = None) -> str:
     """The sentence a reader meets beside the figure, GATED ON THE FIGURE'S OWN BOUND.
 
@@ -5007,12 +5027,12 @@ def _auc_reading(belief: dict, attribution: dict, within: dict | None = None) ->
             and not within.get("inside_the_null")
             and (within.get("auc") or 0.0) >= 0.5)
         body = (" The observed value is OUTSIDE it and above the null (two-sided p {p:.3f}), so on "
-                "this population the belief separated those who stayed from those who "
-                "left.".format(p=bound["p_two_sided"]))
+                "this population {claim}".format(
+                    p=bound["p_two_sided"], claim=_UNEARNED_CLAIM_SENTENCE))
         if household_earned:
             body = (" The observed value is OUTSIDE it and above the null (two-sided p {p:.3f}), "
-                    "so on this population the belief carried real information about who "
-                    "stays.".format(p=bound["p_two_sided"]))
+                    "so on this population {claim}".format(
+                        p=bound["p_two_sided"], claim=_EARNED_CLAIM_SENTENCE))
     return head + body + _within_year_clause(within) + endogeneity
 
 

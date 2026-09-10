@@ -344,6 +344,47 @@ def test_the_reader_is_told_the_pairs_compare_eras(live_decisions):
         "compare eras, which is the only fact that makes the withdrawal checkable")
 
 
+def test_the_reading_a_reader_meets_is_the_one_the_producer_DECLARES(live, live_decisions):
+    """The claim sentence is PINNED to the producer's own constant, so a reword cannot be silent.
+
+    THIS IS THE LEG `HOUSEHOLD_CLAIM` STRUCTURALLY COULD NOT BE. That assertion forbids one
+    sentence, not the claim the sentence makes. On 2026-09-10 a poison restating the same household
+    claim in different words -- "the belief told us which individual households would leave and
+    which would not", a STRONGER claim than the withdrawn one -- left this file at 14 passed, with
+    the literal guard green throughout.
+
+    No control can grep for paraphrase, and a wordlist would be the same blindness in a longer
+    form. What a control CAN require is that the sentence a reader meets is the one the producer
+    DECLARES for the branch this run took. That is a property rather than today's answer, and it
+    converts a silent upward reword into a deliberate edit to a named constant whose own comment
+    says what it must not become.
+
+    Residual, stated rather than hidden: editing the constant itself still passes here. That is the
+    intended remaining surface -- deliberate, reviewable, and beside the reason -- not a gap this
+    leg pretends to close.
+    """
+    gv = _producer()
+    within = live["decisions"]["discrimination_auc_within_year"]
+    earned = bool(within.get("available")
+                  and not within.get("inside_the_null")
+                  and (within.get("auc") or 0.0) >= 0.5)
+
+    assert gv._EARNED_CLAIM_SENTENCE != gv._UNEARNED_CLAIM_SENTENCE, (
+        "the two readings collapsed to one string, so this control can no longer tell an earned "
+        "household claim from an unearned one -- and neither could a reader")
+
+    expected = gv._EARNED_CLAIM_SENTENCE if earned else gv._UNEARNED_CLAIM_SENTENCE
+    forbidden = gv._UNEARNED_CLAIM_SENTENCE if earned else gv._EARNED_CLAIM_SENTENCE
+
+    assert expected in live_decisions, (
+        "the reading on the page is not the sentence the producer declares for this run "
+        "(household reading earned: {}). A reword that reaches a reader without reaching the "
+        "constant is exactly the drift this leg exists to catch.".format(earned))
+    assert forbidden not in live_decisions, (
+        "the page carries the other branch's reading as well as the one this run earned "
+        "(household reading earned: {}), so a reader meets both claims at once".format(earned))
+
+
 def test_the_page_does_NOT_claim_the_belief_is_uninformative(live_decisions):
     """The mirror-image overclaim, which would be just as unearned.
 
