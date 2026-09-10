@@ -1514,3 +1514,346 @@ def test_the_folded_family_reports_the_same_distance_arithmetic_as_a_run():
         spread["mean"], spread["stdev"], spread["n"])
     assert folded["selection_distinguishable_from_zero"] is (
         abs(spread["mean"]) > rvca.SEMS_TO_STATE_A_SIGN * folded["selection_sem_gbp"])
+
+
+# ---------------------------------------------------------------------------
+# 9. THE KEY THE REST OF THE BOOK ACTUALLY HAS -- the elasticity cut's empty complement
+# ---------------------------------------------------------------------------
+#
+# THE DEFECT, MEASURED AND THEN CONFIRMED BY THE PRODUCTION PATH. The elasticity draw sits behind
+# `if differential:` in `roll_lifecycle_event`, which needs an offered rate, so ONLY households the
+# value arm priced ever reach it. On the 2026-09-10 book: 298 calls, 67 accounts, ZERO outside the
+# arm's 100-account roster. `--redraw-mode except` re-draws the complement of that roster, and the
+# complement is EMPTY -- so the nine-seed production leg refused on its first seed after 39 minutes,
+# and every figure separating the priced households' noise from the book's was withheld.
+#
+# AND IT DEGRADES IN THE DIRECTION THE COMPANY IS TRYING TO MOVE. The roster swallows more of the
+# complement every time the arm prices more of the book, so waiting makes it worse, not better.
+#
+# THE FIX IS A DIFFERENT KEY, NOT A BIGGER BOOK. `churn_roll_for_renewal` is taken by every billing
+# account reaching a renewal point, priced or not. These controls are about the one property that
+# matters: **the churn-roll key reaches households the elasticity key provably cannot**, and the
+# two keys therefore do NOT partition each other -- which is what makes their sum meaningless and
+# their `except` leg meaningful.
+
+#: A book where only the first four accounts are priced. `_PRICED` is `_ACCOUNTS[:4]`, so the
+#: other 36 are the "rest of the book" -- they take a churn roll and never draw an elasticity,
+#: which is the real book's shape reproduced at a size a test suite can afford.
+_REST_OF_BOOK = [a for a in _ACCOUNTS if a not in _PRICED]
+_TERM = "2021-06-01"
+
+
+def _two_key_runner() -> dict:
+    """A three-arm result shaped like the real one: elasticity behind the price gate, roll for all.
+
+    THE GATE IS THE POINT AND IT IS NOT AN APPROXIMATION. `roll_lifecycle_event` takes the churn
+    roll at the top of the decision and draws the elasticity inside `if differential:`, which is
+    only truthy for a household the arm actually offered a rate. So the elasticity loop here runs
+    over `_PRICED` and the roll loop over every account -- exactly the asymmetry that made the
+    elasticity-keyed `except` leg refuse in production.
+
+    BOTH DEFERRED IMPORTS ARE READ AT CALL TIME, the way the decision reads them, so a module-level
+    rebind reaches them. Binding either at import time would make these controls measure this
+    file's import style instead of the harness.
+    """
+    from simulation.customer_events import churn_roll_for_renewal
+    from simulation.population_draw import price_elasticity_for_customer
+
+    weights = [price_elasticity_for_customer(a, _RUN_SEED) for a in _PRICED]
+    rolls = [churn_roll_for_renewal(a, _TERM) for a in _ACCOUNTS]
+    level_advantage = 8_000.0
+    value_advantage = (8_000.0
+                       + 30_000.0 * (sum(weights) / len(weights) - 1.0)
+                       + 20_000.0 * (sum(rolls) / len(rolls) - 0.5))
+    return {
+        "level_vs_selection": {
+            "available": True,
+            "level_gbp_per_mwh": 44.5,
+            "value_advantage_gbp": value_advantage,
+            "level_advantage_gbp": level_advantage,
+            "selection_gbp": value_advantage - level_advantage,
+            "level_share_of_advantage": level_advantage / value_advantage,
+        }
+    }
+
+
+def test_extracting_the_churn_roll_did_not_move_one_byte_of_the_world():
+    """R13: the world may not move for a refactor, and only this says so.
+
+    `churn_roll_for_renewal` was lifted out of `roll_lifecycle_event` on 2026-09-10 so a floor leg
+    could replace it. Had the extraction changed the seed string -- adding a run seed, reordering
+    the parts, using `hash` -- every roll in the 2016-2025 record would have moved and the decade's
+    settled book with it, which is a baseline change and not a harness convenience.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S NUMBERS: it recomputes the pre-extraction expression
+    rather than pinning the floats this build happens to produce, so it stays true of any Python
+    whose `Random` is seeded the same way and goes red the moment the string composition changes.
+    """
+    import random as _r
+
+    from simulation.customer_events import churn_roll_for_renewal
+
+    for account in _ACCOUNTS[:8]:
+        for term in ("2016-04-01", "2021-06-01", "2025-12-31"):
+            assert churn_roll_for_renewal(account, term) == \
+                _r.Random(f"{account}_{term}").random(), (
+                    "the extracted churn roll no longer reproduces the line it replaced, so every "
+                    "renewal in the record has moved: {} at {}".format(account, term))
+
+
+def test_the_churn_roll_key_REACHES_the_rest_of_the_book_and_the_elasticity_key_CANNOT():
+    """THE WHOLE FINDING, as one control over both halves of the partition.
+
+    This is the shape CLAUDE.md asks for rather than a leg per branch: a guard that refuses
+    everything passes every one-sided test, so the assertion that the elasticity `except` leg
+    refuses is worth nothing unless the SAME fixture shows a leg that does not. Both directions are
+    asserted here against one runner, so the control cannot go green by refusing universally.
+    """
+    with pytest.raises(AssertionError, match="re-drew NO household"):
+        noise_floor([11111, 22222], runner=_two_key_runner,
+                    redraw_accounts=_PRICED, redraw_mode="except", redraw_key="elasticity")
+
+    rest = noise_floor([11111, 22222], runner=_two_key_runner,
+                       redraw_accounts=_PRICED, redraw_mode="except", redraw_key="churn_roll")
+    for row in rest["seeds"]:
+        assert row["accounts_redrawn"] == len(_REST_OF_BOOK), (
+            "the churn-roll `except` leg re-drew {} account(s), not the {} outside the roster"
+            .format(row["accounts_redrawn"], len(_REST_OF_BOOK)))
+        assert row["draws_held_fixed"] == len(_PRICED)
+        assert row["draws_redrawn"] + row["draws_held_fixed"] == row["draw_calls"]
+
+    # AND IT MOVED THE FIGURE. A leg that re-drew 36 households and returned the identical number
+    # every seed would be the third failure mode the pre-registration named -- the re-draw not
+    # reaching the arm -- and it must not read as "the cascade does not matter".
+    assert rest["selection_gbp_spread"]["stdev"] > 0.0, (
+        "the churn-roll `except` leg re-drew the whole rest of the book and `selection_gbp` did "
+        "not move at all, which is a finding about the funnel and not about the world")
+
+
+def test_the_HELD_half_of_a_churn_roll_leg_gets_the_untouched_roll():
+    """The mirror of the elasticity leg's held-at-`_base_seed` control, and it needs its own.
+
+    `churn_roll_for_renewal` takes no seed to hand back, so "held fixed" is implemented by calling
+    the real function rather than by passing an argument through. A substitute that re-rolled the
+    held half onto some third stream would move the priced households too, and the leg's spread
+    would then be the whole book's -- the undecomposed floor wearing the rest-of-book label.
+    """
+    import random as _r
+
+    seen = {}
+
+    def _recording_runner():
+        from simulation.customer_events import churn_roll_for_renewal
+        for account in _ACCOUNTS:
+            seen[account] = churn_roll_for_renewal(account, _TERM)
+        return _two_key_runner()
+
+    noise_floor([11111, 22222], runner=_recording_runner,
+                redraw_accounts=_PRICED, redraw_mode="except", redraw_key="churn_roll")
+    for account in _PRICED:
+        assert seen[account] == _r.Random(f"{account}_{_TERM}").random(), (
+            "a priced household's roll was moved by the rest-of-book leg: {}".format(account))
+    for account in _REST_OF_BOOK:
+        assert seen[account] != _r.Random(f"{account}_{_TERM}").random(), (
+            "an unpriced household kept its base roll, so this leg re-drew nothing for it despite "
+            "counting it as re-drawn: {}".format(account))
+
+
+def test_a_churn_roll_leg_publishes_NO_count_under_an_elasticity_name():
+    """A count published under the wrong noun is how a reader differences two quantities.
+
+    The three `elasticity_*` row keys are kept because consumers read them, and on a churn-roll leg
+    they are `None` -- never the churn-roll count wearing the elasticity name, and never absent,
+    because an absent key reads as "old artefact" and a wrong one reads as established.
+    """
+    rest = noise_floor([11111, 22222], runner=_two_key_runner,
+                       redraw_accounts=_PRICED, redraw_mode="except", redraw_key="churn_roll")
+    assert rest["redraw_key"] == "churn_roll"
+    assert "churn dice" in rest["redraw_key_means"] or "roll" in rest["redraw_key_means"]
+    for row in rest["seeds"]:
+        assert row["redraw_key"] == "churn_roll"
+        for name in ("elasticity_draws", "elasticity_redrawn", "elasticity_held_fixed"):
+            assert name in row, "{} vanished; an absent key reads as an old artefact".format(name)
+            assert row[name] is None, (
+                "{} published {!r} on a churn-roll leg -- that is the roll count wearing the "
+                "elasticity name".format(name, row[name]))
+        assert row["draw_calls"] > 0 and row["draws_redrawn"] > 0
+
+    # AND THE ELASTICITY LEG STILL FILLS THEM, or this control passes by having broken both.
+    # HALF the priced roster, because on this fixture only `_PRICED` draws an elasticity at all --
+    # an `only` leg naming all four would hold nobody fixed and be refused, correctly, as the
+    # undecomposed floor wearing a decomposed label.
+    only = noise_floor([11111, 22222], runner=_two_key_runner,
+                       redraw_accounts=_PRICED[:2], redraw_mode="only", redraw_key="elasticity")
+    assert only["redraw_key"] == "elasticity"
+    for row in only["seeds"]:
+        assert row["elasticity_draws"] == row["draw_calls"] > 0
+        assert row["elasticity_redrawn"] == row["draws_redrawn"]
+        assert row["elasticity_held_fixed"] == row["draws_held_fixed"]
+
+
+def test_a_dead_churn_roll_symbol_RAISES_rather_than_reporting_a_floor_of_zero():
+    """R15's fail-silent shape, re-entered through the new key.
+
+    The original defect patched a symbol the decision had stopped calling: every seed ran a
+    byte-identical world and the floor read zero -- the most flattering answer available, from
+    measuring nothing. The churn roll is resolved by NAME rather than through an import statement
+    (the decision calls it unqualified), so it is if anything more exposed to a rename, and the
+    refusal must arrive at lookup time rather than as a suspiciously stable spread.
+    """
+    with pytest.raises(AssertionError, match="no attribute"):
+        noise_floor([11111, 22222], runner=_two_key_runner, symbol="churn_roll_that_was_retired",
+                    redraw_accounts=_PRICED, redraw_mode="except", redraw_key="churn_roll")
+
+
+def test_an_unknown_redraw_key_is_refused_rather_than_defaulted():
+    with pytest.raises(AssertionError, match="must be one of"):
+        noise_floor([11111, 22222], runner=_two_key_runner, redraw_key="whatever_sounds_right")
+
+
+# ---------------------------------------------------------------------------
+# 10. TWO KEYS DO NOT PARTITION EACH OTHER -- what the mixed split may and may not publish
+# ---------------------------------------------------------------------------
+
+def _keyed_leg(mode, values, key, accounts_redrawn=8, **kwargs):
+    """A floor artefact that names the quantity it re-drew, for the mixed-split controls.
+
+    IT ALSO CARRIES `accounts_redrawn`, which the bare `_leg` does not. Without it
+    `independent_draws_this_book` is withheld for its own unrelated reason and
+    `independent_draws_needed` comes back `None` on the SINGLE-key split too -- so the control
+    below would assert a key was withheld by the mixed split while it was already absent, which is
+    the tautology that makes a withholding proof worth nothing.
+    """
+    leg = _leg(mode, values, **kwargs)
+    leg["redraw_key"] = key
+    for row in leg["seeds"]:
+        row["accounts_redrawn"] = accounts_redrawn
+    return leg
+
+
+def test_a_MIXED_KEY_split_withholds_the_share_and_KEEPS_the_irreducible_floor():
+    """The control over the whole partition of `decompose_floor`'s two outcomes.
+
+    A withholding rule is trivially satisfiable by withholding everything, and withholding
+    `irreducible_sd_gbp` here would suppress the one figure the re-keying exists to produce. So
+    both sides are asserted on ONE pair of fixtures that differ in nothing but the `except` leg's
+    key: what runs through `v_only + v_except` goes, what needs only `v_except` stays.
+    """
+    from tools.run_value_cycle_ab import (
+        KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION,
+        decompose_floor,
+    )
+
+    values_all = (-1400.0, 0.0, 1400.0)
+    values_only = (-1300.0, 0.0, 1300.0)
+    values_except = (-500.0, 0.0, 500.0)
+    three_arm = _three_arm(1_000.0)
+
+    def _split(except_key):
+        return decompose_floor(
+            _keyed_leg("all", values_all, "elasticity"),
+            _keyed_leg("only", values_only, "elasticity"),
+            _keyed_leg("except", values_except, except_key),
+            three_arm)
+
+    same = _split("elasticity")
+    mixed = _split("churn_roll")
+
+    assert same["available"] and mixed["available"], (
+        "a mixed-key split must still be PUBLISHED -- refusing it outright would withhold the "
+        "rest-of-book spread, which is the only figure a mixed split is run to get")
+    assert same["legs_share_one_call_stream"] is True
+    assert mixed["legs_share_one_call_stream"] is False
+    assert mixed["redraw_key_per_leg"] == {
+        "undecomposed": "elasticity", "only": "elasticity", "except": "churn_roll"}
+
+    # WHAT GOES. Every key whose arithmetic runs through the sum of two different quantities.
+    for key in KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION:
+        assert same[key] is not None, (
+            "{} was withheld from a SINGLE-key split, so the withholding above proves nothing"
+            .format(key))
+        assert mixed[key] is None, (
+            "{} survived a mixed-key split -- it is arithmetic over `v_only + v_except`, and "
+            "those two count different things".format(key))
+        assert key in mixed["keys_withdrawn"]
+
+    # WHAT STAYS, and it is the point of the exercise. `sqrt(v_except)` needs only the `except`
+    # leg, and the verdict is that spread against the contrast.
+    assert mixed["rest_of_book_sd_gbp"] == same["rest_of_book_sd_gbp"] > 0.0
+    assert mixed["irreducible_sd_gbp"] == same["irreducible_sd_gbp"]
+    assert mixed["larger_settled_book_would_resolve_it"] is not None
+    assert mixed["larger_settled_book_would_resolve_it"] == \
+        same["larger_settled_book_would_resolve_it"]
+
+    # AND THE REASON NAMES BOTH KEYS, so a reader is never sent to diff two artefacts by hand.
+    assert same["why_the_partition_keys_are_withdrawn"] is None
+    why = mixed["why_the_partition_keys_are_withdrawn"]
+    assert "churn_roll" in why and "elasticity" in why
+
+
+def test_an_absent_redraw_key_reads_as_elasticity_because_nothing_else_existed():
+    """Every leg on disk before 2026-09-10 ran the one key there was, so absence is provable here
+    rather than charitable -- the same argument `decompose_floor` already makes for a missing
+    `redraw_scope.mode` on the undecomposed slot. It stops being available the moment a third key
+    ships without writing the field, which is why `noise_floor` writes it on every leg."""
+    from tools.run_value_cycle_ab import decompose_floor, leg_redraw_key
+
+    assert leg_redraw_key(None) == "elasticity"
+    assert leg_redraw_key({}) == "elasticity"
+    assert leg_redraw_key({"redraw_key": "churn_roll"}) == "churn_roll"
+
+    # END TO END: three legs written before the field existed still reconcile as one call stream.
+    legacy = decompose_floor(_leg("all", (-1400.0, 0.0, 1400.0)),
+                             _leg("only", (-1300.0, 0.0, 1300.0)),
+                             _leg("except", (-500.0, 0.0, 500.0)),
+                             _three_arm(1_000.0))
+    assert legacy["legs_share_one_call_stream"] is True
+    assert legacy["priced_share_of_variance"] is not None
+
+
+def test_the_probe_answers_for_BOTH_keys_in_one_pass_and_re_draws_nothing():
+    """The cheap answer to the question a floor leg charges 39 minutes and a refusal for.
+
+    Three properties, and the third is the one that makes the other two trustworthy:
+      1. the elasticity key's `except` half is empty on this shape and the probe says so;
+      2. the churn-roll key's is not, and the cross-tab sizes it;
+      3. the probe is PASS-THROUGH -- `selection_gbp_this_pass` is the base run's own figure, so
+         a probe that perturbed what it measures could not answer (1) without changing who is in
+         the complement it is counting.
+    """
+    from tools.run_value_cycle_ab import partition_probe
+
+    base = _two_key_runner()["level_vs_selection"]["selection_gbp"]
+    probe = partition_probe(_PRICED, runner=_two_key_runner)
+
+    assert probe["keys"]["elasticity"]["accounts_that_drew_outside_the_roster"] == 0
+    assert probe["keys"]["elasticity"]["except_leg_would_refuse"] is True
+    assert probe["keys"]["elasticity"]["only_leg_would_refuse"] is False
+
+    assert probe["keys"]["churn_roll"]["accounts_that_drew_outside_the_roster"] == \
+        len(_REST_OF_BOOK)
+    assert probe["keys"]["churn_roll"]["except_leg_would_refuse"] is False
+    assert sorted(probe["keys"]["churn_roll"]["outside_accounts"]) == sorted(_REST_OF_BOOK)
+
+    assert probe["accounts_that_roll_but_never_draw"] == len(_REST_OF_BOOK), (
+        "the cross-tabulation is the reachable complement's size and it disagreed with the cut")
+
+    assert probe["selection_gbp_this_pass"] == base, (
+        "the probe changed the world it was measuring, so its complement is not the complement "
+        "an unpatched run has")
+
+
+def test_the_probe_refuses_rather_than_silently_skipping_a_key_it_cannot_find():
+    """A probe that skipped a missing symbol would report an empty complement for it -- which is
+    the exact reading it exists to distinguish from a real one, and it would be published as a
+    fact about the book."""
+    import simulation.customer_events as ce
+    from tools.run_value_cycle_ab import CHURN_ROLL_SYMBOL, partition_probe
+
+    real = getattr(ce, CHURN_ROLL_SYMBOL)
+    delattr(ce, CHURN_ROLL_SYMBOL)
+    try:
+        with pytest.raises(AssertionError, match="cannot probe"):
+            partition_probe(_PRICED, runner=_two_key_runner)
+    finally:
+        setattr(ce, CHURN_ROLL_SYMBOL, real)

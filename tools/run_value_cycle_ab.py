@@ -189,6 +189,13 @@ NOISE_FLOOR_OUTPUT_PATH = (
 #: to decide whether the remedy sentence beside its refusal is true.
 DECOMPOSITION_OUTPUT_PATH = (
     PROJECT_DIR / "docs" / "observability" / "value_cycle_ab_floor_decomposition.json")
+#: A FOURTH file, and the only one that measures no spread: which households take which re-drawable
+#: draw at all. Dated in the filename because it is a fact about ONE book in ONE world and the next
+#: book's answer is a different file -- `generate_value_arms_data` matches the one it reads on the
+#: world digest and the roster size rather than assuming the newest is the relevant one.
+FLOOR_PARTITION_PROBE_OUTPUT_PATH = (
+    PROJECT_DIR / "docs" / "observability"
+    / "value_cycle_ab_floor_partition_probe_both_keys.json")
 #: The coupler's own artefact, and the ONE place the regulated-allowance comparison is
 #: computed. Read here, never recomputed -- see `control_credibility`.
 ARMS_ARTEFACT = PROJECT_DIR / "docs" / "observability" / "value_based_pricing_arms.json"
@@ -4713,6 +4720,235 @@ def _spread(values: list) -> dict:
 #: every floor before 2026-08-29 ran in, kept as the default so an unqualified call is unchanged.
 REDRAW_MODES = ("all", "only", "except")
 
+# ---------------------------------------------------------------------------
+# WHICH QUANTITY THE FLOOR RE-DRAWS -- the axis the modes above cut, added 2026-09-10
+# ---------------------------------------------------------------------------
+#
+# THE MODE SAYS WHICH HALF OF THE BOOK, AND UNTIL NOW NOTHING SAID WHICH QUANTITY, because there
+# was only one: the per-household elasticity. That turned out to be a quantity the rest of the book
+# DOES NOT HAVE. The elasticity draw sits inside `if differential:` in
+# `simulation.customer_events.roll_lifecycle_event`, which needs an offered rate, so only the
+# households the value arm priced ever reach it -- 298 calls from 67 accounts, ZERO outside the
+# arm's 100-account roster (`value_cycle_ab_s1_floor_partition_probe_20260910.json`, confirmed by
+# the nine-seed production leg refusing on its first seed). `--redraw-mode except` re-draws the
+# complement of the priced roster, and on this book that complement is EMPTY.
+#
+# AND IT GETS WORSE AS THE ARM GETS BETTER. The roster swallows more of the complement every time
+# the arm prices more of the book, so no amount of waiting or re-running fixes it: the two are the
+# same set by construction, and the instrument degrades in exactly the direction the company is
+# trying to move. That is the defect this axis exists to route around.
+#
+# THE QUANTITY THE REST OF THE BOOK HAS IS ITS CHURN ROLL. `churn_roll_for_renewal` is taken by
+# every billing account reaching a renewal point with churn-model data, priced or not, ABOVE and
+# OUTSIDE the elasticity guard. It is the churn cascade itself rather than an input to it, which is
+# what the `except` half was always trying to vary.
+#
+# THE TWO KEYS DO NOT PARTITION EACH OTHER, and that is stated here rather than discovered
+# downstream. An `only` leg keyed to elasticity and an `except` leg keyed to the churn roll re-draw
+# two DIFFERENT quantities over two different halves; their variances have no reason to sum, and
+# `v_only / (v_only + v_except)` is then a ratio of two things that count differently -- two correct
+# figures whose ratio is not a quantity. `decompose_floor` refuses the share and the reconciliation
+# on a mixed-key split and publishes the one figure that needs only the `except` leg. See
+# `KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION`.
+
+#: The module holding the churn cascade's own per-renewal draw, and the symbol inside it. Unlike
+#: the elasticity symbol this one is NOT read out of an import statement, because there is none to
+#: read: the decision calls it unqualified from its own module globals. That is exactly why
+#: `setattr` on the module intercepts it, and why a rename makes `getattr` return None and
+#: `noise_floor` RAISE rather than quietly re-drawing nothing.
+CHURN_ROLL_MODULE = "simulation.customer_events"
+CHURN_ROLL_SYMBOL = "churn_roll_for_renewal"
+
+#: The keys a floor leg can be keyed to. `elasticity` is every leg run before 2026-09-10 and stays
+#: the default, so an unqualified call is unchanged.
+REDRAW_KEYS = ("elasticity", "churn_roll")
+
+
+def _elasticity_redraw_patch(real, seed: int, in_scope, calls: dict):
+    """Re-seed ONE household's elasticity, holding every other household at the caller's own seed.
+
+    THE HELD-FIXED HALF IS HELD AT `_base_seed`, THE ARGUMENT THE CALLER PASSED. The call site
+    passes `run_base_seed()`, so handing it straight back is exactly "this household was not
+    re-drawn"; substituting a constant would silently re-draw the held half onto a third world.
+    """
+    def patched(customer_id, _base_seed, curriculum=None):
+        calls["n"] += 1
+        if not in_scope(customer_id):
+            calls["held"] += 1
+            return real(customer_id, _base_seed, curriculum)
+        calls["redrawn"] += 1
+        calls["ids"].add(customer_id)
+        return real(customer_id, seed, curriculum)
+    return patched
+
+
+def _churn_roll_redraw_patch(real, seed: int, in_scope, calls: dict):
+    """Re-roll ONE household's renewal dice, passing every other household through untouched.
+
+    THE HELD HALF CALLS THE REAL FUNCTION, so it is byte-identical to an unpatched run -- the same
+    guarantee the elasticity leg gets by handing back the caller's seed, obtained here the only way
+    available, because `churn_roll_for_renewal` takes no seed to hand back.
+
+    AND THE RE-DRAWN HALF CARRIES THE SEED IN THE STRING RATHER THAN IN THE WORLD. The production
+    signature deliberately has no `base_seed` parameter: threading the run seed into that string
+    would move every roll in the 2016-2025 record, which is a baseline decision and not a harness
+    convenience. So the substitute composes its own stream. `Random(<any string>).random()` is
+    uniform on [0, 1) for every seed string, so this is the SAME distribution re-drawn, not a
+    different one -- which is what makes the spread across seeds an error bar rather than a
+    comparison of two worlds.
+
+    THE PREFIX IS NAMESPACED (`floor{seed}_`) so a re-drawn roll can never collide with the real
+    stream of some other account+term. Without it, seed 11111 re-drawing account `A` at term `T`
+    would hand it the untouched roll of an account literally named `11111_A` -- a collision that
+    would show up as a suspiciously well-behaved leg and nothing else.
+    """
+    def patched(billing_account, term_start_str):
+        calls["n"] += 1
+        if not in_scope(billing_account):
+            calls["held"] += 1
+            return real(billing_account, term_start_str)
+        calls["redrawn"] += 1
+        calls["ids"].add(billing_account)
+        return random.Random(
+            "floor{}_{}_{}".format(seed, billing_account, term_start_str)).random()
+    return patched
+
+
+def resolve_redraw_target(redraw_key: str, symbol: str | None = None) -> tuple[str, str, object]:
+    """(module, symbol, patch factory) for a redraw key -- the one place the two legs differ.
+
+    `symbol` overrides the resolved name and exists for the R15 mutation that points a leg at a
+    dead symbol: the harness must go RED there rather than run a byte-identical world and report a
+    spread of zero, which is the most flattering answer available and a measurement of nothing.
+    """
+    if redraw_key not in REDRAW_KEYS:
+        raise AssertionError(
+            "`redraw_key` must be one of {}; got {!r}. A floor that does not name the quantity it "
+            "re-drew cannot be reconciled against one that does.".format(REDRAW_KEYS, redraw_key))
+    if redraw_key == "elasticity":
+        return (ELASTICITY_DRAW_MODULE, symbol or resolve_elasticity_symbol(),
+                _elasticity_redraw_patch)
+    return (CHURN_ROLL_MODULE, symbol or CHURN_ROLL_SYMBOL, _churn_roll_redraw_patch)
+
+
+def partition_probe(roster: list[str], report_end: str | None = None, runner=None) -> dict:
+    """ONE pass, nothing re-drawn: which households take which draw, and how the roster cuts them.
+
+    THE QUESTION A FLOOR LEG CANNOT ASK CHEAPLY. `noise_floor` refuses an `except` leg whose
+    complement is empty -- correctly -- but it refuses after a full three-arm pass per seed, so
+    "is this key reachable by the rest of the book at all" costs the whole leg to find out. It cost
+    exactly that on 2026-09-10: the nine-seed production run died on seed 11111 after 39 minutes.
+    This runs the same single pass and answers the question for BOTH keys at once.
+
+    THE RECORDERS ARE PASS-THROUGH AND THAT IS THE WHOLE DESIGN. Each wrapper counts and then
+    calls the real function with the arguments it was given -- no seed substituted, no value
+    changed. So the world this probe observes is byte-for-byte the world an unpatched run
+    produces, and `selection_gbp_this_pass` is directly comparable to the base run rather than
+    being a fourth number that has to be explained. A probe that perturbed what it measures could
+    not answer "is the complement empty" without also changing who is in it.
+
+    WHY IT COUNTS BOTH KEYS IN ONE PASS RATHER THAN ONE EACH. Two passes would answer the same two
+    questions at twice the cost and would leave the cross-tabulation -- how many accounts roll but
+    never draw, which is the exact size of the reachable complement -- as a comparison between two
+    runs rather than a fact about one.
+
+    NO VERDICT AND NO THRESHOLD. It publishes `*_would_refuse` per key, which is `noise_floor`'s
+    own guard re-evaluated on these counts and not a judgement about whether a leg is worth
+    running; and it publishes the outside-roster account ids so a reader can check the cut rather
+    than take it.
+    """
+    scope = frozenset(roster)
+    draw_module = importlib.import_module(ELASTICITY_DRAW_MODULE)
+    elasticity_name = resolve_elasticity_symbol()
+    roll_module = importlib.import_module(CHURN_ROLL_MODULE)
+    real_elasticity = getattr(draw_module, elasticity_name, None)
+    real_roll = getattr(roll_module, CHURN_ROLL_SYMBOL, None)
+    if real_elasticity is None or real_roll is None:
+        raise AssertionError(
+            "cannot probe: `{}.{}` is {} and `{}.{}` is {}. A probe that silently skipped a key "
+            "would report an empty complement for it, which is the exact reading this exists to "
+            "distinguish from a real one.".format(
+                ELASTICITY_DRAW_MODULE, elasticity_name,
+                "missing" if real_elasticity is None else "present",
+                CHURN_ROLL_MODULE, CHURN_ROLL_SYMBOL,
+                "missing" if real_roll is None else "present"))
+
+    tally = {"elasticity": {"calls": 0, "ids": set()}, "churn_roll": {"calls": 0, "ids": set()}}
+
+    def elasticity_recorder(customer_id, base_seed, curriculum=None):
+        tally["elasticity"]["calls"] += 1
+        tally["elasticity"]["ids"].add(customer_id)
+        return real_elasticity(customer_id, base_seed, curriculum)
+
+    def roll_recorder(billing_account, term_start_str):
+        tally["churn_roll"]["calls"] += 1
+        tally["churn_roll"]["ids"].add(billing_account)
+        return real_roll(billing_account, term_start_str)
+
+    setattr(draw_module, elasticity_name, elasticity_recorder)
+    setattr(roll_module, CHURN_ROLL_SYMBOL, roll_recorder)
+    try:
+        result = (runner or (lambda: run_value_cycle_ab(
+            report_end=report_end, level_arm=True)))()
+    finally:
+        setattr(draw_module, elasticity_name, real_elasticity)
+        setattr(roll_module, CHURN_ROLL_SYMBOL, real_roll)
+
+    keys = {}
+    for key, counted in tally.items():
+        ids = counted["ids"]
+        outside = sorted(ids - scope)
+        keys[key] = {
+            "calls": counted["calls"],
+            "accounts_that_drew": len(ids),
+            "roster_accounts_that_drew": len(ids & scope),
+            "roster_accounts_that_never_drew": len(scope - ids),
+            "accounts_that_drew_outside_the_roster": len(outside),
+            #: THE IDS, CAPPED, so a peopled complement can be spot-checked and an empty one is
+            #: an empty list rather than a claim. The cap is a file-size bound and nothing else,
+            #: and `accounts_that_drew_outside_the_roster` above is the untruncated count.
+            "outside_accounts": outside[:200],
+            "outside_accounts_truncated": len(outside) > 200,
+            #: `noise_floor`'s OWN guards re-evaluated on these counts -- not a recommendation.
+            #: `only` refuses when no roster account drew; `except` when no outside account did.
+            "only_leg_would_refuse": not (ids & scope),
+            "except_leg_would_refuse": not outside,
+        }
+    lvs = (result.get("level_vs_selection") or {})
+    return {
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "produced_at_commit": producing_commit(),
+        "world_identity": world_identity(),
+        "book_identity": (result.get("book_identity") or {}).get("control_arm"),
+        "report_end": report_end,
+        "roster_size": len(scope),
+        "symbols": {
+            "elasticity": f"{ELASTICITY_DRAW_MODULE}.{elasticity_name}",
+            "churn_roll": f"{CHURN_ROLL_MODULE}.{CHURN_ROLL_SYMBOL}",
+        },
+        "keys": keys,
+        #: THE CROSS-TABULATION, which is the reachable complement's size and the reason both keys
+        #: are counted in one pass. An account here rolls the churn dice and never draws an
+        #: elasticity: it is in the rest of the book, it HAS a quantity, and the elasticity-keyed
+        #: `except` leg could never see it.
+        "accounts_that_roll_but_never_draw": len(
+            tally["churn_roll"]["ids"] - tally["elasticity"]["ids"]),
+        "accounts_outside_the_roster_that_roll": len(tally["churn_roll"]["ids"] - scope),
+        "selection_gbp_this_pass": lvs.get("selection_gbp"),
+        "clock": lvs.get("clock"),
+        "what_this_is": (
+            "Which households actually take each re-drawable draw on the full window, and how the "
+            "value arm's priced roster cuts them. ONE pass with PASS-THROUGH recorders on both "
+            "symbols -- nothing is re-seeded, so this is the base world and `selection_gbp_this_"
+            "pass` is the base run's own figure."),
+        "how_to_read_this": (
+            "`keys.<key>.except_leg_would_refuse` is the whole result for that key: true means a "
+            "floor leg keyed to it CANNOT measure the rest of the book on this book, because the "
+            "complement of the priced roster never takes that draw. It is a fact about the "
+            "instrument and not about the world, and it gets WORSE as the arm prices more of the "
+            "book, because the roster swallows the complement it would re-draw."),
+    }
+
 
 def priced_accounts_from(artefact: Path) -> list[str]:
     """The households the value arm priced, read off a three-arm artefact's own funnel.
@@ -5071,8 +5307,9 @@ def fold_floors(members: list[dict], sources: list[str] | None = None,
 def noise_floor(seeds: list[int], report_end: str | None = None,
                 runner=None, symbol: str | None = None,
                 redraw_accounts: list[str] | None = None,
-                redraw_mode: str = "all") -> dict:
-    """Re-run the whole three-arm A/B once per seed, moving ONLY the elasticity assignment.
+                redraw_mode: str = "all",
+                redraw_key: str = "elasticity") -> dict:
+    """Re-run the whole three-arm A/B once per seed, moving ONLY one per-household draw.
 
     WHAT IS VARIED, AND ONLY THIS. The resolved elasticity symbol is rebound on the draw module so
     every household's elasticity is drawn at `seed` instead of the run's own base seed. The book,
@@ -5106,18 +5343,26 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     counter makes that state RAISE. It is the floor on this tool's own subject and the reason the
     R15 mutation (point `symbol` at the retired `price_sensitivity_for_customer`) goes red.
 
+    AND SINCE 2026-09-10, TO WHICH QUANTITY. `redraw_key="elasticity"` is everything above and the
+    default. `redraw_key="churn_roll"` re-draws `customer_events.churn_roll_for_renewal` instead --
+    the renewal dice every billing account takes, priced or not. This exists because the `except`
+    half of the elasticity cut is EMPTY on this book: the elasticity draw sits behind an offered
+    rate, so only priced households reach it, and the leg meant to measure the rest of the book
+    re-drew nobody and refused. The churn roll is the quantity the rest of the book HAS. See
+    `REDRAW_KEYS` for why two legs on two keys do not partition each other.
+
     `runner` is injectable so the control can exercise this loop without three full decade passes.
     """
     if len(seeds) < 2:
         raise AssertionError(
             f"a noise floor needs at least two seeds; got {len(seeds)}. One seed is a run, not a "
             "spread, and reporting it as a floor would understate the error bars to zero.")
-    draw = importlib.import_module(ELASTICITY_DRAW_MODULE)
-    name = symbol or resolve_elasticity_symbol()
+    draw_module_name, name, patch_factory = resolve_redraw_target(redraw_key, symbol)
+    draw = importlib.import_module(draw_module_name)
     real = getattr(draw, name, None)
     if real is None:
         raise AssertionError(
-            f"`{ELASTICITY_DRAW_MODULE}` has no attribute `{name}` to re-draw. Refusing to run.")
+            f"`{draw_module_name}` has no attribute `{name}` to re-draw. Refusing to run.")
 
     if redraw_mode not in REDRAW_MODES:
         raise AssertionError(
@@ -5130,7 +5375,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     scope = frozenset(redraw_accounts or ())
 
     def _in_redraw_scope(customer_id: str) -> bool:
-        """Is THIS household on the side of the cut that gets a new elasticity?"""
+        """Is THIS household on the side of the cut that gets a new draw?"""
         if redraw_mode == "all":
             return True
         return (customer_id in scope) if redraw_mode == "only" else (customer_id not in scope)
@@ -5140,15 +5385,7 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
     seed_books: list[dict | None] = []
     for seed in seeds:
         calls = {"n": 0, "redrawn": 0, "held": 0, "ids": set()}
-
-        def patched(customer_id, _base_seed, curriculum=None, _s=int(seed), _r=real, _c=calls):
-            _c["n"] += 1
-            if not _in_redraw_scope(customer_id):
-                _c["held"] += 1
-                return _r(customer_id, _base_seed, curriculum)
-            _c["redrawn"] += 1
-            _c["ids"].add(customer_id)
-            return _r(customer_id, _s, curriculum)
+        patched = patch_factory(real, int(seed), _in_redraw_scope, calls)
 
         setattr(draw, name, patched)
         try:
@@ -5157,10 +5394,10 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             setattr(draw, name, real)
         if calls["n"] == 0:
             raise AssertionError(
-                "seed {}: the elasticity patch on `{}.{}` was never called, so this run varied "
+                "seed {}: the `{}` patch on `{}.{}` was never called, so this run varied "
                 "NOTHING and its 'noise floor' would be an artefact reading zero. The churn "
                 "decision no longer reaches that symbol -- re-resolve it before trusting any "
-                "number here.".format(seed, ELASTICITY_DRAW_MODULE, name))
+                "number here.".format(seed, redraw_key, draw_module_name, name))
         # THE SAME FAIL-SILENT GUARD, ONE CUT DOWN. A leg whose scope matches no call site is the
         # identical defect at the level of the roster rather than the symbol: it runs the base
         # world, returns a spread of zero for its half, and the reconciliation then hands the
@@ -5190,7 +5427,17 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         seed_books.append(((result.get("book_identity") or {}).get("control_arm")))
         rows.append({
             "seed": int(seed),
-            "elasticity_draws": calls["n"],
+            #: THE KEY-NEUTRAL TRIO, added 2026-09-10 and always present. The three
+            #: `elasticity_*` keys below are the same three counts under a name that is only true
+            #: on an elasticity leg, and they are kept because consumers read them -- but on a
+            #: churn-roll leg they are published as `None`, never as the churn-roll count wearing
+            #: the elasticity name. A count published under the wrong noun is how a reader ends up
+            #: differencing two quantities, which is this project's most expensive recurring shape.
+            "redraw_key": redraw_key,
+            "draw_calls": calls["n"],
+            "draws_redrawn": calls["redrawn"],
+            "draws_held_fixed": calls["held"],
+            "elasticity_draws": calls["n"] if redraw_key == "elasticity" else None,
             # WHAT THE SEED DID TO THE POPULATION, per row, because the floor's own book block
             # publishes only the range and a reader checking the range needs the rows under it.
             # Not a pairing key -- see `floor_book_identity.how_a_consumer_should_pair_this`.
@@ -5199,8 +5446,8 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
             # THE CUT, MEASURED PER SEED RATHER THAN ASSERTED ONCE. `redrawn + held == draws` is
             # what makes the two legs a partition of one call stream; a reader can check it on
             # every row, and `accounts_redrawn` says how much of the roster the run actually met.
-            "elasticity_redrawn": calls["redrawn"],
-            "elasticity_held_fixed": calls["held"],
+            "elasticity_redrawn": calls["redrawn"] if redraw_key == "elasticity" else None,
+            "elasticity_held_fixed": calls["held"] if redraw_key == "elasticity" else None,
             "accounts_redrawn": len(calls["ids"]),
             # THE CLOCK EVERY FIGURE ON THIS ROW IS ON, carried per seed and reconciled below.
             # Added 2026-08-29: this artefact published four contrasts and no clock, so the page
@@ -5257,9 +5504,11 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         "book_identity": floor_book_identity(seed_books),
         "report_end": report_end,
         "what_this_is": (
-            "The three-arm A/B re-run once per seed with ONLY the per-household elasticity "
-            "assignment re-drawn. The spread below is the error bar on `selection_gbp` -- the "
-            "figure the level-vs-selection split publishes."),
+            "The three-arm A/B re-run once per seed with ONLY the per-household {} re-drawn. The "
+            "spread below is the error bar on `selection_gbp` -- the figure the "
+            "level-vs-selection split publishes.".format(
+                "elasticity assignment" if redraw_key == "elasticity"
+                else "renewal churn roll")),
         #: DERIVED FROM THE SPLIT'S OWN LABEL, agreed across every seed. A consumer that bounds a
         #: published figure with this spread has to know which clock it is on, and until
         #: 2026-08-29 there was nothing here to read -- so `site/data/value_arms.json` carried a
@@ -5269,6 +5518,22 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
         #: consumer never has to infer the mode from the presence of a key -- an absent block would
         #: read as "undecomposed" on an old artefact and as "priced-only" on a new one that failed
         #: to write it, and those are opposite readings of the same silence.
+        #: WHICH QUANTITY THIS FLOOR RE-DREW, at the top level and beside the mode, because the two
+        #: together are what makes two legs comparable and either alone does not. Carried on every
+        #: floor for the same reason the mode is: an absent key would read as "elasticity" on an
+        #: artefact written before 2026-09-10 and as "unknown" on one written after, and a consumer
+        #: cannot tell those apart from the silence. `decompose_floor` reads THIS, never a filename.
+        "redraw_key": redraw_key,
+        "redraw_key_means": {
+            "elasticity": ("the per-household elasticity assignment. Reached ONLY by households "
+                           "the value arm priced -- it sits behind an offered rate -- so the "
+                           "`except` half of this key is empty on this book and gets emptier as "
+                           "the arm prices more of it"),
+            "churn_roll": ("the per-renewal churn dice, taken by every billing account that "
+                           "reaches a renewal point with churn-model data, priced or not. The "
+                           "quantity the REST of the book has, and the cascade itself rather than "
+                           "an input to it"),
+        }[redraw_key],
         "redraw_scope": {
             "mode": redraw_mode,
             "accounts": sorted(scope),
@@ -5277,20 +5542,33 @@ def noise_floor(seeds: list[int], report_end: str | None = None,
                 "all": ("every household re-drawn -- the undecomposed floor, and the only mode "
                         "whose spread bounds the published figure directly"),
                 "only": ("ONLY the households the value arm priced were re-drawn; every other "
-                         "household kept the run's own base-seed elasticity. This half SHRINKS as "
-                         "~1/sqrt(n) with the number of priced decisions, so it is the half a "
-                         "larger settled book buys down"),
-                "except": ("every household EXCEPT the ones the arm priced was re-drawn. This "
-                           "half is the rest of the book's churn cascade landing in the same net "
-                           "and it does NOT shrink with the priced count, so it is the floor a "
-                           "larger settled book cannot get under"),
+                         "household passed through with the draw it already had. This half "
+                         "SHRINKS as ~1/sqrt(n) with the number of priced decisions, so it is the "
+                         "half a larger settled book buys down"),
+                #: SAYS WHAT THE CUT DID, AND NO LONGER WHAT IT WAS HOPED TO REACH. Until
+                #: 2026-09-10 this read "the rest of the book's churn cascade landing in the same
+                #: net" on EVERY `except` leg -- including the ones keyed to the elasticity draw,
+                #: which the rest of the book never takes, so the sentence described a measurement
+                #: that had not happened. Whether the complement is peopled is now a per-key fact
+                #: and the reader is pointed at the counts rather than told the answer.
+                "except": ("every household EXCEPT the ones the arm priced was re-drawn, in "
+                           "whatever quantity `redraw_key` names. This half does NOT shrink with "
+                           "the priced count, so it is the floor a larger settled book cannot get "
+                           "under -- PROVIDED the complement actually takes that draw. Read "
+                           "`accounts_redrawn` per seed before reading the spread: a key the "
+                           "complement never reaches makes this leg refuse, and a key it barely "
+                           "reaches makes the spread imprecise rather than wrong"),
             }[redraw_mode],
         },
-        "symbol_patched": f"{ELASTICITY_DRAW_MODULE}.{name}",
+        "symbol_patched": f"{draw_module_name}.{name}",
         "symbol_resolution": (
             "read from `{}`'s own import statement, not written down here, so a rename "
             "disconnects this tool LOUDLY instead of silently returning a spread of zero"
-            .format(ELASTICITY_DECISION_MODULE)),
+            .format(ELASTICITY_DECISION_MODULE) if redraw_key == "elasticity" else
+            "named in `CHURN_ROLL_SYMBOL`, because the decision calls it unqualified from its own "
+            "module globals and there is no import statement to read. That is also why `setattr` "
+            "on the module intercepts it, and why a rename makes the lookup return None and this "
+            "tool RAISE rather than quietly re-drawing nothing"),
         "seeds": rows,
         "selection_gbp_spread": selection,
         "level_share_spread": share,
@@ -5380,6 +5658,56 @@ KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF = (
     "times_this_book_on_the_published_floor",
     "priced_decisions_needed_on_the_published_floor",
 )
+
+#: The keys that are only quantities when the two legs re-drew the SAME quantity -- i.e. every key
+#: whose arithmetic runs through `v_only + v_except`.
+#:
+#: WHY THIS IS A SECOND LIST AND NOT AN EXTENSION OF THE ONE ABOVE. The degenerate-half withdrawal
+#: fires when the `except` leg carried no variance, and it takes `irreducible_sd_gbp` and
+#: `larger_settled_book_would_resolve_it` with it, because a zero cannot support the CLAIM those
+#: two make. A mixed-key split is the opposite case: the `except` leg is a perfectly good
+#: measurement of the rest of the book's churn cascade and `sqrt(v_except)` is exactly the figure
+#: the page asked for -- it is the SUM that stops meaning anything. Withdrawing the same list in
+#: both cases would suppress the one number this whole exercise exists to produce.
+#:
+#: WHAT GOES WRONG IF THEY ARE PUBLISHED ANYWAY. `v_only` is the spread from re-drawing priced
+#: households' ELASTICITY and `v_except` the spread from re-rolling the rest of the book's CHURN
+#: DICE. Both are correct. Their sum counts nothing -- the two are not disjoint parts of one
+#: variance, they are two different perturbations that may overlap, cancel or compound, and no
+#: measurement here says which. `v_only/(v_only + v_except)` is then a ratio of two figures whose
+#: ratio is not a quantity, and `reconciliation_ratio` compares that non-sum against a third leg
+#: keyed to a fourth thing. Every price derived from them inherits it.
+#:
+#: THE RECONCILIATION PROSE IS IN THE LIST, not only the ratio. It states in words that the legs
+#: "partition the same call stream", which is the sentence that is false -- a withheld number
+#: beside a paragraph asserting the thing that was withheld is worse than either alone.
+KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION = (
+    "priced_share_of_variance",
+    "reconciliation_ratio",
+    "reconciliation_reading",
+    "share_at_which_a_bigger_book_could_resolve_it",
+    "share_is_decisive",
+    "share_margin_over_threshold",
+    "times_this_book",
+    "priced_decisions_needed",
+    "independent_draws_needed",
+    "times_this_book_on_the_published_floor",
+    "priced_decisions_needed_on_the_published_floor",
+    "remedy_price_table",
+)
+
+
+def leg_redraw_key(floor: dict | None) -> str:
+    """Which quantity a floor leg re-drew, read off the leg and never off its filename.
+
+    ABSENCE IS `elasticity`, AND THAT IS PROVABLE RATHER THAN CHARITABLE. `redraw_key` was added on
+    2026-09-10; before it there was exactly one key and every leg on disk ran it. This is the same
+    argument `decompose_floor` already makes for a missing `redraw_scope.mode` on the undecomposed
+    slot, and it is available for the same reason: the alternative did not exist yet. It stops
+    being available the moment a third key is added without a default, which is why `REDRAW_KEYS`
+    is a closed tuple and `noise_floor` writes the field on every leg it produces from now on.
+    """
+    return ((floor or {}).get("redraw_key")) or "elasticity"
 
 #: The candidate priced-side shares the price table is printed at. A LADDER RATHER THAN A POINT,
 #: because at three seeds the measured share is imprecise enough that a reader needs to see how
@@ -5941,15 +6269,31 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
 
     #: WHAT THE COUNTS BEHIND THE ZERO WERE, composed once so the withdrawal reason and the block
     #: beside `rest_of_book_sd_gbp` cannot drift into two different accounts of one leg.
-    except_accounts = sorted(
-        c for c in {r.get("accounts_redrawn") for r in (priced_except.get("seeds") or [])}
-        if isinstance(c, int))
-    except_calls = sorted(
-        c for c in {r.get("elasticity_redrawn") for r in (priced_except.get("seeds") or [])}
-        if isinstance(c, int))
-    run_calls = sorted(
-        c for c in {r.get("elasticity_draws") for r in (priced_except.get("seeds") or [])}
-        if isinstance(c, int))
+    #: KEY-NEUTRAL SINCE 2026-09-10: `draws_redrawn`/`draw_calls` are the same two counts on any
+    #: key, and the `elasticity_*` fallback is what an artefact written before that date carries.
+    #: Read in that order rather than the other way round -- a churn-roll leg publishes the
+    #: elasticity names as `None` on purpose, so a fallback-first read would find nothing and
+    #: report "an unrecorded number" over a leg that recorded it perfectly well.
+    def _per_seed(floor: dict, *fields: str) -> list[int]:
+        for field in fields:
+            found = sorted(c for c in {r.get(field) for r in (floor.get("seeds") or [])}
+                           if isinstance(c, int))
+            if found:
+                return found
+        return []
+
+    except_accounts = _per_seed(priced_except, "accounts_redrawn")
+    except_calls = _per_seed(priced_except, "draws_redrawn", "elasticity_redrawn")
+    run_calls = _per_seed(priced_except, "draw_calls", "elasticity_draws")
+
+    # WHICH QUANTITY EACH LEG RE-DREW, AND WHETHER THAT IS ONE QUANTITY. Read off the legs, never
+    # off their filenames, for the same reason the mode is. See
+    # `KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION` for what a mixed answer invalidates and --
+    # just as importantly -- what it does not.
+    leg_keys = {name: leg_redraw_key(leg)
+                for name, leg in (("undecomposed", undecomposed), ("only", priced_only),
+                                  ("except", priced_except))}
+    legs_share_one_call_stream = len(set(leg_keys.values())) == 1
 
     out = {
         "available": True,
@@ -6008,8 +6352,36 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
         #: this file scans keys rather than prose. False is the ordinary case and says nothing more
         #: than that the leg moved.
         "rest_of_book_half_is_degenerate": rest_of_book_half_is_degenerate,
-        "keys_withdrawn": (list(KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF)
-                           if rest_of_book_half_is_degenerate else []),
+        #: WHETHER THE TWO HALVES RE-DREW ONE QUANTITY, beside the mode agreement they already had.
+        #: `false` does NOT mean the legs are bad -- it means their SUM is not a variance, and the
+        #: keys that run through the sum are withheld while the ones that do not survive. The three
+        #: keys are published individually so a reader never has to infer which leg differed.
+        "legs_share_one_call_stream": legs_share_one_call_stream,
+        "redraw_key_per_leg": dict(sorted(leg_keys.items())),
+        #: DECLARATION ORDER, DEDUPED -- not sorted. The two lists overlap, and a consumer diffing
+        #: this field against either tuple has to see the same sequence it declares; sorting would
+        #: make an unchanged list read as changed the first time both causes fire together.
+        "keys_withdrawn": list(dict.fromkeys(
+            list(KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF
+                 if rest_of_book_half_is_degenerate else [])
+            + list([] if legs_share_one_call_stream
+                   else KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION))),
+        #: WHY THE SUM STOPPED BEING A VARIANCE, separate from the degenerate-half reason because
+        #: the two withdraw overlapping-but-different lists and a reader has to know which applies.
+        "why_the_partition_keys_are_withdrawn": (None if legs_share_one_call_stream else (
+            "The legs re-drew DIFFERENT quantities ({legs}), so `v_only + v_except` adds a spread "
+            "in one thing to a spread in another. Both legs are measurements; their sum is not. "
+            "`priced_share_of_variance` would be a ratio of two figures whose ratio is not a "
+            "quantity, and `reconciliation_ratio` would compare that non-sum against a third leg "
+            "keyed to a fourth thing -- so every key running through the sum is withheld, and "
+            "`remedy_price_table` with them, because it prices each candidate split of that sum. "
+            "WHAT SURVIVES IS THE POINT: `rest_of_book_sd_gbp` and `irreducible_sd_gbp` are "
+            "`sqrt(v_except)` and need only the `except` leg, and "
+            "`larger_settled_book_would_resolve_it` is that spread against the contrast. Those "
+            "three are the question 'does the rest of the book's churn cascade land in this net at "
+            "all', and a mixed-key split answers it -- which is exactly why the `except` leg was "
+            "re-keyed. What is NOT answered is how the two halves divide the whole."
+        ).format(legs=", ".join(f"{n}={k}" for n, k in sorted(leg_keys.items())))),
         "why_those_keys_are_withdrawn": ((
             "The `except` leg -- the rest of the book's half -- returned the IDENTICAL `{contrast}` "
             "on all {seeds} seeds, so its variance is exactly zero and every key listed in "
@@ -6153,14 +6525,21 @@ def decompose_floor(undecomposed: dict, priced_only: dict, priced_except: dict,
     # way and then removed, so the withdrawal cannot disagree with the arithmetic it withdraws and
     # `keys_withdrawn` cannot fall out of step with what was actually withheld -- the KeyError
     # below is the check, and it fires at write time on any key that is renamed above and not here.
-    missing = [k for k in KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF if k not in out]
-    if missing:
-        raise KeyError(
-            "`KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF` names {}, which this decomposition does not "
-            "publish -- a renamed key would be withdrawn from nothing and go on being published "
-            "under its new name".format(", ".join(repr(k) for k in missing)))
+    for list_name, keys in (
+            ("KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF", KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF),
+            ("KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION",
+             KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION)):
+        missing = [k for k in keys if k not in out]
+        if missing:
+            raise KeyError(
+                "`{}` names {}, which this decomposition does not publish -- a renamed key would "
+                "be withdrawn from nothing and go on being published under its new name"
+                .format(list_name, ", ".join(repr(k) for k in missing)))
     if rest_of_book_half_is_degenerate:
         for key in KEYS_DERIVED_FROM_THE_REST_OF_BOOK_HALF:
+            out[key] = None
+    if not legs_share_one_call_stream:
+        for key in KEYS_DERIVED_FROM_A_ONE_CALL_STREAM_PARTITION:
             out[key] = None
     return out
 
@@ -6185,6 +6564,21 @@ def main(argv: list[str] | None = None) -> int:
               "arm priced; `except` = everybody else; `all` (default) = the undecomposed floor. "
               "The two halves partition one call stream, so their variances should sum to the "
               "`all` variance -- run all three and check, or the split is two unrelated runs."))
+    ap.add_argument(
+        "--redraw-key", choices=REDRAW_KEYS, default="elasticity",
+        help=("WHICH per-household quantity the floor re-draws. `elasticity` (default) is every "
+              "leg run before 2026-09-10; it is reached ONLY by households the arm priced, so "
+              "`--redraw-mode except --redraw-key elasticity` re-draws nobody on this book and "
+              "REFUSES. `churn_roll` re-draws the renewal dice every billing account takes, priced "
+              "or not -- the quantity the rest of the book has. Two legs on two keys do not "
+              "partition each other and `--decompose` withholds the share and the price for it."))
+    ap.add_argument(
+        "--partition-probe", action="store_true",
+        help=("PROBE mode: ONE pass with pass-through recorders on both re-drawable draws, "
+              "writing to `--out` which households take which and how the priced roster cuts "
+              "them. Re-draws NOTHING. This is the cheap way to find out whether an `except` leg "
+              "on a given key has anybody to re-draw -- `noise_floor` answers the same question "
+              "only by refusing after a full pass, which cost 39 wasted minutes on 2026-09-10."))
     ap.add_argument(
         "--ignore-headroom", action="store_true",
         help=("start a floor run even when this machine cannot be shown to hold its measured "
@@ -6217,6 +6611,37 @@ def main(argv: list[str] | None = None) -> int:
               "names the priced roster the cut is made along. Read, never hand-written."))
     args = ap.parse_args(argv)
     report_end = f"{args.end_year}-12-31" if args.end_year else None
+
+    if args.partition_probe:
+        # THE SAME REFUSAL AS A FLOOR LEG, because this IS a floor leg's cost. A probe re-draws
+        # nothing, which makes it cheap in SEEDS and not in memory: it is one full three-arm pass
+        # and it peaks where the legs peak. Exempting it because it "only probes" is how three
+        # passes end up sharing a guest sized for two, and an OOM-killed probe writes no artefact
+        # and reads exactly like one still running -- the defect the guard was built for.
+        refusal = floor_run_headroom_refusal()
+        if refusal and not args.ignore_headroom:
+            print("partition probe REFUSED -- {}".format(refusal))
+            return 2
+        probe = partition_probe(priced_accounts_from(args.redraw_accounts_from),
+                                report_end=report_end)
+        out = args.out if args.out != OUTPUT_PATH else FLOOR_PARTITION_PROBE_OUTPUT_PATH
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(json.dumps(probe, indent=2), encoding="utf-8")
+        print("value cycle A/B -- PARTITION PROBE, {} window, {} account roster".format(
+            report_end or "full", probe["roster_size"]))
+        for key, counted in sorted(probe["keys"].items()):
+            print("  {:<12} {:>6} call(s) from {:>4} account(s); {:>4} outside the roster"
+                  "   except leg: {}".format(
+                      key, counted["calls"], counted["accounts_that_drew"],
+                      counted["accounts_that_drew_outside_the_roster"],
+                      "WOULD REFUSE" if counted["except_leg_would_refuse"] else "has a complement"))
+        print("  roll-but-never-draw   {} account(s)".format(
+            probe["accounts_that_roll_but_never_draw"]))
+        print("  selection_gbp   {}".format(
+            "{:+,.2f}".format(probe["selection_gbp_this_pass"])
+            if probe["selection_gbp_this_pass"] is not None else "n/a"))
+        print("  wrote {}".format(out))
+        return 0
 
     if args.fold:
         members = [json.loads(p.read_text(encoding="utf-8")) for p in args.fold]
@@ -6333,7 +6758,8 @@ def main(argv: list[str] | None = None) -> int:
         accounts = (None if args.redraw_mode == "all"
                     else priced_accounts_from(args.redraw_accounts_from))
         floor = noise_floor(seeds, report_end=report_end,
-                            redraw_accounts=accounts, redraw_mode=args.redraw_mode)
+                            redraw_accounts=accounts, redraw_mode=args.redraw_mode,
+                            redraw_key=args.redraw_key)
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(floor, indent=2), encoding="utf-8")
         sel = floor["selection_gbp_spread"]
@@ -6343,14 +6769,17 @@ def main(argv: list[str] | None = None) -> int:
         print("  patched         {}".format(floor["symbol_patched"]))
         print("  redraw mode     {}  ({} account(s) in the roster)".format(
             floor["redraw_scope"]["mode"], floor["redraw_scope"]["accounts_in_roster"]))
+        print("  redraw key      {}".format(floor["redraw_key"]))
         for row in floor["seeds"]:
+            # THE KEY-NEUTRAL COUNTS, because `elasticity_draws` is `None` on a churn-roll leg and
+            # a format string is the last place a `None` should be discovered.
             print("    seed {:<8} selection {:+,.2f} GBP   level share {}   "
-                  "({} draws: {} re-drawn / {} held)".format(
+                  "({} draws: {} re-drawn / {} held over {} account(s))".format(
                       row["seed"], row["selection_gbp"],
                       "{:.1%}".format(row["level_share_of_advantage"])
                       if row["level_share_of_advantage"] is not None else "undefined",
-                      row["elasticity_draws"], row["elasticity_redrawn"],
-                      row["elasticity_held_fixed"]))
+                      row["draw_calls"], row["draws_redrawn"],
+                      row["draws_held_fixed"], row["accounts_redrawn"]))
         print("  selection_gbp   mean {:+,.2f}  sd {}  range {:,.2f} ({:+,.2f} .. {:+,.2f})".format(
             sel["mean"], "{:,.2f}".format(sel["stdev"]) if sel["stdev"] is not None else "n/a",
             sel["range"], sel["min"], sel["max"]))

@@ -399,6 +399,38 @@ def home_move_disposition(home_move_won: bool, successor_id: str | None) -> str:
     return HOME_MOVE_GO_TO_MARKET
 
 
+def churn_roll_for_renewal(billing_account: str, term_start_str: str) -> float:
+    """The renewal-point dice for ONE billing account — the churn cascade's own draw.
+
+    EXTRACTED, NOT CHANGED (2026-09-10). This is the line that has always been at the top of
+    `roll_lifecycle_event`, moved behind a name and nothing else: same seed string, same
+    `Random`, same `.random()`, so every account's roll is the byte it was before. The world does
+    not move for a refactor (R13), and `test_extracting_the_churn_roll_did_not_move_one_byte_of_
+    the_world` is what says so rather than this sentence.
+
+    WHY IT NEEDED A NAME. `tools/run_value_cycle_ab.noise_floor` re-draws one per-household
+    quantity per seed to put an error bar on `selection_gbp`, and the only quantity it could reach
+    was the per-household elasticity. That draw sits inside `if differential:` below, which needs
+    an offered rate — so it is reached ONLY by households the value arm actually priced. Measured:
+    298 elasticity calls from 67 accounts, **zero outside the arm's 100-account roster**
+    (`docs/observability/value_cycle_ab_s1_floor_partition_probe_20260910.json`). The leg meant to
+    measure the REST of the book therefore re-drew nobody, and the production run refused for
+    exactly that reason.
+
+    THIS ROLL IS ABOVE THAT GUARD AND OUTSIDE IT. Every billing account that reaches a renewal
+    point with churn-model data takes one, priced or not. It is the quantity the rest of the book
+    HAS, and it is the churn cascade itself rather than an input to it — which is what the floor's
+    `except` half was always trying to vary.
+
+    NOT SEEDED BY THE RUN, AND THAT IS THE POINT OF THE SIGNATURE. There is no `base_seed`
+    parameter here and one must not be added to make re-drawing easier: threading the run seed into
+    this string would move every roll in the 2016–2025 record, which is a world change and a
+    baseline decision, not a harness convenience. A floor re-draws this by REPLACING the function,
+    the same way it replaces the elasticity symbol, and the substitute is what carries a seed.
+    """
+    return _random.Random(f"{billing_account}_{term_start_str}").random()
+
+
 def roll_lifecycle_event(
     customer_id: str,
     term_start_str: str,
@@ -471,7 +503,7 @@ def roll_lifecycle_event(
     if renewal_data is None:
         return None
 
-    roll = _random.Random(f"{billing_account}_{term_start_str}").random()
+    roll = churn_roll_for_renewal(billing_account, term_start_str)
     effective_p_retain = renewal_data["effective_retention_probability"]
     # Phase 33: passive renewers have lower SIM ground-truth churn — cap the
     # churn probability at passive_churn_cap before applying any retention modifier.
