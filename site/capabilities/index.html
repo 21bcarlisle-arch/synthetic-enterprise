@@ -1306,7 +1306,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       var leg = cw[spec[0]];
       if (!leg) return;
       legs.push({ label: spec[1], what: spec[2], figure: leg.figure_gbp,
-                  stability: leg.verdict_stability, withheld: leg.verdict_withheld_because });
+                  stability: leg.verdict_stability, withheld: leg.verdict_withheld_because,
+                  /* WHAT THE LEG ACTUALLY CONTRASTS, carried to the line where the reader meets
+                     its definition. The cap binds most of the value arm's decisions and none of
+                     the flat arm's, so "the value of choosing per customer" is not all of what
+                     this figure measures — and the confound is in the QUANTITY, not the sample,
+                     which no larger book removes. Read from the feed; it goes quiet on its own
+                     when a bound flag partitions both rosters. */
+                  caveat: (leg.bind_asymmetry && leg.bind_asymmetry.available
+                           && leg.bind_asymmetry.asymmetric)
+                            ? leg.bind_asymmetry.clause : null });
     });
 
     var anyChecked = false;
@@ -1365,7 +1374,11 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + '<ul style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
       + legs.map(function (leg) {
           return "<li><strong>" + esc(leg.label) + "</strong> &mdash; " + prose(leg.what)
-            + ".</li>";
+            + "."
+            + (leg.caveat
+                ? ' <span style="color:var(--amber);">' + prose(leg.caveat) + "</span>"
+                : "")
+            + "</li>";
         }).join("")
       + "</ul>"
       + (anyChecked
@@ -1395,6 +1408,17 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
             + (cw.bound_tree_pairing.caveat
                 ? " " + prose(cw.bound_tree_pairing.caveat) : "")
             + "</p>"
+          : "")
+      /* HOW TO READ TWO PANELS, which the producer has written since the current-world block
+         existed and no door has ever rendered. It is the sentence that tells a reader these are
+         two WORLDS and not a revision — without it, a second set of figures under the first reads
+         as a correction of it, which is the opposite of what the block means. Found by the
+         undriven-pointer rung: its "the figures above" reached a field with zero homes, so the
+         direction was being claimed from a place no reader stands. Rendered here, under the band
+         and below `#arms-headline`, which is what makes "above" true. */
+      + (cw.how_to_read_this
+          ? '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
+            + prose(cw.how_to_read_this) + "</p>"
           : "");
   }
 
@@ -1912,7 +1936,25 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                      ? "var(--amber)" : "var(--muted)") + ';">'
                 + "The arm’s own belief that a renewal would survive the price it chose scored "
                 + "<strong>" + dec.discrimination_auc.toFixed(3)
-                + "</strong> on the usual rank measure. " + prose(dec.auc_reading) + "</p>")
+                + "</strong> on the usual rank measure"
+                // THE STRATIFIED TWIN, BESIDE THE FIGURE AND NOT ONLY IN THE PROSE. The
+                // unstratified number is what the belief scores ACROSS eras; 88% of the pairs
+                // behind it rank one year against another. The figure a reader can weigh against
+                // this page's own estimand is the within-year one, so both are printed with the
+                // stratified one carrying its own null. Rendering only the prose would leave the
+                // big number bold and alone, which is the half a reader takes away.
+                + ((dec.discrimination_auc_within_year
+                    && dec.discrimination_auc_within_year.available)
+                     ? ", and <strong>"
+                       + dec.discrimination_auc_within_year.auc.toFixed(3)
+                       + "</strong> counted only within a term’s own year (null "
+                       + dec.discrimination_auc_within_year.null_95_low.toFixed(3) + "–"
+                       + dec.discrimination_auc_within_year.null_95_high.toFixed(3) + " on "
+                       + esc(dec.discrimination_auc_within_year.same_year_pairs)
+                       + " same-year pairs of "
+                       + esc(dec.discrimination_auc_within_year.all_pairs) + ")"
+                     : "")
+                + ". " + prose(dec.auc_reading) + "</p>")
           // WHICH DEPARTURES, named where the reader meets the figure — or why they are not
           // named. A rank statistic on ten departures that does not say which ten is a number
           // nobody can check, and the artefact this run was built from predates the field that
@@ -2272,9 +2314,16 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + String(pc.publishing_tree_commit || "").slice(0, 9) + ")"
               : "the same code this page runs (" + pc.short + ")")
           + ". ";
+      /* WHICH OBJECTIVE PRICED THIS BOOK, not merely which commit drew it. "Code this page no
+         longer runs" reads as a refactor; it does not tell a reader that the ARM described is not
+         the arm running. At the producing commit the renewal objective charged nothing for losing
+         a customer, and every figure here drawn from that run is a pricing rule the company has
+         stopped running. Read from the feed, which establishes it by reading both blobs — so the
+         clause disappears on its own the day the canonical run is regenerated under HEAD. */
+      var objClause = (pc.objective && pc.objective.clause) ? " " + pc.objective.clause : "";
       $("arms-note").textContent =
         "From the A/B run generated " + (d.run_generated_at || "at an unknown time")
-        + bookClause + d.provisional_note + " " + d.not_a_target
+        + bookClause + objClause + " " + d.provisional_note + " " + d.not_a_target
         + (wd.note ? " " + wd.note : "");
     })
     .catch(function (err) {

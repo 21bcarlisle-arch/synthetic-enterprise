@@ -2332,12 +2332,21 @@ def _feed_whose_current_world_block_speaks() -> dict:
     if not earlier.is_file():
         pytest.fail("{} is missing -- this fixture's subject is UNAVAILABLE, and an unavailable "
                     "check is a FAILED check (R15)".format(earlier))
+    # BY KEYWORD, and that is this landing's repair rather than tidying. These were six POSITIONAL
+    # arguments, the third of which was the run artefact `build` stopped reading when the
+    # published-supplier check moved onto `dashboard.json`. Removing that parameter shifted every
+    # argument after it one place left: the current-world run arrived as the current-world FLOOR
+    # and the block reported "no re-run of the arms in the current world was readable" -- so the
+    # fixture below failed with a message about the committed runs no longer pairing, which is a
+    # sentence about the artefacts and was a sentence about the call. Keywords make the next
+    # signature move a TypeError naming the parameter instead.
     feed = gvad.build(
         json.loads(earlier.read_text(encoding="utf-8")),
         json.loads(gvad.NOISE_FLOOR_PATH.read_text(encoding="utf-8")),
-        None, None,
-        json.loads(gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8")),
-        json.loads(gvad.CURRENT_WORLD_NOISE_FLOOR_PATH.read_text(encoding="utf-8")))
+        current_three_arm=json.loads(
+            gvad.CURRENT_WORLD_THREE_ARM_PATH.read_text(encoding="utf-8")),
+        current_floor=json.loads(
+            gvad.CURRENT_WORLD_NOISE_FLOOR_PATH.read_text(encoding="utf-8")))
     cw = feed.get("current_world") or {}
     if not cw.get("available") or cw.get("is_the_later_run") is False:
         pytest.fail(

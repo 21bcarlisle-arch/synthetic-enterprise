@@ -115,6 +115,7 @@ from __future__ import annotations
 import ast
 import json
 import math
+import random
 import re
 import statistics
 import subprocess
@@ -139,7 +140,7 @@ from tools.product_gate_refusal import refusal_breakdown
 # one place this file derives instead of reading, and it derives by calling the same function the
 # run stores -- so the page and the artefact cannot carry two answers to one question. See that
 # function for why the "never recomputed here" rule does not reach a pair-count identity.
-from tools.run_value_cycle_ab import pair_strata, remedy_price_table
+from tools.run_value_cycle_ab import _concordance, pair_strata, remedy_price_table
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -300,9 +301,6 @@ DEPARTURE_TERM_RERUN_PATH = (
 #: rather than defaulting to the encouraging branch.
 DECOMPOSITION_PATH = (
     PROJECT / "docs" / "observability" / "value_cycle_ab_floor_decomposition.json")
-#: The run whose figures the rest of the site publishes -- read ONLY to check whether the
-#: baseline arm and the published supplier are the same run, never to fill an arm.
-RUN_OUTPUT_PATH = PROJECT / "docs" / "reports" / "run_output_latest.json"
 OUT_PATH = PROJECT / "site" / "data" / "value_arms.json"
 
 #: What each arm IS, in the words a reader who does not work in energy can use. The third is the
@@ -397,17 +395,43 @@ def _arm(key: str, net_gbp, advantage_gbp=None, absent_reason: str | None = None
 #: pounds, so anything above a penny is a different quantity and not a rounding difference.
 SAME_SUPPLIER_TOLERANCE_GBP = 0.01
 
+#: THE PRECISION THE SITE'S OWN FIGURE CARRIES, and the reason the verdict has three outcomes
+#: rather than two. `generate_dashboard_data._fmt` is `round(v, 2)`, so `portfolio.net_margin_gbp`
+#: is quantised to the penny and differs from the run's own sum by up to HALF a penny. The A/B
+#: control arm is full precision. Against a `SAME_SUPPLIER_TOLERANCE_GBP` of £0.01 that leaves a
+#: band the pairing cannot resolve -- a true gap between half a penny and three halfpence reads
+#: same or different by which way the site's figure happened to round.
+#:
+#: THE FIX IS A THIRD ANSWER, NOT A WIDER TOLERANCE. Lifting the tolerance to swallow the band
+#: would make the check agree more often by knowing less, which is the move this file's own
+#: history says never to make. Instead the two verdicts are stated only where the rounding cannot
+#: change them (`|gap| <= resolution` is provably the same figure; `|gap| > tolerance +
+#: resolution` is provably not), and the band between them is published as "cannot resolve at the
+#: precision the site publishes" -- a result, and one no reader can mistake for agreement.
+#: It costs nothing on the question that is actually live: the arms sit £67 apart.
+PUBLISHED_NET_QUANTUM_GBP = 0.01
+_PUBLISHED_NET_RESOLUTION_GBP = PUBLISHED_NET_QUANTUM_GBP / 2
 
-#: The figure the SITE publishes for the company. Not `run_output_latest.json` -- that is a run
-#: artefact any pass can overwrite, including an A/B arm. This is the file the dashboard renders
-#: from, so it is what a reader actually meets.
+
+#: The figure the SITE publishes for the company, AND -- in `meta` -- the run it was computed
+#: from. Not `run_output_latest.json`, which was this check's subject until 2026-09-10 and is the
+#: whole reason the verdict oscillated: that path is refreshed on disk by `background/sim_runner`
+#: after every run and is in no publish, so its committed copy is weeks behind its working copy
+#: and the feed answered differently depending on which tree regenerated it. `dashboard.json` is
+#: committed by every publish, states its own run identity beside its own figure, and is what a
+#: reader actually meets.
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
-#: WHICH RUN THE SITE IS SHOWING, in the site's own committed words. `showing_run.git_commit` and
-#: `showing_run.run_id` are written by the publish cycle and ship in the SAME commit as
-#: `dashboard.json` (`process_run_complete.git_commit_push` names both), so the two can never be a
-#: cycle apart. This is the only artefact in the tree that states the published run's identity
-#: rather than one of its figures.
+#: THE RUN THE SITE LAST VERIFIED. Committed by every publish, and used here for ONE leg only --
+#: whether the dashboard's run is older than this one. It is deliberately NOT the identity the
+#: claim rests on, and that is an ordering fact rather than a preference: `value_arms.json` is
+#: generated inside `process_run_complete.generate_dashboard_json`, and `record_verified` stamps
+#: this file LATER IN THE SAME CYCLE, so at the moment this feed runs the provenance still names
+#: the PREVIOUS run. Visible in the committed record at `dceedff0f`: `value_arms.json` says
+#: `showing_run_id: run_output_36e3ee8c4_...` while `dashboard.json` in the same commit says
+#: `meta.source_file: run_output_258720283_...`. A gate keyed to those two agreeing would refuse
+#: on every publish -- a guard that refuses everything, which is this project's most-repeated
+#: control defect. What survives the lag is the ORDER of the two runs, which is what is checked.
 PUBLISH_PROVENANCE_PATH = PROJECT / "site" / "data" / "publish_provenance.json"
 
 
@@ -421,8 +445,30 @@ def _same_commit(a, b) -> bool:
     return a.startswith(b) or b.startswith(a)
 
 
-def _published_run_identity() -> dict | None:
-    """`{"commit": ..., "run_id": ...}` for the run the site is currently showing, or None."""
+#: A versioned run names its commit AND its start time in its own filename:
+#: `run_output_<short sha>_<YYYYmmddTHHMMSSZ>.json`. The stamp is fixed-width and zero-padded, so
+#: string order IS time order and two of them can be compared without parsing either into a date.
+_RUN_ID = re.compile(r"^run_output_([0-9a-f]{7,40})_(\d{8}T\d{6}Z)\.json$")
+
+
+def _run_started_at(run_id) -> str | None:
+    """The UTC stamp inside a versioned run's filename, or None if it is not one of those names.
+
+    `run_output_latest.json` is deliberately one of the names this REFUSES rather than sorting
+    last. It is a path and not a run, and yielding anything for it is the fail-open that this
+    whole check spent nine days inside.
+    """
+    match = _RUN_ID.match(str(run_id or ""))
+    return match.group(2) if match else None
+
+
+def _last_verified_run() -> dict | None:
+    """`{"commit": ..., "run_id": ...}` for the run the site last VERIFIED, or None.
+
+    ONE PUBLISH BEHIND BY CONSTRUCTION at the moment this feed reads it -- see
+    `PUBLISH_PROVENANCE_PATH` for the ordering and the evidence. The caller uses it for the
+    not-older leg only, which is the one question the lag cannot spoil.
+    """
     try:
         loaded = json.loads(PUBLISH_PROVENANCE_PATH.read_text(encoding="utf-8"))
     except (OSError, ValueError):
@@ -435,77 +481,14 @@ def _published_run_identity() -> dict | None:
             "run_id": showing.get("run_id")}
 
 
-#: Why the run artefact at `RUN_OUTPUT_PATH` cannot be shown to be the published run. Each value is
-#: a distinct defect with a distinct remedy, and collapsing them is what the old check did.
-_IDENTITY_ARTEFACT_SILENT = "the run artefact does not say which run produced it"
-_IDENTITY_SITE_SILENT = "the site does not say which run it is showing"
-_IDENTITY_DIFFERENT_RUN = "the run artefact is a different run from the one the site is showing"
+def _published_dashboard() -> dict | None:
+    """WHAT THE SITE PUBLISHES FOR THE COMPANY, AND WHICH RUN IT CAME FROM -- out of the one
+    committed file that carries both, stamped together by one producer in one pass.
 
-
-def _same_run_verdict(published_run: dict | None) -> dict:
-    """Is the run artefact this feed read THE RUN THE SITE IS SHOWING? Established, never inferred.
-
-    WHY THIS REPLACED AN ARITHMETIC TEST (2026-09-10). Until today the answer was inferred from
-    `run_output_latest.json`'s `total_net_gbp` matching `dashboard.json`'s
-    `portfolio.net_margin_gbp` -- two figures whose agreement is evidence of identity and is not
-    identity. That inference has both failures at once:
-
-      * FALSE PASS. Two different runs whose net margins land within a penny read as one run, and
-        the feed then makes a claim about "the supplier this site publishes" on an artefact that
-        is not it. Nothing in the check could notice.
-      * FALSE REFUSAL, and this is the one that was live. `docs/reports/run_output_latest.json` is
-        refreshed on disk by `background/sim_runner` after every run, but it is NOT in
-        `background.process_run_complete.git_commit_push`'s publish surface -- a gap `0247f3061`
-        named in its own STILL OWED section and 19 publishes in the following week walked straight
-        into. So the tree's WORKING copy is the published run while its COMMITTED copy is weeks
-        behind, and the published verdict alternated by which tree regenerated the feed: six
-        consecutive commits to `site/data/value_arms.json` read
-        checked=True/147,886.78, checked=False/131,289.34, True, False, True, False. Same
-        generator, same code, opposite sentence to the reader -- and the refusal blamed a subject
-        mismatch that did not exist.
-
-    `fe895db3a` is what makes the honest test possible: it put `producing_commit` at the top of the
-    run output's payload, so the artefact now states its own identity. `showing_run.git_commit` on
-    the other side has always been committed by the publish cycle. Both sides name a run, so the
-    question is answered by comparing RUN IDENTITIES and the money is left to answer the question
-    it can actually answer -- how big the difference is, once the subject is settled.
-
-    Returns `state` in {"same", "different", "unestablished"} with both identities and, when it
-    cannot tell, WHICH SIDE was silent. A refusal that does not name which half is missing sends
-    the reader to fix the wrong file.
-    """
-    artefact = (published_run or {}).get("producing_commit")
-    artefact_commit = artefact.get("commit") if isinstance(artefact, dict) else None
-    site = _published_run_identity()
-    site_commit = (site or {}).get("commit")
-    out = {
-        "artefact_commit": artefact_commit,
-        "showing_run_commit": site_commit,
-        "showing_run_id": (site or {}).get("run_id"),
-        # DOES THE ARTEFACT ADMIT IT CANNOT TELL? A flag and not the artefact's own prose, which
-        # runs to twelve hundred characters and belongs in the artefact rather than copied into
-        # every feed that reads it. What a consumer needs from here is whether the silence is
-        # STATED (a backfilled artefact, which `reconcile_and_stamp` marks with this key and only
-        # this key) or merely absent -- those are a refusal and a gap, and they read alike.
-        "artefact_says_it_cannot_tell": bool(
-            (published_run or {}).get("run_identity_unavailable_because")),
-    }
-    if not artefact_commit:
-        return {**out, "state": "unestablished", "why": _IDENTITY_ARTEFACT_SILENT}
-    if not site_commit:
-        return {**out, "state": "unestablished", "why": _IDENTITY_SITE_SILENT}
-    if not _same_commit(artefact_commit, site_commit):
-        return {**out, "state": "different", "why": _IDENTITY_DIFFERENT_RUN}
-    return {**out, "state": "same", "why": None}
-
-
-def _published_dashboard_net():
-    """`portfolio.net_margin_gbp` from the site's own dashboard feed, or None if unreadable.
-
-    None is not a pass: the caller only uses this to REFUSE, so an unreadable dashboard leaves the
-    original comparison in place rather than silently clearing it. That is deliberate -- this
-    check's job is to catch a subject mismatch it can PROVE, and inventing one from a missing file
-    would be the opposite failure.
+    `None` only when the file cannot be read at all. A readable file with pieces missing returns
+    those pieces as `None` rather than collapsing the whole dict: "the dashboard is gone" and "the
+    dashboard cannot name its run" are different defects with different remedies, and the caller
+    is required to say which one it met.
     """
     try:
         loaded = json.loads(DASHBOARD_PATH.read_text(encoding="utf-8"))
@@ -513,11 +496,102 @@ def _published_dashboard_net():
         return None
     if not isinstance(loaded, dict):
         return None
-    return _f(((loaded.get("portfolio") or {}) if isinstance(loaded.get("portfolio"), dict)
-               else {}).get("net_margin_gbp"))
+    portfolio = loaded.get("portfolio")
+    meta = loaded.get("meta")
+    meta = meta if isinstance(meta, dict) else {}
+    source_file, commit = meta.get("source_file"), meta.get("git_commit")
+    commit_source = meta.get("git_commit_source")
+    return {
+        "net_gbp": _f((portfolio if isinstance(portfolio, dict) else {}).get("net_margin_gbp")),
+        "run_id": source_file if isinstance(source_file, str) and source_file else None,
+        # `("unknown", "unavailable")` is `generate_dashboard_data._run_provenance_commit`'s own
+        # way of saying that neither the run's stamp nor its filename named a commit. Carrying it
+        # through as a commit publishes the word "unknown" AS one, which is how a provenance field
+        # goes on being wrong politely.
+        "commit": (commit if isinstance(commit, str) and commit and commit != "unknown"
+                   and commit_source != "unavailable" else None),
+        "commit_source": commit_source if isinstance(commit_source, str) else None,
+    }
 
 
-def _withheld_statement(identity: dict, published, dashboard_net) -> str:
+#: Why the figure the site publishes cannot be shown to be a run this feed may compare against.
+#: Each value is a distinct defect with a distinct remedy, and collapsing them is what the check
+#: this replaced did -- it said "the two are not the same run" whichever of them was true.
+_IDENTITY_DASHBOARD_UNREADABLE = "the site's own figure could not be read"
+_IDENTITY_DASHBOARD_SILENT = "the site's figure does not say which run produced it"
+_IDENTITY_OLDER_THAN_VERIFIED = (
+    "the site's figure came from a run older than the one the site last verified")
+
+
+def _same_run_verdict(dashboard: dict | None) -> dict:
+    """Is the figure this feed is about to compare against ESTABLISHED as the site's own?
+
+    WHAT MOVED, AND WHY, 2026-09-10 (second sitting). This gate was arithmetic until the morning
+    -- `run_output_latest.json`'s `total_net_gbp` matching `dashboard.json`'s
+    `portfolio.net_margin_gbp` was taken as proof they were one run, which is evidence of identity
+    and is not identity. The morning's repair made it an identity test between the run artefact's
+    own `producing_commit` and `publish_provenance.showing_run`. That was honest and it did not
+    stop the OSCILLATION, because `docs/reports/run_output_latest.json` is refreshed on disk after
+    every run and committed by no publish: the same generator on the same code answered
+    checked=True in the shared tree and checked=False in a clean checkout, six commits running.
+
+    So the subject moved off that path entirely. `dashboard.json` is committed by every publish,
+    is the file the reader actually meets, and states its own run identity (`meta.source_file`,
+    `meta.git_commit`, `meta.git_commit_source`) beside its own figure. One file, one producer,
+    one pass -- the money and the identity cannot be a cycle apart, which is exactly the property
+    the old pairing lacked. Every input to this verdict is in the publish surface, so the answer
+    is a property of the COMMIT and not of the tree that regenerated it.
+
+    WHAT THIS COSTS, STATED RATHER THAN GLOSSED. The subject is now SELF-stated. That is a real
+    weakening against a second-witness test and it is the one this project can actually have:
+    the only other committed witness, `publish_provenance.showing_run`, is one publish behind when
+    this runs (see `PUBLISH_PROVENANCE_PATH`), so requiring the two to agree would refuse on every
+    publish. What survives the lag is the ORDER of the two runs, and that is checked below -- it
+    is what catches `generate_dashboard_data._find_latest_run_json` globbing gitignored artefacts
+    by MTIME and silently picking a June run outside the shared tree.
+
+    Returns `state` in {"established", "stale", "unestablished"} with both runs named and, when it
+    cannot tell, WHICH SIDE was silent. A refusal that does not name which half is missing sends
+    the reader to fix the wrong file.
+    """
+    verified = _last_verified_run()
+    verified_run = (verified or {}).get("run_id")
+    out = {
+        "dashboard_run_id": (dashboard or {}).get("run_id"),
+        "dashboard_commit": (dashboard or {}).get("commit"),
+        "dashboard_commit_source": (dashboard or {}).get("commit_source"),
+        "last_verified_run_id": verified_run,
+        "last_verified_commit": (verified or {}).get("commit"),
+        "not_older_than_verified": None,
+        "order_not_asked_because": None,
+    }
+    if dashboard is None:
+        return {**out, "state": "unestablished", "why": _IDENTITY_DASHBOARD_UNREADABLE}
+    if not out["dashboard_run_id"] and not out["dashboard_commit"]:
+        return {**out, "state": "unestablished", "why": _IDENTITY_DASHBOARD_SILENT}
+
+    mine, theirs = _run_started_at(out["dashboard_run_id"]), _run_started_at(verified_run)
+    if mine is None or theirs is None:
+        # NOT ASKED IS NOT PASSED, AND IT IS ALSO NOT A REFUSAL. The subject is established by the
+        # dashboard's own stamp; the order leg is a second question about FRESHNESS, and a site
+        # that has never recorded a verified run has not shown this figure to be stale. Recorded
+        # by name so a reader meets "we did not ask" rather than an unqualified pass.
+        return {**out, "state": "established", "why": None,
+                # NOT ASKED IS NOT PASSED, and the field says so by being `None` rather than by
+                # having a reason beside a `True`. A reader -- and any control keyed to this leg
+                # -- takes the boolean; the prose is what they check afterwards, if at all.
+                "not_older_than_verified": None,
+                "order_not_asked_because": (
+                    "the site has not recorded a verified run this can be ordered against"
+                    if theirs is None else
+                    "the dashboard names its run in a form that carries no start time")}
+    if mine < theirs:
+        return {**out, "state": "stale", "why": _IDENTITY_OLDER_THAN_VERIFIED,
+                "not_older_than_verified": False}
+    return {**out, "state": "established", "why": None, "not_older_than_verified": True}
+
+
+def _withheld_statement(identity: dict, dashboard_net) -> str:
     """The refusal, NAMING WHICH OF THREE THINGS IS WRONG and what would settle it.
 
     A refusal that says why is how you find out the refusal itself was wrong, and the one this
@@ -527,124 +601,111 @@ def _withheld_statement(identity: dict, published, dashboard_net) -> str:
     with the run at all -- and for the nine days before this was written the page said the first
     while the second was true.
     """
-    figures = ""
-    if published is not None and dashboard_net is not None:
-        figures = (" The run artefact reports £{p:,.2f} and the figure the site publishes reports "
-                   "£{d:,.2f}, a gap of £{g:,.2f}.").format(
-                       p=published, d=dashboard_net, g=abs(dashboard_net - published))
     head = "This feed cannot say whether the baseline arm is the supplier the site publishes. "
 
-    if identity["state"] == "different":
-        return (head + "The run artefact it reads was produced at commit {a}, and the site says it "
-                "is showing run {s}. Those are two different runs, so the claim is withheld rather "
-                "than answered from whichever figure is nearer.{f}").format(
-                    a=identity["artefact_commit"], s=identity["showing_run_id"] or
-                    identity["showing_run_commit"], f=figures)
+    if identity["why"] == _IDENTITY_DASHBOARD_UNREADABLE:
+        return (head + "The figure the site publishes for the company could not be read from "
+                "`site/data/dashboard.json`, so there is nothing to compare the baseline arm "
+                "against. The claim is withheld rather than answered from another file.")
 
-    if identity["why"] == _IDENTITY_SITE_SILENT:
-        return (head + "The site does not state which run it is currently showing, so there is "
-                "nothing to check the run artefact against. The claim is withheld rather than "
-                "answered from whichever figure is nearer.{f}").format(f=figures)
+    if identity["why"] == _IDENTITY_DASHBOARD_SILENT:
+        return (head + "`site/data/dashboard.json` publishes a net margin for the company{f} and "
+                "does not say which run produced it, so this feed cannot establish that the "
+                "figure it would compare against came from a run at all. The claim is withheld "
+                "rather than answered from an unattributed number.").format(
+                    f=(" of £{:,.2f}".format(dashboard_net) if dashboard_net is not None else ""))
 
-    # THE LIVE CASE, and the reason the remedy is spelled out rather than left to the reader.
-    # `docs/reports/run_output_latest.json` is refreshed on disk every run and committed by no
-    # publish, so a clean checkout of this repository reads a run that has not been current for
-    # weeks while every figure beside it is today's.
-    showing = identity["showing_run_id"] or identity["showing_run_commit"]
-    return (head + "The run artefact it reads does not say which run produced it{because}, and the "
-            "site says it is showing {s}. `docs/reports/run_output_latest.json` is refreshed on "
-            "disk after every run but is not in the publish surface, so its committed copy can be "
-            "many runs behind the figures published beside it -- and this feed cannot tell that "
-            "apart from a genuinely different run. The claim is withheld rather than answered from "
-            "whichever figure is nearer.{f}").format(
-                because=(" (and says so in its own payload)"
-                         if identity.get("artefact_says_it_cannot_tell") else ""),
-                s=showing or "a run it does not name", f=figures)
+    # THE STALE-DASHBOARD BRANCH, and the reason its cause is spelled out rather than left to the
+    # reader. `generate_dashboard_data._find_latest_run_json()` globs `run_output_*[0-9Z].json`
+    # and sorts by MTIME over files `.gitignore` ignores. In the shared tree that is the freshest
+    # run. In a clean checkout it picks one of four force-added June 2026 artefacts by checkout
+    # mtime -- the site's headline net margin, from a three-month-old run, and until this branch
+    # existed there was no refusal anywhere that could see it.
+    return (head + "The figure the site publishes came from run {d}, and the site's own "
+            "provenance says the last run it verified was {v} -- which STARTED LATER. A published "
+            "figure older than the last verified run is not a run the site is showing, so the "
+            "claim is withheld. `generate_dashboard_data._find_latest_run_json()` picks the run "
+            "the dashboard is built from by file mtime over gitignored artefacts, which is how a "
+            "dashboard generated outside the shared tree comes to publish an old run's "
+            "figure.{f}").format(
+                d=identity["dashboard_run_id"] or identity["dashboard_commit"],
+                v=identity["last_verified_run_id"],
+                f=(" The figure it publishes is £{:,.2f}.".format(dashboard_net)
+                   if dashboard_net is not None else ""))
 
 
-def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
+def _is_the_published_supplier(control_net) -> dict:
     """Is the A/B's flat-rules control arm the same supplier the rest of this site publishes?
 
     CHECKED, NEVER ASSERTED. "The supplier on this site IS the baseline arm" is the sentence that
     makes this whole comparison land, and it is exactly the sentence that rots silently: the site
     republishes on every run, and the day a run moves off the control arm's world the claim
-    becomes false with nothing to catch it. So it is recomputed here from the published run's own
-    `total_net_gbp` every publish, and it renders as a NEGATIVE -- naming both figures and the gap
-    -- the moment the two stop matching. Same shape as
+    becomes false with nothing to catch it. So it is recomputed every publish from the figure the
+    site itself publishes, and it renders as a NEGATIVE -- naming both figures and the gap -- the
+    moment the two stop matching. Same shape as
     `generate_dashboard_data._check_front_door_segment_claim`, which guards the front door's
     hand-authored segment sentence the same way and for the same reason.
+
+    THE SUBJECT IS `dashboard.json` AND IT IS COMMITTED. See `_same_run_verdict` for what it was
+    before and what that cost; `PUBLISHED_NET_QUANTUM_GBP` for why the verdict has three outcomes
+    and not two.
     """
-    published = _f((published_run or {}).get("total_net_gbp"))
-    if control_net is None or published is None:
-        return {"checked": False, "same_supplier": None, "published_run_net_gbp": published,
-                "statement": ("The published run's own net margin could not be read, so this feed "
-                              "does not claim any relationship between it and the baseline arm.")}
-
-    # IS THE SUBJECT EVEN THE RUN THE SITE PUBLISHES? Added 2026-08-28, after a concurrent lane
-    # raised the independence failure and the evidence corrected its premise: `run_output_latest`
-    # is written by `simulation.run_phase4c_on_phase2b`, the same entry point the A/B calls once
-    # per arm, so an A/B pass can make this check compare its own output against itself.
-    #
-    # THE GATE IS AN IDENTITY TEST NOW AND WAS AN ARITHMETIC ONE UNTIL 2026-09-10. See
-    # `_same_run_verdict` for what that cost and why `fe895db3a` is what made the honest version
-    # possible. The money keeps a job -- it sizes the difference once the subject is settled, and
-    # it contradicts the identity below -- but it no longer ESTABLISHES the subject.
-    dashboard_net = _published_dashboard_net()
-    identity = _same_run_verdict(published_run)
-    if identity["state"] != "same":
-        return {
-            "checked": False,
-            "same_supplier": None,
-            "published_run_net_gbp": published,
-            "dashboard_net_gbp": dashboard_net,
-            "run_identity": identity,
-            "statement": _withheld_statement(identity, published, dashboard_net),
-        }
-
-    # IDENTITY SAYS ONE RUN AND THE FIGURES SAY TWO. Kept as its own branch rather than folded
-    # into the one above, because it is a different defect with a different remedy: the run the
-    # provenance names is not the run the dashboard was built from, so one of those two producers
-    # is publishing the other's subject. Naming it "a different run" would send the reader to
-    # re-publish the run output, which would not touch it.
-    if dashboard_net is not None and abs(dashboard_net - published) > SAME_SUPPLIER_TOLERANCE_GBP:
-        return {
-            "checked": False,
-            "same_supplier": None,
-            "published_run_net_gbp": published,
-            "dashboard_net_gbp": dashboard_net,
-            "run_identity": identity,
-            "statement": (
-                "This feed cannot say whether the baseline arm is the supplier the site publishes. "
-                "The run artefact it reads and the figure the site publishes both claim to be run "
-                "{r} -- and they report £{p:,.2f} and £{d:,.2f}, a gap of £{g:,.2f}. One run cannot "
-                "have two net margins, so the claim is withheld rather than answered from whichever "
-                "one is nearer."
-            ).format(r=identity["showing_run_id"] or identity["showing_run_commit"],
-                     p=published, d=dashboard_net, g=abs(dashboard_net - published)),
-        }
-
-    gap = published - control_net
-    same = abs(gap) <= SAME_SUPPLIER_TOLERANCE_GBP
-    return {
-        "checked": True,
-        "same_supplier": same,
-        "published_run_net_gbp": published,
-        "dashboard_net_gbp": dashboard_net,
-        "gap_gbp": gap,
+    dashboard = _published_dashboard()
+    identity = _same_run_verdict(dashboard)
+    published = (dashboard or {}).get("net_gbp")
+    base = {
+        "checked": False,
+        "same_supplier": None,
+        "dashboard_net_gbp": published,
         "run_identity": identity,
+        "resolution_gbp": _PUBLISHED_NET_RESOLUTION_GBP,
+    }
+
+    if identity["state"] != "established":
+        return {**base, "statement": _withheld_statement(identity, published)}
+
+    if control_net is None or published is None:
+        return {**base, "statement": (
+            "The net margin the site publishes for the company could not be read, so this feed "
+            "does not claim any relationship between it and the baseline arm.")}
+
+    # THREE OUTCOMES, BECAUSE THE SITE'S FIGURE IS QUANTISED TO THE PENNY. The two verdicts are
+    # stated only where the site's own rounding cannot change them; the band between is a result
+    # and is published as one. Widening the tolerance to swallow it would buy agreement by
+    # knowing less.
+    gap = published - control_net
+    if abs(gap) > SAME_SUPPLIER_TOLERANCE_GBP + _PUBLISHED_NET_RESOLUTION_GBP:
+        return {
+            **base, "checked": True, "same_supplier": False, "gap_gbp": gap,
+            "statement": (
+                "The published run's net margin (£{p:,.2f}) is NOT the baseline arm's "
+                "(£{c:,.2f}) -- they differ by £{g:,.2f}. The comparison below is between three "
+                "arms of one A/B run and is no longer a statement about the supplier this site "
+                "publishes elsewhere.").format(p=published, c=control_net, g=abs(gap)),
+        }
+
+    if abs(gap) <= _PUBLISHED_NET_RESOLUTION_GBP:
+        return {
+            **base, "checked": True, "same_supplier": True, "gap_gbp": gap,
+            "statement": (
+                "The net margin this site publishes for the company is the same figure, to the "
+                "penny, as the flat-rules baseline arm below. The supplier on the front of this "
+                "site IS the baseline."),
+        }
+
+    return {
+        **base, "gap_gbp": gap,
         "statement": (
-            "The net margin this site publishes for the company is the same figure, to the penny, "
-            "as the flat-rules baseline arm below. The supplier on the front of this site IS the "
-            "baseline."
-            if same else
-            "The published run's net margin (£{p:,.2f}) is NOT the baseline arm's (£{c:,.2f}) -- "
-            "they differ by £{g:,.2f}. The comparison below is between three arms of one A/B run "
-            "and is no longer a statement about the supplier this site publishes elsewhere."
-        ).format(p=published, c=control_net, g=abs(gap)),
+            "This feed cannot say whether the baseline arm is the supplier the site publishes. "
+            "The two differ by £{g:,.4f}, and the site publishes its own figure rounded to the "
+            "penny -- so a gap that small is inside what this comparison can resolve (£{r:,.3f}) "
+            "and reads as agreement or divergence by which way the rounding fell. The claim is "
+            "withheld rather than answered at a precision neither figure carries."
+        ).format(g=abs(gap), r=_PUBLISHED_NET_RESOLUTION_GBP),
     }
 
 
-def _realised(three_arm: dict, published_run: dict | None) -> dict:
+def _realised(three_arm: dict) -> dict:
     """The three arms on the site's own clock -- the level arm included, when the run supports it.
 
     WHERE THE LEVEL ARM'S REALISED NET COMES FROM, AND WHY NOT THE BRIDGE (2026-08-28).
@@ -690,7 +751,7 @@ def _realised(three_arm: dict, published_run: dict | None) -> dict:
             _arm("level", level_net, advantage_gbp=level_adv, absent_reason=level_absent),
         ],
         "split": _split_on_the_realised_clock(three_arm),
-        "is_the_published_supplier": _is_the_published_supplier(control, published_run),
+        "is_the_published_supplier": _is_the_published_supplier(control),
     }
 
 
@@ -2085,6 +2146,39 @@ def _what_would_resolve_it(decomposition: dict | None,
 #: that quietly overwrites the first correction with the second and leaves a page claiming to keep
 #: its record while keeping one entry of it.
 WITHDRAWN_CLAIMS = [{
+    "withdrawn_on": "2026-09-10",
+    "the_words": ("A signal carrying no information at all scores between 0.39 and 0.61 on a "
+                  "population this size (exact null, two-sided 95%). The observed value is "
+                  "OUTSIDE it and above the null (two-sided p 0.023), so on this population the "
+                  "belief carried real information about who stays."),
+    "why": ("The figure is real and the word \"who\" is not. `discrimination_auc` counts every "
+            "ordered pair of a retained decision against a departed one, and only 402 of the "
+            "3,320 pairs behind 0.627 -- 12% -- compare two households in the SAME YEAR. The "
+            "other 88% rank a decision in one era against a decision in another, and the book's "
+            "realised retention runs from 0.476 in 2017 to 0.929 in 2025 while the median "
+            "`believed_p_retain` runs from 0.45 to 0.82 across the same span. So the belief tracks "
+            "the calendar, and ranking a 2017 renewal against a 2024 one is what earns the 0.627. "
+            "Counted within the year only, the concordance is 0.444 on 402 pairs against a "
+            "permutation null of 0.376-0.619 (two-sided p 0.375) -- INSIDE it. This is not a "
+            "stylistic re-cut: this artefact's estimand is `level_vs_selection`, and a signal that "
+            "moves with the era and not within it contributes to the LEVEL by construction and to "
+            "the selection not at all. \"Who stays\" is a household claim and the stratified "
+            "figure does not carry one. NOTHING REPLACES IT IN THE OPPOSITE DIRECTION: at 402 "
+            "same-year pairs the sample cannot tell either way, and reading 0.444 as \"the belief "
+            "is uninformative\" would be the same overclaim mirrored. What the page gains is the "
+            "stratified figure, its pair count and its null, published beside the unstratified "
+            "one. This was the single measured number on the artefact arguing that households "
+            "differ in a way the arm can see, so the flat-world reading of the selection leg is "
+            "now unopposed on this artefact rather than refuted by it. "
+            "`docs/staging/SEAT_RESULT_THE_SELECTION_LEG_CANNOT_BE_SPLIT_ON_THIS_ARTEFACT_AND_"
+            "THE_ONE_FIGURE_ARGUING_AGAINST_A_FLAT_WORLD_IS_A_BETWEEN_YEAR_EFFECT_2026-09-10.md`."),
+    "note": ("WITHDRAWN 2026-09-10: this page previously read `discrimination_auc` of 0.627 as the "
+             "belief carrying “real information about who stays”. Only 12% of that "
+             "figure's pairs compare two households in the same year; within a year the "
+             "concordance is 0.444 and sits inside its own null. The between-year part is this "
+             "page's LEVEL, not its selection, so the household reading is withdrawn — and "
+             "the opposite is not claimed either, because 402 same-year pairs cannot tell."),
+}, {
     "withdrawn_on": "2026-08-31",
     "the_words": ("The company's estimator is outside the published band in 4 of 6 years, by up "
                   "to 16.5pp -- so this is independence and inaccuracy at once. A gap that size "
@@ -3694,6 +3788,12 @@ def _method_skill(three_arm: dict) -> dict:
             # never from the live world: the question is which departure level THIS figure saw, and
             # a page that answered it with today's digest would stamp a superseded run as current.
             measured_in_world=((three_arm or {}).get("world_identity") or {}).get("digest")),
+        # THE STRATIFIED TWIN REACHES THIS BLOCK TOO. `churn_auc_for_contrast` is the SAME
+        # `discrimination_auc` under a second key, and gating the household reading in `_decisions`
+        # while leaving this one bare would put the withdrawn claim back on the page through the
+        # other door -- the shape `_book` records against itself for the settled-book counts.
+        "churn_auc_within_year": _within_year_concordance(
+            (three_arm or {}).get("belief_vs_outcome") or {}),
         # ...AND WHETHER THE RUN'S OWN REASON FOR SAYING NOTHING STANDS UP. `reading` below is the
         # producer's sentence, unedited, and it ends "that is a statement about how few decisions
         # there are". This run's unconditioned cut refutes that from the same book with fewer
@@ -4648,7 +4748,185 @@ def _auc_attribution(three_arm: dict, belief: dict, priced_accounts: list) -> di
     }
 
 
-def _auc_reading(belief: dict, attribution: dict) -> str:
+#: THE NULL'S OWN PARAMETERS, fixed so the interval a reader meets is reproducible from the
+#: artefact alone and does not move between publishes. 8,000 draws puts the Monte-Carlo error on a
+#: 95% endpoint roughly an order of magnitude below the interval's own width at this many pairs, so
+#: re-running the publish cannot change the sentence.
+_WITHIN_YEAR_NULL_DRAWS = 8000
+_WITHIN_YEAR_NULL_SEED = 20260910
+
+
+def _pooled_within_year_auc(by_year: dict) -> tuple:
+    """The concordance computed ONLY between decisions taken in the same calendar year.
+
+    Pooled over years by PAIR COUNT, not averaged over years: a year contributing 4 comparable
+    pairs and a year contributing 180 are not one observation each, and averaging them would let
+    the thinnest year swing the figure. Returns `(auc, same_year_pairs)`.
+
+    THE ARITHMETIC IS THE PRODUCER'S, IMPORTED. `run_value_cycle_ab._concordance` is the same call
+    that computes `discrimination_auc` itself, handling signal ties as a half and excluding
+    outcome-tied pairs -- so the stratified figure and the unstratified one cannot differ because
+    two implementations of one statistic drifted apart. Verified against the artefact: this call
+    over the whole population returns `belief_vs_outcome.discrimination_auc` to full precision.
+    """
+    weighted = 0.0
+    pairs = 0
+    for records in by_year.values():
+        auc, comparable, _ties = _concordance(
+            [(row["believed_p_retain"], 1.0 if row["retained"] else 0.0) for row in records])
+        if auc is not None and comparable:
+            weighted += auc * comparable
+            pairs += comparable
+    return (weighted / pairs if pairs else None), pairs
+
+
+def _within_year_concordance(belief: dict) -> dict:
+    """Does the belief rank households WITHIN a year, or is it tracking the era?
+
+    WHY THIS IS NOT A STYLISTIC CHOICE, and the reason it belongs beside the published figure
+    rather than in a note. This artefact's estimand is `level_vs_selection`: the part of the
+    advantage a flat rate could have earned, against the part only a per-customer view could. A
+    signal that moves with the calendar and not within it is the FIRST of those, by construction --
+    knowing 2017 churns harder than 2024 is exactly the level. So for the question this page exists
+    to answer, the between-year component is not evidence and the page's own word -- "who", a
+    household claim -- is the one the stratified figure has to support.
+
+    IT DID NOT. `discrimination_auc` is 0.627 on this run, outside its null and read on the page as
+    "the belief carried real information about who stays". Only 402 of the 3,320 ordered pairs
+    behind it (12%) compare two households in the same year; the other 88% compare two eras.
+    Stratified, the figure is 0.444 and sits inside its own null.
+
+    WHAT THIS DOES NOT ESTABLISH, and the block says so in its own payload rather than leaving it
+    to the reader. At 402 same-year pairs the null spans roughly 0.38-0.62. The within-year figure
+    being INSIDE it is "this sample cannot tell in either direction", NOT "the belief is
+    uninformative" -- the second is the mirror-image overclaim of the one being withdrawn, and it
+    would be just as unearned. Halving that null needs about four times the same-year pairs.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. Nothing here asserts that the stratified figure
+    is inside its null. It asserts that the figure is published WITH its stratified twin and the
+    twin's own null, so the day a run earns a within-year direction the page states one with nobody
+    editing a string -- and the day the unstratified figure stops being between-year, the two agree
+    and the withdrawal below reads as spent rather than as a correction.
+    """
+    scored = [row for row in (belief or {}).get("scored_decisions") or []
+              if isinstance(row, dict)
+              and isinstance(row.get("believed_p_retain"), (int, float))
+              and isinstance(row.get("retained"), bool)
+              and isinstance(row.get("term_start"), str)]
+    if not scored:
+        return {
+            "available": False,
+            "reason": ("this run publishes no per-decision `scored_decisions`, so the concordance "
+                       "cannot be stratified by the term's own year"),
+        }
+
+    by_year: dict = {}
+    for row in scored:
+        by_year.setdefault(row["term_start"][:4], []).append(row)
+
+    observed, pairs = _pooled_within_year_auc(by_year)
+    unstratified = _f((belief or {}).get("discrimination_auc"))
+    total_pairs = _concordance(
+        [(r["believed_p_retain"], 1.0 if r["retained"] else 0.0) for r in scored])[1]
+    if observed is None or not pairs:
+        return {
+            "available": False,
+            "reason": ("no two decisions in this run share a calendar year AND differ in outcome, "
+                       "so there is no within-year pair to compare"),
+        }
+
+    # THE NULL IS PERMUTED WITHIN EACH YEAR, which is the whole point: shuffling `retained` across
+    # the book would destroy the between-year signal too and the resulting interval would be the
+    # unstratified null wearing a stratified label. Shuffling inside a year holds each year's
+    # retention rate exactly and asks only whether the belief orders households within it.
+    rng = random.Random(_WITHIN_YEAR_NULL_SEED)
+    draws = []
+    for _ in range(_WITHIN_YEAR_NULL_DRAWS):
+        permuted = {}
+        for year, records in by_year.items():
+            flags = [row["retained"] for row in records]
+            rng.shuffle(flags)
+            permuted[year] = [dict(row, retained=flag) for row, flag in zip(records, flags)]
+        drawn, _p = _pooled_within_year_auc(permuted)
+        if drawn is not None:
+            draws.append(drawn)
+    draws.sort()
+    low = draws[int(0.025 * len(draws))]
+    high = draws[int(0.975 * len(draws))]
+    # +1 IN BOTH HALVES -- the observed arrangement is one of the arrangements, so a p of exactly
+    # zero is not reachable and a figure no draw matched reports 1/(draws+1) rather than "certain".
+    at_least_as_far = sum(1 for value in draws if abs(value - 0.5) >= abs(observed - 0.5))
+    p_two_sided = (at_least_as_far + 1) / (len(draws) + 1)
+
+    return {
+        "available": True,
+        "auc": observed,
+        "unstratified_auc": unstratified,
+        "same_year_pairs": pairs,
+        "all_pairs": total_pairs,
+        "same_year_share_of_pairs": (pairs / total_pairs) if total_pairs else None,
+        "null_point": 0.5,
+        "null_95_low": low,
+        "null_95_high": high,
+        "p_two_sided": p_two_sided,
+        "inside_the_null": bool(low <= observed <= high),
+        "years": sorted(by_year),
+        "draws": len(draws),
+        "seed": _WITHIN_YEAR_NULL_SEED,
+        "basis": (
+            "concordance counted only between decisions whose terms START IN THE SAME CALENDAR "
+            "YEAR, pooled across years by pair count. Null: `retained` permuted WITHIN each year, "
+            "{d:,} draws, seed {s}, ties counting a half exactly as the producer's own AUC does."
+            .format(d=len(draws), s=_WITHIN_YEAR_NULL_SEED)),
+        "what_this_does_not_establish": (
+            "A within-year figure inside its null does NOT establish that the belief is "
+            "uninformative -- that is the same overclaim in the opposite direction. On "
+            "{p:,} same-year pairs this sample cannot tell either way; about four times as many "
+            "would halve the interval.".format(p=pairs)),
+    }
+
+
+def _within_year_clause(within: dict) -> str:
+    """The stratified sentence appended to the published reading, or the reason there is none.
+
+    THREE BRANCHES FOR THREE STATES, the same shape and for the same reason as `_auc_reading`'s
+    own tri-state below: unavailable, inside the null, outside it. The middle branch is the one
+    that is live today and it is the one that WITHDRAWS the household reading; the third exists so
+    that a run whose belief does rank households within a year gets to say so.
+    """
+    if not within.get("available"):
+        return (" The concordance is NOT stratified on this run ({}), so whether it ranks "
+                "households or eras is unestablished here.".format(
+                    within.get("reason", "reason not recorded")))
+
+    head = (" BUT THE PAIRS BEHIND IT COMPARE ERAS, NOT HOUSEHOLDS. Only {pairs:,} of the "
+            "{total:,} ordered pairs ({share:.0%}) put two households in the SAME YEAR; the rest "
+            "rank a decision in one year against a decision in another. Counted within the year "
+            "only, the concordance is {auc:.3f} against a null of {lo:.3f}-{hi:.3f} on those "
+            "{pairs:,} pairs (two-sided p {p:.3f}).".format(
+                pairs=within["same_year_pairs"], total=within["all_pairs"],
+                share=within["same_year_share_of_pairs"], auc=within["auc"],
+                lo=within["null_95_low"], hi=within["null_95_high"], p=within["p_two_sided"]))
+
+    if within.get("inside_the_null"):
+        return head + (
+            " That is INSIDE its null, so this run shows no evidence the belief ranks one "
+            "household against another within a year -- and for this page's own estimand the "
+            "between-year part IS the level, not the selection. The words \"real information "
+            "about who stays\" are WITHDRAWN: \"who\" is a household claim and the stratified "
+            "figure does not carry it. It does not establish the opposite either -- at this many "
+            "same-year pairs the sample cannot tell in either direction.")
+    if within["auc"] < 0.5:
+        return head + (
+            " That is OUTSIDE its null and BELOW it: within a year the belief ranks households "
+            "backwards, and the unstratified figure is the calendar covering that over.")
+    return head + (
+        " That is OUTSIDE its null and above it, so the belief ranks one household against "
+        "another WITHIN a year and not only one era against another. On this run the household "
+        "reading is earned rather than borrowed from the calendar.")
+
+
+def _auc_reading(belief: dict, attribution: dict, within: dict | None = None) -> str:
     """The sentence a reader meets beside the figure, GATED ON THE FIGURE'S OWN BOUND.
 
     KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. The reading this replaces was a constant string
@@ -4667,6 +4945,11 @@ def _auc_reading(belief: dict, attribution: dict) -> str:
     priced = (attribution or {}).get("priced_accounts")
     observed = _f((belief or {}).get("discrimination_auc"))
     population = (belief or {}).get("auc_population") or {}
+    # DEFAULTED, NEVER SKIPPED. A caller that does not pass the stratified block still gets the
+    # stratified clause -- computed here -- rather than silently getting the pre-2026-09-10
+    # sentence back. An optional argument whose absence restores a withdrawn claim is the
+    # fail-open this whole change exists to close.
+    within = within if within is not None else _within_year_concordance(belief)
 
     endogeneity = ""
     if caused and priced:
@@ -4683,8 +4966,8 @@ def _auc_reading(belief: dict, attribution: dict) -> str:
 
     if not bound.get("available"):
         return ("This figure is published WITHOUT a bound on this run ({}), so no direction is "
-                "read from it here.{}".format(bound.get("reason", "reason not recorded"),
-                                              endogeneity))
+                "read from it here.{}{}".format(bound.get("reason", "reason not recorded"),
+                                                _within_year_clause(within), endogeneity))
 
     head = ("Measured on {left} departures and {ret} retentions -- {n} decisions on {a} accounts. "
             "A signal carrying no information at all scores between {lo:.2f} and {hi:.2f} on a "
@@ -4713,10 +4996,116 @@ def _auc_reading(belief: dict, attribution: dict) -> str:
                 "this population the belief ranked customers BACKWARDS -- the renewals it was most "
                 "confident of keeping are the ones that left.".format(p=bound["p_two_sided"]))
     else:
+        # THE HOUSEHOLD READING IS EARNED HERE OR NOT STATED HERE. Until 2026-09-10 this branch
+        # said "the belief carried real information about who STAYS" on the strength of the
+        # unstratified figure alone -- and 88% of that figure's pairs compare two eras. The claim
+        # is a household claim, so it is gated on the figure that can carry one; when the
+        # stratified twin cannot, the sentence says what the run actually showed (a population
+        # separated) and `_within_year_clause` states the withdrawal in the next breath.
+        household_earned = (
+            within.get("available")
+            and not within.get("inside_the_null")
+            and (within.get("auc") or 0.0) >= 0.5)
         body = (" The observed value is OUTSIDE it and above the null (two-sided p {p:.3f}), so on "
-                "this population the belief carried real information about who "
-                "stays.".format(p=bound["p_two_sided"]))
-    return head + body + endogeneity
+                "this population the belief separated those who stayed from those who "
+                "left.".format(p=bound["p_two_sided"]))
+        if household_earned:
+            body = (" The observed value is OUTSIDE it and above the null (two-sided p {p:.3f}), "
+                    "so on this population the belief carried real information about who "
+                    "stays.".format(p=bound["p_two_sided"]))
+    return head + body + _within_year_clause(within) + endogeneity
+
+
+#: THE FILE THE RENEWAL OBJECTIVE LIVES IN, and the term whose presence separates the two rules.
+#: `departure_cost_gbp` is the sourced replacement cost a departure charges the objective; before
+#: it landed, the objective was `p x C x A` and losing a customer cost the arm exactly nothing.
+_RENEWAL_OBJECTIVE_PATH = "company/pricing/value_based_renewal.py"
+_DEPARTURE_TERM = "departure_cost_gbp"
+
+
+def _blob_has(commit: str | None, path: str, needle: str) -> bool | None:
+    """Does `path` at `commit` contain `needle`? None when git cannot answer.
+
+    NONE IS A RESULT AND NOT A FALSE. A shallow clone, a garbage-collected commit or a missing
+    path all land here, and returning False would publish "the objective did not charge for a
+    departure" on the strength of a failed subprocess -- a fail-open in the flattering direction,
+    since the flattering reading is that the page's book is the book the company runs.
+    """
+    if not commit:
+        return None
+    try:
+        found = subprocess.run(
+            ["git", "show", "{}:{}".format(commit, path)],
+            cwd=PROJECT, capture_output=True, text=True, timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if found.returncode != 0:
+        return None
+    return needle in found.stdout
+
+
+def _renewal_objective_moved(produced_at: str | None, tree: str | None) -> dict:
+    """Was this book priced under the objective the company still runs?
+
+    THE DEFECT THIS EXISTS FOR (2026-09-10). The canonical three-arm artefact was produced at
+    `8b846013e`, and at that commit the renewal objective was `p x C x A`: a departure cost the arm
+    NOTHING. The departure term landed later and is an ancestor of HEAD, so HEAD's arm charges the
+    sourced replacement cost for losing a customer. Every figure on this page drawn from that run
+    -- the realised net, the level/selection split, the decision shape, the funnel -- describes a
+    pricing rule the company has stopped running, and until now nothing on the page said so. The
+    existing `reading` says the CODE was replaced, which a reader can take as a refactor; it does
+    not say the ARM described is not the arm running.
+
+    ASKED OF THE BLOBS, NOT OF A COMMIT LIST. The honest question is whether the objective at the
+    producing commit carries the departure term, so that is what is read -- `git show
+    <commit>:<path>` on both sides. Pinning the answer to `8b846013e`, or to the commit that landed
+    the term, would be a control keyed to today's answer: promoting a post-departure run to
+    canonical would leave the caveat on the page, stale and now false. Read this way, the day the
+    canonical run is regenerated under HEAD's objective the two sides agree and the clause comes
+    off with nobody editing a string.
+
+    FAIL-CLOSED ON EITHER SIDE BEING UNREADABLE. When git cannot answer for one of the commits the
+    block says the comparison could not be made, and the page keeps a caveat rather than losing
+    one. `established: False` never reads as agreement.
+    """
+    at_run = _blob_has(produced_at, _RENEWAL_OBJECTIVE_PATH, _DEPARTURE_TERM)
+    at_head = _blob_has(tree, _RENEWAL_OBJECTIVE_PATH, _DEPARTURE_TERM)
+    if at_run is None or at_head is None:
+        which = "the producing commit" if at_run is None else "the publishing tree"
+        return {
+            "established": False,
+            "path": _RENEWAL_OBJECTIVE_PATH,
+            "term": _DEPARTURE_TERM,
+            "reason": ("this publish could not read {} at {}, so whether the book was priced "
+                       "under the objective now running is unestablished".format(
+                           _RENEWAL_OBJECTIVE_PATH, which)),
+            "clause": ("WHICH OBJECTIVE PRICED THIS BOOK IS UNESTABLISHED: this publish could not "
+                       "read `{}` at {}, so the page cannot say whether the arm described is the "
+                       "arm running.".format(_RENEWAL_OBJECTIVE_PATH, which)),
+        }
+    moved = at_run != at_head
+    return {
+        "established": True,
+        "path": _RENEWAL_OBJECTIVE_PATH,
+        "term": _DEPARTURE_TERM,
+        "departure_priced_at_run": at_run,
+        "departure_priced_at_head": at_head,
+        "objective_moved_since_the_run": moved,
+        "clause": (
+            "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for "
+            "losing a customer -- at the producing commit `{path}` carries no `{term}`, so the "
+            "renewal objective was expected margin times survival, with no cost on a departure. "
+            "The arm running now charges the sourced replacement cost for one. Every figure here "
+            "drawn from this run describes a pricing rule the company has stopped running."
+            .format(path=_RENEWAL_OBJECTIVE_PATH, term=_DEPARTURE_TERM)
+            if moved and not at_run else
+            "AND THE OBJECTIVE MOVED UNDER IT, in the other direction: this book was priced with "
+            "a departure cost in the objective and the tree publishing it no longer carries one."
+            if moved else
+            "The renewal objective is the same rule at both commits -- `{term}` is present in "
+            "`{path}` at each -- so the arm described is the arm running on that axis.".format(
+                term=_DEPARTURE_TERM, path=_RENEWAL_OBJECTIVE_PATH)),
+    }
 
 
 def _producing_commit(three_arm: dict) -> dict:
@@ -4757,6 +5146,7 @@ def _producing_commit(three_arm: dict) -> dict:
             "counts_are_labelled_by_the_code_that_made_them": False,
         }
     same = None if not tree else (stated == tree)
+    objective = _renewal_objective_moved(stated, tree)
     return {
         "stated": True,
         "commit": stated,
@@ -4765,13 +5155,18 @@ def _producing_commit(three_arm: dict) -> dict:
         "publishing_tree_commit": tree,
         "produced_by_the_tree_it_publishes_from": same,
         "counts_are_labelled_by_the_code_that_made_them": True,
+        # WHICH RULE PRICED THIS BOOK, not merely which commit drew it. See
+        # `_renewal_objective_moved`: "the code was replaced" tells a reader the tree moved; it
+        # does not tell them the arm they are reading about is not the arm running.
+        "objective": objective,
         "reading": (
             "Produced and published by the same tree ({}).".format(stated[:9]) if same
             else ("Produced at {} and published from {} -- the code was replaced between the run "
                   "and this page, so read every count here as the older tree's."
                   .format(stated[:9], (tree or "an unresolved tree")[:9]) if same is False
                   else "Produced at {}; this publish could not resolve its own tree, so the two "
-                       "cannot be compared.".format(stated[:9]))),
+                       "cannot be compared.".format(stated[:9])))
+        + (" " + objective["clause"] if objective.get("clause") else ""),
     }
 
 
@@ -4839,6 +5234,7 @@ def _decisions(three_arm: dict, provenance: dict | None = None) -> dict:
     exclusions = _exclusions(funnel)
     who = _who_the_method_has_priced(funnel)
     attribution = _auc_attribution(three_arm, belief, who.get("priced_accounts"))
+    within_year = _within_year_concordance(belief)
     return {
         "available": isinstance(priced, int),
         "value_arm_priced": priced,
@@ -4890,7 +5286,12 @@ def _decisions(three_arm: dict, provenance: dict | None = None) -> dict:
             "accounts": len(accounts),
         },
         "auc_attribution": attribution,
-        "auc_reading": _auc_reading(belief, attribution),
+        # THE SAME FIGURE STRATIFIED BY THE TERM'S OWN YEAR, published BESIDE the unstratified one
+        # and never instead of it. Both, because the gap between them IS the finding: the
+        # unstratified figure is what the belief scores across eras, the stratified one is what it
+        # scores within a household's own year, and this page's estimand needs the second.
+        "discrimination_auc_within_year": within_year,
+        "auc_reading": _auc_reading(belief, attribution, within_year),
         "decided_by_a_bound": bound.get("decided_by_the_lawful_ceiling"),
         "bound_note": (
             "Some of the arm's prices were set by the lawful price cap rather than by anything "
@@ -5160,8 +5561,13 @@ def _publisher_bound_statement(publisher: dict, whole_book: dict, world_mean: fl
         "{:.2f}x. The refuted band is the FLATTERING one here."
     ).format(band_ratio, publisher["ratio_of_means"])
     if not whole_book.get("available"):
+        # "NEITHER FIGURE ABOVE" NAMED A DIRECTION THAT WAS NEVER TRUE. Both ratios are in `lead`
+        # -- the first half of this same paragraph, in the same rendered element -- so a reader
+        # told to look above is being sent out of the sentence they are reading. Naming what the
+        # two figures ARE is true from wherever this lands, which is the repair `_departures` made
+        # for the same word.
         return lead + (" The comparable whole-book reading could not be taken off this capture ({}"
-                       "), so neither figure above is over the population the record counts."
+                       "), so neither ratio stated here is over the population the record counts."
                        ).format(whole_book.get("reason"))
     book_pub = whole_book.get("against_the_publisher") or {}
     if not book_pub.get("available"):
@@ -5420,10 +5826,18 @@ def _current_world_bound(floor_current: dict | None, current: dict | None, live:
     measurement -- absence must refuse, and a refusal stub is absence wearing a filename.
     """
     if not isinstance(floor_current, dict) or not floor_current:
+        # NAMES THE QUANTITY, NEVER A DIRECTION. This read "whether the figure below is
+        # distinguishable from zero" and no deployed door renders `why_no_bound` at all, so the
+        # word "below" was a direction taken from a place no reader stands and nothing could check
+        # it. Naming `contrast` is true from anywhere -- the same repair
+        # `_decomposition_is_the_same_contrast` made -- and it is strictly more informative here,
+        # because this function bounds two different legs depending on its argument and "the
+        # figure" never said which.
         return {"bound_available": False, "why_no_bound": (
             "NO BOUND ON THIS PAGE WAS MEASURED IN THIS WORLD. No noise floor re-run over this "
-            "world was readable, so this page states no verdict on whether the figure below is "
-            "distinguishable from zero -- in either direction.")}
+            "world was readable, so this page states no verdict on whether its `{contrast}` "
+            "figure is distinguishable from zero -- in either direction."
+        ).format(contrast=contrast)}
     ran_in = ((floor_current.get("world_identity") or {}).get("digest"))
     if ran_in != live:
         return {"bound_available": False, "floor_ran_in_world": ran_in, "why_no_bound": (
@@ -6550,6 +6964,78 @@ def _what_would_answer_it(bound: dict, selection: dict, level: dict) -> str | No
             ).format(legs=" and ".join(signless), verb="ies" if len(signless) == 1 else "y")
 
 
+def _bind_asymmetry(artefact: dict | None) -> dict:
+    """WHAT `selection_gbp` ACTUALLY CONTRASTS, which is not what its name says.
+
+    THE CONFOUND IS IN THE ESTIMAND, NOT IN THE SAMPLE, and that is why this block sits beside the
+    leg rather than in a caveat. `selection_gbp` is `value_arm_net_gbp - level_arm_net_gbp`, read
+    on this page as "what the per-customer CHOOSING was worth". But `ceiling_bound` is a
+    per-decision flag on the value arm's log and it is 0 on the level arm BY CONSTRUCTION -- the
+    flat arm sits below the lawful cap everywhere, so it is bound on nothing. The contrast is
+    therefore between an arm the statutory cap binds on most of its decisions and an arm it never
+    binds at all. Whatever the leg measures, "the value of choosing per customer" is not all of it.
+
+    READ FROM THE ARTEFACT THAT PRODUCED THE LEG THIS SITS BESIDE, never from the canonical run.
+    The two are different runs in different worlds; carrying one's counts under the other's leg is
+    a pointer with two homes, false in one of them, which is the shape
+    `SEAT_FINDING_A_POINTER_SENTENCE_WITH_TWO_HOMES_IS_FALSE_IN_ONE_OF_THEM_2026-09-08.md` names.
+    They happen to agree today (143 of 214, 0 of 281 on both) and that is exactly why reading the
+    wrong one would go unnoticed until it did not.
+
+    KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. `asymmetric` is computed, not asserted: the day a
+    bound flag is defined exogenously so it partitions BOTH rosters -- the cheapest next step in
+    `SEAT_RESULT_THE_SELECTION_LEG_CANNOT_BE_SPLIT_ON_THIS_ARTEFACT_..._2026-09-10.md` -- both
+    sides carry counts, this goes False, and the caveat comes off the page with nobody editing it.
+    """
+    value = (artefact or {}).get("decision_shape") or {}
+    level = (artefact or {}).get("level_arm_decision_shape") or {}
+    value_priced = value.get("priced")
+    level_priced = level.get("priced")
+    value_bound = value.get("ceiling_bound")
+    level_bound = level.get("ceiling_bound")
+    if not all(isinstance(n, int) for n in (value_priced, level_priced, value_bound, level_bound)):
+        return {
+            "available": False,
+            "reason": ("this run does not publish a priced count and a `ceiling_bound` count for "
+                       "BOTH arms, so whether the cap binds them asymmetrically is unestablished"),
+        }
+    # BOTH SIDES BOUND, OR NEITHER, IS THE ONLY SHAPE THAT MAKES THE LEG A CLEAN CONTRAST. One side
+    # bound and the other not is the defect; the predicate says so rather than pinning today's 143.
+    asymmetric = (value_bound > 0) != (level_bound > 0)
+    return {
+        "available": True,
+        "value_arm_priced": value_priced,
+        "value_arm_ceiling_bound": value_bound,
+        "value_arm_bound_share": value_bound / value_priced if value_priced else None,
+        "value_arm_extrapolation_bound": value.get("extrapolation_bound"),
+        "level_arm_priced": level_priced,
+        "level_arm_ceiling_bound": level_bound,
+        "asymmetric": asymmetric,
+        "the_leg_is_not_the_value_of_choosing": asymmetric,
+        "clause": (
+            "THIS LEG IS NOT THE VALUE OF CHOOSING PER CUSTOMER. The statutory price cap binds "
+            "{vb} of the value arm's {vp} priced decisions ({share:.0%}) and {lb} of the level "
+            "arm's {lp}. The flat arm sits below the lawful cap everywhere, so it is bound on "
+            "nothing and there is no free/bound partition on that side to difference this one "
+            "against. What the figure contrasts is an arm the cap binds on most of its decisions "
+            "against an arm it never binds at all -- so the confound is in the QUANTITY, not in "
+            "the sample, and no larger book removes it.".format(
+                vb=value_bound, vp=value_priced, lb=level_bound, lp=level_priced,
+                share=value_bound / value_priced if value_priced else 0.0)
+            if asymmetric else
+            "The cap binds {vb} of the value arm's {vp} priced decisions and {lb} of the level "
+            "arm's {lp}. Both rosters carry a bound partition, so this leg contrasts like with "
+            "like on that axis.".format(vb=value_bound, vp=value_priced,
+                                        lb=level_bound, lp=level_priced)),
+        "what_would_remove_it": (
+            "A bound flag defined EXOGENOUSLY, so it applies to both arms: per renewal, whether "
+            "the lawful cap at that term's own window lies below the arm's UNCONSTRAINED optimum "
+            "-- a shadow score `decide_margin` already computes. Applied to both rosters it "
+            "partitions both sides. As recorded, `ceiling_bound` is a property of a value-arm "
+            "decision and is 0 on the level arm by construction, which is not a measurement."),
+    }
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
                             superseded_split: dict | None = None,
@@ -6748,6 +7234,9 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
         "selection_leg": dict(
             selection,
             figure_gbp=contrast.get("selection_gbp"),
+            # THE CONFOUND IS IN THE ESTIMAND, NOT THE SAMPLE, which is why it sits HERE and not
+            # in a caveat block. See `_bind_asymmetry`.
+            bind_asymmetry=_bind_asymmetry(current),
             what_this_leg_is=(
                 "What the per-customer CHOOSING was worth once one flat margin at the same price "
                 "LEVEL is credited with everything a level alone would have earned. The other leg "
@@ -7203,7 +7692,7 @@ def _world_departure_level() -> dict:
 
 
 def build(three_arm: dict | None, floor: dict | None,
-          published_run: dict | None = None, decomposition: dict | None = None,
+          decomposition: dict | None = None,
           current_three_arm: dict | None = None, current_floor: dict | None = None,
           departure_rerun: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -7234,7 +7723,7 @@ def build(three_arm: dict | None, floor: dict | None,
             "a partial one."))
 
     provenance = _producing_commit(three_arm)
-    realised = _realised(three_arm, published_run)
+    realised = _realised(three_arm)
     provisioned = _provisioned(three_arm)
     if not realised["available"] and not provisioned["available"]:
         return dict(base, available=False, reason=(
@@ -7699,14 +8188,12 @@ def _read(path: Path):
 
 def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              noise_floor_path: Path | None = None,
-             published_run_path: Path | None = None,
              decomposition_path: Path | None = None,
              current_three_arm_path: Path | None = None,
              current_noise_floor_path: Path | None = None,
              departure_rerun_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
-                 _read(RUN_OUTPUT_PATH if published_run_path is None else published_run_path),
                  _read(DECOMPOSITION_PATH if decomposition_path is None
                        else decomposition_path),
                  _read(CURRENT_WORLD_THREE_ARM_PATH if current_three_arm_path is None

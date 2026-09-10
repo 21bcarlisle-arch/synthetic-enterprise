@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T02:57:18.242496Z",
+  "generated_at": "2026-09-10T05:27:32.512581Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -297,11 +297,17 @@
     }
   },
   "withdrawn_claim": {
-    "withdrawn_on": "2026-08-31",
-    "the_words": "The company's estimator is outside the published band in 4 of 6 years, by up to 16.5pp -- so this is independence and inaccuracy at once. A gap that size is as likely to be the company being wrong as the company knowing something, and the two produce the same number.",
-    "why": "It read one measurement as an ACCURACY reading, and the two numbers in it do not count the same thing. The company's acted belief is `prior x ratio ** w`, where the ratio is realised over predicted departures on THIS SUPPLIER'S OWN BOOK at a weight of 0.82-0.89 -- so the level of that number is a book level, while the published band is the GB market's switching rate. Supplier churn is roughly the market rate times that supplier's retention RELATIVE to the market, and the update carries no term separating the two: 2018's 3.04% against a 19.5-20.0% band is what a sticky book in a competitive year looks like, not a 16.5pp error. The obvious repair -- de-bias the ratio into a market estimate -- is self-defeating, because the only market-level quantity a real supplier observes IS the published series, so the 'market' half of the result would be that series again and the independence this leg just earned would be spent buying back co-calibration. This is the flattering direction and nothing replaces it: the page does not gain an accuracy reading, it loses the ability to make one, and the distance now publishes as a distance with `accuracy_reading_available: false`. The INDEPENDENCE leg is untouched -- that band test asks whether this side's series IS the record, which needs no commensurability and which only the company's own departures can move it off. `docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md`.",
-    "note": "WITHDRAWN 2026-08-31: this page previously called the company's distance from the published band \u201cindependence and inaccuracy at once\u201d. It is not an accuracy reading \u2014 the company's belief is this book's departure hazard and the band is the market's switching rate, and a supplier that retains better than average sits far outside the band without being wrong. The distance still publishes, as a distance; no accuracy reading replaces it, and none is available on this side of the wall. WITHDRAWN 2026-08-30: this page previously said the belief result and the selection result \u201ccorroborate each other rather than merely coexisting\u201d. They are not independent \u2014 five of the ten accounts the arm priced were driven out by the arm's own price rise, so both results have one cause \u2014 and the figure was published with no interval on a population of ten departures. What stands in its place carries the sample, the exact null, and what the figure is actually a belief about. WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run. WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports.",
+    "withdrawn_on": "2026-09-10",
+    "the_words": "A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief carried real information about who stays.",
+    "why": "The figure is real and the word \"who\" is not. `discrimination_auc` counts every ordered pair of a retained decision against a departed one, and only 402 of the 3,320 pairs behind 0.627 -- 12% -- compare two households in the SAME YEAR. The other 88% rank a decision in one era against a decision in another, and the book's realised retention runs from 0.476 in 2017 to 0.929 in 2025 while the median `believed_p_retain` runs from 0.45 to 0.82 across the same span. So the belief tracks the calendar, and ranking a 2017 renewal against a 2024 one is what earns the 0.627. Counted within the year only, the concordance is 0.444 on 402 pairs against a permutation null of 0.376-0.619 (two-sided p 0.375) -- INSIDE it. This is not a stylistic re-cut: this artefact's estimand is `level_vs_selection`, and a signal that moves with the era and not within it contributes to the LEVEL by construction and to the selection not at all. \"Who stays\" is a household claim and the stratified figure does not carry one. NOTHING REPLACES IT IN THE OPPOSITE DIRECTION: at 402 same-year pairs the sample cannot tell either way, and reading 0.444 as \"the belief is uninformative\" would be the same overclaim mirrored. What the page gains is the stratified figure, its pair count and its null, published beside the unstratified one. This was the single measured number on the artefact arguing that households differ in a way the arm can see, so the flat-world reading of the selection leg is now unopposed on this artefact rather than refuted by it. `docs/staging/SEAT_RESULT_THE_SELECTION_LEG_CANNOT_BE_SPLIT_ON_THIS_ARTEFACT_AND_THE_ONE_FIGURE_ARGUING_AGAINST_A_FLAT_WORLD_IS_A_BETWEEN_YEAR_EFFECT_2026-09-10.md`.",
+    "note": "WITHDRAWN 2026-09-10: this page previously read `discrimination_auc` of 0.627 as the belief carrying \u201creal information about who stays\u201d. Only 12% of that figure's pairs compare two households in the same year; within a year the concordance is 0.444 and sits inside its own null. The between-year part is this page's LEVEL, not its selection, so the household reading is withdrawn \u2014 and the opposite is not claimed either, because 402 same-year pairs cannot tell. WITHDRAWN 2026-08-31: this page previously called the company's distance from the published band \u201cindependence and inaccuracy at once\u201d. It is not an accuracy reading \u2014 the company's belief is this book's departure hazard and the band is the market's switching rate, and a supplier that retains better than average sits far outside the band without being wrong. The distance still publishes, as a distance; no accuracy reading replaces it, and none is available on this side of the wall. WITHDRAWN 2026-08-30: this page previously said the belief result and the selection result \u201ccorroborate each other rather than merely coexisting\u201d. They are not independent \u2014 five of the ten accounts the arm priced were driven out by the arm's own price rise, so both results have one cause \u2014 and the figure was published with no interval on a population of ten departures. What stands in its place carries the sample, the exact null, and what the figure is actually a belief about. WITHDRAWN 2026-08-29: this page previously said the way to resolve the comparison was \u201ca larger SETTLED BOOK\u201d. That named a remedy nobody had measured \u2014 the spread it qualifies has two sources with opposite remedies, and they had not been separated. What stands in its place is derived from the split, or says plainly that no split has been run. WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports.",
     "also_withdrawn": [
+      {
+        "withdrawn_on": "2026-08-31",
+        "the_words": "The company's estimator is outside the published band in 4 of 6 years, by up to 16.5pp -- so this is independence and inaccuracy at once. A gap that size is as likely to be the company being wrong as the company knowing something, and the two produce the same number.",
+        "why": "It read one measurement as an ACCURACY reading, and the two numbers in it do not count the same thing. The company's acted belief is `prior x ratio ** w`, where the ratio is realised over predicted departures on THIS SUPPLIER'S OWN BOOK at a weight of 0.82-0.89 -- so the level of that number is a book level, while the published band is the GB market's switching rate. Supplier churn is roughly the market rate times that supplier's retention RELATIVE to the market, and the update carries no term separating the two: 2018's 3.04% against a 19.5-20.0% band is what a sticky book in a competitive year looks like, not a 16.5pp error. The obvious repair -- de-bias the ratio into a market estimate -- is self-defeating, because the only market-level quantity a real supplier observes IS the published series, so the 'market' half of the result would be that series again and the independence this leg just earned would be spent buying back co-calibration. This is the flattering direction and nothing replaces it: the page does not gain an accuracy reading, it loses the ability to make one, and the distance now publishes as a distance with `accuracy_reading_available: false`. The INDEPENDENCE leg is untouched -- that band test asks whether this side's series IS the record, which needs no commensurability and which only the company's own departures can move it off. `docs/design/THE_ACTED_BELIEF_IS_A_BOOK_QUANTITY_2026-08-31.md`.",
+        "note": "WITHDRAWN 2026-08-31: this page previously called the company's distance from the published band \u201cindependence and inaccuracy at once\u201d. It is not an accuracy reading \u2014 the company's belief is this book's departure hazard and the band is the market's switching rate, and a supplier that retains better than average sits far outside the band without being wrong. The distance still publishes, as a distance; no accuracy reading replaces it, and none is available on this side of the wall."
+      },
       {
         "withdrawn_on": "2026-08-30",
         "the_words": "Below 0.50 means the company's own belief about who will leave ranks customers worse than a coin flip. An estimator that cannot rank cannot select profitably, so the selection result and the belief result corroborate each other rather than merely coexisting.",
@@ -321,7 +327,7 @@
         "note": "WITHDRAWN 2026-08-29: this page previously said \u201con this evidence the advantage is the price level, and the per-customer choosing is worth less than nothing\u201d. That sentence stated a direction smaller than its own error bar. It is withdrawn, not reversed: the reading above is what the evidence supports."
       }
     ],
-    "withdrawals": 4
+    "withdrawals": 5
   },
   "run_generated_at": "2026-09-09T13:58:12Z",
   "producing_commit": {
@@ -329,10 +335,19 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "dceedff0f10f0531d8c0382424fbe276dbabaaf2",
+    "publishing_tree_commit": "d15b7b5432d574d40765cc9de3ef739d78e2d736",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
-    "reading": "Produced at 8b846013e and published from dceedff0f -- the code was replaced between the run and this page, so read every count here as the older tree's."
+    "objective": {
+      "established": true,
+      "path": "company/pricing/value_based_renewal.py",
+      "term": "departure_cost_gbp",
+      "departure_priced_at_run": false,
+      "departure_priced_at_head": true,
+      "objective_moved_since_the_run": true,
+      "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+    },
+    "reading": "Produced at 8b846013e and published from d15b7b543 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
   },
   "world_provenance": {
     "available": true,
@@ -501,6 +516,19 @@
         "sentence": "What it would take, against this book's 214 priced renewals: to give the published draw (\u00a3270) a direction, more than 44.9x this book -- about 9,608 priced renewals out of 91,331 the world must offer; to give the centre of its own re-draw family (-\u00a31,078) a direction, more than 2.8x this book -- about 604 priced renewals out of 5,742 the world must offer. Both are the most optimistic book in the family -- the real one is larger. Which of the two a reader should mean is not a detail this page can settle for them: they are different quantities and they are answered by different books."
       },
       "figure_gbp": 270.20708699998795,
+      "bind_asymmetry": {
+        "available": true,
+        "value_arm_priced": 214,
+        "value_arm_ceiling_bound": 143,
+        "value_arm_bound_share": 0.6682242990654206,
+        "value_arm_extrapolation_bound": 6,
+        "level_arm_priced": 281,
+        "level_arm_ceiling_bound": 0,
+        "asymmetric": true,
+        "the_leg_is_not_the_value_of_choosing": true,
+        "clause": "THIS LEG IS NOT THE VALUE OF CHOOSING PER CUSTOMER. The statutory price cap binds 143 of the value arm's 214 priced decisions (67%) and 0 of the level arm's 281. The flat arm sits below the lawful cap everywhere, so it is bound on nothing and there is no free/bound partition on that side to difference this one against. What the figure contrasts is an arm the cap binds on most of its decisions against an arm it never binds at all -- so the confound is in the QUANTITY, not in the sample, and no larger book removes it.",
+        "what_would_remove_it": "A bound flag defined EXOGENOUSLY, so it applies to both arms: per renewal, whether the lawful cap at that term's own window lies below the arm's UNCONSTRAINED optimum -- a shadow score `decide_margin` already computes. Applied to both rosters it partitions both sides. As recorded, `ceiling_bound` is a property of a value-arm decision and is 0 on the level arm by construction, which is not a measurement."
+      },
       "what_this_leg_is": "What the per-customer CHOOSING was worth once one flat margin at the same price LEVEL is credited with everything a level alone would have earned. The other leg of the advantage is the level itself, which is a price charged rather than a value made -- so this is the only figure on this page that could be value created instead of value moved."
     },
     "level_leg": {
@@ -655,10 +683,19 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "dceedff0f10f0531d8c0382424fbe276dbabaaf2",
+      "publishing_tree_commit": "d15b7b5432d574d40765cc9de3ef739d78e2d736",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
-      "reading": "Produced at 8b846013e and published from dceedff0f -- the code was replaced between the run and this page, so read every count here as the older tree's."
+      "objective": {
+        "established": true,
+        "path": "company/pricing/value_based_renewal.py",
+        "term": "departure_cost_gbp",
+        "departure_priced_at_run": false,
+        "departure_priced_at_head": true,
+        "objective_moved_since_the_run": true,
+        "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+      },
+      "reading": "Produced at 8b846013e and published from d15b7b543 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     }
   },
   "realised": {
@@ -707,19 +744,23 @@
       "how_to_read_this": "A share at or above 1.0 means the LEVEL explains all of the advantage and the SELECTION is worth nothing or less. This is the natural measure of whether widening the world gave the company something to infer: with a world whose households differ only by circumstance there is almost nothing for per-customer selection to select ON, and the level should carry it. A selection still worth less than nothing is a complete answer and NOT a cue to tune the arm until it wins (R12). The enterprise-value reading is withheld on purpose -- see this function's docstring."
     },
     "is_the_published_supplier": {
-      "checked": false,
-      "same_supplier": null,
-      "published_run_net_gbp": 131289.339938,
+      "checked": true,
+      "same_supplier": false,
       "dashboard_net_gbp": 147886.78,
       "run_identity": {
-        "artefact_commit": null,
-        "showing_run_commit": "258720283",
-        "showing_run_id": "run_output_258720283_20260910T005624Z.json",
-        "artefact_says_it_cannot_tell": true,
-        "state": "unestablished",
-        "why": "the run artefact does not say which run produced it"
+        "dashboard_run_id": "run_output_38051c0c0_20260910T044844Z.json",
+        "dashboard_commit": "38051c0c0",
+        "dashboard_commit_source": "run_stamp",
+        "last_verified_run_id": "run_output_38051c0c0_20260910T044844Z.json",
+        "last_verified_commit": "38051c0c0",
+        "not_older_than_verified": true,
+        "order_not_asked_because": null,
+        "state": "established",
+        "why": null
       },
-      "statement": "This feed cannot say whether the baseline arm is the supplier the site publishes. The run artefact it reads does not say which run produced it (and says so in its own payload), and the site says it is showing run_output_258720283_20260910T005624Z.json. `docs/reports/run_output_latest.json` is refreshed on disk after every run but is not in the publish surface, so its committed copy can be many runs behind the figures published beside it -- and this feed cannot tell that apart from a genuinely different run. The claim is withheld rather than answered from whichever figure is nearer. The run artefact reports \u00a3131,289.34 and the figure the site publishes reports \u00a3147,886.78, a gap of \u00a316,597.44."
+      "resolution_gbp": 0.005,
+      "gap_gbp": -67.47566100073163,
+      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.48. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -1798,6 +1839,34 @@
       "verdict_withheld_because": null,
       "basis": "exact Mann-Whitney null over all 377306602809499280834401376471811 arrangements of 83 retained and 40 departed renewals; ties are not modelled, which widens the interval and enlarges the p-value rather than shrinking either"
     },
+    "churn_auc_within_year": {
+      "available": true,
+      "auc": 0.44402985074626866,
+      "unstratified_auc": 0.6269578313253013,
+      "same_year_pairs": 402,
+      "all_pairs": 3320,
+      "same_year_share_of_pairs": 0.1210843373493976,
+      "null_point": 0.5,
+      "null_95_low": 0.3756218905472637,
+      "null_95_high": 0.6194029850746269,
+      "p_two_sided": 0.37520309961254844,
+      "inside_the_null": true,
+      "years": [
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "draws": 8000,
+      "seed": 20260910,
+      "basis": "concordance counted only between decisions whose terms START IN THE SAME CALENDAR YEAR, pooled across years by pair count. Null: `retained` permuted WITHIN each year, 8,000 draws, seed 20260910, ties counting a half exactly as the producer's own AUC does.",
+      "what_this_does_not_establish": "A within-year figure inside its null does NOT establish that the belief is uninformative -- that is the same overclaim in the opposite direction. On 402 same-year pairs this sample cannot tell either way; about four times as many would halve the interval."
+    },
     "the_sample_size_explanation": {
       "available": true,
       "what_this_is": "whether 'there are too few decisions' survives as the explanation for the figure above being unreadable. The test is a power comparison against this run's own unconditioned cut, not a re-reading of either figure.",
@@ -2656,7 +2725,35 @@
       },
       "reading": "0.13 is not a sign error and not a broken instrument. It is what the arm's own retention belief scores on 20 decisions across 10 founding accounts, five of which the arm's price rise itself drove out. The quantity is not 'does this company know who will leave' -- it is 'did the arm predict who would survive the price it chose', graded on departures that choice caused."
     },
-    "auc_reading": "Measured on 40 departures and 83 retentions -- 123 decisions on 100 accounts. A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief carried real information about who stays. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 4 of the 100 accounts this arm priced (C5_2, PROS-2019-0024, PROS-2021-0324, SYN-2016-034) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 20.0 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
+    "discrimination_auc_within_year": {
+      "available": true,
+      "auc": 0.44402985074626866,
+      "unstratified_auc": 0.6269578313253013,
+      "same_year_pairs": 402,
+      "all_pairs": 3320,
+      "same_year_share_of_pairs": 0.1210843373493976,
+      "null_point": 0.5,
+      "null_95_low": 0.3756218905472637,
+      "null_95_high": 0.6194029850746269,
+      "p_two_sided": 0.37520309961254844,
+      "inside_the_null": true,
+      "years": [
+        "2016",
+        "2017",
+        "2018",
+        "2019",
+        "2020",
+        "2021",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "draws": 8000,
+      "seed": 20260910,
+      "basis": "concordance counted only between decisions whose terms START IN THE SAME CALENDAR YEAR, pooled across years by pair count. Null: `retained` permuted WITHIN each year, 8,000 draws, seed 20260910, ties counting a half exactly as the producer's own AUC does.",
+      "what_this_does_not_establish": "A within-year figure inside its null does NOT establish that the belief is uninformative -- that is the same overclaim in the opposite direction. On 402 same-year pairs this sample cannot tell either way; about four times as many would halve the interval."
+    },
+    "auc_reading": "Measured on 40 departures and 83 retentions -- 123 decisions on 100 accounts. A signal carrying no information at all scores between 0.39 and 0.61 on a population this size (exact null, two-sided 95%). The observed value is OUTSIDE it and above the null (two-sided p 0.023), so on this population the belief separated those who stayed from those who left. BUT THE PAIRS BEHIND IT COMPARE ERAS, NOT HOUSEHOLDS. Only 402 of the 3,320 ordered pairs (12%) put two households in the SAME YEAR; the rest rank a decision in one year against a decision in another. Counted within the year only, the concordance is 0.444 against a null of 0.376-0.619 on those 402 pairs (two-sided p 0.375). That is INSIDE its null, so this run shows no evidence the belief ranks one household against another within a year -- and for this page's own estimand the between-year part IS the level, not the selection. The words \"real information about who stays\" are WITHDRAWN: \"who\" is a household claim and the stratified figure does not carry it. It does not establish the opposite either -- at this many same-year pairs the sample cannot tell in either direction. AND THE POPULATION IS NOT INDEPENDENT OF THE THING BEING GRADED: 4 of the 100 accounts this arm priced (C5_2, PROS-2019-0024, PROS-2021-0324, SYN-2016-034) left under the value arm and did NOT leave under the control, so the arm's own price rise -- a median 20.0 GBP/MWh against the control's 2.0 -- manufactured part of the very outcome the belief is scored against. `believed_p_retain` is the retention the arm expected AT THE PRICE IT CHOSE, not a free-standing forecast of who would leave.",
     "decided_by_a_bound": 143,
     "bound_note": "Some of the arm's prices were set by the lawful price cap rather than by anything about the customer. A win that came from a bound is not a win that came from inference.",
     "control_as_share_of_regulated_allowance": [

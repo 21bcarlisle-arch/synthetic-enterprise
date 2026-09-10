@@ -100,18 +100,29 @@ _MARK = "Zq{}Zx"
 
 
 def _real_inputs() -> list:
-    """The SIX artefacts `generate()` reads, in its order.
+    """Every artefact `generate()` reads, in its order.
 
-    ALL SIX, and the count is load-bearing. Built from three, the decomposition and both
+    ALL OF THEM, and the count is load-bearing. Built from three, the decomposition and both
     current-world artefacts are absent, `floor_decomposition` never composes and
     `_current_world_bound`'s refusal reaches no field -- so two recipes would report "this branch
     writes nowhere" when what was missing was an input, and the flattering reading is the one that
     would have been recorded.
+
+    KEYED TO `build`'s ARITY RATHER THAN TO A COUNT TYPED HERE. This list was six paths with
+    `RUN_OUTPUT_PATH` third until the published-supplier repair stopped reading that artefact at
+    all; the name then vanished from the producer and this fixture raised `AttributeError` at
+    SETUP, which reports as four tests erroring rather than as one stale list -- and a whole file
+    erroring is how a red gets attributed to whichever lane next touches it. The check below makes
+    the next such move a refusal that names itself.
     """
-    return [gva._read(path) for path in (
-        gva.THREE_ARM_PATH, gva.NOISE_FLOOR_PATH, gva.RUN_OUTPUT_PATH,
-        gva.DECOMPOSITION_PATH, gva.CURRENT_WORLD_THREE_ARM_PATH,
-        gva.CURRENT_WORLD_NOISE_FLOOR_PATH)]
+    paths = (gva.THREE_ARM_PATH, gva.NOISE_FLOOR_PATH, gva.DECOMPOSITION_PATH,
+             gva.CURRENT_WORLD_THREE_ARM_PATH, gva.CURRENT_WORLD_NOISE_FLOOR_PATH,
+             gva.DEPARTURE_TERM_RERUN_PATH)
+    wanted = gva.build.__code__.co_argcount
+    assert len(paths) == wanted, (
+        "`build` reads {} artefacts and this fixture supplies {}, so every recipe below would be "
+        "driven over a payload the producer never builds".format(wanted, len(paths)))
+    return [gva._read(path) for path in paths]
 
 
 def _string_fields(payload) -> list[tuple[str, str]]:
@@ -165,6 +176,17 @@ def _polarity_reason(sentence, real):
     return lambda *a, **k: dict(real(*a, **k), reason=sentence)
 
 
+def _how_to_read_this(sentence, real):
+    """MERGED, and for `_polarity_reason`'s reason rather than a new one.
+
+    `_current_world_contrast` returns the whole current-world block; the here-relative sentence is
+    one key inside it. Substituting a bare string would take `current_world` off the shape every
+    leg below reads -- the bound, the selection leg, the re-draw family -- and the drive would then
+    be measuring a page nobody publishes.
+    """
+    return lambda *a, **k: dict(real(*a, **k), how_to_read_this=sentence)
+
+
 def _departure_unavailable_constant(sentence, _real):
     """`_DEPARTURE_UNAVAILABLE` is a constant, and patching it does NOT drive its branch.
 
@@ -187,6 +209,28 @@ _RECIPES = {
     "_current_world_bound": _no_bound,
     "_polarity_check": _polarity_reason,
     "_DEPARTURE_UNAVAILABLE": _departure_unavailable_constant,
+    # THE TWO PANEL SENTENCES. Both return a bare string into one published field, so the generic
+    # recipe drives them. They arrived with `_what_differs_between_two_runs` on 2026-09-08 and this
+    # rung had been red at HEAD for them since -- picked up here because the 09-08b promotion makes
+    # `_against_the_superseded_panel`'s `the_same_run` branch the LIVE one, so its here-relative
+    # prose is now what a reader actually meets rather than a branch nobody could reach.
+    "_against_the_superseded_panel": _returns_string,
+    "_against_the_panels_figure": _returns_string,
+    # THE BUCKET TABLE'S READING became a symbol of its own on 2026-09-09 when its direction stopped
+    # being written down; its fewer-than-two-bands and flat-ends branches render nowhere today, so
+    # the here-relative prose in them is exactly what this rung judges.
+    "_bucket_reading": _returns_string,
+    # THE LAST TWO UNDRIVEN SYMBOLS, red at HEAD since before either lane in this cluster existed
+    # and named as the landable part of the wedge in
+    # `docs/staging/SEAT_RESULT_THE_PUBLISHED_SUPPLIER_CHECK_NOW_READS_ONLY_COMMITTED_BYTES_AND_THE_ITEMS_OWN_PAIRING_WOULD_HAVE_REFUSED_ON_EVERY_PUBLISH_2026-09-10.md`.
+    # `_publisher_bound_statement` returns a bare string into `bounding_statement`, so the generic
+    # recipe drives it; `_current_world_contrast` returns a block and takes the merge above.
+    # `_publisher_bound_statement`'s row stays even though its untied sentence was repaired out of
+    # the census in the same landing: its lead still says "THE BAND ABOVE IS REFUTED", which is
+    # here-relative and TIED today, and the day a re-capture unties it this row is what stops that
+    # arriving as a fresh red for whichever lane happens to be in the file.
+    "_publisher_bound_statement": _returns_string,
+    "_current_world_contrast": _how_to_read_this,
 }
 
 #: The symbols whose branch needs something OUTSIDE the producer made to fail. Keyed to the module
@@ -195,12 +239,41 @@ _ALSO_BREAK = {
     "_DEPARTURE_UNAVAILABLE": ("tools.measure_departure_level", "published_bands"),
 }
 
+#: The symbols an UPSTREAM GATE closes off on today's artefacts, and the producer field that opens
+#: it. `{symbol: (upstream_symbol, forced_fields)}`.
+#:
+#: WHY THIS IS NOT AN EXEMPTION, which is the objection it has to survive. `_current_world_clause`
+#: returns the empty string outright when `current_world.is_the_later_run` is False -- the state
+#: the page entered when the 09-08b re-take was promoted onto the canonical name -- and it composes
+#: `_against_the_panels_figure`'s sentence inside an argument it then discards. So the sentence is
+#: unpublishable TODAY and publishable the next time a current-world run is the later of the two,
+#: which is a fact about the artefacts and not about the recipe. Skipping the symbol would let a
+#: here-relative pointer sit unjudged until exactly the publish that puts it back on the page;
+#: forcing the gate open drives the real branch of the real function and judges its direction now.
+#:
+#: FORCED ON THE UPSTREAM PRODUCER, never on the artefact, so the drive still runs the code the
+#: publish runs. A fixture that edited `is_the_later_run` in the input would also move the
+#: superseded figure the sentence compares against, and the comparison is the thing being judged.
+_ALSO_ADMIT = {
+    "_against_the_panels_figure": ("_current_world_contrast", {"is_the_later_run": True}),
+}
+
 
 def _drive(symbol: str, sentence: str) -> dict:
     """`build()` over the real artefacts with `symbol`'s undriven branch taken."""
     recipe = _RECIPES[symbol]
     real = getattr(gva, symbol)
     broken = _ALSO_BREAK.get(symbol)
+    admit = _ALSO_ADMIT.get(symbol)
+    saved_admit = None
+    if admit:
+        upstream, forced = admit
+        saved_admit = getattr(gva, upstream)
+
+        def _open(_real=saved_admit, _forced=forced):
+            return lambda *a, **k: dict(_real(*a, **k), **_forced)
+
+        setattr(gva, upstream, _open())
     saved = None
     if broken:
         module = __import__(broken[0], fromlist=["_"])
@@ -217,6 +290,8 @@ def _drive(symbol: str, sentence: str) -> dict:
         setattr(gva, symbol, real)
         if broken:
             setattr(__import__(broken[0], fromlist=["_"]), broken[1], saved)
+        if admit:
+            setattr(gva, admit[0], saved_admit)
 
 
 # ── the census ───────────────────────────────────────────────────────────────────────────────
@@ -292,7 +367,27 @@ _REFERENTS = {
     ("_departure_statement", "figures below"): (".realised.clock_means", "below"),
     ("_current_world_bound", "figure below"): (".realised.clock_means", "below"),
     ("_world_clause", "figures below"): (".realised.clock_means", "below"),
+    # THE DIFFERENT-WORLDS BRANCH, which stopped being driven on 2026-09-09. Promoting the 09-08b
+    # pair put the headline and its bound in ONE world, so `world_caveat` is `None` and this
+    # sentence became publishable-but-unrendered -- which is exactly the state this rung exists to
+    # judge, and it arrived by the page getting BETTER rather than worse.
+    ("_world_clause", "figure below"): (".realised.clock_means", "below"),
     ("_headline_reading", "panels below"): (".realised.clock_means", "below"),
+    # BOTH PANEL SENTENCES NAME THE SAME THING `_headline_reading` DOES -- the realised split
+    # published under the current-world block -- so they take the same referent rather than a
+    # second one written down here. Registered 2026-09-09 with their `_RECIPES` rows.
+    # `_against_the_superseded_panel` renders in #arms-composition and #arms-realised is ABOVE it,
+    # so its four sentences said "the panel below" about a panel a reader has already passed. Found
+    # by registering the referent, not by reading the prose: the word was corrected to "above" in
+    # the producer and this row is what holds it there.
+    ("_against_the_superseded_panel", "panel above"): (".realised.clock_means", "above"),
+    ("_against_the_panels_figure", "panel below"): (".realised.clock_means", "below"),
+    # THE INSTRUCTION FOR READING TWO PANELS. "the figures above" names the canonical run, whose
+    # figures the page states as its `headline` -- so the referent is that field and not the
+    # realised split the two rows above point at. Registered 2026-09-10 with the door change that
+    # gave the sentence a home at all: it had reached a field NO door rendered since the
+    # current-world block was written, so its direction was unjudged rather than wrong.
+    ("_current_world_contrast", "figures above"): (".headline", "above"),
     ("_departures", "beside this"): (
         ".decisions.auc_attribution.priced_accounts_the_arm_itself_drove_out", "same"),
     ("_polarity_check", "beside this"): (".decisions.auc_attribution.reading", "same"),
