@@ -19,17 +19,23 @@ BODY via its own monkeypatch, which runs after this fixture's setup and therefor
 that already isolate explicitly (test_supervisor.py::_isolate) merely point at a different clean
 tmp -- also non-wedged, so correctness is unaffected either way.
 """
+import json
 import os
 import subprocess
+import time
 from pathlib import Path
 
 import pytest
 
 from background import (
+    action_needed,
+    fork_reconciler,
     gap_ledger_reconciler,
+    launch_liveness,
     notification_digest,
     origin_reconcile,
     process_run_complete,
+    publish_freshness,
     sim_runner,
     supervisor,
 )
@@ -440,6 +446,110 @@ def _isolate_publish_gate_wedge_state(tmp_path, monkeypatch):
         process_run_complete, "GATE_BLOCKING_TESTS_FILE",
         tmp_path / ".last_gate_blocking_tests_absent.json", raising=False,
     )
+    # THE LAUNCH REGISTER (2026-09-10) -- the ELEVENTH instance, and the one that held the
+    # operational-layer signal RED for eight consecutive hourly checks while `pytest -m operational`
+    # was diagnosed as a TIMEOUT. `run_cycle` calls `_check_launch_artefacts_landed`, which asks
+    # `launch_liveness.landed_check()` whether every file a finished run named has reached a commit
+    # -- a read of the REAL `.launch_records.json` graded against the REAL git working tree. On
+    # 2026-09-10 another lane's finished `arms-rerun-20260910b` left
+    # `docs/observability/value_cycle_ab_s1_noise_floor_20260910b.json` untracked; the check
+    # correctly said LAUNCH UNLANDED, that batched into the digest, `_flush_notification_digest()`
+    # sent it in the SAME cycle, and it landed in all 28 `assert calls == []` lists in
+    # test_deadmans_switch.py.
+    #
+    # THE PIN DOES NOT ANSWER THE DRIFT -- the artefact really is unlanded and the daemon really
+    # should say so. What it refuses is a test suite whose verdict is a function of what some other
+    # lane happens to have left in the working tree: an unlanded artefact anywhere in this
+    # repository turned the operational signal red and paged OPERATIONAL LAYER RED, which reads as
+    # a daemon regression and is not one.
+    #
+    # WHY THE EXISTING DIGEST PIN DID NOT COVER IT, and this is the part worth reading. That pin
+    # (EIGHTH instance, above) points `notification_digest.QUEUE_FILE` at an ABSENT path, and its
+    # own guard test proves an absent queue flushes nothing. But the queue is APPEND-ONLY and
+    # `notify()` writes to whatever path the constant names -- so a check firing INSIDE the cycle
+    # re-fills the pinned queue microseconds before the same cycle flushes it. An absent queue is
+    # only empty until something in the cycle speaks. The isolation therefore has to be at the
+    # LIVE INPUT, which is this file's standing rule and has been for ten instances.
+    #
+    # PINNED AT THE PATH, NOT AT THE CHECK -- `RECORDS_PATH` is the one thing `launch_liveness`
+    # reads about the world, and `load()` returns [] for an absent path (both `check()` and
+    # `landed_check()` then have nothing to grade, so both go silent). Stubbing `landed_check`
+    # would neuter the rung in the tests written to prove it acts; test_launch_liveness.py's own
+    # legs monkeypatch `ll.check`/`ll.landed_check` in the test BODY, which runs after this fixture
+    # and therefore still wins. The pin ALSO closes a leak running the other way: `check()` SAVES
+    # its settled verdicts, so before this every run_cycle test rewrote the live register.
+    monkeypatch.setattr(
+        launch_liveness, "RECORDS_PATH",
+        tmp_path / ".launch_records_absent.json", raising=False,
+    )
+    # THE WORKTREE SET (2026-09-10) -- the TWELFTH instance, and it was NOT found by a red. It was
+    # found by the class control written for the eleventh
+    # (test_deadman_cycle_isolation.py::test_every_cycle_check_is_silent_under_this_directorys_
+    # fixtures) on its first run: `_check_worktree_reconcile` pages [WORKTREE UNDECLARED] about
+    # whatever `git worktree list` says right now -- two detached worktrees another lane was using
+    # while this was written.
+    #
+    # IT IS SILENT IN THE AGGREGATE TESTS ONLY BECAUSE `notify()` DEDUPES ON TRANSITION STATE, and
+    # that is the whole reason it is pinned rather than left alone. The alarm is keyed to the
+    # undeclared COUNT, so the moment a lane adds or removes a worktree the state changes, the
+    # dedupe lets it through, and all ~30 `assert calls == []` assertions in test_deadmans_switch.py
+    # go red at once for a reason none of them names -- while a checkout with a stable worktree set
+    # stays green. That is the "weather as its subject" flake this file has now been bitten by four
+    # times (the stall tracker, the digest clock, the blocking-test record, this).
+    #
+    # A SECOND, WORSE HAZARD closes with the same pin: `_check_worktree_reap` runs in the same
+    # cycle and its own docstring says "NEVER call this in enforce mode against the real repo's
+    # worktrees outside a throwaway fixture" -- yet every test here that drives `run_cycle` did
+    # exactly that, with the enforce flag armed on this machine. Nothing has been reaped only
+    # because the live/locked/dirty refusal set kept saying no. An empty worktree set has nothing
+    # to remove, by construction rather than by refusal.
+    #
+    # PINNED AT `_git`, NOT AT THE SCANS -- and the difference was MEASURED, not reasoned. The
+    # first draft of this pin replaced `scan_worktrees`/`scan_fork_branches` with `lambda: []`,
+    # and it broke FOUR tests in test_fork_reconciler.py whose SUBJECT is the scan itself: they
+    # build a fixture repo, swap `F._git` for a scoped runner and assert the porcelain parse. That
+    # is this conftest's oldest recorded mistake (redirect the destination, never replace the
+    # function) and the 43-control lesson in the docstring above -- isolation and a live-artefact
+    # control want opposite things from the same name.
+    #
+    # `_git` is the module's one window onto the world: it is where BOTH scans, and therefore all
+    # three evaluators, read the repository, so a world-read added to this module tomorrow either
+    # comes through this door or is a new seam visible as one (the origin-fork lesson, one pin
+    # below: a pin named after one function covered half the rung an hour later). Empty stdout is
+    # exactly what `_git` itself returns on any failure -- an already-shipped, already-handled
+    # answer -- so both scans parse nothing and return []. The four tests above set `F._git` in
+    # their own body, which runs after this fixture and therefore still wins.
+    monkeypatch.setattr(fork_reconciler, "_git", lambda *a: "", raising=False)
+    # THE ACTION-NEEDED REGISTER and THE PUBLISH CLOCK (2026-09-10) -- the THIRTEENTH and
+    # FOURTEENTH instances, and neither was visible in the working tree. They were named by the
+    # class control for the eleventh when the pre-commit gate ran it in a clean HEAD extract, which
+    # is the divergence this file's oldest docstring warns about in terms: *the publish gate judges
+    # a clean HEAD checkout while a developer judges the working tree, and the two disagree exactly
+    # when the live file is dirty-but-fresh in the tree and stale at HEAD.* Green here, red there.
+    #
+    # `_reping_open_action_needed_items` re-pings every OPEN item in the real register, and HEAD's
+    # committed copy holds an open `publish_gate_wedged`. An absent path reads as an empty register.
+    #
+    # `_check_content_publishing` reads the publish clock, and in a `git archive` extract there is
+    # no state file at all -- which is `state == "unpublished"`, the loudest branch it has, on every
+    # single run. So an ABSENT path is the WRONG pin here: it manufactures the alarm instead of
+    # silencing it, the same trap as the operational-signal throttle. The file is SEEDED with a
+    # fresh publish instead, which is the honest analogue of an isolated checkout ("this tree has
+    # just published") and matches what test_deadmans_switch.py's own `_isolate` has always
+    # asserted by stubbing the snapshot healthy.
+    #
+    # PATHS, NOT `snapshot()` -- and here the distinction is load-bearing rather than stylistic:
+    # `test_publish_freshness.py` and `test_action_needed.py` both live in THIS directory, so a
+    # directory-scoped stub of either module's read function would delete their subject. Both
+    # modules resolve their path constant at CALL time (`action_needed._resolve_path` documents
+    # this idiom explicitly), so redirecting the constant leaves every code path intact.
+    monkeypatch.setattr(
+        action_needed, "REGISTER_PATH",
+        tmp_path / "action_needed_register_absent.json", raising=False,
+    )
+    _publish_clock = tmp_path / ".last_content_publish_isolated.json"
+    _publish_clock.write_text(json.dumps({"ts": time.time()}))
+    monkeypatch.setattr(publish_freshness, "STATE_FILE", _publish_clock, raising=False)
     # RUNG 1d PRODUCER STARVATION (2026-08-17) -- the NINTH instance, and the first that leaks the
     # other way: a test WRITING live state that a priority-zero rung READS. `sim_runner.
     # record_run_outcome` defaults to the real `.sim_producer_state.json`, and the existing
