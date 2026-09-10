@@ -34,6 +34,22 @@ actually landed in:
 and nothing else reaches it. The assertions were never wrong; they fired correctly the instant
 anything ran them. This is R15's FAIL-SILENT killer at the **selection** layer.
 
+> **CORRECTED 2026-09-10, beside the claim. The last sentence is wrong, and it makes this
+> document's recommendation aim one layer too low.** The stem-selector measurement above is
+> sound — the pre-commit gate genuinely cannot reach these tests — but that was never the binding
+> constraint, so it is not a FAIL-SILENT. The **nightly unscoped census** selects everything, ran
+> every night, and named this exact test id as red on seven of seven journalled nights with age
+> attached; the register it renders was named in **3,421** supervisor doorbell lines and sits
+> **7th of 138** in the ranked work queue. Nothing was silent. The failure is between the register
+> and a reader: one undifferentiated 139-name blob, carrying no count and no age.
+>
+> **So recommendation (3), "change the selector", is withdrawn as the fix for this class.** It
+> would make these tests run earlier at commit time, buying earlier notice of a fact already
+> published 3,421 times and read zero times, at a real cost on every commit — while the budget
+> finding is live. The measurement, the refuted 27-vs-11 band, and the refusal to add 27 lines to
+> `CONTROL_TESTS` all stand.
+> `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md`.
+
 ## FIXED, with the fix proven able to fail
 
 `tests/background/test_live_ledger_guard.py` is now the eighth entry in `CONTROL_TESTS`, with its

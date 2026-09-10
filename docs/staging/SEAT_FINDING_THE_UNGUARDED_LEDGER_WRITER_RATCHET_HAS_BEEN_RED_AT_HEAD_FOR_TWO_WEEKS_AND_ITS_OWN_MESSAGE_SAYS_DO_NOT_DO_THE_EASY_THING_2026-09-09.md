@@ -39,6 +39,17 @@ It is present in `docs/observability/head_red_observed.json` and **absent from
 `head_red_baseline.json`** — so it is an observed red that was never accepted into the baseline
 either. It is unregistered in both directions.
 
+> **CORRECTED 2026-09-10, beside the claim.** Two errors here. (1) The "present in
+> `head_red_observed.json`" reading came from the **shared working tree**; at HEAD — the tree this
+> finding correctly graded its redness in — that file holds only the 2026-09-02 `OSError` wreck and
+> does **not** contain this test id. (2) This finding's own framing above, *"nothing anywhere can
+> currently see it"*, is false. The nightly unscoped census named this test id red on seven of
+> seven journalled nights and recorded it with age (`runs_red: 9`, `first_seen: 2026-09-02`); the
+> supervisor doorbell named the resulting register **3,421** times. The red was surfaced
+> continuously and read by nobody — a presentation defect, not a blindness one. Measurement:
+> `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md`.
+> Everything this finding says about the ratchet itself, and its refusal to raise the bound, stands.
+
 ## Why this is BLOCKING and not RECORDED
 
 The guard this ratchet watches is the one that stops a test process overwriting a published

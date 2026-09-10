@@ -38,6 +38,18 @@ ledger-guard ratchet. That is not coincidence and it is the mechanism, stated in
 finding and now confirmed twice: **a red that blocks nothing is never triaged into a baseline,
 because nothing ever surfaces it to be triaged.**
 
+> **CORRECTED 2026-09-10, beside the claim. The last sentence above is FALSE, and so is the
+> reading of the evidence in the sentence before it.** It *was* surfaced: the nightly unscoped
+> census named this exact test id as red on seven of seven journalled nights, recorded it with age
+> (`runs_red: 9`, `first_seen: 2026-09-02`), rendered it into `HEAD_RED_REGISTER.md`, and the
+> supervisor doorbell named that register in **3,421** log lines. Nothing was silent; it was
+> published into an undifferentiated 139-name blob and read by nobody. Separately, the "present in
+> `head_red_observed.json`" evidence was read from the **shared working tree** — at HEAD, where
+> this finding graded its redness, that file holds only the 2026-09-02 wreck and does **not**
+> contain this test id at all. Measurement and mechanism:
+> `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md`.
+> The nine unguarded entrypoints, and everything else this finding says, are unaffected.
+
 ## The self-referential bit worth not glossing
 
 `head_red_register.py` — the module whose entire job is recording which tests are red at HEAD — is
