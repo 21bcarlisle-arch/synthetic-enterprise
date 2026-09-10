@@ -160,6 +160,7 @@ _ORIGIN_FORK_KEY = "deadman_origin_fork"
 ORIGIN_RACE_EPISODE_FILE = OBSERVABILITY_DIR / ".origin_race_episode.json"
 _STATUS_STALE_KEY = "deadman_status_stale"
 _LAUNCH_LIVENESS_KEY = "deadman_launch_liveness"
+_LAUNCH_LANDED_KEY = "deadman_launch_artefact_unlanded"
 
 
 def log(msg: str, path=None) -> None:
@@ -989,6 +990,45 @@ def _check_launch_liveness() -> None:
         clear_transition(_LAUNCH_LIVENESS_KEY)
 
 
+def _check_launch_artefacts_landed() -> None:
+    """The other half of the same register: did what the finished job WROTE reach git?
+
+    WHY THIS IS A SECOND CHECK AND NOT A BRANCH OF THE ONE ABOVE. `_check_launch_liveness` settles
+    a claim about a PROCESS, and a settled claim is an EVENT -- it pages once and is then silent
+    for ever, correctly, because the claim has stopped being stale. An artefact that never reached
+    a commit is a STANDING condition: it is still true tomorrow and every day after, and wiring it
+    to the event-shaped alarm above would announce it once and then read as resolved. Different
+    lifetimes, different alarm keys.
+
+    IT IS DRIFT, NOT AN INCIDENT. Nothing is dying and nobody is blocked; a result is sitting on
+    one machine's disk with the register calling the job `finished`. Paging `real_alarm` for that
+    is how this channel buries its own signal, so it goes to the digest and re-escalates while it
+    stands rather than shouting once.
+
+    THE CHECK MUST NOT CRASH THE CYCLE and must not clear on an exception: an error here means we
+    did not look, and "we did not look" is not "nothing is wrong".
+    """
+    try:
+        from background import launch_liveness
+        refusals, lines = launch_liveness.landed_check()
+    except Exception as e:  # noqa: BLE001 -- see docstring: we did not look, so we say nothing
+        log(f"launch-landed check error: {e}")
+        return
+    if not refusals:
+        clear_transition(_LAUNCH_LANDED_KEY)
+        return
+    stranded = [line for line in lines if "UNTRACKED" in line or "UNREADABLE" in line]
+    log(f"LAUNCH unlanded {refusals} file(s): {' | '.join(stranded)}")
+    notify(
+        f"[LAUNCH UNLANDED] {refusals} file(s) a finished run wrote into this tree are in no "
+        "commit: " + " | ".join(stranded) + " The register says the work is done and git has "
+        "never seen it. Land them, or record why they are not landable.",
+        kind="work_done", transition_key=_LAUNCH_LANDED_KEY,
+        state=f"unlanded:{refusals}", re_escalate_after=RE_ESCALATE_SECONDS,
+        topic_class=_digest_classes().DRIFT,
+    )
+
+
 def _check_repo_not_bare() -> None:
     """H26 (2026-07-18): fire the cause-agnostic core.bare corruption guard BETWEEN commits, not
     only at the next `tree_lock()` acquisition. `tree_lock.assert_repo_not_bare()` already covers
@@ -1155,6 +1195,7 @@ def run_cycle() -> None:
     _check_origin_fork()
     _check_status_honesty()
     _check_launch_liveness()
+    _check_launch_artefacts_landed()
     _check_repo_not_bare()
     _check_operational_layer_signal()
     _check_content_publishing()

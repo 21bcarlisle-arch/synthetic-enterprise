@@ -225,6 +225,15 @@ NEUTRALISED_BY_DMS_ISOLATED = (
     # whatever systemd happened to say during a unit test, and settling is deliberately one-way.
     # A test run could permanently mark a live run dead.
     "_check_launch_liveness",
+    # ADDED 2026-09-10 in the SAME commit that `run_cycle` gained it, by reading this guard's rule
+    # rather than by waiting for it to fire. Disqualified on all three counts: it reads
+    # `launch_liveness.RECORDS_PATH`, the same unpatched absolute path as the entry above; it
+    # spawns four `git` subprocesses per named file, which is exactly what the "no subprocess"
+    # bar below exists to keep out of 12 mutation cycles; and it `notify()`s on a STANDING
+    # condition, so unlike its sibling it would append to `calls` on every one of those cycles
+    # for as long as any run's output sits unlanded. It does NOT write the store -- that is the
+    # one hazard it does not carry, and it is not what disqualifies it.
+    "_check_launch_artefacts_landed",
 )
 
 # Allowed to run for real, each for a stated reason. A check earns a place here only if it is

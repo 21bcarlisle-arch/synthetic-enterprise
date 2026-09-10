@@ -243,3 +243,236 @@ def test_a_unit_that_has_not_finished_is_never_settled(tmp_path, state):
     """`deactivating` is the one worth naming: a job inside its own teardown has produced no exit
     record yet, and calling that dead is the guess this module exists to refuse."""
     assert ll.reask(_entry(tmp_path), _probe(ActiveState=state))["verdict"] == ll.RUNNING
+
+
+# ---------------------------------------------------------------------------
+# Did the file the job wrote reach git? (`landing_verdict` / `landed_check`)
+#
+# THE DEFECT THESE EXIST FOR. `finished` is a claim about a PROCESS. The reader's question is about
+# a FILE, and twice in three days a run of machine-hours finished, wrote its output into this tree,
+# and that output sat in no commit while the register said the work was done. The first instance
+# this control caught on the real register was a `log` -- the only surviving local trace of a
+# six-hour run -- which is why every field the record names is graded and not just `artefact`.
+# ---------------------------------------------------------------------------
+
+
+def _repo(tmp_path):
+    """A real git repository, because the subject of these legs is what git actually answers."""
+    import subprocess as sp
+    root = tmp_path / "repo"
+    (root / "docs").mkdir(parents=True)
+    for cmd in (["init", "-q", "-b", "main"], ["config", "user.email", "t@t"],
+                ["config", "user.name", "t"]):
+        sp.run(["git", "-C", str(root), *cmd], check=True, capture_output=True)
+    (root / "docs" / "seed.txt").write_text("seed\n", encoding="utf-8")
+    sp.run(["git", "-C", str(root), "add", "docs/seed.txt"], check=True, capture_output=True)
+    sp.run(["git", "-C", str(root), "commit", "-qm", "seed"], check=True, capture_output=True)
+    return root
+
+
+def _written(root, rel, *, stage=False, commit=False):
+    import subprocess as sp
+    (root / rel).write_text("{}\n", encoding="utf-8")
+    if stage or commit:
+        sp.run(["git", "-C", str(root), "add", rel], check=True, capture_output=True)
+    if commit:
+        sp.run(["git", "-C", str(root), "commit", "-qm", rel], check=True, capture_output=True)
+    return rel
+
+
+def _ignored(root, rel):
+    """A file git is under standing orders not to hold, which is not a file git has lost."""
+    (root / ".gitignore").write_text("docs/*.log\n", encoding="utf-8")
+    return _written(root, rel)
+
+
+def _landing(root, artefact, probe=None, membership=ll.git_membership):
+    entry = {"job": "a-long-run", "unit": "a-long-run.service", "artefact": artefact,
+             "claim": ll.FINISHED}
+    return ll.landing_verdict(entry, repo=root, membership=membership,
+                              probe=probe or _probe(ActiveState="inactive", Result="success"))
+
+
+def test_every_landing_verdict_is_reachable(tmp_path):
+    """THE PARTITION FIRST. A grader whose every branch says LANDED passes every per-branch leg
+    below, and a grader whose every branch REFUSES passes every refusal leg. Neither is caught by
+    anything except asserting the whole partition can be reached from one witness each."""
+    root = _repo(tmp_path)
+    seen = {
+        ll.LANDED: _landing(root, _written(root, "docs/landed.json", commit=True))["verdict"],
+        ll.STAGED: _landing(root, _written(root, "docs/staged.json", stage=True))["verdict"],
+        ll.UNTRACKED: _landing(root, _written(root, "docs/loose.json"))["verdict"],
+        ll.IGNORED: _landing(root, _ignored(root, "docs/run.log"))["verdict"],
+        ll.ABSENT: _landing(root, "docs/never_written.json")["verdict"],
+        ll.OUTSIDE: _landing(root, "/var/tmp/elsewhere.json")["verdict"],
+        ll.RUNNING: _landing(root, _written(root, "docs/half.json"),
+                             probe=_probe(ActiveState="active"))["verdict"],
+        ll.UNREADABLE: _landing(root, _written(root, "docs/unaskable.json"),
+                                membership=lambda rel, repo: None)["verdict"],
+    }
+    for expected, got in seen.items():
+        assert got == expected, "{} is unreachable; the witness returned {}".format(expected, got)
+
+
+def test_the_stranded_artefact_is_refused_and_the_landed_one_is_not(tmp_path):
+    """THE INSTANCE. The same file, the same record, differing only in whether a commit holds it --
+    so a grader that refused (or passed) regardless of git cannot survive both halves."""
+    root = _repo(tmp_path)
+    import subprocess as sp
+    loose = _written(root, "docs/result.json")
+    assert _landing(root, loose)["verdict"] == ll.UNTRACKED
+    sp.run(["git", "-C", str(root), "add", loose], check=True, capture_output=True)
+    sp.run(["git", "-C", str(root), "commit", "-qm", "land"], check=True, capture_output=True)
+    assert _landing(root, loose)["verdict"] == ll.LANDED, (
+        "landing the file did not change the verdict, so the verdict was never about git")
+
+
+def test_a_path_in_the_index_alone_is_not_landed(tmp_path):
+    """`git ls-files` reads the INDEX. A control asking only that would call a path tracked that no
+    commit holds and no clone has seen -- the exact reading that has already made one control here
+    green while its subject was absent from every commit. It is named, not refused: a lane
+    mid-landing looks like this and refusing would wedge every other lane."""
+    root = _repo(tmp_path)
+    staged = _written(root, "docs/mid_landing.json", stage=True)
+    answer = _landing(root, staged)
+    assert answer["verdict"] == ll.STAGED
+    assert ll.git_membership(staged, root) == {"head": False, "index": True, "ignored": False}
+    refusals, _ = ll.landed_check(_register(tmp_path, artefact=staged), repo=root,
+                                  probe=_probe(ActiveState="inactive", Result="success"))
+    assert refusals == 0, "a lane mid-landing was refused, which wedges every other lane"
+
+
+def test_an_absolute_artefact_path_inside_the_repo_is_the_same_file_as_the_relative_one(tmp_path):
+    """Some launches record `docs/x.json` and others `/home/rich/.../docs/x.json`. They are one
+    file. A check that read either literally would be blind to half its own subjects -- and the
+    real register holds both spellings today."""
+    root = _repo(tmp_path)
+    rel = _written(root, "docs/spelled_two_ways.json")
+    assert _landing(root, rel)["verdict"] == ll.UNTRACKED
+    assert _landing(root, str(root / rel))["verdict"] == ll.UNTRACKED, (
+        "the absolute spelling of the same file was not graded, so half the register is unseen")
+
+
+def test_a_broken_git_probe_refuses_rather_than_passing(tmp_path):
+    """FAIL CLOSED. `cat-file -e` exits non-zero for an absent path and an unreadable repository
+    alike; reading the second as the first is a clean bill issued without looking."""
+    root = _repo(tmp_path)
+    loose = _written(root, "docs/result.json")
+    refusals, lines = ll.landed_check(
+        _register(tmp_path, artefact=loose), repo=root,
+        membership=lambda rel, repo: None,
+        probe=_probe(ActiveState="inactive", Result="success"))
+    assert refusals == 1, "git could not be asked and the check passed anyway"
+    assert any("UNREADABLE" in line for line in lines)
+
+
+def test_a_still_running_job_is_never_told_to_land_its_half_written_file(tmp_path):
+    """The skip is keyed to the PROBE, not to the record's `claim`. A record whose unit was
+    collected sits at `live` forever, and keying to the claim would let exactly the stranded case
+    escape by never being settled."""
+    root = _repo(tmp_path)
+    half = _written(root, "docs/half_written.json")
+    assert _landing(root, half, probe=_probe(ActiveState="active"))["verdict"] == ll.RUNNING
+    still_live = {"job": "a-long-run", "unit": "a-long-run.service", "artefact": half,
+                  "claim": ll.LIVE}
+    assert ll.landing_verdict(still_live, repo=root,
+                              probe=_probe(ActiveState="", LoadState="not-found"),
+                              )["verdict"] == ll.UNTRACKED, (
+        "a record left at `live` by a collected unit was excused, which is the stranded case")
+
+
+def test_the_log_and_the_rc_file_are_graded_too(tmp_path):
+    """THE FIRST REAL INSTANCE. On the live register the artefact was in HEAD and the `log` --
+    the only surviving trace of a run of machine-hours -- was in no commit. An artefact-only
+    reading called that record clean."""
+    root = _repo(tmp_path)
+    landed = _written(root, "docs/result.json", commit=True)
+    loose_log = _written(root, "docs/run.log")
+    register = _register(tmp_path, artefact=landed, log=loose_log)
+    refusals, lines = ll.landed_check(register, repo=root,
+                                      probe=_probe(ActiveState="inactive", Result="success"))
+    assert refusals == 1, "the stranded log was not graded, so the real instance would pass"
+    assert any("[log]" in line and "UNTRACKED" in line for line in lines)
+
+
+def test_the_output_names_what_it_cannot_see(tmp_path):
+    """A run whose output goes to /var/tmp is invisible to this check BY CONSTRUCTION, and a
+    reader who could not see that in the output would take silence for coverage."""
+    root = _repo(tmp_path)
+    refusals, lines = ll.landed_check(
+        _register(tmp_path, artefact="/var/tmp/nowhere_near_git.json"), repo=root,
+        probe=_probe(ActiveState="inactive", Result="success"))
+    assert refusals == 0
+    assert any("OUTSIDE" in line for line in lines), (
+        "a record this check cannot grade produced no line at all, which reads as a pass")
+
+
+def test_an_ignored_file_is_not_a_stranded_one(tmp_path):
+    """THE FALSE POSITIVE THIS CONTROL'S OWN FIRST DRAFT PRODUCED. Run against the live register it
+    called a 247MB run log stranded; `.gitignore` holds `docs/observability/*.log`, so that file is
+    absent from git by a standing decision. "Not in git" and "must not be in git" are identical
+    from the index and opposite in meaning, and only a third question tells them apart."""
+    root = _repo(tmp_path)
+    log = _ignored(root, "docs/run.log")
+    assert ll.git_membership(log, root)["ignored"] is True
+    refusals, lines = ll.landed_check(
+        _register(tmp_path, artefact=log), repo=root,
+        probe=_probe(ActiveState="inactive", Result="success"))
+    assert refusals == 0, "a deliberately ignored file was reported as work that failed to land"
+    assert any("IGNORED" in line for line in lines), (
+        "the ignored file produced no line, so a reader cannot see the run left no landable trace")
+
+
+def _register(tmp_path, **fields):
+    """A one-record register on disk, since `landed_check` reads a path and not a list."""
+    path = tmp_path / "records.json"
+    entry = {"job": "a-long-run", "unit": "a-long-run.service", "claim": ll.FINISHED}
+    entry.update(fields)
+    path.write_text(json.dumps([entry]), encoding="utf-8")
+    return path
+
+
+def test_the_deadman_reports_unlanded_files_as_drift_and_clears_when_they_land(monkeypatch):
+    """THE WIRING, and the reason it is a second check rather than a branch of the first.
+
+    A settled liveness claim is an EVENT -- it pages once and is then correctly silent for ever.
+    An artefact in no commit is a STANDING condition, still true tomorrow. Sharing the alarm key
+    would announce it once and then read as resolved, so the two keys and the two lifetimes are
+    the property under test here.
+    """
+    dms, sent, cleared = _deadman(monkeypatch)
+    monkeypatch.setattr(
+        ll, "landed_check",
+        lambda: (1, ["a-long-run [artefact]: UNTRACKED -- the job finished and wrote `docs/r.json`"]))
+    dms._check_launch_artefacts_landed()
+    assert len(sent) == 1, "a finished run's output was in no commit and nothing said so"
+    msg, kw = sent[0]
+    assert "docs/r.json" in msg, (
+        "the message named no file, so the reader inherits the search that was the whole cost")
+    assert kw.get("kind") != "real_alarm", (
+        "an unlanded file paged as an incident; nothing is dying and this is the channel-burying "
+        "shape the sibling check was already corrected for")
+    assert kw.get("transition_key") != dms._LAUNCH_LIVENESS_KEY, (
+        "the standing condition shares the event's alarm key, so it announces once and then reads "
+        "as resolved while it still stands")
+    assert kw.get("re_escalate_after"), "a standing condition that never re-escalates is a whisper"
+
+    sent.clear()
+    monkeypatch.setattr(ll, "landed_check", lambda: (0, ["a-long-run [artefact]: LANDED"]))
+    dms._check_launch_artefacts_landed()
+    assert sent == [] and dms._LAUNCH_LANDED_KEY in cleared, (
+        "landing the files did not silence or clear the alarm")
+
+
+def test_the_deadman_is_silent_when_it_could_not_ask_git(monkeypatch):
+    """"We did not look" must not clear the alarm: that reports an answer we never had."""
+    dms, sent, cleared = _deadman(monkeypatch)
+
+    def _boom():
+        raise OSError("git is not on this box")
+    monkeypatch.setattr(ll, "landed_check", _boom)
+    dms._check_launch_artefacts_landed()
+    assert sent == [], "a check that could not run reported stranded work"
+    assert cleared == [], (
+        "a check that could not run CLEARED the alarm -- 'we did not look' rendered as 'nothing "
+        "is wrong', which is the fail-open this whole module refuses")

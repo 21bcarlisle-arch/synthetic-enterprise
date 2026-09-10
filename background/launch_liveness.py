@@ -53,6 +53,17 @@ RUNNING = "running"
 #: dead is the same guess this module exists to refuse.
 _STILL_GOING = ("active", "activating", "reloading", "deactivating")
 
+#: Where a finished job's named artefact stands relative to git -- see `landing_verdict()`.
+LANDED = "landed"
+STAGED = "staged"
+UNTRACKED = "untracked"
+#: Not gradeable, and each for a different reason: the job wrote nothing, or wrote outside the
+#: repository, or is still writing, or git is under standing orders not to hold it. None of these
+#: is a defect and none of them is a pass.
+ABSENT = "absent"
+OUTSIDE = "outside"
+IGNORED = "ignored"
+
 
 def _now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -228,10 +239,157 @@ def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list, lis
     return len(settled), lines, settled
 
 
+def git_membership(rel: str, repo: Path) -> dict | None:
+    """Where `rel` stands in git: `{"head": bool, "index": bool}`, or None if git could not be RUN.
+
+    The two questions are asked separately on purpose. `git ls-files` reads the INDEX, and a path
+    that is only in the index has not reached any commit -- a `reset --mixed` loses it and no
+    clone has ever seen it. A control that asked only `ls-files` would have called such a path
+    tracked, which is the exact reading that has already made one control here green while the
+    thing it guarded was absent from every commit.
+
+    None is reserved for a broken probe. It is NOT "the path is missing": `cat-file -e` exits
+    non-zero for an absent path and for an unreadable repository alike, so health is established
+    first and only then is the answer trusted.
+    """
+    try:
+        healthy = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--verify", "HEAD"],
+            capture_output=True, timeout=20)
+        if healthy.returncode != 0:
+            return None
+        head = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "-e", f"HEAD:{rel}"],
+            capture_output=True, timeout=20)
+        index = subprocess.run(
+            ["git", "-C", str(repo), "ls-files", "--error-unmatch", "--", rel],
+            capture_output=True, timeout=20)
+        # The third question, and the first draft of this check did not ask it. `.gitignore` holds
+        # `docs/observability/*.log`, so the very first path this control called stranded was a
+        # 247MB run log git is under standing orders never to hold. "Not in git" and "must not be
+        # in git" look identical from the index and mean opposite things.
+        ignored = subprocess.run(
+            ["git", "-C", str(repo), "check-ignore", "-q", "--", rel],
+            capture_output=True, timeout=20)
+    except Exception:
+        return None
+    return {"head": head.returncode == 0, "index": index.returncode == 0,
+            "ignored": ignored.returncode == 0}
+
+
+#: The fields of a record that name a file the job produced. `artefact` is the result and the other
+#: two are the evidence it ran; all three are graded, because the hazard is identical and the first
+#: real instance this check caught was a `log` -- the only surviving local trace of a run of
+#: machine-hours, which an artefact-only reading called clean while it sat in no commit.
+_PRODUCED_FIELDS = ("artefact", "log", "rc_path")
+
+
+def named_paths(entry: dict) -> list:
+    """The `(field, path)` pairs this record claims the job wrote. Empty fields are not pairs."""
+    return [(f, entry[f]) for f in _PRODUCED_FIELDS if entry.get(f)]
+
+
+def landing_verdict(entry: dict, field: str = "artefact", *, repo: Path | None = None,
+                    membership=git_membership, probe=systemd_probe) -> dict:
+    """Did the file this record NAMES in `field` reach git, or is it stranded on one machine's disk?
+
+    THE DEFECT THIS EXISTS FOR. A long job's whole output is one file whose path the launch record
+    already holds. Twice in three days a run of machine-hours finished, wrote that file, and the
+    file sat untracked in this tree while the register recorded the job as `finished` and every
+    reader took that to mean the work had landed. Nothing could notice, because `finished` is a
+    claim about a PROCESS and the reader's question is about a FILE. This is the one leg that
+    closes the gap, over the register that already names both.
+
+    IT DOES NOT GRADE A JOB THAT IS STILL WRITING. `reask` is asked first and a RUNNING unit is
+    skipped, because refusing there would tell the reader to land a half-written artefact -- worse
+    than the defect. The skip is keyed to the probe's answer and not to the record's `claim`: a
+    record whose unit was collected sits at `live` forever, and keying to the claim would let
+    exactly the stranded case escape by never being settled. An UNREADABLE probe is not RUNNING,
+    so a machine with no working systemd still grades every record.
+    """
+    repo = (repo or _REPO).resolve()
+    artefact = entry.get(field)
+    if not artefact:
+        return {"verdict": ABSENT,
+                "why": f"the record names no `{field}`, so there is nothing to ask"}
+    path = Path(artefact)
+    path = path if path.is_absolute() else (repo / path)
+    try:
+        # An artefact is written as a repo-relative path by some launches and an absolute one by
+        # others -- `/home/rich/synthetic-enterprise/docs/...` and `docs/...` are the same file and
+        # a check that read either literally would be blind to half its own subjects.
+        rel = path.resolve().relative_to(repo).as_posix()
+    except ValueError:
+        return {"verdict": OUTSIDE, "why": (
+            f"`{artefact}` is not under {repo}, so git cannot hold it and its absence from git is "
+            "not a finding. A job whose only output lives in /var/tmp has no landable evidence at "
+            "all, which is a different problem and not this one")}
+    if not path.exists():
+        return {"verdict": ABSENT, "why": (
+            f"there is no file at `{artefact}`, so this is a question for the liveness re-ask and "
+            "not for git")}
+
+    if reask(entry, probe=probe)["verdict"] == RUNNING:
+        return {"verdict": RUNNING, "why": (
+            f"`{entry.get('unit')}` is still going, so `{rel}` is a file being written and not a "
+            "result being withheld")}
+
+    where = membership(rel, repo)
+    if where is None:
+        return {"verdict": UNREADABLE, "why": (
+            f"git could not be asked about `{rel}` at all, so this check has no answer. It refuses "
+            "rather than passing: a control that reads a broken probe as a clean bill is the "
+            "failure mode that makes it worse than no control")}
+    if where["head"]:
+        return {"verdict": LANDED, "why": f"`{rel}` is in HEAD"}
+    if where.get("ignored"):
+        return {"verdict": IGNORED, "why": (
+            f"`{rel}` matches a `.gitignore` rule, so its absence from git is a standing decision "
+            "and not a stranding. Named rather than refused -- but a job whose ONLY surviving "
+            "evidence is an ignored file has no landable record of having run, which is a real "
+            "hazard and a different one")}
+    if where["index"]:
+        return {"verdict": STAGED, "why": (
+            f"`{rel}` is staged in the shared index and in no commit. Named, not refused: a lane "
+            "mid-landing looks exactly like this, and refusing here would wedge every other lane "
+            "for the duration of somebody else's commit. It is also not done -- `reset --mixed` "
+            "loses it and no clone has seen it")}
+    return {"verdict": UNTRACKED, "why": (
+        f"the job finished and wrote `{rel}` (its `{field}`), and that file is in no commit and "
+        "not even staged. The register says this work is done; git says it does not exist. Land "
+        "it, or say on the record why it is not landable")}
+
+
+def landed_check(path: Path | None = None, *, repo: Path | None = None,
+                 membership=git_membership, probe=systemd_probe) -> tuple[int, list]:
+    """Grade every file every record names against git. Returns `(refusals, lines)`.
+
+    Only UNTRACKED and UNREADABLE refuse. Every other verdict still prints, because a run whose
+    output lives outside the repository is invisible to this check by construction and a reader
+    who cannot see that in the output would take silence for coverage.
+    """
+    lines, refusals = [], 0
+    for entry in load(path):
+        for field, _named in named_paths(entry):
+            answer = landing_verdict(entry, field, repo=repo, membership=membership, probe=probe)
+            verdict = answer["verdict"]
+            if verdict in (ABSENT, OUTSIDE, IGNORED) and field != "artefact":
+                # The result is reported whatever became of it; a log or an rc file that was never
+                # written, or went to /var/tmp, is the ordinary case and printing all three for
+                # every record would bury the one line that matters.
+                continue
+            lines.append(f"{entry.get('job')} [{field}]: {verdict.upper()} -- {answer['why']}")
+            if verdict in (UNTRACKED, UNREADABLE):
+                refusals += 1
+    return refusals, lines
+
+
 def main(argv: list | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true",
                         help="re-ask every live claim and settle the ones that are stale")
+    parser.add_argument("--landed", action="store_true",
+                        help="ask git whether each record's named artefact ever reached a commit")
     parser.add_argument("--record", metavar="JOB", help="write a launch record for JOB")
     parser.add_argument("--unit", help="the transient user unit the job runs in")
     parser.add_argument("--artefact", help="the path the job writes on success")
@@ -256,6 +414,17 @@ def main(argv: list | None = None) -> int:
                        rc_path=args.rc_path, asserted_live_by=args.asserted_live_by,
                        launched_at=args.launched_at)
         print(f"recorded {entry['job']} -> unit {entry['unit']}, claim {entry['claim']}")
+        return 0
+
+    if args.landed:
+        refusals, lines = landed_check()
+        for line in lines:
+            print(line)
+        if refusals:
+            print(f"landed: FAIL ({refusals} file(s) a finished job wrote into this repo and no "
+                  "commit holds)")
+            return 1
+        print("landed: PASS (every in-repo file the register names is in HEAD)")
         return 0
 
     stale, lines, _ = check()
