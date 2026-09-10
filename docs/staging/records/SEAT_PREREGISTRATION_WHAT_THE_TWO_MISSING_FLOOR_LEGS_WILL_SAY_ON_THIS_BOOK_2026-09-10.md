@@ -152,10 +152,30 @@ the numbers moved, but because the reason given for calling them bounds is not t
 Filed as
 `docs/staging/SEAT_FINDING_THE_FLOOR_DECOMPOSITIONS_REST_OF_BOOK_HALF_IS_EMPTY_ON_THIS_BOOK_SO_ITS_SHARE_IS_AN_IDENTITY_2026-09-10.md`.
 
-### The derivation is still being turned into an observation
+### The derivation is now an OBSERVATION — the leg refused, 2026-09-10T05:02:23Z
 
-The probe is **one pass at the base seed**, and elasticity feeds the churn decision, so a re-drawn
-seed can move which households are offered a renewal. `longjob-floor-legs-20260910` is running the
-nine-seed `except` leg at `c066c114b` to settle it: a refusal on seed 11111 observes the empty half,
-and anything else is the measurement this file was written for. **Whichever it is goes in this
-section, beside these predictions, and not into a fresh document.**
+The probe was **one pass at the base seed**, and elasticity feeds the churn decision, so a re-drawn
+seed can move which households are offered a renewal. `longjob-floor-legs-20260910` ran the nine-seed
+`except` leg at `c066c114b` to settle it. It refused on the first seed, after 39 minutes:
+
+```
+AssertionError: seed 11111: the `except` leg re-drew NO household -- its 100 roster
+entries matched none of the 298 elasticity calls this run made, so its 'spread' would
+be zero by construction. Check the id convention before trusting any decomposition:
+the draw is called with `household_of(customer_id)`.
+```
+
+**298 calls, 100 roster entries, zero matched — the probe's three figures, reproduced exactly by the
+production path.** (Exactly, and not by luck: an `except` leg whose scope is empty re-draws nothing,
+so its run *is* the base-seed run. That the counts agree is the check that the probe patched the
+same call stream `noise_floor` does, not evidence about the seeds.)
+
+The driver then skipped the `only` leg by its own rule — with nothing held fixed it is the
+undecomposed floor, and that artefact already exists at these nine seeds. `only rc=skipped`.
+
+**So the conclusion above stands on an observation and not on a derivation, and the eight hours of
+`only`-leg compute were never spent.** The one thing still not observed is whether some *other* seed
+would have found a household outside the roster; the leg cannot reach seed 22222 to find out,
+because the guard is per-seed and fires on the first. That is the correct behaviour and it is also a
+real residual: what is established is that seed 11111's call stream has an empty complement, plus a
+base-seed pass that agrees exactly.

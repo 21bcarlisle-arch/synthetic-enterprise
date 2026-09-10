@@ -106,20 +106,30 @@ so.
 **Item 1 is the one that is live on a public surface**, and it is the one the running leg is about to
 turn from a derivation into an observation.
 
-## What is still running, and why it was launched anyway
+## The production path was run, and it refused — this is an observation, not a derivation
 
-`longjob-floor-legs-20260910` (own cgroup, locked worktree at `c066c114b`, artefact
-`/var/tmp/se-floor-legs-20260910/driver.rc`) is running the **`except` leg first**, nine seeds.
+The probe is one pass at the base seed, and elasticity feeds the churn decision, so a re-drawn seed
+can move which households are offered a renewal — the `all` leg's own rows show `accounts_redrawn`
+moving between 66 and 67 across seeds. So the empty half was a **derivation**, and
+`longjob-floor-legs-20260910` (own cgroup, locked worktree at `c066c114b`) was launched to make it an
+observation. It refused on the first seed after 39 minutes, 2026-09-10T05:02:23Z:
 
-The probe is **one pass at the base seed**, and the elasticity feeds the churn decision, so a
-re-drawn seed can move which households are offered a renewal — the `all` leg's own rows show
-`accounts_redrawn` moving between 66 and 67 across seeds. So the empty half is a **derivation**, and
-this run is what makes it an observation. Either outcome is the answer:
+```
+AssertionError: seed 11111: the `except` leg re-drew NO household -- its 100 roster
+entries matched none of the 298 elasticity calls this run made, so its 'spread' would
+be zero by construction.
+```
 
-* it refuses on seed 11111 (~40 min) → the empty half is observed, and the `only` leg is skipped by
-  the driver because with nothing held it is the `all` leg already on disk;
-* it does **not** refuse → a handful of outside calls exist on some seed and it produces the
-  measurement the direction asked for, at ~4 hours.
+**298 calls, 100 roster entries, zero matched — the probe's figures reproduced by the production
+path.** The driver then skipped the `only` leg by its own rule: with nothing held fixed it is the
+undecomposed floor, which already exists at these nine seeds. The eight hours of leg compute the
+direction budgeted were never spent.
+
+**The residual, stated because the guard is per-seed and fires on the first:** what is established is
+that seed 11111's call stream has an empty complement, plus a base-seed pass that agrees exactly. No
+seed after 11111 was reached. Nothing here rules out some other seed finding one household outside
+the roster — and a `V_rest` measured over one household would be worth no more than the five-account
+one already on disk.
 
 ## Severity: why LATENT and not BLOCKING
 
