@@ -15,6 +15,7 @@ import tempfile
 from pathlib import Path
 
 from tools import maturity_map_store as map_store  # noqa: E402
+from tools.python_code_text import searchable  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 GATE_PATH = ROOT / "tools" / "pre_commit_test_gate.py"
@@ -133,6 +134,80 @@ def test_mutation_dropping_the_ratchet_from_the_control_set_is_visible():
     # ...and restoring it brings the selection back, so the assertion above tracks the list
     # rather than some unrelated always-on path.
     assert RUFF_RATCHET in gate.select_targets(["saas/some_new_module.py"])
+
+
+# ── THE UNGUARDED-LEDGER-WRITER RATCHET (2026-09-10) ─────────────────────────────────────────────
+# Same shape as the pair above and added for the same reason, after the identical failure ran its
+# full course: `test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed` censuses every
+# `background/*.py` writing under `docs/observability/`, so ANY background module can move its
+# count -- and stem selection reached it only from `background/live_ledger_guard.py`. Twelve-plus
+# writers landed across fourteen days, the bound went 74 -> 86, and every commit was green.
+#
+# The selecting path below is a background module that CANNOT map to the test by stem, because a
+# stem match would prove nothing about the always-on set -- which is the whole defect being fixed.
+
+LEDGER_RATCHET = "tests/background/test_live_ledger_guard.py"
+
+
+def test_a_background_module_commit_selects_the_ledger_writer_ratchet():
+    targets = gate.select_targets(["background/some_new_daemon.py"])
+    assert LEDGER_RATCHET in targets, (
+        "a commit that can add an un-guarded observability writer must RUN the ratchet that "
+        "counts them; stem selection alone reaches it only from live_ledger_guard.py, which "
+        "is how twelve writers landed green past a bound that had stopped ratcheting"
+    )
+    # Key this to the PROPERTY, not to today's answer: the entry earns its place only while the
+    # test's subject is the whole package. If the census is ever narrowed to something a stem
+    # selector can reach, this entry can leave CONTROL_TESTS and this assertion says so.
+    # Read the ratchet as CODE, not as text: this file's own subject is a control that scans
+    # source, and a plain substring would be satisfied by a COMMENT describing the walk after
+    # someone had narrowed the real one. `tests/architecture/test_a_control_reads_python_as_code
+    # .py` refused the first draft of this assertion for exactly that, which is the census doing
+    # its job on the turn that was writing about blind controls.
+    ratchet_src = searchable((ROOT / LEDGER_RATCHET).read_text())
+    assert 'BACKGROUND_DIR.glob("*.py")' in ratchet_src, (
+        "the ratchet no longer walks the whole background package; if its subject narrowed, "
+        "re-argue the CONTROL_TESTS entry rather than deleting this assertion"
+    )
+
+
+def test_mutation_dropping_the_ledger_ratchet_from_the_control_set_is_visible():
+    """The control can FAIL: with the entry removed, an ordinary background commit stops
+    selecting it -- which is precisely the state the tree was in for fourteen days."""
+    without = [t for t in gate.CONTROL_TESTS if t != LEDGER_RATCHET]
+    assert len(without) == len(gate.CONTROL_TESTS) - 1, "the ratchet is not in CONTROL_TESTS"
+    original = gate.CONTROL_TESTS
+    try:
+        gate.CONTROL_TESTS = without
+        assert LEDGER_RATCHET not in gate.select_targets(["background/some_new_daemon.py"])
+    finally:
+        gate.CONTROL_TESTS = original
+    assert LEDGER_RATCHET in gate.select_targets(["background/some_new_daemon.py"])
+
+
+def test_the_five_modules_the_drift_landed_in_could_not_reach_it_by_stem():
+    """The mechanism claim itself, asserted rather than left in a comment. These are real modules
+    the un-guarded writers landed in during the silent fortnight; NONE has a stem that maps to the
+    ratchet, so with the CONTROL_TESTS entry removed the selection hole is total rather than
+    partial. If any of these ever gains a stem route, the comment above is wrong and this reds."""
+    original = gate.CONTROL_TESTS
+    try:
+        gate.CONTROL_TESTS = [t for t in original if t != LEDGER_RATCHET]
+        for module in (
+            "background/supervisor.py",
+            "background/notify.py",
+            "background/process_run_complete.py",
+            "background/worker_tick.py",
+            "background/disk_headroom.py",
+        ):
+            targets = gate.select_targets([module])
+            assert targets, f"{module} selected nothing at all -- the harness is wrong, not the gate"
+            assert LEDGER_RATCHET not in targets, (
+                f"{module} DOES reach the ratchet by stem, so the fourteen-day silence has "
+                "another cause and the CONTROL_TESTS comment misattributes it"
+            )
+    finally:
+        gate.CONTROL_TESTS = original
 
 
 # ── THE LEVEL SURFACE gate (director P0, 2026-07-21): a level/ledger change is DATA but its ──────

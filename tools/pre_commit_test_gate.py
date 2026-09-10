@@ -192,6 +192,43 @@ CONTROL_TESTS = [
     # blind spot, which is the correct trade there and a wash here: the same total, plus a second
     # mechanism that can go blind. One walk, nothing to prove about it.
     "tests/architecture/test_a_control_reads_python_as_code.py",
+
+    # THE UNGUARDED-LEDGER-WRITER RATCHET (2026-09-10). Eighth entry, same class as the seven
+    # above, and it is here because that class was left to run its full course this time instead
+    # of being caught before shipping: `test_the_narrowing_to_measurement_ledgers_is_measured_not
+    # _assumed` censuses every `background/*.py` that writes under `docs/observability/`, and
+    # selection is by filename stem, so the only commit that RUNS it is one touching
+    # `background/live_ledger_guard.py` itself. Subject set = a whole package; selector set = one
+    # stem. Proved rather than asserted before this line was written: `select_targets` was called
+    # on each of `supervisor.py`, `notify.py`, `process_run_complete.py`, `worker_tick.py` and
+    # `disk_headroom.py` -- five of the modules the drift actually landed in -- and this test was
+    # in none of their 17-18 targets.
+    #
+    # What the silence cost, measured not predicted: the bound was set to 74 on 2026-08-26 and was
+    # 86 by 2026-09-08. TWELVE-PLUS unguarded writers landed across FOURTEEN DAYS and nothing went
+    # red anywhere a lane could see it -- the repository committed normally throughout, five times
+    # on 09-09 alone. The repair (`a06109741`) routed 30 write sites across 17 modules through the
+    # guard and took the census 86 -> 56. None of that work was hard; noticing was the whole
+    # problem. The guard this ratchet watches is the one whose incident of record is a 276-invoice
+    # fixture book replacing a 1600-invoice population and republishing the public Proof door's
+    # payment gap 2.68x too low, so the class growing unwatched is not a bookkeeping matter.
+    #
+    # It was red at HEAD in `docs/observability/head_red_observed.json` and ABSENT from
+    # `head_red_baseline.json` the whole time -- unregistered in both directions, which is the
+    # signature of this defect rather than an accident: a red that blocks nothing is never
+    # triaged into a baseline, because nothing ever surfaces it to triage.
+    #
+    # ~1.6s for the whole file (15 tests), of which the census assertion is 0.79s measured on this
+    # machine. Stated against the standing budget the lint entry cites: 0.27% of 600s.
+    "tests/background/test_live_ledger_guard.py",
+    # DELIBERATELY NOT ADDED BESIDE IT: `tests/background/test_seat_guard_daemons.py`. The census
+    # that produced the line above found it is the SAME shape (a whole-`background/` AST walk with
+    # a stem-only selector) and that it is RED AT HEAD RIGHT NOW -- nine daemon entrypoints with no
+    # seat guard, `head_red_register.py` among them. Adding a red test to a list that runs on every
+    # code commit would wedge every lane in the tree, which is a strictly worse failure than the
+    # one being fixed. It is filed as its own BLOCKING finding with the nine names; the line goes
+    # in HERE, in the same change, once that red is green -- and this comment is what makes the
+    # omission visible instead of a gap nobody wrote down.
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own

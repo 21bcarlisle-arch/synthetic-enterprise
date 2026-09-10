@@ -105,6 +105,34 @@ newly-guarded set a strict subset of the HEAD set.
 **Item 3 — why nothing selected this test for two weeks — is untouched.** It is the more general
 defect and clearing this instance does nothing about it.
 
+---
+
+## ITEM 3 DISCHARGED 2026-09-10 — the whole finding is now closed
+
+**The cause is selection by filename stem.** `tools/pre_commit_test_gate.py` runs a fixed
+`CONTROL_TESTS` list on any code change, and otherwise maps a staged `background/X.py` to
+`tests/**/test_X.py`. This test was not on the list, so its only selector was
+`background/live_ledger_guard.py` — while its subject is every `background/*.py`. Proved by calling
+`select_targets` on five of the modules the drift actually landed in (`supervisor`, `notify`,
+`process_run_complete`, `worker_tick`, `disk_headroom`): 17–18 targets each, this test in none.
+
+**Fixed:** it is now the eighth `CONTROL_TESTS` entry, with its ~1.6s cost stated against the live
+hook-budget finding, and three controls in `tests/tools/test_pre_commit_test_gate.py` grade it —
+keyed to the test's whole-package subject rather than to today's list, and poison-round proven to
+go red when the entry is removed.
+
+**This finding's closing claim — "the same silence would cover any other ratchet in
+`tests/background/`" — was checked and is TRUE.** `test_seat_guard_daemons.py` is the same shape and
+is red at HEAD right now: nine daemon entrypoints with no seat guard, one of them
+`head_red_register.py` itself. Filed as `SEAT_FINDING_A_SECOND_WHOLE_BACKGROUND_RATCHET_IS_SILENTLY_
+RED_AT_HEAD_AND_NINE_DAEMON_ENTRYPOINTS_ARE_UNGUARDED_2026-09-10.md`. It is deliberately NOT added
+to `CONTROL_TESTS` while red — that would wedge every lane, which is worse than the defect.
+
+The wider census found **27** such tests repo-wide against a pre-registered band of 5–20, so the
+prediction was refuted and the class is 2.5x commoner than I estimated. Sized, not fixed, with a
+recommendation: `SEAT_RESULT_THE_STEM_SELECTOR_CANNOT_REACH_TWENTY_SEVEN_WHOLE_TREE_RATCHETS_AND_MY_
+BAND_SAID_TWENTY_2026-09-10.md`.
+
 Written up: `SEAT_RESULT_THE_UNGUARDED_WRITER_RATCHET_IS_ARMED_AGAIN_AT_56_AND_THE_NUMBER_I_FIRST_
 PUBLISHED_WAS_MY_OWN_DIRTY_TREE_2026-09-09.md`. A second population the census cannot see at all —
 35 `open(..., "a")` writers — is filed as `SEAT_FINDING_THE_LIVE_RECORD_CENSUS_ONLY_SEES_WRITE_TEXT_
