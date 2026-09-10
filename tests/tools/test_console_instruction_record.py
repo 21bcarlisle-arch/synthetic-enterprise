@@ -352,3 +352,80 @@ def test_an_ARCHIVED_days_record_is_updated_IN_PLACE_and_never_resurrected(tmp_p
     assert (out / "DIRECTOR_CONSOLE_2026-08-25.md").is_file(), (
         "a day with no archived copy must still land in the root, where the doorbell reads it"
     )
+
+
+# ---------------------------------------------------------------------------
+# It reads EVERY folder that can hold this project's transcripts
+# ---------------------------------------------------------------------------
+def test_the_read_is_the_UNION_of_the_transcript_folders_not_the_first_with_files(
+        tmp_path, monkeypatch):
+    """THE CAPTURE RAN, REPORTED SUCCESS, AND CARRIED NOTHING (2026-09-10).
+
+    A seat launched from `/` writes to `~/.claude/projects/-`; one launched from the project
+    writes to the derived slug. This project runs both AT ONCE, so both folders are live — and
+    `recent_transcripts` read `TRANSCRIPT_DIR` alone and took whatever it found there.
+
+    Measured that evening: the derived folder held turns up to 08:29, the legacy folder held the
+    two the director typed at 18:19 and 19:00 — including the one naming the weekend's priority —
+    and `--write` printed **"no change -- records already current"**. Eight days of records were
+    short by turns that were on disk the whole time.
+
+    `transcript_dirs()` already returned the union and its docstring already said *"The union, not
+    a choice… Reading only one is what broke"*. Nothing called it. The refusal at the bottom of the
+    module even printed "Reading: <both folders>" while the code read one, so a person diagnosing
+    this was told the union had been searched.
+
+    MUTATION: restore `d = directory if directory is not None else TRANSCRIPT_DIR` and the turn in
+    the second folder disappears.
+    """
+    derived = tmp_path / "derived"
+    legacy = tmp_path / "legacy"
+    for d in (derived, legacy):
+        d.mkdir()
+    (derived / "old.jsonl").write_text(
+        _line("user", "the older folder's turn", ts="2026-09-10T08:29:05.496Z"), encoding="utf-8")
+    (legacy / "live.jsonl").write_text(
+        _line("user", "the live folder's turn", ts="2026-09-10T19:00:37.669Z"), encoding="utf-8")
+
+    monkeypatch.setattr(cir, "TRANSCRIPT_DIR", derived)
+    monkeypatch.setattr(cir, "LEGACY_TRANSCRIPT_DIRS", (legacy,))
+
+    found = cir.recent_transcripts()
+    assert {p.parent.name for p in found} == {"derived", "legacy"}, (
+        "the read took one folder and stopped")
+
+    turns, _sources = cir.director_turns_across(found)
+    said = [text for _stamp, text in turns]
+    assert "the live folder's turn" in said, "the live session's turn was not read at all"
+    assert "the older folder's turn" in said, "the union dropped the folder it used to read"
+
+
+def test_an_explicit_directory_still_bounds_the_read(tmp_path, monkeypatch):
+    """`--from-dir` exists so a backfill over every folder is not gigabytes. The union must not
+    quietly widen a read the caller deliberately narrowed."""
+    derived = tmp_path / "derived"
+    legacy = tmp_path / "legacy"
+    for d in (derived, legacy):
+        d.mkdir()
+    (derived / "a.jsonl").write_text(_line("user", "derived"), encoding="utf-8")
+    (legacy / "b.jsonl").write_text(_line("user", "legacy"), encoding="utf-8")
+    monkeypatch.setattr(cir, "TRANSCRIPT_DIR", derived)
+    monkeypatch.setattr(cir, "LEGACY_TRANSCRIPT_DIRS", (legacy,))
+
+    found = cir.recent_transcripts(directory=legacy)
+    assert {p.parent.name for p in found} == {"legacy"}
+
+
+def test_nothing_readable_anywhere_still_REFUSES_rather_than_writing_an_empty_record(
+        tmp_path, monkeypatch):
+    """The union must not turn a refusal into a shrug. An empty record reads as "the director said
+    nothing", which is the founding failure of this module with the sign flipped."""
+    empty_a = tmp_path / "a"
+    empty_b = tmp_path / "b"
+    for d in (empty_a, empty_b):
+        d.mkdir()
+    monkeypatch.setattr(cir, "TRANSCRIPT_DIR", empty_a)
+    monkeypatch.setattr(cir, "LEGACY_TRANSCRIPT_DIRS", (empty_b,))
+
+    with pytest.raises(cir.TranscriptUnavailable):
+        cir.recent_transcripts()

@@ -1003,3 +1003,180 @@
 > One thing named rather than hidden: today's backfilled record is denser than the days that follow, because the hook records one reply per turn and the backfill took every assistant message. All verbatim; the granularity differs.
 >
 > Still open and unchanged: the demand vector under your canon — measured on the heat-driven axes with the electricity gap named, half-hourly electricity shape as the deliverable — and the Cloudflare token rotation, which remains yours.
+
+### 2026-09-07T14:11:39.200Z
+
+> Verified at origin, not assumed: stretch report present, 181 reply turns, zero foreign entries, discriminator live.
+>
+> **The hook fires.** The record's newest entry when I checked was `13:13:54.687Z` — this session's last reply, written by the hook *after* the backfill had run, so the hook put it there rather than the backfill.
+>
+> **And checking found the defect you were probing for.** Two entries were newer than anything in this session's transcript. `.claude/hooks/` is committed, so the Stop hook runs in *every* resident session — worker ticks and delivery-seat dispatches included — and within an hour of landing, two of them had written their own narration into your reply record. *"Released. Saving the control-failure class…"* filed as an answer to you. Three entries from two foreign sessions, now purged.
+>
+> That's this morning's defect mirrored one channel over. The console capture filled with "You are the autonomous worker…" because the scanner couldn't tell you from a daemon; this is the same confusion on the reply side — and it had **no size tell**. The earlier one was caught because the files got thirty times bigger. Three extra paragraphs look like nothing.
+>
+> The fix reuses the judgement that already exists: a session writes a reply only if you spoke in it, tested with `is_director_prompt` over that session's own turns. An NTFY relay still counts, since that's genuinely you carried by a daemon — which is why the test is on the turns, not on a guess about session type. Verified against the real transcripts: this session true, both offenders false.
+>
+> **One correction, because it was a false alarm about your own subject.** I told you my earlier stretch entry had been written and never landed. It landed; it's at origin. The stretch log is newest-first and I read it with `tail`, so I was looking at the oldest entry and calling the newest one missing. Your actual observation was right — 29 commits had accrued without a report — and that report is now written and at origin.
+>
+> One cost named rather than hidden: the reply hook now reads the whole session transcript on every Stop to make that judgement. It's one pass over a file it already had to read, so nothing is read twice, but on a long session that's tens of megabytes per turn and the cheap version of the question doesn't exist yet.
+>
+> Your canon is settled and I have both decisions. Next is the demand vector: the weighted distributional acceptance test on the heat-driven axes, the electricity gap named, both N figures with intervention response as the real one, and the AST census as a control refusing any coverage or ceiling claim that doesn't declare the dimension it reduces over.
+
+### 2026-09-07T15:09:43.255Z
+
+> Landed and pushed as `d7acb7a96`.
+>
+> **The sample is 1,200 households**, measured over 39,502 NEED dwellings crossed with the household-weighted cell space:
+>
+> | tolerance | N to reproduce the distribution | N to also span response | dominated by |
+> |---:|---:|---:|---|
+> | 0.10 | 233 | **377** | JOINT |
+> | 0.05 | 800 | **1,200** | JOINT |
+> | 0.02 | 5,400 | 5,400 | JOINT |
+>
+> Tolerance is the accuracy demanded — no point of any distribution misplaced by more than that share of population mass. At 0.05, half a decile, it's 1,200.
+>
+> **What binds is the joint at every accuracy, never a single margin.** Your claim, measured: the sample is expensive not because any one quantity varies but because combinations have to appear together.
+>
+> The change that makes your second number mean anything is that the population is **NEED rows crossed with cells, not aggregated cases**. The intervention axes depend on what's already installed, and NEED carries `LI_FLAG`/`CWI_FLAG`/`PV_FLAG` per dwelling. Bucketing averaged those away — your two-households-one-bucket collapse exactly. So the ceiling is *what is left to do*: a dwelling with loft and cavity already done has had the cheap measures, and crediting it the full retrofit is how a sample ranks two very different customers identically.
+>
+> **Two defects inside the fix, and the second was your own complaint repeated one level up.** First, a criterion whose bar *loosened* as the sample shrank — acceptance against the KS critical value, which grows as n falls, so a 13-case sample passed trivially. It returned N = 13 and N = 21, the smallest sizes on the ladder, which is the only answer that criterion can give. Second, and worse: I tested each axis separately and got **the same N with and without the response axes** — because two households with identical consumption and opposite ceilings differ in the joint and in neither margin. I committed the scalar-collapse defect inside the repair for it. Fixed by projecting onto 64 fixed random directions; the control uses two populations with identical marginals by construction, so a marginal test provably cannot separate them and the joint test must.
+>
+> **My prediction is partly refuted and I'll say so plainly.** I filed "thousands to low tens of thousands, dominated by the tail requirement". At the natural accuracy it's 1,200, and the dominant term is the joint, not the tail. That intuition came from the space-filling work — a span-the-support criterion — and you were right that span-the-support and reproduce-the-distribution are opposed. It can still rise when electricity lands, so it isn't settled, but the evidence points lower than I said.
+>
+> Named absent, not skipped: annual electricity and half-hourly shape until W2_19, so **every N here is a floor**. Shape is modelled and not validated, per your decision; SERL not pursued. The population's distribution is the *model's* — validating it against NEED's observed `Gcons2024` is a separate question, and your "observed distribution" is only fully honoured once that's answered.
+>
+> Next is the AST census control your canon commissions: refusing any coverage, ceiling or sufficiency claim that doesn't declare the dimension it reduces over. Then the modelled-versus-observed validation, and W2_19.
+
+### 2026-09-07T16:07:57.417Z
+
+> Landed and pushed as `fb108a259`. You were right, and checking the dependency you invited me to name turned up worse than a mis-ordering.
+>
+> **The deferral was a conflation, not a dependency.** Annual electricity is carried per dwelling by NEED — 46,234 observed rows, median 2,600 kWh, separating by fuel (gas-heated 2,500, non-gas 3,200). It waits for nothing. Only the half-hourly *shape* needs a presence pattern and genuinely waits for W2_19. I'd bundled them.
+>
+> **And the population was 100% gas-heated.** `_need_rows` filtered on `Gcons2024` being present — which keeps only dwellings with a gas meter: 39,502 rows, every one `MAIN_HEAT_FUEL = 1`. The entire non-gas stratum, 8,547 dwellings, 18.5% of the stock, was absent from a measurement whose canon says gas-heated and electrically-heated households at the same total are not the same case. Selecting on electricity instead fixes both: both fuels are kept, and gas becomes a quantity that is zero for a home without it.
+>
+> | tolerance | N to reproduce distribution | N to also span response | dominated by |
+> |---:|---:|---:|---|
+> | 0.10 | 1,597 | 1,597 | JOINT |
+> | 0.05 | **8,500** | **8,500** | JOINT |
+> | 0.02 | 30,000 | 30,000 | JOINT |
+>
+> Against 233 / 800 / 5,400 before. Fuel is now a **stratum**, not a coordinate — every stratum must pass, so the 18.5% can't be swamped, and a draw putting fewer than two households in one fails closed.
+>
+> **I withdrew my own grading.** Two hours ago I graded my pre-registered "thousands to low tens of thousands" as *partly refuted, too high*. At 8,500 it's squarely inside what I predicted — and publishing a refutation from an instrument missing a fifth of its population is worse than publishing none. What was genuinely wrong is the reason I gave: I said the tail would dominate, and it's the joint.
+>
+> **The AST control already exists and caught this.** Another lane built `tools/reduction_dimension.py` and had added its `declare()` block to my module; it refused to import the moment my edit made `annual_electricity_kwh` declared-blind while reduced-over. That's the control working on its first live application — and it's why the deferral was visible.
+>
+> I **stood aside** from carrying it. Their declaration spans twelve modules, and pulling the supplier in pulled its consumers behind it; the symbol gate refused twice, correctly. So this commit is my hunks only — `isolate_hunks --keep`, six of seven, dropping exactly the hunk holding their import and declaration — leaving their work to land as one change. I also removed my duplicate assertion of their declaration rather than reaching for `getattr` to slip past the static symbol check, which would have been evading a control rather than satisfying it.
+>
+> Order from here is yours, with the electricity step now taken in front: **W2_19 next, physical layer only** — occupancy count, presence pattern, heating schedule and setpoint, appliance and asset ownership; not income, payment method or attitude. Then the full-vector re-measure, then the control's census over the rest of the tree, then the validation.
+
+### 2026-09-07T17:42:45.754Z
+
+> All at origin and verified. Your tell fired, and the answer was worse than the weighting being idle — it didn't exist.
+>
+> **What was running.** The acceptance test drew `rng.choice(len(values), size=n)` — a uniform random sample — and compared it to the population. No weight entered the test at any point. "Weight" appeared six times in the module: five in building the population, and once in the docstring *quoting the canon's requirement the code didn't implement*. So 8,500 was an honest answer to a question nobody asked.
+>
+> **N for the deliberately-chosen weighted sample:**
+>
+> | tolerance | chosen + weighted | random comparator | factor |
+> |---:|---:|---:|---:|
+> | 0.10 | **125** | 1,597 | 12.8× |
+> | 0.05 | **275** | 8,500 | 30.9× |
+> | 0.02 | **2,315** | 30,000 | 13.0× |
+>
+> **275 cases** for the full vector — gas, electricity, seasonal swing, both ceilings — fuel-stratified so the non-gas 18.5% passes in its own right.
+>
+> **Two things had to be right and my first attempt got one badly wrong.** Maximin choosing — farthest-from-everything-drawn — put every case in the sparse outskirts and left the dense bulk to a handful of huge-weight atoms. It scored **worse than random**: 0.4159 against 0.1445 at 55 cases. No weighting can rebuild a bulk-heavy distribution from a set of extremes. What works is cluster medoids (one real household per distinct behaviour, so near-duplicates can't both be chosen) plus every axis extreme, plus the extremes *within each fuel*.
+>
+> **And the weights are solved, not assigned.** Giving each case its Voronoi mass — the obvious reading of "the mass it stands for" — was still no better than random. Fitting them by non-negative least squares against the population's CDF is what makes it work, and it's what "the weights carry the representativeness" actually requires. Non-negativity isn't a solver convenience: a case that must be *subtracted* to make the distribution work is a case that shouldn't have been chosen.
+>
+> **Not fitted to the answer** — weights solved on 32 directions, acceptance scored on 64 different ones, asserted disjoint by a control. Every figure is held-out. Your tell is now a control too: a designed sample must beat a random one at the same size, or the weighting is idle.
+>
+> One thing named rather than smoothed: the distribution-only figure came out at 389, *above* the full-vector 275. Adding axes made it easier, which shouldn't happen. The two runs cluster in different dimensions and force in different tail counts, but I haven't established that's the whole cause, so it's reported unexplained.
+>
+> **Also landed:** W2_19's physical layer — the postcode explains **9%** of household-size variance across all 24.8m England-and-Wales households; 91% must be discovered. Occupancy is something this company must meter, not look up.
+>
+> Your canon arrived without the severity header again, which silently blocks every lane until someone attempts a merge. I classified it by transcription as before. The durable fix is for the tool that files a director document to add the header — the machine shouldn't require you to remember its bookkeeping — and I'll build that rather than transcribe a third time.
+>
+> Next: the rest of W2_19's physical layer — wiring the conditioned occupancy into the population draw so schedule, setpoint and presence inherit it — then the full-vector re-measure.
+
+### 2026-09-07T19:36:47.109Z
+
+> All at origin and both canons classified. Taking your refusal first, because it changes how the number is published.
+>
+> **You're right, and it's now a floor structurally, not just in prose.** `UNCOUNTED_AXES` enumerates the seven missing axes in the module, and `measurement()` emits `"this_is_a_floor_not_an_answer": true` beside every figure — the number can't be quoted from the tool without the caveat travelling with it.
+>
+> **But the history says something sharper than "every axis multiplies it", and it's actionable:**
+>
+> | what was in it | N (tol 0.05) | what changed | move |
+> |---|---:|---|---|
+> | + electricity, + **non-gas stratum** | 8,500 | a missing **stratum** | **×7** |
+> | same axes, chosen and weighted | 275 | **design**, not content | ÷31 |
+> | + Scotland, generated not selected | 273 | geography | ×1.0 |
+> | + weather sensitivity | **243** | correlated continuous axis | ×0.9 |
+>
+> The two order-of-magnitude moves weren't the same kind of event, and only one was an axis arriving. 8,500 came from a missing **stratum** — 18.5% of the stock with different physics. 275 came from fixing a measurement that wasn't doing what its docstring claimed. Since the design was fixed, two things landed and neither multiplied anything: **Scotland** (the coldest 8%, structurally excluded before) and **weather sensitivity** — the axis you named as unconfirmed, now measured and spanned.
+>
+> **So: strata multiply, correlated axes don't.** Non-gas households aren't "more of" gas households — different heat source, bill and weather response, so the sample must span each stratum in its own right. Scotland is more of the cold end: same physics, colder.
+>
+> **Prediction, filed before the axes are built.** Payment method (3), read pattern (2) and arrears (~2) are strata and should behave like the non-gas one; moves, credit position and half-hourly shape are continuous or correlated and should be cheap. Independent composition gives 12 combinations and 243 × 12 ≈ 3,000; they won't be independent — prepayment correlates with arrears — so the honest range is **low thousands**, which is the order you said you'd rather carry. If payment method lands and moves it 10% rather than 3×, the mechanism is wrong and I'll say so.
+>
+> **Generation, per the new canon.** Scotland reachable: **143,511 → 194,865 cells** (+36%), 24.7m → 27.1m households. Plausibility measured rather than assumed: drawing from the joint gives **0%** combinations the evidence never shows; drawing independently gives **25%**. Scotland raked onto its own UV402 shares (34.4% flats), with the carry-over — what a Scottish semi is like *inside* — named as the remaining assumption.
+>
+> One plausibility rule the evidence refuted: "cavity insulation on a pre-1930 dwelling" looked impossible, but generating strictly from the joint still produced it at 1.3%, because the band is *"before 1930"* and cavity construction is general through the 1920s. A rule that calls observed dwellings impossible is a wrong rule, not wrong data — demoted to a reported observation.
+>
+> **One thing I owe you.** That was the **fourth** director document to arrive without the severity header, and each one silently blocks a level raise in every lane until someone attempts a merge. Worse, the merge can't fix it: the header sits in the base, your rewrite deletes it, my side leaves it unchanged, so git takes the delete with no conflict to resolve. It cost four attempts to land this one. I said last time I'd build the mechanism instead of transcribing again and I transcribed again — that's on me. Building it next, before the demand work continues: the tool that files a director document derives the header from the Type block you already write.
+
+### 2026-09-07T20:13:47.977Z
+
+> Landed and pushed as `b3eace840`.
+>
+> **The page is written.** *"How many synthetic households represent Britain"* — six rungs, built so an outsider learns the method rather than checking our arithmetic. The mechanism is the subject, with the evidence for each leg:
+>
+> | what changed | effect |
+> |---|---|
+> | a missing **stratum** (the 18.5% not heated by gas) | **×7** |
+> | the sampling **design** (random → chosen and weighted) | **÷31** |
+> | **geography** (Scotland, the coldest 8%) | ×1.0 |
+> | a **correlated** axis (weather sensitivity) | ×0.9 |
+>
+> So the useful question when someone proposes adding detail isn't *how much variation does this add?* but *does it split the population into groups that behave differently, or is it another measurement of the same behaviour?* The first is expensive; the second is nearly free.
+>
+> It carries the floor and all seven uncounted axes in a table with expected effects, the ~3,000 prediction with its falsifier stated, and the cost of the design — because near-duplicates are rejected, this book has no two households that are similar-but-not-identical, so it can show a supplier beating the average on a distinct household but not yet telling apart two that look alike.
+>
+> **The gate gap is closed, and it was the more durable half.** `knowledge_layer_gate` scanned `docs/market_research/` — a *directory* — while the class it exists for is any document establishing domain understanding. Canon is exactly that and lives in `docs/staging/`. Scoping a rule to where a thing usually lives is how the instance that lives elsewhere escapes it. It now watches `DIRECTOR_CANON_*` and `DIRECTOR_RULING_*`, refusing what a commit adds and *reporting* what exists: **51 canon and ruling documents carry no declaration**. Two are now declared, leaving a visible backlog of 49 rather than a silent one — retro-refusing them would wedge every lane over documents nobody is touching.
+>
+> **The page could not land, and the reason is its own finding.** The site lane is **red at HEAD** — proven in a clean extract — so no lane can land a site change right now. Three controls fail because `site/data/delivery.json` renders a withheld product table. It's invisible locally: the shared tree collects 22 tests there and passes, HEAD collects 37 and fails three. The difference is an **uncommitted +70/−697 change that deletes sixteen controls** from that file. Making the lane green by deleting the red controls isn't a call to make inside someone else's commit, so the page and its data are held and the wedge is filed with its precise cause.
+>
+> Two mistakes the site gates caught, both mine and the same shape: I paraphrased the index card instead of quoting the topic record, and invented a rate-of-change class of `low` where the vocabulary is fast/medium/slow — a value that looked reasonable and had no threshold behind it, so the review clock could never have fired on this page.
+>
+> Next is the director-document filer — it adds both the severity header and the Knowledge declaration, so neither is ever your bookkeeping, and it's the fix for both gaps. Then payment method, which is the test of the ~3,000 prediction.
+
+### 2026-09-07T22:19:42.782Z
+
+> Run complete, everything at origin, and the stretch report is landed for you to read.
+>
+> **The number: ~3,000**, and your falsifier is honoured plainly.
+>
+> | | strata | axes | N at tolerance 0.10 |
+> |---|---:|---:|---:|
+> | before payment method | 2 (fuel) | 6 | 102 |
+> | after payment method + shape | 4 (fuel × payment) | 7 | **~3,000** |
+>
+> **It moved by about thirty, not the tenth that would have refuted the mechanism.** Strata multiply; correlated axes don't. But the arithmetic I used to predict it is still wrong — I said *k* strata multiply by about *k*, which predicts 2×. The binding cost is the *smallest cell* of the cross (electrically heated, not direct debit — 5.7% of the book), which must be reproduced as thoroughly as the largest. I got the right magnitude from reasoning that doesn't support it.
+>
+> **Every axis of your vector is in.** `blind_to` is empty for the first time. What's still uncounted sits outside the demand vector entirely, and each item carries its reason — including payment method's *third* category, which stays out because the prepayment/standard-credit split is a named gap in ASSUMPTIONS, not a rounding.
+>
+> **Measuring half-hourly shape corrected the canon.** It says every household has the same shape; they don't — the 16:00–19:00 share runs 0.196 to 0.253. But `single` and `family` are identical to four decimals and only `elderly` differs, so shape varies on effectively one binary, not a continuum. Directionally right, literally wrong.
+>
+> **I published a convergence claim that the next data point refuted.** On 2,716 at 12k and 3,824 at 40k I wrote that N was still rising and hadn't converged. The third point is 2,748 at 120k. It doesn't rise — two points looked like a slope because two points always do. Corrected in place and the document renamed to match.
+>
+> **Three broken criteria in this module now, and all three failed flatteringly:** a bar that loosened as the sample shrank; a random draw dressed as a weighted design; and weights fitted globally but scored per stratum, which returned "no size accepts" and reads as a gigantic requirement. The pattern is the lesson — a criterion that fails by demanding *more* cases is dangerous because more-is-conservative reads as caution.
+>
+> **Also landed:** the filer, so severity and Knowledge declaration are the machine's bookkeeping — severity read from your own Type block, refused if absent; lane refused rather than guessed. And occupancy conditioned on the address, buying 9% of household-size variance, with the national fallback visible rather than silent.
+>
+> **The page is still unlanded and I checked rather than assumed.** I re-ran the site suite against `origin/main` at the end of the run: still three failures, still that working-tree change deleting sixteen controls from the failing file. Making the lane green by removing the red controls isn't a call to make inside someone else's commit.
+>
+> Next prediction, filed with the same falsifier shape: read pattern and arrears are the two unbuilt strata, and on the measured mechanism they should multiply again — putting the full commercial vector in tens of thousands. If read pattern moves it by less than 2×, the mechanism is wrong.

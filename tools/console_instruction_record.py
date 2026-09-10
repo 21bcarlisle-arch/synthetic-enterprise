@@ -346,12 +346,39 @@ def recent_transcripts(directory: Path | None = None,
     live session. Unreadable entries are skipped here and surface as a raise downstream if NOTHING
     is readable -- silence and blindness must never render the same.
     """
-    d = Path(directory) if directory is not None else TRANSCRIPT_DIR
-    newest = newest_transcript(d)
-    try:
-        files = sorted(d.glob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
-    except OSError:
-        return [newest]
+    # ACROSS EVERY FOLDER, NOT THE FIRST ONE THAT HAS FILES (2026-09-10).
+    #
+    # `transcript_dirs()` was written to return the union and says so in its own docstring --
+    # "The union, not a choice... Reading only one is what broke" -- and this reader never called
+    # it. It read `TRANSCRIPT_DIR` alone.
+    #
+    # BOTH FOLDERS ARE LIVE AT ONCE, which is what makes first-match-wins fail rather than merely
+    # look untidy: a seat launched from `/` writes to `~/.claude/projects/-` and one launched from
+    # the project writes to the derived slug, and this project runs both simultaneously. Measured
+    # on 2026-09-10: the derived folder held turns up to 08:29 and the legacy folder held the two
+    # the director typed that evening, including the instruction naming the weekend's priority.
+    # `--write` read the derived folder, found nothing new, and printed "records already current".
+    #
+    # The refusal at the bottom of this module ALREADY printed "Reading: <both folders>" while the
+    # code read one, so a person diagnosing this was told the union had been searched. A false
+    # sentence about a control's own scope is worse than the gap it hides.
+    if directory is not None:
+        roots = [Path(directory)]
+    else:
+        roots = transcript_dirs() or [TRANSCRIPT_DIR]
+
+    files: list[Path] = []
+    for root in roots:
+        try:
+            files.extend(root.glob("*.jsonl"))
+        except OSError:
+            continue
+    if not files:
+        # Unchanged behaviour and unchanged message: nothing readable anywhere is a REFUSAL, never
+        # an empty record, because an empty record reads as "the director said nothing".
+        return [newest_transcript(roots[0])]
+    files.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    newest = files[0]
     cutoff = newest.stat().st_mtime - days * 86400.0
     keep = [p for p in files if p == newest or p.stat().st_mtime >= cutoff]
     return keep or [newest]

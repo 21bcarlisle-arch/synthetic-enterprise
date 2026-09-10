@@ -45,15 +45,30 @@ def test_THE_CHECK_READS_THE_SAME_ROOM_THE_WRITER_WRITES_TO(tmp_path, monkeypatc
     `_newest_captured_day` globbed the staging root and `done/` and never looked in `console/` --
     which is where `record_path` files every record -- so it reported a four-day lapse over files
     that were on disk. A guard that reads a different directory from the writer it guards is the
-    original bug wearing a control's clothes."""
+    original bug wearing a control's clothes.
+
+    AND IT ROTTED ON THE CALENDAR (fixed 2026-09-10). The first version wrote the record for the
+    literal string `2026-09-07` and stamped presence as `time.time()`, so it asserted "a record
+    written TODAY is not a lapse" while only ever writing one dated the day the test was authored.
+    It passed on 2026-09-07 and has been red every day since -- three days by the time it was
+    found, sitting in `head_red_observed.json`, blocking every landing that touched the module it
+    guards.
+
+    A control keyed to today's answer instead of to its property goes red when nothing is wrong,
+    which is exactly how a correct control gets switched off. The day is derived from the same
+    clock the presence stamp uses, so the pair moves together and the test asserts the property on
+    every calendar day.
+    """
+    now = time.time()
+    today = time.strftime("%Y-%m-%d", time.gmtime(now))
     staging = tmp_path / "staging"
-    _record(staging, "2026-09-07")
+    _record(staging, today)
     # The day needs BOTH sides, or the pairing check answers instead and this test stops being
     # about the room it was written to guard.
-    record.append_reply("2026-09-07T09:05:00.000Z", "Answered.", staging=staging)
-    assert (staging / "DIRECTOR_CONSOLE_2026-09-07.md").is_file(), (
+    record.append_reply(f"{today}T09:05:00.000Z", "Answered.", staging=staging)
+    assert (staging / f"DIRECTOR_CONSOLE_{today}.md").is_file(), (
         "the writer no longer files a new day into the root; this test's premise has moved")
-    monkeypatch.setattr(record, "HUMAN_PRESENCE_STAMP", _stamp(tmp_path, time.time()))
+    monkeypatch.setattr(record, "HUMAN_PRESENCE_STAMP", _stamp(tmp_path, now))
 
     code, message = record.check(staging=staging)
     assert code == 0, f"a record written today read as a lapse: {message}"

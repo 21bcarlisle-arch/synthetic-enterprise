@@ -70,17 +70,32 @@ def test_A_REPLY_RECORD_IS_NOT_WORK_and_routes_to_the_console_room():
 def test_THE_WINDOW_THE_DIRECTOR_NAMED_IS_A_FINDING(tmp_path, monkeypatch):
     """A day holding his turns and no replies is the gap itself: the advisor sees the instruction
     and not the answer. Checked against the RECORD rather than a clock, because a reply is owed per
-    day of conversation, not per elapsed hour."""
-    record.append_turn("2026-09-07T09:00:00.000Z", "Do the thing.", staging=tmp_path)
+    day of conversation, not per elapsed hour.
+
+    THE FIXTURE ROTTED ON THE CALENDAR (fixed 2026-09-10). The turn was dated with the literal
+    string `2026-09-07` while the presence stamp said `now`, so from 2026-09-08 onward `check`
+    answered with the LAPSE verdict -- correctly, the record really was three days stale -- and
+    this test's own subject never got a chance to fire. It went red on a true statement about a
+    fixture, sat in `head_red_observed.json`, and blocked every landing that touched the capture.
+
+    Both facts now come off one clock, so the only thing missing in the fixture is the thing the
+    test is about: the seat's side of today's conversation.
+    """
+    now = time.time()
+    today = time.strftime("%Y-%m-%d", time.gmtime(now))
+    record.append_turn(f"{today}T09:00:00.000Z", "Do the thing.", staging=tmp_path)
     stamp = tmp_path / ".human_last_input"
-    stamp.write_text(str(time.time()), encoding="utf-8")
+    stamp.write_text(str(now), encoding="utf-8")
     monkeypatch.setattr(record, "HUMAN_PRESENCE_STAMP", stamp)
     monkeypatch.setattr(record, "STAGING_DIR", tmp_path)
 
     code, message = record.check(staging=tmp_path)
     assert code == 1 and "SEAT'S SIDE IS MISSING" in message
 
-    record.append_reply("2026-09-07T09:05:00.000Z", "Done, and here is what moved.",
+    # SAME DAY AS THE TURN. Dated `2026-09-07` this filed the answer under a different day from
+    # the question, so the pairing check kept reporting the gap it was supposed to close -- the
+    # second half of the same calendar rot as the first.
+    record.append_reply(f"{today}T09:05:00.000Z", "Done, and here is what moved.",
                         staging=tmp_path)
     code, message = record.check(staging=tmp_path)
     assert code == 0, f"both sides present and still reported as a gap: {message}"

@@ -15,7 +15,7 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `22080be5-e19e-4099-a007-d71c3a6e7845.jsonl` · 6 turn(s).
+Source: `046f06a6-944c-40b5-9128-86b3c1b7f8ef.jsonl, 22080be5-e19e-4099-a007-d71c3a6e7845.jsonl, 5414b399-3db8-45b0-baa7-76dad927d51f.jsonl, cc9706e0-7195-469c-ad62-fdbf594db611.jsonl` · 17 turn(s).
 
 ### 2026-09-07T06:19:41.904Z
 
@@ -346,3 +346,255 @@ Source: `22080be5-e19e-4099-a007-d71c3a6e7845.jsonl` · 6 turn(s).
 >
 > And add the same rule you gave the stretch log: a session that
 > takes director input without capturing it is a finding.
+
+### 2026-09-07T13:04:40.322Z
+
+> The capture is back and I can read my own input again. One gap
+> left: it records what I send and not what you reply, and the
+> stretch log only lands when a stretch closes — so between the two
+> there's a window where my advisor can see the instruction and not
+> the answer. Close that however you judge best.
+
+### 2026-09-07T14:03:36.446Z
+
+> On your two decisions — shape, and sequencing — go with your
+> recommendation on each. I've amended the canon at
+> docs/staging/DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07.md to
+> carry the whole of this, so the record and the instruction agree.
+>
+> Shape: model it, publish it as modelled and not validated, and say
+> so on the page. Don't pursue SERL — accredited access is a
+> real-world application with a long lead time and an uncertain
+> outcome, and I'm not blocking the world on it. If it becomes worth
+> having, that's a separate decision and mine to take.
+>
+> Sequencing: measure now on the heat-driven axes with the
+> electricity gap named. Knowing whether the sample is 10³ or 10⁴
+> before we spend on the people joint changes what we build, and
+> that information is cheap. Re-measure the full vector when W2_19
+> lands.
+>
+> Your challenge to the vector is right and it's the more important
+> half. The mission is ranking interventions, so two households with
+> identical consumption and opposite insulation ceilings are
+> different customers even though my vector can't tell them apart.
+> Report both numbers — N to reproduce the observed distribution and
+> N to also span intervention response — and treat the second as the
+> real one.
+>
+> Your replacement for variance coverage is better than what I asked
+> for. Span-the-support and reproduce-the-distribution being opposed
+> criteria, resolved by weighting each case with the population mass
+> it stands for, is right — and N set by "the weighted sample is
+> statistically indistinguishable from observed at n" is falsifiable
+> where a percentage I chose was not. The cell count as derived
+> rather than designed follows, and I accept that 987 was the right
+> shape on the wrong subject.
+>
+> The AST census as a control rather than a manual sweep: yes.
+> Refuse any coverage, ceiling or sufficiency claim that doesn't
+> declare the dimension it reduces over.
+>
+> Your prediction of thousands to low tens of thousands is heard and
+> doesn't worry me. A large sample that reproduces the range beats a
+> neat one that can't.
+>
+> Everything else you listed, take.
+>
+> Two things on the capture, since you've just rebuilt it. The
+> backfill worked and I can read my own input again. But nothing has
+> come through the reply half yet, and no stretch report has landed
+> for this stretch — so the mechanism exists and hasn't written.
+> That's the shape that failed twice: a writer that exists while
+> nothing checks it wrote. Verify it fires rather than assuming it
+> will.
+
+### 2026-09-07T15:48:05.324Z
+
+> Why is electricity after the AST control and the validation? Every
+> N you just published is a floor because electricity isn't in it,
+> so the control would enforce a dimension rule on a measurement
+> that's missing a dimension, and the validation would validate a
+> distribution covering gas and not electricity.
+>
+> Take W2_19 next — the physical layer only, as the canon sets out:
+> occupancy count, presence pattern, heating schedule and setpoint,
+> appliance and asset ownership. Not income, payment method or
+> attitude; those are the commercial layer and they follow.
+>
+> Then re-measure the full vector, then the control, then the
+> validation. If there's a reason that order is wrong — a dependency
+> I can't see, or the electrical base needing something W2_19 can't
+> supply yet — say so and take your own order. But don't defer the
+> axis that turns a floor into a number.
+
+### 2026-09-07T16:51:01.119Z
+
+> Order confirmed — it's the one you just restated and it's yours to
+> run. W2_19 physical layer, then the full-vector re-measure, then
+> the census, then the validation. Don't hand the order back; you
+> have it.
+
+### 2026-09-07T16:55:18.381Z
+
+> /login
+
+### 2026-09-07T17:08:37.459Z
+
+> [Request interrupted by user for tool use]
+
+### 2026-09-07T17:09:50.649Z
+
+> I've clarified the canon at
+> docs/staging/DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07.md —
+> a257cc65 — because it carried both readings and didn't say which
+> governs. My error in the amendment: I took your better criterion
+> and dropped the half that makes it compatible with the frame.
+>
+> The ordering, now explicit: cases are CHOSEN for difference, and
+> the weights carry the representativeness. Not a random draw sized
+> until it looks like the population. Distinct cases spanning the
+> output variation, near-duplicates rejected, tails deliberately in,
+> each weighted by the mass it stands for, so the WEIGHTED sample
+> reproduces the observed distribution.
+>
+> The tell I've written in: if N comes out at the scale a random
+> sample would need, the weighting is doing no work and the design
+> has reverted to representativeness. 8,500 looks like that scale,
+> so check which design is actually running before you build on the
+> number.
+>
+> Tell me N for a deliberately-chosen weighted sample under the same
+> acceptance test. If it's much smaller, that's the number. What I
+> don't want is a faithful crowd of near-identical households —
+> they'd pass the test and teach the company nothing.
+
+### 2026-09-07T18:57:30.766Z
+
+> Both landed — amendment `2696eec0`, new canon `760e21b2`, hash-verified.
+>
+> ```
+> Two canon changes staged, both on origin.
+>
+> DIRECTOR_CANON_THE_DEMAND_VECTOR_2026-09-07 amended (2696eec0):
+> effort follows where value is lost, not where volume is. That's
+> why the tail is over-weighted in the choosing — common
+> combinations are already well served by any segment model, and the
+> value is in the uncommon ones that averaging disappoints. The
+> sample is densest where the population is thinnest; the weights
+> restore the mass. Read it as intent, not as a side effect of
+> rejecting near-duplicates.
+>
+> DIRECTOR_CANON_WHAT_THE_SYNTHETIC_BOOK_IS_2026-09-07 is new
+> (760e21b2) and carries what has only been in the console until
+> now.
+>
+> Households are generated from a fitted joint and calibrated
+> against real data, not selected from survey rows. NEED is
+> evidence, not population — selecting rows made its limits our
+> limits, which is why Scotland was unreachable and coverage was
+> capped at combinations a 46,000-row sample happened to contain.
+> Generation reaches both. The risk is implausible households, so
+> draw from the joint rather than independently and make
+> plausibility a control.
+>
+> One case standing for tens of thousands is a chosen property with
+> a stated limit: near-duplicates are rejected, so the world has no
+> two households that are similar-but-not-identical, and we can't
+> yet show the company separating two that look alike. Inflating a
+> weighted case into a small population must stay possible — don't
+> foreclose it.
+>
+> And the world's target is near-full billing and commercial
+> complexity, not demand alone. A household needs a meter type and
+> read pattern, payment method, tariff and dates, move history,
+> credit position. A sample sized against the demand vector may not
+> be sized against that; measure it rather than assume, and don't
+> build the demand sample in a way that shuts those axes out.
+>
+> Read both now rather than waiting to draw them, then carry on with
+> the generation change and tell me what it does to the case count
+> and the cell coverage.
+> ```
+
+### 2026-09-07T19:04:43.593Z
+
+> I don't believe 275 and I want to say why rather than just doubt
+> it.
+>
+> It's the number for a partial vector. Half-hourly electricity
+> shape isn't in it — the axis I said matters most. Weather
+> sensitivity isn't confirmed as spanned. Payment method, read
+> pattern, arrears and moves aren't in it at all. Scotland was
+> structurally excluded.
+>
+> And the number has moved an order of magnitude every time an axis
+> arrived: 800 with retrofit flags, 8,500 when electricity and the
+> non-gas stratum went in. A single missing stratum multiplied it
+> tenfold. I have no reason to expect the remaining axes to behave
+> differently.
+>
+> So report it as a floor for a partial vector, not an answer, and
+> say so wherever it's published. And tell me what it becomes as
+> each remaining axis lands, rather than presenting the current
+> figure as the size of the book.
+>
+> I'd rather carry thousands and know why than carry 275 and find
+> out later.
+
+### 2026-09-07T20:01:53.487Z
+
+> The ~3,000 is your prediction with a falsifier, not a result —
+> I'll read it that way and hold you to the payment-method test.
+>
+> Then knowledge, which we've missed. The sampling design, the
+> strata-versus-correlated-axes finding, the plausibility
+> measurement, the cell count being derived — all of it is in canon,
+> findings and stretch reports, and none of it is a Knowledge page.
+> Your own gate makes a research document declare a Knowledge topic
+> or say why not; it wasn't watching canon, and canon is where this
+> landed.
+>
+> Write it up. "How many synthetic households does it take to
+> represent Britain, and why" is the most publishable thing here —
+> an outsider can learn something rather than check us. Include the
+> mechanism, not just the number: strata multiply and correlated
+> axes don't, and here's the evidence for each. Include the floor
+> and the seven uncounted axes, because the honest version is more
+> persuasive than a clean one.
+>
+> And close the gap that let it happen: a canon document that
+> establishes domain understanding should reach the Knowledge layer
+> the same way a research document does.
+
+### 2026-09-07T20:19:13.861Z
+
+> Keep going, and don't stop at the mechanism — I want the number
+> landed and the physics of the portfolio settled.
+>
+> Order, and it's a run rather than a queue to report back on: the
+> director-document filer first since it's small and closes two gaps
+> I keep causing. Then payment method, which tests your ~3,000
+> prediction and its falsifier. Then the rest of W2_19's physical
+> layer — occupancy wired into the draw so schedule, setpoint and
+> presence inherit it. Then half-hourly electricity shape, which is
+> the axis I care about most and the last one missing from the
+> vector. Then the full-vector re-measure.
+>
+> The outcome I want at the end of that run: a number that isn't a
+> floor. Every axis in, the uncounted list empty or each remaining
+> item explained, and the physics resolved — a portfolio of modelled
+> households in real cells, producing gas and electricity with
+> credible seasonal and half-hourly shape, spanning the range,
+> weighted so the book aggregates honestly.
+>
+> Two things to hold as you go. The site lane is red on another
+> lane's uncommitted change, so the sampling page is written and
+> unlanded — check it actually reaches the site once that clears
+> rather than assuming, because a page written and never published
+> is a shape we've hit before. And if a stratum lands and the count
+> moves the way you predicted, say so plainly; if it doesn't, say
+> the mechanism was wrong. I'd rather the prediction be tested than
+> protected.
+>
+> Don't come back between pieces. I'll read the stretch log.

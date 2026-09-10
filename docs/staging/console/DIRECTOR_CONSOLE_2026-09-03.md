@@ -15,7 +15,7 @@
 > shorthand to an atom is a judgement, and it belongs in a separate record that cites
 > this one, not in an automatic capture that would be putting words in his mouth.
 
-Source: `22080be5-e19e-4099-a007-d71c3a6e7845.jsonl` · 6 turn(s).
+Source: `046f06a6-944c-40b5-9128-86b3c1b7f8ef.jsonl, 22080be5-e19e-4099-a007-d71c3a6e7845.jsonl, 5414b399-3db8-45b0-baa7-76dad927d51f.jsonl, cc9706e0-7195-469c-ad62-fdbf594db611.jsonl` · 6 turn(s).
 
 ### 2026-09-03T05:46:55.442Z
 
