@@ -116,6 +116,44 @@ Two estimators, one from banner counts and one from a period counter, agree with
 point: it assumes contention continues, and it will move earlier if the arms-rerun finishes or is
 killed first.
 
+### CORRECTION, 17:56Z, same turn, before anyone read the above — B's mechanism is wrong and A's cause is wrong
+
+I published section 4 at 17:5xZ and it was refuted six minutes later by the next reading. **The
+arrival time survives; two of the three things I said to get there do not.** Left standing above
+rather than revised, because a wrong derivation kept beside the corrected one is the only evidence
+the estimate was not fitted to its answer.
+
+**What refuted it.** The next sample read `5,187,200 … (latest: 2022-06-30)` — *lower* than the
+`8,471,900 … (latest: 2025-06-07)` above. The counter had gone backwards. **It resets every decade
+sweep; it is not cumulative across the job**, so B's "20.94 pass-equivalents" and its ~404,600
+periods/pass are arithmetic over a quantity that does not exist. A full sweep is **~8.28M** periods
+(the completed 3-seed run's last line: `8,283,100 … 2025-06-07 period 21`).
+
+**And the cause I named in A is wrong too.** Counting counter-resets directly settles the unit:
+
+| | sweep-starts | `Starting treasury` banners | seeds |
+|---|---|---|---|
+| `…_20260909` (complete) | **9** | 18 | 3 |
+| `…_20260910` (running, 17:56Z) | **11** | 21 | 9 |
+
+So a seed costs **3 decade sweeps, one per arm — exactly what `noise_floor`'s docstring says** — and
+each sweep prints *two* banners. Nine seeds is **27 sweeps**, not 54. My "6 passes per seed, and
+this is where the published estimates went wrong" was me conflating banners with passes and then
+blaming the docstring for my own conversion error. The docstring was right.
+
+**They were also never independent.** A and B are two views of one log, so "two estimators agree"
+overstated what I had. That is the *two-figures-agreeing-is-not-identity* shape, and I wrote it into
+the sentence that carried the conclusion.
+
+**The corrected derivation, in the unit that actually exists.** At 17:56:17Z, 3h05m55s in: 10 sweeps
+complete plus one at `5,187,200`/8.28M = 62.6% → **10.63 of 27 sweeps (39%)** → 17.5 min/sweep →
+27 × 17.5 = 472 min → **≈22:42Z**.
+
+**What survives unchanged:** the floor is ~39% done at 17:56Z and arrives late in the 22:00Z hour,
+not at 19:50Z. Everything the operational sections depend on is that direction, not the mechanism —
+but anyone re-deriving it from section 4 as first written would get a number out of a counter that
+resets, so the correction is load-bearing for the next reader even though the conclusion is not.
+
 **Why this matters operationally rather than cosmetically.** A lane that polls at 19:50Z finds no
 artefact and a live unit, and the two readings available to it are "still running" and "died
 silently". The register repair in section 1 is what makes that distinguishable — but only now that
