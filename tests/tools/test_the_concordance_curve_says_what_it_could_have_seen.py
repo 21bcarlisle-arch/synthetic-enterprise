@@ -43,6 +43,12 @@ def _block(**over):
     """
     kwargs = {"observed": 0.5170998632010944, "null_low": 0.4292749658002736,
               "null_high": 0.5723666210670315, "n": LIVE_N, "accounts": 46,
+              # THE SETTLED BOOK THE 46 SCORED ACCOUNTS CAME OUT OF. Injected for the same reason
+              # the ceiling is, and REQUIRED from 2026-09-10: without it a requirement in
+              # scored-decision accounts cannot be carried into the population the ceiling counts,
+              # and the block correctly refuses to compare them at all. Held at the live run's own
+              # ratio of settled to scored accounts (164:72).
+              "settled_book_accounts": 105,
               "ceiling": {"available": True, "accounts": 632, "source": "injected"}}
     kwargs.update(over)
     return ic.detectability(**kwargs)
@@ -116,29 +122,48 @@ def test_the_scale_constant_is_the_runs_own_interval_and_not_a_second_permutatio
 # The verdict, and the ways it could be reached without being earned.
 # ---------------------------------------------------------------------------------------------
 
-def test_an_effect_the_ceiling_book_could_resolve_is_reported_as_attainable():
-    """DEFECT: the unattainability verdict is unreachable -- it says 'no' whatever it is given.
+def test_the_attainability_verdict_can_refuse_and_can_decline_and_can_do_nothing_else():
+    """DEFECT: the verdict is unreachable in one of its directions -- it answers the same whatever
+    it is given.
 
-    THE REACHABILITY CONTROL, and it is the one this project keeps not writing. Every other
-    assertion here checks that a too-small effect is refused; a verdict that refused EVERY effect
-    would pass all of them. This drives one partition across both answers through the same
-    arithmetic: a departure the 632-account ceiling can resolve must come back attainable, and a
-    departure it cannot must not.
+    THE REACHABILITY CONTROL, over the WHOLE partition in one assertion rather than a leg per
+    branch, because a verdict stuck on any single value passes every per-branch test.
 
-    Fires on: hard-coding `the_observed_effect_is_attainable` to False, or comparing against the
-    ceiling with the inequality reversed.
+    REKEYED 2026-09-10, AND THE REKEY IS THE FINDING. Until today this test asserted that a
+    departure fitting under the ceiling came back `True`, and it passed -- on arithmetic that
+    could not support it. The ceiling is an UPPER bound on the book (its own block says the
+    affordable book is SMALLER than the number and never larger), so `needed <= ceiling` says
+    nothing whatever: the real book may be smaller than the ceiling AND smaller than the
+    requirement. Only `needed > ceiling` is safe. So the reachable partition is {False, None} and
+    `True` is not a value this arithmetic may produce at any effect size -- which is the property
+    keyed here, rather than today's answer for any one reading.
+
+    Fires on: restoring `needed <= ceiling_accounts` as the verdict, hard-coding either surviving
+    value, or dropping the population bridge so only one branch can ever be reached.
     """
-    # 0.517 needs ~806 accounts against a 632 ceiling; 0.540 needs far fewer.
+    # 0.517 needs ~806 scored accounts -- about 1,840 settled -- against a 632 ceiling. 0.540
+    # needs far fewer, and fits under it.
     tight = _block()["the_book_this_would_need"]
     roomy = _block(observed=0.54)["the_book_this_would_need"]
+    assert tight["settled_accounts_needed_for_the_observed_effect"] > 632
+    assert roomy["settled_accounts_needed_for_the_observed_effect"] < 632
+    # THE REFUSAL IS REACHABLE...
     assert tight["the_observed_effect_is_attainable"] is False
-    assert roomy["the_observed_effect_is_attainable"] is True
-    assert roomy["accounts_needed_for_the_observed_effect"] < 632
-    assert tight["accounts_needed_for_the_observed_effect"] > 632
-    # And BOTH branches of the partition are present in the published floor ladder, so the page
-    # carries a scale rather than a single verdict.
+    assert tight["why_no_attainability_verdict"] is None
+    assert tight["accounts_short"] > 0
+    # ...AND SO IS THE DECLINE, on the very reading that used to come back affirmative, and it
+    # names the upper bound as its reason rather than going out bare.
+    assert roomy["the_observed_effect_is_attainable"] is None
+    assert "UPPER bound" in roomy["why_no_attainability_verdict"]
+    # ...AND NOTHING ANYWHERE PRODUCES THE AFFIRMATIVE. Swept across the whole range of readings
+    # this instrument can take, so a `True` surviving at some effect size cannot hide.
+    for observed in (0.501, 0.52, 0.54, 0.60, 0.75, 0.99, 0.46, 0.25):
+        block = _block(observed=observed)["the_book_this_would_need"]
+        assert block["the_observed_effect_is_attainable"] in (False, None), observed
+    # And both surviving branches are present in the published floor ladder, so the page carries a
+    # scale rather than a single verdict.
     within = {row["within_the_settled_book_ceiling"] for row in _block()["floor"]}
-    assert True in within and False in within
+    assert within == {False, None}
 
 
 def test_an_unreadable_ceiling_is_cannot_tell_and_never_room_to_grow():
@@ -154,7 +179,11 @@ def test_an_unreadable_ceiling_is_cannot_tell_and_never_room_to_grow():
     book = blind["the_book_this_would_need"]
     assert book["the_observed_effect_is_attainable"] is None
     assert all(row["within_the_settled_book_ceiling"] is None for row in blind["floor"])
-    assert "cannot tell" in blind["sentence"]
+    assert "cannot say" in blind["sentence"]
+    # AND THE PROBE'S OWN REASON REACHES THE READER, rather than a bare absence a reader must
+    # guess at. A refusal that does not say why is how a wrong refusal survives.
+    assert "probe unavailable" in book["why_no_attainability_verdict"]
+    assert "probe unavailable" in blind["sentence"]
     # The decisions floor does NOT depend on the ceiling and must survive its absence: what the
     # instrument needs is a property of the instrument.
     assert book["decisions_needed_for_the_observed_effect"] == (
@@ -181,7 +210,117 @@ def test_the_sentence_cannot_claim_unattainable_while_the_arithmetic_says_otherw
     """
     assert "No attainable book" in _block()["sentence"]
     assert "No attainable book" not in _block(observed=0.54)["sentence"]
-    assert "does reach it" in _block(observed=0.54)["sentence"]
+    assert "this page cannot say" in _block(observed=0.54)["sentence"]
+
+
+def test_the_page_can_never_serve_the_words_a_book_this_world_can_supply_does_reach_it():
+    """DEFECT: THE ONE THIS REPAIR IS FOR. The page served a positive reachability claim off an
+    upper bound, twice, for six days.
+
+    The exact words a reader got were "The settled book can hold 632 accounts, so a book this
+    world can supply does reach it". Every part of that was composed correctly from a comparison
+    that was not a quantity: 632 was the ceiling at `years=1` against a requirement in accounts
+    counted over the run's whole window, in a DIFFERENT population, read in the one direction an
+    upper bound cannot be read in.
+
+    KEYED TO THE READER'S SENTENCE AND NOT TO THE FLAG, because the flag is not what misled
+    anyone. Swept over the whole range of readings, so the claim cannot come back at one effect
+    size, and over an available ceiling as well as an unreadable one.
+
+    Fires on: restoring the affirmative branch in `_detectability_sentence`. Reintroducing a
+    `True` path into `_attainability` alone does NOT fire it -- measured, not assumed -- because
+    there is no longer a branch for that verdict to reach. The test above is what catches that
+    half, and it takes both of them to cover the defect as it actually shipped.
+    """
+    for observed in (0.501, 0.52, 0.54, 0.60, 0.75, 0.99, 0.46, 0.25):
+        for over in ({}, {"ceiling": {"available": False, "reason": "probe unavailable"}}):
+            sentence = _block(observed=observed, **over)["sentence"]
+            assert "does reach it" not in sentence, (observed, over)
+            # ...and not the assembled claim under any rewording. The refusal itself contains the
+            # words "can supply", so the phrase alone is not the subject -- the AFFIRMATIVE is.
+            assert "can supply does" not in sentence, (observed, over)
+            assert "settled book can hold" not in sentence, (observed, over)
+
+
+def test_a_ceiling_read_at_no_window_refuses_rather_than_defaulting_to_one_year():
+    """DEFECT: THE UNITS LEG. A per-customer-YEAR figure compared against accounts counted over a
+    ten-year window, with the ratio published as a verdict.
+
+    `settled_book_ceiling` divides by `years`: 632 accounts at one, 63 at ten. `CEILING_SOURCE`
+    read `years=1` and nothing named the window the requirement was in, so the comparison was
+    between two quantities that differ by an order of magnitude. 63 is fewer than the 164 accounts
+    this book demonstrably settles, which is how a reader could have seen it.
+
+    Fires on: restoring a default for `window_years`, or accepting a non-positive one.
+    """
+    assert ic.settled_book_ceiling_accounts()["available"] is False
+    assert "per customer-YEAR" in ic.settled_book_ceiling_accounts()["reason"]
+    for bad in (0, -1, 1.5, "10"):
+        assert ic.settled_book_ceiling_accounts(window_years=bad)["available"] is False, bad
+    # ...and the window it IS read at travels with the number, so no later reader can put it over
+    # a requirement counted over a different one.
+    live = ic.settled_book_ceiling_accounts(window_years=1)
+    if not live["available"]:  # a probe report this box cannot read is not this test's subject
+        pytest.skip(live["reason"])
+    assert live["window_years"] == 1
+    assert "years=1" in live["source"]
+    decade = ic.settled_book_ceiling_accounts(window_years=10)
+    assert decade["accounts"] < live["accounts"]
+    assert "years=10" in decade["source"]
+
+
+def test_a_requirement_is_carried_into_the_ceilings_own_population_before_any_comparison():
+    """DEFECT: THE POPULATION LEG. A requirement in accounts that carry a SCORED DECISION,
+    compared against a ceiling on the SETTLED BOOK those were drawn from.
+
+    They are 72 and 164 on the live run, so the requirement understated the book by 2.3x -- on top
+    of the units error, and in the same direction. `settled_accounts_needed_...` is the carry, and
+    the comparison may only ever be made on it.
+
+    Fires on: comparing `accounts_needed_...` against the ceiling directly, or defaulting the
+    ratio to 1 when the run declares no settled book.
+    """
+    book = _block()["the_book_this_would_need"]
+    ratio = book["settled_accounts_per_scored_account"]
+    assert ratio == pytest.approx(105 / 46)
+    assert ratio > 1
+    assert (book["settled_accounts_needed_for_the_observed_effect"]
+            == math.ceil(book["accounts_needed_for_the_observed_effect"] * ratio))
+    # THE CARRY IS WHAT DECIDES, not the scored count. Under a ceiling sitting BETWEEN the two, a
+    # comparison made on the scored count says "fits" and the honest one says "does not" -- so
+    # this asserts the verdict follows the carried figure, which is the whole defect.
+    between = (book["accounts_needed_for_the_observed_effect"]
+               + book["settled_accounts_needed_for_the_observed_effect"]) // 2
+    straddled = _block(ceiling={"available": True, "accounts": between, "source": "injected"})
+    assert straddled["the_book_this_would_need"]["the_observed_effect_is_attainable"] is False
+    # ...and with no settled book declared, there is no carry and therefore no comparison at all.
+    blind = _block(settled_book_accounts=None)["the_book_this_would_need"]
+    assert blind["settled_accounts_needed_for_the_observed_effect"] is None
+    assert blind["the_observed_effect_is_attainable"] is None
+    assert "not the same set" in blind["why_no_attainability_verdict"]
+
+
+def test_the_ceiling_row_on_the_decisions_curve_is_carried_across_the_same_bridge():
+    """DEFECT: the same population error, one field along, where nobody looked for it.
+
+    `scored_decisions_at_the_ceiling` multiplied a SETTLED-book account count by a
+    decisions-per-SCORED-account rate, so the curve placed the ceiling further right than it
+    belongs and the excess it "resolves at best" was better than the truth.
+
+    Fires on: reverting to `ceiling_accounts * per_account`, or emitting the row with no bridge.
+    """
+    block = _block()
+    book = block["the_book_this_would_need"]
+    per_account = block["scored_decisions_per_account"]
+    ratio = book["settled_accounts_per_scored_account"]
+    assert book["scored_decisions_at_the_ceiling"] == int(632 / ratio * per_account)
+    # The uncarried figure is strictly larger, which is why this was flattering and not merely
+    # wrong -- so assert the published one is BELOW it rather than merely different.
+    assert book["scored_decisions_at_the_ceiling"] < int(632 * per_account)
+    # With no bridge there is no row: an absent ceiling on the curve beats a misplaced one.
+    blind = _block(settled_book_accounts=None)
+    assert blind["the_book_this_would_need"]["scored_decisions_at_the_ceiling"] is None
+    assert not any(row.get("is_the_ceiling") for row in blind["curve"])
 
 
 def test_the_floor_ladder_is_not_keyed_to_the_observed_reading():

@@ -137,7 +137,7 @@ from tools.product_gate_refusal import refusal_breakdown
 # one place this file derives instead of reading, and it derives by calling the same function the
 # run stores -- so the page and the artefact cannot carry two answers to one question. See that
 # function for why the "never recomputed here" rule does not reach a pair-count identity.
-from tools.run_value_cycle_ab import pair_strata
+from tools.run_value_cycle_ab import pair_strata, remedy_price_table
 
 PROJECT = Path(__file__).resolve().parent.parent
 #: The commit the code RENDERING this page came from. Compared against the artefact's own
@@ -383,6 +383,101 @@ SAME_SUPPLIER_TOLERANCE_GBP = 0.01
 #: from, so it is what a reader actually meets.
 DASHBOARD_PATH = PROJECT / "site" / "data" / "dashboard.json"
 
+#: WHICH RUN THE SITE IS SHOWING, in the site's own committed words. `showing_run.git_commit` and
+#: `showing_run.run_id` are written by the publish cycle and ship in the SAME commit as
+#: `dashboard.json` (`process_run_complete.git_commit_push` names both), so the two can never be a
+#: cycle apart. This is the only artefact in the tree that states the published run's identity
+#: rather than one of its figures.
+PUBLISH_PROVENANCE_PATH = PROJECT / "site" / "data" / "publish_provenance.json"
+
+
+def _same_commit(a, b) -> bool:
+    """Do two commit strings name the same commit? One side is `git rev-parse --short` output and
+    the other may be the full 40 characters, so the comparison is by PREFIX and never by equality.
+    Same rule, and for the same reason, as `generate_dashboard_data._same_commit`."""
+    if not a or not b:
+        return False
+    a, b = str(a), str(b)
+    return a.startswith(b) or b.startswith(a)
+
+
+def _published_run_identity() -> dict | None:
+    """`{"commit": ..., "run_id": ...}` for the run the site is currently showing, or None."""
+    try:
+        loaded = json.loads(PUBLISH_PROVENANCE_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    showing = (loaded or {}).get("showing_run")
+    if not isinstance(showing, dict):
+        return None
+    commit = showing.get("git_commit")
+    return {"commit": commit if isinstance(commit, str) and commit else None,
+            "run_id": showing.get("run_id")}
+
+
+#: Why the run artefact at `RUN_OUTPUT_PATH` cannot be shown to be the published run. Each value is
+#: a distinct defect with a distinct remedy, and collapsing them is what the old check did.
+_IDENTITY_ARTEFACT_SILENT = "the run artefact does not say which run produced it"
+_IDENTITY_SITE_SILENT = "the site does not say which run it is showing"
+_IDENTITY_DIFFERENT_RUN = "the run artefact is a different run from the one the site is showing"
+
+
+def _same_run_verdict(published_run: dict | None) -> dict:
+    """Is the run artefact this feed read THE RUN THE SITE IS SHOWING? Established, never inferred.
+
+    WHY THIS REPLACED AN ARITHMETIC TEST (2026-09-10). Until today the answer was inferred from
+    `run_output_latest.json`'s `total_net_gbp` matching `dashboard.json`'s
+    `portfolio.net_margin_gbp` -- two figures whose agreement is evidence of identity and is not
+    identity. That inference has both failures at once:
+
+      * FALSE PASS. Two different runs whose net margins land within a penny read as one run, and
+        the feed then makes a claim about "the supplier this site publishes" on an artefact that
+        is not it. Nothing in the check could notice.
+      * FALSE REFUSAL, and this is the one that was live. `docs/reports/run_output_latest.json` is
+        refreshed on disk by `background/sim_runner` after every run, but it is NOT in
+        `background.process_run_complete.git_commit_push`'s publish surface -- a gap `0247f3061`
+        named in its own STILL OWED section and 19 publishes in the following week walked straight
+        into. So the tree's WORKING copy is the published run while its COMMITTED copy is weeks
+        behind, and the published verdict alternated by which tree regenerated the feed: six
+        consecutive commits to `site/data/value_arms.json` read
+        checked=True/147,886.78, checked=False/131,289.34, True, False, True, False. Same
+        generator, same code, opposite sentence to the reader -- and the refusal blamed a subject
+        mismatch that did not exist.
+
+    `fe895db3a` is what makes the honest test possible: it put `producing_commit` at the top of the
+    run output's payload, so the artefact now states its own identity. `showing_run.git_commit` on
+    the other side has always been committed by the publish cycle. Both sides name a run, so the
+    question is answered by comparing RUN IDENTITIES and the money is left to answer the question
+    it can actually answer -- how big the difference is, once the subject is settled.
+
+    Returns `state` in {"same", "different", "unestablished"} with both identities and, when it
+    cannot tell, WHICH SIDE was silent. A refusal that does not name which half is missing sends
+    the reader to fix the wrong file.
+    """
+    artefact = (published_run or {}).get("producing_commit")
+    artefact_commit = artefact.get("commit") if isinstance(artefact, dict) else None
+    site = _published_run_identity()
+    site_commit = (site or {}).get("commit")
+    out = {
+        "artefact_commit": artefact_commit,
+        "showing_run_commit": site_commit,
+        "showing_run_id": (site or {}).get("run_id"),
+        # DOES THE ARTEFACT ADMIT IT CANNOT TELL? A flag and not the artefact's own prose, which
+        # runs to twelve hundred characters and belongs in the artefact rather than copied into
+        # every feed that reads it. What a consumer needs from here is whether the silence is
+        # STATED (a backfilled artefact, which `reconcile_and_stamp` marks with this key and only
+        # this key) or merely absent -- those are a refusal and a gap, and they read alike.
+        "artefact_says_it_cannot_tell": bool(
+            (published_run or {}).get("run_identity_unavailable_because")),
+    }
+    if not artefact_commit:
+        return {**out, "state": "unestablished", "why": _IDENTITY_ARTEFACT_SILENT}
+    if not site_commit:
+        return {**out, "state": "unestablished", "why": _IDENTITY_SITE_SILENT}
+    if not _same_commit(artefact_commit, site_commit):
+        return {**out, "state": "different", "why": _IDENTITY_DIFFERENT_RUN}
+    return {**out, "state": "same", "why": None}
+
 
 def _published_dashboard_net():
     """`portfolio.net_margin_gbp` from the site's own dashboard feed, or None if unreadable.
@@ -400,6 +495,51 @@ def _published_dashboard_net():
         return None
     return _f(((loaded.get("portfolio") or {}) if isinstance(loaded.get("portfolio"), dict)
                else {}).get("net_margin_gbp"))
+
+
+def _withheld_statement(identity: dict, published, dashboard_net) -> str:
+    """The refusal, NAMING WHICH OF THREE THINGS IS WRONG and what would settle it.
+
+    A refusal that says why is how you find out the refusal itself was wrong, and the one this
+    replaced could not: "the two are not the same run" was the sentence a reader met whether the
+    artefact was a genuinely different run, or the SAME run at a path whose committed copy is
+    behind its working copy. Those have opposite remedies -- re-publish, versus nothing is wrong
+    with the run at all -- and for the nine days before this was written the page said the first
+    while the second was true.
+    """
+    figures = ""
+    if published is not None and dashboard_net is not None:
+        figures = (" The run artefact reports £{p:,.2f} and the figure the site publishes reports "
+                   "£{d:,.2f}, a gap of £{g:,.2f}.").format(
+                       p=published, d=dashboard_net, g=abs(dashboard_net - published))
+    head = "This feed cannot say whether the baseline arm is the supplier the site publishes. "
+
+    if identity["state"] == "different":
+        return (head + "The run artefact it reads was produced at commit {a}, and the site says it "
+                "is showing run {s}. Those are two different runs, so the claim is withheld rather "
+                "than answered from whichever figure is nearer.{f}").format(
+                    a=identity["artefact_commit"], s=identity["showing_run_id"] or
+                    identity["showing_run_commit"], f=figures)
+
+    if identity["why"] == _IDENTITY_SITE_SILENT:
+        return (head + "The site does not state which run it is currently showing, so there is "
+                "nothing to check the run artefact against. The claim is withheld rather than "
+                "answered from whichever figure is nearer.{f}").format(f=figures)
+
+    # THE LIVE CASE, and the reason the remedy is spelled out rather than left to the reader.
+    # `docs/reports/run_output_latest.json` is refreshed on disk every run and committed by no
+    # publish, so a clean checkout of this repository reads a run that has not been current for
+    # weeks while every figure beside it is today's.
+    showing = identity["showing_run_id"] or identity["showing_run_commit"]
+    return (head + "The run artefact it reads does not say which run produced it{because}, and the "
+            "site says it is showing {s}. `docs/reports/run_output_latest.json` is refreshed on "
+            "disk after every run but is not in the publish surface, so its committed copy can be "
+            "many runs behind the figures published beside it -- and this feed cannot tell that "
+            "apart from a genuinely different run. The claim is withheld rather than answered from "
+            "whichever figure is nearer.{f}").format(
+                because=(" (and says so in its own payload)"
+                         if identity.get("artefact_says_it_cannot_tell") else ""),
+                s=showing or "a run it does not name", f=figures)
 
 
 def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
@@ -420,33 +560,47 @@ def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
                 "statement": ("The published run's own net margin could not be read, so this feed "
                               "does not claim any relationship between it and the baseline arm.")}
 
-    # IS THE SUBJECT EVEN THE FIGURE THE SITE PUBLISHES? Added 2026-08-28, after a concurrent lane
-    # raised the independence failure and the evidence corrected its premise. Two facts, both
-    # verified: `run_output_latest.json` is written by `simulation.run_phase4c_on_phase2b`, which is
-    # the same entry point the A/B calls once per arm -- so an A/B pass can make this check compare
-    # its own output against itself. And the figure the SITE actually publishes for the company is
-    # `site/data/dashboard.json`'s `portfolio.net_margin_gbp`, fetched live at 153,244.79 while
-    # `run_output_latest.json` at HEAD read 1,529,288.58.
+    # IS THE SUBJECT EVEN THE RUN THE SITE PUBLISHES? Added 2026-08-28, after a concurrent lane
+    # raised the independence failure and the evidence corrected its premise: `run_output_latest`
+    # is written by `simulation.run_phase4c_on_phase2b`, the same entry point the A/B calls once
+    # per arm, so an A/B pass can make this check compare its own output against itself.
     #
-    # So when the two disagree, the file this check reads is NOT the figure the site publishes, and
-    # the sentence below cannot be made either way. It is WITHHELD with both numbers rather than
-    # answered from the wrong one -- which is the fail-closed form of "I do not know which run is
-    # published". Deciding which one SHOULD be published is the publish lane's, not this
-    # generator's, and this refusal does not decide it.
+    # THE GATE IS AN IDENTITY TEST NOW AND WAS AN ARITHMETIC ONE UNTIL 2026-09-10. See
+    # `_same_run_verdict` for what that cost and why `fe895db3a` is what made the honest version
+    # possible. The money keeps a job -- it sizes the difference once the subject is settled, and
+    # it contradicts the identity below -- but it no longer ESTABLISHES the subject.
     dashboard_net = _published_dashboard_net()
+    identity = _same_run_verdict(published_run)
+    if identity["state"] != "same":
+        return {
+            "checked": False,
+            "same_supplier": None,
+            "published_run_net_gbp": published,
+            "dashboard_net_gbp": dashboard_net,
+            "run_identity": identity,
+            "statement": _withheld_statement(identity, published, dashboard_net),
+        }
+
+    # IDENTITY SAYS ONE RUN AND THE FIGURES SAY TWO. Kept as its own branch rather than folded
+    # into the one above, because it is a different defect with a different remedy: the run the
+    # provenance names is not the run the dashboard was built from, so one of those two producers
+    # is publishing the other's subject. Naming it "a different run" would send the reader to
+    # re-publish the run output, which would not touch it.
     if dashboard_net is not None and abs(dashboard_net - published) > SAME_SUPPLIER_TOLERANCE_GBP:
         return {
             "checked": False,
             "same_supplier": None,
             "published_run_net_gbp": published,
             "dashboard_net_gbp": dashboard_net,
+            "run_identity": identity,
             "statement": (
                 "This feed cannot say whether the baseline arm is the supplier the site publishes. "
-                "The run artefact it reads reports £{p:,.2f} and the figure the site actually "
-                "publishes for the company reports £{d:,.2f} -- a gap of £{g:,.2f} -- so the two "
-                "are not the same run and the claim is withheld rather than answered from "
-                "whichever one is nearer."
-            ).format(p=published, d=dashboard_net, g=abs(dashboard_net - published)),
+                "The run artefact it reads and the figure the site publishes both claim to be run "
+                "{r} -- and they report £{p:,.2f} and £{d:,.2f}, a gap of £{g:,.2f}. One run cannot "
+                "have two net margins, so the claim is withheld rather than answered from whichever "
+                "one is nearer."
+            ).format(r=identity["showing_run_id"] or identity["showing_run_commit"],
+                     p=published, d=dashboard_net, g=abs(dashboard_net - published)),
         }
 
     gap = published - control_net
@@ -455,7 +609,9 @@ def _is_the_published_supplier(control_net, published_run: dict | None) -> dict:
         "checked": True,
         "same_supplier": same,
         "published_run_net_gbp": published,
+        "dashboard_net_gbp": dashboard_net,
         "gap_gbp": gap,
+        "run_identity": identity,
         "statement": (
             "The net margin this site publishes for the company is the same figure, to the penny, "
             "as the flat-rules baseline arm below. The supplier on the front of this site IS the "
@@ -2655,7 +2811,17 @@ def _skill_fixed_horizon(method_skill: dict) -> dict:
             null_low=estimand.get("null_95_low"),
             null_high=estimand.get("null_95_high"),
             n=estimand.get("decisions"),
-            accounts=estimand.get("accounts")),
+            accounts=estimand.get("accounts"),
+            # NEITHER `window_years` NOR `settled_book_accounts` IS PASSED, AND THAT IS THE
+            # ANSWER (2026-09-10). The artefact declares no window its accounts are counted over
+            # -- `report_end` is null and nothing else names one -- so the settled-book ceiling,
+            # which is per customer-YEAR, has no window to be read at. And the settled book count
+            # that would carry a scored-account requirement into the ceiling's own population is
+            # `book_identity.control_arm`, which `_book` WITHHOLDS whenever the run cannot name
+            # the code that drew it; passing it from here would republish a gated count under a
+            # different key, which is the defect `_decisions` names in its own docstring. So the
+            # block refuses, names both gaps, and says what would close them.
+            ),
         "legs": published_legs,
         # WHICH PAIRS PUT THE HEADLINE BELOW CHANCE. The table above shows four numbers and the
         # sentence under it says the ranking is inverted; this says WHAT the inversion is made of,
@@ -3135,7 +3301,11 @@ def _method_skill(three_arm: dict) -> dict:
             null_low=_f((spread.get("null_95_interval") or [None, None])[0]),
             null_high=_f((spread.get("null_95_interval") or [None, None])[1]),
             n=ms.get("decisions_scored"),
-            accounts=ms.get("accounts")),
+            accounts=ms.get("accounts"),
+            # SAME REFUSAL AS THE FIXED-HORIZON CUT ABOVE, and for the same two reasons -- see the
+            # comment there. Both cuts feed the same `detectability`, so a window declared for one
+            # is a window declared for both, and neither may reach for it before then.
+            ),
         "decisions_scored": ms.get("decisions_scored"),
         "accounts": ms.get("accounts"),
         # THE FUNNEL BETWEEN THE TWO COUNTS THIS PAGE SHOWS. `decisions.value_arm_priced` says 20
@@ -5810,6 +5980,220 @@ def _composition_in_this_world(contrast: dict, floor_current: dict | None,
     return block
 
 
+#: The two figures a remedy for this leg can be priced against, and they are NOT the same quantity.
+#: `figure_gbp` is the one draw this page publishes; `redraw_mean_gbp` is the centre of the family
+#: that draw came out of. Pricing against either alone is a defensible choice and pricing against
+#: one WITHOUT SAYING SO is the shape this repository keeps paying for -- so both are published,
+#: each with what it counts, and the page states that they disagree when they do.
+_SIGN_REMEDY_FIGURES = (
+    ("the published draw", "published", None,
+     "the single realisation this page prints. Pricing against it asks what book would make THIS "
+     "draw clear its own spread -- a question about one draw, and this draw sat above the centre "
+     "of its own family."),
+    ("the centre of its own re-draw family", "bound", "mean_gbp",
+     "the mean of the nine re-draws, which is this page's best estimate of the quantity itself "
+     "rather than of one draw of it. Pricing against it asks what book would make an effect the "
+     "size of that centre carry a direction. It is itself an estimate and is not established to "
+     "be non-zero."),
+)
+
+
+def _what_would_settle_the_sign(leg: dict, current: dict | None, figure,
+                                contrast: str = SELECTION_CONTRAST) -> dict:
+    """How much larger a book would have to be before this leg could carry a direction.
+
+    WHAT THIS ANSWERS THAT `floor_decomposition` CANNOT. The page already carries a remedy
+    arithmetic and refuses to state anything from it, twice over and correctly: that split was
+    measured where the arm priced 104 of 2,009 renewals against this page's 214 of 2,035, and it
+    splits `value_advantage_gbp` and not this leg. So the reader who reaches "no direction is
+    stated for this leg" has had nowhere to go. This block is priced on THIS book, from THIS
+    leg's own bound, on THIS contrast -- the same three reconciliations the decomposition fails.
+
+    WHY IT IS A LOWER BOUND AND WHY A LOWER BOUND IS ENOUGH. Write `V` for the spread's variance,
+    `V = V_priced + V_rest` for the split two more floor legs would measure, and `c` for the
+    contrast. Growing the priced book by `m` shrinks the priced half as 1/m and leaves the rest of
+    the book's churn cascade alone, so the page's own rule (`_resolvable`) is met when
+    `V_rest + V_priced/m <= c^2`, i.e. `m = (V - V_rest) / (c^2 - V_rest)`. With `V > c^2` that is
+    strictly INCREASING in `V_rest` -- its derivative is `(V - c^2)/(c^2 - V_rest)^2` -- so
+    `m >= V / c^2`, with equality only in the corner where the whole spread is the priced
+    households' own draw and none of it is the rest of the book's.
+
+    That corner is the most optimistic member of the family, so the number here can only be too
+    SMALL. The two legs that would pin it down are nine full three-arm passes each and have not
+    been run on this book; when they are, this figure moves up and never down. A bound that can
+    only be optimistic is safe to publish under a verdict of "not enough" and would not be safe
+    under "enough" -- which is why this block states a requirement and states no verdict on
+    whether the requirement can be met.
+
+    NO ATTAINABILITY CLAIM IS MADE HERE, and the omission is measured rather than lazy. The
+    obvious comparison is `simulation.premise_population.settled_book_ceiling`, which the same
+    feed already cites at 632 accounts -- but that is customers x ONE year against a book whose
+    164 accounts are counted over a ten-year window, and the same function at `years=10` returns
+    63, fewer than the book that demonstrably runs. Two numbers that are not the same quantity,
+    and their ratio would not be one either. `what_is_not_established` says so on the surface.
+
+    THE UNIT IS DECISIONS, DECLARED, NEVER ACCOUNTS. `remedy_price_table` indexes 1/n on the
+    INDEPENDENT DRAWS -- the households whose elasticity was re-rolled -- and that count comes off
+    the `only` leg, which does not exist on this book. So no account column is published: the
+    multiplier is invariant to the choice and the absolute counts are not, and an accounts figure
+    derived from the decisions index would be the same number wearing the wrong unit.
+    """
+    stability = leg.get("verdict_stability") or {}
+    if stability.get("sign_determined") is not False:
+        return {"available": False, "why_not": (
+            "this leg is not one whose sign is undetermined, so there is nothing here for a "
+            "larger book to settle. A price for resolving a leg that already carries a "
+            "direction would be a remedy for a question the page has answered.")}
+    spread = leg.get("bound") or {}
+    variance = _f(spread.get("stdev_gbp"))
+    variance = variance * variance if variance is not None else None
+    if not variance:
+        return {"available": False, "why_not": (
+            "this leg carries no measured spread, so there is no floor here to price a book "
+            "against. What it would take is unestablished, which is not the same as small.")}
+    funnel = ((current or {}).get("renewal_funnel") or {}).get("value_arm") or {}
+    priced = funnel.get("priced")
+    offered = funnel.get("renewals_the_world_offered")
+    renewal_share = _f(funnel.get("priced_share_of_renewals_offered"))
+    if not isinstance(priced, int) or priced <= 0:
+        return {"available": False, "why_not": (
+            "the run behind this leg carries no priced-decision count, so a multiple of this "
+            "book cannot be turned into a number of renewals and no price is stated.")}
+
+    rows = []
+    for label, source, key, counts in _SIGN_REMEDY_FIGURES:
+        # THE PUBLISHED DRAW IS PASSED IN, NOT READ OFF THE LEG, and that is not a style choice:
+        # `figure_gbp` is grafted onto this block by its CALLER, several hundred lines later, so a
+        # read here returns `None` and the row silently disappears -- the flattering direction,
+        # because the row it drops is the expensive one. Taking it as an argument makes the
+        # dependency an error rather than an omission.
+        value = _f(figure if source == "published" else spread.get(key))
+        if value is None:
+            rows.append({"which_figure": label, "contrast_gbp": None,
+                         "what_this_figure_counts": counts, "times_this_book": None,
+                         "priced_decisions_needed": None,
+                         "renewals_the_world_must_offer": None,
+                         "why_not": "this page carries no such figure for this leg"})
+            continue
+        # THE PAGE'S OWN PRICE TABLE, AT THE ONE SHARE THIS BLOCK CAN JUSTIFY. Re-deriving
+        # `share * V / (c^2 - (1-share) * V)` here would be a second implementation of the
+        # arithmetic the artefact already publishes ten rows of, and the two would drift.
+        priced_row = remedy_price_table(variance, value, priced, renewal_share, shares=(1.0,))[0]
+        rows.append({
+            "which_figure": label,
+            "contrast_gbp": value,
+            "what_this_figure_counts": counts,
+            "times_this_book": priced_row["times_this_book"],
+            "priced_decisions_needed": priced_row["priced_decisions_needed"],
+            "renewals_the_world_must_offer": priced_row["renewals_the_world_must_offer"],
+            "this_book_already_resolves_it": priced_row["times_this_book"] is not None
+                                             and priced_row["times_this_book"] <= 1.0,
+        })
+
+    priced_rows = [row for row in rows if row.get("times_this_book")]
+    verdicts = {row["times_this_book"] <= 1.0 for row in priced_rows}
+    return {
+        "available": True,
+        "what_this_is": (
+            "How much larger the priced book would have to be before this leg could carry a "
+            "direction at all -- priced on THIS book, from THIS leg's own nine-seed spread, on "
+            "THIS contrast."),
+        "contrast": contrast,
+        "floor_variance_gbp2": variance,
+        "floor_stdev_gbp": _f(spread.get("stdev_gbp")),
+        "floor_seeds": spread.get("n"),
+        "book": {"priced_decisions": priced, "renewals_offered": offered,
+                 "priced_share_of_renewals_offered": renewal_share},
+        "independence_unit": "priced_decisions",
+        "why_no_account_column": (
+            "The 1/n law indexes on INDEPENDENT DRAWS -- the households whose elasticity was "
+            "re-rolled -- and that count comes off the `only` floor leg, which has not been run "
+            "on this book. The multiple below is invariant to which index is used; the absolute "
+            "counts are not, so only the decision index is published and it is named."),
+        "rows": rows,
+        "is_a_lower_bound": True,
+        "why_it_is_a_lower_bound": (
+            "Every figure here is the corner where the WHOLE spread is the priced households' own "
+            "draw and none of it is the rest of the book's churn cascade. The requirement is "
+            "strictly increasing in the churn-cascade share, so the real book is LARGER than "
+            "this, never smaller. Pinning it down needs the `only` and `except` floor legs re-run "
+            "on this book at these nine seeds -- nine full three-arm passes each, not yet run."),
+        "and_it_must_be_exceeded": (
+            "The page resolves a contrast when it EXCEEDS its spread, strictly, so a book of "
+            "exactly the size below leaves the leg still unresolved. Read every count as the "
+            "smallest book that does not work."),
+        "the_two_figures_disagree": len(verdicts) > 1 or (
+            len(priced_rows) > 1
+            and max(r["times_this_book"] for r in priced_rows)
+            > 2.0 * min(r["times_this_book"] for r in priced_rows)),
+        "what_is_not_established": (
+            "Whether a book that size can be built. The obvious ceiling to check it against -- "
+            "`simulation.premise_population.settled_book_ceiling` -- is stated per customer-YEAR "
+            "(632 accounts at years=1, 63 at years=10) against a book whose 164 accounts are "
+            "counted over a ten-year window, and 63 is fewer than the book that demonstrably "
+            "runs. Those are not the same quantity and their ratio would not be one, so this "
+            "block prices the requirement and states no verdict on reachability. Also "
+            "unestablished: whether acquiring customers reaches this arm at all -- "
+            "`where_the_priced_decisions_come_from` measured that on the OTHER book."),
+        "sentence": _sign_remedy_sentence(rows, priced),
+    }
+
+
+def _sign_remedy_sentence(rows: list, priced: int) -> str:
+    """The one line a reader takes away, composed from the rows and never from a remembered answer.
+
+    STATES BOTH FIGURES OR NEITHER'S VERDICT. Where the two rows fall on opposite sides of what
+    this book already is, the difference between them IS the result and a sentence quoting one
+    would be the page picking the flattering half of its own definition.
+    """
+    usable = [row for row in rows if row.get("times_this_book")]
+    if not usable:
+        return ("Nothing here says what it would take: no figure on this leg could be priced "
+                "against its own spread, so 'we cannot tell' stands with no remedy beside it.")
+    return ("What it would take, against this book's {priced:,} priced renewals: {legs}. Both are "
+            "the most optimistic book in the family -- the real one is larger. Which of the two a "
+            "reader should mean is not a detail this page can settle for them: they are different "
+            "quantities and they are answered by different books.").format(
+        priced=priced,
+        legs="; ".join(
+            "to give {which} ({figure}) a direction, more than {times:,.1f}x this book -- about "
+            "{decisions:,} priced renewals out of {offered} the world must offer".format(
+                which=row["which_figure"], figure=_gbp(row["contrast_gbp"]),
+                times=row["times_this_book"], decisions=row["priced_decisions_needed"],
+                offered=("{:,}".format(row["renewals_the_world_must_offer"])
+                         if row["renewals_the_world_must_offer"] else "an unstated number of"))
+            for row in usable))
+
+
+def _what_would_answer_it(bound: dict, selection: dict, level: dict) -> str | None:
+    """What the panel would need before it could state a direction -- or `None` when it can.
+
+    THREE STATES AND THE MIDDLE ONE IS THE NEW ONE. No bound is one cause; a bound that exists
+    beside a re-draw family straddling zero is another, and they take different work: the first
+    wants a floor leg run, the second wants a larger book. Folding the second into the first would
+    have the page ask for a measurement it already has.
+
+    KEYED TO THE PROPERTY. This returns `None` exactly when every leg carries a direction, so a
+    publish where the selection leg earns its sign empties this key on its own -- and one where
+    the level leg loses its sign fills it, without a word here changing.
+    """
+    if not (bound.get("bound_available") and selection.get("bound_available")
+            and level.get("bound_available")):
+        return ("the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same "
+                "world and seed family, which is what the contrast above must be priced against "
+                "before any direction is read from it")
+    signless = [name for name, leg in (("the choosing", selection), ("the price level", level))
+                if ((leg.get("verdict_stability") or {}).get("sign_determined") is False)]
+    if not signless:
+        return None
+    return ("a LARGER PRICED BOOK, not another floor leg: {legs} carr{verb} a measured bound "
+            "already and still no direction, because the same contrast re-drawn nine times in "
+            "this world falls on both sides of zero. What size of book that would take is priced "
+            "beside the leg itself, under `what_would_settle_the_sign` -- and it is a lower "
+            "bound, so read it as the smallest book that would not be enough."
+            ).format(legs=" and ".join(signless), verb="ies" if len(signless) == 1 else "y")
+
+
 def _current_world_contrast(current: dict | None, floor: dict | None,
                             floor_current: dict | None = None,
                             superseded_split: dict | None = None,
@@ -5936,6 +6320,16 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
     # written against a constant instead of a parameter.
     selection = _leg_in_this_world(contrast.get("selection_gbp"), floor_current, current, live,
                                    SELECTION_CONTRAST)
+    # AND WHAT WOULD SETTLE IT, BESIDE THE REFUSAL AND NOT IN A FOOTNOTE. `_leg_in_this_world`
+    # establishes that this leg has a bound and `_verdict_stability` that the bound does not give
+    # it a sign; between them the reader is told, correctly, that the page cannot say. Until this
+    # block that was where the page stopped: the only remedy arithmetic it carried is measured on
+    # another book and splits another contrast, and says so itself. Attached to the leg rather
+    # than to the panel because it is priced against THIS leg's spread and THIS leg's figure, and
+    # a remedy one leg away from the figure it prices is the mispairing the decomposition's own
+    # three guards exist to refuse.
+    selection["what_would_settle_the_sign"] = _what_would_settle_the_sign(
+        selection, current, contrast.get("selection_gbp"), SELECTION_CONTRAST)
     # AND THE THIRD LEG, ON THE SAME MACHINERY AGAIN. The 2026-09-04 repair made the contrast a
     # parameter so the selection leg could reach the apparatus; it left `level_advantage_gbp`
     # published as a bare number one line below, which is the same omission a third time. It is
@@ -6040,12 +6434,15 @@ def _current_world_contrast(current: dict | None, floor: dict | None,
             # COUNTED FROM THE TWO RUNS, never asserted from the pair this page happened to carry
             # when the sentence was written. See `_what_differs_between_two_runs`.
             differences=_what_differs_between_two_runs(current, superseded_run)),
-        "what_would_answer_it": (
-            None if bound.get("bound_available") and selection.get("bound_available")
-            and level.get("bound_available") else
-            "the undecomposed noise-floor leg (`--redraw-mode all`) re-run over this same world "
-            "and seed family, which is what the contrast above must be priced against before any "
-            "direction is read from it"),
+        # WHAT WOULD ANSWER THE THING THIS PANEL CANNOT SAY -- one question, and since 2026-09-09
+        # two causes rather than one. The first is a MISSING BOUND, and it was the only cause this
+        # key knew about; the floor legs landed, all three bounds arrived, and the key went to
+        # `None` while the panel still could not state a direction for the leg the whole thesis
+        # turns on. A bound that exists and a family that straddles zero is a different cause with
+        # a different remedy, and reading `None` as "nothing left to answer" was the page's own
+        # dead end. Each cause names itself; the SECOND one points at the block that prices it
+        # rather than restating its numbers, because a figure with two homes is false in one.
+        "what_would_answer_it": _what_would_answer_it(bound, selection, level),
         # THE DATE IS THE OTHER PANEL'S OWN, NEVER A LITERAL. This sentence read "published beside
         # the 2026-08-31 run" until 2026-09-09, which was true for as long as `THREE_ARM_PATH`
         # resolved to that run and became false the moment the 21:01Z re-take was promoted onto

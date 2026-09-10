@@ -7,9 +7,10 @@
     "wall_placement": "Public-reality commons only. Everything on this page is a published feature of the GB energy market, readable by anyone \u2014 so it is readable by the simulated company too, the same way a real supplier reads the codes and the market reports. Nothing here is an internal of the simulation and nothing here tells the company anything its real counterpart could not look up.",
     "rate_of_change_class": "slow",
     "claim_freshness": {
-      "last_verified": "2026-08-24",
+      "last_verified": null,
+      "not_checked_note": "A write is not a check. This field said last_verified 2026-08-24, checked_by worker, on the same day the body was WRITTEN -- the one thing site/knowledge/review_state.py and test_MUTATION_writing_a_page_does_not_reduce_the_risk_count exist to refuse. Corrected 2026-09-09: written stands, the check does not, and site/data/knowledge_wholesale.json now renders this page as 'Written, awaiting check'.",
       "written": "2026-08-24",
-      "checked_by": "worker",
+      
       "source": "Standard electricity-market economics as it applies to the GB dispatch; the shape is visible directly in Elexon's published half-hourly system prices and NESO's generation mix data.",
       "route": "Written from established market mechanism \u2014 the codes and settlement arrangements that have governed GB trading for years, not a figure that moves. Where a NUMBER would date, this page states the mechanism and refuses the number; see `no_current_level`.",
       "note": "Written 2026-08-24 to replace a stub. Six Knowledge pages shipped as identical empty templates and had been serving readers a page with a heading and no content; this is one of them. Mechanism claims only \u2014 no live price, level or threshold that a quarter would falsify."

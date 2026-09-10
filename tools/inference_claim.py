@@ -376,7 +376,22 @@ FLOOR_EXCESSES = (0.15, 0.10, 0.05, 0.03, 0.02)
 #: the SETTLED book, and its ceiling is a memory budget on this machine rather than anything about
 #: the world's housing stock. Named here so the attainability verdict says which kind of ceiling
 #: it hit.
-CEILING_SOURCE = "simulation.premise_population.settled_book_ceiling(years=1)"
+#:
+#: THE WINDOW IS A FORMAT SLOT AND NOT A DEFAULT (2026-09-10). Until today this constant read
+#: `years=1` and the number it produced -- 632 accounts -- was compared against a requirement
+#: stated in accounts counted over the run's WHOLE window. `settled_book_ceiling` divides by
+#: `years`, so the same call returns 63 at `years=10`, fewer than the 164 accounts the book
+#: demonstrably settles. Two numbers that are not the same quantity, with their ratio published as
+#: a verdict. The window now has to be supplied by whoever knows it, and there is no value here
+#: for it to fall back to.
+CEILING_SOURCE = "simulation.premise_population.settled_book_ceiling(years={years})"
+
+#: What the ceiling counts, in one clause, so the population half of the mismatch above cannot be
+#: read past either: the ceiling bounds the SETTLED BOOK, and a floor is stated in accounts that
+#: carried a SCORED DECISION -- a subset of it. On the run this page publishes, 72 of 164.
+CEILING_COUNTS = (
+    "billing accounts the settlement path can hold at all, over ONE window of the length it is "
+    "read at -- not accounts that carry a scored decision, which is a subset of them")
 
 
 def _sqrt_n_law_note(n: int, k: float) -> str:
@@ -392,7 +407,7 @@ def _sqrt_n_law_note(n: int, k: float) -> str:
     ).format(k=k, n=n)
 
 
-def settled_book_ceiling_accounts() -> dict:
+def settled_book_ceiling_accounts(*, window_years: int | None = None) -> dict:
     """How many accounts the settled book can hold at all, or an explicit refusal.
 
     LAZY IMPORT ON PURPOSE. This module is imported by the publishing lane, and a top-level
@@ -402,11 +417,27 @@ def settled_book_ceiling_accounts() -> dict:
     The ceiling is an UPPER bound -- `settled_book_ceiling` documents both of its per-unit costs
     as floors -- which is the direction that makes an "unattainable" verdict safe: the real
     affordable book is smaller than this, so a floor this ceiling cannot reach is a floor no
-    attainable book reaches either.
+    attainable book reaches either. It is NOT the direction that makes an *attainable* verdict
+    safe, and that asymmetry is enforced in `_attainability` below rather than left to a reader
+    of this docstring.
+
+    `window_years` IS REQUIRED AND HAS NO DEFAULT. The figure is per customer-YEAR: the same call
+    returns 632 at one year and 63 at ten. A caller that does not know the window its own accounts
+    were counted over cannot use this number for anything, and saying so is the answer.
     """
+    if window_years is None:
+        return {"available": False,
+                "reason": ("the settled-book ceiling is stated per customer-YEAR and the window "
+                           "these accounts are counted over was not supplied, so there is no "
+                           "window to read it at -- 632 accounts for a one-year book and 63 for "
+                           "a ten-year one are the same function, and picking one would be "
+                           "picking an answer")}
+    if not isinstance(window_years, int) or window_years <= 0:
+        return {"available": False,
+                "reason": "the window supplied was not a positive whole number of years"}
     try:
         from simulation.premise_population import settled_book_ceiling
-        ceiling = settled_book_ceiling(years=1)
+        ceiling = settled_book_ceiling(years=window_years)
     except Exception as exc:  # noqa: BLE001 -- any failure here is one answer: we cannot tell
         return {"available": False,
                 "reason": "the settled-book ceiling could not be read ({}: {})".format(
@@ -418,19 +449,22 @@ def settled_book_ceiling_accounts() -> dict:
     return {
         "available": True,
         "accounts": accounts,
-        "source": CEILING_SOURCE,
+        "window_years": window_years,
+        "source": CEILING_SOURCE.format(years=window_years),
         "bound_kind": ceiling.get("bound_kind"),
+        "what_it_counts": CEILING_COUNTS,
         "what_binds": (
             "the settlement path's memory budget on this machine, not the world's housing stock "
             "-- the world has homes to spare and the settled book is what cannot be grown"),
         "why_it_is_safe_to_cite": (
             "both per-unit costs behind it are measured floors, so the affordable book is "
-            "SMALLER than this number and never larger"),
+            "SMALLER than this number and never larger -- which lets it REFUSE a requirement and "
+            "never certify one"),
     }
 
 
-def detectability(*, observed, null_low, null_high, n, accounts=None,
-                  ceiling: dict | None = None) -> dict:
+def detectability(*, observed, null_low, null_high, n, accounts=None, window_years=None,
+                  settled_book_accounts=None, ceiling: dict | None = None) -> dict:
     """WHAT THIS READING COULD HAVE DETECTED, beside what it did.
 
     WHY THIS EXISTS. `cannot_tell_sentence` above publishes that the concordance sits inside its
@@ -450,6 +484,17 @@ def detectability(*, observed, null_low, null_high, n, accounts=None,
     THE FLOOR IS A DIAGNOSTIC AND NEVER A TARGET (R12). A book grown to clear this floor would be
     the failure this arm exists to be able to report. "No attainable book on this world reads an
     effect this small" is a complete answer and it is published in those words.
+
+    THE ATTAINABILITY VERDICT IS ONE-SIDED, AND UNTIL 2026-09-10 IT WAS NOT (see `_attainability`).
+    The page served, twice, "The settled book can hold 632 accounts, so a book this world can
+    supply does reach it". Three separate things were wrong with the comparison behind it and each
+    on its own is enough: the ceiling was read at `years=1` against a requirement in accounts
+    counted over the run's whole window; it counts SETTLED accounts against a requirement in
+    accounts that carried a SCORED DECISION, which is 72 of 164 of them here; and it is an UPPER
+    bound, so `needed <= ceiling` establishes nothing at all -- the affordable book is smaller
+    than the ceiling, and possibly smaller than the requirement. Only the refusal was ever safe.
+    `window_years` and `settled_book_accounts` are what the first two need, and both refuse rather
+    than default.
     """
     if observed is None or null_low is None or null_high is None or not n or n < 3:
         return {"available": False,
@@ -471,19 +516,68 @@ def detectability(*, observed, null_low, null_high, n, accounts=None,
         return (int(math.ceil(decisions / per_account))
                 if decisions is not None and per_account else None)
 
-    ceiling = settled_book_ceiling_accounts() if ceiling is None else ceiling
+    ceiling = (settled_book_ceiling_accounts(window_years=window_years)
+               if ceiling is None else ceiling)
     ceiling_accounts = ceiling.get("accounts") if ceiling.get("available") else None
-    ceiling_decisions = (int(ceiling_accounts * per_account)
-                         if ceiling_accounts and per_account else None)
+
+    # THE POPULATION BRIDGE, and it is a separate refusal from the window one. `accounts` counts
+    # the accounts that carried a SCORED DECISION; the ceiling counts the SETTLED BOOK those were
+    # drawn from. On this run they are 72 and 164, so a requirement stated in the first understates
+    # the book by 2.3x when read against the second. Neither number is wrong; their ratio is not a
+    # quantity unless one is first carried into the other's population, and that carry needs the
+    # run's own settled book.
+    settled_per_scored = ((settled_book_accounts / accounts)
+                          if settled_book_accounts and accounts else None)
+
+    def settled_accounts_for(scored_accounts):
+        """A requirement in scored-decision accounts, restated in settled-book accounts."""
+        return (int(math.ceil(scored_accounts * settled_per_scored))
+                if scored_accounts is not None and settled_per_scored else None)
+
+    # ...and the same bridge the other way, so the ceiling can be put on the decisions curve at
+    # all. Carrying `ceiling_accounts * per_account` straight across -- which is what this did
+    # until 2026-09-10 -- multiplies a settled-book count by a decisions-per-SCORED-account rate.
+    ceiling_decisions = (int(ceiling_accounts / settled_per_scored * per_account)
+                         if ceiling_accounts and per_account and settled_per_scored else None)
     ceiling_excess = (k / math.sqrt(ceiling_decisions)
                       if ceiling_decisions and ceiling_decisions >= 3 else None)
 
+    def _attainability(needed_accounts):
+        """ONE-SIDED BY CONSTRUCTION. Returns (verdict, why) with verdict in {False, None}.
+
+        `True` IS NOT A VALUE THIS FUNCTION CAN RETURN, and that is the repair. The ceiling is an
+        UPPER bound on the book -- its own block says so, in the words "the affordable book is
+        SMALLER than this number and never larger". A requirement that EXCEEDS it therefore
+        exceeds every attainable book, which is a real refusal. A requirement that fits under it
+        is a requirement fitting under a number the real book does not reach, which is not
+        evidence of anything. The old code returned `needed <= ceiling` and the page published the
+        `True` side of it as "a book this world can supply does reach it".
+
+        None is "we cannot tell" and carries the reason that made it so, so a reader meets the
+        gap rather than a bare absence.
+        """
+        if needed_accounts is None:
+            return None, ("this reading sits on no-information, so there is no requirement to put "
+                          "against a ceiling")
+        if ceiling_accounts is None:
+            return None, ("the settled book's own ceiling could not be read: "
+                          + str(ceiling.get("reason") or "no reason given"))
+        needed_settled = settled_accounts_for(needed_accounts)
+        if needed_settled is None:
+            return None, ("the run does not declare the settled book its scored accounts were "
+                          "drawn from, so the requirement cannot be restated in the population "
+                          "the ceiling counts -- and the two are not the same set")
+        if needed_settled > ceiling_accounts:
+            return False, None
+        return None, (
+            "the requirement fits under the ceiling, and a ceiling that is an UPPER bound cannot "
+            "certify that: the affordable book is SMALLER than {c:,} accounts by that block's own "
+            "statement, so {r:,} fitting under it is not evidence the world can supply {r:,}. "
+            "This verdict can only ever refuse.".format(c=ceiling_accounts, r=needed_settled))
+
     def within_ceiling(needed_accounts):
-        """TRI-STATE. None is "we cannot tell", and it is the verdict whenever either side is
-        missing -- an unreadable ceiling must not read as room to grow."""
-        if needed_accounts is None or ceiling_accounts is None:
-            return None
-        return needed_accounts <= ceiling_accounts
+        """TRI-STATE, and now only two of the three are reachable. See `_attainability`."""
+        return _attainability(needed_accounts)[0]
 
     curve = []
     for multiple in CURVE_MULTIPLES:
@@ -527,7 +621,7 @@ def detectability(*, observed, null_low, null_high, n, accounts=None,
 
     observed_needed = decisions_for(observed_excess) if observed_excess > 0 else None
     observed_accounts = accounts_for(observed_needed)
-    attainable = within_ceiling(observed_accounts)
+    attainable, why_no_verdict = _attainability(observed_accounts)
     return {
         "available": True,
         "decisions_scored": n,
@@ -550,14 +644,43 @@ def detectability(*, observed, null_low, null_high, n, accounts=None,
         "the_book_this_would_need": {
             "decisions_needed_for_the_observed_effect": observed_needed,
             "accounts_needed_for_the_observed_effect": observed_accounts,
+            # ...RESTATED IN THE POPULATION THE CEILING COUNTS, because the line above is in
+            # scored-decision accounts and nothing on this page may be divided by the ceiling
+            # until it has been carried across. None when the run does not declare its book.
+            "settled_accounts_needed_for_the_observed_effect": settled_accounts_for(
+                observed_accounts),
+            "scored_accounts_this_run": accounts,
+            "settled_book_this_run": settled_book_accounts,
+            "settled_accounts_per_scored_account": settled_per_scored,
+            "what_each_account_count_counts": (
+                "`accounts_needed_...` is in accounts that carry a SCORED DECISION -- what the "
+                "instrument consumes. `settled_accounts_needed_...` is the same requirement in "
+                "the accounts the settlement path must HOLD, which is the population the ceiling "
+                "bounds. They differ by this run's own ratio between the two and the comparison "
+                "is only a quantity in the second."),
             "settled_book_ceiling": ceiling,
             "scored_decisions_at_the_ceiling": ceiling_decisions,
             "detectable_excess_at_the_ceiling": ceiling_excess,
             "detectable_concordance_at_the_ceiling": (
                 0.5 + ceiling_excess if ceiling_excess is not None else None),
+            # FALSE OR NULL, NEVER TRUE. `_attainability` explains why an upper bound has only
+            # one safe direction, and `why_no_attainability_verdict` names which cause fired.
             "the_observed_effect_is_attainable": attainable,
+            "why_no_attainability_verdict": why_no_verdict,
+            "the_verdict_is_one_sided": (
+                "This page can say a requirement is out of reach and can say it cannot tell. It "
+                "cannot say a requirement IS in reach, because the only bound it has is an upper "
+                "one and an upper bound refuses or is silent."),
+            "what_would_make_a_verdict_available": [
+                "the window the run's accounts are counted over, declared by the producer -- the "
+                "ceiling is per customer-year and is a different number at every window",
+                "the run's own settled book beside its scored-account count, so a requirement in "
+                "one population can be restated in the other",
+                "a LOWER bound on the affordable book -- an upper bound can never certify reach, "
+                "so no amount of the two above turns this verdict positive",
+            ],
             "accounts_short": (
-                observed_accounts - ceiling_accounts
+                settled_accounts_for(observed_accounts) - ceiling_accounts
                 if attainable is False and observed_accounts and ceiling_accounts else None),
             # WHY A LARGER BOOK IS THE ONLY LEVER. The funnel already published beside this says
             # the 32 unscored decisions are eligibility, not a join we failed to make: the world
@@ -575,19 +698,36 @@ def detectability(*, observed, null_low, null_high, n, accounts=None,
         "sentence": _detectability_sentence(
             half_width=half_width, observed=observed, observed_excess=observed_excess, n=n,
             needed=observed_needed, needed_accounts=observed_accounts,
+            needed_settled=settled_accounts_for(observed_accounts),
             ceiling_accounts=ceiling_accounts, ceiling_decisions=ceiling_decisions,
-            ceiling_excess=ceiling_excess, attainable=attainable),
+            ceiling_excess=ceiling_excess, attainable=attainable,
+            why_no_verdict=why_no_verdict),
     }
 
 
+def _upper_first(text: str) -> str:
+    """Sentence-case a reason written as a clause, WITHOUT touching the rest of it.
+
+    `str.capitalize` lowercases everything after the first character, which would flatten the
+    deliberate capitals this module writes into its refusals -- UPPER, SETTLED, SCORED. Those
+    capitals are the whole point of the sentences they sit in.
+    """
+    return text[:1].upper() + text[1:] if text else text
+
+
 def _detectability_sentence(*, half_width, observed, observed_excess, n, needed, needed_accounts,
-                            ceiling_accounts, ceiling_decisions, ceiling_excess,
-                            attainable) -> str:
+                            needed_settled, ceiling_accounts, ceiling_decisions, ceiling_excess,
+                            attainable, why_no_verdict) -> str:
     """The words, derived from the verdict rather than sitting beside it.
 
     Three sentences, and the third is the one the director asked for: whether any book this world
     can supply reaches the floor. It is composed from `attainable`, so a prose claim of
     unattainability cannot survive the arithmetic saying otherwise.
+
+    THE "DOES REACH IT" CLAUSE IS GONE (2026-09-10) and no branch here can produce it, because
+    `_attainability` has no branch that returns True. What replaces it is the reason: "we cannot
+    tell" is a result, and it belongs in the sentence a reader gets rather than in a key beside
+    it. The reason travels from the arithmetic for the same reason the verdict does.
     """
     head = (
         "On the {n} decisions it had, the smallest departure from 0.5 this instrument could have "
@@ -601,21 +741,22 @@ def _detectability_sentence(*, half_width, observed, observed_excess, n, needed,
     body = (" Reading a departure that small needs about {needed:,} scored decisions{acc}."
             ).format(needed=needed,
                      acc="" if not needed_accounts else
-                         " — roughly {:,} settled accounts at this run's rate".format(
-                             needed_accounts))
+                         " — roughly {:,} accounts carrying one, at this run's rate{bk}".format(
+                             needed_accounts,
+                             bk="" if not needed_settled else
+                                ", drawn from a settled book of about {:,}".format(needed_settled)))
     if attainable is None:
-        return head + body + (" Whether this world can supply them we cannot tell: the settled "
-                              "book's own ceiling could not be read.")
-    if attainable:
         return head + body + (
-            " The settled book can hold {c:,} accounts, so a book this world can supply does "
-            "reach it — and that is a statement about the instrument, never a plan.".format(
-                c=ceiling_accounts))
+            " Whether this world can supply that book, this page cannot say. "
+            + _upper_first(str(why_no_verdict).rstrip(". "))
+            + ". It is a bound on the instrument either way, and never a book to grow towards.")
     return head + body + (
-        " The settled book tops out at {c:,} accounts — about {cd:,} scored decisions, which "
-        "resolves {ce:.3f} at best. No attainable book on this world can read an effect the size "
-        "of the one measured."
-    ).format(c=ceiling_accounts, cd=ceiling_decisions, ce=ceiling_excess)
+        " The settled book tops out at {c:,} accounts{cd}. No attainable book on this world can "
+        "read an effect the size of the one measured."
+    ).format(c=ceiling_accounts,
+             cd="" if not ceiling_decisions else
+                " — about {:,} scored decisions, which resolves {:.3f} at best".format(
+                    ceiling_decisions, ceiling_excess))
 
 
 def inference_claim(provenance: dict | None, skill: dict | None = None) -> dict:
