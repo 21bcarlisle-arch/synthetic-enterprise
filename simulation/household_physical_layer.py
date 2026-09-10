@@ -111,6 +111,23 @@ LAYER_OF: dict[str, Layer] = {
     # Physical suitability for the assets above.
     "has_driveway": Layer.PHYSICAL,
     "roof_aspect": Layer.PHYSICAL,
+    # MEASURED FABRIC (2026-09-10), from the NEED-fitted joint the world's stock is now drawn
+    # from. Floor area was previously INFERRED inside `fabric_physics.floor_area_m2` from the
+    # property type and a bedroom count; it is a drawn fact now, and the insulation measures are
+    # what an installer actually fitted rather than what the EPC letter implies.
+    "floor_area_band": Layer.PHYSICAL,
+    "has_loft_insulation": Layer.PHYSICAL,
+    "has_cavity_wall_insulation": Layer.PHYSICAL,
+    # PHYSICAL, and the call is worth stating because the obvious reading is the other one.
+    # NEED derives this from whether a gas METER could be matched to the dwelling, which sounds
+    # like a billing relationship -- and a billing relationship would be commercial. The fact it
+    # stands for is not: it is whether the building has a gas connection, which is infrastructure
+    # and is true of the dwelling whoever supplies it and however they are billed. The commercial
+    # facts about gas -- the tariff, the payment method, the supplier -- are elsewhere and stay
+    # there. The derivation caveat is real and is recorded on the field itself: 50.3% of flats
+    # read "not gas" when they are communal or unmetered, so this measures a MATCHED METER and is
+    # a lower bound on connection.
+    "has_mains_gas_supply": Layer.PHYSICAL,
     # The one commercial attribute on the physical record. This IS the merge the
     # canon names: it sits on `Household` beside the fabric, and
     # `fabric_demand_path` reads it straight off there into the demand path.

@@ -188,8 +188,25 @@ PROSPECT_ID_PREFIX = "PROS"
 STOCK_ID_PREFIX = "PSTK"
 
 
+#: WHERE THE WORLD'S HOMES COME FROM. `True` draws each home as a whole ROW of the NEED-fitted
+#: joint raked onto this world's published marginals (`premise_population.fitted_stock_joint`);
+#: `False` is the pre-2026-09-10 path — three attributes from a 144-cell joint, then heating,
+#: bedrooms and insulation drawn independently or by lookup, and `has_solar=False` for every home
+#: in the country.
+#:
+#: A CONSTANT AND A PARAMETER, not a hardcoded call, because a population draw is the DIRECTOR'S
+#: instrument under R13 and a change to it has to be visible and reversible in one line rather
+#: than archaeology. The change itself is BASELINE and its justification is fidelity alone:
+#: measured co-occurrence over an independent product, and a floor area the physics needs and the
+#: old record did not have. Its effect on company P&L was pre-registered as unknown in sign before
+#: it was written and may not be tuned against
+#: (`docs/staging/records/SEAT_PREREGISTRATION_WHAT_WIRING_THE_GENERATOR_INTO_THE_WORLDS_STOCK_MOVES_2026-09-10.md`).
+STOCK_FROM_FITTED_JOINT = True
+
+
 def year_premise_stock(
-    year: int, *, base_seed: int, n: int = PROSPECTS_PER_YEAR
+    year: int, *, base_seed: int, n: int = PROSPECTS_PER_YEAR,
+    from_fitted_joint: bool | None = None,
 ) -> tuple:
     """The addressable housing stock in `year` — the homes the campaign quotes INTO.
 
@@ -220,16 +237,29 @@ def year_premise_stock(
     """
     if n <= 0:
         raise ValueError(f"a premise stock needs at least one home, got {n}")
-    from simulation.premise_population import draw_premise, raked_joint
+    from simulation.premise_population import (
+        draw_premise,
+        draw_premise_from_joint,
+        fitted_stock_joint,
+        raked_joint,
+    )
 
-    fitted = raked_joint()
+    use_fitted = STOCK_FROM_FITTED_JOINT if from_fitted_joint is None else from_fitted_joint
     as_of = dt.date(year, 1, 1)
+    # The joint is fitted ONCE per year-stream for the same reason the raked one is: it is
+    # identical for every home and the fit is not free.
+    if use_fitted:
+        fitted = fitted_stock_joint()
+        draw, kwarg = draw_premise_from_joint, "fitted"
+    else:
+        fitted = raked_joint()
+        draw, kwarg = draw_premise, "joint"
     return tuple(
-        draw_premise(
+        draw(
             f"{STOCK_ID_PREFIX}-{year}-{i:04d}",
             base_seed=base_seed,
             as_of=as_of,
-            joint=fitted,
+            **{kwarg: fitted},
         )
         for i in range(1, n + 1)
     )

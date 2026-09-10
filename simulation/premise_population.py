@@ -131,6 +131,7 @@ must raise rather than return quietly, which is a decision no library makes for 
 from __future__ import annotations
 
 import datetime as dt
+import functools
 import hashlib
 import json
 import math
@@ -145,6 +146,7 @@ from simulation.household import (
     BuildEra,
     HeatingSystem,
     Household,
+    InsulationLevel,
     PropertyType,
 )
 
@@ -548,21 +550,34 @@ def rake(
     joint: Mapping[Cell, float],
     targets: Sequence[Mapping],
     *,
+    axes: Sequence[int] | None = None,
     tolerance: float = 1e-9,
     max_iterations: int = 200,
 ) -> dict[Cell, float]:
-    """Iterative proportional fitting of `joint` onto the three 1-D `targets`.
+    """Iterative proportional fitting of `joint` onto the 1-D `targets`.
+
+    `axes` (default None) names WHICH tuple positions the targets apply to. None keeps the
+    original positional behaviour — target `i` rakes axis `i` — so every caller that predates
+    this parameter is byte-identical. It exists because the NEED-fitted stock joint is keyed on
+    EIGHT attributes and only three of them have a published GB marginal to rake onto; the
+    alternative was a second IPF implementation, and a second implementation of a converging
+    numerical loop is how two answers to one question get published.
 
     RAISES if it has not converged inside `max_iterations`. A non-converged fit
     that returned quietly would hand back a joint whose marginals are not the
     published ones while every caller believed they were — fail-open, and the
     exact shape R15 names.
     """
-    targets = tuple(_normalised_target(t, axis=i) for i, t in enumerate(targets))
+    if axes is None:
+        axes = tuple(range(len(targets)))
+    if len(axes) != len(targets):
+        raise ValueError(f"{len(targets)} target(s) for {len(axes)} axis/axes — one each")
+    targets = tuple(_normalised_target(t, axis=a) for a, t in zip(axes, targets))
+    plan = tuple(zip(axes, targets))
     current = {cell: float(w) for cell, w in joint.items()}
     worst = float("inf")
     for _ in range(max_iterations):
-        for axis, target in enumerate(targets):
+        for axis, target in plan:
             observed = _marginal(current, axis)
             for cell in current:
                 key = cell[axis]
@@ -573,9 +588,14 @@ def rake(
         # Measured AFTER the full sweep, across EVERY axis. Measuring an axis
         # just before its own rescaling reports the error the previous axis left,
         # which flatters the fit and would let a non-converged joint through.
+        # OVER `plan`, NOT over `enumerate(targets)`. With an explicit `axes` the two disagree,
+        # and the enumerate version would measure convergence on axes 0..n while the rescaling
+        # happened on the selected ones -- reporting a converged fit for axes nobody raked. The
+        # docstring's whole promise is that a non-converged joint RAISES; a check pointed at the
+        # wrong axis is that promise silently withdrawn.
         worst = max(
             max(abs(_marginal(current, axis).get(k, 0.0) - target.get(k, 0.0)) for k in target)
-            for axis, target in enumerate(targets)
+            for axis, target in plan
         )
         if worst < tolerance:
             return current
@@ -594,6 +614,172 @@ def raked_joint() -> dict[Cell, float]:
             PUBLISHED_BUILD_ERA_SHARE,
             {b: PUBLISHED_EPC_BAND_SHARE[b] for b in EPC_BANDS},
         ),
+    )
+
+
+# ---------------------------------------------------------------------------
+# THE FITTED STOCK JOINT — measured co-occurrence, published margins (2026-09-10)
+# ---------------------------------------------------------------------------
+# Director console, 2026-09-10: *"the population the world runs on should be the one the sampler
+# chooses, weighted."*
+#
+# WHAT IS WIRED HERE AND WHAT IS DELIBERATELY NOT. Two separable things sit in
+# `tools/demand_vector_coverage`: a GENERATOR (a joint fitted to NEED, so combinations appear at
+# the rate they co-occur) and a CHOOSER (`choose_for_difference` + `fit_weights`, a space-filling
+# weighted design). Only the generator is wired in.
+#
+# The chooser was MEASURED against random draws first, worst KS over the six demand axes, 20,000
+# points: 1.68x better at N=40, 1.31x at N=400, and **1.04x at N=4,400** -- the size the world's
+# stock actually is. Its value is compression, and at 4,400 draws there is nothing to compress.
+# Wiring it into the stock would be machinery that moves no number, and there is a class register
+# for that. It is left where it earns something: small-N problems, of which the settlement sample
+# (91 of 500) is one.
+#
+# WHAT THE GENERATOR BUYS, MEASURED RATHER THAN ASSERTED. `draw_premise` takes (type, era, EPC)
+# from a 144-cell joint and then draws heating and bedrooms INDEPENDENTLY, sets insulation by a
+# lookup on the EPC letter -- six distinct values in the whole country -- and hardcodes
+# `has_solar=False` on every home. The fitted joint carries 1,292 combinations that were actually
+# observed together, including the loft, cavity and PV flags this world had no field for. Drawing
+# whole rows is what stops a sample manufacturing dwellings the evidence never shows.
+#
+# THE NUMBER, at 4,400 homes with weather held constant: the mean REMAINING insulation ceiling
+# rises from 41.5 W/K to 61.4 W/K (+48%), and the tenth percentile from 0.0 to 2.0. The old model
+# said a tenth of the country had NOTHING left to insulate, because an A/B rating mapped to FULL
+# insulation by construction. That is the mission's own quantity -- what a household could still
+# be sold -- and it was understated by a third.
+#
+# AND WHAT IT DOES NOT BUY, stated because a change that moved no number is worth knowing about:
+# the SPREAD is comparable (cv 0.73 -> 0.74 on fabric W/K), the company's net margin moves -0.37%,
+# and the book is identical to the account -- 582 commercial, 173 settled, 91 of 500 wins settled,
+# 409 refused, in both arms. The acquisition funnel and the settlement budget are insensitive to
+# what the dwellings are. Under R13 a baseline fidelity change that leaves the score alone is the
+# cleanest evidence available that it was not tuned against the score.
+#
+# R13, EXPLICITLY. This is a BASELINE change and its justification is fidelity alone: measured
+# co-occurrence beats an independent product, and floor area is the dominant term in heat loss and
+# was absent. The effect on company P&L was PRE-REGISTERED as unknown in sign before this was
+# written (`docs/staging/records/SEAT_PREREGISTRATION_WHAT_WIRING_THE_GENERATOR_INTO_THE_WORLDS_
+# STOCK_MOVES_2026-09-10.md`) and nothing here may be adjusted in response to it.
+
+#: NEED's fitted joint is keyed on eight attributes; these three have a published GB marginal.
+_FITTED_PROPERTY_TYPE_AXIS = 0
+_FITTED_AGE_BAND_AXIS = 1
+_FITTED_EPC_AXIS = 3
+
+#: NEED's EPC classes against this project's bands. `F/G` is one NEED class and two bands here.
+_NEED_EPC_TO_BANDS: dict[str, tuple[str, ...]] = {
+    "A/B": ("AB",), "C": ("C",), "D": ("D",), "E": ("E",), "F/G": ("F", "G"),
+}
+NEED_UNRATED = "No EPC"
+
+
+def published_age_band_share() -> dict[str, float]:
+    """This world's published SIX-era marginal, projected onto NEED's FOUR age bands.
+
+    `P(band) = sum_era P(era) * P(band | era)`, where the conditional is
+    `need_stock_joint.era_band_weights()` — the share of each era's YEARS that fall inside each
+    NEED band, which is arithmetic on two published sets of boundaries and needs no opinion about
+    where a 1919-1944 house "really" belongs.
+
+    THIS IS THE RAKING TARGET, and `era_posterior_by_band` is its exact inverse: raking the joint
+    to this marginal and then splitting each band by that posterior reproduces the published era
+    shares to 0.0 — verified, not assumed, by `test_the_published_era_marginal_survives_the_round_trip`.
+    """
+    from tools import need_stock_joint as need
+
+    weights = need.era_band_weights()
+    out: dict[str, float] = {}
+    for era, share in PUBLISHED_BUILD_ERA_SHARE.items():
+        for band, inside in weights[era.name].items():
+            out[band] = out.get(band, 0.0) + share * inside
+    total = sum(out.values())
+    return {band: value / total for band, value in out.items()}
+
+
+def era_posterior_by_band() -> dict[str, dict[BuildEra, float]]:
+    """`P(era | NEED age band)` — Bayes on the published era marginal.
+
+    NEED's four bands are coarser than this world's six eras, so a case drawn from the fitted
+    joint knows its band and not its era. `demand_case_coverage.AGE_TO_ERA` maps each band to ONE
+    representative era, which is right for computing a fabric vector and WRONG here: it would
+    erase `ERA_1919_1944` and `ERA_1965_1980` from the country entirely and move the published era
+    marginal by fifteen points. Same table, different subject.
+    """
+    from tools import need_stock_joint as need
+
+    weights = need.era_band_weights()
+    columns: dict[str, dict[BuildEra, float]] = {}
+    for era, share in PUBLISHED_BUILD_ERA_SHARE.items():
+        for band, inside in weights[era.name].items():
+            columns.setdefault(band, {})[era] = share * inside
+    return {band: {era: v / sum(col.values()) for era, v in col.items()}
+            for band, col in columns.items()}
+
+
+def _published_need_epc_share() -> dict[str, float]:
+    """The published EPC band shares collapsed onto NEED's five RATED classes."""
+    return {need_class: sum(PUBLISHED_EPC_BAND_SHARE[b] for b in bands)
+            for need_class, bands in _NEED_EPC_TO_BANDS.items()}
+
+
+@functools.lru_cache(maxsize=1)
+def fitted_stock_joint() -> dict[tuple, float]:
+    """NEED's measured co-occurrence, raked onto this world's published marginals.
+
+    Evidence supplies the STRUCTURE (which combinations occur together, and how often relative to
+    each other); the published record supplies the MARGINS. That split is the canon's own —
+    *"NEED — and any comparable survey — is EVIDENCE, NOT POPULATION"* — and it is the same move
+    `stock_joint_generator.raked_joint` already makes to put an England-and-Wales-fitted joint onto
+    Scotland's published type shares.
+
+    THE UNRATED 30.2% ARE DROPPED BEFORE RAKING, and that is an INHERITED decision rather than a
+    new one: `tools/need_stock_joint` established it for this same joint and recorded its residual
+    in full — a biased marginal composition washes out in the rake, and what would not wash out is
+    a home's EPC being systematically better or worse than an unrated home of the SAME type and
+    age, which NEED cannot answer because an unrated home has no rating. Dropping them here is not
+    a claim that unrated homes do not exist: this world already models EPC ABSENCE separately and
+    correctly, as `epc_lodged=None` on the register, which is what "no EPC" is a fact about.
+    """
+    from tools import stock_joint_generator as gen
+
+    # A NEW PRECONDITION ON THE WHOLE WORLD, named here rather than surfacing as a
+    # FileNotFoundError three frames down. `raked_joint()` needs only published constants, so
+    # before this the world was buildable from the repository alone; the fitted joint is measured
+    # from DESNZ NEED, which lives in `~/.cache/synthetic-enterprise/` and is NOT in the tree.
+    # On a machine without it, `year_premise_stock` now cannot draw a home at all.
+    #
+    # REFUSING IS THE RIGHT ANSWER AND A FALLBACK IS NOT. Quietly dropping back to the published
+    # joint would give a second population that no figure carries a marker for, and "which world
+    # produced this number" would be unanswerable after the fact -- the two-worlds defect, bought
+    # for the sake of not seeing an error. A refusal costs one message and names its own remedy.
+    try:
+        fitted = gen.fit_joint()
+    except FileNotFoundError as exc:
+        from tools import need_stock_joint as need
+        raise RuntimeError(
+            f"the world's premise stock is drawn from the NEED-fitted joint and {need.NEED_CSV} "
+            "is not on this machine, so no home can be drawn. This file is OUTSIDE the repository "
+            "by design (it is survey microdata) and a checkout does not carry it. Fetch it, or set "
+            "`net_new_acquisition.STOCK_FROM_FITTED_JOINT = False` to draw from the published "
+            "joint instead -- and if you do, say so beside any figure the run produces, because "
+            "that is a different population and nothing in the output distinguishes them."
+        ) from exc
+
+    rated = {key: count for key, count in fitted.items()
+             if key[_FITTED_EPC_AXIS] != NEED_UNRATED}
+    if not rated:
+        raise RuntimeError(
+            "the NEED-fitted joint carried no rated dwelling, so there is nothing to rake onto the "
+            "published EPC marginal. Refusing rather than returning the unrated joint, which would "
+            "be a population whose EPC axis means the opposite of what every caller reads it as.")
+    return rake(
+        rated,
+        (
+            {t.name: s for t, s in PUBLISHED_PROPERTY_TYPE_SHARE.items()},
+            published_age_band_share(),
+            _published_need_epc_share(),
+        ),
+        axes=(_FITTED_PROPERTY_TYPE_AXIS, _FITTED_AGE_BAND_AXIS, _FITTED_EPC_AXIS),
     )
 
 
@@ -724,6 +910,127 @@ def draw_premise(
         insulation=insulation,
         has_driveway=ptype in (PropertyType.DETACHED, PropertyType.SEMI_DETACHED),
         roof_aspect="na" if ptype == PropertyType.FLAT else "east_west",
+    )
+    return DrawnPremise(
+        premise_id=premise_id,
+        household=household,
+        epc_band=band,
+        meter_cadence_days=cadence,
+        epc_lodged=lodged,
+    )
+
+
+#: A domestic PV system's size, INHERITED from `household.from_customer` rather than sourced here.
+#: NEED's `PV_FLAG` says a panel exists and carries neither a capacity nor a date, so a drawn home
+#: takes this world's existing figure for "a domestic PV system" and `solar_install_year=None` --
+#: the world knows the panel is there, not when it went up, and a plausible year would be a fact
+#: nobody measured. Named as inherited so the next reader does not read it as a second source.
+INHERITED_DOMESTIC_PV_KWP = 3.8
+
+
+def _band_from_need_epc(need_class: str, rng: random.Random) -> str:
+    """One of this world's EPC bands from one of NEED's five rated classes.
+
+    Only `F/G` needs a draw: it is one NEED class and two bands here, split on the published
+    shares (F 2.1%, G 0.5%) rather than on a guess about which half it is.
+    """
+    bands = _NEED_EPC_TO_BANDS[need_class]
+    if len(bands) == 1:
+        return bands[0]
+    return _weighted_choice(rng, {b: PUBLISHED_EPC_BAND_SHARE[b] for b in bands})
+
+
+def draw_premise_from_joint(
+    premise_id: str,
+    *,
+    base_seed: int,
+    as_of: dt.date,
+    fitted: Mapping[tuple, float] | None = None,
+) -> DrawnPremise:
+    """Draw ONE premise as a whole ROW of the NEED-fitted joint, raked onto published margins.
+
+    The sibling of `draw_premise`, and the difference is what a single draw decides. There, three
+    attributes come from a joint and everything else is an independent draw or a constant; here
+    eight attributes arrive together, in a combination the evidence actually contains, and the
+    dwelling gains the floor area, loft, cavity and PV facts this world had no field for.
+
+    KEYED ON `premise_id` exactly as its sibling is, so a premise is identical whatever else is in
+    the population and whatever order it was built in (C-S2). Every draw takes its own substream,
+    including the ones that are new here — sharing a stream would make a home's EPC depend on
+    whether it happened to have solar.
+
+    WHAT IS STILL DRAWN INDEPENDENTLY, named rather than left to be discovered:
+
+      * `heating_system`, from the published EHS weights. NEED's fuel flag is a fact about a METER
+        and this is a fact about a BOILER; the two disagree by about five points on the gas share
+        and reconciling them is a knowledge question, not a mapping. The supply fact is carried
+        beside it as `has_mains_gas_supply` so the disagreement is visible rather than resolved by
+        whichever one the code reached for first.
+      * `meter_cadence_days` and `epc_lodged`, which are OBSERVATION-side and belong to the
+        supplier's register, not to the dwelling. NEED's 30.2% unrated rows are a fact about that
+        register too, which is why they are dropped from the joint rather than mapped to a band.
+
+    `bedrooms` is now DERIVED FROM FLOOR AREA rather than drawn from the property type alone,
+    using the same conversion `demand_vector_coverage._fabric_for` already applies to a NEED row.
+    That is the right direction of derivation: area is the physical quantity the heat loss is
+    computed from, and bedrooms is the thing an estate agent counts.
+    """
+    from simulation import fabric_physics as fp
+    from tools import demand_case_coverage as dcc
+
+    fitted = fitted_stock_joint() if fitted is None else fitted
+    cell = _weighted_choice(_substream(base_seed, f"{premise_id}:joint-cell"), fitted)
+    ptype_name, age_band, area_band, need_epc, loft, cavity, pv, fuel = cell
+
+    ptype = PropertyType[ptype_name]
+    era = _weighted_choice(
+        _substream(base_seed, f"{premise_id}:era-in-band"), era_posterior_by_band()[age_band]
+    )
+    band = _band_from_need_epc(need_epc, _substream(base_seed, f"{premise_id}:epc-in-class"))
+    heating = _weighted_choice(
+        _substream(base_seed, f"{premise_id}:heating"), published_heating_weights()
+    )
+    cadence = _draw_meter_cadence(premise_id, base_seed=base_seed, as_of=as_of)
+    lodged = _draw_epc_lodgement(premise_id, base_seed=base_seed, as_of=as_of)
+
+    has_loft = loft == "1"
+    has_cavity = cavity == "1"
+    has_solar = pv == "1"
+    # The `_fabric_for` rule, unchanged: both cheap measures taken is FULL, one is PARTIAL, neither
+    # is POOR. It replaces a lookup on the EPC letter, which gave the whole country six values.
+    installed = int(has_loft) + int(has_cavity)
+    insulation = (InsulationLevel.FULL if installed == 2
+                  else InsulationLevel.PARTIAL if installed == 1
+                  else InsulationLevel.POOR)
+
+    area_m2 = dcc.AREA_MIDPOINT[area_band]
+    base_m2 = fp._FLOOR_AREA_BASE_M2[ptype]
+    bedrooms = int(max(1, min(6, round(2 + (area_m2 - base_m2) / fp._FLOOR_AREA_PER_BEDROOM_M2))))
+
+    household = Household(
+        customer_id=premise_id,
+        property_type=ptype,
+        build_era=era,
+        epc_rating=_BAND_TO_LETTER[band],
+        bedrooms=bedrooms,
+        heating_system=heating,
+        boiler_age=_boiler_age_for(era, heating),
+        has_solar=has_solar,
+        solar_kwp=INHERITED_DOMESTIC_PV_KWP if has_solar else 0.0,
+        solar_install_year=None,
+        has_battery=False,
+        battery_kwh=0.0,
+        has_ev=False,
+        ev_charger_kw=0.0,
+        has_smart_meter=cadence == DAILY_CADENCE_DAYS,
+        smart_meter_install_year=as_of.year - 2 if cadence == DAILY_CADENCE_DAYS else None,
+        insulation=insulation,
+        has_driveway=ptype in (PropertyType.DETACHED, PropertyType.SEMI_DETACHED),
+        roof_aspect="na" if ptype == PropertyType.FLAT else "east_west",
+        floor_area_band=area_band,
+        has_loft_insulation=has_loft,
+        has_cavity_wall_insulation=has_cavity,
+        has_mains_gas_supply=fuel == "1",
     )
     return DrawnPremise(
         premise_id=premise_id,

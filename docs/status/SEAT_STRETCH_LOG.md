@@ -8,6 +8,194 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-10 — the generator is wired into the world's stock and the chooser is refused with a number, and the insulation ceiling the company sells against was understated by a third
+
+<!-- head: 59a91d4a2be3 -->
+
+**Written 2026-09-10 21:xx BST.** Director console the same evening: *"Wire the sample. That's the
+priority until my allowance resets Monday morning, and I'd rather it were the only thing… the
+population the world runs on should be the one the sampler chooses, weighted, and the settlement
+budget should be the constraint we argue about rather than the one that silently refused 409 wins."*
+
+**The generator is wired. The chooser is not, and that is a decision with a measurement under it
+rather than an omission.** Read the second section before the third if you read nothing else — it
+is the part where I measured the instruction's premise before building on it and found half of it
+does not hold.
+
+---
+
+## What is landed
+
+The world's homes are now drawn as whole rows of the **NEED-fitted joint** — 1,292 combinations that
+were actually observed together — **raked onto this world's own published marginals**, instead of
+three attributes from a 144-cell joint followed by heating, bedrooms and insulation drawn
+independently or by lookup. The dwelling record gained four measured facts it did not have:
+`floor_area_band`, `has_loft_insulation`, `has_cavity_wall_insulation`, `has_mains_gas_supply`.
+
+Evidence supplies the **structure**; the published record supplies the **margins**. That split is the
+canon's own — *"NEED is EVIDENCE, NOT POPULATION"* — and without it this would have been a fidelity
+regression wearing an improvement's clothes: the world would have gained real co-occurrence and lost
+the published composition it already had. The rake hits all three published margins to 1e-6.
+
+## The measurement I took before building, and what it refuted
+
+**The chooser buys nothing at the size the world runs.** `choose_for_difference` + `fit_weights`
+against five random draws, worst KS across the six demand axes, 20,000-point population:
+
+| N | chosen + weighted | random | ratio |
+|---|---|---|---|
+| 40 | 0.1361 | 0.2280 | **1.68×** |
+| 91 | 0.0885 | 0.1448 | 1.64× |
+| 400 | 0.0457 | 0.0597 | 1.31× |
+| **4,400** — the world's stock | **0.0177** | **0.0184** | **1.04×** |
+
+The design's whole value is compression, and at 4,400 draws out of a 20,000-point population there
+is nothing to compress. Wiring it into the stock would have been machinery that changes no number.
+So the instruction's first half — *the population the world runs on should be the one the sampler
+chooses* — is **built** in the sense that matters (the generator) and **declined** in the sense that
+does not (the chooser), with the table above as the thing to overturn if you disagree.
+
+I have also **stopped quoting the "22× better than random" figure** from the 08 September reply. It
+does not reproduce on KS distance at any N I measured; best case is 1.68×. It was probably measured
+on distinct cells covered, which is a different quantity. Filed as its own question rather than
+repeated.
+
+**`smallest_n_chosen` returns 5,215** under its per-stratum criterion. The world's 4,400 is *below*
+the sampler's own acceptance threshold — it is not a candidate for reduction from it, which is the
+opposite of the framing everyone including me had been carrying.
+
+## The correction that matters most, and it is against my own claim
+
+I wrote — in the pre-registration, in two module docstrings and in a test file — that the demand
+vector was **unmeasurable** on the world's population because `Household` had no floor area, and
+that this was why `demand_vector_coverage` had no importer under `simulation/`.
+
+**That is wrong.** `fabric_physics.floor_area_m2` derives an area from property type and bedroom
+count; the six axes always evaluated. I found it by reading the function I was about to claim was
+missing an input, after I had already written the claim down three times.
+
+What is actually true is narrower and, I think, more useful: the area was **inferred from a bedroom
+count that was itself drawn from property type alone**, so it carried nothing the property type did
+not already carry; `insulation` was a **lookup on the EPC letter**, six values for the whole country;
+`has_solar` was **hardcoded `False`** on every drawn home.
+
+So this is a **level error on the mission's own quantity**, not a missing capability. At 4,400 homes,
+weather held constant:
+
+| | old (inferred) | new (measured) |
+|---|---|---|
+| mean floor area | 79.4 m² | 84.8 m² |
+| mean fabric | 144.4 W/K | 168.8 W/K |
+| **mean remaining insulation ceiling** | **41.5 W/K** | **61.4 W/K** |
+| 10th percentile of that ceiling | **0.0** | 2.0 |
+| spread (cv of fabric W/K) | 0.729 | 0.744 |
+
+The remaining insulation ceiling is *what is left to do* — the size of the measure a household could
+still be sold, which is the thing the company exists to find. **The old world understated it by a
+third, and told us a tenth of the country had nothing left to insulate**, because an A/B rating
+mapped to FULL insulation by construction. The spread barely moves. The level was wrong.
+
+## The pre-registration, graded
+
+Filed before the build, at `docs/staging/records/SEAT_PREREGISTRATION_WHAT_WIRING_THE_GENERATOR_
+INTO_THE_WORLDS_STOCK_MOVES_2026-09-10.md`. **Three of seven hold, three fail, one was the wrong
+question.**
+
+| | prediction | outcome | |
+|---|---|---|---|
+| P1 | published marginals move < 1.0pp | worst move 1.84pp | **FAILS as written** |
+| P2 | solar 1.2–2.2% | 1.50% (from 0.00%) | HOLDS |
+| P3 | > 12 distinct (epc, loft, cavity) triples | 19 (from 6) | HOLDS |
+| P4 | demand vector "becomes computable" | it always was | **WRONG QUESTION** |
+| P5 | \|Δ net margin\| > 1% | **−0.37%** | **FAILS** |
+| P6 | sample rate 0.183±0.005, refused 409±10 | 0.1820, 409 — identical both arms | HOLDS |
+| P7 | accounts 582±30, settled 173±15 | 582 / 173 — identical both arms | HOLDS |
+
+**P1 failed because I graded a population prediction on a sample.** The band compared the new stock
+against the *old sample*; the property that matters is whether each stock carries the *published*
+marginal. Asked that way the new stock is better: worst |z| against published on EPC goes **3.03 →
+0.87**. A 1.84pp gap between two independent 4,400-draw samples is 2.0 standard errors across
+sixteen categories.
+
+A single-seed reading then nearly produced a second error on top of the first: `ERA_1919_1944` came
+out **3.29 standard errors light**, which reads exactly like a biased band→era mapping. I checked
+`_weighted_choice` (unbiased over 200k draws), checked the premise-keyed uniforms (χ²=4.05 on 9 df),
+and then ran five seeds: mean z **−0.09**, no era beyond |0.44|. It was the draw. That is now a
+control rather than a note, because a real bias there would be invisible to every other test.
+
+**P5, P6 and P7 together are the R13 evidence.** Margin moves −0.37%; the book is identical to the
+account — 582 commercial, 173 settled, 91 of 500 wins settled, 409 refused — in *both* arms. The
+funnel and the settlement budget are insensitive to what the dwellings are. A baseline fidelity
+change that leaves the score alone is the cleanest evidence available that it was not tuned against
+the score. It also says plainly: **this buys fidelity, not profit.** Anyone reading the commit for a
+P&L story should stop.
+
+## Calls made, and where I stopped
+
+- **Both arms run at one HEAD with one variable changed**, from a driver outside the tree rather
+  than an env var or two tree states — no switchable surface left behind for a later run to drift
+  on. Old arm 13 min, new 15 min. The published £147,887 was *not* used as the baseline: it comes
+  from a different configuration, and comparing against it would have been the two-variables-changed
+  error in the very document that exists to avoid it. The correct baseline is £376,131.94.
+- **`AGE_TO_ERA` was the trap I walked up to.** NEED's four age bands map to this world's six eras,
+  and `demand_case_coverage.AGE_TO_ERA` already maps each band to one representative era. Using it
+  would have **erased `ERA_1919_1944` and `ERA_1965_1980` from the country** and moved the published
+  era marginal by fifteen points. It is correct for what it is for — a fabric vector needs a
+  representative age — and wrong here. Same table, different subject. The world gets a Bayes
+  posterior instead, which reproduces the published era marginal to 0.0 exactly.
+- **NEED's fuel flag is NOT mapped onto `heating_system`,** and there is a control that fails if a
+  later lane tidies it up. It is a fact about a **meter** — 50.3% of flats read as "not gas" when
+  they are communal or unmetered — and `heating_system` is a fact about a boiler. They now disagree
+  visibly, by about seven points, instead of being reconciled by whichever the code reached first.
+- **The unrated 30.2% are dropped before raking on EPC**, inheriting the decision and the recorded
+  residual `need_stock_joint` already made for this same joint rather than making a second one.
+  "No EPC" is a fact about the register, and this world already models that correctly and separately
+  as `epc_lodged=None`.
+- **One control was demoted rather than kept as a catch.** I repaired a real seam in `rake` — the
+  convergence grade was pointed at axes 0..n while the sweep ran on the selected ones — then found
+  by mutation that restoring the defect **raises loudly** on the real call. So the repair was
+  defensive, not a caught live defect, and the test now says so and asserts the property instead of
+  the pairing. Claiming that catch would have been free and false.
+- **A text control fired on its own explanation.** The test that pins "the chooser is not wired in"
+  grepped the source and went red on the comment explaining why the chooser is absent. It reads the
+  AST now. That is the third time this class has cost me a cycle.
+
+## A cost this buys, accepted with its eyes open
+
+**The world is no longer buildable from the repository alone.** `raked_joint()` needed only
+published constants; the fitted joint is measured from DESNZ NEED, which lives in
+`~/.cache/synthetic-enterprise/` and is deliberately not in the tree because it is survey microdata.
+On a machine without that file, `year_premise_stock` can no longer draw a single home.
+
+I found this by asking where `NEED_CSV` actually points, after writing the code that depends on it.
+
+The refusal is named rather than a `FileNotFoundError` three frames down: it says which file, says
+the file is outside the repo on purpose, and names the one-line override — **and warns that the
+override changes the population**, because a quiet fallback to the published joint would give a
+second world that no figure carries a marker for, and "which world produced this number" would be
+unanswerable afterwards. That is the trade I took: a refusal costs one message; a silent fallback
+costs the ability to interpret every figure produced under it.
+
+If you would rather the world stayed self-contained, the reversal is one constant and I will take
+that as a fidelity-versus-portability call that is yours, not mine.
+
+## What remains, and it is the second half of the instruction
+
+**The settlement budget is untouched.** It still refuses 409 of 500 wins by a systematic count-based
+cull — unbiased by year, deterministic, and completely blind to what the homes are.
+
+The measurement above says exactly where the chooser earns its keep: **1.64× at N=91**, and 91 is the
+size of the settled book. Now that the dwellings carry measured attributes, that sample *can* be
+chosen for difference and weighted, so the settled 91 aggregate up to the 500 the company actually
+won. That is what would turn "the constraint we argue about" from a phrase into a question with a
+number attached.
+
+It is not in this landing because it moves every published financial figure and needs its own
+pre-registration. It is the next thing I pick up, and it is now unblocked by this one — the attributes
+it would choose over did not exist this morning.
+
+---
+
 ## 2026-09-10 — the report mechanism was never silent, its channel was: 75 findings went into a 250,000-line log, and the demand vector measures a population the world does not draw from
 
 <!-- head: 21e807e7f8b1 -->

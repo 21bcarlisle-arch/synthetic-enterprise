@@ -119,6 +119,49 @@ class Household:
     # Economic stress — updated by life events (job_loss, income_recovery, new_baby, retirement)
     income_stress: IncomeStress = IncomeStress.LOW
 
+    # --- The attributes the DEMAND VECTOR is defined over (2026-09-10) ------------------------
+    #
+    # WHY THEY WERE ADDED. `tools/demand_vector_coverage` measures six axes -- gas, electricity,
+    # weather sensitivity, peak share, insulation ceiling, turn-down ceiling -- and the physics
+    # behind them reads a dwelling's FLOOR AREA and its insulation level.
+    #
+    # CORRECTED BESIDE THE CLAIM (2026-09-10). The first version of this comment said the demand
+    # vector was UNMEASURABLE on the world's population. That is too strong and it is wrong:
+    # `fabric_physics.floor_area_m2` derives an area from property type and bedroom count, so the
+    # axes always evaluated. What was true is narrower and is the actual reason to add these:
+    #
+    #   * the area was INFERRED FROM A BEDROOM COUNT that was itself drawn from property type
+    #     alone, so it carried no information the property type did not already carry;
+    #   * `insulation` was a lookup on the EPC letter -- six values for the whole country -- and
+    #     the EPC letter is a rating, not a record of what an installer fitted;
+    #   * `has_solar` was hardcoded `False` on every drawn home.
+    #
+    # MEASURED, at 4,400 homes, holding weather constant: the mean REMAINING insulation ceiling
+    # -- what is left to do, which is the size of the intervention the company could actually sell
+    # -- goes from 41.5 W/K to 61.4 W/K. The old model understated the country's remaining
+    # insulation opportunity by a third, and put a tenth of homes at exactly ZERO remaining
+    # opportunity because an A/B rating mapped to FULL insulation by construction. The spread is
+    # comparable (cv 0.73 -> 0.74 on fabric W/K); it is the LEVEL that was wrong.
+    #
+    # `None` MEANS "NOT DRAWN FROM THE FITTED JOINT" and never "no insulation". A dwelling minted
+    # by the older path has no measured value for these, and a `False` there would be a claim the
+    # evidence never made -- the same reason `demand_vector_coverage.gb_households()` returns an
+    # honest `None` when the census tables are off the machine.
+    #
+    # Vocabulary is NEED's own, untranslated, for the reason `MAINS_GAS` records one module over:
+    # a re-spelling that compares equal to nothing fails silently.
+    floor_area_band: str | None = None          # NEED FLOOR_AREA_BAND: "1".."5", midpoints 40-230 m2
+    has_loft_insulation: bool | None = None     # NEED LI_FLAG
+    has_cavity_wall_insulation: bool | None = None   # NEED CWI_FLAG
+
+    #: NEED's `MAIN_HEAT_FUEL`, and it is A FACT ABOUT A METER, not about a heating system.
+    #: DELIBERATELY NOT FOLDED INTO `heating_system`. The 2026-09-07 measurement found 50.3% of
+    #: flats reading as "not gas" -- which cannot be off-grid, it is communal or electric heating
+    #: with no individual meter -- so NEED's derived fuel answers "is there a gas supply this
+    #: dwelling is billed on", and `heating_system` answers "what burns". Mapping one onto the
+    #: other would be the *bill shock* mistake again: one word, two populations, differenced.
+    has_mains_gas_supply: bool | None = None
+
     @property
     def is_residential(self) -> bool:
         return self.property_type in (
