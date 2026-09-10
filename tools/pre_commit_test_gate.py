@@ -254,6 +254,134 @@ CONTROL_TESTS = [
     "tests/background/test_seat_guard_daemons.py",
 ]
 
+# ===== THE CENSUSED EIGHTEEN (2026-09-10) ====================================================
+# A SEPARATE NAMED CONSTANT, spliced into CONTROL_TESTS below, and not for tidiness: the controls
+# that grade this batch have to be able to name it without RE-TYPING it. That is the same rule
+# `whole_tree_subject_census.control_tests()` states for its own read of the list above -- two
+# copies of one population drift apart the moment either is edited, and the drift favours whichever
+# file was touched last. Everything reading `CONTROL_TESTS` sees one flat list of strings, unchanged.
+CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
+    # Eighteen entries under ONE comment, and the single comment is the change rather than an
+    # economy. Each of the nine above re-derives the same class from first principles. That was
+    # right while the class was being found one instance at a time; a tenth restatement would be
+    # reciting a rule. What follows is the argument once, the derivation that fixes the
+    # membership, the environment they were graded in, and what they cost.
+    #
+    # THE CLASS. Subject set = every file in a directory; selector set = one filename stem. The
+    # commit that breaks a control of this shape ADDS A FILE to the directory, and a new file's
+    # stem names no existing test -- so the only commit that RUNS the control is one editing the
+    # control, which is never the commit that breaks it. Cost of record, measured not predicted:
+    # `test_live_ledger_guard.py` drifted 74 -> 86 unguarded writers over FOURTEEN days and
+    # `test_seat_guard_daemons.py` to nine unguarded entrypoints over nine, both green at every
+    # commit throughout.
+    #
+    # WHY A LIST AND NOT A DERIVATION, which is the question this batch closes and the reason it
+    # is eighteen lines rather than a mechanism. The obvious fix is to select a test by the
+    # directory it SCANS instead of by what it is NAMED. That was built and modelled over the
+    # last 40 real non-merge commits before it was believed, and it is REFUTED: subject-selection
+    # at root granularity fires on 40 of 40, adding a median of 50 test files to a median-18
+    # selection, and even the most narrowly scoped commit in the sample pulls in 31 of the 109
+    # loose members. Every commit here touches one of these roots -- that is what a root IS. A
+    # rule that fires on every commit and takes two thirds of its pool is THIS LIST, spelled as a
+    # derivation that can additionally be wrong in both directions. Nor can it be narrowed below
+    # the root: to do that, a test would have to declare which FILES it scans, and that file set
+    # is precisely the population the control exists to discover.
+    #   docs/staging/SEAT_RESULT_SELECTING_A_CONTROL_BY_WHAT_IT_SCANS_IS_THE_ALWAYS_RUN_LIST_SPELLED_DIFFERENTLY_2026-09-10.md
+    #
+    # MEMBERSHIP IS RE-DERIVABLE, the other half of why one comment replaces eighteen:
+    # `python3 -m tools.whole_tree_subject_census --strict-dataflow` returns exactly this batch,
+    # from a predicate pre-registered BEFORE the first count was run. Adding a line here
+    # DISCHARGES that member (the census's leg 3), so the strict count reads 0 once this lands
+    # and a nineteenth instance shows up as a 1 rather than as silence. The figure this class
+    # carried before the tool -- 27 -- came from an uncommitted throwaway script that nothing
+    # could re-run, dispute, or watch for growth; the same predicate, committed, re-derives 109
+    # loose / 18 strict. That is not a claim that 27 was wrong. It is a claim that an
+    # unreproducible number cannot be compared to anything, which is the defect this list exists
+    # to stop, one level up.
+    #
+    # GRADED IN A GATE-SHAPED EXTRACT, NOT IN A WORKING TREE, and the distinction is
+    # load-bearing rather than fastidious: `tests/test_isolation_guards.py` is RED in the shared
+    # tree -- other lanes' test processes leave live-ledger fingerprints behind -- and green in a
+    # clean one. A working-tree green measures several lanes at once, and adding a red file to a
+    # list that runs on EVERY code commit wedges every one of them, which is strictly worse than
+    # the defect being fixed. That is why the `test_seat_guard_daemons.py` line above spent a day
+    # withheld, and it is the reason this batch is graded the way `surgical_land` builds the
+    # extract it gates in: `git archive` -> `_make_standalone_repo` (a real index, HEAD at the
+    # parent, read-only alternates) -> `_overlay_untracked_data`. An index-keyed control fails
+    # closed where there is no index and a data-reading one fails on an absent cache; both would
+    # read as a red that is really a wrong harness. 18 of 18 green, 392 tests, twice.
+    #
+    # WHAT IT COSTS, measured one variable at a time in that extract and stated against the
+    # standing budget (WORKER_FINDING_THE_PUBLISH_COMMITS_HOOK_BUDGET_IS_SPENT_BY_TWO_TEST_FILES):
+    # this list alone was 423 tests / 64.6s; with the eighteen it is 815 tests / 96.6s. The
+    # MARGINAL is +32.0s, within a rounding of the 30.5s the batch costs on its own -- so there is
+    # no fixture sharing to be had here, which is the comfortable assumption and it is false.
+    #
+    # +32.0s is +49% ON THIS LIST'S OWN RUN, and 5.3% of 600s. Both framings are given because the
+    # percentage-of-budget one is the flattering half and quoting only it is how a budget gets
+    # spent. The threshold was fixed in the prereg BEFORE the number was known (add all of them if
+    # the batch comes in under 70s; otherwise drop by cost and say what was dropped), it came in at
+    # 30.5s, and it is not being re-cut now that the answer is visible.
+    #
+    # WHERE A PRUNE SHOULD LOOK, so the next reader can argue it from a number instead of a hunch:
+    # SIX of the eighteen carry 88% of the cost (32.5s of the 37.1s the files take run singly).
+    # The other twelve are 273 tests for ~4.6s combined. Shorten this list from the six.
+    #
+    # WHAT THE BATCH DOES NOT BUY, said here because the flattering version is one line shorter:
+    # all eighteen are green, and none of them had drifted. The two drifts of record are the ones
+    # named above. This is prospective cover for the commit that adds the nineteenth writer, not a
+    # repair of anything currently broken.
+    #
+    # test file                                                      subject roots | tests | secs
+    "tests/architecture/test_a_wait_is_written_one_way.py",  # bg,co,saas,sim,site,tools|6|4.95
+    "tests/architecture/test_the_svt_drift_belief_is_not_wired_to_any_decision.py",  # +docs|9|8.93
+    "tests/background/test_inbound_secret_redaction.py",  # docs|64|0.26
+    "tests/background/test_ntfy_responder.py",  # background,docs|35|1.11
+    "tests/background/test_producer_starvation_draw.py",  # background|31|6.82
+    "tests/background/test_seat_continuity.py",  # .claude,bg,docs,hooks,sim,site|27|0.13
+    "tests/background/test_seat_work_in_hand.py",  # company|16|0.14
+    "tests/background/test_staging_archive_policy.py",  # docs|29|0.20
+    "tests/background/test_the_responder_refuses_to_guess_whose_a_message_is.py",  # docs|20|0.27
+    "tests/background/test_weekly_rhythm.py",  # docs|26|0.43
+    "tests/company/policy/test_policy_field_consumption.py",  # bg,co,saas,sim,tools|15|3.57
+    "tests/simulation/test_account_state_record.py",  # simulation|8|3.89
+    "tests/simulation/test_the_drawn_eac_sets_the_settled_level.py",  # simulation|19|4.38
+    "tests/test_gap_population_selection_class.py",  # docs,tools|10|0.53
+    "tests/test_isolation_guards.py",  # docs|17|0.11
+    "tests/tools/test_brand_compliance.py",  # docs,site|25|0.10
+    "tests/tools/test_credit_bureau_adapter.py",  # company|21|1.21
+    "tests/tools/test_generate_shadow_html.py",  # site|14|0.09
+]
+
+CONTROL_TESTS += CENSUSED_WHOLE_DIRECTORY_SUBJECTS
+
+# THE NINETEENTH (2026-09-10), and it is a separate line from the batch above because it is not a
+# member of it: the batch IS whatever the census returns, and this file is what keeps that true.
+# Its `test_the_strict_census_stays_discharged` re-runs the strict predicate over every tracked
+# test file, so a NEW whole-directory-subject control landing with a stem-only selector is a
+# one-line omission refused at the commit that makes it -- rather than found fourteen days later,
+# which is what this class costs when nothing refuses it. Ten one-at-a-time fixes closed ten
+# instances and stopped none of the next eighteen being written; that is the gap this closes.
+#
+# It could not have been written until this commit. While the pool was non-empty this control would
+# have been RED ON ARRIVAL, naming eighteen files it could not fix -- which is exactly why the turn
+# that measured the pool declined to write it, and the declining was right at the time. The pool is
+# 0 here, so from here it only ever names work the current commit is adding.
+#
+# Its own subject is every test file in the tree, so leaving it stem-selected would make it the
+# next instance of the class it guards. That is asserted in the file rather than trusted to this
+# comment (`test_this_control_is_itself_on_the_always_run_list`).
+#
+# ~3.1s for the whole file (5 tests; 3.01/3.06s measured here), substantially all of it the AST
+# walk of every tracked test file. 0.52% of the 600s budget the lint entry cites.
+#
+# FIVE controls, and a sixth was WRITTEN AND DELETED before the green was believed because it could
+# not fail -- the reason is in the file's own docstring, where the next session will look before
+# writing it again. Poison round, each poison reddening the control that names its defect and green
+# returning on restore: member renamed (line left stale), member line deleted, an unearned file
+# added, this entry commented out, a member re-typed as a literal.
+CONTROL_TESTS.append("tests/tools/test_pre_commit_test_gate_censused_batch.py")
+
 # A staged path under any of these = a code/config change that could break a control or its own
 # tests -> run the gate. Anything else (docs/status, docs/reports, site/data, observability) is
 # pure data and cannot break a control -> skip (keep the loop's commit cadence fast).
