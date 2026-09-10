@@ -74,3 +74,24 @@ background/.ntfy_claimed_ids/
 # second source of truth the atom exists to prevent -- a divergent copy that outlives its sources.
 docs/observability/projections.sqlite
 docs/observability/projections.sqlite.rebuilding
+
+# THE HEAD-RED OBSERVATION (2026-09-10). MACHINE STATE, and the module already said so: it splits
+# OBSERVATION (`record()`, machine-written, every census run) from ACCEPTANCE
+# (`docs/observability/head_red_baseline.json`, "NOTHING WRITES THIS FILE AUTOMATICALLY", written
+# by a person). Only the second is a property of the tree, and it stays tracked. Three properties
+# make the first machine state, each on its own sufficient:
+#   1. a machine writes it, on every run, unattended;
+#   2. `del runs[:-MAX_RUNS_KEPT]` -- it deletes its own history to a rolling 30 rows. A file that
+#      truncates itself is a cache, not a record;
+#   3. it describes ONE machine, at ONE head, on ONE night. A checkout inherits it as established
+#      fact, which is exactly how it got authority it never earned.
+# THE HARM, measured: the sole committed row of the LEGACY tracked path was the 2026-09-02
+# ENOSPC/tmpfs wreck -- 830 red, `OSError x760`, `"passed": null`, a row `record()` would now
+# REFUSE for having no pass count. So every isolated worktree, clean HEAD extract and fresh
+# checkout read `drawable() == 830` while the shared tree correctly read 43.
+# WHY A NEW PATH RATHER THAN `git rm --cached` ON THE OLD ONE, measured before choosing (see
+# `background/head_red_register.py`, LEGACY_OBSERVED_PATH): the shared tree holds both legacy
+# paths DIRTY, and a commit that deletes a path whose worktree copy is dirty makes `git pull`
+# ABORT -- not delete. Every lane's fast-forward would have wedged. Dot-prefixed to match the
+# convention every other machine-state file in this directory already follows.
+docs/observability/.head_red_observed.json

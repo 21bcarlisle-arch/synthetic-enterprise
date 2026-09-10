@@ -530,6 +530,51 @@ def _unprocessed_staging_files() -> list[str]:
         )
 
 
+def _differentiated_staging(staged: list[str]) -> str:
+    """The `unprocessed staging` doorbell line, with the HEAD-red register lifted OUT of the blob.
+
+    THE DEFECT THIS FIXES (measured 2026-09-10). `find_work` renders this list as one
+    comma-joined line of ~139 filenames, every ~2 minutes. `HEAD_RED_REGISTER.md` was the 7th
+    name in it and had been for fourteen days. It was surfaced roughly 3,421 times and drew
+    nobody -- not because any layer was silent (the nightly census ran, named both ratchets by
+    test id, computed their ages and rendered the register, all correctly) but because a bare
+    filename in a 139-name blob carries no count, no age and no severity. Worse, the register is
+    STRUCTURALLY PERMANENT -- its own header says "do not archive it" -- so a never-removable
+    name sat inside a list whose entire read is *a backlog to be drained*, which makes it
+    furniture.
+
+    So the register is not listed as a name here. It leads, as a sentence with its two numbers in
+    it: how many are owed, and how long the worst one has stood. `render()` had already computed
+    the second and dropped it.
+
+    THE UNOBSERVED CASE IS THE ONE THAT MUST NOT BE SILENT, and it is why this does not simply
+    reformat a name that is present. The observation store is machine state and untracked as of
+    2026-09-10, so `drawable()` is empty in any tree no census has run against -- and
+    `staging_rooms` drops the register from the queue entirely when `drawable()` is empty
+    (measured: absent from a 314-item queue, with nothing naming the absence). A bare untrack
+    would therefore have turned a false 830 into a false ZERO. On the machine that runs the
+    nightly census this clause appearing means the census has STOPPED, which is a real alarm and
+    the reason it is reported from OUTSIDE the queue rather than from a name inside it.
+
+    Fail-open on purpose: a doorbell that cannot describe this register must still ring about
+    everything else.
+    """
+    try:
+        from background import head_red_register
+        clause = head_red_register.doorbell_clause()
+        rest = [n for n in staged if n != head_red_register.REGISTER_NAME]
+    except Exception:  # noqa: BLE001
+        return f"unprocessed staging -- {', '.join(staged)}"
+    blob = f"unprocessed staging -- {', '.join(rest)}" if rest else "unprocessed staging -- (none)"
+    if not clause:
+        return blob
+    # OUTSIDE the comma-join, not merely first inside it. The clause contains commas of its own,
+    # so joined into a 132-name comma-separated list it reads as three more list entries — which
+    # is the same anonymity in a longer form. `;` is the separator `find_work` already uses to
+    # mark a clause as a different KIND of thing from the one beside it.
+    return f"{clause}; {blob}"
+
+
 def _is_daemon_marker(name: str) -> bool:
     """True for a routine internal pipeline marker (sim_runner.py/
     process_run_complete.py's own coordination file), never a real
@@ -6051,7 +6096,7 @@ def find_work(resumed_from_pause: bool) -> tuple[str | None, bool]:
         if urgent:
             primary = f"urgent from_rich queued -- {urgent}"
         elif staged:
-            primary = f"unprocessed staging -- {', '.join(staged)}"
+            primary = _differentiated_staging(staged)
             # §2+§4 (DIRECTOR_RULING_WORK_DEFINITION_AND_COHERENCE 2026-07-27): a drawn
             # [DIRECTOR-RULING]/[STEER] is a MINT SOURCE -- instruct the drawn turn to mint one atom
             # per named deliverable from its WORK THIS CREATES block (or flag the §4 missing-block

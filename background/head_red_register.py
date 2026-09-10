@@ -48,7 +48,20 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
-OBSERVED_PATH = PROJECT_DIR / "docs" / "observability" / "head_red_observed.json"
+#: The live observation. UNTRACKED machine state (see `.gitignore`), dot-prefixed to match every
+#: other machine-written file in this directory.
+OBSERVED_PATH = PROJECT_DIR / "docs" / "observability" / ".head_red_observed.json"
+
+#: The tracked path this store used to live at, read-only and on its way out.
+#:
+#: WHY THE PATH MOVED INSTEAD OF BEING UNTRACKED IN PLACE (2026-09-10, measured before choosing).
+#: `git rm --cached` on the old path would have been the obvious move and it wedges every lane.
+#: The shared tree holds BOTH legacy paths dirty (1498/837 and 69/30 lines against HEAD), and a
+#: commit deleting a path whose worktree copy is dirty does not delete it — `git pull` ABORTS with
+#: "your local changes would be overwritten", leaving the tree behind origin. Reproduced end to
+#: end in a scratch clone before this was written. So the old path is left strictly alone: not
+#: deleted, not rewritten, not gitignored. Nothing writes it from now on.
+LEGACY_OBSERVED_PATH = PROJECT_DIR / "docs" / "observability" / "head_red_observed.json"
 REGISTER_NAME = "HEAD_RED_REGISTER.md"
 REGISTER_PATH = PROJECT_DIR / "docs" / "staging" / "reference" / REGISTER_NAME
 
@@ -75,15 +88,49 @@ def load_observed(path: Path | None = None) -> dict:
     noisier than it should be. It can never read as "nothing is red", which is the failure that
     would matter.
     """
-    try:
-        data = json.loads((path or OBSERVED_PATH).read_text())
-    except (OSError, ValueError):
-        return {"runs": [], "tests": {}}
-    if not isinstance(data, dict):
-        return {"runs": [], "tests": {}}
+    empty = {"runs": [], "tests": {}}
+    data = _read_store(path or OBSERVED_PATH)
+    if data is None and path is None:
+        # The legacy tracked path, read-only, and ONLY if it is credible. See `_is_credible`:
+        # the shared tree's copy carries nine completed runs and their ages, and abandoning it
+        # would reset every `runs_red` to 1 — destroying the exact signal the doorbell clause
+        # exists to carry. The wrecked copy every clean checkout has is refused by the same test.
+        legacy = _read_store(LEGACY_OBSERVED_PATH)
+        data = legacy if _is_credible(legacy) else None
+    if data is None:
+        return empty
     data.setdefault("runs", [])
     data.setdefault("tests", {})
     return data
+
+
+def _read_store(path: Path) -> dict | None:
+    try:
+        data = json.loads(Path(path).read_text())
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _is_credible(store: dict | None) -> bool:
+    """True if any run row carries a pass count — the same test `record()` already enforces.
+
+    THE ADMISSION RULE IS NOT A NEW JUDGEMENT, deliberately. `record()` refuses a row without a
+    pass count because "a pass count is the proof that a run happened", and `verdict()` calls such
+    a run UNPROVEN. Reusing that one rule here is what makes the legacy fallback safe in both
+    trees at once, with no flag and no migration step:
+
+      - a clean checkout's legacy copy holds exactly one row, the ENOSPC wreck, `"passed": null`
+        → NOT credible → refused → UNOBSERVED, which is the whole point of this change;
+      - the shared tree's legacy copy holds nine further rows with real pass counts
+        → credible → adopted, ages intact, and it still reports 43 because those later runs
+        already marked the wreck's 830 entries `currently_red: False`.
+
+    One rule, opposite and correct answers in the two trees, and neither is a special case.
+    """
+    if not isinstance(store, dict):
+        return False
+    return any(r.get("passed") is not None for r in (store.get("runs") or []))
 
 
 class UnobservedRunRefused(ValueError):
@@ -183,6 +230,28 @@ def owed(store: dict, accepted) -> list[str]:
                   if row.get("currently_red") and n not in accepted)
 
 
+#: The two states that are both zero and mean opposite things.
+#:
+#: WHY THIS IS A NAMED STATE AND NOT AN `if not runs` INSIDE `render` (2026-09-10). It WAS that,
+#: and only that: `render` had the branch and no other function in this module could tell the two
+#: apart. So the document could say "nothing has been observed" while `drawable()` — which is what
+#: the DRAW and the DOORBELL actually read — returned `[]` for both, indistinguishable from "a
+#: census ran and everything is green". Measured before the change: with the store moved aside,
+#: `drawable()` returned 0 and `staging_rooms.work_queue` dropped the register from a 314-item
+#: queue with nothing naming the absence.
+#:
+#: `runs` emptiness IS the state, deliberately: a store that is missing, a store that is corrupt,
+#: and a store no census has yet written to are all UNOBSERVED, and that is the right answer for
+#: all three. It is the only reading that cannot come out as "HEAD is green" when we do not know.
+OBSERVED = "observed"
+UNOBSERVED = "unobserved"
+
+
+def observation_state(store: dict) -> str:
+    """OBSERVED or UNOBSERVED. Never "green" — that is a different question with a different store."""
+    return OBSERVED if (store.get("runs") or []) else UNOBSERVED
+
+
 def by_module(nodes) -> dict[str, list[str]]:
     grouped: dict[str, list[str]] = {}
     for node in nodes:
@@ -226,8 +295,16 @@ def render(store: dict, accepted, *, now: datetime | None = None) -> str:
     ]
 
     if not runs:
-        lines += ["## No census has run yet", "",
-                  "Nothing has been observed, which is NOT a claim that HEAD is green.", ""]
+        lines += ["## UNOBSERVED — no census has run against this tree", "",
+                  "Nothing has been observed, which is NOT a claim that HEAD is green. This "
+                  "register reports what a census SAW; no census has written a run row here, so "
+                  "it has nothing to report and cannot tell you anything about HEAD either way.",
+                  "",
+                  "This is the expected state in a fresh checkout, a clean HEAD extract or an "
+                  "isolated worktree: the observation store is machine state and is not tracked "
+                  "(see `.gitignore`). Run `tools/head_green_census.py` to observe this tree. On "
+                  "the machine that runs the nightly census, this heading means the census has "
+                  "STOPPED, and that is a real alarm.", ""]
         return "\n".join(lines)
 
     lines += [
@@ -335,6 +412,78 @@ def drawable(root: Path | str | None = None) -> list[str]:
         return owed(load_observed(), accepted)
     except Exception:  # noqa: BLE001
         return []
+
+
+def summary(store: dict | None = None, accepted=None) -> dict:
+    """What a READER needs about this register in one call: state, size, and AGE.
+
+    `render()` already computed `worst` — the longest-standing red's consecutive-run count — and
+    dropped it on the floor at the end of the function. Nothing carried it anywhere. This is the
+    same number, lifted to where a caller can reach it, because the count alone was never the
+    signal: "43 owed" and "43 owed, one of them red for 10 consecutive nightly runs" are different
+    facts and only the second one argues for itself.
+
+    Never raises, for `drawable()`'s reason: a doorbell that cannot describe this register must
+    still ring about everything else.
+    """
+    if accepted is None:
+        try:
+            from background.head_red_baseline import load_baseline
+            accepted = load_baseline()
+        except Exception:  # noqa: BLE001
+            accepted = set()
+    try:
+        store = load_observed() if store is None else store
+        state = observation_state(store)
+        owed_nodes = owed(store, accepted)
+        ranked = oldest_first(store, owed_nodes)
+        runs = store.get("runs") or []
+        last = runs[-1] if runs else {}
+        return {
+            "state": state,
+            "owed": len(owed_nodes),
+            "accepted": len(set(accepted or ())),
+            "worst_runs": int(ranked[0][1].get("runs_red") or 0) if ranked else 0,
+            "worst_node": ranked[0][0] if ranked else None,
+            "worst_since": str(ranked[0][1].get("first_seen") or "")[:10] if ranked else None,
+            "last_at": str(last.get("at") or "")[:10] or None,
+        }
+    except Exception:  # noqa: BLE001
+        return {"state": UNOBSERVED, "owed": 0, "accepted": 0, "worst_runs": 0,
+                "worst_node": None, "worst_since": None, "last_at": None}
+
+
+def doorbell_clause(info: dict | None = None) -> str | None:
+    """One line naming this register's OWED COUNT and its LONGEST-STANDING red, or None.
+
+    WHY (director's standing complaint, and the measurement that found it, 2026-09-10). This
+    register was surfaced roughly 3,421 times and drew nobody. Not because anything was silent —
+    every layer ran and said so nightly, by test id — but because the supervisor's doorbell renders
+    the staging queue as ONE comma-joined line of ~139 filenames, and `HEAD_RED_REGISTER.md` was
+    the 7th name in it, carrying no count, no age and no severity. It is also STRUCTURALLY
+    PERMANENT ("do not archive it"), so a never-removable name sat inside a list whose whole read
+    is *a backlog to be drained*. An item that is always there, in a list that means "these need
+    clearing", is indistinguishable from furniture.
+
+    Returns None when there is nothing to say — an OBSERVED census with nothing owed. That is the
+    ONLY silent case, and it is the one where silence is true.
+    """
+    info = summary() if info is None else info
+    if info["state"] == UNOBSERVED:
+        return ("{}: NO CENSUS HAS RUN AGAINST THIS TREE -- this is NOT a claim that HEAD is "
+                "green, it is the absence of the observation that could tell you".format(
+                    REGISTER_NAME))
+    if not info["owed"]:
+        return None
+    clause = "{}: {} owed".format(REGISTER_NAME, info["owed"])
+    if info["worst_runs"]:
+        clause += ", longest-standing red has stood {} consecutive census run(s)".format(
+            info["worst_runs"])
+        if info["worst_since"]:
+            clause += " since {}".format(info["worst_since"])
+    if info["last_at"]:
+        clause += " (observed {})".format(info["last_at"])
+    return clause
 
 
 def main(argv=None) -> int:
