@@ -324,8 +324,10 @@ CENSUSED_WHOLE_DIRECTORY_SUBJECTS = [
     # 30.5s, and it is not being re-cut now that the answer is visible.
     #
     # WHERE A PRUNE SHOULD LOOK, so the next reader can argue it from a number instead of a hunch:
-    # SIX of the eighteen carry 88% of the cost (32.5s of the 37.1s the files take run singly).
-    # The other twelve are 273 tests for ~4.6s combined. Shorten this list from the six.
+    # SIX of the eighteen carry 88% of the cost (32.5s of the 37.1s the files take run singly), on
+    # 88 of the 392 tests. The other twelve are 304 tests for 4.6s combined -- so cost here does
+    # not track test count at all, and pruning by "how many tests does it run" would take the wrong
+    # twelve. Shorten this list from the six.
     #
     # WHAT THE BATCH DOES NOT BUY, said here because the flattering version is one line shorter:
     # all eighteen are green, and none of them had drifted. The two drifts of record are the ones
