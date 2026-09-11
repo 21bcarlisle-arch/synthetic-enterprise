@@ -111,6 +111,24 @@ probe and the run is **two different seeds, not nondeterminism**: 42 is the meas
   this whole table is contaminated and must be withdrawn. **At the time of filing that re-run had
   not finished.** It is handed on, and until it lands this result should be read as one arm pair,
   not as a reproduced one.
+
+  > **DISCHARGED, 2026-09-11, same turn — the falsifier ran and the arms are clean.** ARM A re-run
+  > ALONE, with no second run in the worktree, returns every figure identical:
+  >
+  > ```
+  >                        concurrent        alone
+  > gross margin           383,688.97   383,688.97   SAME
+  > revenue                676,791.53   676,791.53   SAME
+  > net margin             147,954.26   147,954.26   SAME
+  > bad debt                11,675.76    11,675.76   SAME
+  > final treasury         397,954.26   397,954.26   SAME
+  > campaign (seed 42)   90 / 1195.4  90 / 1195.4   SAME
+  > ```
+  >
+  > To the penny on all five, and the seed-42 campaign cross-check reproduces a third time. The
+  > concurrency caveat above is **withdrawn, not weakened**: the table is a reproduced arm pair.
+  > The argument that nothing reads `book_growth_campaign.json` back within a run was correct, and
+  > it is now a measurement rather than an argument.
 * P6 says nothing about whether the chooser is right. It says the P&L moved and by how much. The
   case for choosing was never a margin case — it was 1.553× on worst-axis KS — and this result is
   the price of that, now measured instead of assumed.
