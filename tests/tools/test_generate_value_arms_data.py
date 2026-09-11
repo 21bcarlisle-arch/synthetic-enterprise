@@ -6909,14 +6909,25 @@ def test_a_control_arm_that_is_not_the_pages_current_run_is_STATED_and_not_left_
 
     `selection_gbp_before` will not match any other figure on the page once a newer run is
     promoted. The reader is owed the reason.
+
+    BOTH CASES ARE CONSTRUCTED, NEITHER IS READ OFF THE TREE (2026-09-11). The `same` leg used to
+    be a bare `_rerun_block()`, whose canonical arm is whatever is on `THREE_ARM_PATH` today. That
+    spelling only asserted anything while the pinned baseline and the canonical run HAPPENED to be
+    the same file -- so it was green for an accidental reason, and on 2026-09-10 a promotion onto
+    the canonical path turned it red on a tree where nothing at all was wrong. That is the shape
+    this project keeps paying for: a control keyed to today's answer goes red when the world moves
+    correctly underneath it. Handing in the pinned baseline AS the canonical run asserts the real
+    property -- when the page's current run IS the control arm, the flag says so -- and it is true
+    under every promotion, including the one that reddened the old spelling.
     """
-    same = _rerun_block()["baseline_is_the_pages_current_run"]
+    same = _rerun_block(canonical=_load(DEPARTURE_BASELINE))[
+        "baseline_is_the_pages_current_run"]
     moved = _rerun_block(canonical=_prices_departures_canonical())[
         "baseline_is_the_pages_current_run"]
     assert same is True, (
-        "the pinned baseline is not recognised as the run the page's own figures come from, on a "
-        "tree where they are byte-identical -- so the flag cannot be True and the branch that "
-        "explains the mismatch would render forever")
+        "the pinned baseline is not recognised as the run the page's own figures come from, when "
+        "it IS that run -- so the flag cannot be True and the branch that explains the mismatch "
+        "would render forever")
     assert moved is False, (
         "a canonical run of a different date still read as the same run, so the page would print "
         "a `before` figure matching nothing else on it and say nothing")
