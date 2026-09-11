@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T14:19:23.605984Z",
+  "generated_at": "2026-09-11T00:50:58.722731Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -10,7 +10,8 @@
     "docs/observability/value_cycle_ab_s1_three_arm_20260908.json",
     "docs/observability/value_cycle_ab_s1_noise_floor_20260909b.json",
     "docs/observability/value_cycle_ab_floor_decomposition.json",
-    "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json"
+    "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
+    "docs/observability/value_cycle_ab_s1_three_arm_20260909c.json"
   ],
   "available": true,
   "contrast_bounds": {
@@ -338,7 +339,7 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "f14de5e63b8a5e18860b65105112c811a1eb53c6",
+    "publishing_tree_commit": "6fa22db2f540b998ee9691be1291bf33b57dff61",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -350,7 +351,7 @@
       "objective_moved_since_the_run": true,
       "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     },
-    "reading": "Produced at 8b846013e and published from f14de5e63 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+    "reading": "Produced at 8b846013e and published from 6fa22db2f -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
   },
   "world_provenance": {
     "available": true,
@@ -643,16 +644,6 @@
           "value_advantage_gbp": 16793.687579999998,
           "level_advantage_gbp": 17129.08821399999,
           "selection_gbp": -335.40063399999053
-        },
-        {
-          "artefact": "value_cycle_ab_s1_three_arm_20260910.json",
-          "generated_at": "2026-09-10T13:00:14Z",
-          "ran_in_world": "39a192ce04c1eda8",
-          "level_share_of_advantage": 1.019971827652637,
-          "the_bigger_leg": "level",
-          "value_advantage_gbp": 16793.687579999998,
-          "level_advantage_gbp": 17129.08821399999,
-          "selection_gbp": -335.40063399999053
         }
       ],
       "later_runs_disagree": null,
@@ -699,7 +690,7 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "f14de5e63b8a5e18860b65105112c811a1eb53c6",
+      "publishing_tree_commit": "6fa22db2f540b998ee9691be1291bf33b57dff61",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -711,7 +702,7 @@
         "objective_moved_since_the_run": true,
         "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
       },
-      "reading": "Produced at 8b846013e and published from f14de5e63 -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+      "reading": "Produced at 8b846013e and published from 6fa22db2f -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     }
   },
   "realised": {
@@ -764,11 +755,11 @@
       "same_supplier": false,
       "dashboard_net_gbp": 147886.78,
       "run_identity": {
-        "dashboard_run_id": "run_output_f14de5e63_20260910T135751Z.json",
-        "dashboard_commit": "f14de5e63",
+        "dashboard_run_id": "run_output_258720283_20260910T005624Z.json",
+        "dashboard_commit": "258720283",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_1d9e0a85c_20260910T120520Z.json",
-        "last_verified_commit": "1d9e0a85c",
+        "last_verified_run_id": "run_output_258720283_20260910T005624Z.json",
+        "last_verified_commit": "258720283",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
@@ -831,6 +822,24 @@
     "max_gbp": 1260.9261999999871,
     "sem_gbp": 603.5002594270147,
     "distinguishable_from_zero": false,
+    "distinguishable_reconciliation": {
+      "question": "Can this book tell which side of zero the value of the choosing falls on? Two rules in this payload answer it and they are stated together here.",
+      "the_floors_rule": {
+        "bar_sems": 2,
+        "says": false,
+        "written_by": "tools/fold_noise_floor_family.py, on the run artefact itself",
+        "key": "error_bar.distinguishable_from_zero"
+      },
+      "the_pages_rule": {
+        "bar_sems": 1.96,
+        "says": false,
+        "written_by": "tools/generate_value_arms_data.py, at publish time",
+        "key": "error_bar.selection_leg.sign_is_stateable"
+      },
+      "agree": true,
+      "sign_stated_despite_disagreement": false,
+      "reading": "The run's own floor artefact asks this at a 2-standard-error bar and the page asks it at 1.96. Both say it cannot."
+    },
     "selection_leg": {
       "available": true,
       "estimate_gbp": -1078.1657011111156,
@@ -893,7 +902,10 @@
     "what_this_is": "The same book, the same world and the same seed, run a second time with ONE thing changed about the company: the renewal objective was made to pay for the departures it causes. It is published here, beside the bar, because the figure it moves is the only one on this page that could be value CREATED.",
     "rerun_artefact": "docs/observability/value_cycle_ab_s1_three_arm_departure_20260909.json",
     "rerun_generated_at": "2026-09-09T21:35:40Z",
+    "baseline_artefact": "docs/observability/value_cycle_ab_s1_three_arm_20260909c.json",
     "baseline_generated_at": "2026-09-09T13:58:12Z",
+    "baseline_is_the_pages_current_run": true,
+    "baseline_note": "THE CONTROL ARM IS PINNED TO A DATED RUN and is not whichever run this page's other figures come from. It is the pre-departure arm this comparison was drawn against; promoting a newer run onto the canonical path changes the page's headline and must not silently change what this experiment was a comparison WITH.",
     "objective_difference": {
       "established": true,
       "how": "`company/pricing/value_based_renewal.py` at each run's OWN producing commit, parsed: whether `expected_value_gbp` takes a `departure_cost_gbp` argument at all. A term the objective cannot be handed cannot reach a price, and the word appears in the baseline tree's prose without reaching its arithmetic.",

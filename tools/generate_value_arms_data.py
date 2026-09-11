@@ -127,6 +127,12 @@ from pathlib import Path
 # artefact's producing commit against whatever the tree had become by assembly time.
 from background.boot_sha import current_head
 from tools.decisions_that_existed import decisions_that_existed
+
+# THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
+# one place this file derives instead of reading, and it derives by calling the same function the
+# run stores -- so the page and the artefact cannot carry two answers to one question. See that
+# function for why the "never recomputed here" rule does not reach a pair-count identity.
+from tools.fold_noise_floor_family import _DISTINGUISHABLE_SEMS
 from tools.inference_claim import (
     CANNOT_TELL,
     cannot_tell_sentence,
@@ -135,11 +141,6 @@ from tools.inference_claim import (
     inference_claim,
 )
 from tools.product_gate_refusal import refusal_breakdown
-
-# THE PRODUCER'S OWN ARITHMETIC, IMPORTED RATHER THAN RESTATED. `_skill_pair_strata` below is the
-# one place this file derives instead of reading, and it derives by calling the same function the
-# run stores -- so the page and the artefact cannot carry two answers to one question. See that
-# function for why the "never recomputed here" rule does not reach a pair-count identity.
 from tools.run_value_cycle_ab import (
     FLOOR_RUN_PEAK_MB,
     _concordance,
@@ -301,6 +302,30 @@ BOUNDING_REDRAW_MODE = "all"
 DEPARTURE_TERM_RERUN_PATH = (
     PROJECT / "docs" / "observability"
     / "value_cycle_ab_s1_three_arm_departure_20260909.json")
+#: THE OTHER ARM OF THE SAME EXPERIMENT, AND IT IS PINNED FOR THE SAME REASON THE RE-RUN IS.
+#:
+#: THE DEFECT THIS EXISTS FOR (2026-09-11). This block's baseline used to be whatever `THREE_ARM_PATH`
+#: happened to hold. That path's own convention is "the run the newest run is PROMOTED to", so on
+#: 2026-09-10 a run drawn at `9cf9d16ed` -- a tree that ALREADY prices departures -- was promoted
+#: onto it, and `objective_difference.established` went from true to false at `cf16f724e` without
+#: anyone touching this module. The page stopped being able to state an effect, correctly and
+#: fail-closed, because the experiment's control arm had been swapped underneath it.
+#:
+#: AN EXPERIMENT'S TWO ARMS ARE BOTH FIXED OR IT IS NOT AN EXPERIMENT. The treatment arm was
+#: already named by a dated path, with a comment saying it must never be promoted to a canonical
+#: one; leaving the baseline on a moving path was the asymmetry. This is the same run the block was
+#: paired with when it last stated an effect -- `2026-09-09T13:58:12Z`, produced at `8b846013e`,
+#: whose `expected_value_gbp` takes no `departure_cost_gbp` at all -- and it is byte-identical to
+#: what `THREE_ARM_PATH` carried then. Nothing about the comparison changes; what changes is that
+#: the next promotion cannot silently withdraw it.
+#:
+#: IT IS NOT THE PAGE'S CURRENT-WORLD RUN AND THE BLOCK SAYS SO. `_departure_term_rerun` compares
+#: this artefact's `generated_at` against the canonical one's and publishes
+#: `baseline_is_the_pages_current_run`, because a reader meeting `selection_gbp_before` beside a
+#: different headline figure is owed the reason rather than left to infer it.
+DEPARTURE_TERM_BASELINE_PATH = (
+    PROJECT / "docs" / "observability"
+    / "value_cycle_ab_s1_three_arm_20260909c.json")
 #: The floor cut into the half a larger settled book buys down and the half it cannot. Read to
 #: decide whether the REMEDY this page names beside its refusal is true; absent, the page says so
 #: rather than defaulting to the encouraging branch.
@@ -1218,6 +1243,81 @@ def _floor_tree_pairing(floor: dict, three_arm: dict) -> dict:
     }
 
 
+def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dict:
+    """The floor's own "can we call the sign" against this page's, on one surface.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-11). Two keys in one payload answer the identical
+    question. `selection_distinguishable_from_zero` is written by the run/fold producer at a
+    2-standard-error bar; `selection_leg.sign_is_stateable` is written here at 1.96. The producer's
+    reached NO sentence on the page -- a grep over `site/` returned the payload key and one door
+    test, no HTML and no JS -- so for as long as the two agreed nothing was wrong and nothing could
+    have noticed when they stopped. At `origin/main` on 2026-09-11 they had already stopped: the
+    feed carried `distinguishable_from_zero: true` (mean -£1,749 at a £613 standard error, 2.85
+    errors from zero) under rendered prose reading "this instrument cannot yet resolve a selection
+    effect ... in either direction". The page told the reader the opposite of what its own payload
+    established.
+
+    WHY BOTH BARS ARE PUBLISHED RATHER THAN ONE OF THEM DELETED. Deleting the producer's key would
+    make this page the only witness to its own rule, and the disagreement it is currently having
+    with the producer would become unobservable instead of resolved. Deleting the page's would put
+    a threshold nobody on this page can see in charge of a sentence on it. So both are stated with
+    their bars beside them, and `agree` is the thing a reader and a control can key to.
+
+    FAIL-CLOSED ON DISAGREEMENT. `sign_stated_despite_disagreement` is the leg that matters: when
+    the two rules differ, the page has two answers and is entitled to neither, so a stated sign is
+    a defect and this block says so in the prose rather than picking the flattering rule.
+
+    KEYED TO THE PROPERTY. Nothing here pins today's answer. The day a larger family pins its mean
+    past both bars, `agree` stays true and the note changes by itself; the day the two bars
+    straddle the family, `agree` goes false and the page says so with nobody editing a string.
+    """
+    floors_says = (floor or {}).get("selection_distinguishable_from_zero")
+    pages_says = (leg or {}).get("sign_is_stateable")
+    # NEITHER IS COERCED TO A BOOLEAN. `None` means that rule could not be applied at all -- a
+    # family too small to have a standard error -- and "could not tell" agreeing with "no" is the
+    # fail-open reading of exactly the state where the reconciliation is worth having.
+    floors_says = floors_says if isinstance(floors_says, bool) else None
+    pages_says = pages_says if isinstance(pages_says, bool) else None
+    agree = None if floors_says is None or pages_says is None else bool(
+        floors_says == pages_says)
+    return {
+        "question": ("Can this book tell which side of zero the value of the choosing falls on? "
+                     "Two rules in this payload answer it and they are stated together here."),
+        "the_floors_rule": {
+            "bar_sems": _DISTINGUISHABLE_SEMS,
+            "says": floors_says,
+            "written_by": "tools/fold_noise_floor_family.py, on the run artefact itself",
+            "key": "error_bar.distinguishable_from_zero",
+        },
+        "the_pages_rule": {
+            "bar_sems": SIGN_NEEDS_SEMS_FROM_ZERO,
+            "says": pages_says,
+            "written_by": "tools/generate_value_arms_data.py, at publish time",
+            "key": "error_bar.selection_leg.sign_is_stateable",
+        },
+        "agree": agree,
+        "sign_stated_despite_disagreement": bool(agree is False and pages_says is True),
+        "reading": (
+            "The run's own floor artefact asks this at a {floor_bar}-standard-error bar and the "
+            "page asks it at {page_bar}. Both say {answer}."
+            .format(floor_bar=_DISTINGUISHABLE_SEMS, page_bar=SIGN_NEEDS_SEMS_FROM_ZERO,
+                    answer=("the side CAN be stated" if pages_says else "it cannot"))
+            if agree else
+            "THESE TWO RULES DISAGREE, so no side is stated. The run's own floor artefact asks "
+            "whether the mean clears {floor_bar} standard errors from zero and says {floor_says}; "
+            "this page asks whether it clears {page_bar} and says {page_says}. A question with two "
+            "answers in one payload is not a result, and the narrower bar is not promoted to the "
+            "answer because it is the encouraging one."
+            .format(floor_bar=_DISTINGUISHABLE_SEMS, floor_says=floors_says,
+                    page_bar=SIGN_NEEDS_SEMS_FROM_ZERO, page_says=pages_says)
+            if agree is False else
+            "One of the two rules could not be applied to this family at all, so the page states "
+            "no side. The floor's rule says {floor_says} and the page's says {page_says}; `null` "
+            "means that rule had nothing to read, which is not the same as saying no."
+            .format(floor_says=floors_says, page_says=pages_says)),
+    }
+
+
 def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
                point_clock: str | None = None) -> dict:
     """The seed spread on the selection leg -- the reason the point estimate cannot be quoted bare.
@@ -1289,6 +1389,16 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         "max_gbp": hi,
         "sem_gbp": _f(floor.get("selection_sem_gbp")),
         "distinguishable_from_zero": bool(floor.get("selection_distinguishable_from_zero")),
+        # THE SAME QUESTION, ANSWERED IN TWO HOMES, AND THE READER WAS GETTING ONLY ONE
+        # (2026-09-11). `distinguishable_from_zero` is the FLOOR ARTEFACT'S own answer to "can we
+        # tell which side of zero this is on", computed by the producer at a 2-standard-error bar
+        # (`fold_noise_floor_family._DISTINGUISHABLE_SEMS`). `selection_leg.sign_is_stateable` is
+        # THIS page's answer to the identical question at `SIGN_NEEDS_SEMS_FROM_ZERO` = 1.96. Both
+        # sat in the payload; only the page's reached a sentence, and nothing anywhere compared
+        # them. A concept with two homes where the reader gets whichever one happens to render is
+        # this project's most expensive recurring shape -- so the two are reconciled here, on the
+        # surface, rather than one of them being deleted for tidiness.
+        "distinguishable_reconciliation": _distinguishable_reconciliation(floor, leg),
         # THE WHOLE PAIRING, and the only place on this page a selection estimate now comes from.
         "selection_leg": leg,
         # WHICH FIGURE THIS IS A BAR ON, published rather than left to the reader to infer from
@@ -1507,8 +1617,8 @@ def _same_book(left: dict, right: dict) -> tuple[bool | None, list]:
     return all(r["baseline"] == r["rerun"] for r in rows), rows
 
 
-def _departure_term_rerun(three_arm: dict | None, floor: dict | None,
-                          rerun: dict | None) -> dict:
+def _departure_term_rerun(baseline: dict | None, floor: dict | None,
+                          rerun: dict | None, canonical: dict | None = None) -> dict:
     """The same book re-run once with the pricing objective changed -- ONE DRAW, beside its spread.
 
     WHY THIS IS ON THE PAGE AT ALL. The selection leg is the only quantity here that could be value
@@ -1528,11 +1638,26 @@ def _departure_term_rerun(three_arm: dict | None, floor: dict | None,
     number: same world, same book, same clock, and a tree difference that is actually the objective.
     Any one unestablished and the figures are still published but the MOVE is not stated -- an
     unknown must never render as a comparison a reader can take.
+
+    BOTH ARMS ARE PINNED (2026-09-11). `baseline` is `DEPARTURE_TERM_BASELINE_PATH`, not the
+    canonical run -- see that constant for the promotion that withdrew this block's claim without
+    anyone editing it. `canonical` is passed only so the block can STATE whether its baseline is
+    also the page's current-world run; nothing is computed from it.
     """
     if not isinstance(rerun, dict) or not rerun:
         return {"available": False,
                 "reason": ("no re-run of these arms under a changed objective was readable, so "
                            "this page states one draw of the choosing leg and says so")}
+    # THE CONTROL ARM IS AS REQUIRED AS THE TREATMENT ARM. Falling back to the canonical run here
+    # would restore the exact defect the pinning exists for, quietly, on the one input that makes
+    # it happen -- so an unreadable baseline is a refusal and not a substitution.
+    if not isinstance(baseline, dict) or not baseline:
+        return {"available": False,
+                "reason": ("the pinned pre-departure baseline arm ({}) could not be read, and the "
+                           "page's current run is NOT substituted for it: a comparison whose "
+                           "control arm moved is not the experiment this block "
+                           "publishes".format(_cited_path(DEPARTURE_TERM_BASELINE_PATH)))}
+    three_arm = baseline
     base_split = (three_arm or {}).get("level_vs_selection") or {}
     rerun_split = rerun.get("level_vs_selection") or {}
     before, after = _f(base_split.get("selection_gbp")), _f(rerun_split.get("selection_gbp"))
@@ -1607,7 +1732,22 @@ def _departure_term_rerun(three_arm: dict | None, floor: dict | None,
             "experiment: read the two figures as two draws of one quantity."),
         "rerun_artefact": _cited_path(DEPARTURE_TERM_RERUN_PATH),
         "rerun_generated_at": rerun.get("generated_at"),
+        # WHICH ARTEFACT THE CONTROL ARM IS, cited the same way the treatment arm is. Until
+        # 2026-09-11 the baseline was named only by a timestamp, so a reader could not tell that
+        # it was a different FILE from the one the page's headline comes from.
+        "baseline_artefact": _cited_path(DEPARTURE_TERM_BASELINE_PATH),
         "baseline_generated_at": (three_arm or {}).get("generated_at"),
+        # AND WHETHER IT IS ALSO THE PAGE'S CURRENT RUN. `None` when the canonical artefact could
+        # not be read -- an unknown here must not render as "yes, the same run", which is the
+        # comfortable branch and the one that needs no explanation.
+        "baseline_is_the_pages_current_run": (
+            None if not isinstance(canonical, dict) or not canonical.get("generated_at")
+            else bool(canonical.get("generated_at") == (three_arm or {}).get("generated_at"))),
+        "baseline_note": (
+            "THE CONTROL ARM IS PINNED TO A DATED RUN and is not whichever run this page's other "
+            "figures come from. It is the pre-departure arm this comparison was drawn against; "
+            "promoting a newer run onto the canonical path changes the page's headline and must "
+            "not silently change what this experiment was a comparison WITH."),
         "objective_difference": {
             "established": objective_established,
             "how": (
@@ -5374,16 +5514,34 @@ def _independent_grading_today(three_arm: dict | None, control_priced) -> dict:
                 "than a run nobody has done -- and it costs no extra pass, which makes it cheaper "
                 "than every figure in `what_would_settle_it` beside it."),
         }
+    population = graded.get("auc_population") or {}
+    world = ((three_arm or {}).get("world_identity") or {}).get("digest")
+    bound = _auc_null(population.get("retained"), population.get("left"),
+                      graded.get("discrimination_auc"), measured_in_world=world)
     return {
         "is_it_available_today": True,
         "graded_against_the_control_arms_outcomes": {
             "discrimination_auc": graded.get("discrimination_auc"),
-            "auc_population": graded.get("auc_population"),
+            "auc_population": population,
             "scored_decisions": graded.get("priced_and_scored"),
             "population_terms_absent_from_the_control_world": graded.get(
                 "population_terms_absent_from_the_control_world"),
             "scored_share_of_priced": graded.get("scored_share_of_priced"),
+            # THE BOUND ITS SAMPLE SIZE EARNS, from the same enumerator every other rank
+            # statistic on this page is weighed against. This block was one field away from
+            # publishing a bare AUC beside a withdrawal -- the exact shape `_auc_null`'s own
+            # docstring records this file paying for once already ("THE FIGURE WENT OUT
+            # UNBOUNDED"), and it would have arrived the moment a run first wrote the field.
+            "null_bound": bound,
+            "cannot_tell": cannot_tell_sentence(
+                subject="whether the belief ranks anyone once the arm's own price is out of "
+                        "the outcome",
+                observed=graded.get("discrimination_auc"),
+                null_low=bound.get("null_95_low"), null_high=bound.get("null_95_high"),
+                n=population.get("left"), unit="departures"),
         },
+        "read_it_beside_the_value_arm_figure": _the_pair_is_the_reading(three_arm, graded, bound,
+                                                                       world),
         "what_is_still_not_independent": (
             "THE POPULATION. Membership is the renewals the VALUE arm priced -- fixed before any "
             "outcome is read, so it is not the post-treatment subset refused above, but a "
@@ -5391,6 +5549,73 @@ def _independent_grading_today(three_arm: dict | None, control_priced) -> dict:
             "that set is still conditioned on value-arm survival. "
             "`population_terms_absent_from_the_control_world` counts that residue; it is not an "
             "estimate of the bias it leaves."),
+    }
+
+
+def _the_pair_is_the_reading(three_arm: dict | None, graded: dict, bound: dict,
+                             world: str | None) -> dict:
+    """Both gradings of ONE belief, side by side -- and no test of the distance between them.
+
+    THE PRODUCER SAYS SO IN ITS OWN WORDS: "READ THIS BESIDE `belief_vs_outcome`, never instead
+    of it. That one grades the belief against an outcome the belief's own price helped cause;
+    this one grades the same belief against an outcome it did not." A page that publishes the
+    independent figure ALONE has not closed the gap the withdrawal names -- it has moved it,
+    because the whole content of the new figure is a comparison and only one side of it renders.
+
+    WHY NO DIFFERENCE IS PUBLISHED, and this is the part that had to be decided rather than
+    computed. The two AUCs are the same belief against two outcome vectors over two heavily
+    OVERLAPPING populations -- the same (account, term_start) rows, minus whichever ones the
+    other world never reached. `_auc_null` bounds each figure against a signal carrying no
+    information; nothing on this page bounds their DIFFERENCE, because the two statistics are
+    not independent and the combinatorial null that makes each one readable says nothing about
+    a contrast between them. Differencing two correctly-bounded figures and reading the result
+    is this project's most expensive recurring shape. So both figures render with both bounds,
+    the reader is told what would be needed to call them apart, and no verdict is minted.
+
+    KEYED TO THE PROPERTY. Nothing here asserts the two figures are close, or far, or on the
+    same side of their nulls. It asserts the pair is published together with both bounds. The
+    day a run makes them diverge, the page carries the divergence with nobody editing a string;
+    the day they agree, it carries that.
+    """
+    value_side = (three_arm or {}).get("belief_vs_outcome") or {}
+    value_population = value_side.get("auc_population") or {}
+    value_bound = _auc_null(value_population.get("retained"), value_population.get("left"),
+                            value_side.get("discrimination_auc"), measured_in_world=world)
+    return {
+        "what_this_is": (
+            "the SAME `believed_p_retain`, graded twice: once against whether the household left "
+            "under the arm that set the price, and once against whether it left under the "
+            "control's flat level. Neither figure is the reading on its own."),
+        "graded_against_the_arms_own_outcomes": {
+            "discrimination_auc": value_side.get("discrimination_auc"),
+            "auc_population": value_population,
+            "null_bound": value_bound,
+            "what_the_outcome_is": (
+                "whether the household left UNDER THE VALUE ARM -- an outcome the belief's own "
+                "price helped cause, which is the defect the withdrawal above names"),
+        },
+        "graded_against_the_control_arms_outcomes": {
+            "discrimination_auc": graded.get("discrimination_auc"),
+            "auc_population": graded.get("auc_population") or {},
+            "null_bound": bound,
+            "what_the_outcome_is": (
+                "whether the same household left UNDER THE CONTROL ARM -- a churn roll at a flat "
+                "level no per-household belief set"),
+        },
+        "no_test_of_the_distance_between_them_is_published": (
+            "The two figures share most of their rows and grade one belief, so they are not two "
+            "independent measurements and their difference has no null on this page. Each is "
+            "published against what a no-information signal reaches on ITS OWN population; "
+            "neither bound licenses a reading of the gap. Calling them apart would need a "
+            "distribution for the paired contrast -- a permutation over which outcome vector "
+            "each row is scored against, which no run on this book has produced."),
+        "how_to_read_the_pair": (
+            "Take each figure against its own bound first. Where both sit inside their nulls, "
+            "this book cannot tell in either direction and the withdrawal above stands on the "
+            "independence question too. Where the independent figure clears its null, the "
+            "belief carries information about who leaves that the arm's own price did not "
+            "manufacture -- which is the claim the page withdrew, earned. The POPULATION caveat "
+            "survives either way: see `what_is_still_not_independent`."),
     }
 
 
@@ -8385,7 +8610,8 @@ def _world_departure_level() -> dict:
 def build(three_arm: dict | None, floor: dict | None,
           decomposition: dict | None = None,
           current_three_arm: dict | None = None, current_floor: dict | None = None,
-          departure_rerun: dict | None = None) -> dict:
+          departure_rerun: dict | None = None,
+          departure_baseline: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     base = {
         "generated_at": now,
@@ -8406,7 +8632,8 @@ def build(three_arm: dict | None, floor: dict | None,
         # citation field is not worth an exception on any input it can be handed.
         "sources": [_cited_path(p) for p in (
             THREE_ARM_PATH, NOISE_FLOOR_PATH, CURRENT_WORLD_THREE_ARM_PATH,
-            CURRENT_WORLD_NOISE_FLOOR_PATH, DECOMPOSITION_PATH, DEPARTURE_TERM_RERUN_PATH)],
+            CURRENT_WORLD_NOISE_FLOOR_PATH, DECOMPOSITION_PATH, DEPARTURE_TERM_RERUN_PATH,
+            DEPARTURE_TERM_BASELINE_PATH)],
     }
     if not isinstance(three_arm, dict) or not three_arm:
         return dict(base, available=False, reason=(
@@ -8535,7 +8762,11 @@ def build(three_arm: dict | None, floor: dict | None,
         # spread from the one the page publishes is the two-figures-from-two-worlds shape, and this
         # block's whole claim is that the move is smaller than THAT bar. See
         # `_departure_term_rerun`.
-        departure_term_rerun=_departure_term_rerun(three_arm, floor, departure_rerun),
+        # PINNED BASELINE, NOT `three_arm` (2026-09-11) -- `three_arm` is passed only as
+        # `canonical`, so the block can say whether the two are the same run. See
+        # `DEPARTURE_TERM_BASELINE_PATH`.
+        departure_term_rerun=_departure_term_rerun(
+            departure_baseline, floor, departure_rerun, canonical=three_arm),
         # THE BOUND ON THE WHOLE COMPARISON, and it is published in the same payload as the
         # figures it bounds so the two can never be deployed apart. Probed from the world's own
         # reference function rather than written down -- see `_market_reaction`.
@@ -8975,7 +9206,8 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              decomposition_path: Path | None = None,
              current_three_arm_path: Path | None = None,
              current_noise_floor_path: Path | None = None,
-             departure_rerun_path: Path | None = None) -> dict:
+             departure_rerun_path: Path | None = None,
+             departure_baseline_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
                  _read(DECOMPOSITION_PATH if decomposition_path is None
@@ -8989,7 +9221,9 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
                  _read(CURRENT_WORLD_NOISE_FLOOR_PATH if current_noise_floor_path is None
                        else current_noise_floor_path),
                  _read(DEPARTURE_TERM_RERUN_PATH if departure_rerun_path is None
-                       else departure_rerun_path))
+                       else departure_rerun_path),
+                 _read(DEPARTURE_TERM_BASELINE_PATH if departure_baseline_path is None
+                       else departure_baseline_path))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")

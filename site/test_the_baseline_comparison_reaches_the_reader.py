@@ -6038,3 +6038,108 @@ def test_MUTATION_a_leg_the_feed_prices_no_remedy_for_renders_the_reason_not_a_s
     assert "NO DIRECTION IS STATED FOR THIS LEG" in absent_text, (
         "dropping the remedy took the refusal with it, so the two are one block and the page "
         "loses its own verdict when the remedy is unavailable")
+
+
+# ---------------------------------------------------------------------------------------------
+# THE SECOND DRAW'S CONTROL ARM, AND THE SECOND RULE FOR CALLING A SIGN (2026-09-11)
+#
+# Both of these are "the feed holds it and no sentence carries it" defects, and they are the same
+# defect twice. `departure_term_rerun`'s baseline used to be whatever run was last promoted onto
+# the canonical path, so a promotion on 2026-09-10 withdrew the page's one EXPERIMENT without
+# anyone editing a module. `error_bar.distinguishable_from_zero` -- the run artefact's own answer
+# to the question this whole panel exists to settle -- reached no sentence anywhere on the site: a
+# grep over `site/` returned the payload key and one door test.
+#
+# R15 -- the mutations, each run and reverted:
+#   * delete the `baseline_is_the_pages_current_run === false` branch from `departureRerun` ->
+#     `test_MUTATION_a_baseline_that_is_not_the_pages_current_run_SAYS_SO` reds.
+#   * render that branch unconditionally -> `test_the_live_page_does_NOT_disclaim_a_baseline...`
+#     reds (a caveat that always renders is a caveat a reader stops reading).
+#   * delete the `distinguishable_reconciliation` render -> both reconciliation tests below red.
+#   * render the disagreement in `--muted` rather than `--amber` ->
+#     `test_MUTATION_the_two_rules_disagreeing_renders_LOUDLY` reds.
+# ---------------------------------------------------------------------------------------------
+
+
+def test_the_runs_own_answer_to_which_side_of_zero_reaches_the_reader(live):
+    """The payload held two answers to one question and rendered one of them.
+
+    Fires on: dropping the reconciliation render. Keyed to the feed's own sentence, so it holds at
+    whatever the next floor reads and whichever way the two rules fall.
+    """
+    feed = _live_feed()
+    block = (feed.get("error_bar") or {}).get("distinguishable_reconciliation")
+    if not block:
+        pytest.fail("the published feed carries no reconciliation of the two rules that answer "
+                    "'can we call the side', so `distinguishable_from_zero` is in the payload and "
+                    "in no sentence -- the state this control was written to end")
+    rendered = live["arms-errorbar"]
+    assert _door_prose(block["reading"]) in rendered, (
+        "the run artefact's own answer reaches no sentence on the page")
+    assert str(block["the_floors_rule"]["bar_sems"]) in rendered, (
+        "the floor's bar does not reach the reader, so the two answers cannot be told apart "
+        "even when both are printed")
+
+
+def test_MUTATION_the_two_rules_disagreeing_renders_LOUDLY_and_states_no_side():
+    """R15 reachability on the branch that matters, and it is not hypothetical: `origin/main`
+    carried `distinguishable_from_zero: true` under prose reading 'cannot yet resolve ... in
+    either direction' on the day this landed.
+
+    Amber, not muted: the disagreement is the one state in which the page is entitled to neither
+    answer, and a reader skims grey.
+    """
+    feed = _live_feed()
+    eb = dict(feed["error_bar"])
+    eb["distinguishable_reconciliation"] = dict(
+        eb["distinguishable_reconciliation"],
+        agree=False,
+        reading="THESE TWO RULES DISAGREE, so no side is stated on this page.")
+    feed["error_bar"] = eb
+    raw = _render(feed, raw=True)["arms-errorbar"]
+    assert "THESE TWO RULES DISAGREE" in raw, (
+        "a disagreement between the run's rule and the page's rendered nothing at all")
+    assert "var(--amber)" in raw.split("THESE TWO RULES DISAGREE")[0][-200:], (
+        "the disagreement renders in the page's ordinary prose colour, so the one sentence saying "
+        "this figure has two answers reads like the rest of the paragraph")
+
+
+def test_MUTATION_a_baseline_that_is_not_the_pages_current_run_SAYS_SO():
+    """The reader must not meet a `before` figure that matches nothing else on the page in silence.
+
+    This is the state `origin/main` is in: its canonical run is the 2026-09-10 one and this
+    experiment's control arm is the pinned 2026-09-09 pre-departure run. On THIS base the two are
+    the same run, so the branch is entered here by feeding the flag the value origin's feed has.
+    """
+    feed = _live_feed()
+    block = feed.get("departure_term_rerun")
+    if not block or not block.get("available"):
+        pytest.skip("no second-draw block is published; its own tests own that branch")
+    feed["departure_term_rerun"] = dict(
+        block,
+        baseline_is_the_pages_current_run=False,
+        baseline_generated_at="2026-09-09T13:58:12Z",
+        baseline_artefact="docs/observability/value_cycle_ab_s1_three_arm_20260909c.json",
+        baseline_note="THE CONTROL ARM IS PINNED TO A DATED RUN -- and here is why.")
+    rendered = _render(feed)["arms-errorbar"]
+    assert "THE CONTROL ARM IS PINNED TO A DATED RUN" in rendered, (
+        "the page printed a baseline figure drawn from a different run than every other figure "
+        "on it, and said nothing")
+    assert "2026-09-09T13:58:12Z" in rendered, (
+        "the disclaimer does not name WHICH run the baseline is, so a reader cannot check it")
+    assert "value_cycle_ab_s1_three_arm_20260909c.json" in rendered, (
+        "the disclaimer names no artefact, so the claim cannot be followed to a file")
+
+
+def test_the_live_page_does_NOT_disclaim_a_baseline_that_IS_its_current_run(live):
+    """The other half of the partition. A caveat that renders in every state is a caveat that
+    carries no information and that a reader learns to skip -- and it would hide the day the
+    baseline really does diverge."""
+    feed = _live_feed()
+    block = feed.get("departure_term_rerun") or {}
+    if block.get("baseline_is_the_pages_current_run") is not True:
+        pytest.skip("on this publish the pinned baseline is NOT the page's current run, so the "
+                    "disclaimer is correct to render -- the mutation test above owns that branch")
+    assert "is NOT the run this page's other figures are drawn from" not in live["arms-errorbar"], (
+        "the page disclaims a divergence between its baseline and its current run on a publish "
+        "where they are the same run")

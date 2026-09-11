@@ -1340,6 +1340,21 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + ((r.objective_difference && r.objective_difference.unavailable_because)
           ? '<span style="display:block;margin-top:6px;color:var(--amber);">'
             + prose(r.objective_difference.unavailable_because) + "</span>" : "")
+      /* WHICH RUN THE "BEFORE" FIGURE IS, when it is not the run the rest of this page states.
+         Both arms of this comparison are pinned to dated artefacts (2026-09-11); the page's
+         headline follows whatever is promoted to the canonical path. While those are the same run
+         nothing needs saying, and the moment a promotion moves the headline the reader meets a
+         `selection_gbp_before` that matches no other figure on the page. Saying so is cheaper than
+         the alternative the page already paid for once: pointing this block's baseline AT the
+         canonical path, where a promotion silently withdrew the experiment. */
+      + (r.baseline_is_the_pages_current_run === false
+          ? '<span style="display:block;margin-top:6px;color:var(--muted);">'
+            + prose(r.baseline_note || "")
+            + " The baseline arm here is the run of "
+            + esc(r.baseline_generated_at)
+            + " (<code>" + esc(r.baseline_artefact) + "</code>), which is NOT the run this page's "
+            + "other figures are drawn from.</span>"
+          : "")
       + "</span>";
   }
 
@@ -1811,6 +1826,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
              before the ones that qualify the bar. See `departureRerun`. */
           + departureRerun(d.departure_term_rerun)
           + prose(eb.what_was_re_drawn) + " " + prose(eb.reading)
+          /* THE OTHER RULE THAT ANSWERS THE SAME QUESTION (2026-09-11). `eb.reading` above is this
+             page's answer to "can we call the side"; `eb.distinguishable_from_zero` is the run
+             artefact's own answer at a different bar, and until this line it reached no sentence
+             anywhere on the site -- a grep over `site/` returned the payload key and one door
+             test. Two answers in one payload with only one of them rendered is how a page comes to
+             state the opposite of what it holds, which is what `origin/main` was doing on the day
+             this landed. Amber when they disagree, because that is the state in which the page is
+             entitled to neither answer. See `_distinguishable_reconciliation`. */
+          + (eb.distinguishable_reconciliation
+              ? '<span style="display:block;margin-top:8px;'
+                + (eb.distinguishable_reconciliation.agree === true
+                    ? 'color:var(--muted);' : 'color:var(--amber);')
+                + '">' + prose(eb.distinguishable_reconciliation.reading) + "</span>"
+              : "")
           + (eb.staleness_caveat
               ? '<span style="display:block;margin-top:8px;color:var(--amber);">'
                 + prose(eb.staleness_caveat) + "</span>"

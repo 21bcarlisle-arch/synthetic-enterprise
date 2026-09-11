@@ -6241,7 +6241,13 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
               # THE SIXTH, added 2026-09-10 with the second draw of the choosing leg. `generate`
               # opens it every publish, so a reader checking the move against the artefacts named
               # has to be sent to it -- and this list is the assertion, not a copy of the code.
-              gva.DEPARTURE_TERM_RERUN_PATH]
+              gva.DEPARTURE_TERM_RERUN_PATH,
+              # AND THE SEVENTH, added 2026-09-11: the second draw's own CONTROL ARM. It needed no
+              # entry for as long as the baseline WAS `THREE_ARM_PATH`, already first in this list,
+              # which is the same reason nothing noticed when a promotion swapped it. A reader
+              # checking `selection_gbp_before` against the artefacts named would otherwise be sent
+              # to whichever run was promoted last -- which is the figure it is NOT.
+              gva.DEPARTURE_TERM_BASELINE_PATH]
     assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
         "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
         "named would open the wrong files".format(cited, [p.name for p in opened]))
@@ -6660,11 +6666,18 @@ DEPARTURE_RERUN = (
     / "value_cycle_ab_s1_three_arm_departure_20260909.json")
 
 
-def _rerun_block(rerun=None, floor=None, three_arm=None) -> dict:
+#: THE PINNED CONTROL ARM of the departure experiment. Both arms are dated artefacts since
+#: 2026-09-11; see `gva.DEPARTURE_TERM_BASELINE_PATH` for the promotion that withdrew this block's
+#: claim while nobody edited the module.
+DEPARTURE_BASELINE = gva.DEPARTURE_TERM_BASELINE_PATH
+
+
+def _rerun_block(rerun=None, floor=None, baseline=None, canonical=None) -> dict:
     return gva._departure_term_rerun(
-        _load(THREE_ARM) if three_arm is None else three_arm,
+        _load(DEPARTURE_BASELINE) if baseline is None else baseline,
         _load(NOISE_FLOOR) if floor is None else floor,
-        _load(DEPARTURE_RERUN) if rerun is None else rerun)
+        _load(DEPARTURE_RERUN) if rerun is None else rerun,
+        canonical=_load(THREE_ARM) if canonical is None else canonical)
 
 
 def test_the_second_draw_is_placed_against_THE_SAME_spread_the_page_publishes():
@@ -6811,3 +6824,208 @@ def test_a_rerun_whose_ranking_LEAVES_the_null_is_read_differently():
         "a ranking that cleared the no-information interval still read as 'we cannot tell'")
     assert "cannot tell" in _rerun_block()["method_skill"]["reading"], (
         "the real pair's reading no longer withholds the verdict it must withhold")
+
+
+# ---------------------------------------------------------------------------------------------
+# THE EXPERIMENT'S CONTROL ARM IS PINNED (2026-09-11)
+#
+# THE DEFECT THESE EXIST FOR. This block's baseline used to be whatever `THREE_ARM_PATH` held. On
+# 2026-09-10 a run drawn at `9cf9d16ed` -- a tree that already prices departures -- was promoted
+# onto that path, and `objective_difference.established` went from true to false at `cf16f724e`.
+# The producer failed closed and said so, so nothing false was published; what was lost is that the
+# page could no longer state an EFFECT, and no module had changed. An experiment whose control arm
+# is a moving pointer is a second draw with extra steps.
+#
+# R15 -- the mutations, each run and reverted:
+#   * pass the canonical run as `baseline` (the pre-2026-09-11 wiring) with a departure-pricing
+#     canonical -> `test_the_control_arm_is_PINNED...` reds, `established` goes False.
+#   * fall back to `canonical` when `baseline` is unreadable ->
+#     `test_an_unreadable_control_arm_REFUSES...` reds.
+#   * default `baseline_is_the_pages_current_run` to True when the canonical cannot be read ->
+#     `test_an_unreadable_canonical_run_leaves_the_sameness_UNKNOWN...` reds.
+# ---------------------------------------------------------------------------------------------
+
+
+def _prices_departures_canonical() -> dict:
+    """A stand-in for the promotion that caused this: a canonical run under a LATER tree.
+
+    Built from the re-run artefact, whose producing commit is the one that introduced the
+    departure term -- so `_objective_pays_for_departures` reads True off it for the same reason it
+    read True off `9cf9d16ed`. The point is the WIRING, not this particular commit.
+    """
+    canonical = copy.deepcopy(_load(DEPARTURE_RERUN))
+    canonical["generated_at"] = "2026-09-10T14:04:08Z"
+    return canonical
+
+
+def test_the_control_arm_is_PINNED_so_a_promotion_cannot_withdraw_the_experiment():
+    """The null rung AND the regression: the effect is stateable under a moved canonical path.
+
+    Fires on: routing this block's baseline back to the canonical run. Do that and the assertion
+    below goes red at exactly the moment the real defect occurred -- a promotion, with no edit to
+    this module.
+    """
+    moved = _prices_departures_canonical()
+    block = _rerun_block(canonical=moved)
+    assert block["available"] and block["comparable"], (
+        "the pinned pair cannot be compared, so everything below is vacuous: {}".format(
+            block.get("not_comparable_because")))
+    assert block["objective_difference"]["established"] is True, (
+        "a run promoted onto the canonical path withdrew the experiment's claim: {}".format(
+            block["objective_difference"]["unavailable_because"]))
+    assert block["objective_difference"]["baseline_objective_pays_for_departures"] is False, (
+        "the control arm is not a tree without the departure term, so this pair is two draws")
+
+    # THE SAME CALL WIRED THE OLD WAY, so the assertion above is proven to be able to fail rather
+    # than asserted to be. Without this the test passes just as happily on a module that pins
+    # nothing -- which is the state it was written to end.
+    old_wiring = gva._departure_term_rerun(
+        moved, _load(NOISE_FLOOR), _load(DEPARTURE_RERUN), canonical=moved)
+    assert old_wiring["objective_difference"]["established"] is False, (
+        "the pre-pinning wiring still establishes the objective difference, so this test would "
+        "pass with the defect present and proves nothing")
+
+
+def test_an_unreadable_control_arm_REFUSES_rather_than_substituting_the_canonical_run():
+    """R15, and it is the fail-open leg rather than the fail-silent one.
+
+    A `baseline or canonical` fallback would look like robustness and would restore the exact
+    defect on the one input that triggers it. The refusal must name the artefact it wanted.
+    """
+    block = _rerun_block(baseline=None if False else {}, canonical=_prices_departures_canonical())
+    assert block["available"] is False, (
+        "an unreadable control arm published a comparison anyway, so the page states a move "
+        "between two runs one of which was never read")
+    assert "value_cycle_ab_s1_three_arm_20260909c.json" in block["reason"], (
+        "the refusal does not name the artefact it could not read, so nobody can act on it")
+    assert "NOT substituted" in block["reason"], (
+        "the refusal does not say that the canonical run was declined, which is the whole "
+        "content of this branch")
+
+
+def test_a_control_arm_that_is_not_the_pages_current_run_is_STATED_and_not_left_to_inference():
+    """Both branches of the partition, in one control, because a flag that is always True is a
+    flag nobody would notice going wrong.
+
+    `selection_gbp_before` will not match any other figure on the page once a newer run is
+    promoted. The reader is owed the reason.
+    """
+    same = _rerun_block()["baseline_is_the_pages_current_run"]
+    moved = _rerun_block(canonical=_prices_departures_canonical())[
+        "baseline_is_the_pages_current_run"]
+    assert same is True, (
+        "the pinned baseline is not recognised as the run the page's own figures come from, on a "
+        "tree where they are byte-identical -- so the flag cannot be True and the branch that "
+        "explains the mismatch would render forever")
+    assert moved is False, (
+        "a canonical run of a different date still read as the same run, so the page would print "
+        "a `before` figure matching nothing else on it and say nothing")
+
+
+def test_an_unreadable_canonical_run_leaves_the_sameness_UNKNOWN_not_comfortable():
+    """`None`, not True. "We could not check" must never render as "yes, the same run" -- that is
+    the branch that needs no explanation, which is exactly why it is the dangerous default."""
+    assert _rerun_block(canonical={})["baseline_is_the_pages_current_run"] is None, (
+        "an unreadable canonical run read as agreement with the pinned baseline")
+
+
+# ---------------------------------------------------------------------------------------------
+# ONE QUESTION, TWO RULES, AND THE READER WAS GETTING ONE OF THEM (2026-09-11)
+#
+# THE DEFECT THESE EXIST FOR. `error_bar.distinguishable_from_zero` is the run artefact's own
+# answer to "can we tell which side of zero the choosing falls on", at a 2-SEM bar.
+# `error_bar.selection_leg.sign_is_stateable` is this page's answer to the identical question at
+# 1.96. Both were in the payload; only the page's reached a sentence; nothing compared them. At
+# `origin/main` on 2026-09-11 the feed carried `distinguishable_from_zero: true` under rendered
+# prose reading "this instrument cannot yet resolve a selection effect ... in either direction".
+#
+# R15 -- the mutations, each run and reverted:
+#   * coerce a `None` from either rule to False -> `test_an_INAPPLICABLE_rule...` reds.
+#   * return `agree: True` whenever both are falsy -> `test_the_two_rules_DISAGREEING...` reds.
+#   * read `_DISTINGUISHABLE_SEMS` as a literal `1.96` here -> `test_the_two_bars_are_READ_from...`
+#     reds (this is the mutation that makes the whole block tautological).
+# ---------------------------------------------------------------------------------------------
+
+
+def _reconciliation(floor=None, leg=None) -> dict:
+    return gva._distinguishable_reconciliation(floor, leg)
+
+
+def test_the_two_bars_are_READ_from_their_own_modules_and_not_retyped_here():
+    """A reconciliation of two rules that quotes one bar twice agrees with itself by construction.
+
+    Fires on: replacing either `bar_sems` with a literal. The two bars differ today (2 vs 1.96),
+    which is the only reason this block is worth having -- and the day someone harmonises them the
+    assertion below says so rather than going quietly tautological.
+    """
+    from tools.fold_noise_floor_family import _DISTINGUISHABLE_SEMS as producer_bar
+    block = _reconciliation({"selection_distinguishable_from_zero": True},
+                            {"sign_is_stateable": True})
+    assert block["the_floors_rule"]["bar_sems"] == producer_bar, (
+        "the floor's bar on this page is not the bar the producer actually applies")
+    assert block["the_pages_rule"]["bar_sems"] == gva.SIGN_NEEDS_SEMS_FROM_ZERO, (
+        "the page's bar is not the constant the page's own rule uses")
+    assert block["the_floors_rule"]["bar_sems"] != block["the_pages_rule"]["bar_sems"], (
+        "the two rules now share a bar, so this reconciliation can no longer disagree with "
+        "itself and the disagreement branch below is unreachable -- delete it or restate why "
+        "two rules are still kept")
+
+
+def test_the_two_rules_AGREEING_reads_as_one_answer_with_both_bars_on_it():
+    for says in (True, False):
+        block = _reconciliation({"selection_distinguishable_from_zero": says},
+                                {"sign_is_stateable": says})
+        assert block["agree"] is True
+        assert block["sign_stated_despite_disagreement"] is False
+        assert "Both say" in block["reading"], (
+            "an agreement does not read as one answer, so a reader cannot tell the two rules "
+            "were even compared")
+
+
+def test_the_two_rules_DISAGREEING_withholds_the_side_and_says_which_said_what():
+    """R15 reachability: the branch this block exists for must be enterable, and it is the branch
+    `origin/main` was actually in. Both directions of the disagreement, because a check that only
+    catches "the floor is bolder" is half a control."""
+    bolder_floor = _reconciliation({"selection_distinguishable_from_zero": True},
+                                   {"sign_is_stateable": False})
+    bolder_page = _reconciliation({"selection_distinguishable_from_zero": False},
+                                  {"sign_is_stateable": True})
+    for block in (bolder_floor, bolder_page):
+        assert block["agree"] is False, "a disagreement read as agreement"
+        assert "DISAGREE" in block["reading"], (
+            "the disagreement does not reach the prose, so the payload holds two answers and the "
+            "reader still gets one")
+        assert "not promoted to the answer because it is the encouraging one" in block["reading"]
+    assert bolder_page["sign_stated_despite_disagreement"] is True, (
+        "the page stated a side while the run's own artefact refused one, and nothing flagged it")
+    assert bolder_floor["sign_stated_despite_disagreement"] is False, (
+        "a disagreement in which the PAGE withholds is not a page overstating its evidence")
+
+
+def test_an_INAPPLICABLE_rule_is_unknown_and_never_reads_as_no():
+    """`None` means that rule had nothing to read. Coercing it to False makes "we could not ask"
+    agree with "we asked and the answer is no" -- the fail-open reading of the one state this
+    reconciliation exists to expose."""
+    for floor_says, page_says in ((None, False), (False, None), (None, None)):
+        block = _reconciliation({"selection_distinguishable_from_zero": floor_says},
+                                {"sign_is_stateable": page_says})
+        assert block["agree"] is None, (
+            "an unanswerable rule agreed with an answered one ({} vs {})".format(
+                floor_says, page_says))
+        assert block["sign_stated_despite_disagreement"] is False
+        assert "`null` means that rule had nothing to read" in block["reading"]
+
+
+def test_the_real_artefacts_reconcile_and_the_block_reaches_the_feed():
+    """The null rung, on the real feed the producer builds. Keyed to the PROPERTY -- that the two
+    rules are compared and the comparison is published -- and not to today's answer."""
+    data = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), None, None, None,
+                     _load(DEPARTURE_RERUN), _load(DEPARTURE_BASELINE))
+    block = (data["error_bar"] or {}).get("distinguishable_reconciliation") or {}
+    assert block.get("reading"), "the reconciliation does not reach the feed at all"
+    assert isinstance(block["the_floors_rule"]["says"], (bool, type(None)))
+    assert isinstance(block["the_pages_rule"]["says"], (bool, type(None)))
+    assert block["the_floors_rule"]["says"] == (
+        data["error_bar"]["distinguishable_from_zero"]), (
+        "the reconciliation reports a different answer from the key it is reconciling, so the "
+        "feed now holds THREE answers to one question")
