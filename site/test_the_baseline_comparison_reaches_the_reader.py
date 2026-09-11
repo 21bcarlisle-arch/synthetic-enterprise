@@ -849,6 +849,105 @@ def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
             "the feed withheld the sign and then published one anyway")
 
 
+def test_the_sign_BAR_the_page_holds_the_leg_to_is_the_one_its_own_SIZE_earns(live):
+    """The bar is a FUNCTION OF THE FAMILY, and this grades it as one rather than as a number.
+
+    THE DEFECT (2026-09-11, Lane 0). The bar lived in the producer as the constant
+    `SIGN_NEEDS_SEMS_FROM_ZERO = 1.96`, and three other spellings of the same quantity were live
+    in this tree at once -- `2 * sem` in the floor producer, `_DISTINGUISHABLE_SEMS = 2` in
+    `fold_noise_floor_family`, and a fourth, 2.0, on origin. Every one of them is an
+    INFINITE-SAMPLE number applied to a family of nine draws, and the standard error they grade is
+    estimated from the same nine draws as the mean, so the normal quantile understates the tail by
+    about a fifth of a standard error -- which is precisely the width a marginal family lands in.
+    The producer now derives it (`sems_to_state_a_sign(n)`, the two-sided t point on `n - 1`
+    degrees of freedom), and for a day the PUBLISHED feed still carried 1.96: the code half was
+    done, the rendered value had not moved, and nothing was red.
+
+    WHY THE CONTROL DIRECTLY ABOVE COULD NOT CATCH THAT. It reads
+    `sems_needed_to_state_a_sign` off the payload and quotes it in its own failure messages. That
+    is right for the question it asks -- does the page's refusal match the page's own gate -- and
+    is exactly what makes it blind here: it agrees with the feed at 1.96, at 2.0 and at 2.306
+    alike. A quantity read off the artefact you are grading cannot tell you the quantity is right.
+
+    KEYED TO THE PROPERTY, AND THE PROPERTY IS THE DERIVATION. This asserts the published bar IS
+    `sems_to_state_a_sign` at the seed count the page publishes the estimate over. So it goes RED
+    the day anyone writes a constant back in -- 1.96, 2.0, or today's 2.306 frozen -- and stays
+    GREEN when the family grows and the honest bar tightens with it. Not one of those numbers is
+    named below, which is the difference between this and the literal it replaces.
+
+    THE SECOND LEG IS THE NON-VACUITY ONE. An equality against a function is only a control if the
+    function MOVES; if `sems_to_state_a_sign` were ever flattened to return a constant, the
+    equality above would pass against that constant and this file would report a derived bar that
+    was not derived. So the bar at this family's size is asserted to differ from the bar at a
+    larger one, which is the property that makes the first leg able to fail at all.
+
+    R15 -- the five mutations that bought it, each staged into the index (which is this file's
+    subject, so a working-tree poison proves nothing) and reverted, on 2026-09-11:
+      * stage the PREVIOUS published feed, bar 1.96 at nine seeds -> the derivation leg reds. This
+        is the live defect, and it is the state the tree was in when this was written.
+      * stage a feed whose numeric bar is 2.306 and whose PROSE still says 1.96 -> the render leg
+        reds naming `arms-errorbar`. The feed being right is not the page being right.
+      * stage a DOOR that prints `"1.96"` in place of `sems_needed_to_state_a_sign.toFixed(2)`,
+        against a correct feed -> the same leg reds. These two together are why that leg collects
+        every stated bar rather than asking whether the right one appears: each poison leaves the
+        OTHER home on the panel spelling 2.31, and the first draft passed both.
+      * flatten `sems_to_state_a_sign` to `return 1.96` against the correct feed -> the derivation
+        leg reds from the other side.
+      * flatten it AND stage the feed that agrees with it -> the derivation leg passes, and the
+        non-vacuity leg reds. Without that leg this control would have reported a derived bar on a
+        page whose bar was a constant, which is the whole defect wearing the fix's clothes.
+
+    Fires on: freezing the bar to any literal; publishing a bar taken at a different `n` than the
+    estimate it grades; the page printing a bar that is not the one the feed gates on.
+    """
+    # The bar's SINGLE HOME, shared with the run producer -- imported rather than re-derived,
+    # because a door test that recomputes a t quantile is a second implementation of the thing it
+    # is checking and would agree with a wrong producer only by accident.
+    from tools.run_value_cycle_ab import sems_to_state_a_sign
+
+    leg = _live_feed()["error_bar"]["selection_leg"]
+    assert leg["available"], (
+        "the error bar publishes no selection-leg estimate, so there is no bar to grade: "
+        + str(leg.get("reason")))
+    n = leg["estimate_seeds"]
+    assert isinstance(n, int) and n >= 2, (
+        "the published leg states no seed count of two or more, so the bar beside it cannot have "
+        "been derived from the family it grades -- it names {!r}".format(n))
+    earned = sems_to_state_a_sign(n)
+    assert leg["sems_needed_to_state_a_sign"] == pytest.approx(earned), (
+        "the page holds this leg to {} standard errors while the {}-draw family it grades earns "
+        "{:.6f}. A bar that does not come from the sample is a written-down constant wearing a "
+        "derivation's clothes, and the direction of the error is not neutral: a bar below the "
+        "earned one states signs the evidence does not carry.".format(
+            leg["sems_needed_to_state_a_sign"], n, earned))
+
+    assert sems_to_state_a_sign(n) != pytest.approx(sems_to_state_a_sign(n + 5)), (
+        "the bar does not move with the family size, so the assertion above is satisfied by any "
+        "constant and this control cannot fail")
+
+    if leg["sems_from_zero"] is None:
+        pytest.skip("this family pins its mean with no measurable error, so no sentence on the "
+                    "page quotes a bar -- `..._says_the_instrument_cannot_resolve_it` owns that "
+                    "branch")
+    # THE RENDER LEG, AND IT IS "EVERY BAR ON THE PAGE" RATHER THAN "A BAR ON THE PAGE". The feed
+    # carrying the derived value is not the deliverable; the reader meeting it is. Two mechanisms
+    # put this bar on screen -- the producer's prose and the door's own `toFixed(2)` -- and both
+    # land in `arms-errorbar`, so `spelled in rendered` is an OR across them: poison either and
+    # the other still satisfies it. That was this control's first draft and it survived exactly
+    # that mutation. Every stated bar is collected instead, and all of them must be the earned
+    # one, so a single stale home reds on its own.
+    spelled = "{:.2f}".format(earned)
+    for panel in ("arms-errorbar", "arms-headline"):
+        stated = re.findall(r"the (\d+(?:\.\d+)?) this page requires", live[panel])
+        assert stated, (
+            "the page's {} states how far this mean is from zero and never says how far it would "
+            "have to be, so the reader meets a refusal with no bar behind it".format(panel))
+        assert set(stated) == {spelled}, (
+            "the page's {} states the sign bar as {} where this family's {} draws earn {}, so the "
+            "reader is told how much evidence was required and it is the wrong amount".format(
+                panel, " and ".join(sorted(set(stated))), n, spelled))
+
+
 def test_the_page_says_WHICH_FIGURE_the_error_bar_is_a_bar_on(live):
     """A band and a headline figure on one page, and nothing saying they are the same quantity.
 

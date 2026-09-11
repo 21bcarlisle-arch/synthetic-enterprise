@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T00:50:58.722731Z",
+  "generated_at": "2026-09-11T06:27:47.888124Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -339,7 +339,7 @@
     "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
     "short": "8b846013e",
     "resolved_at": "2026-09-09T13:20:33Z",
-    "publishing_tree_commit": "6fa22db2f540b998ee9691be1291bf33b57dff61",
+    "publishing_tree_commit": "9c2234e2cd66609aaa2316413eb9f0aaa7faa0df",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -351,7 +351,7 @@
       "objective_moved_since_the_run": true,
       "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     },
-    "reading": "Produced at 8b846013e and published from 6fa22db2f -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+    "reading": "Produced at 8b846013e and published from 9c2234e2c -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
   },
   "world_provenance": {
     "available": true,
@@ -690,7 +690,7 @@
       "commit": "8b846013ead420257a76bd65bbe7d552b69a72bd",
       "short": "8b846013e",
       "resolved_at": "2026-09-09T13:20:33Z",
-      "publishing_tree_commit": "6fa22db2f540b998ee9691be1291bf33b57dff61",
+      "publishing_tree_commit": "9c2234e2cd66609aaa2316413eb9f0aaa7faa0df",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -702,7 +702,7 @@
         "objective_moved_since_the_run": true,
         "clause": "AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
       },
-      "reading": "Produced at 8b846013e and published from 6fa22db2f -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
+      "reading": "Produced at 8b846013e and published from 9c2234e2c -- the code was replaced between the run and this page, so read every count here as the older tree's. AND THE OBJECTIVE MOVED UNDER IT. The arm that priced this book charged NOTHING for losing a customer -- at the producing commit `company/pricing/value_based_renewal.py` carries no `departure_cost_gbp`, so the renewal objective was expected margin times survival, with no cost on a departure. The arm running now charges the sourced replacement cost for one. Every figure here drawn from this run describes a pricing rule the company has stopped running."
     }
   },
   "realised": {
@@ -828,17 +828,20 @@
         "bar_sems": 2,
         "says": false,
         "written_by": "tools/fold_noise_floor_family.py, on the run artefact itself",
-        "key": "error_bar.distinguishable_from_zero"
+        "key": "error_bar.distinguishable_from_zero",
+        "bar_is": "a written-down constant, the same for every family size"
       },
       "the_pages_rule": {
-        "bar_sems": 1.96,
+        "bar_sems": 2.306004135204166,
         "says": false,
         "written_by": "tools/generate_value_arms_data.py, at publish time",
-        "key": "error_bar.selection_leg.sign_is_stateable"
+        "key": "error_bar.selection_leg.sign_is_stateable",
+        "bar_is": "derived from this family's own size -- the two-sided t point on its degrees of freedom, so it moves when the seed count moves"
       },
       "agree": true,
       "sign_stated_despite_disagreement": false,
-      "reading": "The run's own floor artefact asks this at a 2-standard-error bar and the page asks it at 1.96. Both say it cannot."
+      "why_the_bars_differ": "The floor's rule applies a fixed 2 standard errors whatever the family size. The page's is a 2.306 bar taken from this family's own degrees of freedom, because the standard error it grades is estimated from the same draws as the mean. On a small family the derived bar is the STRICTER of the two and the page is the more conservative reader; the two converge as seeds are added. Neither is promoted to the answer.",
+      "reading": "The run's own floor artefact asks this at a 2-standard-error bar and the page asks it at 2.306. Both say it cannot."
     },
     "selection_leg": {
       "available": true,
@@ -851,10 +854,11 @@
       "sems_from_zero": 1.7865206920288081,
       "sign_is_stateable": false,
       "sign": null,
-      "sems_needed_to_state_a_sign": 1.96,
+      "sems_needed_to_state_a_sign": 2.306004135204166,
+      "sems_needed_is_derived_from": "the two-sided 95% point of Student's t on 8 degrees of freedom, which is what 9 draws buy. It is computed from this family's own size and is written down nowhere: the standard error below is estimated from the same 9 draws as the mean, so the normal 1.96 would understate the tail. At 9 seeds the bar is 2.306; it falls towards 1.96 as the family grows.",
       "bound_to_estimate_ratio": 0.5597472251297466,
-      "seeds_needed_to_state_a_sign": 11,
-      "seeds_needed_holds_this_family_fixed": "arithmetic on THIS family's mean and deviation, not a forecast: at 9 seeds the standard error is \u00a3604 and the mean is 1.79 errors from zero, and the error falls as 1/sqrt(seeds), so 11 draws of the same width around the same mean would clear 1.96. A wider family or a mean nearer zero needs more, and nothing here claims the next seeds will look like these.",
+      "seeds_needed_to_state_a_sign": 14,
+      "seeds_needed_holds_this_family_fixed": "arithmetic on THIS family's mean and deviation, not a forecast: at 9 seeds the standard error is \u00a3604 and the mean is 1.79 errors from zero against a bar of 2.306. TWO things move as the family grows and both are carried here: the error falls as 1/sqrt(seeds), and the bar itself tightens from 2.306 to 2.160 because a larger sample estimates its own spread better. So 14 draws of the same width around the same mean would state a side. Holding the bar at today's 2.306 and solving would have said 15, which charges the larger family the smaller one's tail. A wider family or a mean nearer zero needs more, and nothing here claims the next seeds will look like these.",
       "single_run": {
         "gbp": 319.1009159999958,
         "seeds": 1,
@@ -895,7 +899,7 @@
     "world_caveat": null,
     "elasticity_draws_min": 288,
     "single_run_inside_the_measured_band": true,
-    "reading": "The estimate sits 1.8 standard errors from zero, short of the 1.96 this page requires before stating a side, so this book cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees. The one published run is a single member of those 9: \u00a3319, inside the family's own range and on the OTHER SIDE OF ZERO from the estimate above, and every other figure on this page is drawn from it."
+    "reading": "The estimate sits 1.8 standard errors from zero, short of the 2.31 this page requires before stating a side, so this book cannot yet resolve a selection effect of the size it is measuring -- in either direction. That is a finding about the INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed agrees. The one published run is a single member of those 9: \u00a3319, inside the family's own range and on the OTHER SIDE OF ZERO from the estimate above, and every other figure on this page is drawn from it."
   },
   "departure_term_rerun": {
     "available": true,
@@ -3237,5 +3241,5 @@
     ],
     "control_credibility_note": "The control this experiment scores the value arm against is this company's own flat rule. It sits well below what the regulator allows an efficient supplier to earn, so beating it demonstrates the control's weakness at least as much as the arm's strength. Read the delta with this ratio beside it."
   },
-  "headline": "Running the same book through the per-customer decision engine earned \u00a317,444 MORE than flat rules, clearing the \u00b1\u00a32,282 this figure moves across 9 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, the choosing is worth -\u00a31,078 on average across the 9 seed re-draws -- and that mean sits 1.8 standard errors from zero against the \u00b1\u00a3604 standard error those same 9 pin it to, short of the 1.96 this page requires before stating a side. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The single run every other figure on this page is drawn from is one member of those 9 and came out at \u00a3319 -- on the other side of zero from the estimate above. The price level accounts for 98% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from -- the error bar below prices how many the family on disk would need. Read all of it against its size: the per-customer arm priced 214 of the 2,035 renewals the world offered, 10.52% of them, so every figure here is those decisions and what they cascade into."
+  "headline": "Running the same book through the per-customer decision engine earned \u00a317,444 MORE than flat rules, clearing the \u00b1\u00a32,282 this figure moves across 9 seed re-draws. Once one flat margin at the same price LEVEL is given credit for what a level alone would have earned, the choosing is worth -\u00a31,078 on average across the 9 seed re-draws -- and that mean sits 1.8 standard errors from zero against the \u00b1\u00a3604 standard error those same 9 pin it to, short of the 2.31 this page requires before stating a side. So this book CANNOT RESOLVE whether the per-customer choosing is worth anything at all, in either direction. The single run every other figure on this page is drawn from is one member of those 9 and came out at \u00a3319 -- on the other side of zero from the estimate above. The price level accounts for 98% of the per-customer arm's advantage. THE REMEDY'S EVIDENCE IS FROM A DIFFERENT BOOK, so no remedy is stated from it. The floor decomposition was measured where the arm priced 104 of 2,009 renewals; the run published above priced 214 of 2,035. A split of the variance measured on one book is not a price for resolving another, and the priced count is the very quantity the remedy is denominated in -- so quoting it here would state a remedy in units this page no longer has. Re-running the decomposition on the current book is owed work (`tools/run_value_cycle_ab.py --redraw-mode only|except` then `--decompose`). What WOULD resolve it has not been established: this spread has not been separated into the priced households' own draw, which a larger settled book shrinks, and the rest of the book's churn cascade, which no book size touches. More seeds do not shrink this SPREAD: re-drawing the dice measures the same width again. What they do buy is how well those draws pin their own MEAN, which is the quantity this page states a side from -- the error bar below prices how many the family on disk would need. Read all of it against its size: the per-customer arm priced 214 of the 2,035 renewals the world offered, 10.52% of them, so every figure here is those decisions and what they cascade into."
 }
