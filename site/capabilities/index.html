@@ -323,6 +323,50 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + (y.realised_win_rate_used * 100).toFixed(1) + "% &#9888;</span>"
               : '<span title="' + esc(y.learned_win_rate_caveat) + '">'
                 + (y.realised_win_rate_used * 100).toFixed(1) + "%</span>");
+        // WHAT THIS YEAR'S SETTLED ACCOUNTS STAND FOR, and it is the figure the HEADLINE sends
+        // the reader to BY NAME. Until this cell existed the only way to see it was to open the
+        // JSON: the headline said "`settlement_weight` on each row below is what reads across to
+        // the supplier" and no row below carried a cell for it. The pointer had a referent in the
+        // feed and no referent on the page, which is the same defect as having none at all.
+        //
+        // KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. What is worth rendering is whether this
+        // year's weight RECONSTRUCTS what the company won, so the cell is flagged on its distance
+        // from `funnel_wins` rather than pinned to the zeros the chosen book currently returns.
+        // Under the count cull this figure is `settled / rate`, which cannot reproduce a year the
+        // sampling thinned, and the departure is then the thing a reader most needs to see. A cell
+        // that could only ever agree would be a cell that cannot report the case it exists for.
+        var w = y.settlement_weight;
+        var stands;
+        if (w == null) {
+          // ABSENT, NEVER 0.0. A year that stands for nothing and a year we cannot say for are
+          // different claims, and zero is the flattering one.
+          stands = '<span title="This record was written before settled accounts carried their '
+            + 'own weight, so what this year stands for cannot be read off it. Absent, not zero.'
+            + '">&mdash;</span>';
+        } else {
+          var fw = y.funnel_wins;
+          var off = (fw != null && fw > 0) ? Math.abs(w - fw) / fw : null;
+          // 5% is the band inside which the reconstruction is doing its job. It is a RENDERING
+          // threshold and nothing depends on it but the colour of one cell.
+          var wrong = off != null && off > 0.05;
+          stands = '<span title="'
+            + esc(off == null
+                ? "What this year's settled accounts stand for, summed over their own weights, "
+                  + "in the company's own wins. This record carries no funnel count to check it "
+                  + "against."
+                : wrong
+                  ? "What this year's settled accounts stand for (" + w.toFixed(1) + ") is "
+                    + (off * 100).toFixed(0) + "% away from the " + fw + " the company actually "
+                    + "won this year, so the sample does NOT reconstruct this year and the Won "
+                    + "column is the figure to trust."
+                  : "What this year's settled accounts stand for, summed over their own weights. "
+                    + "It reconstructs the " + fw + " wins the company made this year to within "
+                    + (off * 100).toFixed(1) + "% — while the Settled count beside it is not "
+                    + "proportional to them at all. That gap is the whole reason the sample "
+                    + "cannot be undone with one number.")
+            + '"' + (wrong ? ' style="color:#b45309;font-weight:600;"' : "") + ">"
+            + esc(w.toFixed(1)) + (wrong ? " &#9888;" : "") + "</span>";
+        }
         return "<tr>"
           + "<td>" + esc(y.year) + "</td>"
           + '<td style="text-align:right;">' + esc(y.quotes_issued) + "</td>"
@@ -336,6 +380,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + '<td style="text-align:right;'
             + (y.funnel_wins != null && y.funnel_wins !== y.wins ? "color:#b45309;font-weight:600;" : "")
             + '">' + esc(y.wins) + "</td>"
+          + '<td style="text-align:right;">' + stands + "</td>"
           + '<td style="text-align:right;">'
             + esc(y.book_after == null ? y.accounts_after : y.book_after) + "</td>"
           + '<td style="text-align:right;">' + esc(y.homes_in_market) + "</td>"
@@ -356,6 +401,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + '<th style="text-align:right;">Quotes</th>'
         + '<th style="text-align:right;" title="Accounts the company WON in the market this year: it quoted, the prospect accepted, the credit check passed. A commercial outcome.">Won</th>'
         + '<th style="text-align:right;" title="How many of those wins THIS MACHINE could settle. The gap to Won is our engineering ceiling, not a commercial event.">Settled</th>'
+        + '<th style="text-align:right;" title="What those settled accounts STAND FOR, summed over their own weights, in the company\'s own wins. This is the column the headline points at: read it against Won, not against Settled. Under a chosen sample the settled COUNT is deliberately not proportional to what the company won, and this figure is — so no single number converts one into the other.">Stands for</th>'
         + '<th style="text-align:right;">Book</th>'
         + '<th style="text-align:right;" title="Households actually switching supplier that year, from the published DESNZ switching series">In market</th>'
         + '<th style="text-align:right;" title="The conversion rate the company planned the next campaign on, computed from its own books. A marked figure was computed over a history our settlement engine had already bound.">Planned on</th>'
