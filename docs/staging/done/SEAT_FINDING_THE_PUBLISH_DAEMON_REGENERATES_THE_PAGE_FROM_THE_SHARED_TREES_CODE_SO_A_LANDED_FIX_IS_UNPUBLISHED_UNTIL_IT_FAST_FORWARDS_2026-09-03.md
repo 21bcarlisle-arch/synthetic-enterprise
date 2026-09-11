@@ -85,3 +85,37 @@ and a refusal must not overwrite a real run. That is a recorded shape in this re
 **Not discharged.** No control is claimed for this; it is filed as found. The dirty-path hazard above
 is a live condition at the time of writing and will read as historical once someone fast-forwards —
 re-establish it before acting on it rather than trusting this paragraph.
+
+---
+
+## The disposition was carried out 2026-09-03T21:05Z — the CONDITION is cured, the FINDING is not
+
+*Bounded worker tick in the shared tree, drawn on the Lane 0 item this finding's sibling discharges.
+Written here because the paragraph above makes a claim about a live state, and a claim that a hole is
+still open goes stale exactly like a claim that it is closed.*
+
+Done, in this order, on `/home/rich/synthetic-enterprise`:
+
+1. Both dirty paths preserved before anything was overwritten — patches and whole-file copies under
+   `/tmp/ff_preserve_20260903/`, blobs at `refs/preserved/pre-ff-20260903-value-arms-feed` and
+   `refs/preserved/pre-ff-20260903-site-baseline-test`.
+2. `merge-base --is-ancestor` re-read immediately before the merge, not just after: a pure
+   `--ff-only` was legal, `7304bbe51 -> ee8dc790b`. It first refused on an UNTRACKED copy of this
+   very file, byte-identical to `origin/main`'s, which was removed only after `diff` proved it
+   identical.
+3. `site/test_the_baseline_comparison_reaches_the_reader.py` reconciled rather than committed over:
+   the other lane's `+17/-2` (the `staleness_caveat` key-vs-value split) re-applied with
+   `git apply -3` on top of the fast-forwarded file. Both deltas are present — the re-keyed
+   current-world rung AND the other lane's assertion — and the lane's work was never committed by me.
+4. `site/data/value_arms.json` regenerated FROM the fixed code, which is the half of the disposition
+   that matters: the artefact a reader is served now carries `resolved: null`,
+   `bound_available: true` and `verdict_withheld_because` naming the £451–£2,434 span, in place of
+   the `resolved: true` the 20:44 pre-fix regeneration had written.
+5. `tests/tools/test_generate_value_arms_data.py` plus the two door rungs on the live feed:
+   99 passed, 1 skipped. The skip is the staleness caveat on a value the producer guarantees, which
+   is the legitimate half of the split the other lane just built.
+
+**What is NOT done, and is what keeps this finding open:** the refusal in the publishing path. The
+cure applied here is one writer doing the right thing once, which is precisely the control this
+repository does not count. Nothing yet stops the next daemon tick regenerating from a tree that has
+fallen behind again — the tree is at `origin/main` as of this note and will not stay there.

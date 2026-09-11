@@ -5,7 +5,7 @@
 **2026-09-08. Lane 0 delivery.** Claim:
 `the-hmt-receipt-leg-and-the-household-charged-accessor-are-one-atom`.
 
-Predecessor: `docs/staging/SEAT_RESULT_BOTH_SVT_LEGS_READ_THE_COMMONS_AND_THEY_HAD_BEEN_ANSWERING_DIFFERENT_QUESTIONS_2026-09-08.md`,
+Predecessor: `docs/staging/done/SEAT_RESULT_BOTH_SVT_LEGS_READ_THE_COMMONS_AND_THEY_HAD_BEEN_ANSWERING_DIFFERENT_QUESTIONS_2026-09-08.md`,
 "what is next", item 2. Premise re-measured at draw time: 71d3cfa16 is an ancestor of `origin/main`
 and that is the PREDECESSOR landing correctly, not this work landing twice. The premise is live.
 

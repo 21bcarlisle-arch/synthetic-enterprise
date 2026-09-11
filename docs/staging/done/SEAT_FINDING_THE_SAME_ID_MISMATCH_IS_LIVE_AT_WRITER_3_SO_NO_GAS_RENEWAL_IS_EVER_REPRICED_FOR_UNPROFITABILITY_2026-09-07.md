@@ -50,6 +50,29 @@ value arm's own fix did — writer 3 is a flat `NET_NEGATIVE_UPLIFT_GBP_PER_MWH`
 per-customer search. If the entry count does NOT rise, no gas leg in this world had a net-negative
 prior term, and that is the finding instead.
 
+## GRADED 2026-09-07, beside the claim rather than instead of it
+
+**The prediction above is REFUTED, and the fix landed anyway.** The one-variable pair
+(`28ba48dd4`, `tools.run_annual_report --fast`, both legs identical but the one line):
+
+```
+BEFORE  1,878 decomposed renewals (1,516 elec / 362 gas)   writer 3 firings: 0
+AFTER   1,878 decomposed renewals (1,516 elec / 362 gas)   writer 3 firings: 0
+```
+
+The entry count did not rise. The fallback offered above — "no gas leg had a net-negative prior
+term" — is wrong too: it assumed an electricity-only baseline to rise from, and **writer 3 fires
+zero times on electricity as well.** This was never a half-the-book defect.
+
+Measured cause, 78 of 78 calls: no settled row carries `term_start`, so the prior-term lookup
+returns `None` before any margin is summed, for both fuels. The id mismatch is real and sat
+downstream of it. The repair is live — asked as `C1` for gas the filter now matches 365 rows
+the world files as `C1g`, where `==` matched none — so the gas half is reachable, and reachable
+is not firing.
+
+Full working, funnel and next steps:
+`SEAT_RESULT_THE_ID_REPAIR_IS_LIVE_AND_BOUGHT_NOTHING_BECAUSE_NO_SETTLED_ROW_CARRIES_A_TERM_START_2026-09-07.md`.
+
 ## The control that would have caught it
 
 `tests/company/pricing/test_value_arm_in_the_renewal_chain.py::test_every_commodity_the_arm_prices_can_reach_its_own_book_under_the_billing_account`

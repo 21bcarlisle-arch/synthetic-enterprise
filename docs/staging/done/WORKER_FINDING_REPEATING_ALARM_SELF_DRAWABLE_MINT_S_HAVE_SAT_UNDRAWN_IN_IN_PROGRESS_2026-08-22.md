@@ -1,6 +1,6 @@
 **Severity:** LATENT · **Lane:** H_harness · **Epoch:** unassigned · **Atom:** `unminted`
 
-# [ACT] 2 minted work item(s) BLOCKED and un-worked for 2.2h (no forward-work commit) -- the machine is resting beside open mints, not working them. Escalate each (unblock / re-scope
+# [ACT] 3 SELF-DRAWABLE mint(s) have sat UNDRAWN in in_progress/ for 2.2h with no forward-work commit -- the tick is supposed to DRAW these, so either the draw is wedged or it is res
 
 **Filed automatically by `background/alarm_repetition.py`, not by a person.** This alarm has
 fired **3 times without its state changing**, over **0.2h**. Under the
@@ -10,14 +10,14 @@ than being sent again, so this document exists and a 3th page does not.
 ## The alarm, verbatim
 
 ```
-[ACT] 2 minted work item(s) BLOCKED and un-worked for 2.2h (no forward-work commit) -- the machine is resting beside open mints, not working them. Escalate each (unblock / re-scope / wall): PLANNER_MINTED_reversibility_action_and_act_2026-07-29.md -> clear ≠ director_level_up, levels are proposals), and record a one-line undo in; PLANNER_MINTED_ssp_negative_lift_cells_2026-07-24.md -> the merit-order / gas-first reconstruction has landed (sequenced with the VALUE_CHAIN work + the Spec 004 reconciliation), at which point the SAME per-cell lift…. A blocked batch is a reason to plan more or escalate, never a licence to rest (R17, EIGHTH CLASS 2026-07-27).
+[ACT] 3 SELF-DRAWABLE mint(s) have sat UNDRAWN in in_progress/ for 2.2h with no forward-work commit -- the tick is supposed to DRAW these, so either the draw is wedged or it is resting beside drawable work. This page is an INDEPENDENT read of disk (LAW C), so it fires even if the tick's own enumeration reports the authorized set empty. Draw them or explain why they are stuck: PLANNER_MINTED_generator_draw_wiring_2026-07-24.md ([PLANNER-MINTED] Ship the population-generator DRAW-WIRING (2026-07-24)); PLANNER_MINTED_one_node_to_depth_with_charts_2026-07-28.md ([PLANNER-MINTED] One node filled to full depth, with charts (ruling's pilot output) (2026-07-28)); PLANNER_MINTED_value_chain_observation_window_cap_2026-07-24.md ([PLANNER-MINTED] VALUE_CHAIN: replace the static cap dict with real observation-window mechanics + MC-2 collateral death). (DIRECTOR_RULING_FAILURE_BIAS_LAWS LAW C, 2026-07-27.)
 ```
 
 ## What is known without diagnosing anything
 
-- Signature: `deadman_open_mint` — the alarm text with elapsed times, counters, hashes and timestamps
+- Signature: `deadman_drawable_undrawn` — the alarm text with elapsed times, counters, hashes and timestamps
   normalised away, so this is the same CONDITION recurring, not the same string.
-- First seen in this episode: 2026-08-22T08:11:14+00:00
+- First seen in this episode: 2026-08-22T08:11:18+00:00
 - Repeats before escalation: 3 (threshold `ESCALATE_AFTER_REPEATS`)
 - Paging for this signature is now SUPPRESSED. It resumes automatically the moment the
   underlying state changes — including when it clears.
@@ -39,3 +39,10 @@ that returns next week is not silently absorbed into today's record.
 - **2026-08-26** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
 - **2026-08-27** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
 - **2026-08-28** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-08-29** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-08-31** — still live. 3 repeats over 0.3h without the state changing. No second document filed: this condition already has one.
+- **2026-09-01** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-09-02** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+
+## Instances seen
+- `# self-drawable mint(s) have sat undrawn in in_progress/ for #h with no forward-work commit -- the tick is supposed to d` (first seen 2026-09-02)

@@ -5,9 +5,9 @@
 **2026-09-08. Lane 0 delivery.** Claim:
 `the-electricity-svt-leg-reads-the-commons-and-the-epg-rows-move-alone`.
 
-Pre-registration: `docs/staging/PREREG_WHAT_THE_ELECTRICITY_SVT_LEG_READING_THE_COMMONS_MOVES_2026-09-08.md`,
+Pre-registration: `docs/staging/records/PREREG_WHAT_THE_ELECTRICITY_SVT_LEG_READING_THE_COMMONS_MOVES_2026-09-08.md`,
 written before any measurement and left unedited. Predecessor:
-`docs/staging/SEAT_RESULT_THE_ELECTRICITY_SVT_TABLE_IS_A_SECOND_HOME_2026-09-08.md`.
+`docs/staging/done/SEAT_RESULT_THE_ELECTRICITY_SVT_TABLE_IS_A_SECOND_HOME_2026-09-08.md`.
 
 ---
 

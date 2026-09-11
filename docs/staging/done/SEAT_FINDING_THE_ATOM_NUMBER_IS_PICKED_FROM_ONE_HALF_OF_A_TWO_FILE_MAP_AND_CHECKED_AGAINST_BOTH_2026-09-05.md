@@ -10,9 +10,9 @@ pre-existing at HEAD. It is red on `origin/main` now, in a clean `git archive` e
 ```
 tests/design/test_maturity_map_contract.py::test_b_numeric_part_unique_per_lane_or_allowlisted
   (('H','31'), ['H31_secret_scrub_test_leaks_wake_key',
-                'H31_the_consistency_gate_disagreement_before_the_next_publish'])
+                'H46_the_consistency_gate_disagreement_before_the_next_publish'])
   (('H','32'), ['H32_map_size_ratchet_red_on_head',
-                'H32_the_orientation_header_states_a_figure_it_computes'])
+                'H47_the_orientation_header_states_a_figure_it_computes'])
 ```
 
 ## Not two typos — one mechanism, and the map itself says which

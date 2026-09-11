@@ -34,3 +34,13 @@ filing a second document (2026-08-24). A condition that returns AFTER this has b
 files a fresh document, because that is a new episode and an R3 two-strike signal.
 
 ## Still live
+- **2026-08-29** — still live. 13 repeats over 1.1h without the state changing. No second document filed: this condition already has one.
+- **2026-08-30** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-08-31** — still live. 128 repeats over 11.4h without the state changing. No second document filed: this condition already has one.
+- **2026-09-01** — still live. 83 repeats over 7.4h without the state changing. No second document filed: this condition already has one.
+- **2026-09-02** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+- **2026-09-03** — still live. 168 repeats over 16.4h without the state changing. No second document filed: this condition already has one.
+- **2026-09-04** — still live. 3 repeats over 0.2h without the state changing. No second document filed: this condition already has one.
+## Instances seen
+- `the published figures have not reached origin for #h (state=stale). the tick may look healthy and the heartbeat may stil` (first seen 2026-09-02)
+- `the published figures have not reached origin for #h (state=stale). content is still being committed -- so the figures m` (first seen 2026-09-04)

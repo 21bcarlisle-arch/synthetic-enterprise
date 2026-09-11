@@ -3,22 +3,6 @@
 
 # RESULT: no contract on the busiest converged module is unproved, and two of the eight stand on one file each
 
-> **CORRECTION, 2026-09-06 — the title is true of the ten-suite population and FALSE of the caller
-> population, and the caller population is what the pre-registration asked about.** This battery's
-> spec wrote `SUITES = DIRECT_SUITES + CALLER_SUITES`, so the three suites that IMPORT the module
-> sat inside the verdict meant to answer *"did any CALLER prove this"* — the subject graded itself.
-> **On the callers alone, three of the eight contracts are unproved: M3, M4 and M8**, each killed
-> only by `W215` or `CASE`. M4 is the sharpest — three suites kill it and all three are the
-> subject's own. The eight rows below are unchanged and correct; what changed is which of their
-> killers count toward the question. Re-reduced from the same cells, no test re-run:
-> `SEAT_RESULT_THREE_OF_SEGMENT_VOCABULARYS_CONTRACTS_ARE_PROVED_ONLY_BY_ITS_OWN_SUITE_AND_SO_WERE_BOTH_OF_FUEL_MIXS_2026-09-06.md`.
-> The spec is repaired; `survived_all` here is now scored over six callers.
->
-> A second correction to the same page: **`GUARD` is not the only miscount.**
-> `tests/sim/test_segment_debt_obligation.py`, listed below among the suites that "reach it through
-> a caller", imports `simulation.segment_vocabulary` directly at line 152 and is now declared a
-> direct suite. It killed nothing in this run, so no row below moves.
-
 **Measured 2026-09-06, delivery seat, isolated worktree at `e383c6328`. Claim id
 `register-low-water-evidence-convergence-sweep`. Grades
 `docs/staging/SEAT_PREREG_WHICH_SUITE_HOLDS_THE_SEGMENT_VOCABULARY_2026-09-06.md`, which was
@@ -194,28 +178,6 @@ assertion that a sibling module's output is unperturbed. It proves the contract 
 the RNG draw sequence; it proves nothing about what the contract SAYS, and it would go green the
 day a mutation happened to be draw-count-neutral. **A byte-identity coupling test is a tripwire,
 not a contract test, and a battery that reports only `died`/`survived` cannot tell them apart.**
-
-## A second floor, added after this result and run against it: none of these kills is textual
-
-Every battery in this family has assumed that `died` means "the suite executed the mutated line
-and an assertion failed". Nothing established that. The next subject
-(`tools/generate_grid_intensity_feed.py`) makes the gap concrete: **six of its callers read the
-module's own source with `.read_text()` and walk it as an AST**, so a source mutation can redden
-their suites without a line of it ever running.
-
-So the engine gained the mirror image of the poison round — a **null round**: a source edit that
-changes the bytes and adds an AST node and cannot change behaviour (`_NULL_ROUND_MARKER = None`).
-A suite that reddens under it is grading TEXT.
-
-Run against all ten suites of this subject, after the result above: **all ten are behaviour only.**
-None of the kills in the table came from reading the file. `tests/tools/test_segment_case_guard.py`
-was the candidate — it AST-scans `simulation/` for segment string literals — and it is indifferent,
-which is the answer the marker was written to be able to get wrong (it deliberately contains no
-string literal).
-
-This is recorded here rather than in the next subject's finding because the claim it protects is
-*this* result. A subject with no null round is now stamped UNKNOWN on the battery's own summary
-line, never as a clean bill.
 
 ## The survivors are named, and none of them is left as "probably an equivalence"
 
