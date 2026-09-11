@@ -77,6 +77,12 @@ from dataclasses import replace
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+# THE t QUANTILE, TAKEN FROM THE LIBRARY RATHER THAN TABULATED HERE. `sems_to_state_a_sign` needs
+# an inverse Student-t CDF; hand-rolling one is a numerical recipe with its own error bars, and a
+# tabulated row per degree of freedom is a written-down number wearing a table's clothes -- the
+# exact thing that function exists to stop. scipy is already a dependency of this repo.
+from scipy import stats
+
 # THE COMMIT THIS PROCESS BOUND ITS CODE FROM. `background.boot_sha` already answers exactly this
 # question for the daemons, so the primitive is imported rather than rewritten; what is new here
 # is WHEN it is asked -- see `PRODUCING_COMMIT` below.
@@ -5008,6 +5014,86 @@ def _num(value):
     if isinstance(value, bool) or not isinstance(value, (int, float)):
         return None
     return float(value) if math.isfinite(value) else None
+
+
+#: THE TAIL PROBABILITY IN EACH DIRECTION, and the only written-down number in the sign rule.
+#: 0.025 a side, so a two-sided 95% statement. It is a statistical convention and not a domain
+#: quantity -- nothing about GB energy sets it -- and it is the one thing here that is a CHOICE
+#: about how much evidence a published sign needs rather than a consequence of the sample.
+SIGN_TAIL_PROBABILITY_EACH_SIDE = 0.025
+
+
+def sems_to_state_a_sign(n) -> float | None:
+    """How many of ITS OWN standard errors a family's mean must clear before a sign is stateable.
+
+    DERIVED FROM THE SAMPLE, NEVER WRITTEN DOWN, and that is the whole point of this function.
+    Three spellings of this bar have been live in this tree at once -- `2 * sem` in the floor
+    producer above, `_DISTINGUISHABLE_SEMS = 2` in `fold_noise_floor_family`, and 1.96 in
+    `generate_value_arms_data` -- and a fourth, 2.0, on origin. Every one of them is an
+    INFINITE-SAMPLE number applied to a family of nine draws.
+
+    WHY THE NORMAL QUANTILE IS THE WRONG ONE HERE. 1.96 is the two-sided 95% point of the normal,
+    and it is correct when the standard error is KNOWN. This one is not: the sem is
+    `stdev / sqrt(n)` where the stdev is estimated from the very same n draws as the mean. That
+    extra estimation widens the tail, and the amount it widens by is a function of n alone --
+    which is exactly why this must be computed from `n` and cannot be a constant. At n=9 the
+    honest bar is t(8) = 2.306, not 1.96: the 1.96 rule was understating what the reader is owed
+    by a fifth of a standard error, and a marginal family lands precisely in that gap.
+
+    2.0 IS NOT A FIX FOR IT EITHER. A coarse 2.0 is nearer than 1.96 and still wrong, and worse,
+    it is wrong by an amount that changes with n while the literal does not. At n=9 it is short;
+    by n=60 it is generous. A number that is wrong in a direction that flips as the sample grows
+    cannot be reasoned about at all.
+
+    FAILS CLOSED. Fewer than two draws has no degrees of freedom to spend and yields `None`, never
+    a bar that some mean could clear.
+    """
+    if isinstance(n, bool) or not isinstance(n, int) or n < 2:
+        return None
+    return float(stats.t.ppf(1.0 - SIGN_TAIL_PROBABILITY_EACH_SIDE, n - 1))
+
+
+#: Where the seed search gives up. Not a tuning dial: it is the point past which the ANSWER stops
+#: being useful rather than the point past which the loop gets slow. A family needing four figures
+#: of re-draws is telling the reader the instrument cannot settle this, and that is the finding.
+_SEEDS_SEARCH_CEILING = 10_000
+
+
+def seeds_to_state_a_sign(mean, stdev) -> int | None:
+    """The smallest family size that would state a sign, IF the mean and deviation stayed put.
+
+    SOLVED SELF-CONSISTENTLY, WHICH IS NOT THE SAME AS INVERTING AT TODAY'S BAR. The inequality
+    is `|mean| > t(m-1) * sd / sqrt(m)`, and `m` is on BOTH sides: a family of m draws is judged
+    at the m-draw bar, not at the one its nine-draw ancestor was judged at. Holding t at t(8) and
+    solving for m is the obvious move and it overstates the answer, because it charges the larger
+    family the smaller family's tail. On this book's selection leg the two differ: fixing t(8)
+    gives 15, solving properly gives 14, and 14 is the honest one. The direction that commissioned
+    this predicted 15 for exactly that reason, and the prediction is kept here beside the result.
+
+    THE SEARCH, NOT A CLOSED FORM. `t(m-1)` has no algebraic inverse in m, but the inequality is
+    monotone -- t falls as m rises and sqrt(m) rises -- so the first m that satisfies it is the
+    answer and a scan upward finds it. The bound is `_SEEDS_SEARCH_CEILING`: past it the count is
+    not a plan a reader could act on, so it returns `None` with the caller naming the reason
+    rather than a five-figure integer that reads like one.
+
+    STRICTNESS IS CARRIED. The verdict is a strict `>`, and so is this: a family exactly ON its
+    bar does not state a sign, and the m that merely ties is not returned.
+
+    FAILS CLOSED on a mean of exactly zero, which no number of seeds separates from zero.
+    """
+    mean_f, stdev_f = _num(mean), _num(stdev)
+    if mean_f is None or stdev_f is None or mean_f == 0.0 or stdev_f < 0:
+        return None
+    if stdev_f == 0.0:
+        # A family whose members agree exactly pins its mean with no error. Two draws state the
+        # sign, and this is not the degenerate case that needs refusing -- zero error is a real
+        # reading, unlike a zero mean.
+        return 2
+    for m in range(2, _SEEDS_SEARCH_CEILING + 1):
+        bar = sems_to_state_a_sign(m)
+        if bar is not None and abs(mean_f) > bar * stdev_f / math.sqrt(m):
+            return m
+    return None
 
 
 #: What a DRAWN household's id starts with (`population_draw` mints `SYN-{year}-{i:03d}`). Used

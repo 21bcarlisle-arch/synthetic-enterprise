@@ -808,7 +808,11 @@ def test_the_error_bar_says_the_instrument_cannot_resolve_it(live):
     `spread_to_point_estimate_ratio >= 1` -- a nine-seed standard deviation over a ONE-RUN figure,
     which is the population mix the page was repaired to stop making. The page's gate is now
     `selection_leg.sign_is_stateable`: the seed family's own mean against the seed family's own
-    standard error, `SIGN_NEEDS_SEMS_FROM_ZERO` of them. So this reads the gate rather than
+    standard error, as many of them as that family's SIZE earns. That bar was the constant
+    `SIGN_NEEDS_SEMS_FROM_ZERO = 1.96` until 2026-09-11 and is now `sems_to_state_a_sign(n)` --
+    t(n-1), so 2.306 at the nine seeds in hand. Nothing in this test names either number: it reads
+    `sems_needed_to_state_a_sign` off the payload, which is the only spelling that stays true when
+    the bar moves with the seed count. So this reads the gate rather than
     re-deriving a proxy for it, and BOTH of its answers are checked -- a control that only knows
     what the withheld case must say goes green the day the page starts stating a sign wrongly.
     `distinguishable_from_zero` is still checked as the PROPERTY that the producer declares it at

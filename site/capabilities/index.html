@@ -1797,11 +1797,19 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + " seed re-draws, give or take "
                 + esc(gbp(eb.selection_leg.bound_gbp)) + " &mdash; the standard error over the "
                 + "same " + esc(eb.selection_leg.bound_seeds) + " re-draws"
+                /* THE BAR IS DERIVED FROM THE FAMILY'S SIZE, SO IT IS A FULL FLOAT IN THE FEED
+                   (2026-09-11). It used to be the literal 1.96 and printed straight through; it
+                   is now t(n-1) and arrives as 2.306004135204166. Rounded HERE and nowhere else:
+                   the feed keeps the number the verdict was actually computed at, and the reader
+                   gets two decimals of it. Truncating at the producer would have made the
+                   published bar and the applied bar two different numbers. */
                 + (eb.selection_leg.sems_from_zero
                     ? ", which puts it " + eb.selection_leg.sems_from_zero.toFixed(1)
                       + " standard errors from zero against the "
-                      + esc(eb.selection_leg.sems_needed_to_state_a_sign)
-                      + " this page requires before stating a side"
+                      + esc(eb.selection_leg.sems_needed_to_state_a_sign.toFixed(2))
+                      + " this page requires before stating a side &mdash; a bar this family's "
+                      + "own " + esc(eb.selection_leg.estimate_seeds)
+                      + " draws set, not a constant"
                     : "")
                 + ". "
                 + (eb.single_run_gbp === null || eb.single_run_gbp === undefined

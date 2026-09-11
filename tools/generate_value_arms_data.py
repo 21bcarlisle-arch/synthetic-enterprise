@@ -141,11 +141,19 @@ from tools.inference_claim import (
     inference_claim,
 )
 from tools.product_gate_refusal import refusal_breakdown
+
+# THE SIGN BAR COMES FROM THE RUN PRODUCER, NOT FROM A LITERAL HERE. This page and the run
+# artefact answer one legal question -- "is this mean far enough from zero to state a side" -- and
+# this project's most expensive recurring shape is one question with several implementations. The
+# bar is imported rather than re-spelled so the two cannot drift apart again.
 from tools.run_value_cycle_ab import (
     FLOOR_RUN_PEAK_MB,
+    SIGN_TAIL_PROBABILITY_EACH_SIDE,
     _concordance,
     pair_strata,
     remedy_price_table,
+    seeds_to_state_a_sign,
+    sems_to_state_a_sign,
 )
 
 PROJECT = Path(__file__).resolve().parent.parent
@@ -1280,6 +1288,11 @@ def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dic
     pages_says = pages_says if isinstance(pages_says, bool) else None
     agree = None if floors_says is None or pages_says is None else bool(
         floors_says == pages_says)
+    # THE PAGE'S BAR IS NOW THE FAMILY'S, so it is read from the leg that was graded at it rather
+    # than from a module constant. Reading it back off the published key is also the only spelling
+    # that cannot drift from the verdict beside it.
+    page_bar = (leg or {}).get("sems_needed_to_state_a_sign")
+    page_bar_text = "an unreadable" if page_bar is None else "a {:.3f}".format(page_bar)
     return {
         "question": ("Can this book tell which side of zero the value of the choosing falls on? "
                      "Two rules in this payload answer it and they are stated together here."),
@@ -1288,19 +1301,34 @@ def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dic
             "says": floors_says,
             "written_by": "tools/fold_noise_floor_family.py, on the run artefact itself",
             "key": "error_bar.distinguishable_from_zero",
+            "bar_is": "a written-down constant, the same for every family size",
         },
         "the_pages_rule": {
-            "bar_sems": SIGN_NEEDS_SEMS_FROM_ZERO,
+            "bar_sems": page_bar,
             "says": pages_says,
             "written_by": "tools/generate_value_arms_data.py, at publish time",
             "key": "error_bar.selection_leg.sign_is_stateable",
+            "bar_is": ("derived from this family's own size -- the two-sided t point on its "
+                       "degrees of freedom, so it moves when the seed count moves"),
         },
         "agree": agree,
         "sign_stated_despite_disagreement": bool(agree is False and pages_says is True),
+        # WHY THE TWO BARS DIFFER, stated rather than left as an unexplained gap. Until 2026-09-11
+        # the page's bar was 1.96 and its own comment claimed it equalled the floor's 2 -- an
+        # asserted identity between two numbers that were never equal. They still differ, by more
+        # than before, and the difference is now a consequence of something rather than an oversight.
+        "why_the_bars_differ": (
+            "The floor's rule applies a fixed {floor_bar} standard errors whatever the family "
+            "size. The page's is {page_bar_text} bar taken from this family's own degrees of "
+            "freedom, because the standard error it grades is estimated from the same draws as "
+            "the mean. On a small family the derived bar is the STRICTER of the two and the page "
+            "is the more conservative reader; the two converge as seeds are added. Neither is "
+            "promoted to the answer."
+            .format(floor_bar=_DISTINGUISHABLE_SEMS, page_bar_text=page_bar_text)),
         "reading": (
             "The run's own floor artefact asks this at a {floor_bar}-standard-error bar and the "
             "page asks it at {page_bar}. Both say {answer}."
-            .format(floor_bar=_DISTINGUISHABLE_SEMS, page_bar=SIGN_NEEDS_SEMS_FROM_ZERO,
+            .format(floor_bar=_DISTINGUISHABLE_SEMS, page_bar=page_bar_text.split()[-1],
                     answer=("the side CAN be stated" if pages_says else "it cannot"))
             if agree else
             "THESE TWO RULES DISAGREE, so no side is stated. The run's own floor artefact asks "
@@ -1309,7 +1337,7 @@ def _distinguishable_reconciliation(floor: dict | None, leg: dict | None) -> dic
             "answers in one payload is not a result, and the narrower bar is not promoted to the "
             "answer because it is the encouraging one."
             .format(floor_bar=_DISTINGUISHABLE_SEMS, floor_says=floors_says,
-                    page_bar=SIGN_NEEDS_SEMS_FROM_ZERO, page_says=pages_says)
+                    page_bar=page_bar_text.split()[-1], page_says=pages_says)
             if agree is False else
             "One of the two rules could not be applied to this family at all, so the page states "
             "no side. The floor's rule says {floor_says} and the page's says {page_says}; `null` "
@@ -1393,7 +1421,8 @@ def _error_bar(floor: dict, point_estimate, three_arm: dict | None = None,
         # (2026-09-11). `distinguishable_from_zero` is the FLOOR ARTEFACT'S own answer to "can we
         # tell which side of zero this is on", computed by the producer at a 2-standard-error bar
         # (`fold_noise_floor_family._DISTINGUISHABLE_SEMS`). `selection_leg.sign_is_stateable` is
-        # THIS page's answer to the identical question at `SIGN_NEEDS_SEMS_FROM_ZERO` = 1.96. Both
+        # THIS page's answer to the identical question at a bar DERIVED from the family's own
+        # size (`sems_to_state_a_sign`, t(n-1) -- 2.306 at the nine seeds in hand). Both
         # sat in the payload; only the page's reached a sentence, and nothing anywhere compared
         # them. A concept with two homes where the reader gets whichever one happens to render is
         # this project's most expensive recurring shape -- so the two are reconciled here, on the
@@ -1512,7 +1541,7 @@ def _selection_leg_reading(leg: dict, inside) -> str:
     inside that band and so does zero", where the point estimate was one run and the band was
     nine seeds, so it was reporting a relationship between two populations as a finding about an
     instrument. Now the verdict is the family's own: how many standard errors its mean sits from
-    zero, against `SIGN_NEEDS_SEMS_FROM_ZERO`.
+    zero, against the bar its own size earns (`sems_to_state_a_sign`).
 
     THREE BRANCHES ON THE VERDICT, BECAUSE THERE ARE THREE STATES -- stateable, not stateable,
     and no family to ask. The last one was a real defect once (2026-08-29): a two-branch ternary
@@ -1530,6 +1559,10 @@ def _selection_leg_reading(leg: dict, inside) -> str:
                 "sensitivity and NOT a bound on any number on this page -- pairing a spread with "
                 "a figure it was not drawn over is the mix this feed refuses everywhere else.")
     n, sems = leg.get("estimate_seeds"), leg.get("sems_from_zero")
+    # THE BAR AS THE LEG WAS ACTUALLY GRADED AT IT. Read back off the published key rather than
+    # recomputed, so the sentence and the verdict it describes cannot come from two numbers.
+    bar = leg.get("sems_needed_to_state_a_sign")
+    bar_text = "bar" if bar is None else "{:.2f}".format(bar)
     single_run = (leg.get("single_run") or {}).get("gbp")
     member = ""
     if single_run is not None:
@@ -1546,7 +1579,7 @@ def _selection_leg_reading(leg: dict, inside) -> str:
                 "page requires before stating a side -- so on {n} re-draws the selection leg is "
                 "{sign}. That is a statement about this instrument's best estimate and not a "
                 "target: an arm that loses to its own baseline is a complete answer.{member}"
-                ).format(sems=sems, bar=SIGN_NEEDS_SEMS_FROM_ZERO, n=n,
+                ).format(sems=sems, bar=bar_text, n=n,
                          sign=leg.get("sign"), member=member)
     if sems is None:
         return ("The family pins its mean with no measurable error, so how far that mean is from "
@@ -1556,7 +1589,7 @@ def _selection_leg_reading(leg: dict, inside) -> str:
             "requires before stating a side, so this book cannot yet resolve a selection effect "
             "of the size it is measuring -- in either direction. That is a finding about the "
             "INSTRUMENT and not about the pricing arm, and it is not a cue to re-run until a seed "
-            "agrees.{member}").format(sems=sems, bar=SIGN_NEEDS_SEMS_FROM_ZERO, member=member)
+            "agrees.{member}").format(sems=sems, bar=bar_text, member=member)
 
 
 #: The name the objective's departure term arrives under, and the ONLY thing this feed will accept
@@ -2683,13 +2716,24 @@ def _spread_for(spreads: dict | None, key: str):
     return ((spreads or {}).get("contrasts") or {}).get(key)
 
 
-#: How many standard errors from zero the family's own mean has to sit before this page states
-#: which side of zero it is on. The normal two-sided 95% point, which is the same bound
-#: `_auc_null` states its rank statistics against and the same one the noise floor's producer
-#: uses for `selection_distinguishable_from_zero` -- so the page's gate and the artefact's own
-#: verdict cannot disagree about a figure they both describe. It is a statistical convention and
-#: not a domain quantity: nothing about GB energy sets it.
-SIGN_NEEDS_SEMS_FROM_ZERO = 1.96
+# THE BAR USED TO LIVE HERE AS `SIGN_NEEDS_SEMS_FROM_ZERO = 1.96` AND IT IS NOW DERIVED
+# (2026-09-11). Two things were wrong with the literal and only one of them was the value.
+#
+# THE VALUE. 1.96 is the two-sided 95% point of the NORMAL, correct when the standard error is
+# known. Here it is estimated from the same nine draws as the mean, so the tail is wider by an
+# amount that depends on n alone: at n=9 the honest bar is t(8) = 2.306. The page was asking a
+# fifth of a standard error less than the reader is owed, and a marginal family lands in that gap.
+#
+# THE DOCSTRING, WHICH WAS THE MORE EXPENSIVE HALF. It claimed 1.96 was "the same one the noise
+# floor's producer uses for `selection_distinguishable_from_zero` -- so the page's gate and the
+# artefact's own verdict cannot disagree". That producer uses `_DISTINGUISHABLE_SEMS = 2`. The
+# two bars had never been equal, `_distinguishable_reconciliation` below exists precisely because
+# they disagree, and the constant's own comment asserted the identity that function refutes. A
+# claim of agreement sitting beside the machinery built to handle the disagreement is how a reader
+# learns to stop checking.
+#
+# So the bar is no longer written down anywhere on this page. It comes from the family's own size
+# via `sems_to_state_a_sign`, which is the single home shared with the run producer.
 
 
 def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=None) -> dict:
@@ -2723,7 +2767,8 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=N
     mean. Said out loud before dividing, per this repository's rule.
 
     KEYED TO THE PROPERTY. Nothing here asserts the answer is "cannot tell". The day the family
-    pins its mean more than `SIGN_NEEDS_SEMS_FROM_ZERO` errors from zero, `sign_is_stateable`
+    pins its mean more errors from zero than its own size earns (`sems_to_state_a_sign`, the
+    two-sided t point on `n - 1` degrees of freedom), `sign_is_stateable`
     goes true and the prose states the sign, with nobody editing a string.
     """
     single_run = _f(single_run)
@@ -2750,8 +2795,10 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=N
             "single_run": single_run_block,
         }
     sems_from_zero = None if sem == 0 else abs(mean) / sem
-    stateable = None if sems_from_zero is None else bool(
-        sems_from_zero > SIGN_NEEDS_SEMS_FROM_ZERO)
+    # THE BAR IS THIS FAMILY'S OWN, computed from the same n that produced the sem it grades.
+    bar = sems_to_state_a_sign(n)
+    stateable = None if sems_from_zero is None or bar is None else bool(
+        sems_from_zero > bar)
     lo, hi = _f((spread or {}).get("min_gbp")), _f((spread or {}).get("max_gbp"))
     stdev = _f((spread or {}).get("stdev_gbp"))
     # WHAT IT WOULD TAKE, PRICED IN THE ONE UNIT THAT ACTUALLY BUYS IT DOWN. The page's remedy
@@ -2765,10 +2812,16 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=N
     # IT IS ARITHMETIC AND NOT A PREDICTION, and the field says so in its own name. It holds this
     # family's observed mean and deviation fixed; a wider family or a mean nearer zero moves it,
     # and nothing here claims the next seeds will look like these nine.
+    #
+    # SOLVED SELF-CONSISTENTLY, AND THE CLAMP THAT USED TO BE HERE IS GONE. The old line inverted
+    # a FIXED bar in closed form and then clamped with `max(needed, n + 1)` because a fixed bar
+    # can hand back a count at or below the family that just failed it. The bar now moves with m,
+    # the right-hand side falls monotonically in m, so any m at or below n fails too and the first
+    # m the search returns is already greater than n. The clamp is not tightened, it is
+    # unreachable -- which is why it is deleted rather than kept as insurance.
     needed = None
-    if stateable is False and stdev not in (None, 0) and mean != 0:
-        needed = math.ceil((SIGN_NEEDS_SEMS_FROM_ZERO * stdev / abs(mean)) ** 2)
-        needed = max(needed, n + 1)
+    if stateable is False:
+        needed = seeds_to_state_a_sign(mean, stdev)
     return {
         "available": True,
         "estimate_gbp": mean,
@@ -2780,18 +2833,33 @@ def _leg_over_its_own_family(spread: dict | None, single_run, single_run_clock=N
         "sems_from_zero": sems_from_zero,
         "sign_is_stateable": stateable,
         "sign": None if not stateable else ("negative" if mean < 0 else "positive"),
-        "sems_needed_to_state_a_sign": SIGN_NEEDS_SEMS_FROM_ZERO,
+        "sems_needed_to_state_a_sign": bar,
+        # WHERE THE BAR CAME FROM, published so the reader can re-derive it rather than take it.
+        # A bar that moves with the sample is only honest if the reader can see WHY it moved.
+        "sems_needed_is_derived_from": (
+            None if bar is None else
+            ("the two-sided {conf:.0f}% point of Student's t on {df} degrees of freedom, which is "
+             "what {n} draws buy. It is computed from this family's own size and is written down "
+             "nowhere: the standard error below is estimated from the same {n} draws as the mean, "
+             "so the normal 1.96 would understate the tail. At {n} seeds the bar is {bar:.3f}; it "
+             "falls towards 1.96 as the family grows.").format(
+                 conf=100 * (1 - 2 * SIGN_TAIL_PROBABILITY_EACH_SIDE), df=n - 1, n=n, bar=bar)),
         "bound_to_estimate_ratio": (None if mean == 0 or sem is None else abs(sem / mean)),
         "seeds_needed_to_state_a_sign": needed,
         "seeds_needed_holds_this_family_fixed": (
             None if needed is None else
             ("arithmetic on THIS family's mean and deviation, not a forecast: at {n} seeds the "
-             "standard error is £{sem:,.0f} and the mean is {sems:.2f} errors from zero, and the "
-             "error falls as 1/sqrt(seeds), so {needed} draws of the same width around the same "
-             "mean would clear {bar}. A wider family or a mean nearer zero needs more, and "
-             "nothing here claims the next seeds will look like these.").format(
-                 n=n, sem=sem, sems=sems_from_zero, needed=needed,
-                 bar=SIGN_NEEDS_SEMS_FROM_ZERO)),
+             "standard error is £{sem:,.0f} and the mean is {sems:.2f} errors from zero against a "
+             "bar of {bar:.3f}. TWO things move as the family grows and both are carried here: "
+             "the error falls as 1/sqrt(seeds), and the bar itself tightens from {bar:.3f} to "
+             "{needed_bar:.3f} because a larger sample estimates its own spread better. So "
+             "{needed} draws of the same width around the same mean would state a side. Holding "
+             "the bar at today's {bar:.3f} and solving would have said {naive}, which charges the "
+             "larger family the smaller one's tail. A wider family or a mean nearer zero needs "
+             "more, and nothing here claims the next seeds will look like these.").format(
+                 n=n, sem=sem, sems=sems_from_zero, needed=needed, bar=bar,
+                 needed_bar=sems_to_state_a_sign(needed),
+                 naive=math.floor((bar * stdev / abs(mean)) ** 2) + 1)),
         "single_run": single_run_block,
         "single_run_inside_the_family": (
             None if single_run is None or lo is None or hi is None
@@ -9075,7 +9143,7 @@ def _cannot_tell_from_the_family(leg: dict) -> str:
     reads, with the figure it is about in front of them -- not withheld, and not softened into a
     positive number that happens to be one draw.
 
-    THE UNMEASURABLE-ERROR CASE IS ITS OWN SENTENCE, not the "short of 1.96" one. A family whose
+    THE UNMEASURABLE-ERROR CASE IS ITS OWN SENTENCE, not the "short of the bar" one. A family whose
     members are identical pins its mean with zero error, and dividing by that is not a bigger
     number of standard errors -- it is no answer at all. Reporting it as "short of the bar" would
     be an unknown rendered as a measurement, which is the fail-open direction.
@@ -9095,7 +9163,11 @@ def _cannot_tell_from_the_family(leg: dict) -> str:
             "requires before stating a side. So this book CANNOT RESOLVE whether the per-customer "
             "choosing is worth anything at all, in either direction.{member}").format(
         est=_gbp(leg["estimate_gbp"]), n=leg["estimate_seeds"], sems=leg["sems_from_zero"],
-        sem=leg["bound_gbp"], bar=SIGN_NEEDS_SEMS_FROM_ZERO, member=_one_member_clause(leg))
+        sem=leg["bound_gbp"], member=_one_member_clause(leg),
+        # THE BAR AS PUBLISHED, never a literal: this sentence and `sign_is_stateable` must be two
+        # readings of one number or the refusal is describing a gate that did not run.
+        bar=("bar" if leg.get("sems_needed_to_state_a_sign") is None
+             else "{:.2f}".format(leg["sems_needed_to_state_a_sign"])))
 
 
 def _cannot_resolve(value, spread, size_clause: str, what: str, spreads=None) -> str:

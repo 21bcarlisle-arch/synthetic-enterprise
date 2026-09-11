@@ -6947,28 +6947,113 @@ def test_an_unreadable_canonical_run_leaves_the_sameness_UNKNOWN_not_comfortable
 # ---------------------------------------------------------------------------------------------
 
 
+#: The seed family these fixtures stand for. Nine is what the run in hand actually drew, so the
+#: bar these tests reconcile against is the bar the live payload is really graded at.
+_FIXTURE_SEEDS = 9
+
+
 def _reconciliation(floor=None, leg=None) -> dict:
+    """The block, with the leg carrying the bar it was GRADED at.
+
+    THE BAR MOVED INTO THE LEG ON 2026-09-11. It used to be a module constant, so a fixture could
+    name a verdict and say nothing about the bar. It is now derived from the family's own size and
+    published on the leg, which means a fixture that omits it is a leg whose verdict came from
+    nowhere -- and the reconciliation would read `null` for a rule it is asserting about. The
+    default is filled in here rather than in each test so no test can quietly reconcile a bar
+    against an absent one; a test that wants the missing-bar case passes it explicitly as `None`.
+    """
+    if isinstance(leg, dict) and "sems_needed_to_state_a_sign" not in leg:
+        leg = dict(leg, sems_needed_to_state_a_sign=gva.sems_to_state_a_sign(_FIXTURE_SEEDS))
     return gva._distinguishable_reconciliation(floor, leg)
 
 
 def test_the_two_bars_are_READ_from_their_own_modules_and_not_retyped_here():
     """A reconciliation of two rules that quotes one bar twice agrees with itself by construction.
 
-    Fires on: replacing either `bar_sems` with a literal. The two bars differ today (2 vs 1.96),
-    which is the only reason this block is worth having -- and the day someone harmonises them the
-    assertion below says so rather than going quietly tautological.
+    Fires on: replacing either `bar_sems` with a literal. The two bars differ today (2 vs t(8) =
+    2.306), which is the only reason this block is worth having -- and the day someone harmonises
+    them the assertion below says so rather than going quietly tautological.
+
+    THE PAGE'S SIDE IS KEYED TO THE DERIVATION, NOT TO 2.306 (2026-09-11). Pinning the number the
+    page happens to publish today would go red the moment a tenth seed is drawn -- when the page
+    has become MORE correct, not less -- and stay green if the bar were re-frozen at a constant,
+    which is the defect this whole change removes. So the assertion is that the published bar is
+    what this family's own size earns, whatever that is.
     """
     from tools.fold_noise_floor_family import _DISTINGUISHABLE_SEMS as producer_bar
     block = _reconciliation({"selection_distinguishable_from_zero": True},
                             {"sign_is_stateable": True})
     assert block["the_floors_rule"]["bar_sems"] == producer_bar, (
         "the floor's bar on this page is not the bar the producer actually applies")
-    assert block["the_pages_rule"]["bar_sems"] == gva.SIGN_NEEDS_SEMS_FROM_ZERO, (
-        "the page's bar is not the constant the page's own rule uses")
+    assert block["the_pages_rule"]["bar_sems"] == gva.sems_to_state_a_sign(_FIXTURE_SEEDS), (
+        "the page's bar is not the one its own family size earns, so the bar the reader is shown "
+        "is not the bar the verdict beside it was computed at")
     assert block["the_floors_rule"]["bar_sems"] != block["the_pages_rule"]["bar_sems"], (
         "the two rules now share a bar, so this reconciliation can no longer disagree with "
         "itself and the disagreement branch below is unreachable -- delete it or restate why "
         "two rules are still kept")
+
+
+def test_the_sign_bar_is_a_function_of_the_seed_count_and_not_a_constant():
+    """THE DEFECT: a bar written down once and applied to every family size.
+
+    Fires on: re-freezing `sems_to_state_a_sign` to any constant -- 1.96, 2.0, or anything else.
+    A literal returns the same value for every `n`, so the strict monotonicity below is exactly
+    the property a constant cannot have, and it is asserted over a SPAN rather than at one point
+    because a bar that moves once and then flattens is still a written-down number for every
+    family bigger than the one that moved it.
+
+    WHY THIS IS THE PROPERTY AND NOT THE NUMBER. The previous control on this bar asserted it
+    equalled 1.96, which is why nothing noticed for weeks that 1.96 is the wrong quantile for a
+    standard error estimated from the same nine draws as the mean. A control pinned to today's
+    answer goes red when the code becomes more honest and green while the claim rots.
+
+    THE LIMIT IS NAMED, NOT APPROXIMATED. As the family grows the t point falls towards the normal
+    1.96 and never reaches it, so `> 1.96` holds at every finite `n` -- that is the fail-closed
+    direction, and a bar that ever dipped below it would be claiming more precision than the
+    sample bought.
+    """
+    bars = {n: gva.sems_to_state_a_sign(n) for n in (3, 5, 9, 14, 30, 120)}
+    assert all(b is not None for b in bars.values()), (
+        "the bar is unreadable at a family size that has degrees of freedom to spend: " + str(bars))
+    sizes = sorted(bars)
+    assert all(bars[a] > bars[b] for a, b in zip(sizes, sizes[1:])), (
+        "the bar does not fall strictly as the family grows, so it is not a function of the seed "
+        "count at all -- a constant would pass every other assertion here: " + str(bars))
+    assert all(b > 1.96 for b in bars.values()), (
+        "a bar at or below the normal 1.96 claims a standard error known rather than estimated "
+        "from the same draws as the mean: " + str(bars))
+    assert gva.sems_to_state_a_sign(1) is None and gva.sems_to_state_a_sign(0) is None, (
+        "a family with no degrees of freedom returns a usable bar, so some mean could clear it")
+
+
+def test_the_seeds_needed_count_is_solved_at_the_bar_that_family_would_face():
+    """THE DEFECT: projecting a seed count at TODAY'S bar instead of the projected family's own.
+
+    Fires on: holding the multiplier fixed while solving for `m`. On the live family that answer
+    is 15 and the self-consistent one is 14 -- the direction that commissioned this change
+    predicted 15 for exactly that reason, and the prediction is kept here beside the result rather
+    than quietly revised.
+
+    THE CONTROL IS THE TIE TO THE VERDICT, which is the one thing a projection can be checked
+    against without re-deriving it: the count this returns must be a family that WOULD state a
+    sign, and the one below it must not. Asserting only the first is how an off-by-one that always
+    overshoots survives -- it satisfies "would state a sign" every time.
+    """
+    mean, stdev = -1078.1657011111156, 1810.5007782810441
+    m = gva.seeds_to_state_a_sign(mean, stdev)
+    assert m == 14, (
+        "the self-consistent solve moved off 14; if the inputs changed say so, but holding the "
+        "bar at t(8) and inverting gives 15 and that is the error this asserts against: " + str(m))
+    import math
+    clears = abs(mean) > gva.sems_to_state_a_sign(m) * stdev / math.sqrt(m)
+    just_short = abs(mean) > gva.sems_to_state_a_sign(m - 1) * stdev / math.sqrt(m - 1)
+    assert clears and not just_short, (
+        "the returned count is not the SMALLEST family that states a sign at its own bar -- "
+        "clears={} at {}, and {} already cleared".format(clears, m, m - 1))
+    assert gva.seeds_to_state_a_sign(0.0, stdev) is None, (
+        "a mean of exactly zero returns a seed count, which reads as a plan for something no "
+        "number of seeds buys")
 
 
 def test_the_two_rules_AGREEING_reads_as_one_answer_with_both_bars_on_it():
