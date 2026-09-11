@@ -436,6 +436,17 @@ def test_the_sample_is_PROPORTIONAL_in_every_year_and_not_merely_non_empty():
 
     A win's settlement cost falls with its date, so a rule that is not proportional shows it
     here: the ten-year fixture spans a 10x spread in cost per win.
+
+    RE-KEYED 2026-09-11 FROM THE COUNT TO THE ESTIMATE, and the distinction is the whole of why
+    this control survived the mechanism changing under it. What it has always been FOR is that no
+    year is over- or under-represented in what the page reports the company won. It asserted that
+    through `wins / rate`, because under the count cull the count WAS the estimator.
+
+    The sample is now chosen for difference over the demand axes, which is deliberately not
+    proportional by count -- so the old assertion would have gone red on a design that reconstructs
+    the years BETTER, which is the keyed-to-today's-answer failure this project keeps paying for.
+    The estimator the page actually renders is `settlement_weight`, and under the cull it is
+    exactly `wins / rate`, so this is the same claim on both branches and a strictly wider one.
     """
     out = _campaign(years=list(range(2016, 2026)), quote_budget_fn=_budget(40),
                     customer_year_budget=200.0)
@@ -445,11 +456,14 @@ def test_the_sample_is_PROPORTIONAL_in_every_year_and_not_merely_non_empty():
     booked = [r for r in out["by_year"] if r["funnel_wins"]]
     assert len(booked) == 10, "every year must have funnel wins for this to test proportionality"
     for r in booked:
-        realised = r["wins"] / r["funnel_wins"]
-        assert abs(realised - rate) <= 0.5 * rate + (1.0 / r["funnel_wins"]), (
-            f"{r['year']}: booked {r['wins']} of {r['funnel_wins']} funnel wins "
-            f"({realised:.3f}) against a campaign rate of {rate:.3f} -- the sample is not "
-            "proportional, so this year is over- or under-represented in the book"
+        # WHAT THIS YEAR'S SETTLED ACCOUNTS SAY THE COMPANY WON. Under the cull it is the count
+        # divided by the rate; under the chooser it is the fitted mass. Either way it is the
+        # number a reader reads off the curve as that year's business.
+        estimate = r["settlement_weight"]
+        assert abs(estimate - r["funnel_wins"]) <= 0.5 * r["funnel_wins"] + 1.0, (
+            f"{r['year']}: the settled book says the company won {estimate:.1f} accounts "
+            f"against the {r['funnel_wins']} its funnel actually won -- this year is over- or "
+            f"under-represented in the published estimate (selection: {r['settlement_selection']})"
         )
     assert out["customer_years_committed"] <= 200.0
 

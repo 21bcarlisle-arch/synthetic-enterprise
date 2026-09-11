@@ -977,7 +977,7 @@ def choose_for_difference(values, k: int, seed: int = 0, fuel=None):
     return np.array(sorted(set(chosen)))
 
 
-def fit_weights(values, chosen, reference, seed: int = 999):
+def fit_weights(values, chosen, reference, seed: int = 999, groups=None):
     """Solve for the mass each chosen case stands for, so the WEIGHTED sample reproduces the
     population.
 
@@ -985,6 +985,22 @@ def fit_weights(values, chosen, reference, seed: int = 999):
     axis and every FIT direction, with a heavily-weighted sum-to-one row. Non-negativity is not a
     convenience: a negative weight is a household count below zero, and a case that has to be
     subtracted to make the distribution work is a case that should not have been chosen.
+
+    `groups` IS ADDITIVE AND `None` KEEPS THIS FUNCTION BYTE-IDENTICAL, which is the same promise
+    `rake(axes=...)` makes one lane over and for the same reason: `demand_vector_coverage`'s own
+    ladder is measured against this fit, and a second code path behind one function name is how two
+    answers to one question get published.
+
+    WHAT IT IS FOR. When the weighted sample has to reproduce a marginal EXACTLY rather than well
+    -- a published per-year count, say, which a reader reads off a growth curve as a fact about a
+    year and not as an estimate with a tolerance -- a CDF row buys only best-effort agreement, and
+    an axis competing against every other axis for 89 free parameters loses. Pass one label per
+    POPULATION member and each distinct label gets its own heavily-weighted row requiring the
+    chosen members carrying it to sum to that label's population share.
+
+    IT IS A CONSTRAINT AND THEREFORE IT COSTS SOMETHING, and the cost is the point of measuring it
+    rather than assuming it. Mass forced onto the group marginal is mass the fit cannot spend on
+    the distributional axes; whether that trade is worth taking is a measurement, not a preference.
     """
     import numpy as np
     from scipy.optimize import nnls
@@ -1006,6 +1022,17 @@ def fit_weights(values, chosen, reference, seed: int = 999):
         for cut in np.quantile(projected, np.linspace(0.02, 0.98, FIT_GRID)):
             rows.append((chosen_projected <= cut).astype(float))
             targets.append(float((projected <= cut).mean()))
+
+    if groups is not None:
+        # ONE ROW PER DISTINCT LABEL, at the SAME weight as the sum-to-one row -- not higher. These
+        # rows are a partition of that row (every member carries exactly one label, so the group
+        # shares sum to one), and weighting them above it would be asking the solver to satisfy a
+        # partition more exactly than the whole it partitions.
+        groups = np.asarray(groups)
+        chosen_groups = groups[chosen]
+        for label in sorted(set(groups.tolist())):
+            rows.append((chosen_groups == label).astype(float) * 100.0)
+            targets.append(float((groups == label).mean()) * 100.0)
 
     A = np.vstack([np.array(rows), np.ones((1, len(chosen))) * 100.0])
     b = np.append(np.array(targets), 100.0)

@@ -366,15 +366,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       // a machine comfortably inside its budget until you know that budget bought one win in
       // every five and a half. The two sentences are the same fact from either end.
       var rate = d.settlement_sample_rate;
+      // THE SHAPE CLAIM IS THE SELECTION'S, NOT THE RATE'S. "Every year is sampled at the same
+      // rate, so the shape of the curve is the company's" was true of the count cull and is
+      // FALSE of a chosen sample, which is deliberately not proportional by count. Both
+      // selections give a rate below one, so this cannot be inferred here and is read from the
+      // feed. A sentence that survived the mechanism changing under it would be the worst kind
+      // of stale claim: the reassuring half.
+      var chosen = d.settlement_selection === "chosen_weighted";
       $("growth-note").textContent =
         "Spend and book figures are on the settled clock. Settlement committed "
         + esc(s.customer_years_committed) + " of " + esc(s.customer_year_budget)
         + " customer-years available to this machine"
-        + (rate != null && rate < 1
-            ? ", which bought one win in every " + (1 / rate).toFixed(1)
-              + " the company made. Every year is sampled at the same rate, so the shape of the "
-              + "curve is the company's and its height is ours."
-            : ".");
+        + (rate == null || !(rate < 1)
+            ? "."
+            : chosen
+              ? ", which bought " + (rate * 100).toFixed(1) + "% of the wins the company made. "
+                + "Those accounts were CHOSEN to differ from each other rather than counted off, "
+                + "so each carries its own weight and the bars are those weights — not account "
+                + "counts scaled by one number. The shape is the company's; how well it is "
+                + "reconstructed is measured on each row."
+              : ", which bought one win in every " + (1 / rate).toFixed(1)
+                + " the company made. Every year is sampled at the same rate, so the shape of "
+                + "the curve is the company's and its height is ours.");
     })
     .catch(function (err) {
       $("growth-note").textContent =
@@ -1058,6 +1071,25 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       $("arms-sample").innerHTML = lead
         + "Our settlement engine settled every one of the " + esc(won)
         + " accounts the company won, so the book above is the business and not a sample of it.";
+      return;
+    }
+    /* THE WORD "UNIFORM" IS A CLAIM ABOUT THE SELECTION AND IT IS READ, NEVER ASSUMED. This
+       sentence asserted uniformity four times and closed by telling the reader to divide by the
+       rate. All four are false of a CHOSEN sample, and the instruction is the dangerous one: it
+       is an arithmetic a reader can carry out, and it returns a wrong number silently. Both
+       selections give a rate below one, so the branch keys on the feed's own named selection. */
+    if (g && g.settlement_selection === "chosen_weighted") {
+      $("arms-sample").innerHTML = lead
+        + (booked === null || booked === undefined
+            ? "The settled book above is a CHOSEN "
+            : "The " + esc(booked) + " settled accounts above are a CHOSEN ")
+        + (r * 100).toFixed(1) + "% sample of the " + esc(won)
+        + " accounts the company won &mdash; the sample is our settlement engine’s doing, not "
+        + "the market’s. It is deliberately NOT uniform: the accounts were picked to differ from "
+        + "one another across the demand axes, and each carries its own weight in the company’s "
+        + "own wins. So there is no single number to divide by here, and dividing by "
+        + r.toFixed(3) + " would be wrong &mdash; a per-account figure on this page is a figure "
+        + "about these accounts, and only the weighted totals read across to the supplier.";
       return;
     }
     $("arms-sample").innerHTML = lead

@@ -324,6 +324,11 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
             "it was the company's own capital or the real switching market that decided."
         ),
         "settlement_sample_rate": sample_rate,
+        # WHICH SAMPLE, read from the campaign's own record and never inferred here (SITE
+        # CONSTITUTION rule 3). The default is the CULL and not the chooser: a record written
+        # before the chooser existed describes a uniform sample, and defaulting the other way
+        # would relabel every historical artefact as chosen.
+        "settlement_selection": campaign.get("settlement_selection", "uniform_count"),
         "settlement_wins_refused": refused,
         "settlement_funnel_wins": funnel_wins,
         # WHAT EACH PER-YEAR COUNT SELECTS (2026-08-29,

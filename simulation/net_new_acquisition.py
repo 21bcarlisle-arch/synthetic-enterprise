@@ -938,16 +938,74 @@ def plan_growth_campaign(
     # inside the budget and this whole pass is a no-op.
     sample_rate = 1.0 if campaign_cy <= headroom_cy else headroom_cy / campaign_cy
 
+    # ── WHICH WINS, AND WHAT EACH ONE STANDS FOR ──────────────────────────────────────────
+    # THE COUNT RULE BELOW IS THE FALLBACK NOW, NOT THE DESIGN. `settlement_choice` picks the
+    # sample for DIFFERENCE over the demand axes and solves for the mass each settled account
+    # stands for; the systematic cull is what runs when it cannot, and every reason it cannot is
+    # named on the note. Measured 2026-09-11, seed 42, two arms at one HEAD with one variable:
+    # worst-axis KS against the full candidate population 0.12798 culled against 0.08241 chosen,
+    # a factor of 1.553, with every year's weight reconstructing its funnel wins to 0.1%.
+    #
+    # WHY THE CULL IS KEPT AT ALL rather than deleted: it is the only thing that can settle a book
+    # when a candidate has no home to place on the axes, and a run that refused to book anything in
+    # that case would make the whole campaign depend on the premise stock being wired.
+    #
+    # `sample_rate < 1.0` GUARDS THE WHOLE THING, so a campaign that fits inside its budget takes
+    # neither path and stays byte-identical to a run with no ceiling at all -- the null property
+    # this pass has had since 2026-08-29, and a change aimed at the artefact must be invisible when
+    # the artefact is absent.
+    chosen = None
+    selection = "uniform_count"
+    choice_refusal = None
+    if sample_rate < 1.0:
+        from simulation.settlement_choice import (
+            _fuel_of,
+            choose_settled_sample,
+            demand_vector,
+        )
+        vectors = [demand_vector(p, cy) for _y, p, _d, cy in candidates]
+        unplaceable = sum(v is None for v in vectors)
+        if unplaceable:
+            choice_refusal = (
+                f"{unplaceable} of {len(candidates)} wins carry no home the demand axes can be "
+                f"evaluated on, so the sample could not be chosen for difference and was culled "
+                f"by count instead"
+            )
+        else:
+            chosen = choose_settled_sample(
+                vectors,
+                [cy for _y, _p, _d, cy in candidates],
+                [_fuel_of(p) for _y, p, _d, _cy in candidates],
+                headroom_cy=headroom_cy,
+                candidate_years=[y for y, _p, _d, _cy in candidates],
+            )
+            if chosen is None:
+                choice_refusal = (
+                    "not even the smallest chosen set fits the customer-year headroom, so the "
+                    "sample was culled by count instead"
+                )
+    if chosen is not None:
+        selection = "chosen_weighted"
+
     booked_by_year: dict = {}
     refused_by_year: dict = {}
     booked_cy_by_year: dict = {}
+    # THE MASS EACH SETTLED ACCOUNT STANDS FOR, parallel to `winners` and in COMMERCIAL WINS. Under
+    # the cull every entry is `1 / sample_rate` and the vector says the same thing the scalar did;
+    # under the chooser they differ by two orders of magnitude, which is the whole point. Carried
+    # as a list rather than folded onto the prospect because a prospect is the WORLD's object and a
+    # weight is a fact about OUR sample of it.
+    settlement_weights: list[float] = []
+    weight_by_year: dict = {}
+    chosen_weight = dict(zip(chosen["positions"], chosen["weights"])) if chosen else {}
     for i, (year, prospect, in_market, cost_cy) in enumerate(candidates):
         # SYSTEMATIC, not random and not first-come. `int((i+1)*r) > int(i*r)` takes every
         # 1-in-1/r of the sequence, spread evenly through it, so each year's booked wins are
         # proportional to that year's funnel wins and `booked / sample_rate` estimates what
         # the company won without bias in ANY year. Deterministic, so a re-run books the same
         # accounts; no RNG stream to seed and none to drift.
-        wanted = int((i + 1) * sample_rate) > int(i * sample_rate)
+        wanted = (i in chosen_weight) if chosen else (
+            int((i + 1) * sample_rate) > int(i * sample_rate))
         # THE HARD GUARD, kept even though `sample_rate` was derived from the budget. The
         # selection is by count and the budget is in customer-years, so a sample whose members
         # happen to be dearer than the population's mean could cross the ceiling by one
@@ -956,6 +1014,13 @@ def plan_growth_campaign(
         if wanted and committed_cy + cost_cy <= customer_year_budget:
             committed_cy += cost_cy
             winners.append((prospect, in_market))
+            # THE CULL'S WEIGHT IS THE SCALAR IT ALWAYS IMPLIED. `1 / sample_rate` was never
+            # absent from the old design -- it was on the page as the thing a reader was told to
+            # divide by. Writing it per account here is what makes the two paths comparable and
+            # what stops every consumer needing to know which one ran.
+            w = chosen_weight[i] if chosen else (1.0 / sample_rate if sample_rate else 0.0)
+            settlement_weights.append(w)
+            weight_by_year[year] = weight_by_year.get(year, 0.0) + w
             booked_by_year[year] = booked_by_year.get(year, 0) + 1
             booked_cy_by_year[year] = booked_cy_by_year.get(year, 0.0) + cost_cy
         else:
@@ -978,7 +1043,21 @@ def plan_growth_campaign(
         row["customer_years_committed"] = round(running_cy, 1)
         # THE RATE IS ON EVERY ROW because it is what refused this year's wins, and a reader
         # who sees `funnel_wins` and `wins` disagree is owed the reason on the same line.
+        #
+        # IT IS STILL TRUE UNDER THE CHOOSER AND IT NO LONGER MEANS WHAT IT MEANT. It is the share
+        # of the company's wins that reached the book -- a COUNT ratio -- and that is exactly what
+        # it was always defined as. What has stopped being true is the inference every consumer
+        # drew from it: that dividing a settled figure by it recovers the commercial one. Under a
+        # chosen sample the inflation is per account, so `settlement_weight` below is the number
+        # that does that job and the rate is a diagnostic.
         row["settlement_sample_rate"] = round(sample_rate, 4)
+        # WHAT THIS YEAR'S SETTLED ACCOUNTS STAND FOR, in the company's own wins. Under the cull it
+        # is `wins / rate` and says nothing new; under the chooser it is the fitted estimate of
+        # `funnel_wins`, and the two agreeing to 0.1% is a measured property of the fit and not an
+        # identity. A reader comparing this with `funnel_wins` on the same row is reading the
+        # sample's accuracy directly, which is the one check the scalar rate made impossible.
+        row["settlement_weight"] = round(weight_by_year.get(year, 0.0), 1)
+        row["settlement_selection"] = selection
 
     if sample_rate < 1.0:
         # `1 / sample_rate` IS NOT SAFE HERE and a rate of exactly zero is a real operating
@@ -991,13 +1070,36 @@ def plan_growth_campaign(
         # year is represented in proportion to what it won" is false -- no year is represented
         # at all -- and a note that keeps its reassuring clause through the degenerate case is
         # the shape that publishes a claim nobody checked.
+        # THE NOTE HAS TO SAY WHICH SAMPLE IT IS, and until 2026-09-11 it could only ever say one
+        # thing. It asserted the book was UNIFORM -- "spread evenly", "divide by the rate" -- and
+        # under the chooser every one of those clauses is false. A note whose reassuring sentence
+        # survives a change to the mechanism it describes is the shape that publishes a claim
+        # nobody checked, which is the same failure its own zero-rate branch was written to avoid.
         how = (
+            "chosen for DIFFERENCE over the demand axes rather than culled by count, each "
+            "carrying the mass of commercial wins it stands for"
+            if chosen else
             f"one in every {1 / sample_rate:.1f}, spread evenly across the campaign so every "
             f"year is represented in proportion to what it won"
             if sample_rate else
             "which is NONE of them: the opening book had already committed the whole budget "
             "before the campaign won anything, so this book carries no campaign accounts at all"
         )
+        if chosen:
+            reading = (
+                "The book below is a CHOSEN sample and is deliberately not proportional by "
+                "count: every settled account carries its own `settlement_weight` in the "
+                "company's own wins, and those weights -- not the rate -- are what read the "
+                "company rather than the sample. Per year they sum to that year's `funnel_wins`, "
+                "which is a fitted property on the row to be checked, not an identity."
+            )
+        elif sample_rate:
+            reading = (
+                "The book below is a uniform SAMPLE of the book this supplier's balance sheet "
+                "supports -- divide by the rate to read the company, not the sample."
+            )
+        else:
+            reading = "The book below is the opening book alone. It is not what this supplier won."
         notes.append(
             f"SETTLEMENT-SAMPLED at {sample_rate:.4f}: the company won "
             f"{len(candidates)} accounts and this machine settled {len(winners)} of them, "
@@ -1005,13 +1107,13 @@ def plan_growth_campaign(
             f"{customer_year_budget} customer-years is THIS MACHINE's budget "
             f"(basis: `simulation/net_new_acquisition.py::SETTLEMENT_CUSTOMER_YEAR_BUDGET`, "
             f"artefact `docs/observability/settlement_ceiling_probe.json`), not a commercial "
-            f"limit. " + (
-                "The book below is a uniform SAMPLE of the book this supplier's balance sheet "
-                "supports -- divide by the rate to read the company, not the sample."
-                if sample_rate else
-                "The book below is the opening book alone. It is not what this supplier won."
-            )
+            f"limit. " + reading
         )
+    if choice_refusal:
+        # THE REFUSAL NAMES ITS REASON, on the same channel the reader already watches. A sample
+        # that silently fell back to counting would publish a page whose selection sentence is
+        # wrong in the one direction nobody would check -- it would read as chosen.
+        notes.append(f"SETTLEMENT SAMPLE NOT CHOSEN: {choice_refusal}.")
 
     return {
         "winners": winners,
@@ -1020,6 +1122,13 @@ def plan_growth_campaign(
         "notes": notes,
         "customer_years_committed": round(committed_cy, 1),
         "customer_year_budget": customer_year_budget,
+        # HOW THE SAMPLE WAS TAKEN, as a value rather than something a consumer infers from the
+        # rate. Every published sentence about this book that says "uniform" has to be able to
+        # stop saying it, and a page that branches on a named selection cannot assert uniformity
+        # about a chosen sample by omission.
+        "settlement_selection": selection,
+        # PARALLEL TO `winners`, in commercial wins. Sums to `funnel_wins` under either path.
+        "settlement_weights": [round(w, 4) for w in settlement_weights],
         # WHAT THE CEILING COST, as one number. `1 - rate` is the share of the company's own
         # wins this machine could not settle, and it is the honest headline for the artefact.
         "settlement_sample_rate": round(sample_rate, 4),

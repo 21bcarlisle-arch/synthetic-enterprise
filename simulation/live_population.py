@@ -1038,6 +1038,11 @@ def _resolve_campaign(book: List[dict], seed: int) -> dict:
             # `generate_book_growth_data` fail closed and publish "cannot be read from it",
             # which is right but is not the answer.
             "settlement_sample_rate": outcome["settlement_sample_rate"],
+            # HOW THE SAMPLE WAS TAKEN, persisted for exactly the reason the rate is: the site
+            # generator runs in a later process and would otherwise have to INFER the selection
+            # from the rate. It cannot -- both selections produce a rate below one -- so a page
+            # left to infer it would go on asserting the book is uniform after it stopped being.
+            "settlement_selection": outcome.get("settlement_selection", "uniform_count"),
             "customer_years_all_wins_would_cost": outcome[
                 "customer_years_all_wins_would_cost"],
             "wins": len(outcome["winners"]),
