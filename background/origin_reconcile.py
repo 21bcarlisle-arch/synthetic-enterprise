@@ -159,6 +159,53 @@ def _paths(project: Path, *args: str) -> list[str] | None:
     return [p for p in (res.stdout or "").split("\0") if p]
 
 
+def _arriving_paths(project: Path) -> list[str] | None:
+    """Which paths the merge with origin would have to WRITE. Not which paths differ.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-10, measured; fixed 2026-09-11). This was
+    `git diff --name-only HEAD origin/main`, which is the SYMMETRIC DIFFERENCE OF TWO ENDPOINT
+    TREES -- it answers *which paths differ between HEAD and origin/main*. That is a proxy, and it
+    is wrong in one direction: a path HEAD DELETED and origin still carries differs between the
+    endpoints, so it was reported as arriving, but the merge result also lacks it, so git writes
+    nothing there and it blocks nothing.
+
+    It cost a permanent wedge, not a cosmetic one. `e4aa02359` deliberately took
+    `docs/observability/head_red_observed.json` and `docs/staging/reference/HEAD_RED_REGISTER.md`
+    out of the index while leaving them on disk (so a clean checkout inherits no machine night),
+    and origin had not touched either since the merge base. Both were therefore reported as
+    untracked blockers, for ever: the census producer rewrites both on every run, so they
+    re-diverge from origin's base copy within minutes of any clearing, and an all-or-nothing
+    clearing rule fed a self-regenerating false positive has no exit. The gap went 4 -> 9 -> 12 ->
+    15 across one day with the same complaint every five minutes.
+
+    Keyed to the PROPERTY and not to today's answer, which is the whole argument for the narrowing:
+    if the merge result differs from HEAD at a path, git must write that path; if it does not
+    differ, git writes nothing there. Note that this holds on a CONFLICTED merge too -- a conflicted
+    path's merge-result blob holds git's markers, which differ from HEAD, so it is still reported.
+    That is the poison leg in
+    `tests/background/test_the_blocking_test_asked_which_paths_differ_not_which_the_merge_writes.py`.
+
+    IT CANNOT HIDE A TRUE POSITIVE BY CONSTRUCTION, and that argument -- not the fact that it
+    clears today's two -- is what it is keyed to. In the genuine fast-forward case HEAD is an
+    ancestor, the merge result IS `origin/main`, and the behaviour is unchanged; the narrowing
+    bites only on the diverged case, which is the case the old question was wrong in.
+
+    FAILS TOWARD THE OLD, WIDER ANSWER rather than toward `None`. If `merge-tree --write-tree` is
+    unavailable or will not answer, the endpoint diff is restored -- it OVER-reports, so an
+    unreadable merge costs a false refusal a reader can clear by hand, where `None` would put the
+    caller into "I could not look" and stop it naming any path at all.
+    """
+    merged = _git(project, "merge-tree", "--write-tree", "HEAD",
+                  "{}/{}".format(REMOTE, BRANCH))
+    # rc=1 IS A CONFLICT AND STILL WRITES A TREE -- only rc>1 is a failure to answer. The tree oid
+    # is the first line; on conflict the lines after it are the conflicted entries and the messages.
+    tree = merged.stdout.splitlines()[0].strip() if merged.stdout.strip() else ""
+    if merged.returncode > 1 or not tree:
+        return _paths(project, "diff", "--name-only", "-z", "HEAD",
+                      "{}/{}".format(REMOTE, BRANCH))
+    return _paths(project, "diff", "--name-only", "-z", "HEAD", tree)
+
+
 def paths_blocking_fast_forward(project: Path | None = None) -> list[dict] | None:
     """Which local paths stop `merge --ff-only origin/main`, and which KIND each one is.
 
@@ -187,8 +234,7 @@ def paths_blocking_fast_forward(project: Path | None = None) -> list[dict] | Non
     not, and a verdict that renders them the same is how a fail-open reads as a clean bill.
     """
     project = project or PROJECT_DIR
-    incoming = _paths(project, "diff", "--name-only", "-z", "HEAD",
-                      "{}/{}".format(REMOTE, BRANCH))
+    incoming = _arriving_paths(project)
     modified = _paths(project, "diff", "--name-only", "-z", "HEAD")
     untracked = _paths(project, "ls-files", "--others", "--exclude-standard", "-z")
     if incoming is None or modified is None or untracked is None:
