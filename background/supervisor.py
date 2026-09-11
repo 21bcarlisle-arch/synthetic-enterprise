@@ -150,9 +150,21 @@ from background.episode_prior import (  # noqa: E402
 from background.live_ledger_guard import guard_live_ledger_write  # noqa: E402
 from background.notify import notify  # noqa: E402
 
-# The draw and the writer must agree about when `timed_out_at` holds a real nodeid rather
-# than one of its named "cannot tell" phrases -- imported, never re-implemented here.
-from background.process_run_complete import (  # noqa: E402
+# The draw and the writer must agree about when `timed_out_at` holds a real nodeid rather than
+# one of its named "cannot tell" phrases -- imported, never re-implemented here.
+#
+# ASK THE LEAF, NOT THE PUBLISHER. This module is imported by nearly every `tests/background/**`
+# test, and `process_run_complete` imports all six publish-path sources, so ANY top-level import
+# of the publisher from here enrols the whole harness self-governance suite in the publish gate
+# -- measured 2026-09-11 at 275 blocking test files against 239 with the edge cut. That is not a
+# style point: it is the 33-hour outage `background/publish_gate_blocking_read.py` was cut to
+# end, re-created here by 59a91d4a2 for a single four-token predicate, and it was the whole of
+# `total_red: 1` -- blocking EVERY lane's publish, not just this one's.
+#
+# So if you need something else from the publisher here: MOVE IT TO THE LEAF, do not import it.
+# `test_publish_scope.py::test_the_supervisor_does_not_import_the_publish_path` fails, and names
+# the chain, the moment this line becomes `from background.process_run_complete import ...`.
+from background.publish_gate_blocking_read import (  # noqa: E402
     operational_layer_timeout_named_a_test,
 )
 from background.tmux_relay import is_session_idle  # noqa: E402 (read-only idle check)

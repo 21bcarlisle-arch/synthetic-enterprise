@@ -229,6 +229,28 @@ CONTROL_TESTS = [
     # one being fixed. It is filed as its own BLOCKING finding with the nine names; the line goes
     # in HERE, in the same change, once that red is green -- and this comment is what makes the
     # omission visible instead of a gap nobody wrote down.
+    #
+    # THE PUBLISH GATE'S OWN SCOPE (2026-09-11). Same selection hole, and this one was PAID rather
+    # than predicted. `test_the_supervisor_does_not_import_the_publish_path` walks the real import
+    # graph asking whether `background/supervisor.py` can reach a publish-path source; 92e5b380a
+    # cut that edge and wrote the control in the same commit. On 2026-09-10, 59a91d4a2 re-cut it --
+    # a top-level `from background.process_run_complete import ...` for one four-token predicate --
+    # and the control did not run, because `tests_for('background/supervisor.py')` is
+    # `test_supervisor.py` and `test_supervisor_blocker_precedence.py` and nothing else.
+    #
+    # WHY NO STEM CAN EVER REACH IT, which is what makes this a list entry and not a rename: this
+    # control's subject is an EDGE BETWEEN TWO MODULES, so it has no implementation file of its own
+    # for a filename-stem selector to match -- the same structural class as the lint ratchet and the
+    # two AST-walk guards above. Verified before writing this line rather than assumed:
+    # `select_targets(['background/supervisor.py', 'background/process_run_complete.py'])` returned
+    # 20 targets and this file was in none of them.
+    #
+    # WHAT IT COST: the edge put 275 test files in the blocking publish scope against 239 with it
+    # cut, and it was the whole of `total_red: 1` in `.publish_gate_state.json` -- so it blocked
+    # EVERY lane's publish for ~19 hours, not just the lane that wrote it. ~21s for the file (31
+    # tests), almost all of it building the import graph: 3.5% of the 600s budget the lint entry
+    # cites, against a defect whose measured cost is a tree-wide publish wedge.
+    "tests/background/test_publish_scope.py",
 ]
 
 # A staged path under any of these = a code/config change that could break a control or its own

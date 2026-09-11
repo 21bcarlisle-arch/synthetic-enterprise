@@ -47,6 +47,20 @@ from background.live_ledger_guard import (  # noqa: E402 -- ditto
     guard_live_ledger_write,
     guard_site_publish_pipeline,
 )
+
+# THE VOCABULARY THIS MODULE WRITES AND THE SUPERVISOR READS, owned by a leaf so that reading it
+# is not an edge into the publish path. This module is still the only WRITER -- the phrases are
+# emitted by `operational_layer_timeout_subject` below, off a dead subprocess's output -- but a
+# reader that only needs to ask "did the timeout name a test?" must be able to do so without
+# importing all of this. See that leaf's docstring for the measured cost of the alternative;
+# `tests/background/test_publish_scope.py::test_the_supervisor_does_not_import_the_publish_path`
+# is what fails when someone re-cuts the edge, as 59a91d4a2 did.
+from background.publish_gate_blocking_read import (  # noqa: E402 -- needs the path above
+    OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS,
+    OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION,
+    OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT,
+    operational_layer_timeout_named_a_test,
+)
 from background.publish_step_ledger import PublishStepLedger  # noqa: E402 -- needs the path above
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
@@ -778,15 +792,6 @@ _PYTEST_VERBOSE_NODEID_RE = re.compile(r"^(\S+::\S+)(.*)$")
 #: line is the whole signal: the id was written, the outcome never was.
 _PYTEST_OUTCOME_WORDS = ("PASSED", "FAILED", "ERROR", "SKIPPED", "XFAIL", "XPASS")
 
-_OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT = (
-    "(the killed run captured no output at all -- it named nothing)")
-_OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION = (
-    "(no test had started -- the budget ran out during COLLECTION)")
-_OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS = (
-    "(between tests -- the last one to start, `{}`, had already reported; the budget ran out "
-    "in teardown, a fixture, or session shutdown)")
-
-
 def operational_layer_timeout_subject(exc):
     """The test that was still running when the budget ran out, or a NAMED "cannot tell".
 
@@ -799,7 +804,7 @@ def operational_layer_timeout_subject(exc):
     pass count and the collection-block census above."""
     text = _operational_layer_result_text(exc)
     if not text:
-        return _OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT
+        return OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT
 
     last = None
     for line in text.splitlines():
@@ -807,20 +812,12 @@ def operational_layer_timeout_subject(exc):
         if match:
             last = match
     if last is None:
-        return _OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION
+        return OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION
 
     nodeid, remainder = last.group(1), last.group(2)
     if any(word in remainder for word in _PYTEST_OUTCOME_WORDS):
-        return _OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS.format(nodeid)
+        return OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS.format(nodeid)
     return nodeid
-
-
-def operational_layer_timeout_named_a_test(subject):
-    """True when `subject` is a real nodeid rather than one of the "cannot tell" phrases.
-
-    One place, so the log line, the state file and the supervisor's draw all agree about when
-    there is something to go and look at -- and so the distinction is testable on its own."""
-    return bool(subject) and not subject.startswith("(")
 
 
 def operational_layer_failure_digest(result, max_lines=OPERATIONAL_LAYER_DIGEST_MAX_LINES):
@@ -1142,7 +1139,7 @@ def run_operational_layer_signal(*, now=None, runner=None, notify_fn=None, log_f
         try:
             subject = operational_layer_timeout_subject(exc)
         except Exception:
-            subject = _OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT
+            subject = OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT
         log_fn(
             "Operational-layer signal: suite TIMED OUT after {}s at {} -- recorded as "
             "'red_timeout' (consecutive_red={}) and STAMPED, so the throttle engages and the "

@@ -32,8 +32,19 @@ publish cadence is 330 seconds.
 
 WHAT THIS IS
 ------------
-The record's four-way honesty contract, and nothing else. It has no imports beyond the standard
-library, so nothing that reads a gate record is dragged toward the publish path again.
+Contracts the supervisor must be able to ASK without importing the publisher. It has no imports
+beyond the standard library, so nothing that reads one of them is dragged toward the publish
+path again. Two live here now:
+
+  * the gate blocking record's four-way honesty contract (`read_blocking_record`), the reason
+    the module was cut in the first place;
+  * the operational-layer timeout vocabulary (`operational_layer_timeout_named_a_test` and the
+    three "cannot tell" phrases), moved 2026-09-11 after the SAME edge was re-cut by hand.
+
+That membership rule is deliberately narrow, and it is NOT "small things the supervisor uses".
+It is: a contract with more than one reader, where at least one reader must stay off the
+publish path. Anything that WRITES a published number, or reads one, does not belong here --
+`process_run_complete` keeps every such thing, including the producer of the phrases below.
 
 WHY THE POLICY IS AN ARGUMENT, AND WHY THE DEFAULTS ARE ALLOWED TO BE A SECOND COPY
 -----------------------------------------------------------------------------------
@@ -79,6 +90,43 @@ from pathlib import Path
 # (2x) and the cap (12) are the publisher's, not this module's, to change.
 DEFAULT_MAX_AGE_SECONDS = 2 * 3800
 DEFAULT_MAX_CITED = 12
+
+
+# ── THE OPERATIONAL-LAYER TIMEOUT VOCABULARY (moved here 2026-09-11, same reason as above) ──
+#
+# These live in a leaf for exactly the reason the module docstring gives, and they are here
+# because the reason was proven a second time. 59a91d4a2 gave the supervisor's RUNG-1 draw a
+# top-level `from background.process_run_complete import operational_layer_timeout_named_a_test`
+# -- one symbol, a four-token predicate, no publishing anywhere near it -- and that single edge
+# re-enrolled the whole harness self-governance suite in the publish gate, measured at 275
+# blocking test files against 239 when the edge is cut. It was the right instinct (import the
+# contract, never mirror it) pointed at the wrong module.
+#
+# So the vocabulary moves to where the supervisor can ask it WITHOUT reaching the publisher.
+# `process_run_complete` imports these back and remains their only WRITER: the phrases are
+# emitted by `operational_layer_timeout_subject`, which reads a dead subprocess's output and
+# has no business in a leaf. Only the shared part -- the phrases themselves and the predicate
+# that distinguishes them from a real nodeid -- lives here.
+#
+# THE CONVENTION, stated once because two modules now depend on it: a "cannot tell" answer is
+# PARENTHESISED and a real pytest nodeid is not. That is what `..._named_a_test` tests, and it
+# is why the phrases and the predicate had to travel together -- splitting them would leave the
+# convention implicit in one module and asserted in another, free to drift silently.
+OPERATIONAL_LAYER_TIMEOUT_NO_OUTPUT = (
+    "(the killed run captured no output at all -- it named nothing)")
+OPERATIONAL_LAYER_TIMEOUT_IN_COLLECTION = (
+    "(no test had started -- the budget ran out during COLLECTION)")
+OPERATIONAL_LAYER_TIMEOUT_BETWEEN_TESTS = (
+    "(between tests -- the last one to start, `{}`, had already reported; the budget ran out "
+    "in teardown, a fixture, or session shutdown)")
+
+
+def operational_layer_timeout_named_a_test(subject):
+    """True when `subject` is a real nodeid rather than one of the "cannot tell" phrases.
+
+    One place, so the log line, the state file and the supervisor's draw all agree about when
+    there is something to go and look at -- and so the distinction is testable on its own."""
+    return bool(subject) and not subject.startswith("(")
 
 
 def read_blocking_record(path, *, now=None, max_age=DEFAULT_MAX_AGE_SECONDS,

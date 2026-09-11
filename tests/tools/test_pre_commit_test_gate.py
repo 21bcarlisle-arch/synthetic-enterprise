@@ -136,6 +136,49 @@ def test_mutation_dropping_the_ratchet_from_the_control_set_is_visible():
     assert RUFF_RATCHET in gate.select_targets(["saas/some_new_module.py"])
 
 
+# ── THE PUBLISH-SCOPE EDGE CONTROL (2026-09-11) ──────────────────────────────────────────────────
+# Third instance of the same selection hole, and the first where the control it hides was written
+# BY this repo, FOR this exact defect, and still did not stop it landing a second time.
+#
+# `test_publish_scope.py::test_the_supervisor_does_not_import_the_publish_path` asks the real
+# import graph whether `background/supervisor.py` reaches a publish-path source. 92e5b380a cut that
+# edge and wrote the control together. 59a91d4a2 re-cut it fourteen days later for a single
+# predicate, green all the way through the commit gate, and wedged every lane's publish.
+#
+# The subject is an EDGE, so there is no implementation stem to match -- `background/supervisor.py`
+# maps to `test_supervisor*.py` and nowhere near this file. The selecting path below is therefore
+# chosen to be exactly the module whose edit caused the incident, which is the strongest available
+# form of this assertion: had this entry existed on 2026-09-10, the commit could not have landed.
+
+PUBLISH_SCOPE_CONTROL = "tests/background/test_publish_scope.py"
+
+
+def test_a_supervisor_commit_selects_the_publish_scope_edge_control():
+    targets = gate.select_targets(["background/supervisor.py"])
+    assert PUBLISH_SCOPE_CONTROL in targets, (
+        "a commit editing the supervisor must RUN the control that forbids it importing the "
+        "publish path; stem selection reaches only test_supervisor*.py, which is how 59a91d4a2 "
+        "re-cut the edge 92e5b380a removed and wedged every lane's publish"
+    )
+    # The hole really was total, so prove the stem selector cannot reach it -- otherwise this
+    # entry would be redundant and the comment above it false.
+    assert PUBLISH_SCOPE_CONTROL not in gate.tests_for("background/supervisor.py")
+
+
+def test_mutation_dropping_the_publish_scope_control_is_visible():
+    """The control can FAIL: with the entry removed, a supervisor commit stops selecting it."""
+    without = [t for t in gate.CONTROL_TESTS if t != PUBLISH_SCOPE_CONTROL]
+    assert len(without) == len(gate.CONTROL_TESTS) - 1, (
+        "the publish-scope control is not in CONTROL_TESTS")
+    original = gate.CONTROL_TESTS
+    try:
+        gate.CONTROL_TESTS = without
+        assert PUBLISH_SCOPE_CONTROL not in gate.select_targets(["background/supervisor.py"])
+    finally:
+        gate.CONTROL_TESTS = original
+    assert PUBLISH_SCOPE_CONTROL in gate.select_targets(["background/supervisor.py"])
+
+
 # ── THE UNGUARDED-LEDGER-WRITER RATCHET (2026-09-10) ─────────────────────────────────────────────
 # Same shape as the pair above and added for the same reason, after the identical failure ran its
 # full course: `test_the_narrowing_to_measurement_ledgers_is_measured_not_assumed` censuses every
