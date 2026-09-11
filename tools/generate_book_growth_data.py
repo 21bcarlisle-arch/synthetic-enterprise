@@ -193,6 +193,61 @@ UNKNOWN_ABSENCE_REASON = (
 )
 
 
+def _engine_bound_statement(
+    *, sample_rate: float | None, selection: str, funnel_wins: int, refused: int
+) -> str:
+    """The headline sentence: what share of its own wins this machine could settle, and — since
+    2026-09-11 — WHICH sample the survivors are.
+
+    THE SELECTION IS A SECOND AXIS AND IT WAS MISSED ONCE. `3957ba848` replaced the count cull
+    with a chooser and re-worded both sentences the page's own JavaScript builds, but this one is
+    built HERE, server side, and kept saying "a uniform 18.3% sample ... Every year is represented
+    in proportion to what it won ... Divide a booked count by 0.183". All three clauses are false
+    of a chosen sample. The divide instruction is the one that does damage: it is an arithmetic a
+    reader can carry out, and under per-account weights spanning 259x it returns a wrong number
+    silently, with nothing on the page to contradict it. Found by regenerating the feed the commit
+    said was inert and reading what it actually published.
+
+    THE RATE IS NOT WHAT DISCRIMINATES and that is why `selection` is a parameter rather than a
+    threshold on `sample_rate`. Both mechanisms give a rate below one; no arithmetic on the rate
+    can tell them apart, so the record has to say, and when it does not say we take the cull —
+    a record written before the chooser existed describes a uniform sample.
+    """
+    if sample_rate is None:
+        # FAIL CLOSED. A record with no rate carries no evidence that nothing was refused, and
+        # the flattering branch is a claim. "We cannot tell" is the result.
+        return (
+            "This campaign record does not carry a settlement sample rate, so what share of "
+            "the company's wins reached the book CANNOT BE READ FROM IT. Treat the book below "
+            "as a lower bound on what this supplier won, not as what it won."
+        )
+    if not sample_rate < 1.0:
+        return (
+            "Our settlement engine settled every account the company won: the book below is "
+            "the supplier, not a sample of it. No year's growth was limited by this machine."
+        )
+    settled = funnel_wins - refused
+    if selection == "chosen_weighted":
+        return (
+            "The company won {fw:,} accounts and OUR settlement engine could settle {bw:,} of "
+            "them — {pct:.1f}% of the wins, {refused:,} refused. Those accounts were CHOSEN to "
+            "differ from one another across the demand axes, NOT counted off one in every "
+            "{n:.1f}, so this sample cannot be undone with any single number: each settled "
+            "account carries its own weight in the company's own wins, and `settlement_weight` "
+            "on each row below is what reads across to the supplier. The SHAPE of this curve is "
+            "commercial; its HEIGHT is our machine."
+        ).format(fw=funnel_wins, bw=settled, refused=refused,
+                 pct=sample_rate * 100.0, n=1.0 / sample_rate)
+    return (
+        "The company won {fw:,} accounts and OUR settlement engine could settle {bw:,} of "
+        "them — a uniform {pct:.1f}% sample, {refused:,} wins refused. Every year is "
+        "represented in proportion to what it won, so the SHAPE of this curve is "
+        "commercial; its HEIGHT is our machine. Divide a booked count by {rate:.3f} to "
+        "read the supplier rather than the sample."
+    ).format(fw=funnel_wins, bw=settled, refused=refused,
+             pct=sample_rate * 100.0, rate=sample_rate)
+
+
 def build(campaign: dict | None, absence: str | None = None) -> dict:
     """The published shape. `campaign` is the record, or None when there is no run to describe.
 
@@ -281,6 +336,16 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
     )
     funnel_wins = sum(y["funnel_wins"] or 0 for y in years)
     refused = sum(y["wins_refused_by_settlement_budget"] or 0 for y in years)
+
+    # WHICH SAMPLE, read from the campaign's own record and never inferred here (SITE
+    # CONSTITUTION rule 3). The default is the CULL and not the chooser: a record written
+    # before the chooser existed describes a uniform sample, and defaulting the other way
+    # would relabel every historical artefact as chosen.
+    selection = campaign.get("settlement_selection", "uniform_count")
+    engine_bound_statement = _engine_bound_statement(
+        sample_rate=sample_rate, selection=selection,
+        funnel_wins=funnel_wins, refused=refused,
+    )
     return {
         "generated_at": stamp,
         "available": True,
@@ -324,11 +389,7 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
             "it was the company's own capital or the real switching market that decided."
         ),
         "settlement_sample_rate": sample_rate,
-        # WHICH SAMPLE, read from the campaign's own record and never inferred here (SITE
-        # CONSTITUTION rule 3). The default is the CULL and not the chooser: a record written
-        # before the chooser existed describes a uniform sample, and defaulting the other way
-        # would relabel every historical artefact as chosen.
-        "settlement_selection": campaign.get("settlement_selection", "uniform_count"),
+        "settlement_selection": selection,
         "settlement_wins_refused": refused,
         "settlement_funnel_wins": funnel_wins,
         # WHAT EACH PER-YEAR COUNT SELECTS (2026-08-29,
@@ -351,22 +412,7 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
                 "capital figure netted against `accounts_after` would be mixing the two."
             ),
         },
-        "engine_bound_statement": (
-            "The company won {fw:,} accounts and OUR settlement engine could settle {bw:,} of "
-            "them — a uniform {pct:.1f}% sample, {refused:,} wins refused. Every year is "
-            "represented in proportion to what it won, so the SHAPE of this curve is "
-            "commercial; its HEIGHT is our machine. Divide a booked count by {rate:.3f} to "
-            "read the supplier rather than the sample.".format(
-                fw=funnel_wins, bw=funnel_wins - refused, refused=refused,
-                pct=sample_rate * 100.0, rate=sample_rate)
-        ) if sample_rate is not None and sample_rate < 1.0 else (
-            "Our settlement engine settled every account the company won: the book below is "
-            "the supplier, not a sample of it. No year's growth was limited by this machine."
-        ) if sample_rate is not None else (
-            "This campaign record does not carry a settlement sample rate, so what share of "
-            "the company's wins reached the book CANNOT BE READ FROM IT. Treat the book below "
-            "as a lower bound on what this supplier won, not as what it won."
-        ),
+        "engine_bound_statement": engine_bound_statement,
         # WHAT KIND OF LIMIT IT IS, which `engine_bound_statement` above does not say.
         #
         # That sentence tells a reader the height of the curve is "our machine". A reader

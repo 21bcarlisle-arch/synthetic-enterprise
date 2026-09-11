@@ -92,6 +92,59 @@ def test_the_headline_states_the_share_of_its_own_wins_the_machine_could_settle(
     assert "Divide a booked count by 0.200" in out["engine_bound_statement"]
 
 
+def test_the_headline_tells_the_two_SELECTIONS_apart_and_only_one_says_divide():
+    """THE WHOLE PARTITION IN ONE CONTROL, and a leg per branch would not have caught this.
+
+    Both selections give a rate below one, so the rate cannot discriminate them and every
+    assertion keyed to the rate alone stays green under either. `3957ba848` re-worded the two
+    sentences the page's JavaScript builds and left this one -- built server side, in the feed --
+    saying "uniform" and "Divide a booked count by 0.183" over a chosen sample whose per-account
+    weights span 259x. The divide instruction is the damaging half: it is an arithmetic a reader
+    can carry out and it returns a wrong number in silence.
+
+    KEYED TO THE PROPERTY, not to today's wording: whatever the sentence says, the cull branch
+    must hand the reader one number to undo the sample with and the chosen branch must refuse to,
+    because under per-account weights no such number exists. Asserted over BOTH branches from one
+    record so a generator that returned a single branch for everything -- which is exactly the
+    defect that shipped -- fails here rather than passing two separate legs.
+    """
+    culled = _campaign("growth_rate", "capital", sample_rate=0.2)
+    chosen = dict(culled, settlement_selection="chosen_weighted")
+
+    cull_says = gb.build(culled)["engine_bound_statement"]
+    chosen_says = gb.build(chosen)["engine_bound_statement"]
+
+    assert cull_says != chosen_says, (
+        "one sentence for both mechanisms: the selection reached the feed and changed nothing a "
+        "reader sees, which is the state that published 'uniform' over a chosen book"
+    )
+    # The cull's undo instruction is correct THERE and must survive.
+    assert "uniform" in cull_says and "Divide a booked count by 0.200" in cull_says
+    # And must not survive here. `Divide`/`divide` both, because the damage is the arithmetic
+    # and not the capital letter.
+    assert "uniform" not in chosen_says.lower(), chosen_says
+    assert "divide" not in chosen_says.lower(), chosen_says
+    assert "in proportion to what it won" not in chosen_says, chosen_says
+    # What it must say instead: the sample was chosen, and the per-row weight is what reads
+    # across to the supplier. A branch that merely DELETED the false clauses would leave the
+    # reader with no way to read the supplier at all, which is a different defect.
+    assert "CHOSEN" in chosen_says and "settlement_weight" in chosen_says, chosen_says
+
+
+def test_a_record_written_BEFORE_the_chooser_is_read_as_the_cull_and_not_as_chosen():
+    """FAIL CLOSED on the selection, the same way the rate does. Every campaign record on this
+    tree older than 2026-09-11 carries no `settlement_selection`, and those runs WERE uniform
+    culls. Defaulting the other way would relabel every historical artefact as chosen and put the
+    chosen prose over a book that was counted off."""
+    record = _campaign("growth_rate", sample_rate=0.2)
+    assert "settlement_selection" not in record
+
+    out = gb.build(record)
+
+    assert out["settlement_selection"] == "uniform_count"
+    assert "uniform" in out["engine_bound_statement"]
+
+
 def test_MUTATION_a_run_that_settled_EVERY_win_does_not_claim_a_sample():
     """R15 null control. If the sampled headline rendered whatever the rate, it would tell a
     reader to divide by 1.0 and would carry no information."""
