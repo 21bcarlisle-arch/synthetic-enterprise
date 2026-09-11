@@ -131,6 +131,64 @@ def test_the_headline_tells_the_two_SELECTIONS_apart_and_only_one_says_divide():
     assert "CHOSEN" in chosen_says and "settlement_weight" in chosen_says, chosen_says
 
 
+def test_the_field_the_headline_SENDS_THE_READER_TO_is_on_every_row_it_sends_them_to():
+    """BOTH ENDS OF THE POINTER, because probing one end is how this shipped broken.
+
+    The chosen headline closes by telling the reader that `settlement_weight` on each row is what
+    reads across to the supplier. For one commit that was the only route offered — the divide
+    instruction had correctly been removed — and `settlement_weight` **reached no row of the
+    feed**. `build` copied `funnel_wins` and the refusal count off the campaign record and not the
+    weight, so the sentence named a field that rendered nowhere and a reader following it found
+    nothing. Every assertion in this file was on the SENTENCE, which is one end.
+
+    So this control reads the sentence, extracts the field it names, and demands that field of
+    every row — rather than hard-coding the string twice, which would agree with itself.
+    """
+    record = _campaign("growth_rate", "capital", sample_rate=0.2)
+    record["settlement_selection"] = "chosen_weighted"
+    for i, row in enumerate(record["by_year"]):
+        row["settlement_weight"] = 15.0 + i
+
+    out = gb.build(record)
+    statement = out["engine_bound_statement"]
+
+    named = [f for f in ("settlement_weight", "funnel_wins", "wins")
+             if "`{}`".format(f) in statement]
+    assert named, (
+        "the chosen headline points the reader at no per-row field at all, so having removed "
+        "the divide instruction it leaves them no way to read the supplier: {!r}".format(
+            statement)
+    )
+    for field in named:
+        missing = [y.get("year") for y in out["years"] if y.get(field) is None]
+        assert not missing, (
+            "the headline sends the reader to `{}` on each row and it is absent from "
+            "year(s) {} of the feed -- the pointer has no referent".format(field, missing)
+        )
+    # And the values are the RECORD's, not invented here (SITE_CONSTITUTION rule 3).
+    assert [y["settlement_weight"] for y in out["years"]] == [15.0, 16.0]
+
+
+def test_a_year_whose_record_carries_NO_weight_publishes_null_and_never_zero():
+    """FAIL CLOSED on the weight itself. A campaign record written before per-account weights
+    existed carries none, and 0.0 would publish "this year's settled accounts stand for nothing
+    the company won" — a claim, and the flattering one, over a year we simply cannot speak for."""
+    record = _campaign("growth_rate", sample_rate=0.2)
+    record["settlement_selection"] = "chosen_weighted"
+    assert all("settlement_weight" not in r for r in record["by_year"])
+
+    out = gb.build(record)
+
+    # The KEY must be there even when the VALUE cannot be: a row with no key at all is the
+    # state that made the headline's pointer dangle, and it is a different defect from a row
+    # that honestly says "we cannot tell for this year".
+    assert all("settlement_weight" in y for y in out["years"]), (
+        "the feed's rows carry no `settlement_weight` key at all, so the headline's pointer has "
+        "no referent and a reader following it finds nothing: {}".format(out["years"])
+    )
+    assert [y["settlement_weight"] for y in out["years"]] == [None]
+
+
 def test_a_record_written_BEFORE_the_chooser_is_read_as_the_cull_and_not_as_chosen():
     """FAIL CLOSED on the selection, the same way the rate does. Every campaign record on this
     tree older than 2026-09-11 carries no `settlement_selection`, and those runs WERE uniform

@@ -290,6 +290,19 @@ def build(campaign: dict | None, absence: str | None = None) -> dict:
             "funnel_wins": row.get("funnel_wins"),
             "wins_refused_by_settlement_budget": row.get(
                 "wins_refused_by_settlement_budget"),
+            # WHAT THIS YEAR'S SETTLED ACCOUNTS STAND FOR, in the company's own wins, and the
+            # ONLY figure on a chosen row that reads across to the supplier. Under the count
+            # cull it is `wins / rate` and says nothing the rate did not; under the chooser the
+            # inflation is per account and this is the fitted estimate of `funnel_wins`, so a
+            # reader comparing the two on one row is reading the sample's accuracy directly.
+            #
+            # IT IS HERE BECAUSE THE HEADLINE POINTS AT IT. `_engine_bound_statement`'s chosen
+            # branch tells the reader `settlement_weight` on each row is what reads across —
+            # and for one commit it did not reach the feed at all, so the sentence named a
+            # field no row carried and the referent rendered nowhere. `None` on a record
+            # written before the weights existed, never 0.0: a year that stands for nothing and
+            # a year we cannot say for are different claims, and 0.0 is the flattering one.
+            "settlement_weight": row.get("settlement_weight"),
             # THE SUPPLIER'S ACCOUNT COUNT AND THE BOOK'S, which stopped being the same number
             # on 2026-08-29. `accounts_after` is what the company holds and sizes its capital
             # against; `book_after` is what this machine settled.
