@@ -246,8 +246,13 @@ def _chain_roots(value: ast.expr) -> list[ast.BinOp]:
     return [n for n in divs if id(n) not in continued]
 
 
-def _chain_segments(node: ast.expr) -> list[str] | None:
-    """The ordered literal segments of a `/` chain, or None if a segment cannot be read.
+def _chain_segments(node: ast.expr,
+                    known: dict[str, list[list[str]]] | None = None) -> list[list[str]] | None:
+    """EVERY ordered segment list a `/` chain can be, or None if a segment cannot be read.
+
+    A LIST OF ALTERNATIVES AND NOT ONE CHAIN, for the same reason `_static_paths` returns a list on
+    the write-keyed side: a name rebound to a second destination is still a destination, and taking
+    the first binding would silently drop the other.
 
     ORDER IS THE WHOLE POINT, and its absence is what this replaced. `ast.walk` yields an
     assignment's constants in breadth-first order, so the matcher that used it could not know which
@@ -270,18 +275,152 @@ def _chain_segments(node: ast.expr) -> list[str] | None:
     artefact-suffixed name: they are arithmetic division (`len(stayed) / len(scored)`), which shares
     an operator with the path join and nothing else. The strictness is free and is recorded as
     free.
+
+    AND A HEAD BOUND IN AN EARLIER ASSIGNMENT IS NOW READ, WHICH IS THE ONE PLACE THE OPAQUE-HEAD
+    RULE WAS COSTING SOMETHING (delivery seat, 2026-09-15). `known` is the name map
+    `_scope_chain_names` threads in source order, and an `ast.Name` head found in it contributes its
+    resolved chain instead of the empty prefix. A module that binds its directory once and its files
+    beside it --
+
+        ARTEFACT_DIR             = PROJECT / "docs" / "observability" / "scale_probe_10k"
+        PREDICTION_REGISTER_PATH = ARTEFACT_DIR / "prediction_register.json"
+
+    -- was invisible to BOTH oracles, because neither statement alone names a path that is under a
+    declared tree AND an artefact: the first has no suffix, the second no legible head.
+
+    A NAME THIS MAP DOES NOT HOLD STILL FALLS BACK TO THE EMPTY PREFIX, and it must: that is the
+    same opaque head the docstring above defends, and it degrades the safe way -- the tail alone
+    does not start with a declared prefix, so the chain is dropped rather than fabricated. The
+    resolution can therefore only ADD, never move an existing member to a different path.
     """
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
-        left = _chain_segments(node.left)
-        if left is None:
+        lefts = _chain_segments(node.left, known)
+        if lefts is None:
             return None
         right = node.right
         if isinstance(right, ast.Constant) and isinstance(right.value, str):
-            return [*left, right.value]
+            return [[*left, right.value] for left in lefts]
         return None
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
-        return [node.value]
-    return []
+        return [[node.value]]
+    if known and isinstance(node, ast.Name) and node.id in known:
+        return [list(chain) for chain in known[node.id]]
+    return [[]]
+
+
+def _scope_chain_names(scope: list[ast.AST],
+                       inherited: dict[str, list[list[str]]]) -> dict[str, list[list[str]]]:
+    """name -> the segment chains it can be, for the assignments in ONE scope, over what it inherits.
+
+    The tree-keyed twin of `_scope_path_names`, and deliberately the same shape: source order, so
+    `OUT_DIR = PROJECT / "docs" / ...` is known by the time `OUT_DIR / "x.json"` is read, and a name
+    assigned twice ACCUMULATES rather than overwrites.
+
+    WHAT IT DOES NOT SHARE IS THE UNIT, and that is why it is a second function rather than a
+    parameter on the first. `_scope_path_names` resolves to ABSOLUTE `Path` objects, because the
+    write-keyed oracle starts from `Path(__file__)` and can therefore say where it is. This half
+    never resolves a head at all -- `PROJECT`, `base`, `Path(__file__).resolve().parents[1]` are all
+    just "where the repo root stands" -- so its unit is a RELATIVE segment list and its evidence is
+    that a declared tree stands at the head of it. Merging the two would make one of them lie about
+    what it knows.
+
+    ONLY AN ASSIGNMENT WHOSE VALUE **IS** ONE WHOLE CHAIN SEEDS A NAME. `PAIRS = (P / "a" / "x.json",
+    P / "b" / "y.json")` contains two chains and binds neither of them to `PAIRS`; seeding from a
+    chain merely found *inside* the value would bind a name to a path it is not. So the test is
+    identity against `node.value`, not membership.
+    """
+    known = {name: [list(c) for c in chains] for name, chains in inherited.items()}
+    assigns = [n for n in scope if isinstance(n, (ast.Assign, ast.AnnAssign))]
+    for node in sorted(assigns,
+                       key=lambda n: (getattr(n, "lineno", 0), getattr(n, "col_offset", 0))):
+        if node.value is None:
+            continue
+        targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+        names = [t.id for t in targets if isinstance(t, ast.Name)]
+        if not names:
+            continue
+        roots = _chain_roots(node.value)
+        if len(roots) != 1 or roots[0] is not node.value:
+            continue
+        for chain in _chain_segments(node.value, known) or ():
+            if not chain:
+                continue  # an opaque head resolving to nothing binds nothing
+            for name in names:
+                if chain not in known.setdefault(name, []):
+                    known[name].append(chain)
+    return known
+
+
+def _generated_in_scope(node: ast.AST, inherited: dict[str, list[list[str]]],
+                        prefixes: tuple[str, ...], found: set[str]) -> None:
+    """Match one scope's assignments, then recurse, carrying the name map the way Python does.
+
+    SCOPE IS THE WHOLE COST OF BORROWING THE MACHINERY, and `_own_scope`'s docstring records what a
+    flat map did on the write-keyed side: a one-letter `p` bound to `DIRECTOR_AXES.md` in one
+    function answered a `p.write_text(...)` in another, and the oracle reported the director's own
+    axes as a generated artefact. The drawn item asked whether this half could borrow the name
+    resolution without inheriting that defect, so it was MEASURED rather than argued: a flat
+    module-wide map over this tree adds **ZERO** members beyond the scoped one on 2026-09-15.
+
+    THE ZERO IS WHY THE SCOPING STAYS, NOT A REASON TO DROP IT. This half only ever emits a chain
+    whose HEAD is a declared tree, which is a far narrower target than a write site -- so today it is
+    safe by ACCIDENT, exactly the way `WRITTEN_BUT_NOT_REPRODUCIBLE` was safe by accident until
+    `("docs", "status")` was declared and the accident ended in one commit. The scoping is keyed to
+    the property, and `test_MUTATION_a_name_does_not_leak_ACROSS_scopes` holds it with a FIXTURE,
+    because a control that could only fail on the live tree would be green here and prove nothing.
+
+    A CLASS BODY DOES NOT LEND ITS NAMES TO ITS METHODS, which is Python and not a nicety: a
+    method's bare `OUT_DIR` reads the module global, never the class attribute beside it. So a
+    `ClassDef`'s own bindings are used for the class body and the INHERITED map is what its methods
+    get. The `self.` reach that `_class_self_paths` gives the write-keyed half has no counterpart
+    here and is not faked -- it is a counted gap, recorded in the finding.
+    """
+    own = _own_scope(node)
+    known = _scope_chain_names(own, inherited)
+    for stmt in own:
+        if not isinstance(stmt, (ast.Assign, ast.AnnAssign)) or stmt.value is None:
+            continue
+        parts = [c.value for c in ast.walk(stmt.value)
+                 if isinstance(c, ast.Constant) and isinstance(c.value, str)]
+        for chain in _chain_roots(stmt.value):
+            # THE PATH THE MODULE WROTE, not one joined from what was declared. The chain
+            # is reconstructed in order and kept WHOLE: a declared tree has to stand at its
+            # HEAD, and everything after it -- including a directory segment carrying no
+            # artefact suffix -- is part of the emitted path rather than dropped from it.
+            for segments in _chain_segments(chain, known) or ():
+                if not segments or not segments[-1].endswith(ARTEFACT_SUFFIXES):
+                    continue
+                rel = "/".join(segments)
+                if rel.startswith(prefixes):
+                    found.add(rel)
+        # ...and the same tree spelled as ONE string. Held to an ASSIGNMENT, exactly like
+        # the segment match beside it, and that scope is LOAD-BEARING rather than inherited
+        # -- asked of the tree on 2026-09-15 rather than assumed. Widening to every string
+        # constant adds ten: two are PROSE (`"site/data/customers.json + site/data/
+        # dashboard.json"`, and a sentence ending in a `.md` citation), six the segment
+        # match already has, and TWO are real paths this therefore misses --
+        # `site/data/knowledge_topics.json` and `knowledge_price_cap.json`, named in a
+        # `for rel in (...)` tuple in `knowledge_layer_gate.orphan_research`, which
+        # `read_text`s them. That is the distinction the scope draws and the reason to keep
+        # it: an ASSIGNMENT is where a module names its own destination, a loose constant is
+        # where it names somebody else's artefact to read it. The two missed paths are a
+        # counted gap, not an unasked question, and they degrade the safe way -- classified
+        # authored, offered a landing, never reverted.
+        found.update(s for s in parts
+                     if s.startswith(prefixes)
+                     and s.endswith(ARTEFACT_SUFFIXES))
+    # THE TEST IS ON **THIS** SCOPE, NOT ON THE CHILD, and the first draft had it on the child --
+    # which reads plausibly and lends the class body's names to its own methods, the exact leak it
+    # was written to stop. Caught by `test_a_CLASS_BODY_does_not_lend_its_names_to_its_methods`
+    # going red on its author, which is the only reason it is not still there.
+    handed_down = inherited if isinstance(node, ast.ClassDef) else known
+    for nested in _nested_scopes(node):
+        # A NAME THE NESTED SCOPE BINDS IN ITS OWN SIGNATURE IS NOT THE ENCLOSING NAME.
+        # `out`, `path` and `dest` repeat across defs in this tree, so without this an
+        # enclosing `OUT_DIR = PROJECT / "docs" / "observability"` would answer an inner
+        # `def f(OUT_DIR)`'s parameter -- the flat-map defect arriving one scope deeper.
+        handed = {k: v for k, v in handed_down.items() if k not in _signature_names(nested)}
+        _generated_in_scope(nested, handed, prefixes, found)
 
 
 def generated_artefacts(root: Path | None = None) -> set[str]:
@@ -339,6 +478,51 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
     somebody's WORK and the refusal leads with how to LAND it -- on a producer's output. That union
     moved 237 -> 247 here: ten paths that were being offered a landing.
 
+    AND A DESTINATION BOUND IN **TWO** EXPRESSIONS IS READ NOW (delivery seat, 2026-09-15). Until
+    this, resolution stopped at the assignment boundary, so the commonest way a module in this tree
+    names several outputs was invisible to BOTH oracles:
+
+        OBS_DIR       = PROJECT_DIR / "docs" / "observability"
+        EPISODE_PATH  = OBS_DIR / ".resource_headroom_episode.json"
+
+    Neither statement alone names a path that is under a declared tree AND an artefact. `_chain_
+    segments` now takes the name map `_scope_chain_names` threads in source order, and the head
+    resolves. **This oracle: 215 -> 227, +12.**
+
+    **AND THE NUMBER THAT MATTERS IS +2, NOT +12, WHICH IS THE OPPOSITE OF THE FLATTERING READING.**
+    The consumer is the UNION (`origin_reconcile._split_generated`), and the union moved **253 ->
+    255**. Ten of the twelve were ALREADY in the write-keyed oracle -- `generate_capabilities_door`,
+    `fetch_weather_data`, `self_clearing_alarm_census` and the rest bind the directory in one
+    statement and then WRITE through the name, so the write scan had them all along on better
+    evidence than a declaration. The tree-keyed half was blind to paths that were never at risk.
+    Of the two genuinely new, one (`.origin_race_episode.json`) is untracked dotfile state that
+    never arrives at the reconciler at all. **So the whole harm this frame removes is ONE tracked
+    file: `docs/observability/scale_probe_10k/prediction_register.json`** -- the instance the item
+    was drawn for, and the only one.
+
+    THAT IS WHY THE PREREG'S QUESTION WAS THE WRONG ONE AND IT IS KEPT HERE RATHER THAN RESTATED.
+    It predicted `N_add`, this function's membership, and reasoned about the curve of the six frames
+    before it. The quantity with a consumer is the union delta, and the two differ by a factor of
+    six precisely BECAUSE the two oracles overlap -- which is the thing this module already knew and
+    says three paragraphs down. A frame that widens the weaker oracle onto ground the stronger one
+    already holds is worth almost nothing, and only the union delta can tell you that.
+
+    AND THE MEASURED INSTANCE IS THE ONE THE FRAME WAS DRAWN FOR. `tools/scale_probe_10k.py` binds
+    `ARTEFACT_DIR` once and its two outputs beside it, and contributed **nothing** to either oracle.
+    `report.json` was a member only because `simulation/premise_population.py:1190` happens to spell
+    the whole chain in one expression, as a READER -- so AO12's outputs were covered by an accident
+    of how a third module reads one of them, and `prediction_register.json`, which no reader spells
+    whole, was in neither oracle and was being offered a LANDING. Both now arrive from the producer.
+
+    AND THE CURVE HELD AFTER ALL, ONCE THE RIGHT QUANTITY IS PLOTTED. On membership the sequence
+    reads +8, +9, +1, +11, -6, -1, +12 and the last point looks like a break. On the UNION it reads
+    as a steady approach to zero and this frame contributes **+2, one of them tracked** -- which is
+    what six frames of closing the same class should look like. The membership series was measuring
+    how much the two oracles OVERLAP as much as it was measuring reach.
+
+    THE HONEST CONCLUSION IS THEREFORE THAT THIS DOOR IS NOW NEARLY SHUT, and the next frame on this
+    module should be asked to predict its UNION delta before it is worth starting.
+
     AND THIS MODULE IS NOT SCANNED, because `FROZEN` holds `file_scope` declarations copied out of
     the maturity map and reading them back would make `violations()` circular -- the atom's own
     declaration proving the ground it stands on is generated. Four of the fifteen raw matches were
@@ -377,38 +561,11 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
             except Exception:  # noqa: BLE001 - an unparseable file is not an oracle failure
                 continue
             scanned += 1
-            for node in ast.walk(mod):
-                if not isinstance(node, (ast.Assign, ast.AnnAssign)) or node.value is None:
-                    continue
-                parts = [c.value for c in ast.walk(node.value)
-                         if isinstance(c, ast.Constant) and isinstance(c.value, str)]
-                for chain in _chain_roots(node.value):
-                    # THE PATH THE MODULE WROTE, not one joined from what was declared. The chain
-                    # is reconstructed in order and kept WHOLE: a declared tree has to stand at its
-                    # HEAD, and everything after it -- including a directory segment carrying no
-                    # artefact suffix -- is part of the emitted path rather than dropped from it.
-                    segments = _chain_segments(chain)
-                    if not segments or not segments[-1].endswith(ARTEFACT_SUFFIXES):
-                        continue
-                    rel = "/".join(segments)
-                    if rel.startswith(prefixes):
-                        found.add(rel)
-                # ...and the same tree spelled as ONE string. Held to an ASSIGNMENT, exactly like
-                # the segment match beside it, and that scope is LOAD-BEARING rather than inherited
-                # -- asked of the tree on 2026-09-15 rather than assumed. Widening to every string
-                # constant adds ten: two are PROSE (`"site/data/customers.json + site/data/
-                # dashboard.json"`, and a sentence ending in a `.md` citation), six the segment
-                # match already has, and TWO are real paths this therefore misses --
-                # `site/data/knowledge_topics.json` and `knowledge_price_cap.json`, named in a
-                # `for rel in (...)` tuple in `knowledge_layer_gate.orphan_research`, which
-                # `read_text`s them. That is the distinction the scope draws and the reason to keep
-                # it: an ASSIGNMENT is where a module names its own destination, a loose constant is
-                # where it names somebody else's artefact to read it. The two missed paths are a
-                # counted gap, not an unasked question, and they degrade the safe way -- classified
-                # authored, offered a landing, never reverted.
-                found.update(s for s in parts
-                             if s.startswith(prefixes)
-                             and s.endswith(ARTEFACT_SUFFIXES))
+            # SCOPE BY SCOPE, not `ast.walk` over the whole module, because the match now carries a
+            # NAME MAP and a flat one manufactures paths (`_generated_in_scope` says whose).
+            # The two walks visit the same assignments: `_own_scope` stops at each nested def and
+            # the recursion enters it, so the scopes PARTITION the module and nothing is read twice.
+            _generated_in_scope(mod, {}, prefixes, found)
     # A SEARCH PATTERN IS NOT A DESTINATION, and it is refused here because this oracle has no
     # write-site evidence requirement to refuse it anywhere else (delivery seat, 2026-09-15).
     # `written_artefacts` demands a write SITE and says why -- naming is not the property. The

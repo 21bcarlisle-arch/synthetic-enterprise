@@ -361,3 +361,140 @@ def test_the_repaired_instance_stays_repaired():
         "again, silently, exactly as it did for the eight days before 2026-08-19"
     )
     assert g13.get("file_scope"), "G13 now has an EMPTY file_scope, which starves it differently"
+
+
+# ---------------------------------------------------------------------------
+# A destination bound in TWO expressions (delivery seat, 2026-09-15)
+# ---------------------------------------------------------------------------
+def test_MUTATION_a_destination_bound_in_TWO_expressions_is_generated(tmp_path):
+    """THE DEFECT: resolution stopped at the assignment boundary. A module that binds its output
+    DIRECTORY in one statement and its files beside it was invisible to this oracle, because
+    neither expression alone names a path that is under a declared tree AND an artefact -- the
+    directory has no suffix, the join has no legible head.
+
+    THE FIXTURE IS `tools/scale_probe_10k.py:119-121` REDUCED, and that module is the measured
+    instance rather than an illustration: it contributed NOTHING to either oracle. Its
+    `report.json` was a member only because `simulation/premise_population.py:1190` happens to
+    spell the whole chain in one expression as a READER, and `prediction_register.json`, which no
+    reader spells whole, was in NEITHER oracle -- so `origin_reconcile._split_generated` called a
+    producer's output somebody's WORK and led with how to LAND it.
+
+    THE THIRD LEG IS THE ONE THAT MATTERS AND IT IS THE UNRESOLVED HEAD. `elsewhere` is joined onto
+    a name this scope never binds, and it must NOT appear: that is the opaque-head fallback the
+    whole reconstruction rests on, and a resolver that guessed a prefix for it would fabricate
+    under a declared tree, in a set whose consumer's remedy is REVERT. Asserting only the two
+    recovered paths would pass with that fabrication sitting beside them.
+
+    MUTATION THAT REDDENS IT: delete the `ast.Name`/`known` branch in `_chain_segments` so an
+    unresolved head is the only head. Verified by doing it -- both `probe_dir` paths go and the
+    set collapses to `{"site/data/legible.json"}`.
+    """
+    _module(tmp_path, "two_expressions.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'ARTEFACT_DIR = PROJECT / "site" / "data" / "probe_dir"\n'
+            'REPORT_PATH = ARTEFACT_DIR / "report.json"\n'
+            'REGISTER_PATH = ARTEFACT_DIR / "prediction_register.json"\n'
+            'STRANDED = elsewhere / "never_bound.json"\n')
+    _module(tmp_path, "legible.py",
+            'from pathlib import Path\n'
+            'OUT = Path(__file__).resolve().parents[1] / "site" / "data" / "legible.json"\n')
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {
+        "site/data/probe_dir/report.json",
+        "site/data/probe_dir/prediction_register.json",
+        "site/data/legible.json",
+    }, (
+        "a destination whose directory and filename are bound in two expressions is not being "
+        "resolved (so its producer's output is offered a LANDING by the reconciler), or a chain "
+        "whose head this scope never bound was given a prefix anyway, which fabricates"
+    )
+
+
+def test_MUTATION_a_name_does_not_leak_ACROSS_scopes(tmp_path):
+    """THE FABRICATION THE NAME MAP BUYS IF IT IS FLAT, and the reason this half scopes at all.
+    `_own_scope`'s docstring records what a module-wide map did to the write-keyed oracle: a
+    one-letter `p` bound to `DIRECTOR_AXES.md` in one function answered a `p.write_text(...)` in
+    another, and the gate reported the DIRECTOR'S OWN AXES as a generated artefact -- a set whose
+    consumer's remedy is `git show HEAD:<path> > <path>`.
+
+    THE TWO FIXTURE NAMES COLLIDE ON PURPOSE. A scope-leak control whose scopes use DIFFERENT
+    names passes with the defect fully installed, because nothing in the flat map can answer for
+    anything else -- it measures the fixture, not the mechanism. So both functions bind `OUT_DIR`,
+    and the leak has somewhere to go.
+
+    THE DIRECTION IS ASYMMETRIC AND ONLY ONE HALF IS VISIBLE. `docs/design` is not a declared tree,
+    so the leak that MATTERS is `site/data` answering the axes join -- `site/data/DIRECTOR_AXES.md`,
+    a path that does not exist, under a declared tree, offered a REVERT. The other direction
+    (`docs/design/feed.json`) is dropped by the prefix test either way and proves nothing, which is
+    why the assertion is EQUALITY.
+
+    MEASURED, AND THE ANSWER WAS ZERO. A flat module-wide map over the five scanned trees adds no
+    member beyond the scoped one on 2026-09-15 -- so today the tree-keyed half is safe by ACCIDENT,
+    exactly as `WRITTEN_BUT_NOT_REPRODUCIBLE` was until `("docs", "status")` was declared. That is
+    why this control is a FIXTURE and not a census over the live tree: a census would be green with
+    the scoping deleted, and would go red only once the accident had already cost something.
+
+    MUTATION THAT REDDENS IT: hand `known` (not `inherited`) down in `_generated_in_scope`, or
+    replace the scoped walk in `generated_artefacts` with `ast.walk(mod)` over one name map.
+    Verified by doing it -- `site/data/DIRECTOR_AXES.md` appears.
+    """
+    _module(tmp_path, "two_scopes.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'def publishes_a_feed():\n'
+            '    OUT_DIR = PROJECT / "site" / "data"\n'
+            '    feed = OUT_DIR / "feed.json"\n'
+            '    return feed\n'
+            'def reads_the_directors_axes():\n'
+            '    OUT_DIR = PROJECT / "docs" / "design"\n'
+            '    axes = OUT_DIR / "DIRECTOR_AXES.md"\n'
+            '    return axes\n')
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {"site/data/feed.json"}, (
+        "a name bound in ONE function answered a join in ANOTHER -- the flat-name-map defect that "
+        "reported the director's own axes as a generated artefact, arriving through the "
+        "tree-keyed door this time"
+    )
+
+
+def test_a_CLASS_BODY_does_not_lend_its_names_to_its_methods(tmp_path):
+    """PYTHON, NOT A NICETY. A method's bare `OUT_DIR` reads the module global; it never sees the
+    class attribute beside it, and a resolver that let it would emit a path the code cannot build
+    -- `NameError` at runtime, a member under a declared tree in the set.
+
+    THE JOIN IS AN ASSIGNMENT AND NOT A `return`, which is the trap this file has already been
+    caught by once (see `test_a_chain_with_an_OPAQUE_MIDDLE_segment_is_declined_whole`): both
+    halves of the matcher are held to `Assign`/`AnnAssign`, so a chain in a bare `return` is never
+    visited and the control would pass for lack of a SUBJECT rather than because the name was
+    refused. The legible producer beside it keeps the call off `OracleUnavailable`, which an empty
+    result raises.
+
+    IT CAUGHT ITS OWN AUTHOR, WHICH IS WHY IT IS HERE RATHER THAN A COMMENT. The first draft of
+    `_generated_in_scope` tested `isinstance(nested, ast.ClassDef)` -- the CHILD -- which reads
+    plausibly and does the exact opposite: it lends a class body's names to its own methods. This
+    control went red on the commit that added it.
+
+    AND THE DEFECT COST ZERO MEMBERS ON THE LIVE TREE: 227 / union 255 with it and without it. A
+    census would have been green on a resolver that emits paths the code could not build, so the
+    property is held by a fixture and the zero is recorded rather than mistaken for absence.
+
+    MUTATION THAT REDDENS IT: hand `known` instead of `inherited` into the `ClassDef` branch of
+    `_generated_in_scope`. Verified by doing it -- `site/data/fabricated.json` appears.
+    """
+    _module(tmp_path, "classy.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'class Writer:\n'
+            '    OUT_DIR = PROJECT / "site" / "data"\n'
+            '    def go(self):\n'
+            '        target = OUT_DIR / "fabricated.json"\n'
+            '        return target\n')
+    _module(tmp_path, "legible.py",
+            'from pathlib import Path\n'
+            'OUT = Path(__file__).resolve().parents[1] / "site" / "data" / "legible.json"\n')
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {"site/data/legible.json"}, (
+        "a class attribute answered a method's bare name -- the resolver is emitting a path the "
+        "module could not build if it ran"
+    )
