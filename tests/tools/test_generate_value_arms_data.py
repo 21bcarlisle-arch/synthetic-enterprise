@@ -6367,7 +6367,14 @@ def test_the_sources_a_reader_would_check_are_the_files_the_page_actually_opens(
               # which is the same reason nothing noticed when a promotion swapped it. A reader
               # checking `selection_gbp_before` against the artefacts named would otherwise be sent
               # to whichever run was promoted last -- which is the figure it is NOT.
-              gva.DEPARTURE_TERM_BASELINE_PATH]
+              gva.DEPARTURE_TERM_BASELINE_PATH,
+              # AND THE EIGHTH, added 2026-09-15 with the blind envelope. `generate` opens it every
+              # publish and the block is composed from it, so it belongs here for the same reason
+              # the sixth does. Noted because this list is the one place the citation is checked
+              # against reality: leaving it at six would not have failed quietly, it would have
+              # said the page cites an artefact it never reads -- which is the inverse defect,
+              # and exactly as misleading to a reader following the provenance.
+              gva.BLIND_ENVELOPE_ARMS_PATH]
     assert cited == [str(p.relative_to(PROJECT)) for p in opened], (
         "the page cites {} and reads {}, so a reader checking the figures against the artefacts "
         "named would open the wrong files".format(cited, [p.name for p in opened]))

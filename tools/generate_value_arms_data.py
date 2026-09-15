@@ -349,6 +349,13 @@ DECOMPOSITION_PATH = (
 FLOOR_PARTITION_PROBE_PATH = (
     PROJECT / "docs" / "observability"
     / "value_cycle_ab_s1_floor_partition_probe_20260910.json")
+#: THE FOUR BOOKS THAT CANNOT SEE A HOME, and the one that can. Every other block on this page
+#: compares the per-customer arm against ONE baseline; this artefact is the first time four
+#: fabric-blind books existed in one world, which is the first time the spread BETWEEN baselines
+#: could be measured at all. It carries what each run MEASURED and nothing derived -- see
+#: `_blind_envelope` for why every span and position is computed at publish time instead.
+BLIND_ENVELOPE_ARMS_PATH = (
+    PROJECT / "docs" / "design" / "blind_envelope_arms_2026-09-11.json")
 OUT_PATH = PROJECT / "site" / "data" / "value_arms.json"
 
 #: What each arm IS, in the words a reader who does not work in energy can use. The third is the
@@ -8971,11 +8978,165 @@ def _world_departure_level() -> dict:
     }
 
 
+#: WHAT A POSITION IS, said before it is measured. The BLIND SPAN on a line is the min-to-max of
+#: the fabric-blind books on that line. The chosen book is INSIDE it, ABOVE all of them or BELOW
+#: all of them -- three states, no fourth. Nothing else on this page is a "position", and this
+#: is the definition every sentence in the block below is composed from.
+_BLIND_POSITIONS = ("inside", "above_all", "below_all")
+#: An envelope needs THREE. Two blind books give a gap between two points and no notion of how far
+#: apart blind books ordinarily sit, which is the only thing that makes "inside" mean anything --
+#: it is exactly why neither P6 nor the other seat could ask this question from its own pair. The
+#: floor is stated as a constant because it is the precondition of the whole block, not a taste.
+_BLIND_ENVELOPE_MINIMUM_ARMS = 3
+
+
+def _blind_envelope(arms_doc: dict | None) -> dict:
+    """Where the chosen book sits against the span of the books that cannot see a home.
+
+    WHY THIS IS COMPUTED HERE AND NOT STORED. `docs/design/blind_envelope_arms_2026-09-11.json`
+    carries five arms' MEASURED P&L lines and nothing else. Every span, position, percentage and
+    sentence a reader meets is derived at publish time, because a derived figure filed beside the
+    numbers it comes from is this repository's named VAT shape -- one fact, two homes, edited on
+    two days for two reasons. Add a sixth arm to the artefact and every verdict here moves; there
+    is no second place to remember.
+
+    WHY THE DIGEST IS A PRECONDITION AND NOT A CAPTION. These five figures are comparable only
+    because all five runs carry `world_identity.digest` `39a192ce04c1eda8`. Arms from two worlds
+    differenced against each other is a spread from one world over an estimate from another, which
+    is the shape that has published something misleading here more than once. So a disagreement
+    withholds the whole block and names both digests, rather than rendering a span nobody can read.
+
+    WHY THE SECOND-HAND ARM IS GRADED SEPARATELY, and this is the part that earns the function.
+    One of the four blind arms (C') was not read from a run output on this box -- its figures are
+    cited from a result stranded on a fork. Recomputing the envelope over the FIRST-HAND arms only
+    is one line of code and it turns out to split the five verdicts in two: bad debt, net margin
+    and net after cost to serve reach the same verdict either way, and BOTH "inside" verdicts flip
+    to "below all" the moment C' is dropped. Publishing the flattering half at the same confidence
+    as the unflattering half, when one rests on an arm we hold second-hand and the other does not,
+    is precisely the surface this block exists to avoid being.
+    """
+    if not isinstance(arms_doc, dict):
+        return {"available": False,
+                "why_not": ("no blind-envelope artefact was readable, so this page states no "
+                            "position for the chosen book against a blind span")}
+    arms = [a for a in (arms_doc.get("arms") or []) if isinstance(a, dict)]
+    lines = [ln for ln in (arms_doc.get("lines") or []) if isinstance(ln, dict)]
+    blind = [a for a in arms if not a.get("sees_fabric")]
+    chosen = [a for a in arms if a.get("sees_fabric")]
+    if len(chosen) != 1:
+        return {"available": False,
+                "why_not": ("the artefact carries {} books that can see a home and this block "
+                            "compares exactly one against the blind ones".format(len(chosen)))}
+    if len(blind) < _BLIND_ENVELOPE_MINIMUM_ARMS:
+        return {"available": False,
+                "why_not": ("{} fabric-blind books is not an envelope -- it takes {} before "
+                            "\"inside\" means anything, because with two there is no way to tell "
+                            "how far apart blind books ordinarily sit".format(
+                                len(blind), _BLIND_ENVELOPE_MINIMUM_ARMS))}
+    digests = sorted({a.get("world_digest") for a in arms})
+    if len(digests) != 1 or not digests[0]:
+        return {"available": False,
+                "why_not": ("these arms do not share one world ({}), so their spread is a figure "
+                            "from one world differenced against a figure from another and no "
+                            "position over it can be read".format(
+                                ", ".join(repr(d) for d in digests)))}
+    chosen = chosen[0]
+    first_hand_blind = [a for a in blind if a.get("first_hand")]
+    out_lines = []
+    for line in lines:
+        key = line.get("key")
+        label = line.get("label")
+        higher_is_better = line.get("higher_is_better")
+        full = _blind_line(key, blind, chosen)
+        if full is None:
+            out_lines.append({"key": key, "label": label, "available": False,
+                              "why_not": ("not every arm reports {!r}, so no span over them is a "
+                                          "span over the same quantity".format(key))})
+            continue
+        # THE SAME LINE OVER THE ARMS WE READ OURSELVES. `None` when dropping the second-hand arm
+        # would take the envelope below its own minimum -- withheld with a reason, never quietly
+        # reported as agreeing.
+        narrow = (_blind_line(key, first_hand_blind, chosen)
+                  if len(first_hand_blind) >= _BLIND_ENVELOPE_MINIMUM_ARMS else None)
+        position = full["position"]
+        out_lines.append(dict(
+            full,
+            key=key, label=label, available=True, higher_is_better=higher_is_better,
+            # WHICH WAY IS BAD, from the artefact and never inferred from the sign. Bad debt is the
+            # one line here where ABOVE the blind books is the chosen book doing worse, and a page
+            # that reads "above" as "better" across all five would report the single most
+            # decision-relevant result on it backwards.
+            worse_for_the_chosen_book=(
+                None if position == "inside" or not isinstance(higher_is_better, bool)
+                else (position == "below_all") is bool(higher_is_better)),
+            first_hand_only=narrow,
+            # THE ROBUSTNESS QUESTION, asked per line rather than once for the block, because the
+            # answer is not the same for all five.
+            survives_dropping_the_second_hand_arm=(
+                None if narrow is None else narrow["position"] == position),
+        ))
+    return {
+        "available": True,
+        "what_this_is": arms_doc.get("what_this_is"),
+        "world_digest": digests[0],
+        "comparable_because": arms_doc.get("comparable_because"),
+        "pounds_are_not_publishable": arms_doc.get("pounds_are_not_publishable"),
+        "one_seed": arms_doc.get("one_seed"),
+        "second_hand_caveat": arms_doc.get("second_hand_caveat"),
+        "result_record": arms_doc.get("result_record"),
+        "preregistration_commit": arms_doc.get("preregistration_commit"),
+        "blind_arm_count": len(blind),
+        "first_hand_blind_arm_count": len(first_hand_blind),
+        "blind_arm_labels": [a.get("label") for a in blind],
+        "second_hand_arm_labels": [a.get("label") for a in blind if not a.get("first_hand")],
+        "chosen_arm_label": chosen.get("label"),
+        "lines": out_lines,
+    }
+
+
+def _blind_line(key, blind: list, chosen: dict) -> dict | None:
+    """One line's span, the chosen book's place in it, and the distance to the nearest blind arm.
+
+    `None` when any arm is missing the line or the span's low end is not a figure to divide by --
+    an absence, so the caller publishes a withheld line rather than a span over three arms
+    described as a span over four.
+
+    ON THE TWO DIVISIONS. `span_pct` is (high - low) / low: both sides are the SAME line, in the
+    same units, over the same world, so the ratio is "how far apart blind books sit on this line".
+    `distance_pct` is (chosen - nearest) / nearest: same line, same units, same world again. The
+    nearest arm is the one the chosen book has to beat to be inside, so it is the conservative
+    end -- quoting the distance to the FAR end would flatter every verdict here.
+    """
+    values = [_f((a.get("figures") or {}).get(key)) for a in blind]
+    mine = _f((chosen.get("figures") or {}).get(key))
+    if mine is None or any(v is None for v in values) or not values:
+        return None
+    low, high = min(values), max(values)
+    if not low:
+        return None
+    if mine > high:
+        position, nearest = "above_all", high
+    elif mine < low:
+        position, nearest = "below_all", low
+    else:
+        position, nearest = "inside", None
+    return {
+        "span_low_gbp": low,
+        "span_high_gbp": high,
+        "span_pct": (high - low) / low * 100.0,
+        "chosen_gbp": mine,
+        "position": position,
+        "nearest_blind_gbp": nearest,
+        "distance_pct": (None if nearest is None else (mine - nearest) / nearest * 100.0),
+    }
+
+
 def build(three_arm: dict | None, floor: dict | None,
           decomposition: dict | None = None,
           current_three_arm: dict | None = None, current_floor: dict | None = None,
           departure_rerun: dict | None = None,
-          departure_baseline: dict | None = None) -> dict:
+          departure_baseline: dict | None = None,
+          blind_envelope_arms: dict | None = None) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     base = {
         "generated_at": now,
@@ -8997,7 +9158,14 @@ def build(three_arm: dict | None, floor: dict | None,
         "sources": [_cited_path(p) for p in (
             THREE_ARM_PATH, NOISE_FLOOR_PATH, CURRENT_WORLD_THREE_ARM_PATH,
             CURRENT_WORLD_NOISE_FLOOR_PATH, DECOMPOSITION_PATH, DEPARTURE_TERM_RERUN_PATH,
-            DEPARTURE_TERM_BASELINE_PATH)],
+            DEPARTURE_TERM_BASELINE_PATH, BLIND_ENVELOPE_ARMS_PATH)],
+        # ABOVE THE `available` GATE ON PURPOSE, and it is the only block on this page that is.
+        # Everything else here describes the three-arm A/B run and is correctly withheld when that
+        # artefact cannot be read. The blind envelope is a DIFFERENT measurement on a different set
+        # of runs, and withholding the four books that bracket the chosen one because an unrelated
+        # artefact went missing would take down the baseline while leaving the claim it qualifies
+        # standing everywhere else on the site.
+        "blind_envelope": _blind_envelope(blind_envelope_arms),
     }
     if not isinstance(three_arm, dict) or not three_arm:
         return dict(base, available=False, reason=(
@@ -9658,7 +9826,8 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
              current_three_arm_path: Path | None = None,
              current_noise_floor_path: Path | None = None,
              departure_rerun_path: Path | None = None,
-             departure_baseline_path: Path | None = None) -> dict:
+             departure_baseline_path: Path | None = None,
+             blind_envelope_arms_path: Path | None = None) -> dict:
     data = build(_read(THREE_ARM_PATH if three_arm_path is None else three_arm_path),
                  _read(NOISE_FLOOR_PATH if noise_floor_path is None else noise_floor_path),
                  _read(DECOMPOSITION_PATH if decomposition_path is None
@@ -9674,7 +9843,9 @@ def generate(out_path: Path | None = None, three_arm_path: Path | None = None,
                  _read(DEPARTURE_TERM_RERUN_PATH if departure_rerun_path is None
                        else departure_rerun_path),
                  _read(DEPARTURE_TERM_BASELINE_PATH if departure_baseline_path is None
-                       else departure_baseline_path))
+                       else departure_baseline_path),
+                 _read(BLIND_ENVELOPE_ARMS_PATH if blind_envelope_arms_path is None
+                       else blind_envelope_arms_path))
     dest = OUT_PATH if out_path is None else out_path
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
