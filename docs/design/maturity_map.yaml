@@ -1436,6 +1436,9 @@
   # STILL 0 ON 2026-09-15, and the reason has MOVED: read `level_hold_note` before re-drawing.
   # The L2 evidence is in hand and re-run; what holds it is that H_harness reads CLEAR in the
   # working tree and BLOCKED in the committed record, and OPS11 fires on the latter.
+  # The scan says this itself now (5bb74abfd): it reports this row CONTRADICTED BUT FROZEN and
+  # names the ELEVEN findings live at HEAD that a sibling lane archived into docs/staging/done/
+  # without committing. NO work on SITE4 moves it -- it moves when that archival reaches HEAD.
   file_scope: ['site/live_pixel_verify.py', 'site/test_ia_register.py', 'site/ia_register.py', 'site/sitemap.xml', 'site/_redirects']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a utility whose site map lives in sixteen hand-maintained page footers, so every reorganisation is sixteen chances to strand a page"
