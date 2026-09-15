@@ -8990,6 +8990,75 @@ _BLIND_POSITIONS = ("inside", "above_all", "below_all")
 _BLIND_ENVELOPE_MINIMUM_ARMS = 3
 
 
+def _blind_envelope_homes_refusal(arms: list) -> dict | None:
+    """`None` if every arm was measured in THIS world's home stock; a refusal block if not.
+
+    WHY A SECOND PRECONDITION AND NOT A CAPTION, and the evidence is this block's own history. Until
+    2026-09-15 the only world check here was `world_digest`, which is
+    `departure_level_anchor.world_level_identity()["digest"]` and covers the departure LEVEL alone.
+    All five arms carry `39a192ce04c1eda8` and the check passed -- correctly, for what it asks. But
+    that same value is what this tree reports today, and this tree's houses are not the houses the
+    arms ran on: 105 distinct fabric vectors against the 109 filed, worst-axis KS moved from 1.553x
+    to 1.661x, through the fork-closing merge `2212d0eed`. The whole block is a comparison between
+    books that CAN see a home and books that cannot, so a change to the homes is a change to the
+    only thing being varied, and the one check guarding it was blind to exactly that.
+
+    THIS REFUSES AGAINST THE LIVE WORLD AND NOT ONLY ACROSS THE ARMS, and that is the difference from
+    the `world_digest` check above it. Five arms agreeing with each other establishes they are five
+    arms of one world -- which is what the 09-11 result needed and correctly claimed. It does not
+    establish that the world is the one whose figures the rest of this page reports, and that is the
+    claim a reader takes off the page. An envelope from a world this tree no longer has is a spread
+    from one world laid over a book from another.
+
+    THE REFUSAL CARRIES THE SUBJECT AND NEVER JUST A VERDICT. Whichever branch fires, the returned
+    prose names both digests or names the arms that carry none, because "the homes differ" with no
+    handle sends the next reader to re-derive what this function already knows.
+    """
+    try:
+        from simulation.world_home_identity import home_stock_identity
+
+        live = home_stock_identity()["digest"]
+    except Exception as exc:  # noqa: BLE001 -- "cannot establish" is a refusal, never a pass
+        return {"available": False,
+                "why_not": ("this world's home stock could not be read ({}), so nothing here can "
+                            "say whether these five books were measured in the houses this tree "
+                            "has, and an envelope nobody can place in a world is not published "
+                            "here".format(exc))}
+
+    filed = [a.get("home_digest") for a in arms]
+    unstamped = [a.get("label") or a.get("key") for a, d in zip(arms, filed) if not d]
+    if unstamped:
+        return {"available": False,
+                "why_not": ("{} of these {} books carry no record of which HOUSES they ran on ({}). "
+                            "They agree on the departure level -- that is what `world_digest` "
+                            "covers -- and the departure level does not move when the housing stock "
+                            "is re-drawn, which is exactly what happened to this tree since they "
+                            "were filed. The live stock is {}. Until each arm is re-run and stamped, "
+                            "where the chosen book sits against the blind span is unstated here, and "
+                            "that is a missing measurement rather than a settled result".format(
+                                len(unstamped), len(arms), "; ".join(str(u) for u in unstamped),
+                                live))}
+
+    distinct = sorted(set(filed))
+    if len(distinct) != 1:
+        return {"available": False,
+                "why_not": ("these books did not all run on the same houses ({}), so the span "
+                            "between the blind ones mixes a difference in BOOK SHAPE with a "
+                            "difference in HOUSING STOCK and neither can be read off it".format(
+                                ", ".join(repr(d) for d in distinct)))}
+
+    if distinct[0] != live:
+        return {"available": False,
+                "why_not": ("these five books were measured on a housing stock this tree does not "
+                            "have -- they ran on {} and the world here is {}. The figures are not "
+                            "wrong; they are answers about a different country, and a book from "
+                            "this world placed against a span from that one is a comparison of two "
+                            "things that were never varied one at a time. The arms have to be "
+                            "re-run here before a position can be published".format(
+                                distinct[0], live))}
+    return None
+
+
 def _blind_envelope(arms_doc: dict | None) -> dict:
     """Where the chosen book sits against the span of the books that cannot see a home.
 
@@ -9005,6 +9074,12 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
     differenced against each other is a spread from one world over an estimate from another, which
     is the shape that has published something misleading here more than once. So a disagreement
     withholds the whole block and names both digests, rather than rendering a span nobody can read.
+
+    AND THE DIGEST IS TWO PRECONDITIONS SINCE 2026-09-15, not one. `world_digest` covers the
+    departure LEVEL and is blind to the housing stock, which is the one variable this block's whole
+    question turns on -- see `_blind_envelope_homes_refusal` for the measurement and the three
+    branches. The 09-11 arms carry no home stamp at all, so this block correctly publishes a refusal
+    until they are re-run here; that is the honest state of the page and not a regression in it.
 
     WHY THE SECOND-HAND ARM IS GRADED SEPARATELY, and this is the part that earns the function.
     One of the four blind arms (C') was not read from a run output on this box -- its figures are
@@ -9040,6 +9115,9 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
                             "from one world differenced against a figure from another and no "
                             "position over it can be read".format(
                                 ", ".join(repr(d) for d in digests)))}
+    homes_refusal = _blind_envelope_homes_refusal(arms)
+    if homes_refusal is not None:
+        return homes_refusal
     chosen = chosen[0]
     first_hand_blind = [a for a in blind if a.get("first_hand")]
     out_lines = []
@@ -9079,6 +9157,9 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
         "available": True,
         "what_this_is": arms_doc.get("what_this_is"),
         "world_digest": digests[0],
+        # BOTH PARTS OF THE WORLD, because a block that publishes only the departure digest is the
+        # exact surface `_blind_envelope_homes_refusal` exists to stop being read as "same world".
+        "home_digest": sorted({a.get("home_digest") for a in arms})[0],
         "comparable_because": arms_doc.get("comparable_because"),
         "pounds_are_not_publishable": arms_doc.get("pounds_are_not_publishable"),
         "one_seed": arms_doc.get("one_seed"),

@@ -42,7 +42,6 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "producing_commit": "p6-arm-cull",
       "read_from": "/var/tmp/p6_arm_cull.json",
       "figures": {
         "gross_margin_gbp": 383688.9722023295,
@@ -50,6 +49,12 @@
         "bad_debt_gbp": 11675.76,
         "net_margin_gbp": 147954.255661,
         "net_after_cost_to_serve_gbp": 98643.6700445605
+      },
+      "producing_commit": {
+        "commit": null,
+        "launch_label": "p6-arm-cull",
+        "resolved_at": "2026-09-11T00:33:46Z",
+        "unavailable_because": "the launcher passed the LABEL 'p6-arm-cull' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T00:33:46Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
       }
     },
     {
@@ -58,7 +63,6 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "producing_commit": "p6-arm-cull83",
       "read_from": "/var/tmp/p6_armC_cull83.json",
       "figures": {
         "gross_margin_gbp": 380829.2892150242,
@@ -66,6 +70,12 @@
         "bad_debt_gbp": 8533.78,
         "net_margin_gbp": 143764.298981,
         "net_after_cost_to_serve_gbp": 94498.40086456052
+      },
+      "producing_commit": {
+        "commit": null,
+        "launch_label": "p6-arm-cull83",
+        "resolved_at": "2026-09-11T04:53:43Z",
+        "unavailable_because": "the launcher passed the LABEL 'p6-arm-cull83' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T04:53:43Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
       }
     },
     {
@@ -74,7 +84,6 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "producing_commit": "p6-arm-tenure",
       "read_from": "/var/tmp/p6_armD_tenure.json",
       "figures": {
         "gross_margin_gbp": 386386.17916776944,
@@ -82,6 +91,12 @@
         "bad_debt_gbp": 9462.24,
         "net_margin_gbp": 149154.090119,
         "net_after_cost_to_serve_gbp": 97326.43515324547
+      },
+      "producing_commit": {
+        "commit": null,
+        "launch_label": "p6-arm-tenure",
+        "resolved_at": "2026-09-11T04:53:30Z",
+        "unavailable_because": "the launcher passed the LABEL 'p6-arm-tenure' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T04:53:30Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
       }
     },
     {
@@ -90,7 +105,6 @@
       "sees_fabric": true,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "producing_commit": "p6-arm-chosen",
       "read_from": "/var/tmp/p6_arm_chosen.json",
       "figures": {
         "gross_margin_gbp": 374295.72502851026,
@@ -98,6 +112,12 @@
         "bad_debt_gbp": 14400.86,
         "net_margin_gbp": 139439.497809,
         "net_after_cost_to_serve_gbp": 90409.10140488924
+      },
+      "producing_commit": {
+        "commit": null,
+        "launch_label": "p6-arm-chosen",
+        "resolved_at": "2026-09-11T00:33:59Z",
+        "unavailable_because": "the launcher passed the LABEL 'p6-arm-chosen' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T00:33:59Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
       }
     },
     {
@@ -106,7 +126,6 @@
       "sees_fabric": false,
       "first_hand": false,
       "world_digest": "39a192ce04c1eda8",
-      "producing_commit": null,
       "read_from": null,
       "figures": {
         "gross_margin_gbp": 372220.98,
@@ -114,7 +133,15 @@
         "bad_debt_gbp": 10916.13,
         "net_margin_gbp": 143776.65,
         "net_after_cost_to_serve_gbp": 94339.21
+      },
+      "producing_commit": {
+        "commit": null,
+        "launch_label": null,
+        "resolved_at": null,
+        "unavailable_because": "this arm was never read from a run output on this box -- see `second_hand_caveat`. Its figures are cited from another seat's result, which sits in commits that never reached origin, so there is no producing sha to stamp and no run output to read one out of."
       }
     }
-  ]
+  ],
+  "artefact_filed_in_commit": "101244b404633e2ab0be3b9b80a576f3d9ac2342",
+  "provenance_note": "WHAT IS AND IS NOT ESTABLISHED ABOUT WHERE THESE FIGURES CAME FROM (stamped 2026-09-15). Until today every arm's `producing_commit` was a bare string like 'p6-arm-cull', which reads as a commit and is a launch label -- the arms' provenance could not be checked from this artefact at all. The labels are kept, under `launch_label`, as the only handle the runs left. What IS a fact: each first-hand arm's `resolved_at`, read back out of its own run output, and `artefact_filed_in_commit`, which is when this file entered git. What is NOT: the sha of the code that drew the figures, for the reason each arm now states."
 }

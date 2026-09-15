@@ -49,6 +49,7 @@ from simulation.market_switching_propensity import (
     MULTIPLIER_REFERENCE_YEAR,
     _published_departure_rates,
 )
+from simulation.world_home_identity import home_stock_identity
 
 #: The years the fit is SCOPED TO, and the third of the three sets this file has to keep apart.
 #:
@@ -438,6 +439,18 @@ def world_level_identity() -> dict:
 
     `fitted` is carried beside the digest because a digest can only ever say SAME or DIFFERENT, and
     a reader who is told "different" is owed which years and by how much.
+
+    TWO PARTS SINCE 2026-09-15, EACH SAYING IN ITS OWN WORDS WHAT IT COVERS. Everything above is the
+    DEPARTURE part and is unchanged, including `digest`, which still means exactly what it meant to
+    the eighteen places that compare it. What was wrong was not the digest but the NAME it is
+    published under: `run_annual_report.run_identity_fields` stamps this whole dict as
+    `world_identity` at the top of every artefact, and a reader who reads a matching `world_identity`
+    as "same world" was being told half an answer. `39a192ce04c1eda8` is the same on `3957ba848` and
+    on this tree, and those two trees hold different HOMES -- the anchor module is byte-identical
+    across the change, so this digest could not have moved and the houses moved anyway
+    (`SEAT_FINDING_THE_WORLD_IDENTITY_DIGEST_IS_BLIND_TO_THE_HOME_STOCK_2026-09-15.md`). `homes` is
+    the second part and answers that question; `what_this_does_not_cover` on each part names the
+    other, so neither can be read as the whole.
     """
     record = sorted(_published_departure_rates())
     anchors = {year: year_level_anchor(year) for year in record}
@@ -458,6 +471,14 @@ def world_level_identity() -> dict:
             "worlds however close their timestamps, and no figure from one bounds a figure from "
             "the other."
         ),
+        "what_this_does_not_cover": (
+            "the HOMES. `_published_departure_rates` is the observed switching record and does not "
+            "know what houses this world contains, so a re-drawn housing stock cannot move this "
+            "digest and provably has not: `39a192ce04c1eda8` spans the population of `3957ba848` "
+            "and the population of this tree, which hold different homes. That question is the "
+            "`homes` part beside this one, and this part alone is NOT the world."
+        ),
+        "homes": home_stock_identity(),
     }
 
 

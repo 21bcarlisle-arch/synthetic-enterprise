@@ -92,3 +92,46 @@ directly rather than relying on the digest to do it.
 of the home stock, so that a re-draw must move the digest. It is not — `_published_departure_rates`
 is the published switching record, which is observed history and does not know what houses the
 company's world contains.
+
+---
+
+## CORRECTION, 2026-09-15, beside the claim it corrects — the remedy section above was wrong
+
+The section headed *"The remedy, and what is deliberately NOT proposed"* declined a home digest on
+the grounds that *"the stock is resolved by a multi-minute world resolve that no artefact header can
+afford to do"*. **That cost was never measured, and it is wrong by three orders of magnitude.**
+
+It is true of resolving a RUN's population and false of a fixed probe. `simulation/world_home_identity.py`
+draws 96 homes through `net_new_acquisition.year_premise_stock` — the function the world's homes
+actually come from — and through the fabric physics, and digests what comes out:
+
+```
+96 homes, whole chain, cold   0.62 s
+96 homes, warm                0.009 s
+```
+
+So the objection is retracted and the instrument is built. The other half of the section stands: the
+NAME is still wrong, `run_identity_fields` still calls the whole block `world_identity`, and renaming
+the published key is still an eighteen-binder feed change that was not attempted here.
+
+**What the widening establishes, measured on this tree today:**
+
+```
+departure digest, live world                     39a192ce04c1eda8
+departure digest, pre-2026-09-10 home stock      39a192ce04c1eda8   <- blind, as this finding said
+home digest,      live world                     35f8efe8ff02f245
+home digest,      pre-2026-09-10 home stock      0db8badd7b8dc608   <- the two are now told apart
+```
+
+The two populations are not a fixture: `net_new_acquisition.STOCK_FROM_FITTED_JOINT` still builds
+both, and the `False` side is the stock the 09-11 arms ran on.
+`tests/simulation/test_the_world_identity_can_tell_two_home_stocks_apart.py` asserts the pair —
+sighted on one side, provably blind on the other — and is mutation-proven both ways.
+
+**Consequence on the page, today:** `tools.generate_value_arms_data._blind_envelope` now refuses to
+publish the blind-span block, because all five arms carry no home stamp at all. The capabilities page
+says so in a reader's words. That is the correct state and not a regression: it was publishing a
+position from a world this tree does not have, and nothing could notice.
+
+**What is still open:** re-running the five arms in this world and stamping them. Until that lands,
+the page states an absence.

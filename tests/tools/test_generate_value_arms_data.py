@@ -7617,3 +7617,129 @@ def test_the_register_is_the_only_place_the_withdrawn_words_reach_the_feed():
         "and this control would pass vacuously")
     stray = [where for where in offenders if not where.startswith(".withdrawn_claim")]
     assert not stray, "withdrawn words are published outside the register at {}".format(stray)
+
+
+# ---------------------------------------------------------------------------------------------
+# THE BLIND ENVELOPE'S SECOND WORLD PRECONDITION -- the HOMES.
+#
+# THE DEFECT. Until 2026-09-15 the only world check on this block was `world_digest`, which is the
+# departure level and nothing else. The 09-11 arms all carry `39a192ce04c1eda8`, this tree reports
+# `39a192ce04c1eda8`, and the houses are not the same houses -- 105 distinct fabric vectors against
+# the 109 filed, through the merge `2212d0eed`. The block's entire question is "what does seeing a
+# home buy?", so the housing stock is the one variable being held fixed, and the one guard over it
+# was blind to it.
+#
+# R15 -- mutations, each run and reverted:
+#   * make `_blind_envelope_homes_refusal` return None unconditionally
+#     -> `test_arms_with_no_home_stamp_are_refused` and the two mismatch tests red.
+#   * have it refuse unconditionally (return the refusal before reading the arms)
+#     -> `test_arms_stamped_with_THIS_worlds_homes_do_publish` reds. That leg is the one that
+#        matters most: every other test here asks whether the guard REFUSES, and a guard that
+#        refuses everything passes all of them.
+# ---------------------------------------------------------------------------------------------
+
+def _live_home_digest():
+    from simulation.world_home_identity import home_stock_identity
+
+    return home_stock_identity()["digest"]
+
+
+def _arms_doc(home_digests):
+    """An arms artefact whose only variable is what each arm says about its houses.
+
+    Built rather than loaded because the point is to vary ONE field across otherwise identical
+    documents. Every other precondition -- one sighted book, three blind ones, one shared
+    `world_digest` -- is satisfied, so a refusal here can only have come from the home part.
+    """
+    figures = lambda n: {"gross_margin_gbp": n, "net_margin_gbp": n / 2.0}  # noqa: E731
+    keys = ["A", "B", "C", "chosen"]
+    arms = []
+    for index, (key, home) in enumerate(zip(keys, home_digests)):
+        arm = {
+            "key": key,
+            "label": "ARM " + key,
+            "sees_fabric": key == "chosen",
+            "first_hand": True,
+            "world_digest": "39a192ce04c1eda8",
+            "figures": figures(100.0 + index * 10.0),
+        }
+        if home is not None:
+            arm["home_digest"] = home
+        arms.append(arm)
+    return {
+        "what_this_is": "a fixture",
+        "lines": [{"key": "gross_margin_gbp", "label": "Gross margin", "higher_is_better": True}],
+        "arms": arms,
+    }
+
+
+def test_arms_with_no_home_stamp_are_refused():
+    """THE DEFECT: five books that never recorded which houses they ran on, published as one world.
+
+    This is the state of the real artefact today and the reason the page currently withholds the
+    block. The refusal must NAME the live stock, because a reader told only "they are unstamped" has
+    to go and derive what this function already computed.
+    """
+    out = gva._blind_envelope(_arms_doc([None, None, None, None]))
+    assert out["available"] is False
+    assert _live_home_digest() in out["why_not"], (
+        "the refusal does not name the live home stock, so the next reader re-derives it")
+    assert "houses" in out["why_not"] or "HOUSES" in out["why_not"]
+
+
+def test_arms_stamped_with_THIS_worlds_homes_do_publish():
+    """THE DEFECT A REFUSE-EVERYTHING GUARD WOULD HIDE. Every other test in this block asserts the
+    guard says no; this is the only one that can tell a working precondition from a wall.
+
+    It is also the exit condition for the re-run: when the five arms are measured here and stamped,
+    this is the shape they take and the block publishes again.
+    """
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live] * 4))
+    assert out["available"] is True, out.get("why_not")
+    assert out["home_digest"] == live, (
+        "the block publishes a span without saying which houses it was measured in, which is the "
+        "field whose absence is the whole finding")
+
+
+def test_arms_measured_on_a_stock_this_tree_does_not_have_are_refused():
+    """THE DEFECT: an envelope from a world that no longer exists, read as this world's envelope.
+
+    Not an invented hazard -- it is what the on-disk artefact is, and the departure digest agreed
+    across it. The refusal names BOTH stocks so the disagreement is checkable rather than asserted.
+    """
+    out = gva._blind_envelope(_arms_doc(["deadbeefdeadbeef"] * 4))
+    assert out["available"] is False
+    assert "deadbeefdeadbeef" in out["why_not"] and _live_home_digest() in out["why_not"]
+
+
+def test_arms_that_disagree_with_each_other_about_the_houses_are_refused():
+    """THE DEFECT: a span between blind books that mixes book shape with housing stock.
+
+    Distinct from the test above: there the arms agree and the WORLD has moved; here the arms do not
+    even agree with each other, and the spread itself is the corrupted quantity rather than its
+    placement. Two branches, two sentences, because a reader owed a reason is owed the right one.
+    """
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live, live, "0000000000000000", live]))
+    assert out["available"] is False
+    assert "0000000000000000" in out["why_not"]
+    assert "same houses" in out["why_not"]
+
+
+def test_the_real_artefact_on_disk_withholds_the_block_with_a_reason_a_reader_can_act_on():
+    """THE DEFECT: the page rendering a span nobody can place in a world.
+
+    Keyed to the PROPERTY and not to today's answer: it asserts the block is either published with a
+    home stamp that matches this tree, or withheld with prose naming the stock. The day the arms are
+    re-run here this test keeps its meaning and does not need editing -- which is the difference
+    between a control and a snapshot.
+    """
+    out = gva._blind_envelope(gva._read(gva.BLIND_ENVELOPE_ARMS_PATH))
+    if out.get("available"):
+        assert out.get("home_digest") == _live_home_digest()
+    else:
+        assert len(out.get("why_not") or "") > 80, (
+            "the block is withheld with no usable reason, which is the fail-silent this whole feed "
+            "was built to avoid")
+        assert _live_home_digest() in out["why_not"]
