@@ -93,6 +93,13 @@ from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 
+# REUSED rather than re-cut: `_base_state` already answers "how far is local HEAD from the trunk"
+# with the three-answer shape this surface needs -- read, no-remote-base, and a REFUSAL when the ref
+# exists but git cannot answer. Re-cutting it here would have given this module a second opinion
+# about the trunk, which is the one-question-several-implementations shape the census exists to
+# catch in everybody else.
+from background.tree_divergence import REMOTE_BASE, _base_state
+
 # REUSED rather than re-cut: `_bound_names` is the import-time binding walker whose conditional and
 # try-guarded cases (`try: from x import y / except ImportError: y = None` supplies `y`) were
 # learned by that control reddening on this repo's own compatibility shims. Its batch blob reader
@@ -442,6 +449,58 @@ def refusal_text(losses: list[Loss], merge_ref: str | None = None) -> str:
 # ------------------------------------------------------------------------------------ the census
 
 
+def base_caveat(root: Path = ROOT) -> str:
+    """What the census owes its reader when its OWN base is not the trunk. `""` when nothing is owed.
+
+    THE DEFECT THIS OWNS, and it is this module's own remedy turning round and pointing at a revert.
+    Every verdict below is computed against `HEAD`, and `HEAD` in a shared checkout is routinely
+    BEHIND `origin/main` -- seven commits behind, measured on the live tree on 2026-09-15. When it
+    is, `gains_over` asks "which names does HEAD lack" and gets back names the TRUNK ALREADY HAS.
+    The empty/non-empty split is which door the lane is sent through, so a stale base does not
+    weaken the remedy, it INVERTS it: a copy the trunk strictly supersedes -- whose honest door is
+    `refresh_to_head` -- is announced as HOLDER WORK, and the door named for holder work is
+    `surgical_land --content`, which lands those bytes over the trunk. Measured that morning on
+    `tools/generate_value_arms_data.py`: the census printed the 142 distinctive lines the copy
+    reverts AND, three lines later, told the reader to land it.
+
+    A STATED READING AND NOT A REFUSAL, deliberately. This module is wired into the pre-commit door;
+    a refusal here reds every lane in the tree for a condition -- a behind base -- that is the normal
+    resting state of a shared checkout and that no single lane's commit caused. The duty a wrong
+    base creates is a duty to SAY SO where the remedy is read, which is what "fail closed, and say
+    so on the surface" means when the surface is an instruction rather than a figure.
+
+    Three answers, because `_base_state` has three and collapsing them would be the same error one
+    layer down: a base that could not be READ is not a base known to be level.
+
+    AN EQUIVALENCE, ESTABLISHED AND NOT LEFT TO THE READER (mutation run 2026-09-15). Replacing the
+    `no_remote_base` early return with a fall-through does NOT red the suite, and it is an
+    equivalence rather than a missing test: that dict has no `behind` key, so `.get("behind") or 0`
+    is 0 and the next branch returns `""` anyway. It is kept explicit because the two states are
+    different -- "no trunk to be stale against" and "level with the trunk" -- and a later reader
+    adding a `behind` key to the no-remote case would otherwise get the caveat on every archive
+    checkout silently. The control holds the BEHAVIOUR both ways round: mutating this branch to
+    return a caveat reds it.
+    """
+    base, reason = _base_state(root)
+    if base is None:
+        return ("[stale-copy] THE BASE OF EVERY VERDICT BELOW COULD NOT BE READ: {}\n"
+                "  {} exists and git would not answer, so whether HEAD is the trunk is UNKNOWN -- "
+                "and\n  the REMEDY lines below name a door on the assumption that it is. Settle the "
+                "base before\n  walking through any of them.".format(reason, REMOTE_BASE))
+    if base.get("no_remote_base"):
+        return ""
+    behind = base.get("behind") or 0
+    if not behind:
+        return ""
+    return ("[stale-copy] THE REMEDIES BELOW ARE COMPUTED AGAINST A BASE THE TRUNK HAS MOVED PAST: "
+            "HEAD is\n  {} commit(s) behind {} (and {} ahead). Every \"supplies N name(s) HEAD "
+            "lacks\"\n  reading below asks HEAD, not the trunk, so a copy the trunk ALREADY "
+            "supersedes reads as\n  HOLDER WORK -- and the door that reading names, `surgical_land "
+            "--content`, would land it OVER\n  the trunk. Advance the base and re-run before "
+            "walking through any door named below.".format(
+                behind, REMOTE_BASE, base.get("ahead")))
+
+
 def census(root: Path = ROOT) -> tuple[list[Loss], list[str]]:
     """(losses, no_opinion) over everything the working tree changes vs HEAD."""
     changed = [p for p in _git_text(root, "diff", "--name-only", "HEAD").splitlines() if p.strip()]
@@ -455,6 +514,110 @@ def census(root: Path = ROOT) -> tuple[list[Loss], list[str]]:
         if loss is not None:
             losses.append(loss)
     return losses, sorted(p for p in changed if Path(p).suffix not in READABLE)
+
+
+# --------------------------------------------------------------------------- rule 3: index residue
+
+
+def index_residue(root: Path = ROOT) -> list[str]:
+    """Paths the INDEX would move away from HEAD that NO working copy is asking to move.
+
+    THE DEFECT THIS OWNS, banked as `THE_SHARED_INDEX_STILL_HELD_THE_FAILED_CYCLES_PRE_LANDING_BLOBS`
+    (2026-09-09). `surgical_land` builds and gates the tree the commit WOULD create; it never
+    refreshes the shared index. So when a cycle fails and a later cycle lands the same paths by the
+    surgical route, the shared index keeps the FAILED attempt's blobs -- indefinitely, and
+    invisibly, because every working-tree reading agrees with HEAD. On the morning this was written
+    the index held a `gate_authorizations.jsonl` three rows short of HEAD: a plain commit from it
+    would have un-recorded a LEVEL_UP row and rebuilt the very promotion-gate refusal the lane was
+    drawn to clear, with the whole tree green.
+
+    WHY THIS IS A DIFFERENT QUESTION FROM THE CENSUS ABOVE, and not a widening of it. Rules 1 and 2
+    take a WORKING COPY as their subject and ask whether it predates a landing. Their subject is a
+    copy some lane is actually holding. This rule's subject is an index entry NO lane is holding --
+    the working tree agrees with HEAD, so nobody is editing that path, and a staged difference can
+    therefore only be a leftover. That asymmetry is the whole rule.
+
+    THE ONE LEG, and it is deliberately one:
+
+        the index differs from HEAD on this path, AND the bytes on disk equal HEAD's.
+
+    KEYED TO THE PROPERTY, NOT TO THE PROXY, and the difference was measured rather than reasoned.
+    The first draft did set arithmetic -- `git diff --cached` minus `git diff HEAD` -- which reads
+    as the same question and is not. `git rm --cached` leaves the file UNTRACKED, and git then
+    reports an untracked path as *deleted in the working tree* even though its bytes are sitting on
+    disk unchanged. So the proxy scored that path as "the working tree disagrees with HEAD" and
+    dropped it, which is exactly the `D ` beside `??` half-staged archive move -- a banked class
+    that reds two rooms at once. Comparing HEAD's blob to `hash-object` on the disk copy asks the
+    property itself and has no such blind spot. The test that caught this is
+    `test_a_staged_deletion_with_the_file_still_on_disk_is_residue`.
+
+    ABSENCE AT BOTH ENDS COUNTS AS AGREEMENT. A staged ADD of a path HEAD lacks and disk lacks is
+    residue: no working copy is asking for it. Two of the five found live were pre-archive ROOT
+    copies of documents HEAD already held under `done/` and `records/`, byte-identical to their
+    archived twins, so committing them would have recreated the duplicate that reds the staging
+    gate.
+
+    WHY `git status` CANNOT SEE THIS, which is why it survived for as long as anyone looked. Residue
+    renders as `MM` or `D `, and every lane here reads those as *"another lane has work in flight"*
+    -- the one reading that makes you leave it alone. The state is indistinguishable from ordinary
+    concurrency at a glance, and only the direction of the cached diff tells them apart.
+
+    WHAT IT DOES NOT FLAG, stated so a green result is not read as stronger than it is:
+
+      * a lane's real staged work -- staged AND on disk, so it is in both sets and cancels;
+      * a genuine archive move (`git mv`) -- the root path is gone from disk as well as from the
+        index, so the working tree does NOT agree with HEAD and the path is out of scope;
+      * a rewrite by a lane that has already pulled the landing. That is rules 1 and 2's blind spot
+        and it is still theirs.
+
+    THE VERDICT IS A PHOTOGRAPH, not a standing fact: a path leaves this set the moment a lane
+    starts genuinely editing it. That is correct rather than a weakness -- once a working copy
+    exists the question becomes rule 1's -- but it means a stale answer must never be re-read as a
+    current one. Measured twice four minutes apart on the shared tree while another lane's commit
+    held the index lock, two paths left the set exactly this way.
+
+    THE REPAIR IS `git reset HEAD -- <paths>`: path-limited and mixed, so it rewrites only those
+    index entries to their HEAD blobs and does not touch the working tree. Never `git checkout` and
+    never `git stash` -- both overwrite the working tree, which here is the only copy that is
+    CORRECT."""
+    staged = {p for p in _git_text(root, "diff", "--cached", "--name-only").splitlines() if p.strip()}
+    residue = []
+    for path in sorted(staged):
+        head = _git(root, "rev-parse", "HEAD:{}".format(path))
+        head_oid = head.stdout.strip() if head.returncode == 0 else None
+        # `--path` so any clean filter git would apply is applied here too, and the two oids stay
+        # comparable on a repo that gains a `.gitattributes` later.
+        disk = _git(root, "hash-object", "--path", path, "--", str(root / path))
+        disk_oid = disk.stdout.strip() if disk.returncode == 0 else None
+        if head_oid == disk_oid:
+            residue.append(path)
+    return residue
+
+
+def index_residue_text(paths: list[str]) -> str:
+    """The refusal, naming its reason and the exact repair -- a refusal that says why is how you
+    discover the refusal itself was wrong."""
+    if not paths:
+        return "[index-residue] none: every staged path is a path some working copy is asking for."
+    return "\n".join([
+        "[index-residue] {} path(s) the INDEX would move away from HEAD that NO working copy asks "
+        "for.".format(len(paths)),
+        "  These are a failed cycle's staging, frozen. A plain commit taken from this index reverts",
+        "  HEAD on each of them while every working-tree check stays green.",
+        "",
+        *("  {}".format(p) for p in paths),
+        "",
+        "  REPAIR (path-limited, mixed -- does not touch the working tree):",
+        "    git reset HEAD -- {}".format(" ".join(paths)),
+        "",
+        "  BUT CHECK FOR A TWIN FIRST on any path staged as a DELETION that is still on disk.",
+        "  Two paths identical in `git status` take OPPOSITE doors, and only a twin tells them",
+        "  apart: if an archived copy already exists under done/ or records/, the staged deletion",
+        "  is a half-finished archive MOVE and the completion is to remove the root copy from disk",
+        "  and land the move -- resetting abandons a move another lane correctly started. With no",
+        "  twin anywhere, the same staged deletion would delete the document outright and reset is",
+        "  the only correct door.",
+    ])
 
 
 def door_verdicts(losses: list[Loss], root: Path = ROOT) -> dict[str, str]:
@@ -558,11 +721,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--census", action="store_true", help="working tree vs HEAD")
     ap.add_argument("--staged", action="store_true",
                     help="judge the tree this index would commit (the pre-commit hook's door)")
+    ap.add_argument("--index-residue", action="store_true",
+                    help="index entries no working copy asks for (a failed cycle's frozen staging)")
     ap.add_argument("--at-tree", metavar="TREEISH", help="the tree the commit would create")
     ap.add_argument("--since-tree", metavar="TREEISH", default="HEAD")
     ap.add_argument("--root", default=str(ROOT), help="repository to judge (default: this one)")
     args = ap.parse_args(argv)
     root = Path(args.root)
+
+    if args.index_residue:
+        residue = index_residue(root)
+        print(index_residue_text(residue))
+        return 1 if residue else 0
 
     if args.staged:
         rc, text = staged(root)
@@ -581,6 +751,12 @@ def main(argv: list[str] | None = None) -> int:
 
     losses, no_opinion = census(root)
     verdicts = door_verdicts(losses, root)
+    # AHEAD of the findings, not appended after them: the thing a stale base corrupts is the REMEDY
+    # line under each path, and a caveat printed below several hundred lines of census is a caveat
+    # nobody reads before acting on the first one.
+    caveat = base_caveat(root)
+    if caveat:
+        print(caveat + "\n")
     print("[stale-copy] WOULD REVERT A LANDING: {}".format(len(losses)))
     for loss in losses:
         print(loss.render(), end="")

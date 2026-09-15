@@ -528,3 +528,157 @@ def test_neither_door_is_named_when_the_copy_cannot_be_read(repo: Path) -> None:
     assert not _commands(text), (
         "a runnable door was printed on a guess, and one of the two overwrites bytes: "
         "{}".format(_commands(text)))
+
+
+# ------------------------------------------------------------ rule 3: the index nobody is holding
+#
+# The defect: `surgical_land` never refreshes the shared index, so a FAILED cycle's blobs sit there
+# indefinitely while every working-tree reading agrees with HEAD. Banked as
+# THE_SHARED_INDEX_STILL_HELD_THE_FAILED_CYCLES_PRE_LANDING_BLOBS (2026-09-09).
+#
+# Each test below names the way this rule could be useless. The two that matter most are the
+# NEGATIVE ones: a rule that flags every staged path would pass every positive test here and be
+# worthless, because it would refuse the ordinary staging that three concurrent lanes always have.
+
+
+def _stage_then_restore(root: Path, path: str, staged_text: str) -> None:
+    """Make residue exactly the way the real one is made: stage some other version, then leave the
+    working copy equal to HEAD. This is what a failed landing cycle leaves behind."""
+    head_text = _run(root, "show", "HEAD:{}".format(path))
+    (root / path).write_text(staged_text)
+    _run(root, "add", path)
+    (root / path).write_text(head_text)
+
+
+def test_an_index_entry_no_working_copy_asks_for_is_residue(repo: Path) -> None:
+    """THE LIVE SHAPE. The index holds a version of a path that disk does not; a commit from it
+    reverts HEAD while `git status` shows only the `MM` that every lane reads as another lane's
+    work in flight."""
+    _stage_then_restore(repo, "m.py", "def alpha():\n    return 999\n")
+    assert scr.index_residue(repo) == ["m.py"]
+
+
+def test_a_lanes_real_staged_work_is_not_residue(repo: Path) -> None:
+    """THE FAILURE THAT WOULD MAKE THIS RULE WORTHLESS. A guard that refuses everything passes every
+    positive test. Ordinary staged work -- in the index AND on disk -- must be invisible here, or
+    the rule fires on the normal state of a tree three lanes are writing."""
+    (repo / "m.py").write_text("def alpha():\n    return 2\n")
+    _run(repo, "add", "m.py")
+    assert scr.index_residue(repo) == []
+
+
+def test_the_whole_partition_is_reachable_in_one_tree(repo: Path) -> None:
+    """ONE CONTROL OVER THE PARTITION, not a leg per branch. Both answers must be reachable in the
+    same tree: a rule that can only ever say 'residue' and one that can only ever say 'clean' both
+    pass a suite made of single-sided tests."""
+    _stage_then_restore(repo, "m.py", "def alpha():\n    return 999\n")
+    (repo / "mine.py").write_text("def mine():\n    return 0\n")
+    _run(repo, "add", "mine.py")
+
+    residue = scr.index_residue(repo)
+    staged_all = {p for p in _run(repo, "diff", "--cached", "--name-only").split() if p}
+
+    assert residue == ["m.py"], "the frozen entry was not seen"
+    assert "mine.py" in staged_all, "the fixture failed to stage the honest work at all"
+    assert "mine.py" not in residue, "honest staged work was called residue"
+    assert set(residue) < staged_all, (
+        "residue must be a STRICT subset of what is staged -- equal means the rule is flagging "
+        "everything, empty means it is flagging nothing")
+
+
+def test_a_staged_deletion_with_the_file_still_on_disk_is_residue(repo: Path) -> None:
+    """THE HALF-STAGED ARCHIVE MOVE, live on the shared tree the morning this landed: the index had
+    dropped a `docs/staging/done/` document that HEAD and disk both still carried. Committing it
+    deletes a document another control calls `.exists()` on."""
+    _run(repo, "rm", "-q", "--cached", "m.py")
+    assert (repo / "m.py").exists(), "the fixture removed the file from disk, which is a real move"
+    assert scr.index_residue(repo) == ["m.py"]
+
+
+def test_a_genuine_archive_move_is_not_residue(repo: Path) -> None:
+    """THE FALSE POSITIVE THAT WOULD TURN THIS RULE OFF. `git mv` stages a deletion of the old path
+    too -- and a door that refuses honest work through the one legal landing door is the pressure
+    toward bypass. The old path is gone from DISK as well, so the working tree does not agree with
+    HEAD and the path is out of scope."""
+    (repo / "done").mkdir()
+    _run(repo, "mv", "m.py", "done/m.py")
+    assert scr.index_residue(repo) == []
+
+
+def test_a_staged_add_of_a_file_absent_from_head_and_from_disk_is_residue(repo: Path) -> None:
+    """THE THIRD LIVE SHAPE. Two of these were pre-archive ROOT copies of documents HEAD already
+    held under `done/` and `records/` -- byte-identical, so committing them would have recreated
+    the duplicate that reds the staging gate. Absence at both ends still counts as the working tree
+    agreeing with HEAD."""
+    (repo / "ghost.py").write_text("def ghost():\n    return 1\n")
+    _run(repo, "add", "ghost.py")
+    (repo / "ghost.py").unlink()
+    assert scr.index_residue(repo) == ["ghost.py"]
+
+
+def test_the_refusal_names_the_paths_and_the_runnable_repair(repo: Path) -> None:
+    """A refusal that says why is how you discover the refusal itself was wrong. It must also print
+    the repair that does NOT touch the working tree -- disk is the only copy that is correct here,
+    so `git checkout` and `git stash` would destroy the good bytes."""
+    _stage_then_restore(repo, "m.py", "def alpha():\n    return 999\n")
+    text = scr.index_residue_text(scr.index_residue(repo))
+    assert "m.py" in text
+    assert "git reset HEAD -- m.py" in text
+    assert "checkout" not in text and "stash" not in text, (
+        "the refusal pointed at a door that overwrites the only correct copy")
+    assert "none:" in scr.index_residue_text([]), "the clean verdict must still say what it checked"
+
+
+# ------------------------------------------------------- rule 4: the census's own base is the trunk
+
+
+def _trunk_at(root: Path, sha: str) -> None:
+    """Give the repo an `origin/main` pointing at `sha`. A real ref, not a fake reader: `_base_state`
+    asks git, and a stub that answered for it would be `a fake more permissive than its subject`."""
+    _run(root, "update-ref", "refs/remotes/origin/main", sha)
+
+
+def test_the_census_states_when_its_own_base_is_behind_the_trunk(repo: Path) -> None:
+    """The defect: every REMEDY the census prints is computed against HEAD, and HEAD in a shared
+    checkout is routinely behind `origin/main`. ONE control over the WHOLE partition -- level,
+    behind, and absent -- because a control that only knows what the behind case must say goes
+    green the day the caveat fires on every tree forever."""
+    head = _run(repo, "rev-parse", "HEAD").strip()
+    assert scr.base_caveat(repo) == "", (
+        "a repo with NO origin/main has no trunk to be stale against, and a caveat there would red "
+        "every archive checkout -- a control failing against a passer-by")
+    _trunk_at(repo, head)
+    assert scr.base_caveat(repo) == "", "the base IS the trunk and the census owes no caveat"
+    ahead = _commit(repo, "m.py", LANDED, "the trunk moves on")
+    _run(repo, "reset", "--hard", "-q", head)
+    _trunk_at(repo, ahead)
+    caveat = scr.base_caveat(repo)
+    assert caveat, "HEAD is behind the trunk and the census said nothing about its own base"
+    assert "1 commit(s) behind" in caveat, (
+        "the caveat must carry the LAG it was measured at, not a fixed sentence: " + caveat)
+    assert "surgical_land --content" in caveat, (
+        "the caveat must name the door the inverted reading sends the lane through, because that "
+        "is the door that writes over the trunk")
+
+
+def test_a_copy_the_trunk_supersedes_reads_as_holder_work_when_the_base_is_behind(repo: Path):
+    """The inversion the caveat exists for, reproduced rather than asserted about. `gains_over` is
+    which door the lane walks through -- empty is `refresh_to_head`, non-empty is
+    `surgical_land --content`. Ask it against a behind HEAD and a copy the trunk ALREADY holds comes
+    back as holder work, which sends the lane to land a revert of the trunk.
+
+    Measured on the live tree 2026-09-15: the census called `tools/generate_value_arms_data.py`
+    holder work for supplying `BLIND_ENVELOPE_ARMS_PATH`, which `origin/main` had held since
+    `78829dbf9`."""
+    head = _run(repo, "rev-parse", "HEAD").strip()
+    trunk = _commit(repo, "m.py", LANDED, "the trunk lands freshly_landed_helper")
+    _run(repo, "reset", "--hard", "-q", head)
+    _trunk_at(repo, trunk)
+    head_text = scr.blob_at(repo, "HEAD", "m.py")
+    trunk_text = scr.blob_at(repo, "origin/main", "m.py")
+    assert scr.gains_over(head_text, LANDED, "m.py") == ("freshly_landed_helper",), (
+        "against the BEHIND base the copy reads as holder work -- this is the defect, and if this "
+        "leg stops holding the caveat is guarding nothing")
+    assert scr.gains_over(trunk_text, LANDED, "m.py") == (), (
+        "against the TRUNK the same copy supplies nothing, so the honest door was refresh_to_head "
+        "all along and the two bases disagree about which door exists")
