@@ -218,6 +218,144 @@ def test_a_retired_entry_is_still_READABLE_because_a_silent_filter_is_how_this_s
     )
 
 
+@pytest.mark.parametrize("orientation_now,expect_offered", [
+    (ORIENTATION, False),   # finished under the orientation still in force
+    (LATER, True),          # the seat oriented again and STILL names it: offer it
+])
+def test_a_focus_row_NEVER_HANDED_OVER_is_discharged_by_release_or_the_draw_never_stops(
+    store, monkeypatch, tmp_path, orientation_now, expect_offered
+):
+    """The same partition as the focus-route test above, for a row the PROMOTER NEVER TOUCHED.
+
+    WHY THE CONTROL ABOVE COULD NOT SEE THIS. Every test in this file opens with
+    `hand_off_focus`, so every id under test has a continuation entry for `retire` to mark. That
+    is not the live population: `_focus` reads `DIRECTION.yaml` DIRECTLY, so a focus row can be
+    drawn without ever passing the promoter, and `retire` -- whose subject is an ENTRY -- returns
+    False with nothing to mark. `_retired_ids` names this limit in its own docstring and then
+    argues it is not reachable in practice, because "every id that reaches Lane 0 through the
+    promoter has an entry". Measured against `direction.unreachable_focus` on 2026-09-15, ALL FOUR
+    offerable focus rows had no entry. The stated cover is the empty set.
+
+    WHAT IT COST, and it is why this is a defect and not a tidiness fix.
+    `the-blind-envelope-the-reader-gets-is-the-one-the-arms-were-re-run-for` was delivered by
+    `5421e028e`, released, redrawn 45 minutes later; that tick re-derived it as already done and
+    released again; it was redrawn a THIRD time 25 minutes after that, still carrying the pre-land
+    measurement as a present-tense fact. Two invocations to establish that a landed thing landed.
+
+    Row 2 is the leg that stops this becoming a veto over the director's focus list: the tombstone
+    is keyed to the orientation, so a seat that re-orients and still names the row gets it back.
+    Without it this control would pass with a `--release` that silenced an item forever, which is
+    a worse failure than the re-offer it fixes.
+
+    MUTATIONS RUN, with the PREDICTION I wrote first and what actually happened, kept side by side
+    because two of the three predictions were wrong and a prediction filed after the answer is not
+    a prediction:
+
+      * drop the `retire_focus_row` fallback from `retire_continuation` (restore the defect).
+        PREDICTED row 1 red, row 2 green. GOT BOTH ROWS RED, plus the tombstone test -- because
+        the `retire_continuation(...) is True` assertion sits BEFORE the orientation switch and so
+        belongs to neither row. Right kill, wrong reason: this mutation does not demonstrate the
+        partition, and I had claimed it did;
+      * have `retire_focus_row` omit `retired_at_orientation`. PREDICTED row 1 green, row 2 red
+        ("silenced for good"). GOT THE OPPOSITE -- row 1 RED, row 2 green. An unstamped tombstone
+        fails `_retired_ids`' `== current_orientation()` test, so the row is never discharged at
+        all rather than discharged forever. The failure direction of a missing stamp is fail-OPEN,
+        and I had it backwards;
+      * have `retire_focus_row` write `written_at: time.time()` instead of 0.0 -> both rows green.
+        PREDICTED and CONFIRMED an equivalence: `retired_at` alone already excludes the tombstone
+        from `live()`, so the second leg is BELT-AND-BRACES, not load-bearing. Established rather
+        than assumed to be the flattering answer;
+      * drop the `== current_orientation()` clause from `_retired_ids` (the retirement never
+        spends) -> ROW 2 RED, row 1 green. THIS is the mutation that proves the partition, and it
+        is the one I had not thought to run: it is the only one that kills row 2 alone, so without
+        it row 2 would be a leg nothing could show to be reachable.
+    """
+    claims = tmp_path / "claims.json"
+    monkeypatch.setattr(delivery_lane, "CLAIMS_FILE", claims)
+    _orientation(monkeypatch, ORIENTATION)
+
+    # NO `hand_off_focus`. This is the whole point: the row reaches the draw straight from
+    # `DIRECTION.yaml`, which is how all four live rows reach it.
+    assert seat_continuation.live() == [], "the fixture handed something over; the case is void"
+    drawn = delivery_lane.next_item(path=claims)
+    assert drawn is not None and drawn["id"] == FOCUS_ROW["id"], (
+        "POISON ROUND: the row must be offerable BEFORE the discharge, or every leg below passes "
+        "on an item nothing was ever going to hand out"
+    )
+
+    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is True, (
+        "a tick that says it finished a focus row got no discharge at all"
+    )
+
+    _orientation(monkeypatch, orientation_now)
+    offered = delivery_lane.next_item(path=claims)
+    assert (offered is not None and offered["id"] == FOCUS_ROW["id"]) is expect_offered, offered
+
+
+def test_a_focus_row_tombstone_SAYS_WHAT_IT_IS_and_never_reads_as_a_continuation_that_ran(
+    store, monkeypatch
+):
+    """The objection `_retired_ids` raises against this repair is that a discharge must not report
+    work it did not do -- "retired the continuation" about an id no continuation ever held. That
+    objection is to the NAMING and it is correct, so the record carries `focus_row_tombstone` and
+    prose saying it was never handed over.
+
+    It must also never leak back into the offer, which is the defect this exists to end arriving
+    through the store built to stop it.
+
+    MUTATION: have `retire_focus_row` omit `retired_at` and this fires on both the `live()` leg and
+    the `retired()` leg -- the tombstone becomes an offerable continuation with no `what` a seat
+    ever wrote.
+    """
+    _orientation(monkeypatch, ORIENTATION)
+    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is True
+
+    reported = seat_continuation.retired()
+    assert [i["id"] for i in reported] == [FOCUS_ROW["id"]]
+    assert reported[0]["focus_row_tombstone"] is True, (
+        "nothing distinguishes this from a continuation that was handed over and run"
+    )
+    assert reported[0]["retired_at_orientation"] == ORIENTATION
+    assert seat_continuation.live() == [], "a tombstone is being offered as work"
+    assert seat_continuation.expired() == [], (
+        "a tombstone is being reported as the drag -- work the seat wrote and nobody took"
+    )
+    # RE-RELEASING MUST NOT MINT A SECOND ONE: the first finish is the one whose orientation says
+    # when the work was actually done, and a duplicate would let a later release move that stamp.
+    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is False
+    assert len(seat_continuation.retired()) == 1
+    # AND THE DISCHARGE MUST SAY WHICH ONE IT DID, or it makes the false claim `_retired_ids`
+    # objects to -- "retired the continuation" about an id no continuation ever held.
+    assert seat_continuation.retirement_is_focus_row_tombstone(FOCUS_ROW["id"]) is True
+
+
+def test_a_tombstone_is_written_ONLY_for_an_id_DIRECTION_YAML_ACTUALLY_NAMES(store, monkeypatch):
+    """THE FAIL-OPEN THE FIRST DRAFT OF THIS REPAIR SHIPPED, caught by the commit gate rather than
+    by me, and controlled here so it cannot come back.
+
+    That draft fell back to a tombstone for ANY id `retire` did not know. So `--release` on a TYPO
+    wrote a tombstone and reported success -- and the exit code that means "the lane cannot see
+    your work" would have fired zero, which is the one way to train the next tick to ignore it.
+    `test_release_discharges_the_offer_and_the_claim_over_the_whole_partition` row 4 went red and
+    was right to: a discharge that fires on everything passes every test of a discharge.
+
+    The offerable focus list is exactly the population that can be RE-DRAWN, and a re-draw is the
+    only thing a tombstone saves anything from. An id nobody will offer needs no tombstone.
+
+    MUTATION: drop the `unreachable_focus` membership test from `retire_continuation` and this
+    fires -- as does row 4 of the partition test in `test_seat_continuation.py`, which is where the
+    defect was actually caught.
+    """
+    _orientation(monkeypatch, ORIENTATION)
+    assert delivery_lane.retire_continuation("an-id-no-direction-file-has-ever-named") is False
+    assert seat_continuation.retired() == [], (
+        "a release on an id DIRECTION.yaml does not name minted a tombstone, so a typo now "
+        "reports success and the refusal that means 'the lane cannot see your work' is spent"
+    )
+    # The control leg: the SAME call for an id the focus list DOES name still discharges.
+    assert delivery_lane.retire_continuation(FOCUS_ROW["id"]) is True
+
+
 def test_the_EXECUTORS_own_discharge_retires_rather_than_deletes_and_a_second_one_still_counts(
     store, monkeypatch
 ):

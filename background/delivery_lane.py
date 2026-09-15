@@ -949,8 +949,28 @@ def retire_continuation(focus_id: str, *, path: Path | None = None) -> bool:
     seat itself named, rather than a second timer laid over the first.
     """
     try:
-        return seat_continuation.retire(
-            focus_id, orientation=current_orientation(), path=path)
+        orientation = current_orientation()
+        if seat_continuation.retire(focus_id, orientation=orientation, path=path):
+            return True
+        # THE OTHER HALF OF THE SAME DISCHARGE, and the limit `_retired_ids` names as its own.
+        # `_focus` reads `DIRECTION.yaml` DIRECTLY, so a focus row can be drawn without ever
+        # passing the promoter and therefore without an entry for `retire` to mark. Measured
+        # 2026-09-15: that is not an edge, it is FOUR of the four offerable rows, and it cost two
+        # whole invocations re-deriving one already-landed item. The tombstone says what it is
+        # rather than claiming a continuation was retired -- see `retire_focus_row`.
+        #
+        # ONLY FOR AN ID `DIRECTION.yaml` ACTUALLY NAMES, and this narrowing is not tidiness --
+        # the first draft omitted it and was refused by the gate. Without it, `--release` on a
+        # TYPO writes a tombstone and reports success, so the one message that means "the lane
+        # cannot see your work" would fire for nothing and train the next tick to ignore it. That
+        # is `test_release_discharges_the_offer_and_the_claim_over_the_whole_partition`'s row 4,
+        # and it was right: a discharge that fires on everything passes every test of a discharge.
+        # The offerable focus list is exactly the population that can be RE-DRAWN, which is the
+        # only population a tombstone can save anything for.
+        if any(i.get("id") == focus_id for i in direction_mod.unreachable_focus(_atom_ids())):
+            return seat_continuation.retire_focus_row(
+                focus_id, orientation=orientation, path=path)
+        return False
     except Exception:  # noqa: BLE001 - a handoff store must never cost a tick its release
         return False
 
@@ -1527,7 +1547,17 @@ def main(argv=None) -> int:
         # minutes, finished afterwards -- and an early `return 1` there left the offer standing.
         retired = retire_continuation(args.release)
         if retired:
-            print(f"retired the continuation {args.release}: it will not be offered again")
+            # THE MESSAGE SAYS WHICH DISCHARGE HAPPENED, because the two are not the same fact and
+            # `_retired_ids` objects to this repair on exactly that ground: a tombstone for a focus
+            # row must not report that a continuation was retired, because no continuation ever
+            # held it. Reading the flag back off the store rather than re-deriving it here keeps
+            # the sentence tied to the record it describes.
+            if seat_continuation.retirement_is_focus_row_tombstone(args.release):
+                print(f"retired the FOCUS ROW {args.release}: it was never handed over as a "
+                      f"continuation, so this is a tombstone; it will not be offered again until "
+                      f"the seat re-orients and still names it")
+            else:
+                print(f"retired the continuation {args.release}: it will not be offered again")
         # NON-ZERO ON A REFUSAL, matching --landed directly below: the caller believes it finished
         # and the lane disagrees, which it needs to hear NOW. Printing success either way is what
         # let a turn be told "bound NOTHING: it is NOT CLAIMED" and "released" about one id.

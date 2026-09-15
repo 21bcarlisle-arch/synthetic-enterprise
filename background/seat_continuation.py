@@ -505,6 +505,86 @@ def retire(work_id: str, *, orientation: str | None = None, now: float | None = 
     return hit
 
 
+def retire_focus_row(work_id: str, *, orientation: str | None = None,
+                     now: float | None = None, path: Path | None = None) -> bool:
+    """Record that a FOCUS ROW nobody handed over was finished. True if a tombstone was written.
+
+    THE HALF OF THE DISCHARGE THAT DID NOT EXIST, and `delivery_lane._retired_ids` names the hole
+    in its own docstring: "a focus id that was never handed over carries none, and `--release` on
+    one of those still leaves it offerable". It then says the live population is covered because
+    "every id that reaches Lane 0 through the promoter has an entry". THAT SECOND SENTENCE IS
+    FALSE, and it is false of the WHOLE live population rather than an edge of it — measured
+    2026-09-15 against `direction.unreachable_focus`, all FOUR currently-offerable focus rows have
+    no entry in this store, because `delivery_lane._focus` reads `DIRECTION.yaml` DIRECTLY and the
+    promoter is not the only route to a draw. So `--release` retired nothing for any of them.
+
+    WHAT IT COST, measured on the item that produced this function. `the-blind-envelope-the-reader-
+    gets-is-the-one-the-arms-were-re-run-for` was delivered by `5421e028e`, released, and redrawn
+    ~45 minutes later; that tick re-derived the work as already done, filed a result saying so,
+    released again — and it was redrawn a THIRD time ~25 minutes after that, carrying the same
+    pre-land measurement frozen as a present-tense fact. Two full invocations spent establishing
+    that a landed thing had landed. The drawn item's own closing paragraph predicts this failure
+    and prescribes `--release` as the cure; the lane could not actually execute that cure.
+
+    A TOMBSTONE SAYS WHAT IT IS, which is why this is a second function and not a widening of
+    `retire`. `retire`'s subject is a continuation ENTRY and it must keep returning False when
+    there is none — `retire_continuation`'s contract is "whether a live continuation was retired",
+    and a version that answered True for an id no continuation ever held would report work it did
+    not do. That is the objection `_retired_ids` raises against exactly this repair, and it is an
+    objection to the NAMING, not to the mechanism: the fix is a record that says "a focus row was
+    finished under this orientation", carrying `focus_row_tombstone` so no reader can mistake it
+    for a handed-over continuation that ran.
+
+    IT CAN NEVER BECOME OFFERABLE, and by two independent legs rather than one. `retired_at` is
+    set, which `live()` and `expired()` both exclude on; and `written_at` is 0.0, which fails
+    `live()`'s window test on its own. One leg would do — the second is here because a tombstone
+    that leaked back into `live()` would hand a finished instruction out as fresh work, which is
+    the precise defect this repair exists to end, and it would do it through the store built to
+    stop it.
+
+    KEYED TO THE ORIENTATION, exactly as `retire` is, so the finish is spent when the seat next
+    orients and still names the row. A tombstone is not a veto over the director's focus list: if
+    he still wants it after re-orienting, it comes straight back.
+
+    RE-RETIRING IS A NO-OP returning False, for `retire`'s reason — the FIRST finish is the one
+    whose orientation describes when the work was actually done.
+    """
+    items = _load(path)
+    for item in items:
+        if item.get("id") == work_id and item.get("retired_at"):
+            return False
+    items.append({
+        "id": work_id,
+        "what": "a DIRECTION.yaml focus row finished by the tick that drew it; this is a "
+                "tombstone, not a continuation that was handed over and run",
+        "focus_row_tombstone": True,
+        "written_at": 0.0,
+        "retired_at": time.time() if now is None else now,
+        **({"retired_at_orientation": str(orientation)} if orientation else {}),
+    })
+    _save(items, path)
+    return True
+
+
+def retirement_is_focus_row_tombstone(work_id: str, path: Path | None = None) -> bool:
+    """Whether `work_id`'s retirement is a FOCUS-ROW TOMBSTONE rather than a finished continuation.
+
+    So the discharge can say which of the two it did. `_retired_ids`' objection to tombstones is
+    that one must not report "retired the continuation" about an id no continuation ever held, and
+    the answer is a caller that can tell them apart -- read off the record rather than re-derived
+    beside it, because two places deciding what a discharge did is how the message and the store
+    drift.
+
+    False when the id is not retired at all, which is the direction that keeps the plainer sentence
+    as the default: an unreadable or missing record reports the continuation wording, which is what
+    every caller printed before tombstones existed.
+    """
+    for item in _load(path):
+        if item.get("id") == work_id and item.get("retired_at"):
+            return bool(item.get("focus_row_tombstone"))
+    return False
+
+
 def retired(path: Path | None = None) -> list[dict]:
     """The entries a tick declared finished. Reported for the reason `superseded()` is.
 
