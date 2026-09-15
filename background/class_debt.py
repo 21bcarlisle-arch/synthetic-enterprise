@@ -254,8 +254,11 @@ def parse_disposition(text: str) -> Disposition | None:
     """The decision a class register records about itself, or None if it records none.
 
     Scoped to the `## Disposition` section for the same reason `finding_classes.
-    declared_class_of` scopes its parse: the word ACCEPTED appearing in prose (this docstring
-    included) is a mention, and a mention is not a decision.
+    section_declaration_of` scopes its parse: the word ACCEPTED appearing in prose (this
+    docstring included) is a mention, and a mention is not a decision. The sibling form there
+    (`class_field_token_of`, a `**Class:**` header field) anchors to a METADATA LINE instead,
+    which is the same argument made against a different corpus: pick whichever scope the
+    author's own act actually has, and never the whole body.
     """
     heading = _DISPOSITION_HEADING_RE.search(text)
     if heading is None:

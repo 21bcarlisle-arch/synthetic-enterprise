@@ -19,8 +19,10 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_PATH_THAT_WEDGED_THE_PUBLISHER_WAS_THE_FILE_THE_LANE_REPAIRING_THE_PUBLISHER_WAS_HOLDING_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_PUBLISHER_CHECKS_BEHIND_ORIGIN_ONCE_AT_THE_END_OF_A_CYCLE_THE_TREE_OUTRUNS_FIVE_TIMES_OVER_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_PUBLISH_GATE_JUDGED_A_HEAD_31_COMMITS_BEHIND_ORIGIN_AND_NOTHING_IN_THE_WEDGE_MACHINERY_READS_ORIGIN_2026-09-02.md` — LATENT
+- `SEAT_FINDING_THE_RECONCILE_REFUSAL_TOLD_ME_TO_LAND_A_PRODUCERS_OUTPUT_AND_LANDING_IT_WOULD_HAVE_RESTORED_A_DELETED_HEADLINE_2026-09-09.md` — LATENT
 - `SEAT_FINDING_THE_REPAIR_THAT_CLEARS_THE_PUBLISH_WEDGE_RUNS_45_MINUTES_BEFORE_THE_GATE_THAT_READS_IT_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_ROOM_RULE_WAS_ENFORCED_OVER_NAMES_AND_NEVER_OVER_THE_TRACKED_TREE_2026-09-04.md` — LATENT
+- `SEAT_FINDING_THE_TWO_ROOMS_REPAIRS_RECORDED_CAUSE_IS_REFUTED_AND_THE_ROOT_COPY_COMES_BACK_FROM_ORIGIN_2026-09-09.md` — BLOCKING
 - `SEAT_FINDING_THE_WEDGE_DETECTORS_MIN_ADMITTED_ANY_NUMBER_SO_ONE_UNRECORDED_STAMP_COULD_DATE_AN_OUTAGE_TO_1970_2026-09-04.md` — LATENT
 - `SEAT_RESULT_THE_PUBLISHERS_LIVE_WEDGE_WAS_NOT_THE_UNTRACKED_CONTROL_AND_THE_CONTROL_COULD_NOT_LAND_ALONE_2026-09-08.md` — LATENT
 - `WORKER_FINDING_AN_OOM_KILL_IS_RECORDED_AS_A_TEST_REGRESSION_2026-08-10.md` — LATENT
@@ -64,13 +66,11 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_PRE_COMMIT_GATE_MAPS_NO_TESTS_TO_A_DATA_FILE_2026-08-09.md` — RECORDED
 - `WORKER_FINDING_THE_PRODUCER_IS_NOT_DEAD_IT_IS_OOM_KILLED_TWELVE_TIMES_TODAY_2026-08-24.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_DISCOVERS_AN_OVER_BUDGET_SCOPE_BY_TIMING_OUT_A_CYCLE_2026-08-21.md` — LATENT
-- `WORKER_FINDING_THE_PUBLISH_GATE_GRADES_A_LIVE_CONSTANT_AGAINST_A_COMMITTED_SNAPSHOT_2026-09-03.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_HAS_NEVER_COMPLETED_ABOVE_1666_SECONDS_AND_ITS_CEILING_IS_3800_2026-08-21.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_TESTS_THE_WORKTREE_BUT_THE_COMMIT_TAKES_THE_INDEX_2026-08-27.md` — LATENT
 - `WORKER_FINDING_THE_PUBLISH_GATE_WEDGE_TWO_DOCSTRINGS_CITE_HAS_NEVER_EXISTED_2026-08-18.md` — LATENT
 - `WORKER_FINDING_THE_REFUSAL_NAMED_THE_WALL_CROSSING_REGISTER_AND_THE_CAUSE_WAS_A_FULL_TMPFS_2026-09-05.md` — LATENT
 - `WORKER_FINDING_THE_SANCTIONED_COMMIT_DOOR_CANNOT_BE_USED_FROM_A_WORKTREE_2026-08-31.md` — LATENT
-- `WORKER_FINDING_THE_SITE_GATE_COUNTS_AN_UNTRACKED_CONTROL_IN_ITS_OWN_GREEN_2026-08-18.md` — LATENT
 - `WORKER_FINDING_THE_SITE_LANE_IS_WEDGED_FOR_EVERY_LANE_BY_A_PAGE_WHOSE_PRODUCER_NEVER_LANDED_2026-09-01.md` — LATENT
 - `WORKER_FINDING_THE_TMPFS_DRAIN_WAS_POINTED_AT_THE_WRONG_FILESYSTEM_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_WEDGES_ORDERING_INSTRUMENT_RUNS_BACKWARDS_SINCE_THE_QUEUE_BECAME_A_STACK_2026-08-20.md` — RECORDED
@@ -89,7 +89,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**372.9 recorded episode-hours** across 21 of the 76 instances; largest single recorded episode **60h**; 9 instance(s) name a published figure in scope.
+**372.9 recorded episode-hours** across 21 of the 76 instances; largest single recorded episode **60h**; 10 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
@@ -117,7 +117,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## What is owed
 
-8 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
+9 of these instances are BLOCKING, so this class document is BLOCKING in `H_harness` (the class inherits the MAXIMUM severity of its members — consolidation must never launder a blocker into a housekeeping note). Each is discharged the way clause 2 allows: repaired, or the limitation explicitly recorded and accepted.
 
 - `SEAT_FINDING_A_CLEAN_PUBLISH_INSIDE_AN_OPEN_EPISODE_LEFT_NO_TRACE_SO_A_BACKLOG_READ_AS_AN_OUTAGE_2026-09-04.md`
 - `SEAT_FINDING_THE_COLD_START_HOIST_LANDED_ONE_PRIOR_STATE_SHORT_OF_THE_RUN_IT_NAMED_2026-09-04.md`
@@ -125,6 +125,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_PATH_THAT_WEDGED_THE_PUBLISHER_WAS_THE_FILE_THE_LANE_REPAIRING_THE_PUBLISHER_WAS_HOLDING_2026-09-04.md`
 - `SEAT_FINDING_THE_PUBLISHER_CHECKS_BEHIND_ORIGIN_ONCE_AT_THE_END_OF_A_CYCLE_THE_TREE_OUTRUNS_FIVE_TIMES_OVER_2026-09-04.md`
 - `SEAT_FINDING_THE_REPAIR_THAT_CLEARS_THE_PUBLISH_WEDGE_RUNS_45_MINUTES_BEFORE_THE_GATE_THAT_READS_IT_2026-09-04.md`
+- `SEAT_FINDING_THE_TWO_ROOMS_REPAIRS_RECORDED_CAUSE_IS_REFUTED_AND_THE_ROOT_COPY_COMES_BACK_FROM_ORIGIN_2026-09-09.md`
 - `WORKER_FINDING_THE_GATE_EXHAUSTS_TMP_AND_THE_ENOSPC_IS_RECORDED_AS_TWELVE_TEST_REGRESSIONS_2026-09-05.md`
 - `WORKER_FINDING_THE_WEDGE_WAS_A_TREE_LOCK_TIMEOUT_FILED_AS_A_TEST_REGRESSION_2026-08-30.md`
 

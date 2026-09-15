@@ -48,11 +48,21 @@ document's subject. Matching the body instead would put every document that mere
 MENTIONS the publish gate into the publish-gate class, which is how a classifier stops
 partitioning anything.
 
-...WITH ONE OVERRIDE: a document may REGISTER itself (`declared_class_of`, see the comment
-block above it). Title-only is fail-open for a finding titled after its mechanism rather
-than its family — it classifies as None, nothing is refused, nothing goes red, and the
+...WITH ONE OVERRIDE, IN TWO FORMS: a document may REGISTER itself (`declared_class_of`, see
+the comment block above it). Title-only is fail-open for a finding titled after its mechanism
+rather than its family — it classifies as None, nothing is refused, nothing goes red, and the
 class document never learns the family grew. That is the routing half of the same silence
 this module was built to end, and it was measured on this module's own population.
+
+THE SECOND FORM IS THE ONE THIS MODULE'S OWN RENDERER WRITES, and it went unread for weeks.
+`render_class_document` emits `**Class:** \\`id\\`` on the register header line; authors put
+the same field on their findings' header lines; the parser read only `## Class registration`.
+Measured 2026-09-15 over all 7,879 staged documents: 76 declarations read, 280 written in the
+header form and read by nothing, 57 of them live. The register could not partition a corpus
+that was talking to it in a language it did not parse. Reading it moved 7 live documents into
+their registers, put 11 more into `Refused consolidation` sections where their lane keeps
+them, re-filed 3 archived instances that had been filed by title against their own written
+declaration — and left the other 34 exactly where they were, because they are RECORDED.
 
 AT MOST ONE CLASS (exit criterion 3). Families overlap in the real world: a test that is
 unreachable by the gate's selector is both a gate defect and a never-runs defect. The
@@ -623,13 +633,28 @@ _CLASS_REGISTRATION_HEADING_RE = re.compile(r"^#{1,6}[ \t]+Class registration[ \
 _ANY_HEADING_RE = re.compile(r"^#{1,6}[ \t]", re.M)
 _DECLARATION_RE = re.compile(r"\bBelongs to\s+`([A-Za-z0-9_]+)`")
 
+#: THE SECOND FORM, WHICH IS THE ONE THIS MODULE'S OWN RENDERER WRITES. `render_class_document`
+#: emits `**Instances:** N · **Class:** \`id\` · ...` on the register's header line, and authors
+#: copied that shape onto their findings' header lines — which is the natural thing to do, and
+#: it is the form the project had been writing for weeks while nothing could read it. Measured
+#: 2026-09-15 over all 7,879 staged documents: 76 declarations readable through the section form
+#: above, 280 more written in this one and read by nothing. 57 of those were in the live root.
+#:
+#: ANCHORED TO A METADATA LINE, which is this form's analogue of the section scope: the line must
+#: START with `**`, so the field is one of the `· `-separated header fields beside `**Severity:**`
+#: and `**Lane:**` rather than a phrase in a sentence. Without the anchor the same corpus yields
+#: values like `a`, `the` and `one` — a prose line reading "the **Class:** a control that cannot
+#: fail" is a description, not a declaration, and reading it would re-open the exact hole the
+#: module docstring refuses.
+_CLASS_FIELD_RE = re.compile(r"^\*\*[^\n]*?\bClass:\*\*[ \t]*`?([A-Za-z0-9_]+)`?", re.M)
 
-def declared_class_of(text: str) -> str | None:
-    """The class id this document declares for itself under `## Class registration`.
 
-    Returns the token VERBATIM and does not check it against `CLASSES_BY_ID` — resolving it
-    here would let a typo read as "declared nothing", which routes the document nowhere and
-    says nothing about it. `check()` makes an unknown token a failure instead.
+def section_declaration_of(text: str) -> str | None:
+    """The class id declared under `## Class registration`, VERBATIM.
+
+    Verbatim and not resolved against `CLASSES_BY_ID`: resolving here would let a typo read
+    as "declared nothing", which routes the document nowhere and says nothing about it.
+    `check()` makes an unknown token a failure instead.
     """
     heading = _CLASS_REGISTRATION_HEADING_RE.search(text)
     if heading is None:
@@ -640,6 +665,53 @@ def declared_class_of(text: str) -> str | None:
         section = section[: following.start()]
     match = _DECLARATION_RE.search(section)
     return match.group(1) if match else None
+
+
+def class_field_token_of(text: str) -> str | None:
+    """The raw token in this document's `**Class:**` header field, whatever it says."""
+    match = _CLASS_FIELD_RE.search(text)
+    return match.group(1) if match else None
+
+
+def declared_class_of(text: str) -> str | None:
+    """The class this document declares for itself: the section form, else the header field.
+
+    THE SECTION WINS WHEN BOTH ARE PRESENT, and it is not a tie-break of convenience. Over the
+    whole staged corpus 26 documents carry both and 11 of them DISAGREE, so a precedence had to
+    be chosen before this form could be read at all. `## Class registration` is a heading written
+    for no other purpose; `**Class:**` is one field on a line that also carries severity, lane,
+    epoch and atom. The more deliberate act wins, and the practical consequence is that reading
+    this form re-classifies NOTHING that was already readable — the change is additive.
+
+    ...AND THE HEADER FIELD RESOLVES ITS TOKEN WHERE THE SECTION DOES NOT. That asymmetry looks
+    like an inconsistency and it is the honest reading of a measurement. `Belongs to \\`x\\`` can
+    only ever be an attempt to name a class, so an unresolvable `x` there is a TYPO and must be
+    loud. `**Class:**` is demonstrably not that field: 130 of the 296 documents that carry it use
+    it for something else entirely — `**Class:** R15`, `**Class:** harness`, `**Class:** a
+    coupling stated in a comment`. Treating those as typos would refuse half the archive on the
+    day this landed. So here an unresolvable token is evidence the field is NOT a class
+    declaration, and the fail-open that buys is made visible instead of silent: `check()` NAMES
+    every live document whose `**Class:**` field it could not resolve (`unresolvable_class_fields`).
+    """
+    section = section_declaration_of(text)
+    if section is not None:
+        return section
+    return _resolve_class_field(class_field_token_of(text))
+
+
+def _resolve_class_field(token: str | None) -> str | None:
+    """A `**Class:**` token as a class id, CASE-FOLDED, or None if no class answers to it.
+
+    Case-folded because the one near-miss this corpus actually contains is
+    `**Class:** MEASUREMENTS_THAT_MIRROR` — a document naming its family in the capitals the
+    register's TITLE uses rather than the lowercase its id uses. That is a declaration by any
+    reading, and dropping it would have been the fail-open this widening exists to close,
+    surviving on a shift key. Nothing else in the corpus changes: `R15`, `harness` and `test`
+    resolve to nothing in either case.
+    """
+    if token is None:
+        return None
+    return {c.id.lower(): c.id for c in CLASSES}.get(token.lower())
 
 
 def classify_file(path: Path) -> Classification:
@@ -1066,6 +1138,32 @@ _PRINTED_COUNT_RE = re.compile(r"\*\*Instances:\*\*\s*(\d+)")
 _INSTANCE_LINE_RE = re.compile(r"^- `([^`]+\.md)` — [A-Z]+$", re.M)
 
 
+def unresolvable_class_fields(root: Path | str = DEFAULT_STAGING_ROOT) -> list[tuple[Path, str]]:
+    """Live documents whose `**Class:**` field holds a token no class answers to.
+
+    THIS IS THE SURFACE FOR `declared_class_of`'S ONE FAIL-OPEN, and it is a NOTE rather than a
+    failure on purpose. A misspelt `controls_that_canot_fail` in this field reads as no
+    declaration at all, which is the silence the whole channel exists to end — so it must be
+    said out loud. It cannot be a refusal: `**Class:** R15` and `**Class:** harness` are a live
+    habit in this project (130 documents), and a gate that refused them would wedge every lane
+    over a field that is not addressed to it. Naming them is what a reader can act on; refusing
+    them is what would make the next author delete the field instead of fixing it.
+
+    Measured 2026-09-15: ZERO on the live root. It is keyed to the property and not to that
+    answer — it goes loud the day a live document declares a family nothing can resolve, which
+    is exactly when a reader needs to hear it.
+    """
+    out: list[tuple[Path, str]] = []
+    for path in classifiable_documents(root):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        if section_declaration_of(text) is not None:
+            continue
+        token = class_field_token_of(text)
+        if token is not None and _resolve_class_field(token) is None:
+            out.append((path, token))
+    return out
+
+
 @dataclass
 class CheckResult:
     failures: list[str] = field(default_factory=list)
@@ -1213,6 +1311,13 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
                 f"CONTESTED {path.name}: {classification.class_id} "
                 f"(also matched {', '.join(classification.also_matched)})"
             )
+
+    for path, token in unresolvable_class_fields(root):
+        result.notes.append(
+            f"UNRESOLVED CLASS FIELD {path.name}: carries `**Class:** {token}`, which is not "
+            f"one of {', '.join(CLASSES_BY_ID)}. Read as no declaration — if that token was "
+            "meant as a family, it is misspelt and this document is routing nowhere"
+        )
 
     for finding_class in CLASSES:
         doc = _class_doc_path(root, finding_class.document_name)
