@@ -61,10 +61,29 @@ MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 # Trees a generator writes into. Each is a (parent, child) segment pair because that is how the
 # generators build them -- `PROJECT / "site" / "data" / "dashboard.json"` -- and matching on
 # segments is what lets the oracle find 116 artefacts where a full-path literal search finds 17.
+#
+# FOUR, NOT THREE, AND THIS ONE IS THE OPPOSITE SHAPE TO THE FIVE BEFORE IT (delivery seat,
+# 2026-09-15). Every earlier frame widened how a path is SPELLED and provably could not move the
+# commit gate, because `offends()` decides by tree PREFIX and a spelling widening only adds members
+# the prefix test already covers. A `GENERATED_TREES` entry moves the PREFIX SET itself, so every
+# `file_scope` entry under it starts offending at once -- which is why this one needed the freeze
+# re-measured in the same commit and the others did not.
+# `docs/status` was found by a census of every directory in the repo against the tree-agnostic
+# write-site scan: 4 of its 5 tracked files are write-reached, and the fifth (`index.html`) is
+# rendered by `tools/render_site_nav.py`. All five are a generator's output and three say
+# "Generated:" in their own first lines. Census, predictions and the two candidates DECLINED with
+# their numbers: docs/staging/records/PREREG_WHETHER_A_FOURTH_GENERATED_TREE_EXISTS_THAT_NOBODY_
+# DECLARED_2026-09-15.md.
+# THE BAR FOR A TREE IS EVERY PATH UNDER IT, NOT MOST, and that is structural rather than
+# fastidious: `WRITTEN_BUT_NOT_REPRODUCIBLE` is the per-path escape hatch and a PREFIX refusal has
+# no equivalent, so a tree holding one irreproducible record cannot be declared and then corrected.
+# That is why `docs/reports` (33 files, 0 live violations) and `site/state` (50 files, 0 live
+# violations) are measured and declined rather than swept in on density.
 GENERATED_TREES: tuple[tuple[str, str], ...] = (
     ("site", "data"),
     ("docs", "observability"),
     ("docs", "market_data"),
+    ("docs", "status"),
 )
 SCANNED_TREES = ("tools", "background", "simulation", "saas", "company")
 ARTEFACT_SUFFIXES = (".json", ".md", ".sqlite", ".csv")
@@ -107,6 +126,15 @@ FROZEN: frozenset[tuple[str, str]] = frozenset({
     ("OPS8_last_known_good_staleness_banner", "site/data/"),
     ("SITE6_knowledge_in_nav_glossary_dissolved", "site/data/glossary.json"),
     ("SITE12_evidence_a_reader_can_use", "site/data/capabilities_door.json"),
+    # RE-MEASURED 2026-09-15 when `("docs", "status")` was declared, and it is the ONE live
+    # violation the wider prefix set exposes -- the freeze was measured against three prefixes on
+    # 2026-08-19 and a fourth prefix without this line is a STALE freeze that refuses every lane's
+    # commit, not just the lane that widened it. `docs/status/LATEST.md` is the live-state page,
+    # rewritten by five producers, so OPS3 has been deprioritised on every tick it was dirty --
+    # which is always -- for as long as both the declaration and the blindness have existed. The
+    # atom was ALREADY frozen for `docs/observability/.publish_gate_state.json`: the same atom
+    # starving through a second door nobody could see is what a class looks like from inside.
+    ("OPS3_first_post_ruling_publish", "docs/status/LATEST.md"),
 })
 
 
@@ -140,6 +168,23 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
     the maturity map and reading them back would make `violations()` circular -- the atom's own
     declaration proving the ground it stands on is generated. Four of the fifteen raw matches were
     exactly that.
+
+    AND `WRITTEN_BUT_NOT_REPRODUCIBLE` NOW APPLIES HERE TOO, WHICH IT DID NOT UNTIL `("docs",
+    "status")` WAS DECLARED (delivery seat, 2026-09-15). It used to be the write-keyed oracle's
+    private list, and that was safe only by accident: none of its members happened to live under a
+    declared tree, so a tree-keyed match could never produce one. Declaring `docs/status` ends that
+    accident -- `SEAT_STRETCH_LOG.md` sits inside it and is an accumulated record no run makes
+    again. The two oracles feed ONE union in `origin_reconcile._split_generated`, so a carve-out
+    honoured by one and not the other is not a carve-out at all; the path simply arrives through
+    the other door and is offered the REVERT this list exists to prevent.
+
+    IT CANNOT MOVE THE GATE, AND THAT IS MEASURED RATHER THAN HOPED. `offends()` returns True for
+    every entry under a generated-tree PREFIX, and every member this function can return is under
+    one, so membership is SUBSUMED and removing members cannot change `violations()`. The subtraction
+    therefore reaches exactly one consumer -- the reconciler's union, where the REVERT harm lives --
+    and leaves the commit gate byte-identical. Proven by
+    `tests/tools/test_a_generated_tree_may_hold_an_unreproducible_record.py`, which asserts both
+    halves: the path leaves the union AND the gate verdict does not move.
     """
     base = Path(root) if root is not None else PROJECT_DIR
     found: set[str] = set()
@@ -181,6 +226,7 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
                 found.update(s for s in parts
                              if s.startswith(_WHOLE_PATH_PREFIXES)
                              and s.endswith(ARTEFACT_SUFFIXES))
+    found -= WRITTEN_BUT_NOT_REPRODUCIBLE
     if not scanned:
         raise OracleUnavailable(
             f"no python files scanned under {SCANNED_TREES} -- the oracle cannot be computed, "
@@ -776,6 +822,17 @@ WRITTEN_BUT_NOT_REPRODUCIBLE: frozenset[str] = frozenset({
     # checkpoint and never the record of the 10 GB already bought". A REVERT costs exactly that,
     # and `company/` has no route to the real world to buy it again.
     "docs/market_research/haduk_grid_pull_receipt.json",
+    # FORCED BY DECLARING `("docs", "status")` (delivery seat, 2026-09-15), and it is the reason
+    # this set stopped being the write-keyed oracle's private list -- see `generated_artefacts`.
+    # `tools/stretch_log.append` reads the log, splices ONE entry in after the header and writes
+    # the whole file back: the `naive_organ` shape exactly, an append wearing a rewrite's clothes,
+    # which `WRITING_MODE_CHARS` cannot see. The entry is the SEAT'S OWN WORDS -- `validate_subject`
+    # refuses one that cannot stand alone -- stamped with the day and the HEAD it was written at.
+    # No run makes it again, and the remedy a consumer applies to a generated path is
+    # `git show HEAD:<path> > <path>`, which discards the stretch whose reasoning is the only
+    # record of why a call was made. It was already reachable through the WRITE-site door and
+    # uncarved; declaring the tree would have added a second door to the same harm.
+    "docs/status/SEAT_STRETCH_LOG.md",
 })
 
 
