@@ -117,6 +117,90 @@ def test_the_oracle_finds_the_real_generated_artefacts():
     assert any(p.startswith("docs/observability/") for p in found)
 
 
+# ---------------------------------------------------------------------------
+# The OTHER spelling of the same tree (delivery seat, 2026-09-15)
+# ---------------------------------------------------------------------------
+def _module(tmp_path, name: str, body: str):
+    d = tmp_path / "tools"
+    d.mkdir(exist_ok=True)
+    (d / name).write_text(body, encoding="utf-8")
+
+
+def test_MUTATION_a_path_spelled_as_ONE_WHOLE_STRING_is_generated(tmp_path):
+    """THE DEFECT: the matcher wanted `docs` and `observability` as SEPARATE constants in one
+    assignment, so `tools/canon_drift_check.py`'s `DEFAULT_REPORT =
+    "docs/observability/canon_drift.json"` was invisible while its artefact sat squarely inside a
+    GENERATED_TREES member. Restoring the segment-pair-only matcher makes this RAISE
+    (nothing found at all), which is how the mutation was proven rather than assumed."""
+    _module(tmp_path, "drift.py",
+            'from pathlib import Path\n'
+            'ROOT = Path(__file__).resolve().parents[1]\n'
+            'DEFAULT_REPORT = "docs/observability/canon_drift.json"\n')
+    assert fs.generated_artefacts(root=tmp_path) == {"docs/observability/canon_drift.json"}
+
+
+def test_a_loose_constant_naming_SOMEBODY_ELSES_artefact_is_not_swept(tmp_path):
+    """THE SCOPE IS THE DISTINCTION, and it is measured rather than inherited. An ASSIGNMENT is
+    where a module names its own destination; a constant in a `for rel in (...)` that the body
+    then READS is where it names an artefact belonging to somebody else --
+    `knowledge_layer_gate.orphan_research` is the live instance. Widening to every string constant
+    also sweeps PROSE (`"site/data/customers.json + site/data/dashboard.json"` is a real constant
+    in this tree), so this control holds the boundary in both directions at once."""
+    _module(tmp_path, "gateish.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'ARTEFACT = "docs/observability/mine.json"\n'
+            'def read_them():\n'
+            '    for rel in ("site/data/not_mine.json", "site/data/nor_this.json"):\n'
+            '        (PROJECT / rel).read_text()\n')
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {"docs/observability/mine.json"}
+
+
+def test_MUTATION_the_gates_OWN_freeze_list_is_not_evidence_about_itself(monkeypatch, tmp_path):
+    """CIRCULARITY, and it is the reason `_SELF` exists. `FROZEN` holds `(atom_id, file_scope)`
+    pairs COPIED OUT OF THE MATURITY MAP -- the declarations this gate judges. Read back as
+    constants they make four map declarations prove that the ground they name is generated, so
+    `violations()` would agree with the map by construction and a frozen entry would keep itself
+    alive. Both legs are driven: with `_SELF` pointed elsewhere the fixture's freeze path IS read
+    (so the control cannot pass by the fixture simply missing the matcher), and with `_SELF`
+    pointed at it, it is not."""
+    _module(tmp_path, "gate_with_a_freeze.py",
+            'FROZEN = frozenset({\n'
+            '    ("SOME_atom", "docs/observability/frozen_debt.json"),\n'
+            '})\n')
+    _module(tmp_path, "a_real_producer.py",
+            'from pathlib import Path\n'
+            'OUT = Path(__file__).resolve().parents[1] / "site" / "data" / "real.json"\n')
+
+    assert "docs/observability/frozen_debt.json" in fs.generated_artefacts(root=tmp_path)
+
+    monkeypatch.setattr(fs, "_SELF", (tmp_path / "tools" / "gate_with_a_freeze.py").resolve())
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {"site/data/real.json"}, (
+        "the gate read its own freeze list as a producer's evidence -- an atom's declaration "
+        "proving the ground it stands on is generated"
+    )
+
+
+def test_the_gate_half_is_SUBSUMED_by_the_prefix_test_and_the_docstring_says_so(monkeypatch):
+    """A PROPERTY, NOT TODAY'S ANSWER, and the claim it guards is load-bearing prose. The drawn
+    item said a path this oracle cannot see is a `file_scope` entry that silently starves its
+    atom. It is not: `offends()` decides every entry under a generated-tree PREFIX without
+    consulting the set at all, and every member this oracle can return is under one -- so
+    `gate_violations()` cannot move however wide the oracle gets, and the consumer that DOES move
+    is `origin_reconcile`'s exact-membership union. If a GENERATED_TREES entry or `offends` ever
+    changes so that membership stops being subsumed, this goes red and the docstring above is
+    stale -- which is the only way that sentence can be kept honest."""
+    found = fs.generated_artefacts()
+    escaping = sorted(p for p in found if not fs.offends(p, set()))
+    assert escaping == [], (
+        f"{len(escaping)} oracle members are no longer caught by the prefix test alone "
+        f"({escaping[:3]}), so widening the oracle now CAN move the commit gate and the frozen "
+        "debt list must be re-measured against the wider set"
+    )
+
+
 def test_the_repaired_instance_stays_repaired():
     """G13 is the atom this class fix was extracted from. Asserts the PROPERTY (no generated
     ground in its scope) rather than the exact path list, so a legitimate scope edit does not

@@ -69,6 +69,25 @@ GENERATED_TREES: tuple[tuple[str, str], ...] = (
 SCANNED_TREES = ("tools", "background", "simulation", "saas", "company")
 ARTEFACT_SUFFIXES = (".json", ".md", ".sqlite", ".csv")
 
+# THE SAME TREES, SPELLED THE OTHER WAY. A module may name its artefact as ONE whole string --
+# `DEFAULT_REPORT = "docs/observability/canon_drift.json"` (`tools/canon_drift_check.py`) -- and the
+# segment-pair match below cannot see it, because `parts` then holds one constant and neither `docs`
+# nor `observability` is in it. Eleven artefacts in this tree are spelled that way; ten of them were
+# in NEITHER oracle, so the reconciler was offering a landing on a producer's output. Census and
+# predictions: docs/staging/records/PREREG_WHAT_THE_TREE_KEYED_ORACLE_GAINS_FROM_A_PATH_SPELLED_AS_
+# ONE_WHOLE_STRING_2026-09-15.md.
+_WHOLE_PATH_PREFIXES: tuple[str, ...] = tuple(f"{a}/{b}/" for a, b in GENERATED_TREES)
+
+# THIS MODULE IS NOT A PRODUCER AND MAY NOT BE EVIDENCE ABOUT ITSELF. `FROZEN` below holds
+# `(atom_id, path)` pairs COPIED OUT OF THE MATURITY MAP -- the declarations this gate judges -- and
+# a whole-string match reads four of them as generated artefacts. That is circular: an atom's own
+# `file_scope` entry would become the proof that the path it names is generated ground, so
+# `violations()` would agree with the map by construction and the freeze list would keep its own
+# entries alive. Measured, not assumed: skipping this file drops exactly those four and nothing else
+# (15 -> 11 on 2026-09-15). A module-level name so a test can point it elsewhere and prove the skip
+# fires -- keyed to `__file__`, it is otherwise a branch no fixture can reach.
+_SELF = Path(__file__).resolve()
+
 # THE FROZEN DEBT, measured 2026-08-19. Every one of these atoms is deprioritised by the
 # unmerged-work guard whenever its named artefact is dirty, which for most of them is always.
 FROZEN: frozenset[tuple[str, str]] = frozenset({
@@ -101,6 +120,26 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
     Technique borrowed from `derived_artefact_register._design_markdown_constants`: read the
     string constants of one assignment and look for the tree segments, WITHOUT importing the
     module. A module is not imported to find out whether it is a candidate.
+
+    TWO SPELLINGS OF THE SAME TREE (delivery seat, 2026-09-15). The segment pair is how a generator
+    usually builds a path -- `PROJECT / "docs" / "observability" / "canon_drift.json"` -- and for
+    eight weeks it was the only spelling this saw. A module that writes `DEFAULT_REPORT =
+    "docs/observability/canon_drift.json"` was invisible, with the artefact sitting squarely inside
+    a `GENERATED_TREES` member. Eleven artefacts in this tree are spelled that way.
+
+    AND THE CONSEQUENCE IS THE RECONCILER, NOT THIS GATE -- the drawn item said otherwise and it was
+    wrong, which is worth more written down than quietly fixed. `offends()` decides a `file_scope`
+    entry by tree PREFIX, and every member this function can return is under one of those prefixes
+    (0 of 191 escape it, asked of the live map), so `s in generated` is SUBSUMED for the gate and
+    `gate_violations()` cannot move however wide this gets. The consumer that reads exact
+    membership is `origin_reconcile._split_generated`, where a path in neither oracle is called
+    somebody's WORK and the refusal leads with how to LAND it -- on a producer's output. That union
+    moved 237 -> 247 here: ten paths that were being offered a landing.
+
+    AND THIS MODULE IS NOT SCANNED, because `FROZEN` holds `file_scope` declarations copied out of
+    the maturity map and reading them back would make `violations()` circular -- the atom's own
+    declaration proving the ground it stands on is generated. Four of the fifteen raw matches were
+    exactly that.
     """
     base = Path(root) if root is not None else PROJECT_DIR
     found: set[str] = set()
@@ -110,6 +149,8 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
         if not d.exists():
             continue
         for f in d.rglob("*.py"):
+            if f.resolve() == _SELF:
+                continue  # the gate's own freeze list is the map's words, not a producer's
             try:
                 mod = ast.parse(f.read_text(encoding="utf-8", errors="replace"))
             except Exception:  # noqa: BLE001 - an unparseable file is not an oracle failure
@@ -124,6 +165,22 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
                     if a in parts and b in parts:
                         found.update(f"{a}/{b}/{s}" for s in parts
                                      if s.endswith(ARTEFACT_SUFFIXES))
+                # ...and the same tree spelled as ONE string. Held to an ASSIGNMENT, exactly like
+                # the segment match beside it, and that scope is LOAD-BEARING rather than inherited
+                # -- asked of the tree on 2026-09-15 rather than assumed. Widening to every string
+                # constant adds ten: two are PROSE (`"site/data/customers.json + site/data/
+                # dashboard.json"`, and a sentence ending in a `.md` citation), six the segment
+                # match already has, and TWO are real paths this therefore misses --
+                # `site/data/knowledge_topics.json` and `knowledge_price_cap.json`, named in a
+                # `for rel in (...)` tuple in `knowledge_layer_gate.orphan_research`, which
+                # `read_text`s them. That is the distinction the scope draws and the reason to keep
+                # it: an ASSIGNMENT is where a module names its own destination, a loose constant is
+                # where it names somebody else's artefact to read it. The two missed paths are a
+                # counted gap, not an unasked question, and they degrade the safe way -- classified
+                # authored, offered a landing, never reverted.
+                found.update(s for s in parts
+                             if s.startswith(_WHOLE_PATH_PREFIXES)
+                             and s.endswith(ARTEFACT_SUFFIXES))
     if not scanned:
         raise OracleUnavailable(
             f"no python files scanned under {SCANNED_TREES} -- the oracle cannot be computed, "
