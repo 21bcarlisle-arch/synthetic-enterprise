@@ -97,6 +97,7 @@ Archive to `docs/staging/done/` once the paths above are either committed or rev
 - `.claude, background, company, docs and elsewhere left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-08-31)
 - `background, docs, saas, tests and elsewhere left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-02)
 - `simulation, tests left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-06)
+- `nothing left uncommitted by a session that stopped mid-work holding # claim(s)` (first seen 2026-09-15)
 ## Still live
 - **2026-08-28** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-08-29** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
@@ -108,6 +109,7 @@ Archive to `docs/staging/done/` once the paths above are either committed or rev
 - **2026-09-04** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-09-05** — still live. 1 repeats over 0.4h without the state changing. No second document filed: this condition already has one.
 - **2026-09-06** — still live. 1 repeats over 144.7h without the state changing. No second document filed: this condition already has one.
+- **2026-09-15** — still live. 1 repeats over 357.9h without the state changing. No second document filed: this condition already has one.
 ## Episodes — what each dead seat was holding
 
 ### 2026-08-28 08:18 UTC
@@ -9733,6 +9735,51 @@ stops it writing.
 - Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
 - Tool calls this session: 20
 - Last commit on the tree: `3851553ec R1's ceiling counted a household's gas leg as a second household and invented its elasticity`
+
+#### What to do with it — decide, do not just re-run
+
+**Adopt** if the uncommitted paths above are coherent work part-way to something: read the
+diff, finish it, commit it. That is the cheap outcome and the usual one.
+
+**Discard** if the diff is a half-applied edit that no longer makes sense — `git checkout --`
+the paths and take the claim from scratch. Say which you did.
+
+Do NOT assume the work is wrong because the session died. The failure was in the transport,
+not in the edit; the tree state above is exactly what a healthy session would have had at that
+moment.
+
+Archive to `docs/staging/done/` once the paths above are either committed or reverted.
+
+### 2026-09-15 15:09 UTC
+
+**Filed automatically by `background/seat_continuity.py`, not by a person.** The seat ran no
+tool for **357.9h** and its process is gone. It did not stop on purpose: an
+interactive session that finishes says so, and this one just stopped — which is the shape an
+Anthropic API error leaves behind, four times now by the director's count.
+
+This document exists so that nobody has to notice. It is a staged doc, so the next worker tick
+draws it like any other work.
+
+#### What it had claimed
+
+- `teach-the-class-declaration-channel-to-read-the-header-field-its-own-renderer-writes` — claimed 0.0h ago. The seat said: Make background.finding_classes.declared_class_of read a '**Class:** <id>' field on a finding's header line, the form the register renderer itself emits at line 888, and then work the 53 live-root doc
+  paths: (none declared)
+
+#### What it left in the tree, uncommitted
+
+SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
+of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
+queue you are reading this from. This is the real state, and more reliable than anything the
+session could have written about itself, because an API error is precisely the thing that
+stops it writing.
+
+- Nothing. The tree is clean.
+
+#### Where it had got to
+
+- Last tools it ran, oldest first: Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash, Bash
+- Tool calls this session: 20
+- Last commit on the tree: `1d1b665c3 the no-caller class reaches its own stranded instance, and the register stops claiming a guarantee it only gives half of`
 
 #### What to do with it — decide, do not just re-run
 

@@ -322,15 +322,22 @@ def test_MUTATION_the_refuted_control_noun_remedy_would_empty_the_class(tmp_path
 # not read. This leg is the red that was missing.
 
 #: Archived instances already stranded at the time this control was written. Named, not counted, so
-#: a new stranding cannot hide inside a tolerance. `WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_
-#: BE_REACHED_BY_ANY_CALLER` states its class in plain English — *cannot be reached by any caller* —
-#: and `no_caller_and_never_runs` matches on `no caller`/`never called`/`never runs`/`unreachable`,
-#: none of which is that sentence. Repairing it is open work, filed as
-#: `SEAT_FINDING_THE_CLASS_REGISTER_IS_BLIND_TO_A_PATTERN_CHANGE_OVER_ITS_ALREADY_ARCHIVED_
-#: INSTANCES_2026-09-15.md`; it is deliberately NOT fixed by widening a pattern on a guess.
-_KNOWN_STRANDED_ARCHIVED_INSTANCES = frozenset({
-    "WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31.md",
-})
+#: a new stranding cannot hide inside a tolerance.
+#:
+#: DISCHARGED AND EMPTY SINCE 2026-09-15, and the set is KEPT rather than deleted along with its
+#: last entry. It held exactly one name — `WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_
+#: REACHED_BY_ANY_CALLER`, whose title states its class in plain English and which
+#: `no_caller_and_never_runs` could not place. That was repaired by adding the passive of
+#: `unreachable` to the pattern set, chosen by scoring seven candidates over all 7,879 staged
+#: documents (see the comment on the pattern itself). An empty exception set is the statement the
+#: leg below needs: it asserts a SUBSET, so with nothing excepted the assertion is now over the
+#: whole archive, and 170 of 170 carried instances classify into the class that lists them.
+#:
+#: A NEW NAME HERE IS A DEBT WITH A DEADLINE, never a tolerance. Adding one is how a pattern change
+#: quietly stops reaching an instance the register still counts, which is the defect this whole leg
+#: exists for — so an addition must arrive with the corpus scan that justifies it, and the reason
+#: repairing it was deferred, in the commit message.
+_KNOWN_STRANDED_ARCHIVED_INSTANCES: frozenset[str] = frozenset()
 
 
 def _stranded_archived_instances(module, root: Path) -> dict[str, str | None]:
@@ -1301,3 +1308,233 @@ def test_the_alarm_exclusion_does_not_swallow_an_authored_finding(tmp_path):
     assert [p.name for p in members.members] == [
         "WORKER_FINDING_THE_WEDGE_ALARM_IS_INERT_2026-08-20.md"
     ]
+
+
+# --- THE HEADER-FIELD DECLARATION (2026-09-15) ---------------------------------------------
+#
+# The registration channel above could not read the form this module's OWN renderer writes.
+# `render_class_document` emits `**Class:** \`id\`` on the register's header line; authors copied
+# that shape onto their findings' header lines; `declared_class_of` read only the section form.
+# Measured over all 7,879 staged documents on 2026-09-15: 76 declarations readable, 280 written
+# in the header form and read by nothing, 57 of those live in the staging root.
+#
+# MUTATION L (the header field is never read) — kills
+#     `test_a_finding_declaring_its_class_in_the_header_field_reaches_that_class`. This is the
+#     shipped defect and it is the SAME fail-open as MUTATION I at a second address: the
+#     document declares its family, nothing reads it, nothing is refused, nothing goes red.
+# MUTATION M (the metadata-line anchor dropped) — kills
+#     `test_a_class_field_in_a_prose_sentence_is_a_mention_not_a_declaration`. The opposite
+#     failure, and the reason this form could not simply be read from the body: over the same
+#     corpus an unanchored `**Class:**` yields values like `a`, `the` and `one`, lifted out of
+#     sentences that were describing a class of defect rather than joining one.
+# MUTATION N (the header field beats the section) — kills
+#     `test_the_registration_section_beats_a_disagreeing_header_field`. 26 staged documents
+#     carry both forms and 11 of them DISAGREE, so this precedence is load-bearing and not a
+#     tidy-up: invert it and eleven documents silently change family on the day it lands.
+# MUTATION O (`check()` stops naming an unresolvable field) — kills
+#     `test_an_unresolvable_class_field_is_read_as_no_declaration_and_said_out_loud`. The one
+#     fail-open this form is allowed to have, going silent again.
+
+
+def _doc_with_class_field(root: Path, name: str, class_id: str, *, severity: str = "LATENT",
+                          lane: str = "H_harness") -> Path:
+    """A finding declaring its family the way the register's own header line spells it."""
+    path = _doc(root, name, "The tick wrote first and measured afterwards.", severity, lane)
+    path.write_text(
+        path.read_text(encoding="utf-8").replace(
+            f"**Severity:** {severity} · **Lane:** {lane}",
+            f"**Severity:** {severity} · **Lane:** {lane} · **Class:** `{class_id}`",
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_a_finding_declaring_its_class_in_the_header_field_reaches_that_class(tmp_path):
+    """THE NAMED DEFECT (MUTATION L). Same mechanism-titled document as the null control
+    above — `test_the_unregistered_control_is_genuinely_unclassed_by_title` proves the title
+    matches nothing — so the ONLY thing routing it is the header field."""
+    root = _root(tmp_path)
+    path = _doc_with_class_field(root, _MECHANISM_TITLED, "uncommitted_and_orphaned_work")
+
+    assert fc.classify_file(path).class_id == "uncommitted_and_orphaned_work"
+    members = [p.name for p in fc.derive_memberships(root)["uncommitted_and_orphaned_work"].members]
+    assert _MECHANISM_TITLED in members, "a finding declaring its family never reached it"
+
+
+def test_mutation_l_ignoring_the_header_field_kills_that_test(tmp_path):
+    """MUTATION L is the shipped behaviour, so this asserts the defect was real: the mutant
+    leaves the document unclassed AND `check()` green — unrouted, unlisted, nothing red."""
+    mutant = _load_mutant(
+        tmp_path,
+        "    return _resolve_class_field(class_field_token_of(text))",
+        "    return None",
+        "fc_mutant_l",
+    )
+    root = _root(tmp_path)
+    _doc_with_class_field(root, _MECHANISM_TITLED, "uncommitted_and_orphaned_work")
+
+    assert fc.classify_file(root / _MECHANISM_TITLED).class_id == "uncommitted_and_orphaned_work"
+    assert mutant.classify_file(root / _MECHANISM_TITLED).class_id is None
+    assert not any(
+        f.startswith("UNCONSOLIDATED") for f in mutant.check(root).failures
+    ), "the mutant reproduces the defect: the declaration is made, and nothing hears it"
+
+
+def test_a_class_field_in_a_prose_sentence_is_a_mention_not_a_declaration(tmp_path):
+    """MUTATION M. The anchor is what keeps this form from re-opening the hole the module
+    docstring refuses — the sentence below DISCUSSES a class, it does not join one."""
+    root = _root(tmp_path)
+    path = _doc(
+        root,
+        _MECHANISM_TITLED,
+        "What the other document carries is **Class:** `publish_gate_and_wedge`, which this "
+        "one is quoting as evidence rather than claiming for itself.",
+    )
+    assert fc.declared_class_of(path.read_text(encoding="utf-8")) is None
+    assert fc.classify_file(path).class_id is None
+
+
+def test_mutation_m_dropping_the_metadata_line_anchor_kills_that_test(tmp_path):
+    """MUTATION M — unanchor the field and a quotation becomes a membership, which is how a
+    classifier stops partitioning anything."""
+    mutant = _load_mutant(
+        tmp_path,
+        r'_CLASS_FIELD_RE = re.compile(r"^\*\*[^\n]*?\bClass:\*\*[ \t]*`?([A-Za-z0-9_]+)`?", re.M)',
+        r'_CLASS_FIELD_RE = re.compile(r"\*\*Class:\*\*[ \t]*`?([A-Za-z0-9_]+)`?", re.M)',
+        "fc_mutant_m",
+    )
+    root = _root(tmp_path)
+    path = _doc(
+        root,
+        _MECHANISM_TITLED,
+        "What the other document carries is **Class:** `publish_gate_and_wedge`, which this "
+        "one is quoting as evidence rather than claiming for itself.",
+    )
+    assert fc.classify_file(path).class_id is None
+    assert mutant.classify_file(path).class_id == "publish_gate_and_wedge"  # the defect
+
+
+def test_the_registration_section_beats_a_disagreeing_header_field(tmp_path):
+    """MUTATION N. Both forms present, each naming a DIFFERENT family — a real state, held by
+    11 of the 26 staged documents that carry both. The section is a heading written for no
+    other purpose; the field shares its line with severity, lane, epoch and atom."""
+    root = _root(tmp_path)
+    path = _doc_with_class_field(root, _MECHANISM_TITLED, "publish_gate_and_wedge")
+    path.write_text(
+        path.read_text(encoding="utf-8")
+        + "\n## Class registration\n\nBelongs to `uncommitted_and_orphaned_work`.\n",
+        encoding="utf-8",
+    )
+    assert fc.declared_class_of(path.read_text(encoding="utf-8")) == "uncommitted_and_orphaned_work"
+
+
+def test_mutation_n_letting_the_header_field_win_kills_that_test(tmp_path):
+    """MUTATION N — invert the precedence and the document changes family. Asserted on the
+    SAME fixture, so the two tests differ in nothing but which form is believed."""
+    mutant = _load_mutant(
+        tmp_path,
+        "    section = section_declaration_of(text)\n    if section is not None:\n        return section",
+        "    section = None\n    if section is not None:\n        return section",
+        "fc_mutant_n",
+    )
+    root = _root(tmp_path)
+    path = _doc_with_class_field(root, _MECHANISM_TITLED, "publish_gate_and_wedge")
+    path.write_text(
+        path.read_text(encoding="utf-8")
+        + "\n## Class registration\n\nBelongs to `uncommitted_and_orphaned_work`.\n",
+        encoding="utf-8",
+    )
+    text = path.read_text(encoding="utf-8")
+    assert fc.declared_class_of(text) == "uncommitted_and_orphaned_work"
+    assert mutant.declared_class_of(text) == "publish_gate_and_wedge"
+
+
+def test_an_unresolvable_class_field_is_read_as_no_declaration_and_said_out_loud(tmp_path):
+    """MUTATION O, and the ONE place this form is deliberately more forgiving than the
+    section form. `Belongs to \\`x\\`` can only be an attempt to name a class, so an unknown
+    `x` there is a typo and is REFUSED. `**Class:**` is a different field with the same name:
+    130 of the 296 documents carrying it use it for something else (`R15`, `harness`, `a
+    coupling stated in a comment`), so refusing an unresolvable token here would wedge every
+    lane over a field that was never addressed to this module. It is a NOTE, not a failure —
+    and it is a note rather than silence because a MISSPELT family reads exactly like no
+    declaration, which is the fail-open the whole channel exists to end."""
+    root = _root(tmp_path)
+    _doc_with_class_field(root, _MECHANISM_TITLED, "uncomitted_and_orphaned_work")
+
+    result = fc.check(root)
+    assert fc.classify_file(root / _MECHANISM_TITLED).class_id is None
+    assert not any(f.startswith("UNKNOWN DECLARED CLASS") for f in result.failures), (
+        "an unresolvable header field must not refuse — `**Class:** R15` is a live habit"
+    )
+    named = [n for n in result.notes if n.startswith("UNRESOLVED CLASS FIELD")]
+    assert len(named) == 1 and "uncomitted_and_orphaned_work" in named[0], result.notes
+
+
+def test_mutation_o_dropping_the_unresolvable_field_note_kills_that_test(tmp_path):
+    """MUTATION O — the note goes, and a misspelt family is silent again in both channels."""
+    mutant = _load_mutant(
+        tmp_path,
+        "    for path, token in unresolvable_class_fields(root):",
+        "    for path, token in []:",
+        "fc_mutant_o",
+    )
+    root = _root(tmp_path)
+    _doc_with_class_field(root, _MECHANISM_TITLED, "uncomitted_and_orphaned_work")
+
+    assert any(n.startswith("UNRESOLVED CLASS FIELD") for n in fc.check(root).notes)
+    assert not any(n.startswith("UNRESOLVED CLASS FIELD") for n in mutant.check(root).notes)
+
+
+def test_a_header_field_declaration_cannot_route_a_document_out_of_its_own_lane(tmp_path):
+    """THE LANE GUARD, EXERCISED ON THE FORM THAT NOW CARRIES THE POPULATION. This is the
+    question the widening had to answer before it could land: 11 of the live documents
+    declaring a family this way sit in `A_strategy_governance` and every class register is
+    `H_harness`, so a declaration that beat the lane guard would archive eleven of that lane's
+    findings under someone else's and leave A with no live blocker.
+
+    BOTH LEGS, over ONE root, because a guard that refuses EVERYTHING passes the refusal leg:
+    the in-lane sibling is consolidated from the same mechanism-titled shape."""
+    root = _root(tmp_path)
+    _doc_with_class_field(root, "WORKER_FINDING_A_TICK_WROTE_ITS_RECORD_FIRST_2026-09-15.md",
+                          "controls_that_cannot_fail")
+    _doc_with_class_field(root, "WORKER_FINDING_A_TICK_WROTE_ITS_RECORD_LAST_2026-09-15.md",
+                          "controls_that_cannot_fail",
+                          severity="BLOCKING", lane="A_strategy_governance")
+
+    membership = fc.derive_memberships(root)["controls_that_cannot_fail"]
+    assert [p.name for p in membership.members] == [
+        "WORKER_FINDING_A_TICK_WROTE_ITS_RECORD_FIRST_2026-09-15.md"
+    ], "the guard refuses everything, so its refusal proves nothing"
+    assert [p.name for p, _lane in membership.refused_out_of_lane] == [
+        "WORKER_FINDING_A_TICK_WROTE_ITS_RECORD_LAST_2026-09-15.md"
+    ], "a declaration archived a BLOCKING A_strategy_governance finding under H_harness"
+
+
+def test_a_family_named_in_capitals_is_the_same_declaration(tmp_path):
+    """THE ONE NEAR-MISS THE CORPUS ACTUALLY HOLDS. A document wrote `**Class:**
+    MEASUREMENTS_THAT_MIRROR` — the family, spelled the way the register's TITLE spells it
+    rather than the way its id does. Refusing that would have been this widening's own
+    fail-open surviving on a shift key."""
+    root = _root(tmp_path)
+    path = _doc_with_class_field(root, _MECHANISM_TITLED, "MEASUREMENTS_THAT_MIRROR")
+    assert fc.classify_file(path).class_id == "measurements_that_mirror"
+    assert fc.unresolvable_class_fields(root) == []
+
+
+def test_case_folding_does_not_make_the_other_class_field_resolve(tmp_path):
+    """THE NULL CONTROL for the fold, and it moves the sample rather than the law. The same
+    field is used across this corpus for something else entirely — `**Class:** R15`,
+    `**Class:** harness` — 130 times. None of those becomes a family in either case, and each
+    is NAMED rather than refused, because a gate refusing them would wedge every lane over a
+    field that was never addressed to this module."""
+    root = _root(tmp_path)
+    for token in ("R15", "harness", "test"):
+        _doc_with_class_field(root, f"WORKER_FINDING_A_TICK_WROTE_{token.upper()}_2026-09-15.md",
+                              token)
+    assert all(c.class_id is None for c in
+               (fc.classify_file(p) for p in fc.classifiable_documents(root)))
+    assert sorted(tok for _p, tok in fc.unresolvable_class_fields(root)) == [
+        "R15", "harness", "test"
+    ]
+    assert not any(f.startswith("UNKNOWN DECLARED CLASS") for f in fc.check(root).failures)

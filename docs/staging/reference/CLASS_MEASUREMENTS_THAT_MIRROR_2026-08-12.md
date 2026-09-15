@@ -2,13 +2,13 @@
 
 **Severity:** LATENT · **Lane:** H_harness
 
-**Instances:** 8 · **Class:** `measurements_that_mirror` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "measurements that mirror the thing they measure")
+**Instances:** 9 · **Class:** `measurements_that_mirror` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "measurements that mirror the thing they measure")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
-This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
+This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 8 instances
+## The 9 instances
 
 - `WORKER_FINDING_A_CLASS_THAT_IS_ALWAYS_FIXED_ON_SIGHT_CARRIES_NO_DEBT_2026-09-01.md` — LATENT
 - `WORKER_FINDING_THE_AGEING_TRUTH_SIDE_IS_THE_ORGANS_OWN_RULE_2026-08-10.md` — RECORDED
@@ -17,11 +17,20 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_MEMORY_GRID_WAS_STILL_THE_REGISTERS_OWN_CLAIMS_2026-08-11.md` — RECORDED
 - `WORKER_FINDING_THE_NAMER_READS_A_CLAUSE_BOUNDARY_AND_A_QUOTATION_AS_A_CLAIM_2026-08-12.md` — LATENT
 - `WORKER_FINDING_THE_OOM_VICTIM_COUNTER_IS_THE_HARNESS_READING_ITS_OWN_SELFTEST_BACK_2026-08-27.md` — LATENT
+- `WORKER_FINDING_THE_PUBLISH_GATE_GRADES_A_LIVE_CONSTANT_AGAINST_A_COMMITTED_SNAPSHOT_2026-09-03.md` — LATENT
 - `WORKER_FINDING_THE_REGISTER_WAS_ONLY_EVER_ASKED_WHERE_IT_HAD_ANSWERED_2026-08-11.md` — RECORDED
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**0 hours traced** across 8 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
+**0 hours traced** across 9 instances. No instance in this class recorded a duration with evidence, so the traced cost is zero — which is a statement about the instances' measurement, not a claim that the class was free. No prose estimate is offered in its place.
+
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_FINDING_THE_SAME_SENTENCE_COUNTS_DECISIONS_IN_ONE_POPULATION_AND_ACCOUNTS_IN_ANOTHER_2026-09-10.md` — lane `A_strategy_governance`
+- `SEAT_RESULT_THE_ESTIMANDS_INVERSION_IS_NOT_THE_TIE_MASS_IT_IS_THE_ARM_PRICING_UP_THE_CUSTOMERS_IT_LOST_2026-09-09.md` — lane `A_strategy_governance`
+- `SEAT_RESULT_THE_RENEWAL_ROUTE_IS_A_MINORITY_ROUTE_AND_BOTH_FLOOR_KEYS_LIVE_ON_IT_WHILE_SEVEN_EIGHTHS_OF_THE_BOOK_DEPARTS_THROUGH_SVT_2026-09-11.md` — lane `A_strategy_governance`
 
 ## Disposition
 
