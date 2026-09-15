@@ -19,11 +19,27 @@ irregularity. It is kept honest by `provenance`: the ruling's five cite the ruli
 one cites the finding that named it, so a self-registered class cannot borrow the ruling's
 authority merely by sharing the renderer.
 
-WHY MEMBERSHIP IS DERIVED, never a hand-kept list (exit criterion 3): a list written once
-stops being true the moment a sixteenth sibling is filed, and stops SILENTLY — the class
-document keeps saying fifteen and nobody learns that the family grew. `check()` re-derives
-membership from the filesystem every time it runs and names any live finding that belongs
-to a class but is not in that class's instance list.
+WHY THE LIVE HALF OF MEMBERSHIP IS DERIVED, never a hand-kept list (exit criterion 3): a
+list written once stops being true the moment a sixteenth sibling is filed, and stops
+SILENTLY — the class document keeps saying fifteen and nobody learns that the family grew.
+`check()` re-derives the LIVE half from the filesystem every time it runs and names any live
+finding that belongs to a class but is not in that class's instance list.
+
+...AND THE ARCHIVED HALF IS CARRIED, not derived, which this docstring claimed otherwise
+until 2026-09-15. `archived_instances()` reads the names back out of the class document's
+own list and keeps the ones still present in `done/`; nothing re-classifies them. The claim
+was not merely imprecise, it was inverted on the population that matters: measured over the
+six registers, the live half is **0 instances** and the carried half is **170**. So "membership
+is derived" was true of an empty set and false of the whole register.
+
+WHAT THAT BUYS AND WHAT IT COSTS. Carrying is the right default — a name is archived
+BECAUSE it was consolidated, and re-deriving would let a later edit to a pattern silently
+un-remember a real instance. The cost is the mirror of the silence above: when a pattern
+CHANGES, an already-archived instance can stop classifying into the class that still counts
+it, and `check()` reports PASS because it never looks. That is not hypothetical — one of the
+170 was in that state for weeks. The leg that reads it is
+`test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`, and it is
+the only thing in this repository that re-classifies the archive.
 
 THE SUBJECT IS THE FILENAME AND THE TITLE, not the whole body. Every finding in this
 project is named for the thing it found — `WORKER_FINDING_THE_WEDGE_ALARM_IS_DISARMED_BY_
@@ -321,6 +337,38 @@ CLASSES: tuple[FindingClass, ...] = (
             r"tests[_ ]the[_ ]gate[_ ]never[_ ]ran",
             r"\bunimportable\b|\bdead[_ ](code|lane)\b",
             r"\binert\b",
+            # ADDED 2026-09-15, and it is the PASSIVE of `unreachable` above rather than a new
+            # idea: this class already matches `unreachable`, and a document that writes the
+            # same fact as a sentence — *cannot be reached* — fell through. One of its own 14
+            # instances did exactly that and was counted as a member the classifier could not
+            # place, for weeks, silently.
+            #
+            # CHOSEN BY SCORING SEVEN CANDIDATES OVER ALL 7,879 STAGED DOCUMENTS, not by
+            # guessing, because the immediately preceding change to this module was a blind
+            # narrowing the corpus refuted in both directions. What the scan settled
+            # (`docs/staging/records/PREREG_CAN_THE_NO_CALLER_PATTERN_SET_REACH_ITS_OWN_
+            # STRANDED_INSTANCE_WITHOUT_TAKING_ANYTHING_ELSE_2026-09-15.md`):
+            #
+            #   * the obvious wide form — any negation beside the verb *reach* (`cannot reach`,
+            #     `does not reach`, `never reached`) — reaches the instance and takes FIVE live
+            #     root documents with it, and not one of them belongs here. Three state a
+            #     DIFFERENT class in their own header (`controls_that_cannot_fail`,
+            #     `measurements_that_mirror`), one is another lane's, and one is a BLOCKING
+            #     `uncommitted_and_orphaned_work` finding that would have been consolidated into
+            #     this class and archived out of the root. `reach` on its own is not this
+            #     class's vocabulary — it is every class's.
+            #   * the tight form `by any caller` reaches the instance and NOTHING else in 7,879
+            #     documents. That is not a pattern, it is that one filename spelled as a regex,
+            #     and it is rejected for the same reason a control keyed to today's answer is.
+            #   * this form moves exactly two documents and the second one belongs: `SEAT_
+            #     FINDING_THE_BRANCH_HALF_OF_THE_POINTER_SWEEP_CANNOT_BE_REACHED_FROM_THE_
+            #     PUBLISHED_FEED_2026-09-08`. Zero live root documents move, so no consolidation
+            #     follows from this change and no register needs re-rendering.
+            #
+            # IT IS MUTATION-PROVEN BY DELETION, and by the leg that already exists rather than
+            # a new one: drop this line and the stranded-archive control goes red naming the
+            # instance, because its exception set is now empty.
+            r"(cannot|can[_ ]?not|could[_ ]not)[_ ]be[_ ]reached",
         ),
     ),
     #: REGISTERED 2026-08-28 UNDER R10, and the first class here the director's ruling did not
@@ -902,14 +950,26 @@ def render_class_document(
         "stays exactly where it is."
     )
     lines.append("")
+    # THE SAME SENTENCE THE MODULE DOCSTRING CARRIES, and it was wrong in both places until
+    # 2026-09-15 — one claim, two implementations, which is this project's most expensive
+    # recurring shape. Correcting the docstring alone would have left six published registers
+    # telling every reader the opposite, so the prose is corrected HERE and the docstring points
+    # at the same measurement. What a reader is owed is which half they are looking at: the list
+    # below is almost entirely CARRIED names, and that is a different guarantee from a derived one.
     lines.append(
         "This document supersedes the individual findings listed below, which are "
-        f"**archived, not deleted**, in `docs/staging/{ARCHIVE_DIRNAME}/`. Membership is "
-        "DERIVED, never hand-kept: `python3 -m background.finding_classes --check` "
-        "re-derives it from the filesystem and fails if a live finding belongs to this "
-        "class and is not listed here, if a listed instance is missing from the archive "
-        "or has come back to the root, or if the count above stops equalling the length "
-        "of the list below."
+        f"**archived, not deleted**, in `docs/staging/{ARCHIVE_DIRNAME}/`. **Membership has two "
+        "halves and they carry different guarantees.** The LIVE half is DERIVED, never "
+        "hand-kept: `python3 -m background.finding_classes --check` re-derives it from the "
+        "filesystem and fails if a live finding belongs to this class and is not listed here, "
+        "if a listed instance is missing from the archive or has come back to the root, or if "
+        "the count above stops equalling the length of the list below. The ARCHIVED half is "
+        "CARRIED — these names are read back out of this document and kept because the file is "
+        "still in the archive, and `--check` does not re-classify them. So a change to this "
+        "class's patterns can leave an archived instance counted here that the classifier can no "
+        "longer place; the one leg that re-reads the archive and refuses that is "
+        "`tests/background/test_finding_classes.py::"
+        "test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`."
     )
     lines.append("")
     lines.append(f"## The {membership.count} instances")

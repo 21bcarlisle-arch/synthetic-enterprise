@@ -322,15 +322,22 @@ def test_MUTATION_the_refuted_control_noun_remedy_would_empty_the_class(tmp_path
 # not read. This leg is the red that was missing.
 
 #: Archived instances already stranded at the time this control was written. Named, not counted, so
-#: a new stranding cannot hide inside a tolerance. `WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_
-#: BE_REACHED_BY_ANY_CALLER` states its class in plain English — *cannot be reached by any caller* —
-#: and `no_caller_and_never_runs` matches on `no caller`/`never called`/`never runs`/`unreachable`,
-#: none of which is that sentence. Repairing it is open work, filed as
-#: `SEAT_FINDING_THE_CLASS_REGISTER_IS_BLIND_TO_A_PATTERN_CHANGE_OVER_ITS_ALREADY_ARCHIVED_
-#: INSTANCES_2026-09-15.md`; it is deliberately NOT fixed by widening a pattern on a guess.
-_KNOWN_STRANDED_ARCHIVED_INSTANCES = frozenset({
-    "WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31.md",
-})
+#: a new stranding cannot hide inside a tolerance.
+#:
+#: DISCHARGED AND EMPTY SINCE 2026-09-15, and the set is KEPT rather than deleted along with its
+#: last entry. It held exactly one name — `WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_
+#: REACHED_BY_ANY_CALLER`, whose title states its class in plain English and which
+#: `no_caller_and_never_runs` could not place. That was repaired by adding the passive of
+#: `unreachable` to the pattern set, chosen by scoring seven candidates over all 7,879 staged
+#: documents (see the comment on the pattern itself). An empty exception set is the statement the
+#: leg below needs: it asserts a SUBSET, so with nothing excepted the assertion is now over the
+#: whole archive, and 170 of 170 carried instances classify into the class that lists them.
+#:
+#: A NEW NAME HERE IS A DEBT WITH A DEADLINE, never a tolerance. Adding one is how a pattern change
+#: quietly stops reaching an instance the register still counts, which is the defect this whole leg
+#: exists for — so an addition must arrive with the corpus scan that justifies it, and the reason
+#: repairing it was deferred, in the commit message.
+_KNOWN_STRANDED_ARCHIVED_INSTANCES: frozenset[str] = frozenset()
 
 
 def _stranded_archived_instances(module, root: Path) -> dict[str, str | None]:
