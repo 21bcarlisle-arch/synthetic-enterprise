@@ -65,10 +65,40 @@ def _register(root, disposition="", listed=()):
     return path
 
 
-def _accruing(root, n=3, day=30):
+#: One day before whatever today is, which is what "inside the accrual window" MEANS.
+#:
+#: IT WAS A CALENDAR DATE UNTIL 2026-09-15, and that made this file a time bomb that went off on
+#: 2026-09-06 and refused every lane's commit for nine days. The fixture said `2026-08-30` and
+#: `TODAY` says `2026-09-01`, so the two agreed for exactly as long as the real calendar stayed
+#: within `ACCRUAL_WINDOW_DAYS` of a date written into a filename.
+#:
+#: THE CAUSE IS TWO CLOCKS IN ONE TEST, not a stale constant. `_debt()` passes the frozen `TODAY`,
+#: but the two tests that go through `sr.work_queue()` cannot — `work_queue` takes no `today` and
+#: reads the real one, because the draw it serves is a real-time queue. So the same fixture was
+#: graded against 2026-09-01 by one assertion and against the wall clock by the next, and the
+#: failure when they diverged was not "accrual is broken" but `ValueError: x not in list` from an
+#: `index()` on a register the queue had silently declined to splice (`_with_accruing_class_
+#: registers` is fail-open by design). A red naming nothing about its own subject.
+#:
+#: KEYED TO THE PROPERTY. These instances are recent under ANY clock at or after them, so the two
+#: readings can no longer disagree, and no future date can make them.
+def _recent_date() -> dt.date:
+    return dt.date.today() - dt.timedelta(days=1)
+
+
+def _accruing_name(i=0) -> str:
+    """The name `_accruing` gives its i-th instance. DERIVED, never retyped at the call site —
+    the two assertions that spelled it out by hand are how the stale date got two more homes."""
+    return f"WORKER_FINDING_A_CONTROL_HAS_NO_CALLER_{i}_{_recent_date().isoformat()}.md"
+
+
+def _accruing(root, n=3, day=None):
     """`n` instances inside the accrual window, which is what makes a class drawable."""
     for i in range(n):
-        _instance(root, f"WORKER_FINDING_A_CONTROL_HAS_NO_CALLER_{i}_2026-08-{day:02d}.md")
+        if day is None:
+            _instance(root, _accruing_name(i))
+        else:
+            _instance(root, f"WORKER_FINDING_A_CONTROL_HAS_NO_CALLER_{i}_2026-08-{day:02d}.md")
 
 
 def _debt(root, class_id="no_caller_and_never_runs"):
@@ -257,8 +287,7 @@ def test_an_accruing_class_outranks_a_finding_and_yields_to_a_persons_ask(tmp_pa
         f"# ask\n\n{HEADER}", encoding="utf-8")
     queue = [i.name for i in sr.work_queue(tmp_path)]
     assert queue[0].startswith("DIRECTOR_RULING_")
-    assert queue.index(REGISTER) < queue.index(
-        "WORKER_FINDING_A_CONTROL_HAS_NO_CALLER_0_2026-08-30.md")
+    assert queue.index(REGISTER) < queue.index(_accruing_name())
 
 
 def test_MUTATION_the_order_key_does_not_let_any_hours_beat_any_days():
@@ -290,7 +319,7 @@ def test_MUTATION_a_broken_class_debt_does_not_empty_the_work_queue(tmp_path, mo
 
     monkeypatch.setattr(cd, "drawable", boom)
     queue = [i.name for i in sr.work_queue(tmp_path)]
-    assert "WORKER_FINDING_A_CONTROL_HAS_NO_CALLER_0_2026-08-30.md" in queue
+    assert _accruing_name() in queue
     assert REGISTER not in queue
 
 

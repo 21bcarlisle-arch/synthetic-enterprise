@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 33 · **Class:** `uncommitted_and_orphaned_work` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
+**Instances:** 34 · **Class:** `uncommitted_and_orphaned_work` · **Source's own count:** ~7 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "uncommitted/orphaned work")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
-This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. Membership is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below.
+This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 33 instances
+## The 34 instances
 
 - `SEAT_FINDING_A_CONTENT_LANDED_RENAME_LEFT_THE_PRE_RENAME_DRAFT_IN_THE_TREE_AND_IT_WEDGED_EVERY_LANE_FOR_22_HOURS_2026-09-07.md` — LATENT
 - `SEAT_FINDING_FIVE_CONTROLS_ARE_GREEN_ONLY_BECAUSE_OF_UNCOMMITTED_WORK_AND_GATE_NOTHING_2026-09-03.md` — LATENT
@@ -17,6 +17,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_ORPHAN_RATCHET_ACCUSES_A_COMMITTED_REACHABLE_MODULE_BECAUSE_ANOTHER_LANES_DIRTY_FILE_BROKE_THE_CHAIN_2026-09-07.md` — BLOCKING
 - `SEAT_FINDING_THE_PUBLISH_DAEMON_COMMITTED_A_NOTE_DECLARATION_WITHOUT_ITS_CONTENT_SO_ONLY_AN_ISOLATED_WORKTREE_CAN_SEE_THE_RED_2026-09-04.md` — BLOCKING
 - `SEAT_FINDING_THE_REPAIR_FOR_THE_WEDGE_WAS_SITTING_UNLANDED_INSIDE_THE_WEDGE_2026-09-04.md` — LATENT
+- `SEAT_FINDING_THE_SHARED_INDEX_STILL_HELD_THE_FAILED_CYCLES_PRE_LANDING_BLOBS_SO_THE_NEXT_PLAIN_COMMIT_WOULD_HAVE_REVERTED_THE_CONTROL_2026-09-09.md` — LATENT
 - `SEAT_FINDING_THE_SHARED_TREE_HOLDS_AN_ELEVEN_DAY_BACKLOG_OF_UNLANDED_SOURCE_AND_IT_IS_WHAT_HOLDS_THE_FAST_FORWARD_OPEN_2026-09-10.md` — BLOCKING
 - `SEAT_FINDING_THE_TURN_RESET_DELETED_A_DETACHED_RUNS_FINISHED_ARTEFACT_SEVENTEEN_MINUTES_AFTER_IT_LANDED_2026-09-03.md` — LATENT
 - `SEAT_RESULT_THE_UNCOMMITTED_HALF_OF_THE_LAUNCH_HAZARD_IS_CLOSED_BY_A_TEARDOWN_CHECK_AND_THE_SWEEP_WAS_REFUSED_BY_MEASUREMENT_2026-09-08.md` — LATENT
@@ -36,9 +37,9 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md` — BLOCKING
 - `WORKER_FINDING_THE_POLICY_COST_COVERAGE_NOTE_IS_COMPUTED_COMMITTED_AND_RENDERED_NOWHERE_2026-08-26.md` — LATENT
 - `WORKER_FINDING_THE_REPORTS_EXTRAPOLATION_DISCLOSURE_HAS_AN_UNCOMMITTED_GENERATOR_2026-08-14.md` — LATENT
-- `WORKER_FINDING_THE_SAME_TRUE_SENTENCE_IS_HONEST_SPELLED_OUT_AND_A_VIOLATION_ABBREVIATED_2026-08-19.md` — RECORDED
 - `WORKER_FINDING_THE_SANCTIONED_DOOR_PRINTED_REFUSED_FOR_A_COMMIT_THAT_LANDED_2026-09-01.md` — LATENT
 - `WORKER_FINDING_THE_SIMPLIFICATIONS_COUNT_IS_TREE_WIDE_SO_TWO_ATOMS_RED_AT_HEAD_REFUSE_EVERY_STORE_LANDING_2026-08-25.md` — LATENT
+- `WORKER_FINDING_THE_SITE_GATE_COUNTS_AN_UNTRACKED_CONTROL_IN_ITS_OWN_GREEN_2026-08-18.md` — LATENT
 - `WORKER_FINDING_THE_STAGING_RESURRECTION_WRITER_IS_AN_ABORTED_MERGE_2026-08-28.md` — LATENT
 - `WORKER_FINDING_THE_TWIN_SWEEP_WAS_DEFEATED_BY_GIT_ADD_AND_NINE_IDENTICAL_FILES_WAITED_BEHIND_FOUR_2026-09-05.md` — LATENT
 - `WORKER_FINDING_THREE_COMMITTED_DISCHARGES_NAME_FALSIFIERS_THAT_ARE_IN_NO_COMMIT_AND_CANNOT_LAND_2026-08-18.md` — LATENT
@@ -46,12 +47,11 @@ This document supersedes the individual findings listed below, which are **archi
 
 ## Cumulative cost, measured from the instances' own recorded evidence
 
-**77.0 recorded episode-hours** across 4 of the 33 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
+**53.0 recorded episode-hours** across 3 of the 34 instances; largest single recorded episode **24h**; 2 instance(s) name a published figure in scope.
 
 **The definition, because a bare sum here would be the very defect this class catalogues.** Each instance contributes the LARGEST duration it records with evidence — one figure per document, so a finding that states the same episode twice is not billed twice. The sum is then over DOCUMENTS, not over distinct outages: two findings describing the same wedge from different angles each contribute, so this is *recorded episode-hours*, not a claim that this many distinct hours were lost. An instance that never measured its own damage contributes zero, which makes the figure a floor on attention spent and never an estimate. Every line below is traceable to the document and the sentence it came from — a cost that cannot be traced is the mirror class this consolidation itself lists.
 
 - **24 hours** — `SEAT_FINDING_THE_MECHANICAL_ADVANCE_IS_BLOCKED_BY_THE_SAME_DIRTY_TREE_THAT_IS_ITS_REASON_FOR_EXISTING_2026-09-04.md`: …the precise `NOT_ADVANCED` shape the sibling finding measured over 24h. The next publish cycle will read `behind_origin` and discard a compl…
-- **24 hours** — `WORKER_FINDING_THE_SAME_TRUE_SENTENCE_IS_HONEST_SPELLED_OUT_AND_A_VIOLATION_ABBREVIATED_2026-08-19.md`: …ontrol born red is a control someone disables."* It has been red for ~24h against a record that is accurate, and the pressure that creates is t…
 - **22 hours** — `SEAT_FINDING_A_CONTENT_LANDED_RENAME_LEFT_THE_PRE_RENAME_DRAFT_IN_THE_TREE_AND_IT_WEDGED_EVERY_LANE_FOR_22_HOURS_2026-09-07.md`: …e left the pre-rename draft in the tree, and it wedged every lane for 22 hours **Found:** 2026-09-07, delivery seat, working the lane-0 orphan-ratc…
 - **7 hours** — `WORKER_FINDING_RUFF_BASELINE_IS_CALIBRATED_TO_UNCOMMITTED_WORK_2026-08-09.md`: …which is the most expensive possible way to find it (episode 2 cost ~7 hours and ten markers under a directly analogous mis-attribution). Note th…
 
@@ -66,6 +66,13 @@ This document supersedes the individual findings listed below, which are **archi
 - `WORKER_FINDING_A_GAP_ROW_IS_ATTRIBUTED_TO_ANY_WRITER_THAT_MERELY_NAMES_IT_2026-08-19.md`
 - `WORKER_FINDING_A_TEST_REWRITTEN_AHEAD_OF_ITS_API_DISABLED_413_ARCHITECTURE_CONTROLS_FOR_NINE_HOURS_2026-09-01.md`
 - `WORKER_FINDING_THE_MAP_COUNT_WAS_BUMPED_PAST_A_RECORD_THAT_IS_IN_NO_COMMIT_2026-08-29.md`
+
+## Refused consolidation — out of lane, still live
+
+These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
+
+- `SEAT_FINDING_REFRESH_TO_HEAD_HAS_NO_MOVE_FOR_A_COPY_THIS_LANE_ITSELF_DECLARED_AS_DROPPED_2026-09-09.md` — lane `A_strategy_governance`
+- `SEAT_FINDING_THE_TABLE_HALF_OF_THE_PAIR_STRATUM_BLOCK_IS_WITHDRAWN_UNTIL_THE_RECONCILE_LANDS_2026-09-09.md` — lane `A_strategy_governance`
 
 ## Disposition
 
