@@ -9204,9 +9204,16 @@ def _in_its_own_precision(leg: dict) -> str:
     sems, bar = leg.get("sems_from_zero"), leg.get("sems_needed_to_state_a_sign")
     if sems is None or bar is None:
         return ""
+    # ONE PHRASING OF THE BAR ON THE WHOLE PAGE, and that is not a style choice. The refusal
+    # sentence in `_cannot_tell_from_the_family` already says "short of the 2.31 this page
+    # requires before stating a side", and `site/test_the_baseline_comparison_reaches_the_reader`
+    # scrapes every stated bar out of the rendered panels with that exact shape and requires all
+    # of them to be the bar the family's own SIZE earns. A second wording here would put a bar on
+    # the page that the control cannot see -- so the reader would meet two phrasings and the door
+    # would grade one. Said the same way on both sides of the gate, cleared and not cleared.
     return (" That mean stands {sems:.1f} standard errors from zero against the {bar:.2f} this "
-            "page derives from {n} draws, which is the bar it had to clear to state any side at "
-            "all.").format(sems=sems, bar=bar, n=leg.get("bound_seeds"))
+            "page requires before stating a side, which is derived from those {n} draws and is "
+            "written down nowhere.").format(sems=sems, bar=bar, n=leg.get("bound_seeds"))
 
 
 def _not_the_withdrawn_claim(claim: dict) -> str:

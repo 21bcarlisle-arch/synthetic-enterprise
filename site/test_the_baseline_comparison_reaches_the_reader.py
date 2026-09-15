@@ -2323,7 +2323,18 @@ def test_an_arm_with_no_household_figure_renders_an_absence_beside_its_own_net_m
 # selection leg veto its earned direction on the headline leg.
 _DIRECTIONAL_CLAIMS_BY_CONTRAST = {
     "value_advantage_gbp": ("MORE than flat rules", "LESS than flat rules"),
+    # THE NEGATIVE SIDE HAS TWO ENTRIES AND ONE OF THEM IS RETIRED (2026-09-15). The first is the
+    # sentence this page WITHDREW on 2026-08-29; the producer's withdrawal register now refuses to
+    # compose it, so it can no longer reach a reader. It is kept here anyway, because this list's
+    # job is to recognise a direction being NAMED, and the day something puts those words back on
+    # the page is the day this control most needs to see them.
+    #
+    # THE SECOND IS WHAT THE PAGE SAYS INSTEAD. The gate first opened on the negative side at the
+    # 2026-09-11 fork close, which is when the composer tried to re-publish the withdrawn words
+    # and this list stopped recognising the sentence that replaced them -- the page named a winner
+    # and the door read a refusal. A word-keyed list has exactly that failure mode, and it fired.
     "selection_gbp": ("the per-customer choosing is worth less than nothing",
+                      "the per-customer choosing is measured below it",
                       "the choosing itself carried part of it"),
 }
 
