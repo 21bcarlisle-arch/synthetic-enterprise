@@ -205,3 +205,37 @@ lands, not before.
 
 The resolutions in §5 are preserved at `/var/tmp/lane0-resolve-20260911/` and re-derived in
 `/var/tmp/se-forkclose-20260915` (unlocked; safe to discard and rebuild from this document).
+
+---
+
+## 9. Correction to §5 and §8, added the same tick: the resolution is a COMMIT, not a scratch directory
+
+§5 and §8 point at `/var/tmp/lane0-resolve-20260911/` and `/var/tmp/se-forkclose-20260915`. Both
+sentences were true when written and both are the wrong pointer, because `/var/tmp` scratch is
+reaped and a path is not a verifiable object.
+
+While this tick ran, `background/fork_salvage.py` salvaged the merge worktree:
+
+```
+ead8f781a  SALVAGE(auto): preserve this fork's uncommitted work at 2026-09-15T07:40:38Z
+           Merge: e097212cd 33b78a519          <- a real merge commit, TWO parents
+```
+
+**It carries the whole of §5**, checked against the object and not the worktree:
+
+- zero conflict markers on all six paths
+- the §6 count correction (`7 of these instances are BLOCKING`) present
+- the test-file union intact — both sides' appended tests reachable
+
+It is on the fork's own branch only and is explicitly NOT gated and NOT on main; the salvage
+message says so itself. **It is not a landing and must not be read as one.** What it is, is the
+§8 work already done and preserved as an object anyone can check out, diff and re-run — so the next
+tick does not rebuild the merge, it verifies `ead8f781a` and fixes the composer.
+
+**Why this is recorded rather than the paths being edited out.** The `/var/tmp` pointers are left
+standing above with this correction beside them, because which pointer a tick reached for is the
+evidence for how the next one should be written. Quietly swapping the path would hide that this
+finding was filed pointing at a directory that will not exist in a week.
+
+*Note that the salvage is also why §7's worktree count moves: this tick added three worktrees and
+`se-forkclose-20260915` is now a salvaged fork rather than a dirty one.*
