@@ -261,6 +261,14 @@ def _static_paths(node: ast.expr, module_file: Path,
         return []
     if isinstance(node, ast.Attribute) and node.attr == "parent":
         return [p.parent for p in _static_paths(node.value, module_file, known)]
+    # `self.project_dir` -- an INSTANCE attribute, looked up under a DOTTED key. A dotted key
+    # cannot collide with any Python identifier, so the bare-name map above is untouched by
+    # construction and a class body's `PATH` still cannot answer a method's bare `PATH`. Only the
+    # literal receiver `self` is read: rebinding the receiver name is what `_class_self_paths`
+    # and the signature-shadow strip below exist to refuse.
+    if (isinstance(node, ast.Attribute) and isinstance(node.value, ast.Name)
+            and node.value.id == "self"):
+        return list(known.get(f"self.{node.attr}", ()))
     if isinstance(node, ast.Subscript):
         value = node.value
         if isinstance(value, ast.Attribute) and value.attr == "parents":
@@ -465,6 +473,89 @@ def _default_destinations(node: ast.AST, module_file: Path,
     return out
 
 
+def _class_self_paths(node: ast.ClassDef, module_file: Path,
+                      inherited: dict[str, list[Path]]) -> dict[str, list[Path]]:
+    """`"self.<attr>"` -> the paths that attribute can be, for ONE class.
+
+    THE ATTRIBUTE IS THE DESTINATION AND THE METHOD ONLY SPELLS IT. `PublishStepLedger.__init__`
+    binds `self.project_dir = Path(project_dir) if project_dir else PROJECT_DIR` and
+    `PublishStepLedger.write` falls back to `self.project_dir / "site" / "data" /
+    "publish_steps.json"`; `background/process_run_complete.py` calls `_ledger.write()` bare, so
+    that path is written on every publish cycle and no expression in `write` names it.
+
+    A DOTTED KEY, WHICH IS WHY THE BARE-NAME MAP IS SAFE BY CONSTRUCTION AND NOT BY CARE. No Python
+    identifier contains a `.`, so `"self.project_dir"` can never be returned for a bare `Name`
+    lookup and can never be shadowed by one. The rule the module already enforces -- a class body's
+    `PATH` is NOT a method's bare `PATH` -- is untouched: what is handed down here is only ever
+    reachable by writing `self.` in front of it, which is what Python requires too.
+
+    TWO SOURCES, RESOLVED IN DIFFERENT SCOPES BECAUSE PYTHON EVALUATES THEM IN DIFFERENT SCOPES.
+    A class-body `PATH = ROOT / "x.json"` is resolved against the class body's own names; a
+    method's `self.X = <expr>` is resolved against THAT METHOD's locals over what the CLASS
+    inherited -- never over a sibling method's locals, and never over the class body, which is the
+    flat-name-map defect arriving through a third door.
+
+    A REBOUND ATTRIBUTE IS REFUSED, the same guard `_module_helpers` and `_default_destinations`
+    carry. Every `self.X` store site ANYWHERE in the class subtree is counted, plus every class-body
+    binding of the bare name, and an attribute with more than one is dropped whole. That deliberately
+    counts store sites this function cannot resolve -- one inside a closure, one under a `for`, one
+    in a nested class -- so an attribute it cannot fully see fails toward refusal rather than toward
+    a claim. Only an attribute bound EXACTLY ONCE is handed down, because only then does the
+    resolved expression say where the write goes on every path through the class.
+    """
+    body = _own_scope(node)
+    counts: dict[str, int] = {}
+    for n in body:
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store):
+            counts[n.id] = counts.get(n.id, 0) + 1
+    for n in ast.walk(node):
+        if (isinstance(n, ast.Attribute) and isinstance(n.ctx, ast.Store)
+                and isinstance(n.value, ast.Name) and n.value.id == "self"):
+            counts[n.attr] = counts.get(n.attr, 0) + 1
+    if not counts:
+        return {}
+
+    resolved: dict[str, list[Path]] = {}
+
+    def _record(attr: str, paths: list[Path]) -> None:
+        for path in paths:
+            if path not in resolved.setdefault(attr, []):
+                resolved[attr].append(path)
+
+    class_known = _scope_path_names(body, module_file, inherited)
+    for n in body:
+        if not isinstance(n, (ast.Assign, ast.AnnAssign)) or n.value is None:
+            continue
+        targets = n.targets if isinstance(n, ast.Assign) else [n.target]
+        names = [t.id for t in targets if isinstance(t, ast.Name)]
+        if names:
+            _record_paths = _static_paths(n.value, module_file, class_known)
+            for name in names:
+                _record(name, _record_paths)
+
+    for method in body:
+        if not isinstance(method, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        scope = _own_scope(method)
+        method_inherited = {**inherited,
+                            **_default_destinations(method, module_file, inherited)}
+        method_known = _scope_path_names(scope, module_file, method_inherited)
+        for n in scope:
+            if not isinstance(n, (ast.Assign, ast.AnnAssign)) or n.value is None:
+                continue
+            targets = n.targets if isinstance(n, ast.Assign) else [n.target]
+            attrs = [t.attr for t in targets
+                     if isinstance(t, ast.Attribute) and isinstance(t.value, ast.Name)
+                     and t.value.id == "self"]
+            if attrs:
+                paths = _static_paths(n.value, module_file, method_known)
+                for attr in attrs:
+                    _record(attr, paths)
+
+    return {f"self.{attr}": paths for attr, paths in resolved.items()
+            if counts.get(attr, 0) == 1 and paths}
+
+
 def _paths_written_by_scope(node: ast.AST, module_file: Path,
                             inherited: dict[str, list[Path]],
                             helpers: dict[str, _Helper] | None = None,
@@ -502,7 +593,23 @@ def _paths_written_by_scope(node: ast.AST, module_file: Path,
     # the class inherited, not what the class bound. Same reasoning as the per-function map above,
     # and the same failure if it is skipped: a class attribute silently lending its path to a
     # one-letter destination name in a method.
-    handed_down = inherited if isinstance(node, ast.ClassDef) else known
+    #
+    # AND THE ONE THING A METHOD *DOES* SEE OF ITS CLASS IS `self.`, which is why the dotted map
+    # rides alongside rather than inside. It is rebuilt at every `ClassDef` and the enclosing
+    # class's dotted keys are dropped on the way in: `self` inside an inner class is the INNER
+    # instance, so lending it the outer class's attributes would be the flat-name-map defect again,
+    # one nesting deeper. That drop is correctness by construction, not a measured guard -- there
+    # are zero class-in-class definitions in the scanned trees today, so it could not fire, and it
+    # is written this way because the alternative is a filter that has to be remembered.
+    # For the same reason there is no guard against a method REBINDING the bare name `self`: asked
+    # of the tree on 2026-09-15, zero scopes store it, so a control for it could never fail and the
+    # module's own arity-check comment above says what to do with one of those.
+    if isinstance(node, ast.ClassDef):
+        outer_free = {k: v for k, v in inherited.items() if "." not in k}
+        handed_down = {**outer_free,
+                       **_class_self_paths(node, module_file, outer_free)}
+    else:
+        handed_down = known
     for nested in _nested_scopes(node):
         # A NAME THE NESTED `def` BINDS IN ITS OWN SIGNATURE IS NOT THE ENCLOSING NAME. Seeding
         # parameter defaults above puts PARAMETER names into this map for the first time, and
@@ -658,16 +765,34 @@ def written_artefacts(root: Path | None = None) -> set[str]:
     `docs/staging/records/PREREG_WHAT_THE_WRITE_KEYED_ORACLE_GAINS_FROM_A_DEFAULTED_DESTINATION_
     PARAMETER_2026-09-15.md` has the count and the predictions, two of which it falsified.
 
+    AND THE INSTANCE ATTRIBUTE IS FOLLOWED NOW TOO -- ONE PATH, AND THE COUNT IS THE POINT
+    (delivery seat, 2026-09-15). `_class_self_paths` resolves `self.<attr>` under a dotted key,
+    which is the door this docstring's own "still out" list named and the one the `self._write(...)`
+    search should have found. It adds EXACTLY ONE path, `site/data/publish_steps.json`, and the
+    population census behind that number is in
+    `docs/staging/records/PREREG_WHAT_THE_WRITE_KEYED_ORACLE_GAINS_FROM_AN_INSTANCE_ATTRIBUTE_
+    DESTINATION_2026-09-15.md`: 2,058 classes, 8 (class, method) pairs holding a write destination,
+    2 touching `self.<attr>`, 1 surviving the rebound guard. Eight, then nine, then one is a curve,
+    and it is recorded here rather than left for a fourth frame to rediscover.
+    **AND THAT PATH WAS ALREADY CLASSIFIED GENERATED.** It lives under `site/data/`, so the
+    TREE-keyed oracle has always had it, and `origin_reconcile` reads the UNION -- which did not
+    move. This frame made the write-keyed oracle more honest and changed no consumer's answer on
+    the tree it landed against. Kept because the oracle's correctness is a property and not today's
+    union; written down because a later reader finding this beside the other two frames would
+    otherwise assume it paid like they did.
+
     STILL OUT, and each on purpose rather than by omission: a helper in ANOTHER module (it needs
     that module's parse and its name resolution -- a larger thing, not a half-done one); a helper
     reached through TWO frames (the binding does not travel, so this is structural, not a depth
-    counter); a destination built from an INSTANCE attribute -- `PublishStepLedger.write` falls
-    back to `self.project_dir / "site" / "data" / "publish_steps.json"` and
-    `process_run_complete` calls it bare, so that path is still missed and is the door the
-    `self._write(...)` search should have found; and a parameter REBOUND inside the helper or
-    under its own default, which is refused because after `path = SOMEWHERE_ELSE` the write no
-    longer goes where the signature or the caller said.
-    All four degrade the same safe way the whole gap used to: the path stays classified authored,
+    counter); a parameter or attribute REBOUND, which is refused because after
+    `path = SOMEWHERE_ELSE` the write no longer goes where the signature, the caller or the
+    constructor said; and -- **the largest one left, and this time with a count rather than a
+    guess** -- a `/` join whose RIGHT operand is a NAME rather than a string literal. `out = root /
+    DEFAULT_REPORT`, where `DEFAULT_REPORT` is a module-level string constant, is 39 of the 364
+    unresolved destinations in this tree and the biggest single cluster; the next 32 are a
+    module-level `def`'s destination parameter with NO default, reachable only from a call site in
+    another module. The census is in the prereg named above.
+    All of them degrade the same safe way the whole gap used to: the path stays classified authored,
     so the consumer offers a landing where a revert would have done, rather than the reverse.
 
     AND WRITING IS NOT SUFFICIENT EITHER, WHICH IS WHY `WRITTEN_BUT_NOT_REPRODUCIBLE` EXISTS. Two
