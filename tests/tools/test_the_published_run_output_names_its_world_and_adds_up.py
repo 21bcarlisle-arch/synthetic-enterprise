@@ -39,6 +39,26 @@ The legs below are about the header that repairs it, and each names its mutation
     every presence check.
   * `test_the_header_and_the_cache_meta_cannot_disagree` -- resolve the commit, the clock or the
     world separately for the two slots instead of binding both to one local.
+
+THE THIRD DEFECT, 2026-09-15: the header says WHICH CODE and WHICH WORLD and not WHICH MACHINE.
+`SIM_FAST_MODE=1` swaps the local-LLM risk committee for a deterministic always-increase mock, so
+two runs at one commit in one world can be drawn by different decision processes and stamp
+identically. The five arms of the blind envelope rest entirely on "all five ran SIM_FAST_MODE=1,
+identically", and grepping a filed run output for `fast_mode`, `SIM_FAST_MODE`, `mock` and
+`risk_committee_mode` returns nothing -- the claim is unfalsifiable from the artefacts it is
+about.
+
+  * `test_a_written_run_output_names_which_committee_ran` -- ONE control over the whole partition,
+    because a stamp that says "mock" unconditionally passes any single-mode leg. Kill it by
+    pinning `execution_mode` to a constant, by deleting the block, or by keying it to `args.fast`
+    (which is False for the `SIM_FAST_MODE=1 python3 -m tools.run_annual_report` launch shape the
+    arm runs and `tools/tournament_runner` both use).
+  * `test_the_stamp_and_the_committee_obey_one_predicate` -- re-inline the environment read inside
+    `risk_committee_agent.invoke`, so the stamp and the branch become two facts that agree today.
+  * `test_a_fast_mode_variable_set_to_something_other_than_one_is_not_fast_mode` -- write
+    `bool(os.environ.get(...))` anywhere in the pair. `SIM_FAST_MODE=0` is a truthy string.
+  * `test_the_declared_execution_mode_field_still_resolves_for_the_census` -- rename the field
+    without moving the declaration, or declare the bool (which the census silently drops).
 """
 from __future__ import annotations
 
@@ -47,8 +67,9 @@ import re
 
 import pytest
 
+import sim.risk_committee_agent as rca
 import tools.run_annual_report as rar
-from tools.promoted_artefact_claim_census import _artefact_dates
+from tools.promoted_artefact_claim_census import _artefact_dates, _resolve_declared_field
 
 
 def _adding_up() -> dict:
@@ -265,3 +286,133 @@ def test_the_header_and_the_cache_meta_cannot_disagree(stubbed_world, monkeypatc
         "artefact cannot be joined to its own dated sibling".format(
             written["generated_at"], meta["generated_at_utc"])
     )
+
+
+def _written_with_fast_mode(value, stubbed_world, monkeypatch, tmp_path, name) -> dict:
+    """The artefact `main()` writes with `SIM_FAST_MODE` set to `value` (None = unset).
+
+    The variable is set in the ENVIRONMENT and no `--fast` flag is passed, because that is the
+    launch shape the blind-envelope arm runs and `tools/tournament_runner` both use, and it is the
+    shape a stamp keyed to `args.fast` gets wrong. `tests/conftest.py` sets the variable to "1"
+    for the whole session, so every leg here must say what it wants rather than inherit it."""
+    if value is None:
+        monkeypatch.delenv(rca.FAST_MODE_ENV, raising=False)
+    else:
+        monkeypatch.setenv(rca.FAST_MODE_ENV, value)
+    stubbed_world(_adding_up())
+    return json.loads(_run_main(monkeypatch, tmp_path / name).read_text())
+
+
+@pytest.fixture()
+def _fast_mode_run(stubbed_world, monkeypatch, tmp_path):
+    def _run(value, name):
+        return _written_with_fast_mode(value, stubbed_world, monkeypatch, tmp_path, name)
+    return _run
+
+
+def test_a_written_run_output_names_which_committee_ran(_fast_mode_run):
+    """WHICH MACHINE DREW THESE FIGURES, and it is not answered by the commit or the digest.
+
+    `SIM_FAST_MODE=1` replaces the local-LLM risk committee with a deterministic always-increase
+    mock, so every hedge decision in the run comes out of a different process. Two runs at one
+    commit in one world, one fast and one not, stamped identically until this block existed.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, NOT A LEG PER MODE. A stamp hard-coded to "mock" passes
+    every assertion a fast-mode-only leg can make, and the mock is what nearly every run on this
+    box uses -- so the constant would have looked right for months. The property is that the two
+    modes are DISTINGUISHABLE in the artefact; the per-mode readings below only say which way
+    round."""
+    fast = _fast_mode_run("1", "fast")
+    live = _fast_mode_run(None, "live")
+
+    for written, label in ((fast, "SIM_FAST_MODE=1"), (live, "SIM_FAST_MODE unset")):
+        mode = written.get("execution_mode")
+        assert mode is not None, (
+            "the run output published by {} does not say which risk committee drew its hedge "
+            "decisions, so no reader can tell it from a run of the other kind".format(label)
+        )
+        assert mode.get("risk_committee"), "the execution mode names no committee"
+
+    assert fast["execution_mode"]["risk_committee"] != live["execution_mode"]["risk_committee"], (
+        "both modes stamp {!r}, so the field is a constant and the arms of any blind envelope "
+        "filed against it are as unfalsifiable as they were before it existed".format(
+            fast["execution_mode"]["risk_committee"])
+    )
+    assert fast["execution_mode"]["fast"] is True, "a SIM_FAST_MODE=1 run did not stamp as fast"
+    assert live["execution_mode"]["fast"] is False, (
+        "a run with SIM_FAST_MODE unset stamped as fast, so the mock committee's fingerprint is "
+        "on a run that called Ollama"
+    )
+    assert "execution_mode" in list(fast)[:5], (
+        "the execution mode is not in the artefact's header, so a reader of a 27MB file has to "
+        "go looking for it; the first five keys are {}".format(list(fast)[:5])
+    )
+
+
+def test_the_stamp_and_the_committee_obey_one_predicate(monkeypatch, tmp_path):
+    """TWO COPIES OF A PREDICATE ARE TWO FACTS. The stamp is a claim about a branch it does not
+    watch being taken, so the only thing that makes it true is that `invoke()` asks the same
+    question this module's `fast_mode_enabled` answers.
+
+    This does not read the source for a call. It moves the predicate and asserts the BRANCH moves:
+    with the environment saying nothing, a patched-True predicate must reach the mock, and
+    `_call_local` -- the Ollama path -- must not be reached at all. Re-inline the environment read
+    inside `invoke` and this goes red."""
+    monkeypatch.delenv(rca.FAST_MODE_ENV, raising=False)
+    monkeypatch.setattr(rca, "_read_handshake_context", lambda: "context")
+    monkeypatch.setattr(rca, "_log_decision", lambda *a, **k: None)
+
+    def _refuse(*a, **k):
+        raise AssertionError(
+            "`invoke` called the LLM committee while `fast_mode_enabled()` said fast mode, so "
+            "the published `execution_mode` stamp describes a branch the run did not take"
+        )
+
+    monkeypatch.setattr(rca, "_call_local", _refuse)
+    monkeypatch.setattr(rca, "fast_mode_enabled", lambda: True)
+
+    adjustments = rca.invoke("2021-06-01", 1, {"C1": 0.10})
+    assert adjustments == {"C1": 0.20}, (
+        "the mock committee's minimum +0.10 did not reach the caller: {!r}".format(adjustments)
+    )
+
+
+def test_a_fast_mode_variable_set_to_something_other_than_one_is_not_fast_mode(_fast_mode_run):
+    """THE TRUTHINESS TRAP, and it is the obvious way to write this pair. `SIM_FAST_MODE=0` is a
+    non-empty string: `bool(os.environ.get(...))` reads it as fast mode and
+    `sim.risk_committee_agent.invoke` does not, so the artefact would say "deterministic mock" for
+    a run that spent its whole length in Ollama. A plausible sentence about the wrong run is the
+    defect this header exists to close, not one it may introduce."""
+    written = _fast_mode_run("0", "zero")
+
+    mode = written["execution_mode"]
+    assert mode["fast"] is False, (
+        "SIM_FAST_MODE=0 stamped as fast mode, but `risk_committee_agent.invoke` compares the "
+        "variable to the exact string '1' and would have called the LLM"
+    )
+    assert mode["sim_fast_mode"] == "0", (
+        "the raw value is not published, so a reader cannot check the producer's reading of it"
+    )
+
+
+def test_the_declared_execution_mode_field_still_resolves_for_the_census(_fast_mode_run):
+    """THE DECLARATION MUST REACH A LEAF, and a declaration that does not is silent.
+
+    `promoted_artefact_claim_census._resolve_declared_field` returns None for a missing path, for
+    a container AND for a bool -- so declaring `execution_mode.fast` would name a field that
+    contributes nothing to grading and reports nothing about contributing nothing. This calls the
+    real resolver rather than re-implementing the rule, which is the only version of this
+    assertion that a rename on either side can fail."""
+    written = _fast_mode_run("1", "declared")
+
+    declared = written["run_identity_fields"]
+    assert "execution_mode.risk_committee" in declared, (
+        "the execution mode is published but not declared as run identity, so the census that "
+        "grades every claim about this promote target cannot read it; declared: {}".format(
+            declared)
+    )
+    for dotted in declared:
+        assert _resolve_declared_field(written, dotted) is not None, (
+            "the artefact declares {!r} as its run identity and the census resolver reaches no "
+            "leaf there, so that field grades nothing and says nothing about it".format(dotted)
+        )

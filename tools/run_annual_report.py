@@ -65,6 +65,7 @@ from saas.reporting.annual_report import (
     extract_report_data,
     generate_annual_report,
 )
+from sim.risk_committee_agent import FAST_MODE_ENV, fast_mode_enabled
 from simulation.departure_level_anchor import world_level_identity
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.settlement_clocks import reconcile_published_run_output
@@ -190,6 +191,7 @@ def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
     stamped_at = datetime.now(timezone.utc)
     commit = code_commit or _git_commit_hash()
     world = _world_level_or_reason()
+    mode = _execution_mode()
 
     data["_cache_meta"] = {
         "git_commit": commit,
@@ -198,7 +200,58 @@ def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
         # that, in the slot a reader looks in -- an absent key reads as "nobody asked".
         "world_level": world,
     }
-    return _run_identity_header(data, stamped_at, commit, world, from_launch=bool(code_commit))
+    return _run_identity_header(
+        data, stamped_at, commit, world, mode, from_launch=bool(code_commit)
+    )
+
+
+def _execution_mode() -> dict:
+    """WHICH COMMITTEE RAN, said by the process that ran it.
+
+    WHY A RUN OUTPUT NEEDS THIS AT ALL (2026-09-15). The commit says which code, the digest says
+    which world, and between them they still do not say which of two materially different
+    machines drew the figures. `SIM_FAST_MODE=1` replaces the local-LLM risk committee with
+    `sim.risk_committee_agent._call_mock`, a deterministic always-increase policy: every hedge
+    decision in the run comes out of a different process. Two runs at one commit in one world,
+    one fast and one not, are not comparable, and until this block nothing in the artefact could
+    tell them apart.
+
+    THE MEASUREMENT THAT MADE IT A DEFECT RATHER THAN AN OMISSION. The five arms of the blind
+    envelope (`docs/design/blind_envelope_arms_2026-09-11.json`) rest entirely on the claim that
+    all five ran `SIM_FAST_MODE=1`, identically. Grepping a filed run output for `fast_mode`,
+    `SIM_FAST_MODE`, `mock` and `risk_committee_mode` returns nothing: the claim was unfalsifiable
+    from the artefacts it is a claim about, in exactly the way the world digest was unfalsifiable
+    before `dda5a27b2`.
+
+    READ FROM THE ENVIRONMENT, NOT FROM `--fast`, and through the committee's own predicate rather
+    than a second copy of it — see `sim.risk_committee_agent.fast_mode_enabled`. The launch shape
+    this has to survive is `SIM_FAST_MODE=1 python3 -m tools.run_annual_report ...` with no flag,
+    which is how the arm runs and `tools/tournament_runner` start their children.
+
+    WHAT THIS DOES NOT COVER, said here so it is not read as covering it: `--end-year` truncates
+    the simulation window and is equally fatal to comparability, and it is not stamped. It does
+    not reach this function, and threading it is a separate change; the window is currently only
+    inferable from the length of `years`.
+    """
+    fast = fast_mode_enabled()
+    return {
+        # The raw string, because `fast` below is the committee's `== "1"` reading of it and a
+        # reader who finds `SIM_FAST_MODE=true` with `fast: false` needs to see both to believe
+        # it. Published, never declared as run identity -- see `run_identity_fields`.
+        "sim_fast_mode": os.environ.get(FAST_MODE_ENV),
+        "fast": fast,
+        "risk_committee": (
+            "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every "
+            "wake-up increases every hedge fraction by the minimum +0.10"
+            if fast else
+            "live -- `sim.risk_committee_agent._call_local`, one local Ollama call per breach"
+        ),
+        "read_from": (
+            "`{}` in the environment of the process that ran the world, at stamping time, via "
+            "the same predicate `sim.risk_committee_agent.invoke` branched on".format(
+                FAST_MODE_ENV)
+        ),
+    }
 
 
 def _world_level_or_reason() -> dict:
@@ -224,7 +277,7 @@ _GENERATED_AT_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
 
 def _run_identity_header(
-    data: dict, stamped_at, commit: str | None, world: dict, *, from_launch: bool
+    data: dict, stamped_at, commit: str | None, world: dict, mode: dict, *, from_launch: bool
 ) -> dict:
     """Put WHICH RUN THIS IS at the top of the artefact, in the shape every other promote target
     already uses -- `generated_at`, `producing_commit`, `world_identity`.
@@ -295,6 +348,11 @@ def _run_identity_header(
         # Published at the top level as well because the census reads shallow metadata only, and
         # under `_cache_meta` this digest is one level too deep to be read at all.
         "world_identity": world,
+        # BESIDE THE WORLD AND FOR THE SAME REASON. The digest answers "same world?"; this answers
+        # "same machine?". Both are preconditions for comparing two figures and neither implies
+        # the other -- the five blind-envelope arms share a world and a commit, and what nothing
+        # could check was whether they shared a committee. See `_execution_mode`.
+        "execution_mode": mode,
         # WHICH OF THESE FIELDS IS THE RUN IDENTITY, SAID BY THE PRODUCER, because no consumer-side
         # rule can work it out. This artefact carries twelve dates INSIDE THE SIMULATED WORLD --
         # `clv_snapshot_as_of` 2016-12-31..2025-06-07, `wholesale_credit_exposure.mark_date`,
@@ -307,11 +365,22 @@ def _run_identity_header(
         # today: the declaration says what IS the identity, not what a particular reader can
         # currently parse out of it. `world_identity.digest` is named and `world_identity` is not,
         # because the block also holds per-year anchors, which are world DATA.
+        #
+        # `execution_mode.risk_committee` AND NOT THE OTHER TWO FIELDS OF THAT BLOCK, and the
+        # choice is forced by what the census does with a declaration rather than by taste.
+        # `_resolve_declared_field` returns None for a bool, so declaring `execution_mode.fast`
+        # would be a declaration that contributes nothing and says nothing about contributing
+        # nothing. `execution_mode.sim_fast_mode` is worse: it is an arbitrary environment string
+        # put through `_RUN_IDENTITY`, so `SIM_FAST_MODE=2026-09-15` would inject a run-identity
+        # token this run does not have. `risk_committee` is one of exactly two sentences this
+        # producer writes, neither containing a date or a SHA, so it can declare the mode without
+        # being able to forge an identity.
         "run_identity_fields": [
             "generated_at",
             "producing_commit.commit",
             "producing_commit.resolved_at",
             "world_identity.digest",
+            "execution_mode.risk_committee",
         ],
     }
     return {**header, **{k: v for k, v in data.items() if k not in header}}

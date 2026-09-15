@@ -87,6 +87,31 @@ def _read_handshake_context() -> str:
     return Path(HANDSHAKE_FILE).read_text()
 
 
+#: The environment variable that decides WHICH COMMITTEE RUNS, named once because two modules now
+#: ask the question: `invoke()` below branches on it, and `tools/run_annual_report` publishes the
+#: answer into every run output's identity header. Two copies of the predicate would be two facts,
+#: and the one in the header would be a claim about a branch it never watched being taken.
+FAST_MODE_ENV = "SIM_FAST_MODE"
+
+
+def fast_mode_enabled() -> bool:
+    """Whether this process runs the deterministic mock committee instead of the local LLM.
+
+    EXACTLY `== "1"`, NEVER TRUTHINESS, and the difference is not pedantic: `SIM_FAST_MODE=0` and
+    `SIM_FAST_MODE=false` are both non-empty strings and neither one takes the mock branch below.
+    A stamp built on `bool(os.environ.get(...))` would publish "this run used the mock committee"
+    for a run that spent its whole length in Ollama — a plausible sentence about the wrong run,
+    which is exactly the class of defect the run identity header exists to close.
+
+    READ IN THE RUNNING PROCESS, and that is the honest reading rather than a convenient one.
+    `tools/run_annual_report.main()` sets the variable from `--fast`, but `tournament_runner`,
+    `measure_publish_gate_subject_cost` and every hand-launched arm run set it in the child's
+    ENVIRONMENT and pass no flag at all. A stamp keyed to `args.fast` would read False for all of
+    them while this function — the one the committee actually obeys — reads True.
+    """
+    return os.environ.get(FAST_MODE_ENV) == "1"
+
+
 def _call_mock(current_hedge_fractions: dict[str, float]) -> dict:
     """Fast-mode deterministic committee (no LLM). Increases every customer's
     hedge fraction by the minimum +0.10, capped at 1.0. Used when
@@ -177,7 +202,7 @@ def invoke(settlement_date: str, settlement_period: int, current_hedge_fractions
       no decrease, clamp to [0.0, 1.0]).
     """
     context = _read_handshake_context()
-    if os.environ.get("SIM_FAST_MODE") == "1":
+    if fast_mode_enabled():
         decision = _call_mock(current_hedge_fractions)
     else:
         decision = _call_local(context)
