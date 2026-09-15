@@ -246,6 +246,68 @@ def test_MUTATION_a_KEYWORD_argument_binds_too(tmp_path):
     assert fs.written_artefacts(tmp_path) == {"docs/reports/out.json"}
 
 
+def test_MUTATION_a_STARRED_argument_does_not_shift_the_written_position(tmp_path):
+    """A `*args` makes every LATER position unknowable, and counting through it does not lose an
+    attribution -- it manufactures a false one. Here the expression sitting in the slot the count
+    lands on is the authored register, so a resolver that kept counting reports a document this
+    module only reads, and the consumer's remedy for a generated path is REVERT.
+
+    The partner of the position leg above: that one proves positions are counted, this one proves
+    the counting STOPS where it stops meaning anything."""
+    _tree(tmp_path, splat=HEADER + (
+        f'REGISTER_DOC = ROOT / "docs" / "design" / "{Path(NAMED_NEVER_WRITTEN).name}"\n'
+        'OUT = ROOT / "docs" / "reports" / "out.json"\n'
+        "def _write_json(prefix, path, data):\n"
+        '    path.write_text("{}")\n'
+        "def run(head):\n"
+        "    _write_json(*head, REGISTER_DOC, {})\n"
+        '    OUT.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/out.json"}, found
+
+
+def test_MUTATION_a_KEYWORD_argument_is_matched_by_NAME_through_the_same_starred_call(tmp_path):
+    """The partner to the leg above, and the reason abandoning a starred call WHOLESALE would have
+    been too much. A keyword names its parameter whatever preceded it, so the one shape that cannot
+    be counted positionally stays readable. Without this leg the safe-looking fix -- drop every
+    starred call -- is a silent narrowing paid for by the false positive next door (R15: a narrowing
+    added to fix a false positive is asymmetric, and only the false positive gets a comment)."""
+    _tree(tmp_path, splat=HEADER + (
+        f'BASELINE_PATH = ROOT / "{AUTHORED_TREE_GENERATED}"\n'
+        "def _write_json(prefix, path, data):\n"
+        '    path.write_text("{}")\n'
+        "def run(head):\n"
+        "    _write_json(*head, path=BASELINE_PATH, data={})\n"))
+    assert fs.written_artefacts(tmp_path) == {AUTHORED_TREE_GENERATED}
+
+
+def test_MUTATION_a_write_helper_in_ANOTHER_module_is_not_followed(tmp_path):
+    """SAME-MODULE ONLY, asserted rather than assumed. A bare `Name` call is the only call shape
+    whose target is knowable without resolving imports; taking any call to a name that happens to
+    match some other module's writer attributes across a boundary this scan cannot see. The fixture
+    makes the names COLLIDE -- both modules define `_write_json`, only one writes its parameter --
+    because without the collision there is nothing for the mutation to get wrong.
+
+    AND THE SCAN ORDER IS PART OF THE FIXTURE, not cosmetic naming. `_write_reached_paths` walks
+    `sorted(rglob("*.py"))`, so a leaked helper map can only carry the writer's entry into the
+    consumer if the writer is read FIRST. Named `a_writer`/`b_consumer` for that reason: with the
+    alphabetical order the other way round this leg passes with the leak installed, which is how a
+    control becomes coverage."""
+    _tree(tmp_path,
+          a_writer=HEADER + ("def _write_json(path, data):\n"
+                             '    path.write_text("{}")\n'),
+          b_consumer=HEADER + (
+              f'REGISTER_DOC = ROOT / "docs" / "design" / "{Path(NAMED_NEVER_WRITTEN).name}"\n'
+              'OUT = ROOT / "docs" / "reports" / "out.json"\n'
+              "def _write_json(path, data):\n"
+              "    return path.read_text()\n"
+              "def run():\n"
+              "    _write_json(REGISTER_DOC, {})\n"
+              '    OUT.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/out.json"}, found
+
+
 def test_MUTATION_a_parameter_REBOUND_in_the_helper_is_not_followed(tmp_path):
     """After `path = SOMEWHERE_ELSE` the write does not go where the caller said, and following it
     anyway MANUFACTURES a path -- it reports the argument as written when the argument is never
