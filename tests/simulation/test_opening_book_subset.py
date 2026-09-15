@@ -554,11 +554,25 @@ def test_the_same_prospects_win_with_and_without_the_stock(_live):
     """The blast radius, stated as a claim and checked rather than asserted in prose.
 
     The funnel is seeded on the prospect's own id and date, and neither moves, so the
-    inversion changes WHICH HOUSE each winner lives in and nothing else. If this ever
-    fails, the campaign's outcome has become a function of the stock and every published
-    growth figure moved for a reason nobody declared.
+    inversion changes WHICH HOUSE each winner lives in and nothing else.
+
+    SPLIT 2026-09-11, BECAUSE HALF OF THAT IS NOW FALSE BY DESIGN AND THE OTHER HALF MATTERS MORE.
+    The settled book is chosen for DIFFERENCE over the demand axes, so which of the company's wins
+    THIS MACHINE settles is deliberately a function of the homes -- with a premise stock it can be
+    chosen, without one every candidate is unplaceable and the campaign falls back to the count
+    cull, saying so on its own notes. Asserting the settled ids are identical would be asserting
+    the chooser does nothing.
+
+    WHAT IS STILL TRUE, AND IS THE HALF THIS CONTROL EXISTED FOR: the COMPANY's outcome may not be
+    a function of the stock. Its quotes, its spend and its funnel's own verdict on each prospect
+    are the world resolving a campaign, and our settlement ceiling is invisible to them by
+    construction (the 2026-08-28 wall fix that moved `accounts` and `wins_to_date` off the book).
+    If THAT ever moves with the stock, a published growth figure has changed for a reason nobody
+    declared -- which is exactly what the original docstring was protecting.
     """
-    won_with = [p.customer_id for p, _w in lp._campaign(lp._pre_growth_book(RUN_SEED), RUN_SEED)["winners"]]
+    with_stock = lp._campaign(lp._pre_growth_book(RUN_SEED), RUN_SEED)
+    quoted_with = [(s["prospect_id"], s["won"]) for s in with_stock["spend"]]
+    settled_with = [p.customer_id for p, _w in with_stock["winners"]]
     lp._CAMPAIGN_MEMO.clear()
 
     import simulation.net_new_acquisition as nna
@@ -568,13 +582,36 @@ def test_the_same_prospects_win_with_and_without_the_stock(_live):
         nna.iter_prospects = lambda *a, **kw: real(
             *a, **{k: v for k, v in kw.items() if k != "premise_stock"}
         )
-        won_without = [
-            p.customer_id
-            for p, _w in lp._campaign(lp._pre_growth_book(RUN_SEED), RUN_SEED)["winners"]
-        ]
+        without_stock = lp._campaign(lp._pre_growth_book(RUN_SEED), RUN_SEED)
     finally:
         nna.iter_prospects = real
-    assert won_with and won_with == won_without
+    quoted_without = [(s["prospect_id"], s["won"]) for s in without_stock["spend"]]
+    settled_without = [p.customer_id for p, _w in without_stock["winners"]]
+
+    assert quoted_with and quoted_with == quoted_without, (
+        "the COMPANY's own campaign moved with the world's premise stock -- the same prospects "
+        "must be quoted and the funnel must reach the same verdict on each, whatever house they "
+        "live in")
+    assert with_stock["funnel_wins"] == without_stock["funnel_wins"]
+
+    # ...and the SETTLED book legitimately differs, which is this design's whole subject. Asserted
+    # rather than left implicit, so a chooser that silently stopped engaging reads as a red here
+    # instead of as the reassuring half of a claim nobody re-checked.
+    assert settled_with and settled_without
+    assert with_stock["settlement_selection"] == "chosen_weighted", (
+        "with a premise stock the sample must be CHOSEN; it reported "
+        f"{with_stock['settlement_selection']}, so the chooser is not engaging at all")
+    # BOTH ARMS CHOOSE, and my first draft of this control assumed one would not.
+    # `iter_prospects` MINTS a premise when it is handed no stock, so dropping the stock argument
+    # does not leave a candidate unplaceable -- it gives it a DIFFERENT home. So the settled books
+    # differ below because the homes differ, which is the actual subject, and not because one arm
+    # fell back to counting.
+    assert without_stock["settlement_selection"] == "chosen_weighted", (
+        "dropping the stock left the campaign unable to choose at all, which means prospects "
+        "stopped carrying a home rather than carrying a different one")
+    assert settled_with != settled_without, (
+        "the chosen book and the culled book settled exactly the same accounts -- the choosing "
+        "is doing nothing")
 
 
 def test_the_recorded_verdict_is_the_predicate_the_tests_judge(_live, tmp_path, monkeypatch):

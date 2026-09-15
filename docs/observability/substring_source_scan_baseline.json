@@ -1363,6 +1363,11 @@
     },
     {
       "path": "tools/generate_dashboard_data.py",
+      "function": "_check_front_door_selection_draw_count",
+      "subject": "unknown"
+    },
+    {
+      "path": "tools/generate_dashboard_data.py",
       "function": "_check_front_door_selection_verdict",
       "subject": "unknown"
     },

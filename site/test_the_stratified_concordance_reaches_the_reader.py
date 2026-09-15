@@ -717,6 +717,104 @@ def test_an_unreadable_blob_refuses_rather_than_reporting_no_departure_cost():
         "result and it belongs on the page")
 
 
+#: A grading the artefact could carry, shaped exactly as `run_value_cycle_ab
+#: .belief_against_control_outcomes` returns it on its available branch. The figures are
+#: deliberately unlike anything else on the page so an assertion cannot pass on a coincidence:
+#: 0.583 appears nowhere in the live feed, and neither does a 117/79/38 population.
+_GRADED = {
+    "available": True,
+    "discrimination_auc": 0.583,
+    "auc_population": {"retained": 79, "left": 38},
+    "priced_and_scored": 117,
+    "population_terms_absent_from_the_control_world": 6,
+    "scored_share_of_priced": 0.87,
+}
+
+
+def _with_grading(block: dict):
+    """Bend the THREE-ARM artefact, never the page feed, and let the real producer read it.
+
+    The distinction is the whole value of these two controls. Hand-writing
+    `the_grading_population_is_not_independent` into the feed would assert that the render can
+    display a dict I built to be displayable -- a fixture fitted to its own conclusion. Putting
+    the block where the RUN puts it makes `_independent_grading_today` the subject too, so the
+    producer and the door are proved on one path.
+    """
+    def mutate(three_arm: dict) -> dict:
+        three_arm["belief_against_control_outcomes"] = copy.deepcopy(block)
+        return three_arm
+
+    return mutate
+
+
+def test_a_run_that_HAS_the_independent_grading_puts_the_figure_on_the_page():
+    """DEFECT: the page had ONE branch, and it was the one that says the figure does not exist.
+
+    `_independent_grading_today` was re-keyed on 2026-09-10 to read `available` off the artefact
+    instead of publishing a hard-coded False. The door that consumes it was not. So the first run
+    to write `belief_against_control_outcomes` would have produced a page that silently dropped
+    the sentence explaining the absence, went on listing the remedy as still REQUIRED, and
+    rendered the grading nowhere -- `esc(undefined)` is the empty string, so nothing would have
+    looked broken to anyone reading the page or the diff.
+
+    That is the pointer-with-two-ends shape: the producer end was un-pinned and the render end
+    stayed keyed to today's answer. A control on the producer alone cannot see it.
+    """
+    page = _element(_render(_feed(mutate=_with_grading(_GRADED))), DECISIONS)
+    assert "0.583" in page, (
+        "the artefact carries an independent grading and the reader never meets the figure -- the "
+        "one number the whole block exists to make checkable renders nowhere")
+    assert "117" in page and "79" in page and "38" in page, (
+        "the figure reached the page without the population behind it. A concordance whose "
+        "retained/left counts are not stated is a number nobody can weigh")
+    # THE CAVEAT SURVIVES THE FIGURE ARRIVING, and this is the half most likely to be lost in a
+    # later tidy-up. The OUTCOME becomes independent of the belief; the POPULATION does not.
+    assert "population" in page.lower() and "value-arm survival" in page.lower(), (
+        "the independent figure is published without the caveat that the POPULATION is still the "
+        "value arm's priced set, so a reader takes independence of the outcome for independence "
+        "of the grading")
+    assert "6" in page, "the terms absent from the control world are not counted on the page"
+    # THE TENSE FLIPS WITH THE BRANCH. `what_an_independent_population_must_look_like` is phrased
+    # as a requirement. Rendered unchanged beside a delivered grading it reads as still-outstanding
+    # work, which is the stale-in-the-pessimistic-direction half of the same defect.
+    assert "and what this run supplies" in page, (
+        "the requirements list is introduced as something still to be met while the run beside it "
+        "meets them")
+    # ...AND THE ABSENCE SENTENCE GOES, because leaving it beside the figure tells the reader the
+    # thing in front of them does not exist.
+    assert "no (account, term, retained) list" not in page.lower(), (
+        "the page still explains why the grading is unavailable while displaying it")
+
+
+def test_a_run_WITHOUT_it_still_says_why_and_does_not_show_a_figure():
+    """THE NULL CONTROL, and the test above is worth nothing without it.
+
+    A door that renders the grading paragraph unconditionally would pass every assertion above
+    while telling a reader on a run that has no such grading that one exists. Both branches are
+    driven over ONE artefact differing in ONE field, which is the only way to show the render is
+    keyed to the run's own `available` rather than to the shape of whatever fixture arrived.
+    """
+    refused = {"available": False,
+               "why_not": "this fixture's control arm published no customer_events"}
+    page = _element(_render(_feed(mutate=_with_grading(refused))), DECISIONS)
+    assert "0.583" not in page, (
+        "the page shows an independent concordance for a run that refused to compute one")
+    # THE HEADING, NOT ONLY THE NUMBER, and this is the assertion that gives the null control its
+    # teeth. Rendering the grading paragraph unconditionally puts no false FIGURE on the page --
+    # the fields are absent, so it degrades to "no figure" -- and would survive an assertion that
+    # only looked for 0.583. It would still announce to the reader that this run's belief has been
+    # graded against an independent outcome, which it has not.
+    assert "Graded against an outcome its own price did not cause" not in page, (
+        "the page announces an independent grading for a run that has none -- the paragraph is "
+        "rendered unconditionally rather than keyed to the run's own `available`")
+    assert "no customer_events" in page, (
+        "the run named its own reason for refusing and the reader gets none of it -- a refusal "
+        "that does not say why is how the refusal itself stops being checkable")
+    # The remedy stays phrased as OUTSTANDING here, which is exactly what it is on this branch.
+    assert "would have to be" in page.lower(), (
+        "the unavailable branch dropped the clause naming what would have to be recorded")
+
+
 def test_no_subject_of_this_file_is_read_from_the_working_tree():
     """THE RELAPSE GUARD: this file's own AST, rather than my having been careful.
 

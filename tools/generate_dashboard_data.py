@@ -2362,10 +2362,12 @@ def generate(run_json_path=None):
     # guards what the run says about the thesis those figures exist to test. Both are sentences a
     # reader meets above the fold and neither can be allowed to rot into a false public claim.
     selection_verdict_ok = _check_front_door_selection_verdict()
+    selection_draws_ok = _check_front_door_selection_draw_count()
     # Only the checks whose figures a reader can actually reach decide the verdict. The other
     # five still ran above and printed their diagnosis; see REPORTED_NOT_BLOCKING for why they
     # are reported rather than gating, and what would put them back.
-    consistency_ok = population_ok and mix_claim_ok and selection_verdict_ok
+    consistency_ok = (population_ok and mix_claim_ok and selection_verdict_ok
+                      and selection_draws_ok)
 
     # THE OPENING DIRECT DEBIT, BOTH ARMS. Written on the publish path rather than
     # composed into `dashboard` because the block is a comparison of two runs of one
@@ -2413,6 +2415,12 @@ PUBLISH_VERDICT_CHECKS = {
     # that sentence against `value_arms.json`'s own verdict field every publish, both ways.
     "_check_front_door_selection_verdict": (
         "/", "the front door's selection-leg verdict matches what the run actually says"
+    ),
+    # The MOVING half of the same sentence. The verdict above is what more seeds are meant to
+    # leave alone; the draw count is what changes every time a floor run lands, and it was the
+    # unchecked one. See `_check_front_door_selection_draw_count`.
+    "_check_front_door_selection_draw_count": (
+        "/", "the front door's stated number of re-draws matches the family the run actually held"
     ),
 }
 
@@ -2722,6 +2730,123 @@ def _check_front_door_segment_claim(dashboard, front_door_path=FRONT_DOOR_PATH):
 # ---------------------------------------------------------------------------
 VALUE_ARMS_FEED_PATH = PROJECT / "site" / "data" / "value_arms.json"
 _SELECTION_VERDICT_RE = re.compile(r'data-selection-verdict="(withheld|resolved)"')
+_SELECTION_DRAWS_RE = re.compile(r'data-selection-draws="(\d+)"')
+#: How the front door SPELLS a draw count in prose. The attribute above is what a gate can read;
+#: this is what a reader actually meets, and the two must not be allowed to drift apart -- the
+#: front door said "Re-drawn nine times" in two places with nothing checking either.
+_SPELLED = {
+    1: "one", 2: "two", 3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight",
+    9: "nine", 10: "ten", 11: "eleven", 12: "twelve", 13: "thirteen", 14: "fourteen",
+    15: "fifteen", 16: "sixteen", 17: "seventeen", 18: "eighteen", 19: "nineteen", 20: "twenty",
+    21: "twenty-one", 22: "twenty-two", 23: "twenty-three", 24: "twenty-four", 25: "twenty-five",
+    26: "twenty-six", 27: "twenty-seven", 28: "twenty-eight", 29: "twenty-nine", 30: "thirty",
+}
+
+
+def _check_front_door_selection_draw_count(
+    front_door_path=FRONT_DOOR_PATH, feed_path=VALUE_ARMS_FEED_PATH
+):
+    """The front door's stated NUMBER OF RE-DRAWS must be the number the family actually holds.
+
+    THE DEFECT THIS SERVES (2026-09-10). The front door says "Re-drawn nine times over nothing but
+    each household's hidden price sensitivity" and points at "the nine-draw band", and NOTHING
+    checked either word. `_check_front_door_selection_verdict` beside it recomputes the VERDICT
+    from the feed every publish, in both directions -- but the verdict is the one thing about this
+    leg that more seeds are supposed to leave alone until they change it, and the SAMPLE SIZE is
+    the thing that moves every time a lane finishes a floor run. So the checked field was the
+    stable one and the unchecked field was the moving one.
+
+    It was about to bite. Two floor legs were running as this was written -- one re-drawing the
+    existing nine seeds, one drawing nine new ones -- and folding them makes the family eighteen.
+    On that publish the front door would have told a reader the strongest claim on the page rests
+    on nine draws while its own evidence page showed eighteen, and the sentence's own comment
+    ("a hand-typed figure beside a generated one is the defect this project files against itself
+    most often") would have been describing itself.
+
+    BOTH FORMS, BECAUSE A READER MEETS ONLY ONE OF THEM. `data-selection-draws` is what this gate
+    reads; the spelled word is what is actually on screen. Checking the attribute alone would let
+    the prose rot behind a correct machine-readable value, which is the same one-fact-two-homes
+    shape in miniature.
+
+    KEYED TO THE PROPERTY. Nothing here knows that today's answer is nine. It asserts that the
+    number on the door is the number in the feed, so the day a fold lands this goes red on its own
+    and the day the prose is corrected it goes quiet on its own.
+
+    WHY THIS CARRIES A ROW IN `substring_source_scan_baseline.json`. The census fails closed when
+    it cannot establish that a `read_text()` subject is Python, and it cannot establish it here:
+    the subject is `site/index.html`, and matching on HTML is the whole job. `tools/python_code_text
+    .py` -- the register's stated remedy -- is a category error for a non-Python subject, which is
+    the documented dismissal (`a_row_is_not_a_verdict`). `_check_front_door_selection_verdict` and
+    `_check_front_door_segment_claim` beside it carry the same row for the same reason. Retire the
+    row if this ever stops reading the door directly.
+    """
+    try:
+        html = front_door_path.read_text()
+    except OSError as exc:
+        print(
+            "FRONT-DOOR SELECTION-DRAWS GATE FAILED: front door unreadable ({}) -- an "
+            "unavailable check is a FAILED check, not a pass".format(exc),
+            file=sys.stderr,
+        )
+        return False
+
+    stated = _SELECTION_DRAWS_RE.findall(html)
+    if not stated:
+        print(
+            'FRONT-DOOR SELECTION-DRAWS GATE FAILED: no data-selection-draws="N" on the front '
+            "door. The door states the personalisation claim and says how many re-draws the "
+            "evidence for it rests on, so that count must be stated in a form this gate can "
+            "check. The attribute is missing or was edited into an unverifiable form.",
+            file=sys.stderr,
+        )
+        return False
+
+    try:
+        feed = json.loads(feed_path.read_text())
+    except (OSError, ValueError) as exc:
+        print(
+            "FRONT-DOOR SELECTION-DRAWS GATE FAILED: the value-arms feed is unreadable ({}), so "
+            "the front door's published draw count cannot be verified".format(exc),
+            file=sys.stderr,
+        )
+        return False
+
+    leg = (feed.get("current_world") or {}).get("selection_leg") or {}
+    n = ((leg.get("verdict_stability") or {}).get("n"))
+    if not isinstance(n, int) or n < 2:
+        print(
+            "FRONT-DOOR SELECTION-DRAWS GATE FAILED: the feed carries no usable "
+            "current_world.selection_leg.verdict_stability.n ({!r}), so there is nothing to hold "
+            "the front door's count against. Absence of the field is NOT absence of a claim on "
+            "the page.".format(n),
+            file=sys.stderr,
+        )
+        return False
+
+    for page_says in stated:
+        if int(page_says) != n:
+            print(
+                "FRONT-DOOR SELECTION-DRAWS GATE FAILED: the front door says the selection leg "
+                "was re-drawn {} times, and this run's feed says {}. The published sentence is "
+                "now FALSE. Fix the sentence -- both the attribute and the spelled word in the "
+                "paragraph. Never adjust the family to match the door (R12).".format(
+                    page_says, n
+                ),
+                file=sys.stderr,
+            )
+            return False
+
+    word = _SPELLED.get(n)
+    if word and word not in html:
+        print(
+            "FRONT-DOOR SELECTION-DRAWS GATE FAILED: the machine-readable count is {n} and "
+            "agrees with the feed, but the word {word!r} appears nowhere on the front door -- so "
+            "the paragraph a reader actually reads still spells some other number. The attribute "
+            "was updated and the prose beside it was not.".format(n=n, word=word),
+            file=sys.stderr,
+        )
+        return False
+    return True
 
 
 def _check_front_door_selection_verdict(

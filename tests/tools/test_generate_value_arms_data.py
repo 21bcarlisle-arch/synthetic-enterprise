@@ -489,10 +489,16 @@ def _declared(segments):
 def _floor_declaring(segments, realised=None):
     """The real nine-seed floor, given the `book_identity` block its producer now writes.
 
-    KEYED TO THE PROPERTY AND NOT TO TODAY'S ARTEFACT. No floor on disk carries a book identity
-    yet -- every one of them predates the writer -- so a control that waited for one would be a
-    control that cannot fail. The block is the shape `floor_book_identity` returns, and the day a
-    real floor carries one these read it without changing.
+    KEYED TO THE PROPERTY AND NOT TO TODAY'S ARTEFACT. The block is the shape
+    `floor_book_identity` returns, and the day a real floor carries one these read it without
+    changing.
+
+    THAT DAY WAS 2026-09-11, and the sentence this docstring used to open with -- "no floor on
+    disk carries a book identity yet, every one of them predates the writer" -- went false when
+    the 09-10 nine-seed floor was promoted to `NOISE_FLOOR`. It is the FIRST floor on disk to
+    declare its own book. The prediction the sentence was making held exactly: these helpers read
+    it without changing. What did NOT survive was a control that had quietly borrowed the absence
+    as a witness -- see `_floor_without_a_book` below.
     """
     floor = copy.deepcopy(_load(NOISE_FLOOR))
     floor["book_identity"] = {
@@ -503,6 +509,23 @@ def _floor_declaring(segments, realised=None):
         "realised_across_seeds": realised or {},
         "how_a_consumer_should_pair_this": "Pair on `declared` and never on `realised_across_seeds`.",
     }
+    return floor
+
+
+def _floor_without_a_book():
+    """A floor that declares NO book identity -- the input the stamp-proxy branch exists for.
+
+    WHY THIS IS A CONSTRUCTED WITNESS AND NOT THE ARTEFACT ON DISK (2026-09-11). Until the 09-10
+    floor landed, every floor on disk lacked a `book_identity` block, so `_load(NOISE_FLOOR)`
+    reached the proxy branch for free and the partition control below used it as its proxy
+    witness. That was borrowing an ABSENCE as a witness: the moment a floor carried a book -- the
+    artefact becoming MORE honest, not less -- the witness silently stopped standing for the
+    branch it was there to reach, and the control went red for a reason that was not a defect.
+    This helper makes the absence deliberate, so the proxy branch keeps a witness no promotion can
+    take away.
+    """
+    floor = copy.deepcopy(_load(NOISE_FLOOR))
+    floor.pop("book_identity", None)
     return floor
 
 
@@ -610,6 +633,13 @@ def test_EVERY_admission_outcome_IS_REACHABLE_from_this_feeds_own_inputs():
 
     MUTATION: make `_floor_admission` return the proxy branch unconditionally and this is the only
     control here that reds -- the four above go green on a rule that has stopped asking.
+
+    EVERY WITNESS IS CONSTRUCTED FROM THE PROPERTY IT STANDS FOR (2026-09-11). It used to reach the
+    proxy branch through `_load(NOISE_FLOOR)` unedited, which worked only because no floor on disk
+    declared a book. Promoting the 09-10 floor -- which does -- moved that witness onto the
+    declared-book branch and reds this control while the rule underneath it was working perfectly.
+    A control that goes red when its subject gets MORE honest is keyed to today's answer, and the
+    fix is `_floor_without_a_book`, not a wider expected set.
     """
     three_arm = _load(THREE_ARM)
     disagreeing = copy.deepcopy(three_arm)
@@ -619,7 +649,11 @@ def test_EVERY_admission_outcome_IS_REACHABLE_from_this_feeds_own_inputs():
          gva._floor_admission(_floor_declaring(_the_runs_own_segments()), three_arm)["admitted"]),
         (gva._floor_admission(_floor_declaring(["resi"]), three_arm)["rule"],
          gva._floor_admission(_floor_declaring(["resi"]), three_arm)["admitted"]),
-        gva._floor_admission(_load(NOISE_FLOOR), three_arm)["rule"],
+        # THE PROXY BRANCH, reached from BOTH of the two ways a pairing can fail to establish a
+        # book: the FLOOR side declaring none, and the FIGURE side's own arms disagreeing. Two
+        # witnesses and not one, because they are different inputs to the same fail-closed rule
+        # and either could rot alone.
+        gva._floor_admission(_floor_without_a_book(), three_arm)["rule"],
         gva._floor_admission(_floor_declaring(_the_runs_own_segments()), disagreeing)["rule"],
     }
     assert outcomes == {
@@ -1662,6 +1696,61 @@ def test_the_remedy_clause_follows_the_decomposition_not_the_wording():
                            ("unmeasured", unmeasured), ("undecided", undecided)):
         assert _ARITHMETIC_REMEDY in headline, (
             "the {} branch dropped the half of the remedy that is arithmetic".format(name))
+
+
+def test_a_remedy_whose_OTHER_HALF_IS_EMPTY_is_refused_and_not_rounded_to_zero_percent():
+    """THE DEFECT THIS BRANCH EXISTS FOR, and it is one the producer's repair CREATED.
+
+    `decompose_floor` now withdraws `priced_share_of_variance` and `share_is_decisive` when the
+    rest-of-book leg carried no variance -- the identity case filed on 2026-09-10. Without a branch
+    here the page falls into "too close to call", whose two `or 0.0` fallbacks would then print
+    "0% of it is the priced households' own draw ... too close to the 0% it would have to clear":
+    two fabricated figures standing exactly where a withdrawal belongs, on the sentence the page's
+    remedy is stapled to. A withdrawal upstream that arrives downstream as a zero is worse than the
+    figure it replaced, because the zero looks measured.
+
+    KEYED TO THE ARTEFACT'S OWN FLAG, NOT TO THE WORDING. A decomposition whose other half DID move
+    keeps its price with no edit here, which is the null rung below -- a control that only ever
+    demands the remedy be absent is satisfied by deleting the remedy.
+    """
+    ordinary = _withheld_headline(_decomposition(0.85, resolvable=True))
+    empty = _withheld_headline(dict(
+        _decomposition(0.85, resolvable=True),
+        rest_of_book_half_is_degenerate=True,
+        priced_share_of_variance=None, share_is_decisive=None,
+        share_margin_over_threshold=None, larger_settled_book_would_resolve_it=None,
+        irreducible_sd_gbp=None, priced_decisions_needed=None,
+        why_those_keys_are_withdrawn=(
+            "The `except` leg returned the IDENTICAL `value_advantage_gbp` on all 3 seeds, so its "
+            "variance is exactly zero, measured over 5 accounts."),
+        what_would_make_the_rest_of_book_half_measurable=(
+            "Not more seeds: the roster swallows the complement it re-draws.")))
+
+    # THE NULL RUNG FIRST -- the branch is reachable only if the other side of it still runs.
+    assert "larger SETTLED BOOK" in ordinary and "54 priced renewals" in ordinary
+
+    assert "larger SETTLED BOOK" not in empty, (
+        "the page priced a remedy off a split whose other half carried no variance: {}"
+        .format(empty))
+    assert "0% of it is the priced households" not in empty, (
+        "the producer's withdrawal arrived on the page as a measured-looking 0% -- the `or 0.0` "
+        "fallback in the undecided branch: {}".format(empty))
+    assert "too close" not in empty, (
+        "an EMPTY half was published as a close call, which says the instrument nearly worked")
+    # THE REASON IS THE PRODUCER'S OWN WORDS, so the page cannot drift into its own account of why.
+    assert "IDENTICAL" in empty and "5 accounts" in empty, (
+        "the refusal names no cause a reader can check it against: {}".format(empty))
+    assert "roster swallows the complement" in empty, (
+        "the page refused the remedy and named nothing that would fix it, which reads as 'wait "
+        "for a bigger book' -- the one thing that makes this half less measurable")
+    # KEYED TO THE PRODUCER'S OWN CONSTANT (2026-09-15). This pinned the literal "More seeds
+    # would not resolve it" until the 2026-09-11 fork close, where it met a producer that had
+    # reworded the clause to separate what more seeds do to a SPREAD from what they do to that
+    # spread's MEAN -- the page becoming more precise turning a word-keyed control red. The
+    # property is that the seeds clause is STILL THERE beside a refusal whose other half is
+    # empty, so it reads the constant and the next rewording cannot red it.
+    assert gva.MORE_SEEDS_WOULD_NOT in empty, (
+        "the refusal dropped the seeds clause entirely: {}".format(empty))
 
 
 def test_a_remedy_measured_on_another_book_is_refused_rather_than_restated():
@@ -3824,12 +3913,43 @@ def test_a_leg_whose_own_redraws_straddle_zero_states_no_direction_however_stabl
     # that substituted one cause for the other reds.
     assert leg["verdict_withheld_because"].replace(leg["no_sign"], "").strip(), (
         "the stability reason was replaced by the sign one rather than joined to it")
-    # THE CENTRE'S SIDE IS COMPOSED, NOT ASSERTED. -GBP 481 against a published +GBP 270, so this
-    # subject must say the centre is on the other side; WITNESS B is what shows the sentence is
-    # capable of saying nothing at all about a family that agrees with its draw.
-    assert "CENTRE of that family is on the other side of zero" in leg["no_sign"], (
-        "the published draw is positive and the centre of its own family is negative, and the "
-        "page did not say so")
+    # THE CENTRE'S SIDE IS COMPOSED, NOT ASSERTED -- AND KEYED TO THE PROPERTY, NOT TO WHICH SIDE
+    # THE LIVE DRAW HAPPENS TO BE ON (repaired 2026-09-11).
+    #
+    # WHAT THIS RUNG USED TO SAY, AND WHY IT WAS WRONG. It asserted the clause is PRESENT, on the
+    # reasoning "-GBP 481 against a published +GBP 270, so this subject must say the centre is on
+    # the other side". True of the artefact it was written against and false as a control: the
+    # clause is CONDITIONAL on the draw and the centre straddling zero between them, and the live
+    # draw's side is a property of which run is promoted to `THREE_ARM_PATH`. Promoting the 09-10
+    # run moved the canonical selection leg from +GBP 319 to -GBP 333, onto the SAME side as its
+    # family's centre -- so the clause correctly fell silent and this rung went red reporting a
+    # defect that did not exist. The page had become more consistent, not less.
+    #
+    # So the rung now asserts the BICONDITIONAL the producer actually implements: the clause is
+    # present exactly when the two sides disagree. That stays green through any promotion and reds
+    # on a producer that composes the clause unconditionally, drops it, or inverts it.
+    centre = leg["verdict_stability"]["redraw_mean_gbp"]
+    draw = leg["figure_gbp"]
+    opposite_sides = (centre > 0) != (draw > 0) and centre != 0
+    assert ("CENTRE of that family is on the other side of zero" in leg["no_sign"]) is opposite_sides, (
+        "the centre clause and the numbers disagree: the published draw is GBP {:.2f}, the centre "
+        "of its own re-draw family is GBP {:.2f}, so the clause is {} and the page says otherwise"
+        .format(draw, centre, "due" if opposite_sides else "not due"))
+
+    # WITNESS A2 -- THE CENTRE CLAUSE FIRING, kept reachable by construction rather than by which
+    # run is canonical today. The same leg with only the published draw reflected across zero, so
+    # the draw and the family's centre must disagree whichever side the live run put them on. This
+    # is the rung the biconditional above would otherwise let go vacuous: a producer that never
+    # composes the clause satisfies the biconditional whenever the live numbers happen to agree.
+    reflected = dict(current, level_vs_selection=dict(
+        current["level_vs_selection"], selection_gbp=-draw))
+    across = gva._current_world_contrast(reflected, superseded, admitted, later_runs=[])["selection_leg"]
+    assert across["verdict_stability"]["sign_determined"] is False, (
+        "reflecting the published draw changed the FAMILY's sign verdict, so this witness moved "
+        "more than the one thing it exists to move")
+    assert "CENTRE of that family is on the other side of zero" in across["no_sign"], (
+        "the draw was placed on the opposite side of zero from the centre of its own family and "
+        "the page still did not say so, so the clause is unreachable and says nothing anywhere")
 
     # WITNESS B -- SOLE WITNESS THAT THE CLAUSE IS A JUDGEMENT. The same rows shifted so every
     # draw is on one side of zero, and nothing else touched. A family with a sign gets no sign
@@ -6542,6 +6662,90 @@ def test_the_book_a_sign_would_need_is_a_lower_bound_over_every_split(real_curre
         assert block["is_a_lower_bound"] is True
 
 
+def test_an_ATTAINED_bound_stops_promising_a_bigger_number_and_a_run_that_cannot_happen():
+    """THE DEFECT, live on `capabilities/index.html` until 2026-09-10.
+
+    The block prices the `V_rest = 0` corner and printed underneath it "the real book is LARGER
+    than this, never smaller", plus the work that would pin it down: "the `only` and `except` floor
+    legs re-run on this book at these nine seeds -- nine full three-arm passes each, not yet run."
+    The MATHS is right -- the corner is the family's minimum. Both INFERENCES are wrong here. A
+    full instrumented pass counted 298 elasticity draws in this world with ZERO outside the
+    100-account priced roster, so `V_rest` is identically zero: the corner is where this book
+    actually sits, nothing is coming to raise it, and the nine-seed `except` run launched that
+    morning refused on its first seed after 39 minutes because the set it re-draws is empty. A
+    remedy naming work that cannot be done is worse than none -- it reads as a plan.
+
+    KEYED TO THE PROBE, NOT TO THE WORDING OR TO 44.9x. Feed it a probe that finds households
+    outside the roster and the ordinary lower-bound reading must come back, with no edit here.
+
+    THE BOOLEAN DOES NOT FLIP EITHER WAY: `is_a_lower_bound` stays True in both, because `m` is
+    still the minimum over the family. A repair that reported an attained bound as "not a bound"
+    would say the arithmetic was wrong, and it is not.
+    """
+    leg = {"verdict_stability": {"sign_determined": False},
+           "bound": {"stdev_gbp": 1000.0, "mean_gbp": -400.0, "n": 9}}
+    current = {"world_identity": {"digest": "w1"},
+               "renewal_funnel": {"value_arm": {
+                   "priced": 200, "renewals_the_world_offered": 2000,
+                   "priced_share_of_renewals_offered": 0.1,
+                   "accounts_the_arm_priced": ["A{}".format(i) for i in range(100)]}}}
+
+    def _probe(outside, **over):
+        return dict({"world_digest": "w1", "roster_size": 100, "elasticity_calls": 298,
+                     "accounts_that_drew": 67,
+                     "accounts_that_drew_outside_the_roster": outside}, **over)
+
+    empty = gva._the_complement_this_bound_rests_on(current, _probe(0))
+    peopled = gva._the_complement_this_bound_rests_on(current, _probe(5))
+    assert empty["empty"] is True and peopled["empty"] is False, (
+        "the probe reader does not separate an empty complement from a peopled one, so every "
+        "sentence keyed to it says the same thing whatever was measured")
+
+    # FAIL CLOSED, THREE WAYS. A probe that cannot be shown to describe THIS book must leave the
+    # ordinary reading standing -- which asks for a bigger book than needed, the safe direction.
+    for name, probe in (("another world", _probe(0, world_digest="w2")),
+                        ("another roster", _probe(0, roster_size=67)),
+                        ("no count at all", _probe(None))):
+        assert gva._the_complement_this_bound_rests_on(current, probe)["empty"] is None, (
+            "a probe from {} was read as describing this book -- the page would then call its "
+            "bound exact on evidence measured somewhere else".format(name))
+    assert gva._the_complement_this_bound_rests_on(current, None)["empty"] is None
+
+    # AND THE BLOCK'S PROSE FOLLOWS IT. Both readings are driven through the module's own file
+    # read, so the two differ in the PROBE and in nothing else -- a fixture that changed the world
+    # or the book alongside it could not attribute which one moved the sentence.
+    import unittest.mock as _mock
+    with _mock.patch.object(gva, "_read", lambda p: _probe(0)):
+        block = gva._what_would_settle_the_sign(leg, current, 250.0)
+    assert block["the_bound_is_attained"] is True, (
+        "the page did not read the probe at all, so the branch below is unreachable")
+    assert block["is_a_lower_bound"] is True, (
+        "an attained bound was reported as not a bound, which says the arithmetic was wrong")
+    assert "the real book is LARGER" not in block["why_it_is_a_lower_bound"], (
+        "the page promised a bigger number that no measurement on this instrument can produce")
+    assert "not yet run" not in block["why_it_is_a_lower_bound"], (
+        "the page still directs a reader at floor legs that refuse on this book")
+    assert "attained" in block["why_it_is_a_lower_bound"].lower()
+    assert "298" in block["why_it_is_a_lower_bound"], (
+        "the claim is stated with none of the counts it rests on, so a reader cannot check it")
+    assert "cannot be run as a distinct leg" in block["why_no_account_column"], (
+        "the account column is still withheld pending a leg that cannot exist here")
+    assert "the real one is larger" not in block["sentence"], (
+        "the takeaway line kept the inference the block above withdrew -- and the line is the "
+        "half a reader carries away: {}".format(block["sentence"]))
+    assert "read them as exact" in block["sentence"]
+
+    # THE NULL RUNG: a peopled complement restores every original sentence, with no edit here.
+    with _mock.patch.object(gva, "_read", lambda p: _probe(5)):
+        ordinary = gva._what_would_settle_the_sign(leg, current, 250.0)
+    assert ordinary["the_bound_is_attained"] is False
+    assert "the real book is LARGER" in ordinary["why_it_is_a_lower_bound"], (
+        "the lower-bound reading was deleted rather than made conditional, so a book whose "
+        "complement is peopled would be told its bound is exact")
+    assert "the real one is larger" in ordinary["sentence"]
+    assert "not yet run" in ordinary["why_it_is_a_lower_bound"]
+
+
 def test_the_price_is_on_the_book_this_page_publishes():
     """THE RECONCILIATION THE EXISTING DECOMPOSITION FAILS, which is why this block exists at all.
 
@@ -6763,8 +6967,24 @@ def test_the_objective_difference_is_read_from_the_TREES_and_never_from_the_file
     control working: the baseline tree's copy of the module DOES contain the word `departure`
     (in a docstring), so a substring scan answers True there. What decides it is whether the
     objective can be HANDED the cost.
+
+    THE WITNESS IS A NAMED COMMIT AND NOT `THREE_ARM`'S (repaired 2026-09-11). This rung used to
+    read its no-departure tree off whatever run was promoted to `THREE_ARM_PATH`. That is not a
+    property of the tree it is asking about -- it is a property of which run is canonical this
+    week -- and promoting the 09-10 run, drawn at `9cf9d16ed`, moved the witness onto a tree that
+    DOES price departures. The rung went red while `_objective_pays_for_departures` was answering
+    every question correctly.
+
+    A FIXED COMMIT IS THE RIGHT KEY HERE, and it is the only place in this file where one is. The
+    question "could this tree hand the objective a departure cost" is a fact about an immutable
+    object; a pointer that moves makes the poison round evaporate silently, which is exactly what
+    happened. The poison precondition below is still asserted, so a witness that stops being
+    poisonous fails loudly instead of passing for the wrong reason.
     """
-    baseline_commit = _load(THREE_ARM)["producing_commit"]["commit"]
+    # `8b846013e` -- the 2026-09-09 three-arm run's own tree, canonical until the 09-10 promotion.
+    # Chosen because its copy of the objective module contains the word `departure` and cannot be
+    # handed the cost, which is the whole point of the poison round.
+    baseline_commit = "8b846013ead420257a76bd65bbe7d552b69a72bd"
     rerun_commit = _load(DEPARTURE_RERUN)["producing_commit"]["commit"]
     import subprocess
     shown = subprocess.run(
@@ -7125,6 +7345,86 @@ def test_the_real_artefacts_reconcile_and_the_block_reaches_the_feed():
         data["error_bar"]["distinguishable_from_zero"]), (
         "the reconciliation reports a different answer from the key it is reconciling, so the "
         "feed now holds THREE answers to one question")
+# ---------------------------------------------------------------------------
+# A SPLIT WHOSE TWO HALVES RE-DREW DIFFERENT QUANTITIES
+# ---------------------------------------------------------------------------
+
+def test_a_mixed_key_split_states_the_verdict_and_never_a_share():
+    """The empty-half defect, re-entered through a door that did not exist when it was closed.
+
+    THE DEFECT, REPRODUCED BEFORE IT WAS FIXED. From 2026-09-10 a floor leg names the quantity it
+    re-drew (`redraw_key`), because the `except` half had to be re-keyed to the churn roll -- the
+    rest of the book never takes the elasticity draw. Two legs on two keys do not partition each
+    other, so `decompose_floor` withdraws every key running through `v_only + v_except`. That
+    leaves `rest_of_book_half_is_degenerate` FALSE (the `except` leg carried real variance) and
+    `share_is_decisive` None, and the page fell straight through to the threshold branch and
+    published:
+
+        "The spread HAS now been split -- 0% of it is the priced households' own draw ...
+         too close to the 0% it would have to clear"
+
+    Two fabricated figures out of `or 0.0`, under a sentence asserting a split that was not made.
+
+    AND THE HALF THAT MUST SURVIVE. `irreducible_sd_gbp` is the `except` leg's own spread and needs
+    no sum, so the verdict on whether a bigger book resolves this IS available -- withholding it
+    would suppress the one answer the re-keying was done to get. Both verdict branches are
+    asserted, so a fix that simply says nothing on a mixed key cannot pass.
+    """
+    resolvable = dict(_decomposition(0.85, resolvable=True),
+                      legs_share_one_call_stream=False,
+                      priced_share_of_variance=None, share_is_decisive=None,
+                      share_at_which_a_bigger_book_could_resolve_it=None,
+                      priced_decisions_needed=None,
+                      why_the_partition_keys_are_withdrawn=(
+                          "The legs re-drew DIFFERENT quantities (except=churn_roll, "
+                          "only=elasticity, undecomposed=elasticity)."))
+    hopeless = dict(resolvable, larger_settled_book_would_resolve_it=False,
+                    irreducible_sd_gbp=2306.0)
+
+    for name, split in (("resolvable", resolvable), ("hopeless", hopeless)):
+        said = gva._what_would_resolve_it(
+            split, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+        assert "0%" not in said, (
+            "the {} mixed-key split published a fabricated 0% where a withdrawal belongs: {}"
+            .format(name, said))
+        assert "HAS now been split" not in said, (
+            "the page asserted a split that was not made on the {} fixture: {}".format(name, said))
+        # THE REASON IS READ OUT OF THE ARTEFACT, never restated here, so the page cannot drift
+        # into its own account of why the producer withheld.
+        assert "churn_roll" in said and "elasticity" in said, (
+            "the page withheld the share and never named the two keys, so a reader cannot tell "
+            "this from a shortage of seeds: {}".format(said))
+
+    # AND THE VERDICT SURVIVES, IN BOTH DIRECTIONS -- a fix that withheld everything fails here.
+    yes = gva._what_would_resolve_it(
+        resolvable, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+    no = gva._what_would_resolve_it(
+        hopeless, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+    assert "WOULD bring the bar under the gap" in yes, (
+        "the rest-of-book half is under the contrast and the page did not say a bigger book "
+        "helps -- that verdict needs only the `except` leg: {}".format(yes))
+    assert "would NOT resolve it" in no, (
+        "the rest-of-book half exceeds the contrast and the page did not say so: {}".format(no))
+    assert "1,153" in yes and "2,306" in no, (
+        "the measured rest-of-book spread -- the figure that DOES survive a mixed key -- reached "
+        "neither sentence")
+
+
+def test_a_split_that_predates_the_key_field_takes_the_ORDINARY_path():
+    """`legs_share_one_call_stream` is checked with `is False`, not for falsiness.
+
+    Every floor leg written before 2026-09-10 predates the field and reads None. Those are
+    single-key by construction -- there was one key -- so they must take the ordinary priced-share
+    path. A falsy check would divert every artefact on disk into the withholding branch and silence
+    a remedy the page has been correctly stating for weeks.
+    """
+    legacy = _decomposition(0.85, resolvable=True)
+    assert "legs_share_one_call_stream" not in legacy
+    said = gva._what_would_resolve_it(
+        legacy, _load(THREE_ARM), withheld_contrasts=(gva.PAGE_FIGURE_CONTRAST,))
+    assert "larger SETTLED BOOK" in said and "85%" in said, (
+        "an artefact predating the key field was diverted into the mixed-key withholding: {}"
+        .format(said))
 
 
 def _a_family_that_states_a_sign(mean, sem=613.0, seeds=9):

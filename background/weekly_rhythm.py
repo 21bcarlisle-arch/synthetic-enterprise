@@ -586,4 +586,9 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    try:  # seat guard, FIRST act -- refuse to start on foreign soil (background/_seat.py)
+        from background._seat import refuse_if_foreign
+    except ModuleNotFoundError:  # launched as `python3 background/weekly_rhythm.py`
+        from _seat import refuse_if_foreign
+    refuse_if_foreign("weekly_rhythm")
     raise SystemExit(main())

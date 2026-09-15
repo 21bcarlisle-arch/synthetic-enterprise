@@ -27,5 +27,32 @@
     "claim": "finished",
     "settled_at": "2026-09-08T04:10:57Z",
     "evidence": "the artefact `/var/tmp/value_cycle_ab_current_book_floor_2026-09-08.json` exists, the unit's Result=success and ExecMainStatus=0, and the job's own rc file says nothing"
+  },
+  {
+    "job": "noise-floor-20260910",
+    "unit": "longjob-noise-floor-20260910",
+    "artefact": "/var/tmp/se-floorrun-20260910/docs/observability/value_cycle_ab_s1_noise_floor_20260910.json",
+    "log": "/var/tmp/longjob-noise-floor-20260910.log",
+    "rc_path": null,
+    "launched_at": "2026-09-10T14:50:22Z",
+    "asserted_live_by": [
+      "docs/staging/SEAT_FINDING_THE_FLOORS_PIN_NAMED_THE_COMMIT_THAT_LANDED_THE_RUN_NOT_THE_ONE_THAT_PRODUCED_IT_2026-09-10.md",
+      "docs/staging/records/SEAT_PREREGISTRATION_WHETHER_A_LIVE_UNIT_WITH_NO_LAUNCH_RECORD_IS_A_CLASS_OR_A_SINGLE_SLIP_2026-09-10.md"
+    ],
+    "claim": "live",
+    "settled_at": null,
+    "evidence": null
+  },
+  {
+    "job": "arms-rerun-20260910b",
+    "unit": "longjob-arms-rerun-20260910b",
+    "artefact": "/home/rich/synthetic-enterprise/docs/observability/value_cycle_ab_s1_noise_floor_20260910b.json",
+    "log": "/home/rich/synthetic-enterprise/docs/observability/arms_rerun_20260910b.log",
+    "rc_path": null,
+    "launched_at": "2026-09-10T15:06:45Z",
+    "asserted_live_by": [],
+    "claim": "live",
+    "settled_at": null,
+    "evidence": null
   }
 ]

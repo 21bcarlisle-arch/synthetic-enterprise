@@ -92,6 +92,117 @@ def test_the_headline_states_the_share_of_its_own_wins_the_machine_could_settle(
     assert "Divide a booked count by 0.200" in out["engine_bound_statement"]
 
 
+def test_the_headline_tells_the_two_SELECTIONS_apart_and_only_one_says_divide():
+    """THE WHOLE PARTITION IN ONE CONTROL, and a leg per branch would not have caught this.
+
+    Both selections give a rate below one, so the rate cannot discriminate them and every
+    assertion keyed to the rate alone stays green under either. `3957ba848` re-worded the two
+    sentences the page's JavaScript builds and left this one -- built server side, in the feed --
+    saying "uniform" and "Divide a booked count by 0.183" over a chosen sample whose per-account
+    weights span 259x. The divide instruction is the damaging half: it is an arithmetic a reader
+    can carry out and it returns a wrong number in silence.
+
+    KEYED TO THE PROPERTY, not to today's wording: whatever the sentence says, the cull branch
+    must hand the reader one number to undo the sample with and the chosen branch must refuse to,
+    because under per-account weights no such number exists. Asserted over BOTH branches from one
+    record so a generator that returned a single branch for everything -- which is exactly the
+    defect that shipped -- fails here rather than passing two separate legs.
+    """
+    culled = _campaign("growth_rate", "capital", sample_rate=0.2)
+    chosen = dict(culled, settlement_selection="chosen_weighted")
+
+    cull_says = gb.build(culled)["engine_bound_statement"]
+    chosen_says = gb.build(chosen)["engine_bound_statement"]
+
+    assert cull_says != chosen_says, (
+        "one sentence for both mechanisms: the selection reached the feed and changed nothing a "
+        "reader sees, which is the state that published 'uniform' over a chosen book"
+    )
+    # The cull's undo instruction is correct THERE and must survive.
+    assert "uniform" in cull_says and "Divide a booked count by 0.200" in cull_says
+    # And must not survive here. `Divide`/`divide` both, because the damage is the arithmetic
+    # and not the capital letter.
+    assert "uniform" not in chosen_says.lower(), chosen_says
+    assert "divide" not in chosen_says.lower(), chosen_says
+    assert "in proportion to what it won" not in chosen_says, chosen_says
+    # What it must say instead: the sample was chosen, and the per-row weight is what reads
+    # across to the supplier. A branch that merely DELETED the false clauses would leave the
+    # reader with no way to read the supplier at all, which is a different defect.
+    assert "CHOSEN" in chosen_says and "settlement_weight" in chosen_says, chosen_says
+
+
+def test_the_field_the_headline_SENDS_THE_READER_TO_is_on_every_row_it_sends_them_to():
+    """BOTH ENDS OF THE POINTER, because probing one end is how this shipped broken.
+
+    The chosen headline closes by telling the reader that `settlement_weight` on each row is what
+    reads across to the supplier. For one commit that was the only route offered — the divide
+    instruction had correctly been removed — and `settlement_weight` **reached no row of the
+    feed**. `build` copied `funnel_wins` and the refusal count off the campaign record and not the
+    weight, so the sentence named a field that rendered nowhere and a reader following it found
+    nothing. Every assertion in this file was on the SENTENCE, which is one end.
+
+    So this control reads the sentence, extracts the field it names, and demands that field of
+    every row — rather than hard-coding the string twice, which would agree with itself.
+    """
+    record = _campaign("growth_rate", "capital", sample_rate=0.2)
+    record["settlement_selection"] = "chosen_weighted"
+    for i, row in enumerate(record["by_year"]):
+        row["settlement_weight"] = 15.0 + i
+
+    out = gb.build(record)
+    statement = out["engine_bound_statement"]
+
+    named = [f for f in ("settlement_weight", "funnel_wins", "wins")
+             if "`{}`".format(f) in statement]
+    assert named, (
+        "the chosen headline points the reader at no per-row field at all, so having removed "
+        "the divide instruction it leaves them no way to read the supplier: {!r}".format(
+            statement)
+    )
+    for field in named:
+        missing = [y.get("year") for y in out["years"] if y.get(field) is None]
+        assert not missing, (
+            "the headline sends the reader to `{}` on each row and it is absent from "
+            "year(s) {} of the feed -- the pointer has no referent".format(field, missing)
+        )
+    # And the values are the RECORD's, not invented here (SITE_CONSTITUTION rule 3).
+    assert [y["settlement_weight"] for y in out["years"]] == [15.0, 16.0]
+
+
+def test_a_year_whose_record_carries_NO_weight_publishes_null_and_never_zero():
+    """FAIL CLOSED on the weight itself. A campaign record written before per-account weights
+    existed carries none, and 0.0 would publish "this year's settled accounts stand for nothing
+    the company won" — a claim, and the flattering one, over a year we simply cannot speak for."""
+    record = _campaign("growth_rate", sample_rate=0.2)
+    record["settlement_selection"] = "chosen_weighted"
+    assert all("settlement_weight" not in r for r in record["by_year"])
+
+    out = gb.build(record)
+
+    # The KEY must be there even when the VALUE cannot be: a row with no key at all is the
+    # state that made the headline's pointer dangle, and it is a different defect from a row
+    # that honestly says "we cannot tell for this year".
+    assert all("settlement_weight" in y for y in out["years"]), (
+        "the feed's rows carry no `settlement_weight` key at all, so the headline's pointer has "
+        "no referent and a reader following it finds nothing: {}".format(out["years"])
+    )
+    assert [y["settlement_weight"] for y in out["years"]] == [None]
+
+
+def test_a_record_written_BEFORE_the_chooser_is_read_as_the_cull_and_not_as_chosen():
+    """FAIL CLOSED on the selection, the same way the rate does. Every campaign record on this
+    tree older than 2026-09-11 carries no `settlement_selection`, and those runs WERE uniform
+    culls. Defaulting the other way would relabel every historical artefact as chosen and put the
+    chosen prose over a book that was counted off."""
+    record = _campaign("growth_rate", sample_rate=0.2)
+    assert "settlement_selection" not in record
+
+    out = gb.build(record)
+
+    assert out["settlement_selection"] == "uniform_count"
+    assert "uniform" in out["engine_bound_statement"]
+
+
 def test_MUTATION_a_run_that_settled_EVERY_win_does_not_claim_a_sample():
     """R15 null control. If the sampled headline rendered whatever the rate, it would tell a
     reader to divide by 1.0 and would carry no information."""

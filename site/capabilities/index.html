@@ -385,6 +385,50 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                 + (y.realised_win_rate_used * 100).toFixed(1) + "% &#9888;</span>"
               : '<span title="' + esc(y.learned_win_rate_caveat) + '">'
                 + (y.realised_win_rate_used * 100).toFixed(1) + "%</span>");
+        // WHAT THIS YEAR'S SETTLED ACCOUNTS STAND FOR, and it is the figure the HEADLINE sends
+        // the reader to BY NAME. Until this cell existed the only way to see it was to open the
+        // JSON: the headline said "`settlement_weight` on each row below is what reads across to
+        // the supplier" and no row below carried a cell for it. The pointer had a referent in the
+        // feed and no referent on the page, which is the same defect as having none at all.
+        //
+        // KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. What is worth rendering is whether this
+        // year's weight RECONSTRUCTS what the company won, so the cell is flagged on its distance
+        // from `funnel_wins` rather than pinned to the zeros the chosen book currently returns.
+        // Under the count cull this figure is `settled / rate`, which cannot reproduce a year the
+        // sampling thinned, and the departure is then the thing a reader most needs to see. A cell
+        // that could only ever agree would be a cell that cannot report the case it exists for.
+        var w = y.settlement_weight;
+        var stands;
+        if (w == null) {
+          // ABSENT, NEVER 0.0. A year that stands for nothing and a year we cannot say for are
+          // different claims, and zero is the flattering one.
+          stands = '<span title="This record was written before settled accounts carried their '
+            + 'own weight, so what this year stands for cannot be read off it. Absent, not zero.'
+            + '">&mdash;</span>';
+        } else {
+          var fw = y.funnel_wins;
+          var off = (fw != null && fw > 0) ? Math.abs(w - fw) / fw : null;
+          // 5% is the band inside which the reconstruction is doing its job. It is a RENDERING
+          // threshold and nothing depends on it but the colour of one cell.
+          var wrong = off != null && off > 0.05;
+          stands = '<span title="'
+            + esc(off == null
+                ? "What this year's settled accounts stand for, summed over their own weights, "
+                  + "in the company's own wins. This record carries no funnel count to check it "
+                  + "against."
+                : wrong
+                  ? "What this year's settled accounts stand for (" + w.toFixed(1) + ") is "
+                    + (off * 100).toFixed(0) + "% away from the " + fw + " the company actually "
+                    + "won this year, so the sample does NOT reconstruct this year and the Won "
+                    + "column is the figure to trust."
+                  : "What this year's settled accounts stand for, summed over their own weights. "
+                    + "It reconstructs the " + fw + " wins the company made this year to within "
+                    + (off * 100).toFixed(1) + "% — while the Settled count beside it is not "
+                    + "proportional to them at all. That gap is the whole reason the sample "
+                    + "cannot be undone with one number.")
+            + '"' + (wrong ? ' style="color:#b45309;font-weight:600;"' : "") + ">"
+            + esc(w.toFixed(1)) + (wrong ? " &#9888;" : "") + "</span>";
+        }
         return "<tr>"
           + "<td>" + esc(y.year) + "</td>"
           + '<td style="text-align:right;">' + esc(y.quotes_issued) + "</td>"
@@ -398,6 +442,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
           + '<td style="text-align:right;'
             + (y.funnel_wins != null && y.funnel_wins !== y.wins ? "color:#b45309;font-weight:600;" : "")
             + '">' + esc(y.wins) + "</td>"
+          + '<td style="text-align:right;">' + stands + "</td>"
           + '<td style="text-align:right;">'
             + esc(y.book_after == null ? y.accounts_after : y.book_after) + "</td>"
           + '<td style="text-align:right;">' + esc(y.homes_in_market) + "</td>"
@@ -418,6 +463,7 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + '<th style="text-align:right;">Quotes</th>'
         + '<th style="text-align:right;" title="Accounts the company WON in the market this year: it quoted, the prospect accepted, the credit check passed. A commercial outcome.">Won</th>'
         + '<th style="text-align:right;" title="How many of those wins THIS MACHINE could settle. The gap to Won is our engineering ceiling, not a commercial event.">Settled</th>'
+        + '<th style="text-align:right;" title="What those settled accounts STAND FOR, summed over their own weights, in the company\'s own wins. This is the column the headline points at: read it against Won, not against Settled. Under a chosen sample the settled COUNT is deliberately not proportional to what the company won, and this figure is — so no single number converts one into the other.">Stands for</th>'
         + '<th style="text-align:right;">Book</th>'
         + '<th style="text-align:right;" title="Households actually switching supplier that year, from the published DESNZ switching series">In market</th>'
         + '<th style="text-align:right;" title="The conversion rate the company planned the next campaign on, computed from its own books. A marked figure was computed over a history our settlement engine had already bound.">Planned on</th>'
@@ -428,15 +474,28 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       // a machine comfortably inside its budget until you know that budget bought one win in
       // every five and a half. The two sentences are the same fact from either end.
       var rate = d.settlement_sample_rate;
+      // THE SHAPE CLAIM IS THE SELECTION'S, NOT THE RATE'S. "Every year is sampled at the same
+      // rate, so the shape of the curve is the company's" was true of the count cull and is
+      // FALSE of a chosen sample, which is deliberately not proportional by count. Both
+      // selections give a rate below one, so this cannot be inferred here and is read from the
+      // feed. A sentence that survived the mechanism changing under it would be the worst kind
+      // of stale claim: the reassuring half.
+      var chosen = d.settlement_selection === "chosen_weighted";
       $("growth-note").textContent =
         "Spend and book figures are on the settled clock. Settlement committed "
         + esc(s.customer_years_committed) + " of " + esc(s.customer_year_budget)
         + " customer-years available to this machine"
-        + (rate != null && rate < 1
-            ? ", which bought one win in every " + (1 / rate).toFixed(1)
-              + " the company made. Every year is sampled at the same rate, so the shape of the "
-              + "curve is the company's and its height is ours."
-            : ".");
+        + (rate == null || !(rate < 1)
+            ? "."
+            : chosen
+              ? ", which bought " + (rate * 100).toFixed(1) + "% of the wins the company made. "
+                + "Those accounts were CHOSEN to differ from each other rather than counted off, "
+                + "so each carries its own weight and the bars are those weights — not account "
+                + "counts scaled by one number. The shape is the company's; how well it is "
+                + "reconstructed is measured on each row."
+              : ", which bought one win in every " + (1 / rate).toFixed(1)
+                + " the company made. Every year is sampled at the same rate, so the shape of "
+                + "the curve is the company's and its height is ours.");
     })
     .catch(function (err) {
       $("growth-note").textContent =
@@ -1120,6 +1179,25 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       $("arms-sample").innerHTML = lead
         + "Our settlement engine settled every one of the " + esc(won)
         + " accounts the company won, so the book above is the business and not a sample of it.";
+      return;
+    }
+    /* THE WORD "UNIFORM" IS A CLAIM ABOUT THE SELECTION AND IT IS READ, NEVER ASSUMED. This
+       sentence asserted uniformity four times and closed by telling the reader to divide by the
+       rate. All four are false of a CHOSEN sample, and the instruction is the dangerous one: it
+       is an arithmetic a reader can carry out, and it returns a wrong number silently. Both
+       selections give a rate below one, so the branch keys on the feed's own named selection. */
+    if (g && g.settlement_selection === "chosen_weighted") {
+      $("arms-sample").innerHTML = lead
+        + (booked === null || booked === undefined
+            ? "The settled book above is a CHOSEN "
+            : "The " + esc(booked) + " settled accounts above are a CHOSEN ")
+        + (r * 100).toFixed(1) + "% sample of the " + esc(won)
+        + " accounts the company won &mdash; the sample is our settlement engine’s doing, not "
+        + "the market’s. It is deliberately NOT uniform: the accounts were picked to differ from "
+        + "one another across the demand axes, and each carries its own weight in the company’s "
+        + "own wins. So there is no single number to divide by here, and dividing by "
+        + r.toFixed(3) + " would be wrong &mdash; a per-account figure on this page is a figure "
+        + "about these accounts, and only the weighted totals read across to the supplier.";
       return;
     }
     $("arms-sample").innerHTML = lead
@@ -2140,14 +2218,70 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
                         .the_grading_population_is_not_independent;
               if (!g || !g.available) { return ""; }
               var m = g.outcome_moved_by_the_arms_own_price || {};
+              var wyg = dec.discrimination_auc_within_year || {};
+              var got = g.graded_against_the_control_arms_outcomes || {};
+              var pop = got.auc_population || {};
+              // THE DIAGNOSIS IS THE SAME WHETHER OR NOT THE REMEDY HAS RUN. What the arm's own
+              // price moved, and why dropping those rows is not the repair, are properties of
+              // this book — they do not become untrue on the day an independent grading arrives.
+              // Only the sentence that FOLLOWS them depends on whether it has.
               return '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
                 + "<strong>And a bigger book would not make the grading population "
                 + "independent.</strong> " + prose(m.reading) + " "
                 + prose(g.dropping_them_is_not_the_repair)
-                + " What a clean population would have to be: "
+                + (g.is_it_available_today
+                    ? " What a clean population had to be, and what this run supplies: "
+                    : " What a clean population would have to be: ")
                 + (g.what_an_independent_population_must_look_like || [])
                     .map(function (x) { return prose(x); }).join(" ")
-                + " " + prose(g.why_not) + " " + prose(g.what_would_have_to_be_recorded) + "</p>";
+                + (g.is_it_available_today
+                    ? ""
+                    : " " + prose(g.why_not) + " " + prose(g.what_would_have_to_be_recorded))
+                + "</p>"
+                // THE GRADING ITSELF, ON THE DAY IT EXISTS. Until 2026-09-10 this function had
+                // one branch: it printed why the independent figure was UNAVAILABLE. The
+                // generator had already been re-keyed to read `available` off the artefact
+                // rather than pinning it — but the page that consumes it had not, so the run
+                // that first wrote the field would have silently dropped the explanation
+                // sentence, gone on listing the remedy as still needed, and rendered the figure
+                // nowhere. `esc(undefined)` is "", so nothing would have looked broken. That is
+                // the same defect one page over in the cost render, at the other end of the
+                // same pointer: keyed to today's answer, so it goes quiet exactly when the code
+                // becomes more honest.
+                + (g.is_it_available_today
+                    ? '<p style="margin:0 0 6px;font-size:11.5px;color:var(--muted);">'
+                      + "<strong>Graded against an outcome its own price did not cause.</strong> "
+                      + "The same belief, scored against whether each household stayed under the "
+                      + "CONTROL arm — a churn roll at a flat level no per-household belief set: "
+                      + "<strong>"
+                      + (typeof got.discrimination_auc === "number"
+                          ? got.discrimination_auc.toFixed(3) : "no figure")
+                      + "</strong>"
+                      + (typeof wyg.unstratified_auc === "number"
+                          ? ", against " + wyg.unstratified_auc.toFixed(3)
+                            + " when the outcome is the one the arm's own price helped make"
+                          : "")
+                      + (typeof got.scored_decisions === "number"
+                          ? ", on " + esc(got.scored_decisions) + " scored decisions ("
+                            + esc(pop.retained) + " stayed, " + esc(pop.left) + " left)"
+                          : "")
+                      + (typeof got.scored_share_of_priced === "number"
+                          ? ", " + Math.round(got.scored_share_of_priced * 100)
+                            + "% of the renewals the arm priced"
+                          : "")
+                      + ". "
+                      // THE CAVEAT DOES NOT LEAVE WITH THE ABSENCE, and it is on the figure
+                      // rather than under it. The OUTCOME is independent of the belief; the
+                      // POPULATION is still the value arm's priced set. A reader who takes the
+                      // second from the first draws the stronger conclusion no run supports.
+                      + prose(g.what_is_still_not_independent)
+                      + (typeof got.population_terms_absent_from_the_control_world === "number"
+                          ? " " + esc(got.population_terms_absent_from_the_control_world)
+                            + " priced term(s) reached no outcome in the control world at all, "
+                            + "and are excluded rather than counted as retentions."
+                          : "")
+                      + "</p>"
+                    : "");
             }())
           // WHICH DEPARTURES, named where the reader meets the figure — or why they are not
           // named. A rank statistic on ten departures that does not say which ten is a number

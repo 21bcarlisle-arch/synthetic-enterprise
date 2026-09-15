@@ -1,0 +1,100 @@
+{
+  "generated_at": "2026-09-10T21:25:14Z",
+  "produced_at_commit": {
+    "commit": "a9ae86351c392fd24518d98fe084166b7f5926d7",
+    "resolved_at": "2026-09-10T20:38:59Z",
+    "resolved_when": "at process start, when Python bound the modules this run executed -- NOT at artefact assembly, which is a later tree",
+    "unavailable_because": null,
+    "why_this_is_here": "This run takes hours and the tree moves under it. A consumer that wants to publish these counts needs to know which code drew them, and no diff between two artefacts can supply that."
+  },
+  "world_identity": {
+    "digest": "39a192ce04c1eda8",
+    "anchors": {
+      "2016": 4.259915,
+      "2017": 7.372584,
+      "2018": 2.945347,
+      "2019": 6.637286,
+      "2020": 6.359296,
+      "2021": 5.641346,
+      "2022": 1.0,
+      "2023": 2.033232,
+      "2024": 4.259915,
+      "2025": 4.259915
+    },
+    "fitted_years": [
+      2017,
+      2018,
+      2019,
+      2020,
+      2021,
+      2023,
+      2024
+    ],
+    "declared_years": [
+      2016,
+      2022,
+      2025
+    ],
+    "what_this_identifies": "the departure LEVEL the world was running at -- `year_level_anchor` for every year inside the published switching record, fitted and declared alike. Two runs sharing this digest ran over the same departure surface; two that do not are different worlds however close their timestamps, and no figure from one bounds a figure from the other.",
+    "unavailable_because": null
+  },
+  "book_identity": {
+    "served_segments": [
+      "resi",
+      "SME"
+    ],
+    "served_segments_resolved_from": "curriculum",
+    "served_segments_override_env": null,
+    "served_segments_unavailable_because": null,
+    "billing_accounts_settled_in_window": 164,
+    "with_an_electricity_leg": 146,
+    "with_a_gas_leg": 105,
+    "dual_fuel": 87,
+    "dual_fuel_share_of_accounts": 0.5304878048780488,
+    "accounts_at_end_of_window": 73,
+    "what_each_count_selects": {
+      "billing_accounts_settled_in_window": "every billing account with at least one settlement record anywhere in the window, dual-fuel legs collapsed, ceased or not",
+      "accounts_at_end_of_window": "MISLEADING KEY: not the book at the end. The VALUED subset \u2014 accounts with a renewal point, still on supply at the window's edge, and with an observed margin. Smaller than the book by the accounts that could not be valued."
+    },
+    "why_this_is_here": "So a reader can tell WHICH book a figure describes without diffing a commit date against a run timestamp -- the defect logged as WORKER_FINDING_THE_AB_ARTEFACT_CANNOT_NAME_THE_BOOK_IT_RAN_ON_2026-08-26, raised against this file. The filename is not the control: `value_cycle_ab_resi.json` in fact served resi AND SME, so the one piece of provenance a reader had was misleading."
+  },
+  "report_end": null,
+  "roster_size": 100,
+  "symbols": {
+    "elasticity": "simulation.population_draw.price_elasticity_for_customer",
+    "churn_roll": "simulation.customer_events.churn_roll_for_renewal"
+  },
+  "keys": {
+    "elasticity": {
+      "calls": 298,
+      "accounts_that_drew": 67,
+      "roster_accounts_that_drew": 67,
+      "roster_accounts_that_never_drew": 33,
+      "accounts_that_drew_outside_the_roster": 0,
+      "outside_accounts": [],
+      "outside_accounts_truncated": false,
+      "only_leg_would_refuse": false,
+      "except_leg_would_refuse": true
+    },
+    "churn_roll": {
+      "calls": 315,
+      "accounts_that_drew": 70,
+      "roster_accounts_that_drew": 68,
+      "roster_accounts_that_never_drew": 32,
+      "accounts_that_drew_outside_the_roster": 2,
+      "outside_accounts": [
+        "PROS-2020-0287",
+        "PROS-2020-0303"
+      ],
+      "outside_accounts_truncated": false,
+      "only_leg_would_refuse": false,
+      "except_leg_would_refuse": false
+    }
+  },
+  "accounts_that_roll_but_never_draw": 3,
+  "accounts_outside_the_roster_that_roll": 2,
+  "selection_gbp_this_pass": -332.63572199997725,
+  "clock": "settled-realised",
+  "what_this_is": "Which households actually take each re-drawable draw on the full window, and how the value arm's priced roster cuts them. ONE pass with PASS-THROUGH recorders on both symbols -- nothing is re-seeded, so this is the base world and `selection_gbp_this_pass` is the base run's own figure.",
+  "how_to_read_this": "`keys.<key>.except_leg_would_refuse` is the whole result for that key: true means a floor leg keyed to it CANNOT measure the rest of the book on this book, because the complement of the priced roster never takes that draw. It is a fact about the instrument and not about the world, and it gets WORSE as the arm prices more of the book, because the roster swallows the complement it would re-draw."
+}
