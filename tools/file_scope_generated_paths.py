@@ -145,8 +145,19 @@ WRITE_METHODS = ("write_text", "write_bytes")
 # time -- and the remedy a consumer applies to a generated path is REVERT. A whole-file rewrite
 # can be re-run; an append cannot be un-lost. `"r+"` is out for the same reason.
 WRITING_MODE_CHARS = ("w", "x")
-# Destination argument (0-based) of the stdlib calls whose second operand is unambiguously written.
+# Destination argument (0-based) of the stdlib calls whose second operand is unambiguously written:
+# `os.replace(tmp, final)`, `shutil.copy(src, dest)`.
 DESTINATION_ARG = {"replace": 1, "rename": 1, "copy": 1, "copy2": 1, "copyfile": 1, "move": 1}
+# The same two names in their PATHLIB form, where the destination is the only argument:
+# `tmp.replace(final)` is the atomic-write idiom, live in `background/seat_continuity.py` and five
+# other producers here.
+#
+# THE ARITY CHECK BELOW IS A FILTER, NOT THE SAFETY -- established by mutation, not assumed.
+# `str.replace(old, new)` is everywhere in this tree, so dropping the arity check looks dangerous;
+# it is not, because the first argument of a string substitution is a string and `_static_paths`
+# resolves only pathlib expressions. Removing the check changes nothing this scan reports, so it
+# earns a comment rather than a control that could never have failed.
+RECEIVER_DESTINATION = ("replace", "rename")
 
 
 def _mode_is_writing(call: ast.Call, path_is_receiver: bool) -> bool:
@@ -212,6 +223,8 @@ def _write_destinations(scope: list[ast.AST]) -> list[ast.expr]:
                 out.append(func.value)
             elif func.attr in DESTINATION_ARG and len(node.args) > DESTINATION_ARG[func.attr]:
                 out.append(node.args[DESTINATION_ARG[func.attr]])
+            elif func.attr in RECEIVER_DESTINATION and len(node.args) == 1 and not node.keywords:
+                out.append(node.args[0])
         elif isinstance(func, ast.Name):
             if func.id == "open" and node.args and _mode_is_writing(node, path_is_receiver=False):
                 out.append(node.args[0])
@@ -311,8 +324,14 @@ def _paths_written_by_scope(node: ast.AST, module_file: Path,
         candidates += [p for n in ast.walk(dest) if isinstance(n, ast.Name)
                        for p in known.get(n.id, ())]
         found.update(candidates)
+    # A method does NOT see its class body's names -- `PATH` in a class body is `self.PATH` or
+    # `Cls.PATH` inside a method, never a bare `PATH`. So a nested scope of a CLASS inherits what
+    # the class inherited, not what the class bound. Same reasoning as the per-function map above,
+    # and the same failure if it is skipped: a class attribute silently lending its path to a
+    # one-letter destination name in a method.
+    handed_down = inherited if isinstance(node, ast.ClassDef) else known
     for nested in _nested_scopes(node):
-        found |= _paths_written_by_scope(nested, module_file, known)
+        found |= _paths_written_by_scope(nested, module_file, handed_down)
     return found
 
 

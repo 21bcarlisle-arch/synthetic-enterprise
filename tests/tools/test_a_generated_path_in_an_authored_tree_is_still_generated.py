@@ -134,6 +134,45 @@ def test_MUTATION_a_local_name_does_not_borrow_another_functions_constant(tmp_pa
     assert found == {"docs/reports/cooldown.json"}, found
 
 
+def test_MUTATION_the_atomic_write_idiom_is_a_write(tmp_path):
+    """`tmp.replace(final)` -- write beside, then rename over -- is how six producers here avoid a
+    half-written artefact, and the destination is the only argument. The stdlib two-argument form
+    (`os.replace(src, dst)`) was handled and this one was not, so the path a producer takes care to
+    write atomically was the one the oracle could not see."""
+    _tree(tmp_path, publisher=HEADER + (
+        'FINAL = ROOT / "docs" / "design" / "baseline.json"\n'
+        "def save(data):\n"
+        '    tmp = FINAL.with_suffix(".tmp")\n'
+        '    tmp.write_text("{}")\n'
+        "    tmp.replace(FINAL)\n"))
+    assert "docs/design/baseline.json" in fs.written_artefacts(tmp_path)
+
+
+def test_MUTATION_a_method_does_not_borrow_a_class_body_constant(tmp_path):
+    """Python scoping, asserted because the oracle had to be told: a method does not see a class
+    body's names -- inside `save` that constant is `self.path`, never a bare `path`. Without it, a
+    class attribute lends its path to any method parameter that happens to share its name, which is
+    the same shape that reported the director's axes as a generated artefact.
+
+    THE COLLISION IS THE FIXTURE. A first version of this test gave the class an attribute called
+    `PATH` and the method a parameter called `p`, and passed with the scoping deliberately broken --
+    nothing shadowed anything, so there was no leak to catch and the leg was coverage rather than a
+    control. The names must MEET for the mutation to fire.
+
+    NO REAL PATH MOVES ON THIS TODAY: no class body in the live tree binds a path constant a method
+    parameter shadows, so this is an EQUIVALENCE there and a fixture is the only place it can fire.
+    That is recorded here rather than left for a reader to assume it was the flattering one."""
+    _tree(tmp_path, store=HEADER + (
+        'OUT = ROOT / "docs" / "reports" / "out.json"\n'
+        "class Store:\n"
+        '    path = ROOT / "docs" / "design" / "AUTHORED.md"\n'
+        "    def save(self, path):\n"
+        '        Path(path).write_text("{}")\n'
+        "def publish():\n"
+        '    OUT.write_text("{}")\n'))
+    assert fs.written_artefacts(tmp_path) == {"docs/reports/out.json"}
+
+
 # ---------------------------------------------------------------------------
 # The real tree: the fixture must not be the only evidence
 # ---------------------------------------------------------------------------

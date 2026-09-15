@@ -99,6 +99,33 @@ orphan ratchet's to rewrite; reaching into it from this isolated worktree is the
 isolation exists to prevent. What changes is that the next reader of that refusal — human or
 daemon — is told to revert it rather than to land it.
 
+## Second increment, landed separately: two write shapes the first pass could not see
+
+Found by grepping for what the scan does NOT match, rather than by re-reading what it does.
+
+- **The atomic-write idiom.** `tmp.replace(final)` — write beside, then rename over — is how six
+  producers here avoid a half-written artefact, and in the pathlib form the destination is the only
+  argument. The two-argument stdlib form (`os.replace(src, dst)`) was handled and this one was not,
+  so the path a producer takes *care* to write atomically was precisely the one the oracle could not
+  see. **It adds exactly one path** to the write-keyed set —
+  `docs/observability/.seat_heartbeat.json`, already in the tree-keyed set — so the union at this
+  tree does not move. Nothing published changes; what changes is that the next producer using that
+  idiom outside a generated tree is caught.
+- **Class-body scope.** A method does not see its class body's names. **No real path moves on this
+  today** — no class body in the tree binds a path constant a method parameter shadows — so it is an
+  equivalence in the live tree with a fixture as the only place it can fire. Recorded as such rather
+  than left to read as a fix for something.
+
+**Two of the three controls I wrote for this could not fail, and mutation is what said so.** The
+class-scope fixture gave the class an attribute `PATH` and the method a parameter `p`: nothing
+shadowed anything, so there was no leak to catch and the leg passed with the scoping deliberately
+broken. The names have to MEET. The third — an arity check separating `Path.replace(dest)` from
+`str.replace(old, new)` — is genuinely unfalsifiable: a string substitution's first argument is a
+string and the resolver only resolves pathlib expressions, so removing the check changes nothing
+the scan reports. That one is an equivalence, it is now a comment on the code saying so, and the
+test that pretended to guard it is deleted. A control that cannot fail reads as coverage and is
+worse than no control at all.
+
 ## Gap named rather than papered over
 
 A path handed to a helper (`_write_json(BASELINE_PATH, data)`) and written one frame down is not
