@@ -41,6 +41,13 @@ HELPER_REACHED_REAL_PATH = "docs/observability/run_rotation_cursor.json"
 # is no call site carrying the destination for the helper frame to bind. The leg that uses it
 # proves the "only" by removing the seeding, rather than asserting it.
 DEFAULT_REACHED_REAL_PATH = "site/data/capabilities_door.json"
+# A real path reachable ONLY through an INSTANCE ATTRIBUTE: `PublishStepLedger.__init__` binds
+# `self.project_dir` and `write` falls back to `self.project_dir / "site" / "data" /
+# "publish_steps.json"`, with `background/process_run_complete.py:4525` calling `_ledger.write()`
+# bare. It is the frame's ONE live instance in this tree -- the count is in
+# `docs/staging/records/PREREG_WHAT_THE_WRITE_KEYED_ORACLE_GAINS_FROM_AN_INSTANCE_ATTRIBUTE_
+# DESTINATION_2026-09-15.md` -- so the leg that uses it asserts the path and NOT a floor.
+ATTRIBUTE_REACHED_REAL_PATH = "site/data/publish_steps.json"
 
 
 def _tree(root: Path, **modules: str) -> Path:
@@ -504,8 +511,176 @@ def test_MUTATION_a_METHODS_default_resolves_against_the_MODULES_names(tmp_path)
 
 
 # ---------------------------------------------------------------------------
+# The instance attribute: a destination the method never names
+# ---------------------------------------------------------------------------
+def test_MUTATION_an_instance_attribute_bound_in_INIT_is_a_write_site(tmp_path):
+    """`__init__` holds the destination and the writing method only spells `self.`. This is the
+    door the `self._write(...)` search was really pointing at, and unlike that one it has a live
+    instance: `PublishStepLedger` binds `self.project_dir` and `write` falls back through it.
+
+    THE READ-ONLY ATTRIBUTE IS IN THE SAME FIXTURE, on the expensive side of the boundary. An
+    attribute goes into the NAME MAP and only a write DESTINATION is harvested out of it --
+    `self.register.read_text()` declares its path just as loudly and is never written, and the
+    remedy a consumer applies to a generated path is REVERT. Without this half the leg would pass
+    just as happily on a resolver that reported every attribute it could resolve.
+
+    `LOG` IS WHY A FAILURE HERE IS A FAILURE OF THE FRAME. Without a write the resolver can already
+    see, removing the frame empties the set and `_write_reached_paths` takes its fail-closed raise
+    -- so the leg would be distinguishing "the frame is dead" from "the oracle refused to answer",
+    which are not the same finding."""
+    _tree(tmp_path, publisher=HEADER + (
+        'LEDGER = ROOT / "docs" / "reports" / "ledger.json"\n'
+        'LOG = ROOT / "docs" / "reports" / "log.json"\n'
+        f'REGISTER = ROOT / "docs" / "design" / "{Path(NAMED_NEVER_WRITTEN).name}"\n'
+        "class Writer:\n"
+        "    def __init__(self):\n"
+        "        self.out = LEDGER\n"
+        "        self.register = REGISTER\n"
+        "    def save(self):\n"
+        '        LOG.write_text("{}")\n'
+        '        self.out.write_text("{}")\n'
+        "    def load(self):\n"
+        "        return self.register.read_text()\n"))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/ledger.json", "docs/reports/log.json"}, found
+
+
+def test_MUTATION_the_attribute_is_followed_through_a_LOCAL_and_a_CHOICE(tmp_path):
+    """THE LIVE SHAPE, COPIED RATHER THAN IMAGINED, and the reason a shallow probe for
+    `self.<attr>` standing in the destination expression returns zero and is wrong.
+    `PublishStepLedger.write` spells `target = Path(path) if path else (self.project_dir / "site" /
+    "data" / "publish_steps.json")` and then writes `target`: the attribute reaches the write
+    through a LOCAL, inside a CHOICE whose other branch resolves to nothing.
+
+    `__init__` carries the same choice shape -- `Path(project_dir) if project_dir else ROOT` -- so
+    both halves of the chain are driven. The parameterised branch must contribute NOTHING (an
+    argument this scan never sees) while the default branch contributes the root, which is exactly
+    what makes the resolved path the one written when the caller names neither.
+
+    `LOG` is here for the reason the leg above carries one: it keeps a failure attributable to the
+    frame rather than to the fail-closed raise an empty set triggers."""
+    _tree(tmp_path, publisher=HEADER + (
+        'LOG = ROOT / "docs" / "reports" / "log.json"\n'
+        "class Ledger:\n"
+        "    def __init__(self, project_dir=None):\n"
+        "        self.project_dir = Path(project_dir) if project_dir else ROOT\n"
+        "    def write(self, path=None):\n"
+        '        LOG.write_text("{}")\n'
+        "        target = Path(path) if path else "
+        '(self.project_dir / "site" / "data" / "publish_steps.json")\n'
+        '        target.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"site/data/publish_steps.json", "docs/reports/log.json"}, found
+
+
+def test_MUTATION_a_REBOUND_instance_attribute_is_refused_WHOLE(tmp_path):
+    """The same guard `_module_helpers` and `_default_destinations` carry, through the third door.
+    An attribute bound in more than one place is not reliably either binding, and
+    `_scope_path_names` ACCUMULATES rather than replaces -- so a resolver without the refusal
+    reports BOTH and offers a REVERT on the authored document in the first one.
+
+    THE NAMES MUST MEET FOR THIS TO FIRE, so the two bindings stand on opposite sides of the
+    boundary: `__init__` points the attribute at an authored register and `retarget` moves it to a
+    real output. REFUSED WHOLE is the assertion, not "the second binding wins": `actual.json` is a
+    genuine destination and it is dropped too, because an attribute this resolver cannot fully see
+    must fail toward saying nothing. `LOG` is the module's honest write, so a green here is the
+    refusal working and not the fail-closed raise."""
+    _tree(tmp_path, publisher=HEADER + (
+        'LOG = ROOT / "docs" / "reports" / "log.json"\n'
+        f'AUTHORED = ROOT / "docs" / "design" / "{Path(NAMED_NEVER_WRITTEN).name}"\n'
+        "class Writer:\n"
+        "    def __init__(self):\n"
+        "        self.path = AUTHORED\n"
+        "    def retarget(self):\n"
+        '        self.path = ROOT / "docs" / "reports" / "actual.json"\n'
+        "    def save(self):\n"
+        '        LOG.write_text("{}")\n'
+        '        self.path.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/log.json"}, found
+
+
+def test_MUTATION_a_class_body_name_answers_self_DOT_and_still_not_a_bare_name(tmp_path):
+    """BOTH SIDES OF THE SCOPE RULE IN ONE FIXTURE, because each is the other's mutation.
+
+    `self.DOTTED` genuinely IS the class attribute -- that is what Python resolves it to -- so the
+    dotted map must answer it. A bare `BARE` inside a method is NOT: at run time it is a NameError,
+    so a resolver that answered it would be reporting a path no execution can reach, and the
+    module's long-standing `handed_down = inherited if isinstance(node, ast.ClassDef)` line exists
+    to stop exactly that. Adding the dotted map is where that line could most easily be undone by
+    accident, so the leg drives both spellings of a class attribute at once.
+
+    THE TWO ATTRIBUTES STAND ON OPPOSITE SIDES OF THE BOUNDARY. If both were outputs the set would
+    look identical whichever way the rule went; here a leak offers a REVERT on an authored
+    document, which is the failure worth a control. `LOG` keeps a failure attributable to the rule
+    rather than to the fail-closed raise."""
+    _tree(tmp_path, publisher=HEADER + (
+        'LOG = ROOT / "docs" / "reports" / "log.json"\n'
+        "class Writer:\n"
+        '    DOTTED = ROOT / "docs" / "reports" / "dotted.json"\n'
+        f'    BARE = ROOT / "docs" / "design" / "{Path(NAMED_NEVER_WRITTEN).name}"\n'
+        "    def a(self):\n"
+        '        LOG.write_text("{}")\n'
+        '        self.DOTTED.write_text("{}")\n'
+        "    def b(self):\n"
+        '        BARE.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/dotted.json", "docs/reports/log.json"}, found
+
+
+def test_MUTATION_an_attributes_binding_is_resolved_in_ITS_OWN_method(tmp_path):
+    """SCOPE, for the fourth time and through the newest door. `self.X = base / "out.json"` is
+    resolved against the locals of the method that WRITES it, never against a sibling method's --
+    a flat map over the class would let `other`'s `base` answer `__init__`'s expression and the
+    oracle would report a path no execution produces.
+
+    THE LOCAL NAMES COLLIDE ON PURPOSE. Both methods bind `base`, to different trees, and only one
+    of those trees is where the artefact actually lands. A first version with different local names
+    passed with a flat map installed, which is how a control becomes coverage. `LOG` keeps a
+    failure attributable to the scope rule rather than to the fail-closed raise."""
+    _tree(tmp_path, publisher=HEADER + (
+        'LOG = ROOT / "docs" / "reports" / "log.json"\n'
+        "class Writer:\n"
+        "    def __init__(self):\n"
+        '        base = ROOT / "docs" / "reports"\n'
+        '        self.out = base / "out.json"\n'
+        "    def other(self):\n"
+        '        base = ROOT / "docs" / "design"\n'
+        "        return base\n"
+        "    def save(self):\n"
+        '        LOG.write_text("{}")\n'
+        '        self.out.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/out.json", "docs/reports/log.json"}, found
+
+
+# ---------------------------------------------------------------------------
 # The real tree: the fixture must not be the only evidence
 # ---------------------------------------------------------------------------
+def test_the_instance_attribute_frame_is_LOAD_BEARING_in_the_REAL_tree():
+    """THE POISON ROUND FOR THE ATTRIBUTE FRAME. Every leg above is a fixture, and a frame that
+    resolved nothing in the actual repository would pass all of them while changing no
+    classification at all -- which is what the `self._write(...)` frame would have been, and why
+    it was measured rather than built.
+
+    NO `len(gained) > 1` FLOOR HERE, and that is the honest reading rather than a weaker control.
+    This frame has exactly ONE live instance in this tree: 2,058 classes, 8 (class, method) pairs
+    holding a write destination, 2 touching `self.<attr>`, 1 surviving the rebound guard. Asserting
+    a floor of two would be asserting a population this turn measured and found to be one. What the
+    leg does assert is the PROPERTY -- that path is reachable only through the attribute -- so if a
+    producer later spells its destination beside the write, this goes green on a smaller set."""
+    with_frame = fs._write_reached_paths()
+    real = fs._class_self_paths
+    try:
+        fs._class_self_paths = lambda node, module_file, inherited: {}
+        without_frame = fs._write_reached_paths()
+    finally:
+        fs._class_self_paths = real
+    gained = with_frame - without_frame
+    assert ATTRIBUTE_REACHED_REAL_PATH in gained, sorted(gained)
+
+
+
 def test_the_DEFAULT_seeding_is_LOAD_BEARING_in_the_REAL_tree():
     """THE POISON ROUND FOR THE DEFAULT. Same shape as the frame's below: a seeding that resolved
     nothing in the actual repository would pass every fixture above while changing no
