@@ -4,8 +4,8 @@
   "result_record": "docs/staging/records/SEAT_RESULT_ON_GROSS_MARGIN_THE_CHOSEN_BOOK_IS_INSIDE_THE_BLIND_SPREAD_AND_ON_NET_MARGIN_IT_IS_BELOW_EVERY_BLIND_ARM_2026-09-11.md",
   "preregistration_commit": "eed120328",
   "world_digest": "39a192ce04c1eda8",
-  "comparable_because": "All five arms carry world_identity.digest 39a192ce04c1eda8. That is the ONLY reason these are five arms of one world rather than five runs of five worlds, and it is why the digest is carried on the block a reader sees rather than left in a file.",
-  "pounds_are_not_publishable": "All five arms ran SIM_FAST_MODE=1, identically. The differences between them are therefore clean and the ABSOLUTE pounds are not comparable to docs/reports/run_output_latest.json. No figure here may be published as a headline in pounds -- the surface renders positions and percentages, which is what the shared fast mode earns.",
+  "comparable_because": "All five arms carry world_identity.digest 39a192ce04c1eda8, which is the DEPARTURE LEVEL and is the only reason these are five arms of one world rather than five runs of five worlds. It is NOT sufficient on its own and that was learned the hard way: the departure level does not move when the HOUSING STOCK is re-drawn, so `world_digest` agreed across all five while the houses underneath had changed. The second identity is `home_digest`, and only the four first-hand arms carry it -- all four at 35f8efe8ff02f245, this tree's live stock, re-measured 2026-09-15. ARM C' carries none and cannot. Both digests are carried on the block a reader sees rather than left in a file.",
+  "pounds_are_not_publishable": "All five arms ran SIM_FAST_MODE=1. For the four first-hand arms this is now EVIDENCED rather than asserted -- each carries its own `execution_mode` block, read from the environment of the process that ran the world and stamped by the same predicate `risk_committee_agent.invoke` branches on (landed 331c4958f). For ARM C' it remains an ASSERTION nobody on this box can falsify, because no run output for it exists here. The differences between the four evidenced arms are therefore clean and the ABSOLUTE pounds are not comparable to docs/reports/run_output_latest.json. No figure here may be published as a headline in pounds -- the surface renders positions and percentages, which is what the shared fast mode earns.",
   "one_seed": "Every arm is deterministic at a fixed seed. The blind span is a spread over four BOOK SHAPES, not over four WORLDS, so it bounds how far the P&L moves when you change which blind book you settle and says nothing about sampling error across worlds. Every verdict below is an ORDERING against four arms, never a confidence interval.",
   "lines": [
     {
@@ -34,7 +34,7 @@
       "higher_is_better": true
     }
   ],
-  "second_hand_caveat": "ARM C' is the one arm whose P&L this seat did not read from a run output. Its figures are cited from the other seat's result, which is in 34 commits that never reached origin; only its selection artefact (/var/tmp/p6_armC.json) survives on this box. It is carried because it is the only arm holding count, year mix AND spend -- and it is flagged, because two of the five verdicts turn on it.",
+  "second_hand_caveat": "ARM C' is the one arm whose P&L this seat did not read from a run output. Its figures are cited from the other seat's result, which is in 34 commits that never reached origin; only its selection artefact (/var/tmp/p6_armC.json) survives on this box. It is carried because it is the only arm holding count, year mix AND spend. SINCE 2026-09-15 IT IS ALSO THE ONLY ARM STILL MEASURED IN THE 09-11 HOUSING STOCK -- the other four were re-run in this tree's live stock (35f8efe8ff02f245) and C' could not be, so its figures are not comparable with theirs and no span may be taken across all five. This is not a caption: it is why `_blind_envelope_homes_refusal` still refuses, and the refusal now names C' alone instead of all five.",
   "arms": [
     {
       "key": "A_cull",
@@ -42,19 +42,27 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "read_from": "/var/tmp/p6_arm_cull.json",
+      "read_from": "~/.cache/seat_lane0/arm_cull.json",
       "figures": {
-        "gross_margin_gbp": 383688.9722023295,
-        "revenue_gbp": 676791.5332469969,
-        "bad_debt_gbp": 11675.76,
-        "net_margin_gbp": 147954.255661,
-        "net_after_cost_to_serve_gbp": 98643.6700445605
+        "gross_margin_gbp": 382119.50049152615,
+        "revenue_gbp": 679554.1253868951,
+        "bad_debt_gbp": 10814.12,
+        "net_margin_gbp": 147149.445302,
+        "net_after_cost_to_serve_gbp": 97948.85026775226
       },
       "producing_commit": {
-        "commit": null,
+        "commit": "331c4958f",
         "launch_label": "p6-arm-cull",
-        "resolved_at": "2026-09-11T00:33:46Z",
-        "unavailable_because": "the launcher passed the LABEL 'p6-arm-cull' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T00:33:46Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
+        "resolved_at": "2026-09-15T18:19:29Z",
+        "resolved_when": "at process start, before the world ran -- this is the commit whose code drew every figure below",
+        "launch_label_is_not_the_commit": "`launch_label` is kept SEPARATE and is NOT a sha. It is the string the 09-11 launcher passed as `code_commit`, which `reconcile_and_stamp` wrote straight into `producing_commit.commit` with no check that it was a sha -- the defect named in SEAT_FINDING_A_LAUNCH_LABEL_PASSES_THE_PRODUCING_COMMIT_GUARD_AND_IS_PUBLISHED_AS_A_SHA. It is retained so that the 09-11 artefacts stay identifiable, and it is in its own field so it can never again be read as a commit."
+      },
+      "home_digest": "35f8efe8ff02f245",
+      "execution_mode": {
+        "sim_fast_mode": "1",
+        "fast": true,
+        "risk_committee": "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every wake-up increases every hedge fraction by the minimum +0.10",
+        "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       }
     },
     {
@@ -63,19 +71,27 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "read_from": "/var/tmp/p6_armC_cull83.json",
+      "read_from": "~/.cache/seat_lane0/arm_cull83.json",
       "figures": {
-        "gross_margin_gbp": 380829.2892150242,
-        "revenue_gbp": 689269.1449957176,
-        "bad_debt_gbp": 8533.78,
-        "net_margin_gbp": 143764.298981,
-        "net_after_cost_to_serve_gbp": 94498.40086456052
+        "gross_margin_gbp": 378405.65035692364,
+        "revenue_gbp": 683784.5909033124,
+        "bad_debt_gbp": 8331.16,
+        "net_margin_gbp": 144101.901752,
+        "net_after_cost_to_serve_gbp": 94836.00363556053
       },
       "producing_commit": {
-        "commit": null,
+        "commit": "331c4958f",
         "launch_label": "p6-arm-cull83",
-        "resolved_at": "2026-09-11T04:53:43Z",
-        "unavailable_because": "the launcher passed the LABEL 'p6-arm-cull83' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T04:53:43Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
+        "resolved_at": "2026-09-15T18:32:17Z",
+        "resolved_when": "at process start, before the world ran -- this is the commit whose code drew every figure below",
+        "launch_label_is_not_the_commit": "`launch_label` is kept SEPARATE and is NOT a sha. It is the string the 09-11 launcher passed as `code_commit`, which `reconcile_and_stamp` wrote straight into `producing_commit.commit` with no check that it was a sha -- the defect named in SEAT_FINDING_A_LAUNCH_LABEL_PASSES_THE_PRODUCING_COMMIT_GUARD_AND_IS_PUBLISHED_AS_A_SHA. It is retained so that the 09-11 artefacts stay identifiable, and it is in its own field so it can never again be read as a commit."
+      },
+      "home_digest": "35f8efe8ff02f245",
+      "execution_mode": {
+        "sim_fast_mode": "1",
+        "fast": true,
+        "risk_committee": "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every wake-up increases every hedge fraction by the minimum +0.10",
+        "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       }
     },
     {
@@ -84,19 +100,27 @@
       "sees_fabric": false,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "read_from": "/var/tmp/p6_armD_tenure.json",
+      "read_from": "~/.cache/seat_lane0/arm_tenure.json",
       "figures": {
-        "gross_margin_gbp": 386386.17916776944,
-        "revenue_gbp": 695546.1941787401,
-        "bad_debt_gbp": 9462.24,
-        "net_margin_gbp": 149154.090119,
-        "net_after_cost_to_serve_gbp": 97326.43515324547
+        "gross_margin_gbp": 383215.2326870961,
+        "revenue_gbp": 690290.8111394249,
+        "bad_debt_gbp": 9391.27,
+        "net_margin_gbp": 148282.169183,
+        "net_after_cost_to_serve_gbp": 96619.65862363816
       },
       "producing_commit": {
-        "commit": null,
+        "commit": "331c4958f",
         "launch_label": "p6-arm-tenure",
-        "resolved_at": "2026-09-11T04:53:30Z",
-        "unavailable_because": "the launcher passed the LABEL 'p6-arm-tenure' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T04:53:30Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
+        "resolved_at": "2026-09-15T18:45:36Z",
+        "resolved_when": "at process start, before the world ran -- this is the commit whose code drew every figure below",
+        "launch_label_is_not_the_commit": "`launch_label` is kept SEPARATE and is NOT a sha. It is the string the 09-11 launcher passed as `code_commit`, which `reconcile_and_stamp` wrote straight into `producing_commit.commit` with no check that it was a sha -- the defect named in SEAT_FINDING_A_LAUNCH_LABEL_PASSES_THE_PRODUCING_COMMIT_GUARD_AND_IS_PUBLISHED_AS_A_SHA. It is retained so that the 09-11 artefacts stay identifiable, and it is in its own field so it can never again be read as a commit."
+      },
+      "home_digest": "35f8efe8ff02f245",
+      "execution_mode": {
+        "sim_fast_mode": "1",
+        "fast": true,
+        "risk_committee": "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every wake-up increases every hedge fraction by the minimum +0.10",
+        "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       }
     },
     {
@@ -105,19 +129,27 @@
       "sees_fabric": true,
       "first_hand": true,
       "world_digest": "39a192ce04c1eda8",
-      "read_from": "/var/tmp/p6_arm_chosen.json",
+      "read_from": "~/.cache/seat_lane0/arm_chosen.json",
       "figures": {
-        "gross_margin_gbp": 374295.72502851026,
-        "revenue_gbp": 661157.8651492972,
-        "bad_debt_gbp": 14400.86,
-        "net_margin_gbp": 139439.497809,
-        "net_after_cost_to_serve_gbp": 90409.10140488924
+        "gross_margin_gbp": 381542.4068167546,
+        "revenue_gbp": 675945.7193687231,
+        "bad_debt_gbp": 8359.26,
+        "net_margin_gbp": 148623.216984,
+        "net_after_cost_to_serve_gbp": 99380.17588810832
       },
       "producing_commit": {
-        "commit": null,
+        "commit": "331c4958f",
         "launch_label": "p6-arm-chosen",
-        "resolved_at": "2026-09-11T00:33:59Z",
-        "unavailable_because": "the launcher passed the LABEL 'p6-arm-chosen' to `run_annual_report.reconcile_and_stamp` as `code_commit`, and that field is stamped straight into `producing_commit.commit` with no check that it is a sha -- the header's only guard is against the literal string 'unknown'. So this run's own output records the label and never recorded a sha, and none is recoverable from the artefact, the run output or `git log`: four lanes were landing into this tree through the night of 2026-09-11 and the HEAD at 2026-09-11T00:33:59Z is not attributable to this process. `commit: null` rather than a plausible sha, because a sha here would be read as established and a null cannot be."
+        "resolved_at": "2026-09-15T18:58:48Z",
+        "resolved_when": "at process start, before the world ran -- this is the commit whose code drew every figure below",
+        "launch_label_is_not_the_commit": "`launch_label` is kept SEPARATE and is NOT a sha. It is the string the 09-11 launcher passed as `code_commit`, which `reconcile_and_stamp` wrote straight into `producing_commit.commit` with no check that it was a sha -- the defect named in SEAT_FINDING_A_LAUNCH_LABEL_PASSES_THE_PRODUCING_COMMIT_GUARD_AND_IS_PUBLISHED_AS_A_SHA. It is retained so that the 09-11 artefacts stay identifiable, and it is in its own field so it can never again be read as a commit."
+      },
+      "home_digest": "35f8efe8ff02f245",
+      "execution_mode": {
+        "sim_fast_mode": "1",
+        "fast": true,
+        "risk_committee": "deterministic mock -- `sim.risk_committee_agent._call_mock`, no LLM call, every wake-up increases every hedge fraction by the minimum +0.10",
+        "read_from": "`SIM_FAST_MODE` in the environment of the process that ran the world, at stamping time, via the same predicate `sim.risk_committee_agent.invoke` branched on"
       }
     },
     {
@@ -139,9 +171,27 @@
         "launch_label": null,
         "resolved_at": null,
         "unavailable_because": "this arm was never read from a run output on this box -- see `second_hand_caveat`. Its figures are cited from another seat's result, which sits in commits that never reached origin, so there is no producing sha to stamp and no run output to read one out of."
-      }
+      },
+      "home_digest": null,
+      "home_digest_unavailable_because": "this arm was never run on this box: its figures are cited from the other seat's result, whose 34 commits never reached origin, and only its selection artefact (/var/tmp/p6_armC.json) survives. There is no run output to read a home stock out of, and a digest copied from a sibling arm would be a fabrication -- it would assert this book was measured in houses nobody measured it in. So this stays null, and `_blind_envelope_homes_refusal` keeps refusing on it alone.",
+      "execution_mode": null,
+      "execution_mode_unavailable_because": "same absence, same reason: no run output on this box to read `execution_mode` from. The `pounds_are_not_publishable` sentence above asserts SIM_FAST_MODE=1 for all five and that assertion is now EVIDENCED for four and still UNFALSIFIABLE for this one.",
+      "figures_are_from_a_different_home_stock": "these figures were measured in the 09-11 housing stock, NOT the 35f8efe8ff02f245 this tree has, and the other four arms in this file have been re-measured in 35f8efe8ff02f245. They are therefore NOT comparable with the other four and no span may be taken across them. This is why the envelope is still refused. DO NOT 'fix' the refusal by inventing a digest for this arm."
     }
   ],
   "artefact_filed_in_commit": "101244b404633e2ab0be3b9b80a576f3d9ac2342",
-  "provenance_note": "WHAT IS AND IS NOT ESTABLISHED ABOUT WHERE THESE FIGURES CAME FROM (stamped 2026-09-15). Until today every arm's `producing_commit` was a bare string like 'p6-arm-cull', which reads as a commit and is a launch label -- the arms' provenance could not be checked from this artefact at all. The labels are kept, under `launch_label`, as the only handle the runs left. What IS a fact: each first-hand arm's `resolved_at`, read back out of its own run output, and `artefact_filed_in_commit`, which is when this file entered git. What is NOT: the sha of the code that drew the figures, for the reason each arm now states."
+  "provenance_note": "WHAT IS AND IS NOT ESTABLISHED ABOUT WHERE THESE FIGURES CAME FROM (stamped 2026-09-15). Until today every arm's `producing_commit` was a bare string like 'p6-arm-cull', which reads as a commit and is a launch label -- the arms' provenance could not be checked from this artefact at all. The labels are kept, under `launch_label`, as the only handle the runs left. What IS a fact: each first-hand arm's `resolved_at`, read back out of its own run output, and `artefact_filed_in_commit`, which is when this file entered git. What is NOT: the sha of the code that drew the figures, for the reason each arm now states.",
+  "re_run_2026-09-15": {
+    "what": "The four FIRST-HAND arms (A_cull, C_cull83, D_tenure, B_chosen) were re-run from a clean `git archive` extract of 331c4958f and re-filed with their own home digest, their own execution mode, their own real producing commit and their own five figures. ARM C' was NOT re-run and must not be.",
+    "why": "They were filed on 09-11 with `producing_commit.commit` null (the launcher had passed a LABEL where a sha belonged) and with no record of which houses they ran on. The housing stock has since moved through the fork-closing merge 2212d0eed, so the old figures answered a question about a different country.",
+    "harness_unchanged": "Same extract, same arm_rerun.py, same SIM_FAST_MODE=1, same sequential order cull/cull83/tenure/chosen, same ARM_PRODUCING_COMMIT. Only the code commit and the housing stock moved, so the four stay comparable with EACH OTHER exactly as the 09-11 four were.",
+    "run_times_s": {
+      "A_cull": 726.2,
+      "C_cull83": 764.7,
+      "D_tenure": 795.1,
+      "B_chosen": 787.9
+    },
+    "launcher": "`systemd-run --user --unit=blind-arms-rerun`, NOT `setsid`. The first attempt at 17:52:06Z used setsid and every arm was killed at 8m41s by the worker tick's cgroup, writing no output at all. See docs/staging/SEAT_FINDING_THE_DRAWN_PREMISE_CHECKED_A_COMMIT_AND_THE_THING_THAT_MATTERED_WAS_FOUR_DEAD_PROCESSES_2026-09-15.md",
+    "the_envelope_is_still_refused_and_that_is_correct": "Filing these four does NOT make `blind_envelope.available` true, and anyone reading the drawn instruction as if it would has mis-read the consumer. `_blind_envelope_homes_refusal` requires EVERY arm to carry a home_digest equal to the live stock; C' carries none. The refusal therefore still fires -- but it now names 1 of 5 books instead of 5 of 5, and the thing standing between this page and a published baseline is one specific, named, un-rerunnable arm rather than a general absence."
+  }
 }
