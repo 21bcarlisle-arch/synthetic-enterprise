@@ -1935,14 +1935,44 @@ def test_the_remedy_is_priced_against_the_bound_the_page_actually_shows():
 def test_a_resolved_contrast_names_no_remedy_at_all():
     """The remedy is printed only beside something WITHHELD. Against a contrast that cleared its
     floor it would read as an apology for a figure that earned its sign -- and it would make the
-    control above satisfiable by a composer that prints the clause unconditionally."""
+    control above satisfiable by a composer that prints the clause unconditionally.
+
+    BOTH LINES BELOW WERE DEAD UNTIL 2026-09-15, AND EACH HID THE OTHER. The assertion pinned the
+    literal "More seeds would not resolve it", which `MORE_SEEDS_WOULD_NOT` was reworded away from
+    on the 09-11 fork -- so it forbade a string this producer can no longer emit, and was satisfied
+    by every possible composer, including the unconditional one this docstring names. Keyed to the
+    constant instead it goes red at once, and NOT for the producer's reason: `_floor_with_spread`
+    defaults `selection_mean` to 0.0, so the selection family sat 0.0 standard errors from zero,
+    the page withheld that leg, and the remedy clause was CORRECTLY printed. The test was named
+    for a state -- every contrast resolved -- that its own fixture could not reach: both legs are
+    set to £50,000 in the artefact and only one of them was put outside its floor. The exact
+    mirror of what `_withheld_headline` fixed on 2026-09-04, where both legs had to be INSIDE and
+    only one was.
+
+    KEYED TO `_ARITHMETIC_REMEDY` AND NOT TO THE WHOLE CONSTANT, for the reason given where that
+    name is defined: the leading clause is what must be off the surface, and the tail is prose
+    that will be rewritten again. Keying the negative form to the whole sentence would re-arm the
+    same trap the next time the tail moves.
+
+    R15 -- MUTATION, run 2026-09-15: drop `if withheld_contrasts else ""` from the headline
+    composer so the clause prints unconditionally. This control reds. The string-pinned version it
+    replaces PASSED that same mutant, which is what "unable to fail" means here.
+
+    THE ASYMMETRY WORTH CARRYING AWAY: the positive form of a word-keyed assertion announces a
+    rewording by going red, and the negative form swallows it by going silently true. Every
+    `assert "<producer's words>" not in <surface>` in this repo is a candidate for the same audit.
+    """
     art = _load(THREE_ARM)
     art["level_vs_selection"] = dict(art["level_vs_selection"],
                                      value_advantage_gbp=50_000.0, selection_gbp=50_000.0)
-    headline = gva.build(art, _floor_with_spread(100.0),
+    # THE SELECTION FAMILY IS CENTRED ON ITS OWN £50,000 AND NOT ON ZERO. This test's subject is a
+    # page with nothing withheld, and a family centred at zero withholds the selection leg however
+    # narrow the spread is -- the leg's gate is the family mean against that family's own standard
+    # error, so the £50,000 in the artefact above has to be in the floor's centre as well.
+    headline = gva.build(art, _floor_with_spread(100.0, 50_000.0),
                          _decomposition(0.85, resolvable=True))["headline"]
     assert "larger SETTLED BOOK" not in headline, headline
-    assert "More seeds would not resolve it" not in headline, headline
+    assert _ARITHMETIC_REMEDY not in headline, headline
 
 
 def test_a_stated_PRICE_carries_the_distance_the_split_cleared_its_bar_by():

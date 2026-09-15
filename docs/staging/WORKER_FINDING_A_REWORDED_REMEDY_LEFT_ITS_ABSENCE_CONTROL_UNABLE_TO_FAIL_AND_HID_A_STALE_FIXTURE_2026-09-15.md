@@ -1,6 +1,12 @@
 # A reworded remedy clause left its absence-control unable to fail, and that hid a stale fixture
 
-**Severity:** LATENT · **Lane:** H_harness
+**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — H_harness control repair
+
+**DISCHARGED 2026-09-15** by the commit carrying this line, which lands both halves of the repair
+together exactly as §"The repair, and its evidence" requires. Nothing below is revised: the
+finding was right, including the warning not to land the assertion without the fixture. What the
+discharge adds is the measurement the finding predicted but had not run, and one deliberate
+departure from its wording — see the closing section.
 
 **Found:** 2026-09-15, while closing the 2026-09-11 origin fork (`0191f92f5`, and the merge that
 follows it). Not fixed in that landing on purpose — it is a different defect and the fork's
@@ -92,3 +98,65 @@ That the producer is wrong. On the run the fork publishes, the remedy clause is 
 leg that genuinely was withheld, which is correct. Nothing on the live page is misleading because
 of this. The cost is a control that cannot fail and a fixture that does not reach its own state —
 both of which will be load-bearing the next time the composer's remedy logic is changed.
+
+---
+
+## The discharge (2026-09-15)
+
+Every measurement below was taken in a clean `git archive HEAD` extract at `760637dd7`, because
+the shared tree **cannot import the producer at all**: its working copy of
+`tools/demand_vector_coverage.py` drops `groups=None` from `fit_weights`, so
+`import tools.generate_value_arms_data` raises `TypeError: fit_weights() got an unexpected keyword
+argument 'groups'` through `simulation/run_phase2b.py`'s module-level `live_population()`. That is
+the sibling BLOCKING finding, and it is why this repair landed by `surgical_land --content` rather
+than by pathspec.
+
+### The four cells, which are the whole claim
+
+|                        | HEAD's producer | MUTANT: `if withheld_contrasts else ""` dropped from the headline composer |
+|---|---|---|
+| **HEAD's control** (string-pinned) | pass | **pass** — this is what "unable to fail" means |
+| **repaired control** | pass | **fail** |
+
+The mutant is the exact composer this test's own docstring says it exists to catch: one that prints
+the clause unconditionally. The version that stood until today passed it.
+
+### The fixture's red is the fixture's, and it was read before it was fixed
+
+Keyed to the constant against the *unrepaired* fixture, the assertion reds, and the message names
+the fixture's reason and not the producer's — verbatim from the run:
+
+> ... that mean sits **0.0 standard errors from zero** against the ±£58 standard error those same 3
+> pin it to, short of the 4.30 this page requires before stating a side. So this book CANNOT
+> RESOLVE whether the per-customer choosing is worth anything at all ...
+
+The finding's instruction — *do not land the assertion change without the fixture change* — was
+therefore not taken on trust: the intermediate state was built and its red read.
+
+### One deliberate departure from this finding's wording
+
+The finding proposes `gva.MORE_SEEDS_WOULD_NOT not in headline`. The landed assertion keys to
+**`_ARITHMETIC_REMEDY`**, which this test file already defines as
+`MORE_SEEDS_WOULD_NOT.split(":")[0]` — the leading clause — for the reason written where that name
+is defined: *"The leading clause is taken because the rest of the sentence is prose that may be
+rewritten again."* Keying the negative form to the whole sentence would re-arm this finding's own
+trap the next time the tail moves, which is the one thing this repair must not do. The shorter
+substring is also the strictly stronger absence claim.
+
+### The rest of the file
+
+`pytest tests/tools/test_generate_value_arms_data.py` in that extract: **200 passed, 4 failed**.
+All four failures reproduce identically with HEAD's unmodified test file — one variable moved, so
+none of them is this repair. They are the extract's own harness:
+`test_every_input_to_the_published_supplier_claim_IS_IN_THE_PUBLISH_SURFACE` and
+`test_the_published_supplier_claim_answers_THE_SAME_from_HEADs_committed_bytes` shell out to
+`git ls-files` / `git show HEAD:` with `cwd=PROJECT`, and a `git archive` extract has no `.git`, so
+they fail closed there. The other two read trees the extract cannot reach and report `None`.
+
+### The audit this leaves open, and does not claim
+
+The closing asymmetry — *the positive form of a word-keyed assertion announces a rewording, the
+negative form swallows it* — is now in the repaired test's docstring where the next reader of that
+control will meet it. Sweeping the repo for every other `assert "<producer's words>" not in
+<surface>` is **not** done here. It is the next piece of this thread and it belongs to H_harness
+with the rest.
