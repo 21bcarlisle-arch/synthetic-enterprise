@@ -6448,9 +6448,18 @@ def test_MUTATION_which_direction_is_WORSE_comes_from_the_feed_and_not_from_the_
 
 
 def test_MUTATION_a_verdict_that_TURNS_ON_the_second_hand_arm_is_marked_differently():
-    """Two of these five verdicts survive dropping the one arm we did not read ourselves, and two
-    do not. Rendering all five at one confidence publishes the flattering pair as though it were
-    as solid as the unflattering three.
+    """A verdict that survives dropping the one arm we did not read ourselves is not the same claim
+    as one that does not. Rendering both at one confidence publishes the flattering one as though
+    it were as solid as the rest.
+
+    WHY THIS ONE COMPOSES ITS SUBJECT INSTEAD OF FINDING IT IN THE LIVE FEED, from 2026-09-15. The
+    producer withholds this column entirely when no second-hand arm is in the span, which is the
+    live state since ARM C' was excluded for its houses -- so there is no line here to pick and a
+    test that picked one would have gone red on a feed that became MORE honest. The RENDER branch
+    it guards is still reachable the day a second-hand arm is stamped into this world, and this
+    keeps the door for it. What the live feed does instead is covered by
+    `test_the_reason_there_is_NO_robustness_column_reaches_the_reader`, which is the branch that
+    is actually taken today.
 
     Both branches, one variable: the same line rendered with the producer's robustness verdict
     flipped and nothing else changed.
@@ -6458,14 +6467,14 @@ def test_MUTATION_a_verdict_that_TURNS_ON_the_second_hand_arm_is_marked_differen
     Fires on: rendering the robustness column as one constant string, and on dropping it.
     """
     block = _blind()
-    subject = next((ln for ln in block["lines"]
-                    if ln.get("survives_dropping_the_second_hand_arm") is not None), None)
-    assert subject is not None, (
-        "no line carries a robustness verdict, so the column is UNAVAILABLE and an unavailable "
-        "check is a failed check")
+    subject = block["lines"][0]
 
     def _rendered(survives):
         feed = copy.deepcopy(_live_feed())
+        # The column exists only when the producer says there is something to drop, so the
+        # composed feed has to say so too -- otherwise this asserts against a block that has no
+        # fourth column at all and both branches render identically for the wrong reason.
+        feed["blind_envelope"]["why_no_robustness_column"] = None
         for line in feed["blind_envelope"]["lines"]:
             if line.get("label") == subject["label"]:
                 line["survives_dropping_the_second_hand_arm"] = survives
@@ -6478,6 +6487,72 @@ def test_MUTATION_a_verdict_that_TURNS_ON_the_second_hand_arm_is_marked_differen
         "without it, so the reader cannot tell the flattering pair from the solid three")
     assert "turns on it" in turns, (
         "a verdict the producer says does not survive dropping the second-hand arm is not said so")
+
+
+def test_an_arm_the_producer_EXCLUDED_from_the_span_reaches_the_reader_with_its_reason(live):
+    """THE DEFECT: a span over three books, on a page whose record holds five, with no sentence
+    about the other two.
+
+    ARM C' cannot be placed in this tree's houses and is out of the span. A reader shown the table
+    alone is shown a narrower comparison than the artefact supports and has no way to know it --
+    and, worse, the block reads as though every arm ever run agreed to be measured here.
+
+    Keyed to the producer's list, so an arm that comes back into the span stops being asserted and
+    a second exclusion is covered the day it appears. Fires on: dropping the exclusions from the
+    render, and on rendering the labels without the reasons.
+    """
+    block = _blind()
+    text = live["arms-blind-envelope"]
+    gone = block.get("excluded_arms") or []
+    if not gone:
+        pytest.skip("this publish excludes no arm, so there is nothing owed to the reader here")
+    for arm in gone:
+        assert arm["label"] in text, (
+            "{!r} is not in the span and the page never says so".format(arm["label"]))
+        assert _door_prose(arm["why"])[:80] in text, (
+            "{!r} is dropped in front of the reader with no reason".format(arm["label"]))
+
+
+def test_the_reason_there_is_NO_robustness_column_reaches_the_reader(live):
+    """FAIL CLOSED, ON THE SURFACE, for a column that used to be there and is not.
+
+    A table that quietly loses its fourth column reads as a question nobody asked. The producer
+    sends `why_no_robustness_column` precisely so the absence is stated, and an absence stated only
+    in the feed is not stated.
+
+    Fires on: rendering the block with the column gone and the sentence dropped.
+    """
+    block = _blind()
+    why = block.get("why_no_robustness_column")
+    if not why:
+        pytest.skip("this publish carries a robustness column -- "
+                    "`test_MUTATION_a_verdict_that_TURNS_ON_the_second_hand_arm_is_marked_"
+                    "differently` owns that branch")
+    assert _door_prose(why)[:80] in live["arms-blind-envelope"], (
+        "the robustness column is absent and the page does not say why")
+
+
+def test_MUTATION_the_number_of_blind_books_in_the_HEADING_follows_the_feed():
+    """THE DEFECT, and it was live until 2026-09-15: the heading said "four books" in words while
+    the table below it held however many the feed carried.
+
+    An arm was then excluded and the span became three. A heading that counts on its own would have
+    gone on saying four over a table of three, with nothing on the page to disagree with it -- the
+    most readable kind of wrong.
+
+    One variable, both branches: the same feed rendered at two arm counts.
+    """
+    _blind()  # a withheld block has no heading to count in -- that branch has its own control
+
+    def _rendered(count):
+        feed = copy.deepcopy(_live_feed())
+        feed["blind_envelope"]["blind_arm_count"] = count
+        return _render(feed)["arms-blind-envelope"]
+
+    assert "3 books that cannot see" in _rendered(3)
+    assert "7 books that cannot see" in _rendered(7), (
+        "the heading's arm count does not come from the feed, so it can disagree with the table "
+        "under it and nothing here would notice")
 
 
 def test_MUTATION_a_blind_envelope_the_producer_WITHHELD_renders_its_reason_and_not_a_gap():

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T17:07:00.904103Z",
+  "generated_at": "2026-09-15T19:26:04.218964Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -15,8 +15,114 @@
     "docs/design/blind_envelope_arms_2026-09-11.json"
   ],
   "blind_envelope": {
-    "available": false,
-    "why_not": "5 of these 5 books carry no record of which HOUSES they ran on (ARM A -- the cull, P6's blind arm; ARM C -- the cull truncated to 83 accounts; ARM D -- the shipped chooser with CHOICE_AXES stripped to customer_years; ARM B -- the chosen book; ARM C' -- the other seat's blind arm, at matched count, year mix and spend). They agree on the departure level -- that is what `world_digest` covers -- and the departure level does not move when the housing stock is re-drawn, which is exactly what happened to this tree since they were filed. The live stock is 35f8efe8ff02f245. Until each arm is re-run and stamped, where the chosen book sits against the blind span is unstated here, and that is a missing measurement rather than a settled result"
+    "available": true,
+    "what_this_is": "Five books, one world. Four of them cannot see a single attribute of a single home (fabric-blind); the fifth is the book the company's chooser actually settled. The blind books are the BASELINE the chosen book has to beat, and their min-to-max on each line is the BLIND SPAN. HOW MANY OF THEM ARE IN THAT SPAN IS NOT FIXED AT FIVE AND IS NOT STATED HERE: an arm that cannot be placed in the tree's live housing stock is excluded at publish time with its reason, which is why the page says three where this file holds five. This artefact carries only what each run MEASURED. Every span, position and percentage a reader sees is computed at publish time by `tools.generate_value_arms_data._blind_envelope` -- none is stored here, because a figure kept beside the numbers it is derived from gets edited on two days for two reasons.",
+    "world_digest": "39a192ce04c1eda8",
+    "home_digest": "35f8efe8ff02f245",
+    "comparable_because": "All five arms carry world_identity.digest 39a192ce04c1eda8, which is the DEPARTURE LEVEL and is the only reason these are five arms of one world rather than five runs of five worlds. It is NOT sufficient on its own and that was learned the hard way: the departure level does not move when the HOUSING STOCK is re-drawn, so `world_digest` agreed across all five while the houses underneath had changed. The second identity is `home_digest`, and only the four first-hand arms carry it -- all four at 35f8efe8ff02f245, this tree's live stock, re-measured 2026-09-15. ARM C' carries none and cannot. Both digests are carried on the block a reader sees rather than left in a file.",
+    "pounds_are_not_publishable": "All five arms ran SIM_FAST_MODE=1. For the four first-hand arms this is now EVIDENCED rather than asserted -- each carries its own `execution_mode` block, read from the environment of the process that ran the world and stamped by the same predicate `risk_committee_agent.invoke` branches on (landed 331c4958f). For ARM C' it remains an ASSERTION nobody on this box can falsify, because no run output for it exists here. The differences between the four evidenced arms are therefore clean and the ABSOLUTE pounds are not comparable to docs/reports/run_output_latest.json. No figure here may be published as a headline in pounds -- the surface renders positions and percentages, which is what the shared fast mode earns.",
+    "one_seed": "Every arm is deterministic at a fixed seed. The blind span is a spread over BOOK SHAPES, not over WORLDS, so it bounds how far the P&L moves when you change which blind book you settle and says nothing about sampling error across worlds. Every verdict below is an ORDERING against the blind arms in the span, never a confidence interval.",
+    "second_hand_caveat": "ARM C' is the one arm whose P&L this seat did not read from a run output. Its figures are cited from the other seat's result, which is in 34 commits that never reached origin; only its selection artefact (/var/tmp/p6_armC.json) survives on this box. It was carried because it is the only arm holding count, year mix AND spend. IT IS NO LONGER IN THE SPAN. On 2026-09-15 the other four arms were re-run in this tree's live housing stock (35f8efe8ff02f245) and C' could not be -- re-running it here would be a different arm, not this one -- so its figures answer a question about different houses and no span may be taken across all five. It is excluded at publish time and named on the page, rather than left standing as a reason to withhold the whole block: a precondition that one arm can never meet is a wall, not a control, and it was withholding three arms that CAN meet it. The cost is that the span is over three books, which is exactly the floor (`_BLIND_ENVELOPE_MINIMUM_ARMS`), and the block says so.",
+    "result_record": "docs/staging/records/SEAT_RESULT_ON_GROSS_MARGIN_THE_CHOSEN_BOOK_IS_INSIDE_THE_BLIND_SPREAD_AND_ON_NET_MARGIN_IT_IS_BELOW_EVERY_BLIND_ARM_2026-09-11.md",
+    "preregistration_commit": "eed120328",
+    "blind_arm_count": 3,
+    "first_hand_blind_arm_count": 3,
+    "blind_arm_labels": [
+      "ARM A -- the cull, P6's blind arm",
+      "ARM C -- the cull truncated to 83 accounts",
+      "ARM D -- the shipped chooser with CHOICE_AXES stripped to customer_years"
+    ],
+    "second_hand_arm_labels": [],
+    "chosen_arm_label": "ARM B -- the chosen book",
+    "excluded_arms": [
+      {
+        "label": "ARM C' -- the other seat's blind arm, at matched count, year mix and spend",
+        "why": "ARM C' has no run output on this box. Its figures are cited from the other seat's result, in 34 commits that never reached origin; only its selection artefact (/var/tmp/p6_armC.json) survives here. There is no run output to read a home stamp out of and no way to produce one -- re-running it here would be a different arm, not this one. So it is EXCLUDED from the span with this reason rather than left standing as a reason to withhold the whole block, which is what it was until 2026-09-15. The other four arms were re-run in this tree's stock (35f8efe8ff02f245) on 2026-09-15 and carry that stamp."
+      }
+    ],
+    "why_no_robustness_column": "every blind book in this span was read from a run output on this box, so there is no second-hand arm left to drop and no robustness column to report. The one arm held second-hand is excluded above, for its houses rather than for its provenance.",
+    "lines": [
+      {
+        "span_low_gbp": 378405.65035692364,
+        "span_high_gbp": 383215.2326870961,
+        "span_pct": 1.2710122921356832,
+        "chosen_gbp": 381542.4068167546,
+        "position": "inside",
+        "nearest_blind_gbp": null,
+        "distance_pct": null,
+        "key": "gross_margin_gbp",
+        "label": "Gross margin",
+        "available": true,
+        "higher_is_better": true,
+        "worse_for_the_chosen_book": null,
+        "first_hand_only": null,
+        "survives_dropping_the_second_hand_arm": null
+      },
+      {
+        "span_low_gbp": 679554.1253868951,
+        "span_high_gbp": 690290.8111394249,
+        "span_pct": 1.5799603521525203,
+        "chosen_gbp": 675945.7193687231,
+        "position": "below_all",
+        "nearest_blind_gbp": 679554.1253868951,
+        "distance_pct": -0.5309961169196998,
+        "key": "revenue_gbp",
+        "label": "Revenue",
+        "available": true,
+        "higher_is_better": true,
+        "worse_for_the_chosen_book": true,
+        "first_hand_only": null,
+        "survives_dropping_the_second_hand_arm": null
+      },
+      {
+        "span_low_gbp": 8331.16,
+        "span_high_gbp": 10814.12,
+        "span_pct": 29.803292698735845,
+        "chosen_gbp": 8359.26,
+        "position": "inside",
+        "nearest_blind_gbp": null,
+        "distance_pct": null,
+        "key": "bad_debt_gbp",
+        "label": "Bad debt",
+        "available": true,
+        "higher_is_better": false,
+        "worse_for_the_chosen_book": null,
+        "first_hand_only": null,
+        "survives_dropping_the_second_hand_arm": null
+      },
+      {
+        "span_low_gbp": 144101.901752,
+        "span_high_gbp": 148282.169183,
+        "span_pct": 2.9009106612584783,
+        "chosen_gbp": 148623.216984,
+        "position": "above_all",
+        "nearest_blind_gbp": 148282.169183,
+        "distance_pct": 0.22999919874324834,
+        "key": "net_margin_gbp",
+        "label": "Net margin",
+        "available": true,
+        "higher_is_better": true,
+        "worse_for_the_chosen_book": false,
+        "first_hand_only": null,
+        "survives_dropping_the_second_hand_arm": null
+      },
+      {
+        "span_low_gbp": 94836.00363556053,
+        "span_high_gbp": 97948.85026775226,
+        "span_pct": 3.282346907144996,
+        "chosen_gbp": 99380.17588810832,
+        "position": "above_all",
+        "nearest_blind_gbp": 97948.85026775226,
+        "distance_pct": 1.4612990519474176,
+        "key": "net_after_cost_to_serve_gbp",
+        "label": "Net after cost to serve",
+        "available": true,
+        "higher_is_better": true,
+        "worse_for_the_chosen_book": false,
+        "first_hand_only": null,
+        "survives_dropping_the_second_hand_arm": null
+      }
+    ]
   },
   "available": true,
   "contrast_bounds": {
@@ -388,7 +494,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "f4b8d2c6ba1ebdf30a75fed2e7cfd3d4cc6a90a6",
+    "publishing_tree_commit": "dc024bed36de62ce170e2f272dde5c9640470145",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -400,7 +506,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from f4b8d2c6b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from dc024bed3 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -795,7 +901,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "f4b8d2c6ba1ebdf30a75fed2e7cfd3d4cc6a90a6",
+      "publishing_tree_commit": "dc024bed36de62ce170e2f272dde5c9640470145",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -807,7 +913,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from f4b8d2c6b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from dc024bed3 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -858,21 +964,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 148558.61,
+      "dashboard_net_gbp": 147886.78,
       "run_identity": {
-        "dashboard_run_id": "run_output_acb44a94d_20260915T151859Z.json",
-        "dashboard_commit": "acb44a94d",
+        "dashboard_run_id": "run_output_258720283_20260910T005624Z.json",
+        "dashboard_commit": "258720283",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_acb44a94d_20260915T151859Z.json",
-        "last_verified_commit": "acb44a94d",
+        "last_verified_run_id": "run_output_258720283_20260910T005624Z.json",
+        "last_verified_commit": "258720283",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": 604.3543389992556,
-      "statement": "The published run's net margin (\u00a3148,558.61) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a3604.35. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": -67.47566100073163,
+      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.48. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {

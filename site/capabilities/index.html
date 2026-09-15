@@ -559,16 +559,23 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        market bound does: a reader who meets the figure and reaches the band three paragraphs
        later has already formed the impression. -->
   <div id="arms-redraw" style="margin:0 0 16px;"></div>
-  <!-- THE FOUR BOOKS THAT CANNOT SEE A HOME, AND WHERE THE CHOSEN ONE SITS AGAINST THEM.
+  <!-- THE BOOKS THAT CANNOT SEE A HOME, AND WHERE THE CHOSEN ONE SITS AGAINST THEM.
+       HOW MANY OF THEM IS THE FEED'S ANSWER AND NOT THIS COMMENT'S. It was four on 2026-09-11 and
+       is three since 2026-09-15, when the arms were re-run in this tree's housing stock and the
+       one held second-hand could not be. Counting them here in words is how the heading came to
+       say "four" over a table of three.
        Everything above this block compares the per-customer arm against ONE baseline. The
        director's thesis is that an advantage means nothing without a baseline to beat, and a
        single baseline cannot answer the question that actually decides whether a gap is a
        result: how far apart do two baselines sit anyway? On 2026-09-11 four fabric-blind books
        existed in one world for the first time, so the spread BETWEEN baselines is measurable and
        the chosen book's gap can be read against it.
-       WHY IT IS HERE AND NOT IN A STAGING RECORD. Its verdict is unflattering on three lines of
-       five. A surface that publishes the £270 selection leg and not the four books that bracket
-       it is publishing the half of a measured result that reads well, which is not evidence.
+       WHY IT IS HERE AND NOT IN A STAGING RECORD. A surface that publishes the £270 selection leg
+       and not the books that bracket it is publishing the half of a measured result that reads
+       well, which is not evidence. That cuts both ways and the block has been on both sides of
+       it: the 09-11 verdict was unflattering on three lines of five, and the 09-15 re-run in this
+       tree's own houses moved net margin from below every blind book to above every one of them.
+       Neither is a reason to publish or to withhold.
        WHY THE POUNDS ARE NOT ON THIS BLOCK. All five arms ran SIM_FAST_MODE=1, identically, so
        the DIFFERENCES between them are clean and the absolute figures are not comparable to the
        published run anywhere else on this site. Positions and percentages are what a shared fast
@@ -1468,11 +1475,18 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
      single most decision-relevant figure on this page backwards, and read perfectly while doing
      it.
 
-     THE ROBUSTNESS COLUMN IS NOT DECORATION. One of the four blind arms is held second-hand —
-     its figures are cited from a result stranded on a fork, not read from a run output here. Three
-     verdicts hold when it is dropped and two flip. Rendering all five at one confidence would
-     publish "INSIDE on gross margin", the most flattering line in the block, as though it were as
-     solid as the three that are not.
+     THE ROBUSTNESS COLUMN IS NOT DECORATION, AND IT IS NOT ALWAYS THERE. It exists when a blind
+     arm in the span is held second-hand — cited from a result stranded on a fork, not read from a
+     run output here — because rendering a verdict that turns on that arm at the same confidence as
+     one that does not publishes the flattering line as though it were as solid as the rest. When
+     the producer carries no such arm it sends `why_no_robustness_column` instead, and this block
+     drops the column and says why. It does NOT render a column of "holds without it" about an arm
+     that is not in the span: that reads as five verdicts surviving a test none of them was put to.
+
+     THE ARM COUNT IN THE HEADING COMES FROM THE FEED. It said "four" in words until 2026-09-15,
+     when an arm that could not be placed in this tree's houses was excluded and the span became
+     three — a heading that counts on its own would have gone on saying four over a table of
+     three, and nothing on the page would have disagreed with it.
 
      FAIL CLOSED ON EVERY BRANCH. No envelope renders as a named absence with its reason, never as
      a missing section: a block that vanishes when its artefact goes missing reads to the reader
@@ -1497,10 +1511,14 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
     var WORDS = { inside: "INSIDE the span", above_all: "ABOVE every blind book",
                   below_all: "BELOW every blind book" };
     var anyWorse = false;
+    /* WHETHER THERE IS A FOURTH COLUMN AT ALL, decided once from the producer's own field rather
+       than per row, so the header and every body row can never disagree about the width. */
+    var hasRobustness = !be.why_no_robustness_column;
     var rows = (be.lines || []).map(function (line) {
       var head = '<tr><td style="padding:4px 10px 4px 0;">' + esc(line.label) + "</td>";
       if (!line.available) {
-        return head + '<td colspan="3" style="padding:4px 0;color:var(--amber);">'
+        return head + '<td colspan="' + (hasRobustness ? 3 : 2)
+          + '" style="padding:4px 0;color:var(--amber);">'
           + "<strong>WITHHELD.</strong> "
           + prose(line.why_not || "This line is not carried by every arm, so no span over them "
               + "is a span over the same quantity.") + "</td></tr>";
@@ -1517,18 +1535,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
         + (line.distance_pct === null || line.distance_pct === undefined ? ""
            : ", by " + esc(pct(line.distance_pct, true)))
         + (worse === true ? " &mdash; WORSE" : "") + "</td>"
-        + '<td style="padding:4px 0;font-size:11.5px;color:'
-        + (survives === false ? "var(--amber)" : "var(--muted)") + ';">'
-        + (survives === true ? "holds without it"
-           : survives === false ? "<strong>turns on it</strong>"
-           : "not re-checked") + "</td></tr>";
+        + (!hasRobustness ? "" :
+           '<td style="padding:4px 0;font-size:11.5px;color:'
+           + (survives === false ? "var(--amber)" : "var(--muted)") + ';">'
+           + (survives === true ? "holds without it"
+              : survives === false ? "<strong>turns on it</strong>"
+              : "not re-checked") + "</td>")
+        + "</tr>";
     }).join("");
     var caveat = function (label, text) {
       return !text ? "" : '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
         + "<strong>" + esc(label) + "</strong> " + prose(text) + "</p>";
     };
-    return '<h3 style="margin:0 0 6px;font-size:15px;">Against four books that cannot see a '
-      + "single home</h3>"
+    return '<h3 style="margin:0 0 6px;font-size:15px;">Against ' + esc(be.blind_arm_count)
+      + " books that cannot see a single home</h3>"
       + '<p style="margin:0 0 8px;font-size:13px;">An advantage means nothing without a baseline '
       + "to beat, and one baseline cannot say how far apart two baselines sit anyway. "
       + esc(be.blind_arm_count) + " books settled in this same world <em>without seeing a single "
@@ -1549,7 +1569,9 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + '<th style="font-weight:600;text-align:right;padding:0 10px 4px 0;">how far apart the '
       + "blind books sit</th>"
       + '<th style="font-weight:600;padding:0 10px 4px 0;">where the chosen book sits</th>'
-      + '<th style="font-weight:600;padding:0 0 4px;">if the second-hand arm is dropped</th></tr>'
+      + (!hasRobustness ? "" :
+         '<th style="font-weight:600;padding:0 0 4px;">if the second-hand arm is dropped</th>')
+      + "</tr>"
       + rows + "</table></div>"
       /* THE DIGEST ON THE BLOCK, not in a file. These five arms are comparable ONLY because they
          are five arms of one world, and a reader who cannot check that is being asked to take the
@@ -1557,6 +1579,20 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + '<p style="margin:8px 0 0;font-size:11.5px;color:var(--muted);"><strong>One world, '
       + "digest <code>" + esc(be.world_digest) + "</code>.</strong> "
       + prose(be.comparable_because || "") + "</p>"
+      /* THE ARMS THAT ARE NOT IN THE TABLE. A span of three where the record holds five, with no
+         sentence about the other two, is a narrower comparison than the artefact supports shown to
+         a reader who has no way to know it. Each exclusion carries the producer's own reason —
+         never a house style sentence — because "excluded" without a why sends the reader to
+         re-derive what the producer already knew. */
+      + ((be.excluded_arms || []).length === 0 ? "" :
+         '<p style="margin:8px 0 0;font-size:11.5px;color:var(--amber);"><strong>'
+         + esc((be.excluded_arms || []).length)
+         + " book(s) are NOT in the span above.</strong> "
+         + (be.excluded_arms || []).map(function (x) {
+             return "<em>" + esc(x.label) + "</em> &mdash; " + prose(x.why || "");
+           }).join(" ")
+         + "</p>")
+      + caveat("No robustness column.", be.why_no_robustness_column)
       + caveat("The second-hand arm.", be.second_hand_caveat)
       + caveat("These are orderings, not intervals.", be.one_seed)
       + caveat("No pounds are quoted here, on purpose.", be.pounds_are_not_publishable);

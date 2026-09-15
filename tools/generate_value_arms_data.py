@@ -8990,8 +8990,20 @@ _BLIND_POSITIONS = ("inside", "above_all", "below_all")
 _BLIND_ENVELOPE_MINIMUM_ARMS = 3
 
 
-def _blind_envelope_homes_refusal(arms: list) -> dict | None:
-    """`None` if every arm was measured in THIS world's home stock; a refusal block if not.
+def _blind_envelope_homes_refusal(arms: list) -> tuple[list, list, dict | None]:
+    """Which arms can be placed in THIS world's home stock, which cannot, and why not.
+
+    Returns `(placeable, excluded, refusal)`. `refusal` is `None` when a span can be taken over
+    what survives; when it is a block, the caller publishes it and nothing else.
+
+    THE ASYMMETRY BETWEEN A MISSING STAMP AND A WRONG ONE, which is the whole of this function's
+    2026-09-15 second draft. An arm that says NOTHING about its houses can be set aside with its
+    reason -- ARM C' never ran on this box and never can, so waiting for it to be stamped is
+    waiting forever, and refusing the whole block on its account withholds three arms that WERE
+    re-run here. An arm that says the WRONG houses is different in kind: the artefact is then
+    claiming to be one world and is not, and the right answer is to publish nothing until someone
+    reads it. So a null is an exclusion and a mismatch is a refusal, and this is the one place that
+    distinction is made.
 
     WHY A SECOND PRECONDITION AND NOT A CAPTION, and the evidence is this block's own history. Until
     2026-09-15 the only world check here was `world_digest`, which is
@@ -9014,49 +9026,66 @@ def _blind_envelope_homes_refusal(arms: list) -> dict | None:
     prose names both digests or names the arms that carry none, because "the homes differ" with no
     handle sends the next reader to re-derive what this function already knows.
     """
+    def _refuse(why):
+        return [], [], {"available": False, "why_not": why}
+
     try:
         from simulation.world_home_identity import home_stock_identity
 
         live = home_stock_identity()["digest"]
     except Exception as exc:  # noqa: BLE001 -- "cannot establish" is a refusal, never a pass
-        return {"available": False,
-                "why_not": ("this world's home stock could not be read ({}), so nothing here can "
-                            "say whether these five books were measured in the houses this tree "
-                            "has, and an envelope nobody can place in a world is not published "
-                            "here".format(exc))}
+        return _refuse("this world's home stock could not be read ({}), so nothing here can say "
+                       "whether these books were measured in the houses this tree has, and an "
+                       "envelope nobody can place in a world is not published here".format(exc))
 
-    filed = [a.get("home_digest") for a in arms]
-    unstamped = [a.get("label") or a.get("key") for a, d in zip(arms, filed) if not d]
-    if unstamped:
-        return {"available": False,
-                "why_not": ("{} of these {} books carry no record of which HOUSES they ran on ({}). "
-                            "They agree on the departure level -- that is what `world_digest` "
-                            "covers -- and the departure level does not move when the housing stock "
-                            "is re-drawn, which is exactly what happened to this tree since they "
-                            "were filed. The live stock is {}. Until each arm is re-run and stamped, "
-                            "where the chosen book sits against the blind span is unstated here, and "
-                            "that is a missing measurement rather than a settled result".format(
-                                len(unstamped), len(arms), "; ".join(str(u) for u in unstamped),
-                                live))}
+    stamped = sorted({d for d in (a.get("home_digest") for a in arms) if d})
+    if not stamped:
+        return _refuse(
+            "all {} of these books carry no record of which HOUSES they ran on ({}). They agree on "
+            "the departure level -- that is what `world_digest` covers -- and the departure level "
+            "does not move when the housing stock is re-drawn, which is exactly what happened to "
+            "this tree since they were filed. The live stock is {}. Until they are re-run and "
+            "stamped, where the chosen book sits against the blind span is unstated here, and that "
+            "is a missing measurement rather than a settled result".format(
+                len(arms), "; ".join(str(a.get("label") or a.get("key")) for a in arms), live))
 
-    distinct = sorted(set(filed))
-    if len(distinct) != 1:
-        return {"available": False,
-                "why_not": ("these books did not all run on the same houses ({}), so the span "
-                            "between the blind ones mixes a difference in BOOK SHAPE with a "
-                            "difference in HOUSING STOCK and neither can be read off it".format(
-                                ", ".join(repr(d) for d in distinct)))}
+    if len(stamped) != 1:
+        return _refuse(
+            "these books did not all run on the same houses ({}), so the span between the blind "
+            "ones mixes a difference in BOOK SHAPE with a difference in HOUSING STOCK and neither "
+            "can be read off it".format(", ".join(repr(d) for d in stamped)))
 
-    if distinct[0] != live:
-        return {"available": False,
-                "why_not": ("these five books were measured on a housing stock this tree does not "
-                            "have -- they ran on {} and the world here is {}. The figures are not "
-                            "wrong; they are answers about a different country, and a book from "
-                            "this world placed against a span from that one is a comparison of two "
-                            "things that were never varied one at a time. The arms have to be "
-                            "re-run here before a position can be published".format(
-                                distinct[0], live))}
-    return None
+    if stamped[0] != live:
+        return _refuse(
+            "these books were measured on a housing stock this tree does not have -- they ran on "
+            "{} and the world here is {}. The figures are not wrong; they are answers about a "
+            "different country, and a book from this world placed against a span from that one is "
+            "a comparison of two things that were never varied one at a time. The arms have to be "
+            "re-run here before a position can be published".format(stamped[0], live))
+
+    placeable = [a for a in arms if a.get("home_digest")]
+    excluded = [{
+        "label": a.get("label") or a.get("key"),
+        # THE REASON IS THE ARM'S OWN, never this function's guess. An arm that records why it can
+        # never be stamped says so in `home_digest_unavailable_because`; one that simply has not
+        # been re-run yet gets the general sentence, and the two read differently on the page on
+        # purpose -- the first is a permanent absence and the second is outstanding work.
+        "why": (a.get("home_digest_unavailable_because")
+                or "this book carries no record of which houses it ran on, so it cannot be placed "
+                   "in this tree's stock ({}) and takes no part in the span below".format(live)),
+    } for a in arms if not a.get("home_digest")]
+
+    chosen_excluded = [a for a in arms if a.get("sees_fabric") and not a.get("home_digest")]
+    if chosen_excluded:
+        return _refuse(
+            "the book being placed ({}) carries no record of which HOUSES it ran on, so there is "
+            "nothing to place against the span even though {} blind book(s) can be placed in this "
+            "tree's stock ({}). Excluding a blind arm narrows the span; excluding the chosen book "
+            "leaves no question".format(
+                "; ".join(str(a.get("label") or a.get("key")) for a in chosen_excluded),
+                len(placeable), live))
+
+    return placeable, excluded, None
 
 
 def _blind_envelope(arms_doc: dict | None) -> dict:
@@ -9077,18 +9106,24 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
 
     AND THE DIGEST IS TWO PRECONDITIONS SINCE 2026-09-15, not one. `world_digest` covers the
     departure LEVEL and is blind to the housing stock, which is the one variable this block's whole
-    question turns on -- see `_blind_envelope_homes_refusal` for the measurement and the three
-    branches. The 09-11 arms carry no home stamp at all, so this block correctly publishes a refusal
-    until they are re-run here; that is the honest state of the page and not a regression in it.
+    question turns on -- see `_blind_envelope_homes_refusal` for the measurement and the branches.
 
-    WHY THE SECOND-HAND ARM IS GRADED SEPARATELY, and this is the part that earns the function.
-    One of the four blind arms (C') was not read from a run output on this box -- its figures are
-    cited from a result stranded on a fork. Recomputing the envelope over the FIRST-HAND arms only
-    is one line of code and it turns out to split the five verdicts in two: bad debt, net margin
-    and net after cost to serve reach the same verdict either way, and BOTH "inside" verdicts flip
-    to "below all" the moment C' is dropped. Publishing the flattering half at the same confidence
-    as the unflattering half, when one rests on an arm we hold second-hand and the other does not,
-    is precisely the surface this block exists to avoid being.
+    AN ARM THAT CANNOT BE PLACED IS EXCLUDED, NOT A REASON TO WITHHOLD THE BLOCK, and that is this
+    function's second 2026-09-15 draft. The first refused the whole envelope while ANY arm lacked a
+    home stamp. Four arms were then re-run in this tree's stock and C' -- whose run output exists
+    only on a fork that never reached origin -- could not be, so the block would have gone on
+    refusing forever on account of the one arm that can never satisfy it, while withholding three
+    that can. So C' is set aside with its reason on the page and the span is the three books this
+    tree can actually place. The cost is real and is not hidden: the span is over three arms rather
+    than four, which is exactly the floor, and the block says so.
+
+    WHAT THAT DID TO THE VERDICTS, recorded here because it is the evidence the exclusion was not
+    chosen for its answer. Against the 09-11 figures, dropping C' flipped both "inside" verdicts to
+    "below all". Against the re-run figures it does not reproduce: net margin and net after cost to
+    serve now read ABOVE every blind book, where the 09-11 record had net margin below every one of
+    them. The re-run moved the result in the chosen book's favour, which is the direction that
+    deserves the most suspicion, and the reason it is publishable at all is that the arms it is
+    measured against were re-run in the same world by the same launcher.
     """
     if not isinstance(arms_doc, dict):
         return {"available": False,
@@ -9096,18 +9131,11 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
                             "position for the chosen book against a blind span")}
     arms = [a for a in (arms_doc.get("arms") or []) if isinstance(a, dict)]
     lines = [ln for ln in (arms_doc.get("lines") or []) if isinstance(ln, dict)]
-    blind = [a for a in arms if not a.get("sees_fabric")]
     chosen = [a for a in arms if a.get("sees_fabric")]
     if len(chosen) != 1:
         return {"available": False,
                 "why_not": ("the artefact carries {} books that can see a home and this block "
                             "compares exactly one against the blind ones".format(len(chosen)))}
-    if len(blind) < _BLIND_ENVELOPE_MINIMUM_ARMS:
-        return {"available": False,
-                "why_not": ("{} fabric-blind books is not an envelope -- it takes {} before "
-                            "\"inside\" means anything, because with two there is no way to tell "
-                            "how far apart blind books ordinarily sit".format(
-                                len(blind), _BLIND_ENVELOPE_MINIMUM_ARMS))}
     digests = sorted({a.get("world_digest") for a in arms})
     if len(digests) != 1 or not digests[0]:
         return {"available": False,
@@ -9115,9 +9143,24 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
                             "from one world differenced against a figure from another and no "
                             "position over it can be read".format(
                                 ", ".join(repr(d) for d in digests)))}
-    homes_refusal = _blind_envelope_homes_refusal(arms)
+    # THE ARM FLOOR IS COUNTED AFTER THE EXCLUSION AND NOT BEFORE IT, because an artefact of five
+    # arms two of which cannot be placed here is a three-arm envelope, and counting the filed rows
+    # would publish a span the floor was never applied to.
+    arms, excluded, homes_refusal = _blind_envelope_homes_refusal(arms)
     if homes_refusal is not None:
         return homes_refusal
+    blind = [a for a in arms if not a.get("sees_fabric")]
+    chosen = [a for a in arms if a.get("sees_fabric")]
+    if len(blind) < _BLIND_ENVELOPE_MINIMUM_ARMS:
+        return {"available": False,
+                "why_not": ("{} fabric-blind books is not an envelope -- it takes {} before "
+                            "\"inside\" means anything, because with two there is no way to tell "
+                            "how far apart blind books ordinarily sit{}".format(
+                                len(blind), _BLIND_ENVELOPE_MINIMUM_ARMS,
+                                "" if not excluded else
+                                " (and {} could not be placed in this tree's houses: {})".format(
+                                    len(excluded),
+                                    "; ".join(str(e["label"]) for e in excluded))))}
     chosen = chosen[0]
     first_hand_blind = [a for a in blind if a.get("first_hand")]
     out_lines = []
@@ -9134,8 +9177,14 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
         # THE SAME LINE OVER THE ARMS WE READ OURSELVES. `None` when dropping the second-hand arm
         # would take the envelope below its own minimum -- withheld with a reason, never quietly
         # reported as agreeing.
+        #
+        # AND `None` WHEN THERE IS NO SECOND-HAND ARM IN THE SPAN, which is the live state since
+        # C' was excluded for its houses. With nothing to drop, `narrow` is `full`, every line
+        # reports `survives = True`, and the page publishes "holds without it" five times about an
+        # arm that is not in the span at all. That column would be TRUE BY CONSTRUCTION -- the
+        # flattering tautology, on the one row that was built to stop this block being flattering.
         narrow = (_blind_line(key, first_hand_blind, chosen)
-                  if len(first_hand_blind) >= _BLIND_ENVELOPE_MINIMUM_ARMS else None)
+                  if _BLIND_ENVELOPE_MINIMUM_ARMS <= len(first_hand_blind) < len(blind) else None)
         position = full["position"]
         out_lines.append(dict(
             full,
@@ -9171,6 +9220,17 @@ def _blind_envelope(arms_doc: dict | None) -> dict:
         "blind_arm_labels": [a.get("label") for a in blind],
         "second_hand_arm_labels": [a.get("label") for a in blind if not a.get("first_hand")],
         "chosen_arm_label": chosen.get("label"),
+        # THE ARMS THAT ARE NOT IN THE SPAN, on the block rather than in a file. A reader who is
+        # shown three blind books where the record says five, and no sentence about the other two,
+        # is being shown a narrower span than the artefact holds with no way to know it.
+        "excluded_arms": excluded,
+        # WHY THE ROBUSTNESS COLUMN IS NOT HERE, when it is not. Withholding it silently would
+        # read as "nobody thought to ask", which is the state this block was built out of.
+        "why_no_robustness_column": (
+            None if any(ln.get("first_hand_only") for ln in out_lines) else
+            "every blind book in this span was read from a run output on this box, so there is no "
+            "second-hand arm left to drop and no robustness column to report. The one arm held "
+            "second-hand is excluded above, for its houses rather than for its provenance."),
         "lines": out_lines,
     }
 

@@ -7630,7 +7630,7 @@ def test_the_register_is_the_only_place_the_withdrawn_words_reach_the_feed():
 # was blind to it.
 #
 # R15 -- mutations, each run and reverted:
-#   * make `_blind_envelope_homes_refusal` return None unconditionally
+#   * make `_blind_envelope_homes_refusal` return every arm placeable and no refusal
 #     -> `test_arms_with_no_home_stamp_are_refused` and the two mismatch tests red.
 #   * have it refuse unconditionally (return the refusal before reading the arms)
 #     -> `test_arms_stamped_with_THIS_worlds_homes_do_publish` reds. That leg is the one that
@@ -7644,27 +7644,37 @@ def _live_home_digest():
     return home_stock_identity()["digest"]
 
 
-def _arms_doc(home_digests):
+def _arms_doc(home_digests, first_hand=None, why_unavailable=None):
     """An arms artefact whose only variable is what each arm says about its houses.
 
     Built rather than loaded because the point is to vary ONE field across otherwise identical
-    documents. Every other precondition -- one sighted book, three blind ones, one shared
+    documents. Every other precondition -- one sighted book, the blind ones, one shared
     `world_digest` -- is satisfied, so a refusal here can only have come from the home part.
+
+    The LAST entry is the sighted book; everything before it is blind. Pass more than four digests
+    to get more blind arms. `first_hand` and `why_unavailable` are per-arm and default to
+    "all first-hand" and "no arm states a reason", which is the shape most of these tests want.
     """
     figures = lambda n: {"gross_margin_gbp": n, "net_margin_gbp": n / 2.0}  # noqa: E731
-    keys = ["A", "B", "C", "chosen"]
+    count = len(home_digests)
+    first_hand = [True] * count if first_hand is None else first_hand
+    why_unavailable = [None] * count if why_unavailable is None else why_unavailable
     arms = []
-    for index, (key, home) in enumerate(zip(keys, home_digests)):
+    for index, home in enumerate(home_digests):
+        sighted = index == count - 1
+        key = "chosen" if sighted else chr(ord("A") + index)
         arm = {
             "key": key,
             "label": "ARM " + key,
-            "sees_fabric": key == "chosen",
-            "first_hand": True,
+            "sees_fabric": sighted,
+            "first_hand": first_hand[index],
             "world_digest": "39a192ce04c1eda8",
             "figures": figures(100.0 + index * 10.0),
         }
         if home is not None:
             arm["home_digest"] = home
+        if why_unavailable[index] is not None:
+            arm["home_digest_unavailable_because"] = why_unavailable[index]
         arms.append(arm)
     return {
         "what_this_is": "a fixture",
@@ -7727,7 +7737,7 @@ def test_arms_that_disagree_with_each_other_about_the_houses_are_refused():
     assert "same houses" in out["why_not"]
 
 
-def test_the_real_artefact_on_disk_withholds_the_block_with_a_reason_a_reader_can_act_on():
+def test_the_real_artefact_on_disk_either_publishes_IN_THIS_WORLD_or_says_why_not():
     """THE DEFECT: the page rendering a span nobody can place in a world.
 
     Keyed to the PROPERTY and not to today's answer: it asserts the block is either published with a
@@ -7738,8 +7748,164 @@ def test_the_real_artefact_on_disk_withholds_the_block_with_a_reason_a_reader_ca
     out = gva._blind_envelope(gva._read(gva.BLIND_ENVELOPE_ARMS_PATH))
     if out.get("available"):
         assert out.get("home_digest") == _live_home_digest()
+        # AND EVERY ARM THE ARTEFACT HOLDS IS ACCOUNTED FOR, in the span or in the exclusions. A
+        # block that published three arms out of five and mentioned neither the count nor the two
+        # would read as the whole record, which is the failure the exclusion path could introduce.
+        filed = len([a for a in (gva._read(gva.BLIND_ENVELOPE_ARMS_PATH) or {}).get("arms") or []
+                     if isinstance(a, dict)])
+        accounted = (out["blind_arm_count"] + 1 + len(out.get("excluded_arms") or []))
+        assert accounted == filed, (
+            "the artefact holds {} arms and the block accounts for {} -- an arm has gone missing "
+            "between the record and the page".format(filed, accounted))
+        for gone in out.get("excluded_arms") or []:
+            assert len(gone.get("why") or "") > 40, (
+                "{!r} is dropped from the span with no reason a reader can act on".format(
+                    gone.get("label")))
     else:
         assert len(out.get("why_not") or "") > 80, (
             "the block is withheld with no usable reason, which is the fail-silent this whole feed "
             "was built to avoid")
         assert _live_home_digest() in out["why_not"]
+
+
+# ---------------------------------------------------------------------------------------------
+# AN ARM THAT CAN NEVER BE PLACED IS EXCLUDED; AN ARM THAT SAYS THE WRONG WORLD IS REFUSED.
+#
+# THE DEFECT THE SECOND DRAFT FIXED. The first draft refused the whole block while ANY arm lacked a
+# home stamp. Four arms were then re-run in this tree's stock; ARM C' could not be, because its run
+# output is on a fork that never reached origin and re-running it here would be a different arm. So
+# the guard would have withheld three placeable arms forever on account of the one arm that can
+# never satisfy it -- a precondition that cannot be met is a wall, not a control.
+#
+# THE DEFECT THE SECOND DRAFT COULD INTRODUCE, and what stops it: "drop the awkward arm" is one
+# character away from "drop the arm that spoils the answer". The line drawn is that a MISSING stamp
+# is an exclusion and a WRONG one is a refusal, so no arm that states a world can ever be dropped
+# for stating the wrong one -- `test_arms_that_disagree_with_each_other_about_the_houses_are_refused`
+# above is the control over that half and it was not weakened.
+#
+# R15 -- mutations, each run and reverted:
+#   * exclude arms whose stamp MISMATCHES as well as those with none
+#     -> `test_arms_that_disagree_with_each_other_about_the_houses_are_refused` reds.
+#   * let the chosen book be excluded like any other arm
+#     -> `test_the_CHOSEN_book_being_unplaceable_refuses_the_whole_block` reds.
+#   * keep the exclusion but report the span over ALL arms
+#     -> `test_the_exclusion_MOVES_the_span_and_is_not_a_caption` reds.
+#   * restore `narrow` whenever three first-hand arms exist
+#     -> `test_the_robustness_column_is_WITHHELD_when_there_is_nothing_left_to_drop` reds.
+# ---------------------------------------------------------------------------------------------
+
+def test_an_arm_that_cannot_be_placed_in_this_world_is_EXCLUDED_and_carries_its_OWN_reason():
+    """THE DEFECT: three arms re-run in this world withheld on account of a fourth that never can.
+
+    The excluded arm's sentence must be the ARTEFACT's, not this function's house style, because
+    "cannot be placed" and "was never run here and never will be" are different facts to a reader
+    deciding whether to wait for it.
+    """
+    live = _live_home_digest()
+    mine = "THIS ARM'S OWN RECORDED REASON, which no house-style sentence can stand in for."
+    out = gva._blind_envelope(_arms_doc([live, live, live, None, live],
+                                        why_unavailable=[None, None, None, mine, None]))
+    assert out["available"] is True, out.get("why_not")
+    assert out["blind_arm_count"] == 3, (
+        "the excluded arm is still being counted into the span's arm count")
+    assert [x["label"] for x in out["excluded_arms"]] == ["ARM D"]
+    assert out["excluded_arms"][0]["why"] == mine, (
+        "the block substituted its own reason for the one the arm recorded")
+
+
+def test_an_excluded_arm_with_NO_recorded_reason_still_gets_one_naming_the_live_stock():
+    """FAIL CLOSED ON THE SURFACE. An arm dropped with a blank beside it reads as an oversight.
+
+    The general sentence has to name the stock the arm could not be placed in, or the reader is
+    told an arm is out and not what it was out of.
+    """
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live, live, live, None, live]))
+    assert out["available"] is True, out.get("why_not")
+    assert live in out["excluded_arms"][0]["why"]
+
+
+def test_the_exclusion_MOVES_the_span_and_is_not_a_caption():
+    """THE DEFECT: an arm named as excluded and silently left in the min-to-max anyway.
+
+    ONE VARIABLE. The same five arms twice, differing only in whether the fourth carries a home
+    stamp. It is the extreme of the blind set, so if it is really out the span's top must fall --
+    a block that printed the exclusion and kept the arithmetic would pass every presence control
+    above and publish the wider span under the narrower story.
+    """
+    live = _live_home_digest()
+    stamped = _arms_doc([live, live, live, live, live])
+    # The fourth blind arm is the widest by construction (`figures` rises with index), and the
+    # sighted book is last, so dropping it is visible in `span_high_gbp` and nowhere else.
+    dropped = _arms_doc([live, live, live, None, live])
+    wide = gva._blind_envelope(stamped)["lines"][0]
+    narrow = gva._blind_envelope(dropped)["lines"][0]
+    assert wide["available"] and narrow["available"]
+    assert narrow["span_high_gbp"] < wide["span_high_gbp"], (
+        "excluding the widest blind arm did not move the top of the span, so the exclusion is "
+        "prose over an unchanged measurement")
+
+
+def test_the_CHOSEN_book_being_unplaceable_refuses_the_whole_block():
+    """THE ASYMMETRY THAT KEEPS THE EXCLUSION HONEST: dropping a blind arm narrows the question,
+    dropping the book being placed leaves no question at all.
+
+    A guard that treated the sighted book like any other arm would publish a span with nothing
+    placed against it, or -- worse -- place a book from an unknown stock against this world's span
+    and call it a position.
+    """
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live, live, live, None]))
+    assert out["available"] is False
+    assert "the book being placed" in out["why_not"] and live in out["why_not"]
+
+
+def test_excluding_arms_below_the_floor_refuses_and_NAMES_what_was_excluded():
+    """THE DEFECT: an exclusion quietly taking the envelope under its own three-arm minimum.
+
+    The refusal has to name the arms that were set aside. "Two books is not an envelope" over an
+    artefact that plainly holds four sends the reader to re-derive which two went and why.
+    """
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live, live, None, None, live]))
+    assert out["available"] is False
+    assert "is not an envelope" in out["why_not"]
+    assert "ARM C" in out["why_not"] and "ARM D" in out["why_not"]
+
+
+def test_the_robustness_column_is_WITHHELD_when_there_is_nothing_left_to_drop():
+    """THE FLATTERING TAUTOLOGY, and it is the reason this test exists at all.
+
+    The column asks "does this verdict survive dropping the arm we did not read ourselves?". Once
+    C' is excluded for its houses there IS no second-hand arm in the span, so the narrow set is the
+    full set, every line answers "holds without it", and the page publishes five verdicts as having
+    survived a test none of them was put to. True by construction, on the one row built to stop
+    this block flattering itself.
+    """
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live] * 4))
+    assert out["available"] is True, out.get("why_not")
+    for line in out["lines"]:
+        assert line.get("survives_dropping_the_second_hand_arm") is None, (
+            "a robustness verdict is reported with no second-hand arm in the span to drop")
+        assert line.get("first_hand_only") is None
+    assert (out.get("why_no_robustness_column") or "").strip(), (
+        "the column is gone and the block says nothing about why, which reads as nobody having "
+        "thought to ask")
+
+
+def test_the_robustness_column_IS_reported_when_a_second_hand_arm_IS_in_the_span():
+    """THE OTHER HALF, without which the test above is satisfied by never reporting the column.
+
+    Four blind arms, one of them second-hand and stamped with THIS world's houses, so it is in the
+    span and there is something to drop. This is the shape a fifth first-hand arm would restore.
+    """
+    live = _live_home_digest()
+    out = gva._blind_envelope(_arms_doc([live] * 5,
+                                        first_hand=[True, True, True, False, True]))
+    assert out["available"] is True, out.get("why_not")
+    assert out["blind_arm_count"] == 4 and out["first_hand_blind_arm_count"] == 3
+    assert out["why_no_robustness_column"] is None
+    assert any(line.get("survives_dropping_the_second_hand_arm") is not None
+               for line in out["lines"]), (
+        "a second-hand arm sits in the span and no line says whether the verdict turns on it")
