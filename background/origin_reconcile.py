@@ -267,21 +267,53 @@ def _split_generated(modified: list[str]) -> tuple[list[str], list[str], str]:
     the set (176 members on 2026-09-09) for a different gate; 71 of the 658 modified paths in the
     live shared tree are in it, so this is a class and not one file.
 
+    TWO ORACLES, UNIONED, BECAUSE ONE OF THEM CANNOT SEE ITS OWN CLASS (delivery seat, 2026-09-15).
+    `generated_artefacts` is keyed to generated TREES, so a producer's output living in an AUTHORED
+    tree is invisible to it by construction. `docs/design/orphan_baseline.json` -- written by
+    `tools/orphan_ratchet.py --freeze`, a photograph of a scan -- is exactly that, and on 2026-09-15
+    it was the single path holding the shared tree behind origin while this function called it
+    authored and the refusal led with the landing recipe. Landing that photograph drops whatever
+    rows origin's later freeze recorded: the same defect as `value_arms.json`, through the one door
+    the tree-keyed oracle has no way to watch. `written_artefacts` is keyed to the WRITE SITE
+    instead, so it finds that class; neither oracle subsumes the other, so the union is both.
+
     FAIL-SOFT, DELIBERATELY, AND THIS IS THE ONE PLACE THAT IS RIGHT. Everywhere else in this
     repository an oracle that cannot answer must fail CLOSED. Here the output is REMEDY PROSE, not
     a gate: raising would turn "I cannot classify these paths" into "the tree may not advance",
     which is strictly worse than the refusal we already print. So an unavailable oracle returns
     every path as authored AND the reason, and `_landing_clause` prints that reason -- an unsplit
     list that SAYS it is unsplit, never one that is silently indistinguishable from a clean split.
+
+    AND A HALF-ANSWER SAYS WHICH HALF. With two oracles there is a third state the old two-valued
+    note could not express: one answered and one did not, so the split is real but INCOMPLETE. The
+    note is composed here, where which-one-failed is known, rather than reconstructed downstream
+    from a reason string -- a reader told "UNSPLIT" about a list that was in fact half-split would
+    check paths that were already classified and trust the ones that were not.
     """
-    try:
-        from tools.file_scope_generated_paths import generated_artefacts
-        known = {str(p) for p in generated_artefacts()}
-    except Exception as exc:  # oracle unavailable -- say so, do not guess and do not block
-        return [], list(modified), "{}: {}".format(type(exc).__name__, exc)
+    import tools.file_scope_generated_paths as oracle  # module, so a test can patch either half
+
+    known: set[str] = set()
+    unavailable: list[str] = []
+    for name in ("generated_artefacts", "written_artefacts"):
+        try:
+            known |= {str(p) for p in getattr(oracle, name)()}
+        except Exception as exc:  # oracle unavailable -- say so, do not guess and do not block
+            unavailable.append("{}: {}: {}".format(name, type(exc).__name__, exc))
+    if len(unavailable) == 2:
+        return [], list(modified), (
+            "NOTE: the generated-path oracles could not be asked ({}), so the {} modified path(s) "
+            "above are UNSPLIT -- check by hand whether any is a producer's output before landing "
+            "it".format("; ".join(unavailable), len(modified)))
+    note = ""
+    if unavailable:
+        note = (
+            "NOTE: only one of the two generated-path oracles could be asked ({}), so the split "
+            "above is PARTIAL: a producer's output only the missing oracle would have recognised "
+            "is listed as this tree's work -- check by hand before landing it".format(
+                "; ".join(unavailable)))
     generated = [p for p in modified if p in known]
     authored = [p for p in modified if p not in known]
-    return generated, authored, ""
+    return generated, authored, note
 
 
 def _landing_clause(blocking: list[dict]) -> str:
@@ -326,10 +358,9 @@ def _landing_clause(blocking: list[dict]) -> str:
             "hunks and `python3 -m tools.surgical_land --content <path>=<isolated> <path>` lands "
             "your bytes without swapping the shared worktree".format(len(authored)))
     if oracle_failed and modified:
-        steps.append(
-            "NOTE: the generated-path oracle could not be asked ({}), so the {} modified path(s) "
-            "above are UNSPLIT -- check by hand whether any is a producer's output before landing "
-            "it".format(oracle_failed, len(modified)))
+        # Composed by `_split_generated`, which is the only place that knows WHICH oracle was
+        # missing and therefore what the reader may and may not trust about the split above.
+        steps.append(oracle_failed)
     if untracked:
         steps.append(
             "the {} UNTRACKED path(s) clear by landing them (`python3 -m tools.surgical_land "
