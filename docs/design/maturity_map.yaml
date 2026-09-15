@@ -1433,12 +1433,14 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [SITE1_expert_doors]
-  # STILL 0 ON 2026-09-15, and the reason has MOVED: read `level_hold_note` before re-drawing.
+  # STILL 0 ON 2026-09-16, and the reason has MOVED AGAIN: read `level_hold_note` before re-drawing.
   # The L2 evidence is in hand and re-run; what holds it is that H_harness reads CLEAR in the
   # working tree and BLOCKED in the committed record, and OPS11 fires on the latter.
-  # The scan says this itself now (5bb74abfd): it reports this row CONTRADICTED BUT FROZEN and
-  # names the ELEVEN findings live at HEAD that a sibling lane archived into docs/staging/done/
-  # without committing. NO work on SITE4 moves it -- it moves when that archival reaches HEAD.
+  # The 2026-09-15 note said the row moves when that archival reaches HEAD. IT DOES NOT. The
+  # eleven were read one by one on 2026-09-16: seven were real discharges and are now committed,
+  # and FOUR were not -- they are back in the staging root and still hold the lane. What holds
+  # SITE4 is now four named UNBUILT repairs to this lane's own instruments, and three of them are
+  # one clause. Do NOT accept them as limitations to push this row through; build the clause.
   file_scope: ['site/live_pixel_verify.py', 'site/test_ia_register.py', 'site/ia_register.py', 'site/sitemap.xml', 'site/_redirects']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a utility whose site map lives in sixteen hand-maintained page footers, so every reorganisation is sixteen chances to strand a page"
