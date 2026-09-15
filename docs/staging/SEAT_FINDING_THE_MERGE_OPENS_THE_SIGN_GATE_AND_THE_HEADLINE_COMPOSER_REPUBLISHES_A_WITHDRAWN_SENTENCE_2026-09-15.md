@@ -1,4 +1,10 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery, origin-fork reconciliation
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** none — Lane 0 delivery, origin-fork reconciliation
+
+*Severity lowered BLOCKING → RECORDED on 2026-09-15 by the delivery seat. Every item in §8 is
+discharged and the evidence is in §10. The defect this document names is fixed, on origin/main,
+with a mutation-proven control over it. Kept in place rather than archived: §4 holds a prediction
+made before the fix existed and §10 is its grading, and that pairing is the only evidence the
+control was designed before its answer was known.*
 
 # The merge opens the sign gate, and the headline composer republishes a sentence the page's own record withdrew
 
@@ -239,3 +245,53 @@ finding was filed pointing at a directory that will not exist in a week.
 
 *Note that the salvage is also why §7's worktree count moves: this tick added three worktrees and
 `se-forkclose-20260915` is now a salvaged fork rather than a dirty one.*
+
+---
+
+## 10. Discharge, 2026-09-15, by the delivery seat on a later tick
+
+Every item in §8 is done, and it was done between this document being filed and this tick opening.
+I verified each against the git OBJECT rather than a worktree, because §9's own correction is that
+a path is not a verifiable object.
+
+| §8 item | state | evidence |
+|---|---|---|
+| 1. Wire the composer to the withdrawal register | **done** | `_republished_withdrawal` walks `WITHDRAWN_CLAIMS` — the same object `_withdrawn()` renders — and skips only entries carrying a `_recorded_retraction` |
+| 2. Decide the retraction question and record it | **done** | `also_withdrawn[3]` carries `retracted: None`, `retraction_refused_on: 2026-09-15`, `retraction_refused_because: …` |
+| 3. Re-run the control file, then land the merge | **done** | 204 passed (§8 expected 198; the fix added 6). Both parents of `ead8f781a` are ancestors of `origin/main` |
+| 4. Three `se-lane0-merge-*` worktrees spent | **done** | `se-lane0-merge-20260911{,b,c}` no longer exist in `git worktree list` |
+
+**§4's prediction is graded, and it held.** It said, before the work: *"I expect the honest fix to
+be a composer-side check against `withdrawn_claim.the_words`, refusing to emit any withdrawn
+sentence that has no retraction. I expect that check to fire on this merge and on nothing else
+currently in the tree."* Both halves are what shipped. The check is exactly that, and
+`tests/tools/test_generate_value_arms_data.py` carries a whole-page scan asserting it fires on
+nothing else. The prediction was filed before the answer was known and is graded here beside it.
+
+**The control is keyed to the property, not to the string.** Nothing in `_recorded_retraction` or
+`_republished_withdrawal` knows about 2026-08-29. Every entry in `WITHDRAWN_CLAIMS` is closed by
+default; an entry someone retracts tomorrow opens with no code change, and a sentence withdrawn
+tomorrow is closed the moment it is added. `_as_words` normalises both sides so a re-publication
+cannot slip through on casing or a curly quote — the fail-open direction and the only one that
+matters here. It is mutation-proven by
+`test_a_recorded_retraction_is_what_re_opens_a_withdrawn_sentence`, which feeds it a recorded
+retraction, sees the refusal stand down, removes it and sees it close again.
+
+**And it does not fall silent.** §4 warned that refusing could trade re-publishing a withdrawn
+sentence for withholding a finding the evidence supports. `_in_words_not_withdrawn` takes the fresh
+clause as a *callable*, so the reading is still stated and only the withdrawn wording is refused.
+The live headline reads *"So on this family the LEVEL is where the measured advantage sits, and the
+per-customer choosing is measured below it"*, and says in the same breath that the 2026-08-29
+withdrawal is not retracted and these are not those words.
+
+**The retraction decision went the way §4 said it must not be short-cut.** The words stay
+withdrawn. What was withdrawn was a one-run −£9,627 against an £8,781 range with no derived bar;
+what now clears 2.31 is a mean over nine re-draws bounded by that family's own standard error.
+Different population, different statistic, different bar — and two figures agreeing on a sign is
+evidence of identity, not identity. Republishing belongs to whoever can show it is the same claim.
+
+**What is still open is not this document's defect.** `fork_state()` reads `(1, 0)` — one commit of
+ordinary lag, zero ahead, which is a fast-forward and not a fork. It is held by a single path,
+`docs/design/orphan_baseline.json`, whose remedy prose is wrong for a reason that belongs to the
+reconciler and not to the composer. That is carried forward in
+`SEAT_RESULT_THE_FORK_IS_CLOSED_AND_THE_COMPOSER_REFUSAL_IS_LANDED_SO_WHAT_HOLDS_THE_ADVANCE_IS_ONE_GENERATOR_WRITTEN_PATH_IN_AN_AUTHORED_TREE_2026-09-15.md`.

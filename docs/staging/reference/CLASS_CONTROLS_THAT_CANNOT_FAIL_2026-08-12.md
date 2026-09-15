@@ -68,6 +68,7 @@ This document supersedes the individual findings listed below, which are **archi
 
 These documents match this class but carry a different lane. They are NOT archived and NOT superseded: severity is lane-scoped, so filing them here would remove their own lane's finding while recording it under `H_harness`.
 
+- `SEAT_FINDING_THE_WORLD_IDENTITY_DIGEST_IS_BLIND_TO_THE_HOME_STOCK_2026-09-15.md` — lane `W2_customer_generator`
 - `SEAT_RESULT_THE_PROMOTE_BY_COPY_CLASS_IS_FIVE_TARGETS_AND_THE_CENSUS_IS_BLIND_TO_THE_HALF_THAT_REACHES_THE_READER_2026-09-09.md` — lane `A_strategy_governance`
 
 ## Disposition
