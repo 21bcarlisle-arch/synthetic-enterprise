@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T10:46:17.606355Z",
+  "generated_at": "2026-09-15T17:07:00.904103Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -15,149 +15,8 @@
     "docs/design/blind_envelope_arms_2026-09-11.json"
   ],
   "blind_envelope": {
-    "available": true,
-    "what_this_is": "Five books, one world. Four of them cannot see a single attribute of a single home (fabric-blind); the fifth is the book the company's chooser actually settled. The four blind books are the BASELINE the chosen book has to beat, and their min-to-max on each line is the BLIND SPAN. This artefact carries only what each run MEASURED. Every span, position and percentage a reader sees is computed at publish time by `tools.generate_value_arms_data._blind_envelope` -- none is stored here, because a figure kept beside the numbers it is derived from gets edited on two days for two reasons.",
-    "world_digest": "39a192ce04c1eda8",
-    "comparable_because": "All five arms carry world_identity.digest 39a192ce04c1eda8. That is the ONLY reason these are five arms of one world rather than five runs of five worlds, and it is why the digest is carried on the block a reader sees rather than left in a file.",
-    "pounds_are_not_publishable": "All five arms ran SIM_FAST_MODE=1, identically. The differences between them are therefore clean and the ABSOLUTE pounds are not comparable to docs/reports/run_output_latest.json. No figure here may be published as a headline in pounds -- the surface renders positions and percentages, which is what the shared fast mode earns.",
-    "one_seed": "Every arm is deterministic at a fixed seed. The blind span is a spread over four BOOK SHAPES, not over four WORLDS, so it bounds how far the P&L moves when you change which blind book you settle and says nothing about sampling error across worlds. Every verdict below is an ORDERING against four arms, never a confidence interval.",
-    "second_hand_caveat": "ARM C' is the one arm whose P&L this seat did not read from a run output. Its figures are cited from the other seat's result, which is in 34 commits that never reached origin; only its selection artefact (/var/tmp/p6_armC.json) survives on this box. It is carried because it is the only arm holding count, year mix AND spend -- and it is flagged, because two of the five verdicts turn on it.",
-    "result_record": "docs/staging/records/SEAT_RESULT_ON_GROSS_MARGIN_THE_CHOSEN_BOOK_IS_INSIDE_THE_BLIND_SPREAD_AND_ON_NET_MARGIN_IT_IS_BELOW_EVERY_BLIND_ARM_2026-09-11.md",
-    "preregistration_commit": "eed120328",
-    "blind_arm_count": 4,
-    "first_hand_blind_arm_count": 3,
-    "blind_arm_labels": [
-      "ARM A -- the cull, P6's blind arm",
-      "ARM C -- the cull truncated to 83 accounts",
-      "ARM D -- the shipped chooser with CHOICE_AXES stripped to customer_years",
-      "ARM C' -- the other seat's blind arm, at matched count, year mix and spend"
-    ],
-    "second_hand_arm_labels": [
-      "ARM C' -- the other seat's blind arm, at matched count, year mix and spend"
-    ],
-    "chosen_arm_label": "ARM B -- the chosen book",
-    "lines": [
-      {
-        "span_low_gbp": 372220.98,
-        "span_high_gbp": 386386.17916776944,
-        "span_pct": 3.8055885962606033,
-        "chosen_gbp": 374295.72502851026,
-        "position": "inside",
-        "nearest_blind_gbp": null,
-        "distance_pct": null,
-        "key": "gross_margin_gbp",
-        "label": "Gross margin",
-        "available": true,
-        "higher_is_better": true,
-        "worse_for_the_chosen_book": null,
-        "first_hand_only": {
-          "span_low_gbp": 380829.2892150242,
-          "span_high_gbp": 386386.17916776944,
-          "span_pct": 1.459155088674835,
-          "chosen_gbp": 374295.72502851026,
-          "position": "below_all",
-          "nearest_blind_gbp": 380829.2892150242,
-          "distance_pct": -1.7156149412722719
-        },
-        "survives_dropping_the_second_hand_arm": false
-      },
-      {
-        "span_low_gbp": 657273.41,
-        "span_high_gbp": 695546.1941787401,
-        "span_pct": 5.822962498778113,
-        "chosen_gbp": 661157.8651492972,
-        "position": "inside",
-        "nearest_blind_gbp": null,
-        "distance_pct": null,
-        "key": "revenue_gbp",
-        "label": "Revenue",
-        "available": true,
-        "higher_is_better": true,
-        "worse_for_the_chosen_book": null,
-        "first_hand_only": {
-          "span_low_gbp": 676791.5332469969,
-          "span_high_gbp": 695546.1941787401,
-          "span_pct": 2.7711134094372083,
-          "chosen_gbp": 661157.8651492972,
-          "position": "below_all",
-          "nearest_blind_gbp": 676791.5332469969,
-          "distance_pct": -2.309968037380014
-        },
-        "survives_dropping_the_second_hand_arm": false
-      },
-      {
-        "span_low_gbp": 8533.78,
-        "span_high_gbp": 11675.76,
-        "span_pct": 36.818150924912516,
-        "chosen_gbp": 14400.86,
-        "position": "above_all",
-        "nearest_blind_gbp": 11675.76,
-        "distance_pct": 23.339808286569784,
-        "key": "bad_debt_gbp",
-        "label": "Bad debt",
-        "available": true,
-        "higher_is_better": false,
-        "worse_for_the_chosen_book": true,
-        "first_hand_only": {
-          "span_low_gbp": 8533.78,
-          "span_high_gbp": 11675.76,
-          "span_pct": 36.818150924912516,
-          "chosen_gbp": 14400.86,
-          "position": "above_all",
-          "nearest_blind_gbp": 11675.76,
-          "distance_pct": 23.339808286569784
-        },
-        "survives_dropping_the_second_hand_arm": true
-      },
-      {
-        "span_low_gbp": 143764.298981,
-        "span_high_gbp": 149154.090119,
-        "span_pct": 3.749046999987333,
-        "chosen_gbp": 139439.497809,
-        "position": "below_all",
-        "nearest_blind_gbp": 143764.298981,
-        "distance_pct": -3.0082581020838672,
-        "key": "net_margin_gbp",
-        "label": "Net margin",
-        "available": true,
-        "higher_is_better": true,
-        "worse_for_the_chosen_book": true,
-        "first_hand_only": {
-          "span_low_gbp": 143764.298981,
-          "span_high_gbp": 149154.090119,
-          "span_pct": 3.749046999987333,
-          "chosen_gbp": 139439.497809,
-          "position": "below_all",
-          "nearest_blind_gbp": 143764.298981,
-          "distance_pct": -3.0082581020838672
-        },
-        "survives_dropping_the_second_hand_arm": true
-      },
-      {
-        "span_low_gbp": 94339.21,
-        "span_high_gbp": 98643.6700445605,
-        "span_pct": 4.562747604692141,
-        "chosen_gbp": 90409.10140488924,
-        "position": "below_all",
-        "nearest_blind_gbp": 94339.21,
-        "distance_pct": -4.16593333260981,
-        "key": "net_after_cost_to_serve_gbp",
-        "label": "Net after cost to serve",
-        "available": true,
-        "higher_is_better": true,
-        "worse_for_the_chosen_book": true,
-        "first_hand_only": {
-          "span_low_gbp": 94498.40086456052,
-          "span_high_gbp": 98643.6700445605,
-          "span_pct": 4.386602463190002,
-          "chosen_gbp": 90409.10140488924,
-          "position": "below_all",
-          "nearest_blind_gbp": 94498.40086456052,
-          "distance_pct": -4.327374243646996
-        },
-        "survives_dropping_the_second_hand_arm": true
-      }
-    ]
+    "available": false,
+    "why_not": "5 of these 5 books carry no record of which HOUSES they ran on (ARM A -- the cull, P6's blind arm; ARM C -- the cull truncated to 83 accounts; ARM D -- the shipped chooser with CHOICE_AXES stripped to customer_years; ARM B -- the chosen book; ARM C' -- the other seat's blind arm, at matched count, year mix and spend). They agree on the departure level -- that is what `world_digest` covers -- and the departure level does not move when the housing stock is re-drawn, which is exactly what happened to this tree since they were filed. The live stock is 35f8efe8ff02f245. Until each arm is re-run and stamped, where the chosen book sits against the blind span is unstated here, and that is a missing measurement rather than a settled result"
   },
   "available": true,
   "contrast_bounds": {
@@ -529,7 +388,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "760637dd7c071c879db071182bf144724a6758af",
+    "publishing_tree_commit": "f4b8d2c6ba1ebdf30a75fed2e7cfd3d4cc6a90a6",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -541,7 +400,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from 760637dd7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from f4b8d2c6b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -936,7 +795,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "760637dd7c071c879db071182bf144724a6758af",
+      "publishing_tree_commit": "f4b8d2c6ba1ebdf30a75fed2e7cfd3d4cc6a90a6",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -948,7 +807,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from 760637dd7 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from f4b8d2c6b -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -999,21 +858,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 147886.78,
+      "dashboard_net_gbp": 148558.61,
       "run_identity": {
-        "dashboard_run_id": "run_output_258720283_20260910T005624Z.json",
-        "dashboard_commit": "258720283",
+        "dashboard_run_id": "run_output_acb44a94d_20260915T151859Z.json",
+        "dashboard_commit": "acb44a94d",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_258720283_20260910T005624Z.json",
-        "last_verified_commit": "258720283",
+        "last_verified_run_id": "run_output_acb44a94d_20260915T151859Z.json",
+        "last_verified_commit": "acb44a94d",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": -67.47566100073163,
-      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.48. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": 604.3543389992556,
+      "statement": "The published run's net margin (\u00a3148,558.61) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a3604.35. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
