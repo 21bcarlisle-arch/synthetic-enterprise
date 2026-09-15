@@ -520,8 +520,59 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
     what six frames of closing the same class should look like. The membership series was measuring
     how much the two oracles OVERLAP as much as it was measuring reach.
 
-    THE HONEST CONCLUSION IS THEREFORE THAT THIS DOOR IS NOW NEARLY SHUT, and the next frame on this
-    module should be asked to predict its UNION delta before it is worth starting.
+    **THE CURVE DID NOT HOLD, AND THE SERIES ABOVE IS SEVEN POINTS TAKEN FROM THIRTEEN FRAMES WITH
+    THE LARGEST ONE MISSING** (delivery seat, 2026-09-16). The paragraph above stays because a
+    reader who acted on it would have concluded this door was nearly shut, and the reasoning that
+    published it is the reasoning that now corrects it. Its union half was never measured at all:
+    only the whole-string frame had ever recorded a union number (`237 -> 247`, four paragraphs up),
+    and the rest of the sequence was copied out of two preregs. `+8, +9, +1` there are frames on the
+    **write-keyed** oracle, not this one; `+8` and `+9` are the counts of paths those sweeps FOUND,
+    not the members they added (the helper sweep found eight and two of them were excepted onto the
+    authored side, which this file says at `WRITTEN_BUT_NOT_REPRODUCIBLE`); and four frames that did
+    move the union are absent from it entirely.
+
+    RE-MEASURED AT THE CONSUMER, ONE VARIABLE AT A TIME. For each frame: extract its PARENT tree,
+    compute the union (`generated_artefacts() | written_artefacts()`, which is what
+    `origin_reconcile._split_generated` reads), replace **this one file** with the frame's version,
+    compute it again. Nothing but the frame moves. The thirteen chain -- every frame's "after" is
+    the next frame's "before" -- which is the check that makes them readable as one series, and it
+    is why the harness is worth more than the numbers.
+
+    | # | frame | membership | UNION | tracked paths it stops being offered a landing |
+    |---|---|---|---|---|
+    | 1 | write-keyed oracle born | write 0->144 | 180->226, +46 | 39 |
+    | 2 | atomic-write idiom | write +1 | **+0** | 0 |
+    | 3 | helper frame | write +6 (published +8) | +4 | 1 |
+    | 4 | signature default | write +6 (published +9) | +4 | 4 |
+    | 5 | instance attribute | write +1 | **+0** | 0 |
+    | 6 | named segment | write +3 (prereg said +4) | +3 | 2 |
+    | 7 | whole string | tree +11 | +10 | 8 |
+    | 8 | `docs/status` declared | tree +2, write -1 | **-1** | 0 (and one path WITHDRAWN) |
+    | 9 | `site/state`, `docs/reports` | tree +28 | **+13** | 9 |
+    | 10 | prefix of any depth | tree +1 | +1 | 1 |
+    | 11 | ordered reconstruction | tree -6 | -6 | 0 |
+    | 12 | glob refusal | tree -1 | -1 | 0 |
+    | 13 | cross-expression head | tree +12 | **+2** | 1 |
+
+    SO THE RULE THE FRAME ABOVE STATED IS RIGHT AND ITS EVIDENCE WAS WRONG. Membership and union
+    part company on four of the thirteen, and frame 13's factor of six is not the shape: twice
+    (rows 2 and 5) membership moved and the union did not move AT ALL, and once (row 8) they moved
+    in OPPOSITE DIRECTIONS -- `docs/status` added two tree-keyed members the write scan already
+    held while the same commit carved `SEAT_STRETCH_LOG.md` out of both oracles, so the frame that
+    reads +2 on membership is the only one in the series that made the consumer's set SMALLER. A
+    single ratio between the two quantities does not exist; the overlap it measures ran from 0 of 1
+    to 15 of 28 to 10 of 12 across the tree-keyed frames alone.
+
+    AND "NEARLY SHUT" SURVIVES, FOR A DIFFERENT REASON THAN THE ONE GIVEN. The union series in frame
+    order is +46, 0, +4, +4, 0, +3, +10, -1, +13, +1, -6, -1, +2 -- not a decay, and the biggest
+    tree-keyed frame of them all (row 9, thirteen paths, nine of them tracked) sat between two of
+    the points the published sequence plotted. What is true is narrower and is the LAST FOUR POINTS
+    rather than a curve: +1, -6, -1, +2, three of them from frames that made the oracle stricter.
+    The next frame on this module should still be asked to predict its UNION delta before it is
+    worth starting -- and should now be asked for the whole series, because the one thing this
+    re-measurement proves is that a frame's payoff cannot be quoted from the frame that came after
+    it. Record: docs/staging/SEAT_RESULT_THE_SIX_FRAME_SERIES_WAS_SPLICED_FROM_TWO_ORACLES_AND_THE
+    _BIGGEST_FRAME_AT_THE_CONSUMER_WAS_MISSING_2026-09-16.md.
 
     AND THIS MODULE IS NOT SCANNED, because `FROZEN` holds `file_scope` declarations copied out of
     the maturity map and reading them back would make `violations()` circular -- the atom's own
