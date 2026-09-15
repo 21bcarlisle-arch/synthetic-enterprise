@@ -1,6 +1,11 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — the two finished runs' artefacts reach origin and the envelope renders)
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — the two finished runs' artefacts reach origin and the envelope renders)
 
 # The envelope is finished and in a commit, and it cannot reach origin because the fork merge holds the same file
+
+> **DISCHARGED 2026-09-15 — both steps are done and the envelope is on origin/main as `78829dbf9`.**
+> Severity dropped BLOCKING → RECORDED: the blocking condition was the ordering, and the ordering is
+> spent. The correction to step 3 is at the foot of this document and matters more than the
+> discharge — **the instruction this finding left for the next seat was wrong.**
 
 **2026-09-15, delivery seat.** The envelope work is **finished and proven**. It is landed as
 `04dcba655`, preserved on the branch ref **`blind-envelope-landed-20260915`** so it survives this
@@ -97,3 +102,53 @@ the document a member of a consolidated class, which then demands it be archived
 finding therefore cannot declare itself into any consolidated class. Comparable live findings
 (`SEAT_FINDING_TWENTY_ONE_GATED_COMMITS_NEVER_REACHED_ORIGIN…`) sit UNCLASSED for exactly this
 reason, and this one now does too.
+
+---
+
+## DISCHARGE, 2026-09-15 — and the correction to step 3
+
+Both ordered steps are done. Step 1, the fork merge, landed at `760637dd7`. Step 2, the re-merge,
+landed at **`78829dbf9`** and is on `origin/main`. Pre-registered before any apply:
+`docs/staging/records/PREREG_DOES_THE_BLIND_ENVELOPE_RE_MERGE_ONTO_THE_POST_FORK_PRODUCER_2026-09-15.md`,
+with all four predictions marked there.
+
+**What this document got right.** The shape held exactly. `04dcba655` did not apply as-is; a 3-way
+apply gave six source conflicts; every one was additive on both sides; union was the right
+resolution for all six. The warning about `git archive` was also right and load-bearing — and it
+generalises further than written: the door reads the INDEX, so running it before *staging* the
+resolved files reports 70 failed / 75 errors. That is the control failing closed, not a red.
+
+**What this document got WRONG, and it is the part a next seat would have acted on.** Step 3 says:
+
+> *"Do not carry the departure-baseline half. […] After the merge that constant WILL exist, so at
+> that point the exclusion should be revisited, not blindly repeated — those four controls are
+> wanted once their producer is present."*
+
+The advice to revisit was right; the premise under it was false. **There was nothing to carry.** The
+fork merge brought `DEPARTURE_TERM_BASELINE_PATH` in *together with its four controls* — they were
+already at HEAD, on the OURS side of the end-of-file conflict, passing. This finding assumed the
+merge would land the producer feature and strand its controls, and said so without checking.
+
+That mattered: a seat following step 3 literally would have gone looking in `04dcba655` for four
+controls to graft onto a file that already had them, and grafting them is how you get one control
+in two homes — the shape this cluster keeps producing. **The general lesson is the cheap check this
+document skipped: when a finding says a downstream piece will be missing after a merge, grep the
+merged tree for it before writing the instruction.** `DEPARTURE_TERM_BASELINE_PATH` had four live
+call sites at HEAD and one grep would have said so.
+
+**Also worth correcting, because it is a unit error that survives into the record.** The evidence
+section above says "Gross margin 3.81% INSIDE, Revenue 5.82% INSIDE, Bad debt 36.82% ABOVE…". Those
+five percentages are **span WIDTHS, not distances from the span**. Gross margin's `distance_pct` is
+`null` precisely *because* the chosen book is inside the span — there is no nearest blind book to be
+a distance from. The three outside lines do carry real distances: bad debt +23.34%, net margin
+−3.01%, net after cost to serve −4.17%. Read as written, the sentence invites someone to difference
+a width against a distance because both are percentages on the same row.
+
+**Final state.** Door 150 passed / 2 skipped (137/8 before the envelope, 144/1 at `04dcba655`); all
+EIGHT blind-envelope controls RUN and PASS, and the `"no available blind envelope (None)"` skip that
+fired seven times a run for 106 hours appears nowhere. Producer suite 204 passed.
+
+**Still open, and NOT this claim's subject** — the classifier defect this document names about its
+own title stands: `finding_classes`' `\bblind\b` pattern fires on *blind envelope* / *fabric-blind*,
+this project's domain vocabulary, so the feature's own name misfiles every document the cluster
+produces. The remedy named above (require `blind` to co-occur with a control noun) is still undone.
