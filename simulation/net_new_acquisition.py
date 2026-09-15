@@ -893,6 +893,50 @@ def plan_growth_campaign(
     if customer_year_budget is None:
         customer_year_budget = SETTLEMENT_CUSTOMER_YEAR_BUDGET
 
+    # THIS CAMPAIGN IS PRICED FOR DOMESTIC ACCOUNTS AND REFUSES ANY OTHER AT ITS OWN EDGE,
+    # rather than falling back three layers in. `segment_weights` is a DEFAULTED parameter, so
+    # until 2026-09-15 nothing here said no: `segment_weights={"sme": 1.0}` ran the whole campaign.
+    # Measured that day, seed 42, 20 prospects: 20 of 20 candidates carried no premise, so
+    # `settlement_choice.demand_vector` refused every one of them and `settle_within_budget` took
+    # its unplaceable route and wrote "N of M wins carry no home the demand axes can be evaluated
+    # on". THAT SENTENCE NAMES THE SAMPLING INSTRUMENT AND THE DEFECT IS THE SEGMENT MIX -- it
+    # sends the reader to the chooser for a campaign that was never priced for what it was told to
+    # quote. The same measurement is why this is a refusal and not a widening: with the shipped
+    # `DOMESTIC_ONLY` the same run gives 0 of 20 unplaceable, so the route is unreachable through
+    # the shipped configuration and reachable only by overriding this parameter.
+    #
+    # WHY NO, and the reason is already on `DOMESTIC_ONLY` rather than newly invented here: the
+    # growth plan is denominated in Ofgem's Minimum Capital Requirement, which is £130 per
+    # dual-fuel-equivalent DOMESTIC customer, and an SME is not priced by it; and `_draw_dwelling`
+    # draws a dwelling only for domestic prospects, so a won SME reaches
+    # `dwelling_records.build_properties` with no dwelling and raises `DwellingNotDrawn`. THE RUN
+    # DIES EITHER WAY. What this changes is where and with what message: here, naming the
+    # campaign's own pricing, or much later inside the world's dwelling register, naming a missing
+    # home -- a failure whose message blames the artefact for a decision made at this call.
+    #
+    # THE FALLBACK IN `settle_within_budget` IS NOT DELETED AND THIS IS NOT ITS REPLACEMENT. That
+    # function is also called directly, its unplaceable route is a real state at ITS boundary, and
+    # it is held there over the whole partition by
+    # `test_all_three_selection_STATES_are_reachable_through_settle_within_budget_and_tellable_apart`.
+    # What was wrong was narrower: the CAMPAIGN could manufacture that state and have it reported
+    # as a sampling refusal. Held at two altitudes because there are two subjects, not one.
+    if segment_weights is not None:
+        non_domestic = sorted(
+            s for s, w in segment_weights.items() if s not in DOMESTIC_ONLY and w > 0
+        )
+        if non_domestic:
+            raise ValueError(
+                f"this growth campaign is priced for DOMESTIC accounts and was asked to quote "
+                f"{', '.join(non_domestic)}. The plan is denominated in Ofgem's Minimum Capital "
+                f"Requirement (£130 per dual-fuel-equivalent domestic customer, 26 July 2023), "
+                f"which does not price a non-domestic account, and the world draws a dwelling "
+                f"only for domestic prospects -- so every such win carries no home, reaches the "
+                f"settlement chooser unplaceable, and would raise DwellingNotDrawn downstream. "
+                f"Refused at the campaign's edge rather than culled by count later, because the "
+                f"cull's note names the sampling instrument and the defect is the segment mix. "
+                f"To model non-domestic growth, price it first -- see DOMESTIC_ONLY."
+            )
+
     winners: list[tuple[SyntheticCustomer, dt.date]] = []
     spend: list[dict] = []
     by_year: list[dict] = []

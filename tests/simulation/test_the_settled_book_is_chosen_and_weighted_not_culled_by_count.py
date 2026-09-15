@@ -312,6 +312,15 @@ class _NoPremise:
     `demand_vector` returns `None` for it, which is the OTHER route into the fallback and the one
     the shipped campaign cannot take: `plan_growth_campaign` passes `DOMESTIC_ONLY`, so every
     prospect it draws is `resi` and carries a minted home.
+
+    **SHARPENED 2026-09-15: "passes `DOMESTIC_ONLY`" was true only of the DEFAULT.** `segment_
+    weights` is a defaulted parameter, and measured that day a caller passing `{"SME": 1.0}` got a
+    campaign that ran and produced 20 of 20 unplaceable candidates — so the shipped campaign could
+    not take this route but the shipped FUNCTION could be made to. `plan_growth_campaign` now
+    refuses non-domestic mass at its own edge
+    (`test_a_campaign_asked_to_quote_a_NON_DOMESTIC_segment_is_refused_at_its_own_edge`), so the
+    sentence above is now true of the parameter and not merely of its default. This class stays:
+    the state is still real at THIS function's boundary, which is the altitude this file holds.
     """
 
     premise = None

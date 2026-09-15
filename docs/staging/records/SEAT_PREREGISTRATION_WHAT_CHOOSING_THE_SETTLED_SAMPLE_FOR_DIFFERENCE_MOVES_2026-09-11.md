@@ -55,6 +55,21 @@ own numbering is real work and is named in
 `SEAT_RESULT_THE_SETTLEMENT_SELECTORS_LOSING_MODE_IS_LIVE_AND_ONE_OF_ITS_TWO_ROUTES_HAD_NO_CONTROL_2026-09-15.md`
 as what is next.
 
+**THAT RE-GRADE IS NOW RUN, and the paragraph above is left standing because it was true when
+written.** `SEAT_RESULT_SECTION_A_OF_THE_MERGED_PREREGISTRATION_REGRADED_AGAINST_ITS_OWN_NUMBERING_
+2026-09-15.md` grades §A's P1–P5 against §A's own bands, from the two 09-11 result files and with no
+new arm: **4 hold, 0 fail, and 1 is ungradeable.** The ungradeable one is **§A's P1b** — *"the gain
+is concentrated on the fabric axes rather than on cost"* — which §B has no counterpart for and which
+the filed evidence cannot answer, because it reports worst-axis KS and not per-axis KS. **§A P1b is
+therefore the one prediction in this file still open**, and it needs a per-axis run of both arms
+rather than a reading.
+
+**The re-grade's own finding is that §A's better score is not §A being more right.** §A carries no
+prediction about distinct fabric vectors and no numeric band on the year reconstruction, so it
+cannot fail at the two places where the measurement found real defects (§B's P2 at 59-of-109, §B's
+P3 at +84.9%), and it pre-committed no kill line where §B did. Kept here so that neither arm's score
+is read as the two documents' relative quality.
+
 ---
 
 ## §A — pre-registration filed on the shared tree's side (fitted-joint homes)

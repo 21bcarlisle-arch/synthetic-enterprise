@@ -131,15 +131,39 @@ correction rather than a clean paragraph that was never wrong.
 
 ## What is next, in order
 
-1. **Re-grade §A of the merged pre-registration against its own numbering.** The grading names
-   §B's bands. §A is graded only by coincidence of content, and that is now written into the
-   prereg itself with a pointer to both result files — but the re-grade is unrun work.
-2. **The unplaceable route is a live branch with a caller-only trigger.** It is unreachable through
-   `plan_growth_campaign` (which passes `DOMESTIC_ONLY`, and `iter_prospects` mints a premise when
-   handed no stock), and a won SME would raise `DwellingNotDrawn` further downstream anyway. It is
-   now held by the new control at the function's own boundary, which is the right altitude — but
-   **nobody has established whether the campaign should ever be able to reach it.** If the answer
-   is no, the honest move is a refusal at the campaign's edge, not a fallback three layers in.
+1. ~~**Re-grade §A of the merged pre-registration against its own numbering.**~~ **TAKEN
+   2026-09-15** — `SEAT_RESULT_SECTION_A_OF_THE_MERGED_PREREGISTRATION_REGRADED_AGAINST_ITS_OWN_
+   NUMBERING_2026-09-15.md`, graded from the two 09-11 result files with no new arm: **4 hold, 0
+   fail, 1 ungradeable.** The residue is narrower than this item: **§A's P1b** — *"the gain is
+   concentrated on the fabric axes rather than on cost"* — cannot be graded from the filed
+   evidence, which reports worst-axis KS and not per-axis KS. That needs a per-axis run of both
+   arms and is the one prediction in the prereg still open. The re-grade's own finding is that
+   §A's better score is §A being **less falsifiable**, not more right.
+
+2. ~~**The unplaceable route is a live branch with a caller-only trigger.**~~ **ESTABLISHED AND
+   TAKEN 2026-09-15: the answer is no, and the campaign now refuses at its own edge.** The
+   question this item asked — *should the campaign ever be able to reach it* — was settled by
+   measuring rather than arguing, and **this item's own premise was half wrong**: it said the
+   route is "unreachable through `plan_growth_campaign`", which is true of the DEFAULT and false
+   of the function. `segment_weights` is a defaulted parameter, and measured at seed 42 on 20
+   prospects, `{"SME": 1.0}` produced **20 of 20** unplaceable candidates against the shipped
+   weights' **0 of 20**. So the campaign could be handed a mix that manufactured the state and
+   then published *"N of M wins carry no home the demand axes can be evaluated on"* — a sentence
+   naming the sampling instrument for a defect in the segment mix.
+
+   `plan_growth_campaign` now raises on any `segment_weights` carrying non-domestic mass, for
+   `DOMESTIC_ONLY`'s own already-sourced reasons (the plan is denominated in Ofgem's £130 MCR per
+   *domestic* customer; `_draw_dwelling` draws a dwelling only for domestic prospects, so the run
+   would die downstream on `DwellingNotDrawn` regardless — this decides *where* and *with what
+   message*). Held by
+   `test_a_campaign_asked_to_quote_a_NON_DOMESTIC_segment_is_refused_at_its_own_edge`,
+   mutation-proven on five legs, **including a leg asserting the refused state is real** (20 of 20)
+   and a non-vacuity leg asserting the shipped configuration still settles a book.
+
+   **The fallback in `settle_within_budget` is NOT deleted**, and the partition control at the
+   function boundary stands. There are two subjects at two altitudes: a candidate with no home is
+   a real state at that function's edge, and what was wrong was only that the CAMPAIGN could
+   manufacture it and have it reported as a sampling refusal.
 3. ~~**Nothing asserts either refusal sentence reaches the reader.**~~ **TAKEN in the same turn,
    landed as `f4a688367`** — `test_a_sample_the_chooser_REFUSED_says_so_in_the_notes_and_a_chosen_
    one_does_not` in `tests/simulation/test_net_new_acquisition.py`. Two arms straddling the point

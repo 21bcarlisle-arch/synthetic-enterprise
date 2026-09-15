@@ -325,6 +325,14 @@ def test_a_sample_the_chooser_REFUSED_says_so_in_the_notes_and_a_chosen_one_does
     REUSE: `_campaign` and the note assertion above. The selection's own properties live in
     `test_the_settled_book_is_chosen_and_weighted_not_culled_by_count.py`, but this is a claim
     about the campaign's `notes` -- the surface this file already owns, one function above.
+
+    **UPDATED 2026-09-15, and the paragraph above is left standing because it was true.** The
+    residue it names was taken the other way: rather than build a control for the unplaceable
+    reason's journey to `notes`, the campaign now REFUSES the only input that could start that
+    journey. `plan_growth_campaign` no longer merely defaults to `DOMESTIC_ONLY` -- it raises on
+    any `segment_weights` carrying non-domestic mass, so the unplaceable note has no producer at
+    this layer to hold. See
+    `test_a_campaign_asked_to_quote_a_NON_DOMESTIC_segment_is_refused_at_its_own_edge` below.
     """
     refused = _campaign(quote_budget_fn=_budget(200), customer_year_budget=90.0)
     chosen = _campaign(quote_budget_fn=_budget(200), customer_year_budget=120.0)
@@ -345,6 +353,86 @@ def test_a_sample_the_chooser_REFUSED_says_so_in_the_notes_and_a_chosen_one_does
     assert not [n for n in chosen["notes"] if "SETTLEMENT SAMPLE NOT CHOSEN" in n], (
         "a book the chooser DID choose was published carrying the refusal note, so the note is "
         f"unconditional and says nothing: {chosen['notes']}")
+
+
+def test_a_campaign_asked_to_quote_a_NON_DOMESTIC_segment_is_refused_at_its_own_edge():
+    """The campaign is priced for domestic accounts and says no to anything else, HERE.
+
+    WHY THIS IS A REFUSAL AND NOT A FALLBACK (2026-09-15). `segment_weights` is a defaulted
+    parameter, and a defaulted parameter is not a decision -- nothing in the tree said the
+    campaign may not be handed `{"SME": 1.0}`, and handed it, it ran. Every won SME carries no
+    dwelling, so `settlement_choice.demand_vector` refused all of them, `settle_within_budget`
+    took its unplaceable route, and the campaign published *"N of M wins carry no home the demand
+    axes can be evaluated on"*. **That sentence names the sampling instrument for a defect in the
+    segment mix**, and it sent the reader three layers down to a chooser that was working
+    correctly. A fallback for a state the rest of the system refuses anyway is a defensive branch
+    pretending to be a design; the state is refused where it is created.
+
+    THE REASON IS `DOMESTIC_ONLY`'S OWN and is not newly invented: the plan is denominated in
+    Ofgem's Minimum Capital Requirement of £130 per dual-fuel-equivalent DOMESTIC customer, and
+    `_draw_dwelling` draws a dwelling only for domestic prospects -- so a won SME reaches
+    `dwelling_records.build_properties` with no dwelling and raises `DwellingNotDrawn`. The run
+    was always going to die; this decides WHERE, and a failure that names the campaign's pricing
+    is findable where one naming a missing home blames the artefact.
+
+    **THE THIRD LEG IS THE ONE THAT MATTERS AND IT ASSERTS THE REFUSED STATE IS REAL.** A guard
+    against a state nothing can produce is unfalsifiable, so this drives the layer below and shows
+    the mix really does manufacture unplaceable candidates -- 20 of 20 -- while the shipped weights
+    manufacture none. Without it, leg 1 would pass on a campaign that refused a harmless input.
+
+    **AND THE SECOND LEG IS WHY THIS IS NOT A GUARD THAT REFUSES EVERYTHING.** The shipped
+    configuration -- both the default and an explicit `DOMESTIC_ONLY` -- must still run a whole
+    campaign and settle a book. That is the leg a refusal keyed one character too wide would fail,
+    and it is the trap CLAUDE.md names: every test of a guard asks whether it refuses correctly,
+    and a guard refusing everything passes all of them.
+
+    Fires on: deleting the refusal; keying it to the whole dict so a MIXED weighting slips past
+    (the dangerous case -- a partly-unplaceable candidate list is the one that would still settle
+    a book and publish the misleading note); refusing zero-weight non-domestic keys, or the
+    shipped domestic weights, so the campaign cannot run at all; or a reason that names no
+    segment. Mutation-proven on all five, 2026-09-15.
+    """
+    from simulation.settlement_choice import demand_vector
+
+    # ── 1. the refusal fires, on a pure mix AND on a mix that is mostly domestic ──────────
+    # The 0.9/0.1 arm is the one the fallback actually flattered: it settles a book, and the
+    # note it publishes calls a mispriced campaign a sampling limitation.
+    for weights in ({"SME": 1.0}, {"resi": 0.9, "SME": 0.1}):
+        with pytest.raises(ValueError) as caught:
+            _campaign(segment_weights=weights)
+        said = str(caught.value)
+        assert "SME" in said, (
+            f"the refusal must name the segment it was asked to quote, or it cannot be found to "
+            f"have been wrong: {said}")
+        assert "domestic" in said.lower(), said
+
+    # ── 2. NON-VACUITY: the shipped configuration is not refused and still settles a book ──
+    # `{"resi": 1.0, "SME": 0.0}` is the third arm on purpose: it is a legitimate spelling of
+    # "this campaign quotes no SMEs", it names a non-domestic segment, and refusing it would make
+    # the guard key on the KEYS rather than on the mass actually being quoted.
+    for weights in (None, nna.DOMESTIC_ONLY, {"resi": 1.0, "SME": 0.0}):
+        out = _campaign(segment_weights=weights, quote_budget_fn=_budget(200),
+                        customer_year_budget=120.0)
+        assert out["winners"], (
+            "the shipped domestic campaign won nothing, so this guard refuses the configuration "
+            "the company actually runs")
+
+    # ── 3. the refused state is REAL: that mix does produce unplaceable candidates ────────
+    unplaceable = {}
+    for label, weights in (("SME", {"SME": 1.0}), ("shipped", nna.DOMESTIC_ONLY)):
+        prospects = list(nna.iter_prospects(
+            2019, base_seed=SEED, n=20, segment_weights=weights,
+            commodity_weights=nna.ELECTRICITY_ONLY))
+        unplaceable[label] = sum(demand_vector(p, 1.0) is None for p in prospects)
+
+    assert unplaceable["SME"] == 20, (
+        f"this refusal exists because a non-domestic campaign manufactures candidates the demand "
+        f"axes cannot place; that mix produced {unplaceable['SME']} of 20, so the guard is "
+        f"against a state nothing can reach and proves nothing")
+    assert unplaceable["shipped"] == 0, (
+        f"the shipped weights produced {unplaceable['shipped']} of 20 unplaceable candidates, so "
+        f"the route is reachable through the configuration this campaign actually runs and a "
+        f"refusal at the edge is the WRONG remedy -- the fallback would be load-bearing")
 
 
 def test_a_win_refused_by_the_engineering_cap_is_STILL_BILLED():
