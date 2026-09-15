@@ -67,8 +67,16 @@ from saas.reporting.annual_report import (
 )
 from sim.risk_committee_agent import FAST_MODE_ENV, fast_mode_enabled
 from simulation.departure_level_anchor import world_level_identity
+from simulation.run_phase2b import effective_report_end
 from simulation.run_phase4c_on_phase2b import main as run_phase4c_on_phase2b
 from simulation.settlement_clocks import reconcile_published_run_output
+
+#: NO CALLER SAID WHAT WINDOW IT RAN, which is a different answer from "it ran the full window"
+#: and must not be able to be mistaken for one. `None` is already a live value on this parameter
+#: and means UNTRUNCATED -- `main()` passes it for every run without `--end-year` -- so the
+#: unstated case needs a value of its own or the fail-closed leg is unreachable. See
+#: `_simulation_window`.
+_WINDOW_NOT_STATED = object()
 
 # Where a run persists its reduced report data. Moved here from
 # `simulation/run_phase4c_on_phase2b.py` with `save_run_output_json()`.
@@ -97,7 +105,9 @@ def _run_and_extract(report_end: str | None = None) -> dict:
     return extract_report_data(run_output)
 
 
-def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
+def reconcile_and_stamp(
+    data: dict, code_commit: str | None = None, report_end: object = _WINDOW_NOT_STATED,
+) -> dict:
     """Refuse a run output that does not add up, then stamp WHICH COMMIT and WHICH WORLD made it.
 
     `code_commit` IS THE COMMIT THE RUN'S CODE WAS LOADED AT, captured by the caller BEFORE the
@@ -105,6 +115,13 @@ def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
     function executes at the END of a run, and HEAD at the end of a run is a different fact from
     HEAD at the start of one -- see the 2026-09-04 note below. When it is None the old
     end-of-run reading is used, which is correct only for a caller that has not run anything.
+
+    `report_end` IS THE WINDOW BOUNDARY THE CALLER HANDED THE RUN, and it is a parameter for the
+    same reason `code_commit` is: this function cannot see the arguments the simulation was
+    invoked with, and re-deriving them from the environment or from a second read of `sys.argv`
+    would be a copy rather than the fact. The caller must pass THE SAME LOCAL it passed to
+    `run_phase4c_on_phase2b`, so the stamp and the run cannot name different windows. Defaulting
+    to `_WINDOW_NOT_STATED` rather than to None is the fail-closed leg -- see `_simulation_window`.
 
     ONE FUNCTION BECAUSE THERE ARE TWO WRITERS AND ONLY ONE OF THEM WAS DOING ANY OF THIS
     (2026-09-04). Everything below used to live inside `save_run_output_json()`, whose only
@@ -191,7 +208,7 @@ def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
     stamped_at = datetime.now(timezone.utc)
     commit = code_commit or _git_commit_hash()
     world = _world_level_or_reason()
-    mode = _execution_mode()
+    mode = _execution_mode(report_end, data)
 
     data["_cache_meta"] = {
         "git_commit": commit,
@@ -205,8 +222,8 @@ def reconcile_and_stamp(data: dict, code_commit: str | None = None) -> dict:
     )
 
 
-def _execution_mode() -> dict:
-    """WHICH COMMITTEE RAN, said by the process that ran it.
+def _execution_mode(report_end: object, data: dict) -> dict:
+    """WHICH COMMITTEE RAN AND OVER WHAT WINDOW, said by the process that ran it.
 
     WHY A RUN OUTPUT NEEDS THIS AT ALL (2026-09-15). The commit says which code, the digest says
     which world, and between them they still do not say which of two materially different
@@ -228,13 +245,18 @@ def _execution_mode() -> dict:
     this has to survive is `SIM_FAST_MODE=1 python3 -m tools.run_annual_report ...` with no flag,
     which is how the arm runs and `tools/tournament_runner` start their children.
 
-    WHAT THIS DOES NOT COVER, said here so it is not read as covering it: `--end-year` truncates
-    the simulation window and is equally fatal to comparability, and it is not stamped. It does
-    not reach this function, and threading it is a separate change; the window is currently only
-    inferable from the length of `years`.
+    THE THIRD LEG, THREADED 2026-09-15 AND NO LONGER A GAP IN THIS DOCSTRING. `--end-year`
+    truncates the simulation window and is equally fatal to comparability: two runs at one commit,
+    in one world, on one committee, stopped at different years are not comparable and until now
+    nothing in the artefact could say so. It reaches this function as `report_end` -- the caller's
+    own local, not a second reading of the flag -- and is stamped by `_simulation_window`.
     """
     fast = fast_mode_enabled()
     return {
+        # THE WINDOW SITS INSIDE `execution_mode` AND NOT BESIDE IT because it answers the same
+        # reader's question as `risk_committee` does -- "may I put these two figures side by
+        # side?" -- and a precondition filed somewhere else is a precondition nobody checks.
+        "window": _simulation_window(report_end, data),
         # The raw string, because `fast` below is the committee's `== "1"` reading of it and a
         # reader who finds `SIM_FAST_MODE=true` with `fast: false` needs to see both to believe
         # it. Published, never declared as run identity -- see `run_identity_fields`.
@@ -250,6 +272,72 @@ def _execution_mode() -> dict:
             "`{}` in the environment of the process that ran the world, at stamping time, via "
             "the same predicate `sim.risk_committee_agent.invoke` branched on".format(
                 FAST_MODE_ENV)
+        ),
+    }
+
+
+def _simulation_window(report_end: object, data: dict) -> dict:
+    """HOW LONG THE WORLD RAN FOR, which is the third precondition for comparing two runs.
+
+    WHY IT IS A DEFECT AND NOT A NICETY. `--end-year 2020` stops the simulation at 2020-12-31.
+    Every headline figure in the artefact -- treasury, net margin, bad debt -- is an accumulation
+    over the window, so a five-year run and a ten-year run disagree on all of them for a reason
+    that has nothing to do with the company. The blind envelope published on origin rests on its
+    arms being comparable, and comparability had exactly two stamped legs (`world_identity.digest`
+    plus `home_digest` for the world, `execution_mode.risk_committee` for the machine). This is
+    the third, and it was inferable only from counting the keys of `years` -- which is to say, not
+    stated anywhere a reader or a control looks.
+
+    RESOLVED THROUGH THE SIMULATION'S OWN PREDICATE. `simulation.run_phase2b.effective_report_end`
+    is the function `_main` itself uses to turn the caller's argument into the day the world
+    stops, so the stamp and the run give one answer by construction. The full-window boundary is
+    asked for the same way -- `effective_report_end(None)`, which is what an untruncated run
+    passes -- rather than by importing `REPORT_END`, because `from ... import REPORT_END` binds a
+    copy at import time that would go on agreeing after the constant moved.
+
+    `years_covered` IS THE DELIVERED FACT BESIDE THE REQUESTED ONE, and the pair is the point: the
+    boundary says what the run was ASKED for and the span says what it PRODUCED. They are two
+    facts, in the way `sim_fast_mode` and `fast` above are, and a reader who finds them disagreeing
+    has found something. Read from `years`, which is a dict keyed by year, so it is available even
+    when the caller stated no window at all.
+
+    FAIL CLOSED WHEN NOBODY SAID. `save_run_output_json()` reduces a `run_output` it was handed and
+    cannot know what window produced it; `None` already means UNTRUNCATED on this parameter, so
+    reusing it there would publish "full 2016-2025 window" about a run that may have been stopped
+    in 2020. `_WINDOW_NOT_STATED` publishes nulls with a named reason instead -- the same shape as
+    `producing_commit.unavailable_because`, and for the same reason: a consumer that cannot tell
+    "no answer" from "some answer" is the fail-open these blocks exist to close.
+
+    NOT DECLARED AS RUN IDENTITY, and that is forced rather than chosen. `report_end` is a date
+    INSIDE THE SIMULATED WORLD; declared, `2020-12-31` would go through the census's `_RUN_IDENTITY`
+    regex and a sentence claiming "the 2020-12-31 run" of this target would grade as SUPPORTED
+    against a truncation boundary. That is the exact defect `_artefact_dates` was narrowed to its
+    declaration list to close on 2026-09-09, and `tools/run_value_cycle_ab._RUN_IDENTITY_FIELDS`
+    already excludes `report_end` by name for it. Undeclared, these fields are inert to the census
+    and legible to the reader, which is what they are for.
+    """
+    stated = report_end is not _WINDOW_NOT_STATED
+    full = effective_report_end(None)
+    effective = effective_report_end(report_end) if stated else None
+    years = data.get("years")
+    covered = sorted(years) if isinstance(years, dict) and years else []
+    return {
+        "report_end": effective,
+        "full_window_end": full,
+        # The property, not today's answer: truncated iff the day this run stopped is not the day
+        # an untruncated run stops. Moving `REPORT_END` moves both sides together.
+        "truncated": (effective != full) if stated else None,
+        "years_covered": [covered[0], covered[-1]] if covered else None,
+        "unavailable_because": (
+            None if stated else
+            "this caller did not state the simulation window it ran, so this artefact cannot say "
+            "whether it covers the full 2016-2025 record or a truncated one, and no figure in it "
+            "may be compared with a figure from another run on the strength of the window"
+        ),
+        "read_from": (
+            "the `report_end` the caller passed to `simulation.run_phase4c_on_phase2b`, resolved "
+            "by `simulation.run_phase2b.effective_report_end` -- the same predicate the run "
+            "itself resolves its window with, never a second reading of `--end-year`"
         ),
     }
 
@@ -446,7 +534,13 @@ def main() -> None:
     # THE SAME DISCIPLINE AS `save_run_output_json`, AND THIS IS THE PATH THAT PUBLISHES.
     # It raises before anything is written, so a run that does not add up leaves no artefact
     # for the publisher to pick up -- see `reconcile_and_stamp` for what used to happen here.
-    data = reconcile_and_stamp(extract_report_data(raw_output), code_commit=code_commit)
+    #
+    # `report_end=report_end` IS THE SAME LOCAL THE LINE ABOVE RAN THE WORLD WITH, deliberately,
+    # and not `f"{args.end_year}-12-31"` written a second time. Two copies of a fact computed
+    # separately are two facts -- the stamp would then be a claim about a window it never saw.
+    data = reconcile_and_stamp(
+        extract_report_data(raw_output), code_commit=code_commit, report_end=report_end
+    )
     args.save_json.parent.mkdir(parents=True, exist_ok=True)
     args.save_json.write_text(json.dumps(data, indent=2))
 

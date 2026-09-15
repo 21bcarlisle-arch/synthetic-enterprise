@@ -59,6 +59,29 @@ about.
     `bool(os.environ.get(...))` anywhere in the pair. `SIM_FAST_MODE=0` is a truthy string.
   * `test_the_declared_execution_mode_field_still_resolves_for_the_census` -- rename the field
     without moving the declaration, or declare the bool (which the census silently drops).
+
+THE FOURTH DEFECT, 2026-09-15: the header says WHICH CODE, WHICH WORLD and WHICH MACHINE, and not
+HOW LONG THE WORLD RAN FOR. `--end-year 2020` stops the simulation five years early; every headline
+figure in the artefact is an accumulation over the window, so a truncated run and a full one
+disagree on all of them for a reason that has nothing to do with the company -- and stamp
+identically. `_execution_mode`'s own docstring named this gap and left it open. The blind envelope
+is now a reader-facing claim resting on its arms being comparable, so the unstamped leg is
+load-bearing in public.
+
+  * `test_two_runs_of_different_lengths_do_not_stamp_the_same_window` -- ONE control over the
+    partition, for the same reason as the committee leg: nearly every run on this box is
+    untruncated, so a block pinned to the full window would have looked right indefinitely. Kill
+    it by pinning `report_end`, by deleting the block, or by dropping the `report_end=` argument
+    from `main()`'s `reconcile_and_stamp` call.
+  * `test_the_stamp_and_the_simulation_resolve_one_window` -- write `or REPORT_END` a second time
+    in the stamp, or `from simulation.run_phase2b import REPORT_END` (which binds a copy at import
+    time and goes on agreeing after the constant moves).
+  * `test_a_caller_that_did_not_state_its_window_says_so_instead_of_claiming_the_full_one` --
+    default `report_end` to None instead of `_WINDOW_NOT_STATED`. None is a LIVE value meaning
+    untruncated, so that default publishes "full 2016-2025 window" about a run nobody asked.
+  * `test_the_truncation_boundary_is_not_gradable_as_this_runs_identity` -- add the window to
+    `run_identity_fields`. `2020-12-31` is a date inside the simulated world, and declared it
+    would grade a sentence about "the 2020-12-31 run" as SUPPORTED against a truncation boundary.
 """
 from __future__ import annotations
 
@@ -99,12 +122,12 @@ def stubbed_world(monkeypatch):
     return _set
 
 
-def _run_main(monkeypatch, tmp_path):
+def _run_main(monkeypatch, tmp_path, *argv):
     out_json = tmp_path / "run_output.json"
     out_md = tmp_path / "report.md"
     monkeypatch.setattr(
         "sys.argv",
-        ["run_annual_report", "--save-json", str(out_json), "--output", str(out_md)],
+        ["run_annual_report", "--save-json", str(out_json), "--output", str(out_md), *argv],
     )
     rar.main()
     return out_json
@@ -416,3 +439,152 @@ def test_the_declared_execution_mode_field_still_resolves_for_the_census(_fast_m
             "the artefact declares {!r} as its run identity and the census resolver reaches no "
             "leaf there, so that field grades nothing and says nothing about it".format(dotted)
         )
+
+
+def _window_of(stubbed_world, monkeypatch, tmp_path, name, *argv, years=None) -> dict:
+    """The `execution_mode.window` block `main()` writes for a given command line.
+
+    `years` is the real artefact's shape -- a dict keyed by year -- because the delivered span is
+    read off it, and the default `[]` in `_adding_up()` cannot exercise that leg."""
+    payload = _adding_up()
+    if years is not None:
+        payload["years"] = {str(y): {} for y in years}
+    stubbed_world(payload)
+    written = json.loads(_run_main(monkeypatch, tmp_path / name, *argv).read_text())
+    return written["execution_mode"]["window"]
+
+
+def test_two_runs_of_different_lengths_do_not_stamp_the_same_window(
+    stubbed_world, monkeypatch, tmp_path
+):
+    """HOW LONG THE WORLD RAN FOR, and it is not answered by the commit, the digest or the
+    committee.
+
+    Every headline figure in this artefact accumulates over the window, so a run stopped at 2020
+    and a run stopped at 2025 disagree on treasury, net margin and bad debt for a reason that is
+    not about the company at all. Until this block the difference was inferable only by counting
+    the keys of `years`.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, NOT A LEG PER MODE -- the same shape the committee leg
+    needs and for the same reason. Almost every run on this box is untruncated, so a window block
+    hard-coded to the full boundary would satisfy any untruncated-only assertion and would have
+    looked right for as long as anyone cared to check. The property is that the two lengths are
+    DISTINGUISHABLE in the artefact."""
+    truncated = _window_of(
+        stubbed_world, monkeypatch, tmp_path, "short", "--end-year", "2020",
+        years=range(2016, 2021),
+    )
+    full = _window_of(
+        stubbed_world, monkeypatch, tmp_path, "long", years=range(2016, 2026),
+    )
+
+    assert truncated["report_end"] != full["report_end"], (
+        "a run truncated at 2020 and a full 2016-2025 run both stamp {!r}, so the window is a "
+        "constant and two arms of different lengths compare as equals".format(
+            truncated["report_end"])
+    )
+    assert truncated["report_end"] == "2020-12-31", (
+        "`--end-year 2020` stopped the world at {!r}".format(truncated["report_end"])
+    )
+    assert truncated["truncated"] is True, "a five-year run did not stamp as truncated"
+    assert full["truncated"] is False, (
+        "a run with no `--end-year` stamped as truncated, so the full record reads as a fragment"
+    )
+    assert truncated["years_covered"] == ["2016", "2020"], (
+        "the delivered span is not published beside the requested boundary, so a reader cannot "
+        "check one against the other: {!r}".format(truncated["years_covered"])
+    )
+    assert full["years_covered"] == ["2016", "2025"]
+
+
+def test_the_stamp_and_the_simulation_resolve_one_window(stubbed_world, monkeypatch, tmp_path):
+    """TWO COPIES OF A DEFAULT ARE TWO FACTS, and this is the window's version of the predicate
+    leg above.
+
+    The stamp claims to name the day the world stopped. What makes that true is that it asks
+    `simulation.run_phase2b.effective_report_end` -- the function `_main` itself resolves the
+    window with -- rather than writing `or REPORT_END` a second time or importing the constant
+    (which binds a copy at import time).
+
+    So this MOVES the constant and asserts the stamp follows. With the full window redefined to
+    end in 2020, `--end-year 2020` is no longer a truncation and must stop saying it is. A stamp
+    holding its own copy keeps answering 2025-06-07 and keeps calling the run truncated, which is
+    exactly the drift this closes; a stamp pinned to a literal does the same."""
+    from simulation import run_phase2b as rp2b
+
+    monkeypatch.setattr(rp2b, "REPORT_END", "2020-12-31")
+    window = _window_of(
+        stubbed_world, monkeypatch, tmp_path, "moved", "--end-year", "2020",
+        years=range(2016, 2021),
+    )
+
+    assert window["full_window_end"] == "2020-12-31", (
+        "the full-window boundary moved to 2020-12-31 in the simulation and the stamp still says "
+        "{!r}, so it is reading its own copy rather than the run's".format(
+            window["full_window_end"])
+    )
+    assert window["truncated"] is False, (
+        "`--end-year 2020` runs to the full window now, and the artefact still calls it truncated"
+    )
+
+
+def test_a_caller_that_did_not_state_its_window_says_so_instead_of_claiming_the_full_one():
+    """FAIL CLOSED, BECAUSE `None` ALREADY MEANS SOMETHING ELSE ON THIS PARAMETER.
+
+    `save_run_output_json()` is handed a finished `run_output` and cannot know what window produced
+    it. None is a live value meaning UNTRUNCATED -- `main()` passes it for every run without
+    `--end-year` -- so defaulting the parameter to None would publish "full 2016-2025 window"
+    about a run that may have stopped in 2020. A consumer cannot tell that from an answer, which
+    is the whole failure this block exists to end.
+
+    This calls `reconcile_and_stamp` directly because the unstated route is a CALLER, not a
+    command line: there is no argv that reaches it."""
+    stated = rar.reconcile_and_stamp(_adding_up(), code_commit="abc1234", report_end=None)
+    unstated = rar.reconcile_and_stamp(_adding_up(), code_commit="abc1234")
+
+    said = stated["execution_mode"]["window"]
+    silent = unstated["execution_mode"]["window"]
+
+    assert said["report_end"] and said["truncated"] is False, (
+        "a caller that stated an untruncated window did not get one: {!r}".format(said)
+    )
+    assert silent["report_end"] is None and silent["truncated"] is None, (
+        "a caller that said nothing about its window published {!r} as the day its world stopped, "
+        "which it has no way of knowing".format(silent["report_end"])
+    )
+    assert silent["unavailable_because"], (
+        "the window slot is present and says nothing -- an absent answer must name its reason"
+    )
+
+
+def test_the_truncation_boundary_is_not_gradable_as_this_runs_identity(
+    stubbed_world, monkeypatch, tmp_path
+):
+    """A DATE INSIDE THE SIMULATED WORLD MUST NOT BECOME A RUN-IDENTITY TOKEN.
+
+    `2020-12-31` is a boundary in the world the company lived through, not a fact about when this
+    run happened. Declared in `run_identity_fields` it would go through the census's `_RUN_IDENTITY`
+    regex and a sentence claiming "the 2020-12-31 run" of this promote target would grade as
+    SUPPORTED against a truncation. That is precisely the defect `_artefact_dates` was narrowed to
+    the declaration list to close on 2026-09-09, and `tools/run_value_cycle_ab._RUN_IDENTITY_FIELDS`
+    already excludes `report_end` by name for it.
+
+    It asserts the PROPERTY through the real census rather than checking the list for a string, so
+    it fires however the boundary reaches the grader."""
+    payload = _adding_up()
+    payload["years"] = {str(y): {} for y in range(2016, 2021)}
+    stubbed_world(payload)
+    out = _run_main(monkeypatch, tmp_path / "graded", "--end-year", "2020")
+    written = json.loads(out.read_text())
+
+    assert written["execution_mode"]["window"]["report_end"] == "2020-12-31", (
+        "the fixture did not truncate, so this leg is vacuous"
+    )
+    tokens = _artefact_dates(out)
+    assert "2020-12-31" not in tokens, (
+        "the truncation boundary is declared run identity, so a claim about 'the 2020-12-31 run' "
+        "of this target now grades as supported against a date in the simulated world"
+    )
+    assert written["generated_at"] in tokens, (
+        "nothing grades at all, so the leg above passes for the wrong reason"
+    )

@@ -225,6 +225,24 @@ REPORT_START = "2016-01-01"
 REPORT_END = "2025-06-07"
 CRISIS_YEARS = {"2021", "2022"}
 
+
+def effective_report_end(report_end: str | None) -> str:
+    """THE DAY THIS RUN'S WORLD ACTUALLY STOPS, from the value the caller handed the run.
+
+    A FUNCTION RATHER THAN THE INLINE `report_end or REPORT_END` IT REPLACES, because it now has
+    a second reader. `tools/run_annual_report._simulation_window` stamps the window into the
+    published artefact, and a stamp that resolves the default with its own copy of `or REPORT_END`
+    is a claim about a branch it does not watch -- the same shape as reading `--fast` instead of
+    `sim.risk_committee_agent.fast_mode_enabled()`, which stamped the wrong committee for exactly
+    the launch shape the arms use. One predicate, two readers, so they cannot disagree.
+
+    `None` MEANS UNTRUNCATED AND IS NOT AN ABSENT ANSWER. Every caller that passes nothing runs
+    the full 2016-2025 window, so `effective_report_end(None)` IS the full-window boundary and is
+    how the stamp asks for it -- never by importing `REPORT_END`, which would bind a second copy
+    at import time and keep agreeing after this constant moved.
+    """
+    return report_end or REPORT_END
+
 # 2026-07-10: point-in-time-blindfold fix (docs/review_gates/
 # HEDGE_VOLATILITY_LOOKBACK_FORESIGHT_BUG.md) -- originally fixed with a
 # per-call-site wrapper (_price_history_as_of(), a bisect-slice bounding the
@@ -1102,7 +1120,7 @@ def _main(report_end: str | None = None, policy: DecisionPolicy | None = None,
         the guard, which exists because a test's 276-invoice fixture book once overwrote
         the real ledger and republished the public Proof door 2.68x too low.
     """
-    effective_end = report_end or REPORT_END
+    effective_end = effective_report_end(report_end)
     policy = policy or CURRENT_POLICY
     # A run's policy identity must be ONE thing (2026-08-12, closing
     # WORKER_FINDING_THE_NAIVE_ARM_KEEPS_THE_LIVE_TONE_2026-08-10). Fields this
