@@ -294,6 +294,59 @@ def test_a_settlement_bound_year_SAYS_SO_instead_of_publishing_a_smaller_book():
     assert out["customer_years_committed"] <= 10.0
 
 
+def test_a_sample_the_chooser_REFUSED_says_so_in_the_notes_and_a_chosen_one_does_not():
+    """THE REFUSAL HAS TO REACH THE READER, and until 2026-09-15 nothing asked whether it did.
+
+    `settle_within_budget` writes a named reason whenever the chooser cannot pick the settled
+    sample, and `plan_growth_campaign` appends it as `SETTLEMENT SAMPLE NOT CHOSEN: <reason>`.
+    A `grep` for that string across every `.py` in the tree returned exactly one hit -- the
+    producer that writes it. **The whole journey from the refusal to the reader's notes was
+    unheld**, which is the shape CLAUDE.md's "write refusals that name their reason" rule exists
+    to prevent: a refusal nobody reads cannot be discovered to have been wrong.
+
+    BOTH ARMS, because one arm cannot tell a control that asserts the note from a producer that
+    always writes it. The two budgets differ ONLY in size and they straddle the point where the
+    chooser starts fitting inside the headroom (measured: 90.0 refuses, 120.0 chooses).
+
+    Fires on: dropping the `if choice_refusal:` append; writing the note unconditionally so a
+    chosen book is published as a refused one; emptying the headroom reason; or replacing it with
+    a sentence that restates the refusal instead of naming a cause. Mutation-proven on all four,
+    2026-09-15.
+
+    **WHAT THIS DOES NOT HOLD, said here so it is not read as covering both routes.** The
+    campaign has two ways into the refusal and this reaches only the HEADROOM one, because the
+    other needs a candidate with no home and `plan_growth_campaign` passes `DOMESTIC_ONLY` — so
+    no budget can make the shipped campaign take it. My first mutation of "the reason" hit the
+    unplaceable sentence and this control stayed GREEN, which is how the gap was found rather
+    than assumed. The unplaceable reason is held one layer down, at the function's own boundary,
+    by `test_all_three_selection_STATES_are_reachable_through_settle_within_budget_and_tellable_
+    apart`; what has no control at any layer is that reason's journey to `notes`.
+
+    REUSE: `_campaign` and the note assertion above. The selection's own properties live in
+    `test_the_settled_book_is_chosen_and_weighted_not_culled_by_count.py`, but this is a claim
+    about the campaign's `notes` -- the surface this file already owns, one function above.
+    """
+    refused = _campaign(quote_budget_fn=_budget(200), customer_year_budget=90.0)
+    chosen = _campaign(quote_budget_fn=_budget(200), customer_year_budget=120.0)
+
+    assert refused["settlement_selection"] == "uniform_count"
+    assert chosen["settlement_selection"] == "chosen_weighted", (
+        "this fixture must actually reach the chooser, or the second arm proves nothing -- it "
+        f"reported {chosen['settlement_selection']}")
+
+    said = [n for n in refused["notes"] if "SETTLEMENT SAMPLE NOT CHOSEN" in n]
+    assert len(said) == 1, (
+        "a campaign whose settled sample the chooser refused published no such note, so the "
+        f"reason is in the return value and nowhere a reader looks: {refused['notes']}")
+    # THE REASON, not merely the refusal. A refusal that names nothing is the one that cannot be
+    # found to have been wrong, and both of the producer's two reasons are specific sentences.
+    assert "headroom" in said[0] or "no home" in said[0], said[0]
+
+    assert not [n for n in chosen["notes"] if "SETTLEMENT SAMPLE NOT CHOSEN" in n], (
+        "a book the chooser DID choose was published carrying the refusal note, so the note is "
+        f"unconditional and says nothing: {chosen['notes']}")
+
+
 def test_a_win_refused_by_the_engineering_cap_is_STILL_BILLED():
     """The quote was paid for whether or not we can settle the account it won.
 
