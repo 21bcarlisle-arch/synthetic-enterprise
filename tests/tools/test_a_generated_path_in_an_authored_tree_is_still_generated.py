@@ -655,8 +655,106 @@ def test_MUTATION_an_attributes_binding_is_resolved_in_ITS_OWN_method(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# The `/` join whose RIGHT operand is a NAME: a segment the resolver used not to read
+# ---------------------------------------------------------------------------
+def test_MUTATION_a_slash_join_on_a_NAMED_string_segment_is_a_write_site(tmp_path):
+    """`out = root / DEFAULT_REPORT`, where `DEFAULT_REPORT = "docs/observability/canon_drift.json"`
+    is a module-level STRING constant. Thirty-nine of the 364 unresolved write destinations in this
+    tree were this shape -- the largest single cluster, and the only one reachable without crossing
+    a boundary this module has refused to cross.
+
+    THE READ-ONLY SEGMENT IS THE OTHER HALF, and it is the asymmetry the whole oracle rests on. A
+    `"str."` key is consulted ONLY as the right operand of a `/`, so `REGISTER_REL` can never be a
+    destination on its own however loudly the module names it -- and a classifier that let it
+    become one would offer a REVERT on a register this module only reads. Both constants are in
+    the one fixture, so a resolver that had stopped distinguishing them cannot pass."""
+    _tree(tmp_path, publisher=HEADER + (
+        'REPORT_REL = "docs/reports/out.json"\n'
+        f'REGISTER_REL = "docs/design/{Path(NAMED_NEVER_WRITTEN).name}"\n'
+        "def run(root=ROOT):\n"
+        "    out = root / REPORT_REL\n"
+        '    out.write_text("{}")\n'
+        "    return (root / REGISTER_REL).read_text()\n"))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/out.json"}, found
+
+
+def test_MUTATION_a_named_segment_survives_into_a_CLASSS_methods(tmp_path):
+    """A `"str."` segment constant is a MODULE GLOBAL, and a method sees it exactly as any function
+    beside it does. The instance-attribute frame drops the `self.` half of the dotted map on the way
+    into a `ClassDef`; dropping the segment half with it would make a class's methods blinder than
+    the module around them -- and blind in the direction that HIDES a generated path, which is the
+    failure that goes unnoticed because nothing ever goes red for it.
+
+    THE SAME CONSTANT IS USED BOTH SIDES OF THE CLASS BOUNDARY. `module_run` writes through it and
+    `Writer.save` writes through it, to different artefacts, so a leg that lost the class half
+    still finds the module half and this cannot pass by reporting the easy one."""
+    _tree(tmp_path, publisher=HEADER + (
+        'TREE = "docs/reports"\n'
+        "def module_run():\n"
+        '    (ROOT / TREE / "module.json").write_text("{}")\n'
+        "class Writer:\n"
+        "    def save(self):\n"
+        '        (ROOT / TREE / "method.json").write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/module.json", "docs/reports/method.json"}, found
+
+
+# ---------------------------------------------------------------------------
 # The real tree: the fixture must not be the only evidence
 # ---------------------------------------------------------------------------
+def test_the_NAMED_SEGMENT_frame_is_LOAD_BEARING_in_the_REAL_tree():
+    """THE POISON ROUND FOR THE SEGMENT FRAME, and the first one in this sequence whose gain the
+    consumer can actually see. The three frames before it added paths the TREE-keyed oracle already
+    had, so the union `origin_reconcile` reads never moved; these additions are outside it.
+
+    `docs/observability/canon_drift.json` is the sharpest of them and shows why BOTH oracles missed
+    it. It lives in a GENERATED tree, so the tree-keyed oracle ought to have it -- but that oracle
+    needs `"docs"` and `"observability"` as SEPARATE string constants in one assignment, and
+    `tools/canon_drift_check.py:111` spells the whole path as a single string. A segment-pair scan
+    and a pathlib-expression scan can both be blind to the same path, for opposite reasons.
+
+    Keyed to the PROPERTY, with a floor rather than a count: these paths are reachable only through
+    a named segment. If a producer later spells its destination as a pathlib join, this goes green
+    on a smaller set rather than red on a number."""
+    with_frame = fs._write_reached_paths()
+    real = fs._scope_path_names
+
+    def _no_segments(scope, module_file, inherited):
+        return {k: v for k, v in real(scope, module_file, inherited).items()
+                if not k.startswith("str.")}
+
+    try:
+        fs._scope_path_names = _no_segments
+        without_frame = fs._write_reached_paths()
+    finally:
+        fs._scope_path_names = real
+    gained = with_frame - without_frame
+    assert "docs/observability/canon_drift.json" in gained, sorted(gained)
+    assert len(gained) > 1, "one path is an instance; this was built as a class"
+
+
+def test_a_HUMAN_RULING_a_tool_renders_ONE_COLUMN_of_is_not_a_photograph_of_a_run():
+    """The first addition in this sequence that would have done real harm unnoticed, and the reason
+    every prereg here makes attribution the rule that decides landing rather than a nicety.
+
+    `tools/capability_index.py` writes `ROOT / DISPOSITION_REGISTER` with a real `write_text`, so
+    the write-site key is satisfied and the scan is right to reach it. The document is still a
+    RULING: it says of itself, in bold, *"There is deliberately no generator. A new orphan must be
+    ruled on by a judgement"*, and `render_dispositions` rewrites ONE derived consumer column and
+    never adds or removes a row. The remedy a consumer applies to a generated path is REVERT, and
+    that would drop whatever rulings another lane wrote -- on a document the director reads.
+
+    This leg is what goes red if someone deletes the carve-out because the scan 'obviously' found
+    a write."""
+    raw = fs._write_reached_paths()
+    offered = fs.written_artefacts()
+    path = "docs/design/ORPHAN_DISPOSITION_REGISTER.md"
+    assert path in raw, f"{path} is no longer write-reached -- this leg proves nothing now"
+    assert path not in offered, f"{path} is being offered a REVERT"
+
+
+
 def test_the_instance_attribute_frame_is_LOAD_BEARING_in_the_REAL_tree():
     """THE POISON ROUND FOR THE ATTRIBUTE FRAME. Every leg above is a fixture, and a frame that
     resolved nothing in the actual repository would pass all of them while changing no

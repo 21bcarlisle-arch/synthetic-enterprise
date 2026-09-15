@@ -283,9 +283,22 @@ def _static_paths(node: ast.expr, module_file: Path,
         return []
     if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
         right = node.right
-        if not (isinstance(right, ast.Constant) and isinstance(right.value, str)):
+        segments: list[str | Path] = []
+        if isinstance(right, ast.Constant) and isinstance(right.value, str):
+            segments = [right.value]
+        elif isinstance(right, ast.Name):
+            # `out = root / DEFAULT_REPORT`, where `DEFAULT_REPORT = "docs/design/REPORT.md"` is a
+            # module-level STRING constant. Thirty-nine of the 364 write destinations this scan
+            # could not resolve on 2026-09-15 were this shape -- the largest single cluster, and
+            # the only one reachable without crossing a boundary the module has refused to cross.
+            # The segment map is separate (`"str."` keys) and holds only string constants, so a
+            # name bound to a PATH can never arrive here as a right-hand segment and the two maps
+            # cannot answer for each other.
+            segments = list(known.get(f"str.{right.id}", ()))
+        if not segments:
             return []
-        return [p / right.value for p in _static_paths(node.left, module_file, known)]
+        return [p / seg for p in _static_paths(node.left, module_file, known)
+                for seg in segments]
     if isinstance(node, ast.IfExp):
         return (_static_paths(node.body, module_file, known)
                 + _static_paths(node.orelse, module_file, known))
@@ -301,6 +314,19 @@ def _scope_path_names(scope: list[ast.AST], module_file: Path,
     In source order, so `ROOT = Path(__file__).parents[1]` is known by the time
     `BASELINE = ROOT / "docs" / ...` is read. A name assigned twice accumulates both, for the same
     reason `_static_paths` returns a list: a rebound destination is still a destination.
+
+    AND A STRING CONSTANT IS RECORDED TOO, UNDER A `"str."` KEY, because `root / DEFAULT_REPORT` is
+    how 39 destinations in this tree spell a path and the resolver used to read none of them.
+
+    THE SEPARATE NAMESPACE IS WHAT KEEPS THE WRITE-SITE KEY INTACT, and it earns that claim in one
+    direction only. A `"str."` key is consulted ONLY as the right operand of a `/`, so a module's
+    `REGISTER_REL = "docs/design/SOMETHING.md"` can never become a destination on its own however
+    loudly it is named -- which is the asymmetry the whole oracle rests on. The other direction is
+    an EQUIVALENCE and is recorded as one rather than dressed as a guard: merging the two maps and
+    letting a PATH-valued name stand as a right-hand segment would change nothing this scan
+    reports, because every path `_static_paths` produces is absolute and `p / <absolute>` is that
+    absolute path -- a destination already reachable by naming it directly. Established by trying
+    to write the mutation, not assumed.
     """
     known = {name: list(paths) for name, paths in inherited.items()}
     assigns = [n for n in scope if isinstance(n, (ast.Assign, ast.AnnAssign))]
@@ -310,6 +336,11 @@ def _scope_path_names(scope: list[ast.AST], module_file: Path,
             continue
         targets = node.targets if isinstance(node, ast.Assign) else [node.target]
         names = [t.id for t in targets if isinstance(t, ast.Name)]
+        if names and isinstance(node.value, ast.Constant) and isinstance(node.value.value, str):
+            for name in names:
+                segment = Path(node.value.value)
+                if segment not in known.setdefault(f"str.{name}", []):
+                    known[f"str.{name}"].append(segment)
         resolved = _static_paths(node.value, module_file, known) if names else []
         for name in names:
             for path in resolved:
@@ -605,7 +636,11 @@ def _paths_written_by_scope(node: ast.AST, module_file: Path,
     # of the tree on 2026-09-15, zero scopes store it, so a control for it could never fail and the
     # module's own arity-check comment above says what to do with one of those.
     if isinstance(node, ast.ClassDef):
-        outer_free = {k: v for k, v in inherited.items() if "." not in k}
+        # ONLY the `self.` half is dropped. A `"str."` segment constant is a MODULE global, which a
+        # method sees exactly as any other module name, so stripping it here would make a class's
+        # methods blinder than the functions beside them -- and blind in the direction that hides a
+        # generated path rather than manufactures one, which is the failure that is hard to notice.
+        outer_free = {k: v for k, v in inherited.items() if not k.startswith("self.")}
         handed_down = {**outer_free,
                        **_class_self_paths(node, module_file, outer_free)}
     else:
@@ -668,6 +703,17 @@ WRITTEN_BUT_NOT_REPRODUCIBLE: frozenset[str] = frozenset({
     # `tools/edge_traffic_capture.append` -- the name is the argument. Rows are captured from an
     # external feed hour by hour; a re-run captures the CURRENT window and the history is gone.
     "docs/observability/edge_traffic.jsonl",
+    # FOUND BY THE `/`-JOIN-ON-A-NAME FRAME (delivery seat, 2026-09-15), and the first addition in
+    # this whole sequence that would have done REAL HARM unnoticed. `tools/capability_index.py`
+    # binds `DISPOSITION_REGISTER = "docs/design/ORPHAN_DISPOSITION_REGISTER.md"` as a plain string
+    # and writes `ROOT / DISPOSITION_REGISTER` -- a genuine `write_text`, so the write-site key is
+    # satisfied and the scan is right to reach it. It is still a HUMAN RULING. The document says so
+    # of itself, in bold: *"There is deliberately no generator. A new orphan must be ruled on by a
+    # judgement."* What the tool rewrites is ONE derived consumer column, never a row, and
+    # `render_dispositions`'s own docstring says it never adds or removes one. A REVERT would drop
+    # whatever rulings another lane wrote -- the `ASSUMPTIONS.md` shape, arriving through the
+    # segment-constant door, on a document the director reads.
+    "docs/design/ORPHAN_DISPOSITION_REGISTER.md",
     # `tools/fetch_haduk_grid.write_receipt` merges each checkpoint of a 10 GB network pull into
     # the receipt and `os.replace`s it in. Its docstring: a death mid-write must cost "the newest
     # checkpoint and never the record of the 10 GB already bought". A REVERT costs exactly that,
