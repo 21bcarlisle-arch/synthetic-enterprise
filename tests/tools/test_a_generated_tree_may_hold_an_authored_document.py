@@ -105,8 +105,17 @@ def test_every_exempt_path_is_UNDER_a_declared_prefix_or_it_is_dead_weight():
     """THE OTHER DIRECTION. An exemption outside every declared tree exempts a path the prefix test
     was never going to refuse, so it buys nothing and hides the fact that it buys nothing. Keyed to
     `GENERATED_TREES` rather than to a literal list, so retiring a tree reddens this instead of
-    leaving a member quietly inert."""
-    prefixes = tuple(f"{a}/{b}/" for a, b in fs.GENERATED_TREES)
+    leaving a member quietly inert.
+
+    AND THROUGH THE MODULE'S OWN DERIVED VIEW RATHER THAN RE-DERIVING IT (delivery seat,
+    2026-09-15). This line used to spell the prefixes itself as `f"{a}/{b}/"`, which was a second
+    implementation of one rule -- and it broke the hour a member became three segments, raising
+    `ValueError: too many values to unpack` where the control should have simply gone on being
+    true. `_WHOLE_PATH_PREFIXES` is the subject's own answer to the same question, so the keying
+    claim above is unchanged and the duplication is gone;
+    `test_a_generated_tree_declaration_may_be_any_depth.py::
+    test_the_declared_set_is_what_both_consumers_read` is what holds that view honest."""
+    prefixes = tuple(fs._WHOLE_PATH_PREFIXES)
     stranded = sorted(p for p in fs.AUTHORED_UNDER_A_GENERATED_TREE
                       if not p.startswith(prefixes))
     assert stranded == [], (

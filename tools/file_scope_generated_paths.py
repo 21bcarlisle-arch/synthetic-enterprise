@@ -98,10 +98,41 @@ MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 # Census, predictions and the two scored failures:
 # docs/staging/records/PREREG_WHETHER_A_PER_PATH_HATCH_ON_THE_PREFIX_REFUSAL_LETS_THE_TWO_DECLINED_
 # TREES_BE_DECLARED_2026-09-15.md.
-GENERATED_TREES: tuple[tuple[str, str], ...] = (
+# AND A MEMBER IS A PATH PREFIX OF ANY DEPTH NOW, NOT A `(parent, child)` PAIR (delivery seat,
+# 2026-09-15). Two consecutive findings named the pair shape as a structural limit -- "a generated
+# tree that is one segment deep, or three, cannot be expressed at all" -- and neither acted on it,
+# which is how a named gap becomes furniture. The type is widened here and the POPULATION question
+# is answered separately below, because they are different questions and running them together is
+# why neither moved: the census says whether a MEMBER is wanted, the tuple type says whether one
+# could be WRITTEN. Census, predictions and the two falsified ones:
+# docs/staging/records/PREREG_WHAT_THE_DEPTH_TWO_SHAPE_OF_A_GENERATED_TREE_DECLARATION_EXCLUDES_
+# 2026-09-15.md.
+#
+# TWO SEGMENTS IS STILL THE FLOOR, AND THAT IS THE ONE DIRECTION THIS WIDENING IS DANGEROUS IN.
+# The match below is a MEMBERSHIP test over an assignment's string constants, so a one-segment
+# member would fire on any assignment anywhere that merely mentions `"site"` -- and the emitted
+# path would be `site/<whatever artefact name was in scope>`, which the reconciler would then
+# refuse to offer a landing on. A two-segment member needs two independent constants to coincide;
+# one needs a coincidence that happens constantly. The census found NOTHING wanting a depth-1
+# declaration (5 top-level directories hold a write-reached file, the densest is `site` at 0.103
+# and all five are overwhelmingly authored), so the floor costs nothing today and is refused by
+# `tests/tools/test_a_generated_tree_declaration_may_be_any_depth.py` rather than left to a comment.
+#
+# THE DEPTH-3 MEMBER IS THE POPULATION ANSWER AND IT PAYS IMMEDIATELY. `docs/observability/
+# scale_probe_10k` holds exactly two tracked files and both are AO12's output. The drawn item said
+# it "is reached today only because its parent is declared" -- that is TRUE of `offends()`, which
+# decides by prefix, and FALSE of the oracle membership that the reconciler reads: both artefacts
+# were in NEITHER oracle, because the pair match tested `docs` and `observability` against
+# `simulation/premise_population.py:1189` and then emitted the path it HARD-JOINED from the declared
+# pair -- `docs/observability/report.json`, which is not a file. So the reconciler was offering a
+# landing on a producer's output while a path that does not exist sat in the generated set. The
+# correction is kept beside the claim because a reader who trusted "reached because its parent is
+# declared" would conclude there was nothing here to fix.
+GENERATED_TREES: tuple[tuple[str, ...], ...] = (
     ("site", "data"),
     ("site", "state"),
     ("docs", "observability"),
+    ("docs", "observability", "scale_probe_10k"),
     ("docs", "market_data"),
     ("docs", "reports"),
     ("docs", "status"),
@@ -116,7 +147,7 @@ ARTEFACT_SUFFIXES = (".json", ".md", ".sqlite", ".csv")
 # in NEITHER oracle, so the reconciler was offering a landing on a producer's output. Census and
 # predictions: docs/staging/records/PREREG_WHAT_THE_TREE_KEYED_ORACLE_GAINS_FROM_A_PATH_SPELLED_AS_
 # ONE_WHOLE_STRING_2026-09-15.md.
-_WHOLE_PATH_PREFIXES: tuple[str, ...] = tuple(f"{a}/{b}/" for a, b in GENERATED_TREES)
+_WHOLE_PATH_PREFIXES: tuple[str, ...] = tuple("/".join(segs) + "/" for segs in GENERATED_TREES)
 
 # THIS MODULE IS NOT A PRODUCER AND MAY NOT BE EVIDENCE ABOUT ITSELF. `FROZEN` below holds
 # `(atom_id, path)` pairs COPIED OUT OF THE MATURITY MAP -- the declarations this gate judges -- and
@@ -227,9 +258,14 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
                     continue
                 parts = [c.value for c in ast.walk(node.value)
                          if isinstance(c, ast.Constant) and isinstance(c.value, str)]
-                for a, b in GENERATED_TREES:
-                    if a in parts and b in parts:
-                        found.update(f"{a}/{b}/{s}" for s in parts
+                for segs in GENERATED_TREES:
+                    # EVERY declared segment must be present, which is why a DEEPER member is
+                    # strictly harder to satisfy than the shallower one containing it and can
+                    # never fire where its parent does not. That asymmetry is what makes the
+                    # depth-3 member safe to add beside its parent rather than instead of it.
+                    if all(seg in parts for seg in segs):
+                        prefix = "/".join(segs)
+                        found.update(f"{prefix}/{s}" for s in parts
                                      if s.endswith(ARTEFACT_SUFFIXES))
                 # ...and the same tree spelled as ONE string. Held to an ASSIGNMENT, exactly like
                 # the segment match beside it, and that scope is LOAD-BEARING rather than inherited
@@ -1037,7 +1073,17 @@ def written_artefacts(root: Path | None = None) -> set[str]:
 
 
 def _tree_prefixes() -> set[str]:
-    return {f"{a}/{b}" for a, b in GENERATED_TREES}
+    """The declared prefixes, any depth. A member NESTED inside another adds nothing here.
+
+    `offends()` answers True for anything under ANY of these, so `docs/observability/
+    scale_probe_10k` is already covered by `docs/observability` and declaring the deeper one
+    cannot make the gate refuse one entry more. That is the memory-file shape -- a widening
+    cannot move a gate whose membership test is subsumed by a coarser predicate beside it -- and
+    it is the reason the depth-3 member needed no freeze re-measurement where `("docs", "status")`
+    did: `status` was a NEW first-level prefix and this one is not. Measured, not assumed:
+    `tests/tools/test_a_generated_tree_declaration_may_be_any_depth.py`.
+    """
+    return {"/".join(segs) for segs in GENERATED_TREES}
 
 
 def offends(scope_entry: str, generated: set[str]) -> bool:
