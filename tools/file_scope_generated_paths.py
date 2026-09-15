@@ -406,6 +406,65 @@ def _paths_written_through_helper(helper: _Helper, call: ast.Call, module_file: 
     return found
 
 
+def _signature_names(node: ast.AST) -> set[str]:
+    """Every name a `def`/`lambda` BINDS in its own signature, and so shadows from outside."""
+    args = getattr(node, "args", None)
+    if args is None:
+        return set()
+    names = {a.arg for a in (*args.posonlyargs, *args.args, *args.kwonlyargs)}
+    for extra in (args.vararg, args.kwarg):
+        if extra is not None:
+            names.add(extra.arg)
+    return names
+
+
+def _default_destinations(node: ast.AST, module_file: Path,
+                          inherited: dict[str, list[Path]]) -> dict[str, list[Path]]:
+    """param -> the paths its DEFAULT can be, for a `def` whose caller may pass nothing.
+
+    THE DEFAULT IS A WRITE DESTINATION THE MODULE DECLARES, and the evidence is no weaker than a
+    module-scope `OUT.write_text(...)`: `def generate(out=OUT_PATH)` followed by `out.write_text`
+    writes `OUT_PATH` on every call that names no destination, and `background/
+    process_run_complete.py` calls `_ledger.write()` exactly that way. This is the door the helper
+    frame left open -- and the bigger one. Thirty-six `def`s in the scanned trees write a parameter
+    that carries a default, against the eight paths the helper frame found.
+
+    RESOLVED AGAINST WHAT THE `def` INHERITS, WHICH FOR A METHOD IS NOT THE CLASS BODY. Python
+    evaluates a default in the enclosing scope, so a method's default genuinely CAN see a class
+    attribute -- and that is still not taken, because `_paths_written_by_scope` hands a class's
+    nested scopes what the CLASS inherited. Strictly narrower than the language allows, and
+    narrower in the direction that cannot manufacture a path.
+
+    A REBOUND PARAMETER IS REFUSED, for the reason `_module_helpers` refuses one: after
+    `path = SOMEWHERE_ELSE` the write does not go where the signature said, and seeding the default
+    anyway would hand `_scope_path_names` BOTH -- it accumulates rather than replaces -- so the
+    oracle would claim a path this `def` provably never writes.
+
+    A DEFAULT IS AN EXPRESSION IN THE SIGNATURE, NOT AN ARGUMENT AT A CALL SITE, which is why this
+    may use `_static_paths` where `_paths_written_through_helper` may not walk names. There is no
+    caller to be wrong about: the default is what the `def` itself says it writes.
+    """
+    args = getattr(node, "args", None)
+    if args is None:
+        return {}
+    positional = [*args.posonlyargs, *args.args]
+    pairs: list[tuple[ast.arg, ast.expr]] = list(
+        zip(positional[len(positional) - len(args.defaults):], args.defaults))
+    pairs += [(a, d) for a, d in zip(args.kwonlyargs, args.kw_defaults) if d is not None]
+    if not pairs:
+        return {}
+    rebound = {n.id for n in _own_scope(node)
+               if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)}
+    out: dict[str, list[Path]] = {}
+    for arg, default in pairs:
+        if arg.arg in rebound:
+            continue
+        paths = _static_paths(default, module_file, inherited)
+        if paths:
+            out[arg.arg] = paths
+    return out
+
+
 def _paths_written_by_scope(node: ast.AST, module_file: Path,
                             inherited: dict[str, list[Path]],
                             helpers: dict[str, _Helper] | None = None,
@@ -416,6 +475,7 @@ def _paths_written_by_scope(node: ast.AST, module_file: Path,
     above the constant it writes to still sees it -- which is what actually happens at call time.
     """
     scope = _own_scope(node)
+    inherited = {**inherited, **_default_destinations(node, module_file, inherited)}
     known = _scope_path_names(scope, module_file, inherited)
     if helpers is None:
         helpers = _module_helpers(node)
@@ -444,7 +504,14 @@ def _paths_written_by_scope(node: ast.AST, module_file: Path,
     # one-letter destination name in a method.
     handed_down = inherited if isinstance(node, ast.ClassDef) else known
     for nested in _nested_scopes(node):
-        found |= _paths_written_by_scope(nested, module_file, handed_down, helpers, module_known)
+        # A NAME THE NESTED `def` BINDS IN ITS OWN SIGNATURE IS NOT THE ENCLOSING NAME. Seeding
+        # parameter defaults above puts PARAMETER names into this map for the first time, and
+        # `path`/`out`/`dest` repeat across nested defs in this tree, so without this the seeded
+        # default of an OUTER `def` would be lent to an inner `def`'s same-named parameter -- the
+        # flat-name-map defect that reported the director's axes as generated, one scope deeper.
+        # It is closed here rather than left for the defect to find it.
+        passed = {k: v for k, v in handed_down.items() if k not in _signature_names(nested)}
+        found |= _paths_written_by_scope(nested, module_file, passed, helpers, module_known)
     return found
 
 
@@ -482,6 +549,23 @@ WRITTEN_BUT_NOT_REPRODUCIBLE: frozenset[str] = frozenset({
     # ledger is an append wearing a rewrite's clothes, and the mode check cannot see the
     # difference. This entry is where that distinction is actually made.
     "docs/observability/naive_organ_log.jsonl",
+    # THE NEXT THREE WERE FOUND BY THE DEFAULTED-DESTINATION PARAMETER (delivery seat,
+    # 2026-09-15). Nine paths arrived and three of them are the append-wearing-a-rewrite shape
+    # above, which is a HIGHER proportion than the helper frame's two in eight -- a default is how
+    # a module spells "the one place I keep my running record", so the door that finds them finds
+    # more of them. Each is read, merged with what is already there, and written back whole.
+    #
+    # `tools/space_filling_sample.record_visit` adds ONE RUN's corners to a ledger whose own
+    # docstring says coverage is a property of the ENSEMBLE of runs. No single run makes it again.
+    "docs/design/visited_corner_ledger.json",
+    # `tools/edge_traffic_capture.append` -- the name is the argument. Rows are captured from an
+    # external feed hour by hour; a re-run captures the CURRENT window and the history is gone.
+    "docs/observability/edge_traffic.jsonl",
+    # `tools/fetch_haduk_grid.write_receipt` merges each checkpoint of a 10 GB network pull into
+    # the receipt and `os.replace`s it in. Its docstring: a death mid-write must cost "the newest
+    # checkpoint and never the record of the 10 GB already bought". A REVERT costs exactly that,
+    # and `company/` has no route to the real world to buy it again.
+    "docs/market_research/haduk_grid_pull_receipt.json",
 })
 
 
@@ -555,11 +639,34 @@ def written_artefacts(root: Path | None = None) -> set[str]:
     Two of the eight turned out to belong on the authored side anyway and are carved out below --
     the frame found them, and the judgement about them is a separate question from finding them.
 
+    AND THE DEFAULT IS A DESTINATION TOO (delivery seat, 2026-09-15). `_default_destinations`
+    seeds a parameter from the default in its own signature, because `def generate(out=OUT_PATH)`
+    writes `OUT_PATH` on every call that names no destination -- and `generate()` with no argument
+    is how nine producers here are actually called. It added NINE paths, three of which are the
+    append-wearing-a-rewrite shape and are carved out below.
+
+    THE `self._write(...)` FRAME IS NOT MISSING, IT IS MEASURED EMPTY, and the correction is kept
+    here beside the claim that sent someone looking for it. This docstring used to list "a method
+    called as `self._write(...)`" as the next door, and a Lane 0 item repeated that as "the largest
+    door left open". Asked of the tree on 2026-09-15: 2,058 classes in the scanned trees, SEVEN
+    with a method whose scope holds a write destination, TWO of those with a bindable parameter
+    reaching it (`PublishStepLedger.write`, `ObservableTrace.save`), and ZERO call sites anywhere
+    of the shape `self.<writer>(...)`. Five of the seven are `str.replace(old, new)` landing in
+    `DESTINATION_ARG` and resolving to nothing, which is the filter-not-safety case noted above.
+    Building that frame would be machinery no tree state can exercise, so it is not built; the
+    measurement is the deliverable, and it is recorded rather than the door being left named.
+    `docs/staging/records/PREREG_WHAT_THE_WRITE_KEYED_ORACLE_GAINS_FROM_A_DEFAULTED_DESTINATION_
+    PARAMETER_2026-09-15.md` has the count and the predictions, two of which it falsified.
+
     STILL OUT, and each on purpose rather than by omission: a helper in ANOTHER module (it needs
     that module's parse and its name resolution -- a larger thing, not a half-done one); a helper
     reached through TWO frames (the binding does not travel, so this is structural, not a depth
-    counter); a method called as `self._write(...)`; and a parameter REBOUND inside the helper,
-    which is refused because after `path = DEFAULT` the write no longer goes where the caller said.
+    counter); a destination built from an INSTANCE attribute -- `PublishStepLedger.write` falls
+    back to `self.project_dir / "site" / "data" / "publish_steps.json"` and
+    `process_run_complete` calls it bare, so that path is still missed and is the door the
+    `self._write(...)` search should have found; and a parameter REBOUND inside the helper or
+    under its own default, which is refused because after `path = SOMEWHERE_ELSE` the write no
+    longer goes where the signature or the caller said.
     All four degrade the same safe way the whole gap used to: the path stays classified authored,
     so the consumer offers a landing where a revert would have done, rather than the reverse.
 

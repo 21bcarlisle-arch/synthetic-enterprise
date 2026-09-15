@@ -36,6 +36,11 @@ NAMED_NEVER_WRITTEN = "docs/design/WALL_CROSSING_DISPOSITION_REGISTER.md"
 # parameter, and the cursor constant is handed to it. The leg that uses it proves the "only"
 # rather than asserting it.
 HELPER_REACHED_REAL_PATH = "docs/observability/run_rotation_cursor.json"
+# A real path reachable ONLY through a signature DEFAULT: `tools/generate_capabilities_door.py`
+# spells `def generate(out=OUT_PATH)` and `__main__` calls `generate()` with no argument, so there
+# is no call site carrying the destination for the helper frame to bind. The leg that uses it
+# proves the "only" by removing the seeding, rather than asserting it.
+DEFAULT_REACHED_REAL_PATH = "site/data/capabilities_door.json"
 
 
 def _tree(root: Path, **modules: str) -> Path:
@@ -397,8 +402,147 @@ def test_MUTATION_the_helper_inherits_the_MODULES_names_and_not_the_CALLERS(tmp_
 
 
 # ---------------------------------------------------------------------------
+# The default in the signature: a destination with no call site to read
+# ---------------------------------------------------------------------------
+def test_MUTATION_a_destination_parameters_DEFAULT_is_a_write_site(tmp_path):
+    """`def generate(out=OUT_PATH)` writes `OUT_PATH` on every call that names no destination, and
+    `generate()` with no argument is how nine producers in this tree are actually called. The
+    helper frame cannot see it: there is no argument at the call site to bind, so the frame binds
+    nothing and takes its `if not bound: return` exit.
+
+    NO OTHER ROUTE EXISTS IN THIS FIXTURE, which is what stops the leg passing with the seeding
+    dead. `OUT_PATH` is never written at module scope and never handed to anything; the signature
+    is the only place it meets the write."""
+    _tree(tmp_path, publisher=HEADER + (
+        'OUT_PATH = ROOT / "site" / "data" / "capabilities_door.json"\n'
+        "def generate(out=OUT_PATH):\n"
+        '    out.write_text("{}")\n'
+        "def main():\n"
+        "    generate()\n"))
+    assert fs.written_artefacts(tmp_path) == {"site/data/capabilities_door.json"}
+
+
+def test_MUTATION_a_default_on_a_parameter_that_is_only_READ_reports_nothing(tmp_path):
+    """The partner on the expensive side of the boundary. A default goes into the NAME MAP, and
+    only a write DESTINATION is harvested out of it -- `_load(register=REGISTER_DOC)` declares its
+    default just as loudly and the register is never written. A seeding that reported every
+    defaulted path would mark it generated, and the remedy a consumer applies to a generated path
+    is REVERT.
+
+    BOTH DEFAULTS ARE IN THE ONE FIXTURE. Without the writing half the leg would pass on a scan
+    that had stopped reading defaults altogether."""
+    _tree(tmp_path, publisher=HEADER + (
+        'OUT = ROOT / "docs" / "reports" / "out.json"\n'
+        'REGISTER_DOC = ROOT / "docs" / "design" / "WALL_CROSSING_DISPOSITION_REGISTER.md"\n'
+        "def _load(register=REGISTER_DOC):\n"
+        "    return register.read_text()\n"
+        "def run(out=OUT):\n"
+        "    _load()\n"
+        '    out.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/out.json"}, found
+
+
+def test_MUTATION_a_parameter_REBOUND_under_its_own_DEFAULT_is_not_followed(tmp_path):
+    """After `path = SOMEWHERE_ELSE` the write does not go where the signature said, and seeding
+    the default anyway MANUFACTURES a path -- `_scope_path_names` accumulates rather than
+    replaces, so the oracle would report BOTH and claim one this `def` provably never writes.
+
+    THE NAMES MUST MEET FOR THIS TO FIRE. The default is an authored document and the body writes
+    over the name with its real destination, so a seeding without the rebound check offers a
+    REVERT on the document."""
+    _tree(tmp_path, publisher=HEADER + (
+        'AUTHORED = ROOT / "docs" / "design" / "WALL_CROSSING_DISPOSITION_REGISTER.md"\n'
+        "def run(path=AUTHORED):\n"
+        '    path = ROOT / "docs" / "reports" / "actual.json"\n'
+        '    path.write_text("{}")\n'))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/actual.json"}, found
+
+
+def test_MUTATION_a_nested_def_does_not_inherit_a_name_its_OWN_signature_shadows(tmp_path):
+    """SCOPE, for the third time and through the door seeding defaults opened. Putting PARAMETER
+    names into the resolved map for the first time makes an enclosing `out`/`path`/`dest` reachable
+    by an inner `def` that declares its own -- and those three names repeat across nested defs all
+    over this tree. An inner parameter is NOT the outer name, and lending it the outer path is the
+    flat-name-map defect that reported the director's axes as generated, one scope deeper.
+
+    THE COLLIDING NAMES MUST STAND ON OPPOSITE SIDES OF THE BOUNDARY, or the leg cannot fire. A
+    first version had both `out`s resolving to the same log file: the set deduplicated the leaked
+    copy and the fixture passed just as happily with the strip deleted. Here `outer`'s default is
+    an AUTHORED register it only hands on, `inner` declares its own `dest` and writes it, and a
+    scan without the strip lends the register to that write and offers a REVERT on it. `LOG` is
+    the module's honest write, so the oracle has something to find either way and this is not
+    measuring the fail-closed raise."""
+    _tree(tmp_path, publisher=HEADER + (
+        'LOG = ROOT / "docs" / "reports" / "log.json"\n'
+        'AUTHORED = ROOT / "docs" / "design" / "WALL_CROSSING_DISPOSITION_REGISTER.md"\n'
+        "def outer(dest=AUTHORED):\n"
+        '    LOG.write_text("{}")\n'
+        "    def inner(dest):\n"
+        '        dest.write_text("{}")\n'
+        "    inner(dest.read_text())\n"))
+    found = fs.written_artefacts(tmp_path)
+    assert found == {"docs/reports/log.json"}, found
+
+
+def test_MUTATION_a_METHODS_default_resolves_against_the_MODULES_names(tmp_path):
+    """The class-shaped half, kept to the property rather than to the narrowing. A method's
+    default IS evaluated in the enclosing scope, so a module constant standing in a method
+    signature is a destination -- and `_paths_written_by_scope` hands a class's nested scopes what
+    the CLASS inherited, which is the module, so this is the case that must work.
+
+    Deliberately NOT a leg about the class body. Python would let a method default see a class
+    attribute and this resolver does not take it; asserting that absence would pin a control to
+    today's narrowing and go red the day the oracle became more honest."""
+    _tree(tmp_path, publisher=HEADER + (
+        'LEDGER = ROOT / "docs" / "reports" / "ledger.json"\n'
+        "class Writer:\n"
+        "    def write(self, path=LEDGER):\n"
+        '        path.write_text("{}")\n'))
+    assert fs.written_artefacts(tmp_path) == {"docs/reports/ledger.json"}
+
+
+# ---------------------------------------------------------------------------
 # The real tree: the fixture must not be the only evidence
 # ---------------------------------------------------------------------------
+def test_the_DEFAULT_seeding_is_LOAD_BEARING_in_the_REAL_tree():
+    """THE POISON ROUND FOR THE DEFAULT. Same shape as the frame's below: a seeding that resolved
+    nothing in the actual repository would pass every fixture above while changing no
+    classification at all. So remove it from the live scan and measure what disappears.
+
+    Keyed to the PROPERTY -- these paths are reachable ONLY through a signature default -- not to
+    the nine of 2026-09-15. If a producer later spells its destination beside the write, this goes
+    green on a smaller set rather than red on a number."""
+    with_defaults = fs._write_reached_paths()
+    real = fs._default_destinations
+    try:
+        fs._default_destinations = lambda node, module_file, inherited: {}
+        without = fs._write_reached_paths()
+    finally:
+        fs._default_destinations = real
+    gained = with_defaults - without
+    assert DEFAULT_REACHED_REAL_PATH in gained, sorted(gained)
+    assert len(gained) > 1, "one path is an instance; this was built as a class"
+
+
+def test_a_RUNNING_RECORD_rewritten_whole_is_not_a_photograph_of_a_run():
+    """Three of the nine the default seeding found are the append-wearing-a-rewrite shape, which
+    is a HIGHER proportion than the helper frame's two in eight -- a default is how a module spells
+    "the one place I keep my running record", so the door that finds them finds more of them. Each
+    reads what is there, merges one run's contribution and writes the whole back, which passes the
+    writing-MODE test that an `"a"` append would have failed. The corner ledger's own docstring
+    says coverage is a property of the ENSEMBLE of runs; the receipt's says a death mid-write must
+    never cost "the record of the 10 GB already bought", and a REVERT costs exactly that."""
+    raw = fs._write_reached_paths()
+    offered = fs.written_artefacts()
+    for path in ("docs/design/visited_corner_ledger.json",
+                 "docs/observability/edge_traffic.jsonl",
+                 "docs/market_research/haduk_grid_pull_receipt.json"):
+        assert path in raw, f"{path} is no longer write-reached -- this leg proves nothing now"
+        assert path not in offered, f"{path} is being offered a REVERT"
+
+
 def test_the_helper_frame_is_LOAD_BEARING_in_the_REAL_tree():
     """THE POISON ROUND FOR THE FRAME. Every leg above is a fixture, and a frame that resolved
     nothing in the actual repository would pass all of them while changing no classification at
