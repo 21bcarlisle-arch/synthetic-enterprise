@@ -497,20 +497,86 @@ def test_an_unreadable_lane_is_FROZEN_and_never_movable():
     assert lz.frozen_by("A_LANE", lambda lane: []) == []
 
 
-def test_the_probe_asks_the_SAME_mechanism_OPS11_refuses_with():
+def test_the_probe_asks_the_SAME_mechanism_OPS11_refuses_with(tmp_path: Path):
     """Not a second reading of the staging directory. If this drifts from
     `gate_authorization.lane_blockers`, the check can print MOVABLE over a row whose recording
     then raises -- the two-implementations-of-one-rule shape this repo keeps paying for.
 
-    Run against the live tree, keyed to agreement rather than to today's blocker list.
+    Run against the live tree, keyed to agreement rather than to today's blocker list. The claim
+    is the UNION over both trees, not the working copy alone: until 2026-09-15 this asserted
+    equality with the working copy, which is what let the scan call `SITE4` movable while the gate
+    refused it on nine findings still live at `HEAD`. Equality with either tree ALONE is now the
+    defect, so this asserts both halves are contained and nothing else is invented.
     """
     from background.gate_authorization import lane_blockers
     from tools import maturity_map_store as map_store
 
     lanes = {a.get("lane") for a in map_store.load_live_atoms() if a.get("lane")}
     assert lanes, "no lane to check agreement on"
+    head = lz._head_staging_root(lz.ROOT, tmp_path)
     for lane in sorted(lanes):
-        assert lz.frozen_by(lane) == [b.finding for b in lane_blockers(lane)], lane
+        probed = {f.split(lz.ARCHIVED_ONLY_IN_THE_WORKING_TREE)[0] for f in lz.frozen_by(lane)}
+        here = {b.finding for b in lane_blockers(lane)}
+        committed = {b.finding for b in lane_blockers(
+            lane, staging_root=head, repo_root=lz.ROOT)}
+        assert probed == here | committed, lane
+
+
+def test_a_blocker_archived_only_in_the_WORKING_tree_still_FREEZES_the_row(tmp_path: Path):
+    """THE POISON ROUND FOR THE TREE QUESTION, and it reproduces the live 2026-09-15 defect in
+    miniature: a BLOCKING finding committed at `HEAD`, moved into `docs/staging/done/` in the
+    working copy and NOT committed. That is the ordinary state of a shared worktree with a sibling
+    lane archiving mid-turn, and the gate -- which runs on the tree the commit would create --
+    still refuses the level raise on it.
+
+    A probe reading only the working copy returns `[]` here and the scan prints MOVABLE NOW over a
+    row the gate refuses, which is exactly the turn `frozen_by` exists to save. So this leg is red
+    for any working-copy-only implementation, and the marker is asserted too: a reader who greps
+    `docs/staging/` for the name finds nothing and would otherwise file it as a ghost.
+    """
+    import subprocess as sp
+
+    def git(*args):
+        sp.run(["git", *args], cwd=str(tmp_path), check=True, capture_output=True, text=True)
+
+    staging = tmp_path / "docs" / "staging"
+    staging.mkdir(parents=True)
+    finding = "WORKER_FINDING_THE_INSTRUMENT_IS_WRONG_2026-09-15.md"
+    (staging / finding).write_text(
+        "# The instrument is wrong\n\n"
+        "**Severity:** BLOCKING · **Lane:** T_test\n\nprose.\n")
+    git("init", "-q", "-b", "main")
+    git("config", "user.email", "t@t")
+    git("config", "user.name", "t")
+    git("add", "-A")
+    git("commit", "-qm", "file the blocker")
+
+    both_agree = lz._lane_blockers("T_test", root=tmp_path)
+    assert both_agree == [finding], (
+        "a blocker live in BOTH trees must be named plainly, with no tree marker: %r" % both_agree)
+
+    (staging / "done").mkdir()
+    (staging / finding).rename(staging / "done" / finding)  # archived, and NOT committed
+
+    from background.gate_authorization import lane_blockers
+    assert lane_blockers("T_test", staging_root=staging, repo_root=tmp_path) == [], (
+        "the fixture does not reproduce the defect: the working copy must read CLEAR")
+
+    held = lz._lane_blockers("T_test", root=tmp_path)
+    assert held == [finding + lz.ARCHIVED_ONLY_IN_THE_WORKING_TREE], (
+        "an uncommitted archival read as a discharge -- the scan would print MOVABLE over a row "
+        "the commit gate refuses: %r" % held)
+    assert lz.frozen_by("T_test", lambda lane: lz._lane_blockers(lane, root=tmp_path)), (
+        "the row must be FROZEN while the trees disagree")
+
+
+def test_a_tree_git_cannot_read_is_FROZEN_and_never_a_clear_lane(tmp_path: Path):
+    """The HEAD half fails closed the same way the working half does. `_lane_blockers` raises
+    where `git archive` cannot run, and `frozen_by` is what must turn that into a refusal rather
+    than into an empty list that reads as 'this lane is clear'."""
+    (tmp_path / "docs" / "staging").mkdir(parents=True)  # a directory, and not a repository
+    assert lz.frozen_by("T_test", lambda lane: lz._lane_blockers(lane, root=tmp_path)) == [
+        lz.BLOCKERS_UNREADABLE]
 
 
 def test_a_lane_is_probed_ONCE_per_pass_however_many_rows_share_it(tmp_path: Path):
