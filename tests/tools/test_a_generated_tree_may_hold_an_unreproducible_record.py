@@ -140,9 +140,19 @@ def test_the_fourth_generated_tree_refuses_every_spelling_of_a_scope_under_it():
     assert FOURTH_TREE in fs.GENERATED_TREES, "the fourth tree is not declared"
     for spelling in ("docs/status", "docs/status/", "docs/status/LATEST.md"):
         assert fs.offends(spelling, set()), f"a file_scope spelled `{spelling}` is not refused"
-    # ...and the neighbour DECLINED on the evidence stays un-refused, so this is a declaration and
-    # not a blanket over `docs/`.
-    assert not fs.offends("docs/reports/ANNUAL_REPORT.md", set())
+    # ...and a `docs/` path in no declared tree stays un-refused, so this is a declaration and not a
+    # blanket over `docs/`.
+    #
+    # THIS LEG USED TO NAME `docs/reports/ANNUAL_REPORT.md` AND WAS WRONG TO, and the correction is
+    # kept beside the claim rather than quietly swapped (delivery seat, 2026-09-15). It was pinned
+    # to TODAY'S ANSWER -- that `docs/reports` had been DECLINED -- when what it meant to assert is
+    # that declaring one tree does not declare its parent. Declaring `docs/reports` the same day, on
+    # per-file evidence, reddened it: the control went red because the code became more honest,
+    # which is exactly backwards and is a shape this project keeps paying for. `maturity_map.yaml`
+    # is keyed to the property instead -- it is under `docs/` and can only fall inside a declared
+    # tree if someone declares `("docs", "design")`, which would sweep 901 authored documents into
+    # a commit-blocking gate and is the thing this leg is actually guarding against.
+    assert not fs.offends("docs/design/maturity_map.yaml", set())
 
 
 def test_the_stretch_log_is_write_reached_and_still_kept_out_of_the_union():

@@ -62,8 +62,9 @@ MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 # generators build them -- `PROJECT / "site" / "data" / "dashboard.json"` -- and matching on
 # segments is what lets the oracle find 116 artefacts where a full-path literal search finds 17.
 #
-# FOUR, NOT THREE, AND THIS ONE IS THE OPPOSITE SHAPE TO THE FIVE BEFORE IT (delivery seat,
-# 2026-09-15). Every earlier frame widened how a path is SPELLED and provably could not move the
+# THE FOURTH, AND IT WAS THE OPPOSITE SHAPE TO THE FIVE BEFORE IT (delivery seat, 2026-09-15 --
+# kept because the next two below were added the same day and stand on this reasoning).
+# Every earlier frame widened how a path is SPELLED and provably could not move the
 # commit gate, because `offends()` decides by tree PREFIX and a spelling widening only adds members
 # the prefix test already covers. A `GENERATED_TREES` entry moves the PREFIX SET itself, so every
 # `file_scope` entry under it starts offending at once -- which is why this one needed the freeze
@@ -74,15 +75,35 @@ MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 # "Generated:" in their own first lines. Census, predictions and the two candidates DECLINED with
 # their numbers: docs/staging/records/PREREG_WHETHER_A_FOURTH_GENERATED_TREE_EXISTS_THAT_NOBODY_
 # DECLARED_2026-09-15.md.
-# THE BAR FOR A TREE IS EVERY PATH UNDER IT, NOT MOST, and that is structural rather than
-# fastidious: `WRITTEN_BUT_NOT_REPRODUCIBLE` is the per-path escape hatch and a PREFIX refusal has
-# no equivalent, so a tree holding one irreproducible record cannot be declared and then corrected.
-# That is why `docs/reports` (33 files, 0 live violations) and `site/state` (50 files, 0 live
-# violations) are measured and declined rather than swept in on density.
+# SIX NOW, AND THE TWO THAT WERE DECLINED ARE HERE BECAUSE THE BAR MOVED, NOT THE EVIDENCE
+# (delivery seat, 2026-09-15). The frame above declined `site/state` and `docs/reports` on a bar it
+# stated as structural: "`WRITTEN_BUT_NOT_REPRODUCIBLE` is a per-path escape hatch and a PREFIX
+# refusal has no equivalent, so the bar for a tree is EVERY path under it, not most." That is a bar
+# set by a missing mechanism rather than by the evidence, and the missing mechanism is now
+# `AUTHORED_UNDER_A_GENERATED_TREE` below -- so the bar is the property the gate actually wants:
+# does a `file_scope` naming this STARVE its atom.
+#   `site/state`  -- 50 tracked, and all 50 are a run's output: 8 write-reached, 40
+#     `live_decisions_YYYYMMDD.json` snapshots under a COMPUTED name (which is exactly why the scan
+#     resolves 8 and the density reads 0.160), `track_record_scorecard.json`, and the append ledger
+#     below. Declared with NO exception.
+#   `docs/reports` -- 33 tracked, 32 machine artefacts (9 write-reached; the rest under computed
+#     names like `path.stem + "_svt_segment_decisions.json"`; eight carry their own
+#     `how_to_regenerate` or `producing_commit` key) and ONE authored document, excepted by name.
+# AND THE DECLINE'S OWN INSTANCE WAS REFUTED. `site/state/live_decisions_log.jsonl` was the stated
+# reason to decline that tree -- an accumulated ledger with "no hatch". It needs none and can have
+# none: `.jsonl` is not in `ARTEFACT_SUFFIXES`, so the tree-keyed door is shut, and an append is
+# excluded by `WRITING_MODE_CHARS`, so the write-keyed door is shut. It reaches NEITHER oracle and
+# no revert is ever offered on it. Its prefix refusal is CORRECT and deliberately left standing: an
+# atom scoping a ledger every run appends to would starve, which is this gate's whole subject.
+# Census, predictions and the two scored failures:
+# docs/staging/records/PREREG_WHETHER_A_PER_PATH_HATCH_ON_THE_PREFIX_REFUSAL_LETS_THE_TWO_DECLINED_
+# TREES_BE_DECLARED_2026-09-15.md.
 GENERATED_TREES: tuple[tuple[str, str], ...] = (
     ("site", "data"),
+    ("site", "state"),
     ("docs", "observability"),
     ("docs", "market_data"),
+    ("docs", "reports"),
     ("docs", "status"),
 )
 SCANNED_TREES = ("tools", "background", "simulation", "saas", "company")
@@ -227,6 +248,17 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
                              if s.startswith(_WHOLE_PATH_PREFIXES)
                              and s.endswith(ARTEFACT_SUFFIXES))
     found -= WRITTEN_BUT_NOT_REPRODUCIBLE
+    # AND THE AUTHORED HATCH REACHES HERE TOO, for the reason the line above it was extended on the
+    # same day: the two oracles feed ONE union, so a path this set calls authored while the
+    # tree-keyed oracle calls it generated is offered the REVERT anyway and the exception looks
+    # applied. It also keeps `test_the_gate_half_is_SUBSUMED_by_the_prefix_test` honest -- an
+    # oracle member that `offends()` now answers False for would otherwise "escape the prefix test"
+    # and read as the gate having come unsubsumed, which would be a true sentence about the wrong
+    # mechanism. MEASURED, not assumed: this subtraction removes ZERO members on the tree it landed
+    # against, because the segment match only reaches an artefact a module NAMES in an assignment
+    # and an authored document is exactly one nothing names as its destination. It is kept because
+    # the union's correctness is a property and not today's membership.
+    found -= AUTHORED_UNDER_A_GENERATED_TREE
     if not scanned:
         raise OracleUnavailable(
             f"no python files scanned under {SCANNED_TREES} -- the oracle cannot be computed, "
@@ -835,6 +867,44 @@ WRITTEN_BUT_NOT_REPRODUCIBLE: frozenset[str] = frozenset({
     "docs/status/SEAT_STRETCH_LOG.md",
 })
 
+# THE OTHER PER-PATH HATCH, AND IT IS NOT THE ONE ABOVE (delivery seat, 2026-09-15). The item that
+# drew this said "give `offends()` an exception set THE WAY the two oracles already have
+# `WRITTEN_BUT_NOT_REPRODUCIBLE`". Reusing that SET would have been a fail-open, and the reason is
+# worth the lines because the two read as interchangeable and are opposite on the decisive case:
+#
+#   | | `WRITTEN_BUT_NOT_REPRODUCIBLE` | this set                        |
+#   | question | does a REVERT lose content no run can recompute? | does a `file_scope` naming
+#   |          |                                                  | this STARVE its atom?       |
+#   | consumer | the reconciler's union                           | `offends()`, the commit gate|
+#   | wrong member costs | a lane's real work is reverted         | an atom starves invisibly   |
+#
+# An accumulated ledger is irreproducible BECAUSE every run rewrites it -- which makes it maximally
+# dirty, which makes it maximally starving. `site/state/live_decisions_log.jsonl` would have been
+# the first member if the sets were shared, and excepting it from `offends()` is the exact G13
+# failure this module exists to close, arriving through a repair for a different one.
+#
+# So the predicate here is the narrow one and nothing else satisfies it: A PATH UNDER A DECLARED
+# GENERATED TREE THAT NO RUN WRITES AT ALL -- an authored document living inside a generator's tree.
+# For that path and only that path the prefix is wrong, the atom would not starve, and the refusal
+# ("Scope the GENERATOR, not the generated") names a generator that does not exist.
+#
+# Admission is on POSITIVE evidence of authorship, not on the absence of a generation stamp, and
+# `tests/tools/test_a_generated_tree_may_hold_an_authored_document.py` holds both failure
+# directions against the live tree: a member that becomes write-reached is a real generator this
+# set is hiding, and a member no longer under a declared prefix is dead weight the prefix test
+# already handles.
+AUTHORED_UNDER_A_GENERATED_TREE: frozenset[str] = frozenset({
+    # `docs/reports` is 33 files and 32 of them are a run's output; this is the one that is not.
+    # It is a hand-written queue of follow-on work -- *"Prioritised follow-on items identified while
+    # building the Phase 5a annual report generator"* -- and no module in any scanned tree writes
+    # it. The single "producer" a name search finds is `saas/reporting/annual_report.py`, which only
+    # ever CITES it, including in a constant whose text ends `(see REPORTING_BACKLOG.md)` -- naming,
+    # which `written_artefacts`'s own docstring is at pains to say is not the property.
+    # Without this line, declaring `docs/reports` would make an atom that works ON the reporting
+    # backlog unable to declare the document it edits.
+    "docs/reports/REPORTING_BACKLOG.md",
+})
+
 
 def _write_reached_paths(root: Path | None = None) -> set[str]:
     """The raw write-site scan, before the not-reproducible carve-out. Separate so the carve-out's
@@ -975,8 +1045,19 @@ def offends(scope_entry: str, generated: set[str]) -> bool:
 
     Three shapes, all seen live: the artefact itself (`site/data/glossary.json`), the directory
     with a slash (`site/data/`), and the directory without one (`site/data`).
+
+    AND ONE EXPLICIT PER-PATH EXCEPTION, WHICH IS WHAT LET TWO MORE TREES BE DECLARED (delivery
+    seat, 2026-09-15). Until this, the prefix was the whole answer, so declaring a tree meant
+    refusing EVERY `file_scope` entry under it -- which forced the bar for a declaration up to
+    "every path under this tree is generated", stricter than the property the gate wants, and left
+    two probably-real generated trees undeclared for a structural reason rather than an evidential
+    one. `AUTHORED_UNDER_A_GENERATED_TREE` is the hatch, and it is checked FIRST so that a member
+    is exempt from both the membership test and the prefix -- a member is not generated ground by
+    EITHER reckoning, which is the claim its own controls are keyed to.
     """
     s = scope_entry.strip()
+    if s.rstrip("/") in AUTHORED_UNDER_A_GENERATED_TREE:
+        return False
     if s in generated:
         return True
     bare = s.rstrip("/")
