@@ -286,6 +286,24 @@ def _ignored(root, rel):
     return _written(root, rel)
 
 
+def _with_origin(root):
+    """Give `root` a real `origin/main` holding exactly what it holds now.
+
+    A bare remote and a push, not a fabricated ref: the verdict under test is decided by
+    `git cat-file -e origin/main:<path>`, and a hand-written ref that never carried these trees
+    would be a probe of a fabricated identifier rather than of the thing that ships.
+    """
+    import subprocess as sp
+    bare = root.parent / "origin.git"
+    sp.run(["git", "init", "-q", "--bare", "-b", "main", str(bare)], check=True,
+           capture_output=True)
+    sp.run(["git", "-C", str(root), "remote", "add", "origin", str(bare)], check=True,
+           capture_output=True)
+    sp.run(["git", "-C", str(root), "push", "-q", "origin", "main"], check=True,
+           capture_output=True)
+    return bare
+
+
 def _landing(root, artefact, probe=None, membership=ll.git_membership):
     entry = {"job": "a-long-run", "unit": "a-long-run.service", "artefact": artefact,
              "claim": ll.FINISHED}
@@ -310,6 +328,12 @@ def test_every_landing_verdict_is_reachable(tmp_path):
         ll.UNREADABLE: _landing(root, _written(root, "docs/unaskable.json"),
                                 membership=lambda rel, repo: None)["verdict"],
     }
+    # Its own repository, because the witness for this branch is a repo that HAS an `origin/main`
+    # and the fixture above deliberately has none.
+    local_only_root = _repo(tmp_path / "forked")
+    _with_origin(local_only_root)
+    seen[ll.LANDED_LOCAL_ONLY] = _landing(
+        local_only_root, _written(local_only_root, "docs/unpushed.json", commit=True))["verdict"]
     for expected, got in seen.items():
         assert got == expected, "{} is unreachable; the witness returned {}".format(expected, got)
 
@@ -336,10 +360,58 @@ def test_a_path_in_the_index_alone_is_not_landed(tmp_path):
     staged = _written(root, "docs/mid_landing.json", stage=True)
     answer = _landing(root, staged)
     assert answer["verdict"] == ll.STAGED
-    assert ll.git_membership(staged, root) == {"head": False, "index": True, "ignored": False}
+    assert ll.git_membership(staged, root) == {
+        "head": False, "index": True, "ignored": False,
+        # No `origin/main` in this fixture, so publication is unasked and unanswerable -- which is
+        # NOT the same as unpublished, and the verdict below must not read it as either.
+        "published": False, "publishable": False}
     refusals, _ = ll.landed_check(_register(tmp_path, artefact=staged), repo=root,
                                   probe=_probe(ActiveState="inactive", Result="success"))
     assert refusals == 0, "a lane mid-landing was refused, which wedges every other lane"
+
+
+def test_a_commit_on_a_branch_origin_has_never_seen_is_not_landed(tmp_path):
+    """THE DEFECT, 2026-09-15: this check went SILENT on a real stranding because someone committed
+    the file locally. `value_cycle_ab_s1_noise_floor_20260910b.json` was in HEAD on a `main` 42
+    commits ahead of `origin`, the verdict read `LANDED -- is in HEAD`, refusals were 0, and no
+    clone, no CI and no other worktree could obtain the bytes. HEAD is whatever branch this machine
+    happens to point at; it is not durability. The same argument the module already makes for
+    asking the INDEX and HEAD separately is the argument for asking this.
+
+    Both halves are asserted over ONE file, so a grader that ignored `origin` (and called it
+    landed) and one that ignored HEAD (and refused everything) both die here.
+    """
+    root = _repo(tmp_path)
+    _with_origin(root)
+    unpushed = _written(root, "docs/result.json", commit=True)
+
+    answer = _landing(root, unpushed)
+    assert answer["verdict"] == ll.LANDED_LOCAL_ONLY, (
+        "a commit no published branch holds was graded {}".format(answer["verdict"]))
+    refusals, lines = ll.landed_check(_register(tmp_path, artefact=unpushed), repo=root,
+                                      probe=_probe(ActiveState="inactive", Result="success"))
+    assert refusals == 1, "the local-only commit did not REFUSE, so the alarm stays silent on it"
+    # A refusal that names no subject lets the reader invent the cause.
+    assert any(unpushed in line and "LANDED_LOCAL_ONLY" in line for line in lines)
+
+    import subprocess as sp
+    sp.run(["git", "-C", str(root), "push", "-q", "origin", "main"], check=True,
+           capture_output=True)
+    assert _landing(root, unpushed)["verdict"] == ll.LANDED, (
+        "pushing the branch did not change the verdict, so the verdict was never about publication")
+
+
+def test_a_repository_with_no_origin_does_not_read_every_artefact_as_stranded(tmp_path):
+    """THE FALSE-POSITIVE THIS WOULD OTHERWISE HAVE. "There is no `origin/main` to ask" and "the
+    file is absent from `origin/main`" are opposite claims, and a fourth question that conflated
+    them would refuse every artefact in every detached `se-*` worktree and in any fresh clone --
+    noise that would be switched off within a day, taking the real leg with it."""
+    root = _repo(tmp_path)  # no remote, deliberately
+    landed = _written(root, "docs/result.json", commit=True)
+    answer = _landing(root, landed)
+    assert answer["verdict"] == ll.LANDED
+    assert "no `origin/main` to ask" in answer["why"], (
+        "the verdict passed without telling the reader publication was never established")
 
 
 def test_an_absolute_artefact_path_inside_the_repo_is_the_same_file_as_the_relative_one(tmp_path):

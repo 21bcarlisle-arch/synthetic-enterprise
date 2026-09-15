@@ -57,12 +57,23 @@ _STILL_GOING = ("active", "activating", "reloading", "deactivating")
 LANDED = "landed"
 STAGED = "staged"
 UNTRACKED = "untracked"
+#: In a commit on THIS machine's branch and reachable from no published one. A refusal, and the
+#: fourth question this check needed: `STAGED`'s own note says a staged path is "not done -- no
+#: clone has seen it", and that is just as true of a commit on a branch 42 ahead of `origin`.
+#: HEAD is whatever this checkout happens to point at; it is not durability.
+LANDED_LOCAL_ONLY = "landed_local_only"
 #: Not gradeable, and each for a different reason: the job wrote nothing, or wrote outside the
 #: repository, or is still writing, or git is under standing orders not to hold it. None of these
 #: is a defect and none of them is a pass.
 ABSENT = "absent"
 OUTSIDE = "outside"
 IGNORED = "ignored"
+
+#: The ref that decides whether anyone ELSE can obtain the bytes. Deliberately the published
+#: branch and not `@{upstream}`: a detached worktree (every `se-*` lane here) has no upstream at
+#: all, and reading "this checkout tracks nothing" as "nothing is stranded" is how the check under
+#: it went quiet in the first place.
+_PUBLISHED_REF = "origin/main"
 
 
 def _now() -> str:
@@ -240,13 +251,21 @@ def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list, lis
 
 
 def git_membership(rel: str, repo: Path) -> dict | None:
-    """Where `rel` stands in git: `{"head": bool, "index": bool}`, or None if git could not be RUN.
+    """Where `rel` stands in git, or None if git could not be RUN.
 
-    The two questions are asked separately on purpose. `git ls-files` reads the INDEX, and a path
+    Returns `{"head", "index", "ignored", "published", "publishable"}`.
+
+    The questions are asked separately on purpose. `git ls-files` reads the INDEX, and a path
     that is only in the index has not reached any commit -- a `reset --mixed` loses it and no
     clone has ever seen it. A control that asked only `ls-files` would have called such a path
     tracked, which is the exact reading that has already made one control here green while the
     thing it guarded was absent from every commit.
+
+    AND THAT REASONING DID NOT STOP WHERE IT SHOULD HAVE. For 106 hours this check reported a real
+    stranding, was corrected by a LOCAL commit, and went silent -- `head` said yes, on a `main` 42
+    commits ahead of `origin` that no clone has ever seen either. The sentence above justifies the
+    fourth question as exactly as it justifies the third, so `published` is now asked too. The
+    silence was less true than the noise had been.
 
     None is reserved for a broken probe. It is NOT "the path is missing": `cat-file -e` exits
     non-zero for an absent path and for an unreadable repository alike, so health is established
@@ -271,10 +290,28 @@ def git_membership(rel: str, repo: Path) -> dict | None:
         ignored = subprocess.run(
             ["git", "-C", str(repo), "check-ignore", "-q", "--", rel],
             capture_output=True, timeout=20)
+        # The FOURTH question, and this control shipped without it for long enough to go quiet on
+        # a real stranding. `HEAD` is whatever branch this machine happens to be on: an artefact
+        # committed onto a local `main` that is 42 ahead of `origin` answers "yes" here and is
+        # obtainable by nobody -- no clone, no CI, no other worktree -- and a `reset --hard
+        # origin/main` destroys it. That is the same hazard the `head`/`index` split above exists
+        # to catch, one level up, and the docstring's own words for it ("no clone has ever seen
+        # it") apply unchanged.
+        published = subprocess.run(
+            ["git", "-C", str(repo), "cat-file", "-e", f"{_PUBLISHED_REF}:{rel}"],
+            capture_output=True, timeout=20)
+        # Distinguishing "not in origin/main" from "there is no origin/main to ask" -- without it a
+        # clone with no remote reads every artefact as stranded, which is a wrong answer and not a
+        # conservative one.
+        has_ref = subprocess.run(
+            ["git", "-C", str(repo), "rev-parse", "--verify", "--quiet", _PUBLISHED_REF],
+            capture_output=True, timeout=20)
     except Exception:
         return None
     return {"head": head.returncode == 0, "index": index.returncode == 0,
-            "ignored": ignored.returncode == 0}
+            "ignored": ignored.returncode == 0,
+            "published": published.returncode == 0,
+            "publishable": has_ref.returncode == 0}
 
 
 #: The fields of a record that name a file the job produced. `artefact` is the result and the other
@@ -341,7 +378,18 @@ def landing_verdict(entry: dict, field: str = "artefact", *, repo: Path | None =
             "rather than passing: a control that reads a broken probe as a clean bill is the "
             "failure mode that makes it worse than no control")}
     if where["head"]:
-        return {"verdict": LANDED, "why": f"`{rel}` is in HEAD"}
+        if where.get("publishable") and not where.get("published"):
+            return {"verdict": LANDED_LOCAL_ONLY, "why": (
+                f"`{rel}` is in HEAD and is NOT reachable from `{_PUBLISHED_REF}`, so it is in a "
+                "commit on this machine's branch and in no published one. Nobody else can obtain "
+                "these bytes -- no clone, no CI, no other worktree -- and a `reset --hard "
+                f"{_PUBLISHED_REF}` destroys them. A local commit is neither of the two things "
+                "this check's own remedy asks for: it has not been landed, and it has not been "
+                "recorded as unlandable. Push the branch, or say on the record why it cannot go")}
+        return {"verdict": LANDED, "why": (
+            f"`{rel}` is in HEAD and reachable from `{_PUBLISHED_REF}`"
+            if where.get("published") else
+            f"`{rel}` is in HEAD, and there is no `{_PUBLISHED_REF}` to ask about publication")}
     if where.get("ignored"):
         return {"verdict": IGNORED, "why": (
             f"`{rel}` matches a `.gitignore` rule, so its absence from git is a standing decision "
@@ -364,7 +412,8 @@ def landed_check(path: Path | None = None, *, repo: Path | None = None,
                  membership=git_membership, probe=systemd_probe) -> tuple[int, list]:
     """Grade every file every record names against git. Returns `(refusals, lines)`.
 
-    Only UNTRACKED and UNREADABLE refuse. Every other verdict still prints, because a run whose
+    Only UNTRACKED, UNREADABLE and LANDED_LOCAL_ONLY refuse. Every other verdict still prints,
+    because a run whose
     output lives outside the repository is invisible to this check by construction and a reader
     who cannot see that in the output would take silence for coverage.
     """
@@ -379,7 +428,7 @@ def landed_check(path: Path | None = None, *, repo: Path | None = None,
                 # every record would bury the one line that matters.
                 continue
             lines.append(f"{entry.get('job')} [{field}]: {verdict.upper()} -- {answer['why']}")
-            if verdict in (UNTRACKED, UNREADABLE):
+            if verdict in (UNTRACKED, UNREADABLE, LANDED_LOCAL_ONLY):
                 refusals += 1
     return refusals, lines
 

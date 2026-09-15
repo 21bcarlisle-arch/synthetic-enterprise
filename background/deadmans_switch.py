@@ -1017,7 +1017,11 @@ def _check_launch_artefacts_landed() -> None:
     if not refusals:
         clear_transition(_LAUNCH_LANDED_KEY)
         return
-    stranded = [line for line in lines if "UNTRACKED" in line or "UNREADABLE" in line]
+    # Every verdict that REFUSED must appear here or the alarm prints a count with no subject, and
+    # an alert naming no subject lets the reader invent the cause. LANDED_LOCAL_ONLY is a refusal
+    # for the same reason UNTRACKED is: the register says done and no other reader can get it.
+    stranded = [line for line in lines
+                if any(v in line for v in ("UNTRACKED", "UNREADABLE", "LANDED_LOCAL_ONLY"))]
     log(f"LAUNCH unlanded {refusals} file(s): {' | '.join(stranded)}")
     notify(
         f"[LAUNCH UNLANDED] {refusals} file(s) a finished run wrote into this tree are in no "

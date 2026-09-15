@@ -98,10 +98,49 @@ place when the re-merge needs it.
 The ordering is still forced and still correct: **the fork merge lands first, then the envelope
 re-merges onto the merged producer.** These two inputs are now out of that merge's path list.
 
+## The fourth question, built — and one prediction that did not come true
+
+`LANDED_LOCAL_ONLY` is now a verdict: `head and publishable and not published`, and it **refuses**,
+so it reaches the alarm's refusal count and its `stranded` line rather than printing as prose
+nobody blocks on. `git_membership` asks `origin/main` directly.
+
+The false positive this would otherwise have had is guarded separately. *"There is no `origin/main`
+to ask"* and *"the file is absent from `origin/main`"* are opposite claims, and conflating them
+would refuse every artefact in every detached `se-*` worktree and in any fresh clone — noise that
+gets switched off within a day, taking the real leg with it. So `publishable` is asked as its own
+question and a repository with no remote still reads `LANDED`, with the reason saying publication
+was never established.
+
+Three mutations, each caught by a different leg:
+
+| Mutation | Caught by |
+|---|---|
+| ignore publication (the behaviour that went quiet) | the partition leg + the instance leg |
+| conflate "no origin" with "unpublished" | the no-remote leg + 3 pre-existing legs |
+| verdict refuses but `landed_check` does not count it | the instance leg's `refusals == 1` |
+
+**PREDICTION FILED BEFORE RUNNING IT, AND IT DID NOT HOLD.** I expected the new leg to refuse for
+several artefacts, on the reasoning that a 42-commit fork leaves every artefact committed on local
+`main` since the divergence in the same state. Run against the real register it refused for
+**none**, and the reason is not that the reasoning was wrong — it is that **the register was
+rewritten underneath the measurement**, from 12 entries to 4, by another lane, mid-turn. Of the
+four that remain, three are `OUTSIDE` (artefacts under `/var/tmp`, which git cannot hold) and one
+is in the repository. So the live register no longer contains the population the prediction was
+about, and this run neither confirms nor refutes it. Saying "it found nothing, so there was
+nothing" would be the wrong reading of a measurement whose subject moved.
+
+What the run *does* establish is the one-variable demonstration, on the file this item named:
+
+> `arms-rerun-20260910b [artefact]: LANDED -- ... is in HEAD and reachable from origin/main`
+
+Before this turn's push that same file, same register, same code returned `LANDED -- is in HEAD`
+while being absent from `origin/main`. It is now `LANDED` for a reason that is *true*, and the only
+thing that changed is the push. The verdict has stopped being satisfiable by a local commit.
+
 ## What is next
 
-Add the fourth question to `landing_verdict` — a `LANDED_LOCAL_ONLY` verdict for `head and not
-reachable-from-origin`, refusing rather than passing, with the probe failing **UNREADABLE** when
-there is no `origin` to ask rather than reading "no remote" as "durable". Expect it to refuse for
-more than this one file: the 42-commit fork means every artefact committed on local `main` since
-the divergence is in the same state, and all of them are currently reported `LANDED`.
+Re-run `landed_check` against the register once the fork closes and the register settles, to get
+the reading this turn could not: the prediction above is still open, not disproved. Worth asking
+separately why `.launch_records.json` lost 8 entries in one turn — a register that forgets is a
+different hazard from one that over-claims, and this check is only as good as the records it
+iterates.
