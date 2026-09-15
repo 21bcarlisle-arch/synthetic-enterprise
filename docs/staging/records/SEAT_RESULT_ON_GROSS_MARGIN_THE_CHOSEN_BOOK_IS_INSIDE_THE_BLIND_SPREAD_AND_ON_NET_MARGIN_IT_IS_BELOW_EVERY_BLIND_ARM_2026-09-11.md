@@ -27,6 +27,29 @@ result that is **not on origin** (see the finding below); two are this turn's.
 | **D** this turn, tenure-only chooser | no | 89 | 1199.9 | 386,386.18 | 695,546.19 | 9,462.24 | 149,154.09 | 97,326.44 |
 | **B** chosen | **yes** | 83 | 1194.9 | 374,295.73 | 661,157.87 | 14,400.86 | 139,439.50 | 90,409.10 |
 
+> **BASE `3957ba848`. THE FIVE ARMS ARE STILL COMPARABLE TO EACH OTHER AND NONE OF THEM IS
+> COMPARABLE TO THIS TREE** (noted 2026-09-15; cause established in
+> `SEAT_RESULT_P1B_IS_STILL_UNGRADEABLE_BECAUSE_THE_FILED_EVIDENCES_WORLD_IS_GONE_2026-09-15.md`).
+> `0d86d6dfe` — *"the world's homes are drawn from the fitted joint now"* — is **not an ancestor of
+> `3957ba848`**; it arrived through the fork-closing merge `2212d0eed`. Every pound in the table is
+> computed from what the homes consume, so all of it is drawn over a stock this tree no longer has.
+> At seed 42 the re-draw moves the candidate population from **109 distinct fabric vectors to 105**.
+> The *internal* comparison survives untouched — all five arms ran on one base, so the envelope,
+> the spread and the INSIDE/ABOVE/BELOW verdicts below are as sound as the day they were filed.
+> What does not survive is quoting **372,221 … 386,386**, **3.81%** or **−3.01%** as current.
+>
+> **AND `world_identity.digest` CANNOT SEE THIS, WHICH IS THE PART WORTH THE NEXT READER'S TIME.**
+> The sentence above leans on the digest being `39a192ce04c1eda8` on all five arms to say these are
+> *"not five runs of five worlds"*. That inference is sound across the five and does not extend one
+> step further, because `simulation/departure_level_anchor.world_level_identity` digests the
+> **departure-level anchors and nothing else** — `year_level_anchor` for every year in the published
+> switching record. It is blind to the home stock by construction. Measured on this tree on
+> 2026-09-15 it is **still `39a192ce04c1eda8`**, and `simulation/departure_level_anchor.py` is
+> byte-identical to its `3957ba848` copy — so one digest value spans both home populations, the
+> 109-vector one these figures were drawn over and the 105-vector one this tree has. **A matching
+> world digest is not evidence that two runs saw the same homes.** That is filed as
+> `SEAT_FINDING_THE_WORLD_IDENTITY_DIGEST_IS_BLIND_TO_THE_HOME_STOCK_2026-09-15.md`.
+
 ## THE RESULT — where the chosen book sits inside the envelope of FOUR fabric-blind books
 
 Neither P6 nor the other seat could ask this, because each had at most two blind arms and an

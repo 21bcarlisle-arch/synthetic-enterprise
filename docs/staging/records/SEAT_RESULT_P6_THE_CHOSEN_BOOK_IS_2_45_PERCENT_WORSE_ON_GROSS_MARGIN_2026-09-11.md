@@ -34,6 +34,28 @@ Two full 2016–2025 runs at one HEAD (`3957ba848`) with **one variable**.
 **P6 HOLDS: |Δ| = 2.45% against a >1.0% band.** The direction was explicitly not predicted, and it
 is **negative** — the chosen book earns less.
 
+> **BASE `3957ba848`, AND EVERY POUND IN THE TABLE ABOVE IS A STATISTIC ABOUT THE HOMES** (noted
+> 2026-09-15; the cause is established in
+> `SEAT_RESULT_P1B_IS_STILL_UNGRADEABLE_BECAUSE_THE_FILED_EVIDENCES_WORLD_IS_GONE_2026-09-15.md`).
+> `0d86d6dfe` — *"the world's homes are drawn from the fitted joint now, and the insulation ceiling
+> the company sells against was understated by a third"* — is **not an ancestor of `3957ba848`**.
+> It reached this tree later, through the fork-closing merge `2212d0eed`. Gross margin, revenue,
+> bad debt and bills are all computed from what the homes consume, so the whole table is drawn over
+> a stock this tree no longer has. At seed 42, the 09-11 measurement seed, the re-draw moves the
+> candidate population from **109 distinct fabric vectors to 105** and worst-axis KS from
+> 0.12798 / 0.08241 → 1.553× to 0.09765 / 0.05878 → **1.661×**.
+>
+> **THESE POUNDS ARE NOT RE-MEASURED HERE AND NO VERDICT IS WITHDRAWN.** Re-running is two full
+> 2016–2025 runs, and it would grade a prediction filed against one world on another, which is
+> the substitution this note exists to prevent rather than perform. What changes is what a reader
+> may quote: **−2.45% is this run's number on `3957ba848` and is not a current figure.**
+>
+> The funnel half is the part that would be expected to carry over — the cull is deterministic over
+> a candidate list the home re-draw does not touch, and at seed 42 arm A does settle the same 90
+> accounts at the same 1195.3895 cy on today's base. **That was not checked at this run's own base
+> seed 20260724**, so the "500 funnel wins / 0.1826 rate / 91 settled" below is named as unverified
+> on today's tree rather than asserted to survive.
+
 ## The settled books these figures are over
 
 At the **run's own base seed, 20260724** (`live_population._DEFAULT_BASE_SEED`), both arms face the

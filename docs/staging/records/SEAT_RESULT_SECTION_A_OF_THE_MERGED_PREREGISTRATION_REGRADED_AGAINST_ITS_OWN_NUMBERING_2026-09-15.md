@@ -39,6 +39,33 @@ what this file closes.
 | **P4** | the null case is byte-identical | identical but for two added keys | **HOLDS, corrected** |
 | **P5** | the budget guard still binds; a dearer chosen set settles **fewer** accounts and that is correct | 84 settled, 1197.0 of ceiling 1200.0 | **HOLDS as pre-committed** |
 
+> **EVERY FIGURE IN THE `measured` COLUMN IS A STATISTIC ABOUT THE HOMES, AND ITS BASE IS
+> `3957ba848`, NOT THIS TREE** (noted 2026-09-15; cause established the same day in
+> `SEAT_RESULT_P1B_IS_STILL_UNGRADEABLE_BECAUSE_THE_FILED_EVIDENCES_WORLD_IS_GONE_2026-09-15.md`).
+> This file regrades §A against the evidence filed by
+> `SEAT_RESULT_THE_SETTLED_BOOK_IS_CHOSEN_AND_WEIGHTED_2026-09-11.md`, whose base is `3957ba848`,
+> and `0d86d6dfe` — *"the world's homes are drawn from the fitted joint now"* — is **not an ancestor
+> of it**; it arrived through the fork-closing merge `2212d0eed`. On today's base the same
+> measurement gives worst-axis KS **0.09765 / 0.05878 → 1.661×**, arm B settles **83 at 1199.2**,
+> and the population holds **105** distinct fabric vectors.
+>
+> **THE GRADING VERDICTS ARE UNCHANGED — this is a note about the numbers, not the column of
+> HOLDS.** P1a's [1.2×, 2.0×] contains 1.661× as well as 1.553×, so it holds on either base; P3 and
+> P5 hold on either. Two things in the column below do not carry over and are marked here rather
+> than revised:
+>
+> * **the 109-distinct-vector ceiling, which §B's P2 failure surfaced and this file repeats as a
+>   fact about the candidate population.** It is 105 on this tree. Of everything in this file it is
+>   the figure most likely to be quoted forward as a standing property of the world, and it is the
+>   one that moved.
+> * **1.553×, the 84 / 1197.0, and the −2.45% carried in from P6.** Each is a real measurement on
+>   `3957ba848`. None is a current figure, and −2.45% additionally carries the caveats already on
+>   `SEAT_RESULT_P6_THE_CHOSEN_BOOK_IS_2_45_PERCENT_WORSE_ON_GROSS_MARGIN_2026-09-11.md`.
+>
+> Nothing here is re-run. The base is named because re-running would grade a pre-registration filed
+> against one world on another, and the whole point of §A's regrading was that the band and the
+> evidence must be the ones that were actually written down.
+
 ### P1a — HOLDS, and §A's band was the looser one
 
 1.553× is inside [1.2×, 2.0×]. It is also above §B's ≥1.25×. Both arms pass on this number; §A had

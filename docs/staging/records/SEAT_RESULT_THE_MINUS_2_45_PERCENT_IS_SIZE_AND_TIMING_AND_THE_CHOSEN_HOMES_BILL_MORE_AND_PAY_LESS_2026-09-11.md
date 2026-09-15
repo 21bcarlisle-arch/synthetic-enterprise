@@ -31,6 +31,27 @@ Two full 2016–2025 runs this turn at `3957ba848`, against ARM B as published b
 | Customers over the run | 251 | 233 | 235 |
 | Bills issued | 10,924 | 10,934 | 10,841 |
 
+> **BASE `3957ba848`. THE DECOMPOSITION HOLDS; ITS POUNDS ARE A DIFFERENT WORLD'S** (noted
+> 2026-09-15; cause established in
+> `SEAT_RESULT_P1B_IS_STILL_UNGRADEABLE_BECAUSE_THE_FILED_EVIDENCES_WORLD_IS_GONE_2026-09-15.md`).
+> `0d86d6dfe` — *"the world's homes are drawn from the fitted joint now"* — is **not an ancestor of
+> `3957ba848`**; it arrived through the fork-closing merge `2212d0eed`. At seed 42 the re-draw moves
+> the candidate population from **109 distinct fabric vectors to 105**.
+>
+> This file is the one where that matters most and least at once, and the two must not be run
+> together. **What it establishes is a SPLIT** — that A→C is size and timing and C→B is composition
+> — and the split is a within-run contrast between three arms on one base, so it is as sound as it
+> was on the day. **What it cannot still supply is the SIZE of either leg.** −£11,468.00, +£2,074.75
+> and +29.85% bad debt are drawn over the 109-vector stock, and the composition leg in particular is
+> *by its own definition* "which homes and nothing else" — the one quantity here that the home
+> re-draw is guaranteed to move. A reader may quote the decomposition's shape; quoting its
+> magnitudes as current is quoting a world this tree does not have.
+>
+> **Not re-measured here.** Re-running is three full 2016–2025 runs and would grade predictions
+> filed against one world on another. The base is named so the reader can tell which world
+> they are holding — the file's own caveats already say these carry no bound across seeds, and
+> this adds that they carry no bound across bases either.
+
 ARM C's settlement decision was verified against its design at the run's own base seed: **83
 accounts, 427.3320 cy against the chooser's 427.3347 (a gap of 0.0027 cy, 0.0006%), and the year
 mix identical to B's in all ten years**, sharing 13 of 83 accounts. The campaign row it writes —

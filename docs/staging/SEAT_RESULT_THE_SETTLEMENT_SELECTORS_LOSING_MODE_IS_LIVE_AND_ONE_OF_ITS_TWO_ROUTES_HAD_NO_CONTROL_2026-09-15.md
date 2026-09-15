@@ -180,7 +180,15 @@ correction rather than a clean paragraph that was never wrong.
 
 ## What this does NOT claim
 
-* It does not re-open the chooser. P1 held at 1.553× and P6 measured −2.45%; both stand.
+* It does not re-open the chooser. P1 held and P6 measured a move; both stand. **Both of those
+  numbers are statistics about the HOMES and their base is `3957ba848`, not this tree** (noted
+  2026-09-15; `SEAT_RESULT_P1B_IS_STILL_UNGRADEABLE_BECAUSE_THE_FILED_EVIDENCES_WORLD_IS_GONE_2026-09-15.md`).
+  `0d86d6dfe` — *"the world's homes are drawn from the fitted joint now"* — is not an ancestor of
+  `3957ba848`; it arrived through the fork-closing merge `2212d0eed`. The **verdicts** are what this
+  sentence needs and both survive: P1 holds by more on today's base, at **1.661×** rather than the
+  1.553× quoted here. **−2.45% is not re-measured on this base at all** and is a figure from a world
+  this tree no longer has, so it is quoted above as "a move" rather than as a current percentage.
+  Nothing in this file's own subject — the selector's losing mode — depends on either number.
 * It does not claim the label's three homes have caused a wrong published figure. Under the null
   the rate is 1.0 and the uniform sentence is true; the defect is that a consumer *could not tell*,
   not that one was misled.
