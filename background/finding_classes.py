@@ -683,15 +683,19 @@ def declared_class_of(text: str) -> str | None:
     epoch and atom. The more deliberate act wins, and the practical consequence is that reading
     this form re-classifies NOTHING that was already readable — the change is additive.
 
-    ...AND THE HEADER FIELD RESOLVES ITS TOKEN WHERE THE SECTION DOES NOT. That asymmetry looks
-    like an inconsistency and it is the honest reading of a measurement. `Belongs to \\`x\\`` can
-    only ever be an attempt to name a class, so an unresolvable `x` there is a TYPO and must be
-    loud. `**Class:**` is demonstrably not that field: 130 of the 296 documents that carry it use
-    it for something else entirely — `**Class:** R15`, `**Class:** harness`, `**Class:** a
-    coupling stated in a comment`. Treating those as typos would refuse half the archive on the
-    day this landed. So here an unresolvable token is evidence the field is NOT a class
-    declaration, and the fail-open that buys is made visible instead of silent: `check()` NAMES
-    every live document whose `**Class:**` field it could not resolve (`unresolvable_class_fields`).
+    ...AND THE HEADER FIELD RESOLVES ITS TOKEN WHERE THE SECTION DOES NOT. `Belongs to \\`x\\``
+    can only ever be an attempt to name a class, so an unresolvable `x` there is a TYPO and
+    routing it nowhere would be a lie about what the author did. `**Class:**` has to resolve
+    because it is one field on a line that also carries severity, lane, epoch and atom, and the
+    project spent August writing lanes and R-rules into it — so an unresolvable token here means
+    "not a family declaration" and must not consolidate anything.
+
+    THAT IS A CLASSIFICATION RULE AND NOT A LICENCE. The 129 documents using the field for
+    something else are all in `done/`, `records/` and `in_progress/`; the live root is the only
+    room anything here classifies, and `unresolvable_class_fields` REFUSES a non-family token
+    there — see its docstring for the measurement that turned that from a note into a refusal.
+    So the archive keeps its old meaning and reads as "no declaration", while a new live
+    document may only use this field for the one thing it now means.
     """
     section = section_declaration_of(text)
     if section is not None:
@@ -1141,17 +1145,39 @@ _INSTANCE_LINE_RE = re.compile(r"^- `([^`]+\.md)` — [A-Z]+$", re.M)
 def unresolvable_class_fields(root: Path | str = DEFAULT_STAGING_ROOT) -> list[tuple[Path, str]]:
     """Live documents whose `**Class:**` field holds a token no class answers to.
 
-    THIS IS THE SURFACE FOR `declared_class_of`'S ONE FAIL-OPEN, and it is a NOTE rather than a
-    failure on purpose. A misspelt `controls_that_canot_fail` in this field reads as no
-    declaration at all, which is the silence the whole channel exists to end — so it must be
-    said out loud. It cannot be a refusal: `**Class:** R15` and `**Class:** harness` are a live
-    habit in this project (130 documents), and a gate that refused them would wedge every lane
-    over a field that is not addressed to it. Naming them is what a reader can act on; refusing
-    them is what would make the next author delete the field instead of fixing it.
+    THE FIELD HAS ONE MEANING AND THIS IS WHERE THAT IS ENFORCED. `**Class:**` names the
+    finding FAMILY. A lane goes in `**Lane:**`, which already exists and already carries 67
+    live uses; an R-rule goes in `**Rule:**`; a description of the defect goes in the prose,
+    not in a `· `-separated header field. The refusal below says so, because a refusal that
+    names no alternative is what makes the next author delete the field instead of fixing it.
 
-    Measured 2026-09-15: ZERO on the live root. It is keyed to the property and not to that
-    answer — it goes loud the day a live document declares a family nothing can resolve, which
-    is exactly when a reader needs to hear it.
+    WHY THIS BECAME A REFUSAL, HAVING BEEN A NOTE. The note's stated reason was that
+    `**Class:** R15` and `**Class:** harness` are "a live habit (130 documents)", so a gate
+    would wedge every lane. Both halves of that were measured against the wrong population on
+    2026-09-15 and neither survives:
+
+    * THE ROOM. This function walks `classifiable_documents`, which globs the live root and
+      nothing else. Of the 129 documents using the field for something else, 123 are in
+      `done/`, 2 are `records/` preregistrations and 4 are parked in `in_progress/`. **ZERO**
+      are in the room this function can see, and none of them could ever have been refused.
+    * THE HABIT. It is not live. Counted by the date in the filename: 124 of the 129 were
+      written in August; September holds 5, the last on 2026-09-05, against 166 documents
+      that spell a family in the same field. The habit that is live is the family one.
+
+    So the archive is not migrated and the preregistrations are not rewritten — a prereg filed
+    before its answer is evidence, and editing it to tidy a field is the one thing it must not
+    survive. History keeps the old meaning; the write stops minting it.
+
+    WHAT THIS STILL CANNOT SEE, stated here rather than left to be inferred from a green gate:
+    a document writing a RESOLVABLE family id while meaning something else — `**Class:**
+    controls_that_cannot_fail` on a finding about anything else — is indistinguishable from a
+    correct declaration by any reader, machine or human. This closes the half where the two
+    meanings are told apart by the token; the half where they are not is open and unmeasurable.
+
+    Measured 2026-09-15: ZERO on the live root, so the refusal is green on arrival rather than
+    a register of known debt wearing a control's clothes. It is keyed to the property and not
+    to that answer — it goes loud the day a live document puts a non-family token in the
+    family's field, which is exactly when the cost is still one line to one author.
     """
     out: list[tuple[Path, str]] = []
     for path in classifiable_documents(root):
@@ -1313,10 +1339,13 @@ def check(root: Path | str = DEFAULT_STAGING_ROOT) -> CheckResult:
             )
 
     for path, token in unresolvable_class_fields(root):
-        result.notes.append(
+        result.failures.append(
             f"UNRESOLVED CLASS FIELD {path.name}: carries `**Class:** {token}`, which is not "
-            f"one of {', '.join(CLASSES_BY_ID)}. Read as no declaration — if that token was "
-            "meant as a family, it is misspelt and this document is routing nowhere"
+            f"one of {', '.join(CLASSES_BY_ID)}. `**Class:**` names the finding FAMILY and "
+            "nothing else. If you meant a lane, that field is `**Lane:**`; if you meant an "
+            "R-rule, `**Rule:**`; if you meant to describe the defect, that belongs in the "
+            "prose and not in a header field. If you did mean a family, it is misspelt and "
+            "this document is routing nowhere"
         )
 
     for finding_class in CLASSES:

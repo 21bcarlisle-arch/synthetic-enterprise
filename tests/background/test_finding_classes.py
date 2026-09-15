@@ -1450,29 +1450,37 @@ def test_mutation_n_letting_the_header_field_win_kills_that_test(tmp_path):
     assert mutant.declared_class_of(text) == "publish_gate_and_wedge"
 
 
-def test_an_unresolvable_class_field_is_read_as_no_declaration_and_said_out_loud(tmp_path):
-    """MUTATION O, and the ONE place this form is deliberately more forgiving than the
-    section form. `Belongs to \\`x\\`` can only be an attempt to name a class, so an unknown
-    `x` there is a typo and is REFUSED. `**Class:**` is a different field with the same name:
-    130 of the 296 documents carrying it use it for something else (`R15`, `harness`, `a
-    coupling stated in a comment`), so refusing an unresolvable token here would wedge every
-    lane over a field that was never addressed to this module. It is a NOTE, not a failure —
-    and it is a note rather than silence because a MISSPELT family reads exactly like no
-    declaration, which is the fail-open the whole channel exists to end."""
+def test_an_unresolvable_class_field_is_read_as_no_declaration_and_refused(tmp_path):
+    """MUTATION O. `**Class:**` names the finding FAMILY and nothing else, and a live document
+    putting anything else there is REFUSED.
+
+    TWO DISTINCT CONSEQUENCES, and they are asserted separately because only one of them used
+    to hold. The token still does not CLASSIFY the document — guessing the nearest family on a
+    typo would archive a finding on a misspelling. And now it also REFUSES, which is the half
+    that was a note until 2026-09-15.
+
+    THE REFUSAL NAMES WHERE THE OTHER MEANING GOES. A refusal that only says no is what makes
+    the next author delete the field rather than fix it, so `**Lane:**` and `**Rule:**` are in
+    the message and this control reads them back out of it. That is not decoration: the whole
+    point of ending an overload is that the second meaning still has somewhere to live."""
     root = _root(tmp_path)
     _doc_with_class_field(root, _MECHANISM_TITLED, "uncomitted_and_orphaned_work")
 
     result = fc.check(root)
-    assert fc.classify_file(root / _MECHANISM_TITLED).class_id is None
-    assert not any(f.startswith("UNKNOWN DECLARED CLASS") for f in result.failures), (
-        "an unresolvable header field must not refuse — `**Class:** R15` is a live habit"
+    assert fc.classify_file(root / _MECHANISM_TITLED).class_id is None, (
+        "a misspelt family must not be guessed into a class — that archives on a typo"
     )
-    named = [n for n in result.notes if n.startswith("UNRESOLVED CLASS FIELD")]
-    assert len(named) == 1 and "uncomitted_and_orphaned_work" in named[0], result.notes
+    refused = [f for f in result.failures if f.startswith("UNRESOLVED CLASS FIELD")]
+    assert len(refused) == 1 and "uncomitted_and_orphaned_work" in refused[0], result.failures
+    assert "`**Lane:**`" in refused[0] and "`**Rule:**`" in refused[0], (
+        "the refusal must name the field the other meaning belongs in, or the next author "
+        f"deletes the field instead of moving it: {refused[0]}"
+    )
 
 
-def test_mutation_o_dropping_the_unresolvable_field_note_kills_that_test(tmp_path):
-    """MUTATION O — the note goes, and a misspelt family is silent again in both channels."""
+def test_mutation_o_dropping_the_unresolvable_field_refusal_kills_that_test(tmp_path):
+    """MUTATION O — the refusal goes, and a non-family token in the family's field is silent
+    again in both channels."""
     mutant = _load_mutant(
         tmp_path,
         "    for path, token in unresolvable_class_fields(root):",
@@ -1482,8 +1490,44 @@ def test_mutation_o_dropping_the_unresolvable_field_note_kills_that_test(tmp_pat
     root = _root(tmp_path)
     _doc_with_class_field(root, _MECHANISM_TITLED, "uncomitted_and_orphaned_work")
 
-    assert any(n.startswith("UNRESOLVED CLASS FIELD") for n in fc.check(root).notes)
-    assert not any(n.startswith("UNRESOLVED CLASS FIELD") for n in mutant.check(root).notes)
+    assert any(f.startswith("UNRESOLVED CLASS FIELD") for f in fc.check(root).failures)
+    assert not any(f.startswith("UNRESOLVED CLASS FIELD") for f in mutant.check(root).failures)
+
+
+def test_the_class_field_refusal_is_scoped_to_the_live_room_and_spares_the_archive(tmp_path):
+    """THE SCOPE IS THE WHOLE DECISION, so it gets its own control over BOTH sides.
+
+    The field's other meaning — `**Class:** R15`, `**Class:** harness` — is 129 documents of
+    real history sitting in `done/`, `records/` and `in_progress/`. The decision taken on
+    2026-09-15 was to end the habit at the WRITE and leave the record alone: a `records/`
+    preregistration edited to tidy a field is no longer evidence of what was predicted, and
+    re-wording 123 archived findings changes nothing any reader acts on.
+
+    BOTH LEGS OVER ONE ROOT, because a refusal scoped to nothing passes the sparing leg and a
+    refusal scoped to everything passes the refusing leg. The same token is planted in the live
+    root and in the archive, and exactly one of them is named.
+
+    THIS PINS A PROPERTY THAT ALREADY HELD rather than proving new code — it was green before
+    the refusal landed, because `classifiable_documents` has always globbed one room. It is
+    written now because that scope stopped being an implementation detail the day the note
+    became a refusal: widening this walk to `rglob` would go from adding 129 notes nobody
+    reads to wedging every lane in the tree over a field the archive was entitled to use."""
+    root = _root(tmp_path)
+    archive = root / fc.ARCHIVE_DIRNAME
+    archive.mkdir(parents=True, exist_ok=True)
+    _doc_with_class_field(root, _MECHANISM_TITLED, "R15")
+    archived = "WORKER_FINDING_A_TICK_WROTE_ITS_RECORD_IN_AUGUST_2026-08-18.md"
+    _doc_with_class_field(root, archived, "R15")
+    (archive / archived).write_text(
+        (root / archived).read_text(encoding="utf-8"), encoding="utf-8"
+    )
+    (root / archived).unlink()
+
+    named = [p.name for p, _tok in fc.unresolvable_class_fields(root)]
+    assert named == [_MECHANISM_TITLED], (
+        "the live root's non-family token must be named and the archive's identical one "
+        f"must not — the scope is what makes this landable at all: {named}"
+    )
 
 
 def test_a_header_field_declaration_cannot_route_a_document_out_of_its_own_lane(tmp_path):
@@ -1524,10 +1568,10 @@ def test_a_family_named_in_capitals_is_the_same_declaration(tmp_path):
 
 def test_case_folding_does_not_make_the_other_class_field_resolve(tmp_path):
     """THE NULL CONTROL for the fold, and it moves the sample rather than the law. The same
-    field is used across this corpus for something else entirely — `**Class:** R15`,
-    `**Class:** harness` — 130 times. None of those becomes a family in either case, and each
-    is NAMED rather than refused, because a gate refusing them would wedge every lane over a
-    field that was never addressed to this module."""
+    field was used across this corpus for something else entirely — `**Class:** R15`,
+    `**Class:** harness` — 129 times, all of them outside the live room. None of those becomes
+    a family in either case; in the live room each is now REFUSED and pointed at `**Lane:**` or
+    `**Rule:**`, which is the overload ending rather than the fold widening."""
     root = _root(tmp_path)
     for token in ("R15", "harness", "test"):
         _doc_with_class_field(root, f"WORKER_FINDING_A_TICK_WROTE_{token.upper()}_2026-09-15.md",
@@ -1537,4 +1581,6 @@ def test_case_folding_does_not_make_the_other_class_field_resolve(tmp_path):
     assert sorted(tok for _p, tok in fc.unresolvable_class_fields(root)) == [
         "R15", "harness", "test"
     ]
-    assert not any(f.startswith("UNKNOWN DECLARED CLASS") for f in fc.check(root).failures)
+    assert not any(f.startswith("UNKNOWN DECLARED CLASS") for f in fc.check(root).failures), (
+        "a header field is not the section form — it must not report a TYPO in a declaration"
+    )
