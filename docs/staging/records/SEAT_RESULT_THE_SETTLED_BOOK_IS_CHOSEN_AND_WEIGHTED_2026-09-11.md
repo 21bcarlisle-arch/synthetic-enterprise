@@ -16,7 +16,7 @@ The systematic 1-in-5.57 count cull is replaced. The settled book is chosen for 
 four demand axes and every settled account carries its own weight in the company's own wins.
 
 ```
-seed 42, origin/main    ARM A  cull      ARM B  chosen+weighted
+seed 42, base 3957ba848  ARM A  cull      ARM B  chosen+weighted
 settled accounts          90                84
 customer-years          1195.4            1197.0   (ceiling 1200.0)
 worst-axis KS            0.12798           0.08241  →  1.553x
@@ -24,6 +24,25 @@ distinct fabric vectors     47                59    (of 109 in the population)
 per-account inflation      5.57 flat        0.057 – 14.774  (259.7x spread)
 worst per-year error     0 by construction   0.1%  (fitted, and can fail)
 ```
+
+> **THE FOUR FIGURES ABOVE THAT ARE STATISTICS ABOUT THE HOMES NO LONGER DESCRIBE THIS TREE, and
+> the base is named rather than the numbers revised** (2026-09-15;
+> `SEAT_RESULT_P1B_IS_STILL_UNGRADEABLE_BECAUSE_THE_FILED_EVIDENCES_WORLD_IS_GONE_2026-09-15.md`).
+> This run's base is `3957ba848`, and **`0d86d6dfe` — "the world's homes are drawn from the fitted
+> joint now" — is not an ancestor of it**; it arrived later through the fork-closing merge
+> `2212d0eed`. The header said "origin/main", which was true on the day and is exactly the kind of
+> moving name that makes a base unrecoverable a week later, so it is replaced by the commit.
+>
+> Re-measured on today's tree by `tools/settlement_per_axis_gain.py`, **the funnel is identical**
+> — 502 candidates, and arm A settles the same 90 accounts at the same 1195.3895 cy, because the
+> cull is deterministic over a list that did not change. **The homes are not**: worst-axis KS
+> 0.09765 / 0.05878 → **1.661×**, arm B settles 83 at 1199.2, and the population holds **105**
+> distinct fabric vectors, not 109.
+>
+> **No verdict in this file is withdrawn.** P1 holds by more on the new base, not less, and P2
+> still fails — but its stated ceiling of 109 is not this tree's. The two arms' conclusion survives
+> the base change; four of its numbers do not carry over, and a reader quoting 1.553× or 109 as
+> current would be quoting a different world.
 
 ## The grading — 6 hold, 4 fail
 

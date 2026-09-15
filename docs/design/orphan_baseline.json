@@ -1,7 +1,7 @@
 {
   "_doc": "THE RATCHET FLOOR for the no-caller class. Every module here is unreachable from the committed schedule TODAY and is grandfathered: nobody must fix them to commit. What the gate refuses is a module that is NOT on this list becoming unreachable -- i.e. the moment a new one is created. Shrink it freely; growing it requires saying why in the commit that grows it.",
   "entrypoint_count": 61,
-  "module_count": 1143,
+  "module_count": 1145,
   "orphans": [
     "background.autonomous_runner",
     "background.bad_debt_reconciliation_run",
@@ -465,7 +465,6 @@
     "tools.fabric_settlement_gap",
     "tools.file_director_document",
     "tools.fit_departure_hazards",
-    "tools.fold_noise_floor_family",
     "tools.generate_decisions_data",
     "tools.generate_fidelity_data",
     "tools.generate_hh_data",
@@ -518,6 +517,7 @@
     "tools.settlement_ceiling_probe",
     "tools.settlement_choice_probe",
     "tools.settlement_footprint_probe",
+    "tools.settlement_per_axis_gain",
     "tools.site_reachability",
     "tools.space_filling_sample",
     "tools.split_price_response_by_curve_position",
