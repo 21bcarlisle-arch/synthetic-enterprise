@@ -111,11 +111,17 @@ def test_every_exempt_path_is_UNDER_a_declared_prefix_or_it_is_dead_weight():
     2026-09-15). This line used to spell the prefixes itself as `f"{a}/{b}/"`, which was a second
     implementation of one rule -- and it broke the hour a member became three segments, raising
     `ValueError: too many values to unpack` where the control should have simply gone on being
-    true. `_WHOLE_PATH_PREFIXES` is the subject's own answer to the same question, so the keying
+    true. `_whole_path_prefixes()` is the subject's own answer to the same question, so the keying
     claim above is unchanged and the duplication is gone;
     `test_a_generated_tree_declaration_may_be_any_depth.py::
-    test_the_declared_set_is_what_both_consumers_read` is what holds that view honest."""
-    prefixes = tuple(fs._WHOLE_PATH_PREFIXES)
+    test_the_declared_set_is_what_both_consumers_read` is what holds that view honest.
+
+    IT IS A CALL NOW AND IT WAS A CONSTANT (delivery seat, 2026-09-15), which is why this went red
+    rather than silently reading a stale set: the view was evaluated once at import, so any control
+    that moved `GENERATED_TREES` and recomputed was comparing against the OLD declaration list. An
+    `AttributeError` is the right way for that rename to arrive here -- a module constant that
+    quietly kept answering would have been the fail-open."""
+    prefixes = tuple(fs._whole_path_prefixes())
     stranded = sorted(p for p in fs.AUTHORED_UNDER_A_GENERATED_TREE
                       if not p.startswith(prefixes))
     assert stranded == [], (

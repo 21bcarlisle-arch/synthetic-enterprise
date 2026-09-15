@@ -128,11 +128,25 @@ MAP_PATH = PROJECT_DIR / "docs" / "design" / "maturity_map.yaml"
 # landing on a producer's output while a path that does not exist sat in the generated set. The
 # correction is kept beside the claim because a reader who trusted "reached because its parent is
 # declared" would conclude there was nothing here to fix.
+# **AND THE DEPTH-3 MEMBER IS WITHDRAWN ONE COMMIT LATER, BY ITS OWN CONTROL, WHICH IS THE POINT OF
+# HAVING ONE** (delivery seat, 2026-09-15). Everything above stays on the page because it was true
+# when written and the reasoning that admitted the member is the reasoning that now removes it. What
+# changed is the JOIN, not the evidence: the matcher below no longer hard-joins the declared prefix
+# to an artefact name, it reconstructs the path the module actually wrote in order -- so
+# `docs/observability/scale_probe_10k/report.json` is emitted WHOLE on the strength of
+# `("docs", "observability")` alone, and the deeper member reaches nothing that its parent does not.
+# Measured: 216 members with it and 216 without, an empty difference. At the gate it was never more
+# than furniture (`_tree_prefixes` says why), so with the oracle half gone it is furniture in both
+# consumers, and this module's own rule about the freeze list applies unchanged -- a list that keeps
+# entries for things that no longer reach anything stops being a shrinking debt list.
+# It was not spotted by reading; `test_the_depth_three_member_is_load_bearing` went red on the
+# matcher change and its failure message named this remedy in the words above. That control is
+# generalised to every member in the same commit, because the property it was holding for one entry
+# ("a declaration that reaches nothing is furniture") was never about that entry.
 GENERATED_TREES: tuple[tuple[str, ...], ...] = (
     ("site", "data"),
     ("site", "state"),
     ("docs", "observability"),
-    ("docs", "observability", "scale_probe_10k"),
     ("docs", "market_data"),
     ("docs", "reports"),
     ("docs", "status"),
@@ -142,12 +156,29 @@ ARTEFACT_SUFFIXES = (".json", ".md", ".sqlite", ".csv")
 
 # THE SAME TREES, SPELLED THE OTHER WAY. A module may name its artefact as ONE whole string --
 # `DEFAULT_REPORT = "docs/observability/canon_drift.json"` (`tools/canon_drift_check.py`) -- and the
-# segment-pair match below cannot see it, because `parts` then holds one constant and neither `docs`
-# nor `observability` is in it. Eleven artefacts in this tree are spelled that way; ten of them were
+# `/`-chain match below cannot see it, because there is no `/` operator to read: the whole path is a
+# single constant. Eleven artefacts in this tree are spelled that way; ten of them were
 # in NEITHER oracle, so the reconciler was offering a landing on a producer's output. Census and
 # predictions: docs/staging/records/PREREG_WHAT_THE_TREE_KEYED_ORACLE_GAINS_FROM_A_PATH_SPELLED_AS_
 # ONE_WHOLE_STRING_2026-09-15.md.
-_WHOLE_PATH_PREFIXES: tuple[str, ...] = tuple("/".join(segs) + "/" for segs in GENERATED_TREES)
+#
+# AND IT IS NOW THE HEAD TEST FOR BOTH SPELLINGS, which is why it is one tuple and not two. A
+# `/`-chain is reconstructed in order and then asked the SAME question a whole string is asked --
+# does a declared tree stand at the head of this path -- so the two spellings cannot drift apart
+# into two different notions of what "under a generated tree" means.
+#
+# A FUNCTION AND NOT A MODULE CONSTANT, AND THE REASON IS A CONTROL THAT COULD NOT OTHERWISE FAIL
+# (delivery seat, 2026-09-15). It was `_WHOLE_PATH_PREFIXES = tuple(...)`, evaluated once at import.
+# Every control that asks what a declaration is WORTH works by removing it from `GENERATED_TREES`
+# and recomputing -- and a view frozen at import does not move when they do, so the recomputed
+# oracle came back identical and the removal looked free. `test_NO_declared_member_is_furniture`
+# would have passed on every member of an empty declaration list. Derived at call time, the
+# monkeypatch reaches both views and the question the controls are asking is the one they measure.
+
+
+def _whole_path_prefixes() -> tuple[str, ...]:
+    """The declared trees as `"docs/observability/"`-shaped path prefixes. Derived, never stored."""
+    return tuple("/".join(segs) + "/" for segs in GENERATED_TREES)
 
 # THIS MODULE IS NOT A PRODUCER AND MAY NOT BE EVIDENCE ABOUT ITSELF. `FROZEN` below holds
 # `(atom_id, path)` pairs COPIED OUT OF THE MATURITY MAP -- the declarations this gate judges -- and
@@ -194,6 +225,62 @@ class OracleUnavailable(RuntimeError):
     """The generated-path set could not be computed. NEVER silently a clean reading."""
 
 
+def _chain_roots(value: ast.expr) -> list[ast.BinOp]:
+    """Every `/`-chain in one assignment, each returned ONCE at its outermost node.
+
+    An assignment holds more than one destination all the time here -- `READ_BEARING_ARTEFACTS =
+    (PROJECT / "site" / "data" / "a.json", PROJECT / "docs" / "market_data" / "b.json")` is live in
+    `tools/generate_grid_intensity_feed.py` -- and the whole defect this replaced was treating one
+    assignment's constants as ONE bag. So each chain is reconstructed separately and a name from one
+    can never reach the other.
+
+    A chain's outermost node is the one that is not some other chain's LEFT operand. The RIGHT
+    operand of a `/` is a segment, never a continuation, so it is not a root either way.
+    """
+    divs = [n for n in ast.walk(value)
+            if isinstance(n, ast.BinOp) and isinstance(n.op, ast.Div)]
+    continued = {id(n.left) for n in divs}
+    return [n for n in divs if id(n) not in continued]
+
+
+def _chain_segments(node: ast.expr) -> list[str] | None:
+    """The ordered literal segments of a `/` chain, or None if a segment cannot be read.
+
+    ORDER IS THE WHOLE POINT, and its absence is what this replaced. `ast.walk` yields an
+    assignment's constants in breadth-first order, so the matcher that used it could not know which
+    segment came first and hard-joined the DECLARED prefix to any artefact-suffixed name it found.
+    That flattened `PROJECT / "docs" / "observability" / "scale_probe_10k" / "report.json"` to
+    `docs/observability/report.json`, which is not a file, and emitted the CROSS PRODUCT when one
+    assignment named two declared trees. Reading the chain in source order removes both at once,
+    because the emitted path is now the one the module actually wrote.
+
+    NONE IS "I CANNOT TELL", AND IT IS NOT THE SAME AS AN EMPTY LIST. An opaque RIGHT operand --
+    `PROJECT / subdir / "x.json"` -- means a segment is missing from the MIDDLE, and continuing past
+    it would re-manufacture the flattened path this function exists to stop. So the chain is
+    declined whole. An opaque LEFT ROOT is different and is NOT a refusal: `PROJECT`,
+    `Path(__file__).resolve().parents[1]` and `base` all stand where the repo root does, and the
+    literal tail after them is exactly what the module spells. That asymmetry is the one that
+    matters -- a missing middle fabricates, a missing head does not.
+
+    COSTS NOTHING TODAY, MEASURED RATHER THAN HOPED (delivery seat, 2026-09-15). 2,464 `/`-chains
+    in the scanned trees, 1,599 declined for an opaque segment, and ZERO of those 1,599 end in an
+    artefact-suffixed name: they are arithmetic division (`len(stayed) / len(scored)`), which shares
+    an operator with the path join and nothing else. The strictness is free and is recorded as
+    free.
+    """
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Div):
+        left = _chain_segments(node.left)
+        if left is None:
+            return None
+        right = node.right
+        if isinstance(right, ast.Constant) and isinstance(right.value, str):
+            return [*left, right.value]
+        return None
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return [node.value]
+    return []
+
+
 def generated_artefacts(root: Path | None = None) -> set[str]:
     """Repo-relative paths that a module in this tree assigns as an output destination.
 
@@ -201,11 +288,44 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
     string constants of one assignment and look for the tree segments, WITHOUT importing the
     module. A module is not imported to find out whether it is a candidate.
 
-    TWO SPELLINGS OF THE SAME TREE (delivery seat, 2026-09-15). The segment pair is how a generator
+    TWO SPELLINGS OF THE SAME TREE (delivery seat, 2026-09-15). The `/` chain is how a generator
     usually builds a path -- `PROJECT / "docs" / "observability" / "canon_drift.json"` -- and for
     eight weeks it was the only spelling this saw. A module that writes `DEFAULT_REPORT =
     "docs/observability/canon_drift.json"` was invisible, with the artefact sitting squarely inside
     a `GENERATED_TREES` member. Eleven artefacts in this tree are spelled that way.
+
+    AND THE CHAIN IS READ IN ORDER NOW, NOT AS A BAG OF CONSTANTS (delivery seat, 2026-09-15).
+    Until this, the match was MEMBERSHIP -- is every declared segment somewhere among this
+    assignment's string constants -- and the emitted path was then HARD-JOINED from the DECLARED
+    prefix to any artefact-suffixed constant in the same assignment. `ast.walk` does not preserve
+    source order, so the join could not use what the module wrote and used what was declared
+    instead. Two things followed, and neither was the expressiveness limit that was repaired
+    beside it: a DEEPER destination was flattened (`PROJECT / "docs" / "observability" /
+    "scale_probe_10k" / "report.json"` was emitted as `docs/observability/report.json`, which is not
+    a file), and an assignment naming TWO declared trees emitted the CROSS PRODUCT of both prefixes
+    against all of its artefact names -- `tools/mirror_github_pages.py:22` names four state files
+    across `site/state` and `site/data` and got eight members, four of them fictional. The finding
+    is docs/staging/SEAT_FINDING_THE_TREE_KEYED_ORACLE_HARD_JOINS_A_PATH_FROM_THE_DECLARED_PAIR_SO_
+    A_DEEPER_DESTINATION_IS_EMITTED_AS_A_FILE_THAT_DOES_NOT_EXIST_2026-09-15.md.
+
+    **AND ITS PREDICTION WAS WRONG IN BOTH DIRECTIONS, WHICH IS KEPT HERE BESIDE THE RESULT.** That
+    finding predicted, before the work, that ordered reconstruction would REMOVE 8-25 members and
+    ADD 1-4. Measured on the tree it landed against: **222 -> 216, six removed and ZERO added.**
+    Both misses have the same cause and it is worth more than the numbers. Removed is low because
+    a cross-product's wrong half OVERLAPS the right half of another site -- `site/data/
+    customer_sample.json` is fictional at `mirror_github_pages` and real somewhere else, so it is
+    not a removal at all. Added is zero because the only nested destination under a declared tree is
+    `scale_probe_10k/report.json`, and declaring `("docs", "observability", "scale_probe_10k")` in
+    the commit before this one had ALREADY recovered it -- the prediction double-counted a path the
+    split it argued for had already banked. A reader who takes "reconstruction recovers the nested
+    destinations" from that finding would be reading a claim this refutes.
+
+    AND EVERY ONE OF THE SIX WAS FICTIONAL, WHICH IS THE RISK THAT DID NOT MATERIALISE. Ordered
+    reconstruction makes this oracle STRICTER, and the stated danger was that each disappearing
+    member is a path `origin_reconcile` starts offering a LANDING on. The on-disk count did not
+    move: 167 of 222 members existed before, 167 of 216 after. All six removals name a file that is
+    not there and never arrives at the reconciler, so the consumer's answer is unchanged on every
+    path that actually exists.
 
     AND THE CONSEQUENCE IS THE RECONCILER, NOT THIS GATE -- the drawn item said otherwise and it was
     wrong, which is worth more written down than quietly fixed. `offends()` decides a `file_scope`
@@ -239,6 +359,7 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
     halves: the path leaves the union AND the gate verdict does not move.
     """
     base = Path(root) if root is not None else PROJECT_DIR
+    prefixes = _whole_path_prefixes()
     found: set[str] = set()
     scanned = 0
     for tree_name in SCANNED_TREES:
@@ -258,15 +379,17 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
                     continue
                 parts = [c.value for c in ast.walk(node.value)
                          if isinstance(c, ast.Constant) and isinstance(c.value, str)]
-                for segs in GENERATED_TREES:
-                    # EVERY declared segment must be present, which is why a DEEPER member is
-                    # strictly harder to satisfy than the shallower one containing it and can
-                    # never fire where its parent does not. That asymmetry is what makes the
-                    # depth-3 member safe to add beside its parent rather than instead of it.
-                    if all(seg in parts for seg in segs):
-                        prefix = "/".join(segs)
-                        found.update(f"{prefix}/{s}" for s in parts
-                                     if s.endswith(ARTEFACT_SUFFIXES))
+                for chain in _chain_roots(node.value):
+                    # THE PATH THE MODULE WROTE, not one joined from what was declared. The chain
+                    # is reconstructed in order and kept WHOLE: a declared tree has to stand at its
+                    # HEAD, and everything after it -- including a directory segment carrying no
+                    # artefact suffix -- is part of the emitted path rather than dropped from it.
+                    segments = _chain_segments(chain)
+                    if not segments or not segments[-1].endswith(ARTEFACT_SUFFIXES):
+                        continue
+                    rel = "/".join(segments)
+                    if rel.startswith(prefixes):
+                        found.add(rel)
                 # ...and the same tree spelled as ONE string. Held to an ASSIGNMENT, exactly like
                 # the segment match beside it, and that scope is LOAD-BEARING rather than inherited
                 # -- asked of the tree on 2026-09-15 rather than assumed. Widening to every string
@@ -281,7 +404,7 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
                 # counted gap, not an unasked question, and they degrade the safe way -- classified
                 # authored, offered a landing, never reverted.
                 found.update(s for s in parts
-                             if s.startswith(_WHOLE_PATH_PREFIXES)
+                             if s.startswith(prefixes)
                              and s.endswith(ARTEFACT_SUFFIXES))
     found -= WRITTEN_BUT_NOT_REPRODUCIBLE
     # AND THE AUTHORED HATCH REACHES HERE TOO, for the reason the line above it was extended on the
@@ -985,7 +1108,7 @@ def written_artefacts(root: Path | None = None) -> set[str]:
     """Repo-relative paths a module in this tree actually WRITES. The union partner, not a widening.
 
     WHY A THIRD FUNCTION AND NOT A WIDER `generated_artefacts` (delivery seat, 2026-09-15).
-    `generated_artefacts` is keyed to generated TREES -- the `(parent, child)` segment pairs in
+    `generated_artefacts` is keyed to generated TREES -- the path prefixes in
     `GENERATED_TREES` -- and it feeds the fail-CLOSED `file_scope` starvation gate above, which
     blocks commits. `docs/design/orphan_baseline.json` is a generator's output living in an
     otherwise AUTHORED tree, so it is invisible to a tree-keyed oracle by construction; and adding
@@ -1079,9 +1202,16 @@ def _tree_prefixes() -> set[str]:
     scale_probe_10k` is already covered by `docs/observability` and declaring the deeper one
     cannot make the gate refuse one entry more. That is the memory-file shape -- a widening
     cannot move a gate whose membership test is subsumed by a coarser predicate beside it -- and
-    it is the reason the depth-3 member needed no freeze re-measurement where `("docs", "status")`
-    did: `status` was a NEW first-level prefix and this one is not. Measured, not assumed:
+    it is the reason a depth-3 member needs no freeze re-measurement where `("docs", "status")`
+    did: `status` was a NEW first-level prefix and a nested one is not. Measured, not assumed:
     `tests/tools/test_a_generated_tree_declaration_may_be_any_depth.py`.
+
+    NO MEMBER IS NESTED TODAY, and that is a result rather than the rule going away. The one that
+    was -- `("docs", "observability", "scale_probe_10k")` -- was withdrawn when ordered
+    reconstruction made it reach nothing its parent does not, so subsumption here is now asserted
+    against a MANUFACTURED nested member rather than a live one. The rule outlives the instance
+    because the next person to declare one needs it, and asserting it only while an example happens
+    to be declared is how a rule becomes unreachable.
     """
     return {"/".join(segs) for segs in GENERATED_TREES}
 

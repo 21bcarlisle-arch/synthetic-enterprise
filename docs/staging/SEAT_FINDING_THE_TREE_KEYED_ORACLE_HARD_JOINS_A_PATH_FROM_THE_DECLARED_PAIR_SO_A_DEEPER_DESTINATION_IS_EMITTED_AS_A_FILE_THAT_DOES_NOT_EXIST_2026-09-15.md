@@ -1,4 +1,10 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — split out of `generated-tree-declarations-are-exactly-two-segments-so-a-deeper-or-shallower-generated-tree-cannot-be-expressed`)
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — split out of `generated-tree-declarations-are-exactly-two-segments-so-a-deeper-or-shallower-generated-tree-cannot-be-expressed`)
+
+*Filed LATENT; **RECORDED 2026-09-15**, same day, because the defect is repaired and no work is owed
+— §4a is the result and the refutation of §4's own prediction. The result is kept HERE rather than
+in a separate `SEAT_RESULT_` document on purpose: the prediction it refutes is §4, and a correction
+filed two documents away from the claim it corrects is a correction nobody reads. The two things
+still open are named at the end of §4a and each carries its own finding.*
 
 # The tree-keyed oracle hard-joins the path from the DECLARED prefix, not from what the module wrote — so a deeper destination is emitted as a file that does not exist, and a cross-product is emitted for two trees named in one assignment
 
@@ -108,6 +114,60 @@ rules rather than caution:
 recovers, `scale_probe_10k/prediction_register.json` not among them — that one needs cross-expression
 reach, which is a third thing again). `gate_violations()` stays empty throughout, because membership
 is subsumed.
+
+## 4a. ACTIONED — and the prediction in §4 is refuted in both directions
+
+**Delivery seat, 2026-09-15, same day.** Ordered reconstruction is in
+`tools/file_scope_generated_paths._chain_roots` / `_chain_segments`. The membership test over an
+assignment's constants is gone; each `/`-chain in an assignment is reconstructed in source order and
+emitted whole when a declared tree stands at its head.
+
+**Measured: 222 → 216. Six removed, ZERO added. The §4 prediction said 8–25 removed and 1–4 added,
+and it was wrong both ways.** Kept here rather than revised, because a prediction filed after the
+answer is not a prediction.
+
+| removed | on disk? | why it was there |
+|---|---|---|
+| `docs/observability/report.json` | no | the named instance — `scale_probe_10k` flattened out of the join |
+| `docs/market_data/explore_hh_days.json` | no | cross product, `generate_grid_intensity_feed.py:101` |
+| `site/data/consumption_feed.json` | no | cross product, same assignment |
+| `site/data/billing_ledger.json` | no | cross product, `mirror_github_pages.py:22` |
+| `site/data/population_anchoring.json` | no | cross product, same assignment |
+| `site/state/sim_data.json` | no | cross product, same assignment |
+
+**Why removed came in under the range.** A cross product's wrong half can coincide with another
+site's right half. `site/data/customer_sample.json` is fictional at `mirror_github_pages` and real
+somewhere else, so it is not a removal at all — the §2 site table counts *sites*, and the oracle is a
+*set*. Two more rows in that table (`couple_value_based_pricing.py:499`,
+`r1_inference_ceiling.py:182`) turn out not to have been flattening anything: their "dropped
+segment" (`2026`, `latest`) carries no artefact suffix, so it was never joined in the first place and
+the emitted path was already the one the module wrote. That part of §2 over-counted.
+
+**Why added was zero, and this is the more useful miss.** The only nested destination under a
+declared tree is `scale_probe_10k/report.json`, and declaring
+`("docs", "observability", "scale_probe_10k")` in the commit *this finding argued for splitting away
+from* had already recovered it. §4 predicted the recovery twice.
+
+**The stated risk did not materialise, and it was checked rather than assumed.** §4 said each
+disappearing member is a path `origin_reconcile` starts offering a landing on. The on-disk member
+count did not move: 167 of 222 before, 167 of 216 after. All six removals name a file that is not
+there, so no path that exists changed classification. `gate_violations()` is empty throughout, as
+§3 said it must be.
+
+**And it cost a sibling declaration, which its own control found.** With the path emitted whole from
+`("docs", "observability")`, the depth-3 member reaches nothing its parent does not — 216 with it and
+216 without. `test_the_depth_three_member_is_load_bearing` went red on the matcher change and its
+failure message named the remedy; the member is withdrawn, and that control is generalised to
+`test_NO_declared_member_is_furniture` over every member, because the property was never about that
+entry. The subsumption control beside it lost its only live subject and now manufactures one.
+
+**Still out, and now with a name rather than a shrug:** `docs/reports/run_output_*.json` remains in
+the oracle and is a GLOB, not a path — `PROJECT / "docs" / "reports" / "run_output_*.json"` inside a
+`glob.glob(...)`, so ordered reconstruction reads it perfectly and it is still not a file. That is a
+different defect (a read pattern reaching a write-keyed classifier) and is filed separately rather
+than folded in. `docs/observability/scale_probe_10k/prediction_register.json` is also still in
+neither oracle, for the reason §3 gave: `tools/scale_probe_10k.py` binds the directory in one
+expression and joins the filename in another, which no per-assignment matcher of any shape can see.
 
 ## 5. Why it was invisible for eight weeks
 
