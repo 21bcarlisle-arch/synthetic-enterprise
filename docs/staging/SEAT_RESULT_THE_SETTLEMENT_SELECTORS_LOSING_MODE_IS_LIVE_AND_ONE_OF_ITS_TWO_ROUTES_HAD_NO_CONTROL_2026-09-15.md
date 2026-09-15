@@ -140,9 +140,19 @@ correction rather than a clean paragraph that was never wrong.
    now held by the new control at the function's own boundary, which is the right altitude — but
    **nobody has established whether the campaign should ever be able to reach it.** If the answer
    is no, the honest move is a refusal at the campaign's edge, not a fallback three layers in.
-3. **Nothing asserts either refusal sentence reaches the reader.** `notes` carries
-   `SETTLEMENT SAMPLE NOT CHOSEN: ...` and `grep` finds no control over that string anywhere. The
-   new control asserts the refusal on the returned dict; the note's journey to the page is unheld.
+3. ~~**Nothing asserts either refusal sentence reaches the reader.**~~ **TAKEN in the same turn,
+   landed as `f4a688367`** — `test_a_sample_the_chooser_REFUSED_says_so_in_the_notes_and_a_chosen_
+   one_does_not` in `tests/simulation/test_net_new_acquisition.py`. Two arms straddling the point
+   where the chooser starts fitting inside the headroom (measured: 90.0 refuses, 120.0 chooses,
+   only the budget differs), mutation-proven red on four legs.
+
+   **AND THE FIRST REASON-MUTATION LEFT IT GREEN, which is how the remaining gap was found rather
+   than assumed.** I aimed that leg at the string the *unplaceable* route writes, and this
+   fixture cannot reach it: `plan_growth_campaign` passes `DOMESTIC_ONLY`, so no budget makes the
+   shipped campaign take that route. So **the unplaceable reason's journey to `notes` still has no
+   control at any layer** — the reason itself is held at the function boundary by the partition
+   control, and the note it would produce is not. That is the residue, and it is what is left of
+   this item rather than the whole of it.
 
 ## What this does NOT claim
 
