@@ -161,8 +161,18 @@ directions, and a seat following it literally would have done real damage.**
 - *As a requirement* it drops **16 of the 21** true positives. This project names its controls
   after what they do, not after the word "control": *the CENSUS is blind to the half that reaches
   the reader*, *the ORACLE was blind in the dimension that drifted*, *the belief GAP is blind to
-  who holds the belief*, *a bulk PASS blinds the aged digest*. One of the 16 is the only live
-  root document in the class.
+  who holds the belief*, *a bulk PASS blinds the aged digest*.
+
+  > **CORRECTION, same day, after `7646e25f0` had already landed.** This bullet first ended *"One
+  > of the 16 is the only live root member of the class, so `--check` would have gone red."* **Both
+  > halves are false and I had not run either.** `controls_that_cannot_fail` has **0** live root
+  > members (35 archived, 1 refused out-of-lane); the document I meant is lane
+  > `A_strategy_governance`, so the lane guard refuses it consolidation and it is not a member. And
+  > `--check` is **PASS under both patterns** — the 16 damaged documents are all in `done/`, and
+  > `check()` never re-classifies the archive. So the green I quoted as evidence the narrowing was
+  > safe was evidence about a population the control does not read. That is filed as its own
+  > finding, with the control that closes it:
+  > `SEAT_FINDING_THE_CLASS_REGISTER_IS_BLIND_TO_A_PATTERN_CHANGE_OVER_ITS_ALREADY_ARCHIVED_INSTANCES_2026-09-15.md`.
 - *As an alternative route* it **re-opens the very hole it was written to close**, because a
   finding about the blind envelope carries a control noun by construction — this cluster's live
   documents are about the envelope's door **TEST** and its eight skipped **CONTROLS**.

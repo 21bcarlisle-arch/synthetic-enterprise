@@ -104,10 +104,35 @@ route, clause, field — and one of the sixteen is the only live root member of 
 the blind envelope names the envelope's door **TEST** or its eight skipped **CONTROLS** by
 construction. The co-occurrence rule is not merely under-tuned; it is the wrong discriminator.
 
-**P5 — HELD.** `--check` is PASS before and after, and for a stronger reason than predicted: the
-shipped rule changes no ROOT document's class at all. The only root member
-(`SEAT_RESULT_THE_PROMOTE_BY_COPY_CLASS_…_THE_CENSUS_IS_BLIND_TO_THE_HALF…`) keeps its class. The
-directed rule would have dropped it, and `--check` would have gone red.
+**P5 — HELD, AND THE GREEN MEANS NOTHING. This is the most important line in the document.**
+
+What I wrote first: *"`--check` is PASS before and after… The only root member keeps its class. The
+directed rule would have dropped it, and `--check` would have gone red."* Kept here rather than
+revised, because **the second and third sentences are false and I landed them in `7646e25f0`
+before checking either.**
+
+Measured afterwards:
+
+| | live root members | archived | refused out-of-lane | `check()` |
+|---|---|---|---|---|
+| shipped (predicative) | 0 | 35 | 1 | PASS |
+| refuted (control-noun) | 0 | 35 | 0 | PASS |
+
+`controls_that_cannot_fail` has **no live root members at all**. The document I called "the only
+root member" is lane `A_strategy_governance`, so the lane guard refuses it consolidation — under the
+directed rule it would simply have stopped being visible as contested (`refused_out_of_lane` 1 → 0),
+with nothing reporting it.
+
+And `--check` is **PASS under both**. The 16 documents the directed rule would have damaged are all
+in `done/`, and `archived_instances()` reads the class document's own instance list and checks only
+that the file still exists — it never re-classifies. So the directed rule would have stranded
+**seven** archived instances under a class they no longer belong to, and every gate in this
+repository would have stayed green.
+
+**P5 was therefore satisfied by a control that cannot see the thing P5 was asking about.** The
+prediction was badly designed, not merely wrongly reasoned: I chose as my safety check the one
+control structurally incapable of failing on this change. Filed with its remedy as
+`SEAT_FINDING_THE_CLASS_REGISTER_IS_BLIND_TO_A_PATTERN_CHANGE_OVER_ITS_ALREADY_ARCHIVED_INSTANCES_2026-09-15.md`.
 
 ## What the measurement chose instead
 

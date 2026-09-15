@@ -301,6 +301,95 @@ def test_MUTATION_the_refuted_control_noun_remedy_would_empty_the_class(tmp_path
     )
 
 
+# --- an archived instance must still classify into the class that lists it ---
+#
+# THE DEFECT (2026-09-15, found landing `7646e25f0`): `derive_memberships()` re-classifies every
+# file, but only over `classifiable_documents()` — the staging ROOT. `archived_instances()` reads
+# the names the class document already lists and checks ONLY that the file still exists in `done/`.
+# It never asks whether those documents still classify into the class naming them.
+#
+# The module docstring promises the opposite, as its own design rationale: "WHY MEMBERSHIP IS
+# DERIVED, never a hand-kept list … `check()` re-derives membership from the filesystem every time
+# it runs." That holds for the live root and not for the archive. The live root currently holds 0
+# members across all six classes and the archive holds 169, so the hand-kept list the docstring
+# refuses is what governs every consolidated instance there is.
+#
+# WHY IT MATTERS, measured rather than argued: substitute the control-noun `blind` rule that
+# `SEAT_FINDING_THE_ENVELOPE_AND_THE_FORK_MERGE_ARE_ENTANGLED…` recommended, and SEVEN archived
+# instances stop classifying into `controls_that_cannot_fail` while still being counted as members —
+# and `check()` reports PASS, because it never looks. The commit that narrowed that pattern quoted
+# that PASS as evidence the narrowing was safe. It was evidence about a population the control does
+# not read. This leg is the red that was missing.
+
+#: Archived instances already stranded at the time this control was written. Named, not counted, so
+#: a new stranding cannot hide inside a tolerance. `WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_
+#: BE_REACHED_BY_ANY_CALLER` states its class in plain English — *cannot be reached by any caller* —
+#: and `no_caller_and_never_runs` matches on `no caller`/`never called`/`never runs`/`unreachable`,
+#: none of which is that sentence. Repairing it is open work, filed as
+#: `SEAT_FINDING_THE_CLASS_REGISTER_IS_BLIND_TO_A_PATTERN_CHANGE_OVER_ITS_ALREADY_ARCHIVED_
+#: INSTANCES_2026-09-15.md`; it is deliberately NOT fixed by widening a pattern on a guess.
+_KNOWN_STRANDED_ARCHIVED_INSTANCES = frozenset({
+    "WORKER_FINDING_THE_BILL_SHOCK_CHURN_CAP_CANNOT_BE_REACHED_BY_ANY_CALLER_2026-08-31.md",
+})
+
+
+def _stranded_archived_instances(module, root: Path) -> dict[str, str | None]:
+    """Every archived instance a class document lists that no longer classifies into it."""
+    archive = root / module.ARCHIVE_DIRNAME
+    stranded: dict[str, str | None] = {}
+    for class_id, membership in module.derive_memberships(root).items():
+        for name in membership.archived:
+            path = archive / name
+            if not path.exists():
+                continue  # a listed-but-absent instance is `check()`'s own rule, not this one
+            got = module.classify_file(path).class_id
+            if got != class_id:
+                stranded[name] = got
+    return stranded
+
+
+def test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into():
+    """SUBSET, not equality. Keyed to the property — a NEW stranding is a red, and repairing the
+    known one leaves this green rather than going red when the tree becomes more honest."""
+    stranded = _stranded_archived_instances(fc, fc.DEFAULT_STAGING_ROOT)
+    new = {n: got for n, got in stranded.items() if n not in _KNOWN_STRANDED_ARCHIVED_INSTANCES}
+    assert not new, (
+        "these archived documents are counted as instances of a class the classifier can no "
+        "longer put them in, and `check()` reports PASS because it never re-classifies the "
+        f"archive: {new}"
+    )
+
+
+def test_MUTATION_the_stranded_archive_leg_catches_the_refuted_blind_remedy(tmp_path):
+    """The leg can fail, and it fails on the exact change that motivated it. This is what
+    `--check` could not see when `7646e25f0` landed."""
+    mutant = _load_mutant(
+        tmp_path,
+        _NARROWED_PATTERN_SOURCE,
+        '            r"\\bblind(ed|s|ness)?\\b(?=[\\s\\S]*'
+        '\\b(control|test|gate|guard|check|assertion|gauge))'
+        '|\\b(control|test|gate|guard|check|assertion|gauge)\\b[\\s\\S]*'
+        '\\bblind(ed|s|ness)?\\b",',
+        "fc_control_noun_archive",
+    )
+    stranded = _stranded_archived_instances(mutant, fc.DEFAULT_STAGING_ROOT)
+    new = {n for n in stranded if n not in _KNOWN_STRANDED_ARCHIVED_INSTANCES}
+    assert len(new) >= 5, (
+        "the refuted control-noun remedy was measured to strand 7 archived instances of "
+        f"`controls_that_cannot_fail`; this mutant stranded {len(new)}, so the leg above is no "
+        "longer proven against the change it was written for"
+    )
+    # ...and `check()` names NONE of them, which is the whole point of the leg. Asserting the
+    # mutant's check() is globally PASS would be wrong here: any other lane filing an
+    # unconsolidated finding would red this test for a reason that is not its subject.
+    reported = "\n".join(mutant.check(fc.DEFAULT_STAGING_ROOT).failures)
+    unseen = sorted(n for n in new if n not in reported)
+    assert unseen == sorted(new), (
+        "if `check()` now names a stranded archived instance on its own, this leg is redundant "
+        f"and should be deleted rather than kept as a control that guards nothing: {reported}"
+    )
+
+
 def test_a_class_document_is_not_a_member_of_its_own_class(tmp_path):
     """Without the prefix exclusion, each class document matches its own patterns and
     becomes its own first instance — a register counting itself."""
