@@ -1434,8 +1434,9 @@
   depends_on: []
   couples_with: [SITE1_expert_doors]
   # STILL 0 ON 2026-09-16, and the reason has MOVED AGAIN: read `level_hold_note` before re-drawing.
-  # The L2 evidence is in hand and re-run; what holds it is that H_harness reads CLEAR in the
-  # working tree and BLOCKED in the committed record, and OPS11 fires on the latter.
+  # The L2 evidence is in hand and re-run. THE TWO TREES NOW AGREE -- the working copy and the
+  # committed record both hold FOUR H_harness blockers, so the probe/gate disagreement that made
+  # the level scan answer "movable now" is gone, and the four are simply live.
   # The 2026-09-15 note said the row moves when that archival reaches HEAD. IT DOES NOT. The
   # eleven were read one by one on 2026-09-16: seven were real discharges and are now committed,
   # and FOUR were not -- they are back in the staging root and still hold the lane. What holds
