@@ -148,7 +148,31 @@ a width against a distance because both are percentages on the same row.
 EIGHT blind-envelope controls RUN and PASS, and the `"no available blind envelope (None)"` skip that
 fired seven times a run for 106 hours appears nowhere. Producer suite 204 passed.
 
-**Still open, and NOT this claim's subject** — the classifier defect this document names about its
-own title stands: `finding_classes`' `\bblind\b` pattern fires on *blind envelope* / *fabric-blind*,
-this project's domain vocabulary, so the feature's own name misfiles every document the cluster
-produces. The remedy named above (require `blind` to co-occur with a control noun) is still undone.
+**~~Still open, and NOT this claim's subject~~ — CLOSED 2026-09-15, and the remedy this document
+recommended was measured and REFUTED.** The classifier defect was real and is now fixed:
+`finding_classes`' `blind` pattern only fires where `blind` is a PREDICATE about a mechanism
+(blind *to*, blind *in*, blind*ness*, *blinds*, blind *spot*, *is* blind). On the 31 staged
+documents whose subject carries a blind-token — 21 control-blindness findings, 10 domain or method
+uses — that keeps 20 of 21 and 0 of 10.
+
+**The remedy named above — "require `blind` to co-occur with a control noun" — fails in both
+directions, and a seat following it literally would have done real damage.**
+
+- *As a requirement* it drops **16 of the 21** true positives. This project names its controls
+  after what they do, not after the word "control": *the CENSUS is blind to the half that reaches
+  the reader*, *the ORACLE was blind in the dimension that drifted*, *the belief GAP is blind to
+  who holds the belief*, *a bulk PASS blinds the aged digest*. One of the 16 is the only live
+  root document in the class.
+- *As an alternative route* it **re-opens the very hole it was written to close**, because a
+  finding about the blind envelope carries a control noun by construction — this cluster's live
+  documents are about the envelope's door **TEST** and its eight skipped **CONTROLS**.
+
+What actually separates the two populations is **grammar, not vocabulary**, and nothing in this
+document's reasoning could have reached that without printing the corpus. Both refuted forms are
+pinned as controls in `tests/background/test_finding_classes.py` so the recommendation above cannot
+be re-adopted by someone reading only this finding. The measurement is pre-registered at
+`docs/staging/records/PREREG_DOES_REQUIRING_A_CONTROL_NOUN_BESIDE_BLIND_MOVE_ONLY_DOMAIN_VOCABULARY_2026-09-15.md`,
+which predicted the noun set was insufficient but guessed **one** exception where there were sixteen.
+
+**The workaround this document recorded is withdrawn.** A seat writing up this cluster no longer has
+to mis-title the document, and should not.
