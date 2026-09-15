@@ -52,8 +52,10 @@ from tools import file_scope_generated_paths as fs
 
 PROJECT = Path(__file__).resolve().parents[2]
 
-# The live depth-3 instance and the producer that forced it. Held as data so the failure message
-# can name the producer rather than the assertion.
+# The depth-3 instance that forced the widening, and the producer that builds it. It is NO LONGER
+# DECLARED -- ordered reconstruction reaches it under `("docs", "observability")` -- and it is kept
+# here as the live subject of the nested-destination control below, which asserts exactly that.
+# Held as data so a failure message can name the producer rather than the assertion.
 DEEP_MEMBER = ("docs", "observability", "scale_probe_10k")
 DEEP_ARTEFACT = "docs/observability/scale_probe_10k/report.json"
 DEEP_PRODUCER = "simulation/premise_population.py"
@@ -102,19 +104,31 @@ def test_a_nested_declaration_is_subsumed_by_its_parent_at_the_gate() -> None:
     to be checkable rather than remembered -- someone adding `("docs", "reports", "2026")` is safe
     and someone adding `("sim", "weather_cells")` is not, and nothing else here says which.
 
-    MUTATION THAT REDDENS IT: nest a member under a prefix that is NOT declared -- e.g. replace the
-    depth-3 member with `("sim", "weather_cells", "x")` -- and the removal leaves nothing to answer.
+    MUTATION THAT REDDENS IT: nest the probe member under a prefix that is NOT declared -- e.g.
+    `("sim", "weather_cells", "x")` -- and the removal leaves nothing to answer.
+
+    THE NESTED MEMBER IS MANUFACTURED NOW, AND THAT IS THE FIX FOR A CONTROL WITH NO SUBJECT
+    (delivery seat, 2026-09-15). This used to assert that a nested member was DECLARED and then walk
+    the live ones. The only one there has been was withdrawn the moment ordered reconstruction made
+    it furniture, so the live list emptied and the loop asserted nothing -- the docstring above
+    predicted exactly that and told the next reader it would be a silent pass. A rule the next
+    person to declare a nested tree needs does not stop being worth holding because nobody has
+    declared one today, so the probe member is built here and the live ones are still walked beside
+    it. Both halves fail for the same reason and neither depends on the set having an example in it.
     """
     declared = set(fs.GENERATED_TREES)
-    nested = [segs for segs in declared
-              if any(other != segs and segs[:len(other)] == other for other in declared)]
-    assert nested, (
-        "no nested member is declared, so this control is asserting nothing. It is kept keyed to "
-        "the property rather than deleted, but if the depth-3 member has been withdrawn then "
-        "test_the_depth_three_member_is_load_bearing should have said so first -- a silent pass "
-        "here beside that red is the tautology this docstring warns about."
+    live_nested = [segs for segs in declared
+                   if any(other != segs and segs[:len(other)] == other for other in declared)]
+    # SORTED, not `next(iter(...))`: a set of tuples of strings iterates in an order that moves with
+    # `PYTHONHASHSEED`, and a control that probes a different member on every run is one whose green
+    # nobody can reproduce.
+    manufactured = (*sorted(declared)[0], "a_nested_probe_dir")
+    assert any(manufactured[:len(o)] == o for o in declared), (
+        f"{manufactured} is not nested under any declared member, so this control would be asking "
+        "whether an UNDECLARED prefix offends -- which it must not. `GENERATED_TREES` is empty or "
+        "its members are not path prefixes."
     )
-    for segs in nested:
+    for segs in [*live_nested, manufactured]:
         probe = "/".join(segs) + "/probe.json"
         without = tuple(t for t in fs.GENERATED_TREES if t != segs)
         original = fs.GENERATED_TREES
@@ -132,41 +146,98 @@ def test_a_nested_declaration_is_subsumed_by_its_parent_at_the_gate() -> None:
         )
 
 
-def test_the_depth_three_member_is_load_bearing() -> None:
-    """The population answer, asserted the only way it can fail: REMOVE it and lose a real path.
+def test_NO_declared_member_is_furniture() -> None:
+    """EVERY member must reach something no other member reaches. The class, not the instance.
 
-    A declaration that reaches nothing is furniture, which is the failure mode the two findings
-    before this one described from the other side. The member earns its place by putting a TRACKED
-    file into the oracle union that nothing else puts there -- and `tracked` is the second half of
-    the claim on purpose, because the shape this replaces emitted a path that was not a file at all.
+    THIS CONTROL WAS `test_the_depth_three_member_is_load_bearing` AND IT WENT RED DOING ITS JOB
+    (delivery seat, 2026-09-15). It was keyed to one entry, `("docs", "observability",
+    "scale_probe_10k")`, admitted the day before because the tree-keyed oracle HARD-JOINED its
+    emitted path from the declared prefix and so flattened `.../scale_probe_10k/report.json` to
+    `docs/observability/report.json`. Replacing that join with ordered reconstruction emits the
+    artefact WHOLE from `("docs", "observability")` alone, the deeper member stopped reaching
+    anything, this went red, and its failure message named the remedy -- "another declaration now
+    covers it, in which case remove this one". It was removed. The control is generalised here
+    rather than re-pointed, because the property it was holding for one entry was never about that
+    entry, and a control keyed to today's declaration list goes red when the code becomes MORE
+    honest -- which is exactly backwards and is how it behaved.
 
-    MUTATION THAT REDDENS IT: drop `("docs", "observability", "scale_probe_10k")` from
-    `GENERATED_TREES`. Verified by doing it -- the artefact leaves the union and this goes red while
-    every other control in this module and its three siblings stays green.
+    THE PROPERTY IS ASKED THE ONLY WAY IT CAN FAIL: each member is REMOVED and the oracle recomputed.
+    A member earns its place by taking a path out of the oracle when it goes, or by shrinking the
+    effective prefix set `offends()` reads. Asserting it with every member present would be the
+    tautology the sibling control's docstring warns about.
+
+    A GATE-ONLY MEMBER IS ALLOWED AND IS NOT A LOOPHOLE. A prefix that reaches no oracle member
+    still refuses every `file_scope` entry under it, which is this gate's whole subject, so a member
+    whose removal lets a path under it stop offending has earned its place on that alone.
+
+    AND THE GATE LEG ASKS `offends()`, NOT `_tree_prefixes()`, WHICH IS WHERE THE FIRST DRAFT OF
+    THIS CONTROL WAS WRONG (delivery seat, 2026-09-15). It compared the raw prefix SET before and
+    after, and a nested member ADDS AN ELEMENT to that set while changing nothing `offends()`
+    answers -- `offends()` walks `startswith` over every prefix, so a path under
+    `docs/observability/scale_probe_10k` is refused by `docs/observability` whether the deeper one
+    is declared or not. The set comparison therefore skipped precisely the member class this control
+    exists to catch, and the mutation below passed. Caught by running that mutation rather than by
+    reading the code, and it is the same subsumption shape the module's own docstrings keep
+    pointing at, arriving one level up in a control ABOUT it.
+
+    MUTATION THAT REDDENS IT: re-add `("docs", "observability", "scale_probe_10k")`. Verified by
+    doing it: the member is nested, so a probe under it still offends without it, and ordered
+    reconstruction reaches its artefact without it -- 216 members with and 216 without.
+    """
+    original = fs.GENERATED_TREES
+    live = fs.generated_artefacts()
+    furniture = []
+    try:
+        for segs in original:
+            probe = "/".join(segs) + "/a_probe_artefact.json"
+            fs.GENERATED_TREES = tuple(t for t in original if t != segs)
+            if not fs.offends(probe, set()):
+                continue  # the gate stops refusing under it -- it carries a real prefix
+            if fs.generated_artefacts() != live:
+                continue  # it reaches an oracle member nothing else reaches
+            furniture.append(segs)
+    finally:
+        fs.GENERATED_TREES = original
+    assert not furniture, (
+        f"{furniture} reach nothing: removing them changes neither `_tree_prefixes()` nor the "
+        "oracle membership, so they are declarations that describe an intention rather than doing "
+        "any work. Remove them WITH THE REASON -- a declaration list that keeps entries for things "
+        "that no longer reach anything stops being a list anyone can trust, which is the argument "
+        "this module already makes about its own freeze list."
+    )
+
+
+def test_the_deep_artefact_is_reached_WITHOUT_a_declaration_of_its_own() -> None:
+    """The repair that made the depth-3 member furniture, asserted as the property that replaced it.
+
+    `docs/observability/scale_probe_10k/report.json` is a TRACKED file that a producer builds four
+    segments deep, and the reason it once needed its own declaration was a matcher that could not
+    emit a path deeper than the prefix it matched. Ordered reconstruction can, so this asserts the
+    capability directly: a nested destination arrives WHOLE under a first-level declaration.
+
+    `tracked` is the second half of the claim on purpose. The shape this replaced emitted
+    `docs/observability/report.json`, which is not a file at all, so "the oracle contains a path
+    that looks right" was exactly the reading that hid the defect for eight weeks.
+
+    MUTATION THAT REDDENS IT: restore the hard join (`found.update(f"{prefix}/{s}" for s in parts
+    ...)`). The artefact is then flattened back to `docs/observability/report.json` and leaves the
+    oracle. Verified by doing it.
     """
     assert DEEP_ARTEFACT in _tracked(), (
-        f"{DEEP_ARTEFACT} is not tracked by git. The member was declared because a real generated "
-        f"file was in NEITHER oracle; if the file is gone the member is furniture and should be "
-        f"removed with the reason, not left reaching nothing."
+        f"{DEEP_ARTEFACT} is not tracked by git. If {DEEP_PRODUCER} no longer builds it, this "
+        "control has lost its subject and the nested-destination capability needs a different live "
+        "instance -- not a fixture, which would stop measuring the real tree."
+    )
+    assert DEEP_MEMBER not in fs.GENERATED_TREES, (
+        f"{DEEP_MEMBER} is declared again, which makes this control tautological: the artefact "
+        "would be reached by its own prefix and nothing here would be asking about reconstruction. "
+        "test_NO_declared_member_is_furniture should have refused it first."
     )
     assert DEEP_ARTEFACT in fs.generated_artefacts(), (
         f"{DEEP_ARTEFACT} is not in the tree-keyed oracle. {DEEP_PRODUCER} builds it as "
-        "`... / \"docs\" / \"observability\" / \"scale_probe_10k\" / \"report.json\"`; if that "
-        "producer has changed shape, the member no longer reaches anything and the pair-shaped "
-        "blindness it was added to close has moved rather than gone."
-    )
-
-    original = fs.GENERATED_TREES
-    try:
-        fs.GENERATED_TREES = tuple(t for t in original if t != DEEP_MEMBER)
-        without = fs.generated_artefacts()
-    finally:
-        fs.GENERATED_TREES = original
-    assert DEEP_ARTEFACT not in without, (
-        f"{DEEP_ARTEFACT} is reached even without {DEEP_MEMBER} declared, so the member adds "
-        "nothing and this control was passing on somebody else's work. Either another declaration "
-        "now covers it -- in which case remove this one -- or the oracle stopped being keyed to "
-        "declared trees, which is a much larger thing."
+        "`... / \"docs\" / \"observability\" / \"scale_probe_10k\" / \"report.json\"`, so either "
+        "the producer changed shape or the matcher has gone back to joining the path from the "
+        "DECLARED prefix -- which drops `scale_probe_10k` and emits a file that does not exist."
     )
 
 
@@ -187,8 +258,28 @@ def test_the_declared_set_is_what_both_consumers_read() -> None:
         "`_tree_prefixes()` disagrees with the declared set -- the gate's prefix view has stopped "
         "being derived from it."
     )
-    assert set(fs._WHOLE_PATH_PREFIXES) == {p + "/" for p in expected}, (
-        "`_WHOLE_PATH_PREFIXES` disagrees with the declared set -- the whole-string spelling of "
+    assert set(fs._whole_path_prefixes()) == {p + "/" for p in expected}, (
+        "`_whole_path_prefixes()` disagrees with the declared set -- the whole-string spelling of "
         "the SAME trees has stopped being derived from it, so a path spelled as one constant "
         "under the deeper prefix reaches one oracle and not the other."
     )
+
+    # AND IT IS ASKED OF A SET THAT IS NOT TODAY'S, which is the leg the import-time constant could
+    # never pass. Both views used to be rebuilt from `GENERATED_TREES` -- one at call time and one
+    # ONCE, at import -- and the two read identically until something moved the declaration list.
+    # Everything that asks what a member is worth moves it, so the frozen view answered for the old
+    # set while the live one answered for the new, and every such control measured a difference it
+    # had not made. Driving the substitution HERE is what makes that a property of the module rather
+    # than a habit of whoever writes the next control.
+    original = fs.GENERATED_TREES
+    try:
+        fs.GENERATED_TREES = (("probe_tree", "probe_child"),)
+        assert fs._tree_prefixes() == {"probe_tree/probe_child"}
+        assert set(fs._whole_path_prefixes()) == {"probe_tree/probe_child/"}, (
+            "a derived view did not follow `GENERATED_TREES` when it changed, so it is stored "
+            "rather than derived. Every control that removes a member and recomputes is then "
+            "measuring the OLD declaration set through that view, and passes on a difference it "
+            "never made."
+        )
+    finally:
+        fs.GENERATED_TREES = original

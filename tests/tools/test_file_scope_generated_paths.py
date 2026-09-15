@@ -157,6 +157,114 @@ def test_a_loose_constant_naming_SOMEBODY_ELSES_artefact_is_not_swept(tmp_path):
     assert found == {"docs/observability/mine.json"}
 
 
+# ---------------------------------------------------------------------------
+# The path the MODULE wrote, not one joined from what was DECLARED
+# (delivery seat, 2026-09-15)
+# ---------------------------------------------------------------------------
+def test_MUTATION_a_DEEPER_destination_is_emitted_WHOLE_and_not_flattened(tmp_path):
+    """THE DEFECT: the match was MEMBERSHIP over an assignment's string constants and the emitted
+    path was HARD-JOINED from the DECLARED prefix to any artefact-suffixed constant in scope. An
+    intermediate directory segment carries no artefact suffix, so it was dropped from the join and
+    the oracle emitted a path that skipped it. `simulation/premise_population.py:1189` writes
+    `... / "docs" / "observability" / "scale_probe_10k" / "report.json"` and the oracle held
+    `docs/observability/report.json`, which is not a file -- while the real artefact was in NEITHER
+    oracle, so `origin_reconcile` classified a producer's output as somebody's work and led with how
+    to LAND it.
+
+    BOTH LEGS, because only one of them is the defect. The flattened path must be ABSENT and the
+    whole path PRESENT: a control asserting only the second would pass with the fabrication still
+    being emitted beside it, which is the state this replaced.
+
+    MUTATION THAT REDDENS IT: restore `found.update(f"{prefix}/{s}" for s in parts if
+    s.endswith(ARTEFACT_SUFFIXES))` under an `all(seg in parts ...)` membership test. Verified by
+    doing it -- `site/data/report.json` comes back and `site/data/probe_dir/report.json` goes.
+    """
+    _module(tmp_path, "deep_producer.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'OUT = PROJECT / "site" / "data" / "probe_dir" / "report.json"\n')
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {"site/data/probe_dir/report.json"}, (
+        "the matcher is not reconstructing the path in source order: a directory segment carrying "
+        "no artefact suffix has been dropped from the join, so the oracle names a file that does "
+        "not exist and misses the one that does"
+    )
+
+
+def test_MUTATION_two_declared_trees_in_ONE_assignment_do_not_emit_a_CROSS_PRODUCT(tmp_path):
+    """THE SECOND HALF OF THE SAME DEFECT, and the one with the bigger count. `parts` was every
+    string constant in one assignment, so an assignment naming TWO declared trees satisfied BOTH
+    membership tests and emitted every artefact name under BOTH prefixes.
+    `tools/mirror_github_pages.py:22` names four state files across `site/state` and `site/data` and
+    the oracle held EIGHT members for it, four of them fictional.
+
+    THE FIXTURE MIRRORS THAT SHAPE EXACTLY -- one assignment, one tuple, two trees -- because the
+    defect is a property of the assignment and not of the file. Reading each `/`-chain separately is
+    what fixes it, and the assertion is EQUALITY rather than two `in` checks: the cross product's
+    harm is the members that should not be there, so a control that only asks for the right two
+    passes with the wrong two beside them.
+
+    MUTATION THAT REDDENS IT: the same restoration as the control above -- the set grows to four.
+    """
+    _module(tmp_path, "mirrorish.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'PAIRS = (\n'
+            '    PROJECT / "site" / "state" / "from_state.json",\n'
+            '    PROJECT / "site" / "data" / "from_data.json",\n'
+            ')\n')
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {"site/state/from_state.json", "site/data/from_data.json"}, (
+        "one assignment naming two declared trees is emitting the cross product -- every artefact "
+        "name under both prefixes, whichever tree it actually belongs to"
+    )
+
+
+def test_a_chain_with_an_OPAQUE_MIDDLE_segment_is_declined_whole(tmp_path):
+    """A MISSING SEGMENT FABRICATES AND A MISSING HEAD DOES NOT, which is the asymmetry the
+    reconstruction rests on and the reason it is asserted rather than commented.
+
+    `PROJECT / subdir / "x.json"` cannot be read: the middle segment is a name this oracle does not
+    resolve, and joining what IS legible would re-manufacture exactly the flattened path the repair
+    removed -- `site/data/x.json` for a file that lives somewhere else entirely, in a set whose
+    consumer's remedy is REVERT. So the chain is declined whole. An opaque LEFT ROOT is the ordinary
+    case and must NOT be declined: `PROJECT` is where every producer in this tree starts.
+
+    BOTH DIRECTIONS IN ONE FIXTURE ON PURPOSE. A control holding only the decline would pass if the
+    resolver declined everything, which is the fail-closed reading that looks identical to a clean
+    one -- so the legible producer beside it is what proves the decline is selective. It also keeps
+    the call off `OracleUnavailable`, which an empty result would raise.
+
+    MEASURED COST: 2,464 `/`-chains in the scanned trees, 1,599 declined this way, and ZERO of those
+    end in an artefact-suffixed name -- they are arithmetic (`len(stayed) / len(scored)`), which
+    shares an operator with the path join and nothing else.
+
+    THE OPAQUE CHAIN IS AN ASSIGNMENT AND THE FIRST DRAFT HAD IT IN A `return`, WHICH MADE THIS
+    CONTROL A TAUTOLOGY (delivery seat, 2026-09-15). Both the matcher and the shape it replaced are
+    held to `Assign`/`AnnAssign` nodes, so an expression in a bare `return` is never visited by
+    either -- the control passed because nothing looked at its fixture, not because the chain was
+    declined, and it stayed green with the hard join restored. Found by running the mutation this
+    docstring names rather than by reading it, which is the only way that class of pass is ever
+    found.
+    """
+    _module(tmp_path, "opaque.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'def build(subdir):\n'
+            '    out = PROJECT / "site" / "data" / subdir / "buried.json"\n'
+            '    return out\n')
+    _module(tmp_path, "legible.py",
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'OUT = PROJECT / "site" / "data" / "legible.json"\n')
+    found = fs.generated_artefacts(root=tmp_path)
+    assert found == {"site/data/legible.json"}, (
+        "a chain whose MIDDLE segment could not be read was joined anyway, which invents a path "
+        "for a file that lives somewhere else -- or the opaque ROOT case was declined too, which "
+        "would blind the oracle to every producer that starts from PROJECT"
+    )
+
+
 def test_MUTATION_the_gates_OWN_freeze_list_is_not_evidence_about_itself(monkeypatch, tmp_path):
     """CIRCULARITY, and it is the reason `_SELF` exists. `FROZEN` holds `(atom_id, file_scope)`
     pairs COPIED OUT OF THE MATURITY MAP -- the declarations this gate judges. Read back as
