@@ -669,8 +669,23 @@ def settle_within_budget(
     lift exists (one candidate list, two rules, a measurable difference) is what makes the chooser
     checkable rather than something the merge had to pick between. The controls are
     `tests/simulation/test_the_settled_book_is_chosen_and_weighted_not_culled_by_count.py` --
-    `test_both_selections_can_actually_happen_in_the_campaign` is the one that proves the fallback
-    branch is reachable, which is the leg a guard that refuses everything would otherwise pass.
+    `test_all_three_selection_STATES_are_reachable_through_settle_within_budget_and_tellable_apart`
+    is the one over the whole partition, and it drives THIS function on one candidate list with
+    only the budget varying.
+
+    **THE PREVIOUS SENTENCE HERE WAS FALSE and is kept corrected rather than quietly replaced.**
+    It cited `test_both_selections_can_actually_happen_in_the_campaign` as the proof the fallback
+    branch is reachable. That test never called this function: it asserted
+    `callable(plan_growth_campaign)` and then called `choose_settled_sample` directly. Measured
+    2026-09-15 by replacing each fallback path with a `raise`: the HEADROOM route fired 5 tests
+    (all of them written about the note or the refused-win counts, none about the selection) and
+    the UNPLACEABLE route fired NONE. So the branch this docstring claimed was held had no
+    control, and `selection == "uniform_count"` was asserted nowhere in the tree.
+
+    `uniform_count` IS the initialised value and therefore reports THREE different states -- the
+    null case where nothing was selected at all, the unplaceable refusal, and the headroom
+    refusal. `choice_refusal` is what separates the first from the other two, and the control above
+    asserts the three stay tellable apart from this dict alone.
 
     Returns the selection and everything the caller's rows are filled from. `committed_cy` is
     passed IN rather than read, because the opening book has already charged the same budget.

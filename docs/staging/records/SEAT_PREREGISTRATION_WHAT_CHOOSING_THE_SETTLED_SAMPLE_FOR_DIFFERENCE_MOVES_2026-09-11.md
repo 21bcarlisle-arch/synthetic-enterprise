@@ -35,6 +35,26 @@ fact.
 **What is NOT settled by the merge:** neither document's predictions have been graded here. The
 merge closed the fork; it did not run the counterfactual arm.
 
+**WHERE THE GRADING IS, added 2026-09-15 because the sentence above was the only thing a reader
+met and it points nowhere.** "Not graded *here*" was true of the merge commit and false as the
+last word on the subject — the grading was already filed two files away, in this directory, with
+no pointer in either direction:
+
+* `SEAT_RESULT_THE_SETTLED_BOOK_IS_CHOSEN_AND_WEIGHTED_2026-09-11.md` — ten predictions, **6 hold
+  and 4 fail**. Worst-axis KS 0.12798 culled against 0.08241 chosen (1.553×), 84 settled against
+  the cull's 90, per-account inflation 0.057–14.774 against a flat 5.57.
+* `SEAT_RESULT_P6_THE_CHOSEN_BOOK_IS_2_45_PERCENT_WORSE_ON_GROSS_MARGIN_2026-09-11.md` — takes the
+  one withheld prediction. |Δ| = 2.45%, **sign against the change**.
+
+**IT IS §B THAT WAS GRADED, BY NAME AND BY BAND.** The result's table grades "≥1.25×, kill below
+1.10×" and "distinct fabric vectors ≥70", which are §B's bands; §A's P1 band is [1.2×, 2.0×] and
+its P2 is about per-year shares. **§A is graded only in substance** — the measured 1.553× falls
+inside §A's P1 band, §A's P4 is §B's P7, §A's P5 is §B's P4 — and by coincidence of content rather
+than by anything a reader could follow. Recorded rather than repaired: re-grading §A against its
+own numbering is real work and is named in
+`SEAT_RESULT_THE_SETTLEMENT_SELECTORS_LOSING_MODE_IS_LIVE_AND_ONE_OF_ITS_TWO_ROUTES_HAD_NO_CONTROL_2026-09-15.md`
+as what is next.
+
 ---
 
 ## §A — pre-registration filed on the shared tree's side (fitted-joint homes)

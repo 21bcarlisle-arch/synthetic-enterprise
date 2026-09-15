@@ -289,32 +289,123 @@ def test_a_headroom_too_small_for_any_chosen_set_refuses_rather_than_crossing_th
                                  candidate_years=years) is None
 
 
-# ── both branches of the campaign's selection must be REACHABLE ──────────────────────────────
+# ── every selection state must be REACHABLE THROUGH THE SELECTOR ITSELF ──────────────────────
 
-def test_both_selections_can_actually_happen_in_the_campaign():
-    """ONE CONTROL OVER THE WHOLE PARTITION, and it is here because a guard that refuses
-    EVERYTHING passes every per-branch test written against it.
+def _candidate_tuples(homes=None):
+    """The `(year, prospect, in_market, customer_years)` tuples `settle_within_budget` takes.
 
-    The campaign either chooses the sample or culls it by count, and this asserts BOTH are
-    reachable from real inputs -- a chooser that never engaged, and a fallback that could never be
-    taken, both look exactly like the mechanism working from every other test in this file.
+    ONE candidate list serves every arm below, because the selector's own budget is the only thing
+    that may vary between them. A second list would put the homes in the comparison, which is the
+    error the lift of `settle_within_budget` out of `plan_growth_campaign` exists to prevent.
+    """
+    out = []
+    for i, household in enumerate(_population() if homes is None else homes):
+        year = 2016 + i % 10
+        out.append((year, _Prospect(_Premise(household, "gas" if i % 3 else "electricity")),
+                    dt.date(year, 6, 1), 1.0 + (i % 7)))
+    return out
 
-    Fires on: wiring the chooser behind a condition nothing satisfies, or leaving the fallback
-    unreachable so an unplaceable candidate raises instead of falling back.
+
+class _NoPremise:
+    """A prospect with no premise at all -- an SME or I&C draw, which has no dwelling.
+
+    `demand_vector` returns `None` for it, which is the OTHER route into the fallback and the one
+    the shipped campaign cannot take: `plan_growth_campaign` passes `DOMESTIC_ONLY`, so every
+    prospect it draws is `resi` and carries a minted home.
+    """
+
+    premise = None
+
+
+def test_all_three_selection_STATES_are_reachable_through_settle_within_budget_and_tellable_apart():
+    """ONE CONTROL OVER THE WHOLE PARTITION, through the REAL selector, on ONE candidate list.
+
+    WHAT THIS REPLACED, AND WHY (2026-09-15, pre-registered as
+    `docs/staging/records/SEAT_PREREG_WHETHER_THE_SETTLEMENT_CHOICE_SELECTORS_LOSING_MODE_IS_
+    REACHABLE_AND_WHETHER_ANY_CONTROL_HOLDS_IT_2026-09-15.md`). The previous version of this
+    control was named `test_both_selections_can_actually_happen_in_the_campaign` and
+    `settle_within_budget`'s own docstring cited it as the proof that the fallback branch is
+    reachable. **It never entered that function.** It asserted `callable(plan_growth_campaign)`
+    and then called `choose_settled_sample` twice -- the second call being
+    `test_an_unplaceable_candidate_refuses_the_whole_sample...` again with a different index. So
+    the module's stated reachability proof was a tautology plus a duplicate, and the branch it
+    claimed to hold had no control at all.
+
+    MEASURED, not argued. Replacing each fallback-producing path in `settle_within_budget` with a
+    `raise` and running this file plus `test_net_new_acquisition.py`,
+    `test_opening_book_subset.py` and `tests/tools/test_couple_pb3_book_growth.py`:
+
+        the HEADROOM route      5 tests fire -- all in test_net_new_acquisition.py, all of them
+                                written about the NOTE or the refused-win counts, none asserting
+                                which selection ran
+        the UNPLACEABLE route   0 tests fire, 111 passed
+
+    Neither number was a missing test of the LABEL: before this control, nothing in the tree
+    asserted the campaign ever reports `uniform_count`, and nothing asserted either refusal
+    sentence ever reaches the reader's notes.
+
+    Fires on: wiring the chooser behind a condition nothing satisfies; making either route into
+    the fallback unreachable (the mutation above, either leg); reporting one label for two
+    different states so a reader cannot tell a refusal from a campaign that fitted its budget;
+    carrying a refusal on a run where the chooser was never consulted; or a fallback that reports
+    its label without actually settling a book. Mutation-proven on all five, 2026-09-15.
     """
     pytest.importorskip("sklearn")
-    from simulation.net_new_acquisition import plan_growth_campaign
+    from simulation.net_new_acquisition import settle_within_budget
 
-    assert callable(plan_growth_campaign)
+    cands = _candidate_tuples()
+    total_cy = sum(cy for *_rest, cy in cands)
+    homeless_cands = list(cands)
+    _y, _p, _d, _cy = homeless_cands[9]
+    homeless_cands[9] = (_y, _NoPremise(), _d, _cy)
 
-    vectors, costs, fuels, years = _candidates()
-    chosen = choose_settled_sample(vectors, costs, fuels, headroom_cy=sum(costs) * 0.25,
-                                   candidate_years=years)
-    unplaceable = list(vectors)
-    unplaceable[3] = None
-    culled = choose_settled_sample(unplaceable, costs, fuels, headroom_cy=sum(costs) * 0.25,
-                                   candidate_years=years)
+    # FOUR ARMS, ONE VARIABLE. Only the budget moves, except in the last where only one
+    # candidate's home moves -- so any difference below is the selector's and not the population's.
+    null = settle_within_budget(cands, committed_cy=0.0, customer_year_budget=total_cy * 2.0)
+    chosen = settle_within_budget(cands, committed_cy=0.0, customer_year_budget=total_cy * 0.5)
+    starved = settle_within_budget(cands, committed_cy=0.0, customer_year_budget=total_cy * 0.02)
+    homeless = settle_within_budget(homeless_cands, committed_cy=0.0,
+                                    customer_year_budget=total_cy * 0.5)
 
-    assert chosen is not None and culled is None, (
-        "the two selections are not both reachable: chosen={}, fallback-triggering={}".format(
-            chosen is not None, culled is None))
+    # BOTH MODES HAPPEN, asserted in one place. Either half failing alone is the defect that
+    # every per-branch test in this file would still pass through.
+    assert chosen["selection"] == "chosen_weighted", (
+        "the chooser never engaged on a real spread of dwellings at half the campaign's cost -- "
+        f"it reported {chosen['selection']}")
+    assert starved["selection"] == "uniform_count" and homeless["selection"] == "uniform_count", (
+        "the fallback is not reachable through the selector: starved={}, homeless={}".format(
+            starved["selection"], homeless["selection"]))
+
+    # EACH ROUTE INTO THE FALLBACK NAMES ITS OWN REASON, which is how a wrong refusal gets found.
+    assert "headroom" in (starved["choice_refusal"] or ""), starved["choice_refusal"]
+    assert "no home" in (homeless["choice_refusal"] or ""), homeless["choice_refusal"]
+
+    # THE THREE STATES MUST BE TELLABLE APART FROM THE RETURNED RECORD ALONE. `uniform_count` is
+    # the initialised value, so it is also what a campaign that FITTED its budget reports -- and a
+    # consumer that cannot separate "the chooser refused" from "the chooser was never consulted"
+    # will publish one sentence about two different runs.
+    #
+    # THE FIRST DRAFT OF THIS LEG WAS THE THREE-TUPLE SET ALONE, and the comment beside it said
+    # `choice_refusal` was what separated the null case from the two refusals. Both were wrong.
+    # Mutating `choice_refusal`'s initial value to a non-None string left the set at three
+    # distinct tuples and this leg GREEN, because `sample_rate < 1.0` already separates the null
+    # case by itself -- so the tuple set could not fail on the field its own comment named. The
+    # refusal's absence is therefore asserted directly, and the tuple set is kept behind it as
+    # the leg that catches two states collapsing onto one label.
+    assert null["choice_refusal"] is None, (
+        "a campaign that FITTED its budget came back carrying a refusal, so nothing downstream "
+        "can tell a chooser that refused from a chooser that was never consulted: "
+        f"{null['choice_refusal']!r}")
+    states = {(r["selection"], r["choice_refusal"] is None, r["sample_rate"] < 1.0)
+              for r in (null, chosen, starved)}
+    assert len(states) == 3, f"two of the three selection states are indistinguishable: {states}"
+
+    # AND THE FALLBACK MUST SETTLE A BOOK, not merely report its label. Under the cull every
+    # settled account stands for the same `1 / rate`; under the chooser they differ, which is the
+    # whole subject of this file.
+    assert starved["winners"], "the fallback reported its label and settled nothing"
+    assert len({round(w, 9) for w in starved["settlement_weights"]}) == 1, (
+        "the cull's weights are not the single scalar `1 / rate` it always implied")
+    assert len({round(w, 9) for w in chosen["settlement_weights"]}) > 1, (
+        "the chosen book's weights are one number, so per-account weighting is a scalar wearing "
+        "a vector's clothes")
