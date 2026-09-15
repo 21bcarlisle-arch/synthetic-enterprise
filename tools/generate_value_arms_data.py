@@ -2541,6 +2541,25 @@ WITHDRAWN_CLAIMS = [{
              "is the price level, and the per-customer choosing is worth less than nothing”. "
              "That sentence stated a direction smaller than its own error bar. It is withdrawn, "
              "not reversed: the reading above is what the evidence supports."),
+    # THE RETRACTION IS THE THING THAT WOULD LET THESE WORDS BE PUBLISHED AGAIN, and it is None.
+    # `None` and not a missing key: the question WAS asked, on the day the composer first tried
+    # to re-emit the sentence, and an absent key would leave a later reader unable to tell an
+    # answered question from one nobody put.
+    "retracted": None,
+    "retraction_refused_on": "2026-09-15",
+    "retraction_refused_because": (
+        "The 2026-09-11 fork close opens the sign gate on this leg -- the nine-seed family's mean "
+        "sits 2.9 standard errors from zero against a derived bar of 2.31 -- and the composer's "
+        "negative branch emits these words verbatim. That is NOT this claim re-passing its own "
+        "test. What was withdrawn was a direction measured on a different seed family against a "
+        "different bar: the 2026-08-29 sentence was a one-run -£9,627 against an £8,781 range "
+        "with no bar derived at all, and the figure now clearing 2.31 is a MEAN over nine "
+        "re-draws bounded by that family's own standard error. Two figures agreeing on a sign is "
+        "evidence of identity and is not identity, and the population, the statistic and the bar "
+        "are all different. So the words stay withdrawn and the page says the same finding in "
+        "fresh words that name the bar and the standard-error count it actually cleared. "
+        "Re-publishing the withdrawn sentence belongs to whoever can show it is the SAME claim "
+        "-- which is a measurement nobody has made -- and not to a fork close."),
 }]
 
 
@@ -2558,6 +2577,71 @@ def _withdrawn() -> dict:
                 note=" ".join(claim["note"] for claim in WITHDRAWN_CLAIMS),
                 also_withdrawn=older,
                 withdrawals=len(WITHDRAWN_CLAIMS))
+
+
+def _recorded_retraction(claim: dict) -> dict | None:
+    """The record that would let a withdrawn sentence be published again, or None.
+
+    A WITHDRAWAL IS UNDONE ON THE RECORD OR NOT AT ALL. The page's whole claim on anyone's trust
+    is that it publishes the unflattering direction, and that is worth nothing if a later run can
+    quietly put the retracted words back the moment the arithmetic swings around again. So the
+    only thing that re-opens a withdrawn sentence is a `retracted` block someone wrote and signed
+    -- naming why THIS is the same claim re-passing the same test, which is the question the
+    sign alone cannot answer.
+
+    KEYED TO THE PROPERTY AND NOT TO A DATE. Nothing here knows about 2026-08-29. Every entry in
+    `WITHDRAWN_CLAIMS` is closed by default and any entry someone retracts tomorrow opens with no
+    change to this function -- and, equally, a sentence withdrawn tomorrow is closed the moment
+    it is added.
+    """
+    retraction = claim.get("retracted")
+    if not isinstance(retraction, dict):
+        return None
+    return retraction if str(retraction.get("why") or "").strip() else None
+
+
+def _as_words(sentence: str | None) -> str:
+    """A sentence reduced to its words, so a re-publication cannot hide behind punctuation.
+
+    The composer builds its sentences by `.format()`, so a re-emission arrives with the same words
+    and possibly different spacing, casing or a curly quote where the register holds a straight
+    one. Matching raw strings would let a re-publication through on a typographic difference,
+    which is the fail-open direction and the only one that matters here.
+    """
+    return " ".join(re.findall(r"[a-z0-9]+", (sentence or "").lower()))
+
+
+def _republished_withdrawal(sentence: str) -> dict | None:
+    """The withdrawn claim a composed sentence would put back on the page, or None.
+
+    Reads `WITHDRAWN_CLAIMS` -- which is the same list `_withdrawn()` splits into the rendered
+    `withdrawn_claim` and its `also_withdrawn` tail -- so the register the page publishes and the
+    register this refusal enforces are one object and cannot drift apart.
+    """
+    spoken = _as_words(sentence)
+    for claim in WITHDRAWN_CLAIMS:
+        if _recorded_retraction(claim) is not None:
+            continue
+        words = _as_words(claim.get("the_words"))
+        if words and words in spoken:
+            return claim
+    return None
+
+
+def _in_words_not_withdrawn(sentence: str, fresh) -> str:
+    """The composed sentence -- unless it re-publishes a withdrawal, and then FRESH words.
+
+    IT DOES NOT FALL SILENT. A refusal that withheld the reading would trade re-publishing a
+    withdrawn sentence for withholding a finding the evidence now supports, which is the same
+    defect pointed the other way. The reading is still stated; what is refused is stating it in
+    words this page has taken back and not taken back up.
+
+    THE FRESH CLAUSE IS A CALLABLE AND NOT A STRING, so it is only composed when the refusal
+    actually fires -- and so the caller, which is the only thing holding the figures, is what
+    says the reading rather than this function guessing at it.
+    """
+    claim = _republished_withdrawal(sentence)
+    return sentence if claim is None else fresh(claim)
 
 
 def _seed_spreads(floor: dict | None, three_arm: dict | None = None) -> dict:
@@ -9052,19 +9136,29 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
     elif leg.get("sign_is_stateable") is not True:
         body = _cannot_tell_from_the_family(leg)
     elif leg["estimate_gbp"] < 0:
-        body = ("Running it through ONE flat margin at the same price LEVEL earned "
-                "£{:,.0f} more than the per-customer engine did, on average across the {n} seed "
-                "re-draws{bound}. On this evidence the advantage is the price level, and the "
-                "per-customer choosing is worth less than nothing.{member}".format(
-                    abs(leg["estimate_gbp"]), n=leg["estimate_seeds"],
-                    bound=_clears_its_bound(leg), member=_one_member_clause(leg)))
+        # THE SENTENCE THIS BRANCH WAS WRITTEN WITH IS ONE THIS PAGE WITHDREW (2026-09-15), and
+        # the branch had never fired since, so nothing noticed until the fork close opened the
+        # sign gate. It is not enough to reword the constant: the next derived sentence can land
+        # on a withdrawn one just as easily, and by then whoever wrote it will not be reading the
+        # register. So the composed words are put to the register itself -- see
+        # `_in_words_not_withdrawn` -- and the fresh clause is what the reader gets when they hit.
+        body = _in_words_not_withdrawn(
+            ("Running it through ONE flat margin at the same price LEVEL earned "
+             "£{:,.0f} more than the per-customer engine did, on average across the {n} seed "
+             "re-draws{bound}. On this evidence the advantage is the price level, and the "
+             "per-customer choosing is worth less than nothing.{member}".format(
+                 abs(leg["estimate_gbp"]), n=leg["estimate_seeds"],
+                 bound=_clears_its_bound(leg), member=_one_member_clause(leg))),
+            lambda claim: _the_level_leg_in_fresh_words(leg, claim))
     else:
-        body = ("Once one flat margin at the same price LEVEL is given credit for what a level "
-                "alone would have earned, £{:,.0f} is left, on average across the {n} seed "
-                "re-draws{bound}. On this evidence the choosing itself carried part of it."
-                "{member}".format(leg["estimate_gbp"], n=leg["estimate_seeds"],
-                                  bound=_clears_its_bound(leg),
-                                  member=_one_member_clause(leg)))
+        body = _in_words_not_withdrawn(
+            ("Once one flat margin at the same price LEVEL is given credit for what a level "
+             "alone would have earned, £{:,.0f} is left, on average across the {n} seed "
+             "re-draws{bound}. On this evidence the choosing itself carried part of it."
+             "{member}".format(leg["estimate_gbp"], n=leg["estimate_seeds"],
+                               bound=_clears_its_bound(leg),
+                               member=_one_member_clause(leg))),
+            lambda claim: _the_choosing_leg_in_fresh_words(leg, claim))
 
     # ONCE, AND ONLY WHEN SOMETHING WAS WITHHELD. A remedy printed beside a claim that WAS
     # resolved would read as an apology for a figure that earned its sign.
@@ -9095,6 +9189,72 @@ def _selection_sentence(selection, share, advantage=None, spreads=None,
         opening, body, share_clause,
         " " + _what_would_resolve_it(decomposition, three_arm, withheld_contrasts).strip()
         if withheld_contrasts else "")
+
+
+def _in_its_own_precision(leg: dict) -> str:
+    """The reading's two load-bearing numbers: how many standard errors, against the derived bar.
+
+    THESE ARE WHAT MAKE THE FRESH SENTENCE A DIFFERENT CLAIM FROM THE WITHDRAWN ONE, so they are
+    not decoration. The sentence taken back on 2026-08-29 was a single run against a range, with
+    no bar derived at all; this one is a mean against the standard error its own family pins it
+    to, measured against a bar this page derives from that family's size. Say which, in the
+    sentence, or the reader has no way to tell the two apart -- which is the whole reason the
+    words could not simply be re-used.
+    """
+    sems, bar = leg.get("sems_from_zero"), leg.get("sems_needed_to_state_a_sign")
+    if sems is None or bar is None:
+        return ""
+    return (" That mean stands {sems:.1f} standard errors from zero against the {bar:.2f} this "
+            "page derives from {n} draws, which is the bar it had to clear to state any side at "
+            "all.").format(sems=sems, bar=bar, n=leg.get("bound_seeds"))
+
+
+def _not_the_withdrawn_claim(claim: dict) -> str:
+    """Why the reading above is stated in these words and not the ones the register holds.
+
+    THE REFUSAL NAMES ITS REASON, ON THE SURFACE. A reader who knows this page withdrew a sentence
+    and then meets the same FINDING is owed the distinction, otherwise the fresh wording looks
+    like the withdrawal being walked back quietly -- which is exactly the move the register exists
+    to make impossible. The reason is read off the claim, so a sentence withdrawn next month gets
+    its own date here without this function changing.
+    """
+    return (" This page withdrew a sentence of its own on {date} that read on the same direction; "
+            "it is NOT retracted and these are not those words, because that one was a single "
+            "run against a range and this is a mean against a bar derived from its own family. "
+            "Whether they are the same claim is a measurement nobody has made.").format(
+        date=claim.get("withdrawn_on"))
+
+
+def _the_level_leg_in_fresh_words(leg: dict, claim: dict) -> str:
+    """The negative selection leg, said without the words this page took back.
+
+    Same finding, same figures, same bound -- and it states the two quantities the withdrawn
+    sentence never carried, so a reader can see for themselves that it is not that claim returning
+    unannounced.
+    """
+    return ("Running it through ONE flat margin at the same price LEVEL earned £{:,.0f} more than "
+            "the per-customer engine did, on average across the {n} seed re-draws{bound}.{prec} "
+            "So on this family the LEVEL is where the measured advantage sits, and the "
+            "per-customer choosing is measured below it.{withdrawn}{member}".format(
+                abs(leg["estimate_gbp"]), n=leg["estimate_seeds"],
+                bound=_clears_its_bound(leg), prec=_in_its_own_precision(leg),
+                withdrawn=_not_the_withdrawn_claim(claim), member=_one_member_clause(leg)))
+
+
+def _the_choosing_leg_in_fresh_words(leg: dict, claim: dict) -> str:
+    """The positive selection leg, said without the words this page took back.
+
+    The mirror of `_the_level_leg_in_fresh_words`, and it exists for the same reason the register
+    became a list: a refusal that only covers the branch that happened to trip it is a refusal
+    fitted to one run.
+    """
+    return ("Once one flat margin at the same price LEVEL is given credit for what a level alone "
+            "would have earned, £{:,.0f} is left, on average across the {n} seed "
+            "re-draws{bound}.{prec} So on this family part of the advantage is measured in the "
+            "choosing itself.{withdrawn}{member}".format(
+                leg["estimate_gbp"], n=leg["estimate_seeds"],
+                bound=_clears_its_bound(leg), prec=_in_its_own_precision(leg),
+                withdrawn=_not_the_withdrawn_claim(claim), member=_one_member_clause(leg)))
 
 
 def _one_member_clause(leg: dict) -> str:

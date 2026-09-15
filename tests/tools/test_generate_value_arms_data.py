@@ -7125,3 +7125,158 @@ def test_the_real_artefacts_reconcile_and_the_block_reaches_the_feed():
         data["error_bar"]["distinguishable_from_zero"]), (
         "the reconciliation reports a different answer from the key it is reconciling, so the "
         "feed now holds THREE answers to one question")
+
+
+def _a_family_that_states_a_sign(mean, sem=613.0, seeds=9):
+    """A seed family whose mean clears its own derived bar -- the input the sign branches need.
+
+    A CONSTRUCTED WITNESS, AND DELIBERATELY SO -- the same shape as `_floor_without_a_book` above
+    and for the same reason. At HEAD the real floor's selection family is -£1,078 against a ±£604
+    standard error, 1.8 from zero against a bar of 2.31, so it lands in `_cannot_tell_from_the_
+    family` and NEITHER sign branch is reachable from any artefact on disk. A control that fed it
+    the real floor would assert over a branch that cannot be entered -- which is exactly the state
+    the composer was in for eighteen days, and why nobody noticed what the negative branch said.
+
+    NOT A FIXTURE FITTED TO THE CONCLUSION. The figures are read off the 2026-09-11 merged run's
+    own published headline -- a mean of -£1,749 over nine re-draws, ±£613 -- which is the run that
+    opens the gate. `sem` and `seeds` are parameters so the same witness can be walked the other
+    way without retuning anything to make a point.
+    """
+    return {"available": True, "seeds": seeds, "contrasts": {
+        "selection_gbp": {"n": seeds, "mean_gbp": mean, "sem_gbp": sem,
+                          "stdev_gbp": sem * seeds ** 0.5, "min_gbp": mean - 3 * sem,
+                          "max_gbp": mean + 3 * sem},
+        "value_advantage_gbp": {"n": seeds, "mean_gbp": 16792.0, "sem_gbp": 777.0,
+                                "stdev_gbp": 2331.0, "min_gbp": 14000.0, "max_gbp": 19000.0}}}
+
+
+def test_a_sentence_the_page_withdrew_is_refused_however_the_arithmetic_comes_out():
+    """THE DEFECT: the merge opens the sign gate and the composer re-publishes a withdrawn sentence.
+
+    Until 2026-09-11 the negative branch of `_selection_sentence` had never fired, and the words it
+    was written with -- "on this evidence the advantage is the price level, and the per-customer
+    choosing is worth less than nothing" -- are word-for-word the sentence this page WITHDREW on
+    2026-08-29. A run whose selection leg finally cleared its bar would have quietly put the
+    retracted claim back on the page, under a headline, with the withdrawal note still rendering
+    three paragraphs below saying it had been taken back.
+
+    ONE CONTROL OVER THE WHOLE PARTITION, NOT A LEG PER BRANCH. Both signs are walked, and the
+    reachability of each is ASSERTED before anything is asserted about what it says -- a guard
+    that refused every input would otherwise pass this test twice over. That is the trap this
+    defect was hiding in.
+
+    KEYED TO THE PROPERTY AND NOT TO THAT STRING. The assertion is over every entry in the
+    register, so a sentence withdrawn next month is closed the moment it is added and nothing here
+    changes. `test_a_recorded_retraction_is_what_re_opens_a_withdrawn_sentence` is the mutation
+    that proves this can go the other way.
+    """
+    reached = set()
+    for mean in (-1749.0, 1749.0):
+        spreads = _a_family_that_states_a_sign(mean)
+        leg = gva._leg_over_its_own_family(spreads["contrasts"]["selection_gbp"], -333.0)
+        assert leg["sign_is_stateable"] is True, (
+            "the witness does not open the sign gate at all, so nothing below is tested")
+        reached.add(leg["sign"])
+        composed = gva._selection_sentence(mean, 1.02, 16792.0, spreads, None, None)
+        for claim in gva.WITHDRAWN_CLAIMS:
+            assert gva._as_words(claim["the_words"]) not in gva._as_words(composed), (
+                "the composed reading re-publishes the sentence withdrawn on {} (sign {})".format(
+                    claim["withdrawn_on"], leg["sign"]))
+    assert reached == {"negative", "positive"}, (
+        "both witnesses landed on the same branch, so only half the partition was walked")
+
+
+def test_the_refusal_fires_on_the_run_the_fork_close_produced():
+    """The witness. Fed the merged run's own leg, the un-guarded wording IS a re-publication and
+    the guard replaces it -- so this control is not asserting over an input that could never
+    reach the branch it guards (`CONTROLS_THAT_CANNOT_FAIL`)."""
+    leg = gva._leg_over_its_own_family(
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0)
+    unguarded = ("Running it through ONE flat margin at the same price LEVEL earned £1,749 more "
+                 "than the per-customer engine did, on average across the 9 seed re-draws. On "
+                 "this evidence the advantage is the price level, and the per-customer choosing "
+                 "is worth less than nothing.")
+    caught = gva._republished_withdrawal(unguarded)
+    assert caught is not None, "the branch's own wording is not recognised as withdrawn at all"
+    assert caught["withdrawn_on"] == "2026-08-29"
+    fresh = gva._the_level_leg_in_fresh_words(leg, caught)
+    assert gva._republished_withdrawal(fresh) is None, "the replacement re-publishes it too"
+
+
+def test_the_refusal_does_not_fall_silent_and_states_the_bar_and_the_error_count():
+    """R12 ON THE SURFACE, BOTH WAYS. Refusing the WORDS must not become refusing the READING:
+    the finding the evidence now supports is still stated, with the two quantities that make it a
+    different claim from the withdrawn one -- the derived bar, and how many standard errors the
+    mean stands from zero. A guard that silenced the leg would have traded one defect for its
+    mirror image."""
+    leg = gva._leg_over_its_own_family(
+        _a_family_that_states_a_sign(-1749.0)["contrasts"]["selection_gbp"], -333.0)
+    fresh = gva._the_level_leg_in_fresh_words(leg, gva.WITHDRAWN_CLAIMS[-1])
+    assert "2.31" in fresh, "the derived bar is not on the surface"
+    assert "2.9 standard errors" in fresh, "the standard-error count is not on the surface"
+    assert "£613" in fresh, "the bound the mean is measured against is not on the surface"
+    assert "LEVEL" in fresh, "the reading itself was withheld, not just its wording"
+    assert "2026-08-29" in fresh, (
+        "the page states the reading without telling the reader it withdrew a sentence on the "
+        "same direction, which reads as the withdrawal being walked back quietly")
+
+
+def test_a_recorded_retraction_is_what_re_opens_a_withdrawn_sentence():
+    """THE MUTATION THAT PROVES THE CONTROL IS KEYED TO THE PROPERTY. Nothing in the refusal knows
+    about 2026-08-29: give the entry a recorded retraction and its words become publishable again;
+    take it away and they close. A control that could not be turned off this way would be pinned
+    to today's answer -- green while the register rots, red the day someone does the work to
+    retract an entry honestly."""
+    words = gva.WITHDRAWN_CLAIMS[-1]["the_words"]
+    assert gva._republished_withdrawal(words) is not None, "closed by default is not the default"
+    saved = gva.WITHDRAWN_CLAIMS[-1].get("retracted")
+    try:
+        gva.WITHDRAWN_CLAIMS[-1]["retracted"] = {"why": "shown to be the same claim re-passing"}
+        assert gva._republished_withdrawal(words) is None, (
+            "a recorded retraction does not re-open the sentence, so the register is decorative")
+    finally:
+        gva.WITHDRAWN_CLAIMS[-1]["retracted"] = saved
+    assert gva._republished_withdrawal(words) is not None, "it did not close again"
+
+
+def test_the_2026_08_29_words_stay_withdrawn_and_the_decision_says_why():
+    """THE DECISION, ON THE RECORD BESIDE THE CLAIM (2026-09-15). The fork close makes the same
+    direction stateable, and the seat's judgement is that this is NOT the same claim re-passing
+    the same test: a one-run figure against a range is not a nine-seed mean against a derived bar,
+    and two figures agreeing on a sign is evidence of identity and is not identity. Keyed to the
+    decision being RECORDED rather than to it being this decision -- whoever retracts it later
+    writes a `retracted` block and this control reads that instead."""
+    claim = gva.WITHDRAWN_CLAIMS[-1]
+    assert claim["withdrawn_on"] == "2026-08-29"
+    assert claim["retracted"] is None, "the words were retracted without a recorded reason"
+    assert claim["retraction_refused_on"], "the question was answered without a date"
+    assert "not identity" in claim["retraction_refused_because"], (
+        "the recorded reason does not say why the agreeing sign is not the same claim")
+
+
+def test_the_register_is_the_only_place_the_withdrawn_words_reach_the_feed():
+    """THE TAUTOLOGY TRAP, POINTED THE OTHER WAY. The withdrawal record QUOTES what it withdrew --
+    that is what makes it a record -- so a whole-payload assertion would fire on the very block
+    that keeps the page honest. The property that actually matters is narrower: the withdrawn
+    words may appear in `withdrawn_claim` and nowhere else in the feed."""
+    data = gva.build(_load(THREE_ARM), _load(NOISE_FLOOR), None, None, None,
+                     _load(DEPARTURE_RERUN), _load(DEPARTURE_BASELINE))
+    offenders = []
+
+    def walk(node, where):
+        if isinstance(node, str):
+            if gva._republished_withdrawal(node) is not None:
+                offenders.append(where)
+        elif isinstance(node, dict):
+            for key, value in node.items():
+                walk(value, where + "." + key)
+        elif isinstance(node, list):
+            for index, value in enumerate(node):
+                walk(value, "{}[{}]".format(where, index))
+
+    walk(data, "")
+    assert offenders, (
+        "not one withdrawn sentence reaches the feed -- the record itself has stopped rendering, "
+        "and this control would pass vacuously")
+    stray = [where for where in offenders if not where.startswith(".withdrawn_claim")]
+    assert not stray, "withdrawn words are published outside the register at {}".format(stray)
