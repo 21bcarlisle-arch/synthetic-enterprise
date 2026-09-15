@@ -33,6 +33,8 @@ import importlib.util
 import sys
 from pathlib import Path
 
+import pytest
+
 from background import finding_classes as fc
 from background import finding_severity as fs
 
@@ -159,6 +161,144 @@ def test_an_unmatched_document_is_unclassed_never_forced_into_a_class(tmp_path):
     result = fc.classify_file(path)
     assert result.class_id is None
     assert result.is_classed is False
+
+
+# --- `blind` is a PREDICATE about a mechanism, never an adjective on a domain noun ---
+#
+# THE DEFECT (2026-09-15): `controls_that_cannot_fail` carried a bare `\bblind(ed|s|ness)?\b`, and
+# this project's domain vocabulary for a counterfactual book that cannot see a home is *blind
+# envelope* / *blind book* / *blind arm* / *fabric-blind*. So the feature's own NAME filed every
+# document the blind-envelope cluster produced into a class about controls. The author of
+# `SEAT_FINDING_THE_ENVELOPE_AND_THE_FORK_MERGE_ARE_ENTANGLED…_2026-09-15` worked around it by
+# re-titling the document to dodge the trigger word, and recorded that workaround as the
+# recommended move — which is the thing these legs exist to make unnecessary.
+#
+# BOTH DIRECTIONS ARE ASSERTED, and that is the point. A narrowing is asymmetric: only the false
+# positive is visible, and a leg that checks only "the domain phrase does not classify" passes
+# against a pattern that matches NOTHING. The true-positive leg is what stops this narrowing from
+# being a deletion, and `test_MUTATION_the_blind_narrowing_is_load_bearing` proves each leg can
+# actually go red.
+
+#: Real subjects, quoted from documents on the live staged corpus. `blind` is ATTRIBUTIVE in front
+#: of a domain or method noun in every one — none of them is about a control.
+_BLIND_AS_DOMAIN_VOCABULARY = (
+    "PREREG DOES THE BLIND ENVELOPE DELTA APPLY AND RENDER AT ORIGIN MAIN 2026-09-15",
+    "SEAT PREREGISTRATION TWO FABRIC BLIND ARMS SEPARATE FEWER ACCOUNTS FROM DIFFERENT ACCOUNTS",
+    "RESULT — on GROSS margin the chosen book is INSIDE the blind spread",
+    "BOARD SPECIFICATION 002 — Weather (blind practitioner spec, VERBATIM)",
+    # The withdrawn FIRST DRAFT title of the entanglement finding — the title a seat would
+    # naturally write, and the one that forced the re-titling this claim removes.
+    "The blind envelope is built, gated and verified against the real feed",
+)
+
+#: Real subjects, same corpus, where `blind` IS the class's subject. Note what this project calls
+#: its controls: a census, an oracle, a flag, a gap, a repair, a bulk pass. A rule keyed to the
+#: WORD "control" sees none of them.
+_BLIND_AS_A_CONTROL_DEFECT = (
+    "the census is blind to the half that reaches the reader",
+    "WORKER REPORT THE ORACLE WAS BLIND IN THE DIMENSION THAT DRIFTED 2026-08-10",
+    "WORKER FINDING A BULK PASS BLINDS THE AGED STAGING DIGEST 2026-08-12",
+    "WORKER FINDING RULE 3 HAS THE SAME RENAME BLINDNESS 2026-08-10",
+    "the field that became the control's blind spot",
+    "does the second floor separate a caller that catches from a suite that is blind?",
+)
+
+#: THE REFUTED REMEDY, kept as a control in its own right. The entanglement finding proposed
+#: requiring a control noun (control, test, gate, guard, check, assertion, gauge) to co-occur.
+#: Measured over all 31 staged blind-token documents that rule drops 16 of 21 true positives —
+#: and it also RE-ADMITS the cluster it was written for, because a finding about the blind
+#: envelope names the envelope's door TEST or its eight skipped CONTROLS by construction. These
+#: two subjects are what a co-occurrence rule would misfile again, so pinning them here is what
+#: stops the refuted remedy being re-adopted by someone reading only the finding.
+_BLIND_DOMAIN_NOUN_BESIDE_A_CONTROL_NOUN = (
+    "SEAT FINDING THE BLIND ENVELOPE DOOR TEST REPORTED A SKIP SEVEN TIMES A RUN",
+    "The blind envelope's eight controls skip because the arm is unpublished",
+)
+
+
+@pytest.mark.parametrize("subject", _BLIND_AS_DOMAIN_VOCABULARY)
+def test_blind_as_domain_vocabulary_is_not_a_control_that_cannot_fail(subject):
+    result = fc.classify_subject(subject)
+    assert result.class_id != "controls_that_cannot_fail", (
+        f"{subject!r} was filed into a class about controls blind to their own subject, "
+        f"on the word {result.phrase!r}"
+    )
+
+
+@pytest.mark.parametrize("subject", _BLIND_AS_A_CONTROL_DEFECT)
+def test_a_control_blind_to_its_subject_still_classifies(subject):
+    """The leg that stops the narrowing from being a deletion."""
+    result = fc.classify_subject(subject)
+    assert result.class_id == "controls_that_cannot_fail", (
+        f"{subject!r} names a mechanism blind to its own subject and classified "
+        f"{result.class_id!r} — the narrowing has cut into the class it was meant to protect"
+    )
+
+
+@pytest.mark.parametrize("subject", _BLIND_DOMAIN_NOUN_BESIDE_A_CONTROL_NOUN)
+def test_a_control_noun_beside_a_domain_blind_does_not_re_admit_it(subject):
+    """The refuted co-occurrence remedy, pinned so it cannot quietly come back."""
+    assert fc.classify_subject(subject).class_id != "controls_that_cannot_fail", subject
+
+
+#: The three lines this claim replaced the bare pattern with, as one anchor for `_load_mutant`.
+_NARROWED_PATTERN_SOURCE = (
+    '            r"\\bblind(ed)?[_ ](to|in|about|towards?)\\b",\n'
+    '            r"\\bblindness\\b|\\bblinds\\b|\\bblind[_ ]spots?\\b",\n'
+    '            r"\\b(is|was|are|were|goes|went|stays?|stayed|remains?|became)[_ ]blind\\b",'
+)
+
+
+def test_MUTATION_reverting_to_the_bare_blind_pattern_refiles_the_domain_vocabulary(tmp_path):
+    """Leg 1 can fail: put `\\bblind(ed|s|ness)?\\b` back and the domain subjects are misfiled
+    again — including the withdrawn draft title that forced the re-titling workaround."""
+    mutant = _load_mutant(
+        tmp_path,
+        _NARROWED_PATTERN_SOURCE,
+        '            r"\\bblind(ed|s|ness)?\\b",',
+        "fc_bare_blind",
+    )
+    refiled = [
+        s for s in _BLIND_AS_DOMAIN_VOCABULARY
+        if mutant.classify_subject(s).class_id == "controls_that_cannot_fail"
+    ]
+    assert refiled == list(_BLIND_AS_DOMAIN_VOCABULARY), (
+        "the bare pattern must misfile EVERY domain subject, or those fixtures are not the "
+        f"defect this claim fixed — only {len(refiled)} of {len(_BLIND_AS_DOMAIN_VOCABULARY)} were"
+    )
+
+
+def test_MUTATION_the_refuted_control_noun_remedy_would_empty_the_class(tmp_path):
+    """Leg 2 can fail, and it is the leg the record gets wrong. Swap in the co-occurrence rule
+    the entanglement finding recommended and most genuine control-blindness findings fall OUT of
+    the class, while the blind-envelope cluster's own documents fall back IN."""
+    mutant = _load_mutant(
+        tmp_path,
+        _NARROWED_PATTERN_SOURCE,
+        # `[\s\S]` rather than `(?s)` — `_p` compiles these with `re.I` only, and an inline
+        # flag group is a syntax error anywhere but the start of a pattern.
+        '            r"\\bblind(ed|s|ness)?\\b(?=[\\s\\S]*'
+        '\\b(control|test|gate|guard|check|assertion|gauge))'
+        '|\\b(control|test|gate|guard|check|assertion|gauge)\\b[\\s\\S]*'
+        '\\bblind(ed|s|ness)?\\b",',
+        "fc_control_noun",
+    )
+    dropped = [
+        s for s in _BLIND_AS_A_CONTROL_DEFECT
+        if mutant.classify_subject(s).class_id != "controls_that_cannot_fail"
+    ]
+    assert len(dropped) >= 4, (
+        "measured on the live corpus the control-noun rule drops 16 of 21 true positives; "
+        f"only {len(dropped)} of these {len(_BLIND_AS_A_CONTROL_DEFECT)} fixtures reproduce that"
+    )
+    re_admitted = [
+        s for s in _BLIND_DOMAIN_NOUN_BESIDE_A_CONTROL_NOUN
+        if mutant.classify_subject(s).class_id == "controls_that_cannot_fail"
+    ]
+    assert re_admitted == list(_BLIND_DOMAIN_NOUN_BESIDE_A_CONTROL_NOUN), (
+        "the co-occurrence rule must re-admit the cluster's own documents, or the leg that "
+        "pins the refutation is asserting something that was never in question"
+    )
 
 
 def test_a_class_document_is_not_a_member_of_its_own_class(tmp_path):

@@ -188,6 +188,47 @@ def _p(*alternatives: str) -> tuple[re.Pattern[str], ...]:
     return tuple(re.compile(a, re.I) for a in alternatives)
 
 
+#: WHY `blind` IS PREDICATIVE-ONLY IN `controls_that_cannot_fail`, and why the obvious fix was
+#: measured and REFUTED. Narrowing a pattern to kill a false positive is asymmetric — the false
+#: positive is the thing you can see, and the false negatives it creates are silent — so this one
+#: was scored against the whole staged corpus before it was written, not after.
+#:
+#: THE DEFECT. `\bblind(ed|s|ness)?\b` matched *blind envelope*, *blind book*, *blind arm*,
+#: *blind spread*, *fabric-blind* and *blind practitioner spec*. Those are DOMAIN and METHOD
+#: vocabulary — a counterfactual book that cannot see a home, and a practitioner blinded to our
+#: results — and neither is a control blind to its own subject. A seat writing up the blind-envelope
+#: cluster therefore had two moves, both bad: mis-title the document, or let it be misfiled. The
+#: author of `SEAT_FINDING_THE_ENVELOPE_AND_THE_FORK_MERGE_ARE_ENTANGLED…_2026-09-15` took the
+#: first and recorded the workaround as the recommended move. That is what this pattern removes.
+#:
+#: THE REMEDY THAT FINDING PROPOSED — require a CONTROL NOUN (control, test, gate, guard, check,
+#: assertion, gauge) to co-occur — was measured over all 31 staged documents whose subject carries
+#: a blind-token (21 hand-labelled true, 10 false) and it FAILS IN BOTH DIRECTIONS:
+#:
+#:   * AS A REQUIREMENT it drops 16 of the 21 true positives, because this project names its
+#:     controls after what they do, not after the word "control": *the CENSUS is blind to the half
+#:     that reaches the reader*, *the ORACLE was blind in the dimension that drifted*, *the belief
+#:     GAP is blind to who holds the belief*, *a bulk pass BLINDS the aged digest*. One of the 16 is
+#:     the only live root document in the class.
+#:   * AS AN ALTERNATIVE ROUTE it re-opens the very hole it was written to close, because a finding
+#:     about the blind envelope carries a control noun BY CONSTRUCTION — the cluster's live
+#:     documents are about the envelope's DOOR TEST and its eight skipped CONTROLS.
+#:
+#: WHAT SEPARATES THEM IS GRAMMAR, NOT VOCABULARY. Every true positive uses `blind` as a PREDICATE
+#: about a mechanism (blind TO, blind IN, blindNESS, BLINDS, blind SPOT, IS blind); every false
+#: positive uses it ATTRIBUTIVELY, in front of a domain noun. Scored the same way, the predicative
+#: rule keeps 20 of 21 true positives and 0 of 10 false ones. The one it drops is a PREREG about
+#: this classifier, which names `blind` as a token rather than using it — out of the root population
+#: in any case, and arguably classed correctly.
+#:
+#: A BLACKLIST OF THE DOMAIN COMPOUNDS would score identically today and was rejected: it would
+#: need a new entry for every noun the domain coins next, and it fails OPEN — the day someone
+#: writes *blind tariff* the misfiling is back and nothing says so. This rule fails CLOSED in the
+#: direction that is cheap: a genuine control-blindness finding titled without a predicate goes
+#: UNCLASSED, which `check()` can still see, rather than being filed under a class it does not
+#: belong to, which nothing can.
+
+
 #: DECLARED PRECEDENCE — first match wins (see module docstring). The order runs from the
 #: most specific mechanism (a gate that wedged publishing) to the most general symptom (a
 #: thing that never runs), because the general patterns would otherwise swallow the
@@ -222,7 +263,15 @@ CLASSES: tuple[FindingClass, ...] = (
             r"cannot[_ ]fail",
             r"\bdisarm(s|ed|ing)?\b|\bsilenced\b|\bswallow(s|ed)?\b|\bcensors\b",
             r"\bno[_ ]falsifier\b|has[_ ]no[_ ]falsifier",
-            r"\bblind(ed|s|ness)?\b",
+            # `blind` ONLY WHERE IT IS A PREDICATE ABOUT A MECHANISM — see `_WHY_BLIND_IS_
+            # PREDICATIVE_ONLY` below for the measurement that chose this shape over the two
+            # obvious alternatives. Bare `\bblind(ed|s|ness)?\b` fired on this project's own
+            # domain and method vocabulary (*blind envelope*, *blind book*, *blind arm*,
+            # *blind spread*, *fabric-blind*, *blind practitioner spec*), so the blind-envelope
+            # feature's own NAME filed every document it produced into a class about controls.
+            r"\bblind(ed)?[_ ](to|in|about|towards?)\b",
+            r"\bblindness\b|\bblinds\b|\bblind[_ ]spots?\b",
+            r"\b(is|was|are|were|goes|went|stays?|stayed|remains?|became)[_ ]blind\b",
             r"mutation.*(surviv|patches[_ ]both)|surviv.*mutation",
             r"\b(guard|control|refusal|alarm|gate|check)\b.*\b(did[_ ]not[_ ]fire|never[_ ]fire|does[_ ]not[_ ]fire)",
             r"fires[_ ]on[_ ]the[_ ]word|trips[_ ]on[_ ]the[_ ]word",
