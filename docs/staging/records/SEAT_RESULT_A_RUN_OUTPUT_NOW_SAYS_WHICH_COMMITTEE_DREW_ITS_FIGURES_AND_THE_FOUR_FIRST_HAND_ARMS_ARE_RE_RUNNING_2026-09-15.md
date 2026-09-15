@@ -95,6 +95,27 @@ and an honest absence with its reason is the right answer for it.
   `~/.cache/seat_lane0/launch_arms.sh` → `~/.cache/seat_lane0/arms.log`. Order: `cull` (ARM A),
   `cull83` (ARM C), `tenure` (ARM D), `chosen` (ARM B). Outputs land at
   `~/.cache/seat_lane0/arm_<key>.json`.
+
+  > **CORRECTED 2026-09-15T18:05Z, beside the claim. THIS LAUNCH DIED AND THIS BULLET WAS WRONG
+  > WHEN IT WAS WRITTEN.** `setsid` cannot detach anything on this box: the tick runs inside
+  > `worker-tick.service`, which is `Type=oneshot` / `KillMode=control-group`, and `setsid` changes
+  > the session and the process group — a cgroup is neither. All four arms were killed **8m41s**
+  > in, at 18:00:47Z, with only `cull` ever started and **no output written at all**. The signature
+  > is the catalogued one: truncated final line, zero tracebacks in 9.9 MB, and no `END arm=` line
+  > (so bash died too, not just python). Neither OOM nor the extract's missing `.git` is the cause;
+  > both were checked and excluded.
+  >
+  > **This bullet is the exact shape the paragraph below warns about.** The harness was
+  > smoke-tested and the record says so; the **launcher** was not, and the launcher is what failed.
+  > A process state was published here as an established fact, became the next tick's premise, and
+  > carried a `DO NOT RELAUNCH` instruction that discouraged the one check that would have caught
+  > it. Liveness must be keyed to the property — `cat /proc/<pid>/cgroup` naming the job's own unit
+  > — never to the log's size or to this sentence.
+  >
+  > **Relaunched 18:07:24Z** under `systemd-run --user --unit=blind-arms-rerun` (no `--collect`, so
+  > `Result` survives a death), verified into its own cgroup, everything else unchanged. Full
+  > account, and what the next tick should check before filing:
+  > `docs/staging/SEAT_FINDING_THE_DRAWN_PREMISE_CHECKED_A_COMMIT_AND_THE_THING_THAT_MATTERED_WAS_FOUR_DEAD_PROCESSES_2026-09-15.md`.
 * **Smoke-tested before the 52 minutes were spent**, which is the only reason this is a record and
   not a prediction. `reconcile_and_stamp` in the extract returns
   `producing_commit.commit = "331c4958f"`, `execution_mode.fast = true`,
