@@ -559,6 +559,27 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
        market bound does: a reader who meets the figure and reaches the band three paragraphs
        later has already formed the impression. -->
   <div id="arms-redraw" style="margin:0 0 16px;"></div>
+  <!-- THE FOUR BOOKS THAT CANNOT SEE A HOME, AND WHERE THE CHOSEN ONE SITS AGAINST THEM.
+       Everything above this block compares the per-customer arm against ONE baseline. The
+       director's thesis is that an advantage means nothing without a baseline to beat, and a
+       single baseline cannot answer the question that actually decides whether a gap is a
+       result: how far apart do two baselines sit anyway? On 2026-09-11 four fabric-blind books
+       existed in one world for the first time, so the spread BETWEEN baselines is measurable and
+       the chosen book's gap can be read against it.
+       WHY IT IS HERE AND NOT IN A STAGING RECORD. Its verdict is unflattering on three lines of
+       five. A surface that publishes the £270 selection leg and not the four books that bracket
+       it is publishing the half of a measured result that reads well, which is not evidence.
+       WHY THE POUNDS ARE NOT ON THIS BLOCK. All five arms ran SIM_FAST_MODE=1, identically, so
+       the DIFFERENCES between them are clean and the absolute figures are not comparable to the
+       published run anywhere else on this site. Positions and percentages are what a shared fast
+       mode earns; a pound figure here would be read against the pounds three panels up and mean
+       something neither run supports. The arms' own measured lines are in
+       docs/design/blind_envelope_arms_2026-09-11.json.
+       NOTHING IS AUTHORED. Every span, position, distance and caveat is `blind_envelope.*` in
+       ../data/value_arms.json, computed at publish time by
+       `tools.generate_value_arms_data._blind_envelope` from that artefact's measured figures.
+       The only thing composed here is the table's furniture. -->
+  <div id="arms-blind-envelope" style="margin:0 0 16px;"></div>
   <p id="arms-published" style="margin:0 0 16px;"></p>
   <!-- WHAT THE WORLD COULD DO ABOUT EITHER ARM. Above the tables on purpose, for the same reason
        the coverage clause sits inside the headline: a reader who meets "£159,423 against £154,699"
@@ -1436,6 +1457,111 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       + "</span>";
   }
 
+  /* THE BLIND ENVELOPE. See the comment on `#arms-blind-envelope` for why this block exists and
+     why it carries no pounds.
+
+     THE ONE WORD THIS BLOCK DERIVES is "worse", and it is NOT derived from the sign. On four of
+     the five lines a chosen book above the blind span is the chosen book doing better; on bad
+     debt — the line that carries the whole result — above is doing worse. So the direction comes
+     from `higher_is_better` in the feed, via `worse_for_the_chosen_book`, and this page reads a
+     boolean rather than a sign. A block that inferred it from the arithmetic would report the
+     single most decision-relevant figure on this page backwards, and read perfectly while doing
+     it.
+
+     THE ROBUSTNESS COLUMN IS NOT DECORATION. One of the four blind arms is held second-hand —
+     its figures are cited from a result stranded on a fork, not read from a run output here. Three
+     verdicts hold when it is dropped and two flip. Rendering all five at one confidence would
+     publish "INSIDE on gross margin", the most flattering line in the block, as though it were as
+     solid as the three that are not.
+
+     FAIL CLOSED ON EVERY BRANCH. No envelope renders as a named absence with its reason, never as
+     a missing section: a block that vanishes when its artefact goes missing reads to the reader
+     as a comparison nobody thought to make. A withheld LINE renders as a row saying so, for the
+     same reason — four rows where there were five reads as four lines having been measured. */
+  function blindEnvelope(be) {
+    if (!be || !be.available) {
+      return '<p style="margin:0;font-size:13px;color:var(--amber);">'
+        + "<strong>THE BLIND SPAN IS NOT SHOWN ON THIS PUBLISH.</strong> "
+        + prose(be && be.why_not ? be.why_not
+                : "This publish carries no blind-envelope block at all, so where the chosen book "
+                  + "sits against books that cannot see a home is unstated here — not settled.")
+        + "</p>";
+    }
+    var pct = function (v, withSign) {
+      if (v === null || v === undefined || isNaN(v)) return null;
+      var n = Number(v);
+      return (withSign && n > 0 ? "+" : "") + n.toFixed(2) + "%";
+    };
+    /* THE WORD A READER GETS FOR EACH POSITION. Spelled out rather than printed as the feed's
+       enum, because "below_all" on a page is a field name that leaked. */
+    var WORDS = { inside: "INSIDE the span", above_all: "ABOVE every blind book",
+                  below_all: "BELOW every blind book" };
+    var anyWorse = false;
+    var rows = (be.lines || []).map(function (line) {
+      var head = '<tr><td style="padding:4px 10px 4px 0;">' + esc(line.label) + "</td>";
+      if (!line.available) {
+        return head + '<td colspan="3" style="padding:4px 0;color:var(--amber);">'
+          + "<strong>WITHHELD.</strong> "
+          + prose(line.why_not || "This line is not carried by every arm, so no span over them "
+              + "is a span over the same quantity.") + "</td></tr>";
+      }
+      var worse = line.worse_for_the_chosen_book;
+      if (worse === true) anyWorse = true;
+      var colour = worse === true ? "var(--amber)" : "var(--muted)";
+      var survives = line.survives_dropping_the_second_hand_arm;
+      return head
+        + '<td style="text-align:right;padding:4px 10px 4px 0;white-space:nowrap;">'
+        + esc(pct(line.span_pct) === null ? "—" : pct(line.span_pct)) + "</td>"
+        + '<td style="padding:4px 10px 4px 0;color:' + colour + ';font-weight:600;">'
+        + esc(WORDS[line.position] || line.position)
+        + (line.distance_pct === null || line.distance_pct === undefined ? ""
+           : ", by " + esc(pct(line.distance_pct, true)))
+        + (worse === true ? " &mdash; WORSE" : "") + "</td>"
+        + '<td style="padding:4px 0;font-size:11.5px;color:'
+        + (survives === false ? "var(--amber)" : "var(--muted)") + ';">'
+        + (survives === true ? "holds without it"
+           : survives === false ? "<strong>turns on it</strong>"
+           : "not re-checked") + "</td></tr>";
+    }).join("");
+    var caveat = function (label, text) {
+      return !text ? "" : '<p style="margin:6px 0 0;font-size:11.5px;color:var(--muted);">'
+        + "<strong>" + esc(label) + "</strong> " + prose(text) + "</p>";
+    };
+    return '<h3 style="margin:0 0 6px;font-size:15px;">Against four books that cannot see a '
+      + "single home</h3>"
+      + '<p style="margin:0 0 8px;font-size:13px;">An advantage means nothing without a baseline '
+      + "to beat, and one baseline cannot say how far apart two baselines sit anyway. "
+      + esc(be.blind_arm_count) + " books settled in this same world <em>without seeing a single "
+      + "attribute of a single home</em>, and the min-to-max between them on each line is the "
+      + "<strong>blind span</strong>. The chosen book is inside it, above all of them, or below "
+      + "all of them &mdash; there is no fourth state. "
+      + (anyWorse ? "On the lines marked WORSE, choosing household by household made the company "
+                    + "money it did not make." : "")
+      + "</p>"
+      /* `table-scroll`, never an inline `overflow-x:auto` -- the mobile control counts the CLASS,
+         so an inline equivalent reads as a missing wrapper. This is a four-column table and the
+         widest cell is a whole sentence, so on a phone it is exactly the table that would scroll
+         the body if it were left unwrapped. */
+      + '<div class="table-scroll">'
+      + '<table style="width:100%;border-collapse:collapse;font-size:12.5px;">'
+      + '<tr style="text-align:left;color:var(--muted);font-size:11.5px;">'
+      + '<th style="font-weight:600;padding:0 10px 4px 0;">line</th>'
+      + '<th style="font-weight:600;text-align:right;padding:0 10px 4px 0;">how far apart the '
+      + "blind books sit</th>"
+      + '<th style="font-weight:600;padding:0 10px 4px 0;">where the chosen book sits</th>'
+      + '<th style="font-weight:600;padding:0 0 4px;">if the second-hand arm is dropped</th></tr>'
+      + rows + "</table></div>"
+      /* THE DIGEST ON THE BLOCK, not in a file. These five arms are comparable ONLY because they
+         are five arms of one world, and a reader who cannot check that is being asked to take the
+         span on trust. It is the precondition of every row above, so it sits under them. */
+      + '<p style="margin:8px 0 0;font-size:11.5px;color:var(--muted);"><strong>One world, '
+      + "digest <code>" + esc(be.world_digest) + "</code>.</strong> "
+      + prose(be.comparable_because || "") + "</p>"
+      + caveat("The second-hand arm.", be.second_hand_caveat)
+      + caveat("These are orderings, not intervals.", be.one_seed)
+      + caveat("No pounds are quoted here, on purpose.", be.pounds_are_not_publishable);
+  }
+
   function redrawBand(cw) {
     if (!cw || !cw.available) {
       return '<p style="margin:0;font-size:13px;color:var(--muted);">'
@@ -1598,6 +1724,12 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
       /* THE BAND, IMMEDIATELY UNDER THE FIGURE IT BOUNDS. Rendered on every branch, including
          the one where there is no current-world run at all — see `redrawBand`. */
       $("arms-redraw").innerHTML = redrawBand(d.current_world);
+
+      /* THE FOUR BLIND BOOKS. Rendered from `d.blind_envelope`, which is the ONE block on this
+         feed that sits above the `available` gate — it describes a different set of runs from
+         everything else here, so a missing three-arm artefact must not take the baseline down
+         with it. Rendered on every branch, including the one where the artefact is gone. */
+      $("arms-blind-envelope").innerHTML = blindEnvelope(d.blind_envelope);
 
       /* THE CHECKED CLAIM. "The supplier on this site IS the baseline arm" is recomputed from the
          published run every publish, and renders as its own negative if the two stop matching. */

@@ -192,7 +192,7 @@ def test_the_door_the_harness_boots_is_the_published_one():
 PANELS = ("arms-headline", "arms-published", "arms-realised", "arms-household", "arms-split",
           "arms-errorbar", "arms-decisions", "arms-method", "arms-inference", "arms-note",
           "arms-market", "arms-sample", "arms-departure", "arms-svt-belief",
-          "arms-composition", "arms-redraw", "arms-legs-first")
+          "arms-composition", "arms-redraw", "arms-legs-first", "arms-blind-envelope")
 
 
 def _text(fragment: str) -> str:
@@ -6292,3 +6292,228 @@ def test_the_live_page_does_NOT_disclaim_a_baseline_that_IS_its_current_run(live
     assert "is NOT the run this page's other figures are drawn from" not in live["arms-errorbar"], (
         "the page disclaims a divergence between its baseline and its current run on a publish "
         "where they are the same run")
+# ---------------------------------------------------------------------------
+# THE BLIND ENVELOPE — four books that cannot see a home, and where the chosen one sits
+#
+# WHY THIS SECTION EXISTS. Every other control in this file grades the page against ONE baseline.
+# The thesis's own requirement is a baseline to beat, and a single baseline cannot answer the
+# question that decides whether a gap is a result at all: how far apart do two baselines sit
+# anyway? On 2026-09-11 four fabric-blind books existed in one world for the first time, so the
+# spread BETWEEN baselines became measurable — and it turned out to be WIDER than the gross-margin
+# gap everyone had been reading as the cost of choosing, and NARROWER than the bad-debt and net
+# margin gaps nobody had published.
+#
+# WHAT THESE CONTROLS ARE KEYED TO, and it is deliberately not today's answer. A control pinned to
+# "net margin reads −3.01%" goes red the day a fifth arm lands and makes the page MORE honest, and
+# stays green if the whole block silently starts rendering the wrong direction. So the property
+# is: for every line the feed carries, a position against the blind span reaches the reader, and
+# the position the reader gets is the position the producer computed. Both halves survive any
+# number moving; neither survives the block going quiet or disagreeing with its own feed.
+# ---------------------------------------------------------------------------
+
+#: What a reader is shown for each of the producer's three position states. The door spells these
+#: out rather than printing the enum, so the map is the door's contract and lives here, once.
+_BLIND_POSITION_WORDS = {"inside": "INSIDE the span",
+                         "above_all": "ABOVE every blind book",
+                         "below_all": "BELOW every blind book"}
+
+
+def _blind(feed=None) -> dict:
+    """The envelope block as published, or a skip naming what is missing."""
+    block = ((_live_feed() if feed is None else feed).get("blind_envelope")) or {}
+    if not block.get("available"):
+        pytest.skip("this publish carries no available blind envelope ({}) -- "
+                    "`test_a_blind_envelope_the_producer_WITHHELD_renders_its_reason` owns that "
+                    "branch".format(block.get("why_not")))
+    return block
+
+
+def test_every_line_the_producer_MEASURED_reaches_the_reader_with_a_position(live):
+    """THE PROPERTY, and the whole reason the block was built: a reader can see where the chosen
+    book sits against the blind span on EVERY line, not on the flattering ones.
+
+    Keyed to the feed's line list, so a sixth line added to the artefact is covered the day it is
+    added. Keyed to the position WORD and never to a percentage, so every figure here may move
+    without this going red — and the block cannot go quiet on a line without it going red.
+
+    Fires on: dropping any row from the render, and on a line rendering a span with no position
+    beside it (which is the shape that reads as "measured, no verdict").
+    """
+    block = _blind()
+    text = live["arms-blind-envelope"]
+    assert block.get("lines"), "the producer published an available envelope carrying no lines"
+    for line in block["lines"]:
+        assert line["label"] in text, (
+            "the {!r} line is measured in the feed and reaches no reader of the page".format(
+                line["label"]))
+        if not line.get("available"):
+            continue
+        word = _BLIND_POSITION_WORDS[line["position"]]
+        assert word in text, (
+            "the page shows no position for {!r}: the producer computed {!r} and the reader gets "
+            "a span with no verdict beside it".format(line["label"], line["position"]))
+
+
+def test_the_position_the_reader_GETS_is_the_position_the_producer_COMPUTED(live):
+    """The page does not get to disagree with its own feed about which side of the span it fell.
+
+    THE COUNTING IS WHAT MAKES THIS BITE. Asserting each position word is merely PRESENT is an OR
+    across every line — three lines below the span and one wrongly rendered below make the string
+    appear either way. So the number of lines the producer put in each state must equal the number
+    of times a reader is told that state, which is falsified by a single line rendering the wrong
+    side even when the other four are right.
+
+    Fires on: inverting the position map, and on any single row taking another row's word.
+    """
+    block = _blind()
+    text = live["arms-blind-envelope"]
+    for state, word in _BLIND_POSITION_WORDS.items():
+        expected = sum(1 for ln in block["lines"]
+                       if ln.get("available") and ln.get("position") == state)
+        assert text.count(word) == expected, (
+            "the producer computed {} line(s) {!r} and the page says so {} time(s)".format(
+                expected, state, text.count(word)))
+
+
+def test_the_digest_that_makes_the_five_arms_comparable_is_on_the_block(live):
+    """Five arms are one experiment only because they are five arms of ONE world.
+
+    A reader shown a span across four books with no way to check they are the same world is being
+    asked to take the comparison on trust, and "a spread from one world over an estimate from
+    another" is this repository's named way of publishing something misleading. The digest is the
+    precondition of every row, so it renders with them.
+
+    Fires on: dropping the digest line, and on the block rendering while the producer's own
+    comparability sentence goes nowhere.
+    """
+    block = _blind()
+    text = live["arms-blind-envelope"]
+    assert block["world_digest"] in text, (
+        "the block publishes a span across {} books and never says they share a world".format(
+            block["blind_arm_count"]))
+
+
+def test_the_three_caveats_that_bound_every_row_reach_the_reader(live):
+    """Fast-mode pounds, one seed, and one arm held second-hand.
+
+    Each of these makes a row mean LESS than it looks, and a figure published without the bound
+    its evidence earns is worse than no figure. They are the producer's sentences, asserted by
+    identity rather than by keyword, so a reworded caveat cannot pass by containing the word the
+    test happened to look for.
+
+    Fires on: dropping any of the three from the render.
+    """
+    block = _blind()
+    text = live["arms-blind-envelope"]
+    for key in ("pounds_are_not_publishable", "one_seed", "second_hand_caveat"):
+        sentence = (block.get(key) or "").split(" -- ")[0].split(". ")[0]
+        assert sentence and sentence in text, (
+            "the {!r} caveat bounds every row above it and reaches no reader".format(key))
+
+
+def test_MUTATION_which_direction_is_WORSE_comes_from_the_feed_and_not_from_the_sign():
+    """THE DEFECT THIS CATCHES IS A PAGE THAT READS PERFECTLY AND IS BACKWARDS.
+
+    On four of the five lines the chosen book being ABOVE the blind books is it doing better. On
+    bad debt — the line that carries the whole result — above is it doing WORSE. A block that took
+    the direction from the arithmetic would mark bad debt as the good news and net margin as the
+    bad, print a fluent sentence either way, and pass every presence control in this file.
+
+    ONE VARIABLE. The two subjects differ in `higher_is_better` on one line and in nothing else;
+    the producer's own `worse_for_the_chosen_book` follows it, and the WORSE marking must follow
+    that. Both branches are exercised, because a page that marked everything WORSE would satisfy
+    a one-sided assertion.
+    """
+    block = _blind()
+    worse_line = next((ln for ln in block["lines"]
+                       if ln.get("available") and ln.get("worse_for_the_chosen_book") is True),
+                      None)
+    assert worse_line is not None, (
+        "no line on this publish is worse for the chosen book, so this control cannot be run "
+        "against the live feed -- it is UNAVAILABLE, which is a failed check")
+
+    def _rendered(worse):
+        feed = copy.deepcopy(_live_feed())
+        for line in feed["blind_envelope"]["lines"]:
+            if line.get("label") == worse_line["label"]:
+                line["worse_for_the_chosen_book"] = worse
+        return _render(feed)["arms-blind-envelope"]
+
+    marked = _rendered(True)
+    unmarked = _rendered(False)
+    assert "WORSE" in marked, "a line the producer calls worse for the chosen book is not marked"
+    assert marked.count("WORSE") > unmarked.count("WORSE"), (
+        "the WORSE marking does not follow `worse_for_the_chosen_book`, so the page is deciding "
+        "which direction is bad from the sign -- and on bad debt the sign says the opposite")
+
+
+def test_MUTATION_a_verdict_that_TURNS_ON_the_second_hand_arm_is_marked_differently():
+    """Two of these five verdicts survive dropping the one arm we did not read ourselves, and two
+    do not. Rendering all five at one confidence publishes the flattering pair as though it were
+    as solid as the unflattering three.
+
+    Both branches, one variable: the same line rendered with the producer's robustness verdict
+    flipped and nothing else changed.
+
+    Fires on: rendering the robustness column as one constant string, and on dropping it.
+    """
+    block = _blind()
+    subject = next((ln for ln in block["lines"]
+                    if ln.get("survives_dropping_the_second_hand_arm") is not None), None)
+    assert subject is not None, (
+        "no line carries a robustness verdict, so the column is UNAVAILABLE and an unavailable "
+        "check is a failed check")
+
+    def _rendered(survives):
+        feed = copy.deepcopy(_live_feed())
+        for line in feed["blind_envelope"]["lines"]:
+            if line.get("label") == subject["label"]:
+                line["survives_dropping_the_second_hand_arm"] = survives
+        return _render(feed)["arms-blind-envelope"]
+
+    holds = _rendered(True)
+    turns = _rendered(False)
+    assert holds != turns, (
+        "a verdict that turns on the second-hand arm renders identically to one that holds "
+        "without it, so the reader cannot tell the flattering pair from the solid three")
+    assert "turns on it" in turns, (
+        "a verdict the producer says does not survive dropping the second-hand arm is not said so")
+
+
+def test_MUTATION_a_blind_envelope_the_producer_WITHHELD_renders_its_reason_and_not_a_gap():
+    """FAIL CLOSED, ON THE SURFACE. A block that simply vanishes when its artefact goes missing
+    reads to a reader as a comparison nobody thought to make, which is exactly the state this page
+    was in before the block existed.
+
+    Fires on: an early return of "" on the unavailable branch, and on a refusal that renders
+    without naming its cause.
+    """
+    feed = copy.deepcopy(_live_feed())
+    feed["blind_envelope"] = {
+        "available": False,
+        "why_not": ("these arms do not share one world, so their spread is a figure from one "
+                    "world differenced against a figure from another")}
+    text = _render(feed)["arms-blind-envelope"]
+    assert text.strip(), "a withheld envelope renders NOTHING, so the page goes quiet about it"
+    assert "do not share one world" in text, (
+        "the refusal does not name its reason, so a reader cannot tell a missing artefact from "
+        "arms that were never comparable")
+
+
+def test_MUTATION_a_single_WITHHELD_line_renders_as_a_row_and_not_as_a_shorter_table():
+    """Four rows where there were five reads as four lines having been measured.
+
+    Fires on: filtering unavailable lines out of the table rather than rendering their reason.
+    """
+    _blind()  # skips, with the reason named, when this publish has no envelope to withhold FROM
+    feed = copy.deepcopy(_live_feed())
+    subject = feed["blind_envelope"]["lines"][0]
+    label = subject["label"]
+    feed["blind_envelope"]["lines"][0] = {
+        "key": subject.get("key"), "label": label, "available": False,
+        "why_not": "not every arm reports this line, so no span over them is the same quantity"}
+    text = _render(feed)["arms-blind-envelope"]
+    assert label in text, "a withheld line is dropped from the table rather than saying so"
+    assert "WITHHELD" in text, "a withheld line renders with no word telling the reader it is one"
+    assert "no span over them is the same quantity" in text, (
+        "the withheld line names no reason, so it reads as a line nobody got round to")
