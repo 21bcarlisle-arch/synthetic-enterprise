@@ -39,10 +39,32 @@ this is the expected reading after a --release; if you did not, the claim was sw
 working unclaimed."* A holder reading that has no way to know which happened without going to the
 ledger by hand, as this one did.
 
-**And it is unrepairable after the fact.** `--landed` binds to a claim; with the claim swept there
-is nothing to bind to, and `--landed --commit a2d130044` returns the same sentence and `rc=0`. A
-successful landing whose commit is an **ancestor of origin/main** is proof the holder was working,
-and the bind throws that evidence away at the moment it is most conclusive.
+**And the bind cannot be repaired while the id is unclaimed.** `--landed` binds to a claim; with the
+claim swept there is nothing to bind to, and `--landed --commit a2d130044` returns the same sentence
+and `rc=0`. A successful landing whose commit is an **ancestor of origin/main** is proof the holder
+was working, and the bind throws that evidence away at the moment it is most conclusive.
+
+> **CORRECTION, filed by the same seat about twenty minutes after the paragraph above, and kept
+> beside it rather than replacing it.** That paragraph originally read *"it is unrepairable after
+> the fact"*, and that was too strong — I wrote it from one failed attempt, before I had seen the
+> other branch.
+>
+> What happened next: this very finding was landed as `184aed249` and promoted, and **its** binding
+> succeeded — the id had been re-drawn in the interval, so a claim existed again. With the claim
+> back, `--landed --commit a2d130044` **retroactively bound all five paths** of the already-pushed
+> commit. So the repair route does exist, and `--landed --commit <sha>` is it.
+>
+> **What this changes, and what it does not.** The mechanism defect stands unchanged: the sweep
+> cannot see a landing in flight, and the bind refuses on `NOT CLAIMED` at the moment the evidence
+> is strongest. What it changes is the *shape* of the cost. The repair is not a route a holder can
+> take — it is **contingent on the item being re-drawn**, which is exactly the wasteful re-offer the
+> sweep was supposed to be avoiding. A seat that finished, got swept, and stopped would leave the
+> work unattributed; this one only recovered because it kept working past the sweep and happened to
+> land a second commit after the re-draw. **Recovery by luck is not a remedy**, and remedy (1) below
+> is what would make it one.
+>
+> Recording this because a prediction filed after the answer is not a prediction, and a claim
+> quietly revised is not evidence of anything.
 
 ## The remedy, and the lane already has the parts
 
@@ -53,7 +75,11 @@ the ledger. Two shapes follow, in order of how much they cost:
 1. **`--landed` should accept an origin-ancestor commit from an unclaimed id** and re-establish the
    binding, rather than refusing. The commit is stronger evidence than the claim ever was: a claim
    says someone *intended* to work, an ancestor commit says they *did*. This is where the evidence
-   is thrown away and it is the cheapest place to stop throwing it.
+   is thrown away and it is the cheapest place to stop throwing it. **The correction above is what
+   makes this the first remedy rather than a nice-to-have:** the retroactive bind already works
+   perfectly well once a claim exists, so the only thing standing between a swept holder and a
+   repaired attribution is the `NOT CLAIMED` guard itself. The capability is built; the guard
+   refuses to let it fire in the one state where it is needed.
 2. **The sweep should read the draw ledger's landings, not only the draw time.** A holder with a
    commit inside the window is not abandoned. `--landed` already *"restart[s] its deadline from that
    commit's own timestamp"* — the concept exists; it just cannot fire from an unclaimed id, which
