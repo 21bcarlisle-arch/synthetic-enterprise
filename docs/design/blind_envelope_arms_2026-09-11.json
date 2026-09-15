@@ -1,0 +1,120 @@
+{
+  "what_this_is": "Five books, one world. Four of them cannot see a single attribute of a single home (fabric-blind); the fifth is the book the company's chooser actually settled. The four blind books are the BASELINE the chosen book has to beat, and their min-to-max on each line is the BLIND SPAN. This artefact carries only what each run MEASURED. Every span, position and percentage a reader sees is computed at publish time by `tools.generate_value_arms_data._blind_envelope` -- none is stored here, because a figure kept beside the numbers it is derived from gets edited on two days for two reasons.",
+  "filed": "2026-09-11",
+  "result_record": "docs/staging/records/SEAT_RESULT_ON_GROSS_MARGIN_THE_CHOSEN_BOOK_IS_INSIDE_THE_BLIND_SPREAD_AND_ON_NET_MARGIN_IT_IS_BELOW_EVERY_BLIND_ARM_2026-09-11.md",
+  "preregistration_commit": "eed120328",
+  "world_digest": "39a192ce04c1eda8",
+  "comparable_because": "All five arms carry world_identity.digest 39a192ce04c1eda8. That is the ONLY reason these are five arms of one world rather than five runs of five worlds, and it is why the digest is carried on the block a reader sees rather than left in a file.",
+  "pounds_are_not_publishable": "All five arms ran SIM_FAST_MODE=1, identically. The differences between them are therefore clean and the ABSOLUTE pounds are not comparable to docs/reports/run_output_latest.json. No figure here may be published as a headline in pounds -- the surface renders positions and percentages, which is what the shared fast mode earns.",
+  "one_seed": "Every arm is deterministic at a fixed seed. The blind span is a spread over four BOOK SHAPES, not over four WORLDS, so it bounds how far the P&L moves when you change which blind book you settle and says nothing about sampling error across worlds. Every verdict below is an ORDERING against four arms, never a confidence interval.",
+  "lines": [
+    {
+      "key": "gross_margin_gbp",
+      "label": "Gross margin",
+      "higher_is_better": true
+    },
+    {
+      "key": "revenue_gbp",
+      "label": "Revenue",
+      "higher_is_better": true
+    },
+    {
+      "key": "bad_debt_gbp",
+      "label": "Bad debt",
+      "higher_is_better": false
+    },
+    {
+      "key": "net_margin_gbp",
+      "label": "Net margin",
+      "higher_is_better": true
+    },
+    {
+      "key": "net_after_cost_to_serve_gbp",
+      "label": "Net after cost to serve",
+      "higher_is_better": true
+    }
+  ],
+  "second_hand_caveat": "ARM C' is the one arm whose P&L this seat did not read from a run output. Its figures are cited from the other seat's result, which is in 34 commits that never reached origin; only its selection artefact (/var/tmp/p6_armC.json) survives on this box. It is carried because it is the only arm holding count, year mix AND spend -- and it is flagged, because two of the five verdicts turn on it.",
+  "arms": [
+    {
+      "key": "A_cull",
+      "label": "ARM A -- the cull, P6's blind arm",
+      "sees_fabric": false,
+      "first_hand": true,
+      "world_digest": "39a192ce04c1eda8",
+      "producing_commit": "p6-arm-cull",
+      "read_from": "/var/tmp/p6_arm_cull.json",
+      "figures": {
+        "gross_margin_gbp": 383688.9722023295,
+        "revenue_gbp": 676791.5332469969,
+        "bad_debt_gbp": 11675.76,
+        "net_margin_gbp": 147954.255661,
+        "net_after_cost_to_serve_gbp": 98643.6700445605
+      }
+    },
+    {
+      "key": "C_cull83",
+      "label": "ARM C -- the cull truncated to 83 accounts",
+      "sees_fabric": false,
+      "first_hand": true,
+      "world_digest": "39a192ce04c1eda8",
+      "producing_commit": "p6-arm-cull83",
+      "read_from": "/var/tmp/p6_armC_cull83.json",
+      "figures": {
+        "gross_margin_gbp": 380829.2892150242,
+        "revenue_gbp": 689269.1449957176,
+        "bad_debt_gbp": 8533.78,
+        "net_margin_gbp": 143764.298981,
+        "net_after_cost_to_serve_gbp": 94498.40086456052
+      }
+    },
+    {
+      "key": "D_tenure",
+      "label": "ARM D -- the shipped chooser with CHOICE_AXES stripped to customer_years",
+      "sees_fabric": false,
+      "first_hand": true,
+      "world_digest": "39a192ce04c1eda8",
+      "producing_commit": "p6-arm-tenure",
+      "read_from": "/var/tmp/p6_armD_tenure.json",
+      "figures": {
+        "gross_margin_gbp": 386386.17916776944,
+        "revenue_gbp": 695546.1941787401,
+        "bad_debt_gbp": 9462.24,
+        "net_margin_gbp": 149154.090119,
+        "net_after_cost_to_serve_gbp": 97326.43515324547
+      }
+    },
+    {
+      "key": "B_chosen",
+      "label": "ARM B -- the chosen book",
+      "sees_fabric": true,
+      "first_hand": true,
+      "world_digest": "39a192ce04c1eda8",
+      "producing_commit": "p6-arm-chosen",
+      "read_from": "/var/tmp/p6_arm_chosen.json",
+      "figures": {
+        "gross_margin_gbp": 374295.72502851026,
+        "revenue_gbp": 661157.8651492972,
+        "bad_debt_gbp": 14400.86,
+        "net_margin_gbp": 139439.497809,
+        "net_after_cost_to_serve_gbp": 90409.10140488924
+      }
+    },
+    {
+      "key": "Cprime_other_seat",
+      "label": "ARM C' -- the other seat's blind arm, at matched count, year mix and spend",
+      "sees_fabric": false,
+      "first_hand": false,
+      "world_digest": "39a192ce04c1eda8",
+      "producing_commit": null,
+      "read_from": null,
+      "figures": {
+        "gross_margin_gbp": 372220.98,
+        "revenue_gbp": 657273.41,
+        "bad_debt_gbp": 10916.13,
+        "net_margin_gbp": 143776.65,
+        "net_after_cost_to_serve_gbp": 94339.21
+      }
+    }
+  ]
+}
