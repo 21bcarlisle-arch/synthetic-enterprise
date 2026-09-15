@@ -51,6 +51,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from typing import NamedTuple
 
 from tools import maturity_map_store as map_store
 
@@ -309,8 +310,106 @@ def _scope_path_names(scope: list[ast.AST], module_file: Path,
     return known
 
 
+class _Helper(NamedTuple):
+    """A same-module `def` that writes somewhere, held so a CALL to it can be resolved.
+
+    `params` keeps EVERY positional parameter in declaration order, including the ones that are
+    not bindable, because dropping one would shift every later argument's position onto the wrong
+    name -- a resolver that quietly mis-binds is worse than one that declines.
+    """
+
+    params: tuple[str, ...]
+    bindable: frozenset[str]
+    scope: tuple[ast.AST, ...]
+    destinations: tuple[ast.expr, ...]
+
+
+def _module_helpers(module: ast.AST) -> dict[str, _Helper]:
+    """The module-level `def`s that write, by name. One frame of reach, and only this file's defs.
+
+    SAME MODULE ONLY, deliberately. A helper imported from elsewhere would need the other module's
+    parse and its own name resolution, and the shapes this was built for -- `_write_json`,
+    `_dump`, `_save` -- are private helpers beside the constant they write. Cross-module reach is
+    a different, larger thing and stays out rather than being half-done.
+    """
+    out: dict[str, _Helper] = {}
+    for node in getattr(module, "body", ()):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        scope = _own_scope(node)
+        destinations = _write_destinations(scope)
+        if not destinations:
+            continue
+        args = node.args
+        params = tuple(a.arg for a in (*args.posonlyargs, *args.args))
+        # A parameter REBOUND in the body is not the argument any more: after `path = OUT_DEFAULT`
+        # the write goes somewhere the call site never named, and following it would MANUFACTURE a
+        # path. Every Store of the name counts -- assignment, `for`, `with ... as`, walrus --
+        # because the question is only ever "can this still be the argument".
+        rebound = {n.id for n in scope
+                   if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store)}
+        bindable = frozenset(
+            a.arg for a in (*args.posonlyargs, *args.args, *args.kwonlyargs)
+            if a.arg not in rebound)
+        if not bindable:
+            continue
+        out[node.name] = _Helper(params, bindable, tuple(scope), tuple(destinations))
+    return out
+
+
+def _paths_written_through_helper(helper: _Helper, call: ast.Call, module_file: Path,
+                                  caller_known: dict[str, list[Path]],
+                                  module_known: dict[str, list[Path]]) -> set[Path]:
+    """Destinations this ONE call reaches, by binding its arguments to the helper's parameters.
+
+    The binding is then handed to the SAME resolver the helper's own scope already gets, so the
+    write shape does not have to be enumerated twice: `path.write_text(...)`,
+    `Path(path).write_text(...)`, `(path / "f.json").write_text(...)` and
+    `dest = path / "f.json"` all follow from `_scope_path_names` + `_static_paths` for free.
+
+    AN ARGUMENT IS RESOLVED BY `_static_paths` ALONE -- NO NAME WALK, and that is the one place
+    this is deliberately STRICTER than its neighbour above. A write DESTINATION is structurally a
+    path expression, so walking it for any known name is cheap and safe. An ARGUMENT is an
+    arbitrary expression: `_save(build_name(REGISTER_DOC))` would walk to a register this module
+    only reads and report it as written, one frame down, which is precisely the naming-keyed
+    misclassification the write-site key exists to prevent -- and its consumer's remedy is REVERT.
+    Missing a path costs a warning; claiming one costs a lane's work.
+
+    THE HELPER INHERITS THE MODULE'S NAMES, NOT THE CALLER'S. A helper called from inside another
+    function cannot see that function's locals, and lending them to it is the flat-name-map defect
+    that reported the director's axes as generated, arriving through a different door.
+    """
+    bound: dict[str, list[Path]] = {}
+    for index, arg in enumerate(call.args):
+        if isinstance(arg, ast.Starred) or index >= len(helper.params):
+            break  # `*args`, or more arguments than parameters: positions stop meaning anything
+        name = helper.params[index]
+        if name not in helper.bindable:
+            continue
+        paths = _static_paths(arg, module_file, caller_known)
+        if paths:
+            bound[name] = paths
+    for kw in call.keywords:
+        if kw.arg is None or kw.arg not in helper.bindable:
+            continue
+        paths = _static_paths(kw.value, module_file, caller_known)
+        if paths:
+            bound[kw.arg] = paths
+    if not bound:
+        return set()
+    known = _scope_path_names(list(helper.scope), module_file, {**module_known, **bound})
+    found: set[Path] = set()
+    for dest in helper.destinations:
+        found.update(_static_paths(dest, module_file, known))
+        found.update(p for n in ast.walk(dest) if isinstance(n, ast.Name)
+                     for p in known.get(n.id, ()))
+    return found
+
+
 def _paths_written_by_scope(node: ast.AST, module_file: Path,
-                            inherited: dict[str, list[Path]]) -> set[Path]:
+                            inherited: dict[str, list[Path]],
+                            helpers: dict[str, _Helper] | None = None,
+                            module_known: dict[str, list[Path]] | None = None) -> set[Path]:
     """Absolute destinations this scope writes, then every scope nested inside it.
 
     The module scope is resolved WHOLE before any nested def is entered, so a function defined
@@ -318,12 +417,26 @@ def _paths_written_by_scope(node: ast.AST, module_file: Path,
     """
     scope = _own_scope(node)
     known = _scope_path_names(scope, module_file, inherited)
+    if helpers is None:
+        helpers = _module_helpers(node)
+    if module_known is None:
+        module_known = known
     found: set[Path] = set()
     for dest in _write_destinations(scope):
         candidates = list(_static_paths(dest, module_file, known))
         candidates += [p for n in ast.walk(dest) if isinstance(n, ast.Name)
                        for p in known.get(n.id, ())]
         found.update(candidates)
+    # ONE FRAME DOWN. A call to a same-module helper that writes a parameter. This is NOT
+    # transitive by construction rather than by a depth counter: a call inside the helper is
+    # resolved when the helper's OWN scope is walked, where no parameter is bound to anything, so
+    # nothing a caller passed can reach a second frame. Two frames would need the binding to
+    # travel, and it does not.
+    for n in scope:
+        if (isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+                and n.func.id in helpers):
+            found |= _paths_written_through_helper(
+                helpers[n.func.id], n, module_file, known, module_known)
     # A method does NOT see its class body's names -- `PATH` in a class body is `self.PATH` or
     # `Cls.PATH` inside a method, never a bare `PATH`. So a nested scope of a CLASS inherits what
     # the class inherited, not what the class bound. Same reasoning as the per-function map above,
@@ -331,7 +444,7 @@ def _paths_written_by_scope(node: ast.AST, module_file: Path,
     # one-letter destination name in a method.
     handed_down = inherited if isinstance(node, ast.ClassDef) else known
     for nested in _nested_scopes(node):
-        found |= _paths_written_by_scope(nested, module_file, handed_down)
+        found |= _paths_written_by_scope(nested, module_file, handed_down, helpers, module_known)
     return found
 
 
@@ -349,6 +462,26 @@ WRITTEN_BUT_NOT_REPRODUCIBLE: frozenset[str] = frozenset({
     # `background/director_twin.py` rewrites the canon to record an overturn. The words are the
     # DIRECTOR'S; a run does not make them again.
     "docs/design/DIRECTOR_CANON.md",
+    # BOTH OF THE NEXT TWO WERE FOUND BY THE HELPER FRAME (delivery seat, 2026-09-15) AND BOTH
+    # BELONG ON THE AUTHORED SIDE. Reaching one frame into a helper found eight paths; six are
+    # photographs of a run and these two are not, which is the whole reason this list is separate
+    # from the scan rather than a filter inside it. Neither was write-reached before this change,
+    # so neither could have been carved out before it either -- they become load-bearing here.
+    #
+    # `background/discovery_agent._update_last_checked` reads this file, regex-substitutes ONE
+    # date line, and writes it back. The file says of itself: "Updated by discovery agent and
+    # manually when phases change assumptions." A daemon touching one line does not make the
+    # hand-written anchor rows below it reproducible, and REVERT is what a consumer does with a
+    # generated path.
+    "docs/market_research/ASSUMPTIONS.md",
+    # `background/naive_organ._rewrite_log` rewrites this ledger whole -- so the WRITING-MODE test
+    # passes where an `"a"` append would have been excluded by `WRITING_MODE_CHARS`. But the
+    # exclusion of append is not about the MODE, it is about a record no run can reproduce, and
+    # this is that record: `answer_organ_question` stores an answer and its fetchable evidence
+    # refs, supplied by a person and refused if empty. Read-modify-rewrite of an accumulated
+    # ledger is an append wearing a rewrite's clothes, and the mode check cannot see the
+    # difference. This entry is where that distinction is actually made.
+    "docs/observability/naive_organ_log.jsonl",
 })
 
 
@@ -413,10 +546,22 @@ def written_artefacts(root: Path | None = None) -> set[str]:
     here is a write SITE the constant reaches: `.write_text`/`.write_bytes`, an `open` in a
     writing mode, or the destination of `os.replace`-shaped move.
 
-    THE NAMED GAP. A path handed to a helper (`_write_json(BASELINE_PATH, data)`) and written one
-    frame down is NOT found -- following that needs interprocedural reach this does not attempt.
-    Such a path stays classified authored, which is the safe direction: the consumer then offers a
-    landing where a revert would have done, rather than a revert where work would be lost.
+    ONE FRAME OF REACH, AND WHAT IS STILL OUT (delivery seat, 2026-09-15). The gap this docstring
+    used to NAME -- a path handed to a helper (`_write_json(BASELINE_PATH, data)`) and written one
+    frame down -- is now followed: `_module_helpers` records each same-module `def` that writes,
+    and a call binds its arguments to those parameters before the helper's destination is
+    re-resolved. It found EIGHT paths, on seven producers, every one of which factored its write
+    into a `_write`-shaped helper and was therefore being offered a landing by the reconciler.
+    Two of the eight turned out to belong on the authored side anyway and are carved out below --
+    the frame found them, and the judgement about them is a separate question from finding them.
+
+    STILL OUT, and each on purpose rather than by omission: a helper in ANOTHER module (it needs
+    that module's parse and its name resolution -- a larger thing, not a half-done one); a helper
+    reached through TWO frames (the binding does not travel, so this is structural, not a depth
+    counter); a method called as `self._write(...)`; and a parameter REBOUND inside the helper,
+    which is refused because after `path = DEFAULT` the write no longer goes where the caller said.
+    All four degrade the same safe way the whole gap used to: the path stays classified authored,
+    so the consumer offers a landing where a revert would have done, rather than the reverse.
 
     AND WRITING IS NOT SUFFICIENT EITHER, WHICH IS WHY `WRITTEN_BUT_NOT_REPRODUCIBLE` EXISTS. Two
     paths in this tree are rewritten by a module and are still nobody's photograph: the maturity
