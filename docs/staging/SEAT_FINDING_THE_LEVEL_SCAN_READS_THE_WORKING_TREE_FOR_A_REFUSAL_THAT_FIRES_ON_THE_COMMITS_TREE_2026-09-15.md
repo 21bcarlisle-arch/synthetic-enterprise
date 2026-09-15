@@ -6,6 +6,13 @@
 contradict". Cost one full land-attempt cycle to discover, which is precisely the cost the
 defective field exists to prevent.
 
+**Discharged:** 2026-09-15, landed 5bb74abfd — the probe reads BOTH trees and returns their union, so trees that disagree read FROZEN. Falsifiers: `tests/tools/test_level_zero_contradicted_by_its_own_controls.py::test_a_blocker_archived_only_in_the_WORKING_tree_still_FREEZES_the_row`,
+`tests/tools/test_level_zero_contradicted_by_its_own_controls.py::test_the_probe_asks_the_SAME_mechanism_OPS11_refuses_with`,
+`tests/tools/test_level_zero_contradicted_by_its_own_controls.py::test_a_tree_git_cannot_read_is_FROZEN_and_never_a_clear_lane`
+
+(The sha is deliberately not in backticks: every backticked string in this claim is read as an
+artefact path and checked against the landed set, so a commit id inside one refuses the discharge.)
+
 ## What is wrong
 
 `tools/level_zero_contradicted_by_its_own_controls.py` carries a `frozen_by` field, and its own
