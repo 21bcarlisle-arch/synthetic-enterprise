@@ -92,6 +92,20 @@ read at all, the row is reported frozen with that as the named reason rather tha
 told "record this" on no information is the outcome this leg exists to stop, and the opposite
 error merely sends a reader to look at a lane that turns out to be clear.
 
+WHICH TREE THE PROBE READS, and it is not the obvious one. OPS11 fires inside the pre-commit gate,
+and `surgical_land` runs that gate against THE TREE THE COMMIT WOULD CREATE -- so the staging
+directory that decides the refusal is `HEAD`'s, not the working copy's. Until 2026-09-15 this
+probe read only the working copy, and in a shared worktree the two routinely disagree: a sibling
+lane had moved nine findings into `docs/staging/done/` without committing the move, the working
+copy therefore showed `H_harness` clear, the scan printed MOVABLE NOW for `SITE4_ia_register_and_
+nav`, and the gate found those nine still live at `HEAD` and refused. Both readings were right
+about the tree each looked at, and the reader paid exactly the turn `frozen_by` exists to save.
+
+So the probe reads BOTH and takes the UNION, which is the fail-closed direction stated as a rule:
+an uncommitted archival is a discharge that has not happened yet, so trees that DISAGREE mean
+frozen, never movable. A finding live only at `HEAD` is printed with that said on its own line,
+because `find docs/staging` will not show it and the next reader would otherwise call it a ghost.
+
 WHY IT IS NOT A PRE-COMMIT GATE, measured rather than argued. It runs pytest over arbitrary named
 files; `KNIFE3_wall_crossing_paydown` alone names twelve architecture suites. The first full pass
 against the live tree was still running at SEVEN MINUTES. A gate that costs minutes gets bypassed,
@@ -106,9 +120,12 @@ Exit 0 = no contradiction, 1 = a row says zero about work its own controls say i
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import subprocess
 import sys
+import tarfile
+import tempfile
 import time
 from pathlib import Path
 
@@ -137,6 +154,13 @@ BUDGET_EXHAUSTED = "the run budget was spent before this row was reached"
 #: same list as the real finding names, so no caller can treat "unknown" as "clear" by looking
 #: only at emptiness -- the shape that reads a not-found as a valid extreme.
 BLOCKERS_UNREADABLE = "the lane's blocking findings could not be read"
+
+#: Said on the blocker's own line when it is live at `HEAD` and archived only in the working copy.
+#: Without it the reader greps `docs/staging/`, finds nothing, and files the blocker as a ghost --
+#: which is the same trap as verifying a surviving copy with `find` and never asking git.
+ARCHIVED_ONLY_IN_THE_WORKING_TREE = (
+    "  -- live at HEAD, archived only in the working tree: an uncommitted archival is a "
+    "discharge that has not happened")
 
 #: Both halves of the map. A row minted into the live half and later closed keeps its ORIGINAL
 #: minting commit only if both are searched, and dating it from the close would make every closed
@@ -216,16 +240,46 @@ def controls_older_than_the_row(atom_id: str, controls: list[str],
     return predating, undatable
 
 
-def _lane_blockers(lane: str) -> list[str]:
-    """The live BLOCKING findings holding `lane`, by document name.
+def _head_staging_root(repo: Path, dest: Path) -> Path:
+    """`HEAD`'s `docs/staging/` on disk under `dest`, so the shared mechanism can read it.
+
+    Extracted rather than parsed out of `git cat-file`, because the whole point is to hand the
+    committed documents to the SAME `lane_blockers` the working copy goes through. A failure here
+    raises, and `frozen_by` turns that into BLOCKERS_UNREADABLE -- frozen, never movable.
+    """
+    tar = subprocess.run(["git", "-C", str(repo), "archive", "HEAD", "docs/staging"],
+                         capture_output=True, check=True)
+    with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as archive:
+        archive.extractall(dest, filter="data")
+    return dest / "docs" / "staging"
+
+
+def _lane_blockers(lane: str, root: Path | None = None) -> list[str]:
+    """The live BLOCKING findings holding `lane`, by document name, over BOTH trees.
 
     CALLS THE SHARED MECHANISM rather than re-reading the staging directory: `lane_blockers` is
     the same function OPS11 refuses with, so this cannot report a lane clear that the recorder
     then refuses. A second reading of the severity index here is how one control comes to
     disagree with the control it is describing.
+
+    It is called TWICE, on the working copy and on `HEAD`'s staging, and the union is returned:
+    see the header on which tree the refusal is actually evaluated against. `root` exists so a
+    test can hand this a repository where the two trees are made to disagree on purpose; `None`
+    means the live tree, and takes the defaults so the working-copy half stays byte-identical to
+    what OPS11 itself reads.
     """
     from background.gate_authorization import lane_blockers  # local: keeps import cost off callers
-    return [b.finding for b in lane_blockers(lane)]
+    if root is None:
+        repo, working = ROOT, lane_blockers(lane)
+    else:
+        repo = Path(root)
+        working = lane_blockers(lane, staging_root=repo / "docs" / "staging", repo_root=repo)
+    here = {b.finding for b in working}
+    with tempfile.TemporaryDirectory(prefix="level-zero-head-staging-") as tmp:
+        committed = {b.finding for b in lane_blockers(
+            lane, staging_root=_head_staging_root(repo, Path(tmp)), repo_root=repo)}
+    return [name if name in here else name + ARCHIVED_ONLY_IN_THE_WORKING_TREE
+            for name in sorted(here | committed)]
 
 
 def frozen_by(lane, blockers_for=_lane_blockers) -> list[str]:
@@ -233,7 +287,8 @@ def frozen_by(lane, blockers_for=_lane_blockers) -> list[str]:
 
     A row with no lane at all is UNREADABLE, not clear: OPS11 resolves the lane from the atom
     itself, so a missing one means the refusal cannot be predicted, and predicting "movable" is
-    the answer that wastes the reader's turn.
+    the answer that wastes the reader's turn. EITHER tree failing to read is the same answer --
+    the probe reads both (see the header) and a lane it could only half-read is not a clear lane.
     """
     if not isinstance(lane, str) or not lane.strip():
         return [BLOCKERS_UNREADABLE]
@@ -312,8 +367,18 @@ def assess(atoms: list[dict], root: Path = ROOT, runner=run_controls,
             continue
         absent = [p for p in controls if not (root / p).exists()]
         if absent:
+            # BOTH BRANCHES, because the one-branch version sent a reader at a premise the tree
+            # refutes. "Repoint at the control that exists" is right for PB4 and PB6 -- a build
+            # that landed and wrote a differently-named file -- and wrong for PB5, whose named
+            # path is a control its build has not written yet. A lane-0 item was drawn on the
+            # single instruction and spent a turn discovering that PB5 has no control to point at:
+            # measured 2026-09-06, no test on disk asserts the pounds/percent scale on the company
+            # side, and the row is correctly at zero.
             ungradable.append({"id": aid, "reason": NAMED_CONTROL_ABSENT, "paths": absent,
-                               "detail": "repoint the row at the control that exists"})
+                               "detail": "if the build LANDED under a different name, repoint the "
+                                         "row at the control that exists; if it has not run, this "
+                                         "is a planned name and the row is right to read zero -- "
+                                         "check which before writing either"})
             continue
         # Dating runs BEFORE the budget check and before the run: it costs a fraction of a second
         # against pytest's seconds-to-minutes, and a set that cannot be evidence about this atom
