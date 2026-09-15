@@ -153,6 +153,9 @@ GENERATED_TREES: tuple[tuple[str, ...], ...] = (
 )
 SCANNED_TREES = ("tools", "background", "simulation", "saas", "company")
 ARTEFACT_SUFFIXES = (".json", ".md", ".sqlite", ".csv")
+# The characters that make a string a SEARCH PATTERN rather than a path. `]` is deliberately absent:
+# it is only special after a `[`, so refusing on it alone would refuse a real name for nothing.
+GLOB_METACHARACTERS = ("*", "?", "[")
 
 # THE SAME TREES, SPELLED THE OTHER WAY. A module may name its artefact as ONE whole string --
 # `DEFAULT_REPORT = "docs/observability/canon_drift.json"` (`tools/canon_drift_check.py`) -- and the
@@ -406,6 +409,25 @@ def generated_artefacts(root: Path | None = None) -> set[str]:
                 found.update(s for s in parts
                              if s.startswith(prefixes)
                              and s.endswith(ARTEFACT_SUFFIXES))
+    # A SEARCH PATTERN IS NOT A DESTINATION, and it is refused here because this oracle has no
+    # write-site evidence requirement to refuse it anywhere else (delivery seat, 2026-09-15).
+    # `written_artefacts` demands a write SITE and says why -- naming is not the property. The
+    # tree-keyed half deliberately does not, because most of what it reaches is unresolvable to the
+    # write scan; what stands in for the evidence is the DECLARATION, which is sound for a
+    # destination and silent for a `glob.glob(str(PROJECT / "docs" / "reports" /
+    # "run_output_*.json"))`. Ordered reconstruction reads that chain perfectly and it is still not a
+    # file. Refused on the SHAPE rather than on the caller, because `glob`, `fnmatch`, `rglob` and a
+    # pattern passed to a helper are four call shapes and one string property.
+    #
+    # THE ALTERNATIVE IS DECLINED WITH ITS REASON so it is not re-derived: requiring a write site
+    # here would be the correct predicate and would lose most of this oracle's reach -- 39
+    # destinations in this tree are a `/` join on a name the write scan cannot resolve, and the
+    # whole-string spelling reaches eleven more.
+    #
+    # ZERO TRACKED PATHS IN THIS REPO CARRY ONE OF THESE CHARACTERS, asked of `git ls-files` rather
+    # than assumed, so the refusal cannot cost a real destination today. It removed exactly one
+    # member, `docs/reports/run_output_*.json`, named by two sites spelling the same pattern.
+    found = {p for p in found if not any(c in p for c in GLOB_METACHARACTERS)}
     found -= WRITTEN_BUT_NOT_REPRODUCIBLE
     # AND THE AUTHORED HATCH REACHES HERE TOO, for the reason the line above it was extended on the
     # same day: the two oracles feed ONE union, so a path this set calls authored while the

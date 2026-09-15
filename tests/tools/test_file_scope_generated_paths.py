@@ -265,6 +265,42 @@ def test_a_chain_with_an_OPAQUE_MIDDLE_segment_is_declined_whole(tmp_path):
     )
 
 
+def test_MUTATION_a_GLOB_PATTERN_is_not_a_destination(tmp_path):
+    """THE DEFECT: this oracle has NO write-site evidence requirement, so a search pattern satisfies
+    it exactly as a destination does. `tools/couple_value_based_pricing.py:499` and
+    `tools/r1_inference_ceiling.py:182` both spell
+    `glob.glob(str(PROJECT / "docs" / "reports" / "run_output_*.json"))`, and the oracle held
+    `docs/reports/run_output_*.json` as if it were a file. Ordered reconstruction reads that chain
+    PERFECTLY -- which is the point: this is not a reading defect, it is the classifier standing on
+    a declaration where its sibling `written_artefacts` stands on a write site.
+
+    BOTH SPELLINGS IN ONE FIXTURE, because the refusal is placed AFTER both branches and that
+    placement is the claim. A `/`-chain pattern and a whole-string pattern are two different doors
+    into the same set, and this project's own record is full of carve-outs honoured by one of two
+    unioned routes -- which is no carve-out at all. The real destination beside them is what keeps
+    the control from passing on a resolver that declines everything.
+
+    IT CANNOT COST A REAL PATH TODAY, asked of `git ls-files` rather than assumed: zero tracked
+    paths in this repo contain `*`, `?` or `[`.
+
+    MUTATION THAT REDDENS IT: delete the `GLOB_METACHARACTERS` filter in `generated_artefacts`.
+    Verified by doing it -- both patterns come back.
+    """
+    _module(tmp_path, "globber.py",
+            'import glob\n'
+            'from pathlib import Path\n'
+            'PROJECT = Path(__file__).resolve().parents[1]\n'
+            'REAL = PROJECT / "docs" / "reports" / "ledger.json"\n'
+            'FOUND = glob.glob(str(PROJECT / "docs" / "reports" / "run_output_*.json"))\n'
+            'ALSO = "docs/reports/run_output_?.json"\n')
+    assert fs.generated_artefacts(root=tmp_path) == {"docs/reports/ledger.json"}, (
+        "a glob PATTERN reached the generated set as if it were a write destination. A path with a "
+        "metacharacter can never match anything git reports, so it is inert at the reconciler and "
+        "purely misleading to a reader -- which is exactly the reading that hid the hard-join "
+        "defect for eight weeks: the oracle contained a path that looked right"
+    )
+
+
 def test_MUTATION_the_gates_OWN_freeze_list_is_not_evidence_about_itself(monkeypatch, tmp_path):
     """CIRCULARITY, and it is the reason `_SELF` exists. `FROZEN` holds `(atom_id, file_scope)`
     pairs COPIED OUT OF THE MATURITY MAP -- the declarations this gate judges. Read back as

@@ -1,4 +1,7 @@
-**Severity:** LATENT · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — split out of `the-tree-keyed-oracle-hard-joins-a-path-from-the-declared-prefix-so-a-deeper-destination-is-emitted-as-a-file-that-does-not-exist`)
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Atom:** (Lane 0 delivery — split out of `the-tree-keyed-oracle-hard-joins-a-path-from-the-declared-prefix-so-a-deeper-destination-is-emitted-as-a-file-that-does-not-exist`)
+
+*Filed LATENT; **RECORDED 2026-09-15**, same day — §6 is the result and no work is owed. §5 names
+the one thing still open and it is a different mechanism again.*
 
 # A glob PATTERN handed to `glob.glob()` reaches the tree-keyed generated oracle as if it were a destination, and ordered reconstruction reads it perfectly
 
@@ -95,3 +98,38 @@ test that was replaced, not the ordered reconstruction that replaced it. It need
 name resolution in the tree-keyed oracle, which is the thing `_scope_path_names` already does for
 the write-keyed half. Recorded here so the two remaining gaps are counted in one place rather than
 each being rediscovered as "the oracle is missing a path".
+
+## 6. ACTIONED — and §4's prediction holds exactly
+
+**Delivery seat, 2026-09-15, same day.** Recommendation (1) is implemented: `GLOB_METACHARACTERS`
+(`*`, `?`, `[`) and a single subtraction in `generated_artefacts()`, placed AFTER both the
+`/`-chain branch and the whole-string branch so one rule covers both doors — a refusal honoured by
+one of two routes into the same set is no refusal at all, which this module's record already says
+twice.
+
+**§4 said "in `_chain_segments`" and that placement was wrong**, which is a small correction worth
+making rather than absorbing: `_chain_segments` sees only the `/`-chain spelling, so a pattern
+written as one whole string (`ALSO = "docs/reports/run_output_?.json"`) would have walked straight
+past it. The whole-string branch is the door ten of this oracle's members already came through. One
+subtraction after both branches is the mechanism that cannot be half-applied.
+
+`]` is deliberately not a metacharacter here: it is only special after a `[`, so refusing on it
+alone would refuse a real name for nothing.
+
+| §4 predicted | measured |
+|---|---|
+| removes exactly one member | 216 → 215, one: `docs/reports/run_output_*.json` |
+| adds none | none |
+| on-disk member count stays 167 | 167 |
+| `gate_violations()` stays empty | empty |
+
+Unlike the prediction in the finding this was split from, this one was right in every leg — and the
+reason is worth naming rather than taking as a good sign. It was a prediction about a **filter over a
+set I had already measured**, not about what a new matcher would find. The one that failed was the
+second kind. A prereg's value is not evenly distributed across the questions it asks.
+
+`test_MUTATION_a_GLOB_PATTERN_is_not_a_destination` holds it, with both spellings and a real
+destination in one fixture; deleting the filter reddens it, verified by doing that.
+
+**Recommendation (2) stays declined, with its reason on the page**: requiring a write site here is
+the correct predicate and would lose most of this oracle's reach. Nothing in §5 is closed by this.
