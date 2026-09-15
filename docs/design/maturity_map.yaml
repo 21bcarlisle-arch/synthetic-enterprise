@@ -1433,6 +1433,9 @@
   provenance: director_ruling
   depends_on: []
   couples_with: [SITE1_expert_doors]
+  # STILL 0 ON 2026-09-15, and the reason has MOVED: read `level_hold_note` before re-drawing.
+  # The L2 evidence is in hand and re-run; what holds it is that H_harness reads CLEAR in the
+  # working tree and BLOCKED in the committed record, and OPS11 fires on the latter.
   file_scope: ['site/live_pixel_verify.py', 'site/test_ia_register.py', 'site/ia_register.py', 'site/sitemap.xml', 'site/_redirects']
   expert_hour: {status: not_attempted, last: null, findings: []}
   real_world_twin: "a utility whose site map lives in sixteen hand-maintained page footers, so every reorganisation is sixteen chances to strand a page"
@@ -1564,36 +1567,13 @@
   real_world_twin: "a regulated firm's control-attestation cycle: the statement of what the firm does is re-tested against what the systems do on a schedule, by someone whose job it is, rather than at the moment a board member happens to read it"
 - id: PB4_engagement_separated_from_elasticity
   title: "P4: whether a household enters a choice process at all is not how far price moves it once it does"
-  notes_rehomed: [gain]
+  notes_rehomed: [gain, level_hold_note]
   lane: W2_customer_generator
   value_stream: meter_to_cash
   epoch: 3
-  # STILL 0, AND NOT FOR WANT OF A BUILD -- 2026-09-06, delivery-seat disposition pass.
-  # The build landed 2026-09-05 and is verified on the tree, not on a record:
-  # household_segments.py:262 draws PREPAYMENT on the non-DD branch only at the published Ofgem
-  # 13/13 split; FUEL_POVERTY_RATE_BY_CHANNEL is unblended onto DESNZ 22.3%/18.5%; line 439
-  # multiplies the CIM-anchored channel multiplier into the renewal probability, mean-preserving.
-  # 8 controls green at 5b8f79767, including a reachability leg (the third enum member IS drawn),
-  # a safety leg (no household changed DD status) and a two-sided falsifier (+0.1192 against a
-  # null of 0.0403 AFTER; -0.0106 against 0.0410 BEFORE).
-  #
-  # I came to raise this to 1 and DID NOT, because the reason it is held turns out to be a good
-  # one. Two of the three BLOCKING findings on W2_customer_generator were brakes that had outlived
-  # their defect and are dispositioned in this commit. The third is live:
-  # SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED
-  # _2026-09-03. It is not adjacent bookkeeping -- its subject is `fit_whole_book`, which solves a
-  # per-year anchor so the book's DEPARTURE rate hits the published one, absorbing "how much hazard
-  # the individuals supply" into one scalar. That is the same quantity PB4's multiplier feeds. A
-  # level certified now would be certified by an instrument that can absorb the very signal this
-  # atom exists to add, which is exactly what OPS11 is for. Recording the refusal here rather than
-  # accepting the limitation, because the acceptance I had drafted -- "the finding cannot reach
-  # PB4's evidence" -- is FALSE, and I only found that by reading §1 instead of the title.
-  # When it lifts: L1 is what these controls carry, not L2. L2 wants DISCOVER-lite + VERIFY, and
-  # VERIFY's 0b leg is evidence on a DEPLOYED SURFACE. DISCOVER is there and predates the build
-  # (docs/market_research/what_a_supplier_can_observe_about_switching_propensity_cim_w6.md), as are
-  # tests, invariants and population stats over 6000 households -- but nothing renders PB4 to a
-  # reader. That surface is PB6 below, itself at 1.
-  level_current: 0
+  # L0->L1 2026-09-15, recorded in gate_authorizations.jsonl. NOT L2, and NOT for want of a
+  # build: read this atom's `level_hold_note` in the store before re-deriving either half.
+  level_current: 1
   level_target: 3
   loop_stage: build
   dial_inherited: 45    # R1 -- DIRECTOR_CANON_RERANKING_THE_ARC_2026-09-04 §2/§5.

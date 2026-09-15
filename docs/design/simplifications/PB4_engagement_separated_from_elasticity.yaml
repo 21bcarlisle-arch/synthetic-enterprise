@@ -1,3 +1,61 @@
 atom_id: PB4_engagement_separated_from_elasticity
 map_notes:
   gain: 'Director, 2026-08-28 (P4): ''A large share of GB households have never switched at any price -- an engagement fact, not an elasticity one -- and a disengaged household can be highly price-sensitive once a bill shock makes it look, which is exactly why bill shocks are predictive. Modelling one on the other''s shape builds a world where never-switchers are also price-insensitive, and the company will learn a relationship that does not exist.'' The current world has ONE axis: simulation/customer_events.py weights a single price differential by a single per-household elasticity drawn from price_sensitivity, so a household that never switches is expressed as one with a low elasticity, and the two facts are inseparable by construction. Two gates, not one weight: an ENGAGEMENT gate (does this household look at all this period, and what makes it look -- a bill shock, a renewal letter, a price rise past a threshold) and, conditional on looking, an ELASTICITY (how far the gap moves it). BUILD SO THAT P1 CHANGES ITS ANSWERS, NOT ITS STRUCTURE (the guidance''s one genuine cul-de-sac): the gate takes a comparison offer as an argument, so a competitor that responds changes what is on offer without changing the shape of the decision.'
+  level_hold_note: 'MOVED TO L1, NOT L2, ON 2026-09-15 -- and the interesting half of this note is the level I did NOT record. `tools.level_zero_contradicted_by_its_own_controls` reported this row CONTRADICTED and MOVABLE NOW: 8 controls green, `lane_blockers(''W2_customer_generator'')` empty, so the one live blocker the 2026-09-06 disposition recorded has gone. I recorded a level-2 self-certification on that basis and then RETRACTED it in the ledger, because the 2026-09-06 block in the map row had already measured the thing I had not: MATURITY_MAP.md line 38 makes VERIFY ''0b evidence on a DEPLOYED SURFACE + tests + invariants + population stats'', and L2 requires DISCOVER-lite + VERIFY. I re-asked it rather than inheriting it -- no site page reads site/data/customer_sample.json, and PB6, which IS the surface half of this claim, is still at 1 itself. Nothing renders PB4 to a reader, so the L2 predicate is unmet for the same reason it was nine days ago.
+
+    WHAT THE GREEN CONTROLS DO REACH, said plainly so this is not read as the work being unbuilt: the separation in the row''s title is built and wired. `active_renewal_probability_for_customer` (simulation/household_segments.py:426) multiplies the engagement archetype by a mean-preserving payment-channel multiplier anchored to Ofgem CIM w6 (DD 5.6%, SC 5.7%, PPM 3.1%); it is called from simulation/renewals.py:161; elasticity stays separate in `price_elasticity_for_customer` (simulation/customer_events.py:563). The atom''s own falsifier is run BOTH WAYS ROUND -- held-out -0.0106 on the world BEFORE the change, +0.1192 after, against a null of ~0.041 -- which is what makes it evidence about the world rather than arithmetic about a function. That is ''been BUILT in any form'' exactly: L1.
+
+    THE RESIDUAL TO L3, so the next draw does not re-derive it: (a) a deployed surface -- that is PB6, and this atom cannot earn L2 ahead of it; (b) the brief''s OFFER-CONDITIONAL clause, which is unbuilt and is not a control gap but a build gap -- `active_renewal_probability_for_customer` takes a customer id and NO comparison offer, so engagement is a static per-household probability rather than a gate that a bill shock, a renewal letter or a price rise past a threshold opens, and the brief''s cul-de-sac warning (''build so that P1 changes its ANSWERS, not its STRUCTURE'') is about precisely that argument; (c) expert_hour, not_attempted.
+
+
+    THE 2026-09-06 DISPOSITION, moved here VERBATIM out of the map comment block on 2026-09-15 because its reasoning is what set today''s level and the spine size ratchet is right that prose belongs in this store. Its OPS11 half has lifted (the W2 blocker it names is gone); its L1-not-L2 half is what still stands:
+
+
+    STILL 0, AND NOT FOR WANT OF A BUILD -- 2026-09-06, delivery-seat disposition pass.
+
+    The build landed 2026-09-05 and is verified on the tree, not on a record:
+
+    household_segments.py:262 draws PREPAYMENT on the non-DD branch only at the published Ofgem
+
+    13/13 split; FUEL_POVERTY_RATE_BY_CHANNEL is unblended onto DESNZ 22.3%/18.5%; line 439
+
+    multiplies the CIM-anchored channel multiplier into the renewal probability, mean-preserving.
+
+    8 controls green at 5b8f79767, including a reachability leg (the third enum member IS drawn),
+
+    a safety leg (no household changed DD status) and a two-sided falsifier (+0.1192 against a
+
+    null of 0.0403 AFTER; -0.0106 against 0.0410 BEFORE).
+
+
+    I came to raise this to 1 and DID NOT, because the reason it is held turns out to be a good
+
+    one. Two of the three BLOCKING findings on W2_customer_generator were brakes that had outlived
+
+    their defect and are dispositioned in this commit. The third is live:
+
+    SEAT_FINDING_THE_LEVEL_IS_CLAMPED_AND_THE_MECHANISM_UNDER_IT_IS_COMPRESSED_NOT_MISDIRECTED
+
+    _2026-09-03. It is not adjacent bookkeeping -- its subject is `fit_whole_book`, which solves a
+
+    per-year anchor so the book''s DEPARTURE rate hits the published one, absorbing "how much hazard
+
+    the individuals supply" into one scalar. That is the same quantity PB4''s multiplier feeds. A
+
+    level certified now would be certified by an instrument that can absorb the very signal this
+
+    atom exists to add, which is exactly what OPS11 is for. Recording the refusal here rather than
+
+    accepting the limitation, because the acceptance I had drafted -- "the finding cannot reach
+
+    PB4''s evidence" -- is FALSE, and I only found that by reading §1 instead of the title.
+
+    When it lifts: L1 is what these controls carry, not L2. L2 wants DISCOVER-lite + VERIFY, and
+
+    VERIFY''s 0b leg is evidence on a DEPLOYED SURFACE. DISCOVER is there and predates the build
+
+    (docs/market_research/what_a_supplier_can_observe_about_switching_propensity_cim_w6.md), as are
+
+    tests, invariants and population stats over 6000 households -- but nothing renders PB4 to a
+
+    reader. That surface is PB6 below, itself at 1.'
