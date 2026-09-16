@@ -41,6 +41,7 @@ from simulation.departure_risks import (
 )
 from simulation.household import IncomeStress, household_of
 from simulation.market_switching_propensity import (
+    bill_scale_for,
     churn_position_multiplier,
     market_switching_multiplier,
     offer_position_multiplier,
@@ -287,44 +288,12 @@ def _market_reference_gbp_per_mwh(
         wholesale_gbp_per_mwh=wholesale_gbp_per_mwh,
     )
 
-#: Segments the Ofgem/BMG evidence actually covers. Its sample is 3,235 GB **domestic energy bill
-#: payers**; it says nothing whatever about how an industrial site buys power.
-_DOMESTIC_SEGMENTS = {"resi"}
-
-
-def _bill_scale_for(segment: str | None, bill_gbp: float | None) -> float | None:
-    """The bill scale to feel the price differential against — or None for the market average.
-
-    THE DOMESTIC CURVE GOVERNS DOMESTIC HOUSEHOLDS AND NOTHING ELSE, and the first version of the
-    GBP change forgot to say so. `_savings_to_rate` is calibrated on DESNZ/Ofgem **household**
-    switching against annual savings of GBP 0-400, and beyond that ceiling it continues at the last
-    informed slope -- a named simplification that is harmless while the input stays near the
-    calibrated range and absurd when it does not.
-
-    Scaling by the customer's OWN bill is right for a household (GBP 600-5,000, so a 10%
-    differential lands at GBP 60-500, at or near the calibrated range) and catastrophic for an
-    industrial site. Measured on `C_IC3`, a 4 GWh chemical plant: a 10% differential on a
-    ~GBP 500,000 bill is GBP 50,000 of "annual saving", 125x beyond where the data stops, and the
-    linear extrapolation returned a churn multiplier of **x599.6**. The plant left immediately and
-    a settlement-records test went red -- which is how this was found.
-
-    NON-DOMESTIC KEEPS THE MARKET-AVERAGE SCALE, deliberately, and that is an honest placeholder
-    rather than a fix: industrial supply is TENDERED and broker-mediated on contract terms, not
-    chosen off a comparison site, so a domestic switching curve is the wrong model for it at any
-    scale. Modelling I&C churn properly is its own piece of work; what this must not do is let a
-    domestic curve run 125x past its evidence and call the answer physics.
-
-    AN UNKNOWN SEGMENT FALLS BACK TO THE MARKET AVERAGE, not to domestic. If the roster lookup ever
-    fails, the safe answer is the PREVIOUS behaviour -- bounded, and wrong only in the way the world
-    was already wrong -- rather than the new unbounded one. Defaulting an unknown to "domestic"
-    would apply the extrapolating curve to whatever it could not identify, which is precisely the
-    failure above, re-entered through the error path.
-    """
-    if bill_gbp is None:
-        return None
-    if segment not in _DOMESTIC_SEGMENTS:
-        return None
-    return bill_gbp
+#: THE GATE ITSELF NOW LIVES WITH THE CURVE IT GATES (2026-09-09).
+#: `market_switching_propensity.bill_scale_for` is the same function, moved there because the
+#: question "whose bill may scale this curve" is a property of the curve's calibration and not of
+#: this call site. The name is kept bound here because it is this module's call site's own word
+#: for the step and because a control names it; there is ONE implementation, imported above.
+_bill_scale_for = bill_scale_for
 
 
 def _annual_bill_gbp(
