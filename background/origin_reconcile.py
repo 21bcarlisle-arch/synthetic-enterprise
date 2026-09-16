@@ -666,10 +666,17 @@ def refresh_stale_copies(project: Path | None = None, paths: list[str] | None = 
 def advance_shared_tree(project: Path | None = None, *, blockers_fn=None, twins_fn=None,
                         tracked_twins_fn=None, ff_fn=None, remover=None, restorer=None,
                         locker=None, ahead_fn=None, stale_fn=None, refresher=None) -> dict:
-    """Fast-forward the shared tree onto `origin/main`, clearing byte-identical twins of BOTH kinds.
+    """Fast-forward the shared tree onto `origin/main`, clearing every blocker it can prove lossless.
 
     Returns `{"advanced": bool, "cleared": list[str], "reason": str}`. `advanced` is claimed only
     when git itself reported the fast-forward, never inferred from the absence of an error.
+
+    THREE CLASSES, AND THE THIRD IS THE ONE THE QUEUE REFILLS WITH -- see `stale_copy_verdicts`.
+    Two are byte-identical twins proven by hash against origin's blob (untracked, cleared by
+    `unlink`; tracked, cleared by `restore_tracked_twin`). The third is a rival working copy origin
+    strictly supersedes, proven by `tools/refresh_to_head.py`'s three conjunctive preconditions and
+    cleared by writing HEAD's bytes over it after preserving its own. All three are resolvable; a
+    blocker in none of them refuses everything, by name and with its reason attached.
 
     THE LOOP THIS EXISTS TO BREAK, measured over 24h to 2026-09-04 from the deadman's own log: the
     reconciler reached a window on 129 of 165 cadences (`GATE_RUNNING` only 36), gated its merge
