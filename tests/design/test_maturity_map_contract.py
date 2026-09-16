@@ -725,7 +725,9 @@ LEGACY_UNGRADABLE_BUILD_ROWS = frozenset({
     "G4_unified_failure_register",
     "H40_full_suite_pollution_bisect",
     "H46_the_consistency_gate_disagreement_before_the_next_publish",
-    "H47_the_orientation_header_states_a_figure_it_computes",
+    # H47 delisted 2026-09-16: its row now names a control, so it is graded rather than frozen.
+    # Delisted from a different lane's turn because this leg wedges EVERY commit in the tree, and
+    # the entry's own comment above says what the fix is -- the deletion, not a passing entry.
     "H48_the_parked_document_audit_is_the_idle_hole_at_scale",
     "OPS6_scoped_publish_path_suite",
     "OPS7_provenance_stamps_on_live_pages",
