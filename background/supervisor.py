@@ -5525,6 +5525,20 @@ def _self_refill_draw_ladder() -> str | None:
     # about how work is being chosen, and it outranks the machinery item that displaced it. Logged
     # rather than filed: the register already exists for defects that can wait, and a rung that
     # mints a document every thirty minutes is the treadmill this is meant to end.
+    # A SECOND HOST FOR THE STRETCH ALARM (2026-09-16). Its only host was the publisher, which was
+    # wedged 10--16 September: six days, 184 commits, no report, and the control that watches for
+    # exactly that could not run, because it shared a failure domain with the thing it reports on.
+    # This tick ran throughout. `notify`'s transition key makes a second caller free.
+    # ASK THE LEAF, NOT THE PUBLISHER (line ~167): the alarm lives in `tools.stretch_log` now, so
+    # this import does not enrol the harness suite in the publish gate.
+    try:
+        from tools.stretch_log import raise_stretch_report_owed
+        raise_stretch_report_owed(log_fn=log)
+    except Exception as exc:  # noqa: BLE001 -- a finding on the tick, never a gate on the draw
+        log(f"stretch-report check unavailable this cycle ({exc})")
+
+    _page_product_floor_crossing()
+
     stretch, starved = _product_starvation_stretch()
     if starved:
         log(f"PRODUCT STARVATION (RUNG 1c-override): {stretch} commits since any product-priority "
@@ -5825,6 +5839,60 @@ def _product_share_phrase() -> str:
                 f"({r['product']} product / {r['machinery']} machinery, floor {r['floor']:.0%}).")
     except Exception as exc:  # noqa: BLE001 -- a clause in a log line, never a gate
         return f"Split unavailable ({exc})."
+
+
+def _page_product_floor_crossing(notify_fn=None) -> str | None:
+    """Canon §4's one unbuilt clause: *the ratio itself becoming a finding when it goes wrong*.
+
+    THE DEFECT (2026-09-16). Every other clause of DIRECTOR_CANON_PRODUCT_AND_MACHINERY_2026-09-05
+    was built. The distinction is in code, the selector has its override, the split is measured --
+    and the measurement could not fail. `product_machinery_split.main()` prints `BELOW FLOOR` on
+    every window and returns 0; its only other consumer was `_product_share_phrase()`, composing a
+    clause into a `log()` line. The line read *7% (5 product / 65 machinery, floor 25%)* for days,
+    correctly, into a channel with no reader. **A finding in the routine channel is routine
+    output** -- the same shape, one rung up, as the stretch alarm that went quiet beside it.
+
+    The comment that chose logging said why, and it was right about documents: *"a rung that mints
+    a document every thirty minutes is the treadmill this is meant to end."* But that chose between
+    FILE EVERY TICK and LOG, and never considered PAGE ONCE ON THE CROSSING -- which is what
+    `transition_key` has done for every other alarm here for weeks. Nothing is minted. The state is
+    the verdict, not the number, so a share wobbling 6%-8% below the floor is ONE condition and one
+    page; `re_escalate_after` re-raises it daily while it stands, because a floor that pages once
+    and then goes quiet is the failure this exists to end.
+
+    IT PAGES ON RECOVERY TOO. A crossing back above the floor is a state change and sends. That is
+    deliberate: a control that only ever speaks bad news teaches its reader that silence is good
+    news, and this project's whole evidence is that silence is the default state of a broken one.
+    """
+    try:
+        from tools.product_machinery_split import split
+        r = split(window=100)
+    except Exception as exc:  # noqa: BLE001 -- a page, never a gate on the draw
+        log(f"product-floor check unavailable this cycle ({exc})")
+        return None
+    if not r["enough_to_judge"] or r["product_share"] is None:
+        return None
+
+    below = bool(r["below_floor"])
+    if notify_fn is None:
+        from background.notify import notify as notify_fn
+    if below:
+        msg = ("[product-floor] PRODUCT SHARE BELOW FLOOR -- "
+               f"{r['product_share']:.0%} over the last 100 commits "
+               f"({r['product']} product / {r['machinery']} machinery / {r['neither']} neither), "
+               f"floor {r['floor']:.0%}. Machinery work is winning the draw. "
+               "Read it with `python3 tools/product_machinery_split.py`; the standing rule is "
+               "DIRECTOR_CANON_PRODUCT_AND_MACHINERY_2026-09-05 -- machinery earns its place only "
+               "when a reader depends on what is broken, or the machine cannot land work.")
+    else:
+        msg = ("[product-floor] recovered -- product share is "
+               f"{r['product_share']:.0%} over the last 100 commits, at or above the "
+               f"{r['floor']:.0%} floor.")
+    return notify_fn(msg, kind="real_alarm",
+                     transition_key="product-machinery:floor",
+                     state="below" if below else "ok",
+                     re_escalate_after=24 * 3600,
+                     topic_class="action_needed" if below else "drift")
 
 
 def _product_starvation_stretch() -> tuple[int, bool]:

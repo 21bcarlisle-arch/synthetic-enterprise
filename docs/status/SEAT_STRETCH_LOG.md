@@ -8,6 +8,160 @@ A stretch that lands commits without an entry here is a finding, raised by `--ch
 
 ---
 
+## 2026-09-16 — six days and 184 commits with no report, because the alarm that says so is hosted inside the publisher that was wedged -- and the product share is 7%, not the 36% the commit titles read as
+
+<!-- head: c660084bb332 -->
+
+**Written 2026-09-16 17:1x BST, six days and 184 commits late, on the director's direct question:**
+*"what did today produce that a customer or a domain reader would notice? If the answer is nothing,
+say so and tell me why the product-and-machinery canon isn't holding."*
+
+This entry answers that, states the cause of its own six-day absence, and records what the split
+actually is — which is worse than the director's own estimate of it.
+
+## The answer, and it is close to nothing
+
+The director's crude filter put 36 of 100 commits on the product side. The measure this project
+built for exactly that question, `tools/product_machinery_split`, classifies by the PATHS a commit
+touched rather than by its subject, and it says:
+
+| window | product | machinery | neither | product share |
+|---|---|---|---|---|
+| last 50 | 2 | 28 | 20 | **6.7%** |
+| last 100 | 5 | 65 | 30 | **7.1%** |
+| last 200 | 11 | 140 | 49 | **7.3%** |
+| last 400 | 15 | 304 | 81 | **4.7%** |
+
+Floor is 25%. Every window is below it. **The subjects read more product-ish than the diffs are** —
+that is the whole gap between 36% and 7%, and it is worth naming because a commit-title reading
+flatters us by a factor of five.
+
+Classifying today's 91 commits one at a time: **74 machinery, 10 neither, 7 product** — and three of
+the seven are merges and tree-advances that carry product paths without doing product work. So the
+honest count for a 91-commit day is **four**:
+
+- **A gas-only billing account can now leave this world.** `departure_decision_leg` names, per
+  billing account, the supply point the departure rolls on — electricity if the account holds an
+  electricity leg, otherwise gas — replacing a literal `commodity == "electricity"` guard in two
+  places. Eighteen gas-only accounts could not churn at all; the book's renewal-decision population
+  nearly doubles. Four things travelled with it, each because the widened branch would otherwise
+  read a fuel-specific fact about a fuel the account does not buy — including a rate-shock history
+  that was permanently empty for those accounts, which reads downstream as *never had a bill rise*
+  rather than *nobody looked*, understating departure risk in the direction that flatters us.
+- **The gas leg rolls onto the cap** (repair 2 of the same determination; the read and the roll had
+  to land together).
+- **The gate that decides whose bill may scale the curve now lives with the curve.**
+
+A domain reader would notice the first. It is a real structural blindness in the churn model, found
+and closed, and it is the only thing today that a real supplier would recognise as work on the
+business. The other 87 commits are the machine on itself.
+
+## Why the canon is not holding, and it is not the dial
+
+The canon's four pieces of WORK THIS CREATES were built. The distinction exists in code
+(`classify_path`). The selector has a product-starvation override (`_product_starvation_stretch`,
+supervisor RUNG 1c-override). The split is measured. The floor exists as `PRODUCT_SHARE_FLOOR`.
+
+**Every one of them runs, and none of them can fail.**
+
+- `tools/product_machinery_split.main()` prints `BELOW FLOOR` on all four windows and
+  **`return 0`**. There is no `--check`, no non-zero exit, no alarm. Nothing anywhere consumes
+  `below_floor`.
+- The floor's one consumer is `supervisor._product_share_phrase()`, which composes a sentence into
+  a **`log()` line**. That line right now reads: *109 commits since any product-priority atom was
+  named, against a median of 6 over the last fortnight. Product share over the last 100 commits: 7%
+  (5 product / 65 machinery, floor 25%).* Eighteen times the median gap, a third of the floor, and
+  the only place that sentence exists is a daemon log nobody reads.
+
+The comment above it says why, and the reasoning was deliberate and defensible: *"Logged rather than
+filed: the register already exists for defects that can wait, and a rung that mints a document every
+thirty minutes is the treadmill this is meant to end."* That is right about documents and wrong about
+channels. It chose between *file a document every tick* and *log it* — and never considered *page
+once, on the crossing*. `notify(..., transition_key=..., state=...)` has done exactly that for every
+other alarm in this repo for weeks.
+
+**So the canon's clause 4 — "the ratio itself becoming a finding when it goes wrong" — is the one
+clause that was not built.** The ratio became a *sentence*. This is the class already written down
+as *a finding in the routine channel is routine output*: the control fires every cycle, correctly,
+and firing is indistinguishable from not firing.
+
+And the second half is the queue. The draw this hour offered two live seats: *seat heartbeat keyed
+store and cross-worktree sweeper*, and *clear nine paths so origin_reconcile can merge*. Both
+defensible. Both machinery. Behind them the doorbell printed **roughly ninety unprocessed staging
+documents**, of which I count fewer than ten that are about the world or the supplier. **Product work
+cannot win a draw it is not in.** The override exists to let product-priority atoms jump the
+blocking-finding exclusion — but an override that lets product win *when product is on the map* does
+nothing when the map's top ninety items are the machine's own defects. The selector was fixed; the
+queue is what chooses.
+
+## Why this log was silent for six days, and it is not a fourth instance of the old class
+
+The 2026-09-10 repair works. `tools/stretch_log.py --check` returns rc 1 and escalates correctly —
+I ran it: *139h since the last report (escalates above 24h; longest gap this log has ever had is
+16.7h); and 184 commits since the last report (escalates above 80; largest gap is 70).* The
+mechanism is sound.
+
+**Its only caller is `background/process_run_complete.py`.**
+
+`process_run_complete` last succeeded on **2026-09-10 02:35** and did not succeed again until
+**2026-09-16 14:41** — six days wedged, 34 consecutive refused publishes, a door reporting the
+unpublished envelope as a skip seven times a run for 106 hours.
+
+So the alarm that exists to say *the machine has stopped telling you why* is hosted inside the
+subsystem whose failure is the loudest symptom of that. **The control shares a failure domain with
+the thing it watches.** It is switched off precisely when it is needed, and its silence is
+indistinguishable from a healthy machine writing its reports.
+
+That is not *a landed fix is not a running one* — the fix was landed and its host was running, in
+the sense that the process existed. It is not *a control keyed to a structure that moved*. It is a
+distinct shape and it needs its own name: **an alarm hosted in the subsystem it reports on is
+silent exactly when it is right.** Hosting was chosen for a good local reason — a stretch report is
+owed when *a piece of work finishes*, and the publisher is where finishing is detectable. The cost
+of that convenience was six days of the director having no account of 184 commits.
+
+When it finally did fire — 2026-09-15 07:43, on a run that got far enough — it fired three times in
+4.1h, and `background/alarm_repetition.py` correctly escalated it into
+`docs/staging/WORKER_FINDING_REPEATING_ALARM_STRETCH_LOG_2026-09-15.md` and **suppressed the page**.
+That is the escalation mechanism working as designed. The design assumes the staging queue drains.
+It has not drained: that document has sat undrawn for 33 hours behind ninety others. So the last
+channel that could have reached him was closed by a mechanism whose premise — *a filed defect is not
+a forgotten one* — is currently false.
+
+## What I am doing about it, and what I am not
+
+**Doing.** Moving the stretch check out of the publisher's failure domain into the supervisor tick,
+which ran throughout the six days, and giving the product floor a `transition_key`'d page so a
+crossing reaches the director once. Two small changes, both in code that already exists, no new
+register and no new document class. The smallest mechanism that can fail.
+
+**Not doing.** Not raising the floor, not re-weighting the dials, not building a ratio-of-ratios.
+The dial was never what chose. And not proposing a rule about how machinery findings get filed —
+that would be machinery about machinery, which is the defect performing itself.
+
+**The thing I am not fixing today and should say plainly:** ninety machinery findings in the queue
+is a rate problem, not a draw problem. The machine files them faster than any draw can clear them,
+and every one of them is real. I do not have a mechanism for that and I am not going to invent one
+in the same hour I diagnosed it.
+
+## Stage 1, where the rest of this turn goes
+
+Measured first, because the premise was worth checking: **the sample does earn its place on the
+settlement selection.** `tools/settlement_per_axis_gain` on this base — worst-axis KS **0.0588**
+chosen-and-weighted against **0.0978** for the old uniform count cull, a **1.66x** improvement,
+costing 7 settled accounts (83 against 90). P1b HOLDS. Per-axis gain runs 1.37x on `fabric_w_per_k`
+to 4.54x on `raw_infiltration_ach`, a 20.7x spread — the choosing is doing almost all its work on
+infiltration and almost none on fabric.
+
+The filed evidence for this is **stale and must not be quoted**: it was measured at base 3957ba848,
+which predates `0d86d6dfe` (the world's homes drawn from the fitted joint). The funnel is unchanged
+and the home stock is not, so the filed KS figures describe a world that no longer exists. Five
+scalars disagree. Refreshing them to this world is the first Stage 1 item, and it is a correction to
+our own published evidence, not new work.
+
+Then the people layer, and the half-hourly shape reaching the book.
+
+---
+
 ## 2026-09-10 — the console capture read one folder while both were live, so the instruction naming the weekend's priority reached no record and the writer said it was current
 
 <!-- head: ec46351f8aa2 -->

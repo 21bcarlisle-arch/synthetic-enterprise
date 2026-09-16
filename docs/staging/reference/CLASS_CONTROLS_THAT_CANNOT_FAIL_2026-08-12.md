@@ -2,13 +2,13 @@
 
 **Severity:** BLOCKING · **Lane:** H_harness
 
-**Instances:** 46 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
+**Instances:** 47 · **Class:** `controls_that_cannot_fail` · **Source's own count:** ~9 (`DIRECTOR_RULING_FINDING_SEVERITY_AND_INTERLEAVE_2026-08-12`, clause 1, "controls that cannot fail — vacuous, fail-open, blind")
 
 **THIS IS A REGISTER, NOT A QUEUE ITEM. Do not archive it.** Since 2026-09-01 an accruing class register is DRAWN as work (`background/class_debt.py`, rank 35), and a drawn document is normally actioned and moved to `done/`. Doing that here is the 2026-08-23 failure: a bulk archive carried all five registers out of the root and wedged four consecutive publish cycles behind `MISSING CLASS DOC` while the files sat intact in `done/`. **You action this document by writing a decision into its `## Disposition` section** — repaired and closed by a named mechanism, or accepted as a limitation with its cost beside it. That is what takes it out of the draw, and it stays exactly where it is.
 
 This document supersedes the individual findings listed below, which are **archived, not deleted**, in `docs/staging/done/`. **Membership has two halves and they carry different guarantees.** The LIVE half is DERIVED, never hand-kept: `python3 -m background.finding_classes --check` re-derives it from the filesystem and fails if a live finding belongs to this class and is not listed here, if a listed instance is missing from the archive or has come back to the root, or if the count above stops equalling the length of the list below. The ARCHIVED half is CARRIED — these names are read back out of this document and kept because the file is still in the archive, and `--check` does not re-classify them. So a change to this class's patterns can leave an archived instance counted here that the classifier can no longer place; the one leg that re-reads the archive and refuses that is `tests/background/test_finding_classes.py::test_no_archived_instance_is_stranded_in_a_class_it_no_longer_classifies_into`.
 
-## The 46 instances
+## The 47 instances
 
 - `SEAT_FINDING_A_LIVE_RECORD_IS_TRACKED_SO_EVERY_WORKTREE_READS_A_TWO_MONTH_OLD_PLACEHOLDER_AS_LIVE_STATE_2026-09-16.md` — BLOCKING
 - `SEAT_FINDING_A_NAMED_PATH_SEGMENT_IS_THE_ONE_DOOR_BOTH_ORACLES_WERE_BLIND_TO_2026-09-15.md` — LATENT
@@ -18,6 +18,7 @@ This document supersedes the individual findings listed below, which are **archi
 - `SEAT_FINDING_THE_CLASS_DECLARATION_CHANNEL_CANNOT_READ_THE_FORM_ITS_OWN_RENDERER_WRITES_2026-09-15.md` — LATENT
 - `SEAT_FINDING_THE_CLASS_REGISTER_IS_BLIND_TO_A_PATTERN_CHANGE_OVER_ITS_ALREADY_ARCHIVED_INSTANCES_2026-09-15.md` — LATENT
 - `SEAT_FINDING_THE_EXECUTORS_DISCHARGE_ASKS_A_STORE_ITS_OWN_CLAIM_NEVER_REACHES_2026-09-02.md` — RECORDED
+- `SEAT_RESULT_THE_STRETCH_ALARM_WAS_HOSTED_INSIDE_THE_PUBLISHER_THAT_WAS_WEDGED_AND_THE_PRODUCT_FLOOR_WAS_A_SENTENCE_2026-09-16.md` — LATENT
 - `SEAT_FINDING_THE_FOURTEEN_DAY_RED_WAS_SURFACED_3421_TIMES_AND_THE_REGISTER_EVERY_CLEAN_WORKTREE_READS_IS_THE_830_ROW_WRECK_2026-09-10.md` — BLOCKING
 - `SEAT_FINDING_THE_ONE_CONTROL_GUARDING_THE_UNATTENDED_WRITER_WAS_FAIL_OPEN_AGAINST_ITS_OWN_DOCUMENTED_MUTATION_2026-09-08.md` — BLOCKING
 - `SEAT_FINDING_THE_REFUTED_HANDOFF_WON_THE_DRAW_BECAUSE_ITS_CORRECTION_USED_A_NEW_ID_2026-09-03.md` — LATENT
