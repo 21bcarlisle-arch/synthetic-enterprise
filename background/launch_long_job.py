@@ -149,6 +149,19 @@ def _show(unit: str, *properties: str, runner=subprocess.run) -> dict | None:
     return fields
 
 
+def liveness_probe(runner=subprocess.run):
+    """`launch_liveness.reask()`'s probe, asked through THIS launcher's runner.
+
+    The properties are exactly the four `launch_liveness.systemd_probe` asks for, and they have to
+    stay exactly those four: `reask()` reads `Result` and `ExecMainStatus` to tell a death from a
+    collection, and a probe that answered fewer would return UNKNOWN for every death it was handed
+    -- a settle that settles nothing, wearing a working probe's clothes.
+    """
+    def probe(unit: str) -> dict | None:
+        return _show(unit, "ActiveState", "Result", "ExecMainStatus", "LoadState", runner=runner)
+    return probe
+
+
 def name_is_held(unit: str, *, runner=subprocess.run) -> bool:
     """True if something alive holds this name. UNKNOWN READS AS HELD.
 
@@ -259,6 +272,14 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
     that let the floor leg run unrecorded for 35 minutes. A relaunch is one command; an
     unattributable death costs a day.
 
+    AND THE PREVIOUS RUN IS SETTLED BEFORE ITS CORPSE IS CLEARED. `name_is_held()` refuses a
+    relaunch over a live UNIT; nothing refused one over an unsettled CLAIM, and a relaunch is the
+    single likeliest event to fall inside the window between a death and the deadman cycle that
+    would have contradicted it. Two independent paths destroyed the evidence there: `reset-failed`
+    below takes systemd's exit record, and `launch_liveness.record` used to drop the `live` row by
+    job name. Both are closed, and the ordering here is the half that cannot be fixed in the
+    register alone -- no writer can preserve a verdict that was erased before it was asked for.
+
     Returns the launch record, with `unit`, `detached` and `detach_why` added.
     """
     def say(line: str) -> None:
@@ -285,6 +306,27 @@ def launch(job: str, command: list, *, artefact: str, workdir: str | None = None
             "second copy is how one measurement became six on 2026-08-10. Ask it: "
             f"`systemctl --user show {unit} -p ActiveState`, or "
             "`python3 -m background.launch_liveness --check`.")
+    # SETTLE THE PREVIOUS RUN BEFORE THE CORPSE IS CLEARED, AND THE ORDER IS THE WHOLE SUBSTANCE.
+    # `clear_a_corpse` runs `systemctl --user reset-failed`, which makes the user manager forget
+    # the unit's exit record -- and that record is the one thing `reask()` will accept as evidence
+    # of a death, precisely because the job had no part in writing it. Run the other way round,
+    # the re-ask finds no `Result` to read, returns UNKNOWN, and `check()` by design does not
+    # settle on UNKNOWN: the death becomes unsettleable by the act of relaunching after it.
+    # Narrowed to `only=job`: starting one job is no reason to probe another's unit.
+    try:
+        _, settle_lines, settled = launch_liveness.check(
+            path=records_path, probe=liveness_probe(runner), only=job, notice=True)
+    except Exception as exc:  # noqa: BLE001 -- a broken register must not block a launch
+        settle_lines, settled = [
+            f"the previous run of `{job}` could NOT be re-asked ({exc}), so if it died that death "
+            "is now unsettleable. Proceeding with the launch: refusing here would make a damaged "
+            "register able to stop all work, which is worse than an unattributed death."], []
+    for line in settle_lines:
+        say(f"  . previous run: {line}")
+    if settled:
+        say(f"  . settled {len(settled)} record(s) of a previous `{job}` against systemd's exit "
+            "record, while that record still existed")
+
     if clear_a_corpse(unit, runner=runner):
         say(f"  . cleared the corpse of a previous `{unit}` -- it was not active, so its name was "
             "blocking every future launch of this job rather than protecting a live one")

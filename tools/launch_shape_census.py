@@ -183,6 +183,17 @@ FLOOR: dict[tuple[str, str], tuple[int, str]] = {
         "detector matches the BASENAME rather than the bare name — see "
         "`_is_a_transient_unit_launch`.",
     ),
+    ("tests/background/test_a_relaunch_cannot_erase_the_death_it_follows.py", RAW_TRANSIENT_UNIT): (
+        1,
+        "THE SAME SHAPE AS THE ROW ABOVE, and for the launcher's own module. One `which` stub "
+        "returning `/usr/bin/systemd-run`, so `launch()` reaches the code under test instead of "
+        "refusing at its availability probe on a box that has the tool or has not. What these "
+        "controls measure is the ORDER of two of the launcher's side effects -- the previous "
+        "run's death is settled against systemd's exit record BEFORE `reset-failed` destroys it "
+        "-- and every process in the test is a fake runner recording an argv. Nothing here opens "
+        "one. Routing the stub through the launcher is not a thing that can be done: the launcher "
+        "is the subject, and a subject that supplies its own availability answer asserts nothing.",
+    ),
 }
 
 

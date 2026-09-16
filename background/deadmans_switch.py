@@ -949,20 +949,33 @@ def _check_launch_liveness() -> None:
     try:
         from background import launch_liveness
         stale, lines, settled = launch_liveness.check()
+        # A DEATH THE RELAUNCH SETTLED NEVER PASSES THROUGH `settled` HERE. `check()` re-asks rows
+        # still claiming `live`, and `launch_long_job.launch()` now settles the previous run itself
+        # -- before `reset-failed` destroys the evidence -- so by the time this cycle runs the row
+        # reads DIED and is correctly not stale. Reporting therefore has to be able to start from
+        # the record and not only from this call's return, or the repair that preserved the death
+        # would suppress the page the death is owed. Settled and reported are two states.
+        already = {(s.get("job"), s.get("unit"), s.get("launched_at")) for s in settled}
+        pending = [e for e in launch_liveness.pending_notices()
+                   if (e.get("job"), e.get("unit"), e.get("launched_at")) not in already]
     except Exception as e:  # noqa: BLE001 -- see docstring: we did not look, so we say nothing
         log(f"launch-liveness check error: {e}")
         return
-    if not stale:
+    if not stale and not pending:
         clear_transition(_LAUNCH_LIVENESS_KEY)
         return
-    log(f"LAUNCH settled {stale} record(s): {' | '.join(lines)}")
+    if stale:
+        log(f"LAUNCH settled {stale} record(s): {' | '.join(lines)}")
+    if pending:
+        log(f"LAUNCH {len(pending)} death(s) settled by a relaunch and not yet reported: "
+            + ", ".join(str(e.get("job")) for e in pending))
 
     # A DEATH AND A COMPLETION ARE NOT THE SAME EVENT, and the first draft of this wiring paged
     # `real_alarm` for both. Both contradict a document reading "in flight" -- but one is an
     # incident and the other is the good news the run was launched for, and a channel that pages
     # him for success is how this project has buried its own signal before. Caught here, before it
     # fired, because the floor leg was minutes from finishing successfully when this was written.
-    died = [e for e in settled if e.get("claim") == launch_liveness.DIED]
+    died = [e for e in settled if e.get("claim") == launch_liveness.DIED] + pending
     done = [e for e in settled if e.get("claim") == launch_liveness.FINISHED]
 
     def _docs(entries) -> str:
@@ -978,6 +991,12 @@ def _check_launch_liveness() -> None:
             kind="real_alarm", transition_key=_LAUNCH_LIVENESS_KEY,
             state=f"died:{len(died)}", re_escalate_after=RE_ESCALATE_SECONDS,
         )
+        # AFTER the send, never before: a notice cleared ahead of a notify that then throws is a
+        # death that is now reported nowhere and owed by nothing.
+        try:
+            launch_liveness.clear_notices(died)
+        except Exception as e:  # noqa: BLE001 -- a failed clear re-pages; a raise loses the cycle
+            log(f"launch-liveness notice clear error: {e}")
     if done:
         # Batched, not paged: `routine_landing` is a deferrable class, so this reaches the digest.
         notify(

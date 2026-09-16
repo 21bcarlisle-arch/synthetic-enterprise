@@ -79,6 +79,12 @@ LIVE = "live"
 FINISHED = "finished"
 DIED = "died"
 UNKNOWN = "unknown"
+#: Terminal, and NOT a verdict a re-ask can produce: what `record()` moves a still-`live` row to
+#: when a relaunch takes its unit name. It says "this run was never settled and now never can be"
+#: -- which is a worse answer than DIED and a strictly better one than the row's silent deletion.
+#: It must be terminal precisely BECAUSE the name is reused: a row left at `live` would be re-asked
+#: by `check()` against the NEW run's systemd state, and answer confidently about the wrong job.
+SUPERSEDED = "superseded"
 #: Not a state a record settles to: it is what a re-ask returns when the probe itself is broken.
 UNREADABLE = "unreadable"
 RUNNING = "running"
@@ -226,11 +232,32 @@ def save(records: list, path: Path | None = None) -> None:
 def record(job: str, unit: str, artefact: str, *, log: str | None = None,
            rc_path: str | None = None, asserted_live_by: list | None = None,
            launched_at: str | None = None, path: Path | None = None) -> dict:
-    """Write (or replace) the launch record for `job`. Always writes the claim `live`.
+    """Write the launch record for `job`. Always writes the claim `live`.
 
     `asserted_live_by` names the documents that state this run is in flight. It is what turns a
     contradiction into an address: the check does not just say a claim went stale, it says which
     pages are now wrong.
+
+    THE IMMEDIATELY-PRECEDING RUN IS KEPT, AND THIS USED TO DELETE IT. The line was
+    `[r for r in load(path) if r.get("job") != job]` -- a filter by job name that never looked at
+    `claim`. Four launches of one job is four relaunches of ONE JOB NAME, so that filter ran on
+    exactly the event this module was built for, and it ran in the window where the contradiction
+    had not been written yet: a job dies, its row still reads `live` because `check()` runs on the
+    deadman's cadence and not on the death, somebody relaunches, and the `live` row is dropped. The
+    next deadman cycle finds nothing stale and clears; the `[LAUNCH DIED]` page never fires; every
+    document in the deleted row's `asserted_live_by` is never contradicted. This is the module's
+    own founding defect arriving through its own writer.
+
+    So an unsettled row is SUPERSEDED rather than deleted -- terminal, dated, and carrying the
+    reason it can never be settled -- and the run before that one is what gets dropped. ONE prior
+    row per job, not a growing history: the reader this serves is someone holding a document that
+    says the LAST run is in flight, and two runs ago was already contradicted by the run between.
+
+    NOT A REFUSAL. Refusing to relaunch over an unsettled row would wedge the launcher outright
+    whenever a death settles to UNKNOWN -- and `check()` by design never settles UNKNOWN, so the
+    row would stay `live` forever and no relaunch of that job would ever be possible again. A guard
+    that refuses a legitimate relaunch every time the probe was inconclusive is a guard that
+    refuses the ordinary case, which is the shape this project ships worst.
     """
     entry = {
         "job": job,
@@ -244,14 +271,39 @@ def record(job: str, unit: str, artefact: str, *, log: str | None = None,
         "settled_at": None,
         "evidence": None,
     }
-    records = [r for r in load(path) if r.get("job") != job]
-    records.append(entry)
-    save(records, path)
+    records = load(path)
+    prior = [r for r in records if r.get("job") == job]
+    # Identity, not equality: two runs of one job can be equal dicts field for field, and `!=` on
+    # the value would drop the row we mean to keep.
+    stale = {id(r) for r in prior[:-1]}
+    kept = [r for r in records if id(r) not in stale]
+    if prior and prior[-1].get("claim") == LIVE:
+        prior[-1]["claim"] = SUPERSEDED
+        prior[-1]["settled_at"] = _now()
+        prior[-1]["evidence"] = (
+            f"a relaunch of `{job}` took the unit name `{prior[-1].get('unit')}` while this run's "
+            "claim was still `live`, so nothing had asked what became of it and now nothing can: "
+            "the only exit record that could answer belongs to whichever run holds the name. The "
+            "row is kept rather than deleted so the documents it names are not left uncontradicted "
+            f"-- re-ask them by hand. Superseded at {_now()} by a launch recorded after it.")
+    kept.append(entry)
+    save(kept, path)
     return entry
 
 
-def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list, list]:
+def check(path: Path | None = None, probe=systemd_probe, *,
+          only: str | None = None, notice: bool = False) -> tuple[int, list, list]:
     """Re-ask every record still claiming `live`; settle the ones that are not, and say so.
+
+    `only` narrows the re-ask to ONE job. It exists for `launch_long_job.launch()`, which must
+    settle the run it is about to overwrite before `reset-failed` destroys the evidence -- and has
+    no business probing units belonging to other jobs on its way to starting one.
+
+    `notice` marks what it settles to DIED as owed to the director. The settling moved to the
+    launcher, so the REPORTING has to be able to start from the record rather than from this call's
+    return value: the deadman only ever sees rows still claiming `live`, and a row the launcher
+    already settled is invisible to it. Left off by default, which is why the deaths already
+    settled in the live register do not all page the first time this ships.
 
     RETURNS `(stale, lines, settled)`. `settled` carries the records this call moved, each with the
     verdict that moved it, because A DEATH AND A COMPLETION ARE NOT THE SAME EVENT and only the
@@ -276,6 +328,8 @@ def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list, lis
     for entry in records:
         if entry.get("claim") != LIVE:
             continue
+        if only is not None and entry.get("job") != only:
+            continue
         answer = reask(entry, probe=probe)
         verdict = answer["verdict"]
         lines.append(f"{entry.get('job')}: {verdict.upper()} -- {answer['why']}")
@@ -288,12 +342,51 @@ def check(path: Path | None = None, probe=systemd_probe) -> tuple[int, list, lis
         entry["claim"] = FINISHED if verdict == FINISHED else DIED
         entry["settled_at"] = _now()
         entry["evidence"] = answer["why"]
+        if notice and entry["claim"] == DIED:
+            entry["pending_notice"] = True
         settled.append(entry)
         for doc in entry.get("asserted_live_by") or []:
             lines.append(f"  CONTRADICTS {doc} -- it says this run is in flight; it is not")
     if settled:
         save(records, path)
     return len(settled), lines, settled
+
+
+def _identity(entry: dict) -> tuple:
+    """What tells two runs of one job apart. Deliberately not `job` alone: the whole subject here
+    is a job name carrying more than one run's record."""
+    return (entry.get("job"), entry.get("unit"), entry.get("launched_at"))
+
+
+def pending_notices(path: Path | None = None) -> list:
+    """Deaths that were settled but never reported, so somebody can still be told.
+
+    A DEATH SETTLED BY THE RELAUNCH IS INVISIBLE TO THE DEADMAN, and that is the whole reason this
+    exists. `check()` re-asks rows claiming `live`; the launcher's own pre-`reset-failed` settle
+    leaves the row DIED, so the next deadman cycle correctly finds nothing stale and correctly
+    stays silent -- and the page is suppressed by the very repair that preserved the evidence.
+    Separating "settled" from "reported" is what stops the fix re-creating the defect one move on.
+
+    Absent `pending_notice` means "not owed", NOT "owed". Every row settled before this shipped
+    lacks the field, so this returns nothing for them rather than paging the whole register at once
+    the first time the deadman runs it.
+    """
+    return [r for r in load(path) if r.get("pending_notice")]
+
+
+def clear_notices(entries, path: Path | None = None) -> int:
+    """Mark these deaths reported. Called AFTER the notify, never before: a notice cleared ahead of
+    a send that then throws is a death nobody is told about twice over."""
+    wanted = {_identity(e) for e in entries}
+    records = load(path)
+    cleared = 0
+    for r in records:
+        if r.get("pending_notice") and _identity(r) in wanted:
+            r.pop("pending_notice", None)
+            cleared += 1
+    if cleared:
+        save(records, path)
+    return cleared
 
 
 def git_membership(rel: str, repo: Path) -> dict | None:
