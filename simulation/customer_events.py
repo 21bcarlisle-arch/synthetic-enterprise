@@ -24,6 +24,7 @@ intentional: Phase 6b turns existing *risk scores* into actual *events*, and
 the models that compute those scores already live in `saas/`.
 """
 import random as _random
+from collections.abc import Container
 from datetime import date
 
 from company.crm.churn_model import estimate_churn_probability
@@ -442,6 +443,41 @@ def churn_roll_for_renewal(billing_account: str, term_start_str: str) -> float:
     return _random.Random(f"{billing_account}_{term_start_str}").random()
 
 
+def departure_decision_leg(
+    billing_account: str, *, accounts_with_an_electricity_leg: Container[str]
+) -> str:
+    """Which of a household's supply points carries its departure roll.
+
+    A household leaves a supplier ONCE. It does not leave twice because it buys two fuels, so
+    exactly one of its legs may roll for departure and the other rides the household decision.
+    Until 2026-09-16 the world spelled that rule as the literal `commodity == "electricity"` at
+    both of `run_phase2b`'s departure bookings, which is the right answer for a household that
+    HAS an electricity leg and no answer at all for one that does not.
+
+    WHAT THAT COST, MEASURED (delivery seat, 2026-09-16, and the finding it discharges is
+    `SEAT_RESULT_THE_LAST_158_REFUSED_RENEWALS_ARE_EIGHTEEN_GAS_ONLY_ACCOUNTS_THAT_CANNOT_LEAVE`).
+    Eighteen of this book's 164 settled billing accounts hold a gas supply point and no
+    electricity one. They were never rolled for departure at any point in 2016-2025 — settled,
+    renewed and billed for a decade with no route out. **11% of the book was immortal**, and a
+    book of immortal households earns more than a real one. The fidelity claim against that is not
+    delicate: a household that buys its gas from us and its electricity from someone else can
+    switch gas supplier like anyone else.
+
+    THIS IS NOT A WIDENING OF WHO MAY LEAVE PER CYCLE, which is the failure mode to watch for. The
+    predicate returns `"electricity"` for EVERY account holding an electricity leg, so on those
+    accounts it is the identity on the old literal and the old behaviour is preserved element for
+    element. It returns `"gas"` only where the alternative is no roll at all. A dual-fuel household
+    still rolls once, on the leg it always rolled on.
+
+    THE SET IS THE ROSTER'S, PASSED IN, NEVER IMPORTED. Which accounts hold an electricity leg is
+    a fact about the book being run, and a run with a different roster must get a different answer
+    from the same function. Reaching into `run_phase2b`'s module-level roster from here would make
+    this function's answer depend on import order and would make it untestable against any book but
+    today's.
+    """
+    return "electricity" if billing_account in accounts_with_an_electricity_leg else "gas"
+
+
 def roll_lifecycle_event(
     customer_id: str,
     term_start_str: str,
@@ -463,8 +499,14 @@ def roll_lifecycle_event(
     """Compute and roll the churn/renewal event for a billing account at a
     renewal point.
 
-    Call only for electricity legs (`commodity == "electricity"`) at
-    `term_index >= 1` — gas legs share the billing-account-level decision.
+    Call once per billing account per renewal cycle, at `term_index >= 1`, on the account's
+    DEPARTURE DECISION LEG — see `departure_decision_leg` above for which leg that is and why the
+    question is not simply "electricity". The account's other leg, if it has one, shares the
+    billing-account-level decision and must not be rolled again.
+
+    This said "call only for electricity legs" until 2026-09-16, and that was the prose beside the
+    defect rather than a description of it: a household with no electricity leg was never called
+    for at all.
 
     `records_so_far` must contain only settlement records up to (not
     including) the current term start — Point-in-Time safe by construction

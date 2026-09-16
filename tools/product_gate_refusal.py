@@ -210,12 +210,21 @@ def refusal_breakdown(by_tariff_type) -> dict:
 #: AND "REACHABLE" WAS THE WRONG WORD, not merely a second wording. It is a claim about what
 #: repairing the label DELIVERS, and this surface cannot see what decides that. Measured
 #: 2026-09-16: the live roster's unlabelled gas legs are exactly its GAS-ONLY households, and
-#: `simulation/run_phase2b` books a departure only inside `if commodity == "electricity"` -- so
+#: `simulation/run_phase2b` booked a departure only inside `if commodity == "electricity"` -- so
 #: repairing the label alone would admit decisions whose accounts cannot leave, into a concordance
 #: `run_value_cycle_ab._survivorship` publishes as conditioned on survival. The defect is real and
 #: the record is ours; whether fixing it makes the term PRICEABLE has a different subject, and this
 #: sentence now names that subject instead of answering it.
-#: See `tests/simulation/test_a_departure_is_booked_only_on_an_electricity_leg.py`.
+#:
+#: THE DEPARTURE HALF LANDED THE SAME DAY AND THE CLAUSE BELOW STILL STANDS, which is worth saying
+#: because the two are easy to confuse. `simulation.customer_events.departure_decision_leg` now
+#: gives a gas-only household a route out, so "the account cannot leave" is no longer the reason
+#: these 158 are held back -- but the LABEL is still unrepaired (`resolved_tariff_type`'s gas
+#: branch, which a drawn record defeats), and repairing it honestly is the C1b roll and not a
+#: blanket `fixed`. So the clause's claim -- that priceability is a separate question this surface
+#: cannot answer -- is unchanged; only which half is outstanding has moved.
+#: See `tests/simulation/test_a_departure_rolls_on_exactly_one_named_leg.py` and
+#: `tests/simulation/test_the_tariff_type_read_has_one_home.py`.
 _DEFECT_CLASS_CLAUSE = (
     "the world settled these terms without deciding what product they were, so the arm refused a "
     "RECORD rather than a PRODUCT, and the record is ours to fix. Whether fixing it makes the term "
