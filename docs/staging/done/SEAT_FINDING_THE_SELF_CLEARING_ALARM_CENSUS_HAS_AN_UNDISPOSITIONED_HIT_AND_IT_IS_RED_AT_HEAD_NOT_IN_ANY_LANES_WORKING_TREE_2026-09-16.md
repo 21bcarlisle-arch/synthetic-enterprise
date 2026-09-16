@@ -1,9 +1,24 @@
-**Severity:** BLOCKING · **Lane:** H_harness · **Epoch:** 3 · **Class:** controls_that_cannot_fail · **Atom:** (none — found in passing)
+**Severity:** RECORDED · **Lane:** H_harness · **Epoch:** 3 · **Class:** controls_that_cannot_fail · **Atom:** (none — found in passing)
 
 # `test_every_live_hit_is_dispositioned` is RED at HEAD on `.launch_records.json`, and it is nobody's working-tree pollution
 
 **Filed 2026-09-16, delivery seat**, found while sweeping the publish-gate test population after
 landing `8dfb28f9f`. Not mine, and recorded rather than routed around.
+
+**Discharged:** 2026-09-16 by the delivery seat, commit 76e74f854 (promoted to origin/main). The
+row is written and `python3 -m background.self_clearing_alarm_census --check` is rc=0 with all 31
+tests in `tests/background/test_self_clearing_alarm_census.py` green. Severity drops BLOCKING →
+RECORDED because the red is gone, not because the judgement was easier than this document said it
+would be: the verdict is `benign`, and the reason is a READER fact — `launched_at` IS an
+episode-start timestamp that `record()` resets, but no alarm reads it for severity. The
+`_scope_of_benign` half was answered separately and is the destructive one: `load()` cannot tell
+ABSENT from PRESENT-BUT-UNREADABLE, and `record()` destroys every other job's record on a corrupt
+read while `check()` does not. **What this document warned about was real and is NOT closed by the
+row.** `record()` deletes an unsettled `live` claim on relaunch, so a `[LAUNCH DIED]` page can be
+suppressed; that is filed as
+`docs/staging/SEAT_FINDING_A_RELAUNCH_DELETES_THE_UNSETTLED_LIVE_RECORD_OF_THE_DEATH_IT_IS_RELAUNCHING_AFTER_2026-09-16.md`
+(LATENT), with the reason it is not graded `real` — the append-or-monotonic remedy is vacuous on a
+timestamp every legitimate relaunch moves forward.
 
 ## The red, verbatim
 
