@@ -3771,6 +3771,125 @@ def last_red_census(now=None, path=None):
         return CENSUS_FAIL_FAST_ONLY, 0
 
 
+# ── WHOSE RED IS IT: HEAD'S, OR THE ONE THIS PUBLISH WOULD HAVE CREATED? (2026-09-16) ─────────
+#
+# WHY. Thirty-two consecutive failures of the episode opened 2026-09-10 each NAMED a red, and not
+# one of them said which TREE that red was measured on -- so every episode re-derived the same
+# question from nothing, and the RUNG-1 draw sent to repair the red recorded against `3346182b6`
+# was sent at
+# `site/knowledge/test_index_reflects_the_record.py::test_the_card_copy_is_quoted_from_the_record`.
+#
+# MEASURED 2026-09-16, in clean `git archive` extracts, not inferred: that test passes at HEAD
+# (`6a9ead27a`) AND at `3346182b6` itself. It was never HEAD's red. It was red only on the tree
+# the publish COMMIT would create -- and a whole invocation was spent hunting it in a tree where
+# it is green.
+#
+# THE RECORD ALREADY HELD THE ANSWER AND DROPPED IT. `census` names the PRODUCER of the blocking
+# list, and the two producers have DIFFERENT SUBJECTS:
+#   * the publisher's own scoped gate -- a clean checkout of exactly one SHA
+#     (DIRECTOR_RULING_PUBLISH_GATE_SUBJECT_2026-08-09, and `_head_checkout` is what enforces it).
+#     Its red IS that SHA's red.
+#   * the pre-commit HOOK CHAIN (`hook_chain`) -- the tree the commit WOULD create, i.e. that SHA
+#     plus this publish's own writes. Its red is NOT established as that SHA's.
+# So the SUBJECT settles it, with no new measurement and no second gate run inside the alarm
+# path. Where the subject does not settle it, this says so in those words (R15; "we cannot tell"
+# is a result) rather than leaving the next reader to re-derive it from nothing.
+#
+# KEYED TO THE PROPERTY -- which tree was the subject? -- never to today's answer. Two claims it
+# deliberately does NOT make:
+#   * a scoped green recorded at HEAD does not clear a hook-chain red. The two gates run
+#     DIFFERENT test selections, so reading one as the other's verdict is a claim over a
+#     population it was never measured over.
+#   * `commit_tree_subject` is not "green at HEAD". It says the subject was a different tree, so
+#     HEAD is unproven either way -- and it points the reader at what this publish WRITES.
+RED_AT_HEAD_YES = "yes"
+RED_AT_HEAD_COMMIT_TREE_ONLY = "commit_tree_subject"
+RED_AT_HEAD_NOT_ESTABLISHED = "not_established"
+# Two abbreviations of one commit agree when the shorter is a prefix of the longer. Below this
+# many characters a "match" is a collision waiting to happen, so it reads as no subject at all.
+RED_AT_HEAD_MIN_SHA_CHARS = 7
+
+
+def _sha_is_usable(s):
+    """Is this a SHA we may compare at all?
+
+    `"unknown"` is not a defensive placeholder here, it is a VALUE this pipeline really records
+    -- `_marker_git_hash` and `_write_blocking_tests` both default to it -- and it is seven
+    characters, so a bare length check lets it through and the comparison below then reports it
+    as a DIFFERENT commit. It is not a different commit; it is no commit."""
+    s = str(s or "").strip().lower()
+    if s in ("", "unknown", "none"):
+        return False
+    return len(s) >= RED_AT_HEAD_MIN_SHA_CHARS and all(c in "0123456789abcdef" for c in s)
+
+
+def _sha_agrees(a, b):
+    """Do two possibly-abbreviated SHAs name the same commit? Unusable reads as NO."""
+    if not (_sha_is_usable(a) and _sha_is_usable(b)):
+        return False
+    a, b = str(a).strip().lower(), str(b).strip().lower()
+    return a.startswith(b) or b.startswith(a)
+
+
+def red_at_head_verdict(node_ids, blocking_hash, census, head_sha):
+    """Was the named red ALREADY red at HEAD? `{"verdict": ..., "reason": ...}`, never raises.
+
+    Pure: every input is already in the caller's hand, so this runs no git and no pytest. That
+    is deliberate -- this is called from `record_publish_gate_failure`, which is the ALARM path,
+    and a monitoring step that shells out is a monitoring step that can hang the pipeline it
+    observes.
+
+    Every branch names its reason, including each refusal, because the refusals are the ones a
+    reader will want to argue with -- and one of them being wrong is how we find out."""
+    ids = [str(n) for n in (node_ids or [])]
+    if not ids:
+        return {"verdict": RED_AT_HEAD_NOT_ESTABLISHED,
+                "reason": "no red is named on this failure, so there is no red to attribute to "
+                          "a tree. This is not evidence that HEAD is green."}
+    if not _sha_is_usable(head_sha):
+        return {"verdict": RED_AT_HEAD_NOT_ESTABLISHED,
+                "reason": "git could not say what HEAD is, so the subject the red was measured "
+                          "on cannot be compared with it."}
+    if not _sha_is_usable(blocking_hash):
+        return {"verdict": RED_AT_HEAD_NOT_ESTABLISHED,
+                "reason": "the blocking record names no subject commit, so which tree its "
+                          "{} red(s) were measured on is not recorded.".format(len(ids))}
+    if not _sha_agrees(blocking_hash, head_sha):
+        return {"verdict": RED_AT_HEAD_NOT_ESTABLISHED,
+                "reason": "the red was measured at git={} and HEAD is now git={} -- that record "
+                          "describes a different commit's tree, so it says nothing about "
+                          "HEAD.".format(str(blocking_hash)[:9], str(head_sha)[:9])}
+    if str(census) == CENSUS_HOOK_CHAIN:
+        return {"verdict": RED_AT_HEAD_COMMIT_TREE_ONLY,
+                "reason": "measured by the pre-commit HOOK CHAIN, whose subject is the tree the "
+                          "commit WOULD create -- HEAD git={} PLUS this publish's own writes. "
+                          "So it is NOT established as HEAD's red: look at what this publish "
+                          "writes before looking at HEAD. (The publisher's scoped gate was "
+                          "green here, but it runs a different selection, so it does not "
+                          "acquit these node ids.)".format(str(head_sha)[:9]),
+                "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
+    return {"verdict": RED_AT_HEAD_YES,
+            "reason": "measured by the publisher's own scoped gate, whose subject is a clean "
+                      "checkout of exactly git={}, which is HEAD. The red is AT HEAD and "
+                      "repairing it is the unblock.".format(str(head_sha)[:9]),
+            "node_ids": ids[:GATE_MAX_CITED_BLOCKING_TESTS]}
+
+
+def _head_sha_for_attribution():
+    """HEAD for `red_at_head_verdict`, or None. NEVER raises and never costs the record.
+
+    `_head_sha` shells out with a 60s budget and re-raises `TimeoutExpired`. On the gate path
+    that is right -- a gate that cannot name its subject must not run. Here the caller is the
+    alarm writer, whose own contract is that a monitoring failure must not break the pipeline it
+    monitors: letting this escape would lose the whole failure record to save an attribution
+    field, which is the wrong way round. None degrades to `not_established`, with its reason."""
+    try:
+        return _head_sha()
+    except Exception as exc:  # noqa: BLE001 -- see the docstring: the record outranks the field
+        log("Publish gate: could not read HEAD to attribute the red to a tree: {}".format(exc))
+        return None
+
+
 def _run_weather_data(git_hash="unknown"):
     from tools.fetch_weather_data import generate_weather_data
     generate_weather_data(git_hash=git_hash)
@@ -6587,6 +6706,14 @@ def _read_publish_gate_state():
         # claiming a publish nobody observed is the fail-open direction here.
         st.setdefault("episode_clean_publishes", 0)
         st.setdefault("last_clean_publish", None)
+        # WHICH TREE THE NAMED RED WAS MEASURED ON (2026-09-16). A state file written before this
+        # field existed recorded no subject for its red, and `not_established` is exactly what
+        # that earns -- never `commit_tree_subject`, which would send the reader away from HEAD
+        # on a claim nobody made, and never `yes`, which would send them at it.
+        st.setdefault("red_at_head", RED_AT_HEAD_NOT_ESTABLISHED)
+        st.setdefault("red_at_head_reason",
+                      "this record predates the attribution field, so which tree its red was "
+                      "measured on was never written down.")
         st["state_unavailable"] = False
         return st
     except (json.JSONDecodeError, OSError, ValueError):
@@ -6649,6 +6776,15 @@ def _write_publish_gate_state(state, *, episode_closed=False, liveness_resolved=
            "suspects": state.get("suspects", {}),
            "red_census": state.get("red_census", CENSUS_FAIL_FAST_ONLY),
            "total_red": state.get("total_red", 0),
+           # WHICH TREE THE NAMED RED WAS MEASURED ON. No carry-forward clause is needed beside
+           # the three below: both liveness writers hand this function a full
+           # `_read_publish_gate_state()` dict, where the setdefault has already restored these
+           # two from disk, so the fixed key list round-trips them instead of dropping them.
+           # The default is the refusal, so a caller that proposes nothing claims nothing.
+           "red_at_head": state.get("red_at_head", RED_AT_HEAD_NOT_ESTABLISHED),
+           "red_at_head_reason": state.get(
+               "red_at_head_reason",
+               "no writer proposed an attribution for this record."),
            "episode_clean_publishes": state.get("episode_clean_publishes", 0),
            "last_clean_publish": state.get("last_clean_publish"),
            "liveness_surface_refusal": state.get("liveness_surface_refusal"),
@@ -7447,9 +7583,15 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                 "this exit path names no cause, so which one it was is NOT established here"
                 if str(cause) == publish_cause.UNATTRIBUTED
                 else "the cause beside it was named without the observation that decided it"))
-        failures.append({"ts": now, "reason": str(reason), "rc": rc, "kind": kind,
-                         "git_hash": git_hash, "cause": str(cause),
-                         "cause_evidence": evidence})
+        # Placeholder: the attribution needs `blocking`/`census`, which are read further down
+        # (they depend on `cause`, via the carried-forward suppression). The entry is built here
+        # because `count` is taken from it; the field is filled in before the write, and the
+        # object appended IS the object mutated. `_attribute_red_to_a_tree` below is the only
+        # writer of it, so there is exactly one place where this can be got wrong.
+        entry = {"ts": now, "reason": str(reason), "rc": rc, "kind": kind,
+                 "git_hash": git_hash, "cause": str(cause),
+                 "cause_evidence": evidence}
+        failures.append(entry)
         count = len(failures)
         # PERSISTENT wedge-start (2026-07-24): preserve the existing streak start; only stamp `now`
         # when the streak is starting (no prior wedge_since). Survives the 1h window trim above so a
@@ -7513,6 +7655,18 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
         # never the recency fallback this replaced.
         suspects = wedge_suspects(blocking)
         cited = linked_findings(suspects)
+        # WHOSE RED IS IT (2026-09-16). Computed from the SAME `blocking`/`census` pair just
+        # read and suppressed above, at the same moment, so the attribution can never describe a
+        # different red than the node ids beside it -- the property `last_red_census` is placed
+        # next to `last_blocking_tests` for. Written to the ENTRY and to the top level: the entry
+        # is what survives into the history a later episode reads back, the top level is what the
+        # RUNG-1 draw and the seat brief quote.
+        red_at_head = red_at_head_verdict(blocking, blocking_hash, census,
+                                          _head_sha_for_attribution())
+        entry["red_at_head"] = red_at_head["verdict"]
+        entry["red_at_head_reason"] = red_at_head["reason"]
+        log("Publish gate: the named red is `{}` -- {}".format(
+            red_at_head["verdict"], red_at_head["reason"]))
         if threshold_met and armed:
             # ALARM->DIAL: the citation is persisted as well as paged, because the supervisor's
             # RUNG-1 unwedge draw reads the state file, not the NTFY.
@@ -7532,6 +7686,8 @@ def record_publish_gate_failure(reason, rc=None, git_hash="unknown", *, now=None
                                    "cited_findings": cited,
                                    "blocking_tests": blocking,
                                    "red_census": census, "total_red": total_red,
+                                   "red_at_head": red_at_head["verdict"],
+                                   "red_at_head_reason": red_at_head["reason"],
                                    "suspects": suspects})
         log("Publish-gate failure #{} ({}, rc={}) -- alert {}".format(
             count, kind, rc, "FIRED" if fired else ("armed/cooldown" if threshold_met else "below threshold")))
@@ -7666,6 +7822,16 @@ def record_publish_gate_success(*, now=None, markers_pending=None):
             (int(prev_clean) if isinstance(prev_clean, int) else 0) + 1)
         _write_publish_gate_state({"failures": [], "alerted_at": None, "wedge_since": None,
                                    "episode_failures": 0, "cited_findings": [], "suspects": {},
+                                   # A green gate retires the attribution with the red it was
+                                   # about, exactly as `_clear_blocking_tests` retires the node
+                                   # ids. Stated rather than left to the reader's default, which
+                                   # says "predates this field" -- true of an old file, false
+                                   # here, and a diagnostic that misdescribes why it is empty is
+                                   # the small lie the log line below was fixed for.
+                                   "red_at_head": RED_AT_HEAD_NOT_ESTABLISHED,
+                                   "red_at_head_reason":
+                                       "the gate passed, so there is no named red to attribute "
+                                       "to a tree.",
                                    "episode_clean_publishes": episode_clean,
                                    "last_clean_publish": None if episode_closed else stamp},
                                   episode_closed=episode_closed)

@@ -874,6 +874,181 @@ def test_a_row_the_BOUND_cost_us_is_named_and_not_folded_into_the_ungradable_cou
         "the cap look more expensive than it is and hide the rows that actually cost us")
 
 
+def _ungradable(aid, reason, *causes):
+    """An ungradable row shaped the way `lz.assess` returns one, with its causes attached.
+
+    A HELPER RATHER THAN SEVEN LITERALS, because the load-bearing part of every fixture below is
+    the causes list, and a dict literal repeated seven times is where one of them silently loses
+    the key the assertion turns on.
+    """
+    return {"id": aid, "reason": reason,
+            "causes": [{"cause": c, "paths": [], "repair": "-"} for c in causes]}
+
+
+def test_EVERY_ungradable_row_reaches_the_brief_by_NAME_and_not_only_as_a_count(monkeypatch):
+    """THE DEFECT: `ungradable_count` said 29 and named none of them. The majority of the
+    partition this check speaks about was anonymous in the only place the check is read, so a row
+    ungradable for a FIXABLE reason -- a stale path, a scope where a control belongs -- could not
+    be told apart from the ones that are honestly unbuilt. A count is a coverage limit; it is not
+    the thing that was skipped.
+
+    ONE ASSERTION OVER THE WHOLE PARTITION, not a leg per group. A per-group leg passes on a
+    function that names one group and drops the rest, and that is precisely the failure: every
+    cause here has a different repair, so any group that goes missing takes real work with it.
+    The set equality is the property; the grouping is how it is presented.
+
+    AND THE UNRECOGNISED CAUSE IS IN THE FIXTURE ON PURPOSE. It is the leg that separates
+    "grouped by whatever arrived" from "grouped into the branches someone wrote down": a
+    hard-coded vocabulary passes every other row here and silently drops the new one the day the
+    producer learns a cause it does not yet have.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    rows = [
+        _ungradable("NAMES_NOTHING", lz.NO_CONTROL_NAMED, lz.CONTROL_NEVER_WRITTEN),
+        _ungradable("STALE_PATH", lz.NAMED_CONTROL_ABSENT, lz.POINTER_ROT),
+        _ungradable("OLDER_THAN_ITS_ROW", lz.CONTROL_PREDATES_ROW, lz.NOTHING_IN_THE_ROW),
+        _ungradable("UNDATABLE", lz.PROVENANCE_UNKNOWN, lz.CAUSE_UNDECIDABLE),
+        _ungradable("NEVER_REACHED", lz.BUDGET_EXHAUSTED, lz.NOTHING_IN_THE_ROW),
+        _ungradable("SCOPE_ONLY", lz.NO_CONTROL_NAMED, lz.NAMES_ONLY_A_SCOPE),
+        _ungradable("UNBUILT", lz.NO_CONTROL_NAMED, lz.HONESTLY_UNBUILT),
+        _ungradable("A_CAUSE_NOBODY_HAS_WRITTEN_A_BRANCH_FOR", lz.RUN_UNAVAILABLE,
+                    "invented after this test"),
+    ]
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: ([], rows))
+    out = seat.self_contradicting_levels()
+
+    named = ({aid for ids in out["ungradable_by_cause"].values() for aid in ids}
+             | set(out["ungradable_owing_no_repair"]))
+    assert named == {r["id"] for r in rows}, (
+        "a row the check could not grade left the brief without being named -- which is the "
+        "silent skip this field exists to end, and it reads on the page as a check that found "
+        "almost nothing wrong"
+    )
+    assert out["ungradable_count"] == len(rows), (
+        "the headline count and the named rows must be the same partition; two numbers that can "
+        "disagree is how a reader learns to trust neither")
+    # The cause travels WITH the row, because the causes carry different REPAIRS: a rotted
+    # pointer is repointed, a scope-only row is given a control, a row whose scope is fine is
+    # re-run and never edited. A flat list of ids would name every row and tell the seat nothing
+    # about what to do with any of them.
+    assert out["ungradable_by_cause"][lz.POINTER_ROT] == ["STALE_PATH"]
+
+
+def test_the_brief_groups_by_CAUSE_and_not_by_the_REASON_SHAPE_FIELD(monkeypatch):
+    """THE DEFECT THIS LANDS: `ungradable_causes` made the split in the producer and the brief --
+    its only consumer -- was still bucketing on `u["reason"]`, so the reader got the
+    undifferentiated count the split was built to end. A repair in the producer that never
+    reaches the reader is this project's most-repeated shape.
+
+    THE FIXTURE IS THE PROOF. Three rows share ONE reason and carry THREE different causes, with
+    three different repairs. Grouped by reason they are one group of three and the brief says
+    nothing actionable; grouped by cause they are three groups of one. A control that did not
+    make the two groupings disagree would pass on the defect.
+
+    MUTATION (must fire): key `_by_cause` on `u.get("reason")` and this collapses to one group.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    rows = [
+        _ungradable("REPOINT_ME", lz.NAMED_CONTROL_ABSENT, lz.POINTER_ROT),
+        _ungradable("WRITE_THE_TEST", lz.NAMED_CONTROL_ABSENT, lz.CONTROL_NEVER_WRITTEN),
+        _ungradable("NOT_A_DEFECT", lz.NAMED_CONTROL_ABSENT, lz.HONESTLY_UNBUILT),
+    ]
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: ([], rows))
+    out = seat.self_contradicting_levels()
+
+    assert lz.NAMED_CONTROL_ABSENT not in out["ungradable_by_cause"], (
+        "the brief is still grouping by the reason SHAPE field -- three rows with three "
+        "different repairs are back under one heading")
+    assert out["ungradable_by_cause"] == {
+        lz.POINTER_ROT: ["REPOINT_ME"],
+        lz.CONTROL_NEVER_WRITTEN: ["WRITE_THE_TEST"],
+    }
+
+
+def test_the_rows_owing_NO_repair_are_reported_APART_from_the_ones_that_do(monkeypatch):
+    """The part of the census that was never a defect. A row naming no file that exists is RIGHT
+    to read zero: nothing in it needs repairing until someone builds the atom or closes it.
+    Counting those alongside the rotted pointers is why the number did not move for twelve
+    briefs -- it read as a stuck census rather than as a mixed class.
+
+    BOTH DIRECTIONS ASSERTED. Reporting them apart is only half the property; the other half is
+    that the remaining count actually EXCLUDES them, and a field that lists them while the count
+    still carries them is the reassuring version of the same defect.
+
+    MUTATION (must fire): drop the `CAUSES_OWING_NO_REPAIR` filter and the count goes to 3.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    rows = [
+        _ungradable("REPOINT_ME", lz.NAMED_CONTROL_ABSENT, lz.POINTER_ROT),
+        _ungradable("UNBUILT_A", lz.NO_CONTROL_NAMED, lz.HONESTLY_UNBUILT),
+        _ungradable("UNBUILT_B", lz.NO_CONTROL_NAMED, lz.HONESTLY_UNBUILT),
+    ]
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: ([], rows))
+    out = seat.self_contradicting_levels()
+
+    assert out["ungradable_owing_no_repair"] == ["UNBUILT_A", "UNBUILT_B"]
+    assert lz.HONESTLY_UNBUILT not in out["ungradable_by_cause"], (
+        "a row owing no repair is in the repair split as well as beside it, so it is counted "
+        "twice by any reader who adds the two up")
+    assert out["ungradable_owing_repair_count"] == 1, (
+        "the count the census exists to move must exclude the rows that owe nothing -- it is "
+        "reported apart precisely so it can be subtracted, not so it can be listed twice")
+    # And the headline is UNCHANGED: the coverage limit is still three rows the check could not
+    # grade. Netting the unbuilt rows out of `ungradable_count` would be a smaller number nobody
+    # could check against the check's own output.
+    assert out["ungradable_count"] == 3
+
+
+def test_a_row_with_TWO_causes_appears_under_BOTH_and_is_counted_ONCE(monkeypatch):
+    """`A51` is the real row: a subject path that moved AND a control nobody wrote. Filing it
+    under a single primary cause sends the reader to repoint the pointer and call it repaired.
+
+    AND THE COUNT IS OVER ROWS, NOT REPAIRS, which is the leg that is easy to get wrong in the
+    flattering direction: summing the group sizes makes the census look worse than it is and the
+    number then moves by two when one row is fixed.
+
+    MUTATION (must fire): count `sum(len(v) for v in by_cause.values())` and this reads 2.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    rows = [_ungradable("A51", lz.NAMED_CONTROL_ABSENT,
+                        lz.POINTER_ROT, lz.CONTROL_NEVER_WRITTEN)]
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: ([], rows))
+    out = seat.self_contradicting_levels()
+
+    assert out["ungradable_by_cause"] == {lz.POINTER_ROT: ["A51"],
+                                          lz.CONTROL_NEVER_WRITTEN: ["A51"]}
+    assert out["ungradable_owing_repair_count"] == 1
+
+
+def test_an_ungradable_row_carrying_NO_cause_is_still_named(monkeypatch):
+    """The fail-silent shape the fix could reintroduce in its own reporting: a row arrives without
+    the key that decides its group, and the grouping quietly has nowhere to put it.
+
+    `ungradable_causes` is total as of 2026-09-16 so this should be unreachable in the live tree
+    -- which is exactly why the leg is here. The producer growing a branch that returns nothing
+    must show up as a named group, not as a row that left the brief.
+
+    MUTATION (must fire): drop the `or [NO_CAUSE_RECORDED]` fallback in `_by_cause`.
+    """
+    from tools import level_zero_contradicted_by_its_own_controls as lz
+
+    monkeypatch.setattr(lz, "assess", lambda *a, **k: ([], [{"id": "NO_CAUSES_FIELD"}]))
+    out = seat.self_contradicting_levels()
+
+    named = {aid for ids in out["ungradable_by_cause"].values() for aid in ids}
+    assert named == {"NO_CAUSES_FIELD"}
+    assert all(isinstance(k, str) and k for k in out["ungradable_by_cause"]), (
+        "a group key must be a string a reader can read -- None as a key is the row being lost "
+        "in the JSON the brief is serialised to")
+    assert out["ungradable_owing_repair_count"] == 1, (
+        "a row whose cause the producer could not give is not thereby a row owing no repair -- "
+        "reading an absent cause as 'nothing to do' is the fail-open version of this field")
+
+
 def test_the_budget_is_large_enough_to_reach_the_rows_that_ANSWER(monkeypatch):
     """Measured: four of the six gradable rows resolve in ~19s between them and produce every
     verdict this check exists for; two exceed any sane cap and merely consume it. A budget that
