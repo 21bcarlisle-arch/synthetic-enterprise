@@ -95,7 +95,7 @@ def test_a_departure_that_is_not_a_renewal_can_be_written_down():
     """DEFECT: the event schema can only express a departure that happened at a renewal point.
 
     This is the whole C1b blocker. Before this landed, `roll_lifecycle_event` was the only producer
-    of a lifecycle event and it is called only for electricity legs at `term_index >= 1`, so a
+    of a lifecycle event and it is called once per account at `term_index >= 1`, so a
     household leaving between renewals had no record shape at all. The control fails if
     `departure_event` stops accepting a non-renewal occasion.
     """
