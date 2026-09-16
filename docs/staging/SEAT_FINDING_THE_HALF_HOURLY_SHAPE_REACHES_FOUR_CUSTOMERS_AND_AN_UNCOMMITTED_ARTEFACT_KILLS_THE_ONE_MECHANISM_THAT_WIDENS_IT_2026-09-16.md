@@ -1,5 +1,14 @@
-**Severity:** BLOCKING · **Lane:** W1_market_weather · **Epoch:** 3 · **Atom:** none — Lane 0
+**Severity:** LATENT · **Lane:** W1_market_weather · **Epoch:** 3 · **Atom:** none — Lane 0
 delivery, director's Stage 1: *"the half-hourly shape reaching the book"*
+
+*Was BLOCKING. Downgraded 2026-09-16 by the seat that filed it, on the evidence in the correction at
+the foot of this file. The BLOCKING justification was Part 2 — "the second half is live on the
+shared tree right now and would reach the book on any lane's next `-A`-shaped landing". Those bytes
+turned out to be the CORRECT derivation and are now landed deliberately, so there is nothing left to
+sweep in. Part 1 — 96.7% of the settled book on `legacy_pc1_rescaled` — is unfixed and real, and it
+is a latent fidelity gap rather than a blocking one: it is a pull that has not happened, not a defect
+about to land. Keeping BLOCKING on a discharged cause is what makes the severity register stop
+meaning anything.*
 
 # The half-hourly shape reaches 4 customers of 210, and an uncommitted artefact in the shared tree kills the one mechanism that widens it
 
@@ -112,3 +121,52 @@ Belongs to `controls_that_cannot_fail`.
 In the "blind to its own subject" shape: the provider-match control passes perfectly on a book where
 nobody was declared eligible, and the coverage refusal is honest 213 times while the switch it
 guards reaches 1.9% of the book. Neither can see that the population it is judging has been emptied.
+
+---
+
+## CORRECTION, 2026-09-16, by the seat that wrote this — Part 2's diagnosis was inverted
+
+Kept beside the claim rather than revised, because the hedge below was the right one and naming
+which arm came true is the whole value of having written it.
+
+This finding said, correctly: *"A regeneration that matches no site is either a real defect or a
+partition that moved for a good reason nobody has written down — and I cannot tell which from
+outside their lane."* **It is the second arm.** Re-derived in an isolated worktree at `a7faea4ff`
+with none of the shared tree's uncommitted bytes:
+
+* `_derived()` produces the shared tree's "regression" **byte-for-byte** — 194,865 occupied cells,
+  the same coverage, the same cell labels on all four sites. It is not another lane's half-finished
+  edit; it is what `--derive` returns on the current caches, and has been since 2026-09-07 17:32.
+* The **committed** artefact is the stale one. It landed in `f27695607` at 02:06 on 2026-09-07, and
+  the ONSUD address placement it is cut over was still being written at 07:33 and 09:56 that
+  morning. `test_derive_reproduces_the_committed_artefact` has been **red at HEAD in any clean
+  worktree with the caches, for nine days**. This finding read that red as catching the shared tree.
+  It was catching the commit.
+
+### And "it currently accepts nothing" was measured through an expired witness
+
+The three-coordinate table in Part 2 probed `(50.4689, -4.1492)`, `(53.0, -2.0)` and
+`(55.9, -3.2)`. The second and third match nothing under **either** partition. The first is
+`REACHABILITY_WITNESS` — a constant whose own note says *a witness is a measurement and expires with
+the thing it witnesses*, and which had expired. Under the re-cut it is `(6, 10, 12)` against
+London's `(16, 10, 12)`: it kept the wind and sun cells and lost the temperature one.
+
+So the table had one live probe in it and that probe was the expired constant. Measured over the
+population the artefact is actually cut over:
+
+| | 09-07 cut | 09-16 cut |
+|---|---|---|
+| land cells reaching the accept branch | 203 | **117** |
+| of | 175,188 | 194,865 |
+
+**The branch lost 42% of its reach and was never close to dead.** An expired witness and a broken
+mechanism return the identical `None`, which is exactly why the witness is no longer re-typed in the
+test file — see the result document.
+
+### What stands unchanged
+
+Part 1 stands in full: 96.7% of the settled book is on `legacy_pc1_rescaled` and 213 of 228
+verdicts are the weather-coverage refusal. **Item 2 of "what the third Stage 1 item actually needs"
+— more archives — is not just the next thing, it is the only thing**, and the re-cut moves it by
+nothing. Item 1 is discharged. Item 3 (the verdict naming the site it could not find) is untouched
+and is now the cheapest remaining lever.
