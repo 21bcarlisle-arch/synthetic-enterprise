@@ -3419,16 +3419,31 @@ def test_the_level_on_the_page_is_the_one_the_measuring_tool_REPORTS(live):
     same quantity while both looked right. So the rendered figures are reconciled against a live
     call to the module that owns the denominators, not against the feed that rendered them.
 
-    Fires on: the feed drifting off the tool; a page that authors its own level.
+    THE SUBJECT MOVED ON 2026-09-16 AND THAT IS THE REPAIR, not drift in this control. It read
+    `world_realised_rate_pct` — a mean over renewal DECISIONS — because that is what the page
+    published, and it was green throughout the week the page judged that column against a band
+    stated over every account and told a reader to discount every money figure by the resulting
+    1.63x. A control cannot see a caller choosing the wrong one of two correct functions; only the
+    seat can. So the headline is now reconciled against `world_book_rate_pct`, the column whose
+    denominator is the band's, and the renewal reading is held by the leg below it.
+
+    Fires on: the feed drifting off the tool; a page that authors its own level; the headline
+    silently going back to the shoppers' column.
     """
     from tools.measure_departure_level import (
+        COMPARISON_YEARS,
         inside_band,
         published_bands,
-        world_realised_rate_pct,
+        world_book_rate_pct,
     )
 
-    bands, world = published_bands(), world_realised_rate_pct()
+    book, refusal = world_book_rate_pct()
+    assert refusal is None, (
+        "the live capture bears no whole-book reading ({}) -- the page must then say it cannot "
+        "tell, and this control has no subject".format(refusal))
+    world = {y: v for y, v in book.items() if y in COMPARISON_YEARS}
     assert world, "the captured run carries no comparable departure years"
+    bands = published_bands()
     rendered = live["arms-departure"]
     for year, level in sorted(world.items()):
         lo, hi = bands[year]
@@ -3436,6 +3451,48 @@ def test_the_level_on_the_page_is_the_one_the_measuring_tool_REPORTS(live):
             "the tool measures {} at {:.2f}% and the page does not carry it".format(year, level))
         assert "{:.1f}–{:.1f}%".format(lo, hi) in rendered
         assert ("inside" if inside_band(level, lo, hi) else "OUTSIDE") in rendered
+
+
+def test_the_shoppers_column_reaches_the_reader_AND_carries_no_verdict(live):
+    """THE SECOND QUANTITY, AND THE ABSENCE THAT IS ITS WHOLE CONTENT.
+
+    The renewal-decision reading is a real quantity about a real population — how readily a
+    household that reached a fixed-term end leaves — and for a company whose thesis is finding
+    movable customers it may be the more interesting one. So it stays on the page. What it must
+    NOT carry is a verdict: every published GB switching rate this project has found, the commons'
+    bands and DESNZ QEP 2.7.1 alike, is stated over ALL domestic electricity accounts, and nothing
+    published states one over the households who shop. Judging this column against a whole-account
+    band is exactly the defect of 2026-09-09, and re-rendering it with a band would reinstate it
+    one table lower down the same page.
+
+    Fires on: dropping the shoppers' column; dropping the reason it carries no comparator;
+    rendering a band, an in/out verdict or a ratio for it in the feed.
+    """
+    from tools.measure_departure_level import world_realised_rate_pct
+
+    dl = _live_feed().get("departure_level") or {}
+    ren = dl.get("renewal_decisions") or {}
+    assert ren.get("available") is True, (
+        "the page dropped the renewal-decision reading entirely ({}) -- the repair was to label "
+        "it, not to delete it".format(ren.get("reason")))
+    rendered = live["arms-departure"]
+    tool = world_realised_rate_pct()
+    assert tool, "the captured run carries no renewal-decision years"
+    for year, level in sorted(tool.items()):
+        assert "{:.2f}%".format(round(level, 2)) in rendered, (
+            "the tool measures {} at {:.2f}% over renewal decisions and the page does not carry "
+            "it".format(year, level))
+    assert ren["no_published_comparator"].replace(" -- ", " — ") in rendered, (
+        "the reason this column carries no verdict reached the feed and not the reader, so a "
+        "reader meets a second percentage with nothing saying why it is not judged")
+    for row in ren["years"]:
+        forbidden = {"band_lo_pct", "band_hi_pct", "inside_band", "share_of_the_band", "ratio"}
+        assert not forbidden & set(row), (
+            "{} carries {} -- a verdict over a population no published rate covers".format(
+                row["year"], sorted(forbidden & set(row))))
+    assert "against_the_publisher" not in ren, (
+        "the shoppers' column was compared to DESNZ QEP 2.7.1, whose denominator is every "
+        "domestic electricity account -- the same incomparability under a different record")
 
 
 def test_the_reader_is_told_the_band_its_OWN_PUBLISHER_refutes(live):

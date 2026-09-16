@@ -1817,6 +1817,24 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               : '<span style="color:var(--amber);font-weight:600;">OUTSIDE</span>')
           + "</td></tr>";
       }).join("");
+      /* THE SECOND QUANTITY, AND THE REASON IT CARRIES NO VERDICT COLUMN. The headline above is
+         the whole book against a band stated over the whole book. This is the renewal-decision
+         reading -- the households who reached a fixed-term end and so demonstrably shop -- and it
+         is a different population, not a second estimate of the same one. It ran as the HEADLINE
+         until 2026-09-16, judged against a band over everybody, and told a reader to discount
+         every money figure on this page by 1.63x when the comparable factor was 1.14x.
+         NO BAND, NO VERDICT AND NO RATIO IS RENDERED FOR IT, and that is the content rather than
+         an omission: nothing published states a GB switching rate over that sub-population, so
+         there is nothing it can be judged against. The producer's own refusal says so and is
+         rendered whole -- a table with two numbers and no standard is what caused this. */
+      var dlRen = dl.renewal_decisions || {};
+      var dlRenRows = (dlRen.available && dlRen.years ? dlRen.years : []).map(function (y) {
+        return "<tr><td style=\"padding:1px 10px 1px 0;\">" + esc(y.year)
+          + "</td><td style=\"text-align:right;padding:1px 10px 1px 0;\">"
+          + Number(y.world_pct).toFixed(2) + "%"
+          + "</td><td style=\"text-align:right;padding:1px 0;\">" + esc(y.renewals)
+          + "</td></tr>";
+      }).join("");
       var dlPub = dl.against_the_publisher || {};
       var dlPubRows = (dlPub.available && dlPub.years ? dlPub.years : []).map(function (y) {
         return "<tr><td style=\"padding:1px 10px 1px 0;\">" + esc(y.year)
@@ -1868,6 +1886,22 @@ footer { max-width: 980px; margin: 0 auto; padding: 24px 20px 40px; font-size: 1
               + "2.7.1 says</th>"
               + "<th style=\"text-align:left;padding:1px 0;font-weight:600;\">Ratio</th></tr>"
               + dlPubRows + "</table></div>"
+            : "")
+        /* THE SHOPPERS' OWN COLUMN, LABELLED AS ITS OWN POPULATION. See `dlRenRows`. */
+        + (dlRenRows
+            ? '<p style="margin:8px 0 0;font-size:11px;color:var(--muted);">'
+              + "<strong>How readily a household that reached a renewal decision left.</strong> "
+              + prose(dlRen.what_it_is || "") + "</p>"
+              + '<div class="table-scroll"><table style="font-size:11px;color:var(--muted);'
+              + 'margin:2px 0 0;border-collapse:collapse;"><tr>'
+              + "<th style=\"text-align:left;padding:1px 10px 1px 0;font-weight:600;\">Year</th>"
+              + "<th style=\"text-align:right;padding:1px 10px 1px 0;font-weight:600;\">Shoppers "
+              + "left at</th>"
+              + "<th style=\"text-align:right;padding:1px 0;font-weight:600;\">Renewal "
+              + "decisions</th></tr>"
+              + dlRenRows + "</table></div>"
+              + '<p style="margin:4px 0 0;font-size:11px;color:var(--amber);">'
+              + prose(dlRen.no_published_comparator || "") + "</p>"
             : "");
 
       /* BOTH SIDES OF ONE COMPARISON, ON ONE ROW. Keyed by arm so a household figure can only

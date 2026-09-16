@@ -2,6 +2,26 @@
 
 # The page's departure headline is a mean over shoppers judged against a band over everybody
 
+**Discharged:** `tools/generate_value_arms_data.py`, `site/capabilities/index.html`,
+`site/test_the_baseline_comparison_reaches_the_reader.py::test_the_level_on_the_page_is_the_one_the_measuring_tool_REPORTS`,
+`site/test_the_baseline_comparison_reaches_the_reader.py::test_the_shoppers_column_reaches_the_reader_AND_carries_no_verdict`
+**Preregistration:** `SEAT_PREREG_WHAT_THE_PAGE_WILL_SAY_WHEN_THE_DEPARTURE_HEADLINE_MOVES_TO_THE_WHOLE_BOOK_2026-09-16.md`
+**Outcome:** `SEAT_RESULT_THE_DEPARTURE_HEADLINE_NOW_COUNTS_THE_POPULATION_THE_BAND_COUNTS_2026-09-16.md`
+
+## DISCHARGE 2026-09-16 — the headline moved, under a preregistration written before the swap
+
+Items 1 and 2 are done. The page's headline is `world_book_rate_pct`, 6 of 8 years inside the
+band, the stated discount factor 1.03x in place of 1.63x, and both sides of the comparison now
+count accounts on the book. The renewal-decision reading stays on the page as a labelled second
+quantity with no band, no verdict and no ratio, and the absence of any published rate over that
+population is filed as a knowledge gap in the switching-rate row of
+`docs/institutional/knowledge_map.md`. All nine preregistered figures held; the preregistration and
+the outcome are filed beside each other whether or not they agreed.
+
+**Item 3 is NOT done and is the residue** — the census of every other place that divides a count by
+a population and compares it to a published rate. It is carried forward as its own finding rather
+than left inside this one.
+
 ## ADJUDICATION 2026-09-16 — the archival was REFUSED, because the half this document says was NOT fixed is still on the published page
 
 An uncommitted staging archival moved this document to `done/`. The move is refused and the

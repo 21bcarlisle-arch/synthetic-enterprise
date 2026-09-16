@@ -6779,17 +6779,23 @@ def _departure_statement(world_mean: float, published_mean: float, inside: int, 
     return (measured + ", and {} of {} sit OUTSIDE it -- {}".format(outside, total, direction))
 
 
-def _publisher_bound_statement(publisher: dict, whole_book: dict, world_mean: float,
+def _publisher_bound_statement(publisher: dict, renewal_decisions: dict, world_mean: float,
                                published_mean: float) -> str:
-    """What the band above is worth, given its own publisher refutes it — COMPOSED, never pinned.
+    """What the published band is worth, given its own publisher refutes it — COMPOSED, never pinned.
 
-    THE DEFECT IT SERVES, and it is two defects that happen to sit on the same sentence. The block
-    above tells a reader "the record says 13.5–14.0%" for 2017; the record's own publisher, DESNZ
-    QEP 2.7.1, says 18.20%, and the commons has said so about itself since 2026-09-07 in a
-    machine-readable block nothing downstream read. AND the level the reader is shown against that
-    band is a mean over renewal decisions — over households who demonstrably shop — while the band
-    is stated over every account. So the page carried a wrong standard and an incomparable measure,
-    and each one on its own is enough to make the verdict unreadable.
+    THE DEFECT IT SERVES. The headline table tells a reader "the record says 13.5–14.0%" for 2017;
+    the record's own publisher, DESNZ QEP 2.7.1, says 18.20%, and the commons has said so about
+    itself since 2026-09-07 in a machine-readable block nothing downstream read. So the verdict a
+    reader meets rests on a standard its publisher denies, and the size of the miss depends on
+    which of the two you take.
+
+    REWRITTEN 2026-09-16 WITH THE HEADLINE, and both of its previous sentences had to go rather
+    than be adjusted. This function used to call the headline "the renewal-decision level" and used
+    to end "AND NEITHER FIGURE IS THE COMPARABLE ONE" — true of the page it was written for, false
+    the moment `_world_departure_level` started publishing the whole-book column. A caveat that
+    survives the repair of the thing it caveats is how a page ends up arguing with itself, so the
+    second half now does the opposite job: it tells a reader what the renewal-decision column is
+    and why it carries no verdict of its own.
 
     EVERY CLAUSE IS COMPOSED FROM THE MEASUREMENT. When the re-capture lands and `rates` becomes the
     publisher's own figures, `publisher_comparison` returns unavailable and this returns the empty
@@ -6804,36 +6810,48 @@ def _publisher_bound_statement(publisher: dict, whole_book: dict, world_mean: fl
     if not publisher.get("available"):
         return ""
     band_ratio = world_mean / published_mean if published_mean else float("inf")
+    publisher_ratio = publisher["ratio_of_means"]
+    # WHICH STANDARD IS THE FLATTERING ONE IS COMPOSED, and it used to be typed. The clause said
+    # "the refuted band is the FLATTERING one here" as a constant, which was true of a world above
+    # both standards and silently false for a world between them or below both. The flattering
+    # standard is whichever leaves the world nearest its own midpoint, and "nearest" is a
+    # measurement this page can take.
+    if publisher_ratio is None:
+        nearer = " Which of the two flatters the world is not stated: the publisher's ratio is."
+    elif abs(band_ratio - 1.0) < abs(publisher_ratio - 1.0):
+        nearer = " The refuted band is the FLATTERING standard of the two."
+    elif abs(band_ratio - 1.0) > abs(publisher_ratio - 1.0):
+        nearer = " The publisher's own figures are the FLATTERING standard of the two."
+    else:
+        nearer = " The two standards place the world equally far from the record."
     lead = (
-        "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. "
+        "THE PUBLISHED BAND IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. "
         "The regulation commons this page reads declares its own switching bands outside DESNZ "
         "Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is "
-        "a world re-capture that has not run. Against the bands above, the renewal-decision level "
-        "reads {:.2f}x the record; against the publisher's own figures for the same years it reads "
-        "{:.2f}x. The refuted band is the FLATTERING one here."
-    ).format(band_ratio, publisher["ratio_of_means"])
-    if not whole_book.get("available"):
-        # "NEITHER FIGURE ABOVE" NAMED A DIRECTION THAT WAS NEVER TRUE. Both ratios are in `lead`
-        # -- the first half of this same paragraph, in the same rendered element -- so a reader
-        # told to look above is being sent out of the sentence they are reading. Naming what the
-        # two figures ARE is true from wherever this lands, which is the repair `_departures` made
-        # for the same word.
-        return lead + (" The comparable whole-book reading could not be taken off this capture ({}"
-                       "), so neither ratio stated here is over the population the record counts."
-                       ).format(whole_book.get("reason"))
-    book_pub = whole_book.get("against_the_publisher") or {}
-    if not book_pub.get("available"):
+        "a world re-capture that has not run. Against the commons' bands, this world's whole-book "
+        "departure level reads {:.2f}x the record; against the publisher's own figures for the "
+        "same years it reads {:.2f}x.{}"
+    ).format(band_ratio, publisher_ratio, nearer)
+    # THE SECOND COLUMN IS A DIFFERENT POPULATION AND NOT A SECOND ESTIMATE, and saying so is this
+    # half's whole job. A reader who meets 28% beside 16% and is told nothing will take the larger
+    # for the truer, which is the reading the page instructed for seven days.
+    if not renewal_decisions.get("available"):
         return lead
+    renewal_mean = renewal_decisions["world_mean_pct"]
+    # THE COMPARISON IS COMPOSED, not typed: a selected sub-population reads higher than its book
+    # TODAY and a sentence that says so as a constant is a claim about one capture. The day the two
+    # columns cross, this says so.
+    against_the_book = (
+        "higher than the book's own level" if renewal_mean > world_mean else
+        "lower than the book's own level" if renewal_mean < world_mean else
+        "level with the book's own")
     return lead + (
-        " AND NEITHER FIGURE IS THE COMPARABLE ONE. Both are means over renewal decisions — the "
-        "households who took a fixed deal and so demonstrably shop. Every departure the world "
-        "expects on either route, over the accounts on the book, averages {:.2f}% across {} years "
-        "against the publisher's {:.2f}% — {:.2f}x, not {:.2f}x. The gap this page has been "
-        "reporting is mostly the population it was measured over, and how much of the remainder is "
-        "the world is NOT established here."
-    ).format(book_pub["world_mean_pct"], book_pub["years_compared"],
-             book_pub["published_mean_pct"], book_pub["ratio_of_means"],
-             publisher["ratio_of_means"])
+        " THE RENEWAL-DECISION COLUMN IS A DIFFERENT POPULATION, NOT A SECOND ESTIMATE OF THIS "
+        "ONE. Departures expected of the households who reached a fixed-term end and so "
+        "demonstrably shop average {:.2f}% across {} years — {}, and judged against nothing, "
+        "because no published GB switching rate is stated over that population. Neither ratio "
+        "here is about it."
+    ).format(renewal_mean, renewal_decisions["years_compared"], against_the_book)
 
 
 def _world_provenance(*artefacts: tuple[str, dict | None]) -> dict:
@@ -8935,6 +8953,19 @@ def _world_departure_level() -> dict:
     same question within a week. The band comes from the regulation commons through that module's
     own reader, so a refined record tightens this page with nobody editing it.
 
+    WHICH OF THAT MODULE'S TWO FUNCTIONS IS THE HEADLINE IS THE WHOLE DEFECT THIS BLOCK HAS HAD,
+    and it is not a thing any control over this block could see. `world_realised_rate_pct` is a
+    mean over renewal DECISIONS; `world_book_rate_pct` is every departure on either route over the
+    accounts on the book. The published band is stated over accounts. For seven days this page
+    called the first one against that band, got 1.63x, and told the reader to discount every
+    money figure on the page by it, while the comparable reading sat in the same feed at 1.14x --
+    an overstatement of about 40%, running in the direction that makes this company's results look
+    conservatively stated. Both functions were correct and correctly named; the caller was wrong.
+    The headline is now `world_book_rate_pct` and the renewal reading is published beside it as
+    what it is: a different population, carrying no verdict because no published rate is stated
+    over it. Preregistration and outcome:
+    `docs/staging/SEAT_PREREG_WHAT_THE_PAGE_WILL_SAY_WHEN_THE_DEPARTURE_HEADLINE_MOVES_TO_THE_WHOLE_BOOK_2026-09-16.md`.
+
     KEYED TO THE PROPERTY, NOT TO TODAY'S ANSWER. See `_departure_statement`.
 
     FAILS CLOSED. If the level cannot be measured -- no captured run, a commons the module cannot
@@ -8956,10 +8987,25 @@ def _world_departure_level() -> dict:
         )
 
         bands = published_bands()
-        world = world_realised_rate_pct()
+        # THE HEADLINE IS THE WHOLE BOOK, RE-SITED 2026-09-09..16 UNDER ITS OWN PREREGISTRATION.
+        # This block published `world_realised_rate_pct` -- a mean over renewal DECISIONS, which
+        # post-C1b is the households who took a fixed deal and so demonstrably shop -- against a
+        # band stated over every domestic electricity account, and told the reader to discount
+        # every money figure on the page by the resulting 1.63x. The comparable reading was in the
+        # same feed at 1.14x. Both readings are the module's and neither was wrong; the defect was
+        # which of two correctly-named functions the publisher called, which is why no control over
+        # this block could see it -- every one of them checked that the page agrees with
+        # `world_realised_rate_pct`, and it did.
+        book, book_refusal = world_book_rate_pct()
+        if book_refusal:
+            # FAIL CLOSED, AND THIS IS A DELIBERATE LOSS OF A FIGURE. A capture that cannot bear an
+            # account denominator has no comparable level, and the renewal reading is NOT a
+            # degraded version of one -- judging it against this band is the defect being repaired
+            # here. "We cannot tell" is the honest state and it reaches the reader as one.
+            raise ValueError(book_refusal)
+        world = {y: v for y, v in book.items() if y in COMPARISON_YEARS}
         if not world:
             raise ValueError("the captured run carries no comparable departure years")
-        counts = world_outcome(json.loads(DEFAULT_TABLE.read_text(encoding="utf-8")))
         years = []
         for year in sorted(world):
             if year not in bands:
@@ -8979,43 +9025,44 @@ def _world_departure_level() -> dict:
                 # and a verdict that cannot tell the two apart is half a reading.
                 "share_of_the_band": (None if hi <= lo else
                                       round((world[year] - lo) / (hi - lo), 3)),
-                "renewals": counts.get(year, (0, 0, 0.0))[0],
             })
         # THE SAME LEVELS AGAINST THE PUBLISHER'S OWN FIGURES. Not measured here -- the module that
         # owns the denominators owns this too, for the reason the docstring gives.
         publisher = publisher_comparison(world)
-        # THE COMPARABLE QUANTITY, beside the one this block has always published. It carries its
-        # own refusal rather than raising: a capture that cannot bear an account denominator must
-        # leave the renewal reading standing WITH the reason the other is missing, never silently
-        # drop to one number that then reads as the whole book.
-        book, book_refusal = world_book_rate_pct()
-        book_years = []
-        for year in sorted(y for y in book if y in COMPARISON_YEARS):
-            if year not in bands:
-                raise ValueError(
-                    "the commons carries no published band for {}".format(year))
-            lo, hi = bands[year]
-            book_years.append({
-                "year": year,
-                "world_pct": round(book[year], 2),
-                "band_lo_pct": lo,
-                "band_hi_pct": hi,
-                "inside_band": inside_band(book[year], lo, hi),
-            })
-        whole_book = (
-            {"available": False, "reason": book_refusal} if book_refusal or not book_years
-            else {
+        # THE SECOND QUANTITY, AND IT IS A REAL ONE ABOUT A REAL POPULATION: how readily a
+        # household that reached a renewal decision leaves. For a company whose thesis is finding
+        # movable customers that is arguably the more interesting column, so it stays on the page
+        # -- LABELLED, and with NO band, NO verdict and NO ratio, because nothing published states
+        # a switching rate over the households who reach a fixed-term end. The gap is filed in
+        # `docs/institutional/knowledge_map.md`'s switching-rate row rather than guessed at, and
+        # this block carries the refusal so a reader meets the absence where the number is.
+        renewal = world_realised_rate_pct()
+        counts = world_outcome(json.loads(DEFAULT_TABLE.read_text(encoding="utf-8")))
+        renewal_decisions = (
+            {"available": False,
+             "reason": "the captured run carries no comparable renewal-decision years"}
+            if not renewal else {
                 "available": True,
-                "what_it_is": ("Every departure the world expects on EITHER route, over the "
-                               "accounts on the book -- the same numerator and denominator the "
-                               "published record states."),
-                "years": book_years,
-                "years_compared": len(book_years),
-                "years_inside_the_band": sum(1 for y in book_years if y["inside_band"]),
+                "what_it_is": ("How readily a household that REACHED a renewal decision left -- "
+                               "post-C1b the households who took a fixed deal, i.e. the ones who "
+                               "demonstrably shop. A different population from the headline, not "
+                               "a second estimate of it."),
+                "years": [{"year": year,
+                           "world_pct": round(renewal[year], 2),
+                           "renewals": counts.get(year, (0, 0, 0.0))[0]}
+                          for year in sorted(renewal)],
+                "years_compared": len(renewal),
                 "world_mean_pct": round(
-                    statistics.fmean(y["world_pct"] for y in book_years), 2),
-                "against_the_publisher": publisher_comparison(
-                    {y["year"]: y["world_pct"] for y in book_years}),
+                    statistics.fmean(round(renewal[y], 2) for y in renewal), 2),
+                "no_published_comparator": (
+                    "NO VERDICT IS PUBLISHED FOR THIS COLUMN and that is a gap in the record, not "
+                    "an omission here. Every GB switching rate this project has found -- the "
+                    "commons' bands and DESNZ QEP 2.7.1 alike -- is stated over ALL domestic "
+                    "electricity accounts. Nothing published states one over the sub-population "
+                    "that reaches a fixed-term end, so there is nothing this column can be judged "
+                    "against; a number reads high against a whole-account band for that reason "
+                    "alone. Filed as a knowledge gap in the switching-rate row of "
+                    "docs/institutional/knowledge_map.md."),
             })
     except Exception as exc:  # noqa: BLE001 -- any failure here is "cannot establish", not "fine"
         return {
@@ -9041,22 +9088,20 @@ def _world_departure_level() -> dict:
         "world_mean_pct": round(world_mean, 2),
         "published_midpoint_mean_pct": round(published_mean, 2),
         "mean_share_of_the_band": None if placement is None else round(placement, 3),
-        # CORRECTED 2026-09-09. The sentence that stood here declared the ACCOUNT denominator --
-        # "over all GB domestic electricity accounts" -- and the column beside it is
-        # `world_realised_rate_pct`, a mean over renewal DECISIONS. Post-C1b those are the
-        # households who took a fixed deal, i.e. the ones who demonstrably shop, and
-        # `measure_departure_level.world_book_rate_pct`'s own docstring says in terms that "a mean
-        # over shoppers is not the book's departure level". The page declared one quantity and
-        # published the other, against a band stated on the first. The comparable reading is in
-        # `whole_book` below and it is a different number; which one is the headline is a
-        # re-siting with its own preregistration, and until it lands the reader gets both, named.
-        "denominator": ("The column above is the world's mean expected departure at a RENEWAL "
-                        "decision -- post-C1b, the households who took a fixed deal and so "
-                        "demonstrably shop. The published band is stated over ALL domestic "
-                        "electricity accounts, which is a different denominator and a different "
-                        "population: a mean over shoppers reads high against it. The comparable "
-                        "whole-book reading, every departure on either route over the accounts on "
-                        "the book, is stated separately below."),
+        # RE-SITED 2026-09-16, AND THE DECLARATION IS NOW TRUE OF THE COLUMN IT SITS ON. From
+        # 2026-09-09 this sentence correctly declared that the headline was a mean over renewal
+        # DECISIONS judged against a band over every account -- which made the page honest about
+        # publishing an incomparable verdict without making the verdict comparable. Both sides now
+        # count the same thing: every departure the world expects on either route, over the
+        # accounts on the book, against a rate stated over all domestic electricity accounts.
+        "denominator": ("The headline column is every departure the world expects on EITHER route "
+                        "-- a renewal decision or an SVT roll -- over the accounts on the book in "
+                        "that year. That is the same numerator and the same denominator the "
+                        "published band states, which is what makes the verdict beside it "
+                        "readable. The renewal-decision reading, over the households who reached "
+                        "a fixed-term end and so demonstrably shop, is a different population and "
+                        "is published separately with no verdict, because nothing published "
+                        "states a rate over that population."),
         "measured_by": "tools/measure_departure_level.py",
         "published_record": str(COMMONS.relative_to(PROJECT))
         if str(COMMONS).startswith(str(PROJECT)) else str(COMMONS),
@@ -9074,8 +9119,8 @@ def _world_departure_level() -> dict:
         # goes with it, `publisher_comparison` returns unavailable, and this whole caveat leaves
         # the page without anyone remembering to delete it.
         "against_the_publisher": publisher,
-        "whole_book": whole_book,
-        "bounding_statement": _publisher_bound_statement(publisher, whole_book, world_mean,
+        "renewal_decisions": renewal_decisions,
+        "bounding_statement": _publisher_bound_statement(publisher, renewal_decisions, world_mean,
                                                          published_mean),
     }
 

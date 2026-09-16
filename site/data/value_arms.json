@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T03:33:00.597896Z",
+  "generated_at": "2026-09-16T08:04:34.345631Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -494,7 +494,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "da95e8b0e4c9e9dfe292c8e063d75fc2c7dafbe2",
+    "publishing_tree_commit": "dbd92cedca5a8653f187eff3fd358da7d6c273b1",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -506,7 +506,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from da95e8b0e -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from dbd92cedc -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -901,7 +901,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "da95e8b0e4c9e9dfe292c8e063d75fc2c7dafbe2",
+      "publishing_tree_commit": "dbd92cedca5a8653f187eff3fd358da7d6c273b1",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -913,7 +913,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from da95e8b0e -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from dbd92cedc -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -964,21 +964,21 @@
     "is_the_published_supplier": {
       "checked": true,
       "same_supplier": false,
-      "dashboard_net_gbp": 147886.78,
+      "dashboard_net_gbp": 148558.61,
       "run_identity": {
-        "dashboard_run_id": "run_output_258720283_20260910T005624Z.json",
-        "dashboard_commit": "258720283",
+        "dashboard_run_id": "run_output_dbd92cedc_20260916T044947Z.json",
+        "dashboard_commit": "dbd92cedc",
         "dashboard_commit_source": "run_stamp",
-        "last_verified_run_id": "run_output_258720283_20260910T005624Z.json",
-        "last_verified_commit": "258720283",
+        "last_verified_run_id": "run_output_186a91592_20260916T025342Z.json",
+        "last_verified_commit": "186a91592",
         "not_older_than_verified": true,
         "order_not_asked_because": null,
         "state": "established",
         "why": null
       },
       "resolution_gbp": 0.005,
-      "gap_gbp": -67.47566100073163,
-      "statement": "The published run's net margin (\u00a3147,886.78) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a367.48. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
+      "gap_gbp": 604.3543389992556,
+      "statement": "The published run's net margin (\u00a3148,558.61) is NOT the baseline arm's (\u00a3147,954.26) -- they differ by \u00a3604.35. The comparison below is between three arms of one A/B run and is no longer a statement about the supplier this site publishes elsewhere."
     }
   },
   "provisioned": {
@@ -1274,271 +1274,191 @@
     "years": [
       {
         "year": 2017,
-        "world_pct": 23.96,
+        "world_pct": 14.0,
         "band_lo_pct": 13.5,
         "band_hi_pct": 14.0,
-        "inside_band": false,
-        "share_of_the_band": 20.914,
-        "renewals": 20
+        "inside_band": true,
+        "share_of_the_band": 0.999
       },
       {
         "year": 2018,
-        "world_pct": 25.97,
+        "world_pct": 20.0,
         "band_lo_pct": 19.5,
         "band_hi_pct": 20.0,
-        "inside_band": false,
-        "share_of_the_band": 12.942,
-        "renewals": 17
+        "inside_band": true,
+        "share_of_the_band": 1.001
       },
       {
         "year": 2019,
-        "world_pct": 31.7,
+        "world_pct": 21.3,
         "band_lo_pct": 20.7,
         "band_hi_pct": 21.3,
-        "inside_band": false,
-        "share_of_the_band": 18.338,
-        "renewals": 13
+        "inside_band": true,
+        "share_of_the_band": 1.0
       },
       {
         "year": 2020,
-        "world_pct": 40.98,
+        "world_pct": 22.97,
         "band_lo_pct": 22.5,
         "band_hi_pct": 23.0,
-        "inside_band": false,
-        "share_of_the_band": 36.954,
-        "renewals": 13
+        "inside_band": true,
+        "share_of_the_band": 0.946
       },
       {
         "year": 2021,
-        "world_pct": 26.05,
+        "world_pct": 18.53,
         "band_lo_pct": 17.9,
         "band_hi_pct": 18.4,
         "inside_band": false,
-        "share_of_the_band": 16.31,
-        "renewals": 20
+        "share_of_the_band": 1.261
+      },
+      {
+        "year": 2022,
+        "world_pct": 2.5,
+        "band_lo_pct": 2.9,
+        "band_hi_pct": 4.3,
+        "inside_band": false,
+        "share_of_the_band": -0.286
       },
       {
         "year": 2023,
-        "world_pct": 15.75,
+        "world_pct": 12.4,
         "band_lo_pct": 8.9,
         "band_hi_pct": 12.5,
-        "inside_band": false,
-        "share_of_the_band": 1.904,
-        "renewals": 19
+        "inside_band": true,
+        "share_of_the_band": 0.972
       },
       {
         "year": 2024,
-        "world_pct": 32.12,
+        "world_pct": 15.96,
         "band_lo_pct": 12.5,
         "band_hi_pct": 16.1,
-        "inside_band": false,
-        "share_of_the_band": 5.451,
-        "renewals": 16
+        "inside_band": true,
+        "share_of_the_band": 0.961
       }
     ],
-    "years_inside_the_band": 0,
-    "years_compared": 7,
+    "years_inside_the_band": 6,
+    "years_compared": 8,
     "all_inside_the_band": false,
-    "world_mean_pct": 28.08,
-    "published_midpoint_mean_pct": 17.2,
-    "mean_share_of_the_band": 16.116,
-    "denominator": "The column above is the world's mean expected departure at a RENEWAL decision -- post-C1b, the households who took a fixed deal and so demonstrably shop. The published band is stated over ALL domestic electricity accounts, which is a different denominator and a different population: a mean over shoppers reads high against it. The comparable whole-book reading, every departure on either route over the accounts on the book, is stated separately below.",
+    "world_mean_pct": 15.96,
+    "published_midpoint_mean_pct": 15.5,
+    "mean_share_of_the_band": 0.857,
+    "denominator": "The headline column is every departure the world expects on EITHER route -- a renewal decision or an SVT roll -- over the accounts on the book in that year. That is the same numerator and the same denominator the published band states, which is what makes the verdict beside it readable. The renewal-decision reading, over the households who reached a fixed-term end and so demonstrably shop, is a different population and is published separately with no verdict, because nothing published states a rate over that population.",
     "measured_by": "tools/measure_departure_level.py",
     "published_record": "docs/domain_artefact_library/regulatory/gb_domestic_switching_rate.json",
-    "statement": "Over the 7 years this run can be compared on, the world's own departures averaged 28.08% of electricity accounts a year against a published GB record averaging 17.20%. Each year is judged against its OWN published band, never against that average, and 7 of 7 sit OUTSIDE it -- 1.63x ABOVE the record's own midpoint of 17.20%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor.",
+    "statement": "Over the 8 years this run can be compared on, the world's own departures averaged 15.96% of electricity accounts a year against a published GB record averaging 15.50%. Each year is judged against its OWN published band, never against that average, and 2 of 8 sit OUTSIDE it -- 1.03x ABOVE the record's own midpoint of 15.50%. Customers leave this world faster than they left the real one, so every retention, churn and lifetime-value figure below reads LOW by roughly that factor.",
     "against_the_publisher": {
       "available": true,
       "years": [
         {
           "year": 2017,
-          "world_pct": 23.96,
-          "published_rate_pct": 18.195,
-          "ratio": 1.317,
-          "world_is_above": true
-        },
-        {
-          "year": 2018,
-          "world_pct": 25.97,
-          "published_rate_pct": 19.064,
-          "ratio": 1.362,
-          "world_is_above": true
-        },
-        {
-          "year": 2019,
-          "world_pct": 31.7,
-          "published_rate_pct": 20.822,
-          "ratio": 1.523,
-          "world_is_above": true
-        },
-        {
-          "year": 2020,
-          "world_pct": 40.98,
-          "published_rate_pct": 20.213,
-          "ratio": 2.027,
-          "world_is_above": true
-        },
-        {
-          "year": 2021,
-          "world_pct": 26.05,
-          "published_rate_pct": 15.569,
-          "ratio": 1.674,
-          "world_is_above": true
-        },
-        {
-          "year": 2023,
-          "world_pct": 15.75,
-          "published_rate_pct": 6.332,
-          "ratio": 2.488,
-          "world_is_above": true
-        },
-        {
-          "year": 2024,
-          "world_pct": 32.12,
-          "published_rate_pct": 9.028,
-          "ratio": 3.558,
-          "world_is_above": true
-        }
-      ],
-      "years_compared": 7,
-      "years_the_world_is_above": 7,
-      "world_mean_pct": 28.08,
-      "published_mean_pct": 15.6,
-      "ratio_of_means": 1.799,
-      "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
-    },
-    "whole_book": {
-      "available": true,
-      "what_it_is": "Every departure the world expects on EITHER route, over the accounts on the book -- the same numerator and denominator the published record states.",
-      "years": [
-        {
-          "year": 2017,
           "world_pct": 14.0,
-          "band_lo_pct": 13.5,
-          "band_hi_pct": 14.0,
-          "inside_band": true
+          "published_rate_pct": 18.195,
+          "ratio": 0.769,
+          "world_is_above": false
         },
         {
           "year": 2018,
           "world_pct": 20.0,
-          "band_lo_pct": 19.5,
-          "band_hi_pct": 20.0,
-          "inside_band": true
+          "published_rate_pct": 19.064,
+          "ratio": 1.049,
+          "world_is_above": true
         },
         {
           "year": 2019,
           "world_pct": 21.3,
-          "band_lo_pct": 20.7,
-          "band_hi_pct": 21.3,
-          "inside_band": true
+          "published_rate_pct": 20.822,
+          "ratio": 1.023,
+          "world_is_above": true
         },
         {
           "year": 2020,
           "world_pct": 22.97,
-          "band_lo_pct": 22.5,
-          "band_hi_pct": 23.0,
-          "inside_band": true
+          "published_rate_pct": 20.213,
+          "ratio": 1.137,
+          "world_is_above": true
         },
         {
           "year": 2021,
           "world_pct": 18.53,
-          "band_lo_pct": 17.9,
-          "band_hi_pct": 18.4,
-          "inside_band": false
+          "published_rate_pct": 15.569,
+          "ratio": 1.19,
+          "world_is_above": true
         },
         {
           "year": 2022,
           "world_pct": 2.5,
-          "band_lo_pct": 2.9,
-          "band_hi_pct": 4.3,
-          "inside_band": false
+          "published_rate_pct": 3.056,
+          "ratio": 0.818,
+          "world_is_above": false
         },
         {
           "year": 2023,
           "world_pct": 12.4,
-          "band_lo_pct": 8.9,
-          "band_hi_pct": 12.5,
-          "inside_band": true
+          "published_rate_pct": 6.332,
+          "ratio": 1.958,
+          "world_is_above": true
         },
         {
           "year": 2024,
           "world_pct": 15.96,
-          "band_lo_pct": 12.5,
-          "band_hi_pct": 16.1,
-          "inside_band": true
+          "published_rate_pct": 9.028,
+          "ratio": 1.768,
+          "world_is_above": true
         }
       ],
       "years_compared": 8,
-      "years_inside_the_band": 6,
+      "years_the_world_is_above": 6,
       "world_mean_pct": 15.96,
-      "against_the_publisher": {
-        "available": true,
-        "years": [
-          {
-            "year": 2017,
-            "world_pct": 14.0,
-            "published_rate_pct": 18.195,
-            "ratio": 0.769,
-            "world_is_above": false
-          },
-          {
-            "year": 2018,
-            "world_pct": 20.0,
-            "published_rate_pct": 19.064,
-            "ratio": 1.049,
-            "world_is_above": true
-          },
-          {
-            "year": 2019,
-            "world_pct": 21.3,
-            "published_rate_pct": 20.822,
-            "ratio": 1.023,
-            "world_is_above": true
-          },
-          {
-            "year": 2020,
-            "world_pct": 22.97,
-            "published_rate_pct": 20.213,
-            "ratio": 1.136,
-            "world_is_above": true
-          },
-          {
-            "year": 2021,
-            "world_pct": 18.53,
-            "published_rate_pct": 15.569,
-            "ratio": 1.19,
-            "world_is_above": true
-          },
-          {
-            "year": 2022,
-            "world_pct": 2.5,
-            "published_rate_pct": 3.056,
-            "ratio": 0.818,
-            "world_is_above": false
-          },
-          {
-            "year": 2023,
-            "world_pct": 12.4,
-            "published_rate_pct": 6.332,
-            "ratio": 1.958,
-            "world_is_above": true
-          },
-          {
-            "year": 2024,
-            "world_pct": 15.96,
-            "published_rate_pct": 9.028,
-            "ratio": 1.768,
-            "world_is_above": true
-          }
-        ],
-        "years_compared": 8,
-        "years_the_world_is_above": 6,
-        "world_mean_pct": 15.96,
-        "published_mean_pct": 14.03,
-        "ratio_of_means": 1.137,
-        "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
-      }
+      "published_mean_pct": 14.03,
+      "ratio_of_means": 1.137,
+      "publisher": "DESNZ Quarterly Energy Prices table 2.7.1, transfers and accounts from the same table, as tabulated in the commons' own refutation block"
     },
-    "bounding_statement": "THE BAND ABOVE IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the bands above, the renewal-decision level reads 1.63x the record; against the publisher's own figures for the same years it reads 1.80x. The refuted band is the FLATTERING one here. AND NEITHER FIGURE IS THE COMPARABLE ONE. Both are means over renewal decisions \u2014 the households who took a fixed deal and so demonstrably shop. Every departure the world expects on either route, over the accounts on the book, averages 15.96% across 8 years against the publisher's 14.03% \u2014 1.14x, not 1.80x. The gap this page has been reporting is mostly the population it was measured over, and how much of the remainder is the world is NOT established here."
+    "renewal_decisions": {
+      "available": true,
+      "what_it_is": "How readily a household that REACHED a renewal decision left -- post-C1b the households who took a fixed deal, i.e. the ones who demonstrably shop. A different population from the headline, not a second estimate of it.",
+      "years": [
+        {
+          "year": 2017,
+          "world_pct": 23.96,
+          "renewals": 20
+        },
+        {
+          "year": 2018,
+          "world_pct": 25.97,
+          "renewals": 17
+        },
+        {
+          "year": 2019,
+          "world_pct": 31.7,
+          "renewals": 13
+        },
+        {
+          "year": 2020,
+          "world_pct": 40.98,
+          "renewals": 13
+        },
+        {
+          "year": 2021,
+          "world_pct": 26.05,
+          "renewals": 20
+        },
+        {
+          "year": 2023,
+          "world_pct": 15.75,
+          "renewals": 19
+        },
+        {
+          "year": 2024,
+          "world_pct": 32.12,
+          "renewals": 16
+        }
+      ],
+      "years_compared": 7,
+      "world_mean_pct": 28.08,
+      "no_published_comparator": "NO VERDICT IS PUBLISHED FOR THIS COLUMN and that is a gap in the record, not an omission here. Every GB switching rate this project has found -- the commons' bands and DESNZ QEP 2.7.1 alike -- is stated over ALL domestic electricity accounts. Nothing published states one over the sub-population that reaches a fixed-term end, so there is nothing this column can be judged against; a number reads high against a whole-account band for that reason alone. Filed as a knowledge gap in the switching-rate row of docs/institutional/knowledge_map.md."
+    },
+    "bounding_statement": "THE PUBLISHED BAND IS REFUTED BY ITS OWN PUBLISHER AND THE VERDICT IS STATED BOTH WAYS. The regulation commons this page reads declares its own switching bands outside DESNZ Quarterly Energy Prices table 2.7.1 in 8 of the 10 years it covers, and re-siting them is a world re-capture that has not run. Against the commons' bands, this world's whole-book departure level reads 1.03x the record; against the publisher's own figures for the same years it reads 1.14x. The refuted band is the FLATTERING standard of the two. THE RENEWAL-DECISION COLUMN IS A DIFFERENT POPULATION, NOT A SECOND ESTIMATE OF THIS ONE. Departures expected of the households who reached a fixed-term end and so demonstrably shop average 28.08% across 7 years \u2014 higher than the book's own level, and judged against nothing, because no published GB switching rate is stated over that population. Neither ratio here is about it."
   },
   "method_skill": {
     "available": true,
