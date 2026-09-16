@@ -13,15 +13,19 @@ the next read never looks. The sibling file
 this one grades the property that makes wiring a read SAFE.
 
 THE PROPERTY IS "THE TWO SIDES AGREE", NOT "BOTH ARE REDIRECTED", and the difference is the
-reason this file exists rather than five more wiring legs. The two subjects were decided
-OPPOSITE ways on the evidence (see each module's docstring): `.launch_records.json` is redirected
-to the shared tree, because its subject is a `systemctl --user` unit and there is one user
-manager per machine; `.seat_heartbeat.json` is REFUSED, because two concurrent seats were
-measured beating in two trees at once and merging them lets the survivor mask the dead one's
-handoff. A control keyed to "both must redirect" would be keyed to today's answer, and would go
-red on the day the heartbeat is correctly fixed with a per-seat keyed store. A control keyed to
-"the two sides agree" fires on the defect and stays green through either honest repair -- which
-is the direction CLAUDE.md requires of a control.
+reason this file exists rather than five more wiring legs. The two subjects were originally
+decided OPPOSITE ways on the evidence: `.launch_records.json` redirected to the shared tree,
+because its subject is a `systemctl --user` unit and there is one user manager per machine;
+`.seat_heartbeat.json` REFUSED, because two concurrent seats were measured beating in two trees
+at once and merging them onto a SINGLE-VALUED record lets the survivor mask the dead one's
+handoff. A control keyed to "both must redirect" would have been keyed to today's answer and
+would have gone red on the day the heartbeat was correctly fixed with a per-seat keyed store.
+
+THAT DAY WAS 2026-09-16, AND THE PREDICTION HELD -- which is the only reason this paragraph is
+worth keeping. The keyed store landed, the refusal was withdrawn, and this file needed no change
+of key: the agreement clause went red exactly where the shape changed and nowhere else. The
+heartbeat leg has since GAINED the "redirect is taken" clause the launch leg always had, because
+that clause is now true of both; the agreement clause underneath it is untouched.
 
 NO MOCKS, AND THAT IS DELIBERATE. The fixture builds a real git main tree and a real linked
 worktree, copies the REAL modules into it, and drives them from a real NON-TEST python process.
@@ -166,30 +170,89 @@ def test_a_launch_recorded_from_a_linked_worktree_joins_the_one_book_the_machine
         "rather than staling the read")
 
 
-def test_the_seats_heartbeat_reads_back_what_its_own_write_just_put_there(trees):
-    """THE REFUSAL, graded as a property rather than as today's answer.
+def _beats(tree: Path) -> dict:
+    """`{session_id: [tool, ...]}` from a tree's own copy of the heartbeat store.
 
-    `.seat_heartbeat.json` is deliberately NOT redirected -- `note_activity`'s docstring carries
-    the measurement (two live seats beating in two trees at 2026-09-16T14:20Z) and why merging
-    them lets the survivor mask the dead seat's handoff. What must never happen is a future
-    session wiring ONE side of this pair, in EITHER direction: resolving `_read` alone makes the
-    hook read the other tree's beat and append to a tail it then discards; resolving the write
-    alone strands every beat where nothing reads it.
+    BOTH SHAPES, RE-DERIVED HERE rather than borrowed from `seat_continuity._adopt_legacy`. The
+    committed file is still the PRE-KEYED flat record -- that is what the fixture commits because
+    it is what HEAD holds, and what every linked worktree therefore checks out -- so this helper
+    has to read it. Calling the module's own adopter would mean a defect in that adopter could
+    not make any assertion below fail, which is the fake-more-permissive-than-its-subject shape.
+    """
+    store = json.loads((tree / "docs" / "observability" / ".seat_heartbeat.json").read_text())
+    seats = (store["seats"] if isinstance(store.get("seats"), dict)
+             else {store.get("session_id", ""): store})
+    return {k: [t["tool"] for t in (v.get("recent_tools") or [])] for k, v in seats.items()}
 
-    So this asserts agreement and says nothing about WHICH tree, which is what lets the correct
-    repair -- a keyed store holding one record per seat -- land green."""
+
+def test_a_seat_beating_in_a_linked_worktree_joins_the_one_book_the_machine_keeps(trees):
+    """THE REFUSAL, WITHDRAWN ON THE MEASUREMENT THAT REPLACED IT -- and this is the leg that
+    caught the repair landing, so read what it does and does not claim.
+
+    The file-level docstring's prediction held: keyed to "the two sides agree" rather than "both
+    are redirected", this leg stayed honest across a reversal of the answer. It went RED the
+    moment `_read` returned the keyed store while the probe still asked for a flat record, and
+    the agreement clause below is unchanged.
+
+    WHAT IS NEW IS THE "REDIRECT IS TAKEN" CLAUSE, which this leg could not carry while the
+    heartbeat was refused and the launch leg has carried all along: a module that redirects
+    NOTHING round-trips local-to-local perfectly and satisfies the agreement clause on its own.
+    Now that a seat is a thing on this MACHINE -- one row per session, so two live seats are two
+    rows and a survivor cannot keep a dead seat's row warm -- the beat must reach the SHARED
+    book, and the worktree's stale checkout must be left exactly where git put it.
+
+    THE THIRD CLAUSE IS THE ONE THE KEYED STORE EXISTS FOR. `sess-LIVE` is already beating in
+    the shared tree. A seat arriving from a linked worktree must join it, not replace it: on the
+    single-valued record the newcomer's write WAS the book, and that is the fail-silent (the
+    survivor's answer) that made this redirect refusable until the store was keyed."""
     main, linked = trees
 
     seen = _run_outside_pytest(
         "import json\n"
         "from background import seat_continuity as sc\n"
-        "sc.note_activity('ProbeTool', session_id='sess-STALE')\n"
-        "print(json.dumps([t['tool'] for t in sc._read().get('recent_tools') or []]))\n",
+        "sc.note_activity('ProbeTool', session_id='sess-FROM-WORKTREE')\n"
+        "print(json.dumps(sc._seats(sc._read()).get('sess-FROM-WORKTREE', {})"
+        ".get('recent_tools') or []))\n",
         cwd=linked)
 
-    assert seen and seen[-1] == "ProbeTool", (
+    assert [t["tool"] for t in seen] == ["ProbeTool"], (
         "the seat heartbeat did not read back the beat it had just written: one side of this "
         f"read-modify-write resolves to a different tree than the other. Read back: {seen}")
+    assert _beats(main) == {"sess-LIVE": ["LiveTreeTool"], "sess-FROM-WORKTREE": ["ProbeTool"]}, (
+        "the beat did not join the machine's one book beside the seat already in it: a seat "
+        "that dies in a linked worktree is then swept by nobody, which is the gap this repair "
+        f"closes. Shared book: {_beats(main)}")
+    assert _beats(linked) == {"sess-STALE": ["StaleCheckoutTool"]}, (
+        "the worktree's own checkout was written -- a second book describing one machine's "
+        "seats, which is two answers to a question that has one")
+
+
+def test_the_heartbeats_write_guard_is_asked_before_the_redirect_moves_the_path(trees,
+                                                                                monkeypatch):
+    """THE SAME ORDERING HOLE AS `save()`, on the writer that runs on EVERY tool call.
+
+    `guard_live_ledger_write` refuses on `is_live_record_path`, whose room is derived from THIS
+    tree's `LIVE_RECORD_DIR`. A path already redirected to the shared tree is outside it, so a
+    `note_activity` that resolved first and guarded second would let a test process stamp the
+    real machine's heartbeat -- the guard still called, still passing, and permanently
+    unreachable for exactly the callers the redirect applies to.
+
+    Swapping the two lines in `note_activity` makes this leg, and only this leg, fail."""
+    import background.live_ledger_guard as g
+    import background.seat_continuity as sc
+    main, linked = trees
+
+    monkeypatch.setattr(g, "PROJECT_DIR", linked)
+    monkeypatch.setattr(g, "LIVE_RECORD_DIR", linked / "docs" / "observability")
+    monkeypatch.setattr(sc, "HEARTBEAT_FILE",
+                        linked / "docs" / "observability" / ".seat_heartbeat.json")
+
+    with pytest.raises(LiveLedgerWriteUnderTest):
+        sc.note_activity("AFixtureTool", session_id="a-test-process")
+
+    assert _beats(main) == {"sess-LIVE": ["LiveTreeTool"]}, (
+        "a test process stamped the shared tree's heartbeat: the write guard was asked about a "
+        "path the redirect had already moved out of the room it refuses on")
 
 
 def test_the_registers_write_guard_is_asked_before_the_redirect_moves_the_path(trees,

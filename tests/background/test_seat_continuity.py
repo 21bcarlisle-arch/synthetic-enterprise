@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import time
+from pathlib import Path
 
 import pytest
 
@@ -41,6 +42,17 @@ def beat(tmp_path):
         return p
 
     return p, _write
+
+
+def row(p, session_id="s1"):
+    """One seat's row out of the keyed store.
+
+    The store is `{"seats": {session_id: beat}}` since 2026-09-16, and the `beat` fixture above
+    still writes the PRE-KEYED flat shape on purpose: it is what every linked worktree's git
+    checkout of this tracked file holds, so `_adopt_legacy` reading it as a one-row store is a
+    live path and not a migration artefact. Every leg below therefore exercises both shapes.
+    """
+    return sc._seats(json.loads(p.read_text())).get(session_id, {})
 
 
 @pytest.fixture
@@ -127,7 +139,7 @@ def test_activity_stamps_the_tool_and_accumulates_a_tail(tmp_path):
     p = tmp_path / ".seat_heartbeat.json"
     for i, tool in enumerate(["Read", "Edit", "Bash"]):
         sc.note_activity(tool, session_id="s1", path=p, now=NOW + i)
-    rec = json.loads(p.read_text())
+    rec = row(p)
     assert rec["tool_count"] == 3
     assert [t["tool"] for t in rec["recent_tools"]] == ["Read", "Edit", "Bash"]
     assert rec["ts"] == NOW + 2
@@ -138,7 +150,50 @@ def test_the_tail_is_BOUNDED(tmp_path):
     p = tmp_path / ".seat_heartbeat.json"
     for i in range(sc.TOOL_TAIL * 3):
         sc.note_activity("Bash", session_id="s1", path=p, now=NOW + i)
-    assert len(json.loads(p.read_text())["recent_tools"]) == sc.TOOL_TAIL
+    assert len(row(p)["recent_tools"]) == sc.TOOL_TAIL
+
+
+def test_TWO_SEATS_BEATING_AT_ONCE_ARE_TWO_ROWS_AND_NEITHER_OVERWRITES_THE_OTHER(tmp_path):
+    """THE DEFECT THE KEYED STORE WAS BUILT FOR, measured live on 2026-09-16T14:20Z: two seats
+    beating in two trees at once, into a record that could hold one.
+
+    Under the old single-record store the later beat replaced the earlier one wholesale, so the
+    population had exactly one survivor and every reader got the survivor's answer.
+    """
+    p = tmp_path / ".seat_heartbeat.json"
+    sc.note_activity("Bash", session_id="seat-A", path=p, now=NOW)
+    sc.note_activity("Read", session_id="seat-B", path=p, now=NOW + 1)
+    sc.note_activity("Edit", session_id="seat-A", path=p, now=NOW + 2)
+
+    seats = sc._seats(json.loads(p.read_text()))
+    assert set(seats) == {"seat-A", "seat-B"}
+    assert seats["seat-A"]["tool_count"] == 2, "B's beat swallowed A's history"
+    assert seats["seat-B"]["tool_count"] == 1, "A's beat swallowed B's history"
+    assert [t["tool"] for t in seats["seat-A"]["recent_tools"]] == ["Bash", "Edit"]
+
+
+def test_a_seat_with_NO_session_id_still_gets_its_OWN_row(tmp_path):
+    """The degenerate key, and the direction it must not collapse in.
+
+    The hook can hand us a payload without a session id. Keying every such seat on `""` would
+    rebuild the single-valued record in the one case nobody would think to look at, so the key
+    falls back to pid-and-tree — a weaker identity, but an identity.
+    """
+    p = tmp_path / ".seat_heartbeat.json"
+    sc.note_activity("Bash", session_id="", pid=111, path=p, now=NOW)
+    sc.note_activity("Read", session_id="", pid=222, path=p, now=NOW + 1)
+    assert len(sc._seats(json.loads(p.read_text()))) == 2
+
+
+def test_the_store_is_BOUNDED_and_drops_the_OLDEST_beats(tmp_path):
+    """Rows are removed as they are swept, so hitting the ceiling means the sweep has stopped.
+    Dropping oldest-first is the direction that keeps the LIVE seats the executor must see."""
+    p = tmp_path / ".seat_heartbeat.json"
+    for i in range(sc.MAX_SEATS + 5):
+        sc.note_activity("Bash", session_id=f"seat-{i:03d}", path=p, now=NOW + i)
+    seats = sc._seats(json.loads(p.read_text()))
+    assert len(seats) == sc.MAX_SEATS
+    assert "seat-000" not in seats and f"seat-{sc.MAX_SEATS + 4:03d}" in seats
 
 
 def test_a_hook_failure_never_raises_into_the_session(tmp_path, monkeypatch):
@@ -164,8 +219,8 @@ def dead_seat_holding_work(beat, no_seat, tmp_path, monkeypatch):
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", claims)
     monkeypatch.setattr(sc, "_uncommitted_paths",
-                        lambda: ["simulation/net_new_acquisition.py", "docs/design/X.md"])
-    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234 the commit before it died")
+                        lambda tree=None: ["simulation/net_new_acquisition.py", "docs/design/X.md"])
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234 the commit before it died")
     return p
 
 
@@ -212,7 +267,7 @@ def test_MUTATION_a_LIVE_seat_files_nothing(beat, seat_present, tmp_path, monkey
     """The null control on the whole mechanism: no death, no handoff, no noise."""
     p, write = beat
     write(60)
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda: ["a.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["a.py"])
     staging = tmp_path / "staging"
     staging.mkdir()
     assert sc.sweep(path=p, now=NOW, staging_dir=staging) is None
@@ -224,7 +279,7 @@ def test_a_seat_that_died_holding_NOTHING_files_nothing(beat, no_seat, tmp_path,
     this module exists to replace."""
     p, write = beat
     write(sc.SILENT_AFTER_SECONDS + 1)
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda: [])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: [])
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "no-claims.json")
     staging = tmp_path / "staging"
@@ -234,50 +289,91 @@ def test_a_seat_that_died_holding_NOTHING_files_nothing(beat, no_seat, tmp_path,
 
 
 # ---------------------------------------------------------------------------
-# The gap the 5-minute sweep alone cannot close
+# The gap the 5-minute sweep alone used to be unable to close
 # ---------------------------------------------------------------------------
 
-def test_a_NEW_session_arriving_on_a_cold_heartbeat_hands_the_old_one_over(
+def test_a_NEW_session_arriving_on_a_cold_heartbeat_does_NOT_DESTROY_the_old_ones_state(
     beat, no_seat, tmp_path, monkeypatch
 ):
-    """THE RACE THE SWEEP MISSES, and the reason `note_activity` files handoffs at all.
+    """THE RACE THE SWEEP USED TO MISS — re-keyed to the PROPERTY, not to the old mechanism.
 
-    Seat dies at 10:00. A fresh session starts at 10:05 and runs a tool. Without this, the
-    hook refreshes `ts` before the 20-minute silence threshold is ever reached, the sweep
-    never sees a dead seat, and the dead session's uncommitted work is orphaned in silence --
-    the exact outcome this module exists to prevent, reintroduced by its own heartbeat.
+    Seat dies at 10:00. A fresh session starts at 10:05 and runs a tool. On the single-record
+    store that beat OVERWROTE the dead seat's only record: `ts` was refreshed before the
+    20-minute silence threshold was ever reached, the sweep never saw a dead seat, and the dead
+    session's uncommitted work was orphaned in silence. `note_activity` answered it by filing
+    the handoff itself, inline, before overwriting.
+
+    The keyed store answers it by not overwriting anything, so the inline filing was deleted.
+    This test therefore asserts what was actually wanted — the predecessor's state SURVIVES a
+    new session's arrival and is still there for `sweep()` — rather than that a particular
+    mechanism ran. Keyed to the old mechanism it would have gone red on the repair that made it
+    unnecessary, which is exactly backwards (CLAUDE.md: key a control to the property).
     """
     p, write = beat
     write(sc.SILENT_AFTER_SECONDS + 60, session_id="old-session")
     staging = tmp_path / "staging"
     staging.mkdir()
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda: ["half/an/edit.py"])
-    monkeypatch.setattr(sc, "_last_commit", lambda: "deadbeef before it died")
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["half/an/edit.py"])
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "deadbeef before it died")
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
-    sc.note_activity("Read", session_id="NEW-session", path=p, now=NOW,
-                     staging_dir=staging)
+    sc.note_activity("Read", session_id="NEW-session", path=p, now=NOW, staging_dir=staging)
 
-    assert list(staging.glob("*.md")), "the predecessor's work must be handed over"
-    rec = json.loads(p.read_text())
-    assert rec["session_id"] == "NEW-session"
-    assert rec["tool_count"] == 1, "a new session starts its own count, not the dead one's"
+    survivor = row(p, "old-session")
+    assert survivor, "the new session's beat destroyed the dead seat's record"
+    assert survivor["ts"] == NOW - (sc.SILENT_AFTER_SECONDS + 60), "its clock was refreshed"
+    assert row(p, "NEW-session")["tool_count"] == 1, "a new session starts its own count"
+
+    filed = sc.sweep(path=p, now=NOW, staging_dir=staging)
+    assert filed, "the sweep could not reach the state the new session had left intact"
+    assert "half/an/edit.py" in (tmp_path / "staging" / Path(filed).name).read_text()
+
+
+def test_MUTATION_a_LIVE_seat_in_ANOTHER_TREE_cannot_suppress_a_dead_seats_handoff(
+    no_seat, tmp_path, monkeypatch
+):
+    """THE FAIL-SILENT THAT MADE THE SHARED-TREE REDIRECT REFUSABLE, now the thing under test.
+
+    Two seats beat into one book. One dies holding work; the other is alive and stamping. On a
+    single-valued record the live seat's beat IS the record, `state()` reads LIVE, `sweep()`
+    never fires, and the dead seat's uncommitted work is orphaned — the survivor's answer, in
+    the one place it files nothing. This is the leg that fires if `sweep()` is ever rewritten
+    to consult the population verdict instead of walking rows.
+    """
+    p = tmp_path / ".seat_heartbeat.json"
+    sc.note_activity("Edit", session_id="dead-seat", path=p, now=NOW - sc.SILENT_AFTER_SECONDS - 60)
+    sc.note_activity("Bash", session_id="live-seat", path=p, now=NOW - 5)
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["orphaned/work.py"])
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
+    from background import seat_work_in_hand
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+
+    assert sc.state(path=p, now=NOW) == LIVE, "the population verdict is the union, by design"
+    filed = sc.sweep(path=p, now=NOW, staging_dir=staging)
+    assert filed, "a live seat suppressed a dead seat's handoff"
+    assert not row(p, "dead-seat"), "the swept row must be removed"
+    assert row(p, "live-seat"), "sweeping one seat deleted a LIVE seat's row"
 
 
 def test_MUTATION_the_SAME_session_on_a_cold_heartbeat_hands_nothing_over(
     beat, no_seat, tmp_path, monkeypatch
 ):
-    """The null control: a slow tool call is not a new session.
+    """The null control: a slow tool call is not a death.
 
-    Same silence, same everything, one field different. If this filed a handoff, every commit
-    gate that ran long would hand the seat's own live work to somebody else.
+    Same silence, same everything, and the seat is still beating into its own row. If a long
+    commit gate could hand the seat's own live work to somebody else, every fifteen-minute gate
+    run would fork the tree — the expensive error this module refuses to make.
     """
     p, write = beat
     write(sc.SILENT_AFTER_SECONDS + 60, session_id="s1")
-    called = []
-    monkeypatch.setattr(sc, "_handoff_for", lambda *a, **k: called.append(1))
-    sc.note_activity("Read", session_id="s1", path=p, now=NOW)
-    assert not called
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["still/being/edited.py"])
+    sc.note_activity("Read", session_id="s1", path=p, now=NOW, staging_dir=staging)
+    assert sc.sweep(path=p, now=NOW, staging_dir=staging) is None
+    assert not list(staging.glob("*.md"))
 
 
 def test_the_thresholds_are_ordered_so_the_escape_can_never_precede_the_verdict():
@@ -315,17 +411,17 @@ def test_a_SECOND_interruption_files_its_OWN_handoff(beat, no_seat, tmp_path, mo
     """
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
-    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
     staging = tmp_path / "staging"
     staging.mkdir()
     p, write = beat
 
     write(sc.SILENT_AFTER_SECONDS + 1, session_id="session-one")
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda: ["first/edit.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["first/edit.py"])
     assert sc.sweep(path=p, now=NOW, staging_dir=staging) is not None
 
     write(sc.SILENT_AFTER_SECONDS + 1, session_id="session-two")
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda: ["second/quite/different.py"])
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["second/quite/different.py"])
     assert sc.sweep(path=p, now=NOW + 86_400, staging_dir=staging) is not None
 
     docs = sorted(staging.glob("*.md"))
@@ -405,8 +501,8 @@ def test_the_SAME_unadopted_work_across_two_deaths_is_ONE_document(
     """
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
-    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
-    monkeypatch.setattr(sc, "_uncommitted_paths", lambda: ["simulation/hedged_settlement.py"])
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: ["simulation/hedged_settlement.py"])
     staging = tmp_path / "staging"
     staging.mkdir()
     p, write = beat
@@ -434,9 +530,9 @@ def test_the_document_SAYS_what_work_it_is_about(beat, no_seat, tmp_path, monkey
     """
     from background import seat_work_in_hand
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
-    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
     monkeypatch.setattr(sc, "_uncommitted_paths",
-                        lambda: ["simulation/hedged_settlement.py", "tests/simulation/t.py"])
+                        lambda tree=None: ["simulation/hedged_settlement.py", "tests/simulation/t.py"])
     staging = tmp_path / "staging"
     staging.mkdir()
     p, write = beat
@@ -450,6 +546,89 @@ def test_the_document_SAYS_what_work_it_is_about(beat, no_seat, tmp_path, monkey
     )
     assert "C7E894AA" not in doc.name.upper(), "the session id is back in the subject"
     assert "C7E894AA" not in text.upper(), "the session id is back in the body"
+
+
+# ---------------------------------------------------------------------------
+# The handoff is about the tree the DEAD SEAT was in, not the one sweeping it
+# ---------------------------------------------------------------------------
+
+def test_the_handoff_reads_the_tree_the_DEAD_SEAT_was_beating_in(no_seat, tmp_path, monkeypatch):
+    """THE DEFECT THE KEYED STORE INTRODUCES IF NOBODY LOOKS FOR IT, and it fired no leg until
+    this one existed.
+
+    One book per machine means the shared tree's 5-minute sweep now files for seats that died in
+    LINKED WORKTREES. Their uncommitted work is in THEIR tree. A handoff built from the sweeper's
+    own `PROJECT_DIR` would be confidently, plausibly wrong — it would name real files, really
+    held by somebody, just not by the seat the document is about, and the next tick would adopt
+    another lane's live work on the strength of it.
+
+    Found by mutation: replacing `_uncommitted_paths(rec.get("tree"))` with `_uncommitted_paths()`
+    passed the entire suite, because every other fixture stubs that function with a lambda that
+    ignores its argument. That is the equivalence-or-missing-test question answered the unflattering
+    way, so the stub here DISCRIMINATES ON THE TREE instead of ignoring it.
+    """
+    p = tmp_path / ".seat_heartbeat.json"
+    dead_tree, sweeper_tree = tmp_path / "linked-worktree", tmp_path / "shared"
+    for t in (dead_tree, sweeper_tree):
+        t.mkdir()
+    monkeypatch.setattr(sc, "PROJECT_DIR", sweeper_tree)
+    monkeypatch.setattr(sc, "_uncommitted_paths", lambda tree=None: (
+        ["a-lane-the-dead-seat-held/its_edit.src"] if Path(tree or "") == dead_tree
+        else ["a-lane-still-live/another_lanes_work.src"]))
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: (
+        "dead1234 on the worktree" if Path(tree or "") == dead_tree else "swept999 on the shared tree"))
+    from background import seat_work_in_hand
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+
+    sc.note_activity("Edit", session_id="died-in-a-worktree", path=p,
+                     now=NOW - sc.SILENT_AFTER_SECONDS - 60)
+    assert row(p, "died-in-a-worktree")["tree"] == str(sweeper_tree)
+    # ...and that seat was in the LINKED worktree, which is what the row has to remember.
+    store = json.loads(p.read_text())
+    store["seats"]["died-in-a-worktree"]["tree"] = str(dead_tree)
+    p.write_text(json.dumps(store), encoding="utf-8")
+
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    filed = sc.sweep(path=p, now=NOW, staging_dir=staging)
+    text = Path(filed).read_text(encoding="utf-8")
+
+    # THE FIXTURE PATHS ARE DELIBERATELY NOT REAL TREE PATHS. What is asserted on below is the
+    # generated handoff MARKDOWN, not Python source -- but a literal under a real top-level
+    # directory makes `substring_source_scan_census` read this as a control scanning source as
+    # text, which it is not. Fictional prefixes say what the stub is and clear the detector
+    # without routing a non-member through the remedy for members.
+    assert "a-lane-the-dead-seat-held/its_edit.src" in text
+    assert "a-lane-still-live/another_lanes_work.src" not in text, (
+        "the handoff listed the SWEEPER's uncommitted work as the dead seat's: a tick adopting "
+        "this would edit files another live lane is holding")
+    assert "dead1234" in text and "swept999" not in text
+    assert str(dead_tree) in text, "the reader is not told which tree to cd to"
+
+
+def test_a_seat_whose_TREE_IS_GONE_files_anyway_and_does_not_read_as_CLEAN(
+    no_seat, tmp_path, monkeypatch
+):
+    """A linked worktree removed since the seat died is an UNKNOWN, never an empty tree.
+
+    `_uncommitted_paths` returning `[]` here would hit `_handoff_for`'s died-holding-nothing
+    guard and file silently nothing — the R15 fail-silent, reached by the one input the keyed
+    store makes reachable (the sweeper outliving the tree it is filing about).
+    """
+    p = tmp_path / ".seat_heartbeat.json"
+    sc.note_activity("Edit", session_id="s1", path=p, now=NOW - sc.SILENT_AFTER_SECONDS - 60)
+    store = json.loads(p.read_text())
+    store["seats"]["s1"]["tree"] = str(tmp_path / "a-worktree-that-was-deleted")
+    p.write_text(json.dumps(store), encoding="utf-8")
+    from background import seat_work_in_hand
+    monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
+
+    assert sc._uncommitted_paths(tmp_path / "a-worktree-that-was-deleted") is None
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    filed = sc.sweep(path=p, now=NOW, staging_dir=staging)
+    assert filed, "a vanished tree read as a clean one and the death was filed nowhere"
+    assert "UNKNOWN, not empty" in Path(filed).read_text(encoding="utf-8")
 
 
 # ---------------------------------------------------------------------------
@@ -515,7 +694,7 @@ def test_MUTATION_one_real_source_path_among_the_exhaust_still_files(
     a filter that swallowed everything, which is the fail-open shape R15 names second."""
     from background import seat_work_in_hand, tree_divergence
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
-    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
     monkeypatch.setattr(tree_divergence, "changed_paths",
                         lambda _d=None: ["docs/staging/WORKER_FINDING_X_2026-08-25.md",
                                          "simulation/hedged_settlement.py"])
@@ -542,7 +721,7 @@ def test_an_UNREADABLE_tree_files_ANYWAY_and_says_the_list_is_UNKNOWN(
     """
     from background import seat_work_in_hand, tree_divergence
     monkeypatch.setattr(seat_work_in_hand, "CLAIMS_FILE", tmp_path / "none.json")
-    monkeypatch.setattr(sc, "_last_commit", lambda: "abc1234")
+    monkeypatch.setattr(sc, "_last_commit", lambda tree=None: "abc1234")
     monkeypatch.setattr(tree_divergence, "changed_paths", lambda _d=None: None)
     staging = tmp_path / "staging"
     staging.mkdir()

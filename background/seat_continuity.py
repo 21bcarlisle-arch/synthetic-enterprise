@@ -51,6 +51,21 @@ paths. A session can be perfectly alive by this measure and still be stalled, an
 deadline is what catches that. The two organs answer different questions and neither can cover
 for the other.
 
+ONE ROW PER SEAT, BECAUSE THE POPULATION IS NOT ONE (2026-09-16)
+----------------------------------------------------------------
+`.seat_heartbeat.json` was a single record and the thing it measures is not single-valued:
+measured at 14:20Z, `/var/tmp/se-seat-executor` and `/home/rich/synthetic-enterprise` held TWO
+LIVE SEATS at once, not one seat and one stale checkout. The store is therefore keyed by session
+id. Two seats are two rows; one dying leaves its own row to go cold on its own clock, and
+`sweep()` reads PER ROW so a survivor can never answer LIVE on a dead seat's behalf.
+
+That is also what makes the shared-tree redirect correct, and it was refused until it was true:
+`_resolve` carries the argument, and the reason the `git worktree list` sweeper the finding asked
+for is refused in its place (the file is TRACKED, so enumerating worktrees enumerates CHECKOUTS —
+three of four held a byte-identical 16-day-old record no seat there ever wrote). What replaces it
+is the `tree` field on each row, so a handoff for a seat that died in a linked worktree reads
+THAT tree's uncommitted work rather than the sweeper's.
+
 TWO SIGNALS, AND DEATH NEEDS BOTH
 ---------------------------------
 Declaring a LIVE seat dead is the expensive error, not the cheap one: a handoff would be filed
@@ -91,7 +106,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from background.live_ledger_guard import guard_live_ledger_write
+from background.live_ledger_guard import guard_live_ledger_write, shared_tree_live_record
 
 PROJECT_DIR = Path(__file__).resolve().parent.parent
 HEARTBEAT_FILE = PROJECT_DIR / "docs" / "observability" / ".seat_heartbeat.json"
@@ -121,18 +136,96 @@ TOOL_TAIL = 12
 
 LIVE, DEAD, ABSENT = "LIVE", "DEAD", "ABSENT"
 
+#: The keyed store's one top-level field: session key -> that seat's beat. See `_seats`.
+SEATS = "seats"
+
+#: A ceiling on rows, so a store nobody sweeps cannot grow without limit. Rows are removed as
+#: they are swept, so reaching this means the sweep itself has stopped -- the oldest beats are
+#: dropped first, which is the direction that keeps the LIVE seats the executor must see.
+MAX_SEATS = 64
+
+
+def _resolve(path: Path | None, *, for_write: bool = False) -> Path:
+    """Where this seat's book actually lives.
+
+    THE REFUSAL RECORDED HERE ON 2026-09-16 IS WITHDRAWN, ON THE MEASUREMENT THAT REPLACED IT.
+    It refused the shared-tree redirect because "the record is single-valued and the population
+    is not": merging two concurrent seats' beats onto one record yields the SURVIVOR's answer, so
+    a dead seat's row would be kept warm by a live one in another tree and swept by nobody. That
+    reasoning was right about a single-valued record and is simply not about this one. The store
+    below holds ONE ROW PER SEAT, so two live seats are two rows, and one dying leaves its own row
+    to go cold on its own clock. The redirect's premise -- that a seat is a thing on this MACHINE,
+    like `launch_liveness`'s `systemctl --user` unit, and not a thing in a tree -- was never in
+    dispute; only the record's shape was.
+
+    AND THE ENUMERATING SWEEPER THE FINDING ASKED FOR IS REFUSED IN ITS PLACE, on measurement
+    taken 2026-09-16T15:30Z across all four linked worktrees. `.seat_heartbeat.json` is TRACKED,
+    so `git worktree list` does not enumerate seats -- it enumerates CHECKOUTS. Three of the four
+    worktrees held a byte-identical record (session `761ae288`, pid 3745366, 16 days old) that no
+    seat in any of them ever wrote; it is what git put there. A sweeper walking worktrees would
+    have filed three handoffs for one session that was never in those trees, and a phantom handoff
+    is worse than a missed one because it sends the next tick to adopt work that does not exist.
+    The discriminator `git diff HEAD` would tell a checkout from a beat, but only as a one-shot
+    over residue: once every seat writes the one book, no worktree copy is ever written again and
+    there is nothing left to enumerate. That is the register CLAUDE.md says to delete rather than
+    write -- so what replaces it is the `tree` field on each row, which names the tree that seat
+    was actually beating in, asked of the seat rather than of git's checkout table.
+
+    THE COST IS A `git` SUBPROCESS PER TOOL CALL and it is paid rather than optimised away. The
+    hook is a fresh process, so no module-level cache outlives it. There is a cheaper answer --
+    a linked worktree's `.git` is a FILE naming the shared gitdir -- and taking it would put a
+    SECOND implementation of "where is the shared tree" in this repo, which is already a filed
+    finding. One answer, one owner.
+    """
+    p = path or HEARTBEAT_FILE
+    return Path(shared_tree_live_record(p, for_write=for_write))
+
 
 def _read(path: Path | None = None) -> dict:
-    p = path or HEARTBEAT_FILE
+    """The whole store, always in keyed shape. `{}` when there is nothing readable."""
+    p = _resolve(path)
     if not p.is_file():
         return {}
     try:
         data = json.loads(p.read_text(encoding="utf-8"))
     except (OSError, ValueError):
-        # A corrupt heartbeat is not evidence of life. It falls through to ABSENT (no ts),
+        # A corrupt heartbeat is not evidence of life. It falls through to ABSENT (no seats),
         # which files no handoff -- the same direction as never having run.
         return {}
-    return data if isinstance(data, dict) else {}
+    if not isinstance(data, dict):
+        return {}
+    return data if isinstance(data.get(SEATS), dict) else _adopt_legacy(data)
+
+
+def _adopt_legacy(data: dict) -> dict:
+    """A pre-keyed single record, read as the one-row store it was.
+
+    NOT A MIGRATION STEP TO DELETE LATER. The file is TRACKED, so every linked worktree holds
+    git's checkout of whatever shape was committed last, and a checkout of the old shape will
+    keep arriving in new worktrees for as long as that commit is anyone's merge base. Reading it
+    as one row is also exactly right: it WAS one seat's beat, and it keeps the existing legs of
+    `state()` and `sweep()` measuring the same thing across the change rather than going quietly
+    green on an unrecognised file.
+    """
+    if not isinstance(data.get("ts"), (int, float)):
+        return {}
+    return {SEATS: {_key(str(data.get("session_id") or ""), data.get("pid"), data.get("tree")): data}}
+
+
+def _key(session_id: str, pid, tree) -> str:
+    """The row's key. The session id when there is one, and never a collapsing default.
+
+    An empty `session_id` is the degenerate case the hook can hand us (a payload without one),
+    and keying every such seat on `""` would re-create the single-valued record this store
+    replaces -- in the one case nobody would look at. pid-and-tree is not as good an identity as
+    a session id, but it is an identity, and two anonymous seats stay two rows.
+    """
+    return session_id or f"pid-{pid}@{tree or ''}"
+
+
+def _seats(store: dict) -> dict:
+    seats = store.get(SEATS)
+    return seats if isinstance(seats, dict) else {}
 
 
 def note_activity(tool: str, *, session_id: str = "", pid: int | None = None,
@@ -144,83 +237,86 @@ def note_activity(tool: str, *, session_id: str = "", pid: int | None = None,
     half-written heartbeat read by the 5-minute sweep would be a corrupt file that reads as
     ABSENT -- i.e. the recovery mechanism disabled by its own write pattern.
 
-    THIS BEAT IS DELIBERATELY *NOT* RESOLVED TO THE SHARED TREE, and the refusal names its reason
-    (2026-09-16). `HEARTBEAT_FILE` is derived from `__file__`, so a seat running in a linked
-    worktree stamps that worktree's copy of a TRACKED file -- the same rebinding
-    `live_ledger_guard.shared_tree_live_record` exists to undo, and this is a read-modify-write
-    (`prev = _read(p)` then replace) so the read cannot be wired without the write. It was drawn
-    as owed alongside `.launch_records.json`. It is being refused, not deferred.
+    ONE ROW PER SEAT, KEYED BY SESSION, AND THE ROW IS THE ONLY THING THIS TOUCHES. Every other
+    seat's row is read and written back unchanged, so a beat is no longer an overwrite of the
+    population by whichever seat moved last. That is what lets the shared-tree redirect be
+    correct here -- `_resolve` carries the full argument, including the sweeper it refuses.
 
-    WHAT WAS MEASURED, and it is the whole argument. At 2026-09-16T14:20Z the two trees held TWO
-    LIVE SEATS, not one seat and one stale checkout: `/var/tmp/se-seat-executor` had session
-    `f4c65996` (pid 3399771) beating 0.1s ago, `/home/rich/synthetic-enterprise` had session
-    `53b48707` (pid 3394062) beating 76s ago. Both current. Both real.
+    THERE IS NO LONGER A HANDOFF FILED FROM THIS HOOK, and its removal is the keyed store paying
+    for itself. The old code watched for "a different session arriving on a cold heartbeat" and
+    filed for the predecessor before overwriting it, because the overwrite was about to destroy
+    the only record of a seat the 5-minute sweep had not yet reached. Nothing is destroyed now:
+    the predecessor's row is still there, on its own clock, for `sweep()` to find. Keeping the
+    old leg as well would buy nothing and would spend `_uncommitted_paths`' `git status` on a
+    tool call. The property it protected -- a dead seat's state survives a new session arriving --
+    is the one the test asserts, rather than the mechanism that used to deliver it.
 
-    SO THE RECORD IS SINGLE-VALUED AND THE POPULATION IS NOT, which is this project's most
-    expensive recurring shape and the reason to say what a thing is before measuring it. Merging
-    the beats onto the shared tree does not give one honest answer; it gives the SURVIVOR's answer.
-    When one of two concurrent seats dies, the other keeps the shared beat warm, `state()` never
-    reaches SILENT_AFTER_SECONDS, `sweep()` never fires, and the dead seat's uncommitted work is
-    orphaned in silence -- the exact outcome this module exists to prevent, reintroduced by the
-    repair. That is a FAIL-SILENT, and it is worse than the staleness it would fix: a stale beat
-    over-reports death, which is noisy and self-correcting, and is why the 09-16 survey already
-    graded this reader NOT FLATTERING. (`launch_liveness` has the same shape and the opposite
-    answer, because its subject is a `systemctl --user` unit and there is one user manager per
-    machine. Same shape, different subject.)
-
-    THE COST ARGUMENT IS REAL BUT IT IS NOT THE REASON. The resolver spends a `git` subprocess per
-    live-record read and this runs on every tool call, in a fresh hook process that no module-level
-    cache can outlive. That would be worth paying for a correct answer. It is not worth paying for
-    a wrong one, and it would still be wrong.
-
-    THE GAP THIS LEAVES IS NAMED RATHER THAN PAPERED OVER. `sweep()` only ever reads the tree it
-    was imported from, so a seat that dies in a linked worktree is swept by nobody unless a tick
-    happens to run in that same worktree. The fix for that is a sweeper that enumerates
-    `git worktree list` and holds ONE RECORD PER SEAT -- a keyed store, not a redirect onto a
-    single-valued one. It is not built, and an honest gap is worth more than a redirect that looks
-    like an answer. What IS enforced today is that the read and the write agree:
-    `tests/background/test_a_read_modify_write_live_record_reads_and_writes_one_tree.py` refuses a
-    future session wiring one side of this pair without the other, in either direction.
+    THE GUARD IS ASKED ABOUT THE PATH THE CALLER NAMED, BEFORE THE REDIRECT MOVES IT, for the
+    reason `launch_liveness.save` records: `guard_live_ledger_write` refuses on
+    `is_live_record_path`, whose room is derived from THIS tree's `LIVE_RECORD_DIR`, and a path
+    already redirected to the shared tree is outside that room. Resolving first and guarding
+    second would hand a test process the real heartbeat with the guard still called, still
+    passing, and permanently unreachable for exactly the callers the redirect applies to.
     """
-    p = path or HEARTBEAT_FILE
+    named = path or HEARTBEAT_FILE
     now = time.time() if now is None else now
-    prev = _read(p)
+    store = _read(named)
+    seats = dict(_seats(store))
+    pid = os.getpid() if pid is None else pid
+    tree = str(PROJECT_DIR)
+    key = _key(session_id, pid, tree)
+
+    prev = seats.get(key) if isinstance(seats.get(key), dict) else {}
     tail = list(prev.get("recent_tools") or [])[-(TOOL_TAIL - 1):]
     tail.append({"tool": tool, "at": now})
-    # A DIFFERENT SESSION ARRIVING ON A COLD HEARTBEAT IS THE HANDOFF MOMENT, and it is the
-    # one the 5-minute sweep can miss. If the seat died at 10:00 and a fresh session starts at
-    # 10:05, this hook refreshes `ts` before the sweep's 20-minute silence threshold is ever
-    # reached -- and the dead session's uncommitted work is orphaned in silence, which is the
-    # exact outcome this module exists to prevent. So: a new session_id, arriving on a
-    # heartbeat that has gone quiet, files the handoff for its predecessor BEFORE overwriting
-    # the record. Cheap because it is rare -- same session, or a warm heartbeat, skips it.
-    handover_due = (
-        session_id
-        and prev.get("session_id")
-        and session_id != prev.get("session_id")
-        and now - float(prev.get("ts") or 0) >= SILENT_AFTER_SECONDS
-    )
-    if handover_due:
-        try:
-            _handoff_for(prev, now=now, staging_dir=staging_dir)
-        except Exception:  # noqa: BLE001 - a hook must never break the session it observes
-            pass
-
-    record = {
+    seats[key] = {
         "ts": now,
-        "pid": os.getpid() if pid is None else pid,
-        "session_id": session_id or prev.get("session_id", ""),
-        "tool_count": 1 if handover_due else int(prev.get("tool_count", 0)) + 1,
-        "recent_tools": [tail[-1]] if handover_due else tail,
+        "pid": pid,
+        "session_id": session_id,
+        # WHICH TREE THIS SEAT IS BEATING IN, and the handoff is wrong without it. The sweeper
+        # may be running in a different tree from the seat it is filing for, and the work that
+        # seat left behind is uncommitted in ITS tree -- so `_uncommitted_paths` and the last
+        # commit are asked of this path, not of the sweeper's own `PROJECT_DIR`.
+        "tree": tree,
+        "tool_count": int(prev.get("tool_count", 0)) + 1,
+        "recent_tools": tail,
     }
     try:
-        guard_live_ledger_write(p, writer="seat_continuity.note_activity")
-        p.parent.mkdir(parents=True, exist_ok=True)
-        tmp = p.with_suffix(p.suffix + ".tmp")
-        tmp.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
-        tmp.replace(p)
+        guard_live_ledger_write(named, writer="seat_continuity.note_activity")
+        _write(_prune(seats), path=named)
     except OSError:
         return  # a hook must never break the session it is observing
+
+
+def _prune(seats: dict) -> dict:
+    """Keep the store bounded, dropping the OLDEST beats first. See `MAX_SEATS`."""
+    if len(seats) <= MAX_SEATS:
+        return seats
+    ordered = sorted(seats.items(), key=lambda kv: float(kv[1].get("ts") or 0), reverse=True)
+    return dict(ordered[:MAX_SEATS])
+
+
+def _write(seats: dict, *, path: Path | None = None) -> None:
+    """Replace the store atomically.
+
+    Through a temp file, because this runs on EVERY tool call and a half-written store read by
+    the 5-minute sweep would be a corrupt file that reads as ABSENT -- i.e. the recovery
+    mechanism disabled by its own write pattern.
+
+    THE TEMP NAME CARRIES THE PID, which the single-tree version did not need. Concurrent seats
+    used to write their own trees' files and could not collide; they now share one book, so a
+    fixed `.tmp` name would have two seats writing one temp file and each replacing the other's
+    half-written bytes -- an atomic-write idiom that is not atomic between writers. A lost beat
+    is the cheap direction (the next tool call restamps it) but a torn read is not, and this is
+    the write pattern that would produce one. Last writer still wins on the FILE, which is
+    correct: each writer has just read the store and is putting back every other seat's row
+    unchanged, so the loss is bounded to one beat of one row rather than the population.
+    """
+    p = _resolve(path, for_write=True)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    tmp = p.with_suffix(p.suffix + f".{os.getpid()}.tmp")
+    tmp.write_text(json.dumps({SEATS: seats}, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(p)
 
 
 def _any_interactive_seat() -> bool | None:
@@ -254,13 +350,41 @@ def _any_interactive_seat() -> bool | None:
     return False
 
 
-def state(*, path: Path | None = None, now: float | None = None) -> str:
-    """LIVE, DEAD or ABSENT. See the module docstring for why death needs two signals."""
-    rec = _read(path)
+def state(*, path: Path | None = None, now: float | None = None,
+          session_id: str | None = None) -> str:
+    """LIVE, DEAD or ABSENT. See the module docstring for why death needs two signals.
+
+    TWO QUESTIONS NOW, AND ONLY ONE OF THEM IS THE POPULATION'S. With `session_id`, this is that
+    seat's own verdict, which is what `sweep()` asks -- per row, so a live seat cannot hold a
+    dead one's row warm. Without it, the answer is over the WHOLE population: LIVE if ANY seat is
+    live, ABSENT if there are no rows at all, DEAD only when every row is dead.
+
+    THE UNION IS CORRECT FOR THE CALLER THAT ASKS IT AND WOULD BE A FAIL-SILENT FOR THE OTHER,
+    which is why they are different calls rather than one. `seat_executor._interactive_seat_is_live`
+    asks "may an unattended delivery turn run in this tree", and the safe answer when ANY human
+    seat is live is stand down -- so the union is the honest reading and a per-seat one would let
+    an executor run beside a live seat in another tree. `sweep()` asks "did THIS seat die holding
+    work", and the union there is exactly the survivor's answer the keyed store exists to end.
+    """
+    if session_id is None:
+        seats = _seats(_read(path))
+        if not seats:
+            return ABSENT
+        now = time.time() if now is None else now
+        verdicts = [_verdict(rec, now) for rec in seats.values()]
+        if LIVE in verdicts:
+            return LIVE
+        return DEAD if DEAD in verdicts else ABSENT
+    rec = _seats(_read(path)).get(session_id) or {}
+    now = time.time() if now is None else now
+    return _verdict(rec, now)
+
+
+def _verdict(rec: dict, now: float) -> str:
+    """One seat's verdict from one row. The two-signal reasoning is the module docstring's."""
     ts = rec.get("ts")
     if not isinstance(ts, (int, float)):
         return ABSENT
-    now = time.time() if now is None else now
     # suppression-lint: not-a-suppression silence -- this is an ELAPSED TIME in seconds since
     # the seat's last heartbeat, not a mechanism that quiets anything. It is the INPUT to a
     # liveness verdict that pages harder the larger it gets; nothing is folded, throttled or
@@ -273,8 +397,17 @@ def state(*, path: Path | None = None, now: float | None = None) -> str:
     return DEAD if _any_interactive_seat() is False else LIVE
 
 
-def _uncommitted_paths() -> list[str] | None:
-    """SOURCE paths the seat left behind. `None` when git could not be asked at all.
+def _uncommitted_paths(tree: Path | str | None = None) -> list[str] | None:
+    """SOURCE paths the seat left behind, IN THE TREE THAT SEAT WAS BEATING IN.
+
+    `tree` defaults to this process's own `PROJECT_DIR` and is passed by `sweep()` from the
+    dead seat's row. Asking the sweeper's own tree instead is the defect the keyed store would
+    otherwise introduce: one book now means the shared tree's 5-minute sweep files handoffs for
+    seats that died in linked worktrees, and their uncommitted work is in THEIR tree. A handoff
+    listing the sweeper's dirty paths would be confidently, plausibly wrong -- it would name real
+    files, held by somebody, just not by the seat the document is about.
+
+    `None` when git could not be asked at all.
 
     THE MEASURED DEFECT, 2026-08-25. This was a bare `git status --porcelain`, and on this tree
     that answers 582 -- of which 397 are documents in `docs/staging/` and 84 are the daemons'
@@ -304,7 +437,14 @@ def _uncommitted_paths() -> list[str] | None:
     """
     from background import tree_divergence
 
-    paths = tree_divergence.changed_paths(PROJECT_DIR)
+    root = Path(tree or PROJECT_DIR)
+    if not root.is_dir():
+        # The seat's tree is GONE -- a linked worktree removed since it died. That is not a
+        # clean tree and must not read as one: whatever it was holding went with it, and the
+        # reader needs to be told that rather than shown an empty list. Same direction as git
+        # refusing to answer, and `handoff_document` already renders None as UNKNOWN.
+        return None
+    paths = tree_divergence.changed_paths(root)
     if paths is None:
         return None  # git could not answer; an unavailable check is not an empty tree (R15)
     return sorted(p for p in paths if not p.startswith("docs/staging/"))
@@ -347,9 +487,16 @@ def _held_areas(uncommitted: list[str] | None) -> str:
     return named + (" and elsewhere" if len(areas) > SUBJECT_AREAS else "")
 
 
-def _last_commit() -> str:
-    out = subprocess.run(["git", "log", "-1", "--format=%h %s"],
-                         cwd=PROJECT_DIR, capture_output=True, text=True)
+def _last_commit(tree: Path | str | None = None) -> str:
+    """The dead seat's tree's last commit -- a linked worktree is usually on a different one."""
+    root = Path(tree or PROJECT_DIR)
+    if not root.is_dir():
+        return "(the seat's tree is gone)"
+    try:
+        out = subprocess.run(["git", "log", "-1", "--format=%h %s"],
+                             cwd=root, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return "(unreadable)"
     return out.stdout.strip() if out.returncode == 0 else "(unreadable)"
 
 
@@ -364,6 +511,7 @@ def handoff_document(rec: dict, claims: dict, uncommitted: list[str] | None, now
     # only to render the sentence a human reads ("ran no tool for 3.2h"). It is reported, not
     # acted on.
     silence_h = (now - float(rec.get("ts", now))) / 3600.0
+    tree = rec.get("tree") or str(PROJECT_DIR)
     tools = ", ".join(t.get("tool", "?") for t in (rec.get("recent_tools") or [])) or "none recorded"
     claim_lines = "\n".join(
         f"- `{k}` — claimed {(now - float(v.get('claimed_at', now))) / 3600.0:.1f}h ago"
@@ -397,6 +545,10 @@ draws it like any other work.
 
 ## What it left in the tree, uncommitted
 
+**In `{tree}`** — which may not be the tree you are reading this in. Seats beat into one book
+per machine, so the 5-minute sweep files for seats that died in linked worktrees too, and the
+work below is uncommitted THERE. `cd` to it before you read a diff.
+
 SOURCE paths only — the daemons' own output under `docs/observability/`, `site/` and the rest
 of `tree_divergence.GENERATED_PREFIXES` is excluded, and so is `docs/staging/`, which is the
 queue you are reading this from. This is the real state, and more reliable than anything the
@@ -409,7 +561,8 @@ stops it writing.
 
 - Last tools it ran, oldest first: {tools}
 - Tool calls this session: {rec.get('tool_count', '?')}
-- Last commit on the tree: `{_last_commit()}`
+- The seat's pid, now gone: `{rec.get('pid', '?')}`
+- Last commit on that tree: `{_last_commit(tree)}`
 
 ## What to do with it — decide, do not just re-run
 
@@ -429,29 +582,54 @@ Archive to `docs/staging/done/` once the paths above are either committed or rev
 
 def sweep(*, path: Path | None = None, now: float | None = None,
           staging_dir: Path | None = None) -> str | None:
-    """If the seat is dead and left something behind, file the handoff. Returns the path.
+    """File a handoff for EVERY seat that has died, in whichever tree it died in.
 
-    Returns None when the seat is alive, absent, or died holding nothing — a handoff for a
-    clean tree with no claims would be noise, and this module's whole purpose is to stop the
-    director being the one who notices things.
+    Returns the family document's path if anything was filed, else None — None when every seat
+    is alive, absent, or died holding nothing, because a handoff for a clean tree with no claims
+    would be noise and this module's whole purpose is to stop the director being the one who
+    notices things.
+
+    PER ROW, NEVER OVER THE POPULATION, and that is the whole repair. The old code asked
+    `state()` for one verdict over one record: with two seats beating into one book, a live seat
+    would answer LIVE for a dead one and its work would be orphaned in silence — the FAIL-SILENT
+    that made the shared-tree redirect refusable before this store existed.
+
+    A SWEPT ROW IS REMOVED, NOT THE FILE. The old `_clear()` unlinked the whole heartbeat, which
+    on a keyed store would delete every LIVE seat's row as a side effect of one seat dying — and
+    would leave no shared copy for `shared_tree_live_record` to find, splitting the book at the
+    next beat from a linked worktree. Removal is also what bounds the store: a row exists from
+    its seat's first tool call until its death is filed, and dead-holding-nothing removes the row
+    without filing, so nothing accumulates on the quiet path either.
     """
 
-    p = path or HEARTBEAT_FILE
+    named = path or HEARTBEAT_FILE
     now = time.time() if now is None else now
-    if state(path=p, now=now) != DEAD:
-        return None
-
-    filed = _handoff_for(_read(p), now=now, staging_dir=staging_dir)
-    _clear(p)
+    seats = dict(_seats(_read(named)))
+    filed: str | None = None
+    swept = False
+    for key, rec in sorted(seats.items()):
+        if not isinstance(rec, dict) or _verdict(rec, now) != DEAD:
+            continue
+        try:
+            filed = _handoff_for(rec, now=now, staging_dir=staging_dir) or filed
+        except Exception:  # noqa: BLE001 - one unfileable seat must not strand the others
+            continue
+        del seats[key]
+        swept = True
+    if swept:
+        try:
+            _write(seats, path=named)
+        except OSError:
+            pass
     return filed
 
 
 def _handoff_for(rec: dict, *, now: float, staging_dir: Path | None = None) -> str | None:
-    """File the handoff for one dead session's record. Shared by `sweep` and `note_activity`."""
+    """File the handoff for one dead seat's row."""
     from background import alarm_repetition, seat_work_in_hand
 
     claims = seat_work_in_hand._load(seat_work_in_hand.CLAIMS_FILE)
-    uncommitted = _uncommitted_paths()
+    uncommitted = _uncommitted_paths(rec.get("tree"))
     if not claims and uncommitted == []:
         return None  # died holding nothing; a handoff here would be the noise this replaces
     # `uncommitted is None` falls THROUGH the guard on purpose: git could not be asked, so we do
@@ -551,19 +729,19 @@ def _append_episode(path: Path, handoff: str, *, now: float) -> None:
     path.write_text(text.rstrip() + "\n\n" + section, encoding="utf-8")
 
 
-def _clear(path: Path) -> None:
-    try:
-        path.unlink()
-    except OSError:
-        pass
-
-
 def main() -> int:
-    st = state()
-    print(f"seat-continuity: {st}")
-    if st == DEAD:
-        filed = sweep()
-        print(f"  handoff: {filed or 'nothing to hand over'}")
+    now = time.time()
+    seats = _seats(_read())
+    print(f"seat-continuity: {state(now=now)} over {len(seats)} seat(s)")
+    for key, rec in sorted(seats.items(), key=lambda kv: -float(kv[1].get("ts") or 0)):
+        age = (now - float(rec.get("ts") or 0)) / 60.0
+        print(f"  {_verdict(rec, now):6} {key[:8]:8} pid {rec.get('pid', '?'):<8} "
+              f"{age:6.1f} min ago  {rec.get('tree', '?')}")
+    # SWEEP UNCONDITIONALLY, because the verdict above is the POPULATION's and the sweep is per
+    # row. Gating it on `state() == DEAD`, as this used to, would mean one live seat suppressed
+    # the handoff for a dead one -- the survivor's answer, in the one place it files nothing.
+    filed = sweep(now=now)
+    print(f"  handoff: {filed or 'nothing to hand over'}")
     return 0
 
 

@@ -113,7 +113,7 @@ def is_live_record_path(path) -> bool:
     return True
 
 
-def shared_tree_live_record(path):
+def shared_tree_live_record(path, *, for_write: bool = False):
     """Resolve a live record to the SHARED tree's copy when read from a linked worktree.
 
     THE READ SIDE OF THE SAME DOCTRINE, and it was fixed as an INSTANCE while the write
@@ -148,6 +148,18 @@ def shared_tree_live_record(path):
     a raise on the orientation paths that call it, and every caller already handles a missing
     file. The narrowing that matters is that it can only ever redirect INTO the shared tree's
     copy of a path already inside the live-record room.
+
+    `for_write=True` EXISTS BECAUSE "ABSENT MEANS DO NOT REDIRECT" IS FAIL-OPEN FOR A WRITE, and
+    the two uses are not the same question (2026-09-16). On a READ, a missing shared copy costs
+    nothing: the caller gets its own tree's path and handles the absence it would have handled
+    anyway. On a WRITE it SPLITS THE BOOK -- the writer creates its own tree's copy, every later
+    read resolves to the shared tree, finds nothing, and the write is lost rather than staled,
+    which is the precise failure the read-modify-write doctrine exists to stop. The sequence is
+    reachable and not hypothetical: `seat_continuity.sweep()` used to UNLINK `.seat_heartbeat.json`
+    after filing, so the next linked-worktree beat would have found no shared copy and started a
+    second book. So for a write the existence test moves up one level -- the shared tree's
+    live-record DIRECTORY, which is what actually proves a real tree was found, rather than the
+    file, whose absence is the ordinary state of a record nobody has written yet.
     """
     # BEHAVIOURALLY SUBSUMED, and kept on purpose -- do not read this line as graded. Deleting it
     # changes no outcome (established 2026-09-16 by mutation: the `relative_to` below refuses every
@@ -174,6 +186,8 @@ def shared_tree_live_record(path):
     except (OSError, RuntimeError, ValueError):
         return path
     shared = common.parent / "docs" / "observability" / relative
+    if for_write:
+        return shared if shared.parent.is_dir() else path
     return shared if shared.exists() else path
 
 
