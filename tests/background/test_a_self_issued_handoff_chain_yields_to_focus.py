@@ -327,3 +327,83 @@ def test_a_DRAW_STAMPS_WHICH_SOURCE_ANSWERED(lane):
     assert ledger["the-seats-own-ranked-item"]["source"] == "focus"
     assert "source_written_at" not in ledger["the-seats-own-ranked-item"]
     assert "source_self_issued" not in ledger["the-seats-own-ranked-item"]
+
+
+def test_a_PROMOTED_FOCUS_ROW_BREAKS_THE_CHAIN_BECAUSE_DIRECTION_WAS_READ(lane):
+    """THE DEFECT THAT LATCHED THE SWAP ON FOR TEN DAYS, and the reason every test above it stayed
+    green through the whole of it: this file's `lane["focus"]` writes focus rows the PROMOTER HAS
+    NEVER TOUCHED, and production has no such row. `seat_executor._promote_to_handoff` is how a
+    focus item reaches a tick at all -- `hand_off_focus` is the same act by hand -- so by the time
+    a focus row is drawn it is sitting in the continuation store, written by a session that held a
+    claim. `record_draw` asked only "is this id in the continuation store", so the draw that the
+    swap's own comment says BREAKS the chain EXTENDED it.
+
+    MEASURED ON THE LIVE LEDGER, not on a fixture (2026-09-16). The 16:00 and 16:31 draws were
+    `focus[0]` and `focus[1]` taken in the seat's own order -- `_focus` winning, the mechanism
+    working -- and both carried `source: continuation, source_self_issued: True`, with the chain
+    standing at 5 and no row able to reset it. The consequence is the MIRROR of the failure the
+    limit was written for: not the lane feeding itself, but the continuation source permanently
+    second, which the module's own docstring calls the biggest single drag on the project.
+
+    MUTATION (must fire): drop `and not named` from `record_draw`'s `source_self_issued`, or make
+    `_named_by_live_direction` return a constant False. Either restores the latch and this goes
+    red on the chain assertion.
+    """
+    end = _chain(lane, CHAIN_BUILT)
+    assert dl._self_issued_chain(lane["claims"]) >= dl.SELF_HANDOFF_CHAIN_LIMIT, (
+        "the history must be a chain, or there is nothing here for a focus draw to break")
+
+    # THE SEAT RANKS A ROW AND THE PROMOTER CARRIES IT ACROSS -- the production route, not a
+    # hand-written store. `hand_off_focus` reads the live record, so the row it writes is the
+    # seat's own direction wearing a continuation's clothes, which is the whole defect.
+    lane["focus"](["the-seats-own-ranked-item"])
+    dl.hand_off_focus("the-seats-own-ranked-item", "the seat says what done means", now=end + 1)
+    assert dl._continuation_written_while_holding("the-seats-own-ranked-item"), (
+        "the promotion must be stamped as written while holding a claim, or this test proves "
+        "nothing -- that stamp is what used to make the seat's own row read as self-issued")
+
+    assert dl.draw(now=end + 2, path=lane["claims"]), "the focus row must actually be drawn"
+    ledger = claims_mod._load(dl._ledger_path(lane["claims"]))
+    row = ledger["the-seats-own-ranked-item"]
+
+    # ORIGIN, NOT TRANSPORT: it came from `DIRECTION.yaml` however it travelled.
+    assert row["source"] == "focus", (
+        f"a row the live direction record names was stamped {row['source']!r} because the "
+        "promoter had put it in the continuation store -- `source: focus` is unreachable for "
+        "every focus row a tick ever actually runs")
+    assert row["source_named_by_direction"] is True
+    assert row["source_self_issued"] is False, (
+        "the seat's own ranked row counted as the lane feeding itself")
+    assert dl._self_issued_chain(lane["claims"]) == 0, (
+        "a promoted focus draw did not break the chain, so the swap stays latched on and the "
+        "continuation source is retired for good -- the mirror of the failure the limit exists "
+        "for")
+
+    # AND THE ORDINARY ORDER ACTUALLY RETURNS. The counter is not the deliverable.
+    sc.hand_off("after-the-reset", "carry on", "written by whoever drew last", "done", now=end + 3)
+    assert dl.next_item(now=end + 4, path=lane["claims"])["id"] == "after-the-reset"
+
+
+def test_the_DIRECTION_LEG_CAN_ALSO_ANSWER_NO(lane):
+    """THE PARTITION, over one control rather than a leg per branch. A
+    `_named_by_live_direction` that answered True for everything would pass the test above and
+    silently retire the chain limit altogether -- every continuation reading as the seat's own
+    work, the counter pinned at 0, and the swap never arming again. So the two answers are
+    asserted together, against stores that differ ONLY in whether the live record names the row.
+
+    MUTATION (must fire): `return True` in `_named_by_live_direction`."""
+    lane["focus"](["the-seat-ranked-this-one"])
+    dl.hand_off_focus("the-seat-ranked-this-one", "done means landed", now=NOW_EPOCH)
+    sc.hand_off("the-lane-wrote-this-one", "carry on", "a tick holding work wrote it", "done",
+                now=NOW_EPOCH + 1)
+
+    assert dl._named_by_live_direction("the-seat-ranked-this-one") is True
+    assert dl._named_by_live_direction("the-lane-wrote-this-one") is False, (
+        "a continuation the direction record does not name read as the seat's own work, which "
+        "pins the chain at 0 and retires the limit")
+
+    # A row the record NAMED and then STOPPED naming is not retrospectively the seat's: the seat
+    # re-derives its list every three hours, and a lane feeding itself off last week's steer is
+    # exactly what the limit counts.
+    lane["focus"]([])
+    assert dl._named_by_live_direction("the-seat-ranked-this-one") is False

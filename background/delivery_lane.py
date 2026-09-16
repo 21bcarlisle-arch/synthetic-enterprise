@@ -397,6 +397,40 @@ def _continuation_written_while_holding(focus_id: str) -> list[str]:
     return []
 
 
+def _named_by_live_direction(focus_id: str) -> bool:
+    """Is this id a row of the LIVE direction record -- i.e. did the seat itself ask for it?
+
+    THE PROPERTY THE CHAIN LIMIT WAS WRITTEN FOR IS "THE LANE MUST NOT FEED ITSELF WHILE A LIVE
+    DIRECTION RECORD GOES UNREAD", AND UNTIL 2026-09-16 NOTHING ASKED THE SECOND HALF. Authorship
+    alone cannot: `hand_off_focus` and `seat_executor._promote_to_handoff` take a row OUT of
+    `DIRECTION.yaml` and write it INTO the continuation store, so the seat's own direction arrives
+    at `record_draw` wearing a continuation's clothes, stamped by a session that held a claim, and
+    counted as the lane feeding itself. Measured on the live ledger: the two most recent draws
+    were `focus[0]` and `focus[1]` taken in the seat's own order by `_focus` -- the swap working
+    exactly as designed -- and both were stamped `source: continuation, source_self_issued: True`,
+    EXTENDING the chain that the comment at the swap says a focus draw breaks.
+
+    ORIGIN, NOT TRANSPORT. Promotion is how a focus row reaches a tick; it is not where the row
+    came from. A row the live record names originated with the seat however it travelled, so it
+    breaks the run wherever it sits -- which is the same sentence `_self_issued_chain` already
+    uses about a batch written by a session holding nothing, now true of the other class too.
+
+    AN UNREADABLE OR EXPIRED RECORD READS FALSE, AND THAT IS NOT THE FAIL-SAFE DIRECTION THE REST
+    OF THIS MODULE CHOOSES -- named here rather than left to be discovered. False lengthens the
+    chain and keeps focus consulted FIRST, where every other refusal here shortens it and
+    preserves continuation-first. It is right anyway, and for the reason the frame gives: direction
+    nobody can read IS direction going unread, and `unreachable_focus` already returns nothing for
+    a record past its window for exactly that reason. The cost of the wrong answer is bounded at
+    one ordering, and the swap is never a suppression -- whichever source is asked second still
+    answers when the first has nothing.
+    """
+    try:
+        return any(str(item.get("id")) == str(focus_id)
+                   for item in direction_mod.unreachable_focus(_atom_ids()))
+    except Exception:
+        return False
+
+
 def _self_issued_chain(path: Path | None = None) -> int:
     """How many hand-offs in a row this lane has drawn that IT wrote, most recent first.
 
@@ -479,20 +513,34 @@ def record_draw(focus_id: str, when: float, *, path: Path | None = None) -> None
         if not isinstance(row, dict):
             row = {"first_drawn_at": float(when)}
         row["last_drawn_at"] = float(when)
-        # WHICH SOURCE HANDED THIS OUT, stamped ONCE beside `first_drawn_at` and for the same
+        # WHERE THIS ROW CAME FROM, stamped ONCE beside `first_drawn_at` and for the same
         # reason: it is a fact about the draw, and a version that re-derived it later would read
         # a continuation store the drop/expiry has since emptied and call every past draw `focus`.
         # `source_written_at` is what makes the chain measurable at all -- a continuation written
         # AFTER the previous item was drawn was authored by the lane that drew it.
+        #
+        # IT IS THE ORIGIN AND NOT THE STORE THE ROW TRAVELLED THROUGH (2026-09-16). Asking only
+        # "is this id in the continuation store" made `source: focus` unreachable for every focus
+        # row the promoter had touched -- which is every focus row a tick ever runs, because
+        # `seat_executor._promote_to_handoff` is the route that gets one there. `_named_by_live
+        # _direction` is the missing half and its docstring carries the measurement.
         if "source" not in row:
             written = _continuation_written_at(focus_id)
-            row["source"] = "focus" if written is None else "continuation"
+            named = _named_by_live_direction(focus_id)
+            row["source"] = "focus" if (named or written is None) else "continuation"
             if written is not None:
                 row["source_written_at"] = written
                 # AUTHORSHIP, copied across at the same instant and for the same reason: the
                 # continuation store is emptied by `drop` and the expiry, so a chain re-derived
                 # later would read every past draw as authorless.
-                row["source_self_issued"] = bool(_continuation_written_while_holding(focus_id))
+                #
+                # AND THE SEAT'S OWN ROW IS NOT SELF-ISSUED however it travelled: the whole point
+                # of the limit is to notice the lane feeding itself WHILE DIRECTION GOES UNREAD,
+                # and a row the live record names is direction being read. Recorded as a field
+                # rather than folded silently into the flag so the ledger says WHY the run broke.
+                row["source_named_by_direction"] = named
+                row["source_self_issued"] = (
+                    bool(_continuation_written_while_holding(focus_id)) and not named)
         ledger[focus_id] = row
         if len(ledger) > MAX_REMEMBERED_DRAWS:
             keep = sorted(ledger.items(),
@@ -1497,6 +1545,17 @@ def next_item(now: float | None = None, path: Path | None = None) -> dict | None
     # its continuation and no turn is spent idle. Drawing a focus item stamps `source: focus` on
     # the ledger's newest row, which breaks the chain and restores the ordinary order -- the
     # reset needs no separate state and cannot drift out of step with the draw it describes.
+    #
+    # THAT RESET WAS LATCHED OFF FOR TEN DAYS AND THE SWAP NEVER SWAPPED BACK (fixed 2026-09-16).
+    # The sentence above is true of a focus row the promoter never touched and false of every one
+    # it did -- `record_draw` read the CONTINUATION STORE to decide `source`, and a promoted focus
+    # row is in it, so the draw that was supposed to break the chain EXTENDED it. Measured: the
+    # 16:00 and 16:31 draws on 2026-09-16 were `focus[0]` and `focus[1]` in the seat's own order,
+    # taken by `_focus` with the swap armed, both stamped `continuation`/`self_issued: True`, and
+    # the chain stood at 5. The failure is the mirror of the one the limit was written for -- the
+    # continuation source permanently second, which is the mechanism the director named as the
+    # biggest single drag on the project -- and the tests could not see it because their fixture
+    # writes focus rows the promoter has not touched. `_named_by_live_direction` is the repair.
     def _continuation():
         # Wrapped because `draw` documents that a lane which can throw takes every other lane
         # down with it, and a handoff store must never cost the machine a tick.
