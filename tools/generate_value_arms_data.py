@@ -3233,6 +3233,76 @@ def _who_the_named_sample_is(accounts: list, who: dict) -> str:
                                           is_are="is" if rest == 1 else "are"))
 
 
+def _reachable_split(exclusions: list[dict]) -> dict:
+    """How many of the unpriced renewals a repair to OUR code reaches. Refuses rather than guesses.
+
+    THE DEFECT THIS EXISTS FOR (2026-09-16, Lane 0). `_attribution_sentence` computed
+    `reachable = by_class[our_defect] + by_class[mixed]` and published "So 1,505 of them are
+    reachable by fixing this company's own code" -- the WHOLE mixed class, on the one page that
+    carries our answer to the thesis. The mixed row's own `by_tariff_type`, published two lines
+    below the sentence, said 1,347 `svt` ("the arm's real ceiling, which no repair to our code
+    moves") and 158 unlabelled ("our defect and is reachable"). The page was wrong by a factor of
+    nine about the size of its own backlog, and that number decides what gets built next.
+
+    It is the same shape `_attribution_sentence`'s own docstring says it was written to prevent,
+    committed one level up: a mixed bucket resolved WHOLESALE. `_exclusions` split the three
+    classes apart correctly and then the tail sentence re-merged two of them.
+
+    THE RULE. A class that is unambiguously one side is added to that side. A class that is MIXED
+    is split by its own per-value sub-breakdown when it carries a usable one, and when it does
+    NOT, this refuses to state a reachable count at all rather than attributing the row whole --
+    because attributing it whole is a guess either way, and the flattering guess is the one that
+    shipped. `not_established` refuses for the same reason: a run that did not record what the
+    products were cannot have those renewals put on either side.
+
+    Returns: reachable, ceiling, ceiling_from_the_mixed_class, and `refusal` -- a reason string
+    when no single reachable count may be stated, `None` when one may.
+    """
+    reachable = 0
+    ceiling = 0
+    from_mixed = 0
+    refusals: list[str] = []
+    for row in exclusions:
+        name, count = row.get("exclusion_class"), row.get("count") or 0
+        if name == _CLASS_COMPANY_DEFECT:
+            reachable += count
+            continue
+        if name == _CLASS_MIXED:
+            sub = row.get("by_tariff_type") if row.get("breakdown_available") else None
+            if not sub or any(r.get("is_a_defect") is None for r in sub):
+                refusals.append(
+                    "the {:,} in `{}` are a MIX of our defect and the world's product mix and "
+                    "this run carries no per-product breakdown to split them by".format(
+                        count, row.get("stage")))
+                continue
+            # The sub-breakdown must account for the WHOLE row. A partial one would let the
+            # missing remainder fall silently onto whichever side the arithmetic favoured, which
+            # is the defect this function exists for, one level further down.
+            if sum(r.get("count") or 0 for r in sub) != count:
+                refusals.append(
+                    "the per-product breakdown under `{}` accounts for {:,} of its {:,} refusals, "
+                    "so the remainder belongs to neither side on this run's evidence".format(
+                        row.get("stage"), sum(r.get("count") or 0 for r in sub), count))
+                continue
+            mine = sum(r["count"] for r in sub if r["is_a_defect"] is True)
+            reachable += mine
+            ceiling += count - mine
+            from_mixed += count - mine
+            continue
+        if name == _CLASS_NOT_ESTABLISHED:
+            refusals.append(
+                "the {:,} in `{}` are NOT ATTRIBUTED -- this run did not record what product they "
+                "were on".format(count, row.get("stage")))
+            continue
+        ceiling += count
+    return {
+        "reachable": None if refusals else reachable,
+        "ceiling": ceiling,
+        "ceiling_from_the_mixed_class": from_mixed,
+        "refusal": "; ".join(refusals) or None,
+    }
+
+
 def _attribution_sentence(exclusions: list[dict], offered) -> str:
     """How the unpriced renewals split ACROSS THE CLASSES. Derived, and never two-valued.
 
@@ -3258,13 +3328,32 @@ def _attribution_sentence(exclusions: list[dict], offered) -> str:
             reading=_CLASS_READINGS.get(name, "in a class this page has no reading for ({})"
                                         .format(name))))
     # WHAT IS ACTUALLY REACHABLE, said in the same breath as the split, because the whole point of
-    # separating the classes is that only one of them is work. Derived: the day a defect count
-    # appears, this sentence names it without anyone editing a string.
-    reachable = by_class.get(_CLASS_COMPANY_DEFECT, 0) + by_class.get(_CLASS_MIXED, 0)
-    tail = ("So {:,} of them are reachable by fixing this company's own code, and the rest are the "
-            "arm's ceiling rather than its backlog.".format(reachable) if reachable else
-            "So NONE of them is reachable by fixing this company's own code: what bounds the arm "
-            "here is what the arm is for and what the world's book is made of, not plumbing.")
+    # separating the classes is that only one of them is work. Derived from the sub-breakdown a
+    # mixed class carries -- NOT from the class totals, which merge the two halves back together
+    # and published 1,505 where the evidence said 158 (see `_reachable_split`).
+    split = _reachable_split(exclusions)
+    if split["refusal"]:
+        tail = ("So how many of them are reachable by fixing this company's own code is NOT "
+                "STATED here, and the reason is {}. Attributing that count to either side would "
+                "be a guess, and this page has published the flattering one before."
+                .format(split["refusal"]))
+    elif split["reachable"]:
+        tail = "So {:,} of them are reachable by fixing this company's own code".format(
+            split["reachable"])
+        # THE UNREACHABLE HALF, IN THE SAME SENTENCE AND WITH ITS REASON. The reader who acts on
+        # the reachable count is sizing a piece of work, and the number beside it is what that
+        # work cannot touch however well it is done.
+        if split["ceiling_from_the_mixed_class"]:
+            tail += (", and the {:,} alongside them in the same mixed class are NOT -- those are "
+                     "households the world settled on a product with no renewal to price, so no "
+                     "repair to our code moves one of them"
+                     .format(split["ceiling_from_the_mixed_class"]))
+        tail += "; the remaining {:,} are the arm's ceiling rather than its backlog.".format(
+            split["ceiling"] - split["ceiling_from_the_mixed_class"])
+    else:
+        tail = ("So NONE of them is reachable by fixing this company's own code: what bounds the "
+                "arm here is what the arm is for and what the world's book is made of, not "
+                "plumbing.")
     return ("Of the {:,} renewals the arm did not price: ".format(total)
             + "; ".join(parts) + ". " + tail)
 

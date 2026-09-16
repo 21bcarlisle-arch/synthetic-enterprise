@@ -5964,6 +5964,84 @@ def test_a_mixed_breakdown_reports_the_two_halves_apart():
         "a mixed breakdown published one number, so the reader cannot tell what is reachable")
 
 
+def test_the_attribution_splits_a_mixed_class_by_its_own_breakdown_and_never_whole():
+    """THE DEFECT, in the run it shipped from (2026-09-16). 1,505 published; 158 is the answer.
+
+    `_attribution_sentence` summed the mixed class into the reachable side wholesale, so the page
+    told a reader that 1,505 renewals were reachable by fixing our own code while the breakdown
+    rendered two lines below it said 1,347 of them were SVT households with no renewal to price.
+    Wrong by a factor of nine about the size of its own backlog, on the one page that carries the
+    answer to the thesis, and it decides what gets built next.
+    """
+    sentence = gva._attribution_sentence(
+        gva._exclusions(_funnel({"'svt'": 1347, "None": 158}, count=1505)), 1953)
+    assert "158 of them are reachable by fixing this company's own code" in sentence
+    assert "1,505 of them are reachable" not in sentence, (
+        "the mixed class is still attributed whole to the side that flatters us")
+    # THE UNREACHABLE HALF IS IN THE SAME SENTENCE, WITH ITS REASON -- a reader sizing the work
+    # needs the number the work cannot touch beside the number it can.
+    assert "1,347" in sentence and "no renewal to price" in sentence, (
+        "the ceiling half of the mixed class is not stated beside the reachable half")
+
+
+def test_the_mixed_split_is_keyed_to_the_breakdown_and_not_to_todays_answer():
+    """Swap which half is the defect and the sentence swaps with it, with nobody editing a string.
+
+    Without this leg the fix above is pinned to one run: a version that hard-coded "the defect
+    half is the small one" would publish 158 for ever, including the day the labelling defect came
+    back at scale. Same counts, opposite labels, opposite verdict.
+    """
+    sentence = gva._attribution_sentence(
+        gva._exclusions(_funnel({"'svt'": 158, "None": 1347}, count=1505)), 1953)
+    assert "1,347 of them are reachable by fixing this company's own code" in sentence
+    assert "158 alongside them in the same mixed class are NOT" in sentence
+
+
+def test_a_mixed_class_with_no_usable_breakdown_refuses_to_state_a_reachable_count():
+    """FAIL CLOSED. Attributing a mixed row whole is a guess either way, and we shipped the nice one.
+
+    The refusal is the point: "we cannot tell" is a result and it belongs in the sentence, not in
+    a silent choice of side. Both shapes that can produce it are here -- no breakdown at all, and
+    a breakdown that accounts for only part of the row -- because the second one lets the missing
+    remainder fall onto whichever side the arithmetic favours.
+    """
+    blind = [{"stage": "product_not_upliftable", "count": 1505,
+              "exclusion_class": gva._CLASS_MIXED, "breakdown_available": False,
+              "by_tariff_type": []},
+             {"stage": "acquisition_term", "count": 252,
+              "exclusion_class": gva._CLASS_DELIBERATE_SCOPE}]
+    assert gva._reachable_split(blind)["reachable"] is None
+    sentence = gva._attribution_sentence(blind, 1953)
+    assert "NOT STATED" in sentence and "1,505" in sentence
+    assert "1,505 of them are reachable" not in sentence
+
+    partial = [{"stage": "product_not_upliftable", "count": 1505,
+                "exclusion_class": gva._CLASS_MIXED, "breakdown_available": True,
+                "by_tariff_type": [{"tariff_type": "svt", "count": 1000, "is_a_defect": False},
+                                   {"tariff_type": "None", "count": 158, "is_a_defect": True}]}]
+    assert gva._reachable_split(partial)["reachable"] is None, (
+        "a breakdown covering 1,158 of 1,505 still produced a confident count, so the 347 it "
+        "never saw were attributed by arithmetic rather than by evidence")
+    assert "1,158 of its 1,505" in gva._attribution_sentence(partial, 1953)
+
+
+def test_an_unattributed_class_cannot_be_counted_as_the_arms_ceiling():
+    """The mirror of the same defect. A run that recorded no products knows neither side.
+
+    Every run before 2026-08-30 is this case. The old tail put them in "the rest are the arm's
+    ceiling rather than its backlog" by elimination -- the same wholesale attribution as the
+    mixed class, pointing the other way, and just as unearned.
+    """
+    unknown = [{"stage": "product_not_upliftable", "count": 1223,
+                "exclusion_class": gva._CLASS_NOT_ESTABLISHED, "breakdown_available": False,
+                "by_tariff_type": []}]
+    assert gva._reachable_split(unknown)["reachable"] is None
+    sentence = gva._attribution_sentence(unknown, 1953)
+    assert "NOT STATED" in sentence
+    assert "arm's ceiling rather than its backlog" not in sentence, (
+        "renewals whose product this run never recorded are being called the ceiling anyway")
+
+
 def test_a_run_with_no_breakdown_refuses_to_name_a_cause():
     """FAIL CLOSED. Every run before 2026-08-30 is this case, and none of them may read as clean."""
     row = _gate_row(_funnel(None))

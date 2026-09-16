@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T19:26:04.218964Z",
+  "generated_at": "2026-09-16T00:03:53.950586Z",
   "what_this_is": "The same book and the same world, run once per pricing arm, scored on what actually happened. No figure here is anything the company believed.",
   "provisional": true,
   "provisional_note": "PROVISIONAL. This is one run of each arm on one world, and the error bar below is wider than the effect it is measuring. It is published because withholding it while publishing the profitable-looking half would be the misleading choice, not because it is settled.",
@@ -494,7 +494,7 @@
     "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
     "short": "9cf9d16ed",
     "resolved_at": "2026-09-10T13:28:13Z",
-    "publishing_tree_commit": "dc024bed36de62ce170e2f272dde5c9640470145",
+    "publishing_tree_commit": "cd952db813f30f8c26cb612eecd981d60e9fad7d",
     "produced_by_the_tree_it_publishes_from": false,
     "counts_are_labelled_by_the_code_that_made_them": true,
     "objective": {
@@ -506,7 +506,7 @@
       "objective_moved_since_the_run": false,
       "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     },
-    "reading": "Produced at 9cf9d16ed and published from dc024bed3 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+    "reading": "Produced at 9cf9d16ed and published from cd952db81 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
   },
   "world_provenance": {
     "available": true,
@@ -901,7 +901,7 @@
       "commit": "9cf9d16edfe3362751dc115edb0c038bc31bfe9e",
       "short": "9cf9d16ed",
       "resolved_at": "2026-09-10T13:28:13Z",
-      "publishing_tree_commit": "dc024bed36de62ce170e2f272dde5c9640470145",
+      "publishing_tree_commit": "cd952db813f30f8c26cb612eecd981d60e9fad7d",
       "produced_by_the_tree_it_publishes_from": false,
       "counts_are_labelled_by_the_code_that_made_them": true,
       "objective": {
@@ -913,7 +913,7 @@
         "objective_moved_since_the_run": false,
         "clause": "The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
       },
-      "reading": "Produced at 9cf9d16ed and published from dc024bed3 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
+      "reading": "Produced at 9cf9d16ed and published from cd952db81 -- the code was replaced between the run and this page, so read every count here as the older tree's. The renewal objective is the same rule at both commits -- `departure_cost_gbp` is present in `company/pricing/value_based_renewal.py` at each -- so the arm described is the arm running on that axis."
     }
   },
   "realised": {
@@ -2823,7 +2823,7 @@
       "sentence": "The method has priced 90 accounts the company found rather than started with (PROS-2016-0042, PROS-2016-0067, PROS-2016-0099, PROS-2016-0121, PROS-2017-0038, PROS-2017-0065, PROS-2017-0084, PROS-2017-0130, PROS-2017-0160, PROS-2017-0185, PROS-2018-0016, PROS-2018-0039, PROS-2018-0080, PROS-2018-0137, PROS-2018-0161, PROS-2018-0223, PROS-2018-0238, PROS-2019-0009, PROS-2019-0024, PROS-2019-0069, PROS-2019-0105, PROS-2019-0135, PROS-2019-0164, PROS-2019-0190, PROS-2019-0216, PROS-2019-0255, PROS-2019-0302, PROS-2019-0310, PROS-2019-0329, PROS-2020-0012, PROS-2020-0032, PROS-2020-0067, PROS-2020-0170, PROS-2020-0190, PROS-2020-0221, PROS-2020-0249, PROS-2020-0347, PROS-2020-0391, PROS-2021-0029, PROS-2021-0060, PROS-2021-0105, PROS-2021-0133, PROS-2021-0175, PROS-2021-0212, PROS-2021-0248, PROS-2021-0288, PROS-2021-0324, PROS-2021-0362, PROS-2021-0399, PROS-2022-0019, PROS-2022-0049, PROS-2023-0001, PROS-2023-0025, PROS-2023-0072, PROS-2023-0113, PROS-2023-0146, PROS-2023-0172, PROS-2023-0225, PROS-2023-0280, PROS-2023-0305, PROS-2024-0014, PROS-2024-0040, PROS-2024-0110, PROS-2024-0131, PROS-2024-0179, SYN-2016-001, SYN-2016-004, SYN-2016-007, SYN-2016-008, SYN-2016-009, SYN-2016-015, SYN-2016-018, SYN-2016-019, SYN-2016-020, SYN-2016-022, SYN-2016-023, SYN-2016-026, SYN-2016-028, SYN-2016-030, SYN-2016-032, SYN-2016-034, SYN-2016-036, SYN-2016-042, SYN-2016-044, SYN-2016-045, SYN-2016-048, SYN-2016-055, SYN-2016-057, SYN-2016-060, SYN-2016-062). The gate that used to refuse every won household is passable, so what limits this experiment now is book size, not eligibility.",
       "what_is_owed": "Two different things, and only one of them is work: 158 terms carry no decided product and are ours to close; the other 1,347 are households on a product with no renewal to price, which no repair reaches."
     },
-    "concentration_note": "13 of the 17 accounts the artefact names among its scored decisions are customers the company FOUND rather than started with; the other 4 are from the founding roster. Of the 1,822 renewals the arm did not price: 1,505 (83%) are a mix of our defect and the world's product mix, reported apart in the breakdown; 252 (14%) are DELIBERATE SCOPE -- the arm was never pointed at them; 65 (4%) are renewals the arm RAN on and declined, which is a decision not an omission. So 1,505 of them are reachable by fixing this company's own code, and the rest are the arm's ceiling rather than its backlog.",
+    "concentration_note": "13 of the 17 accounts the artefact names among its scored decisions are customers the company FOUND rather than started with; the other 4 are from the founding roster. Of the 1,822 renewals the arm did not price: 1,505 (83%) are a mix of our defect and the world's product mix, reported apart in the breakdown; 252 (14%) are DELIBERATE SCOPE -- the arm was never pointed at them; 65 (4%) are renewals the arm RAN on and declined, which is a decision not an omission. So 158 of them are reachable by fixing this company's own code, and the 1,347 alongside them in the same mixed class are NOT -- those are households the world settled on a product with no renewal to price, so no repair to our code moves one of them; the remaining 317 are the arm's ceiling rather than its backlog.",
     "discrimination_auc": 0.6147812971342383,
     "auc_population": {
       "retained": 85,
